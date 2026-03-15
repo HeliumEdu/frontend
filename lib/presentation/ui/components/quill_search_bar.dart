@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_quill/flutter_quill.dart';
 import 'package:heliumapp/config/app_theme.dart';
+import 'package:heliumapp/utils/app_style.dart';
 
 /// A custom search bar for QuillEditor that maintains focus properly.
 ///
@@ -36,6 +37,8 @@ class _QuillSearchBarState extends State<QuillSearchBar> {
   List<int> _offsets = [];
   int _index = 0;
   Timer? _searchTimer;
+  bool _caseSensitive = false;
+  bool _wholeWord = false;
 
   @override
   void initState() {
@@ -77,8 +80,8 @@ class _QuillSearchBarState extends State<QuillSearchBar> {
       final currPos = _offsets.isNotEmpty ? _offsets[_index] : 0;
       _offsets = widget.controller.document.search(
         _searchText,
-        caseSensitive: false,
-        wholeWord: false,
+        caseSensitive: _caseSensitive,
+        wholeWord: _wholeWord,
       );
       _index = 0;
 
@@ -195,77 +198,120 @@ class _QuillSearchBarState extends State<QuillSearchBar> {
         child: Row(
           children: [
             IconButton(
-              icon: const Icon(Icons.close, size: 20),
-              tooltip: 'Close',
+              icon: Icon(
+                Icons.close,
+                size: 20,
+                color: context.colorScheme.onSurface.withValues(alpha: 0.4),
+              ),
               visualDensity: VisualDensity.compact,
               onPressed: _close,
             ),
             const SizedBox(width: 4),
             Expanded(
               child: SizedBox(
-                height: 36,
-                child: TextField(
-                  controller: _textController,
-                  focusNode: _searchFocusNode,
-                  autofocus: true,
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: context.colorScheme.onSurface,
+                height: 40,
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: context.colorScheme.surface,
+                    border: Border.all(
+                      color: context.colorScheme.outline.withValues(alpha: 0.2),
+                    ),
+                    borderRadius: BorderRadius.circular(8),
                   ),
-                  decoration: InputDecoration(
-                    hintText: 'Find in note...',
-                    hintStyle: TextStyle(
-                      color: context.colorScheme.onSurface.withValues(alpha: 0.5),
-                    ),
-                    isDense: true,
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 8,
-                    ),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(6),
-                      borderSide: BorderSide(
-                        color: context.colorScheme.outline.withValues(alpha: 0.3),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: TextField(
+                      controller: _textController,
+                      focusNode: _searchFocusNode,
+                      autofocus: true,
+                      style: AppStyles.formText(context),
+                      decoration: InputDecoration(
+                        hintText: 'Search ...',
+                        hintStyle: AppStyles.formHint(context),
+                        border: InputBorder.none,
+                        enabledBorder: InputBorder.none,
+                        focusedBorder: InputBorder.none,
+                        isDense: true,
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 10,
+                        ),
+                        suffixText: _matchText,
+                        suffixStyle: AppStyles.formHint(context).copyWith(
+                          fontSize: 12,
+                        ),
                       ),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(6),
-                      borderSide: BorderSide(
-                        color: context.colorScheme.outline.withValues(alpha: 0.3),
-                      ),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(6),
-                      borderSide: BorderSide(
-                        color: context.colorScheme.primary,
-                      ),
-                    ),
-                    filled: true,
-                    fillColor: context.colorScheme.surface,
-                    suffixText: _matchText,
-                    suffixStyle: TextStyle(
-                      fontSize: 12,
-                      color: context.colorScheme.onSurface.withValues(alpha: 0.6),
+                      onChanged: _onTextChanged,
+                      textInputAction: TextInputAction.search,
+                      onSubmitted: (_) => _moveToNext(),
                     ),
                   ),
-                  onChanged: _onTextChanged,
-                  textInputAction: TextInputAction.search,
-                  onSubmitted: (_) => _moveToNext(),
                 ),
               ),
             ),
             const SizedBox(width: 4),
             IconButton(
-              icon: const Icon(Icons.keyboard_arrow_up, size: 20),
+              icon: Icon(
+                Icons.keyboard_arrow_up,
+                size: 20,
+                color: _offsets.isNotEmpty
+                    ? context.colorScheme.primary
+                    : context.colorScheme.onSurface.withValues(alpha: 0.4),
+              ),
               tooltip: 'Previous',
               visualDensity: VisualDensity.compact,
               onPressed: _offsets.isNotEmpty ? _moveToPrevious : null,
             ),
             IconButton(
-              icon: const Icon(Icons.keyboard_arrow_down, size: 20),
+              icon: Icon(
+                Icons.keyboard_arrow_down,
+                size: 20,
+                color: _offsets.isNotEmpty
+                    ? context.colorScheme.primary
+                    : context.colorScheme.onSurface.withValues(alpha: 0.4),
+              ),
               tooltip: 'Next',
               visualDensity: VisualDensity.compact,
               onPressed: _offsets.isNotEmpty ? _moveToNext : null,
+            ),
+            const SizedBox(width: 4),
+            IconButton(
+              icon: Icon(
+                Icons.text_fields,
+                size: 18,
+                color: _caseSensitive
+                    ? context.colorScheme.primary
+                    : context.colorScheme.onSurface.withValues(alpha: 0.4),
+              ),
+              tooltip: 'Match case',
+              visualDensity: VisualDensity.compact,
+              onPressed: () {
+                setState(() {
+                  _caseSensitive = !_caseSensitive;
+                });
+                if (_searchText.isNotEmpty) {
+                  _findText();
+                }
+              },
+            ),
+            IconButton(
+              icon: Icon(
+                Icons.border_outer,
+                size: 18,
+                color: _wholeWord
+                    ? context.colorScheme.primary
+                    : context.colorScheme.onSurface.withValues(alpha: 0.4),
+              ),
+              tooltip: 'Match whole word',
+              visualDensity: VisualDensity.compact,
+              onPressed: () {
+                setState(() {
+                  _wholeWord = !_wholeWord;
+                });
+                if (_searchText.isNotEmpty) {
+                  _findText();
+                }
+              },
             ),
           ],
         ),
