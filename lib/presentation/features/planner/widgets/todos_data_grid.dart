@@ -105,10 +105,6 @@ class TodosDataGridState extends State<TodosDataGrid> {
   int _currentPage = 1;
   int _itemsPerPage = 10;
 
-  // Sort state (folded in from TodosTableController)
-  TodosSortColumn _sortColumn = TodosSortColumn.dueDate;
-  bool _sortAscending = true;
-
   @override
   void initState() {
     super.initState();
@@ -137,7 +133,7 @@ class TodosDataGridState extends State<TodosDataGrid> {
   void _onDataSourceChanged() {
     if (!mounted) return;
     _dataSource.update(
-      homeworks: _sortHomeworks(widget.dataSource.filteredHomeworks),
+      homeworks: widget.dataSource.filteredHomeworks,
       context: context,
       dataSource: widget.dataSource,
       onTap: widget.onTap,
@@ -149,7 +145,7 @@ class TodosDataGridState extends State<TodosDataGrid> {
 
   TodosDataSource _buildDataSource() {
     return TodosDataSource(
-      homeworks: _sortHomeworks(widget.dataSource.filteredHomeworks),
+      homeworks: widget.dataSource.filteredHomeworks,
       context: context,
       dataSource: widget.dataSource,
       onTap: widget.onTap,
@@ -205,10 +201,16 @@ class TodosDataGridState extends State<TodosDataGrid> {
     );
     _hasInitializedNavigation = true;
 
-    // Reset sort to due date ascending
-    _sortColumn = TodosSortColumn.dueDate;
-    _sortAscending = true;
+    // Reset sort to due date ascending via SfDataGrid's sorting
+    _dataSource.sortedColumns.clear();
+    _dataSource.sortedColumns.add(
+      const SortColumnDetails(
+        name: 'dueDate',
+        sortDirection: DataGridSortDirection.ascending,
+      ),
+    );
 
+    // Sort by due date to calculate target page
     final sorted = List<HomeworkModel>.from(homeworks);
     sorted.sort((a, b) => a.start.compareTo(b.start));
 
@@ -248,25 +250,14 @@ class TodosDataGridState extends State<TodosDataGrid> {
   }
 
   void _syncPagerAndRefresh({bool markInitialized = false}) {
-    // Update data source with current sort
+    // Update data source
     _dataSource.update(
-      homeworks: _sortHomeworks(widget.dataSource.filteredHomeworks),
+      homeworks: widget.dataSource.filteredHomeworks,
       context: context,
       dataSource: widget.dataSource,
       onTap: widget.onTap,
       onToggleCompleted: widget.onToggleCompleted,
       onDelete: widget.onDelete,
-    );
-
-    // Update sort indicator in data source
-    _dataSource.sortedColumns.clear();
-    _dataSource.sortedColumns.add(
-      SortColumnDetails(
-        name: _sortColumnToName(_sortColumn),
-        sortDirection: _sortAscending
-            ? DataGridSortDirection.ascending
-            : DataGridSortDirection.descending,
-      ),
     );
 
     // Sync pager controller after frame is built (required for initial load)
@@ -284,106 +275,6 @@ class TodosDataGridState extends State<TodosDataGrid> {
     if (!markInitialized) {
       setState(() {});
     }
-  }
-
-  String _sortColumnToName(TodosSortColumn column) {
-    switch (column) {
-      case TodosSortColumn.completed:
-        return 'completed';
-      case TodosSortColumn.title:
-        return 'title';
-      case TodosSortColumn.dueDate:
-        return 'dueDate';
-      case TodosSortColumn.className:
-        return 'className';
-      case TodosSortColumn.category:
-        return 'category';
-      case TodosSortColumn.priority:
-        return 'priority';
-      case TodosSortColumn.grade:
-        return 'grade';
-    }
-  }
-
-  List<HomeworkModel> _sortHomeworks(List<HomeworkModel> homeworks) {
-    final dataSource = widget.dataSource;
-    final courses = dataSource.courses ?? [];
-    final categoriesMap = dataSource.categoriesMap ?? {};
-    final sorted = List<HomeworkModel>.from(homeworks);
-
-    sorted.sort((a, b) {
-      int comparison = 0;
-
-      switch (_sortColumn) {
-        case TodosSortColumn.completed:
-          final isCompletedA = dataSource.isHomeworkCompleted(a);
-          final isCompletedB = dataSource.isHomeworkCompleted(b);
-          comparison =
-              isCompletedA == isCompletedB ? 0 : (isCompletedA ? 1 : -1);
-        case TodosSortColumn.title:
-          comparison = a.title.toLowerCase().compareTo(b.title.toLowerCase());
-        case TodosSortColumn.dueDate:
-          comparison = a.start.compareTo(b.start);
-        case TodosSortColumn.className:
-          final courseA = courses.firstWhere(
-            (c) => c.id == a.course.id,
-            orElse: () => courses.first,
-          );
-          final courseB = courses.firstWhere(
-            (c) => c.id == b.course.id,
-            orElse: () => courses.first,
-          );
-          comparison = courseA.title.toLowerCase().compareTo(
-                courseB.title.toLowerCase(),
-              );
-        case TodosSortColumn.category:
-          final catA = categoriesMap.containsKey(a.category.id)
-              ? categoriesMap[a.category.id]!.title
-              : '';
-          final catB = categoriesMap.containsKey(b.category.id)
-              ? categoriesMap[b.category.id]!.title
-              : '';
-          comparison = catA.toLowerCase().compareTo(catB.toLowerCase());
-        case TodosSortColumn.priority:
-          comparison = a.priority.compareTo(b.priority);
-        case TodosSortColumn.grade:
-          // Grade column has 3 visual states that should be grouped:
-          // 1. Incomplete (grade column is hidden)
-          // 2. Completed with N/A grade (shows N/A badge)
-          // 3. Completed with valid grade (shows percentage)
-          // Groups 1 & 2 (no visible grade) always sort to the end,
-          // regardless of ascending/descending direction.
-          final isCompletedA = dataSource.isHomeworkCompleted(a);
-          final isCompletedB = dataSource.isHomeworkCompleted(b);
-          final parsedGradeA = GradeHelper.parseGrade(a.currentGrade);
-          final parsedGradeB = GradeHelper.parseGrade(b.currentGrade);
-
-          final hasGradeA = isCompletedA && parsedGradeA != null;
-          final hasGradeB = isCompletedB && parsedGradeB != null;
-
-          if (hasGradeA && hasGradeB) {
-            // Both have valid grades - compare values (respects sort direction)
-            comparison = parsedGradeA.compareTo(parsedGradeB);
-          } else if (hasGradeA && !hasGradeB) {
-            // A has grade, B doesn't - A comes first (always, ignoring sort direction)
-            // Return early to avoid direction flip
-            return _sortAscending ? -1 : -1;
-          } else if (!hasGradeA && hasGradeB) {
-            // B has grade, A doesn't - B comes first (always)
-            return _sortAscending ? 1 : 1;
-          } else {
-            // Neither has a visible grade - sort by state (hidden vs N/A)
-            // Hidden (incomplete) before N/A, always (direction-independent)
-            final stateA = !isCompletedA ? 0 : 1; // 0 = hidden, 1 = N/A
-            final stateB = !isCompletedB ? 0 : 1;
-            return stateA.compareTo(stateB); // Early return to skip direction flip
-          }
-      }
-
-      return _sortAscending ? comparison : -comparison;
-    });
-
-    return sorted;
   }
 
   bool _shouldShowColumn(TodosSortColumn column) {
@@ -404,11 +295,11 @@ class TodosDataGridState extends State<TodosDataGrid> {
 
   @override
   Widget build(BuildContext context) {
-    final sortedHomeworks = _isInitialized
-        ? _sortHomeworks(widget.dataSource.filteredHomeworks)
+    final homeworks = _isInitialized
+        ? widget.dataSource.filteredHomeworks
         : <HomeworkModel>[];
 
-    final totalItems = sortedHomeworks.length;
+    final totalItems = homeworks.length;
     final isShowingAll = _itemsPerPage == -1;
     final effectiveItemsPerPage =
         isShowingAll ? totalItems : _itemsPerPage;
@@ -622,7 +513,6 @@ class TodosDataGridState extends State<TodosDataGrid> {
         columnName: 'priority',
         label: _buildHeaderCell(TodosSortColumn.priority),
         width: 116,
-        allowSorting: false,
       ));
     }
 
@@ -774,28 +664,51 @@ class TodosDataSource extends DataGridSource {
 
   void _rebuildRows() {
     _homeworksById = {for (var hw in _homeworks) hw.id: hw};
-    _dataGridRows = _homeworks.map((homework) {
-      final courses = _dataSource.courses ?? [];
-      final categoriesMap = _dataSource.categoriesMap ?? {};
+    final courses = _dataSource.courses ?? [];
+    final categoriesMap = _dataSource.categoriesMap ?? {};
 
+    _dataGridRows = _homeworks.map((homework) {
       final course = courses.firstWhere(
         (c) => c.id == homework.course.id,
         orElse: () => courses.isNotEmpty ? courses.first : _fallbackCourse(),
       );
       final category = categoriesMap[homework.category.id];
 
+      // Compute sortable values for SfDataGrid's built-in sorting
+      final isCompleted = _dataSource.isHomeworkCompleted(homework);
+
+      // Grade: compute numeric value for sorting
+      // Ascending order: hidden (incomplete) → N/A → 1% → 100%
+      // - Hidden (incomplete): -2 (sorts first)
+      // - N/A (completed, no valid grade): -1 (sorts second)
+      // - Valid grade (0-100%): 0.0 to 1.0
+      final parsedGrade = GradeHelper.parseGrade(homework.currentGrade);
+      final double gradeSortValue;
+      if (!isCompleted) {
+        gradeSortValue = -2.0; // Hidden - sorts first in ascending
+      } else if (parsedGrade == null) {
+        gradeSortValue = -1.0; // N/A - sorts after hidden
+      } else {
+        gradeSortValue = parsedGrade / 100.0; // 0.0 to 1.0 for valid grades
+      }
+
+      // Class/Category: store title for alphabetical sorting
+      final courseTitle = course.title.toLowerCase();
+      final categoryTitle = category?.title.toLowerCase() ?? '';
+
       return DataGridRow(cells: [
-        DataGridCell<int>(columnName: 'completed', value: homework.id),
-        DataGridCell<String>(columnName: 'title', value: homework.title),
+        // Store as int (0/1) since bool isn't Comparable in Dart
+        DataGridCell<int>(columnName: 'completed', value: isCompleted ? 1 : 0),
+        DataGridCell<String>(columnName: 'title', value: homework.title.toLowerCase()),
         DataGridCell<DateTime>(columnName: 'dueDate', value: homework.start),
-        DataGridCell<int>(columnName: 'className', value: course.id),
-        DataGridCell<int?>(columnName: 'category', value: category?.id),
+        DataGridCell<String>(columnName: 'className', value: courseTitle),
+        DataGridCell<String>(columnName: 'category', value: categoryTitle),
         DataGridCell<int>(columnName: 'priority', value: homework.priority),
-        DataGridCell<String?>(columnName: 'grade', value: homework.currentGrade),
+        DataGridCell<double>(columnName: 'grade', value: gradeSortValue),
         DataGridCell<int>(columnName: 'resources', value: homework.resources.length),
         DataGridCell<int>(columnName: 'attachments', value: homework.attachments.length),
         DataGridCell<int>(columnName: 'actions', value: homework.id),
-        // Internal cells for row data
+        // Internal cells for row data (used for rendering, not sorting)
         DataGridCell<int>(columnName: '_homeworkId', value: homework.id),
         DataGridCell<int>(columnName: '_courseId', value: course.id),
         DataGridCell<Color>(columnName: '_courseColor', value: course.color),
@@ -803,6 +716,9 @@ class TodosDataSource extends DataGridSource {
         DataGridCell<Color?>(columnName: '_categoryColor', value: category?.color),
       ]);
     }).toList();
+
+    // Apply current sort order
+    _sortRows(_dataGridRows);
   }
 
   CourseModel _fallbackCourse() {
@@ -826,6 +742,40 @@ class TodosDataSource extends DataGridSource {
 
   @override
   List<DataGridRow> get rows => _dataGridRows;
+
+  @override
+  Future<void> performSorting(List<DataGridRow> rows) async {
+    _sortRows(rows);
+  }
+
+  void _sortRows(List<DataGridRow> rows) {
+    if (sortedColumns.isEmpty) return;
+
+    final sortColumn = sortedColumns.first;
+    final ascending =
+        sortColumn.sortDirection == DataGridSortDirection.ascending;
+
+    rows.sort((a, b) {
+      final cellA = a.getCells().firstWhere(
+            (c) => c.columnName == sortColumn.name,
+            orElse: () => const DataGridCell<String>(columnName: '', value: ''),
+          );
+      final cellB = b.getCells().firstWhere(
+            (c) => c.columnName == sortColumn.name,
+            orElse: () => const DataGridCell<String>(columnName: '', value: ''),
+          );
+
+      int comparison = 0;
+      final valueA = cellA.value;
+      final valueB = cellB.value;
+
+      if (valueA is Comparable && valueB is Comparable) {
+        comparison = valueA.compareTo(valueB);
+      }
+
+      return ascending ? comparison : -comparison;
+    });
+  }
 
   HomeworkModel? getHomeworkAtRow(int rowIndex) {
     if (rowIndex < 0 || rowIndex >= _dataGridRows.length) return null;
