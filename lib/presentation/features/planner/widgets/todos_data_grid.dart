@@ -20,6 +20,7 @@ import 'package:heliumapp/presentation/ui/components/helium_pager.dart';
 import 'package:heliumapp/presentation/ui/feedback/empty_card.dart';
 import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
 import 'package:heliumapp/utils/app_globals.dart';
+import 'package:heliumapp/utils/sort_helpers.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/color_helpers.dart';
 import 'package:heliumapp/utils/date_time_helpers.dart';
@@ -102,7 +103,7 @@ class TodosDataGridState extends State<TodosDataGrid> {
   bool _isInitialized = false;
   bool _hasInitializedNavigation = false;
 
-  // Pagination state (folded in from TodosTableController)
+  // Pagination state
   int _currentPage = 1;
   int _itemsPerPage = 10;
 
@@ -619,7 +620,7 @@ class TodosDataGridState extends State<TodosDataGrid> {
 
 /// DataGridSource that wraps PlannerItemDataSource for SfDataGrid.
 /// References the same underlying data - no duplication.
-class TodosDataSource extends DataGridSource {
+class TodosDataSource extends DataGridSource with SortableDataGridSource {
   List<HomeworkModel> _homeworks;
   BuildContext _context;
   PlannerItemDataSource _dataSource;
@@ -726,7 +727,7 @@ class TodosDataSource extends DataGridSource {
     }).toList();
 
     // Apply current sort order
-    _sortRows(_dataGridRows);
+    sortDataGridRows(_dataGridRows);
   }
 
   CourseModel _fallbackCourse() {
@@ -753,36 +754,7 @@ class TodosDataSource extends DataGridSource {
 
   @override
   Future<void> performSorting(List<DataGridRow> rows) async {
-    _sortRows(rows);
-  }
-
-  void _sortRows(List<DataGridRow> rows) {
-    if (sortedColumns.isEmpty) return;
-
-    final sortColumn = sortedColumns.first;
-    final ascending =
-        sortColumn.sortDirection == DataGridSortDirection.ascending;
-
-    rows.sort((a, b) {
-      final cellA = a.getCells().firstWhere(
-            (c) => c.columnName == sortColumn.name,
-            orElse: () => const DataGridCell<String>(columnName: '', value: ''),
-          );
-      final cellB = b.getCells().firstWhere(
-            (c) => c.columnName == sortColumn.name,
-            orElse: () => const DataGridCell<String>(columnName: '', value: ''),
-          );
-
-      int comparison = 0;
-      final valueA = cellA.value;
-      final valueB = cellB.value;
-
-      if (valueA is Comparable && valueB is Comparable) {
-        comparison = valueA.compareTo(valueB);
-      }
-
-      return ascending ? comparison : -comparison;
-    });
+    sortDataGridRows(rows);
   }
 
   HomeworkModel? getHomeworkAtRow(int rowIndex) {

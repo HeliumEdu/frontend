@@ -6,6 +6,7 @@
 // For details regarding the license, please refer to the LICENSE file.
 
 import 'package:heliumapp/data/models/base_model.dart';
+import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 import 'package:heliumapp/data/models/planner/course_schedule_event_model.dart';
 import 'package:heliumapp/data/models/planner/course_group_model.dart';
 import 'package:heliumapp/data/models/planner/homework_model.dart';
@@ -230,5 +231,55 @@ class Sort {
       source.millisecond,
       source.microsecond,
     );
+  }
+}
+
+/// Mixin that provides standard sorting behavior for SfDataGrid data sources.
+///
+/// This mixin implements case-insensitive sorting using the cell values stored
+/// in DataGridRow. Cell values should be stored as sortable types (lowercase
+/// strings for case-insensitive text sorting, numeric values for grades, etc.).
+///
+/// Usage:
+/// ```dart
+/// class MyDataSource extends DataGridSource with SortableDataGridSource {
+///   void _rebuildRows() {
+///     _rows = ...;
+///     sortDataGridRows(_rows); // Apply current sort after rebuilding
+///   }
+/// }
+/// ```
+mixin SortableDataGridSource on DataGridSource {
+  /// Sorts the given rows based on the current [sortedColumns] state.
+  ///
+  /// Call this after rebuilding rows to maintain sort order, and from
+  /// [performSorting] to handle user-initiated sorts.
+  void sortDataGridRows(List<DataGridRow> rows) {
+    if (sortedColumns.isEmpty) return;
+
+    final sortColumn = sortedColumns.first;
+    final ascending =
+        sortColumn.sortDirection == DataGridSortDirection.ascending;
+
+    rows.sort((a, b) {
+      final cellA = a.getCells().firstWhere(
+            (c) => c.columnName == sortColumn.name,
+            orElse: () => const DataGridCell<String>(columnName: '', value: ''),
+          );
+      final cellB = b.getCells().firstWhere(
+            (c) => c.columnName == sortColumn.name,
+            orElse: () => const DataGridCell<String>(columnName: '', value: ''),
+          );
+
+      int comparison = 0;
+      final valueA = cellA.value;
+      final valueB = cellB.value;
+
+      if (valueA is Comparable && valueB is Comparable) {
+        comparison = valueA.compareTo(valueB);
+      }
+
+      return ascending ? comparison : -comparison;
+    });
   }
 }

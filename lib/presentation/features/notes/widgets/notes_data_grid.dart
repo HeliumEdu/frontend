@@ -22,6 +22,7 @@ import 'package:heliumapp/utils/date_time_helpers.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:syncfusion_flutter_core/theme.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
+import 'package:heliumapp/utils/sort_helpers.dart';
 
 class NotesDataGrid extends StatefulWidget {
   final List<NoteModel> notes;
@@ -323,7 +324,7 @@ class _NotesDataGridState extends State<NotesDataGrid> {
 
 }
 
-class NotesDataSource extends DataGridSource {
+class NotesDataSource extends DataGridSource with SortableDataGridSource {
   List<NoteModel> notes;
   BuildContext context;
   UserSettingsModel? userSettings;
@@ -384,7 +385,7 @@ class NotesDataSource extends DataGridSource {
     _dataGridRows = _allRows;
 
     // Apply current sort order
-    _sortRows(_dataGridRows);
+    sortDataGridRows(_dataGridRows);
   }
 
   void update({
@@ -408,36 +409,7 @@ class NotesDataSource extends DataGridSource {
 
   @override
   Future<void> performSorting(List<DataGridRow> rows) async {
-    _sortRows(rows);
-  }
-
-  void _sortRows(List<DataGridRow> rows) {
-    if (sortedColumns.isEmpty) return;
-
-    final sortColumn = sortedColumns.first;
-    final ascending =
-        sortColumn.sortDirection == DataGridSortDirection.ascending;
-
-    rows.sort((a, b) {
-      final cellA = a.getCells().firstWhere(
-            (c) => c.columnName == sortColumn.name,
-            orElse: () => const DataGridCell<String>(columnName: '', value: ''),
-          );
-      final cellB = b.getCells().firstWhere(
-            (c) => c.columnName == sortColumn.name,
-            orElse: () => const DataGridCell<String>(columnName: '', value: ''),
-          );
-
-      int comparison = 0;
-      final valueA = cellA.value;
-      final valueB = cellB.value;
-
-      if (valueA is Comparable && valueB is Comparable) {
-        comparison = valueA.compareTo(valueB);
-      }
-
-      return ascending ? comparison : -comparison;
-    });
+    sortDataGridRows(rows);
   }
 
   NoteModel? getNoteAtRow(int rowIndex) {
