@@ -490,7 +490,7 @@ class TodosDataGridState extends State<TodosDataGrid> {
     columns.add(GridColumn(
       columnName: 'title',
       label: _buildHeaderCell(TodosSortColumn.title),
-      minimumWidth: 150,
+      minimumWidth: isMobile ? 105 : 150,
     ));
 
     columns.add(GridColumn(
