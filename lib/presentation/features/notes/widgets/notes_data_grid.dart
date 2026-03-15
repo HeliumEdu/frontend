@@ -95,7 +95,6 @@ class _NotesDataGridState extends State<NotesDataGrid> {
   Widget build(BuildContext context) {
     final isTouchDevice = Responsive.isTouchDevice(context);
     final isCompact = MediaQuery.of(context).size.width < 800;
-    final showLinkedTo = true;
     final showModified = !Responsive.isMobile(context);
     final showActions = !isTouchDevice;
 
@@ -373,6 +372,10 @@ class NotesDataSource extends DataGridSource with SortableDataGridSource {
           columnName: '_color',
           value: note.link?.linkedEntityColor,
         ),
+        DataGridCell<Color?>(
+          columnName: '_colorAlt',
+          value: note.link?.linkedEntityColorAlt,
+        ),
         DataGridCell<String>(
           columnName: '_entityType',
           value: note.link?.linkedEntityType ?? '',
@@ -434,15 +437,22 @@ class NotesDataSource extends DataGridSource with SortableDataGridSource {
             const DataGridCell<Color?>(columnName: '_color', value: null))
         .value as Color?;
 
+    final linkedEntityColorAlt = row.getCells()
+        .firstWhere((c) => c.columnName == '_colorAlt', orElse: () =>
+            const DataGridCell<Color?>(columnName: '_colorAlt', value: null))
+        .value as Color?;
+
     final entityType = row.getCells()
         .firstWhere((c) => c.columnName == '_entityType', orElse: () =>
             const DataGridCell<String>(columnName: '_entityType', value: ''))
         .value as String;
 
-    // Determine row color based on entity type
+    // Determine row color based on entity type and colorByCategory preference
     Color? rowColor;
     if (entityType == 'homework') {
-      rowColor = linkedEntityColor;
+      rowColor = (userSettings?.colorByCategory ?? false) && linkedEntityColorAlt != null
+          ? linkedEntityColorAlt
+          : linkedEntityColor;
     } else if (entityType == 'event') {
       rowColor = userSettings?.eventsColor;
     } else if (entityType == 'resource') {

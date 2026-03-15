@@ -16,6 +16,7 @@ class NoteLinkModel {
   final String linkedEntityType;
   final String? linkedEntityTitle;
   final Color? linkedEntityColor;
+  final Color? linkedEntityColorAlt;
 
   NoteLinkModel({
     required this.id,
@@ -25,6 +26,7 @@ class NoteLinkModel {
     required this.linkedEntityType,
     this.linkedEntityTitle,
     this.linkedEntityColor,
+    this.linkedEntityColorAlt,
   });
 
   factory NoteLinkModel.fromJson(Map<String, dynamic> json) {
@@ -37,6 +39,9 @@ class NoteLinkModel {
       linkedEntityTitle: json['linked_entity_title'],
       linkedEntityColor: json['linked_entity_color'] != null
           ? HeliumColors.hexToColor(json['linked_entity_color'])
+          : null,
+      linkedEntityColorAlt: json['linked_entity_color_alt'] != null
+          ? HeliumColors.hexToColor(json['linked_entity_color_alt'])
           : null,
     );
   }
@@ -52,6 +57,9 @@ class NoteLinkModel {
       'linked_entity_color': linkedEntityColor != null
           ? HeliumColors.colorToHex(linkedEntityColor!)
           : null,
+      'linked_entity_color_alt': linkedEntityColorAlt != null
+          ? HeliumColors.colorToHex(linkedEntityColorAlt!)
+          : null,
     };
   }
 
@@ -63,6 +71,7 @@ class NoteLinkModel {
     String? linkedEntityType,
     String? linkedEntityTitle,
     Color? linkedEntityColor,
+    Color? linkedEntityColorAlt,
   }) {
     return NoteLinkModel(
       id: id ?? this.id,
@@ -72,6 +81,7 @@ class NoteLinkModel {
       linkedEntityType: linkedEntityType ?? this.linkedEntityType,
       linkedEntityTitle: linkedEntityTitle ?? this.linkedEntityTitle,
       linkedEntityColor: linkedEntityColor ?? this.linkedEntityColor,
+      linkedEntityColorAlt: linkedEntityColorAlt ?? this.linkedEntityColorAlt,
     );
   }
 }
