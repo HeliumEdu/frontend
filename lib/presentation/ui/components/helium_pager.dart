@@ -95,6 +95,9 @@ class HeliumPager extends StatelessWidget {
             iconSize: 20,
             padding: EdgeInsets.zero,
             constraints: const BoxConstraints(),
+            style: IconButton.styleFrom(
+              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            ),
           ),
         if (isMobile) const SizedBox(width: 4),
         IconButton(
@@ -105,6 +108,9 @@ class HeliumPager extends StatelessWidget {
           iconSize: 20,
           padding: EdgeInsets.zero,
           constraints: const BoxConstraints(),
+          style: IconButton.styleFrom(
+            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          ),
         ),
         const SizedBox(width: 8),
         ..._buildPageNumbers(context, isMobile),
@@ -117,6 +123,9 @@ class HeliumPager extends StatelessWidget {
           iconSize: 20,
           padding: EdgeInsets.zero,
           constraints: const BoxConstraints(),
+          style: IconButton.styleFrom(
+            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          ),
         ),
         if (isMobile) const SizedBox(width: 4),
         if (isMobile)
@@ -126,6 +135,9 @@ class HeliumPager extends StatelessWidget {
             iconSize: 20,
             padding: EdgeInsets.zero,
             constraints: const BoxConstraints(),
+            style: IconButton.styleFrom(
+              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            ),
           ),
       ],
     );
