@@ -1084,7 +1084,7 @@ class _SettingsScreenViewState extends BasePageScreenState<SettingsScreen> {
             content: SizedBox(
               width: Responsive.getDialogWidth(context),
               child: Text(
-                'Are you sure you want to delete all Events? Anything associated with them, including attachments and other data, will also be deleted. This action cannot be undone.',
+                'Are you sure you want to delete all Events? Anything associated with them, including attachments, notes, and other data, will also be deleted. This action cannot be undone.',
                 style: AppStyles.standardBodyText(context),
               ),
             ),

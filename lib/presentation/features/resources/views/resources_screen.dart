@@ -356,7 +356,7 @@ class _ResourcesScreenState
                         parentContext: context,
                         item: resource,
                         additionalWarning:
-                            'Anything associated with this resource, including attachments and other data, will also be deleted.',
+                            'Its associated attachments and note will also be deleted.',
                         onDelete: (m) {
                           context.read<ResourceBloc>().add(
                             DeleteResourceEvent(

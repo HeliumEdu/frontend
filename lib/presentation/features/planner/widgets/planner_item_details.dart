@@ -1183,7 +1183,7 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
     showConfirmDeleteDialog(
       parentContext: context,
       item: _plannerItem!,
-      additionalWarning: 'Attachments will also be deleted.',
+      additionalWarning: 'Its attachments and note will also be deleted.',
       onDelete: onDelete,
     );
   }
