@@ -84,7 +84,7 @@ class NotesEditor extends StatelessWidget {
               TextButton.icon(
                 onPressed: onOpenInNotes,
                 icon: Icon(
-                  Icons.open_in_new,
+                  Icons.library_books,
                   size: 16,
                   color: context.colorScheme.primary,
                 ),
@@ -94,11 +94,6 @@ class NotesEditor extends StatelessWidget {
                     fontSize: 12,
                     color: context.colorScheme.primary,
                   ),
-                ),
-                style: TextButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  minimumSize: Size.zero,
-                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                 ),
               ),
           ],
