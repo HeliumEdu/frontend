@@ -11,8 +11,8 @@ import 'package:heliumapp/data/models/auth/user_model.dart';
 import 'package:heliumapp/data/models/planner/note_model.dart';
 import 'package:heliumapp/presentation/ui/components/course_title_label.dart';
 import 'package:heliumapp/presentation/ui/components/helium_icon_button.dart';
-import 'package:heliumapp/presentation/ui/components/resource_title_label.dart';
 import 'package:heliumapp/presentation/ui/components/helium_pager.dart';
+import 'package:heliumapp/presentation/ui/components/resource_title_label.dart';
 import 'package:heliumapp/presentation/ui/feedback/empty_card.dart';
 import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
 import 'package:heliumapp/utils/app_globals.dart';
@@ -20,9 +20,9 @@ import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/color_helpers.dart';
 import 'package:heliumapp/utils/date_time_helpers.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
+import 'package:heliumapp/utils/sort_helpers.dart';
 import 'package:syncfusion_flutter_core/theme.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
-import 'package:heliumapp/utils/sort_helpers.dart';
 
 class NotesDataGrid extends StatefulWidget {
   final List<NoteModel> notes;
@@ -108,7 +108,11 @@ class _NotesDataGridState extends State<NotesDataGrid> {
     if (effectiveCurrentPage > totalPages && totalPages > 0) {
       effectiveCurrentPage = 1;
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted && _currentPage != 1) setState(() { _currentPage = 1; });
+        if (mounted && _currentPage != 1) {
+          setState(() {
+            _currentPage = 1;
+          });
+        }
       });
     }
 
@@ -119,8 +123,9 @@ class _NotesDataGridState extends State<NotesDataGrid> {
         ? totalItems
         : (startIndex + widget.rowsPerPage).clamp(0, totalItems);
 
-    final headerColor = context.colorScheme.surfaceContainerHighest
-        .withValues(alpha: 0.5);
+    final headerColor = context.colorScheme.surfaceContainerHighest.withValues(
+      alpha: 0.5,
+    );
 
     return Stack(
       children: [
@@ -150,7 +155,9 @@ class _NotesDataGridState extends State<NotesDataGrid> {
                           headerColor: headerColor,
                         ),
                         child: SfDataGrid(
-                          key: ValueKey('notes_grid_${showModified}_${showActions}_$isCompact'),
+                          key: ValueKey(
+                            'notes_grid_${showModified}_${showActions}_$isCompact',
+                          ),
                           source: _dataSource,
                           controller: _controller,
                           columnWidthMode: ColumnWidthMode.fill,
@@ -159,11 +166,14 @@ class _NotesDataGridState extends State<NotesDataGrid> {
                           gridLinesVisibility: GridLinesVisibility.none,
                           headerGridLinesVisibility: GridLinesVisibility.none,
                           selectionMode: SelectionMode.none,
-                          horizontalScrollPhysics: const NeverScrollableScrollPhysics(),
+                          horizontalScrollPhysics:
+                              const NeverScrollableScrollPhysics(),
                           navigationMode: GridNavigationMode.row,
                           allowSorting: true,
                           sortingGestureType: SortingGestureType.tap,
-                          rowsPerPage: widget.rowsPerPage == -1 ? null : widget.rowsPerPage,
+                          rowsPerPage: widget.rowsPerPage == -1
+                              ? null
+                              : widget.rowsPerPage,
                           allowSwiping: isTouchDevice,
                           swipeMaxOffset: 80,
                           onSwipeStart: (details) {
@@ -194,9 +204,11 @@ class _NotesDataGridState extends State<NotesDataGrid> {
                           },
                           onCellTap: (details) {
                             if (details.rowColumnIndex.rowIndex > 0) {
-                              final rowIndex = details.rowColumnIndex.rowIndex - 1;
+                              final rowIndex =
+                                  details.rowColumnIndex.rowIndex - 1;
                               final note = _dataSource.getNoteAtRow(rowIndex);
-                              if (note != null && (isTouchDevice || isCompact)) {
+                              if (note != null &&
+                                  (isTouchDevice || isCompact)) {
                                 widget.onNoteTap(note);
                               }
                             }
@@ -210,7 +222,9 @@ class _NotesDataGridState extends State<NotesDataGrid> {
                             GridColumn(
                               columnName: 'linkedTo',
                               label: _buildHeaderCell('Linked To'),
-                              width: isCompact ? 150 : 200,
+                              width: isCompact
+                                  ? (isTouchDevice ? 150 : 130)
+                                  : 200,
                             ),
                             if (showModified)
                               GridColumn(
@@ -247,14 +261,21 @@ class _NotesDataGridState extends State<NotesDataGrid> {
                                       Icon(
                                         Icons.library_books,
                                         size: 48,
-                                        color: context.colorScheme.onSurface.withValues(alpha: 0.3),
+                                        color: context.colorScheme.onSurface
+                                            .withValues(alpha: 0.3),
                                       ),
                                       const SizedBox(height: 16),
                                       Text(
                                         widget.emptyMessage ?? 'No notes found',
-                                        style: AppStyles.standardBodyTextLight(context).copyWith(
-                                          color: context.colorScheme.onSurface.withValues(alpha: 0.5),
-                                        ),
+                                        style:
+                                            AppStyles.standardBodyTextLight(
+                                              context,
+                                            ).copyWith(
+                                              color: context
+                                                  .colorScheme
+                                                  .onSurface
+                                                  .withValues(alpha: 0.5),
+                                            ),
                                       ),
                                     ],
                                   ),
@@ -279,7 +300,9 @@ class _NotesDataGridState extends State<NotesDataGrid> {
                   totalPages: totalPages,
                   currentPage: effectiveCurrentPage,
                   onPageChanged: (page) {
-                    setState(() { _currentPage = page; });
+                    setState(() {
+                      _currentPage = page;
+                    });
                     _pagerController.selectedPageIndex = page - 1;
                   },
                   itemsPerPage: widget.rowsPerPage,
@@ -287,7 +310,9 @@ class _NotesDataGridState extends State<NotesDataGrid> {
                   onItemsPerPageChanged: widget.onRowsPerPageChanged != null
                       ? (value) {
                           widget.onRowsPerPageChanged!(value);
-                          setState(() { _currentPage = 1; });
+                          setState(() {
+                            _currentPage = 1;
+                          });
                           _pagerController.selectedPageIndex = 0;
                         }
                       : null,
@@ -326,7 +351,6 @@ class _NotesDataGridState extends State<NotesDataGrid> {
       ),
     );
   }
-
 }
 
 class NotesDataSource extends DataGridSource with SortableDataGridSource {
@@ -358,38 +382,40 @@ class NotesDataSource extends DataGridSource with SortableDataGridSource {
   void _rebuildRows() {
     _notesById = {for (var note in notes) note.id: note};
     _allRows = notes.map((note) {
-      return DataGridRow(cells: [
-        // Store lowercase for case-insensitive sorting
-        DataGridCell<String>(columnName: 'title', value: note.title.toLowerCase()),
-        DataGridCell<String>(
-          columnName: 'linkedTo',
-          value: note.link?.linkedEntityTitle?.toLowerCase() ?? '',
-        ),
-        DataGridCell<DateTime>(columnName: 'modified', value: note.updatedAt),
-        DataGridCell<int>(columnName: 'actions', value: note.id),
-        // Store additional data for row styling and display
-        DataGridCell<Color?>(
-          columnName: '_color',
-          value: note.link?.linkedEntityColor,
-        ),
-        DataGridCell<Color?>(
-          columnName: '_colorAlt',
-          value: note.link?.linkedEntityColorAlt,
-        ),
-        DataGridCell<String>(
-          columnName: '_entityType',
-          value: note.link?.linkedEntityType ?? '',
-        ),
-        // Store original title for display
-        DataGridCell<String>(
-          columnName: '_originalTitle',
-          value: note.title,
-        ),
-        DataGridCell<String>(
-          columnName: '_originalLinkedTo',
-          value: note.link?.linkedEntityTitle ?? '',
-        ),
-      ]);
+      return DataGridRow(
+        cells: [
+          // Store lowercase for case-insensitive sorting
+          DataGridCell<String>(
+            columnName: 'title',
+            value: note.title.toLowerCase(),
+          ),
+          DataGridCell<String>(
+            columnName: 'linkedTo',
+            value: note.link?.linkedEntityTitle?.toLowerCase() ?? '',
+          ),
+          DataGridCell<DateTime>(columnName: 'modified', value: note.updatedAt),
+          DataGridCell<int>(columnName: 'actions', value: note.id),
+          // Store additional data for row styling and display
+          DataGridCell<Color?>(
+            columnName: '_color',
+            value: note.link?.linkedEntityColor,
+          ),
+          DataGridCell<Color?>(
+            columnName: '_colorAlt',
+            value: note.link?.linkedEntityColorAlt,
+          ),
+          DataGridCell<String>(
+            columnName: '_entityType',
+            value: note.link?.linkedEntityType ?? '',
+          ),
+          // Store original title for display
+          DataGridCell<String>(columnName: '_originalTitle', value: note.title),
+          DataGridCell<String>(
+            columnName: '_originalLinkedTo',
+            value: note.link?.linkedEntityTitle ?? '',
+          ),
+        ],
+      );
     }).toList();
     _dataGridRows = _allRows;
 
@@ -424,33 +450,59 @@ class NotesDataSource extends DataGridSource with SortableDataGridSource {
   NoteModel? getNoteAtRow(int rowIndex) {
     if (rowIndex < 0 || rowIndex >= _dataGridRows.length) return null;
     final row = _dataGridRows[rowIndex];
-    final noteId = row.getCells()
-        .firstWhere((c) => c.columnName == 'actions')
-        .value as int;
+    final noteId =
+        row.getCells().firstWhere((c) => c.columnName == 'actions').value
+            as int;
     return _notesById[noteId];
   }
 
   @override
   DataGridRowAdapter? buildRow(DataGridRow row) {
-    final linkedEntityColor = row.getCells()
-        .firstWhere((c) => c.columnName == '_color', orElse: () =>
-            const DataGridCell<Color?>(columnName: '_color', value: null))
-        .value as Color?;
+    final linkedEntityColor =
+        row
+                .getCells()
+                .firstWhere(
+                  (c) => c.columnName == '_color',
+                  orElse: () => const DataGridCell<Color?>(
+                    columnName: '_color',
+                    value: null,
+                  ),
+                )
+                .value
+            as Color?;
 
-    final linkedEntityColorAlt = row.getCells()
-        .firstWhere((c) => c.columnName == '_colorAlt', orElse: () =>
-            const DataGridCell<Color?>(columnName: '_colorAlt', value: null))
-        .value as Color?;
+    final linkedEntityColorAlt =
+        row
+                .getCells()
+                .firstWhere(
+                  (c) => c.columnName == '_colorAlt',
+                  orElse: () => const DataGridCell<Color?>(
+                    columnName: '_colorAlt',
+                    value: null,
+                  ),
+                )
+                .value
+            as Color?;
 
-    final entityType = row.getCells()
-        .firstWhere((c) => c.columnName == '_entityType', orElse: () =>
-            const DataGridCell<String>(columnName: '_entityType', value: ''))
-        .value as String;
+    final entityType =
+        row
+                .getCells()
+                .firstWhere(
+                  (c) => c.columnName == '_entityType',
+                  orElse: () => const DataGridCell<String>(
+                    columnName: '_entityType',
+                    value: '',
+                  ),
+                )
+                .value
+            as String;
 
     // Determine row color based on entity type and colorByCategory preference
     Color? rowColor;
     if (entityType == 'homework') {
-      rowColor = (userSettings?.colorByCategory ?? false) && linkedEntityColorAlt != null
+      rowColor =
+          (userSettings?.colorByCategory ?? false) &&
+              linkedEntityColorAlt != null
           ? linkedEntityColorAlt
           : linkedEntityColor;
     } else if (entityType == 'event') {
@@ -460,10 +512,16 @@ class NotesDataSource extends DataGridSource with SortableDataGridSource {
     }
 
     // Filter out internal cells and hidden columns for display
-    final displayCells = row.getCells()
+    final displayCells = row
+        .getCells()
         .where((c) => !c.columnName.startsWith('_'))
-        .where((c) => !Responsive.isMobile(context) || c.columnName != 'modified')
-        .where((c) => !Responsive.isTouchDevice(context) || c.columnName != 'actions')
+        .where(
+          (c) => !Responsive.isMobile(context) || c.columnName != 'modified',
+        )
+        .where(
+          (c) =>
+              !Responsive.isTouchDevice(context) || c.columnName != 'actions',
+        )
         .toList();
 
     final isTouchDevice = Responsive.isTouchDevice(context);
@@ -476,33 +534,57 @@ class NotesDataSource extends DataGridSource with SortableDataGridSource {
       color: rowColor != null
           ? BadgeColors.background(context, rowColor)
           : null,
-      cells: displayCells.map((cell) => MouseRegion(
-        cursor: rowCursor,
-        child: DecoratedBox(
-          decoration: BoxDecoration(
-            border: Border(
-              bottom: BorderSide(
-                color: context.colorScheme.outline.withValues(alpha: 0.1),
+      cells: displayCells
+          .map(
+            (cell) => MouseRegion(
+              cursor: rowCursor,
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  border: Border(
+                    bottom: BorderSide(
+                      color: context.colorScheme.outline.withValues(alpha: 0.1),
+                    ),
+                  ),
+                ),
+                child: _buildCell(
+                  row,
+                  cell,
+                  rowColor,
+                  entityType,
+                  linkedEntityColor,
+                ),
               ),
             ),
-          ),
-          child: _buildCell(row, cell, rowColor, entityType, linkedEntityColor),
-        ),
-      )).toList(),
+          )
+          .toList(),
     );
   }
 
-  Widget _buildCell(DataGridRow row, DataGridCell cell, Color? rowColor, String entityType, Color? linkedEntityColor) {
+  Widget _buildCell(
+    DataGridRow row,
+    DataGridCell cell,
+    Color? rowColor,
+    String entityType,
+    Color? linkedEntityColor,
+  ) {
     final isTouchDevice = Responsive.isTouchDevice(context);
     final isCompact = MediaQuery.of(context).size.width < 800;
     final isSelectable = !isTouchDevice && !isCompact;
 
     if (cell.columnName == 'title') {
       // Get original title for display (cell.value is lowercase for sorting)
-      final originalTitle = row.getCells()
-          .firstWhere((c) => c.columnName == '_originalTitle',
-              orElse: () => DataGridCell<String>(columnName: '_originalTitle', value: cell.value as String))
-          .value as String;
+      final originalTitle =
+          row
+                  .getCells()
+                  .firstWhere(
+                    (c) => c.columnName == '_originalTitle',
+                    orElse: () => DataGridCell<String>(
+                      columnName: '_originalTitle',
+                      value: cell.value as String,
+                    ),
+                  )
+                  .value
+              as String;
       final title = originalTitle;
       final displayTitle = title.isEmpty ? 'Untitled' : title;
       final titleStyle = AppStyles.smallSecondaryText(context).copyWith(
@@ -515,11 +597,7 @@ class NotesDataSource extends DataGridSource with SortableDataGridSource {
         padding: const EdgeInsets.symmetric(horizontal: 8),
         alignment: Alignment.centerLeft,
         child: isSelectable
-            ? SelectableText(
-                displayTitle,
-                style: titleStyle,
-                maxLines: 1,
-              )
+            ? SelectableText(displayTitle, style: titleStyle, maxLines: 1)
             : Text(
                 displayTitle,
                 style: titleStyle,
@@ -531,10 +609,18 @@ class NotesDataSource extends DataGridSource with SortableDataGridSource {
 
     if (cell.columnName == 'linkedTo') {
       // Get original linkedTo for display (cell.value is lowercase for sorting)
-      final originalLinkedTo = row.getCells()
-          .firstWhere((c) => c.columnName == '_originalLinkedTo',
-              orElse: () => DataGridCell<String>(columnName: '_originalLinkedTo', value: cell.value as String))
-          .value as String;
+      final originalLinkedTo =
+          row
+                  .getCells()
+                  .firstWhere(
+                    (c) => c.columnName == '_originalLinkedTo',
+                    orElse: () => DataGridCell<String>(
+                      columnName: '_originalLinkedTo',
+                      value: cell.value as String,
+                    ),
+                  )
+                  .value
+              as String;
       final linkedTo = originalLinkedTo;
       if (linkedTo.isEmpty) {
         return Container(
@@ -551,7 +637,11 @@ class NotesDataSource extends DataGridSource with SortableDataGridSource {
 
       Widget badge;
       if (entityType == 'resource' && userSettings != null) {
-        badge = ResourceTitleLabel(title: linkedTo, userSettings: userSettings!, compact: true);
+        badge = ResourceTitleLabel(
+          title: linkedTo,
+          userSettings: userSettings!,
+          compact: true,
+        );
       } else if (entityType == 'event') {
         badge = CourseTitleLabel(
           title: linkedTo,
@@ -635,5 +725,4 @@ class NotesDataSource extends DataGridSource with SortableDataGridSource {
       child: Text(cell.value?.toString() ?? ''),
     );
   }
-
 }

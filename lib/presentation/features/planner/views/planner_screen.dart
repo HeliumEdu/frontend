@@ -789,7 +789,7 @@ class _CalendarScreenState
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: ShadowContainer(
-        padding: const EdgeInsets.only(left: 8, top: 4, bottom: 4),
+        padding: EdgeInsets.only(left: Responsive.isMobile(context) ? 4 : 8, right: Responsive.isMobile(context) ? 4 : 8, top: 4, bottom: 4),
         child: LayoutBuilder(
           builder: (context, constraints) {
             return SizedBox(
@@ -838,9 +838,7 @@ class _CalendarScreenState
       ),
     );
 
-    final button = _buildTodayButtonWidget(icon, showLabel, key);
-
-    return Padding(padding: const EdgeInsets.only(top: 3), child: button);
+    return _buildTodayButtonWidget(icon, showLabel, key);
   }
 
   Widget _buildTodayButtonWidget(Icon icon, bool showLabel, Key? key) {
@@ -912,7 +910,7 @@ class _CalendarScreenState
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          const SizedBox(width: 4),
+          SizedBox(width: Responsive.isMobile(context) ? 2 : 4),
           if (showNavButtons) ...[
             IconButton(
               icon: Icon(
@@ -923,7 +921,7 @@ class _CalendarScreenState
               padding: EdgeInsets.zero,
               constraints: const BoxConstraints(),
             ),
-            const SizedBox(width: 4),
+            SizedBox(width: Responsive.isMobile(context) ? 2 : 4),
           ],
           Material(
             color: Colors.transparent,
@@ -933,7 +931,7 @@ class _CalendarScreenState
               },
               borderRadius: BorderRadius.circular(16),
               child: Padding(
-                padding: const EdgeInsets.only(left: 8, top: 8, bottom: 8),
+                padding: EdgeInsets.only(left: Responsive.isMobile(context) ? 4 : 8, top: 8, bottom: 8),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.center,
@@ -1043,30 +1041,16 @@ class _CalendarScreenState
     } else {
       return AnimatedContainer(
         duration: _uiAnimationDuration,
-        width: isExpanded ? expandedToolbarWidth : 46,
+        width: expandedToolbarWidth,
         child: Stack(
           alignment: Alignment.centerRight,
           children: [
             AnimatedOpacity(
               duration: _uiAnimationDuration,
-              opacity: (_isFilterExpanded || _isSearchExpanded) ? 0.0 : 1.0,
+              opacity: _isSearchExpanded ? 0.0 : 1.0,
               child: IgnorePointer(
-                ignoring: _isFilterExpanded || _isSearchExpanded,
-                child: _buildCollapsedFilterButton(),
-              ),
-            ),
-            AnimatedPositioned(
-              duration: _uiAnimationDuration,
-              curve: Curves.easeInOut,
-              right: 0,
-              width: _isFilterExpanded ? expandedToolbarWidth : 46,
-              child: AnimatedOpacity(
-                duration: _uiAnimationDuration,
-                opacity: _isFilterExpanded ? 1.0 : 0.0,
-                child: IgnorePointer(
-                  ignoring: !_isFilterExpanded,
-                  child: _buildExpandedFilterButtons(),
-                ),
+                ignoring: _isSearchExpanded,
+                child: _buildFilterAndSearchButtons(),
               ),
             ),
             AnimatedPositioned(
@@ -1087,76 +1071,6 @@ class _CalendarScreenState
         ),
       );
     }
-  }
-
-  Widget _buildCollapsedFilterButton() {
-    return IconButton.outlined(
-      onPressed: () {
-        setState(() {
-          _isFilterExpanded = true;
-        });
-      },
-      icon: const Icon(Icons.menu_open),
-      style: ButtonStyle(
-        side: WidgetStateProperty.all(
-          BorderSide(color: context.colorScheme.primary),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildExpandedFilterButtons() {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        // Only show content when width is large enough (during/after animation)
-        final showContent = constraints.maxWidth > 200;
-
-        return ClipRect(
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(6),
-              color: context.colorScheme.surface,
-            ),
-            child: showContent
-                ? Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Flexible(
-                        child: SingleChildScrollView(
-                          scrollDirection: Axis.horizontal,
-                          child: _buildFilterAndSearchButtons(),
-                        ),
-                      ),
-                      const SizedBox(width: 4),
-                      IconButton(
-                        onPressed: () {
-                          setState(() {
-                            _isFilterExpanded = false;
-                            _searchFocusNode.unfocus();
-                          });
-                        },
-                        icon: Icon(
-                          Icons.keyboard_arrow_right,
-                          color: context.colorScheme.primary,
-                          size: Responsive.getIconSize(
-                            context,
-                            mobile: 20,
-                            tablet: 22,
-                            desktop: 24,
-                          ),
-                        ),
-                        padding: EdgeInsets.zero,
-                        constraints: const BoxConstraints(),
-                      ),
-                    ],
-                  )
-                : const SizedBox.shrink(),
-          ),
-        );
-      },
-    );
   }
 
   Widget _buildSearchField({bool showCloseButton = true}) {
@@ -1313,7 +1227,7 @@ class _CalendarScreenState
             );
           },
         ),
-        const SizedBox(width: 8),
+        SizedBox(width: Responsive.isMobile(context) ? 4 : 8),
         Builder(
           builder: (context) {
             final hasFilters = _hasCoursesFilter() || _hasStatusFilters();
@@ -1340,7 +1254,7 @@ class _CalendarScreenState
           },
         ),
         if (!hideSearchButton) ...[
-          const SizedBox(width: 8),
+          SizedBox(width: Responsive.isMobile(context) ? 4 : 8),
           Builder(
             builder: (context) {
               final hasSearchQuery = _hasSearchQuery();

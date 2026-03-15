@@ -191,7 +191,7 @@ class HeliumPager extends StatelessWidget {
     final isActive = currentPage == pageNumber;
 
     return Padding(
-      padding: EdgeInsets.only(left: Responsive.isMobile(context) ? 1 : 4),
+      padding: EdgeInsets.only(left: Responsive.isTouchDevice(context) ? 1 : 4),
       child: OutlinedButton(
         onPressed: isActive ? null : () => onPageChanged(pageNumber),
         style: OutlinedButton.styleFrom(
