@@ -374,6 +374,10 @@ class TodosDataGridState extends State<TodosDataGrid> {
                         rowsPerPage: _itemsPerPage == -1 ? null : _itemsPerPage,
                         allowSwiping: isTouchDevice,
                         swipeMaxOffset: 80,
+                        onSwipeStart: (details) {
+                          return details.swipeDirection ==
+                              DataGridRowSwipeDirection.endToStart;
+                        },
                         onSwipeEnd: (details) {
                           if (details.swipeDirection ==
                               DataGridRowSwipeDirection.endToStart) {
@@ -384,8 +388,15 @@ class TodosDataGridState extends State<TodosDataGrid> {
                               widget.onDelete(context, homework);
                             }
                           }
+                          _dataSource.notifyListeners();
                         },
                         endSwipeActionsBuilder: (context, row, rowIndex) {
+                          final homework =
+                              _dataSource.getHomeworkAtRow(rowIndex);
+                          if (homework == null ||
+                              !PlannerHelper.shouldShowDeleteButton(homework)) {
+                            return const SizedBox.shrink();
+                          }
                           return Container(
                             color: context.colorScheme.error,
                             alignment: Alignment.centerRight,

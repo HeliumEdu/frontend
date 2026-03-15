@@ -166,6 +166,10 @@ class _NotesDataGridState extends State<NotesDataGrid> {
                           rowsPerPage: widget.rowsPerPage == -1 ? null : widget.rowsPerPage,
                           allowSwiping: isTouchDevice,
                           swipeMaxOffset: 80,
+                          onSwipeStart: (details) {
+                            return details.swipeDirection ==
+                                DataGridRowSwipeDirection.endToStart;
+                          },
                           onSwipeEnd: (details) {
                             if (details.swipeDirection ==
                                 DataGridRowSwipeDirection.endToStart) {
@@ -175,6 +179,7 @@ class _NotesDataGridState extends State<NotesDataGrid> {
                                 widget.onDelete(context, note);
                               }
                             }
+                            _dataSource.notifyListeners();
                           },
                           endSwipeActionsBuilder: (context, row, rowIndex) {
                             return Container(
