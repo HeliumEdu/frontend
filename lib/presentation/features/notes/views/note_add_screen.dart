@@ -386,18 +386,7 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
                 ),
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(8),
-                  child: CallbackShortcuts(
-                    bindings: {
-                      const SingleActivator(LogicalKeyboardKey.keyF, meta: true): () {
-                        setState(() => _showSearch = !_showSearch);
-                      },
-                      const SingleActivator(LogicalKeyboardKey.keyF, control: true): () {
-                        setState(() => _showSearch = !_showSearch);
-                      },
-                    },
-                    child: Focus(
-                      autofocus: true,
-                      child: Column(
+                  child: Column(
                     children: [
                       Padding(
                         padding: const EdgeInsets.symmetric(vertical: 4),
@@ -469,6 +458,16 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
                             autoFocus: false,
                             expands: true,
                             customStyles: NotesEditor.buildDefaultStyles(context),
+                            onKeyPressed: (event, node) {
+                              final isFindShortcut = event.logicalKey == LogicalKeyboardKey.keyF &&
+                                  (HardwareKeyboard.instance.isMetaPressed ||
+                                   HardwareKeyboard.instance.isControlPressed);
+                              if (isFindShortcut) {
+                                setState(() => _showSearch = !_showSearch);
+                                return KeyEventResult.handled;
+                              }
+                              return null;
+                            },
                           ),
                         ),
                       ),
@@ -482,8 +481,6 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
                           },
                         ),
                     ],
-                  ),
-                    ),
                   ),
                 ),
               ),
