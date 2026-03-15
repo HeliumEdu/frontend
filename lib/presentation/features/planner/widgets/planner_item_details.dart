@@ -171,36 +171,6 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
 
     return Column(
       children: [
-        if (!widget.isEdit && _courses.isNotEmpty) ...[
-          Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              SegmentedButton<bool>(
-                showSelectedIcon: false,
-                segments: const [
-                  ButtonSegment<bool>(
-                    value: false,
-                    tooltip: 'Assignment',
-                    icon: Icon(AppConstants.assignmentIcon),
-                  ),
-                  ButtonSegment<bool>(
-                    value: true,
-                    tooltip: 'Event',
-                    icon: Icon(AppConstants.eventIcon),
-                  ),
-                ],
-                selected: {_isEvent},
-                onSelectionChanged: (Set<bool> selected) {
-                  setState(() {
-                    _isEvent = selected.first;
-                  });
-                  widget.onIsEventChanged?.call(_isEvent);
-                },
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-        ],
         Expanded(
           child: SingleChildScrollView(
             child: Form(
@@ -213,19 +183,46 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
                     children: [
                       Text('Details', style: AppStyles.featureText(context)),
                       if (widget.isEdit && _plannerItem != null)
+                          Row(
+                            children: [
+                              HeliumIconButton(
+                                onPressed: _onClone,
+                                icon: Icons.copy_outlined,
+                                tooltip: 'Clone',
+                              ),
+                              const SizedBox(width: 8),
+                              HeliumIconButton(
+                                onPressed: _onDelete,
+                                icon: Icons.delete_outline,
+                                tooltip: 'Delete',
+                                color: context.colorScheme.error,
+                              ),
+                            ],
+                          ),
+                      if (!widget.isEdit && _courses.isNotEmpty)
                         Row(
                           children: [
-                            HeliumIconButton(
-                              onPressed: _onClone,
-                              icon: Icons.copy_outlined,
-                              tooltip: 'Clone',
-                            ),
-                            const SizedBox(width: 8),
-                            HeliumIconButton(
-                              onPressed: _onDelete,
-                              icon: Icons.delete_outline,
-                              tooltip: 'Delete',
-                              color: context.colorScheme.error,
+                            SegmentedButton<bool>(
+                              showSelectedIcon: false,
+                              segments: const [
+                                ButtonSegment<bool>(
+                                  value: false,
+                                  tooltip: 'Assignment',
+                                  icon: Icon(AppConstants.assignmentIcon),
+                                ),
+                                ButtonSegment<bool>(
+                                  value: true,
+                                  tooltip: 'Event',
+                                  icon: Icon(AppConstants.eventIcon),
+                                ),
+                              ],
+                              selected: {_isEvent},
+                              onSelectionChanged: (Set<bool> selected) {
+                                setState(() {
+                                  _isEvent = selected.first;
+                                });
+                                widget.onIsEventChanged?.call(_isEvent);
+                              },
                             ),
                           ],
                         ),

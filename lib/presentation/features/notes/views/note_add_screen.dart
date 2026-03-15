@@ -353,7 +353,8 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  Expanded(
+                  Flexible(
+                    flex: 2,
                     child: LabelAndTextFormField(
                       hintText: 'Title',
                       controller: _titleController,
@@ -366,7 +367,9 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
                   ),
                   if (_note?.link != null || _provisionalLink != null) ...[
                     const SizedBox(width: 8),
-                    _buildLinkedEntityBadge(_note?.link ?? _provisionalLink!),
+                    Flexible(
+                      child: _buildLinkedEntityBadge(_note?.link ?? _provisionalLink!),
+                    ),
                   ],
                 ],
               ),

@@ -391,12 +391,6 @@ class TodosDataGridState extends State<TodosDataGrid> {
                           _dataSource.notifyListeners();
                         },
                         endSwipeActionsBuilder: (context, row, rowIndex) {
-                          final homework =
-                              _dataSource.getHomeworkAtRow(rowIndex);
-                          if (homework == null ||
-                              !PlannerHelper.shouldShowDeleteButton(homework)) {
-                            return const SizedBox.shrink();
-                          }
                           return Container(
                             color: context.colorScheme.error,
                             alignment: Alignment.centerRight,
