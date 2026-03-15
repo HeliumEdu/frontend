@@ -40,6 +40,7 @@ import 'package:heliumapp/presentation/ui/components/label_and_text_form_field.d
 import 'package:heliumapp/presentation/ui/components/course_title_label.dart';
 import 'package:heliumapp/presentation/ui/components/resource_title_label.dart';
 import 'package:heliumapp/presentation/ui/components/notes_editor.dart';
+import 'package:heliumapp/presentation/ui/components/quill_search_bar.dart';
 import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
@@ -146,6 +147,7 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
   NoteModel? _note;
   bool _isNewNote = true;
   NoteLinkModel? _provisionalLink;
+  bool _showSearch = false;
 
   @override
   void initState() {
@@ -404,7 +406,15 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
                             showUndo: !isMobile,
                             showRedo: !isMobile,
                             showSubscript: !isMobile,
+                            showSearchButton: true,
                             buttonOptions: QuillSimpleToolbarButtonOptions(
+                              search: QuillToolbarSearchButtonOptions(
+                                customOnPressedCallback: (_) async {
+                                  setState(() {
+                                    _showSearch = !_showSearch;
+                                  });
+                                },
+                              ),
                               base: QuillToolbarBaseButtonOptions(
                                 iconTheme: QuillIconTheme(
                                   iconButtonSelectedData: IconButtonData(
@@ -450,6 +460,15 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
                           ),
                         ),
                       ),
+                      if (_showSearch)
+                        QuillSearchBar(
+                          controller: _quillController,
+                          onClose: () {
+                            setState(() {
+                              _showSearch = false;
+                            });
+                          },
+                        ),
                     ],
                   ),
                 ),
