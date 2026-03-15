@@ -230,7 +230,10 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
       } else if (widget.resourceId != null && widget.resourceGroupId != null) {
         final resource = await ResourceRepositoryImpl(
           remoteDataSource: ResourceRemoteDataSourceImpl(dioClient: dioClient),
-        ).getResource(widget.resourceGroupId!, widget.resourceId!);
+        ).getResource(
+          groupId: widget.resourceGroupId!,
+          resourceId: widget.resourceId!,
+        );
         if (!mounted) return;
         setState(() {
           _titleController.text = resource.title;
@@ -338,9 +341,8 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
         key: _formController.formKey,
         child: Column(
           children: [
-            // Title row
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+              padding: const EdgeInsets.only(bottom: 4),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
@@ -363,92 +365,105 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
               ),
             ),
 
-          const Divider(height: 1),
-
-          // Quill toolbar
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 4),
-            child: QuillSimpleToolbar(
-              controller: _quillController,
-              config: QuillSimpleToolbarConfig(
-                showDividers: !isMobile,
-                showFontFamily: false,
-                showFontSize: !isMobile,
-                showBoldButton: true,
-                showItalicButton: true,
-                showUnderLineButton: true,
-                showStrikeThrough: !isMobile,
-                showInlineCode: !isMobile,
-                showColorButton: true,
-                showBackgroundColorButton: true,
-                showClearFormat: !isMobile,
-                showAlignmentButtons: !isMobile,
-                showLeftAlignment: !isMobile,
-                showCenterAlignment: !isMobile,
-                showRightAlignment: !isMobile,
-                showJustifyAlignment: false,
-                showHeaderStyle: true,
-                showListNumbers: true,
-                showListBullets: true,
-                showListCheck: true,
-                showCodeBlock: !isMobile,
-                showQuote: true,
-                showIndent: !isMobile,
-                showLink: true,
-                showUndo: !isMobile,
-                showRedo: !isMobile,
-                showSubscript: false,
-                showSuperscript: false,
-                showSearchButton: false,
-                multiRowsDisplay: true,
-                buttonOptions: QuillSimpleToolbarButtonOptions(
-                  base: QuillToolbarBaseButtonOptions(
-                    iconTheme: QuillIconTheme(
-                      iconButtonSelectedData: IconButtonData(
-                        style: ButtonStyle(
-                          backgroundColor: WidgetStatePropertyAll(
-                            context.colorScheme.primary,
-                          ),
-                          foregroundColor: WidgetStatePropertyAll(
-                            context.colorScheme.onPrimary,
-                          ),
-                          overlayColor: WidgetStatePropertyAll(
-                            context.colorScheme.onPrimary.withValues(alpha: 0.1),
+          // Quill toolbar and editor
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.only(top: 4, bottom: 8),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: context.colorScheme.surface,
+                  border: Border.all(
+                    color: context.colorScheme.outline.withValues(alpha: 0.2),
+                  ),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: Column(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 4),
+                        child: QuillSimpleToolbar(
+                          controller: _quillController,
+                          config: QuillSimpleToolbarConfig(
+                            showDividers: !isMobile,
+                            showFontFamily: false,
+                            showFontSize: !isMobile,
+                            showBoldButton: true,
+                            showItalicButton: true,
+                            showUnderLineButton: true,
+                            showStrikeThrough: !isMobile,
+                            showInlineCode: !isMobile,
+                            showColorButton: true,
+                            showBackgroundColorButton: true,
+                            showClearFormat: !isMobile,
+                            showAlignmentButtons: !isMobile,
+                            showLeftAlignment: !isMobile,
+                            showCenterAlignment: !isMobile,
+                            showRightAlignment: !isMobile,
+                            showJustifyAlignment: false,
+                            showHeaderStyle: true,
+                            showListNumbers: true,
+                            showListBullets: true,
+                            showListCheck: true,
+                            showCodeBlock: !isMobile,
+                            showQuote: true,
+                            showIndent: !isMobile,
+                            showLink: true,
+                            showUndo: !isMobile,
+                            showRedo: !isMobile,
+                            showSubscript: false,
+                            showSuperscript: false,
+                            showSearchButton: false,
+                            multiRowsDisplay: true,
+                            buttonOptions: QuillSimpleToolbarButtonOptions(
+                              base: QuillToolbarBaseButtonOptions(
+                                iconTheme: QuillIconTheme(
+                                  iconButtonSelectedData: IconButtonData(
+                                    style: ButtonStyle(
+                                      backgroundColor: WidgetStatePropertyAll(
+                                        context.colorScheme.primary,
+                                      ),
+                                      foregroundColor: WidgetStatePropertyAll(
+                                        context.colorScheme.onPrimary,
+                                      ),
+                                      overlayColor: WidgetStatePropertyAll(
+                                        context.colorScheme.onPrimary.withValues(alpha: 0.1),
+                                      ),
+                                    ),
+                                  ),
+                                  iconButtonUnselectedData: IconButtonData(
+                                    color: context.colorScheme.onSurface,
+                                  ),
+                                ),
+                              ),
+                              color: QuillToolbarColorButtonOptions(
+                                customOnPressedCallback: (ctrl, isBackground) =>
+                                    NotesEditor.showColorPicker(context, ctrl, isBackground),
+                              ),
+                              backgroundColor: QuillToolbarColorButtonOptions(
+                                customOnPressedCallback: (ctrl, isBackground) =>
+                                    NotesEditor.showColorPicker(context, ctrl, isBackground),
+                              ),
+                            ),
                           ),
                         ),
                       ),
-                      iconButtonUnselectedData: IconButtonData(
-                        color: context.colorScheme.onSurface,
+                      const Divider(height: 1),
+                      Expanded(
+                        child: QuillEditor.basic(
+                          controller: _quillController,
+                          focusNode: _editorFocusNode,
+                          config: QuillEditorConfig(
+                            padding: const EdgeInsets.all(12),
+                            autoFocus: false,
+                            expands: true,
+                            customStyles: NotesEditor.buildDefaultStyles(context),
+                          ),
+                        ),
                       ),
-                    ),
+                    ],
                   ),
-                  color: QuillToolbarColorButtonOptions(
-                    customOnPressedCallback: (ctrl, isBackground) =>
-                        NotesEditor.showColorPicker(context, ctrl, isBackground),
-                  ),
-                  backgroundColor: QuillToolbarColorButtonOptions(
-                    customOnPressedCallback: (ctrl, isBackground) =>
-                        NotesEditor.showColorPicker(context, ctrl, isBackground),
-                  ),
-                ),
-              ),
-            ),
-          ),
-
-          const Divider(height: 1),
-
-          // Quill editor
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.all(8),
-              child: QuillEditor.basic(
-                controller: _quillController,
-                focusNode: _editorFocusNode,
-                config: QuillEditorConfig(
-                  padding: const EdgeInsets.all(8),
-                  autoFocus: false,
-                  expands: true,
-                  customStyles: NotesEditor.buildDefaultStyles(context),
                 ),
               ),
             ),

@@ -153,7 +153,10 @@ void main() {
         build: () {
           when(
             () =>
-                mockResourceRepository.getResource(resourceGroupId, resourceId),
+                mockResourceRepository.getResource(
+                  groupId: resourceGroupId,
+                  resourceId: resourceId,
+                ),
           ).thenAnswer((_) async => MockModels.createResource(id: resourceId));
           when(
             () => mockCourseRepository.getCourses(),
@@ -207,7 +210,10 @@ void main() {
         build: () {
           when(
             () =>
-                mockResourceRepository.getResource(resourceGroupId, resourceId),
+                mockResourceRepository.getResource(
+                  groupId: resourceGroupId,
+                  resourceId: resourceId,
+                ),
           ).thenThrow(NotFoundException(message: 'Resource not found'));
           return resourceBloc;
         },
@@ -322,7 +328,10 @@ void main() {
         build: () {
           when(
             () =>
-                mockResourceRepository.getResource(resourceGroupId, resourceId),
+                mockResourceRepository.getResource(
+                  groupId: resourceGroupId,
+                  resourceId: resourceId,
+                ),
           ).thenAnswer((_) async => MockModels.createResource(id: resourceId));
           return resourceBloc;
         },
@@ -348,7 +357,10 @@ void main() {
         build: () {
           when(
             () =>
-                mockResourceRepository.getResource(resourceGroupId, resourceId),
+                mockResourceRepository.getResource(
+                  groupId: resourceGroupId,
+                  resourceId: resourceId,
+                ),
           ).thenThrow(NotFoundException(message: 'Resource not found'));
           return resourceBloc;
         },
@@ -377,7 +389,7 @@ void main() {
         'emits [ResourcesLoading, ResourceGroupDeleted] when deletion succeeds',
         build: () {
           when(
-            () => mockResourceRepository.deleteResourceGroup(resourceGroupId),
+            () => mockResourceRepository.deleteResourceGroup(id: resourceGroupId),
           ).thenAnswer((_) async {});
           return resourceBloc;
         },
@@ -397,7 +409,7 @@ void main() {
         ],
         verify: (_) {
           verify(
-            () => mockResourceRepository.deleteResourceGroup(resourceGroupId),
+            () => mockResourceRepository.deleteResourceGroup(id: resourceGroupId),
           ).called(1);
         },
       );
@@ -406,7 +418,7 @@ void main() {
         'emits [ResourcesLoading, ResourcesError] when deletion fails',
         build: () {
           when(
-            () => mockResourceRepository.deleteResourceGroup(resourceGroupId),
+            () => mockResourceRepository.deleteResourceGroup(id: resourceGroupId),
           ).thenThrow(ServerException(message: 'Cannot delete'));
           return resourceBloc;
         },
@@ -436,8 +448,8 @@ void main() {
         build: () {
           when(
             () => mockResourceRepository.deleteResource(
-              resourceGroupId,
-              resourceId,
+              groupId: resourceGroupId,
+              resourceId: resourceId,
             ),
           ).thenAnswer((_) async {});
           return resourceBloc;
@@ -456,8 +468,8 @@ void main() {
         verify: (_) {
           verify(
             () => mockResourceRepository.deleteResource(
-              resourceGroupId,
-              resourceId,
+              groupId: resourceGroupId,
+              resourceId: resourceId,
             ),
           ).called(1);
         },
@@ -468,8 +480,8 @@ void main() {
         build: () {
           when(
             () => mockResourceRepository.deleteResource(
-              resourceGroupId,
-              resourceId,
+              groupId: resourceGroupId,
+              resourceId: resourceId,
             ),
           ).thenThrow(NotFoundException(message: 'Resource not found'));
           return resourceBloc;

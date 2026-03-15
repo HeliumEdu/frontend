@@ -27,7 +27,7 @@ class ResourceBloc extends Bloc<ResourceEvent, ResourceState> {
     on<FetchResourcesScreenDataEvent>(_onFetchResourcesScreenData);
     on<FetchResourceScreenDataEvent>(_onFetchResourceScreenDataEvent);
     on<FetchResourcesEvent>(_onFetchResources);
-    on<FetchResourceEvent>(onFetchResource);
+    on<FetchResourceEvent>(_onFetchResource);
     on<CreateResourceGroupEvent>(_onCreateResourceGroup);
     on<UpdateResourceGroupEvent>(_onUpdateResourceGroup);
     on<DeleteResourceGroupEvent>(_onDeleteResourceGroup);
@@ -79,8 +79,8 @@ class ResourceBloc extends Bloc<ResourceEvent, ResourceState> {
       final results = await Future.wait([
         if (event.resourceId != null)
           resourceRepository.getResource(
-            event.resourceGroupId,
-            event.resourceId!,
+            groupId: event.resourceGroupId,
+            resourceId: event.resourceId!,
           ),
         courseRepository.getCourses(),
       ]);
@@ -114,7 +114,7 @@ class ResourceBloc extends Bloc<ResourceEvent, ResourceState> {
     emit(ResourcesLoading(origin: event.origin));
     try {
       final resourceGroup = await resourceRepository.createResourceGroup(
-        event.request,
+        request: event.request,
       );
       emit(
         ResourceGroupCreated(
@@ -141,8 +141,8 @@ class ResourceBloc extends Bloc<ResourceEvent, ResourceState> {
     emit(ResourcesLoading(origin: event.origin));
     try {
       final resourceGroup = await resourceRepository.updateResourceGroup(
-        event.resourceGroupId,
-        event.request,
+        id: event.resourceGroupId,
+        request: event.request,
       );
       emit(
         ResourceGroupUpdated(
@@ -168,7 +168,7 @@ class ResourceBloc extends Bloc<ResourceEvent, ResourceState> {
   ) async {
     emit(ResourcesLoading(origin: event.origin));
     try {
-      await resourceRepository.deleteResourceGroup(event.resourceGroupId);
+      await resourceRepository.deleteResourceGroup(id: event.resourceGroupId);
       emit(
         ResourceGroupDeleted(origin: event.origin, id: event.resourceGroupId),
       );
@@ -184,15 +184,15 @@ class ResourceBloc extends Bloc<ResourceEvent, ResourceState> {
     }
   }
 
-  Future<void> onFetchResource(
+  Future<void> _onFetchResource(
     FetchResourceEvent event,
     Emitter<ResourceState> emit,
   ) async {
     emit(ResourcesLoading(origin: event.origin));
     try {
       final resource = await resourceRepository.getResource(
-        event.resourceGroupId,
-        event.resourceId,
+        groupId: event.resourceGroupId,
+        resourceId: event.resourceId,
       );
       emit(ResourceFetched(origin: event.origin, resource: resource));
     } on HeliumException catch (e) {
@@ -237,8 +237,8 @@ class ResourceBloc extends Bloc<ResourceEvent, ResourceState> {
     emit(ResourcesLoading(origin: event.origin));
     try {
       final resource = await resourceRepository.createResource(
-        event.resourceGroupId,
-        event.request,
+        groupId: event.resourceGroupId,
+        request: event.request,
       );
       emit(ResourceCreated(origin: event.origin, resource: resource));
     } on HeliumException catch (e) {
@@ -260,9 +260,9 @@ class ResourceBloc extends Bloc<ResourceEvent, ResourceState> {
     emit(ResourcesLoading(origin: event.origin));
     try {
       final resource = await resourceRepository.updateResource(
-        event.resourceGroupId,
-        event.resourceId,
-        event.request,
+        groupId: event.resourceGroupId,
+        resourceId: event.resourceId,
+        request: event.request,
       );
       emit(ResourceUpdated(origin: event.origin, resource: resource));
     } on HeliumException catch (e) {
@@ -284,8 +284,8 @@ class ResourceBloc extends Bloc<ResourceEvent, ResourceState> {
     emit(ResourcesLoading(origin: event.origin));
     try {
       await resourceRepository.deleteResource(
-        event.resourceGroupId,
-        event.resourceId,
+        groupId: event.resourceGroupId,
+        resourceId: event.resourceId,
       );
       emit(ResourceDeleted(origin: event.origin, id: event.resourceId));
     } on HeliumException catch (e) {

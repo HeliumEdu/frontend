@@ -13,16 +13,16 @@ import 'package:heliumapp/data/models/planner/request/resource_request_model.dar
 abstract class ResourceRepository {
   Future<List<ResourceGroupModel>> getResourceGroups({bool forceRefresh = false});
 
-  Future<ResourceGroupModel> createResourceGroup(
-    ResourceGroupRequestModel request,
-  );
+  Future<ResourceGroupModel> createResourceGroup({
+    required ResourceGroupRequestModel request,
+  });
 
-  Future<ResourceGroupModel> updateResourceGroup(
-    int id,
-    ResourceGroupRequestModel request,
-  );
+  Future<ResourceGroupModel> updateResourceGroup({
+    required int id,
+    required ResourceGroupRequestModel request,
+  });
 
-  Future<void> deleteResourceGroup(int id);
+  Future<void> deleteResourceGroup({required int id});
 
   Future<List<ResourceModel>> getResources({
     int? groupId,
@@ -30,18 +30,25 @@ abstract class ResourceRepository {
     bool forceRefresh = false,
   });
 
-  Future<ResourceModel> getResource(int groupId, int resourceId, {bool forceRefresh = false});
+  Future<ResourceModel> getResource({
+    required int groupId,
+    required int resourceId,
+    bool forceRefresh = false,
+  });
 
-  Future<ResourceModel> createResource(
-    int groupId,
-    ResourceRequestModel request,
-  );
+  Future<ResourceModel> createResource({
+    required int groupId,
+    required ResourceRequestModel request,
+  });
 
-  Future<ResourceModel> updateResource(
-    int groupId,
-    int resourceId,
-    ResourceRequestModel request,
-  );
+  Future<ResourceModel> updateResource({
+    required int groupId,
+    required int resourceId,
+    required ResourceRequestModel request,
+  });
 
-  Future<void> deleteResource(int groupId, int resourceId);
+  Future<void> deleteResource({
+    required int groupId,
+    required int resourceId,
+  });
 }

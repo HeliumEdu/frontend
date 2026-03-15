@@ -47,24 +47,6 @@ class NoteModel extends BaseTitledModel {
     };
   }
 
-  NoteModel copyWith({
-    int? id,
-    String? title,
-    Map<String, dynamic>? content,
-    DateTime? createdAt,
-    DateTime? updatedAt,
-    NoteLinkModel? link,
-  }) {
-    return NoteModel(
-      id: id ?? this.id,
-      title: title ?? this.title,
-      content: content ?? this.content,
-      createdAt: createdAt ?? this.createdAt,
-      updatedAt: updatedAt ?? this.updatedAt,
-      link: link ?? this.link,
-    );
-  }
-
   bool get isStandalone => link == null;
 
   bool get isLinkedToHomework => link?.homeworkId != null;
