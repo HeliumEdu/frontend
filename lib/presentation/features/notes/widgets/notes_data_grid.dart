@@ -95,7 +95,8 @@ class _NotesDataGridState extends State<NotesDataGrid> {
   Widget build(BuildContext context) {
     final isTouchDevice = Responsive.isTouchDevice(context);
     final isCompact = MediaQuery.of(context).size.width < 800;
-    final showLinkedTo = !Responsive.isMobile(context);
+    final showLinkedTo = true;
+    final showModified = !Responsive.isMobile(context);
     final showActions = !isTouchDevice;
 
     final isShowingAll = widget.rowsPerPage == -1;
@@ -150,7 +151,7 @@ class _NotesDataGridState extends State<NotesDataGrid> {
                           headerColor: headerColor,
                         ),
                         child: SfDataGrid(
-                          key: ValueKey('notes_grid_${showLinkedTo}_${showActions}_$isCompact'),
+                          key: ValueKey('notes_grid_${showModified}_${showActions}_$isCompact'),
                           source: _dataSource,
                           controller: _controller,
                           columnWidthMode: ColumnWidthMode.fill,
@@ -207,17 +208,17 @@ class _NotesDataGridState extends State<NotesDataGrid> {
                               label: _buildHeaderCell('Title'),
                               minimumWidth: 170,
                             ),
-                            if (showLinkedTo)
-                              GridColumn(
-                                columnName: 'linkedTo',
-                                label: _buildHeaderCell('Linked To'),
-                                width: isCompact ? 150 : 200,
-                              ),
                             GridColumn(
-                              columnName: 'modified',
-                              label: _buildHeaderCell('Modified'),
-                              width: 118,
+                              columnName: 'linkedTo',
+                              label: _buildHeaderCell('Linked To'),
+                              width: isCompact ? 150 : 200,
                             ),
+                            if (showModified)
+                              GridColumn(
+                                columnName: 'modified',
+                                label: _buildHeaderCell('Modified'),
+                                width: 118,
+                              ),
                             if (showActions)
                               GridColumn(
                                 columnName: 'actions',
@@ -451,7 +452,7 @@ class NotesDataSource extends DataGridSource with SortableDataGridSource {
     // Filter out internal cells and hidden columns for display
     final displayCells = row.getCells()
         .where((c) => !c.columnName.startsWith('_'))
-        .where((c) => !Responsive.isMobile(context) || c.columnName != 'linkedTo')
+        .where((c) => !Responsive.isMobile(context) || c.columnName != 'modified')
         .where((c) => !Responsive.isTouchDevice(context) || c.columnName != 'actions')
         .toList();
 
@@ -546,6 +547,7 @@ class NotesDataSource extends DataGridSource with SortableDataGridSource {
           title: linkedTo,
           color: userSettings?.eventsColor ?? context.colorScheme.tertiary,
           icon: AppConstants.eventIcon,
+          showIconTab: true,
           compact: true,
         );
       } else {
@@ -553,6 +555,7 @@ class NotesDataSource extends DataGridSource with SortableDataGridSource {
           title: linkedTo,
           color: linkedEntityColor ?? context.colorScheme.primary,
           icon: AppConstants.assignmentIcon,
+          showIconTab: true,
           compact: true,
         );
       }

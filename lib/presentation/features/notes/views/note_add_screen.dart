@@ -511,6 +511,7 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
         title: title,
         color: userSettings?.eventsColor ?? context.colorScheme.tertiary,
         icon: AppConstants.eventIcon,
+        showIconTab: true,
       );
     }
 
@@ -519,6 +520,7 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
       title: title,
       color: link.linkedEntityColor ?? context.colorScheme.primary,
       icon: AppConstants.assignmentIcon,
+      showIconTab: true,
     );
   }
 }

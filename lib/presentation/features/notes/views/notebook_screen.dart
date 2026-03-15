@@ -270,7 +270,7 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen> 
         (
           value: 'resource',
           label: 'Resources',
-          icon: Icons.book,
+          icon: Icons.book_outlined,
           color: userSettings?.resourceColor ?? context.colorScheme.secondary,
         ),
       ];
