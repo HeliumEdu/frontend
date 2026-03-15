@@ -36,7 +36,7 @@ class ResourceRequestModel {
       'website': website,
       'price': price,
       'details': details,
-      if (notes != null) 'notes': notes,
+      'notes': notes,
       'courses': courses,
       'material_group': resourceGroup,
     };

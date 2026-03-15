@@ -392,6 +392,10 @@ class FcmService {
     await router.push(AppRoute.notificationsScreen);
   }
 
+  /// Pending route to navigate to once the router is initialized.
+  /// Set when app opens from terminated state via notification.
+  static String? pendingRoute;
+
   Future<void> _handleInitialMessage() async {
     if (_firebaseMessaging == null) return;
 
@@ -400,7 +404,19 @@ class FcmService {
 
     if (initialMessage != null) {
       _log.info('App opened from terminated state via notification');
-      await router.push(AppRoute.notificationsScreen);
+      // Defer navigation - router may not be initialized yet during cold start.
+      // The app's main widget should check pendingRoute after router is ready.
+      pendingRoute = AppRoute.notificationsScreen;
+    }
+  }
+
+  /// Navigates to pending route if one exists, then clears it.
+  /// Call this after the router is initialized.
+  static void handlePendingRoute() {
+    if (pendingRoute != null) {
+      final route = pendingRoute!;
+      pendingRoute = null;
+      router.push(route);
     }
   }
 

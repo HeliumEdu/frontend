@@ -23,7 +23,9 @@ abstract class NoteRepository {
 
   Future<NoteModel> createNote({required NoteRequestModel request});
 
-  Future<NoteModel> updateNote({
+  /// Updates a note. Returns the updated note, or null if the note was deleted
+  /// (when content is cleared on a note with linked entities).
+  Future<NoteModel?> updateNote({
     required int noteId,
     required NoteRequestModel request,
   });

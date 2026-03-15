@@ -28,7 +28,9 @@ abstract class NoteRemoteDataSource extends BaseDataSource {
 
   Future<NoteModel> createNote({required NoteRequestModel request});
 
-  Future<NoteModel> updateNote({
+  /// Updates a note. Returns the updated note, or null if the note was deleted
+  /// (when content is cleared on a note with linked entities).
+  Future<NoteModel?> updateNote({
     required int noteId,
     required NoteRequestModel request,
   });
@@ -161,7 +163,7 @@ class NoteRemoteDataSourceImpl extends NoteRemoteDataSource {
   }
 
   @override
-  Future<NoteModel> updateNote({
+  Future<NoteModel?> updateNote({
     required int noteId,
     required NoteRequestModel request,
   }) async {
@@ -176,6 +178,11 @@ class NoteRemoteDataSourceImpl extends NoteRemoteDataSource {
         _log.info('... Note $noteId updated');
         await dioClient.cacheService.invalidateAll();
         return NoteModel.fromJson(response.data);
+      } else if (response.statusCode == 204) {
+        // Note was deleted because content was cleared
+        _log.info('... Note $noteId deleted (content cleared)');
+        await dioClient.cacheService.invalidateAll();
+        return null;
       } else {
         throw ServerException(
           message: 'Failed to update note: ${response.statusCode}',

@@ -322,6 +322,10 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
             cancelAction();
           } else if (state is NoteUpdated) {
             cancelAction();
+          } else if (state is NoteDeleted) {
+            // Note was deleted because content was cleared on a linked note
+            showSnackBar(context, 'Note deleted', useRootMessenger: true);
+            cancelAction();
           }
         },
       ),

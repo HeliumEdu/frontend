@@ -44,7 +44,7 @@ class NoteRepositoryImpl implements NoteRepository {
   }
 
   @override
-  Future<NoteModel> updateNote({
+  Future<NoteModel?> updateNote({
     required int noteId,
     required NoteRequestModel request,
   }) async {

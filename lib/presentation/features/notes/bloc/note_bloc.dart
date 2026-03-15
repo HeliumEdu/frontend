@@ -95,7 +95,12 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
         noteId: event.noteId,
         request: event.request,
       );
-      emit(NoteUpdated(origin: event.origin, note: note));
+      if (note == null) {
+        // Note was deleted because content was cleared on a linked note
+        emit(NoteDeleted(origin: event.origin, noteId: event.noteId));
+      } else {
+        emit(NoteUpdated(origin: event.origin, note: note));
+      }
     } on HeliumException catch (e) {
       emit(NotesError(origin: event.origin, message: e.message));
     } catch (e) {
