@@ -27,6 +27,8 @@ import 'package:heliumapp/presentation/features/notes/bloc/note_state.dart';
 import 'package:heliumapp/presentation/features/notes/views/note_add_screen.dart';
 import 'package:heliumapp/presentation/features/notes/widgets/notes_data_grid.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/core/base_event.dart';
+import 'package:heliumapp/presentation/features/planner/bloc/planneritem_bloc.dart';
+import 'package:heliumapp/presentation/features/planner/bloc/planneritem_state.dart';
 import 'package:heliumapp/presentation/features/planner/dialogs/confirm_delete_dialog.dart';
 import 'package:heliumapp/presentation/ui/feedback/error_card.dart';
 import 'package:heliumapp/utils/app_globals.dart';
@@ -153,6 +155,13 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen> 
             setState(() {
               userSettings = state.user.settings;
             });
+          }
+        },
+      ),
+      BlocListener<PlannerItemBloc, PlannerItemState>(
+        listener: (context, state) {
+          if (state is AllEventsDeleted) {
+            _fetchNotes();
           }
         },
       ),
