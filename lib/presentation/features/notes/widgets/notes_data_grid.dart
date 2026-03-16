@@ -246,6 +246,7 @@ class _NotesDataGridState extends State<NotesDataGrid> {
                               ? const EmptyCard(
                                   expanded: false,
                                   icon: Icons.library_books,
+                                  title: "You haven't added any notes yet",
                                   message: 'Click "+" to get started',
                                 )
                               : Center(
