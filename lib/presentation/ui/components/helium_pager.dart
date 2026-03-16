@@ -61,8 +61,7 @@ class HeliumPager extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               _buildItemsCountText(context),
-              if (!isShowingAll && totalPages > 1)
-                _buildPagination(context),
+              if (!isShowingAll && totalPages > 1) _buildPagination(context),
             ],
           ),
           const SizedBox(height: 4),
@@ -77,9 +76,9 @@ class HeliumPager extends StatelessWidget {
     final displayStart = totalItems > 0 ? startIndex + 1 : 0;
     return Text(
       '${!Responsive.isMobile(context) ? 'Showing ' : ''}$displayStart to $endIndex of $totalItems',
-      style: AppStyles.standardBodyTextLight(context).copyWith(
-        color: context.colorScheme.onSurface.withValues(alpha: 0.7),
-      ),
+      style: AppStyles.standardBodyTextLight(
+        context,
+      ).copyWith(color: context.colorScheme.onSurface.withValues(alpha: 0.7)),
     );
   }
 
@@ -88,18 +87,18 @@ class HeliumPager extends StatelessWidget {
 
     return Row(
       children: [
-        if (isMobile)
-          IconButton(
-            onPressed: currentPage > 1 ? () => onPageChanged(1) : null,
-            icon: const Icon(Icons.first_page),
-            iconSize: 20,
-            padding: EdgeInsets.zero,
-            constraints: const BoxConstraints(),
-            style: IconButton.styleFrom(
-              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-            ),
+        IconButton(
+          onPressed: currentPage > 1 ? () => onPageChanged(1) : null,
+          icon: const Icon(Icons.first_page),
+          iconSize: 20,
+          padding: EdgeInsets.zero,
+          constraints: const BoxConstraints(),
+          style: IconButton.styleFrom(
+            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
           ),
-        if (!isMobile)
+        ),
+        if (!isMobile) ...[
+          const SizedBox(width: 8),
           IconButton(
             onPressed: currentPage > 1
                 ? () => onPageChanged(currentPage - 1)
@@ -112,10 +111,11 @@ class HeliumPager extends StatelessWidget {
               tapTargetSize: MaterialTapTargetSize.shrinkWrap,
             ),
           ),
+        ],
         SizedBox(width: Responsive.isMobile(context) ? 8 : 12),
         ..._buildPageNumbers(context, isMobile),
         SizedBox(width: Responsive.isMobile(context) ? 8 : 12),
-        if (!isMobile)
+        if (!isMobile) ...[
           IconButton(
             onPressed: currentPage < totalPages
                 ? () => onPageChanged(currentPage + 1)
@@ -128,17 +128,20 @@ class HeliumPager extends StatelessWidget {
               tapTargetSize: MaterialTapTargetSize.shrinkWrap,
             ),
           ),
-        if (isMobile)
-          IconButton(
-            onPressed: currentPage < totalPages ? () => onPageChanged(totalPages) : null,
-            icon: const Icon(Icons.last_page),
-            iconSize: 20,
-            padding: EdgeInsets.zero,
-            constraints: const BoxConstraints(),
-            style: IconButton.styleFrom(
-              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-            ),
+          const SizedBox(width: 8),
+        ],
+        IconButton(
+          onPressed: currentPage < totalPages
+              ? () => onPageChanged(totalPages)
+              : null,
+          icon: const Icon(Icons.last_page),
+          iconSize: 20,
+          padding: EdgeInsets.zero,
+          constraints: const BoxConstraints(),
+          style: IconButton.styleFrom(
+            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
           ),
+        ),
       ],
     );
   }
@@ -149,8 +152,10 @@ class HeliumPager extends StatelessWidget {
     if (isMobile) {
       // On mobile: show up to 3 pages centered around current, no ellipsis
       const int maxVisible = 3;
-      final int start = (currentPage - 1)
-          .clamp(1, (totalPages - maxVisible + 1).clamp(1, totalPages));
+      final int start = (currentPage - 1).clamp(
+        1,
+        (totalPages - maxVisible + 1).clamp(1, totalPages),
+      );
       final int end = (start + maxVisible - 1).clamp(1, totalPages);
       for (int i = start; i <= end; i++) {
         pages.add(_buildPageButton(context, i));

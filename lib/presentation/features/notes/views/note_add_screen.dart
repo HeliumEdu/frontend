@@ -120,24 +120,13 @@ class NoteAddScreen extends StatefulWidget {
 }
 
 class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
-  @override
-  String get screenTitle => widget.isNew ? 'New Note' : 'Edit Note';
-
-  @override
-  IconData get icon => Icons.library_books;
-
-  @override
-  ScreenType get screenType => ScreenType.entityPage;
-
-  @override
-  Function? get saveAction => _saveNote;
-
   final BasicFormController _formController = BasicFormController();
   final TextEditingController _titleController = TextEditingController();
   late QuillController _quillController;
   final FocusNode _titleFocusNode = FocusNode();
   final FocusNode _editorFocusNode = FocusNode();
 
+  // State
   NoteModel? _note;
   NoteLinkModel? _provisionalLink;
   bool _showSearch = false;
@@ -169,6 +158,86 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
     super.dispose();
   }
 
+  @override
+  String get screenTitle => widget.isNew ? 'New Note' : 'Edit Note';
+
+  @override
+  IconData get icon => Icons.library_books;
+
+  @override
+  ScreenType get screenType => ScreenType.entityPage;
+
+  @override
+  Function? get saveAction {
+    return () {
+      if (isLoading) return;
+
+      if (!_formController.validateAndScrollToError()) {
+        showSnackBar(
+          context,
+          'Fix the highlighted fields, then try again.',
+          type: SnackType.error,
+        );
+        return;
+      }
+
+      setState(() {
+        isSubmitting = true;
+      });
+
+      final title = _titleController.text.trim();
+      final bodyIsEmpty =
+          _quillController.document.toPlainText().trim().isEmpty;
+
+      if (widget.isNew && title.isEmpty && bodyIsEmpty) {
+        setState(() {
+          isSubmitting = false;
+        });
+        showSnackBar(context, 'Not created, Note is empty');
+        cancelAction();
+        return;
+      }
+
+      final content = _quillController.document.toDelta().toJson();
+
+      if (widget.isNew) {
+        context.read<NoteBloc>().add(
+          CreateNoteEvent(
+            origin: EventOrigin.screen,
+            request: NoteRequestModel(
+              title: title,
+              content: {'ops': content},
+              homeworkId: widget.homeworkId,
+              eventId: widget.eventId,
+              resourceId: widget.resourceId,
+            ),
+          ),
+        );
+      } else {
+        context.read<NoteBloc>().add(
+          UpdateNoteEvent(
+            origin: EventOrigin.screen,
+            noteId: _note!.id,
+            request: NoteRequestModel(
+              title: title,
+              content: {'ops': content},
+            ),
+          ),
+        );
+      }
+    };
+  }
+
+  void _populateNoteData(NoteModel note) {
+    _note = note;
+    _titleController.text = note.title;
+
+    if (note.content != null && note.content!['ops'] != null) {
+      final ops = note.content!['ops'] as List;
+      _quillController.document = Document.fromJson(ops);
+    }
+  }
+
   void _fetchNote() {
     context.read<NoteBloc>().add(
       FetchNoteEvent(
@@ -195,7 +264,9 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
         ]);
         final homework = results[0] as HomeworkModel;
         final courses = results[1] as List<CourseModel>;
-        final course = courses.firstWhereOrNull((c) => c.id == homework.course.id);
+        final course = courses.firstWhereOrNull(
+          (c) => c.id == homework.course.id,
+        );
         if (!mounted) return;
         setState(() {
           _provisionalLink = NoteLinkModel(
@@ -237,73 +308,6 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
         });
       }
     } catch (_) {}
-  }
-
-  void _saveNote() {
-    if (isLoading) return;
-
-    if (!_formController.validateAndScrollToError()) {
-      showSnackBar(
-        context,
-        'Fix the highlighted fields, then try again.',
-        type: SnackType.error,
-      );
-      return;
-    }
-
-    setState(() {
-      isSubmitting = true;
-    });
-
-    final title = _titleController.text.trim();
-    final bodyIsEmpty = _quillController.document.toPlainText().trim().isEmpty;
-
-    if (widget.isNew && title.isEmpty && bodyIsEmpty) {
-      setState(() {
-        isSubmitting = false;
-      });
-      showSnackBar(context, 'Not created, Note is empty');
-      cancelAction();
-      return;
-    }
-
-    final content = _quillController.document.toDelta().toJson();
-
-    if (widget.isNew) {
-      context.read<NoteBloc>().add(
-        CreateNoteEvent(
-          origin: EventOrigin.screen,
-          request: NoteRequestModel(
-            title: title,
-            content: {'ops': content},
-            homeworkId: widget.homeworkId,
-            eventId: widget.eventId,
-            resourceId: widget.resourceId,
-          ),
-        ),
-      );
-    } else {
-      context.read<NoteBloc>().add(
-        UpdateNoteEvent(
-          origin: EventOrigin.screen,
-          noteId: _note!.id,
-          request: NoteRequestModel(
-            title: title,
-            content: {'ops': content},
-          ),
-        ),
-      );
-    }
-  }
-
-  void _populateNoteData(NoteModel note) {
-    _note = note;
-    _titleController.text = note.title;
-
-    if (note.content != null && note.content!['ops'] != null) {
-      final ops = note.content!['ops'] as List;
-      _quillController.document = Document.fromJson(ops);
-    }
   }
 
   @override
