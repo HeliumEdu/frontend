@@ -371,7 +371,9 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
                           controller: _titleController,
                           focusNode: _titleFocusNode,
                           autofocus: kIsWeb || widget.noteId == null,
-                          validator: BasicFormController.validateRequiredField,
+                          validator: hasBadge
+                              ? null
+                              : BasicFormController.validateRequiredField,
                           fieldKey: _formController.getFieldKey('title'),
                           onFieldSubmitted: (_) =>
                               _editorFocusNode.requestFocus(),

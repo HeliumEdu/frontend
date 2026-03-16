@@ -586,20 +586,26 @@ class NotesDataSource extends DataGridSource with SortableDataGridSource {
                   .value
               as String;
       final title = originalTitle;
-      final displayTitle = title.isEmpty ? 'Untitled' : title;
-      final titleStyle = AppStyles.smallSecondaryText(context).copyWith(
-        fontStyle: title.isEmpty ? FontStyle.italic : FontStyle.normal,
-        color: title.isEmpty
-            ? context.colorScheme.onSurface.withValues(alpha: 0.5)
-            : null,
-      );
+      if (title.isEmpty) {
+        return Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          alignment: Alignment.centerLeft,
+          child: Text(
+            '—',
+            style: AppStyles.standardBodyTextLight(context).copyWith(
+              color: context.colorScheme.onSurface.withValues(alpha: 0.3),
+            ),
+          ),
+        );
+      }
+      final titleStyle = AppStyles.smallSecondaryText(context);
       return Container(
         padding: const EdgeInsets.symmetric(horizontal: 8),
         alignment: Alignment.centerLeft,
         child: isSelectable
-            ? SelectableText(displayTitle, style: titleStyle, maxLines: 1)
+            ? SelectableText(title, style: titleStyle, maxLines: 1)
             : Text(
-                displayTitle,
+                title,
                 style: titleStyle,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
