@@ -920,6 +920,9 @@ class _CalendarScreenState
               onPressed: _calendarController.backward,
               padding: EdgeInsets.zero,
               constraints: const BoxConstraints(),
+              style: IconButton.styleFrom(
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              ),
             ),
             SizedBox(width: Responsive.isMobile(context) ? 2 : 4),
           ],
@@ -964,6 +967,9 @@ class _CalendarScreenState
               onPressed: _calendarController.forward,
               padding: EdgeInsets.zero,
               constraints: const BoxConstraints(),
+              style: IconButton.styleFrom(
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              ),
             ),
         ],
       ),
