@@ -142,40 +142,48 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
     DateTime? visibleStart,
     DateTime? visibleEnd,
   }) async {
-    _log.info('Refreshing external calendar events only');
+    _isRefreshing = true;
+    _notifyChangeListeners();
 
-    // Re-fetch external calendar events for the visible range
-    if (visibleStart != null && visibleEnd != null) {
-      final newEvents = await externalCalendarRepository.getExternalCalendarEvents(
-        from: visibleStart,
-        to: visibleEnd,
-        shownOnCalendar: true,
-        forceRefresh: true,
-      );
+    try {
+      _log.info('Refreshing external calendar events only');
 
-      // Update each cached date range by removing old external events and adding new ones
-      for (final entry in _dateRangeCache.entries) {
-        final items = entry.value;
-        items.removeWhere((item) => item is ExternalCalendarEventModel);
+      // Re-fetch external calendar events for the visible range
+      if (visibleStart != null && visibleEnd != null) {
+        final newEvents = await externalCalendarRepository.getExternalCalendarEvents(
+          from: visibleStart,
+          to: visibleEnd,
+          shownOnCalendar: true,
+          forceRefresh: true,
+        );
 
-        // Add new events that fall within this cache entry's range
-        final parts = entry.key.split('_');
-        final rangeStart = DateTime.parse(parts[0]);
-        final rangeEnd = DateTime.parse(parts[1]);
+        // Update each cached date range by removing old external events and adding new ones
+        for (final entry in _dateRangeCache.entries) {
+          final items = entry.value;
+          items.removeWhere((item) => item is ExternalCalendarEventModel);
 
-        for (final event in newEvents) {
-          if (event.start.isBefore(rangeEnd) && event.end.isAfter(rangeStart)) {
-            items.add(event);
+          // Add new events that fall within this cache entry's range
+          final parts = entry.key.split('_');
+          final rangeStart = DateTime.parse(parts[0]);
+          final rangeEnd = DateTime.parse(parts[1]);
+
+          for (final event in newEvents) {
+            if (event.start.isBefore(rangeEnd) && event.end.isAfter(rangeStart)) {
+              items.add(event);
+            }
           }
         }
       }
-    }
 
-    // Re-apply filters to update the calendar view
-    if (PlannerItemDataSource.filterDebounceDuration == Duration.zero) {
-      _applyFiltersSynchronously();
-    } else {
-      await _applyFiltersAsync();
+      // Re-apply filters to update the calendar view
+      if (PlannerItemDataSource.filterDebounceDuration == Duration.zero) {
+        _applyFiltersSynchronously();
+      } else {
+        await _applyFiltersAsync();
+      }
+    } finally {
+      _isRefreshing = false;
+      _notifyChangeListeners();
     }
   }
 
