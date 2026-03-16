@@ -159,7 +159,9 @@ class _NotesDataGridState extends State<NotesDataGrid> {
                           rowHeight: 50,
                           gridLinesVisibility: GridLinesVisibility.none,
                           headerGridLinesVisibility: GridLinesVisibility.none,
-                          selectionMode: SelectionMode.none,
+                          selectionMode: (isTouchDevice || isCompact)
+                              ? SelectionMode.single
+                              : SelectionMode.none,
                           horizontalScrollPhysics:
                               const NeverScrollableScrollPhysics(),
                           navigationMode: GridNavigationMode.row,
@@ -174,36 +176,33 @@ class _NotesDataGridState extends State<NotesDataGrid> {
                             return details.swipeDirection ==
                                 DataGridRowSwipeDirection.endToStart;
                           },
-                          onSwipeEnd: (details) {
-                            if (details.swipeDirection ==
-                                DataGridRowSwipeDirection.endToStart) {
-                              final rowIndex = details.rowIndex;
-                              final note = _dataSource.getNoteAtRow(rowIndex);
-                              if (note != null) {
-                                widget.onDelete(context, note);
-                              }
-                            }
-                            _dataSource.notifyListeners();
-                          },
                           endSwipeActionsBuilder: (context, row, rowIndex) {
-                            return Container(
-                              color: context.colorScheme.error,
-                              alignment: Alignment.centerRight,
-                              padding: const EdgeInsets.only(right: 24),
-                              child: Icon(
-                                Icons.delete_outline,
-                                color: context.colorScheme.onError,
+                            final note = _dataSource.getNoteFromRow(row);
+                            return GestureDetector(
+                              onTap: () {
+                                if (note != null) {
+                                  widget.onDelete(context, note);
+                                }
+                                _dataSource.notifyListeners();
+                              },
+                              child: Container(
+                                color: context.colorScheme.error,
+                                alignment: Alignment.centerRight,
+                                padding: const EdgeInsets.only(right: 24),
+                                child: Icon(
+                                  Icons.delete_outline,
+                                  color: context.colorScheme.onError,
+                                ),
                               ),
                             );
                           },
-                          onCellTap: (details) {
-                            if (details.rowColumnIndex.rowIndex > 0) {
-                              final rowIndex =
-                                  details.rowColumnIndex.rowIndex - 1;
-                              final note = _dataSource.getNoteAtRow(rowIndex);
-                              if (note != null &&
-                                  (isTouchDevice || isCompact)) {
+                          onSelectionChanged: (addedRows, removedRows) {
+                            if (addedRows.isNotEmpty) {
+                              final note =
+                                  _dataSource.getNoteFromRow(addedRows.first);
+                              if (note != null) {
                                 widget.onNoteTap(note);
+                                _controller.selectedRow = null;
                               }
                             }
                           },
@@ -447,9 +446,7 @@ class NotesDataSource extends DataGridSource with SortableDataGridSource {
     sortDataGridRows(rows);
   }
 
-  NoteModel? getNoteAtRow(int rowIndex) {
-    if (rowIndex < 0 || rowIndex >= _dataGridRows.length) return null;
-    final row = _dataGridRows[rowIndex];
+  NoteModel? getNoteFromRow(DataGridRow row) {
     final noteId =
         row.getCells().firstWhere((c) => c.columnName == 'actions').value
             as int;

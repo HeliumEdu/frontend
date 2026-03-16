@@ -253,7 +253,9 @@ class TodosDataGridState extends State<TodosDataGrid> {
                         rowHeight: 50,
                         gridLinesVisibility: GridLinesVisibility.none,
                         headerGridLinesVisibility: GridLinesVisibility.none,
-                        selectionMode: SelectionMode.none,
+                        selectionMode: (isTouchDevice || isCompact)
+                            ? SelectionMode.single
+                            : SelectionMode.none,
                         horizontalScrollPhysics:
                             const NeverScrollableScrollPhysics(),
                         navigationMode: GridNavigationMode.row,
@@ -266,38 +268,36 @@ class TodosDataGridState extends State<TodosDataGrid> {
                           return details.swipeDirection ==
                               DataGridRowSwipeDirection.endToStart;
                         },
-                        onSwipeEnd: (details) {
-                          if (details.swipeDirection ==
-                              DataGridRowSwipeDirection.endToStart) {
-                            final homework =
-                                _dataSource.getHomeworkAtRow(details.rowIndex);
-                            if (homework != null &&
-                                PlannerHelper.shouldShowDeleteButton(homework)) {
-                              widget.onDelete(context, homework);
-                            }
-                          }
-                          _dataSource.notifyListeners();
-                        },
                         endSwipeActionsBuilder: (context, row, rowIndex) {
-                          return Container(
-                            color: context.colorScheme.error,
-                            alignment: Alignment.centerRight,
-                            padding: const EdgeInsets.only(right: 24),
-                            child: Icon(
-                              Icons.delete_outline,
-                              color: context.colorScheme.onError,
+                          final homework = _dataSource.getHomeworkFromRow(row);
+                          return GestureDetector(
+                            onTap: () {
+                              if (homework != null &&
+                                  PlannerHelper.shouldShowDeleteButton(
+                                    homework,
+                                  )) {
+                                widget.onDelete(context, homework);
+                              }
+                              _dataSource.notifyListeners();
+                            },
+                            child: Container(
+                              color: context.colorScheme.error,
+                              alignment: Alignment.centerRight,
+                              padding: const EdgeInsets.only(right: 24),
+                              child: Icon(
+                                Icons.delete_outline,
+                                color: context.colorScheme.onError,
+                              ),
                             ),
                           );
                         },
-                        onCellTap: (details) {
-                          if (details.rowColumnIndex.rowIndex > 0) {
-                            final rowIndex =
-                                details.rowColumnIndex.rowIndex - 1;
+                        onSelectionChanged: (addedRows, removedRows) {
+                          if (addedRows.isNotEmpty) {
                             final homework =
-                                _dataSource.getHomeworkAtRow(rowIndex);
-                            if (homework != null &&
-                                (isTouchDevice || isCompact)) {
+                                _dataSource.getHomeworkFromRow(addedRows.first);
+                            if (homework != null) {
                               widget.onTap(homework);
+                              _gridController.selectedRow = null;
                             }
                           }
                         },
@@ -585,18 +585,17 @@ class TodosDataGridState extends State<TodosDataGrid> {
       onDelete: widget.onDelete,
     );
 
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) {
-        _pagerController.selectedPageIndex = _currentPage - 1;
-        if (markInitialized) {
+    _pagerController.selectedPageIndex = _currentPage - 1;
+
+    if (markInitialized) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
           setState(() {
             _isInitialized = true;
           });
         }
-      }
-    });
-
-    if (!markInitialized) {
+      });
+    } else {
       setState(() {});
     }
   }
@@ -747,9 +746,7 @@ class TodosDataSource extends DataGridSource with SortableDataGridSource {
     sortDataGridRows(rows);
   }
 
-  HomeworkModel? getHomeworkAtRow(int rowIndex) {
-    if (rowIndex < 0 || rowIndex >= _dataGridRows.length) return null;
-    final row = _dataGridRows[rowIndex];
+  HomeworkModel? getHomeworkFromRow(DataGridRow row) {
     final homeworkId = row
         .getCells()
         .firstWhere((c) => c.columnName == '_homeworkId')
