@@ -884,7 +884,7 @@ class _CalendarScreenState
         child: Align(
           alignment: Alignment.centerLeft,
           child: Padding(
-            padding: const EdgeInsets.only(left: 12),
+            padding: const EdgeInsets.only(left: 8),
             child: Text(
               CalendarConstants
                   .defaultViews[PlannerHelper.mapHeliumViewToApiView(
@@ -909,7 +909,7 @@ class _CalendarScreenState
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          SizedBox(width: Responsive.isMobile(context) ? 2 : 4),
+          const SizedBox(width: 4),
           if (showNavButtons) ...[
             IconButton(
               icon: Icon(
