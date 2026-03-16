@@ -6,6 +6,7 @@
 // For details regarding the license, please refer to the LICENSE file.
 
 import 'package:collection/collection.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -359,7 +360,7 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
                       hintText: 'Title',
                       controller: _titleController,
                       focusNode: _titleFocusNode,
-                      autofocus: true,
+                      autofocus: kIsWeb || widget.noteId == null,
                       validator: BasicFormController.validateRequiredField,
                       fieldKey: _formController.getFieldKey('title'),
                       onFieldSubmitted: (_) => _editorFocusNode.requestFocus(),
