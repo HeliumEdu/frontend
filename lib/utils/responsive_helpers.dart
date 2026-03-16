@@ -37,6 +37,10 @@ class Responsive {
     return isDesktopWidth(MediaQuery.of(context).size.width);
   }
 
+  static bool isCompact(BuildContext context) {
+    return isCompactWidth(MediaQuery.of(context).size.width);
+  }
+
   static bool isMobileWidth(double width) {
     return width < ResponsiveBreakpoints.mobile;
   }
@@ -48,6 +52,10 @@ class Responsive {
 
   static bool isDesktopWidth(double width) {
     return width >= ResponsiveBreakpoints.tablet;
+  }
+
+  static bool isCompactWidth(double width) {
+    return width < 800;
   }
 
   static int getColumnCountForWidth(

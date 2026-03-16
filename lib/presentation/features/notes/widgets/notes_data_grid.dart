@@ -81,20 +81,10 @@ class _NotesDataGridState extends State<NotesDataGrid> {
     }
   }
 
-  NotesDataSource _buildDataSource() {
-    return NotesDataSource(
-      notes: widget.notes,
-      context: context,
-      userSettings: widget.userSettings,
-      onEdit: widget.onNoteTap,
-      onDelete: widget.onDelete,
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final isTouchDevice = Responsive.isTouchDevice(context);
-    final isCompact = MediaQuery.of(context).size.width < 800;
+    final isCompact = Responsive.isCompact(context);
     final showModified = !Responsive.isMobile(context);
     final showActions = !isTouchDevice;
 
@@ -335,6 +325,16 @@ class _NotesDataGridState extends State<NotesDataGrid> {
     );
   }
 
+  NotesDataSource _buildDataSource() {
+    return NotesDataSource(
+      notes: widget.notes,
+      context: context,
+      userSettings: widget.userSettings,
+      onEdit: widget.onNoteTap,
+      onDelete: widget.onDelete,
+    );
+  }
+
   Widget _buildHeaderCell(String text) {
     return MouseRegion(
       cursor: SystemMouseCursors.click,
@@ -384,7 +384,6 @@ class NotesDataSource extends DataGridSource with SortableDataGridSource {
     _allRows = notes.map((note) {
       return DataGridRow(
         cells: [
-          // Store lowercase for case-insensitive sorting
           DataGridCell<String>(
             columnName: 'title',
             value: note.title.toLowerCase(),
@@ -395,7 +394,6 @@ class NotesDataSource extends DataGridSource with SortableDataGridSource {
           ),
           DataGridCell<DateTime>(columnName: 'modified', value: note.updatedAt),
           DataGridCell<int>(columnName: 'actions', value: note.id),
-          // Store additional data for row styling and display
           DataGridCell<Color?>(
             columnName: '_color',
             value: note.link?.linkedEntityColor,
@@ -408,7 +406,6 @@ class NotesDataSource extends DataGridSource with SortableDataGridSource {
             columnName: '_entityType',
             value: note.link?.linkedEntityType ?? '',
           ),
-          // Store original title for display
           DataGridCell<String>(columnName: '_originalTitle', value: note.title),
           DataGridCell<String>(
             columnName: '_originalLinkedTo',
@@ -418,8 +415,6 @@ class NotesDataSource extends DataGridSource with SortableDataGridSource {
       );
     }).toList();
     _dataGridRows = _allRows;
-
-    // Apply current sort order
     sortDataGridRows(_dataGridRows);
   }
 
@@ -497,7 +492,6 @@ class NotesDataSource extends DataGridSource with SortableDataGridSource {
                 .value
             as String;
 
-    // Determine row color based on entity type and colorByCategory preference
     Color? rowColor;
     if (entityType == 'homework') {
       rowColor =
@@ -511,7 +505,6 @@ class NotesDataSource extends DataGridSource with SortableDataGridSource {
       rowColor = userSettings?.resourceColor;
     }
 
-    // Filter out internal cells and hidden columns for display
     final displayCells = row
         .getCells()
         .where((c) => !c.columnName.startsWith('_'))
@@ -525,7 +518,7 @@ class NotesDataSource extends DataGridSource with SortableDataGridSource {
         .toList();
 
     final isTouchDevice = Responsive.isTouchDevice(context);
-    final isCompact = MediaQuery.of(context).size.width < 800;
+    final isCompact = Responsive.isCompact(context);
     final rowCursor = (isTouchDevice || isCompact)
         ? SystemMouseCursors.click
         : MouseCursor.defer;
@@ -568,11 +561,10 @@ class NotesDataSource extends DataGridSource with SortableDataGridSource {
     Color? linkedEntityColor,
   ) {
     final isTouchDevice = Responsive.isTouchDevice(context);
-    final isCompact = MediaQuery.of(context).size.width < 800;
+    final isCompact = Responsive.isCompact(context);
     final isSelectable = !isTouchDevice && !isCompact;
 
     if (cell.columnName == 'title') {
-      // Get original title for display (cell.value is lowercase for sorting)
       final originalTitle =
           row
                   .getCells()
@@ -614,7 +606,6 @@ class NotesDataSource extends DataGridSource with SortableDataGridSource {
     }
 
     if (cell.columnName == 'linkedTo') {
-      // Get original linkedTo for display (cell.value is lowercase for sorting)
       final originalLinkedTo =
           row
                   .getCells()

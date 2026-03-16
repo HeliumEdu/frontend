@@ -103,7 +103,6 @@ class TodosDataGridState extends State<TodosDataGrid> {
   bool _isInitialized = false;
   bool _hasInitializedNavigation = false;
 
-  // Pagination state
   int _currentPage = 1;
   int _itemsPerPage = 10;
 
@@ -132,70 +131,6 @@ class TodosDataGridState extends State<TodosDataGrid> {
     super.dispose();
   }
 
-  void _onDataSourceChanged() {
-    if (!mounted) return;
-    _dataSource.update(
-      homeworks: widget.dataSource.filteredHomeworks,
-      context: context,
-      dataSource: widget.dataSource,
-      onTap: widget.onTap,
-      onToggleCompleted: widget.onToggleCompleted,
-      onDelete: widget.onDelete,
-    );
-    setState(() {});
-  }
-
-  TodosDataSource _buildDataSource() {
-    return TodosDataSource(
-      homeworks: widget.dataSource.filteredHomeworks,
-      context: context,
-      dataSource: widget.dataSource,
-      onTap: widget.onTap,
-      onToggleCompleted: widget.onToggleCompleted,
-      onDelete: widget.onDelete,
-    );
-  }
-
-  Future<void> _initializeData() async {
-    if (widget.dataSource.courses == null) return;
-    await _expandDataWindowForAllCourses();
-    if (!mounted) return;
-    if (!_hasInitializedNavigation) {
-      // goToToday will set _isInitialized after navigation completes
-      goToToday(isInitialLoad: true);
-    } else {
-      setState(() {
-        _isInitialized = true;
-      });
-    }
-  }
-
-  Future<void> _expandDataWindowForAllCourses() async {
-    final dataSource = widget.dataSource;
-    final courses = dataSource.courses ?? [];
-
-    if (courses.isEmpty) {
-      _log.fine('No courses, skipping data window expansion');
-      return;
-    }
-
-    DateTime? from;
-    DateTime? to;
-
-    for (final course in courses) {
-      final startDate = course.startDate;
-      final endDate = course.endDate.add(const Duration(days: 1));
-
-      if (from == null || startDate.isBefore(from)) from = startDate;
-      if (to == null || endDate.isAfter(to)) to = endDate;
-    }
-
-    if (from != null && to != null) {
-      _log.info('Date window for ${courses.length} courses: $from to $to');
-      await dataSource.handleLoadMore(from, to);
-    }
-  }
-
   void goToToday({bool isInitialLoad = false}) {
     final homeworks = widget.dataSource.filteredHomeworks;
     _log.info(
@@ -203,7 +138,6 @@ class TodosDataGridState extends State<TodosDataGrid> {
     );
     _hasInitializedNavigation = true;
 
-    // Reset sort to due date ascending via SfDataGrid's sorting
     _dataSource.sortedColumns.clear();
     _dataSource.sortedColumns.add(
       const SortColumnDetails(
@@ -212,7 +146,6 @@ class TodosDataGridState extends State<TodosDataGrid> {
       ),
     );
 
-    // Sort by due date to calculate target page
     final sorted = List<HomeworkModel>.from(homeworks);
     sorted.sort((a, b) => a.start.compareTo(b.start));
 
@@ -250,50 +183,6 @@ class TodosDataGridState extends State<TodosDataGrid> {
 
     _syncPagerAndRefresh(markInitialized: isInitialLoad);
   }
-
-  void _syncPagerAndRefresh({bool markInitialized = false}) {
-    // Update data source
-    _dataSource.update(
-      homeworks: widget.dataSource.filteredHomeworks,
-      context: context,
-      dataSource: widget.dataSource,
-      onTap: widget.onTap,
-      onToggleCompleted: widget.onToggleCompleted,
-      onDelete: widget.onDelete,
-    );
-
-    // Sync pager controller after frame is built (required for initial load)
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) {
-        _pagerController.selectedPageIndex = _currentPage - 1;
-        if (markInitialized) {
-          setState(() {
-            _isInitialized = true;
-          });
-        }
-      }
-    });
-
-    if (!markInitialized) {
-      setState(() {});
-    }
-  }
-
-  bool _shouldShowColumn(TodosSortColumn column) {
-    if (column.minViewportWidth == null) return true;
-    return MediaQuery.of(context).size.width >= column.minViewportWidth! ||
-        (column.showOnTouchDevice && Responsive.isTouchDevice(context));
-  }
-
-  bool _shouldShowAttachmentsColumn() =>
-      MediaQuery.of(context).size.width >= 1000;
-
-  bool _shouldShowResourcesColumn() =>
-      MediaQuery.of(context).size.width >= 950;
-
-  bool _shouldHideActionsColumn() => Responsive.isTouchDevice(context);
-
-  bool _isCompactActionsMode() => MediaQuery.of(context).size.width < 800;
 
   @override
   Widget build(BuildContext context) {
@@ -337,7 +226,6 @@ class TodosDataGridState extends State<TodosDataGrid> {
     final headerColor =
         context.colorScheme.surfaceContainerHighest.withValues(alpha: 0.5);
 
-    // Build column list based on responsive visibility
     final columns = _buildColumns(isMobile, showActions, isCompact);
 
     return Stack(
@@ -427,7 +315,6 @@ class TodosDataGridState extends State<TodosDataGrid> {
                   ],
                 ),
               ),
-              // Hidden SfDataPager for internal state sync
               SizedBox(
                 height: 0,
                 child: SfDataPager(
@@ -621,6 +508,111 @@ class TodosDataGridState extends State<TodosDataGrid> {
       ),
     );
   }
+
+  void _onDataSourceChanged() {
+    if (!mounted) return;
+    _dataSource.update(
+      homeworks: widget.dataSource.filteredHomeworks,
+      context: context,
+      dataSource: widget.dataSource,
+      onTap: widget.onTap,
+      onToggleCompleted: widget.onToggleCompleted,
+      onDelete: widget.onDelete,
+    );
+    setState(() {});
+  }
+
+  TodosDataSource _buildDataSource() {
+    return TodosDataSource(
+      homeworks: widget.dataSource.filteredHomeworks,
+      context: context,
+      dataSource: widget.dataSource,
+      onTap: widget.onTap,
+      onToggleCompleted: widget.onToggleCompleted,
+      onDelete: widget.onDelete,
+    );
+  }
+
+  Future<void> _initializeData() async {
+    if (widget.dataSource.courses == null) return;
+    await _expandDataWindowForAllCourses();
+    if (!mounted) return;
+    if (!_hasInitializedNavigation) {
+      goToToday(isInitialLoad: true);
+    } else {
+      setState(() {
+        _isInitialized = true;
+      });
+    }
+  }
+
+  Future<void> _expandDataWindowForAllCourses() async {
+    final dataSource = widget.dataSource;
+    final courses = dataSource.courses ?? [];
+
+    if (courses.isEmpty) {
+      _log.fine('No courses, skipping data window expansion');
+      return;
+    }
+
+    DateTime? from;
+    DateTime? to;
+
+    for (final course in courses) {
+      final startDate = course.startDate;
+      final endDate = course.endDate.add(const Duration(days: 1));
+
+      if (from == null || startDate.isBefore(from)) from = startDate;
+      if (to == null || endDate.isAfter(to)) to = endDate;
+    }
+
+    if (from != null && to != null) {
+      _log.info('Date window for ${courses.length} courses: $from to $to');
+      await dataSource.handleLoadMore(from, to);
+    }
+  }
+
+  void _syncPagerAndRefresh({bool markInitialized = false}) {
+    _dataSource.update(
+      homeworks: widget.dataSource.filteredHomeworks,
+      context: context,
+      dataSource: widget.dataSource,
+      onTap: widget.onTap,
+      onToggleCompleted: widget.onToggleCompleted,
+      onDelete: widget.onDelete,
+    );
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        _pagerController.selectedPageIndex = _currentPage - 1;
+        if (markInitialized) {
+          setState(() {
+            _isInitialized = true;
+          });
+        }
+      }
+    });
+
+    if (!markInitialized) {
+      setState(() {});
+    }
+  }
+
+  bool _shouldShowColumn(TodosSortColumn column) {
+    if (column.minViewportWidth == null) return true;
+    return MediaQuery.of(context).size.width >= column.minViewportWidth! ||
+        (column.showOnTouchDevice && Responsive.isTouchDevice(context));
+  }
+
+  bool _shouldShowAttachmentsColumn() =>
+      MediaQuery.of(context).size.width >= 1000;
+
+  bool _shouldShowResourcesColumn() =>
+      MediaQuery.of(context).size.width >= 950;
+
+  bool _shouldHideActionsColumn() => Responsive.isTouchDevice(context);
+
+  bool _isCompactActionsMode() => Responsive.isCompact(context);
 }
 
 /// DataGridSource that wraps PlannerItemDataSource for SfDataGrid.
@@ -688,30 +680,22 @@ class TodosDataSource extends DataGridSource with SortableDataGridSource {
       );
       final category = categoriesMap[homework.category.id];
 
-      // Compute sortable values for SfDataGrid's built-in sorting
       final isCompleted = _dataSource.isHomeworkCompleted(homework);
 
-      // Grade: compute numeric value for sorting
-      // Ascending order: hidden (incomplete) → N/A → 1% → 100%
-      // - Hidden (incomplete): -2 (sorts first)
-      // - N/A (completed, no valid grade): -1 (sorts second)
-      // - Valid grade (0-100%): 0.0 to 1.0
       final parsedGrade = GradeHelper.parseGrade(homework.currentGrade);
       final double gradeSortValue;
       if (!isCompleted) {
-        gradeSortValue = -2.0; // Hidden - sorts first in ascending
+        gradeSortValue = -2.0;
       } else if (parsedGrade == null) {
-        gradeSortValue = -1.0; // N/A - sorts after hidden
+        gradeSortValue = -1.0;
       } else {
-        gradeSortValue = parsedGrade / 100.0; // 0.0 to 1.0 for valid grades
+        gradeSortValue = parsedGrade / 100.0;
       }
 
-      // Class/Category: store title for alphabetical sorting
       final courseTitle = course.title.toLowerCase();
       final categoryTitle = category?.title.toLowerCase() ?? '';
 
       return DataGridRow(cells: [
-        // Store as int (0/1) since bool isn't Comparable in Dart
         DataGridCell<int>(columnName: 'completed', value: isCompleted ? 1 : 0),
         DataGridCell<String>(columnName: 'title', value: homework.title.toLowerCase()),
         DataGridCell<DateTime>(columnName: 'dueDate', value: homework.start),
@@ -722,7 +706,6 @@ class TodosDataSource extends DataGridSource with SortableDataGridSource {
         DataGridCell<int>(columnName: 'resources', value: homework.resources.length),
         DataGridCell<int>(columnName: 'attachments', value: homework.attachments.length),
         DataGridCell<int>(columnName: 'actions', value: homework.id),
-        // Internal cells for row data (used for rendering, not sorting)
         DataGridCell<int>(columnName: '_homeworkId', value: homework.id),
         DataGridCell<int>(columnName: '_courseId', value: course.id),
         DataGridCell<Color>(columnName: '_courseColor', value: course.color),
@@ -731,7 +714,6 @@ class TodosDataSource extends DataGridSource with SortableDataGridSource {
       ]);
     }).toList();
 
-    // Apply current sort order
     sortDataGridRows(_dataGridRows);
   }
 
@@ -795,17 +777,15 @@ class TodosDataSource extends DataGridSource with SortableDataGridSource {
     final userSettings = _dataSource.userSettings;
     final isCompleted = _dataSource.isHomeworkCompleted(homework);
 
-    // Determine row background color based on course/category
     final rowColor = userSettings.colorByCategory && categoryColor != null
         ? categoryColor
         : courseColor;
 
     final isTouchDevice = Responsive.isTouchDevice(_context);
-    final isCompact = MediaQuery.of(_context).size.width < 800;
+    final isCompact = Responsive.isCompact(_context);
     final rowCursor =
         (isTouchDevice || isCompact) ? SystemMouseCursors.click : MouseCursor.defer;
 
-    // Filter cells for display based on responsive visibility
     final displayCells = _getDisplayCells(row);
 
     return DataGridRowAdapter(
@@ -833,10 +813,8 @@ class TodosDataSource extends DataGridSource with SortableDataGridSource {
     final isTouchDevice = Responsive.isTouchDevice(_context);
 
     return row.getCells().where((cell) {
-      // Skip internal cells
       if (cell.columnName.startsWith('_')) return false;
 
-      // Responsive visibility checks
       switch (cell.columnName) {
         case 'className':
           return width >= 625;
@@ -867,7 +845,7 @@ class TodosDataSource extends DataGridSource with SortableDataGridSource {
     final courses = _dataSource.courses ?? [];
     final categoriesMap = _dataSource.categoriesMap ?? {};
     final isTouchDevice = Responsive.isTouchDevice(_context);
-    final isCompact = MediaQuery.of(_context).size.width < 800;
+    final isCompact = Responsive.isCompact(_context);
     final isSelectable = !isTouchDevice && !isCompact;
 
     switch (cell.columnName) {
