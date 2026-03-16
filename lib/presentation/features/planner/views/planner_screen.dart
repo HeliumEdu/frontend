@@ -134,6 +134,7 @@ class _CalendarScreenState
     extends BasePageScreenState<_CalendarProvidedScreen> {
   static const _agendaHeightMobile = 53.0;
   static const _agendaHeightDesktop = 57.0;
+  static const _mobileAppointmentDisplayCount = 6;
   static const _uiAnimationDuration = Duration(milliseconds: 300);
   static const _tooltipWaitDuration = Duration(milliseconds: 500);
   static const _tooltipShowDuration = Duration(seconds: 8);
@@ -696,7 +697,9 @@ class _CalendarScreenState
             ),
           ),
           monthViewSettings: MonthViewSettings(
-            appointmentDisplayCount: calendarItemsDisplayCount,
+            appointmentDisplayCount: Responsive.isMobile(context)
+                ? _mobileAppointmentDisplayCount
+                : calendarItemsDisplayCount,
             showAgenda: Responsive.isMobile(context),
             agendaItemHeight: agendaHeight,
             monthCellStyle: MonthCellStyle(
