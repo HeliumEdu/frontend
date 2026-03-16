@@ -78,6 +78,7 @@ class _NotesDataGridState extends State<NotesDataGrid> {
         onEdit: widget.onNoteTap,
         onDelete: widget.onDelete,
       );
+      setState(() {});
     }
   }
 

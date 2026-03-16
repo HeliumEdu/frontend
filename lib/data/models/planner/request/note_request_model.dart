@@ -25,6 +25,7 @@ class NoteRequestModel {
 
     if (title != null) json['title'] = title;
     if (content != null) json['content'] = content;
+    if (homeworkId != null) json['homework'] = [homeworkId];
     if (eventId != null) json['events'] = [eventId];
     if (resourceId != null) json['resources'] = [resourceId];
 
