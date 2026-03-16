@@ -367,7 +367,12 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
                   ),
                   if (_note?.link != null || _provisionalLink != null) ...[
                     const SizedBox(width: 8),
-                    _buildLinkedEntityBadge(_note?.link ?? _provisionalLink!),
+                    ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 180),
+                      child: _buildLinkedEntityBadge(
+                        _note?.link ?? _provisionalLink!,
+                      ),
+                    ),
                   ],
                 ],
               ),

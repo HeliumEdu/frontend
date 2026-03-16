@@ -80,6 +80,7 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen> 
   String? _searchQuery;
   final Set<String> _filterEntityTypes = {};
   final TextEditingController _searchController = TextEditingController();
+  final FocusNode _searchFocusNode = FocusNode();
   int _rowsPerPage = 10;
   bool _notesReady = false;
   bool _filterStateRestored = false;
@@ -112,6 +113,7 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen> 
   @override
   void dispose() {
     _searchController.dispose();
+    _searchFocusNode.dispose();
     super.dispose();
   }
 
@@ -444,7 +446,12 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen> 
                 ),
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(8),
+                  child: TapRegion(
+                  onTapOutside: Responsive.isMobile(context)
+                      ? (_) => _searchFocusNode.unfocus()
+                      : null,
                   child: TextField(
+                  focusNode: _searchFocusNode,
                   controller: _searchController,
                   style: AppStyles.formText(context),
                   decoration: InputDecoration(
@@ -490,6 +497,7 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen> 
                     _searchQuery = value.isEmpty ? null : value;
                   });
                 },
+              ),
               ),
               ),
               ),
