@@ -5,6 +5,37 @@
 //
 // For details regarding the license, please refer to the LICENSE file.
 
+import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
+import 'package:flutter_quill/flutter_quill.dart';
+// ignore: implementation_imports
+import 'package:flutter_quill/src/l10n/generated/quill_localizations_en.dart';
+
+class HeliumQuillLocalizations extends FlutterQuillLocalizationsEn {
+  HeliumQuillLocalizations([super.locale = 'en']);
+
+  @override
+  String get pleaseEnterTheLinkURL => 'Link URL';
+
+  @override
+  String get pleaseEnterTextForYourLink => 'Link text';
+}
+
+class HeliumQuillLocalizationsDelegate
+    extends LocalizationsDelegate<FlutterQuillLocalizations> {
+  const HeliumQuillLocalizationsDelegate();
+
+  @override
+  bool isSupported(Locale locale) => locale.languageCode == 'en';
+
+  @override
+  Future<FlutterQuillLocalizations> load(Locale locale) =>
+      SynchronousFuture(HeliumQuillLocalizations(locale.toString()));
+
+  @override
+  bool shouldReload(covariant LocalizationsDelegate<FlutterQuillLocalizations> old) => false;
+}
+
 /// Extracts plain text from a Quill Delta JSON map.
 /// Returns empty string if notes is null or malformed.
 String extractNotesPlainText(Map<String, dynamic>? notes) {
