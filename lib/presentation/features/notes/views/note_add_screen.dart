@@ -264,6 +264,17 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
     });
 
     final title = _titleController.text.trim();
+    final bodyIsEmpty =
+        _quillController.document.toPlainText().trim().isEmpty;
+
+    if (_isNewNote && title.isEmpty && bodyIsEmpty) {
+      setState(() {
+        isSubmitting = false;
+      });
+      showSnackBar(context, 'Not created, Note is empty');
+      cancelAction();
+      return;
+    }
 
     final content = _quillController.document.toDelta().toJson();
 
