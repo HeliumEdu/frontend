@@ -371,7 +371,7 @@ class TodosDataGridState extends State<TodosDataGrid> {
                         navigationMode: GridNavigationMode.row,
                         allowSorting: true,
                         sortingGestureType: SortingGestureType.tap,
-                        rowsPerPage: _itemsPerPage == -1 ? null : _itemsPerPage,
+                        rowsPerPage: _itemsPerPage == -1 ? totalItems : _itemsPerPage,
                         allowSwiping: isTouchDevice,
                         swipeMaxOffset: 80,
                         onSwipeStart: (details) {

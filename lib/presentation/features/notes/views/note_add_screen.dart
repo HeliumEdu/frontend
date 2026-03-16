@@ -271,9 +271,9 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
       final request = NoteRequestModel(
         title: title,
         content: {'ops': content},
-        homeworkId: _provisionalLink?.homeworkId,
-        eventId: _provisionalLink?.eventId,
-        resourceId: _provisionalLink?.resourceId,
+        homeworkId: widget.homeworkId,
+        eventId: widget.eventId,
+        resourceId: widget.resourceId,
       );
       context.read<NoteBloc>().add(
         CreateNoteEvent(

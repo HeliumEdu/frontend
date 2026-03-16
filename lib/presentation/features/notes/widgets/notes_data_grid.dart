@@ -172,7 +172,7 @@ class _NotesDataGridState extends State<NotesDataGrid> {
                           allowSorting: true,
                           sortingGestureType: SortingGestureType.tap,
                           rowsPerPage: widget.rowsPerPage == -1
-                              ? null
+                              ? totalItems
                               : widget.rowsPerPage,
                           allowSwiping: isTouchDevice,
                           swipeMaxOffset: 80,
