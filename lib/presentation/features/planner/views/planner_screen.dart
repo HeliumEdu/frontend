@@ -923,7 +923,7 @@ class _CalendarScreenState
                 tapTargetSize: MaterialTapTargetSize.shrinkWrap,
               ),
             ),
-            SizedBox(width: Responsive.isMobile(context) ? 2 : 4),
+            const SizedBox(width: 4),
           ],
           Material(
             color: Colors.transparent,
@@ -955,8 +955,8 @@ class _CalendarScreenState
               ),
             ),
           ),
-          if (showNavButtons && !Responsive.isMobile(context))
-            const SizedBox(width: 4),
+          if (showNavButtons)
+            SizedBox(width: Responsive.isMobile(context) ? 2 : 4),
           if (showNavButtons)
             IconButton(
               icon: Icon(
