@@ -1133,7 +1133,13 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
   bool get hasPendingNotebookRedirect => _pendingNotebookRedirect;
 
   /// Executes the pending notebook redirect. Call after save completes.
-  void executePendingNotebookRedirect({int? entityId, bool? isEvent}) {
+  /// Pass the updated entity from the save response to get the correct linkedNote.
+  /// If linkedNote is null (e.g., note was deleted), routes to entity-based creation.
+  void executePendingNotebookRedirect({
+    int? entityId,
+    bool? isEvent,
+    LinkedNoteRef? linkedNote,
+  }) {
     if (!_pendingNotebookRedirect) return;
     _pendingNotebookRedirect = false;
 
@@ -1141,16 +1147,8 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
     final effectiveIsEvent = isEvent ?? _isEvent;
     final effectiveEntityId = entityId ?? _plannerItem?.id;
 
-    // Check for existing linked note
-    final LinkedNoteRef? linkedNote;
-    if (_plannerItem is HomeworkModel) {
-      linkedNote = (_plannerItem as HomeworkModel).linkedNote;
-    } else if (_plannerItem is EventModel) {
-      linkedNote = (_plannerItem as EventModel).linkedNote;
-    } else {
-      linkedNote = null;
-    }
-
+    // Trust the linkedNote from the save response - don't fall back to local state
+    // which may be stale (e.g., note was deleted because content was cleared)
     if (linkedNote != null) {
       context.go('${AppRoute.notebookScreen}?id=${linkedNote.id}');
     } else if (effectiveIsEvent) {

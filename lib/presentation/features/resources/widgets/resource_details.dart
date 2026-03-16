@@ -14,6 +14,7 @@ import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/data/models/planner/course_model.dart';
 import 'package:heliumapp/data/models/planner/resource_model.dart';
+import 'package:heliumapp/data/models/planner/homework_model.dart' show LinkedNoteRef;
 import 'package:heliumapp/data/models/planner/request/resource_request_model.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/core/base_event.dart';
 import 'package:heliumapp/presentation/features/resources/bloc/resource_bloc.dart';
@@ -322,15 +323,21 @@ class ResourceDetailsState extends State<ResourceDetails> {
   bool get hasPendingNotebookRedirect => _pendingNotebookRedirect;
 
   /// Executes the pending notebook redirect. Call after save completes.
-  void executePendingNotebookRedirect({int? resourceId}) {
+  /// If linkedNote is null (e.g., note was deleted), routes to entity-based creation.
+  void executePendingNotebookRedirect({
+    int? resourceId,
+    LinkedNoteRef? linkedNote,
+  }) {
     if (!_pendingNotebookRedirect) return;
     _pendingNotebookRedirect = false;
 
     // Use provided resourceId (for newly created items) or current state
     final effectiveResourceId = resourceId ?? _resource?.id;
 
-    if (_resource?.linkedNote != null) {
-      context.go('${AppRoute.notebookScreen}?id=${_resource!.linkedNote!.id}');
+    // Trust the linkedNote from the save response - don't fall back to local state
+    // which may be stale (e.g., note was deleted because content was cleared)
+    if (linkedNote != null) {
+      context.go('${AppRoute.notebookScreen}?id=${linkedNote.id}');
     } else if (effectiveResourceId != null) {
       context.go('${AppRoute.notebookScreen}?resourceId=$effectiveResourceId&resourceGroupId=${widget.resourceGroupId}');
     }

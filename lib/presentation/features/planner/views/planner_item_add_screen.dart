@@ -227,9 +227,14 @@ class _PlannerItemAddScreenState
               );
             } else if (hasPendingNotebook) {
               // Execute notebook redirect after save
+              // Extract linkedNote from the updated entity
+              final linkedNote = state is HomeworkEntityState
+                  ? state.homework.linkedNote
+                  : (state as EventEntityState).event.linkedNote;
               _detailsKey.currentState?.executePendingNotebookRedirect(
                 entityId: state.entityId,
                 isEvent: state.isEvent,
+                linkedNote: linkedNote,
               );
             } else {
               if (state is HomeworkCreated || state is EventCreated) {

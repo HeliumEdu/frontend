@@ -114,9 +114,10 @@ class _ResourceAddScreenState
 
             if (hasPendingNotebook) {
               // Execute notebook redirect after save
-              final resourceId = (state as ResourceEntityState).resource.id;
+              final resource = (state as ResourceEntityState).resource;
               _detailsKey.currentState?.executePendingNotebookRedirect(
-                resourceId: resourceId,
+                resourceId: resource.id,
+                linkedNote: resource.linkedNote,
               );
             } else {
               // Only show snackbar for creates
