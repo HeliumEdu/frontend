@@ -253,11 +253,13 @@ void initializeRouter() {
         pageBuilder: (context, state) {
           final args = state.extra as NoteAddArgs?;
 
-          if (args?.noteBloc != null) {
+          if (args != null) {
             return MaterialPage(
               child: BlocProvider<NoteBloc>.value(
-                value: args!.noteBloc!,
+                value: args.noteBloc,
                 child: NoteAddScreen(
+                  isEdit: args.isEdit,
+                  isNew: args.isNew,
                   noteId: args.noteId,
                   homeworkId: args.homeworkId,
                   eventId: args.eventId,
@@ -270,11 +272,13 @@ void initializeRouter() {
 
           final noteIdParam = state.uri.queryParameters['id'];
 
-          if (args == null && noteIdParam == null) {
+          if (noteIdParam == null) {
             return const MaterialPage(
               child: _RouteRedirect(redirectTo: AppRoute.notebookScreen),
             );
           }
+
+          final noteId = int.tryParse(noteIdParam);
           return MaterialPage(
             child: BlocProvider<NoteBloc>(
               create: (context) => NoteBloc(
@@ -285,7 +289,9 @@ void initializeRouter() {
                 ),
               ),
               child: NoteAddScreen(
-                noteId: noteIdParam != null ? int.tryParse(noteIdParam) : null,
+                isEdit: noteId != null,
+                isNew: noteId == null,
+                noteId: noteId,
               ),
             ),
           );

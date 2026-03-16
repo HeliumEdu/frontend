@@ -85,7 +85,9 @@ class ResourceAddArgs extends RouteArgs {
 }
 
 class NoteAddArgs extends RouteArgs {
-  final NoteBloc? noteBloc;
+  final NoteBloc noteBloc;
+  final bool isEdit;
+  final bool isNew;
   final int? noteId;
   final int? homeworkId;
   final int? eventId;
@@ -93,7 +95,9 @@ class NoteAddArgs extends RouteArgs {
   final int? resourceGroupId;
 
   const NoteAddArgs({
-    this.noteBloc,
+    required this.noteBloc,
+    required this.isEdit,
+    required this.isNew,
     this.noteId,
     this.homeworkId,
     this.eventId,
@@ -103,7 +107,6 @@ class NoteAddArgs extends RouteArgs {
 
   @override
   List<BlocProvider>? toProviders() {
-    if (noteBloc == null) return null;
-    return [BlocProvider<NoteBloc>.value(value: noteBloc!)];
+    return [BlocProvider<NoteBloc>.value(value: noteBloc)];
   }
 }

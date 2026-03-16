@@ -47,7 +47,6 @@ import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 
-/// Shows note add/edit as a dialog on desktop, or navigates on mobile
 void showNoteAdd(
   BuildContext context, {
   int? noteId,
@@ -56,14 +55,16 @@ void showNoteAdd(
   int? resourceId,
   int? resourceGroupId,
 }) {
-  // Try to read existing NoteBloc, or create a new one
-  final existingBloc = context.read<NoteBloc?>();
+  final noteBloc = context.read<NoteBloc>();
+  final isNew = noteId == null;
 
   if (Responsive.isMobile(context)) {
     context.push(
       AppRoute.notebookEditScreen,
       extra: NoteAddArgs(
-        noteBloc: existingBloc,
+        noteBloc: noteBloc,
+        isEdit: !isNew,
+        isNew: isNew,
         noteId: noteId,
         homeworkId: homeworkId,
         eventId: eventId,
@@ -72,32 +73,21 @@ void showNoteAdd(
       ),
     );
   } else {
-    final noteScreen = NoteAddScreen(
-      noteId: noteId,
-      homeworkId: homeworkId,
-      eventId: eventId,
-      resourceId: resourceId,
-      resourceGroupId: resourceGroupId,
-    );
-
     showScreenAsDialog(
       context,
       barrierDismissible: false,
-      child: existingBloc != null
-          ? BlocProvider<NoteBloc>.value(
-              value: existingBloc,
-              child: noteScreen,
-            )
-          : BlocProvider<NoteBloc>(
-              create: (_) => NoteBloc(
-                noteRepository: NoteRepositoryImpl(
-                  remoteDataSource: NoteRemoteDataSourceImpl(
-                    dioClient: DioClient(),
-                  ),
-                ),
-              ),
-              child: noteScreen,
-            ),
+      child: BlocProvider<NoteBloc>.value(
+        value: noteBloc,
+        child: NoteAddScreen(
+          isEdit: !isNew,
+          isNew: isNew,
+          noteId: noteId,
+          homeworkId: homeworkId,
+          eventId: eventId,
+          resourceId: resourceId,
+          resourceGroupId: resourceGroupId,
+        ),
+      ),
       width: double.infinity,
       insetPadding: const EdgeInsets.all(32),
       alignment: Alignment.center,
@@ -106,6 +96,8 @@ void showNoteAdd(
 }
 
 class NoteAddScreen extends StatefulWidget {
+  final bool isEdit;
+  final bool isNew;
   final int? noteId;
   final int? homeworkId;
   final int? eventId;
@@ -114,6 +106,8 @@ class NoteAddScreen extends StatefulWidget {
 
   const NoteAddScreen({
     super.key,
+    required this.isEdit,
+    required this.isNew,
     this.noteId,
     this.homeworkId,
     this.eventId,
@@ -127,7 +121,7 @@ class NoteAddScreen extends StatefulWidget {
 
 class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
   @override
-  String get screenTitle => _isNewNote ? 'New Note' : 'Edit Note';
+  String get screenTitle => widget.isNew ? 'New Note' : 'Edit Note';
 
   @override
   IconData get icon => Icons.library_books;
@@ -138,16 +132,13 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
   @override
   Function? get saveAction => _saveNote;
 
-  // Controllers
   final BasicFormController _formController = BasicFormController();
   final TextEditingController _titleController = TextEditingController();
   late QuillController _quillController;
   final FocusNode _titleFocusNode = FocusNode();
   final FocusNode _editorFocusNode = FocusNode();
 
-  // State
   NoteModel? _note;
-  bool _isNewNote = true;
   NoteLinkModel? _provisionalLink;
   bool _showSearch = false;
 
@@ -156,8 +147,7 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
     super.initState();
     _quillController = QuillController.basic();
 
-    if (widget.noteId != null) {
-      _isNewNote = false;
+    if (widget.isEdit) {
       _fetchNote();
     } else {
       setState(() {
@@ -208,7 +198,6 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
         final course = courses.firstWhereOrNull((c) => c.id == homework.course.id);
         if (!mounted) return;
         setState(() {
-          _titleController.text = homework.title;
           _provisionalLink = NoteLinkModel(
             id: 0,
             homeworkId: homework.id,
@@ -223,7 +212,6 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
         ).getEvent(id: widget.eventId!);
         if (!mounted) return;
         setState(() {
-          _titleController.text = event.title;
           _provisionalLink = NoteLinkModel(
             id: 0,
             eventId: event.id,
@@ -240,7 +228,6 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
         );
         if (!mounted) return;
         setState(() {
-          _titleController.text = resource.title;
           _provisionalLink = NoteLinkModel(
             id: 0,
             resourceId: resource.id,
@@ -249,13 +236,18 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
           );
         });
       }
-    } catch (_) {
-      // If lookup fails, proceed without link info
-    }
+    } catch (_) {}
   }
 
   void _saveNote() {
+    if (isLoading) return;
+
     if (!_formController.validateAndScrollToError()) {
+      showSnackBar(
+        context,
+        'Fix the highlighted fields, then try again.',
+        type: SnackType.error,
+      );
       return;
     }
 
@@ -264,10 +256,9 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
     });
 
     final title = _titleController.text.trim();
-    final bodyIsEmpty =
-        _quillController.document.toPlainText().trim().isEmpty;
+    final bodyIsEmpty = _quillController.document.toPlainText().trim().isEmpty;
 
-    if (_isNewNote && title.isEmpty && bodyIsEmpty) {
+    if (widget.isNew && title.isEmpty && bodyIsEmpty) {
       setState(() {
         isSubmitting = false;
       });
@@ -278,30 +269,28 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
 
     final content = _quillController.document.toDelta().toJson();
 
-    if (_isNewNote) {
-      final request = NoteRequestModel(
-        title: title,
-        content: {'ops': content},
-        homeworkId: widget.homeworkId,
-        eventId: widget.eventId,
-        resourceId: widget.resourceId,
-      );
+    if (widget.isNew) {
       context.read<NoteBloc>().add(
         CreateNoteEvent(
           origin: EventOrigin.screen,
-          request: request,
+          request: NoteRequestModel(
+            title: title,
+            content: {'ops': content},
+            homeworkId: widget.homeworkId,
+            eventId: widget.eventId,
+            resourceId: widget.resourceId,
+          ),
         ),
       );
     } else {
-      final request = NoteRequestModel(
-        title: title,
-        content: {'ops': content},
-      );
       context.read<NoteBloc>().add(
         UpdateNoteEvent(
           origin: EventOrigin.screen,
           noteId: _note!.id,
-          request: request,
+          request: NoteRequestModel(
+            title: title,
+            content: {'ops': content},
+          ),
         ),
       );
     }
@@ -338,7 +327,6 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
           } else if (state is NoteUpdated) {
             cancelAction();
           } else if (state is NoteDeleted) {
-            // Note was deleted because content was cleared on a linked note
             showSnackBar(context, 'Note deleted', useRootMessenger: true);
             cancelAction();
           }
@@ -381,7 +369,7 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
                           hintText: 'Title',
                           controller: _titleController,
                           focusNode: _titleFocusNode,
-                          autofocus: kIsWeb || widget.noteId == null,
+                          autofocus: kIsWeb || widget.isNew,
                           validator: hasBadge
                               ? null
                               : BasicFormController.validateRequiredField,
@@ -405,128 +393,126 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
                 },
               ),
             ),
-
-          // Quill toolbar and editor
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.only(top: 4, bottom: 8),
-              child: Container(
-                decoration: BoxDecoration(
-                  color: context.colorScheme.surface,
-                  border: Border.all(
-                    color: context.colorScheme.outline.withValues(alpha: 0.2),
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.only(top: 4, bottom: 8),
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: context.colorScheme.surface,
+                    border: Border.all(
+                      color: context.colorScheme.outline.withValues(alpha: 0.2),
+                    ),
+                    borderRadius: BorderRadius.circular(8),
                   ),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(8),
-                  child: Column(
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 4),
-                        child: QuillSimpleToolbar(
-                          controller: _quillController,
-                          config: QuillSimpleToolbarConfig(
-                            showDividers: !isMobile,
-                            showFontSize: !isMobile,
-                            showHeaderStyle: !isMobile,
-                            showStrikeThrough: !isMobile,
-                            showInlineCode: !isMobile,
-                            showFontFamily: !isMobile,
-                            showClearFormat: !isMobile,
-                            showAlignmentButtons: !isMobile,
-                            showLeftAlignment: !isMobile,
-                            showCenterAlignment: !isMobile,
-                            showRightAlignment: !isMobile,
-                            showCodeBlock: !isMobile,
-                            showIndent: !isMobile,
-                            showSubscript: !isMobile,
-                            showSuperscript: !isMobile,
-                            showBackgroundColorButton: !isMobile,
-                            showSearchButton: true,
-                            buttonOptions: QuillSimpleToolbarButtonOptions(
-                              search: QuillToolbarSearchButtonOptions(
-                                customOnPressedCallback: (_) async {
-                                  setState(() {
-                                    _showSearch = !_showSearch;
-                                  });
-                                },
-                              ),
-                              base: QuillToolbarBaseButtonOptions(
-                                iconTheme: QuillIconTheme(
-                                  iconButtonSelectedData: IconButtonData(
-                                    style: ButtonStyle(
-                                      backgroundColor: WidgetStatePropertyAll(
-                                        context.colorScheme.primary,
-                                      ),
-                                      foregroundColor: WidgetStatePropertyAll(
-                                        context.colorScheme.onPrimary,
-                                      ),
-                                      overlayColor: WidgetStatePropertyAll(
-                                        context.colorScheme.onPrimary.withValues(alpha: 0.1),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: Column(
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 4),
+                          child: QuillSimpleToolbar(
+                            controller: _quillController,
+                            config: QuillSimpleToolbarConfig(
+                              showDividers: !isMobile,
+                              showFontSize: !isMobile,
+                              showHeaderStyle: !isMobile,
+                              showStrikeThrough: !isMobile,
+                              showInlineCode: !isMobile,
+                              showFontFamily: !isMobile,
+                              showClearFormat: !isMobile,
+                              showAlignmentButtons: !isMobile,
+                              showLeftAlignment: !isMobile,
+                              showCenterAlignment: !isMobile,
+                              showRightAlignment: !isMobile,
+                              showCodeBlock: !isMobile,
+                              showIndent: !isMobile,
+                              showSubscript: !isMobile,
+                              showSuperscript: !isMobile,
+                              showBackgroundColorButton: !isMobile,
+                              showSearchButton: true,
+                              buttonOptions: QuillSimpleToolbarButtonOptions(
+                                search: QuillToolbarSearchButtonOptions(
+                                  customOnPressedCallback: (_) async {
+                                    setState(() {
+                                      _showSearch = !_showSearch;
+                                    });
+                                  },
+                                ),
+                                base: QuillToolbarBaseButtonOptions(
+                                  iconTheme: QuillIconTheme(
+                                    iconButtonSelectedData: IconButtonData(
+                                      style: ButtonStyle(
+                                        backgroundColor: WidgetStatePropertyAll(
+                                          context.colorScheme.primary,
+                                        ),
+                                        foregroundColor: WidgetStatePropertyAll(
+                                          context.colorScheme.onPrimary,
+                                        ),
+                                        overlayColor: WidgetStatePropertyAll(
+                                          context.colorScheme.onPrimary.withValues(alpha: 0.1),
+                                        ),
                                       ),
                                     ),
-                                  ),
-                                  iconButtonUnselectedData: IconButtonData(
-                                    color: context.colorScheme.onSurface,
+                                    iconButtonUnselectedData: IconButtonData(
+                                      color: context.colorScheme.onSurface,
+                                    ),
                                   ),
                                 ),
-                              ),
-                              color: QuillToolbarColorButtonOptions(
-                                customOnPressedCallback: (ctrl, isBackground) =>
-                                    NotesEditor.showColorPicker(context, ctrl, isBackground),
-                              ),
-                              backgroundColor: QuillToolbarColorButtonOptions(
-                                customOnPressedCallback: (ctrl, isBackground) =>
-                                    NotesEditor.showColorPicker(context, ctrl, isBackground),
+                                color: QuillToolbarColorButtonOptions(
+                                  customOnPressedCallback: (ctrl, isBackground) =>
+                                      NotesEditor.showColorPicker(context, ctrl, isBackground),
+                                ),
+                                backgroundColor: QuillToolbarColorButtonOptions(
+                                  customOnPressedCallback: (ctrl, isBackground) =>
+                                      NotesEditor.showColorPicker(context, ctrl, isBackground),
+                                ),
                               ),
                             ),
                           ),
                         ),
-                      ),
-                      const Divider(height: 1),
-                      Expanded(
-                        child: QuillEditor.basic(
-                          controller: _quillController,
-                          focusNode: _editorFocusNode,
-                          config: QuillEditorConfig(
-                            padding: const EdgeInsets.all(12),
-                            autoFocus: false,
-                            expands: true,
-                            customStyles: NotesEditor.buildDefaultStyles(context),
-                            // ignore: experimental_member_use
-                            onKeyPressed: (event, node) {
-                              final isFindShortcut = event.logicalKey == LogicalKeyboardKey.keyF &&
-                                  (HardwareKeyboard.instance.isMetaPressed ||
-                                   HardwareKeyboard.instance.isControlPressed);
-                              if (isFindShortcut) {
-                                setState(() => _showSearch = !_showSearch);
-                                return KeyEventResult.handled;
-                              }
-                              return null;
-                            },
+                        const Divider(height: 1),
+                        Expanded(
+                          child: QuillEditor.basic(
+                            controller: _quillController,
+                            focusNode: _editorFocusNode,
+                            config: QuillEditorConfig(
+                              padding: const EdgeInsets.all(12),
+                              autoFocus: false,
+                              expands: true,
+                              customStyles: NotesEditor.buildDefaultStyles(context),
+                              // ignore: experimental_member_use
+                              onKeyPressed: (event, node) {
+                                final isFindShortcut = event.logicalKey == LogicalKeyboardKey.keyF &&
+                                    (HardwareKeyboard.instance.isMetaPressed ||
+                                     HardwareKeyboard.instance.isControlPressed);
+                                if (isFindShortcut) {
+                                  setState(() => _showSearch = !_showSearch);
+                                  return KeyEventResult.handled;
+                                }
+                                return null;
+                              },
+                            ),
                           ),
                         ),
-                      ),
-                      if (_showSearch)
-                        QuillSearchBar(
-                          controller: _quillController,
-                          onClose: () {
-                            setState(() {
-                              _showSearch = false;
-                            });
-                          },
-                        ),
-                    ],
+                        if (_showSearch)
+                          QuillSearchBar(
+                            controller: _quillController,
+                            onClose: () {
+                              setState(() {
+                                _showSearch = false;
+                              });
+                            },
+                          ),
+                      ],
+                    ),
                   ),
                 ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
-    ),
-  );
+    );
   }
 
   Widget _buildLinkedEntityBadge(NoteLinkModel link) {
@@ -546,7 +532,6 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
       );
     }
 
-    // homework (and any unknown linked type)
     return CourseTitleLabel(
       title: title,
       color: link.linkedEntityColor ?? context.colorScheme.primary,
