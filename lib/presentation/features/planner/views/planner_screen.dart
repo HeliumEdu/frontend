@@ -870,10 +870,9 @@ class _CalendarScreenState
         key: key,
         onPressed: _goToToday,
         icon: icon,
-        style: ButtonStyle(
-          side: WidgetStateProperty.all(
-            BorderSide(color: context.colorScheme.primary),
-          ),
+        style: IconButton.styleFrom(
+          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          side: BorderSide(color: context.colorScheme.primary),
         ),
       );
     }
@@ -1225,10 +1224,9 @@ class _CalendarScreenState
               onPressed: () => _openViewMenu(context),
               tooltip: 'Change view',
               icon: const Icon(Icons.calendar_month),
-              style: ButtonStyle(
-                side: WidgetStateProperty.all(
-                  BorderSide(color: context.colorScheme.primary),
-                ),
+              style: IconButton.styleFrom(
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                side: BorderSide(color: context.colorScheme.primary),
               ),
             );
           },
@@ -1244,6 +1242,7 @@ class _CalendarScreenState
               tooltip: 'Filters',
               icon: const Icon(Icons.filter_alt),
               style: IconButton.styleFrom(
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                 backgroundColor: hasFilters
                     ? context.colorScheme.primary
                     : null,
@@ -1274,6 +1273,7 @@ class _CalendarScreenState
                 },
                 icon: const Icon(Icons.search),
                 style: IconButton.styleFrom(
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                   backgroundColor: hasSearchQuery
                       ? context.colorScheme.primary
                       : null,
@@ -1301,6 +1301,7 @@ class _CalendarScreenState
         return HeliumDateTime.formatDate(
           displayDate,
           abbreviateMonth: abbreviateMonth,
+          showYear: !Responsive.isMobile(context),
         );
       case CalendarView.month:
       case CalendarView.week:

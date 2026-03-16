@@ -74,8 +74,17 @@ class HeliumDateTime {
     return DateFormat('EEEE, MMMM d').format(date);
   }
 
-  static String formatDate(DateTime date, {bool abbreviateMonth = true}) {
-    final format = abbreviateMonth ? 'MMM d, yyyy' : 'MMMM d, yyyy';
+  static String formatDate(
+    DateTime date, {
+    bool abbreviateMonth = true,
+    bool showYear = true,
+  }) {
+    final String format;
+    if (showYear) {
+      format = abbreviateMonth ? 'MMM d, yyyy' : 'MMMM d, yyyy';
+    } else {
+      format = abbreviateMonth ? 'MMM d' : 'MMMM d';
+    }
     return DateFormat(format).format(date);
   }
 
