@@ -54,7 +54,6 @@ class NotesDataGrid extends StatefulWidget {
 
 class _NotesDataGridState extends State<NotesDataGrid> {
   final DataGridController _controller = DataGridController();
-  final DataPagerController _pagerController = DataPagerController();
   int _currentPage = 1;
   late NotesDataSource _dataSource;
 
@@ -101,12 +100,14 @@ class _NotesDataGridState extends State<NotesDataGrid> {
     var effectiveCurrentPage = _currentPage;
     if (effectiveCurrentPage > totalPages && totalPages > 0) {
       effectiveCurrentPage = 1;
-      _pagerController.selectedPageIndex = 0;
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted && _currentPage != 1) {
-          setState(() {
-            _currentPage = 1;
-          });
+          _currentPage = 1;
+          _dataSource.updatePagination(
+            currentPage: 1,
+            itemsPerPage: widget.rowsPerPage,
+          );
+          setState(() {});
         }
       });
     }
@@ -168,9 +169,6 @@ class _NotesDataGridState extends State<NotesDataGrid> {
                           navigationMode: GridNavigationMode.row,
                           allowSorting: true,
                           sortingGestureType: SortingGestureType.tap,
-                          rowsPerPage: widget.rowsPerPage == -1
-                              ? totalItems
-                              : widget.rowsPerPage,
                           allowSwiping: isTouchDevice,
                           swipeMaxOffset: 80,
                           onSwipeStart: (details) {
@@ -279,14 +277,6 @@ class _NotesDataGridState extends State<NotesDataGrid> {
                     ],
                   ),
                 ),
-                SizedBox(
-                  height: 0,
-                  child: SfDataPager(
-                    delegate: _dataSource,
-                    controller: _pagerController,
-                    pageCount: isShowingAll ? 1 : totalPages.toDouble(),
-                  ),
-                ),
                 HeliumPager(
                   startIndex: startIndex,
                   endIndex: endIndex,
@@ -295,20 +285,24 @@ class _NotesDataGridState extends State<NotesDataGrid> {
                   totalPages: totalPages,
                   currentPage: effectiveCurrentPage,
                   onPageChanged: (page) {
-                    setState(() {
-                      _currentPage = page;
-                    });
-                    _pagerController.selectedPageIndex = page - 1;
+                    _currentPage = page;
+                    _dataSource.updatePagination(
+                      currentPage: page,
+                      itemsPerPage: widget.rowsPerPage,
+                    );
+                    setState(() {});
                   },
                   itemsPerPage: widget.rowsPerPage,
                   itemsPerPageOptions: const [5, 10, 25, 50, 100, -1],
                   onItemsPerPageChanged: widget.onRowsPerPageChanged != null
                       ? (value) {
                           widget.onRowsPerPageChanged!(value);
-                          setState(() {
-                            _currentPage = 1;
-                          });
-                          _pagerController.selectedPageIndex = 0;
+                          _currentPage = 1;
+                          _dataSource.updatePagination(
+                            currentPage: 1,
+                            itemsPerPage: value,
+                          );
+                          setState(() {});
                         }
                       : null,
                 ),
@@ -367,6 +361,9 @@ class NotesDataSource extends DataGridSource with SortableDataGridSource {
   List<DataGridRow> _dataGridRows = [];
   late List<DataGridRow> _allRows;
   late Map<int, NoteModel> _notesById;
+
+  int _currentPage = 1;
+  int _itemsPerPage = 10;
 
   NotesDataSource({
     required this.notes,
@@ -439,12 +436,26 @@ class NotesDataSource extends DataGridSource with SortableDataGridSource {
     notifyListeners();
   }
 
+  int get totalRows => _dataGridRows.length;
+
+  void updatePagination({required int currentPage, required int itemsPerPage}) {
+    _currentPage = currentPage;
+    _itemsPerPage = itemsPerPage;
+    notifyListeners();
+  }
+
   @override
-  List<DataGridRow> get rows => _dataGridRows;
+  List<DataGridRow> get rows {
+    if (_itemsPerPage == -1) return _dataGridRows;
+    final startIndex = (_currentPage - 1) * _itemsPerPage;
+    final endIndex = (startIndex + _itemsPerPage).clamp(0, _dataGridRows.length);
+    if (startIndex >= _dataGridRows.length) return [];
+    return _dataGridRows.sublist(startIndex, endIndex);
+  }
 
   @override
   Future<void> performSorting(List<DataGridRow> rows) async {
-    sortDataGridRows(rows);
+    sortDataGridRows(_dataGridRows);
   }
 
   NoteModel? getNoteFromRow(DataGridRow row) {

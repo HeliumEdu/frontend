@@ -97,7 +97,6 @@ class TodosDataGridState extends State<TodosDataGrid> {
   static const List<int> _itemsPerPageOptions = [5, 10, 25, 50, 100, -1];
 
   final DataGridController _gridController = DataGridController();
-  final DataPagerController _pagerController = DataPagerController();
 
   late TodosDataSource _dataSource;
   bool _isInitialized = false;
@@ -127,7 +126,6 @@ class TodosDataGridState extends State<TodosDataGrid> {
   void dispose() {
     widget.dataSource.changeNotifier.removeListener(_onDataSourceChanged);
     _gridController.dispose();
-    _pagerController.dispose();
     super.dispose();
   }
 
@@ -186,9 +184,7 @@ class TodosDataGridState extends State<TodosDataGrid> {
 
   @override
   Widget build(BuildContext context) {
-    final homeworks = _isInitialized
-        ? widget.dataSource.filteredHomeworks
-        : <HomeworkModel>[];
+    final homeworks = widget.dataSource.filteredHomeworks;
 
     final totalItems = homeworks.length;
     final isShowingAll = _itemsPerPage == -1;
@@ -203,12 +199,14 @@ class TodosDataGridState extends State<TodosDataGrid> {
     var effectiveCurrentPage = _currentPage;
     if (_isInitialized && effectiveCurrentPage > totalPages && totalPages > 0) {
       effectiveCurrentPage = 1;
-      _pagerController.selectedPageIndex = 0;
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted && _currentPage != 1) {
-          setState(() {
-            _currentPage = 1;
-          });
+          _currentPage = 1;
+          _dataSource.updatePagination(
+            currentPage: 1,
+            itemsPerPage: _itemsPerPage,
+          );
+          setState(() {});
         }
       });
     }
@@ -262,7 +260,6 @@ class TodosDataGridState extends State<TodosDataGrid> {
                         navigationMode: GridNavigationMode.row,
                         allowSorting: true,
                         sortingGestureType: SortingGestureType.tap,
-                        rowsPerPage: _itemsPerPage == -1 ? totalItems : _itemsPerPage,
                         allowSwiping: isTouchDevice,
                         swipeMaxOffset: 80,
                         onSwipeStart: (details) {
@@ -316,14 +313,6 @@ class TodosDataGridState extends State<TodosDataGrid> {
                   ],
                 ),
               ),
-              SizedBox(
-                height: 0,
-                child: SfDataPager(
-                  delegate: _dataSource,
-                  controller: _pagerController,
-                  pageCount: isShowingAll ? 1 : totalPages.toDouble(),
-                ),
-              ),
               HeliumPager(
                 startIndex: startIndex,
                 endIndex: endIndex,
@@ -332,20 +321,24 @@ class TodosDataGridState extends State<TodosDataGrid> {
                 totalPages: totalPages,
                 currentPage: effectiveCurrentPage,
                 onPageChanged: (page) {
-                  setState(() {
-                    _currentPage = page;
-                  });
-                  _pagerController.selectedPageIndex = page - 1;
+                  _currentPage = page;
+                  _dataSource.updatePagination(
+                    currentPage: page,
+                    itemsPerPage: _itemsPerPage,
+                  );
+                  setState(() {});
                 },
                 itemsPerPage: _itemsPerPage,
                 itemsPerPageOptions: _itemsPerPageOptions,
                 onItemsPerPageChanged: (value) {
-                  setState(() {
-                    _itemsPerPage = value;
-                    _currentPage = 1;
-                  });
+                  _itemsPerPage = value;
+                  _currentPage = 1;
                   widget.dataSource.todosItemsPerPage = value;
-                  _pagerController.selectedPageIndex = 0;
+                  _dataSource.updatePagination(
+                    currentPage: 1,
+                    itemsPerPage: value,
+                  );
+                  setState(() {});
                 },
               ),
             ],
@@ -585,22 +578,16 @@ class TodosDataGridState extends State<TodosDataGrid> {
       onToggleCompleted: widget.onToggleCompleted,
       onDelete: widget.onDelete,
     );
+    _dataSource.updatePagination(
+      currentPage: _currentPage,
+      itemsPerPage: _itemsPerPage,
+    );
 
-    if (markInitialized) {
-      // On initial load, set initialized first so pager builds with data,
-      // then set page index after pager is subscribed to controller
-      setState(() {
+    setState(() {
+      if (markInitialized) {
         _isInitialized = true;
-      });
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) {
-          _pagerController.selectedPageIndex = _currentPage - 1;
-        }
-      });
-    } else {
-      _pagerController.selectedPageIndex = _currentPage - 1;
-      setState(() {});
-    }
+      }
+    });
   }
 
   bool _shouldShowColumn(TodosSortColumn column) {
@@ -632,6 +619,9 @@ class TodosDataSource extends DataGridSource with SortableDataGridSource {
 
   List<DataGridRow> _dataGridRows = [];
   Map<int, HomeworkModel> _homeworksById = {};
+
+  int _currentPage = 1;
+  int _itemsPerPage = 10;
 
   TodosDataSource({
     required List<HomeworkModel> homeworks,
@@ -741,12 +731,26 @@ class TodosDataSource extends DataGridSource with SortableDataGridSource {
     );
   }
 
+  int get totalRows => _dataGridRows.length;
+
+  void updatePagination({required int currentPage, required int itemsPerPage}) {
+    _currentPage = currentPage;
+    _itemsPerPage = itemsPerPage;
+    notifyListeners();
+  }
+
   @override
-  List<DataGridRow> get rows => _dataGridRows;
+  List<DataGridRow> get rows {
+    if (_itemsPerPage == -1) return _dataGridRows;
+    final startIndex = (_currentPage - 1) * _itemsPerPage;
+    final endIndex = (startIndex + _itemsPerPage).clamp(0, _dataGridRows.length);
+    if (startIndex >= _dataGridRows.length) return [];
+    return _dataGridRows.sublist(startIndex, endIndex);
+  }
 
   @override
   Future<void> performSorting(List<DataGridRow> rows) async {
-    sortDataGridRows(rows);
+    sortDataGridRows(_dataGridRows);
   }
 
   HomeworkModel? getHomeworkFromRow(DataGridRow row) {
