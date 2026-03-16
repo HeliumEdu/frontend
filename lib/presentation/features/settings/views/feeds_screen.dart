@@ -307,6 +307,15 @@ class _FeedsViewState extends BasePageScreenState<FeedsScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            HeliumElevatedButton(
+              buttonText: 'Disable All Feeds',
+              onPressed: () async {
+                context.read<AuthBloc>().add(DisablePrivateFeedsEvent());
+              },
+            ),
+
+            const SizedBox(height: 12),
+
             const WarningContainer(
               text:
                   'Keep private feed URLs secret. Disabling and re-enabling a feed will regenerate its URL.',
@@ -338,17 +347,6 @@ class _FeedsViewState extends BasePageScreenState<FeedsScreen> {
               url: eventsUrl,
               label: 'Events',
             ),
-
-            const SizedBox(height: 25),
-
-            HeliumElevatedButton(
-              buttonText: 'Disable',
-              onPressed: () async {
-                context.read<AuthBloc>().add(DisablePrivateFeedsEvent());
-              },
-            ),
-
-            const SizedBox(height: 12),
           ],
         ),
       ),
