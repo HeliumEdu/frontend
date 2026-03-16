@@ -19,6 +19,8 @@ import 'package:heliumapp/data/repositories/note_repository_impl.dart';
 import 'package:heliumapp/data/sources/note_remote_data_source.dart';
 import 'package:heliumapp/presentation/core/views/base_page_screen_state.dart';
 import 'package:heliumapp/presentation/ui/layout/page_header.dart';
+import 'package:heliumapp/presentation/features/auth/bloc/auth_bloc.dart';
+import 'package:heliumapp/presentation/features/auth/bloc/auth_state.dart';
 import 'package:heliumapp/presentation/features/notes/bloc/note_bloc.dart';
 import 'package:heliumapp/presentation/features/notes/bloc/note_event.dart';
 import 'package:heliumapp/presentation/features/notes/bloc/note_state.dart';
@@ -142,6 +144,15 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen> 
               _notes = _notes.where((n) => n.id != state.noteId).toList();
             });
             showSnackBar(context, 'Note deleted');
+          }
+        },
+      ),
+      BlocListener<AuthBloc, AuthState>(
+        listener: (context, state) {
+          if (state is AuthProfileUpdated) {
+            setState(() {
+              userSettings = state.user.settings;
+            });
           }
         },
       ),
@@ -305,23 +316,23 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen> 
       final query = _searchQuery!.toLowerCase();
       filtered = filtered.where((note) {
         return note.title.toLowerCase().contains(query) ||
-            (note.link?.linkedEntityTitle?.toLowerCase().contains(query) ?? false);
+            (note.linkedEntityTitle?.toLowerCase().contains(query) ?? false);
       }).toList();
     }
 
     if (_filterEntityTypes.isNotEmpty) {
       filtered = filtered.where((note) {
         if (_filterEntityTypes.contains('standalone')) {
-          if (note.link == null) return true;
+          if (note.isStandalone) return true;
         }
         if (_filterEntityTypes.contains('homework')) {
-          if (note.link?.linkedEntityType == 'homework') return true;
+          if (note.linkedEntityType == 'homework') return true;
         }
         if (_filterEntityTypes.contains('event')) {
-          if (note.link?.linkedEntityType == 'event') return true;
+          if (note.linkedEntityType == 'event') return true;
         }
         if (_filterEntityTypes.contains('resource')) {
-          if (note.link?.linkedEntityType == 'resource') return true;
+          if (note.linkedEntityType == 'resource') return true;
         }
         return false;
       }).toList();

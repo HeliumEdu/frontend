@@ -5,14 +5,21 @@
 //
 // For details regarding the license, please refer to the LICENSE file.
 
+import 'package:flutter/material.dart';
 import 'package:heliumapp/data/models/base_model.dart';
-import 'package:heliumapp/data/models/planner/note_link_model.dart';
+import 'package:heliumapp/utils/color_helpers.dart';
 
 class NoteModel extends BaseTitledModel {
   final Map<String, dynamic>? content;
   final DateTime createdAt;
   final DateTime updatedAt;
-  final NoteLinkModel? link;
+  final List<int> homework;
+  final List<int> events;
+  final List<int> resources;
+  final String linkedEntityType;
+  final String? linkedEntityTitle;
+  final Color? courseColor;
+  final Color? categoryColor;
 
   NoteModel({
     required super.id,
@@ -20,10 +27,21 @@ class NoteModel extends BaseTitledModel {
     this.content,
     required this.createdAt,
     required this.updatedAt,
-    this.link,
+    this.homework = const [],
+    this.events = const [],
+    this.resources = const [],
+    this.linkedEntityType = '',
+    this.linkedEntityTitle,
+    this.courseColor,
+    this.categoryColor,
   });
 
   factory NoteModel.fromJson(Map<String, dynamic> json) {
+    // Parse M2M fields
+    final homework = (json['homework'] as List<dynamic>?)?.cast<int>() ?? [];
+    final events = (json['events'] as List<dynamic>?)?.cast<int>() ?? [];
+    final resources = (json['resources'] as List<dynamic>?)?.cast<int>() ?? [];
+
     return NoteModel(
       id: json['id'],
       title: json['title'] ?? '',
@@ -32,7 +50,17 @@ class NoteModel extends BaseTitledModel {
           : null,
       createdAt: DateTime.parse(json['created_at']),
       updatedAt: DateTime.parse(json['updated_at']),
-      link: json['link'] != null ? NoteLinkModel.fromJson(json['link']) : null,
+      homework: homework,
+      events: events,
+      resources: resources,
+      linkedEntityType: json['linked_entity_type'] ?? '',
+      linkedEntityTitle: json['linked_entity_title'],
+      courseColor: json['course_color'] != null
+          ? HeliumColors.hexToColor(json['course_color'])
+          : null,
+      categoryColor: json['category_color'] != null
+          ? HeliumColors.hexToColor(json['category_color'])
+          : null,
     );
   }
 
@@ -43,15 +71,19 @@ class NoteModel extends BaseTitledModel {
       'content': content,
       'created_at': createdAt.toIso8601String(),
       'updated_at': updatedAt.toIso8601String(),
-      'link': link?.toJson(),
+      'homework': homework,
+      'events': events,
+      'resources': resources,
     };
   }
 
-  bool get isStandalone => link == null;
+  bool get isStandalone => linkedEntityType.isEmpty;
 
-  bool get isLinkedToHomework => link?.homeworkId != null;
+  bool get isLinkedToHomework => homework.isNotEmpty;
 
-  bool get isLinkedToEvent => link?.eventId != null;
+  bool get isLinkedToEvent => events.isNotEmpty;
 
-  bool get isLinkedToMaterial => link?.resourceId != null;
+  bool get isLinkedToMaterial => resources.isNotEmpty;
+
+  bool get hasLinkedEntity => linkedEntityType.isNotEmpty;
 }

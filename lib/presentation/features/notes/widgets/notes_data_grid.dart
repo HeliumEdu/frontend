@@ -390,26 +390,26 @@ class NotesDataSource extends DataGridSource with SortableDataGridSource {
           ),
           DataGridCell<String>(
             columnName: 'linkedTo',
-            value: note.link?.linkedEntityTitle?.toLowerCase() ?? '',
+            value: note.linkedEntityTitle?.toLowerCase() ?? '',
           ),
           DataGridCell<DateTime>(columnName: 'modified', value: note.updatedAt),
           DataGridCell<int>(columnName: 'actions', value: note.id),
           DataGridCell<Color?>(
-            columnName: '_color',
-            value: note.link?.linkedEntityColor,
+            columnName: '_courseColor',
+            value: note.courseColor,
           ),
           DataGridCell<Color?>(
-            columnName: '_colorAlt',
-            value: note.link?.linkedEntityColorAlt,
+            columnName: '_categoryColor',
+            value: note.categoryColor,
           ),
           DataGridCell<String>(
             columnName: '_entityType',
-            value: note.link?.linkedEntityType ?? '',
+            value: note.linkedEntityType,
           ),
           DataGridCell<String>(columnName: '_originalTitle', value: note.title),
           DataGridCell<String>(
             columnName: '_originalLinkedTo',
-            value: note.link?.linkedEntityTitle ?? '',
+            value: note.linkedEntityTitle ?? '',
           ),
         ],
       );
@@ -453,26 +453,26 @@ class NotesDataSource extends DataGridSource with SortableDataGridSource {
 
   @override
   DataGridRowAdapter? buildRow(DataGridRow row) {
-    final linkedEntityColor =
+    final courseColor =
         row
                 .getCells()
                 .firstWhere(
-                  (c) => c.columnName == '_color',
+                  (c) => c.columnName == '_courseColor',
                   orElse: () => const DataGridCell<Color?>(
-                    columnName: '_color',
+                    columnName: '_courseColor',
                     value: null,
                   ),
                 )
                 .value
             as Color?;
 
-    final linkedEntityColorAlt =
+    final categoryColor =
         row
                 .getCells()
                 .firstWhere(
-                  (c) => c.columnName == '_colorAlt',
+                  (c) => c.columnName == '_categoryColor',
                   orElse: () => const DataGridCell<Color?>(
-                    columnName: '_colorAlt',
+                    columnName: '_categoryColor',
                     value: null,
                   ),
                 )
@@ -494,11 +494,10 @@ class NotesDataSource extends DataGridSource with SortableDataGridSource {
 
     Color? rowColor;
     if (entityType == 'homework') {
-      rowColor =
-          (userSettings?.colorByCategory ?? false) &&
-              linkedEntityColorAlt != null
-          ? linkedEntityColorAlt
-          : linkedEntityColor;
+      // Use category color if colorByCategory is enabled, otherwise course color
+      rowColor = (userSettings?.colorByCategory ?? false) && categoryColor != null
+          ? categoryColor
+          : courseColor;
     } else if (entityType == 'event') {
       rowColor = userSettings?.eventsColor;
     } else if (entityType == 'resource') {
@@ -544,7 +543,8 @@ class NotesDataSource extends DataGridSource with SortableDataGridSource {
                   cell,
                   rowColor,
                   entityType,
-                  linkedEntityColor,
+                  courseColor,
+                  categoryColor,
                 ),
               ),
             ),
@@ -558,7 +558,8 @@ class NotesDataSource extends DataGridSource with SortableDataGridSource {
     DataGridCell cell,
     Color? rowColor,
     String entityType,
-    Color? linkedEntityColor,
+    Color? courseColor,
+    Color? categoryColor,
   ) {
     final isTouchDevice = Responsive.isTouchDevice(context);
     final isCompact = Responsive.isCompact(context);
@@ -648,9 +649,13 @@ class NotesDataSource extends DataGridSource with SortableDataGridSource {
           compact: true,
         );
       } else {
+        // Homework badge - respect colorByCategory setting
+        final badgeColor = (userSettings?.colorByCategory ?? false) && categoryColor != null
+            ? categoryColor
+            : courseColor;
         badge = CourseTitleLabel(
           title: linkedTo,
-          color: linkedEntityColor ?? context.colorScheme.primary,
+          color: badgeColor ?? context.colorScheme.primary,
           icon: AppConstants.assignmentIcon,
           showIconTab: true,
           compact: true,

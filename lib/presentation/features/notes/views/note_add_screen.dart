@@ -16,7 +16,6 @@ import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/config/route_args.dart';
 import 'package:heliumapp/core/dio_client.dart';
-import 'package:heliumapp/data/models/planner/note_link_model.dart';
 import 'package:heliumapp/data/models/planner/note_model.dart';
 import 'package:heliumapp/data/models/planner/request/note_request_model.dart';
 import 'package:heliumapp/data/models/planner/course_model.dart';
@@ -127,7 +126,10 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
 
   // State
   NoteModel? _note;
-  NoteLinkModel? _provisionalLink;
+  // Provisional link data for new notes (before save)
+  String? _provisionalEntityType;
+  String? _provisionalEntityTitle;
+  Color? _provisionalEntityColor;
   bool _showSearch = false;
 
   @override
@@ -268,13 +270,9 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
         );
         if (!mounted) return;
         setState(() {
-          _provisionalLink = NoteLinkModel(
-            id: 0,
-            homeworkId: homework.id,
-            linkedEntityType: 'homework',
-            linkedEntityTitle: homework.title,
-            linkedEntityColor: course?.color,
-          );
+          _provisionalEntityType = 'homework';
+          _provisionalEntityTitle = homework.title;
+          _provisionalEntityColor = course?.color;
         });
       } else if (widget.eventId != null) {
         final event = await EventRepositoryImpl(
@@ -282,12 +280,8 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
         ).getEvent(id: widget.eventId!);
         if (!mounted) return;
         setState(() {
-          _provisionalLink = NoteLinkModel(
-            id: 0,
-            eventId: event.id,
-            linkedEntityType: 'event',
-            linkedEntityTitle: event.title,
-          );
+          _provisionalEntityType = 'event';
+          _provisionalEntityTitle = event.title;
         });
       } else if (widget.resourceId != null && widget.resourceGroupId != null) {
         final resource = await ResourceRepositoryImpl(
@@ -298,12 +292,8 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
         );
         if (!mounted) return;
         setState(() {
-          _provisionalLink = NoteLinkModel(
-            id: 0,
-            resourceId: resource.id,
-            linkedEntityType: 'resource',
-            linkedEntityTitle: resource.title,
-          );
+          _provisionalEntityType = 'resource';
+          _provisionalEntityTitle = resource.title;
         });
       }
     } catch (_) {}
@@ -359,7 +349,7 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
                   const double badgeMaxWidth = 250;
                   const double gap = 8;
                   final hasBadge =
-                      _note?.link != null || _provisionalLink != null;
+                      _note?.hasLinkedEntity == true || _provisionalEntityType != null;
                   final effectiveBadgeMax = hasBadge
                       ? (constraints.maxWidth - titleMinWidth - gap)
                           .clamp(0.0, badgeMaxWidth)
@@ -386,9 +376,7 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
                         ConstrainedBox(
                           constraints:
                               BoxConstraints(maxWidth: effectiveBadgeMax),
-                          child: _buildLinkedEntityBadge(
-                            _note?.link ?? _provisionalLink!,
-                          ),
+                          child: _buildLinkedEntityBadge(),
                         ),
                       ],
                     ],
@@ -518,15 +506,21 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
     );
   }
 
-  Widget _buildLinkedEntityBadge(NoteLinkModel link) {
-    final title = link.linkedEntityTitle ?? 'Linked ${link.linkedEntityType}';
+  Widget _buildLinkedEntityBadge() {
+    // Use note data if available, otherwise use provisional data
+    final entityType = _note?.linkedEntityType ?? _provisionalEntityType ?? '';
+    final entityTitle = _note?.linkedEntityTitle ?? _provisionalEntityTitle;
+    final courseColor = _note?.courseColor ?? _provisionalEntityColor;
+    final categoryColor = _note?.categoryColor;
 
-    if (link.linkedEntityType == 'resource') {
+    final title = entityTitle ?? 'Linked $entityType';
+
+    if (entityType == 'resource') {
       if (userSettings == null) return const SizedBox.shrink();
       return ResourceTitleLabel(title: title, userSettings: userSettings!);
     }
 
-    if (link.linkedEntityType == 'event') {
+    if (entityType == 'event') {
       return CourseTitleLabel(
         title: title,
         color: userSettings?.eventsColor ?? context.colorScheme.tertiary,
@@ -535,9 +529,13 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
       );
     }
 
+    // Homework badge - respect colorByCategory setting
+    final badgeColor = (userSettings?.colorByCategory ?? false) && categoryColor != null
+        ? categoryColor
+        : courseColor;
     return CourseTitleLabel(
       title: title,
-      color: link.linkedEntityColor ?? context.colorScheme.primary,
+      color: badgeColor ?? context.colorScheme.primary,
       icon: AppConstants.assignmentIcon,
       showIconTab: true,
     );
