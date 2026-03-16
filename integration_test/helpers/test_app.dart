@@ -700,14 +700,19 @@ void expectOnPlannerScreen({bool isMobile = false}) {
     reason: 'Planner: Today button (calendar_today icon) should be shown',
   );
   if (isMobile) {
-    // On mobile, filter and search are hidden behind the menu
+    // On mobile, today button is icon-only (no text label)
     expect(
-      find.byIcon(Icons.menu_open),
-      findsOneWidget,
-      reason: 'Planner: Menu icon should be shown on mobile',
+      find.text('Today'),
+      findsNothing,
+      reason: 'Planner: Today button should not show text label on mobile',
     );
   } else {
-    // On desktop, filter and search icons are visible
+    // On desktop, today button shows text label and filter/search are visible
+    expect(
+      find.text('Today'),
+      findsOneWidget,
+      reason: 'Planner: Today button should show text label on desktop',
+    );
     expect(
       find.byIcon(Icons.filter_alt),
       findsOneWidget,
