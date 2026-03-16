@@ -107,7 +107,6 @@ class ExternalCalendarBloc
     UpdateExternalCalendarEvent event,
     Emitter<ExternalCalendarState> emit,
   ) async {
-    emit(ExternalCalendarsLoading(origin: event.origin));
     try {
       final externalCalendar = await externalCalendarRepository
           .updateExternalCalendar(calendarId: event.id, payload: event.request);
@@ -134,7 +133,6 @@ class ExternalCalendarBloc
     DeleteExternalCalendarEvent event,
     Emitter<ExternalCalendarState> emit,
   ) async {
-    emit(ExternalCalendarsLoading(origin: event.origin));
     try {
       await externalCalendarRepository.deleteExternalCalendar(
         calendarId: event.id,
