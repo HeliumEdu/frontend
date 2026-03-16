@@ -325,7 +325,7 @@ class _VerifyEmailScreenState extends BasePageScreenState<VerifyEmailScreen> {
       return 'This field is required';
     }
     if (value.length != 6) {
-      return 'Please enter the 6-digit code';
+      return 'Enter the 6-digit code';
     }
     return null;
   }

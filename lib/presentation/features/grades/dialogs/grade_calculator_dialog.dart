@@ -127,7 +127,7 @@ class _GradeCalculatorDialogState
     if (_selectedCategoryId == null) {
       setState(() {
         _result = null;
-        _validationErrorMessage = 'Please select a category';
+        _validationErrorMessage = 'Select a category';
       });
       return;
     }
@@ -137,7 +137,7 @@ class _GradeCalculatorDialogState
       setState(() {
         _result = null;
         _validationErrorMessage =
-            'Please enter a valid grade between 0 and 100';
+            'Enter a valid grade between 0 and 100';
       });
       return;
     }
