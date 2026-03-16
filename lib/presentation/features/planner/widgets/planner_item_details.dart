@@ -90,6 +90,7 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
   // State
   bool isLoading = true;
   bool _isEvent = false;
+  bool _pendingNotebookRedirect = false;
   PlannerItemBaseModel? _plannerItem;
   List<CourseGroupModel> _courseGroups = [];
   List<CourseModel> _courses = [];
@@ -1123,6 +1124,24 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
   }
 
   void _openInNotes() {
+    // Set flag and trigger save - redirect will happen after save completes
+    _pendingNotebookRedirect = true;
+    onSubmit();
+  }
+
+  /// Returns true if there's a pending notebook redirect after save.
+  bool get hasPendingNotebookRedirect => _pendingNotebookRedirect;
+
+  /// Executes the pending notebook redirect. Call after save completes.
+  void executePendingNotebookRedirect({int? entityId, bool? isEvent}) {
+    if (!_pendingNotebookRedirect) return;
+    _pendingNotebookRedirect = false;
+
+    // Use provided entityId/isEvent (for newly created items) or current state
+    final effectiveIsEvent = isEvent ?? _isEvent;
+    final effectiveEntityId = entityId ?? _plannerItem?.id;
+
+    // Check for existing linked note
     final LinkedNoteRef? linkedNote;
     if (_plannerItem is HomeworkModel) {
       linkedNote = (_plannerItem as HomeworkModel).linkedNote;
@@ -1134,10 +1153,10 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
 
     if (linkedNote != null) {
       context.go('${AppRoute.notebookScreen}?id=${linkedNote.id}');
-    } else if (_isEvent) {
-      context.go('${AppRoute.notebookScreen}?eventId=${_plannerItem!.id}');
+    } else if (effectiveIsEvent) {
+      context.go('${AppRoute.notebookScreen}?eventId=$effectiveEntityId');
     } else {
-      context.go('${AppRoute.notebookScreen}?homeworkId=${_plannerItem!.id}');
+      context.go('${AppRoute.notebookScreen}?homeworkId=$effectiveEntityId');
     }
   }
 

@@ -194,7 +194,7 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
         setState(() {
           isSubmitting = false;
         });
-        showSnackBar(context, 'Not created, Note is empty');
+        showSnackBar(context, 'Not created, Note is empty', useRootMessenger: true);
         cancelAction();
         return;
       }

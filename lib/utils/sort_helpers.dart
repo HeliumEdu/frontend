@@ -254,6 +254,8 @@ mixin SortableDataGridSource on DataGridSource {
   ///
   /// Call this after rebuilding rows to maintain sort order, and from
   /// [performSorting] to handle user-initiated sorts.
+  ///
+  /// Empty strings are always sorted to the end, regardless of sort direction.
   void sortDataGridRows(List<DataGridRow> rows) {
     if (sortedColumns.isEmpty) return;
 
@@ -271,10 +273,18 @@ mixin SortableDataGridSource on DataGridSource {
             orElse: () => const DataGridCell<String>(columnName: '', value: ''),
           );
 
-      int comparison = 0;
       final valueA = cellA.value;
       final valueB = cellB.value;
 
+      // For string values, put empty strings at the end regardless of sort direction
+      if (valueA is String && valueB is String) {
+        final aEmpty = valueA.isEmpty;
+        final bEmpty = valueB.isEmpty;
+        if (aEmpty && !bEmpty) return 1; // a goes to end
+        if (!aEmpty && bEmpty) return -1; // b goes to end
+      }
+
+      int comparison = 0;
       if (valueA is Comparable && valueB is Comparable) {
         comparison = valueA.compareTo(valueB);
       }

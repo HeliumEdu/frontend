@@ -61,6 +61,7 @@ class ResourceDetailsState extends State<ResourceDetails> {
   List<CourseModel> _courses = [];
   ResourceModel? _resource;
   bool isLoading = true;
+  bool _pendingNotebookRedirect = false;
 
   @override
   void initState() {
@@ -312,10 +313,26 @@ class ResourceDetailsState extends State<ResourceDetails> {
   }
 
   void _openInNotes() {
+    // Set flag and trigger save - redirect will happen after save completes
+    _pendingNotebookRedirect = true;
+    onSubmit();
+  }
+
+  /// Returns true if there's a pending notebook redirect after save.
+  bool get hasPendingNotebookRedirect => _pendingNotebookRedirect;
+
+  /// Executes the pending notebook redirect. Call after save completes.
+  void executePendingNotebookRedirect({int? resourceId}) {
+    if (!_pendingNotebookRedirect) return;
+    _pendingNotebookRedirect = false;
+
+    // Use provided resourceId (for newly created items) or current state
+    final effectiveResourceId = resourceId ?? _resource?.id;
+
     if (_resource?.linkedNote != null) {
       context.go('${AppRoute.notebookScreen}?id=${_resource!.linkedNote!.id}');
-    } else if (_resource != null) {
-      context.go('${AppRoute.notebookScreen}?resourceId=${_resource!.id}&resourceGroupId=${_resource!.resourceGroup}');
+    } else if (effectiveResourceId != null) {
+      context.go('${AppRoute.notebookScreen}?resourceId=$effectiveResourceId&resourceGroupId=${widget.resourceGroupId}');
     }
   }
 

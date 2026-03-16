@@ -519,7 +519,10 @@ class TodosDataGridState extends State<TodosDataGrid> {
       onToggleCompleted: widget.onToggleCompleted,
       onDelete: widget.onDelete,
     );
-    setState(() {});
+    // Use post-frame callback to ensure UI fully updates after data source change
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) setState(() {});
+    });
   }
 
   TodosDataSource _buildDataSource() {

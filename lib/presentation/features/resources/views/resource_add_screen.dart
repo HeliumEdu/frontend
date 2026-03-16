@@ -108,11 +108,23 @@ class _ResourceAddScreenState
             setState(() => isSubmitting = false);
           } else if (state is ResourceCreated ||
               state is ResourceUpdated) {
-            // Only show snackbar for creates
-            if (state is ResourceCreated) {
-              showSnackBar(context, 'Resource created', useRootMessenger: true);
+            // Check if there's a pending notebook redirect
+            final hasPendingNotebook =
+                _detailsKey.currentState?.hasPendingNotebookRedirect ?? false;
+
+            if (hasPendingNotebook) {
+              // Execute notebook redirect after save
+              final resourceId = (state as ResourceEntityState).resource.id;
+              _detailsKey.currentState?.executePendingNotebookRedirect(
+                resourceId: resourceId,
+              );
+            } else {
+              // Only show snackbar for creates
+              if (state is ResourceCreated) {
+                showSnackBar(context, 'Resource created', useRootMessenger: true);
+              }
+              cancelAction();
             }
-            cancelAction();
           }
         },
       ),
