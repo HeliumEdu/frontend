@@ -7,7 +7,6 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_quill/flutter_quill.dart';
 import 'package:heliumapp/config/app_router.dart';
 import 'package:heliumapp/config/theme_notifier.dart';
 import 'package:heliumapp/utils/quill_helpers.dart';

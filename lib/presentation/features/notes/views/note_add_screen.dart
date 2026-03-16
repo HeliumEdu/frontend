@@ -271,9 +271,9 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
       final request = NoteRequestModel(
         title: title,
         content: {'ops': content},
-        homeworkId: widget.homeworkId,
-        eventId: widget.eventId,
-        resourceId: widget.resourceId,
+        homeworkId: _provisionalLink?.homeworkId,
+        eventId: _provisionalLink?.eventId,
+        resourceId: _provisionalLink?.resourceId,
       );
       context.read<NoteBloc>().add(
         CreateNoteEvent(
@@ -354,8 +354,7 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  Flexible(
-                    flex: 2,
+                  Expanded(
                     child: LabelAndTextFormField(
                       hintText: 'Title',
                       controller: _titleController,
@@ -368,9 +367,7 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
                   ),
                   if (_note?.link != null || _provisionalLink != null) ...[
                     const SizedBox(width: 8),
-                    Flexible(
-                      child: _buildLinkedEntityBadge(_note?.link ?? _provisionalLink!),
-                    ),
+                    _buildLinkedEntityBadge(_note?.link ?? _provisionalLink!),
                   ],
                 ],
               ),

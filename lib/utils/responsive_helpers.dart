@@ -146,11 +146,11 @@ class Responsive {
     }
   }
 
-  static double getDialogWidth(BuildContext context) {
+  static double getDialogWidth(BuildContext context, {double fallback = 350}) {
     if (isMobile(context)) {
       return MediaQuery.of(context).size.width * 0.9;
     } else {
-      return 350.0;
+      return fallback;
     }
   }
 }
