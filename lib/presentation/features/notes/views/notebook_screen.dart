@@ -83,7 +83,6 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen> 
   final FocusNode _searchFocusNode = FocusNode();
   int _rowsPerPage = 10;
   bool _notesReady = false;
-  bool _filterStateRestored = false;
 
   @override
   void initState() {
@@ -96,18 +95,11 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen> 
     return super.loadSettings().then((settings) {
       if (!mounted || settings == null) return settings;
       _restoreFilterStateIfEnabled(settings);
-      _filterStateRestored = true;
-      _checkReadyToShow();
-      return settings;
-    });
-  }
-
-  void _checkReadyToShow() {
-    if (_filterStateRestored) {
       setState(() {
         isLoading = false;
       });
-    }
+      return settings;
+    });
   }
 
   @override
@@ -115,279 +107,6 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen> 
     _searchController.dispose();
     _searchFocusNode.dispose();
     super.dispose();
-  }
-
-  void _fetchNotes() {
-    context.read<NoteBloc>().add(
-      FetchNotesEvent(
-        origin: EventOrigin.screen,
-        forceRefresh: true,
-      ),
-    );
-  }
-
-  void _openFromQueryParams() {
-    final queryParams = GoRouterState.of(context).uri.queryParameters;
-    final noteId = int.tryParse(queryParams['id'] ?? '');
-    final homeworkId = int.tryParse(queryParams['homeworkId'] ?? '');
-    final eventId = int.tryParse(queryParams['eventId'] ?? '');
-    final resourceId = int.tryParse(queryParams['resourceId'] ?? '');
-    final resourceGroupId = int.tryParse(queryParams['resourceGroupId'] ?? '');
-
-    if (noteId == null && homeworkId == null && eventId == null && resourceId == null) return;
-
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
-      showNoteAdd(
-        context,
-        isEdit: noteId != null,
-        isNew: noteId == null,
-        noteId: noteId,
-        homeworkId: homeworkId,
-        eventId: eventId,
-        resourceId: resourceId,
-        resourceGroupId: resourceGroupId,
-      );
-    });
-  }
-
-  List<NoteModel> _getFilteredNotes() {
-    var filtered = _notes;
-
-    // Apply search filter (client-side)
-    if (_searchQuery != null && _searchQuery!.isNotEmpty) {
-      final query = _searchQuery!.toLowerCase();
-      filtered = filtered.where((note) {
-        return note.title.toLowerCase().contains(query) ||
-            (note.link?.linkedEntityTitle?.toLowerCase().contains(query) ?? false);
-      }).toList();
-    }
-
-    // Apply entity type filters
-    if (_filterEntityTypes.isNotEmpty) {
-      filtered = filtered.where((note) {
-        if (_filterEntityTypes.contains('standalone')) {
-          if (note.link == null) return true;
-        }
-        if (_filterEntityTypes.contains('homework')) {
-          if (note.link?.linkedEntityType == 'homework') return true;
-        }
-        if (_filterEntityTypes.contains('event')) {
-          if (note.link?.linkedEntityType == 'event') return true;
-        }
-        if (_filterEntityTypes.contains('resource')) {
-          if (note.link?.linkedEntityType == 'resource') return true;
-        }
-        return false;
-      }).toList();
-    }
-
-    return filtered;
-  }
-
-  void _createNewNote() {
-    showNoteAdd(context, isEdit: false, isNew: true);
-  }
-
-  void _openNote(NoteModel note) {
-    showNoteAdd(context, isEdit: true, isNew: false, noteId: note.id);
-  }
-
-  void _confirmDeleteNote(BuildContext context, NoteModel note) {
-    showConfirmDeleteDialog(
-      parentContext: context,
-      item: note,
-      onDelete: (deletedNote) {
-        this.context.read<NoteBloc>().add(
-          DeleteNoteEvent(
-            origin: EventOrigin.screen,
-            noteId: deletedNote.id,
-          ),
-        );
-      },
-    );
-  }
-
-  void _saveFilterStateIfEnabled() {
-    if (!(userSettings?.rememberFilterState ?? false)) return;
-
-    final filterState = {
-      'filterEntityTypes': _filterEntityTypes.toList(),
-    };
-    PrefService().setString(
-      _savedNotebookFilterStateKey,
-      jsonEncode(filterState),
-    );
-    PrefService().setInt(_savedRowsPerPageKey, _rowsPerPage);
-  }
-
-  void _restoreFilterStateIfEnabled(UserSettingsModel settings) {
-    if (!settings.rememberFilterState) return;
-
-    final savedRowsPerPage = PrefService().getInt(_savedRowsPerPageKey);
-
-    final savedState = PrefService().getString(_savedNotebookFilterStateKey);
-    List<dynamic>? savedEntityTypes;
-    if (savedState != null && savedState.isNotEmpty) {
-      try {
-        final filterState = jsonDecode(savedState) as Map<String, dynamic>;
-        savedEntityTypes = filterState['filterEntityTypes'] as List<dynamic>?;
-      } catch (_) {
-        // Ignore malformed settings and keep defaults.
-      }
-    }
-
-    if (savedEntityTypes == null && savedRowsPerPage == null) return;
-
-    setState(() {
-      if (savedEntityTypes != null) {
-        _filterEntityTypes.clear();
-        _filterEntityTypes.addAll(savedEntityTypes.cast<String>());
-      }
-      if (savedRowsPerPage != null) _rowsPerPage = savedRowsPerPage;
-    });
-  }
-
-  void _openFilterMenu(BuildContext context) {
-    final isMobile = Responsive.isMobile(context);
-
-    Widget buildContent(BuildContext context, StateSetter setMenuState) {
-      final filterOptions = [
-        (
-          value: 'standalone',
-          label: 'Unlinked',
-          icon: Icons.link_off,
-          color: context.colorScheme.onSurface,
-        ),
-        (
-          value: 'homework',
-          label: 'Assignments',
-          icon: AppConstants.assignmentIcon,
-          color: context.colorScheme.onSurface,
-        ),
-        (
-          value: 'event',
-          label: 'Events',
-          icon: AppConstants.eventIcon,
-          color: userSettings?.eventsColor ?? context.colorScheme.tertiary,
-        ),
-        (
-          value: 'resource',
-          label: 'Resources',
-          icon: Icons.book_outlined,
-          color: userSettings?.resourceColor ?? context.colorScheme.secondary,
-        ),
-      ];
-
-      return Padding(
-        padding: EdgeInsets.fromLTRB(16, 16, 16, isMobile ? 32 : 16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    'Filters',
-                    style: AppStyles.formText(context).copyWith(
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-                TextButton(
-                  onPressed: () {
-                    _filterEntityTypes.clear();
-                    _saveFilterStateIfEnabled();
-                    setMenuState(() {});
-                    WidgetsBinding.instance.addPostFrameCallback((_) {
-                      if (mounted) setState(() {});
-                    });
-                  },
-                  child: const Text('Clear All'),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            ...filterOptions.map((option) {
-              final isChecked = _filterEntityTypes.contains(option.value);
-              return CheckboxListTile(
-                title: Row(
-                  children: [
-                    Icon(option.icon, size: 18, color: option.color),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        option.label,
-                        style: AppStyles.formText(context),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  ],
-                ),
-                value: isChecked,
-                onChanged: (value) {
-                  if (value == true) {
-                    _filterEntityTypes.add(option.value);
-                  } else {
-                    _filterEntityTypes.remove(option.value);
-                  }
-                  _saveFilterStateIfEnabled();
-                  setMenuState(() {});
-                  WidgetsBinding.instance.addPostFrameCallback((_) {
-                    if (mounted) setState(() {});
-                  });
-                },
-                controlAffinity: ListTileControlAffinity.leading,
-                contentPadding: EdgeInsets.zero,
-                dense: true,
-              );
-            }),
-          ],
-        ),
-      );
-    }
-
-    if (isMobile) {
-      showModalBottomSheet(
-        context: context,
-        isScrollControlled: true,
-        backgroundColor: context.colorScheme.surface,
-        shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-        ),
-        builder: (context) => StatefulBuilder(builder: buildContent),
-      );
-    } else {
-      final RenderBox button = context.findRenderObject() as RenderBox;
-      final RenderBox overlay =
-          Overlay.of(context).context.findRenderObject() as RenderBox;
-      final RelativeRect position = RelativeRect.fromRect(
-        Rect.fromPoints(
-          button.localToGlobal(Offset.zero, ancestor: overlay),
-          button.localToGlobal(
-            button.size.bottomRight(Offset.zero),
-            ancestor: overlay,
-          ),
-        ),
-        Offset.zero & overlay.size,
-      );
-
-      showMenu(
-        context: context,
-        position: position,
-        color: context.colorScheme.surface,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-        items: [
-          PopupMenuItem(
-            enabled: false,
-            padding: EdgeInsets.zero,
-            child: StatefulBuilder(builder: buildContent),
-          ),
-        ],
-      );
-    }
   }
 
   @override
@@ -564,6 +283,275 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen> 
               });
               _saveFilterStateIfEnabled();
             },
+          ),
+        );
+      },
+    );
+  }
+
+  void _fetchNotes() {
+    context.read<NoteBloc>().add(
+      FetchNotesEvent(
+        origin: EventOrigin.screen,
+        forceRefresh: true,
+      ),
+    );
+  }
+
+  List<NoteModel> _getFilteredNotes() {
+    var filtered = _notes;
+
+    if (_searchQuery != null && _searchQuery!.isNotEmpty) {
+      final query = _searchQuery!.toLowerCase();
+      filtered = filtered.where((note) {
+        return note.title.toLowerCase().contains(query) ||
+            (note.link?.linkedEntityTitle?.toLowerCase().contains(query) ?? false);
+      }).toList();
+    }
+
+    if (_filterEntityTypes.isNotEmpty) {
+      filtered = filtered.where((note) {
+        if (_filterEntityTypes.contains('standalone')) {
+          if (note.link == null) return true;
+        }
+        if (_filterEntityTypes.contains('homework')) {
+          if (note.link?.linkedEntityType == 'homework') return true;
+        }
+        if (_filterEntityTypes.contains('event')) {
+          if (note.link?.linkedEntityType == 'event') return true;
+        }
+        if (_filterEntityTypes.contains('resource')) {
+          if (note.link?.linkedEntityType == 'resource') return true;
+        }
+        return false;
+      }).toList();
+    }
+
+    return filtered;
+  }
+
+  void _openFromQueryParams() {
+    final queryParams = GoRouterState.of(context).uri.queryParameters;
+    final noteId = int.tryParse(queryParams['id'] ?? '');
+    final homeworkId = int.tryParse(queryParams['homeworkId'] ?? '');
+    final eventId = int.tryParse(queryParams['eventId'] ?? '');
+    final resourceId = int.tryParse(queryParams['resourceId'] ?? '');
+    final resourceGroupId = int.tryParse(queryParams['resourceGroupId'] ?? '');
+
+    if (noteId == null && homeworkId == null && eventId == null && resourceId == null) return;
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      showNoteAdd(
+        context,
+        isEdit: noteId != null,
+        isNew: noteId == null,
+        noteId: noteId,
+        homeworkId: homeworkId,
+        eventId: eventId,
+        resourceId: resourceId,
+        resourceGroupId: resourceGroupId,
+      );
+    });
+  }
+
+  void _saveFilterStateIfEnabled() {
+    if (!(userSettings?.rememberFilterState ?? false)) return;
+
+    final filterState = {
+      'filterEntityTypes': _filterEntityTypes.toList(),
+    };
+    PrefService().setString(
+      _savedNotebookFilterStateKey,
+      jsonEncode(filterState),
+    );
+    PrefService().setInt(_savedRowsPerPageKey, _rowsPerPage);
+  }
+
+  void _restoreFilterStateIfEnabled(UserSettingsModel settings) {
+    if (!settings.rememberFilterState) return;
+
+    final savedRowsPerPage = PrefService().getInt(_savedRowsPerPageKey);
+
+    final savedState = PrefService().getString(_savedNotebookFilterStateKey);
+    List<dynamic>? savedEntityTypes;
+    if (savedState != null && savedState.isNotEmpty) {
+      try {
+        final filterState = jsonDecode(savedState) as Map<String, dynamic>;
+        savedEntityTypes = filterState['filterEntityTypes'] as List<dynamic>?;
+      } catch (_) {}
+    }
+
+    if (savedEntityTypes == null && savedRowsPerPage == null) return;
+
+    setState(() {
+      if (savedEntityTypes != null) {
+        _filterEntityTypes.clear();
+        _filterEntityTypes.addAll(savedEntityTypes.cast<String>());
+      }
+      if (savedRowsPerPage != null) _rowsPerPage = savedRowsPerPage;
+    });
+  }
+
+  void _openFilterMenu(BuildContext context) {
+    final isMobile = Responsive.isMobile(context);
+
+    Widget buildContent(BuildContext context, StateSetter setMenuState) {
+      final filterOptions = [
+        (
+          value: 'standalone',
+          label: 'Unlinked',
+          icon: Icons.link_off,
+          color: context.colorScheme.onSurface,
+        ),
+        (
+          value: 'homework',
+          label: 'Assignments',
+          icon: AppConstants.assignmentIcon,
+          color: context.colorScheme.onSurface,
+        ),
+        (
+          value: 'event',
+          label: 'Events',
+          icon: AppConstants.eventIcon,
+          color: userSettings?.eventsColor ?? context.colorScheme.tertiary,
+        ),
+        (
+          value: 'resource',
+          label: 'Resources',
+          icon: Icons.book_outlined,
+          color: userSettings?.resourceColor ?? context.colorScheme.secondary,
+        ),
+      ];
+
+      return Padding(
+        padding: EdgeInsets.fromLTRB(16, 16, 16, isMobile ? 32 : 16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    'Filters',
+                    style: AppStyles.formText(context).copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+                TextButton(
+                  onPressed: () {
+                    _filterEntityTypes.clear();
+                    _saveFilterStateIfEnabled();
+                    setMenuState(() {});
+                    WidgetsBinding.instance.addPostFrameCallback((_) {
+                      if (mounted) setState(() {});
+                    });
+                  },
+                  child: const Text('Clear All'),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            ...filterOptions.map((option) {
+              final isChecked = _filterEntityTypes.contains(option.value);
+              return CheckboxListTile(
+                title: Row(
+                  children: [
+                    Icon(option.icon, size: 18, color: option.color),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        option.label,
+                        style: AppStyles.formText(context),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
+                value: isChecked,
+                onChanged: (value) {
+                  if (value == true) {
+                    _filterEntityTypes.add(option.value);
+                  } else {
+                    _filterEntityTypes.remove(option.value);
+                  }
+                  _saveFilterStateIfEnabled();
+                  setMenuState(() {});
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    if (mounted) setState(() {});
+                  });
+                },
+                controlAffinity: ListTileControlAffinity.leading,
+                contentPadding: EdgeInsets.zero,
+                dense: true,
+              );
+            }),
+          ],
+        ),
+      );
+    }
+
+    if (isMobile) {
+      showModalBottomSheet(
+        context: context,
+        isScrollControlled: true,
+        backgroundColor: context.colorScheme.surface,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+        ),
+        builder: (context) => StatefulBuilder(builder: buildContent),
+      );
+    } else {
+      final RenderBox button = context.findRenderObject() as RenderBox;
+      final RenderBox overlay =
+          Overlay.of(context).context.findRenderObject() as RenderBox;
+      final RelativeRect position = RelativeRect.fromRect(
+        Rect.fromPoints(
+          button.localToGlobal(Offset.zero, ancestor: overlay),
+          button.localToGlobal(
+            button.size.bottomRight(Offset.zero),
+            ancestor: overlay,
+          ),
+        ),
+        Offset.zero & overlay.size,
+      );
+
+      showMenu(
+        context: context,
+        position: position,
+        color: context.colorScheme.surface,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        items: [
+          PopupMenuItem(
+            enabled: false,
+            padding: EdgeInsets.zero,
+            child: StatefulBuilder(builder: buildContent),
+          ),
+        ],
+      );
+    }
+  }
+
+  void _createNewNote() {
+    showNoteAdd(context, isEdit: false, isNew: true);
+  }
+
+  void _openNote(NoteModel note) {
+    showNoteAdd(context, isEdit: true, isNew: false, noteId: note.id);
+  }
+
+  void _confirmDeleteNote(BuildContext context, NoteModel note) {
+    showConfirmDeleteDialog(
+      parentContext: context,
+      item: note,
+      onDelete: (deletedNote) {
+        this.context.read<NoteBloc>().add(
+          DeleteNoteEvent(
+            origin: EventOrigin.screen,
+            noteId: deletedNote.id,
           ),
         );
       },
