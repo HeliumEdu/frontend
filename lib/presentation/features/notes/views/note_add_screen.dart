@@ -351,30 +351,45 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
           children: [
             Padding(
               padding: const EdgeInsets.only(bottom: 4),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Expanded(
-                    child: LabelAndTextFormField(
-                      hintText: 'Title',
-                      controller: _titleController,
-                      focusNode: _titleFocusNode,
-                      autofocus: kIsWeb || widget.noteId == null,
-                      validator: BasicFormController.validateRequiredField,
-                      fieldKey: _formController.getFieldKey('title'),
-                      onFieldSubmitted: (_) => _editorFocusNode.requestFocus(),
-                    ),
-                  ),
-                  if (_note?.link != null || _provisionalLink != null) ...[
-                    const SizedBox(width: 8),
-                    ConstrainedBox(
-                      constraints: const BoxConstraints(maxWidth: 180),
-                      child: _buildLinkedEntityBadge(
-                        _note?.link ?? _provisionalLink!,
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  const double titleMinWidth = 225;
+                  const double badgeMaxWidth = 250;
+                  const double gap = 8;
+                  final hasBadge =
+                      _note?.link != null || _provisionalLink != null;
+                  final effectiveBadgeMax = hasBadge
+                      ? (constraints.maxWidth - titleMinWidth - gap)
+                          .clamp(0.0, badgeMaxWidth)
+                      : 0.0;
+                  return Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Expanded(
+                        child: LabelAndTextFormField(
+                          hintText: 'Title',
+                          controller: _titleController,
+                          focusNode: _titleFocusNode,
+                          autofocus: kIsWeb || widget.noteId == null,
+                          validator: BasicFormController.validateRequiredField,
+                          fieldKey: _formController.getFieldKey('title'),
+                          onFieldSubmitted: (_) =>
+                              _editorFocusNode.requestFocus(),
+                        ),
                       ),
-                    ),
-                  ],
-                ],
+                      if (hasBadge) ...[
+                        const SizedBox(width: gap),
+                        ConstrainedBox(
+                          constraints:
+                              BoxConstraints(maxWidth: effectiveBadgeMax),
+                          child: _buildLinkedEntityBadge(
+                            _note?.link ?? _provisionalLink!,
+                          ),
+                        ),
+                      ],
+                    ],
+                  );
+                },
               ),
             ),
 
