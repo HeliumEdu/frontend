@@ -140,6 +140,8 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen> 
       if (!mounted) return;
       showNoteAdd(
         context,
+        isEdit: noteId != null,
+        isNew: noteId == null,
         noteId: noteId,
         homeworkId: homeworkId,
         eventId: eventId,
@@ -184,11 +186,11 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen> 
   }
 
   void _createNewNote() {
-    showNoteAdd(context);
+    showNoteAdd(context, isEdit: false, isNew: true);
   }
 
   void _openNote(NoteModel note) {
-    showNoteAdd(context, noteId: note.id);
+    showNoteAdd(context, isEdit: true, isNew: false, noteId: note.id);
   }
 
   void _confirmDeleteNote(BuildContext context, NoteModel note) {

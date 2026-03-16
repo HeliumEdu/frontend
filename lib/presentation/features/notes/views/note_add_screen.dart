@@ -49,6 +49,8 @@ import 'package:heliumapp/utils/responsive_helpers.dart';
 
 void showNoteAdd(
   BuildContext context, {
+  required bool isEdit,
+  required bool isNew,
   int? noteId,
   int? homeworkId,
   int? eventId,
@@ -56,7 +58,6 @@ void showNoteAdd(
   int? resourceGroupId,
 }) {
   final noteBloc = context.read<NoteBloc>();
-  final isNew = noteId == null;
 
   if (Responsive.isMobile(context)) {
     context.push(
