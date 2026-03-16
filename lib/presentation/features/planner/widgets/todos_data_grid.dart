@@ -203,6 +203,7 @@ class TodosDataGridState extends State<TodosDataGrid> {
     var effectiveCurrentPage = _currentPage;
     if (_isInitialized && effectiveCurrentPage > totalPages && totalPages > 0) {
       effectiveCurrentPage = 1;
+      _pagerController.selectedPageIndex = 0;
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted && _currentPage != 1) {
           setState(() {

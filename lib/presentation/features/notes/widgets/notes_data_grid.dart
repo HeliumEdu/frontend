@@ -101,6 +101,7 @@ class _NotesDataGridState extends State<NotesDataGrid> {
     var effectiveCurrentPage = _currentPage;
     if (effectiveCurrentPage > totalPages && totalPages > 0) {
       effectiveCurrentPage = 1;
+      _pagerController.selectedPageIndex = 0;
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted && _currentPage != 1) {
           setState(() {
