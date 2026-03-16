@@ -394,7 +394,7 @@ class _CalendarScreenState
           if (state is ExternalCalendarCreated ||
               state is ExternalCalendarUpdated ||
               state is ExternalCalendarDeleted) {
-            _log.info('External calendar changed, refreshing calendar sources');
+            _log.info('External calendar changed, refreshing external events');
 
             final visibleStart = _visibleDates.isNotEmpty
                 ? _visibleDates.first
@@ -403,7 +403,7 @@ class _CalendarScreenState
                 ? _visibleDates.last
                 : null;
 
-            await _plannerItemDataSource!.refreshCalendarSources(
+            await _plannerItemDataSource!.refreshExternalCalendarEvents(
               visibleStart: visibleStart,
               visibleEnd: visibleEnd,
             );

@@ -404,6 +404,7 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
                           child: QuillSimpleToolbar(
                             controller: _quillController,
                             config: QuillSimpleToolbarConfig(
+                              toolbarRunSpacing: 0,
                               showDividers: !isMobile,
                               showFontSize: !isMobile,
                               showHeaderStyle: !isMobile,

@@ -478,6 +478,7 @@ class TodosDataGridState extends State<TodosDataGrid> {
       return const EmptyCard(
         expanded: false,
         icon: Icons.assignment_outlined,
+        title: "You haven't added any assignments yet",
         message: 'Click "+" to get started',
       );
     }
@@ -505,6 +506,7 @@ class TodosDataGridState extends State<TodosDataGrid> {
 
   void _onDataSourceChanged() {
     if (!mounted) return;
+
     _dataSource.update(
       homeworks: widget.dataSource.filteredHomeworks,
       context: context,
@@ -513,7 +515,12 @@ class TodosDataGridState extends State<TodosDataGrid> {
       onToggleCompleted: widget.onToggleCompleted,
       onDelete: widget.onDelete,
     );
-    // Use post-frame callback to ensure UI fully updates after data source change
+
+    _dataSource.updatePagination(
+      currentPage: _currentPage,
+      itemsPerPage: _itemsPerPage,
+    );
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) setState(() {});
     });

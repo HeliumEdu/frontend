@@ -118,6 +118,7 @@ class NotesEditor extends StatelessWidget {
                 QuillSimpleToolbar(
                   controller: controller,
                   config: QuillSimpleToolbarConfig(
+                    toolbarRunSpacing: 0,
                     showFontFamily: !isMobile,
                     showDividers: !isMobile,
                     showFontSize: false,
