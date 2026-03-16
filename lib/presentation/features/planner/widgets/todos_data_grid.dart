@@ -586,17 +586,19 @@ class TodosDataGridState extends State<TodosDataGrid> {
       onDelete: widget.onDelete,
     );
 
-    _pagerController.selectedPageIndex = _currentPage - 1;
-
     if (markInitialized) {
+      // On initial load, set initialized first so pager builds with data,
+      // then set page index after pager is subscribed to controller
+      setState(() {
+        _isInitialized = true;
+      });
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
-          setState(() {
-            _isInitialized = true;
-          });
+          _pagerController.selectedPageIndex = _currentPage - 1;
         }
       });
     } else {
+      _pagerController.selectedPageIndex = _currentPage - 1;
       setState(() {});
     }
   }
