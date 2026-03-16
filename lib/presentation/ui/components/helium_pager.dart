@@ -99,35 +99,35 @@ class HeliumPager extends StatelessWidget {
               tapTargetSize: MaterialTapTargetSize.shrinkWrap,
             ),
           ),
-        if (isMobile) const SizedBox(width: 4),
-        IconButton(
-          onPressed: currentPage > 1
-              ? () => onPageChanged(currentPage - 1)
-              : null,
-          icon: const Icon(Icons.chevron_left),
-          iconSize: 20,
-          padding: EdgeInsets.zero,
-          constraints: const BoxConstraints(),
-          style: IconButton.styleFrom(
-            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        if (!isMobile)
+          IconButton(
+            onPressed: currentPage > 1
+                ? () => onPageChanged(currentPage - 1)
+                : null,
+            icon: const Icon(Icons.chevron_left),
+            iconSize: 20,
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(),
+            style: IconButton.styleFrom(
+              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            ),
           ),
-        ),
-        const SizedBox(width: 8),
+        SizedBox(width: Responsive.isMobile(context) ? 8 : 12),
         ..._buildPageNumbers(context, isMobile),
-        const SizedBox(width: 8),
-        IconButton(
-          onPressed: currentPage < totalPages
-              ? () => onPageChanged(currentPage + 1)
-              : null,
-          icon: const Icon(Icons.chevron_right),
-          iconSize: 20,
-          padding: EdgeInsets.zero,
-          constraints: const BoxConstraints(),
-          style: IconButton.styleFrom(
-            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        SizedBox(width: Responsive.isMobile(context) ? 8 : 12),
+        if (!isMobile)
+          IconButton(
+            onPressed: currentPage < totalPages
+                ? () => onPageChanged(currentPage + 1)
+                : null,
+            icon: const Icon(Icons.chevron_right),
+            iconSize: 20,
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(),
+            style: IconButton.styleFrom(
+              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            ),
           ),
-        ),
-        if (isMobile) const SizedBox(width: 4),
         if (isMobile)
           IconButton(
             onPressed: currentPage < totalPages ? () => onPageChanged(totalPages) : null,
@@ -191,7 +191,7 @@ class HeliumPager extends StatelessWidget {
     final isActive = currentPage == pageNumber;
 
     return Padding(
-      padding: EdgeInsets.only(left: Responsive.isTouchDevice(context) ? 1 : 4),
+      padding: const EdgeInsets.only(left: 4),
       child: OutlinedButton(
         onPressed: isActive ? null : () => onPageChanged(pageNumber),
         style: OutlinedButton.styleFrom(
