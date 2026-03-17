@@ -6,7 +6,7 @@
 // For details regarding the license, please refer to the LICENSE file.
 
 import 'package:flutter/material.dart';
-import 'package:heliumapp/config/app_theme.dart';
+import 'package:heliumapp/config/app_theme.dart' show seedColor;
 import 'package:heliumapp/data/models/drop_down_item.dart';
 import 'package:heliumapp/utils/dropdown_extensions.dart';
 import 'package:heliumapp/utils/planner_helper.dart';
@@ -52,6 +52,31 @@ class FallbackConstants {
   static const defaultDragAndDropOnMobile = true;
   static const defaultRememberFilterState = false;
   static const defaultCollapseBusyDays = false;
+}
+
+/// Colors for planner item types (Events, Homework, Class Schedules, External Calendars).
+class PlannerTypeColors {
+  static const homework = Color(0xffcfa25e);
+  static const classSchedules = Color(0xff5658d7);
+  static const externalCalendars = Color(0xff049f71);
+  static Color events([Color? userColor]) =>
+      userColor ?? FallbackConstants.defaultEventsColor;
+  static const _rainbowGradient = LinearGradient(
+    colors: [
+      Color(0xffec6f92),
+      Color(0xffdc7d50),
+      Color(0xff049f71),
+      Color(0xff5658d7),
+      Color(0xffc964b5),
+    ],
+  );
+  static Widget rainbowIcon(IconData icon, {double size = 18}) {
+    return ShaderMask(
+      blendMode: BlendMode.srcIn,
+      shaderCallback: (bounds) => _rainbowGradient.createShader(bounds),
+      child: Icon(icon, size: size),
+    );
+  }
 }
 
 class CalendarConstants {

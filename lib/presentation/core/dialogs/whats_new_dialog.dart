@@ -77,10 +77,10 @@ class _WhatsNewDialogWidget extends StatelessWidget {
                     const SizedBox(height: 12),
                     _buildFeatureItem(
                       context,
-                      icon: Icons.construction_outlined,
-                      title: 'Still polishing',
+                      icon: Icons.library_books,
+                      title: 'Notebook',
                       description:
-                          'Classic Helium will remain available through at least Summer 2026',
+                          'Rich notes help you link all your work together',
                     ),
                     const SizedBox(height: 12),
                     _buildFeatureItem(

@@ -208,7 +208,7 @@ class _PreferenceViewState extends BasePageScreenState<PreferencesScreen> {
             Row(
               children: [
                 Text(
-                  'Color for grade badges',
+                  'Color for grades',
                   style: AppStyles.formLabel(context),
                 ),
                 const SizedBox(width: 12),
@@ -246,7 +246,7 @@ class _PreferenceViewState extends BasePageScreenState<PreferencesScreen> {
             Row(
               children: [
                 Text(
-                  'Color for resource badges',
+                  'Color for resources',
                   style: AppStyles.formLabel(context),
                 ),
                 const SizedBox(width: 12),

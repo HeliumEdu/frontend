@@ -436,11 +436,11 @@ abstract class BaseAttachmentsState<T extends BaseAttachmentsContent>
       attachment.title,
     );
 
+    if (!mounted) return;
+
     setState(() {
       isLoading = false;
     });
-
-    if (!mounted) return;
     if (success) {
       SnackBarHelper.show(context, '"${attachment.title}" downloaded');
     } else {
