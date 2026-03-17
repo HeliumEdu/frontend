@@ -504,6 +504,8 @@ class _NotificationsScreenState
 
     await _storeReadNotifications();
 
+    if (!mounted) return;
+
     setState(() {
       _notifications = _notifications.map((n) {
         if (n.id == notification.id) {
