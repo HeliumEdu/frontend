@@ -203,6 +203,7 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
   ScreenType get screenType => ScreenType.page;
 
   Function get cancelAction => () {
+    if (!mounted) return;
     if (DialogModeProvider.isDialogMode(context)) {
       Navigator.of(context).pop();
     } else {
