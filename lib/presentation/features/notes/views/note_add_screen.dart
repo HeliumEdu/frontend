@@ -367,8 +367,7 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
                               ? null
                               : BasicFormController.validateRequiredField,
                           fieldKey: _formController.getFieldKey('title'),
-                          onFieldSubmitted: (_) =>
-                              _editorFocusNode.requestFocus(),
+                          onFieldSubmitted: (_) => saveAction?.call(),
                         ),
                       ),
                       if (hasBadge) ...[
