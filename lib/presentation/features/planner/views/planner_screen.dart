@@ -134,7 +134,7 @@ class _CalendarScreenState
     extends BasePageScreenState<_CalendarProvidedScreen> {
   static const _agendaHeightMobile = 53.0;
   static const _agendaHeightDesktop = 57.0;
-  static const _mobileAppointmentDisplayCount = 6;
+  static const _mobileAppointmentDisplayCount = 5;
   static const _uiAnimationDuration = Duration(milliseconds: 300);
   static const _tooltipWaitDuration = Duration(milliseconds: 500);
   static const _tooltipShowDuration = Duration(seconds: 8);
