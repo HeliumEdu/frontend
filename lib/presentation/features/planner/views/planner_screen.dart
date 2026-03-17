@@ -134,7 +134,6 @@ class _CalendarScreenState
     extends BasePageScreenState<_CalendarProvidedScreen> {
   static const _agendaHeightMobile = 53.0;
   static const _agendaHeightDesktop = 57.0;
-  static const _mobileAppointmentDisplayCount = 4;
   static const _uiAnimationDuration = Duration(milliseconds: 300);
   static const _tooltipWaitDuration = Duration(milliseconds: 500);
   static const _tooltipShowDuration = Duration(seconds: 8);
@@ -697,9 +696,7 @@ class _CalendarScreenState
             ),
           ),
           monthViewSettings: MonthViewSettings(
-            appointmentDisplayCount: Responsive.isMobile(context)
-                ? _mobileAppointmentDisplayCount
-                : calendarItemsDisplayCount,
+            appointmentDisplayCount: calendarItemsDisplayCount,
             showAgenda: Responsive.isMobile(context),
             agendaItemHeight: agendaHeight,
             monthCellStyle: MonthCellStyle(
@@ -1762,11 +1759,6 @@ class _CalendarScreenState
     final isCurrentMonth = details.visibleDates.isNotEmpty &&
         details.date.month == details.visibleDates[15].month;
 
-    final typeColors = PlannerTypeColors.of(
-      context,
-      eventsColor: userSettings?.eventsColor,
-    );
-
     // Determine which types are present for this date
     final items = details.appointments.cast<PlannerItemBaseModel>();
     final hasEvents = items.any((item) => item is EventModel);
@@ -1778,13 +1770,12 @@ class _CalendarScreenState
 
     // Build indicator dots for present types
     final indicatorColors = <Color>[
-      if (hasHomework) typeColors.homework,
-      if (hasEvents) typeColors.events,
-      if (hasClassSchedules) typeColors.classSchedules,
-      if (hasExternalCalendars) typeColors.externalCalendars,
+      if (hasHomework) PlannerTypeColors.homework,
+      if (hasEvents) PlannerTypeColors.events(userSettings?.eventsColor),
+      if (hasClassSchedules) PlannerTypeColors.classSchedules,
+      if (hasExternalCalendars) PlannerTypeColors.externalCalendars,
     ];
 
-    // Use SfCalendar's default cell border color style
     final borderColor = context.colorScheme.outline.withValues(alpha: 0.3);
 
     return Container(
@@ -1823,11 +1814,10 @@ class _CalendarScreenState
           const Spacer(),
           if (indicatorColors.isNotEmpty)
             Padding(
-              padding: const EdgeInsets.only(bottom: 8),
+              padding: EdgeInsets.only(bottom: details.bounds.height * 0.14),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: indicatorColors
-                    .take(_mobileAppointmentDisplayCount)
                     .map(
                       (color) => Container(
                         width: 6,
@@ -3122,11 +3112,16 @@ class _CalendarScreenState
                 CheckboxListTile(
                   title: Row(
                     children: [
-                      Icon(
-                        AppConstants.assignmentIcon,
-                        size: 18,
-                        color: PlannerTypeColors.of(context).homework,
-                      ),
+                      _currentView == PlannerView.month &&
+                              Responsive.isMobile(context)
+                          ? const Icon(
+                              AppConstants.assignmentIcon,
+                              size: 18,
+                              color: PlannerTypeColors.homework,
+                            )
+                          : PlannerTypeColors.rainbowIcon(
+                              AppConstants.assignmentIcon,
+                            ),
                       const SizedBox(width: 8),
                       Text(
                         PlannerFilterType.assignments.value,
@@ -3163,10 +3158,9 @@ class _CalendarScreenState
                       Icon(
                         AppConstants.eventIcon,
                         size: 18,
-                        color: PlannerTypeColors.of(
-                          context,
-                          eventsColor: userSettings?.eventsColor,
-                        ).events,
+                        color: PlannerTypeColors.events(
+                          userSettings?.eventsColor,
+                        ),
                       ),
                       const SizedBox(width: 8),
                       Text(
@@ -3201,11 +3195,16 @@ class _CalendarScreenState
                 CheckboxListTile(
                   title: Row(
                     children: [
-                      Icon(
-                        AppConstants.courseScheduleIcon,
-                        size: 18,
-                        color: PlannerTypeColors.of(context).classSchedules,
-                      ),
+                      _currentView == PlannerView.month &&
+                              Responsive.isMobile(context)
+                          ? const Icon(
+                              AppConstants.courseScheduleIcon,
+                              size: 18,
+                              color: PlannerTypeColors.classSchedules,
+                            )
+                          : PlannerTypeColors.rainbowIcon(
+                              AppConstants.courseScheduleIcon,
+                            ),
                       const SizedBox(width: 8),
                       Text(
                         PlannerFilterType.classSchedules.value,
@@ -3243,11 +3242,16 @@ class _CalendarScreenState
                 CheckboxListTile(
                   title: Row(
                     children: [
-                      Icon(
-                        AppConstants.externalCalendarIcon,
-                        size: 18,
-                        color: PlannerTypeColors.of(context).externalCalendars,
-                      ),
+                      _currentView == PlannerView.month &&
+                              Responsive.isMobile(context)
+                          ? const Icon(
+                              AppConstants.externalCalendarIcon,
+                              size: 18,
+                              color: PlannerTypeColors.externalCalendars,
+                            )
+                          : PlannerTypeColors.rainbowIcon(
+                              AppConstants.externalCalendarIcon,
+                            ),
                       const SizedBox(width: 8),
                       Text(
                         PlannerFilterType.externalCalendars.value,

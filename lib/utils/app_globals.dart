@@ -6,8 +6,7 @@
 // For details regarding the license, please refer to the LICENSE file.
 
 import 'package:flutter/material.dart';
-import 'package:heliumapp/config/app_theme.dart'
-    show SemanticColors, seedColor;
+import 'package:heliumapp/config/app_theme.dart' show seedColor;
 import 'package:heliumapp/data/models/drop_down_item.dart';
 import 'package:heliumapp/utils/dropdown_extensions.dart';
 import 'package:heliumapp/utils/planner_helper.dart';
@@ -56,41 +55,40 @@ class FallbackConstants {
 }
 
 /// Colors for planner item types (Events, Homework, Class Schedules, External Calendars).
-/// Use [PlannerTypeColors.of] to get colors that respect the current theme.
+/// Static colors chosen to work well in both light and dark modes.
 class PlannerTypeColors {
-  final Color events;
-  final Color homework;
-  final Color classSchedules;
-  final Color externalCalendars;
+  PlannerTypeColors._();
 
-  const PlannerTypeColors._({
-    required this.events,
-    required this.homework,
-    required this.classSchedules,
-    required this.externalCalendars,
-  });
+  /// Amber/orange for homework/assignments
+  static const homework = Color(0xffE5A000);
 
-  /// External calendar color - purple/violet that works in both light and dark modes
-  static const externalCalendarColorLight = Color(0xff7e57c2);
-  static const externalCalendarColorDark = Color(0xffb39ddb);
+  /// Blue for class schedules (matches app primary/seed color)
+  static const classSchedules = seedColor;
 
-  /// Get planner type colors for the current theme context.
-  /// [eventsColor] should be passed from userSettings.eventsColor if available.
-  static PlannerTypeColors of(
-    BuildContext context, {
-    Color? eventsColor,
-  }) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final colorScheme = Theme.of(context).colorScheme;
-    final semanticColors =
-        Theme.of(context).extension<SemanticColors>() ?? SemanticColors.light;
+  /// Purple/lavender for external calendars
+  static const externalCalendars = Color(0xff9575CD);
 
-    return PlannerTypeColors._(
-      events: eventsColor ?? FallbackConstants.defaultEventsColor,
-      homework: semanticColors.warning,
-      classSchedules: colorScheme.primary,
-      externalCalendars:
-          isDark ? externalCalendarColorDark : externalCalendarColorLight,
+  /// Events color - user configurable, falls back to default
+  static Color events([Color? userColor]) =>
+      userColor ?? FallbackConstants.defaultEventsColor;
+
+  /// Rainbow gradient for multi-colored assignments indicator
+  static const homeworkGradient = LinearGradient(
+    colors: [
+      Color(0xFFE57373), // red
+      Color(0xFFFFB74D), // orange
+      Color(0xFFAED581), // green
+      Color(0xFF4FC3F7), // blue
+      Color(0xFFBA68C8), // purple
+    ],
+  );
+
+  /// Returns a rainbow-colored icon (indicates items are multi-colored)
+  static Widget rainbowIcon(IconData icon, {double size = 18}) {
+    return ShaderMask(
+      blendMode: BlendMode.srcIn,
+      shaderCallback: (bounds) => homeworkGradient.createShader(bounds),
+      child: Icon(icon, size: size),
     );
   }
 }

@@ -400,7 +400,7 @@ class _FeedsViewState extends BasePageScreenState<FeedsScreen> {
             _buildFeedCard(
               context: context,
               icon: AppConstants.assignmentIcon,
-              color: PlannerTypeColors.of(context).homework,
+              color: PlannerTypeColors.homework,
               url: homeworkUrl,
               label: 'Assignments',
             ),
@@ -408,7 +408,7 @@ class _FeedsViewState extends BasePageScreenState<FeedsScreen> {
             _buildFeedCard(
               context: context,
               icon: AppConstants.courseScheduleIcon,
-              color: PlannerTypeColors.of(context).classSchedules,
+              color: PlannerTypeColors.classSchedules,
               url: courseScheduleUrl,
               label: 'Class Schedules',
             ),
@@ -416,10 +416,7 @@ class _FeedsViewState extends BasePageScreenState<FeedsScreen> {
             _buildFeedCard(
               context: context,
               icon: AppConstants.eventIcon,
-              color: PlannerTypeColors.of(
-                context,
-                eventsColor: userSettings?.eventsColor,
-              ).events,
+              color: PlannerTypeColors.events(userSettings?.eventsColor),
               url: eventsUrl,
               label: 'Events',
             ),

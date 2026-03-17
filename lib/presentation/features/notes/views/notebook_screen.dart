@@ -421,26 +421,34 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen> 
         (
           value: 'standalone',
           label: 'Unlinked',
-          icon: Icons.link_off,
-          color: context.colorScheme.onSurface,
+          iconWidget: Icon(
+            Icons.link_off,
+            size: 18,
+            color: context.colorScheme.onSurface,
+          ),
         ),
         (
           value: 'homework',
           label: 'Assignments',
-          icon: AppConstants.assignmentIcon,
-          color: context.colorScheme.onSurface,
+          iconWidget: PlannerTypeColors.rainbowIcon(AppConstants.assignmentIcon),
         ),
         (
           value: 'event',
           label: 'Events',
-          icon: AppConstants.eventIcon,
-          color: userSettings?.eventsColor ?? context.colorScheme.tertiary,
+          iconWidget: Icon(
+            AppConstants.eventIcon,
+            size: 18,
+            color: PlannerTypeColors.events(userSettings?.eventsColor),
+          ),
         ),
         (
           value: 'resource',
           label: 'Resources',
-          icon: Icons.book_outlined,
-          color: userSettings?.resourceColor ?? context.colorScheme.secondary,
+          iconWidget: Icon(
+            Icons.book_outlined,
+            size: 18,
+            color: userSettings?.resourceColor ?? context.colorScheme.secondary,
+          ),
         ),
       ];
 
@@ -479,7 +487,7 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen> 
               return CheckboxListTile(
                 title: Row(
                   children: [
-                    Icon(option.icon, size: 18, color: option.color),
+                    option.iconWidget,
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
