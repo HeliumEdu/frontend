@@ -55,39 +55,25 @@ class FallbackConstants {
 }
 
 /// Colors for planner item types (Events, Homework, Class Schedules, External Calendars).
-/// Static colors chosen to work well in both light and dark modes.
 class PlannerTypeColors {
-  PlannerTypeColors._();
-
-  /// Amber/orange for homework/assignments
-  static const homework = Color(0xffE5A000);
-
-  /// Blue for class schedules (matches app primary/seed color)
-  static const classSchedules = seedColor;
-
-  /// Purple/lavender for external calendars
-  static const externalCalendars = Color(0xff9575CD);
-
-  /// Events color - user configurable, falls back to default
+  static const homework = Color(0xffcfa25e);
+  static const classSchedules = Color(0xff5658d7);
+  static const externalCalendars = Color(0xff049f71);
   static Color events([Color? userColor]) =>
       userColor ?? FallbackConstants.defaultEventsColor;
-
-  /// Rainbow gradient for multi-colored assignments indicator
-  static const homeworkGradient = LinearGradient(
+  static const _rainbowGradient = LinearGradient(
     colors: [
-      Color(0xFFE57373), // red
-      Color(0xFFFFB74D), // orange
-      Color(0xFFAED581), // green
-      Color(0xFF4FC3F7), // blue
-      Color(0xFFBA68C8), // purple
+      Color(0xffec6f92),
+      Color(0xffdc7d50),
+      Color(0xff049f71),
+      Color(0xff5658d7),
+      Color(0xffc964b5),
     ],
   );
-
-  /// Returns a rainbow-colored icon (indicates items are multi-colored)
   static Widget rainbowIcon(IconData icon, {double size = 18}) {
     return ShaderMask(
       blendMode: BlendMode.srcIn,
-      shaderCallback: (bounds) => homeworkGradient.createShader(bounds),
+      shaderCallback: (bounds) => _rainbowGradient.createShader(bounds),
       child: Icon(icon, size: size),
     );
   }
