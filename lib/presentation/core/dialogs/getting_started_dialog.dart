@@ -108,6 +108,14 @@ class _GettingStartedDialogWidget extends StatelessWidget {
                           const SizedBox(height: 12),
                           _buildFeatureItem(
                             context,
+                            icon: Icons.library_books,
+                            title: 'Keep a Notebook',
+                            description:
+                            'Write rich notes, linked directly to your items in your planner, so your context is always right where you need it.',
+                          ),
+                          const SizedBox(height: 12),
+                          _buildFeatureItem(
+                            context,
                             icon: Icons.sync_outlined,
                             title: 'Sync with other calendars',
                             description:
