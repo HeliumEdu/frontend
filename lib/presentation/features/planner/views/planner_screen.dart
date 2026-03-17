@@ -134,7 +134,7 @@ class _CalendarScreenState
     extends BasePageScreenState<_CalendarProvidedScreen> {
   static const _agendaHeightMobile = 53.0;
   static const _agendaHeightDesktop = 57.0;
-  static const _mobileAppointmentDisplayCount = 5;
+  static const _mobileAppointmentDisplayCount = 4;
   static const _uiAnimationDuration = Duration(milliseconds: 300);
   static const _tooltipWaitDuration = Duration(milliseconds: 500);
   static const _tooltipShowDuration = Duration(seconds: 8);
@@ -723,7 +723,7 @@ class _CalendarScreenState
               placeholderTextStyle: AppStyles.smallSecondaryText(context),
             ),
             appointmentDisplayMode: Responsive.isMobile(context)
-                ? MonthAppointmentDisplayMode.indicator
+                ? MonthAppointmentDisplayMode.none
                 : MonthAppointmentDisplayMode.appointment,
             dayFormat: 'EEE',
           ),
@@ -736,6 +736,9 @@ class _CalendarScreenState
             timeIntervalHeight: Responsive.isMobile(context) ? 43 : 60,
           ),
           loadMoreWidgetBuilder: _loadMoreWidgetBuilder,
+          monthCellBuilder: Responsive.isMobile(context)
+              ? _buildMobileMonthCell
+              : null,
           appointmentBuilder: _buildCalendarItem,
           onTap: _openCalendarItem,
           onDragStart: _onCalendarDragStart,
@@ -1748,6 +1751,99 @@ class _CalendarScreenState
       item: plannerItem,
       additionalWarning: 'Its attachments and note will also be deleted.',
       onDelete: onDelete,
+    );
+  }
+
+  Widget _buildMobileMonthCell(
+    BuildContext context,
+    MonthCellDetails details,
+  ) {
+    final isToday = DateUtils.isSameDay(details.date, DateTime.now());
+    final isCurrentMonth = details.visibleDates.isNotEmpty &&
+        details.date.month == details.visibleDates[15].month;
+
+    final typeColors = PlannerTypeColors.of(
+      context,
+      eventsColor: userSettings?.eventsColor,
+    );
+
+    // Determine which types are present for this date
+    final items = details.appointments.cast<PlannerItemBaseModel>();
+    final hasEvents = items.any((item) => item is EventModel);
+    final hasHomework = items.any((item) => item is HomeworkModel);
+    final hasClassSchedules =
+        items.any((item) => item is CourseScheduleEventModel);
+    final hasExternalCalendars =
+        items.any((item) => item is ExternalCalendarEventModel);
+
+    // Build indicator dots for present types
+    final indicatorColors = <Color>[
+      if (hasHomework) typeColors.homework,
+      if (hasEvents) typeColors.events,
+      if (hasClassSchedules) typeColors.classSchedules,
+      if (hasExternalCalendars) typeColors.externalCalendars,
+    ];
+
+    // Use SfCalendar's default cell border color style
+    final borderColor = context.colorScheme.outline.withValues(alpha: 0.3);
+
+    return Container(
+      decoration: BoxDecoration(
+        border: Border(
+          top: BorderSide(color: borderColor, width: 0.5),
+          right: BorderSide(color: borderColor, width: 0.5),
+        ),
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.start,
+        children: [
+          const SizedBox(height: 6),
+          Container(
+            width: 26,
+            height: 26,
+            decoration: isToday
+                ? BoxDecoration(
+                    color: context.colorScheme.primary,
+                    shape: BoxShape.circle,
+                  )
+                : null,
+            alignment: Alignment.center,
+            child: Text(
+              details.date.day.toString(),
+              style: AppStyles.smallSecondaryText(context).copyWith(
+                color: isToday
+                    ? context.colorScheme.onPrimary
+                    : isCurrentMonth
+                        ? context.colorScheme.onSurface
+                        : context.colorScheme.onSurface.withValues(alpha: 0.5),
+                fontWeight: isToday ? FontWeight.w600 : null,
+              ),
+            ),
+          ),
+          const Spacer(),
+          if (indicatorColors.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: indicatorColors
+                    .take(_mobileAppointmentDisplayCount)
+                    .map(
+                      (color) => Container(
+                        width: 6,
+                        height: 6,
+                        margin: const EdgeInsets.symmetric(horizontal: 1),
+                        decoration: BoxDecoration(
+                          color: color,
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                    )
+                    .toList(),
+              ),
+            ),
+        ],
+      ),
     );
   }
 
@@ -3029,7 +3125,7 @@ class _CalendarScreenState
                       Icon(
                         AppConstants.assignmentIcon,
                         size: 18,
-                        color: context.colorScheme.onSurface,
+                        color: PlannerTypeColors.of(context).homework,
                       ),
                       const SizedBox(width: 8),
                       Text(
@@ -3067,7 +3163,10 @@ class _CalendarScreenState
                       Icon(
                         AppConstants.eventIcon,
                         size: 18,
-                        color: userSettings!.eventsColor,
+                        color: PlannerTypeColors.of(
+                          context,
+                          eventsColor: userSettings?.eventsColor,
+                        ).events,
                       ),
                       const SizedBox(width: 8),
                       Text(
@@ -3105,7 +3204,7 @@ class _CalendarScreenState
                       Icon(
                         AppConstants.courseScheduleIcon,
                         size: 18,
-                        color: context.colorScheme.onSurface,
+                        color: PlannerTypeColors.of(context).classSchedules,
                       ),
                       const SizedBox(width: 8),
                       Text(
@@ -3147,7 +3246,7 @@ class _CalendarScreenState
                       Icon(
                         AppConstants.externalCalendarIcon,
                         size: 18,
-                        color: context.colorScheme.onSurface,
+                        color: PlannerTypeColors.of(context).externalCalendars,
                       ),
                       const SizedBox(width: 8),
                       Text(
