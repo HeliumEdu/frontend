@@ -279,7 +279,7 @@ void main() {
       );
 
       blocTest<ExternalCalendarBloc, ExternalCalendarState>(
-        'emits [ExternalCalendarsLoading, ExternalCalendarUpdated] when update succeeds',
+        'emits [ExternalCalendarUpdated] when update succeeds',
         build: () {
           when(
             () => mockExternalCalendarRepository.updateExternalCalendar(
@@ -302,7 +302,6 @@ void main() {
           ),
         ),
         expect: () => [
-          isA<ExternalCalendarsLoading>(),
           isA<ExternalCalendarUpdated>()
               .having((s) => s.externalCalendar.id, 'calendar id', calendarId)
               .having(
@@ -314,7 +313,7 @@ void main() {
       );
 
       blocTest<ExternalCalendarBloc, ExternalCalendarState>(
-        'emits [ExternalCalendarsLoading, ExternalCalendarsError] when calendar not found',
+        'emits [ExternalCalendarsError] when calendar not found',
         build: () {
           when(
             () => mockExternalCalendarRepository.updateExternalCalendar(
@@ -332,7 +331,6 @@ void main() {
           ),
         ),
         expect: () => [
-          isA<ExternalCalendarsLoading>(),
           isA<ExternalCalendarsError>().having(
             (e) => e.message,
             'message',
@@ -346,7 +344,7 @@ void main() {
       const calendarId = 5;
 
       blocTest<ExternalCalendarBloc, ExternalCalendarState>(
-        'emits [ExternalCalendarsLoading, ExternalCalendarDeleted] when deletion succeeds',
+        'emits [ExternalCalendarDeleted] when deletion succeeds',
         build: () {
           when(
             () => mockExternalCalendarRepository.deleteExternalCalendar(
@@ -362,7 +360,6 @@ void main() {
           ),
         ),
         expect: () => [
-          isA<ExternalCalendarsLoading>(),
           isA<ExternalCalendarDeleted>().having((s) => s.id, 'id', calendarId),
         ],
         verify: (_) {
@@ -375,7 +372,7 @@ void main() {
       );
 
       blocTest<ExternalCalendarBloc, ExternalCalendarState>(
-        'emits [ExternalCalendarsLoading, ExternalCalendarsError] when deletion fails',
+        'emits [ExternalCalendarsError] when deletion fails',
         build: () {
           when(
             () => mockExternalCalendarRepository.deleteExternalCalendar(
@@ -391,7 +388,6 @@ void main() {
           ),
         ),
         expect: () => [
-          isA<ExternalCalendarsLoading>(),
           isA<ExternalCalendarsError>().having(
             (e) => e.message,
             'message',
