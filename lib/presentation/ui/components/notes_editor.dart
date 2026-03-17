@@ -121,6 +121,9 @@ class NotesEditor extends StatelessWidget {
                     toolbarRunSpacing: 0,
                     showFontFamily: !isMobile,
                     showDividers: !isMobile,
+                    showStrikeThrough: !isMobile,
+                    showRedo: !isMobile,
+                    showQuote: !isMobile,
                     showFontSize: false,
                     showSuperscript: false,
                     showSubscript: false,
@@ -166,8 +169,8 @@ class NotesEditor extends StatelessWidget {
                 const Divider(height: 1),
                 ConstrainedBox(
                   constraints: const BoxConstraints(
-                    minHeight: 200,
-                    maxHeight: 350,
+                    minHeight: 125,
+                    maxHeight: 300,
                   ),
                   child: QuillEditor.basic(
                     controller: controller,
