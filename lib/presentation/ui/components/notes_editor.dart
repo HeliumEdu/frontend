@@ -10,13 +10,37 @@ import 'package:flutter_quill/flutter_quill.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/presentation/ui/dialogs/color_picker_dialog.dart';
 import 'package:heliumapp/utils/app_style.dart';
+import 'package:heliumapp/utils/responsive_helpers.dart';
 
 class NotesEditor extends StatelessWidget {
   final QuillController controller;
+  final VoidCallback? onOpenInNotes;
 
-  const NotesEditor({super.key, required this.controller});
+  const NotesEditor({
+    super.key,
+    required this.controller,
+    this.onOpenInNotes,
+  });
 
-  static Future<void> _showColorPicker(
+  /// Builds theme-aware default styles for Quill editors.
+  ///
+  /// Flutter Quill's default strikethrough/underline styles don't set
+  /// decorationColor, causing black decorations in dark mode.
+  static DefaultStyles buildDefaultStyles(BuildContext context) {
+    final onSurface = Theme.of(context).colorScheme.onSurface;
+    return DefaultStyles(
+      strikeThrough: TextStyle(
+        decoration: TextDecoration.lineThrough,
+        decorationColor: onSurface,
+      ),
+      underline: TextStyle(
+        decoration: TextDecoration.underline,
+        decorationColor: onSurface,
+      ),
+    );
+  }
+
+  static Future<void> showColorPicker(
     BuildContext context,
     QuillController controller,
     bool isBackground,
@@ -26,7 +50,7 @@ class NotesEditor extends StatelessWidget {
 
     Color initial = Colors.black;
     if (stored != null) {
-      // Quill stores as AARRGGBB (no #) or #RRGGBB — normalise to a Color
+      // Quill stores as #AARRGGBB — strip # and parse
       final hex = stored.startsWith('#') ? stored.substring(1) : stored;
       final padded = hex.length == 6 ? 'ff$hex' : hex;
       initial = Color(int.tryParse(padded, radix: 16) ?? 0xFF000000);
@@ -36,12 +60,11 @@ class NotesEditor extends StatelessWidget {
       parentContext: context,
       initialColor: initial,
       onSelected: (color) {
-        // Quill expects AARRGGBB without # (matches its own colorToHex output)
         final a = (color.a * 255).round().toRadixString(16).padLeft(2, '0');
         final r = (color.r * 255).round().toRadixString(16).padLeft(2, '0');
         final g = (color.g * 255).round().toRadixString(16).padLeft(2, '0');
         final b = (color.b * 255).round().toRadixString(16).padLeft(2, '0');
-        final hex = '$a$r$g$b'.toUpperCase();
+        final hex = '#$a$r$g$b'.toUpperCase();
         controller.formatSelection(
           isBackground ? BackgroundAttribute(hex) : ColorAttribute(hex),
         );
@@ -51,10 +74,33 @@ class NotesEditor extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isMobile = Responsive.isMobile(context);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Notes', style: AppStyles.formLabel(context)),
+        Row(
+          children: [
+            Text('Notes', style: AppStyles.formLabel(context)),
+            const Spacer(),
+            if (onOpenInNotes != null)
+              TextButton.icon(
+                onPressed: onOpenInNotes,
+                icon: Icon(
+                  Icons.library_books,
+                  size: 16,
+                  color: context.colorScheme.primary,
+                ),
+                label: Text(
+                  'Open in Notebook',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: context.colorScheme.primary,
+                  ),
+                ),
+              ),
+          ],
+        ),
         const SizedBox(height: 9),
         Container(
           decoration: BoxDecoration(
@@ -72,6 +118,9 @@ class NotesEditor extends StatelessWidget {
                 QuillSimpleToolbar(
                   controller: controller,
                   config: QuillSimpleToolbarConfig(
+                    toolbarRunSpacing: 0,
+                    showFontFamily: !isMobile,
+                    showDividers: !isMobile,
                     showFontSize: false,
                     showSuperscript: false,
                     showSubscript: false,
@@ -80,7 +129,10 @@ class NotesEditor extends StatelessWidget {
                     showCodeBlock: false,
                     showDirection: false,
                     showSearchButton: false,
+                    showClearFormat: !isMobile,
                     showBackgroundColorButton: false,
+                    showColorButton: !isMobile,
+                    showIndent: !isMobile,
                     buttonOptions: QuillSimpleToolbarButtonOptions(
                       base: QuillToolbarBaseButtonOptions(
                         iconTheme: QuillIconTheme(
@@ -106,7 +158,7 @@ class NotesEditor extends StatelessWidget {
                       ),
                       color: QuillToolbarColorButtonOptions(
                         customOnPressedCallback: (ctrl, isBackground) =>
-                            _showColorPicker(context, ctrl, isBackground),
+                            showColorPicker(context, ctrl, isBackground),
                       ),
                     ),
                   ),
@@ -119,8 +171,9 @@ class NotesEditor extends StatelessWidget {
                   ),
                   child: QuillEditor.basic(
                     controller: controller,
-                    config: const QuillEditorConfig(
-                      padding: EdgeInsets.all(12),
+                    config: QuillEditorConfig(
+                      padding: const EdgeInsets.all(12),
+                      customStyles: buildDefaultStyles(context),
                     ),
                   ),
                 ),

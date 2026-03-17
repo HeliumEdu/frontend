@@ -97,7 +97,7 @@ void main() {
         ).thenAnswer((_) async => givenSuccessResponse(json));
 
         // WHEN
-        final result = await dataSource.getResourceGroupById(1);
+        final result = await dataSource.getResourceGroupById(groupId: 1);
 
         // THEN
         verifyResourceGroupMatchesJson(result, json);
@@ -118,7 +118,7 @@ void main() {
         );
 
         // WHEN
-        final result = await dataSource.createResourceGroup(request);
+        final result = await dataSource.createResourceGroup(request: request);
 
         // THEN
         expect(result.title, equals('New Group'));
@@ -139,7 +139,7 @@ void main() {
         );
 
         // WHEN
-        final result = await dataSource.updateResourceGroup(1, request);
+        final result = await dataSource.updateResourceGroup(groupId: 1, request: request);
 
         // THEN
         expect(result.title, equals('Updated Group'));
@@ -154,7 +154,7 @@ void main() {
         ).thenAnswer((_) async => givenSuccessResponse(null, statusCode: 204));
 
         // WHEN/THEN
-        expect(dataSource.deleteResourceGroup(1), completes);
+        expect(dataSource.deleteResourceGroup(groupId: 1), completes);
       });
     });
 
@@ -250,7 +250,7 @@ void main() {
         ).thenAnswer((_) async => givenSuccessResponse(json));
 
         // WHEN
-        final result = await dataSource.getResourceById(1, 1);
+        final result = await dataSource.getResourceById(groupId: 1, resourceId: 1);
 
         // THEN
         verifyResourceMatchesJson(result, json);
@@ -277,7 +277,7 @@ void main() {
         );
 
         // WHEN
-        final result = await dataSource.createResource(1, request);
+        final result = await dataSource.createResource(groupId: 1, request: request);
 
         // THEN
         expect(result.title, equals('New Material'));
@@ -304,7 +304,11 @@ void main() {
         );
 
         // WHEN
-        final result = await dataSource.updateResource(1, 1, request);
+        final result = await dataSource.updateResource(
+          groupId: 1,
+          resourceId: 1,
+          request: request,
+        );
 
         // THEN
         expect(result.title, equals('Updated Material'));
@@ -319,7 +323,10 @@ void main() {
         ).thenAnswer((_) async => givenSuccessResponse(null, statusCode: 204));
 
         // WHEN/THEN
-        expect(dataSource.deleteResource(1, 1), completes);
+        expect(
+          dataSource.deleteResource(groupId: 1, resourceId: 1),
+          completes,
+        );
       });
     });
 
@@ -341,7 +348,7 @@ void main() {
 
         // WHEN/THEN
         expect(
-          () => dataSource.getResourceGroupById(1),
+          () => dataSource.getResourceGroupById(groupId: 1),
           throwsA(isA<ServerException>()),
         );
       });

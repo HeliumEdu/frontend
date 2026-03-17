@@ -9,9 +9,12 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_quill/flutter_quill.dart';
+import 'package:go_router/go_router.dart';
+import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/config/app_theme.dart';
-import 'package:heliumapp/utils/conversion_helpers.dart';
 import 'package:heliumapp/data/models/planner/course_model.dart';
+import 'package:heliumapp/data/models/planner/resource_model.dart';
+import 'package:heliumapp/data/models/planner/homework_model.dart' show LinkedNoteRef;
 import 'package:heliumapp/data/models/planner/request/resource_request_model.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/core/base_event.dart';
 import 'package:heliumapp/presentation/features/resources/bloc/resource_bloc.dart';
@@ -57,7 +60,9 @@ class ResourceDetailsState extends State<ResourceDetails> {
 
   // State
   List<CourseModel> _courses = [];
+  ResourceModel? _resource;
   bool isLoading = true;
+  bool _pendingNotebookRedirect = false;
 
   @override
   void initState() {
@@ -254,6 +259,7 @@ class ResourceDetailsState extends State<ResourceDetails> {
                   NotesEditor(
                     key: ObjectKey(_formController.notesController),
                     controller: _formController.notesController,
+                    onOpenInNotes: widget.isEdit ? _openInNotes : null,
                   ),
                   const SizedBox(height: 12),
                 ],
@@ -268,6 +274,7 @@ class ResourceDetailsState extends State<ResourceDetails> {
   void _populateInitialStateData(ResourceScreenDataFetched state) {
     setState(() {
       _courses = state.courses;
+      _resource = state.resource;
       Sort.byTitle(_courses);
 
       if (widget.isEdit) {
@@ -279,13 +286,6 @@ class ResourceDetailsState extends State<ResourceDetails> {
         if (state.resource!.notes != null) {
           _formController.notesController = QuillController(
             document: Document.fromJson(state.resource!.notes!['ops'] as List),
-            selection: const TextSelection.collapsed(offset: 0),
-          );
-        } else if (state.resource!.details != null &&
-            state.resource!.details!.isNotEmpty) {
-          // TODO: Remove once `details` is retired — pre-populate from legacy HTML
-          _formController.notesController = QuillController(
-            document: htmlToQuillDocument(state.resource!.details!),
             selection: const TextSelection.collapsed(offset: 0),
           );
         } else {
@@ -311,6 +311,36 @@ class ResourceDetailsState extends State<ResourceDetails> {
       return null;
     }
     return {'ops': ops};
+  }
+
+  void _openInNotes() {
+    // Set flag and trigger save - redirect will happen after save completes
+    _pendingNotebookRedirect = true;
+    onSubmit();
+  }
+
+  /// Returns true if there's a pending notebook redirect after save.
+  bool get hasPendingNotebookRedirect => _pendingNotebookRedirect;
+
+  /// Executes the pending notebook redirect. Call after save completes.
+  /// If linkedNote is null (e.g., note was deleted), routes to entity-based creation.
+  void executePendingNotebookRedirect({
+    int? resourceId,
+    LinkedNoteRef? linkedNote,
+  }) {
+    if (!_pendingNotebookRedirect) return;
+    _pendingNotebookRedirect = false;
+
+    // Use provided resourceId (for newly created items) or current state
+    final effectiveResourceId = resourceId ?? _resource?.id;
+
+    // Trust the linkedNote from the save response - don't fall back to local state
+    // which may be stale (e.g., note was deleted because content was cleared)
+    if (linkedNote != null) {
+      context.go('${AppRoute.notebookScreen}?id=${linkedNote.id}');
+    } else if (effectiveResourceId != null) {
+      context.go('${AppRoute.notebookScreen}?resourceId=$effectiveResourceId&resourceGroupId=${widget.resourceGroupId}');
+    }
   }
 
   Future<void> onSubmit() async {

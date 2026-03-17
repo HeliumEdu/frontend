@@ -40,6 +40,7 @@ void showResourceAdd(
   } else {
     showScreenAsDialog(
       context,
+      barrierDismissible: false,
       child: BlocProvider<ResourceBloc>.value(
         value: resourceBloc,
         child: ResourceAddScreen(
@@ -107,11 +108,24 @@ class _ResourceAddScreenState
             setState(() => isSubmitting = false);
           } else if (state is ResourceCreated ||
               state is ResourceUpdated) {
-            // Only show snackbar for creates
-            if (state is ResourceCreated) {
-              showSnackBar(context, 'Resource created', useRootMessenger: true);
+            // Check if there's a pending notebook redirect
+            final hasPendingNotebook =
+                _detailsKey.currentState?.hasPendingNotebookRedirect ?? false;
+
+            if (hasPendingNotebook) {
+              // Execute notebook redirect after save
+              final resource = (state as ResourceEntityState).resource;
+              _detailsKey.currentState?.executePendingNotebookRedirect(
+                resourceId: resource.id,
+                linkedNote: resource.linkedNote,
+              );
+            } else {
+              // Only show snackbar for creates
+              if (state is ResourceCreated) {
+                showSnackBar(context, 'Resource created', useRootMessenger: true);
+              }
+              cancelAction();
             }
-            cancelAction();
           }
         },
       ),

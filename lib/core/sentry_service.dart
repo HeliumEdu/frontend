@@ -141,6 +141,17 @@ class SentryService {
     // Note: Emulator/test farm detection is handled natively on Android
     // (see HeliumApplication.kt). Sentry won't initialize on those devices.
 
+    // Filter Apple internal/development devices (e.g., App Review infrastructure).
+    // These have DEVELOPMENT kernels that regular users cannot access.
+    final osContext = event.contexts.operatingSystem;
+    if (osContext != null) {
+      final kernelVersion = (osContext.kernelVersion ?? '').toLowerCase();
+      if (kernelVersion.contains('development')) {
+        _log.info('Filtered event from Sentry (Apple development device)');
+        return true;
+      }
+    }
+
     // Check the exception types in the event
     if (event.exceptions != null) {
       for (final exception in event.exceptions!) {
@@ -217,6 +228,14 @@ class SentryService {
       return true;
     }
 
+    // Filter network errors to background/infrastructure endpoints - these are
+    // expected when the device goes offline (especially in background)
+    if (_looksLikeNetworkError(combined) &&
+        (combined.contains('/auth/token/refresh/') ||
+            combined.contains('/auth/user/pushtoken/'))) {
+      return true;
+    }
+
     return false;
   }
 
@@ -258,5 +277,18 @@ class SentryService {
         text.contains('dio') ||
         text.contains('unauthorized') ||
         text.contains('forbidden');
+  }
+
+  /// Check if text looks like a network/connection error
+  bool _looksLikeNetworkError(String text) {
+    return text.contains('connection abort') ||
+        text.contains('connection refused') ||
+        text.contains('connection reset') ||
+        text.contains('connection closed') ||
+        text.contains('connection timed out') ||
+        text.contains('socket') ||
+        text.contains('network is unreachable') ||
+        text.contains('no route to host') ||
+        text.contains('host unreachable');
   }
 }

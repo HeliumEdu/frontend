@@ -36,7 +36,7 @@ class EventRequestModel {
     if (end != null) json['end'] = end;
     if (priority != null) json['priority'] = priority;
     if (comments != null) json['comments'] = comments;
-    if (notes != null) json['notes'] = notes;
+    json['notes'] = notes;
 
     return json;
   }

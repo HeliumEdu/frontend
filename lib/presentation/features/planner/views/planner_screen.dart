@@ -58,11 +58,10 @@ import 'package:heliumapp/presentation/features/planner/bloc/planner_state.dart'
 import 'package:heliumapp/presentation/features/planner/bloc/planneritem_bloc.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/planneritem_event.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/planneritem_state.dart';
-import 'package:heliumapp/presentation/features/planner/controllers/todos_table_controller.dart';
 import 'package:heliumapp/presentation/features/planner/dialogs/confirm_delete_dialog.dart';
 import 'package:heliumapp/presentation/features/planner/views/planner_item_add_screen.dart';
 import 'package:heliumapp/presentation/features/planner/widgets/day_popout_dialog.dart';
-import 'package:heliumapp/presentation/features/planner/widgets/todos_table.dart';
+import 'package:heliumapp/presentation/features/planner/widgets/todos_data_grid.dart';
 import 'package:heliumapp/presentation/features/settings/views/settings_screen.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/core/base_event.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/core/provider_helpers.dart';
@@ -135,6 +134,7 @@ class _CalendarScreenState
     extends BasePageScreenState<_CalendarProvidedScreen> {
   static const _agendaHeightMobile = 53.0;
   static const _agendaHeightDesktop = 57.0;
+  static const _mobileAppointmentDisplayCount = 6;
   static const _uiAnimationDuration = Duration(milliseconds: 300);
   static const _tooltipWaitDuration = Duration(milliseconds: 500);
   static const _tooltipShowDuration = Duration(seconds: 8);
@@ -177,11 +177,10 @@ class _CalendarScreenState
   late final CalendarController _calendarController;
   final TextEditingController _searchController = TextEditingController();
   final FocusNode _searchFocusNode = FocusNode();
-  Timer? _searchTypingTimer;
   final ScrollController _monthViewScrollController = ScrollController();
 
   final GlobalKey _todayButtonKey = GlobalKey();
-  late final TodosTableController _todosController;
+  final GlobalKey<TodosDataGridState> _todosDataGridKey = GlobalKey();
 
   final List<CalendarView> _allowedViews = [
     CalendarView.month,
@@ -222,7 +221,6 @@ class _CalendarScreenState
 
     _calendarController = CalendarController()
       ..view = PlannerHelper.mapHeliumViewToSfCalendarView(_currentView);
-    _todosController = TodosTableController();
 
     context.read<PlannerBloc>().add(FetchPlannerScreenDataEvent());
 
@@ -263,10 +261,8 @@ class _CalendarScreenState
   @override
   void dispose() {
     _plannerItemDataSource?.dispose();
-    _todosController.dispose();
     _searchController.dispose();
     _searchFocusNode.dispose();
-    _searchTypingTimer?.cancel();
     _monthViewScrollController.dispose();
     super.dispose();
   }
@@ -311,8 +307,6 @@ class _CalendarScreenState
           }
 
           _plannerItemDataSource!.restoreFiltersIfEnabled();
-          _todosController.itemsPerPage =
-              _plannerItemDataSource!.todosItemsPerPage;
         });
 
         unawaited(_refreshExternalCalendarsMap());
@@ -401,7 +395,7 @@ class _CalendarScreenState
           if (state is ExternalCalendarCreated ||
               state is ExternalCalendarUpdated ||
               state is ExternalCalendarDeleted) {
-            _log.info('External calendar changed, refreshing calendar sources');
+            _log.info('External calendar changed, refreshing external events');
 
             final visibleStart = _visibleDates.isNotEmpty
                 ? _visibleDates.first
@@ -410,7 +404,7 @@ class _CalendarScreenState
                 ? _visibleDates.last
                 : null;
 
-            await _plannerItemDataSource!.refreshCalendarSources(
+            await _plannerItemDataSource!.refreshExternalCalendarEvents(
               visibleStart: visibleStart,
               visibleEnd: visibleEnd,
             );
@@ -703,7 +697,9 @@ class _CalendarScreenState
             ),
           ),
           monthViewSettings: MonthViewSettings(
-            appointmentDisplayCount: calendarItemsDisplayCount,
+            appointmentDisplayCount: Responsive.isMobile(context)
+                ? _mobileAppointmentDisplayCount
+                : calendarItemsDisplayCount,
             showAgenda: Responsive.isMobile(context),
             agendaItemHeight: agendaHeight,
             monthCellStyle: MonthCellStyle(
@@ -796,7 +792,7 @@ class _CalendarScreenState
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: ShadowContainer(
-        padding: const EdgeInsets.only(left: 8, top: 4, bottom: 4),
+        padding: EdgeInsets.only(left: Responsive.isMobile(context) ? 4 : 8, right: Responsive.isMobile(context) ? 4 : 8, top: 4, bottom: 4),
         child: LayoutBuilder(
           builder: (context, constraints) {
             return SizedBox(
@@ -845,9 +841,7 @@ class _CalendarScreenState
       ),
     );
 
-    final button = _buildTodayButtonWidget(icon, showLabel, key);
-
-    return Padding(padding: const EdgeInsets.only(top: 3), child: button);
+    return _buildTodayButtonWidget(icon, showLabel, key);
   }
 
   Widget _buildTodayButtonWidget(Icon icon, bool showLabel, Key? key) {
@@ -879,10 +873,9 @@ class _CalendarScreenState
         key: key,
         onPressed: _goToToday,
         icon: icon,
-        style: ButtonStyle(
-          side: WidgetStateProperty.all(
-            BorderSide(color: context.colorScheme.primary),
-          ),
+        style: IconButton.styleFrom(
+          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          side: BorderSide(color: context.colorScheme.primary),
         ),
       );
     }
@@ -894,7 +887,7 @@ class _CalendarScreenState
         child: Align(
           alignment: Alignment.centerLeft,
           child: Padding(
-            padding: const EdgeInsets.only(left: 12),
+            padding: const EdgeInsets.only(left: 8),
             child: Text(
               CalendarConstants
                   .defaultViews[PlannerHelper.mapHeliumViewToApiView(
@@ -929,6 +922,9 @@ class _CalendarScreenState
               onPressed: _calendarController.backward,
               padding: EdgeInsets.zero,
               constraints: const BoxConstraints(),
+              style: IconButton.styleFrom(
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              ),
             ),
             const SizedBox(width: 4),
           ],
@@ -940,7 +936,7 @@ class _CalendarScreenState
               },
               borderRadius: BorderRadius.circular(16),
               child: Padding(
-                padding: const EdgeInsets.only(left: 8, top: 8, bottom: 8),
+                padding: EdgeInsets.only(left: Responsive.isMobile(context) ? 4 : 8, top: 8, bottom: 8),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.center,
@@ -962,8 +958,8 @@ class _CalendarScreenState
               ),
             ),
           ),
-          if (showNavButtons && !Responsive.isMobile(context))
-            const SizedBox(width: 4),
+          if (showNavButtons)
+            SizedBox(width: Responsive.isMobile(context) ? 2 : 4),
           if (showNavButtons)
             IconButton(
               icon: Icon(
@@ -973,6 +969,9 @@ class _CalendarScreenState
               onPressed: _calendarController.forward,
               padding: EdgeInsets.zero,
               constraints: const BoxConstraints(),
+              style: IconButton.styleFrom(
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              ),
             ),
         ],
       ),
@@ -1050,30 +1049,16 @@ class _CalendarScreenState
     } else {
       return AnimatedContainer(
         duration: _uiAnimationDuration,
-        width: isExpanded ? expandedToolbarWidth : 46,
+        width: expandedToolbarWidth,
         child: Stack(
           alignment: Alignment.centerRight,
           children: [
             AnimatedOpacity(
               duration: _uiAnimationDuration,
-              opacity: (_isFilterExpanded || _isSearchExpanded) ? 0.0 : 1.0,
+              opacity: _isSearchExpanded ? 0.0 : 1.0,
               child: IgnorePointer(
-                ignoring: _isFilterExpanded || _isSearchExpanded,
-                child: _buildCollapsedFilterButton(),
-              ),
-            ),
-            AnimatedPositioned(
-              duration: _uiAnimationDuration,
-              curve: Curves.easeInOut,
-              right: 0,
-              width: _isFilterExpanded ? expandedToolbarWidth : 46,
-              child: AnimatedOpacity(
-                duration: _uiAnimationDuration,
-                opacity: _isFilterExpanded ? 1.0 : 0.0,
-                child: IgnorePointer(
-                  ignoring: !_isFilterExpanded,
-                  child: _buildExpandedFilterButtons(),
-                ),
+                ignoring: _isSearchExpanded,
+                child: _buildFilterAndSearchButtons(),
               ),
             ),
             AnimatedPositioned(
@@ -1096,76 +1081,6 @@ class _CalendarScreenState
     }
   }
 
-  Widget _buildCollapsedFilterButton() {
-    return IconButton.outlined(
-      onPressed: () {
-        setState(() {
-          _isFilterExpanded = true;
-        });
-      },
-      icon: const Icon(Icons.menu_open),
-      style: ButtonStyle(
-        side: WidgetStateProperty.all(
-          BorderSide(color: context.colorScheme.primary),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildExpandedFilterButtons() {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        // Only show content when width is large enough (during/after animation)
-        final showContent = constraints.maxWidth > 200;
-
-        return ClipRect(
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(6),
-              color: context.colorScheme.surface,
-            ),
-            child: showContent
-                ? Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Flexible(
-                        child: SingleChildScrollView(
-                          scrollDirection: Axis.horizontal,
-                          child: _buildFilterAndSearchButtons(),
-                        ),
-                      ),
-                      const SizedBox(width: 4),
-                      IconButton(
-                        onPressed: () {
-                          setState(() {
-                            _isFilterExpanded = false;
-                            _searchFocusNode.unfocus();
-                          });
-                        },
-                        icon: Icon(
-                          Icons.keyboard_arrow_right,
-                          color: context.colorScheme.primary,
-                          size: Responsive.getIconSize(
-                            context,
-                            mobile: 20,
-                            tablet: 22,
-                            desktop: 24,
-                          ),
-                        ),
-                        padding: EdgeInsets.zero,
-                        constraints: const BoxConstraints(),
-                      ),
-                    ],
-                  )
-                : const SizedBox.shrink(),
-          ),
-        );
-      },
-    );
-  }
-
   Widget _buildSearchField({bool showCloseButton = true}) {
     return TapRegion(
       onTapOutside: showCloseButton
@@ -1184,110 +1099,96 @@ class _CalendarScreenState
         final showContent = constraints.maxWidth > 200;
 
         return ClipRect(
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(6),
-              color: context.colorScheme.surface,
-            ),
-            child: showContent
-                ? Row(
-                    children: [
-                      Icon(
-                        Icons.search,
-                        color: context.colorScheme.primary,
-                        size: Responsive.getIconSize(
-                          context,
-                          mobile: 20,
-                          tablet: 22,
-                          desktop: 24,
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Flexible(
-                        child: ConstrainedBox(
-                          constraints: const BoxConstraints(minWidth: 0),
-                          child: TextField(
-                            controller: _searchController,
-                            focusNode: _searchFocusNode,
-                            onChanged: _onSearchTextFieldChanged,
-                            onTapOutside: (_) {},
-                            style: AppStyles.formText(context),
-                            decoration: InputDecoration(
-                              hintText: 'Search ...',
-                              hintStyle: AppStyles.formLabel(context).copyWith(
-                                color: context.colorScheme.onSurface.withValues(
-                                  alpha: 0.3,
+          child: showContent
+              ? Row(
+                  children: [
+                    Expanded(
+                      child: SizedBox(
+                        height: 40,
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: context.colorScheme.surface,
+                            border: Border.all(
+                              color: context.colorScheme.outline.withValues(alpha: 0.2),
+                            ),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(8),
+                            child: TextField(
+                              controller: _searchController,
+                              focusNode: _searchFocusNode,
+                              onChanged: _onSearchTextFieldChanged,
+                              onTapOutside: (_) {},
+                              style: AppStyles.formText(context),
+                              decoration: InputDecoration(
+                                hintText: 'Search ...',
+                                hintStyle: AppStyles.formHint(context),
+                                prefixIcon: Icon(
+                                  Icons.search,
+                                  color: context.colorScheme.onSurface.withValues(alpha: 0.4),
+                                ),
+                                border: InputBorder.none,
+                                enabledBorder: InputBorder.none,
+                                focusedBorder: InputBorder.none,
+                                isDense: true,
+                                contentPadding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                  vertical: 10,
+                                ),
+                                suffixIcon: ValueListenableBuilder<TextEditingValue>(
+                                  valueListenable: _searchController,
+                                  builder: (context, value, _) {
+                                    if (value.text.isEmpty) {
+                                      return const SizedBox.shrink();
+                                    }
+                                    return IconButton(
+                                      onPressed: () {
+                                        _searchController.clear();
+                                        _plannerItemDataSource?.setSearchQuery('');
+                                      },
+                                      icon: Icon(
+                                        Icons.close,
+                                        size: 20,
+                                        color: context.colorScheme.onSurface.withValues(alpha: 0.4),
+                                      ),
+                                      tooltip: 'Clear',
+                                    );
+                                  },
                                 ),
                               ),
-                              border: InputBorder.none,
-                              enabledBorder: InputBorder.none,
-                              focusedBorder: InputBorder.none,
-                              errorBorder: InputBorder.none,
-                              focusedErrorBorder: InputBorder.none,
-                              isDense: true,
-                              contentPadding: EdgeInsets.zero,
                             ),
                           ),
                         ),
                       ),
-                      ValueListenableBuilder<TextEditingValue>(
-                        valueListenable: _searchController,
-                        builder: (context, value, _) {
-                          if (value.text.isEmpty) return const SizedBox.shrink();
-                          return IconButton(
-                            onPressed: () {
-                              _searchController.clear();
-                              _searchTypingTimer?.cancel();
-                              _plannerItemDataSource?.setSearchQuery('');
-                            },
-                            icon: Icon(
-                              Icons.close,
-                              color: context.colorScheme.primary,
-                              size: Responsive.getIconSize(
-                                context,
-                                mobile: 18,
-                                tablet: 18,
-                                desktop: 18,
-                              ),
-                            ),
-                            tooltip: 'Clear',
-                            style: IconButton.styleFrom(
-                              backgroundColor: context.colorScheme.surface,
-                            ),
-                            padding: EdgeInsets.zero,
-                            constraints: const BoxConstraints(),
-                          );
+                    ),
+                    if (showCloseButton) ...[
+                      const SizedBox(width: 4),
+                      IconButton(
+                        onPressed: () {
+                          setState(() {
+                            _isSearchExpanded = false;
+                            _searchFocusNode.unfocus();
+                          });
                         },
-                      ),
-                      if (showCloseButton) ...[
-                        const SizedBox(width: 4),
-                        IconButton(
-                          onPressed: () {
-                            setState(() {
-                              _isSearchExpanded = false;
-                              _searchFocusNode.unfocus();
-                            });
-                          },
-                          icon: Icon(
-                            Icons.keyboard_arrow_right,
-                            color: context.colorScheme.primary,
-                            size: Responsive.getIconSize(
-                              context,
-                              mobile: 20,
-                              tablet: 22,
-                              desktop: 24,
-                            ),
+                        icon: Icon(
+                          Icons.keyboard_arrow_right,
+                          color: context.colorScheme.primary,
+                          size: Responsive.getIconSize(
+                            context,
+                            mobile: 20,
+                            tablet: 22,
+                            desktop: 24,
                           ),
-                          tooltip: 'Collapse',
-                          padding: EdgeInsets.zero,
-                          constraints: const BoxConstraints(),
                         ),
-                      ],
+                        tooltip: 'Collapse',
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(),
+                      ),
                     ],
-                  )
-                : const SizedBox.shrink(),
-          ),
+                  ],
+                )
+              : const SizedBox.shrink(),
         );
       },
       ),
@@ -1326,15 +1227,14 @@ class _CalendarScreenState
               onPressed: () => _openViewMenu(context),
               tooltip: 'Change view',
               icon: const Icon(Icons.calendar_month),
-              style: ButtonStyle(
-                side: WidgetStateProperty.all(
-                  BorderSide(color: context.colorScheme.primary),
-                ),
+              style: IconButton.styleFrom(
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                side: BorderSide(color: context.colorScheme.primary),
               ),
             );
           },
         ),
-        const SizedBox(width: 8),
+        SizedBox(width: Responsive.isMobile(context) ? 4 : 8),
         Builder(
           builder: (context) {
             final hasFilters = _hasCoursesFilter() || _hasStatusFilters();
@@ -1345,19 +1245,24 @@ class _CalendarScreenState
               tooltip: 'Filters',
               icon: const Icon(Icons.filter_alt),
               style: IconButton.styleFrom(
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                 backgroundColor: hasFilters
                     ? context.colorScheme.primary
                     : null,
                 foregroundColor: hasFilters
                     ? context.colorScheme.onPrimary
                     : null,
-                side: BorderSide(color: context.colorScheme.primary),
+                side: BorderSide(
+                  color: _courses.isEmpty
+                      ? context.colorScheme.onSurface.withValues(alpha: 0.3)
+                      : context.colorScheme.primary,
+                ),
               ),
             );
           },
         ),
         if (!hideSearchButton) ...[
-          const SizedBox(width: 8),
+          SizedBox(width: Responsive.isMobile(context) ? 4 : 8),
           Builder(
             builder: (context) {
               final hasSearchQuery = _hasSearchQuery();
@@ -1371,6 +1276,7 @@ class _CalendarScreenState
                 },
                 icon: const Icon(Icons.search),
                 style: IconButton.styleFrom(
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                   backgroundColor: hasSearchQuery
                       ? context.colorScheme.primary
                       : null,
@@ -1398,6 +1304,7 @@ class _CalendarScreenState
         return HeliumDateTime.formatDate(
           displayDate,
           abbreviateMonth: abbreviateMonth,
+          showYear: !Responsive.isMobile(context),
         );
       case CalendarView.month:
       case CalendarView.week:
@@ -1605,13 +1512,7 @@ class _CalendarScreenState
   }
 
   void _onSearchTextFieldChanged(String value) {
-    if (_searchTypingTimer?.isActive ?? false) {
-      _searchTypingTimer!.cancel();
-    }
-
-    _searchTypingTimer = Timer(const Duration(milliseconds: 500), () {
-      _plannerItemDataSource!.setSearchQuery(value);
-    });
+    _plannerItemDataSource!.setSearchQuery(value);
   }
 
   void _openCalendarItem(CalendarTapDetails tapDetails) {
@@ -1845,7 +1746,7 @@ class _CalendarScreenState
     showConfirmDeleteDialog(
       parentContext: context,
       item: plannerItem,
-      additionalWarning: 'Attachments will also be deleted.',
+      additionalWarning: 'Its attachments and note will also be deleted.',
       onDelete: onDelete,
     );
   }
@@ -2845,9 +2746,7 @@ class _CalendarScreenState
   void _goToToday() {
     _log.info('Today button pressed (view: $_currentView)');
     if (_currentView == PlannerView.todos) {
-      if (_plannerItemDataSource != null) {
-        _todosController.goToToday(_plannerItemDataSource!.filteredHomeworks);
-      }
+      _todosDataGridKey.currentState?.goToToday();
     } else {
       _jumpToDate(DateTime.now(), offsetForVisibility: true);
     }
@@ -3129,7 +3028,7 @@ class _CalendarScreenState
                     children: [
                       Icon(
                         AppConstants.assignmentIcon,
-                        size: 12,
+                        size: 18,
                         color: context.colorScheme.onSurface,
                       ),
                       const SizedBox(width: 8),
@@ -3167,7 +3066,7 @@ class _CalendarScreenState
                     children: [
                       Icon(
                         AppConstants.eventIcon,
-                        size: 12,
+                        size: 18,
                         color: userSettings!.eventsColor,
                       ),
                       const SizedBox(width: 8),
@@ -3205,7 +3104,7 @@ class _CalendarScreenState
                     children: [
                       Icon(
                         AppConstants.courseScheduleIcon,
-                        size: 12,
+                        size: 18,
                         color: context.colorScheme.onSurface,
                       ),
                       const SizedBox(width: 8),
@@ -3247,7 +3146,7 @@ class _CalendarScreenState
                     children: [
                       Icon(
                         AppConstants.externalCalendarIcon,
-                        size: 12,
+                        size: 18,
                         color: context.colorScheme.onSurface,
                       ),
                       const SizedBox(width: 8),
@@ -3514,9 +3413,9 @@ class _CalendarScreenState
   }
 
   Widget _buildTodosView() {
-    return TodosTable(
+    return TodosDataGrid(
+      key: _todosDataGridKey,
       dataSource: _plannerItemDataSource!,
-      controller: _todosController,
       onTap: _openPlannerItem,
       onToggleCompleted: _onToggleCompleted,
       onDelete: _deletePlannerItem,

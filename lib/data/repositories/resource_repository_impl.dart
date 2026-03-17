@@ -23,23 +23,26 @@ class ResourceRepositoryImpl implements ResourceRepository {
   }
 
   @override
-  Future<ResourceGroupModel> createResourceGroup(
-    ResourceGroupRequestModel request,
-  ) async {
-    return await remoteDataSource.createResourceGroup(request);
+  Future<ResourceGroupModel> createResourceGroup({
+    required ResourceGroupRequestModel request,
+  }) async {
+    return await remoteDataSource.createResourceGroup(request: request);
   }
 
   @override
-  Future<ResourceGroupModel> updateResourceGroup(
-    int groupId,
-    ResourceGroupRequestModel request,
-  ) async {
-    return await remoteDataSource.updateResourceGroup(groupId, request);
+  Future<ResourceGroupModel> updateResourceGroup({
+    required int id,
+    required ResourceGroupRequestModel request,
+  }) async {
+    return await remoteDataSource.updateResourceGroup(
+      groupId: id,
+      request: request,
+    );
   }
 
   @override
-  Future<void> deleteResourceGroup(int groupId) async {
-    return await remoteDataSource.deleteResourceGroup(groupId);
+  Future<void> deleteResourceGroup({required int id}) async {
+    return await remoteDataSource.deleteResourceGroup(groupId: id);
   }
 
   @override
@@ -56,29 +59,50 @@ class ResourceRepositoryImpl implements ResourceRepository {
   }
 
   @override
-  Future<ResourceModel> getResource(int groupId, int resourceId, {bool forceRefresh = false}) async {
-    return await remoteDataSource.getResourceById(groupId, resourceId, forceRefresh: forceRefresh);
+  Future<ResourceModel> getResource({
+    required int groupId,
+    required int resourceId,
+    bool forceRefresh = false,
+  }) async {
+    return await remoteDataSource.getResourceById(
+      groupId: groupId,
+      resourceId: resourceId,
+      forceRefresh: forceRefresh,
+    );
   }
 
   @override
-  Future<ResourceModel> createResource(
-    int groupId,
-    ResourceRequestModel request,
-  ) async {
-    return await remoteDataSource.createResource(groupId, request);
+  Future<ResourceModel> createResource({
+    required int groupId,
+    required ResourceRequestModel request,
+  }) async {
+    return await remoteDataSource.createResource(
+      groupId: groupId,
+      request: request,
+    );
   }
 
   @override
-  Future<ResourceModel> updateResource(
-    int groupId,
-    int resourceId,
-    ResourceRequestModel request,
-  ) async {
-    return await remoteDataSource.updateResource(groupId, resourceId, request);
+  Future<ResourceModel> updateResource({
+    required int groupId,
+    required int resourceId,
+    required ResourceRequestModel request,
+  }) async {
+    return await remoteDataSource.updateResource(
+      groupId: groupId,
+      resourceId: resourceId,
+      request: request,
+    );
   }
 
   @override
-  Future<void> deleteResource(int groupId, int resourceId) async {
-    return await remoteDataSource.deleteResource(groupId, resourceId);
+  Future<void> deleteResource({
+    required int groupId,
+    required int resourceId,
+  }) async {
+    return await remoteDataSource.deleteResource(
+      groupId: groupId,
+      resourceId: resourceId,
+    );
   }
 }

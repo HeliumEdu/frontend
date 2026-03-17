@@ -49,6 +49,7 @@ void showPlannerItemAdd(
   } else {
     showScreenAsDialog(
       context,
+      barrierDismissible: false,
       child: MultiBlocProvider(
         providers: [
           BlocProvider<AttachmentBloc>.value(value: attachmentBloc),
@@ -204,6 +205,10 @@ class _PlannerItemAddScreenState
                 (state is EventCreated && state.isClone) ||
                 (state is HomeworkCreated && state.isClone);
 
+            // Check if there's a pending notebook redirect
+            final hasPendingNotebook =
+                _detailsKey.currentState?.hasPendingNotebookRedirect ?? false;
+
             if (isClone) {
               showSnackBar(
                 context,
@@ -219,6 +224,17 @@ class _PlannerItemAddScreenState
               _detailsKey.currentState?.loadEntity(
                 eventId: state.isEvent ? state.entityId : null,
                 homeworkId: !state.isEvent ? state.entityId : null,
+              );
+            } else if (hasPendingNotebook) {
+              // Execute notebook redirect after save
+              // Extract linkedNote from the updated entity
+              final linkedNote = state is HomeworkEntityState
+                  ? state.homework.linkedNote
+                  : (state as EventEntityState).event.linkedNote;
+              _detailsKey.currentState?.executePendingNotebookRedirect(
+                entityId: state.entityId,
+                isEvent: state.isEvent,
+                linkedNote: linkedNote,
               );
             } else {
               if (state is HomeworkCreated || state is EventCreated) {

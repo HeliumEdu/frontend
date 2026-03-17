@@ -10,6 +10,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_quill/flutter_quill.dart';
+import 'package:go_router/go_router.dart';
+import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/data/models/drop_down_item.dart';
 import 'package:heliumapp/data/models/planner/category_model.dart';
@@ -17,7 +19,7 @@ import 'package:heliumapp/data/models/planner/course_group_model.dart';
 import 'package:heliumapp/data/models/planner/course_model.dart';
 import 'package:heliumapp/data/models/planner/course_schedule_model.dart';
 import 'package:heliumapp/data/models/planner/event_model.dart';
-import 'package:heliumapp/data/models/planner/homework_model.dart';
+import 'package:heliumapp/data/models/planner/homework_model.dart' show HomeworkModel, LinkedNoteRef;
 import 'package:heliumapp/data/models/planner/planner_item_base_model.dart';
 import 'package:heliumapp/data/models/planner/request/event_request_model.dart';
 import 'package:heliumapp/data/models/planner/request/homework_request_model.dart';
@@ -41,7 +43,6 @@ import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/color_helpers.dart';
-import 'package:heliumapp/utils/conversion_helpers.dart';
 import 'package:heliumapp/utils/date_time_helpers.dart';
 import 'package:heliumapp/utils/grade_helpers.dart';
 import 'package:heliumapp/utils/planner_helper.dart';
@@ -89,6 +90,7 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
   // State
   bool isLoading = true;
   bool _isEvent = false;
+  bool _pendingNotebookRedirect = false;
   PlannerItemBaseModel? _plannerItem;
   List<CourseGroupModel> _courseGroups = [];
   List<CourseModel> _courses = [];
@@ -170,36 +172,6 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
 
     return Column(
       children: [
-        if (!widget.isEdit && _courses.isNotEmpty) ...[
-          Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              SegmentedButton<bool>(
-                showSelectedIcon: false,
-                segments: const [
-                  ButtonSegment<bool>(
-                    value: false,
-                    tooltip: 'Assignment',
-                    icon: Icon(AppConstants.assignmentIcon),
-                  ),
-                  ButtonSegment<bool>(
-                    value: true,
-                    tooltip: 'Event',
-                    icon: Icon(AppConstants.eventIcon),
-                  ),
-                ],
-                selected: {_isEvent},
-                onSelectionChanged: (Set<bool> selected) {
-                  setState(() {
-                    _isEvent = selected.first;
-                  });
-                  widget.onIsEventChanged?.call(_isEvent);
-                },
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-        ],
         Expanded(
           child: SingleChildScrollView(
             child: Form(
@@ -212,19 +184,46 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
                     children: [
                       Text('Details', style: AppStyles.featureText(context)),
                       if (widget.isEdit && _plannerItem != null)
+                          Row(
+                            children: [
+                              HeliumIconButton(
+                                onPressed: _onClone,
+                                icon: Icons.copy_outlined,
+                                tooltip: 'Clone',
+                              ),
+                              const SizedBox(width: 8),
+                              HeliumIconButton(
+                                onPressed: _onDelete,
+                                icon: Icons.delete_outline,
+                                tooltip: 'Delete',
+                                color: context.colorScheme.error,
+                              ),
+                            ],
+                          ),
+                      if (!widget.isEdit && _courses.isNotEmpty)
                         Row(
                           children: [
-                            HeliumIconButton(
-                              onPressed: _onClone,
-                              icon: Icons.copy_outlined,
-                              tooltip: 'Clone',
-                            ),
-                            const SizedBox(width: 8),
-                            HeliumIconButton(
-                              onPressed: _onDelete,
-                              icon: Icons.delete_outline,
-                              tooltip: 'Delete',
-                              color: context.colorScheme.error,
+                            SegmentedButton<bool>(
+                              showSelectedIcon: false,
+                              segments: const [
+                                ButtonSegment<bool>(
+                                  value: false,
+                                  tooltip: 'Assignment',
+                                  icon: Icon(AppConstants.assignmentIcon),
+                                ),
+                                ButtonSegment<bool>(
+                                  value: true,
+                                  tooltip: 'Event',
+                                  icon: Icon(AppConstants.eventIcon),
+                                ),
+                              ],
+                              selected: {_isEvent},
+                              onSelectionChanged: (Set<bool> selected) {
+                                setState(() {
+                                  _isEvent = selected.first;
+                                });
+                                widget.onIsEventChanged?.call(_isEvent);
+                              },
                             ),
                           ],
                         ),
@@ -311,6 +310,7 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
                   NotesEditor(
                     key: ObjectKey(_formController.notesController),
                     controller: _formController.notesController,
+                    onOpenInNotes: widget.isEdit ? _openInNotes : null,
                   ),
                   const SizedBox(height: 12),
                 ],
@@ -721,12 +721,6 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
             document: Document.fromJson(plannerItem.notes!['ops'] as List),
             selection: const TextSelection.collapsed(offset: 0),
           );
-        } else if (plannerItem.comments.isNotEmpty) {
-          // TODO: Remove once `comments` is retired — pre-populate from legacy HTML
-          _formController.notesController = QuillController(
-            document: htmlToQuillDocument(plannerItem.comments),
-            selection: const TextSelection.collapsed(offset: 0),
-          );
         } else {
           _formController.notesController = QuillController.basic();
         }
@@ -1129,6 +1123,41 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
     _updateSelectedResources(updated);
   }
 
+  void _openInNotes() {
+    // Set flag and trigger save - redirect will happen after save completes
+    _pendingNotebookRedirect = true;
+    onSubmit();
+  }
+
+  /// Returns true if there's a pending notebook redirect after save.
+  bool get hasPendingNotebookRedirect => _pendingNotebookRedirect;
+
+  /// Executes the pending notebook redirect. Call after save completes.
+  /// Pass the updated entity from the save response to get the correct linkedNote.
+  /// If linkedNote is null (e.g., note was deleted), routes to entity-based creation.
+  void executePendingNotebookRedirect({
+    int? entityId,
+    bool? isEvent,
+    LinkedNoteRef? linkedNote,
+  }) {
+    if (!_pendingNotebookRedirect) return;
+    _pendingNotebookRedirect = false;
+
+    // Use provided entityId/isEvent (for newly created items) or current state
+    final effectiveIsEvent = isEvent ?? _isEvent;
+    final effectiveEntityId = entityId ?? _plannerItem?.id;
+
+    // Trust the linkedNote from the save response - don't fall back to local state
+    // which may be stale (e.g., note was deleted because content was cleared)
+    if (linkedNote != null) {
+      context.go('${AppRoute.notebookScreen}?id=${linkedNote.id}');
+    } else if (effectiveIsEvent) {
+      context.go('${AppRoute.notebookScreen}?eventId=$effectiveEntityId');
+    } else {
+      context.go('${AppRoute.notebookScreen}?homeworkId=$effectiveEntityId');
+    }
+  }
+
   void _onDelete() {
     if (_plannerItem == null) return;
 
@@ -1168,7 +1197,7 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
     showConfirmDeleteDialog(
       parentContext: context,
       item: _plannerItem!,
-      additionalWarning: 'Attachments will also be deleted.',
+      additionalWarning: 'Its attachments and note will also be deleted.',
       onDelete: onDelete,
     );
   }

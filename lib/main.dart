@@ -83,6 +83,11 @@ void main() async {
 
   initializeRouter();
 
+  // Handle pending notification navigation after first frame renders
+  WidgetsBinding.instance.addPostFrameCallback((_) {
+    FcmService.handlePendingRoute();
+  });
+
   runApp(
     MultiBlocProvider(
       providers: [

@@ -21,18 +21,21 @@ final _log = Logger('data.sources');
 abstract class ResourceRemoteDataSource extends BaseDataSource {
   Future<List<ResourceGroupModel>> getResourceGroups({bool forceRefresh = false});
 
-  Future<ResourceGroupModel> getResourceGroupById(int groupId, {bool forceRefresh = false});
+  Future<ResourceGroupModel> getResourceGroupById({
+    required int groupId,
+    bool forceRefresh = false,
+  });
 
-  Future<ResourceGroupModel> createResourceGroup(
-    ResourceGroupRequestModel request,
-  );
+  Future<ResourceGroupModel> createResourceGroup({
+    required ResourceGroupRequestModel request,
+  });
 
-  Future<ResourceGroupModel> updateResourceGroup(
-    int groupId,
-    ResourceGroupRequestModel request,
-  );
+  Future<ResourceGroupModel> updateResourceGroup({
+    required int groupId,
+    required ResourceGroupRequestModel request,
+  });
 
-  Future<void> deleteResourceGroup(int groupId);
+  Future<void> deleteResourceGroup({required int groupId});
 
   Future<List<ResourceModel>> getResources({
     int? groupId,
@@ -40,20 +43,27 @@ abstract class ResourceRemoteDataSource extends BaseDataSource {
     bool forceRefresh = false,
   });
 
-  Future<ResourceModel> getResourceById(int groupId, int resourceId, {bool forceRefresh = false});
+  Future<ResourceModel> getResourceById({
+    required int groupId,
+    required int resourceId,
+    bool forceRefresh = false,
+  });
 
-  Future<ResourceModel> createResource(
-    int groupId,
-    ResourceRequestModel request,
-  );
+  Future<ResourceModel> createResource({
+    required int groupId,
+    required ResourceRequestModel request,
+  });
 
-  Future<ResourceModel> updateResource(
-    int groupId,
-    int resourceId,
-    ResourceRequestModel request,
-  );
+  Future<ResourceModel> updateResource({
+    required int groupId,
+    required int resourceId,
+    required ResourceRequestModel request,
+  });
 
-  Future<void> deleteResource(int groupId, int resourceId);
+  Future<void> deleteResource({
+    required int groupId,
+    required int resourceId,
+  });
 }
 
 class ResourceRemoteDataSourceImpl extends ResourceRemoteDataSource {
@@ -101,7 +111,10 @@ class ResourceRemoteDataSourceImpl extends ResourceRemoteDataSource {
   }
 
   @override
-  Future<ResourceGroupModel> getResourceGroupById(int groupId, {bool forceRefresh = false}) async {
+  Future<ResourceGroupModel> getResourceGroupById({
+    required int groupId,
+    bool forceRefresh = false,
+  }) async {
     try {
       _log.info('Fetching ResourceGroup $groupId ...');
       final response = await dioClient.dio.get(
@@ -130,9 +143,9 @@ class ResourceRemoteDataSourceImpl extends ResourceRemoteDataSource {
   }
 
   @override
-  Future<ResourceGroupModel> createResourceGroup(
-    ResourceGroupRequestModel request,
-  ) async {
+  Future<ResourceGroupModel> createResourceGroup({
+    required ResourceGroupRequestModel request,
+  }) async {
     try {
       _log.info('Creating ResourceGroup ...');
 
@@ -164,10 +177,10 @@ class ResourceRemoteDataSourceImpl extends ResourceRemoteDataSource {
   }
 
   @override
-  Future<ResourceGroupModel> updateResourceGroup(
-    int groupId,
-    ResourceGroupRequestModel request,
-  ) async {
+  Future<ResourceGroupModel> updateResourceGroup({
+    required int groupId,
+    required ResourceGroupRequestModel request,
+  }) async {
     try {
       _log.info('Updating ResourceGroup $groupId ...');
 
@@ -198,7 +211,7 @@ class ResourceRemoteDataSourceImpl extends ResourceRemoteDataSource {
   }
 
   @override
-  Future<void> deleteResourceGroup(int groupId) async {
+  Future<void> deleteResourceGroup({required int groupId}) async {
     try {
       _log.info('Deleting ResourceGroup $groupId ...');
       final response = await dioClient.dio.delete(
@@ -285,7 +298,11 @@ class ResourceRemoteDataSourceImpl extends ResourceRemoteDataSource {
   }
 
   @override
-  Future<ResourceModel> getResourceById(int groupId, int resourceId, {bool forceRefresh = false}) async {
+  Future<ResourceModel> getResourceById({
+    required int groupId,
+    required int resourceId,
+    bool forceRefresh = false,
+  }) async {
     try {
       _log.info('Fetching Resource $resourceId in ResourceGroup $groupId ...');
       final response = await dioClient.dio.get(
@@ -314,10 +331,10 @@ class ResourceRemoteDataSourceImpl extends ResourceRemoteDataSource {
   }
 
   @override
-  Future<ResourceModel> createResource(
-    int groupId,
-    ResourceRequestModel request,
-  ) async {
+  Future<ResourceModel> createResource({
+    required int groupId,
+    required ResourceRequestModel request,
+  }) async {
     try {
       _log.info('Creating Resource in ResourceGroup $groupId ...');
 
@@ -349,11 +366,11 @@ class ResourceRemoteDataSourceImpl extends ResourceRemoteDataSource {
   }
 
   @override
-  Future<ResourceModel> updateResource(
-    int groupId,
-    int resourceId,
-    ResourceRequestModel request,
-  ) async {
+  Future<ResourceModel> updateResource({
+    required int groupId,
+    required int resourceId,
+    required ResourceRequestModel request,
+  }) async {
     try {
       _log.info('Updating Resource $resourceId in ResourceGroup $groupId ...');
       final response = await dioClient.dio.put(
@@ -383,7 +400,10 @@ class ResourceRemoteDataSourceImpl extends ResourceRemoteDataSource {
   }
 
   @override
-  Future<void> deleteResource(int groupId, int resourceId) async {
+  Future<void> deleteResource({
+    required int groupId,
+    required int resourceId,
+  }) async {
     try {
       _log.info('Deleting Resource $resourceId in ResourceGroup $groupId ...');
       final response = await dioClient.dio.delete(

@@ -37,6 +37,10 @@ class Responsive {
     return isDesktopWidth(MediaQuery.of(context).size.width);
   }
 
+  static bool isCompact(BuildContext context) {
+    return isCompactWidth(MediaQuery.of(context).size.width);
+  }
+
   static bool isMobileWidth(double width) {
     return width < ResponsiveBreakpoints.mobile;
   }
@@ -48,6 +52,10 @@ class Responsive {
 
   static bool isDesktopWidth(double width) {
     return width >= ResponsiveBreakpoints.tablet;
+  }
+
+  static bool isCompactWidth(double width) {
+    return width < 800;
   }
 
   static int getColumnCountForWidth(
@@ -146,11 +154,11 @@ class Responsive {
     }
   }
 
-  static double getDialogWidth(BuildContext context) {
+  static double getDialogWidth(BuildContext context, {double fallback = 350}) {
     if (isMobile(context)) {
       return MediaQuery.of(context).size.width * 0.9;
     } else {
-      return 350.0;
+      return fallback;
     }
   }
 }

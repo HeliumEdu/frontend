@@ -22,6 +22,7 @@ import 'package:heliumapp/data/models/planner/external_calendar_event_model.dart
 import 'package:heliumapp/data/models/planner/homework_model.dart';
 import 'package:heliumapp/data/sources/planner_item_filter_compute.dart';
 import 'package:heliumapp/domain/repositories/course_schedule_event_repository.dart';
+import 'package:heliumapp/utils/quill_helpers.dart';
 import 'package:heliumapp/domain/repositories/event_repository.dart';
 import 'package:heliumapp/domain/repositories/external_calendar_repository.dart';
 import 'package:heliumapp/domain/repositories/homework_repository.dart';
@@ -127,6 +128,58 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
       // Reload data for visible range if provided
       if (visibleStart != null && visibleEnd != null) {
         await handleLoadMore(visibleStart, visibleEnd, forceRefresh: true);
+      }
+    } finally {
+      _isRefreshing = false;
+      _notifyChangeListeners();
+    }
+  }
+
+  /// Refreshes only external calendar events without clearing other cached data.
+  /// Use this when external calendar settings change (enable/disable) to avoid
+  /// losing homework/event data needed by the Todos table.
+  Future<void> refreshExternalCalendarEvents({
+    DateTime? visibleStart,
+    DateTime? visibleEnd,
+  }) async {
+    _isRefreshing = true;
+    _notifyChangeListeners();
+
+    try {
+      _log.info('Refreshing external calendar events only');
+
+      // Re-fetch external calendar events for the visible range
+      if (visibleStart != null && visibleEnd != null) {
+        final newEvents = await externalCalendarRepository.getExternalCalendarEvents(
+          from: visibleStart,
+          to: visibleEnd,
+          shownOnCalendar: true,
+          forceRefresh: true,
+        );
+
+        // Update each cached date range by removing old external events and adding new ones
+        for (final entry in _dateRangeCache.entries) {
+          final items = entry.value;
+          items.removeWhere((item) => item is ExternalCalendarEventModel);
+
+          // Add new events that fall within this cache entry's range
+          final parts = entry.key.split('_');
+          final rangeStart = DateTime.parse(parts[0]);
+          final rangeEnd = DateTime.parse(parts[1]);
+
+          for (final event in newEvents) {
+            if (event.start.isBefore(rangeEnd) && event.end.isAfter(rangeStart)) {
+              items.add(event);
+            }
+          }
+        }
+      }
+
+      // Re-apply filters to update the calendar view
+      if (PlannerItemDataSource.filterDebounceDuration == Duration.zero) {
+        _applyFiltersSynchronously();
+      } else {
+        await _applyFiltersAsync();
       }
     } finally {
       _isRefreshing = false;
@@ -614,10 +667,10 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
       'filterCategories': _filterCategories,
       'filterTypes': _filterTypes,
       'filterStatuses': _filterStatuses.toList(),
-      'todosItemsPerPage': _todosItemsPerPage,
     };
 
     PrefService().setString('saved_filter_state', jsonEncode(filterState));
+    PrefService().setInt('saved_rows_per_page', _todosItemsPerPage);
     _log.fine('Filter state saved');
   }
 
@@ -653,7 +706,7 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
         _filterStatuses = savedStatuses.cast<String>().toSet();
       }
 
-      final savedItemsPerPage = filterState['todosItemsPerPage'] as int?;
+      final savedItemsPerPage = PrefService().getInt('saved_rows_per_page');
       if (savedItemsPerPage != null) {
         _todosItemsPerPage = savedItemsPerPage;
       }
@@ -812,10 +865,14 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
     Sort.byStartThenTitle(appointments!.cast<PlannerItemBaseModel>());
     _buildSortPositions(appointments!.cast<PlannerItemBaseModel>());
 
-    if (!_isDisposed) {
+    // Defer notification to avoid triggering rebuild during paint phase.
+    // Syncfusion's _SelectionPainter crashes (NoSuchMethodError on null check)
+    // if notifyListeners is called while a repaint is already in progress.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_isDisposed) return;
       notifyListeners(CalendarDataSourceAction.reset, appointments!);
-    }
-    _notifyChangeListeners();
+      _notifyChangeListeners();
+    });
   }
 
   void clearTimeOverride(int itemId) {
@@ -984,7 +1041,7 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
         index: index,
         type: type,
         title: item.title,
-        comments: item.comments,
+        notesText: extractNotesPlainText(item.notes),
         start: item.start,
         end: item.end,
         allDay: item.allDay,
@@ -1133,7 +1190,8 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
       return true;
     }
 
-    if (item.comments.toLowerCase().contains(query)) {
+    final notesText = extractNotesPlainText(item.notes);
+    if (notesText.toLowerCase().contains(query)) {
       return true;
     }
 

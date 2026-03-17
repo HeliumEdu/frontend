@@ -21,6 +21,8 @@ import 'package:heliumapp/utils/responsive_helpers.dart';
 class _GettingStartedDialogWidget extends StatelessWidget {
   const _GettingStartedDialogWidget();
 
+  static const double fallbackWidth = 425.0;
+
   @override
   Widget build(BuildContext context) {
     return BlocListener<AuthBloc, AuthState>(
@@ -64,7 +66,7 @@ class _GettingStartedDialogWidget extends StatelessWidget {
               ],
             ),
             content: SizedBox(
-              width: Responsive.getDialogWidth(context),
+              width: Responsive.getDialogWidth(context, fallback: fallbackWidth),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -138,7 +140,7 @@ class _GettingStartedDialogWidget extends StatelessWidget {
               Column(
                 children: [
                   SizedBox(
-                    width: Responsive.getDialogWidth(context),
+                    width: Responsive.getDialogWidth(context, fallback: fallbackWidth),
                     child: HeliumElevatedButton(
                       buttonText: 'Clear Example Data',
                       icon: Icons.delete_outline,
@@ -154,7 +156,7 @@ class _GettingStartedDialogWidget extends StatelessWidget {
                   ),
                   const SizedBox(height: 8),
                   SizedBox(
-                    width: Responsive.getDialogWidth(context),
+                    width: Responsive.getDialogWidth(context, fallback: fallbackWidth),
                     child: TextButton(
                       onPressed: isLoading ? null : () => _handleClose(context),
                       child: Text(

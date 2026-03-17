@@ -15,7 +15,7 @@ class FilterableItem {
   final int index;
   final PlannerItemType type;
   final String title;
-  final String comments;
+  final String notesText;
   final DateTime start;
   final DateTime end;
   final bool allDay;
@@ -30,7 +30,7 @@ class FilterableItem {
     required this.index,
     required this.type,
     required this.title,
-    required this.comments,
+    required this.notesText,
     required this.start,
     required this.end,
     required this.allDay,
@@ -186,7 +186,7 @@ bool _passesFilters(FilterableItem item, FilterParams params) {
   if (params.searchQuery.isNotEmpty) {
     final query = params.searchQuery.toLowerCase();
     if (!item.title.toLowerCase().contains(query) &&
-        !item.comments.toLowerCase().contains(query)) {
+        !item.notesText.toLowerCase().contains(query)) {
       return false;
     }
   }

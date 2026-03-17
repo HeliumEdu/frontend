@@ -14,12 +14,14 @@ import 'package:heliumapp/utils/responsive_helpers.dart';
 class ResourceTitleLabel extends StatelessWidget {
   final String title;
   final UserSettingsModel userSettings;
+  final bool compact;
   final VoidCallback? onDelete;
 
   const ResourceTitleLabel({
     super.key,
     required this.title,
     required this.userSettings,
+    this.compact = false,
     this.onDelete,
   });
 
@@ -71,9 +73,10 @@ class ResourceTitleLabel extends StatelessWidget {
                   Flexible(
                     child: Text(
                       title,
-                      style: AppStyles.standardBodyText(
-                        context,
-                      ).copyWith(color: BadgeColors.foreground(context, userSettings.resourceColor)),
+                      style: (compact
+                              ? AppStyles.smallSecondaryText(context)
+                              : AppStyles.standardBodyText(context))
+                          .copyWith(color: BadgeColors.foreground(context, userSettings.resourceColor)),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),

@@ -47,6 +47,7 @@ void showCourseAdd(
   } else {
     showScreenAsDialog(
       context,
+      barrierDismissible: false,
       child: BlocProvider<CourseBloc>.value(
         value: courseBloc,
         child: CourseAddScreen(

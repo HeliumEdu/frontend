@@ -283,6 +283,7 @@ class _FeedsViewState extends BasePageScreenState<FeedsScreen> {
               const SizedBox(height: 25),
 
               HeliumElevatedButton(
+                icon: Icons.link,
                 buttonText: 'Enable',
                 onPressed: () {
                   context.read<AuthBloc>().add(EnablePrivateFeedsEvent());
@@ -297,6 +298,78 @@ class _FeedsViewState extends BasePageScreenState<FeedsScreen> {
     );
   }
 
+  void _showDisableFeedsDialog(BuildContext parentContext) {
+    bool isSubmitting = false;
+
+    showDialog(
+      context: parentContext,
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (BuildContext context, StateSetter setState) {
+          return AlertDialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
+            title: Row(
+              children: [
+                Icon(
+                  Icons.warning_rounded,
+                  color: context.colorScheme.error,
+                  size: 24,
+                ),
+                const SizedBox(width: 12),
+                Text('Disable All Feeds', style: AppStyles.pageTitle(context)),
+              ],
+            ),
+            content: SizedBox(
+              width: Responsive.getDialogWidth(context),
+              child: Text(
+                'Disabling feeds will break any existing integrations. Enabling again later will generated new URLs, and will not re-establish these connections. This action cannot be undone.',
+                style: AppStyles.standardBodyText(context),
+              ),
+            ),
+            actions: [
+              SizedBox(
+                width: Responsive.getDialogWidth(context),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: HeliumElevatedButton(
+                        buttonText: 'Cancel',
+                        backgroundColor: context.colorScheme.outline,
+                        onPressed: () {
+                          Navigator.of(dialogContext).pop();
+                        },
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: HeliumElevatedButton(
+                        buttonText: 'Disable',
+                        backgroundColor: context.colorScheme.error,
+                        isLoading: isSubmitting,
+                        onPressed: () {
+                          setState(() {
+                            isSubmitting = true;
+                          });
+
+                          Navigator.of(dialogContext).pop();
+
+                          parentContext
+                              .read<AuthBloc>()
+                              .add(DisablePrivateFeedsEvent());
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+
   Widget _buildFeedsEnabledArea(
     String homeworkUrl,
     String eventsUrl,
@@ -307,6 +380,15 @@ class _FeedsViewState extends BasePageScreenState<FeedsScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            HeliumElevatedButton(
+              icon: Icons.link_off,
+              buttonText: 'Disable All',
+              onPressed: () => _showDisableFeedsDialog(context),
+              backgroundColor: context.colorScheme.error,
+            ),
+
+            const SizedBox(height: 12),
+
             const WarningContainer(
               text:
                   'Keep private feed URLs secret. Disabling and re-enabling a feed will regenerate its URL.',
@@ -338,17 +420,6 @@ class _FeedsViewState extends BasePageScreenState<FeedsScreen> {
               url: eventsUrl,
               label: 'Events',
             ),
-
-            const SizedBox(height: 25),
-
-            HeliumElevatedButton(
-              buttonText: 'Disable',
-              onPressed: () async {
-                context.read<AuthBloc>().add(DisablePrivateFeedsEvent());
-              },
-            ),
-
-            const SizedBox(height: 12),
           ],
         ),
       ),
