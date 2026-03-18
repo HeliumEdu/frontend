@@ -1,10 +1,8 @@
 import os
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
 import pytest
 
-if TYPE_CHECKING:
-    from playwright.sync_api import Page
 
 # ---------------------------------------------------------------------------
 # Environment config
@@ -32,25 +30,6 @@ def browser_type_launch_args(browser_type_launch_args: dict[str, Any]) -> dict[s
     return {**browser_type_launch_args, "headless": headless}
 
 
-def enable_flutter_semantics(page: "Page") -> None:
-    """
-    Enable Flutter web's accessibility/semantics tree.
-
-    Flutter web (CanvasKit) renders into a canvas with an empty flt-semantics-host
-    by default. A hidden flt-semantics-placeholder button lives in the shadow DOM
-    of flt-glass-pane; clicking it populates flt-semantics-host with the full
-    accessibility tree, enabling role- and label-based element targeting.
-    """
-    page.wait_for_selector("flt-glass-pane", timeout=30_000)
-    page.evaluate(
-        "document.querySelector('flt-glass-pane')"
-        ".shadowRoot"
-        ".querySelector('flt-semantics-placeholder')"
-        ".click()"
-    )
-    page.wait_for_selector("flt-semantics", timeout=10_000)
-
-
 @pytest.fixture(scope="session")
 def app_host() -> str:
     return _app_host()
@@ -58,15 +37,10 @@ def app_host() -> str:
 
 @pytest.fixture(scope="session")
 def test_credentials() -> dict:
-    """
-    Credentials for a pre-existing smoke test user. Provide via environment variables:
-      SMOKE_TEST_EMAIL     – email address of the test user
-      SMOKE_TEST_PASSWORD  – password of the test user
-    """
-    email = os.environ.get("SMOKE_TEST_EMAIL")
-    password = os.environ.get("SMOKE_TEST_PASSWORD")
+    email = os.environ.get("PLAYWRIGHT_SMOKE_TEST_EMAIL")
+    password = os.environ.get("PLAYWRIGHT_SMOKE_TEST_PASSWORD")
 
-    assert email, "SMOKE_TEST_EMAIL environment variable is required"
-    assert password, "SMOKE_TEST_PASSWORD environment variable is required"
+    assert email, "PLAYWRIGHT_SMOKE_TEST_EMAIL environment variable is required"
+    assert password, "PLAYWRIGHT_SMOKE_TEST_PASSWORD environment variable is required"
 
     return {"email": email, "password": password}

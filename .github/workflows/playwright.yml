@@ -47,8 +47,8 @@ jobs:
       - name: Run smoke tests
         env:
           ENVIRONMENT: ${{ inputs.environment || 'prod' }}
-          SMOKE_TEST_EMAIL: ${{ secrets.SMOKE_TEST_EMAIL }}
-          SMOKE_TEST_PASSWORD: ${{ secrets.SMOKE_TEST_PASSWORD }}
+          PLAYWRIGHT_SMOKE_TEST_EMAIL: ${{ secrets.PLAYWRIGHT_SMOKE_TEST_EMAIL }}
+          PLAYWRIGHT_SMOKE_TEST_PASSWORD: ${{ secrets.PLAYWRIGHT_SMOKE_TEST_PASSWORD }}
         run: cd playwright && python -m pytest -v --screenshot=only-on-failure --output=screenshots
 
       - name: Upload screenshots
