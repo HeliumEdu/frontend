@@ -66,16 +66,18 @@ def test_login(page: Page, app_host: str, test_credentials: dict) -> None:
     )
     _type_into_active_flutter_input(page, 'flt-text-editing-host input[name="email"]', test_credentials["email"])
 
-    # Password field is ~88px below email: 56px field height + 32px SizedBox gap
-    _click_flutter_field(
-        page,
-        email_coords["x"],
-        email_coords["y"] + 88,
-        'flt-text-editing-host input[name="current-password"]',
+    # Tab to password field
+    page.keyboard.press("Tab")
+    page.wait_for_function(
+        "document.querySelector('flt-text-editing-host input[name=\"current-password\"]').classList.contains('flt-text-editing')",
+        timeout=5_000,
     )
     _type_into_active_flutter_input(page, 'flt-text-editing-host input[name="current-password"]', test_credentials["password"])
 
-    # Enter in the password field triggers onFieldSubmitted -> login
+    # Tab to the Sign In button and press Enter to submit
+    page.keyboard.press("Tab")
+    page.keyboard.press("Tab")
+    page.keyboard.press("Tab")
     page.keyboard.press("Enter")
 
     # Verify the app navigates to the planner screen
