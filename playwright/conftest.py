@@ -1,4 +1,5 @@
 import os
+from typing import Any
 
 import pytest
 
@@ -20,6 +21,12 @@ def _app_host() -> str:
 # ---------------------------------------------------------------------------
 # Fixtures
 # ---------------------------------------------------------------------------
+
+
+@pytest.fixture(scope="session")
+def browser_type_launch_args(browser_type_launch_args: dict[str, Any]) -> dict[str, Any]:
+    headless = os.environ.get("INTEGRATION_HEADLESS", "true").lower() != "false"
+    return {**browser_type_launch_args, "headless": headless}
 
 
 @pytest.fixture(scope="session")
