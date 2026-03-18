@@ -33,6 +33,24 @@ def app_host() -> str:
     return _app_host()
 
 
+@pytest.fixture(autouse=True)
+def setup_api_interceptor(context, app_host: str) -> None:
+    """
+    Set up Origin header injection for API requests.
+
+    Headless Chrome omits the Origin header on cross-origin requests, which breaks
+    CORS validation. This interceptor adds the Origin header to all API requests.
+    """
+    api_host = app_host.replace("://app.", "://api.")
+
+    def add_origin_header(route, request):
+        headers = {**request.headers, "origin": app_host}
+        route.continue_(headers=headers)
+
+    context.route(f"{api_host}/**", add_origin_header)
+    context.grant_permissions(["notifications"], origin=app_host)
+
+
 @pytest.fixture(scope="session")
 def test_credentials() -> dict:
     email = os.environ.get("PLAYWRIGHT_SMOKE_TEST_EMAIL")
