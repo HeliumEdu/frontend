@@ -1,8 +1,6 @@
 import os
-from typing import Any
-
 import pytest
-
+from typing import Any
 
 # ---------------------------------------------------------------------------
 # Environment config
