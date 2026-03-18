@@ -1,6 +1,6 @@
-name: "Playwright Smoke Tests"
+name: "Playwright Tests"
 
-run-name: "Playwright Smoke Tests (on `${{ inputs.environment }}`)"
+run-name: "Playwright Tests (on `${{ inputs.environment }}`)"
 
 on:
   schedule:
@@ -11,7 +11,7 @@ on:
         description: 'Environment to test against'
         required: true
         type: choice
-        default: dev
+        default: prod
         options:
           - dev
           - prod
