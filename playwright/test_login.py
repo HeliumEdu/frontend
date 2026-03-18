@@ -3,6 +3,42 @@ import re
 from playwright.sync_api import Page, expect
 
 
+def _click_flutter_field(page: Page, x: float, y: float, active_input_selector: str) -> None:
+    """
+    Click a Flutter canvas field and wait for Flutter to finish activating it.
+
+    Flutter's pointer event handling is async — clicking a canvas coordinate and
+    immediately typing may race against Flutter focusing the DOM input. We wait for
+    Flutter to add the flt-text-editing class to the relevant input, which confirms
+    the field is active and ready to receive keyboard input.
+    """
+    page.mouse.click(x, y)
+    page.wait_for_function(
+        f"document.querySelector('{active_input_selector}').classList.contains('flt-text-editing')",
+        timeout=5_000,
+    )
+
+
+def _type_into_active_flutter_input(page: Page, selector: str, value: str) -> None:
+    """
+    Type a value into an active Flutter web text input.
+
+    keyboard.type() mishandles special characters (e.g. $, %) when the target is
+    Flutter's canvas-backed DOM input. Instead, we set the value directly on the
+    DOM element and dispatch an 'input' event so Flutter's TextEditingController
+    picks it up correctly regardless of the characters involved.
+    """
+    page.evaluate(
+        """([sel, val]) => {
+            const el = document.querySelector(sel);
+            const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set;
+            setter.call(el, val);
+            el.dispatchEvent(new Event('input', { bubbles: true }));
+        }""",
+        [selector, value],
+    )
+
+
 def test_login(page: Page, app_host: str, test_credentials: dict) -> None:
     """
     Smoke test: navigate to the app, log in with test credentials, and verify the
@@ -14,24 +50,30 @@ def test_login(page: Page, app_host: str, test_credentials: dict) -> None:
     page.wait_for_selector('flt-text-editing-host input[name="email"]', timeout=30_000)
     expect(page).to_have_title(re.compile(r"Login"), timeout=10_000)
 
-    # Flutter (CanvasKit) renders the UI on a canvas with no interactive DOM elements.
-    # The email input's CSS transform stores the canvas coordinates of the active text
-    # field (used by the OS for IME positioning). Clicking at those coordinates sends a
-    # pointer event to flutter-view, which Flutter routes to the email TextField, focuses
-    # it, and activates it for keyboard input. Tab then moves Flutter's internal focus
-    # to the password field, where the same keyboard routing applies.
-    coords = page.evaluate("""() => {
+    # Read the email field's canvas coordinates from Flutter's IME transform
+    email_coords = page.evaluate("""() => {
         const el = document.querySelector('flt-text-editing-host input[name="email"]');
         const m = el.style.transform.match(/matrix\\([^,]+,[^,]+,[^,]+,[^,]+,([^,]+),([^)]+)\\)/);
         return m ? {x: parseFloat(m[1]), y: parseFloat(m[2])} : null;
     }""")
-    assert coords, "Could not read email field canvas coordinates from Flutter input transform"
+    assert email_coords, "Could not read email field canvas coordinates from Flutter input transform"
 
-    page.mouse.click(coords["x"], coords["y"])
-    page.keyboard.type(test_credentials["email"])
+    _click_flutter_field(
+        page,
+        email_coords["x"],
+        email_coords["y"],
+        'flt-text-editing-host input[name="email"]',
+    )
+    _type_into_active_flutter_input(page, 'flt-text-editing-host input[name="email"]', test_credentials["email"])
 
-    page.keyboard.press("Tab")
-    page.keyboard.type(test_credentials["password"])
+    # Password field is ~88px below email: 56px field height + 32px SizedBox gap
+    _click_flutter_field(
+        page,
+        email_coords["x"],
+        email_coords["y"] + 88,
+        'flt-text-editing-host input[name="current-password"]',
+    )
+    _type_into_active_flutter_input(page, 'flt-text-editing-host input[name="current-password"]', test_credentials["password"])
 
     # Enter in the password field triggers onFieldSubmitted -> login
     page.keyboard.press("Enter")
