@@ -44,16 +44,7 @@ def test_login(page: Page, app_host: str, test_credentials: dict) -> None:
     Smoke test: navigate to the app, log in with test credentials, and verify the
     planner screen loads. Validates basic frontend/backend connectivity end-to-end.
     """
-    # Headless Chrome omits Origin header on cross-origin requests; add it for CORS
-    api_host = app_host.replace("://app.", "://api.")
-
-    def add_origin_header(route, request):
-        headers = {**request.headers, "origin": app_host}
-        route.continue_(headers=headers)
-
-    page.context.route(f"{api_host}/**", add_origin_header)
     page.goto(app_host)
-    page.context.grant_permissions(["notifications"], origin=app_host)
 
     # Wait for Flutter to initialize and position the email input
     page.wait_for_selector('flt-text-editing-host input[name="email"]', timeout=30_000)
