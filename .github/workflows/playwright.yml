@@ -1,0 +1,61 @@
+name: "Playwright Smoke Tests"
+
+run-name: "Playwright Smoke Tests (on `${{ inputs.environment }}`)"
+
+on:
+  schedule:
+    - cron: '0 * * * *'
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to test against'
+        required: true
+        type: choice
+        default: dev
+        options:
+          - dev
+          - prod
+
+permissions:
+  contents: read
+
+concurrency:
+  group: "playwright-smoke-${{ inputs.environment }}"
+  cancel-in-progress: false
+
+jobs:
+  playwright-smoke:
+    name: Playwright Smoke Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+          cache-dependency-path: playwright/requirements.txt
+
+      - name: Install dependencies
+        run: pip install -r playwright/requirements.txt
+
+      - name: Install Playwright browsers
+        run: python -m playwright install --with-deps chromium
+
+      - name: Run smoke tests
+        env:
+          ENVIRONMENT: ${{ inputs.environment || 'prod' }}
+          SMOKE_TEST_EMAIL: ${{ secrets.SMOKE_TEST_EMAIL }}
+          SMOKE_TEST_PASSWORD: ${{ secrets.SMOKE_TEST_PASSWORD }}
+        run: cd playwright && python -m pytest -v --screenshot=only-on-failure --output=screenshots
+
+      - name: Upload screenshots on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-screenshots
+          path: playwright/screenshots/
+          if-no-files-found: ignore
+          retention-days: 7
