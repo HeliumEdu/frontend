@@ -51,8 +51,8 @@ jobs:
           SMOKE_TEST_PASSWORD: ${{ secrets.SMOKE_TEST_PASSWORD }}
         run: cd playwright && python -m pytest -v --screenshot=only-on-failure --output=screenshots
 
-      - name: Upload screenshots on failure
-        if: failure()
+      - name: Upload screenshots
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: playwright-screenshots

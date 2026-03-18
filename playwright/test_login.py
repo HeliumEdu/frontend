@@ -2,6 +2,8 @@ import re
 
 from playwright.sync_api import Page, expect
 
+from conftest import enable_flutter_semantics
+
 
 def test_login(page: Page, app_host: str, test_credentials: dict) -> None:
     """
@@ -10,18 +12,22 @@ def test_login(page: Page, app_host: str, test_credentials: dict) -> None:
     """
     page.goto(app_host)
 
-    # Wait for the login screen to be ready (Sign In button appears in the semantic tree)
-    page.get_by_role("button", name="Sign In").wait_for(state="visible", timeout=30_000)
+    # Flutter web (CanvasKit) renders into a canvas; the semantics/accessibility
+    # tree is empty by default. Enabling it populates flt-semantics-host, which
+    # makes role- and label-based locators work and routes keyboard events correctly.
+    enable_flutter_semantics(page)
+
     expect(page).to_have_title(re.compile(r"Login"), timeout=10_000)
 
-    # Flutter web processes real keyboard events, not JS-injected values.
-    # The email field has autofocus on web, so we can type directly into it.
+    # Click the semantic textbox to give Flutter focus, then type via keyboard.
+    # fill() and JS value-setting are ignored by Flutter's input engine.
+    page.get_by_role("textbox", name="Email").click()
     page.keyboard.type(test_credentials["email"])
-    page.keyboard.press("Tab")
+
+    page.get_by_role("textbox", name="Password").click()
     page.keyboard.type(test_credentials["password"])
 
-    # Pressing Enter in the password field triggers onFieldSubmitted -> login
-    page.keyboard.press("Enter")
+    page.get_by_role("button", name="Sign In").click()
 
     # Verify the app navigates to the planner screen
     page.wait_for_url(re.compile(r"/planner"), timeout=30_000)

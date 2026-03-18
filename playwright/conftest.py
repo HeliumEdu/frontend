@@ -1,7 +1,10 @@
 import os
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import pytest
+
+if TYPE_CHECKING:
+    from playwright.sync_api import Page
 
 # ---------------------------------------------------------------------------
 # Environment config
@@ -27,6 +30,25 @@ def _app_host() -> str:
 def browser_type_launch_args(browser_type_launch_args: dict[str, Any]) -> dict[str, Any]:
     headless = os.environ.get("INTEGRATION_HEADLESS", "true").lower() != "false"
     return {**browser_type_launch_args, "headless": headless}
+
+
+def enable_flutter_semantics(page: "Page") -> None:
+    """
+    Enable Flutter web's accessibility/semantics tree.
+
+    Flutter web (CanvasKit) renders into a canvas with an empty flt-semantics-host
+    by default. A hidden flt-semantics-placeholder button lives in the shadow DOM
+    of flt-glass-pane; clicking it populates flt-semantics-host with the full
+    accessibility tree, enabling role- and label-based element targeting.
+    """
+    page.wait_for_selector("flt-glass-pane", timeout=30_000)
+    page.evaluate(
+        "document.querySelector('flt-glass-pane')"
+        ".shadowRoot"
+        ".querySelector('flt-semantics-placeholder')"
+        ".click()"
+    )
+    page.wait_for_selector("flt-semantics", timeout=10_000)
 
 
 @pytest.fixture(scope="session")
