@@ -1,6 +1,7 @@
 import os
-import pytest
 from typing import Any
+
+import pytest
 
 # ---------------------------------------------------------------------------
 # Environment config
@@ -31,6 +32,17 @@ def browser_type_launch_args(browser_type_launch_args: dict[str, Any]) -> dict[s
 @pytest.fixture(scope="session")
 def app_host() -> str:
     return _app_host()
+
+
+@pytest.fixture
+def context(context, app_host: str):
+    """
+    Configure browser context for API requests.
+
+    - Grants local-network-access permission (Chrome 141+ blocks FCM service worker without it)
+    """
+    context.grant_permissions(["local-network-access"])
+    return context
 
 
 @pytest.fixture(scope="session")
