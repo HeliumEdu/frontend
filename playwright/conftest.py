@@ -33,25 +33,6 @@ def app_host() -> str:
     return _app_host()
 
 
-@pytest.fixture
-def context(context, app_host: str):
-    """
-    Configure browser context for API requests.
-
-    - Adds Origin header to cross-origin API requests (headless Chrome omits it)
-    - Grants local-network-access permission (Chrome 141+ blocks without it)
-    """
-    api_host = app_host.replace("://app.", "://api.")
-
-    def add_origin_header(route, request):
-        headers = {**request.headers, "origin": app_host}
-        route.continue_(headers=headers)
-
-    context.route(f"{api_host}/**", add_origin_header)
-    context.grant_permissions(["local-network-access"])
-    return context
-
-
 @pytest.fixture(scope="session")
 def test_credentials() -> dict:
     email = os.environ.get("PLAYWRIGHT_SMOKE_TEST_EMAIL")

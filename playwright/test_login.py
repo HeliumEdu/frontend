@@ -44,6 +44,17 @@ def test_login(page: Page, app_host: str, test_credentials: dict) -> None:
     Smoke test: navigate to the app, log in with test credentials, and verify the
     planner screen loads. Validates basic frontend/backend connectivity end-to-end.
     """
+    # Setup is duplicated here because overriding the context fixture doesn't work
+    # reliably with pytest-playwright. See conftest.py for the fixture attempt.
+    api_host = app_host.replace("://app.", "://api.")
+
+    def add_origin_header(route, request):
+        headers = {**request.headers, "origin": app_host}
+        route.continue_(headers=headers)
+
+    page.context.route(f"{api_host}/**", add_origin_header)
+    page.context.grant_permissions(["local-network-access"])
+
     page.goto(app_host)
 
     # Wait for Flutter to initialize and position the email input
