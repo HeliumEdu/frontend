@@ -1,6 +1,6 @@
 name: "Playwright Tests"
 
-run-name: "Playwright Tests (on `${{ inputs.environment }}`)"
+run-name: "Playwright Tests (on `${{ inputs.environment || 'prod' }}`)"
 
 on:
   schedule:
@@ -20,7 +20,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: "playwright-smoke-${{ inputs.environment }}"
+  group: "playwright-smoke-${{ inputs.environment || 'prod' }}"
   cancel-in-progress: false
 
 jobs:
