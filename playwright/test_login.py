@@ -55,19 +55,6 @@ def test_login(page: Page, app_host: str, test_credentials: dict) -> None:
     page.context.route(f"{api_host}/**", add_origin_header)
     page.context.grant_permissions(["local-network-access"])
 
-    # Debug logging for CI
-    def log_request(request):
-        if "auth/token" in request.url:
-            print(f"AUTH REQUEST: {request.method} {request.url}")
-            print(f"  Origin: {request.headers.get('origin', 'NONE')}")
-
-    def log_response(response):
-        if "auth/token" in response.url:
-            print(f"AUTH RESPONSE: {response.status} {response.url}")
-
-    page.on("request", log_request)
-    page.on("response", log_response)
-
     page.goto(app_host)
 
     # Wait for Flutter to initialize and position the email input
@@ -103,10 +90,6 @@ def test_login(page: Page, app_host: str, test_credentials: dict) -> None:
     page.keyboard.press("Tab")
     page.keyboard.press("Tab")
     page.keyboard.press("Enter")
-
-    # Debug: capture page state before waiting for navigation
-    page.screenshot(path="screenshots/before-wait-for-planner.png")
-    print(f"Current URL before wait: {page.url}")
 
     # Verify the app navigates to the planner screen
     page.wait_for_url(re.compile(r"/planner"), timeout=30_000)

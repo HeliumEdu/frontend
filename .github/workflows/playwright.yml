@@ -26,7 +26,16 @@ concurrency:
 jobs:
   playwright-smoke:
     name: Playwright Smoke Tests
+
     runs-on: ubuntu-latest
+
+    env:
+      FORCE_COLOR: 1
+      PYTHONUNBUFFERED: 1
+      PYTHONDONTWRITEBYTECODE: 1
+      ENVIRONMENT: ${{ inputs.environment || 'prod' }}
+      PLAYWRIGHT_SMOKE_TEST_EMAIL: ${{ secrets.PLAYWRIGHT_SMOKE_TEST_EMAIL }}
+      PLAYWRIGHT_SMOKE_TEST_PASSWORD: ${{ secrets.PLAYWRIGHT_SMOKE_TEST_PASSWORD }}
 
     steps:
       - uses: actions/checkout@v5
@@ -41,14 +50,25 @@ jobs:
       - name: Install dependencies
         run: pip install -r playwright/requirements.txt
 
+      - name: Get Playwright version
+        id: playwright-version
+        run: echo "version=$(pip show playwright | grep Version | cut -d' ' -f2)" >> $GITHUB_OUTPUT
+
+      - name: Cache Playwright browsers
+        id: playwright-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-${{ steps.playwright-version.outputs.version }}
+
+      - name: Install Playwright system dependencies
+        run: python -m playwright install-deps chromium
+
       - name: Install Playwright browsers
-        run: python -m playwright install --with-deps chromium
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
+        run: python -m playwright install chromium
 
       - name: Run smoke tests
-        env:
-          ENVIRONMENT: ${{ inputs.environment || 'prod' }}
-          PLAYWRIGHT_SMOKE_TEST_EMAIL: ${{ secrets.PLAYWRIGHT_SMOKE_TEST_EMAIL }}
-          PLAYWRIGHT_SMOKE_TEST_PASSWORD: ${{ secrets.PLAYWRIGHT_SMOKE_TEST_PASSWORD }}
         run: cd playwright && python -m pytest -v --screenshot=only-on-failure --output=screenshots
 
       - name: Upload screenshots
