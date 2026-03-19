@@ -9,7 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/data/models/auth/user_model.dart';
 import 'package:heliumapp/data/models/planner/note_model.dart';
-import 'package:heliumapp/presentation/ui/components/course_title_label.dart';
+import 'package:heliumapp/presentation/ui/components/generic_title_label.dart';
 import 'package:heliumapp/presentation/ui/components/helium_icon_button.dart';
 import 'package:heliumapp/presentation/ui/components/helium_pager.dart';
 import 'package:heliumapp/presentation/ui/components/resource_title_label.dart';
@@ -655,7 +655,7 @@ class NotesDataSource extends DataGridSource with SortableDataGridSource {
           compact: true,
         );
       } else if (entityType == 'event') {
-        badge = CourseTitleLabel(
+        badge = GenericTitleLabel(
           title: linkedTo,
           color: userSettings?.eventsColor ?? context.colorScheme.tertiary,
           icon: AppConstants.eventIcon,
@@ -666,7 +666,7 @@ class NotesDataSource extends DataGridSource with SortableDataGridSource {
         final badgeColor = (userSettings?.colorByCategory ?? false) && categoryColor != null
             ? categoryColor
             : courseColor;
-        badge = CourseTitleLabel(
+        badge = GenericTitleLabel(
           title: linkedTo,
           color: badgeColor ?? context.colorScheme.primary,
           icon: AppConstants.assignmentIcon,

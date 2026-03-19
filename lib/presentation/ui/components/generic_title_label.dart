@@ -10,21 +10,19 @@ import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/color_helpers.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 
-class CourseTitleLabel extends StatelessWidget {
+class GenericTitleLabel extends StatelessWidget {
   final String title;
   final Color color;
-  final bool showIcon;
+  final IconData icon;
   final bool compact;
-  final IconData? icon;
   final VoidCallback? onDelete;
 
-  const CourseTitleLabel({
+  const GenericTitleLabel({
     super.key,
     required this.title,
     required this.color,
-    this.showIcon = true,
+    required this.icon,
     this.compact = false,
-    this.icon,
     this.onDelete,
   });
 
@@ -35,41 +33,40 @@ class CourseTitleLabel extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          if (showIcon)
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 5),
-              decoration: BoxDecoration(
-                color: color,
-                borderRadius: const BorderRadius.only(
-                  topLeft: Radius.circular(20),
-                  bottomLeft: Radius.circular(20),
-                ),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 6),
+            decoration: BoxDecoration(
+              color: color,
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(8),
+                bottomLeft: Radius.circular(8),
               ),
-              child: Center(
-                child: Icon(
-                  icon ?? Icons.school_outlined,
-                  color: HeliumColors.contrastingTextColor(color),
-                  size: Responsive.getIconSize(
-                    context,
-                    mobile: 14,
-                    tablet: 16,
-                    desktop: 18,
-                  ),
+            ),
+            child: Center(
+              child: Icon(
+                icon,
+                color: HeliumColors.contrastingTextColor(color),
+                size: Responsive.getIconSize(
+                  context,
+                  mobile: 14,
+                  tablet: 16,
+                  desktop: 18,
                 ),
               ),
             ),
+          ),
           Flexible(
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
               decoration: BoxDecoration(
                 color: BadgeColors.background(context, color),
-                borderRadius: showIcon
-                    ? const BorderRadius.only(
-                        topRight: Radius.circular(20),
-                        bottomRight: Radius.circular(20),
-                      )
-                    : BorderRadius.circular(20),
-                border: Border.all(color: BadgeColors.border(context, color)),
+                borderRadius: const BorderRadius.only(
+                  topRight: Radius.circular(10),
+                  bottomRight: Radius.circular(10),
+                ),
+                border: Border.all(
+                  color: BadgeColors.border(context, color),
+                ),
               ),
               child: Row(
                 mainAxisSize: MainAxisSize.min,

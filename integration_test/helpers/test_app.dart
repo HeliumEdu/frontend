@@ -900,7 +900,7 @@ void expectOnGradesScreen() {
 }
 
 /// Assert we're on the Settings screen/dialog.
-/// Verifies: volunteer_activism icon, "Support Helium" text, and "Change Password" button.
+/// Verifies: volunteer_activism icon, "Keep Helium Free" text, and "Change Password" button.
 /// For dialog mode: FAB IS shown (from underlying Planner), browser title stays "Planner".
 /// For mobile screen mode: FAB NOT shown, "Settings" shown in page header (browser title unchanged).
 void expectOnSettingsScreen({required bool isDialog}) {
@@ -910,9 +910,9 @@ void expectOnSettingsScreen({required bool isDialog}) {
     reason: 'Settings: giving icon should be shown',
   );
   expect(
-    find.text('Support Helium'),
+    find.text('Keep Helium Free'),
     findsOneWidget,
-    reason: 'Settings: "Support Helium" text should be shown',
+    reason: 'Settings: "Keep Helium Free" text should be shown',
   );
   expect(
     find.text('Change Password'),
