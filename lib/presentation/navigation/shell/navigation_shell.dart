@@ -437,11 +437,13 @@ class _NavigationShellState extends State<NavigationShell> {
               url: AppConstants.androidUrl,
             ),
             if (!Responsive.isIOSPlatform()) ...[
-              const SizedBox(height: 8),
+              const SizedBox(height: 4),
+              const SizedBox(width: 32, child: Divider()),
+              const SizedBox(height: 4),
               _buildAppStoreButton(
                 context: context,
                 icon: Icons.volunteer_activism,
-                tooltip: 'Support on Patreon',
+                tooltip: 'Keep Helium Free',
                 url: AppConstants.patreonUrl,
               ),
             ],

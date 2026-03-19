@@ -9,6 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/core/whats_new_service.dart';
 import 'package:heliumapp/presentation/ui/components/helium_elevated_button.dart';
+import 'package:heliumapp/presentation/ui/components/support_helium_card.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -89,7 +90,7 @@ class _WhatsNewDialogWidget extends StatelessWidget {
                       title: 'New surprises ahead',
                       description: 'Exciting new features on the horizon',
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 8),
                     TextButton(
                       onPressed: () => launchUrl(
                         Uri.parse(
@@ -119,6 +120,12 @@ class _WhatsNewDialogWidget extends StatelessWidget {
                         ],
                       ),
                     ),
+                    if (!Responsive.isIOSPlatform()) ...[
+                      const SizedBox(height: 8),
+                      const Divider(),
+                      const SizedBox(height: 8),
+                      const SupportHeliumCard(),
+                    ],
                   ],
                 ),
               ),
