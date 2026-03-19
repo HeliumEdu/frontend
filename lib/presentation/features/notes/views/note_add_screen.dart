@@ -5,7 +5,6 @@
 //
 // For details regarding the license, please refer to the LICENSE file.
 
-import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -15,19 +14,8 @@ import 'package:go_router/go_router.dart';
 import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/config/route_args.dart';
-import 'package:heliumapp/core/dio_client.dart';
 import 'package:heliumapp/data/models/planner/note_model.dart';
 import 'package:heliumapp/data/models/planner/request/note_request_model.dart';
-import 'package:heliumapp/data/models/planner/course_model.dart';
-import 'package:heliumapp/data/models/planner/homework_model.dart';
-import 'package:heliumapp/data/repositories/course_repository_impl.dart';
-import 'package:heliumapp/data/repositories/event_repository_impl.dart';
-import 'package:heliumapp/data/repositories/homework_repository_impl.dart';
-import 'package:heliumapp/data/repositories/resource_repository_impl.dart';
-import 'package:heliumapp/data/sources/course_remote_data_source.dart';
-import 'package:heliumapp/data/sources/event_remote_data_source.dart';
-import 'package:heliumapp/data/sources/homework_remote_data_source.dart';
-import 'package:heliumapp/data/sources/resource_remote_data_source.dart';
 import 'package:heliumapp/presentation/core/views/base_page_screen_state.dart';
 import 'package:heliumapp/presentation/ui/layout/page_header.dart';
 import 'package:heliumapp/presentation/features/notes/bloc/note_bloc.dart';
@@ -126,10 +114,9 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
 
   // State
   NoteModel? _note;
-  // Provisional link data for new notes (before save)
-  String? _provisionalEntityType;
-  String? _provisionalEntityTitle;
-  Color? _provisionalEntityColor;
+  String? _linkedEntityType;
+  String? _linkedEntityTitle;
+  Color? _linkedEntityColor;
   bool _showSearch = false;
 
   @override
@@ -137,17 +124,16 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
     super.initState();
     _quillController = QuillController.basic();
 
-    if (widget.isEdit) {
-      _fetchNote();
-    } else {
-      setState(() {
-        isLoading = false;
-      });
-      if (widget.homeworkId != null || widget.eventId != null ||
-          (widget.resourceId != null && widget.resourceGroupId != null)) {
-        _fetchLinkedEntity();
-      }
-    }
+    context.read<NoteBloc>().add(
+      FetchNoteScreenDataEvent(
+        origin: EventOrigin.screen,
+        noteId: widget.noteId,
+        homeworkId: widget.homeworkId,
+        eventId: widget.eventId,
+        resourceId: widget.resourceId,
+        resourceGroupId: widget.resourceGroupId,
+      ),
+    );
   }
 
   @override
@@ -245,66 +231,6 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
     }
   }
 
-  void _fetchNote() {
-    context.read<NoteBloc>().add(
-      FetchNoteEvent(
-        origin: EventOrigin.screen,
-        noteId: widget.noteId!,
-        forceRefresh: true,
-      ),
-    );
-  }
-
-  Future<void> _fetchLinkedEntity() async {
-    try {
-      final dioClient = DioClient();
-      if (widget.homeworkId != null) {
-        final homeworkRepo = HomeworkRepositoryImpl(
-          remoteDataSource: HomeworkRemoteDataSourceImpl(dioClient: dioClient),
-        );
-        final courseRepo = CourseRepositoryImpl(
-          remoteDataSource: CourseRemoteDataSourceImpl(dioClient: dioClient),
-        );
-        final results = await Future.wait([
-          homeworkRepo.getHomework(id: widget.homeworkId!),
-          courseRepo.getCourses(),
-        ]);
-        final homework = results[0] as HomeworkModel;
-        final courses = results[1] as List<CourseModel>;
-        final course = courses.firstWhereOrNull(
-          (c) => c.id == homework.course.id,
-        );
-        if (!mounted) return;
-        setState(() {
-          _provisionalEntityType = 'homework';
-          _provisionalEntityTitle = homework.title;
-          _provisionalEntityColor = course?.color;
-        });
-      } else if (widget.eventId != null) {
-        final event = await EventRepositoryImpl(
-          remoteDataSource: EventRemoteDataSourceImpl(dioClient: dioClient),
-        ).getEvent(id: widget.eventId!);
-        if (!mounted) return;
-        setState(() {
-          _provisionalEntityType = 'event';
-          _provisionalEntityTitle = event.title;
-        });
-      } else if (widget.resourceId != null && widget.resourceGroupId != null) {
-        final resource = await ResourceRepositoryImpl(
-          remoteDataSource: ResourceRemoteDataSourceImpl(dioClient: dioClient),
-        ).getResource(
-          groupId: widget.resourceGroupId!,
-          resourceId: widget.resourceId!,
-        );
-        if (!mounted) return;
-        setState(() {
-          _provisionalEntityType = 'resource';
-          _provisionalEntityTitle = resource.title;
-        });
-      }
-    } catch (_) {}
-  }
-
   @override
   List<BlocListener<dynamic, dynamic>> buildListeners(BuildContext context) {
     return [
@@ -315,11 +241,16 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
               isSubmitting = false;
             });
             showSnackBar(context, state.message!, type: SnackType.error);
-          } else if (state is NoteFetched) {
+          } else if (state is NoteScreenDataFetched) {
             setState(() {
               isLoading = false;
+              _linkedEntityType = state.linkedEntityType;
+              _linkedEntityTitle = state.linkedEntityTitle;
+              _linkedEntityColor = state.linkedEntityColor;
             });
-            _populateNoteData(state.note);
+            if (state.note != null) {
+              _populateNoteData(state.note!);
+            }
           } else if (state is NoteCreated) {
             showSnackBar(context, 'Note created', useRootMessenger: true);
             cancelAction();
@@ -354,8 +285,7 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
                   const double titleMinWidth = 225;
                   const double badgeMaxWidth = 250;
                   const double gap = 8;
-                  final hasBadge =
-                      _note?.hasLinkedEntity == true || _provisionalEntityType != null;
+                  final hasBadge = _linkedEntityType != null;
                   final effectiveBadgeMax = hasBadge
                       ? (constraints.maxWidth - titleMinWidth - gap)
                           .clamp(0.0, badgeMaxWidth)
@@ -513,10 +443,9 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
   }
 
   Widget _buildLinkedEntityBadge() {
-    // Use note data if available, otherwise use provisional data
-    final entityType = _note?.linkedEntityType ?? _provisionalEntityType ?? '';
-    final entityTitle = _note?.linkedEntityTitle ?? _provisionalEntityTitle;
-    final courseColor = _note?.courseColor ?? _provisionalEntityColor;
+    final entityType = _linkedEntityType ?? '';
+    final entityTitle = _linkedEntityTitle;
+    final courseColor = _note?.courseColor ?? _linkedEntityColor;
     final categoryColor = _note?.categoryColor;
 
     final title = entityTitle ?? 'Linked $entityType';
