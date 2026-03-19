@@ -229,21 +229,14 @@ class _PlannerItemAddScreenState
                 homeworkId: !state.isEvent ? state.entityId : null,
               );
             } else if (redirectToNotebook) {
-              // Get linkedNoteId from state if available
-              final int? linkedNoteId;
-              if (state is EventCreated) {
-                linkedNoteId = state.linkedNoteId;
-              } else if (state is EventUpdated) {
-                linkedNoteId = state.linkedNoteId;
-              } else if (state is HomeworkCreated) {
-                linkedNoteId = state.linkedNoteId;
-              } else if (state is HomeworkUpdated) {
-                linkedNoteId = state.linkedNoteId;
-              } else {
-                linkedNoteId = null;
-              }
+              final linkedNoteId = switch (state) {
+                EventCreated(:final linkedNoteId) => linkedNoteId,
+                EventUpdated(:final linkedNoteId) => linkedNoteId,
+                HomeworkCreated(:final linkedNoteId) => linkedNoteId,
+                HomeworkUpdated(:final linkedNoteId) => linkedNoteId,
+                _ => null,
+              };
 
-              // Redirect to notebook - use note ID if available, otherwise entity ID
               if (linkedNoteId != null) {
                 context.go('${AppRoute.notebookScreen}?id=$linkedNoteId');
               } else if (state.isEvent) {

@@ -784,17 +784,15 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
       }
     }
 
-    // Populate linked note from state
     if (widget.isEdit && state.linkedNote != null) {
       _formController.linkedNoteId = state.linkedNote!.id;
-      if (state.linkedNote!.content != null) {
-        final doc = Document.fromJson(state.linkedNote!.content!['ops'] as List);
-        _formController.notesController.dispose();
-        _formController.notesController = QuillController(
-          document: doc,
-          selection: const TextSelection.collapsed(offset: 0),
-        );
-      }
+      _formController.notesController.dispose();
+      _formController.notesController = state.linkedNote!.content != null
+          ? QuillController(
+              document: Document.fromJson(state.linkedNote!.content!['ops'] as List),
+              selection: const TextSelection.collapsed(offset: 0),
+            )
+          : QuillController.basic();
     }
 
     setState(() {

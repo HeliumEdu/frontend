@@ -194,15 +194,9 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
           widget.resourceId != null;
 
       // Standalone notes can be title-only, but linked notes require content
-      if (widget.isNew && title.isEmpty && bodyIsEmpty) {
-        setState(() {
-          isSubmitting = false;
-        });
-        showSnackBar(context, 'Not created, Note is empty', useRootMessenger: true);
-        cancelAction();
-        return;
-      }
-      if (widget.isNew && hasLinkedEntity && bodyIsEmpty) {
+      final isEmptyNote = (title.isEmpty && bodyIsEmpty) ||
+          (hasLinkedEntity && bodyIsEmpty);
+      if (widget.isNew && isEmptyNote) {
         setState(() {
           isSubmitting = false;
         });

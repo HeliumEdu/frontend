@@ -281,7 +281,6 @@ class ResourceDetailsState extends State<ResourceDetails> {
         state.resource!.courses,
       );
 
-      // Populate linked note from state
       _formController.notesController.dispose();
       if (state.linkedNote != null) {
         _formController.linkedNoteId = state.linkedNote!.id;

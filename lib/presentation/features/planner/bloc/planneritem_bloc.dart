@@ -217,16 +217,13 @@ class PlannerItemBloc extends Bloc<PlannerItemEvent, PlannerItemState> {
 
       int? linkedNoteId = event.linkedNoteId;
       if (event.linkedNoteId != null) {
-        // Send empty map {} when content is null to trigger note deletion
+        // Empty content triggers note deletion on backend
         final contentToSend = event.noteContent ?? <String, dynamic>{};
         futures.add(noteRepository.updateNote(
           noteId: event.linkedNoteId!,
           request: NoteRequestModel(content: contentToSend),
         ));
-        // If content is empty, note will be deleted - clear linkedNoteId
-        if (event.noteContent == null) {
-          linkedNoteId = null;
-        }
+        if (event.noteContent == null) linkedNoteId = null;
       } else if (event.noteContent != null) {
         futures.add(noteRepository.createNote(
           request: NoteRequestModel(content: event.noteContent, eventId: event.id),
@@ -236,7 +233,6 @@ class PlannerItemBloc extends Bloc<PlannerItemEvent, PlannerItemState> {
       final results = await Future.wait(futures);
       final entity = results[0] as EventModel;
 
-      // If a new note was created, get its ID
       if (event.linkedNoteId == null && results.length > 1) {
         linkedNoteId = (results[1] as NoteModel).id;
       }
@@ -397,16 +393,13 @@ class PlannerItemBloc extends Bloc<PlannerItemEvent, PlannerItemState> {
 
       int? linkedNoteId = event.linkedNoteId;
       if (event.linkedNoteId != null) {
-        // Send empty map {} when content is null to trigger note deletion
+        // Empty content triggers note deletion on backend
         final contentToSend = event.noteContent ?? <String, dynamic>{};
         futures.add(noteRepository.updateNote(
           noteId: event.linkedNoteId!,
           request: NoteRequestModel(content: contentToSend),
         ));
-        // If content is empty, note will be deleted - clear linkedNoteId
-        if (event.noteContent == null) {
-          linkedNoteId = null;
-        }
+        if (event.noteContent == null) linkedNoteId = null;
       } else if (event.noteContent != null) {
         futures.add(noteRepository.createNote(
           request: NoteRequestModel(content: event.noteContent, homeworkId: event.homeworkId),
@@ -416,7 +409,6 @@ class PlannerItemBloc extends Bloc<PlannerItemEvent, PlannerItemState> {
       final results = await Future.wait(futures);
       final homework = results[0] as HomeworkModel;
 
-      // If a new note was created, get its ID
       if (event.linkedNoteId == null && results.length > 1) {
         linkedNoteId = (results[1] as NoteModel).id;
       }

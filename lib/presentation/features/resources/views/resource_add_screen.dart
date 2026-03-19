@@ -115,17 +115,12 @@ class _ResourceAddScreenState
                 (state is ResourceUpdated && state.redirectToNotebook);
 
             if (redirectToNotebook) {
-              // Get linkedNoteId from state if available
-              final int? linkedNoteId;
-              if (state is ResourceCreated) {
-                linkedNoteId = state.linkedNoteId;
-              } else if (state is ResourceUpdated) {
-                linkedNoteId = state.linkedNoteId;
-              } else {
-                linkedNoteId = null;
-              }
+              final linkedNoteId = switch (state) {
+                ResourceCreated(:final linkedNoteId) => linkedNoteId,
+                ResourceUpdated(:final linkedNoteId) => linkedNoteId,
+                _ => null,
+              };
 
-              // Redirect to notebook - use note ID if available, otherwise resource ID
               if (linkedNoteId != null) {
                 context.go('${AppRoute.notebookScreen}?id=$linkedNoteId');
               } else {

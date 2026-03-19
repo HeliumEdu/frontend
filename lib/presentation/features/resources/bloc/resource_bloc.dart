@@ -310,16 +310,13 @@ class ResourceBloc extends Bloc<ResourceEvent, ResourceState> {
 
       int? linkedNoteId = event.linkedNoteId;
       if (event.linkedNoteId != null) {
-        // Send empty map {} when content is null to trigger note deletion
+        // Empty content triggers note deletion on backend
         final contentToSend = event.noteContent ?? <String, dynamic>{};
         futures.add(noteRepository.updateNote(
           noteId: event.linkedNoteId!,
           request: NoteRequestModel(content: contentToSend),
         ));
-        // If content is empty, note will be deleted - clear linkedNoteId
-        if (event.noteContent == null) {
-          linkedNoteId = null;
-        }
+        if (event.noteContent == null) linkedNoteId = null;
       } else if (event.noteContent != null) {
         futures.add(noteRepository.createNote(
           request: NoteRequestModel(content: event.noteContent, resourceId: event.resourceId),
@@ -329,7 +326,6 @@ class ResourceBloc extends Bloc<ResourceEvent, ResourceState> {
       final results = await Future.wait(futures);
       final resource = results[0] as ResourceModel;
 
-      // If a new note was created, get its ID
       if (event.linkedNoteId == null && results.length > 1) {
         linkedNoteId = (results[1] as NoteModel).id;
       }
