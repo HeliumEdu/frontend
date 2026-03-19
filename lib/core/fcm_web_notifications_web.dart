@@ -15,12 +15,10 @@ final _log = Logger('core');
 
 bool isMessagingSupported() {
   try {
-    // Check for required APIs: Service Worker, Notification API, IndexedDB
-    // Firebase Messaging requires all three - will throw if unavailable
+    // Check for required APIs: Service Worker, Notification API
     final _ = web.window.navigator.serviceWorker;
     final hasNotification = web.Notification.permission.isNotEmpty;
-    final hasIndexedDB = web.window.indexedDB != null;
-    return hasNotification && hasIndexedDB;
+    return hasNotification;
   } catch (e) {
     _log.warning('Browser does not support messaging APIs', e);
     return false;

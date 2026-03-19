@@ -101,8 +101,14 @@ class FcmService {
       }
     }
 
-    // Now safe to access FirebaseMessaging.instance
-    _firebaseMessaging = FirebaseMessaging.instance;
+    // Access FirebaseMessaging.instance - may throw on unsupported browsers
+    try {
+      _firebaseMessaging = FirebaseMessaging.instance;
+    } catch (e) {
+      _log.info('FCM not supported in this browser (instance creation failed)', e);
+      _isSupported = false;
+      return;
+    }
 
     // Additional Firebase-level support check for web
     if (kIsWeb) {
