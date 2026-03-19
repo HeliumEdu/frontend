@@ -24,37 +24,53 @@ class CategoryTitleLabel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
-      decoration: BoxDecoration(
-        color: BadgeColors.background(context, color),
-        borderRadius: BorderRadius.circular(6),
-        border: Border.all(color: BadgeColors.border(context, color)),
-      ),
+    return IntrinsicHeight(
       child: Row(
         mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Icon(
-            Icons.category_outlined,
-            color: BadgeColors.foreground(context, color),
-            size: Responsive.getIconSize(
-              context,
-              mobile: 14,
-              tablet: 16,
-              desktop: 18,
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 6),
+            decoration: BoxDecoration(
+              color: color,
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(8),
+                bottomLeft: Radius.circular(8),
+              ),
+            ),
+            child: Center(
+              child: Icon(
+                Icons.category_outlined,
+                color: HeliumColors.contrastingTextColor(color),
+                size: Responsive.getIconSize(
+                  context,
+                  mobile: 14,
+                  tablet: 16,
+                  desktop: 18,
+                ),
+              ),
             ),
           ),
-          const SizedBox(width: 6),
           Flexible(
-            child: Text(
-              title,
-              style:
-                  (compact
-                          ? AppStyles.smallSecondaryText(context)
-                          : AppStyles.standardBodyText(context))
-                      .copyWith(color: BadgeColors.foreground(context, color)),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              decoration: BoxDecoration(
+                color: BadgeColors.background(context, color),
+                borderRadius: const BorderRadius.only(
+                  topRight: Radius.circular(10),
+                  bottomRight: Radius.circular(10),
+                ),
+                border: Border.all(color: BadgeColors.border(context, color)),
+              ),
+              child: Text(
+                title,
+                style: (compact
+                        ? AppStyles.smallSecondaryText(context)
+                        : AppStyles.standardBodyText(context))
+                    .copyWith(color: BadgeColors.foreground(context, color)),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
             ),
           ),
         ],

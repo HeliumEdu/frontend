@@ -118,6 +118,7 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
   String? _linkedEntityTitle;
   Color? _linkedEntityColor;
   bool _showSearch = false;
+  bool _hasRequestedInitialFocus = false;
 
   @override
   void initState() {
@@ -251,6 +252,14 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
             if (state.note != null) {
               _populateNoteData(state.note!);
             }
+
+            // Request focus once on mobile for create mode
+            if (!_hasRequestedInitialFocus && !kIsWeb && widget.isNew) {
+              _hasRequestedInitialFocus = true;
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                if (mounted) _titleFocusNode.requestFocus();
+              });
+            }
           } else if (state is NoteCreated) {
             showSnackBar(context, 'Note created', useRootMessenger: true);
             cancelAction();
@@ -298,7 +307,7 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
                           hintText: 'Title',
                           controller: _titleController,
                           focusNode: _titleFocusNode,
-                          autofocus: kIsWeb || widget.isNew,
+                          autofocus: kIsWeb,
                           validator: hasBadge
                               ? null
                               : BasicFormController.validateRequiredField,
@@ -459,7 +468,6 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
         title: title,
         color: userSettings?.eventsColor ?? context.colorScheme.tertiary,
         icon: AppConstants.eventIcon,
-        showIconTab: true,
       );
     }
 
@@ -471,7 +479,6 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
       title: title,
       color: badgeColor ?? context.colorScheme.primary,
       icon: AppConstants.assignmentIcon,
-      showIconTab: true,
     );
   }
 }

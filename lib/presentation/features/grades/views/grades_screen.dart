@@ -10,6 +10,7 @@ import 'dart:convert';
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_quill/flutter_quill_internal.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/config/pref_service.dart';
 import 'package:heliumapp/core/dio_client.dart';
@@ -30,6 +31,7 @@ import 'package:heliumapp/presentation/features/grades/dialogs/grade_calculator_
 import 'package:heliumapp/presentation/features/planner/bloc/attachment_bloc.dart';
 import 'package:heliumapp/presentation/features/planner/views/planner_item_add_screen.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/core/provider_helpers.dart';
+import 'package:heliumapp/presentation/ui/components/category_title_label.dart';
 import 'package:heliumapp/presentation/ui/components/course_title_label.dart';
 import 'package:heliumapp/presentation/ui/components/grade_label.dart';
 import 'package:heliumapp/presentation/ui/components/group_dropdown.dart';
@@ -2029,24 +2031,6 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
         onTap: () => _toggleExpandedCourse(course.id),
         child: Row(
           children: [
-            Container(
-              padding: const EdgeInsets.all(14),
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: course.color.withValues(alpha: 0.15),
-              ),
-              child: Icon(
-                Icons.school_outlined,
-                color: course.color,
-                size: Responsive.getIconSize(
-                  context,
-                  mobile: 24,
-                  tablet: 26,
-                  desktop: 28,
-                ),
-              ),
-            ),
-            const SizedBox(width: 14),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -2059,7 +2043,6 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
                           child: CourseTitleLabel(
                             title: course.title,
                             color: course.color,
-                            showIcon: false,
                           ),
                         ),
                       ),
@@ -2420,32 +2403,18 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
     bool hasWeightedGrading,
   ) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      padding: EdgeInsets.only(left: 12, right: Responsive.isMobile(context) ? 9 : 12, top: 10, bottom: 10),
       child: Row(
         children: [
           Expanded(
             flex: 2,
             child: Row(
               children: [
-                const SizedBox(width: 8),
-                Icon(
-                  Icons.category_outlined,
-                  size: Responsive.getIconSize(
-                    context,
-                    mobile: 14,
-                    tablet: 16,
-                    desktop: 18,
-                  ),
-                  color: category.color,
-                ),
-                const SizedBox(width: 8),
+                if (!Responsive.isMobile(context)) const SizedBox(width: 8),
                 Flexible(
-                  child: Text(
-                    category.title,
-                    style: AppStyles.standardBodyText(
-                      context,
-                    ).copyWith(color: context.colorScheme.onSurface),
-                    overflow: TextOverflow.ellipsis,
+                  child: CategoryTitleLabel(
+                    title: category.title,
+                    color: category.color
                   ),
                 ),
               ],
@@ -2462,6 +2431,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
                 ),
               ),
             ),
+          if (Responsive.isMobile(context)) const SizedBox(width: 4),
           Expanded(
             flex: 2,
             child: Align(

@@ -57,10 +57,12 @@ class ResourceDetails extends StatefulWidget {
 
 class ResourceDetailsState extends State<ResourceDetails> {
   final ResourceFormController _formController = ResourceFormController();
+  final FocusNode _titleFocusNode = FocusNode();
 
   // State
   List<CourseModel> _courses = [];
   bool isLoading = true;
+  bool _hasRequestedInitialFocus = false;
 
   @override
   void initState() {
@@ -79,6 +81,7 @@ class ResourceDetailsState extends State<ResourceDetails> {
 
   @override
   void dispose() {
+    _titleFocusNode.dispose();
     _formController.urlFocusNode.removeListener(_onUrlFocusChange);
     _formController.dispose();
 
@@ -121,7 +124,8 @@ class ResourceDetailsState extends State<ResourceDetails> {
                 children: [
                   LabelAndTextFormField(
                     label: 'Title',
-                    autofocus: kIsWeb || !widget.isEdit,
+                    autofocus: kIsWeb,
+                    focusNode: _titleFocusNode,
                     controller: _formController.titleController,
                     validator: BasicFormController.validateRequiredField,
                     fieldKey: _formController.getFieldKey('title'),
@@ -301,6 +305,14 @@ class ResourceDetailsState extends State<ResourceDetails> {
     setState(() {
       isLoading = false;
     });
+
+    // Request focus once on mobile for create mode
+    if (!_hasRequestedInitialFocus && !kIsWeb && !widget.isEdit) {
+      _hasRequestedInitialFocus = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _titleFocusNode.requestFocus();
+      });
+    }
   }
 
   Map<String, dynamic>? get noteContent =>

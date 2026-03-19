@@ -14,7 +14,6 @@ class CourseTitleLabel extends StatelessWidget {
   final String title;
   final Color color;
   final bool showIcon;
-  final bool showIconTab;
   final bool compact;
   final IconData? icon;
   final VoidCallback? onDelete;
@@ -24,7 +23,6 @@ class CourseTitleLabel extends StatelessWidget {
     required this.title,
     required this.color,
     this.showIcon = true,
-    this.showIconTab = false,
     this.compact = false,
     this.icon,
     this.onDelete,
@@ -32,12 +30,12 @@ class CourseTitleLabel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (showIconTab) {
-      return IntrinsicHeight(
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
+    return IntrinsicHeight(
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          if (showIcon)
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 6),
               decoration: BoxDecoration(
@@ -60,117 +58,58 @@ class CourseTitleLabel extends StatelessWidget {
                 ),
               ),
             ),
-            Flexible(
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                decoration: BoxDecoration(
-                  color: BadgeColors.background(context, color),
-                  borderRadius: const BorderRadius.only(
-                    topRight: Radius.circular(10),
-                    bottomRight: Radius.circular(10),
+          Flexible(
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              decoration: BoxDecoration(
+                color: BadgeColors.background(context, color),
+                borderRadius: showIcon
+                    ? const BorderRadius.only(
+                        topRight: Radius.circular(10),
+                        bottomRight: Radius.circular(10),
+                      )
+                    : BorderRadius.circular(10),
+                border: Border.all(color: BadgeColors.border(context, color)),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Flexible(
+                    child: Text(
+                      title,
+                      style: (compact
+                              ? AppStyles.smallSecondaryText(context)
+                              : AppStyles.standardBodyText(context))
+                          .copyWith(color: BadgeColors.foreground(context, color)),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   ),
-                  border: Border.all(color: BadgeColors.border(context, color)),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Flexible(
-                      child: Text(
-                        title,
-                        style: (compact
-                                ? AppStyles.smallSecondaryText(context)
-                                : AppStyles.standardBodyText(context))
-                            .copyWith(color: BadgeColors.foreground(context, color)),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
+                  if (onDelete != null) ...[
+                    const SizedBox(width: 2),
+                    IconButton(
+                      onPressed: onDelete,
+                      icon: const Icon(Icons.close),
+                      iconSize: Responsive.getIconSize(
+                        context,
+                        mobile: 16,
+                        tablet: 18,
+                        desktop: 20,
+                      ),
+                      color: BadgeColors.foreground(context, color),
+                      hoverColor: BadgeColors.border(context, color),
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(),
+                      visualDensity: VisualDensity.compact,
+                      style: IconButton.styleFrom(
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                       ),
                     ),
-                    if (onDelete != null) ...[
-                      const SizedBox(width: 2),
-                      IconButton(
-                        onPressed: onDelete,
-                        icon: const Icon(Icons.close),
-                        iconSize: Responsive.getIconSize(
-                          context,
-                          mobile: 16,
-                          tablet: 18,
-                          desktop: 20,
-                        ),
-                        color: BadgeColors.foreground(context, color),
-                        hoverColor: BadgeColors.border(context, color),
-                        padding: EdgeInsets.zero,
-                        constraints: const BoxConstraints(),
-                        visualDensity: VisualDensity.compact,
-                        style: IconButton.styleFrom(
-                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                        ),
-                      ),
-                    ],
                   ],
-                ),
+                ],
               ),
-            ),
-          ],
-        ),
-      );
-    }
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(
-        color: BadgeColors.background(context, color),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: BadgeColors.border(context, color)),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          if (showIcon) ...[
-            Icon(
-              icon ?? Icons.school_outlined,
-              color: BadgeColors.foreground(context, color),
-              size: Responsive.getIconSize(
-                context,
-                mobile: 14,
-                tablet: 16,
-                desktop: 18,
-              ),
-            ),
-            const SizedBox(width: 6),
-          ],
-          Flexible(
-            child: Text(
-              title,
-              style:
-                  (compact
-                          ? AppStyles.smallSecondaryText(context)
-                          : AppStyles.standardBodyText(context))
-                      .copyWith(color: BadgeColors.foreground(context, color)),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
             ),
           ),
-          if (onDelete != null) ...[
-            const SizedBox(width: 2),
-            IconButton(
-              onPressed: onDelete,
-              icon: const Icon(Icons.close),
-              iconSize: Responsive.getIconSize(
-                context,
-                mobile: 16,
-                tablet: 18,
-                desktop: 20,
-              ),
-              color: BadgeColors.foreground(context, color),
-              hoverColor: BadgeColors.border(context, color),
-              padding: EdgeInsets.zero,
-              constraints: const BoxConstraints(),
-              visualDensity: VisualDensity.compact,
-              style: IconButton.styleFrom(
-                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-              ),
-            ),
-          ],
         ],
       ),
     );

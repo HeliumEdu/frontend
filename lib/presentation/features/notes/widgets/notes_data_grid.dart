@@ -659,7 +659,6 @@ class NotesDataSource extends DataGridSource with SortableDataGridSource {
           title: linkedTo,
           color: userSettings?.eventsColor ?? context.colorScheme.tertiary,
           icon: AppConstants.eventIcon,
-          showIconTab: true,
           compact: true,
         );
       } else {
@@ -671,7 +670,6 @@ class NotesDataSource extends DataGridSource with SortableDataGridSource {
           title: linkedTo,
           color: badgeColor ?? context.colorScheme.primary,
           icon: AppConstants.assignmentIcon,
-          showIconTab: true,
           compact: true,
         );
       }
