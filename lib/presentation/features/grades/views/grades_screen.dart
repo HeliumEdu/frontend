@@ -10,7 +10,6 @@ import 'dart:convert';
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_quill/flutter_quill_internal.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/config/pref_service.dart';
 import 'package:heliumapp/core/dio_client.dart';
@@ -2282,6 +2281,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
 
   Widget _buildBreakdownArea(GradeCourseModel course) {
     final currentData = _buildCurrentDistributionData(course);
+    final isMobile = Responsive.isMobile(context);
 
     // Sort by contribution (highest to lowest)
     currentData.sort((a, b) => b.value.compareTo(a.value));
@@ -2290,7 +2290,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          '${!Responsive.isMobile(context) ? 'Grade ' : ''}Breakdown',
+          '${!isMobile ? 'Grade ' : ''}Breakdown',
           style: AppStyles.headingText(context),
           overflow: TextOverflow.ellipsis,
         ),
@@ -2301,61 +2301,90 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Category label
-                Row(
-                  children: [
-                    Icon(
-                      Icons.category_outlined,
-                      size: Responsive.getIconSize(
-                        context,
-                        mobile: 14,
-                        tablet: 16,
-                        desktop: 18,
-                      ),
-                      color: segment.color,
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        segment.label,
-                        style: AppStyles.smallSecondaryTextLight(
-                          context,
-                        ).copyWith(fontWeight: FontWeight.w600),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                    Text(
-                      '${segment.value.toStringAsFixed(1)}%',
-                      style: AppStyles.smallSecondaryTextLight(context)
-                          .copyWith(
-                            fontWeight: FontWeight.w600,
-                            color: segment.color,
+                // Category label (non-mobile only)
+                if (!isMobile)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 6),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.category_outlined,
+                          size: Responsive.getIconSize(
+                            context,
+                            mobile: 14,
+                            tablet: 16,
+                            desktop: 18,
                           ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 6),
-                // Progress bar
-                Stack(
-                  children: [
-                    Container(
-                      height: 20,
-                      decoration: BoxDecoration(
-                        color: context.colorScheme.surfaceContainerHighest,
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                    ),
-                    FractionallySizedBox(
-                      widthFactor: segment.value / 100,
-                      child: Container(
-                        height: 20,
-                        decoration: BoxDecoration(
                           color: segment.color,
-                          borderRadius: BorderRadius.circular(10),
                         ),
-                      ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            segment.label,
+                            style: AppStyles.smallSecondaryTextLight(
+                              context,
+                            ).copyWith(fontWeight: FontWeight.w600),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        Text(
+                          '${segment.value.toStringAsFixed(1)}%',
+                          style: AppStyles.smallSecondaryTextLight(context)
+                              .copyWith(
+                                fontWeight: FontWeight.w600,
+                                color: context.colorScheme.onSurface.withValues(alpha: 0.7),
+                              ),
+                        ),
+                      ],
                     ),
-                  ],
+                  ),
+                // Progress bar using SfLinearGauge
+                SizedBox(
+                  height: 20,
+                  child: SfLinearGauge(
+                    minimum: 0,
+                    maximum: 100,
+                    showLabels: false,
+                    showTicks: false,
+                    showAxisTrack: true,
+                    axisTrackStyle: LinearAxisTrackStyle(
+                      thickness: 20,
+                      edgeStyle: LinearEdgeStyle.bothCurve,
+                      color: context.colorScheme.surfaceContainerHighest,
+                    ),
+                    barPointers: [
+                      LinearBarPointer(
+                        value: segment.value,
+                        thickness: 20,
+                        edgeStyle: LinearEdgeStyle.bothCurve,
+                        color: segment.color,
+                      ),
+                    ],
+                    markerPointers: isMobile
+                        ? [
+                            LinearWidgetPointer(
+                              value: segment.value,
+                              position: LinearElementPosition.cross,
+                              child: Tooltip(
+                                message: '${segment.label}: ${segment.value.toStringAsFixed(1)}%',
+                                triggerMode: TooltipTriggerMode.tap,
+                                child: Container(
+                                  width: 12,
+                                  height: 12,
+                                  decoration: BoxDecoration(
+                                    color: segment.color,
+                                    shape: BoxShape.circle,
+                                    border: Border.all(
+                                      color: context.colorScheme.surface,
+                                      width: 2,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ]
+                        : [],
+                  ),
                 ),
               ],
             ),
