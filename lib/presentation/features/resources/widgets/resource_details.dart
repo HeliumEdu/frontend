@@ -58,6 +58,7 @@ class ResourceDetails extends StatefulWidget {
 class ResourceDetailsState extends State<ResourceDetails> {
   final ResourceFormController _formController = ResourceFormController();
   final FocusNode _titleFocusNode = FocusNode();
+  final FocusNode _notesFocusNode = FocusNode();
 
   // State
   List<CourseModel> _courses = [];
@@ -82,6 +83,7 @@ class ResourceDetailsState extends State<ResourceDetails> {
   @override
   void dispose() {
     _titleFocusNode.dispose();
+    _notesFocusNode.dispose();
     _formController.urlFocusNode.removeListener(_onUrlFocusChange);
     _formController.dispose();
 
@@ -261,6 +263,7 @@ class ResourceDetailsState extends State<ResourceDetails> {
                   NotesEditor(
                     key: ObjectKey(_formController.notesController),
                     controller: _formController.notesController,
+                    focusNode: _notesFocusNode,
                     onOpenInNotes: widget.isEdit ? () => onSubmit(redirectToNotebook: true) : null,
                   ),
                   const SizedBox(height: 12),

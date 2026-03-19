@@ -14,11 +14,13 @@ import 'package:heliumapp/utils/responsive_helpers.dart';
 
 class NotesEditor extends StatelessWidget {
   final QuillController controller;
+  final FocusNode? focusNode;
   final VoidCallback? onOpenInNotes;
 
   const NotesEditor({
     super.key,
     required this.controller,
+    this.focusNode,
     this.onOpenInNotes,
   });
 
@@ -186,8 +188,10 @@ class NotesEditor extends StatelessWidget {
                   ),
                   child: QuillEditor.basic(
                     controller: controller,
+                    focusNode: focusNode,
                     config: QuillEditorConfig(
                       padding: const EdgeInsets.all(12),
+                      autoFocus: false,
                       customStyles: buildDefaultStyles(context),
                     ),
                   ),

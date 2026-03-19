@@ -82,6 +82,7 @@ class PlannerItemDetails extends StatefulWidget {
 class PlannerItemDetailsState extends State<PlannerItemDetails> {
   final PlannerItemFormController _formController = PlannerItemFormController();
   final FocusNode _titleFocusNode = FocusNode();
+  final FocusNode _notesFocusNode = FocusNode();
 
   // Entity IDs (can be updated for clone)
   int? _eventId;
@@ -145,6 +146,7 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
   @override
   void dispose() {
     _titleFocusNode.dispose();
+    _notesFocusNode.dispose();
     _formController.dispose();
     super.dispose();
   }
@@ -312,6 +314,7 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
                   NotesEditor(
                     key: ObjectKey(_formController.notesController),
                     controller: _formController.notesController,
+                    focusNode: _notesFocusNode,
                     onOpenInNotes: widget.isEdit ? () => onSubmit(redirectToNotebook: true) : null,
                   ),
                   const SizedBox(height: 12),
