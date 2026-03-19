@@ -9,7 +9,6 @@ import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/utils/color_helpers.dart';
 import 'package:heliumapp/core/dio_client.dart';
@@ -359,8 +358,6 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen> {
               isNew: false,
               initialStep: step,
             );
-            // Clear query params from URL after opening dialog/screen
-            context.replace(AppRoute.coursesScreen);
           });
         }
       }
