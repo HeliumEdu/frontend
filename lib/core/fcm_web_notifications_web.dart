@@ -15,8 +15,7 @@ final _log = Logger('core');
 
 bool isMessagingSupported() {
   try {
-    // Check for required APIs: Service Worker, Push API, Notification API
-    // Access these properties to verify browser support - will throw if unavailable
+    // Check for required APIs: Service Worker, Notification API
     final _ = web.window.navigator.serviceWorker;
     final hasNotification = web.Notification.permission.isNotEmpty;
     return hasNotification;

@@ -5,6 +5,8 @@
 //
 // For details regarding the license, please refer to the LICENSE file.
 
+import 'dart:ui';
+
 import 'package:heliumapp/data/models/planner/note_model.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/core/base_state.dart';
 
@@ -39,6 +41,21 @@ class NoteFetched extends NoteState {
   NoteFetched({
     required super.origin,
     required this.note,
+  });
+}
+
+class NoteScreenDataFetched extends NoteState {
+  final NoteModel? note;
+  final String? linkedEntityType;
+  final String? linkedEntityTitle;
+  final Color? linkedEntityColor;
+
+  NoteScreenDataFetched({
+    required super.origin,
+    this.note,
+    this.linkedEntityType,
+    this.linkedEntityTitle,
+    this.linkedEntityColor,
   });
 }
 

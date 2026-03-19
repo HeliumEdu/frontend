@@ -205,9 +205,12 @@ class _PlannerItemAddScreenState
                 (state is EventCreated && state.isClone) ||
                 (state is HomeworkCreated && state.isClone);
 
-            // Check if there's a pending notebook redirect
-            final hasPendingNotebook =
-                _detailsKey.currentState?.hasPendingNotebookRedirect ?? false;
+            // Check for notebook redirect from state
+            final redirectToNotebook =
+                (state is EventCreated && state.redirectToNotebook) ||
+                (state is EventUpdated && state.redirectToNotebook) ||
+                (state is HomeworkCreated && state.redirectToNotebook) ||
+                (state is HomeworkUpdated && state.redirectToNotebook);
 
             if (isClone) {
               showSnackBar(
@@ -225,17 +228,22 @@ class _PlannerItemAddScreenState
                 eventId: state.isEvent ? state.entityId : null,
                 homeworkId: !state.isEvent ? state.entityId : null,
               );
-            } else if (hasPendingNotebook) {
-              // Execute notebook redirect after save
-              // Extract linkedNote from the updated entity
-              final linkedNote = state is HomeworkEntityState
-                  ? state.homework.linkedNote
-                  : (state as EventEntityState).event.linkedNote;
-              _detailsKey.currentState?.executePendingNotebookRedirect(
-                entityId: state.entityId,
-                isEvent: state.isEvent,
-                linkedNote: linkedNote,
-              );
+            } else if (redirectToNotebook) {
+              final linkedNoteId = switch (state) {
+                EventCreated(:final linkedNoteId) => linkedNoteId,
+                EventUpdated(:final linkedNoteId) => linkedNoteId,
+                HomeworkCreated(:final linkedNoteId) => linkedNoteId,
+                HomeworkUpdated(:final linkedNoteId) => linkedNoteId,
+                _ => null,
+              };
+
+              if (linkedNoteId != null) {
+                context.go('${AppRoute.notebookScreen}?id=$linkedNoteId');
+              } else if (state.isEvent) {
+                context.go('${AppRoute.notebookScreen}?eventId=${state.entityId}');
+              } else {
+                context.go('${AppRoute.notebookScreen}?homeworkId=${state.entityId}');
+              }
             } else {
               if (state is HomeworkCreated || state is EventCreated) {
                 final willClose = _willCloseAfterSave();

@@ -1,0 +1,81 @@
+name: "Playwright Tests"
+
+run-name: "Playwright Tests (on `${{ inputs.environment || 'prod' }}`)"
+
+on:
+  schedule:
+    - cron: '0 * * * *'
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to test against'
+        required: true
+        type: choice
+        default: prod
+        options:
+          - dev
+          - prod
+
+permissions:
+  contents: read
+
+concurrency:
+  group: "playwright-smoke-${{ inputs.environment || 'prod' }}"
+  cancel-in-progress: false
+
+jobs:
+  playwright-smoke:
+    name: Playwright Tests
+
+    runs-on: ubuntu-latest
+
+    env:
+      FORCE_COLOR: 1
+      PYTHONUNBUFFERED: 1
+      PYTHONDONTWRITEBYTECODE: 1
+      ENVIRONMENT: ${{ inputs.environment || 'prod' }}
+      PLAYWRIGHT_SMOKE_TEST_EMAIL: ${{ secrets.PLAYWRIGHT_SMOKE_TEST_EMAIL }}
+      PLAYWRIGHT_SMOKE_TEST_PASSWORD: ${{ secrets.PLAYWRIGHT_SMOKE_TEST_PASSWORD }}
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+          cache-dependency-path: playwright/requirements.txt
+
+      - name: Install dependencies
+        run: pip install -r playwright/requirements.txt
+
+      - name: Get Playwright version
+        id: playwright-version
+        run: echo "version=$(pip show playwright | grep Version | cut -d' ' -f2)" >> $GITHUB_OUTPUT
+
+      - name: Cache Playwright browsers
+        id: playwright-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-${{ steps.playwright-version.outputs.version }}
+
+      - name: Install Playwright system dependencies
+        run: python -m playwright install-deps chromium
+
+      - name: Install Playwright browsers
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
+        run: python -m playwright install chromium
+
+      - name: Run smoke tests
+        run: cd playwright && python -m pytest -v --screenshot=only-on-failure --output=screenshots
+
+      - name: Upload screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-screenshots
+          path: playwright/screenshots/
+          if-no-files-found: ignore
+          retention-days: 7

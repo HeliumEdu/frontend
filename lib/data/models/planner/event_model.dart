@@ -13,11 +13,9 @@ import 'package:heliumapp/data/models/planner/reminder_model.dart';
 import 'package:heliumapp/utils/color_helpers.dart';
 import 'package:heliumapp/utils/conversion_helpers.dart';
 import 'package:heliumapp/utils/planner_helper.dart';
-import 'package:heliumapp/data/models/planner/homework_model.dart' show LinkedNoteRef;
 
 class EventModel extends PlannerItemBaseModel {
   final String? ownerId;
-  final LinkedNoteRef? linkedNote;
 
   EventModel({
     required super.id,
@@ -29,12 +27,10 @@ class EventModel extends PlannerItemBaseModel {
     required super.priority,
     required super.url,
     required super.comments,
-    super.notes,
     required super.attachments,
     required super.reminders,
     required super.color,
     this.ownerId,
-    this.linkedNote,
   }) : super(plannerItemType: PlannerItemType.event);
 
   factory EventModel.fromJson(Map<String, dynamic> json) {
@@ -48,7 +44,6 @@ class EventModel extends PlannerItemBaseModel {
       priority: json['priority'],
       url: json['url'],
       comments: json['comments'],
-      notes: json['notes'] != null ? Map<String, dynamic>.from(json['notes']) : null,
       attachments: json['attachments'] != null
           ? idOrEntityListFrom(json['attachments'], AttachmentModel.fromJson)
           : [],
@@ -59,7 +54,6 @@ class EventModel extends PlannerItemBaseModel {
       color: json['color'] != null
           ? HeliumColors.hexToColor(json['color'])
           : null,
-      linkedNote: json['note'] != null ? LinkedNoteRef.fromJson(json['note']) : null,
     );
   }
 
@@ -83,12 +77,10 @@ class EventModel extends PlannerItemBaseModel {
     int? priority,
     String? url,
     String? comments,
-    Map<String, dynamic>? notes,
     List<IdOrEntity<AttachmentModel>>? attachments,
     List<IdOrEntity<ReminderModel>>? reminders,
     Color? color,
     String? ownerId,
-    LinkedNoteRef? linkedNote,
   }) {
     return EventModel(
       id: id ?? this.id,
@@ -100,12 +92,10 @@ class EventModel extends PlannerItemBaseModel {
       priority: priority ?? this.priority,
       url: url ?? this.url,
       comments: comments ?? this.comments,
-      notes: notes ?? this.notes,
       attachments: attachments ?? this.attachments,
       reminders: reminders ?? this.reminders,
       color: color ?? this.color,
       ownerId: ownerId ?? this.ownerId,
-      linkedNote: linkedNote ?? this.linkedNote,
     );
   }
 }

@@ -655,14 +655,6 @@ void main() {
         expect(filtered[0].id, 1);
       });
 
-      test('filters by notes match', () {
-        dataSource.setSearchQuery('conclusions');
-        final filtered = dataSource.filteredHomeworks;
-
-        expect(filtered, hasLength(1));
-        expect(filtered[0].id, 2);
-      });
-
       test('search is case insensitive', () {
         dataSource.setSearchQuery('PHYSICS');
         final filtered = dataSource.filteredHomeworks;
@@ -679,13 +671,6 @@ void main() {
         expect(filtered[0].id, 2);
       });
 
-      test('applies search to events', () {
-        dataSource.setSearchQuery('math');
-        dataSource.setFilterTypes(['Events']);
-
-        expect(dataSource.appointments, hasLength(1));
-        expect((dataSource.appointments![0] as EventModel).id, 3);
-      });
     });
 
     group('type filtering', () {
@@ -1532,7 +1517,6 @@ HomeworkModel _createHomeworkModel({
     end: end ?? DateTime.parse('2025-01-15T11:00:00Z'),
     priority: 50,
     comments: '',
-    notes: notesText != null ? {'ops': [{'insert': '$notesText\n'}]} : null,
     attachments: [],
     reminders: [],
     completed: completed,
@@ -1563,7 +1547,6 @@ EventModel _createEventModel({
     priority: 50,
     url: null,
     comments: '',
-    notes: notesText != null ? {'ops': [{'insert': '$notesText\n'}]} : null,
     attachments: [],
     reminders: [],
     color: const Color(0xFF4CAF50),

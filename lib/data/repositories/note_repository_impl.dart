@@ -19,13 +19,21 @@ class NoteRepositoryImpl implements NoteRepository {
   Future<List<NoteModel>> getNotes({
     String? search,
     String? linkedEntityType,
+    int? homeworkId,
+    int? eventId,
+    int? resourceId,
     DateTime? updatedAtGte,
+    bool includeContent = false,
     bool forceRefresh = false,
   }) async {
     return await remoteDataSource.getNotes(
       search: search,
       linkedEntityType: linkedEntityType,
+      homeworkId: homeworkId,
+      eventId: eventId,
+      resourceId: resourceId,
       updatedAtGte: updatedAtGte,
+      includeContent: includeContent,
       forceRefresh: forceRefresh,
     );
   }

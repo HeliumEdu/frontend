@@ -21,6 +21,7 @@ import '../../../mocks/register_fallbacks.dart';
 void main() {
   late MockResourceRepository mockResourceRepository;
   late MockCourseRepository mockCourseRepository;
+  late MockNoteRepository mockNoteRepository;
   late ResourceBloc resourceBloc;
 
   setUpAll(() {
@@ -30,9 +31,11 @@ void main() {
   setUp(() {
     mockResourceRepository = MockResourceRepository();
     mockCourseRepository = MockCourseRepository();
+    mockNoteRepository = MockNoteRepository();
     resourceBloc = ResourceBloc(
       resourceRepository: mockResourceRepository,
       courseRepository: mockCourseRepository,
+      noteRepository: mockNoteRepository,
     );
   });
 
@@ -58,6 +61,12 @@ void main() {
           when(
             () => mockCourseRepository.getCourses(),
           ).thenAnswer((_) async => MockModels.createCourses());
+          when(
+            () => mockNoteRepository.getNotes(
+              linkedEntityType: 'resource',
+              includeContent: true,
+            ),
+          ).thenAnswer((_) async => []);
           return resourceBloc;
         },
         act: (bloc) =>
@@ -152,15 +161,20 @@ void main() {
         'emits [ResourcesLoading, ResourceScreenDataFetched] with resource when resourceId is provided',
         build: () {
           when(
-            () =>
-                mockResourceRepository.getResource(
-                  groupId: resourceGroupId,
-                  resourceId: resourceId,
-                ),
+            () => mockResourceRepository.getResource(
+              groupId: resourceGroupId,
+              resourceId: resourceId,
+            ),
           ).thenAnswer((_) async => MockModels.createResource(id: resourceId));
           when(
             () => mockCourseRepository.getCourses(),
           ).thenAnswer((_) async => MockModels.createCourses());
+          when(
+            () => mockNoteRepository.getNotes(
+              resourceId: resourceId,
+              includeContent: true,
+            ),
+          ).thenAnswer((_) async => []);
           return resourceBloc;
         },
         act: (bloc) => bloc.add(

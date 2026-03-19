@@ -1,4 +1,4 @@
-.PHONY: all env install clean clean-chrome icons build-android build-android-release build-ios-dev build-ios build-ios-release update-version firebase-config build-web test start-platform stop-platform test-integration test-integration-smoke coverage run-devserver build-docker-local build-docker run-docker stop-docker restart-docker publish
+.PHONY: all env install clean clean-chrome icons build-android build-android-release build-ios-dev build-ios build-ios-release update-version firebase-config build-web test start-platform stop-platform test-integration test-integration-smoke test-playwright coverage run-devserver build-docker-local build-docker run-docker stop-docker restart-docker publish
 
 SHELL := /usr/bin/env bash
 TAG_VERSION ?= latest
@@ -7,8 +7,8 @@ DOCKER_TAG_VERSION := $(subst +,_,$(TAG_VERSION))
 DOCKER_CACHE_DIR ?= .docker-cache
 
 ENVIRONMENT ?= dev-local
+HEADLESS ?= true
 INTEGRATION_TARGET ?= integration_test/full_test.dart
-INTEGRATION_HEADLESS ?= true
 INTEGRATION_EMAIL_SUFFIX ?= integration-$(USER)
 ifeq ($(ENVIRONMENT),prod)
     ENVIRONMENT_PREFIX :=
@@ -51,7 +51,7 @@ endif
 DRIVE_ARGS := --driver=test_driver/integration_test.dart -d web-server --web-port=8080 --browser-name=chrome --profile --dart-define=ENVIRONMENT=$(ENVIRONMENT) --dart-define=ANALYTICS_ENABLED=false
 DRIVE_ARGS += --web-browser-flag="--disable-web-security"
 DRIVE_ARGS += --web-browser-flag="--user-data-dir=/tmp/chrome_test_profile"
-ifeq ($(INTEGRATION_HEADLESS),true)
+ifeq ($(HEADLESS),true)
     DRIVE_ARGS += --headless
 else
     DRIVE_ARGS += --no-headless
@@ -163,6 +163,9 @@ endif
 
 test-integration-smoke:
 	@chromedriver --port=4444 & CHROME_PID=$$!; sleep 2 && flutter drive --target=integration_test/smoke_test.dart $(DRIVE_ARGS); TEST_EXIT=$$?; kill $$CHROME_PID 2>/dev/null || true; exit $$TEST_EXIT
+
+test-playwright:
+	cd playwright && python3 -m pip install -r requirements.txt -q && python3 -m playwright install chromium && python3 -m pytest -v --screenshot=only-on-failure --output=screenshots
 
 coverage:
 	dart pub global activate test_cov_console

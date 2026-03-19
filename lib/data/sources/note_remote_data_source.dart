@@ -20,7 +20,11 @@ abstract class NoteRemoteDataSource extends BaseDataSource {
   Future<List<NoteModel>> getNotes({
     String? search,
     String? linkedEntityType,
+    int? homeworkId,
+    int? eventId,
+    int? resourceId,
     DateTime? updatedAtGte,
+    bool includeContent = false,
     bool forceRefresh = false,
   });
 
@@ -47,7 +51,11 @@ class NoteRemoteDataSourceImpl extends NoteRemoteDataSource {
   Future<List<NoteModel>> getNotes({
     String? search,
     String? linkedEntityType,
+    int? homeworkId,
+    int? eventId,
+    int? resourceId,
     DateTime? updatedAtGte,
+    bool includeContent = false,
     bool forceRefresh = false,
   }) async {
     try {
@@ -58,9 +66,13 @@ class NoteRemoteDataSourceImpl extends NoteRemoteDataSource {
       if (linkedEntityType != null) {
         queryParameters['linked_entity_type'] = linkedEntityType;
       }
+      if (homeworkId != null) queryParameters['homework'] = homeworkId;
+      if (eventId != null) queryParameters['event'] = eventId;
+      if (resourceId != null) queryParameters['resource'] = resourceId;
       if (updatedAtGte != null) {
         queryParameters['updated_at__gte'] = updatedAtGte.toIso8601String();
       }
+      if (includeContent) queryParameters['include_content'] = 'true';
 
       final response = await dioClient.dio.get(
         ApiUrl.plannerNotesListUrl,

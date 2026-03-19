@@ -12,7 +12,6 @@ class ResourceRequestModel {
   final String website;
   final String price;
   final String details;
-  final Map<String, dynamic>? notes;
   final List<int> courses;
   final int resourceGroup;
 
@@ -23,7 +22,6 @@ class ResourceRequestModel {
     required this.website,
     required this.price,
     required this.details,
-    this.notes,
     required this.courses,
     required this.resourceGroup,
   });
@@ -36,7 +34,6 @@ class ResourceRequestModel {
       'website': website,
       'price': price,
       'details': details,
-      'notes': notes,
       'courses': courses,
       'material_group': resourceGroup,
     };
