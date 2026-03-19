@@ -37,7 +37,13 @@ class CourseTitleLabel extends StatelessWidget {
         children: [
           if (showIcon)
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 5),
+              padding: EdgeInsets.symmetric(
+                horizontal: Responsive.getResponsiveValue(
+                  context,
+                  mobile: 6,
+                  desktop: 5,
+                ),
+              ),
               decoration: BoxDecoration(
                 color: color,
                 borderRadius: const BorderRadius.only(
@@ -77,10 +83,13 @@ class CourseTitleLabel extends StatelessWidget {
                   Flexible(
                     child: Text(
                       title,
-                      style: (compact
-                              ? AppStyles.smallSecondaryText(context)
-                              : AppStyles.standardBodyText(context))
-                          .copyWith(color: BadgeColors.foreground(context, color)),
+                      style:
+                          (compact
+                                  ? AppStyles.smallSecondaryText(context)
+                                  : AppStyles.standardBodyText(context))
+                              .copyWith(
+                                color: BadgeColors.foreground(context, color),
+                              ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
