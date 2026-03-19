@@ -106,21 +106,32 @@ class _ResourceAddScreenState
           if (state is ResourcesError) {
             showSnackBar(context, state.message!, type: SnackType.error);
             setState(() => isSubmitting = false);
-          } else if (state is ResourceCreated ||
-              state is ResourceUpdated) {
-            // Check if there's a pending notebook redirect
-            final hasPendingNotebook =
-                _detailsKey.currentState?.hasPendingNotebookRedirect ?? false;
+          } else if (state is ResourceCreated || state is ResourceUpdated) {
+            final resource = (state as ResourceEntityState).resource;
 
-            if (hasPendingNotebook) {
-              // Execute notebook redirect after save
-              final resource = (state as ResourceEntityState).resource;
-              _detailsKey.currentState?.executePendingNotebookRedirect(
-                resourceId: resource.id,
-                linkedNote: resource.linkedNote,
-              );
+            // Check for notebook redirect from state
+            final redirectToNotebook =
+                (state is ResourceCreated && state.redirectToNotebook) ||
+                (state is ResourceUpdated && state.redirectToNotebook);
+
+            if (redirectToNotebook) {
+              // Get linkedNoteId from state if available
+              final int? linkedNoteId;
+              if (state is ResourceCreated) {
+                linkedNoteId = state.linkedNoteId;
+              } else if (state is ResourceUpdated) {
+                linkedNoteId = state.linkedNoteId;
+              } else {
+                linkedNoteId = null;
+              }
+
+              // Redirect to notebook - use note ID if available, otherwise resource ID
+              if (linkedNoteId != null) {
+                context.go('${AppRoute.notebookScreen}?id=$linkedNoteId');
+              } else {
+                context.go('${AppRoute.notebookScreen}?resourceId=${resource.id}&resourceGroupId=${widget.resourceGroupId}');
+              }
             } else {
-              // Only show snackbar for creates
               if (state is ResourceCreated) {
                 showSnackBar(context, 'Resource created', useRootMessenger: true);
               }

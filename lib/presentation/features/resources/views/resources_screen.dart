@@ -8,15 +8,17 @@
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:heliumapp/presentation/ui/components/notes_viewer.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/core/dio_client.dart';
 import 'package:heliumapp/data/models/planner/course_model.dart';
+import 'package:heliumapp/data/models/planner/note_model.dart';
 import 'package:heliumapp/data/models/planner/resource_group_model.dart';
 import 'package:heliumapp/data/models/planner/resource_model.dart';
 import 'package:heliumapp/data/repositories/course_repository_impl.dart';
+import 'package:heliumapp/data/repositories/note_repository_impl.dart';
 import 'package:heliumapp/data/repositories/resource_repository_impl.dart';
 import 'package:heliumapp/data/sources/course_remote_data_source.dart';
+import 'package:heliumapp/data/sources/note_remote_data_source.dart';
 import 'package:heliumapp/data/sources/resource_remote_data_source.dart';
 import 'package:heliumapp/presentation/core/views/base_page_screen_state.dart';
 import 'package:heliumapp/presentation/features/planner/dialogs/confirm_delete_dialog.dart';
@@ -34,9 +36,11 @@ import 'package:heliumapp/presentation/ui/components/pill_badge.dart';
 import 'package:heliumapp/presentation/ui/components/resource_title_label.dart';
 import 'package:heliumapp/presentation/ui/feedback/empty_card.dart';
 import 'package:heliumapp/presentation/ui/feedback/error_card.dart';
+import 'package:heliumapp/presentation/ui/components/notes_viewer.dart';
 import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
 import 'package:heliumapp/presentation/ui/layout/mobile_gesture_detector.dart';
 import 'package:heliumapp/presentation/ui/layout/responsive_card_grid.dart';
+import 'package:heliumapp/utils/quill_helpers.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:heliumapp/utils/sort_helpers.dart';
@@ -62,6 +66,11 @@ class ResourcesScreen extends StatelessWidget {
             ),
             courseRepository: CourseRepositoryImpl(
               remoteDataSource: CourseRemoteDataSourceImpl(
+                dioClient: _dioClient,
+              ),
+            ),
+            noteRepository: NoteRepositoryImpl(
+              remoteDataSource: NoteRemoteDataSourceImpl(
                 dioClient: _dioClient,
               ),
             ),
@@ -105,6 +114,7 @@ class _ResourcesScreenState
   List<ResourceGroupModel> _resourceGroups = [];
   final Map<int, List<ResourceModel>> _resourcesMap = {};
   Map<int, CourseModel> _coursesMap = {};
+  Map<int, NoteModel> _notesMap = {}; // resourceId -> Note
   int? _selectedGroupId;
 
   @override
@@ -300,6 +310,11 @@ class _ResourcesScreenState
 
       _coursesMap = {for (var course in state.courses) course.id: course};
 
+      _notesMap = {
+        for (var note in state.notes)
+          if (note.resources.isNotEmpty) note.resources.first: note
+      };
+
       if (_resourceGroups.isNotEmpty) {
         _selectedGroupId = _resourceGroups.first.id;
       }
@@ -419,12 +434,11 @@ class _ResourcesScreenState
                 ),
               ],
 
-              const SizedBox(height: 12),
-
-              if (resource.notes != null) ...[
+              if (_notesMap[resource.id] case final note?
+                  when !isNotesEmpty(note.content)) ...[
                 const Divider(),
                 const SizedBox(height: 12),
-                NotesViewer(notes: resource.notes),
+                NotesViewer(notes: note.content),
               ],
             ],
           ),

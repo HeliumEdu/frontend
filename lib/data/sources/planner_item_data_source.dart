@@ -22,7 +22,6 @@ import 'package:heliumapp/data/models/planner/external_calendar_event_model.dart
 import 'package:heliumapp/data/models/planner/homework_model.dart';
 import 'package:heliumapp/data/sources/planner_item_filter_compute.dart';
 import 'package:heliumapp/domain/repositories/course_schedule_event_repository.dart';
-import 'package:heliumapp/utils/quill_helpers.dart';
 import 'package:heliumapp/domain/repositories/event_repository.dart';
 import 'package:heliumapp/domain/repositories/external_calendar_repository.dart';
 import 'package:heliumapp/domain/repositories/homework_repository.dart';
@@ -1041,7 +1040,6 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
         index: index,
         type: type,
         title: item.title,
-        notesText: extractNotesPlainText(item.notes),
         start: item.start,
         end: item.end,
         allDay: item.allDay,
@@ -1186,15 +1184,6 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
   }
 
   bool _matchesSearch(PlannerItemBaseModel item, String query) {
-    if (item.title.toLowerCase().contains(query)) {
-      return true;
-    }
-
-    final notesText = extractNotesPlainText(item.notes);
-    if (notesText.toLowerCase().contains(query)) {
-      return true;
-    }
-
-    return false;
+    return item.title.toLowerCase().contains(query);
   }
 }

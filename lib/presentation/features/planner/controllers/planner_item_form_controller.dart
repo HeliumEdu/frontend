@@ -29,8 +29,8 @@ class PlannerItemFormController extends BasicFormController {
   TimeOfDay startTime = const TimeOfDay(hour: 12, minute: 0);
   TimeOfDay endTime = const TimeOfDay(hour: 12, minute: 50);
   double priorityValue = 50.0;
-  String initialNotes = '';
   QuillController notesController = QuillController.basic();
+  int? linkedNoteId;
 
   PlannerItemFormController() {
     gradeFocusNode.addListener(_onGradeFocusChange);

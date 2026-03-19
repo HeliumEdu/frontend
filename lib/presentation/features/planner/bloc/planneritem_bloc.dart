@@ -12,13 +12,18 @@ import 'package:heliumapp/data/models/planner/category_model.dart';
 import 'package:heliumapp/data/models/planner/course_group_model.dart';
 import 'package:heliumapp/data/models/planner/course_model.dart';
 import 'package:heliumapp/data/models/planner/course_schedule_model.dart';
+import 'package:heliumapp/data/models/planner/event_model.dart';
+import 'package:heliumapp/data/models/planner/homework_model.dart';
+import 'package:heliumapp/data/models/planner/note_model.dart';
 import 'package:heliumapp/data/models/planner/resource_model.dart';
 import 'package:heliumapp/domain/repositories/category_repository.dart';
 import 'package:heliumapp/domain/repositories/course_repository.dart';
 import 'package:heliumapp/domain/repositories/course_schedule_event_repository.dart';
 import 'package:heliumapp/domain/repositories/event_repository.dart';
 import 'package:heliumapp/domain/repositories/homework_repository.dart';
+import 'package:heliumapp/domain/repositories/note_repository.dart';
 import 'package:heliumapp/domain/repositories/resource_repository.dart';
+import 'package:heliumapp/data/models/planner/request/note_request_model.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/planneritem_event.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/planneritem_state.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/core/base_event.dart';
@@ -30,6 +35,7 @@ class PlannerItemBloc extends Bloc<PlannerItemEvent, PlannerItemState> {
   final CourseScheduleRepository courseScheduleRepository;
   final CategoryRepository categoryRepository;
   final ResourceRepository resourceRepository;
+  final NoteRepository noteRepository;
 
   PlannerItemBloc({
     required this.eventRepository,
@@ -38,6 +44,7 @@ class PlannerItemBloc extends Bloc<PlannerItemEvent, PlannerItemState> {
     required this.categoryRepository,
     required this.courseScheduleRepository,
     required this.resourceRepository,
+    required this.noteRepository,
   }) : super(PlannerItemInitial(origin: EventOrigin.bloc)) {
     on<FetchPlannerItemScreenDataEvent>(_onFetchPlannerItemScreenDataEvent);
     on<FetchEventEvent>(_onFetchEvent);
@@ -63,8 +70,16 @@ class PlannerItemBloc extends Bloc<PlannerItemEvent, PlannerItemState> {
       final List<CourseScheduleModel> courseSchedules;
       final List<CategoryModel> categories;
       final List<ResourceModel> resources;
+      NoteModel? linkedNote;
+
       if (event.eventId != null) {
-        plannerItem = await eventRepository.getEvent(id: event.eventId!);
+        final results = await Future.wait([
+          eventRepository.getEvent(id: event.eventId!),
+          noteRepository.getNotes(eventId: event.eventId, includeContent: true),
+        ]);
+        plannerItem = results[0] as PlannerItemBaseModel;
+        final notes = results[1] as List<NoteModel>;
+        linkedNote = notes.isNotEmpty ? notes.first : null;
         courseGroups = [];
         courses = [];
         courseSchedules = [];
@@ -80,6 +95,9 @@ class PlannerItemBloc extends Bloc<PlannerItemEvent, PlannerItemState> {
           courseScheduleRepository.getCourseSchedules(shownOnCalendar: true),
           categoryRepository.getCategories(shownOnCalendar: true),
           resourceRepository.getResources(shownOnCalendar: true),
+          event.homeworkId != null
+              ? noteRepository.getNotes(homeworkId: event.homeworkId, includeContent: true)
+              : Future.value(<NoteModel>[]),
         ]);
         plannerItem = results[0] as PlannerItemBaseModel?;
         courseGroups = results[1] as List<CourseGroupModel>;
@@ -87,6 +105,8 @@ class PlannerItemBloc extends Bloc<PlannerItemEvent, PlannerItemState> {
         courseSchedules = results[3] as List<CourseScheduleModel>;
         categories = results[4] as List<CategoryModel>;
         resources = results[5] as List<ResourceModel>;
+        final notes = results[6] as List<NoteModel>;
+        linkedNote = notes.isNotEmpty ? notes.first : null;
       }
 
       emit(
@@ -98,6 +118,7 @@ class PlannerItemBloc extends Bloc<PlannerItemEvent, PlannerItemState> {
           courseSchedules: courseSchedules,
           categories: categories,
           resources: resources,
+          linkedNote: linkedNote,
         ),
       );
     } on HeliumException catch (e) {
@@ -146,6 +167,19 @@ class PlannerItemBloc extends Bloc<PlannerItemEvent, PlannerItemState> {
     emit(PlannerItemsLoading(origin: event.origin));
     try {
       final entity = await eventRepository.createEvent(request: event.request);
+
+      // Create linked note if content provided
+      int? linkedNoteId;
+      if (event.noteContent != null) {
+        final note = await noteRepository.createNote(
+          request: NoteRequestModel(
+            content: event.noteContent,
+            eventId: entity.id,
+          ),
+        );
+        linkedNoteId = note.id;
+      }
+
       emit(
         EventCreated(
           origin: event.origin,
@@ -154,6 +188,8 @@ class PlannerItemBloc extends Bloc<PlannerItemEvent, PlannerItemState> {
           isEvent: true,
           advanceNavOnSuccess: event.advanceNavOnSuccess,
           isClone: event.isClone,
+          redirectToNotebook: event.redirectToNotebook,
+          linkedNoteId: linkedNoteId,
         ),
       );
     } on HeliumException catch (e) {
@@ -174,10 +210,37 @@ class PlannerItemBloc extends Bloc<PlannerItemEvent, PlannerItemState> {
   ) async {
     emit(PlannerItemsLoading(origin: event.origin));
     try {
-      final entity = await eventRepository.updateEvent(
-        eventId: event.id,
-        request: event.request,
-      );
+      // Update entity and note in parallel
+      final futures = <Future<dynamic>>[
+        eventRepository.updateEvent(eventId: event.id, request: event.request),
+      ];
+
+      int? linkedNoteId = event.linkedNoteId;
+      if (event.linkedNoteId != null) {
+        // Send empty map {} when content is null to trigger note deletion
+        final contentToSend = event.noteContent ?? <String, dynamic>{};
+        futures.add(noteRepository.updateNote(
+          noteId: event.linkedNoteId!,
+          request: NoteRequestModel(content: contentToSend),
+        ));
+        // If content is empty, note will be deleted - clear linkedNoteId
+        if (event.noteContent == null) {
+          linkedNoteId = null;
+        }
+      } else if (event.noteContent != null) {
+        futures.add(noteRepository.createNote(
+          request: NoteRequestModel(content: event.noteContent, eventId: event.id),
+        ));
+      }
+
+      final results = await Future.wait(futures);
+      final entity = results[0] as EventModel;
+
+      // If a new note was created, get its ID
+      if (event.linkedNoteId == null && results.length > 1) {
+        linkedNoteId = (results[1] as NoteModel).id;
+      }
+
       emit(
         EventUpdated(
           origin: event.origin,
@@ -185,6 +248,8 @@ class PlannerItemBloc extends Bloc<PlannerItemEvent, PlannerItemState> {
           entityId: entity.id,
           isEvent: true,
           advanceNavOnSuccess: event.advanceNavOnSuccess,
+          redirectToNotebook: event.redirectToNotebook,
+          linkedNoteId: linkedNoteId,
         ),
       );
     } on HeliumException catch (e) {
@@ -277,6 +342,19 @@ class PlannerItemBloc extends Bloc<PlannerItemEvent, PlannerItemState> {
         courseId: event.courseId,
         request: event.request,
       );
+
+      // Create linked note if content provided
+      int? linkedNoteId;
+      if (event.noteContent != null) {
+        final note = await noteRepository.createNote(
+          request: NoteRequestModel(
+            content: event.noteContent,
+            homeworkId: homework.id,
+          ),
+        );
+        linkedNoteId = note.id;
+      }
+
       emit(
         HomeworkCreated(
           origin: event.origin,
@@ -285,6 +363,8 @@ class PlannerItemBloc extends Bloc<PlannerItemEvent, PlannerItemState> {
           isEvent: false,
           advanceNavOnSuccess: event.advanceNavOnSuccess,
           isClone: event.isClone,
+          redirectToNotebook: event.redirectToNotebook,
+          linkedNoteId: linkedNoteId,
         ),
       );
     } on HeliumException catch (e) {
@@ -305,12 +385,42 @@ class PlannerItemBloc extends Bloc<PlannerItemEvent, PlannerItemState> {
   ) async {
     emit(PlannerItemsLoading(origin: event.origin));
     try {
-      final homework = await homeworkRepository.updateHomework(
-        groupId: event.courseGroupId,
-        courseId: event.courseId,
-        homeworkId: event.homeworkId,
-        request: event.request,
-      );
+      // Update entity and note in parallel
+      final futures = <Future<dynamic>>[
+        homeworkRepository.updateHomework(
+          groupId: event.courseGroupId,
+          courseId: event.courseId,
+          homeworkId: event.homeworkId,
+          request: event.request,
+        ),
+      ];
+
+      int? linkedNoteId = event.linkedNoteId;
+      if (event.linkedNoteId != null) {
+        // Send empty map {} when content is null to trigger note deletion
+        final contentToSend = event.noteContent ?? <String, dynamic>{};
+        futures.add(noteRepository.updateNote(
+          noteId: event.linkedNoteId!,
+          request: NoteRequestModel(content: contentToSend),
+        ));
+        // If content is empty, note will be deleted - clear linkedNoteId
+        if (event.noteContent == null) {
+          linkedNoteId = null;
+        }
+      } else if (event.noteContent != null) {
+        futures.add(noteRepository.createNote(
+          request: NoteRequestModel(content: event.noteContent, homeworkId: event.homeworkId),
+        ));
+      }
+
+      final results = await Future.wait(futures);
+      final homework = results[0] as HomeworkModel;
+
+      // If a new note was created, get its ID
+      if (event.linkedNoteId == null && results.length > 1) {
+        linkedNoteId = (results[1] as NoteModel).id;
+      }
+
       emit(
         HomeworkUpdated(
           origin: event.origin,
@@ -318,6 +428,8 @@ class PlannerItemBloc extends Bloc<PlannerItemEvent, PlannerItemState> {
           entityId: homework.id,
           isEvent: false,
           advanceNavOnSuccess: event.advanceNavOnSuccess,
+          redirectToNotebook: event.redirectToNotebook,
+          linkedNoteId: linkedNoteId,
         ),
       );
     } on HeliumException catch (e) {

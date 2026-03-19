@@ -9,12 +9,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_quill/flutter_quill.dart';
-import 'package:go_router/go_router.dart';
-import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/data/models/planner/course_model.dart';
-import 'package:heliumapp/data/models/planner/resource_model.dart';
-import 'package:heliumapp/data/models/planner/homework_model.dart' show LinkedNoteRef;
 import 'package:heliumapp/data/models/planner/request/resource_request_model.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/core/base_event.dart';
 import 'package:heliumapp/presentation/features/resources/bloc/resource_bloc.dart';
@@ -32,6 +28,7 @@ import 'package:heliumapp/presentation/ui/components/notes_editor.dart';
 import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
 import 'package:heliumapp/presentation/features/resources/constants/resource_constants.dart';
 import 'package:heliumapp/utils/app_style.dart';
+import 'package:heliumapp/utils/quill_helpers.dart';
 import 'package:heliumapp/utils/sort_helpers.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -60,9 +57,7 @@ class ResourceDetailsState extends State<ResourceDetails> {
 
   // State
   List<CourseModel> _courses = [];
-  ResourceModel? _resource;
   bool isLoading = true;
-  bool _pendingNotebookRedirect = false;
 
   @override
   void initState() {
@@ -259,7 +254,7 @@ class ResourceDetailsState extends State<ResourceDetails> {
                   NotesEditor(
                     key: ObjectKey(_formController.notesController),
                     controller: _formController.notesController,
-                    onOpenInNotes: widget.isEdit ? _openInNotes : null,
+                    onOpenInNotes: widget.isEdit ? () => onSubmit(redirectToNotebook: true) : null,
                   ),
                   const SizedBox(height: 12),
                 ],
@@ -272,82 +267,48 @@ class ResourceDetailsState extends State<ResourceDetails> {
   }
 
   void _populateInitialStateData(ResourceScreenDataFetched state) {
-    setState(() {
-      _courses = state.courses;
-      _resource = state.resource;
-      Sort.byTitle(_courses);
+    _courses = state.courses;
+    Sort.byTitle(_courses);
 
-      if (widget.isEdit) {
-        _formController.titleController.text = state.resource!.title;
-        _formController.urlController.text = state.resource!.website;
-        _formController.priceController.text = state.resource!.price ?? '';
-        _formController.initialNotes = state.resource!.details ?? '';
-        _formController.notesController.dispose();
-        if (state.resource!.notes != null) {
-          _formController.notesController = QuillController(
-            document: Document.fromJson(state.resource!.notes!['ops'] as List),
-            selection: const TextSelection.collapsed(offset: 0),
-          );
-        } else {
-          _formController.notesController = QuillController.basic();
-        }
+    if (widget.isEdit) {
+      _formController.titleController.text = state.resource!.title;
+      _formController.urlController.text = state.resource!.website;
+      _formController.priceController.text = state.resource!.price ?? '';
+      _formController.initialNotes = state.resource!.details ?? '';
+      _formController.selectedStatus = state.resource!.status;
+      _formController.selectedCondition = state.resource!.condition;
+      _formController.selectedCourses = List<int>.from(
+        state.resource!.courses,
+      );
 
-        _formController.selectedStatus = state.resource!.status;
-        _formController.selectedCondition = state.resource!.condition;
-        _formController.selectedCourses = List<int>.from(
-          state.resource!.courses,
-        );
+      // Populate linked note from state
+      _formController.notesController.dispose();
+      if (state.linkedNote != null) {
+        _formController.linkedNoteId = state.linkedNote!.id;
+        _formController.notesController = state.linkedNote!.content != null
+            ? QuillController(
+                document: Document.fromJson(state.linkedNote!.content!['ops'] as List),
+                selection: const TextSelection.collapsed(offset: 0),
+              )
+            : QuillController.basic();
+      } else {
+        _formController.notesController = QuillController.basic();
       }
+    }
 
+    setState(() {
       isLoading = false;
     });
   }
 
-  Map<String, dynamic>? _buildNotesDelta() {
-    final delta = _formController.notesController.document.toDelta();
-    final ops = delta.toJson();
-    // Only save if there's actual content (more than just a trailing newline)
-    if (ops.isEmpty || (ops.length == 1 && ops[0]['insert'] == '\n')) {
-      return null;
-    }
-    return {'ops': ops};
-  }
-
-  void _openInNotes() {
-    // Set flag and trigger save - redirect will happen after save completes
-    _pendingNotebookRedirect = true;
-    onSubmit();
-  }
-
-  /// Returns true if there's a pending notebook redirect after save.
-  bool get hasPendingNotebookRedirect => _pendingNotebookRedirect;
-
-  /// Executes the pending notebook redirect. Call after save completes.
-  /// If linkedNote is null (e.g., note was deleted), routes to entity-based creation.
-  void executePendingNotebookRedirect({
-    int? resourceId,
-    LinkedNoteRef? linkedNote,
-  }) {
-    if (!_pendingNotebookRedirect) return;
-    _pendingNotebookRedirect = false;
-
-    // Use provided resourceId (for newly created items) or current state
-    final effectiveResourceId = resourceId ?? _resource?.id;
-
-    // Trust the linkedNote from the save response - don't fall back to local state
-    // which may be stale (e.g., note was deleted because content was cleared)
-    if (linkedNote != null) {
-      context.go('${AppRoute.notebookScreen}?id=${linkedNote.id}');
-    } else if (effectiveResourceId != null) {
-      context.go('${AppRoute.notebookScreen}?resourceId=$effectiveResourceId&resourceGroupId=${widget.resourceGroupId}');
-    }
-  }
-
-  Future<void> onSubmit() async {
+  Future<void> onSubmit({bool redirectToNotebook = false}) async {
     if (isLoading) return;
     if (_formController.validateAndScrollToError()) {
       // Notify parent that action is starting (validation passed)
       widget.onActionStarted?.call();
+
+      // Get note content for bloc
+      final noteContent = buildNotesDelta(_formController.notesController);
 
       final request = ResourceRequestModel(
         title: _formController.titleController.text.trim(),
@@ -360,7 +321,6 @@ class ResourceDetailsState extends State<ResourceDetails> {
             ? ''
             : _formController.priceController.text.trim(),
         details: widget.isEdit ? _formController.initialNotes : '',
-        notes: _buildNotesDelta(),
         courses: _formController.selectedCourses,
         resourceGroup: widget.resourceGroupId,
       );
@@ -373,6 +333,9 @@ class ResourceDetailsState extends State<ResourceDetails> {
             resourceGroupId: widget.resourceGroupId,
             resourceId: widget.resourceId!,
             request: request,
+            linkedNoteId: _formController.linkedNoteId,
+            noteContent: noteContent,
+            redirectToNotebook: redirectToNotebook,
           ),
         );
       } else {
@@ -381,6 +344,8 @@ class ResourceDetailsState extends State<ResourceDetails> {
             origin: EventOrigin.subScreen,
             resourceGroupId: widget.resourceGroupId,
             request: request,
+            noteContent: noteContent,
+            redirectToNotebook: redirectToNotebook,
           ),
         );
       }

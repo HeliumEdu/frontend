@@ -14,7 +14,6 @@ class HomeworkRequestModel {
   final String? end;
   final int? priority;
   final String? comments;
-  final Map<String, dynamic>? notes;
   final String? currentGrade;
   final bool? completed;
   final int? category;
@@ -29,7 +28,6 @@ class HomeworkRequestModel {
     this.end,
     this.priority,
     this.comments,
-    this.notes,
     this.currentGrade,
     this.completed,
     this.category,
@@ -45,7 +43,6 @@ class HomeworkRequestModel {
     if (start != null) json['start'] = start;
     if (end != null) json['end'] = end;
     if (priority != null) json['priority'] = priority;
-    json['notes'] = notes;
     if (currentGrade != null) json['current_grade'] = currentGrade;
     if (completed != null) json['completed'] = completed;
     if (category != null) json['category'] = category;

@@ -9,9 +9,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_quill/flutter_quill.dart';
-import 'package:go_router/go_router.dart';
-import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/data/models/drop_down_item.dart';
 import 'package:heliumapp/data/models/planner/category_model.dart';
@@ -19,11 +16,12 @@ import 'package:heliumapp/data/models/planner/course_group_model.dart';
 import 'package:heliumapp/data/models/planner/course_model.dart';
 import 'package:heliumapp/data/models/planner/course_schedule_model.dart';
 import 'package:heliumapp/data/models/planner/event_model.dart';
-import 'package:heliumapp/data/models/planner/homework_model.dart' show HomeworkModel, LinkedNoteRef;
+import 'package:heliumapp/data/models/planner/homework_model.dart';
 import 'package:heliumapp/data/models/planner/planner_item_base_model.dart';
 import 'package:heliumapp/data/models/planner/request/event_request_model.dart';
 import 'package:heliumapp/data/models/planner/request/homework_request_model.dart';
 import 'package:heliumapp/data/models/planner/resource_model.dart';
+import 'package:flutter_quill/flutter_quill.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/planneritem_bloc.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/planneritem_event.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/planneritem_state.dart';
@@ -46,6 +44,7 @@ import 'package:heliumapp/utils/color_helpers.dart';
 import 'package:heliumapp/utils/date_time_helpers.dart';
 import 'package:heliumapp/utils/grade_helpers.dart';
 import 'package:heliumapp/utils/planner_helper.dart';
+import 'package:heliumapp/utils/quill_helpers.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:heliumapp/utils/snack_bar_helpers.dart';
 import 'package:timezone/standalone.dart' as tz;
@@ -90,7 +89,6 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
   // State
   bool isLoading = true;
   bool _isEvent = false;
-  bool _pendingNotebookRedirect = false;
   PlannerItemBaseModel? _plannerItem;
   List<CourseGroupModel> _courseGroups = [];
   List<CourseModel> _courses = [];
@@ -310,7 +308,7 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
                   NotesEditor(
                     key: ObjectKey(_formController.notesController),
                     controller: _formController.notesController,
-                    onOpenInNotes: widget.isEdit ? _openInNotes : null,
+                    onOpenInNotes: widget.isEdit ? () => onSubmit(redirectToNotebook: true) : null,
                   ),
                   const SizedBox(height: 12),
                 ],
@@ -714,16 +712,6 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
         _formController.isAllDay = plannerItem.allDay;
         _formController.showEndDateTime = plannerItem.showEndTime;
         _formController.priorityValue = plannerItem.priority.toDouble();
-        _formController.initialNotes = plannerItem.comments;
-        _formController.notesController.dispose();
-        if (plannerItem.notes != null) {
-          _formController.notesController = QuillController(
-            document: Document.fromJson(plannerItem.notes!['ops'] as List),
-            selection: const TextSelection.collapsed(offset: 0),
-          );
-        } else {
-          _formController.notesController = QuillController.basic();
-        }
 
         final startDateTime = HeliumDateTime.toLocal(
           plannerItem.start,
@@ -796,6 +784,19 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
       }
     }
 
+    // Populate linked note from state
+    if (widget.isEdit && state.linkedNote != null) {
+      _formController.linkedNoteId = state.linkedNote!.id;
+      if (state.linkedNote!.content != null) {
+        final doc = Document.fromJson(state.linkedNote!.content!['ops'] as List);
+        _formController.notesController.dispose();
+        _formController.notesController = QuillController(
+          document: doc,
+          selection: const TextSelection.collapsed(offset: 0),
+        );
+      }
+    }
+
     setState(() {
       isLoading = false;
     });
@@ -850,16 +851,6 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
     return _formController.priorityValue.round();
   }
 
-  Map<String, dynamic>? _buildNotesDelta() {
-    final delta = _formController.notesController.document.toDelta();
-    final ops = delta.toJson();
-    // Only save if there's actual content (more than just a trailing newline)
-    if (ops.isEmpty || (ops.length == 1 && ops[0]['insert'] == '\n')) {
-      return null;
-    }
-    return {'ops': ops};
-  }
-
   void _onGradeFieldSubmitted(String _) {
     _submitAfterGradeBlur();
   }
@@ -875,7 +866,7 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
     await onSubmit();
   }
 
-  Future<void> onSubmit() async {
+  Future<void> onSubmit({bool redirectToNotebook = false}) async {
     if (isLoading) return;
     if (_formController.validateAndScrollToError()) {
       if (_formController.endDate.isBefore(_formController.startDate)) {
@@ -911,6 +902,9 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
 
       // Notify parent that action is starting (validation passed)
       widget.onActionStarted?.call();
+
+      // Get note content for bloc
+      final noteContent = buildNotesDelta(_formController.notesController);
 
       final start = HeliumDateTime.formatDateAndTimeForApi(
         _formController.startDate,
@@ -951,8 +945,7 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
           start: start,
           end: end,
           priority: _getPriorityValue(),
-          comments: widget.isEdit ? _formController.initialNotes : '',
-          notes: _buildNotesDelta(),
+          comments: _plannerItem?.comments ?? '',
         );
 
         if (!mounted) return;
@@ -962,11 +955,19 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
               origin: EventOrigin.subScreen,
               id: widget.eventId!,
               request: request,
+              linkedNoteId: _formController.linkedNoteId,
+              noteContent: noteContent,
+              redirectToNotebook: redirectToNotebook,
             ),
           );
         } else {
           context.read<PlannerItemBloc>().add(
-            CreateEventEvent(origin: EventOrigin.subScreen, request: request),
+            CreateEventEvent(
+              origin: EventOrigin.subScreen,
+              request: request,
+              noteContent: noteContent,
+              redirectToNotebook: redirectToNotebook,
+            ),
           );
         }
       } else {
@@ -989,8 +990,6 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
           start: start,
           end: end,
           priority: _getPriorityValue(),
-          comments: widget.isEdit ? _formController.initialNotes : '',
-          notes: _buildNotesDelta(),
           currentGrade: gradeValue,
           completed: _formController.isCompleted,
           category: _formController.selectedCategory,
@@ -1012,6 +1011,9 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
               courseId: originalCourse.id,
               homeworkId: widget.homeworkId!,
               request: request,
+              linkedNoteId: _formController.linkedNoteId,
+              noteContent: noteContent,
+              redirectToNotebook: redirectToNotebook,
             ),
           );
         } else {
@@ -1021,6 +1023,8 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
               courseGroupId: selectedCourse.courseGroup,
               courseId: selectedCourse.id,
               request: request,
+              noteContent: noteContent,
+              redirectToNotebook: redirectToNotebook,
             ),
           );
         }
@@ -1121,41 +1125,6 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
     final updated = List<int>.from(_formController.selectedResources)
       ..remove(id);
     _updateSelectedResources(updated);
-  }
-
-  void _openInNotes() {
-    // Set flag and trigger save - redirect will happen after save completes
-    _pendingNotebookRedirect = true;
-    onSubmit();
-  }
-
-  /// Returns true if there's a pending notebook redirect after save.
-  bool get hasPendingNotebookRedirect => _pendingNotebookRedirect;
-
-  /// Executes the pending notebook redirect. Call after save completes.
-  /// Pass the updated entity from the save response to get the correct linkedNote.
-  /// If linkedNote is null (e.g., note was deleted), routes to entity-based creation.
-  void executePendingNotebookRedirect({
-    int? entityId,
-    bool? isEvent,
-    LinkedNoteRef? linkedNote,
-  }) {
-    if (!_pendingNotebookRedirect) return;
-    _pendingNotebookRedirect = false;
-
-    // Use provided entityId/isEvent (for newly created items) or current state
-    final effectiveIsEvent = isEvent ?? _isEvent;
-    final effectiveEntityId = entityId ?? _plannerItem?.id;
-
-    // Trust the linkedNote from the save response - don't fall back to local state
-    // which may be stale (e.g., note was deleted because content was cleared)
-    if (linkedNote != null) {
-      context.go('${AppRoute.notebookScreen}?id=${linkedNote.id}');
-    } else if (effectiveIsEvent) {
-      context.go('${AppRoute.notebookScreen}?eventId=$effectiveEntityId');
-    } else {
-      context.go('${AppRoute.notebookScreen}?homeworkId=$effectiveEntityId');
-    }
   }
 
   void _onDelete() {

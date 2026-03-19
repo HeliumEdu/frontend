@@ -19,6 +19,7 @@ class ResourceFormController extends BasicFormController {
   int selectedCondition = 0;
   String initialNotes = '';
   QuillController notesController = QuillController.basic();
+  int? linkedNoteId;
 
   void dispose() {
     titleController.dispose();

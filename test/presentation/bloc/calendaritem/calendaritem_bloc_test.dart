@@ -27,6 +27,7 @@ void main() {
   late MockCourseScheduleRepository mockCourseScheduleRepository;
   late MockCategoryRepository mockCategoryRepository;
   late MockResourceRepository mockResourceRepository;
+  late MockNoteRepository mockNoteRepository;
   late PlannerItemBloc plannerItemBloc;
 
   setUpAll(() {
@@ -40,6 +41,7 @@ void main() {
     mockCourseScheduleRepository = MockCourseScheduleRepository();
     mockCategoryRepository = MockCategoryRepository();
     mockResourceRepository = MockResourceRepository();
+    mockNoteRepository = MockNoteRepository();
     plannerItemBloc = PlannerItemBloc(
       eventRepository: mockEventRepository,
       homeworkRepository: mockHomeworkRepository,
@@ -47,6 +49,7 @@ void main() {
       courseScheduleRepository: mockCourseScheduleRepository,
       categoryRepository: mockCategoryRepository,
       resourceRepository: mockResourceRepository,
+      noteRepository: mockNoteRepository,
     );
   });
 

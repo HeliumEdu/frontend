@@ -61,3 +61,14 @@ bool isNotesEmpty(Map<String, dynamic>? notes) {
   if (ops.length == 1 && ops[0]['insert'] == '\n') return true;
   return false;
 }
+
+/// Builds a Quill Delta JSON map from a QuillController.
+/// Returns null if the content is empty (only whitespace/newline).
+Map<String, dynamic>? buildNotesDelta(QuillController controller) {
+  final delta = controller.document.toDelta();
+  final ops = delta.toJson();
+  if (ops.isEmpty || (ops.length == 1 && ops[0]['insert'] == '\n')) {
+    return null;
+  }
+  return {'ops': ops};
+}

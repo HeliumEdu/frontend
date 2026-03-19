@@ -21,6 +21,7 @@ import '../../../mocks/register_fallbacks.dart';
 void main() {
   late MockResourceRepository mockResourceRepository;
   late MockCourseRepository mockCourseRepository;
+  late MockNoteRepository mockNoteRepository;
   late ResourceBloc resourceBloc;
 
   setUpAll(() {
@@ -30,9 +31,11 @@ void main() {
   setUp(() {
     mockResourceRepository = MockResourceRepository();
     mockCourseRepository = MockCourseRepository();
+    mockNoteRepository = MockNoteRepository();
     resourceBloc = ResourceBloc(
       resourceRepository: mockResourceRepository,
       courseRepository: mockCourseRepository,
+      noteRepository: mockNoteRepository,
     );
   });
 

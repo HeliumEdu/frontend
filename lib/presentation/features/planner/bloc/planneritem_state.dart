@@ -12,6 +12,7 @@ import 'package:heliumapp/data/models/planner/course_model.dart';
 import 'package:heliumapp/data/models/planner/course_schedule_model.dart';
 import 'package:heliumapp/data/models/planner/event_model.dart';
 import 'package:heliumapp/data/models/planner/homework_model.dart';
+import 'package:heliumapp/data/models/planner/note_model.dart';
 import 'package:heliumapp/data/models/planner/resource_model.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/core/base_state.dart';
 
@@ -75,6 +76,7 @@ class PlannerItemScreenDataFetched extends PlannerItemState {
   final List<CourseScheduleModel> courseSchedules;
   final List<CategoryModel> categories;
   final List<ResourceModel> resources;
+  final NoteModel? linkedNote;
 
   PlannerItemScreenDataFetched({
     required super.origin,
@@ -84,6 +86,7 @@ class PlannerItemScreenDataFetched extends PlannerItemState {
     required this.courseSchedules,
     required this.categories,
     required this.resources,
+    this.linkedNote,
   });
 }
 
@@ -99,6 +102,8 @@ class EventFetched extends EventEntityState {
 
 class EventCreated extends EventEntityState {
   final bool isClone;
+  final bool redirectToNotebook;
+  final int? linkedNoteId;
 
   EventCreated({
     required super.origin,
@@ -107,16 +112,23 @@ class EventCreated extends EventEntityState {
     required super.isEvent,
     required super.advanceNavOnSuccess,
     this.isClone = false,
+    this.redirectToNotebook = false,
+    this.linkedNoteId,
   });
 }
 
 class EventUpdated extends EventEntityState {
+  final bool redirectToNotebook;
+  final int? linkedNoteId;
+
   EventUpdated({
     required super.origin,
     required super.event,
     required super.entityId,
     required super.isEvent,
     required super.advanceNavOnSuccess,
+    this.redirectToNotebook = false,
+    this.linkedNoteId,
   });
 }
 
@@ -142,6 +154,8 @@ class HomeworkFetched extends HomeworkEntityState {
 
 class HomeworkCreated extends HomeworkEntityState {
   final bool isClone;
+  final bool redirectToNotebook;
+  final int? linkedNoteId;
 
   HomeworkCreated({
     required super.origin,
@@ -150,16 +164,23 @@ class HomeworkCreated extends HomeworkEntityState {
     required super.isEvent,
     required super.advanceNavOnSuccess,
     this.isClone = false,
+    this.redirectToNotebook = false,
+    this.linkedNoteId,
   });
 }
 
 class HomeworkUpdated extends HomeworkEntityState {
+  final bool redirectToNotebook;
+  final int? linkedNoteId;
+
   HomeworkUpdated({
     required super.origin,
     required super.homework,
     required super.entityId,
     required super.isEvent,
     required super.advanceNavOnSuccess,
+    this.redirectToNotebook = false,
+    this.linkedNoteId,
   });
 }
 

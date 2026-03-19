@@ -12,7 +12,11 @@ abstract class NoteRepository {
   Future<List<NoteModel>> getNotes({
     String? search,
     String? linkedEntityType,
+    int? homeworkId,
+    int? eventId,
+    int? resourceId,
     DateTime? updatedAtGte,
+    bool includeContent = false,
     bool forceRefresh = false,
   });
 

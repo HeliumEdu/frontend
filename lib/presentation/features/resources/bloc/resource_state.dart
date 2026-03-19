@@ -6,6 +6,7 @@
 // For details regarding the license, please refer to the LICENSE file.
 
 import 'package:heliumapp/data/models/planner/course_model.dart';
+import 'package:heliumapp/data/models/planner/note_model.dart';
 import 'package:heliumapp/data/models/planner/resource_group_model.dart';
 import 'package:heliumapp/data/models/planner/resource_model.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/core/base_state.dart';
@@ -49,6 +50,7 @@ class ResourcesScreenDataFetched extends ResourceState {
   final List<ResourceGroupModel> resourceGroups;
   final List<ResourceModel> resources;
   final List<CourseModel> courses;
+  final List<NoteModel> notes;
 
   ResourcesScreenDataFetched({
     required super.origin,
@@ -56,17 +58,20 @@ class ResourcesScreenDataFetched extends ResourceState {
     required this.resourceGroups,
     required this.resources,
     required this.courses,
+    required this.notes,
   });
 }
 
 class ResourceScreenDataFetched extends ResourceState {
   final ResourceModel? resource;
   final List<CourseModel> courses;
+  final NoteModel? linkedNote;
 
   ResourceScreenDataFetched({
     required super.origin,
     required this.resource,
     required this.courses,
+    this.linkedNote,
   });
 }
 
@@ -99,11 +104,27 @@ class ResourceGroupDeleted extends ResourceState {
 }
 
 class ResourceCreated extends ResourceEntityState {
-  ResourceCreated({required super.origin, required super.resource});
+  final bool redirectToNotebook;
+  final int? linkedNoteId;
+
+  ResourceCreated({
+    required super.origin,
+    required super.resource,
+    this.redirectToNotebook = false,
+    this.linkedNoteId,
+  });
 }
 
 class ResourceUpdated extends ResourceEntityState {
-  ResourceUpdated({required super.origin, required super.resource});
+  final bool redirectToNotebook;
+  final int? linkedNoteId;
+
+  ResourceUpdated({
+    required super.origin,
+    required super.resource,
+    this.redirectToNotebook = false,
+    this.linkedNoteId,
+  });
 }
 
 class ResourceDeleted extends ResourceState {

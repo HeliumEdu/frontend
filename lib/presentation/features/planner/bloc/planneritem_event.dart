@@ -34,12 +34,16 @@ class CreateEventEvent extends PlannerItemEvent {
   final EventRequestModel request;
   final bool advanceNavOnSuccess;
   final bool isClone;
+  final Map<String, dynamic>? noteContent;
+  final bool redirectToNotebook;
 
   CreateEventEvent({
     required super.origin,
     required this.request,
     this.advanceNavOnSuccess = true,
     this.isClone = false,
+    this.noteContent,
+    this.redirectToNotebook = false,
   });
 }
 
@@ -47,12 +51,18 @@ class UpdateEventEvent extends PlannerItemEvent {
   final int id;
   final EventRequestModel request;
   final bool advanceNavOnSuccess;
+  final int? linkedNoteId;
+  final Map<String, dynamic>? noteContent;
+  final bool redirectToNotebook;
 
   UpdateEventEvent({
     required super.origin,
     required this.id,
     required this.request,
     this.advanceNavOnSuccess = false,
+    this.linkedNoteId,
+    this.noteContent,
+    this.redirectToNotebook = false,
   });
 }
 
@@ -78,6 +88,8 @@ class CreateHomeworkEvent extends PlannerItemEvent {
   final HomeworkRequestModel request;
   final bool advanceNavOnSuccess;
   final bool isClone;
+  final Map<String, dynamic>? noteContent;
+  final bool redirectToNotebook;
 
   CreateHomeworkEvent({
     required super.origin,
@@ -86,6 +98,8 @@ class CreateHomeworkEvent extends PlannerItemEvent {
     required this.request,
     this.advanceNavOnSuccess = true,
     this.isClone = false,
+    this.noteContent,
+    this.redirectToNotebook = false,
   });
 }
 
@@ -95,6 +109,9 @@ class UpdateHomeworkEvent extends PlannerItemEvent {
   final int homeworkId;
   final HomeworkRequestModel request;
   final bool advanceNavOnSuccess;
+  final int? linkedNoteId;
+  final Map<String, dynamic>? noteContent;
+  final bool redirectToNotebook;
 
   UpdateHomeworkEvent({
     required super.origin,
@@ -103,6 +120,9 @@ class UpdateHomeworkEvent extends PlannerItemEvent {
     required this.homeworkId,
     required this.request,
     this.advanceNavOnSuccess = false,
+    this.linkedNoteId,
+    this.noteContent,
+    this.redirectToNotebook = false,
   });
 }
 

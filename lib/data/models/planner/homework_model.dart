@@ -15,28 +15,12 @@ import 'package:heliumapp/data/models/planner/reminder_model.dart';
 import 'package:heliumapp/utils/conversion_helpers.dart';
 import 'package:heliumapp/utils/planner_helper.dart';
 
-/// Reference to a linked Note entity (returned by extended serializers).
-class LinkedNoteRef {
-  final int id;
-  final String title;
-
-  LinkedNoteRef({required this.id, required this.title});
-
-  factory LinkedNoteRef.fromJson(Map<String, dynamic> json) {
-    return LinkedNoteRef(
-      id: json['id'],
-      title: json['title'] ?? '',
-    );
-  }
-}
-
 class HomeworkModel extends PlannerItemBaseModel {
   final bool completed;
   final IdOrEntity<CourseModel> course;
   final IdOrEntity<CategoryModel> category;
   final List<IdOrEntity<ResourceModel>> resources;
   final String? currentGrade;
-  final LinkedNoteRef? linkedNote;
 
   HomeworkModel({
     required super.id,
@@ -47,7 +31,6 @@ class HomeworkModel extends PlannerItemBaseModel {
     required super.end,
     required super.priority,
     required super.comments,
-    super.notes,
     required super.attachments,
     required super.reminders,
     required this.completed,
@@ -55,7 +38,6 @@ class HomeworkModel extends PlannerItemBaseModel {
     required this.resources,
     required this.category,
     this.currentGrade,
-    this.linkedNote,
   }) : super(plannerItemType: PlannerItemType.homework);
 
   factory HomeworkModel.fromJson(Map<String, dynamic> json) {
@@ -68,7 +50,6 @@ class HomeworkModel extends PlannerItemBaseModel {
       end: DateTime.parse(json['end']),
       priority: json['priority'],
       comments: json['comments'],
-      notes: json['notes'] != null ? Map<String, dynamic>.from(json['notes']) : null,
       attachments: json['attachments'] != null
           ? idOrEntityListFrom(json['attachments'], AttachmentModel.fromJson)
           : [],
@@ -82,7 +63,6 @@ class HomeworkModel extends PlannerItemBaseModel {
           ? idOrEntityListFrom(json['materials'], ResourceModel.fromJson)
           : [],
       course: idOrEntityFrom(json['course'], CourseModel.fromJson),
-      linkedNote: json['note'] != null ? LinkedNoteRef.fromJson(json['note']) : null,
     );
   }
 
@@ -108,7 +88,6 @@ class HomeworkModel extends PlannerItemBaseModel {
     DateTime? end,
     int? priority,
     String? comments,
-    Map<String, dynamic>? notes,
     List<IdOrEntity<AttachmentModel>>? attachments,
     List<IdOrEntity<ReminderModel>>? reminders,
     bool? completed,
@@ -116,7 +95,6 @@ class HomeworkModel extends PlannerItemBaseModel {
     IdOrEntity<CategoryModel>? category,
     List<IdOrEntity<ResourceModel>>? resources,
     String? currentGrade,
-    LinkedNoteRef? linkedNote,
   }) {
     return HomeworkModel(
       id: id ?? this.id,
@@ -127,7 +105,6 @@ class HomeworkModel extends PlannerItemBaseModel {
       end: end ?? this.end,
       priority: priority ?? this.priority,
       comments: comments ?? this.comments,
-      notes: notes ?? this.notes,
       attachments: attachments ?? this.attachments,
       reminders: reminders ?? this.reminders,
       completed: completed ?? this.completed,
@@ -135,7 +112,6 @@ class HomeworkModel extends PlannerItemBaseModel {
       category: category ?? this.category,
       resources: resources ?? this.resources,
       currentGrade: currentGrade ?? this.currentGrade,
-      linkedNote: linkedNote ?? this.linkedNote,
     );
   }
 }
