@@ -355,6 +355,7 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
                               showHeaderStyle: !isMobile,
                               showInlineCode: !isMobile,
                               showClearFormat: !isMobile,
+                              showStrikeThrough: !isMobile,
                               showAlignmentButtons: !isMobile,
                               showLeftAlignment: !isMobile,
                               showCenterAlignment: !isMobile,

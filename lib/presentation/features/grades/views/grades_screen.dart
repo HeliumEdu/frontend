@@ -896,7 +896,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
                     child: Text(
                       '$maxUngraded in ${topCourse.title}',
                       style: AppStyles.smallSecondaryText(context),
-                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
                 ],
