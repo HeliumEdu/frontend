@@ -124,7 +124,7 @@ class _WhatsNewDialogWidget extends StatelessWidget {
                       const SizedBox(height: 8),
                       const Divider(),
                       const SizedBox(height: 8),
-                      const SupportHeliumCard(),
+                      const SupportHeliumCard(compact: true),
                     ],
                   ],
                 ),

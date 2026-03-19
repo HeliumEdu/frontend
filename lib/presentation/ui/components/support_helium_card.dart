@@ -12,7 +12,9 @@ import 'package:heliumapp/utils/app_style.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class SupportHeliumCard extends StatelessWidget {
-  const SupportHeliumCard({super.key});
+  const SupportHeliumCard({super.key, this.compact = false});
+
+  final bool compact;
 
   @override
   Widget build(BuildContext context) {
@@ -58,10 +60,13 @@ class SupportHeliumCard extends StatelessWidget {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        'A passion project, free for everyone. Supporters like '
-                        'you are what make that possible—covering real costs '
-                        'like hosting, push notifications, and app store fees '
-                        'for thousands of students.',
+                        compact
+                            ? 'A passion project, free for everyone — made '
+                                'possible by supporters like you.'
+                            : 'A passion project, free for everyone. Supporters like '
+                                'you are what make that possible—covering real costs '
+                                'like hosting, push notifications, and app store fees '
+                                'for thousands of students.',
                         style: AppStyles.menuItemHint(context),
                       ),
                     ],
