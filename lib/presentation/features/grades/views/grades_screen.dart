@@ -2298,100 +2298,182 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
         ...currentData.map(
           (segment) => Padding(
             padding: const EdgeInsets.only(bottom: 12),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Category label (non-mobile only)
-                if (!isMobile)
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 6),
-                    child: Row(
-                      children: [
-                        Icon(
-                          Icons.category_outlined,
-                          size: Responsive.getIconSize(
-                            context,
-                            mobile: 14,
-                            tablet: 16,
-                            desktop: 18,
-                          ),
-                          color: segment.color,
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Text(
-                            segment.label,
-                            style: AppStyles.smallSecondaryTextLight(
-                              context,
-                            ).copyWith(fontWeight: FontWeight.w600),
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                        Text(
-                          '${segment.value.toStringAsFixed(1)}%',
-                          style: AppStyles.smallSecondaryTextLight(context)
-                              .copyWith(
-                                fontWeight: FontWeight.w600,
-                                color: context.colorScheme.onSurface.withValues(alpha: 0.7),
-                              ),
-                        ),
-                      ],
-                    ),
-                  ),
-                // Progress bar using SfLinearGauge
-                SizedBox(
-                  height: 20,
-                  child: SfLinearGauge(
-                    minimum: 0,
-                    maximum: 100,
-                    showLabels: false,
-                    showTicks: false,
-                    showAxisTrack: true,
-                    axisTrackStyle: LinearAxisTrackStyle(
-                      thickness: 20,
-                      edgeStyle: LinearEdgeStyle.bothCurve,
-                      color: context.colorScheme.surfaceContainerHighest,
-                    ),
-                    barPointers: [
-                      LinearBarPointer(
-                        value: segment.value,
-                        thickness: 20,
-                        edgeStyle: LinearEdgeStyle.bothCurve,
-                        color: segment.color,
-                      ),
-                    ],
-                    markerPointers: isMobile
-                        ? [
-                            LinearWidgetPointer(
-                              value: segment.value,
-                              position: LinearElementPosition.cross,
-                              child: Tooltip(
-                                message: '${segment.label}: ${segment.value.toStringAsFixed(1)}%',
-                                triggerMode: TooltipTriggerMode.tap,
-                                child: Container(
-                                  width: 12,
-                                  height: 12,
-                                  decoration: BoxDecoration(
-                                    color: segment.color,
-                                    shape: BoxShape.circle,
-                                    border: Border.all(
-                                      color: context.colorScheme.surface,
-                                      width: 2,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ]
-                        : [],
-                  ),
-                ),
-              ],
-            ),
+            child: isMobile
+                ? _buildMobileBreakdownBar(segment)
+                : _buildDesktopBreakdownBar(segment),
           ),
         ),
       ],
     );
+  }
+
+  Widget _buildDesktopBreakdownBar(_ChartSegment segment) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(bottom: 6),
+          child: Row(
+            children: [
+              Icon(
+                Icons.category_outlined,
+                size: Responsive.getIconSize(
+                  context,
+                  mobile: 14,
+                  tablet: 16,
+                  desktop: 18,
+                ),
+                color: segment.color,
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  segment.label,
+                  style: AppStyles.smallSecondaryTextLight(
+                    context,
+                  ).copyWith(fontWeight: FontWeight.w600),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              Text(
+                '${segment.value.toStringAsFixed(1)}%',
+                style: AppStyles.smallSecondaryTextLight(context).copyWith(
+                  fontWeight: FontWeight.w600,
+                  color: context.colorScheme.onSurface.withValues(alpha: 0.7),
+                ),
+              ),
+            ],
+          ),
+        ),
+        SizedBox(
+          height: 20,
+          child: SfLinearGauge(
+            minimum: 0,
+            maximum: 100,
+            showLabels: false,
+            showTicks: false,
+            showAxisTrack: true,
+            axisTrackStyle: LinearAxisTrackStyle(
+              thickness: 20,
+              edgeStyle: LinearEdgeStyle.bothCurve,
+              color: context.colorScheme.surfaceContainerHighest,
+            ),
+            barPointers: [
+              LinearBarPointer(
+                value: segment.value,
+                thickness: 20,
+                edgeStyle: LinearEdgeStyle.bothCurve,
+                color: segment.color,
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildMobileBreakdownBar(_ChartSegment segment) {
+    final percentText = '${segment.value.toStringAsFixed(1)}%';
+    final textColor = segment.value > 50
+        ? HeliumColors.contrastingTextColor(segment.color)
+        : context.colorScheme.onSurface;
+
+    return GestureDetector(
+      onTapUp: (details) => _showBreakdownTooltip(details.globalPosition, segment),
+      child: Stack(
+        children: [
+          Container(
+            height: 24,
+            decoration: BoxDecoration(
+              color: context.colorScheme.surfaceContainerHighest,
+              borderRadius: BorderRadius.circular(12),
+            ),
+          ),
+          FractionallySizedBox(
+            widthFactor: segment.value / 100,
+            child: Container(
+              height: 24,
+              decoration: BoxDecoration(
+                color: segment.color,
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+          ),
+          Container(
+            height: 24,
+            alignment: Alignment.center,
+            child: Text(
+              percentText,
+              style: AppStyles.smallSecondaryText(context).copyWith(
+                fontWeight: FontWeight.w600,
+                color: textColor,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showBreakdownTooltip(Offset tapPosition, _ChartSegment segment) {
+    final overlay = Overlay.of(context);
+    late OverlayEntry entry;
+
+    entry = OverlayEntry(
+      builder: (context) => Positioned(
+        left: tapPosition.dx - 60,
+        top: tapPosition.dy - 40,
+        child: Material(
+          color: Colors.transparent,
+          child: TapRegion(
+            onTapOutside: (_) => entry.remove(),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.surface,
+                borderRadius: BorderRadius.circular(5),
+                border: Border.all(
+                  color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.3),
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.1),
+                    blurRadius: 4,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.category_outlined,
+                    size: 14,
+                    color: segment.color,
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    segment.label,
+                    style: AppStyles.smallSecondaryText(context).copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    overlay.insert(entry);
+
+    // Auto-dismiss after 2 seconds
+    Future.delayed(const Duration(seconds: 2), () {
+      if (entry.mounted) {
+        entry.remove();
+      }
+    });
   }
 
   List<_ChartSegment> _buildWeightDistributionData(GradeCourseModel course) {
