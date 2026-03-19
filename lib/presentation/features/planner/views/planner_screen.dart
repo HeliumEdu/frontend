@@ -642,6 +642,8 @@ class _CalendarScreenState
 
         return SfCalendar(
           backgroundColor: context.colorScheme.surface,
+          cellBorderColor:
+              Responsive.isMobile(context) ? Colors.transparent : null,
           controller: _calendarController,
           headerHeight: 0,
           showCurrentTimeIndicator: true,
@@ -1777,13 +1779,13 @@ class _CalendarScreenState
     ];
 
     final borderColor = context.colorScheme.outline.withValues(alpha: 0.3);
+    final dateIndex = details.visibleDates.indexOf(details.date);
+    final isLastRow = dateIndex >= details.visibleDates.length - 7;
 
-    return Container(
-      decoration: BoxDecoration(
-        border: Border(
-          top: BorderSide(color: borderColor, width: 0.5),
-          right: BorderSide(color: borderColor, width: 0.5),
-        ),
+    return CustomPaint(
+      foregroundPainter: _MobileCellBorderPainter(
+        color: borderColor,
+        drawBottom: isLastRow,
       ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.start,
@@ -3855,4 +3857,53 @@ class _CheckboxToggle extends StatelessWidget {
       ),
     );
   }
+}
+
+class _MobileCellBorderPainter extends CustomPainter {
+  const _MobileCellBorderPainter({
+    required this.color,
+    required this.drawBottom,
+  });
+
+  final Color color;
+  final bool drawBottom;
+
+  static const _stroke = 0.5;
+  static const _half = _stroke / 2;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color
+      ..strokeWidth = _stroke
+      ..strokeCap = StrokeCap.butt;
+
+    // Top: full width.
+    canvas.drawLine(
+      const Offset(0, _half),
+      Offset(size.width, _half),
+      paint,
+    );
+
+    // Right: starts at _stroke (just below the top line) to avoid painting
+    // the corner pixel twice, which would double the alpha and create a
+    // visible bright dot at every cell intersection.
+    canvas.drawLine(
+      Offset(size.width - _half, _stroke),
+      Offset(size.width - _half, drawBottom ? size.height - _stroke : size.height),
+      paint,
+    );
+
+    if (drawBottom) {
+      canvas.drawLine(
+        Offset(0, size.height - _half),
+        Offset(size.width, size.height - _half),
+        paint,
+      );
+    }
+  }
+
+  @override
+  bool shouldRepaint(_MobileCellBorderPainter old) =>
+      old.color != color || old.drawBottom != drawBottom;
 }
