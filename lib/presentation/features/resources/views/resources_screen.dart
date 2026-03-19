@@ -22,9 +22,12 @@ import 'package:heliumapp/data/sources/note_remote_data_source.dart';
 import 'package:heliumapp/data/sources/resource_remote_data_source.dart';
 import 'package:heliumapp/presentation/core/views/base_page_screen_state.dart';
 import 'package:heliumapp/presentation/features/planner/dialogs/confirm_delete_dialog.dart';
+import 'package:heliumapp/presentation/features/notes/bloc/note_bloc.dart';
+import 'package:heliumapp/presentation/features/notes/bloc/note_state.dart';
 import 'package:heliumapp/presentation/features/resources/bloc/resource_bloc.dart';
 import 'package:heliumapp/presentation/features/resources/bloc/resource_event.dart';
 import 'package:heliumapp/presentation/features/resources/bloc/resource_state.dart';
+import 'package:heliumapp/presentation/features/shared/bloc/core/provider_helpers.dart';
 import 'package:heliumapp/presentation/features/resources/constants/resource_constants.dart';
 import 'package:heliumapp/presentation/features/resources/dialogs/resource_group_dialog.dart';
 import 'package:heliumapp/presentation/features/resources/views/resource_add_screen.dart';
@@ -73,6 +76,9 @@ class ResourcesScreen extends StatelessWidget {
               remoteDataSource: NoteRemoteDataSourceImpl(dioClient: _dioClient),
             ),
           ),
+        ),
+        BlocProvider(
+          create: ProviderHelpers().createNoteBloc(),
         ),
       ],
       child: buildScreen(),
@@ -124,9 +130,32 @@ class _ResourcesScreenState
     );
   }
 
+  void _upsertNoteForResource(int resourceId, NoteModel note) {
+    _notesMap[resourceId] = note;
+  }
+
   @override
   List<BlocListener<dynamic, dynamic>> buildListeners(BuildContext context) {
     return [
+      BlocListener<NoteBloc, NoteState>(
+        listener: (context, state) {
+          if (state is NoteCreated) {
+            final resourceId = state.note.resources.firstOrNull;
+            if (resourceId != null) {
+              setState(() => _upsertNoteForResource(resourceId, state.note));
+            }
+          } else if (state is NoteUpdated) {
+            final resourceId = state.note.resources.firstOrNull;
+            if (resourceId != null) {
+              setState(() => _upsertNoteForResource(resourceId, state.note));
+            }
+          } else if (state is NoteDeleted) {
+            setState(() {
+              _notesMap.removeWhere((_, note) => note.id == state.noteId);
+            });
+          }
+        },
+      ),
       BlocListener<ResourceBloc, ResourceState>(
         listener: (context, state) {
           if (state is ResourcesScreenDataFetched) {
@@ -191,6 +220,7 @@ class _ResourcesScreenState
                 (m) => m.id == state.id,
               );
               Sort.byTitle(_resourcesMap[_selectedGroupId]!);
+              _notesMap.remove(state.id);
             });
           }
         },
@@ -308,10 +338,12 @@ class _ResourcesScreenState
 
       _coursesMap = {for (var course in state.courses) course.id: course};
 
-      _notesMap = {
-        for (var note in state.notes)
-          if (note.resources.isNotEmpty) note.resources.first: note,
-      };
+      _notesMap = {};
+      for (final note in state.notes) {
+        if (note.resources.isNotEmpty) {
+          _upsertNoteForResource(note.resources.first, note);
+        }
+      }
 
       if (_resourceGroups.isNotEmpty) {
         _selectedGroupId = _resourceGroups.first.id;

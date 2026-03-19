@@ -12,6 +12,9 @@ import 'package:flutter_quill/flutter_quill.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/data/models/planner/course_model.dart';
 import 'package:heliumapp/data/models/planner/request/resource_request_model.dart';
+import 'package:heliumapp/data/models/planner/request/note_request_model.dart';
+import 'package:heliumapp/presentation/features/notes/bloc/note_bloc.dart';
+import 'package:heliumapp/presentation/features/notes/bloc/note_event.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/core/base_event.dart';
 import 'package:heliumapp/presentation/features/resources/bloc/resource_bloc.dart';
 import 'package:heliumapp/presentation/features/resources/bloc/resource_event.dart';
@@ -300,14 +303,16 @@ class ResourceDetailsState extends State<ResourceDetails> {
     });
   }
 
+  Map<String, dynamic>? get noteContent =>
+      buildNotesDelta(_formController.notesController);
+
+  int? get linkedNoteId => _formController.linkedNoteId;
+
   Future<void> onSubmit({bool redirectToNotebook = false}) async {
     if (isLoading) return;
     if (_formController.validateAndScrollToError()) {
       // Notify parent that action is starting (validation passed)
       widget.onActionStarted?.call();
-
-      // Get note content for bloc
-      final noteContent = buildNotesDelta(_formController.notesController);
 
       final request = ResourceRequestModel(
         title: _formController.titleController.text.trim(),
@@ -326,24 +331,42 @@ class ResourceDetailsState extends State<ResourceDetails> {
 
       if (!mounted) return;
       if (widget.isEdit && widget.resourceId != null) {
+        // Dispatch note operations to NoteBloc directly — resource.id is known
+        final content = noteContent;
+        final existingNoteId = _formController.linkedNoteId;
+        if (existingNoteId != null) {
+          // Update with current content; empty content triggers deletion on backend
+          context.read<NoteBloc>().add(UpdateNoteEvent(
+            origin: EventOrigin.subScreen,
+            noteId: existingNoteId,
+            request: NoteRequestModel(content: content ?? {}),
+          ));
+        } else if (content != null) {
+          context.read<NoteBloc>().add(CreateNoteEvent(
+            origin: EventOrigin.subScreen,
+            request: NoteRequestModel(
+              content: content,
+              resourceId: widget.resourceId!,
+            ),
+          ));
+        }
+
         context.read<ResourceBloc>().add(
           UpdateResourceEvent(
             origin: EventOrigin.subScreen,
             resourceGroupId: widget.resourceGroupId,
             resourceId: widget.resourceId!,
             request: request,
-            linkedNoteId: _formController.linkedNoteId,
-            noteContent: noteContent,
             redirectToNotebook: redirectToNotebook,
           ),
         );
       } else {
+        // For CREATE, note content is dispatched by the parent after getting resource.id
         context.read<ResourceBloc>().add(
           CreateResourceEvent(
             origin: EventOrigin.subScreen,
             resourceGroupId: widget.resourceGroupId,
             request: request,
-            noteContent: noteContent,
             redirectToNotebook: redirectToNotebook,
           ),
         );

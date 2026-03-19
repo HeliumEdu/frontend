@@ -9,7 +9,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:heliumapp/core/helium_exception.dart';
 import 'package:heliumapp/data/models/planner/course_model.dart';
 import 'package:heliumapp/data/models/planner/note_model.dart';
-import 'package:heliumapp/data/models/planner/request/note_request_model.dart';
 import 'package:heliumapp/data/models/planner/resource_group_model.dart';
 import 'package:heliumapp/data/models/planner/resource_model.dart';
 import 'package:heliumapp/domain/repositories/course_repository.dart';
@@ -262,24 +261,10 @@ class ResourceBloc extends Bloc<ResourceEvent, ResourceState> {
         groupId: event.resourceGroupId,
         request: event.request,
       );
-
-      // Create linked note if content provided
-      int? linkedNoteId;
-      if (event.noteContent != null) {
-        final note = await noteRepository.createNote(
-          request: NoteRequestModel(
-            content: event.noteContent,
-            resourceId: resource.id,
-          ),
-        );
-        linkedNoteId = note.id;
-      }
-
       emit(ResourceCreated(
         origin: event.origin,
         resource: resource,
         redirectToNotebook: event.redirectToNotebook,
-        linkedNoteId: linkedNoteId,
       ));
     } on HeliumException catch (e) {
       emit(ResourcesError(origin: event.origin, message: e.message));
@@ -299,42 +284,15 @@ class ResourceBloc extends Bloc<ResourceEvent, ResourceState> {
   ) async {
     emit(ResourcesLoading(origin: event.origin));
     try {
-      // Update entity and note in parallel
-      final futures = <Future<dynamic>>[
-        resourceRepository.updateResource(
-          groupId: event.resourceGroupId,
-          resourceId: event.resourceId,
-          request: event.request,
-        ),
-      ];
-
-      int? linkedNoteId = event.linkedNoteId;
-      if (event.linkedNoteId != null) {
-        // Empty content triggers note deletion on backend
-        final contentToSend = event.noteContent ?? <String, dynamic>{};
-        futures.add(noteRepository.updateNote(
-          noteId: event.linkedNoteId!,
-          request: NoteRequestModel(content: contentToSend),
-        ));
-        if (event.noteContent == null) linkedNoteId = null;
-      } else if (event.noteContent != null) {
-        futures.add(noteRepository.createNote(
-          request: NoteRequestModel(content: event.noteContent, resourceId: event.resourceId),
-        ));
-      }
-
-      final results = await Future.wait(futures);
-      final resource = results[0] as ResourceModel;
-
-      if (event.linkedNoteId == null && results.length > 1) {
-        linkedNoteId = (results[1] as NoteModel).id;
-      }
-
+      final resource = await resourceRepository.updateResource(
+        groupId: event.resourceGroupId,
+        resourceId: event.resourceId,
+        request: event.request,
+      );
       emit(ResourceUpdated(
         origin: event.origin,
         resource: resource,
         redirectToNotebook: event.redirectToNotebook,
-        linkedNoteId: linkedNoteId,
       ));
     } on HeliumException catch (e) {
       emit(ResourcesError(origin: event.origin, message: e.message));

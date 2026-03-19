@@ -115,11 +115,12 @@ class NotesEditor extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                QuillSimpleToolbar(
-                  controller: controller,
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 4),
+                  child: QuillSimpleToolbar(
+                    controller: controller,
                   config: QuillSimpleToolbarConfig(
                     toolbarRunSpacing: 0,
-                    toolbarSectionSpacing: isMobile ? 2 : 4,
                     showFontFamily: !isMobile,
                     showDividers: !isMobile,
                     showStrikeThrough: !isMobile,
@@ -174,6 +175,7 @@ class NotesEditor extends StatelessWidget {
                             showColorPicker(context, ctrl, isBackground),
                       ),
                     ),
+                  ),
                   ),
                 ),
                 const Divider(height: 1),

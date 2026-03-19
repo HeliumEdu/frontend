@@ -12,19 +12,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/config/pref_service.dart';
-import 'package:heliumapp/core/dio_client.dart';
 import 'package:heliumapp/data/models/auth/user_model.dart';
 import 'package:heliumapp/data/models/planner/note_model.dart';
-import 'package:heliumapp/data/repositories/course_repository_impl.dart';
-import 'package:heliumapp/data/repositories/event_repository_impl.dart';
-import 'package:heliumapp/data/repositories/homework_repository_impl.dart';
-import 'package:heliumapp/data/repositories/note_repository_impl.dart';
-import 'package:heliumapp/data/repositories/resource_repository_impl.dart';
-import 'package:heliumapp/data/sources/course_remote_data_source.dart';
-import 'package:heliumapp/data/sources/event_remote_data_source.dart';
-import 'package:heliumapp/data/sources/homework_remote_data_source.dart';
-import 'package:heliumapp/data/sources/note_remote_data_source.dart';
-import 'package:heliumapp/data/sources/resource_remote_data_source.dart';
 import 'package:heliumapp/presentation/core/views/base_page_screen_state.dart';
 import 'package:heliumapp/presentation/ui/layout/page_header.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_bloc.dart';
@@ -35,6 +24,7 @@ import 'package:heliumapp/presentation/features/notes/bloc/note_state.dart';
 import 'package:heliumapp/presentation/features/notes/views/note_add_screen.dart';
 import 'package:heliumapp/presentation/features/notes/widgets/notes_data_grid.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/core/base_event.dart';
+import 'package:heliumapp/presentation/features/shared/bloc/core/provider_helpers.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/planneritem_bloc.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/planneritem_state.dart';
 import 'package:heliumapp/presentation/features/planner/dialogs/confirm_delete_dialog.dart';
@@ -45,30 +35,12 @@ import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:heliumapp/utils/sort_helpers.dart';
 
 class NotebookScreen extends StatelessWidget {
-  final DioClient _dioClient = DioClient();
-
-  NotebookScreen({super.key});
+  const NotebookScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) => NoteBloc(
-        noteRepository: NoteRepositoryImpl(
-          remoteDataSource: NoteRemoteDataSourceImpl(dioClient: _dioClient),
-        ),
-        homeworkRepository: HomeworkRepositoryImpl(
-          remoteDataSource: HomeworkRemoteDataSourceImpl(dioClient: _dioClient),
-        ),
-        eventRepository: EventRepositoryImpl(
-          remoteDataSource: EventRemoteDataSourceImpl(dioClient: _dioClient),
-        ),
-        resourceRepository: ResourceRepositoryImpl(
-          remoteDataSource: ResourceRemoteDataSourceImpl(dioClient: _dioClient),
-        ),
-        courseRepository: CourseRepositoryImpl(
-          remoteDataSource: CourseRemoteDataSourceImpl(dioClient: _dioClient),
-        ),
-      ),
+      create: ProviderHelpers().createNoteBloc(),
       child: const _NotebookProvidedScreen(),
     );
   }

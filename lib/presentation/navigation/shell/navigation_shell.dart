@@ -110,7 +110,7 @@ enum NavigationPage {
       case NavigationPage.planner:
         return PlannerScreen();
       case NavigationPage.notes:
-        return NotebookScreen();
+        return const NotebookScreen();
       case NavigationPage.courses:
         return CoursesScreen();
       case NavigationPage.resources:

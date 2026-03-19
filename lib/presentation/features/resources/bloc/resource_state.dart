@@ -105,25 +105,21 @@ class ResourceGroupDeleted extends ResourceState {
 
 class ResourceCreated extends ResourceEntityState {
   final bool redirectToNotebook;
-  final int? linkedNoteId;
 
   ResourceCreated({
     required super.origin,
     required super.resource,
     this.redirectToNotebook = false,
-    this.linkedNoteId,
   });
 }
 
 class ResourceUpdated extends ResourceEntityState {
   final bool redirectToNotebook;
-  final int? linkedNoteId;
 
   ResourceUpdated({
     required super.origin,
     required super.resource,
     this.redirectToNotebook = false,
-    this.linkedNoteId,
   });
 }
 
