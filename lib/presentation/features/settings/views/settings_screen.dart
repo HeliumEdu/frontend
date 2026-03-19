@@ -32,6 +32,7 @@ import 'package:heliumapp/presentation/features/shared/bloc/core/base_event.dart
 import 'package:heliumapp/presentation/features/shared/controllers/basic_form_controller.dart';
 import 'package:heliumapp/presentation/ui/components/helium_elevated_button.dart';
 import 'package:heliumapp/presentation/ui/components/label_and_text_form_field.dart';
+import 'package:heliumapp/presentation/ui/components/support_helium_card.dart';
 import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
 import 'package:heliumapp/presentation/ui/feedback/warning_container.dart';
 import 'package:heliumapp/presentation/ui/layout/page_header.dart';
@@ -194,8 +195,7 @@ class _SettingsScreenViewState extends BasePageScreenState<SettingsScreen> {
 
             const SizedBox(height: 12),
 
-            if (!Responsive.isIOSPlatform())
-              _buildSupportArea(),
+            if (!Responsive.isIOSPlatform()) const SupportHeliumCard(),
 
             const SizedBox(height: 12),
 
@@ -309,70 +309,6 @@ class _SettingsScreenViewState extends BasePageScreenState<SettingsScreen> {
             ],
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildSupportArea() {
-    return Container(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            context.colorScheme.primary.withValues(alpha: 0.08),
-            context.colorScheme.secondary.withValues(alpha: 0.08),
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: context.colorScheme.primary.withValues(alpha: 0.2),
-        ),
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: () => launchUrl(Uri.parse(AppConstants.patreonUrl)),
-          borderRadius: BorderRadius.circular(16),
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Row(
-              children: [
-                Icon(
-                  Icons.volunteer_activism,
-                  color: context.colorScheme.primary,
-                  size: 32,
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Support Helium',
-                        style: AppStyles.menuItem(context).copyWith(
-                          color: context.colorScheme.primary,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        'A passion project, free for everyone. '
-                        'Your support helps cover Helium\'s hosting costs, and keeps development going.',
-                        style: AppStyles.menuItemHint(context),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Icon(
-                  Icons.arrow_forward_ios,
-                  color: context.colorScheme.onSurface.withValues(alpha: 0.3),
-                  size: 16,
-                ),
-              ],
-            ),
-          ),
-        ),
       ),
     );
   }
@@ -1281,7 +1217,9 @@ class _SettingsScreenViewState extends BasePageScreenState<SettingsScreen> {
                           children: [
                             Expanded(
                               child: LabelAndTextFormField(
-                                key: const Key(SettingsScreen.deleteAccountPasswordField),
+                                key: const Key(
+                                  SettingsScreen.deleteAccountPasswordField,
+                                ),
                                 autofocus: kIsWeb,
                                 controller: _deleteAccountPasswordController,
                                 validator:
