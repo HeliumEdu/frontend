@@ -333,6 +333,7 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(8),
                     child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
                         Padding(
                           padding: const EdgeInsets.symmetric(vertical: 4),

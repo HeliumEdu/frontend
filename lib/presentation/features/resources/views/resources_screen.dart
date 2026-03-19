@@ -32,16 +32,16 @@ import 'package:heliumapp/presentation/features/shared/bloc/core/base_event.dart
 import 'package:heliumapp/presentation/ui/components/course_title_label.dart';
 import 'package:heliumapp/presentation/ui/components/group_dropdown.dart';
 import 'package:heliumapp/presentation/ui/components/helium_icon_button.dart';
+import 'package:heliumapp/presentation/ui/components/notes_viewer.dart';
 import 'package:heliumapp/presentation/ui/components/pill_badge.dart';
 import 'package:heliumapp/presentation/ui/components/resource_title_label.dart';
 import 'package:heliumapp/presentation/ui/feedback/empty_card.dart';
 import 'package:heliumapp/presentation/ui/feedback/error_card.dart';
-import 'package:heliumapp/presentation/ui/components/notes_viewer.dart';
 import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
 import 'package:heliumapp/presentation/ui/layout/mobile_gesture_detector.dart';
 import 'package:heliumapp/presentation/ui/layout/responsive_card_grid.dart';
-import 'package:heliumapp/utils/quill_helpers.dart';
 import 'package:heliumapp/utils/app_style.dart';
+import 'package:heliumapp/utils/quill_helpers.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:heliumapp/utils/sort_helpers.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -70,9 +70,7 @@ class ResourcesScreen extends StatelessWidget {
               ),
             ),
             noteRepository: NoteRepositoryImpl(
-              remoteDataSource: NoteRemoteDataSourceImpl(
-                dioClient: _dioClient,
-              ),
+              remoteDataSource: NoteRemoteDataSourceImpl(dioClient: _dioClient),
             ),
           ),
         ),
@@ -312,7 +310,7 @@ class _ResourcesScreenState
 
       _notesMap = {
         for (var note in state.notes)
-          if (note.resources.isNotEmpty) note.resources.first: note
+          if (note.resources.isNotEmpty) note.resources.first: note,
       };
 
       if (_resourceGroups.isNotEmpty) {
@@ -436,6 +434,7 @@ class _ResourcesScreenState
 
               if (_notesMap[resource.id] case final note?
                   when !isNotesEmpty(note.content)) ...[
+                const SizedBox(height: 12),
                 const Divider(),
                 const SizedBox(height: 12),
                 NotesViewer(notes: note.content),

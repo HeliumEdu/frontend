@@ -113,12 +113,13 @@ class NotesEditor extends StatelessWidget {
           child: ClipRRect(
             borderRadius: BorderRadius.circular(8),
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 QuillSimpleToolbar(
                   controller: controller,
                   config: QuillSimpleToolbarConfig(
                     toolbarRunSpacing: 0,
+                    toolbarSectionSpacing: isMobile ? 2 : 4,
                     showFontFamily: !isMobile,
                     showDividers: !isMobile,
                     showStrikeThrough: !isMobile,
@@ -141,6 +142,9 @@ class NotesEditor extends StatelessWidget {
                         iconTheme: QuillIconTheme(
                           iconButtonSelectedData: IconButtonData(
                             style: ButtonStyle(
+                              tapTargetSize: isMobile
+                                  ? MaterialTapTargetSize.shrinkWrap
+                                  : null,
                               backgroundColor: WidgetStatePropertyAll(
                                 context.colorScheme.primary,
                               ),
@@ -156,6 +160,12 @@ class NotesEditor extends StatelessWidget {
                           ),
                           iconButtonUnselectedData: IconButtonData(
                             color: context.colorScheme.onSurface,
+                            style: isMobile
+                                ? const ButtonStyle(
+                                    tapTargetSize:
+                                        MaterialTapTargetSize.shrinkWrap,
+                                  )
+                                : null,
                           ),
                         ),
                       ),
