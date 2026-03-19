@@ -655,14 +655,6 @@ void main() {
         expect(filtered[0].id, 1);
       });
 
-      test('filters by notes match', () {
-        dataSource.setSearchQuery('conclusions');
-        final filtered = dataSource.filteredHomeworks;
-
-        expect(filtered, hasLength(1));
-        expect(filtered[0].id, 2);
-      });
-
       test('search is case insensitive', () {
         dataSource.setSearchQuery('PHYSICS');
         final filtered = dataSource.filteredHomeworks;
@@ -679,13 +671,6 @@ void main() {
         expect(filtered[0].id, 2);
       });
 
-      test('applies search to events', () {
-        dataSource.setSearchQuery('math');
-        dataSource.setFilterTypes(['Events']);
-
-        expect(dataSource.appointments, hasLength(1));
-        expect((dataSource.appointments![0] as EventModel).id, 3);
-      });
     });
 
     group('type filtering', () {

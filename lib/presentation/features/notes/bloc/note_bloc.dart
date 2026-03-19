@@ -88,7 +88,6 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
   ) async {
     emit(NotesLoading(origin: event.origin));
     try {
-      // Edit mode: fetch the note (it already has linked entity info)
       if (event.noteId != null) {
         final note = await noteRepository.getNote(
           id: event.noteId!,
@@ -104,7 +103,6 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
         return;
       }
 
-      // Create mode with linked entity: fetch entity info for badge
       if (event.homeworkId != null) {
         final results = await Future.wait([
           homeworkRepository.getHomework(id: event.homeworkId!),
@@ -148,7 +146,6 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
         return;
       }
 
-      // Standalone note - no linked entity
       emit(NoteScreenDataFetched(origin: event.origin));
     } on HeliumException catch (e) {
       emit(NotesError(origin: event.origin, message: e.message));

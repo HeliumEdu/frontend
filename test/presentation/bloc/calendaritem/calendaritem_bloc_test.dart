@@ -69,6 +69,9 @@ void main() {
           when(
             () => mockEventRepository.getEvent(id: 1),
           ).thenAnswer((_) async => MockModels.createEvent(id: 1));
+          when(
+            () => mockNoteRepository.getNotes(eventId: 1, includeContent: true),
+          ).thenAnswer((_) async => []);
           return plannerItemBloc;
         },
         act: (bloc) => bloc.add(
@@ -91,7 +94,7 @@ void main() {
         'emits [PlannerItemsLoading, PlannerItemScreenDataFetched] for homework with related data',
         build: () {
           when(
-                () => mockCourseRepository.getCourseGroups(shownOnCalendar: true),
+            () => mockCourseRepository.getCourseGroups(shownOnCalendar: true),
           ).thenAnswer((_) async => MockModels.createCourseGroups());
           when(
             () => mockCourseRepository.getCourses(shownOnCalendar: true),
@@ -105,11 +108,14 @@ void main() {
             () => mockCategoryRepository.getCategories(shownOnCalendar: true),
           ).thenAnswer((_) async => MockModels.createCategories());
           when(
-                () => mockHomeworkRepository.getHomework(id: 1),
+            () => mockHomeworkRepository.getHomework(id: 1),
           ).thenAnswer((_) async => MockModels.createHomework(id: 1));
           when(
             () => mockResourceRepository.getResources(shownOnCalendar: true),
           ).thenAnswer((_) async => MockModels.createResources());
+          when(
+            () => mockNoteRepository.getNotes(homeworkId: 1, includeContent: true),
+          ).thenAnswer((_) async => []);
           return plannerItemBloc;
         },
         act: (bloc) => bloc.add(
