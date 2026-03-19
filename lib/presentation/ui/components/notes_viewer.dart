@@ -67,7 +67,7 @@ class _NotesViewerState extends State<NotesViewer> {
     }
 
     return ConstrainedBox(
-      constraints: const BoxConstraints(maxHeight: 200),
+      constraints: const BoxConstraints(maxHeight: 150),
       child: QuillEditor.basic(
         controller: _controller,
         config: QuillEditorConfig(

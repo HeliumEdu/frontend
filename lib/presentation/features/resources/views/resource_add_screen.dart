@@ -10,8 +10,13 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/config/route_args.dart';
+import 'package:heliumapp/data/models/planner/request/note_request_model.dart';
+import 'package:heliumapp/presentation/features/notes/bloc/note_bloc.dart';
+import 'package:heliumapp/presentation/features/notes/bloc/note_event.dart';
+import 'package:heliumapp/presentation/features/notes/bloc/note_state.dart';
 import 'package:heliumapp/presentation/features/resources/bloc/resource_bloc.dart';
 import 'package:heliumapp/presentation/features/resources/bloc/resource_state.dart';
+import 'package:heliumapp/presentation/features/shared/bloc/core/base_event.dart';
 import 'package:heliumapp/presentation/features/shared/widgets/flow/multi_step_container.dart';
 import 'package:heliumapp/presentation/features/resources/widgets/resource_details.dart';
 import 'package:heliumapp/utils/app_globals.dart';
@@ -26,12 +31,14 @@ void showResourceAdd(
   bool isEdit = false,
 }) {
   final resourceBloc = context.read<ResourceBloc>();
+  final noteBloc = context.read<NoteBloc>();
 
   if (Responsive.isMobile(context)) {
     context.push(
       AppRoute.resourcesAddScreen,
       extra: ResourceAddArgs(
         resourceBloc: resourceBloc,
+        noteBloc: noteBloc,
         resourceGroupId: resourceGroupId,
         resourceId: resourceId,
         isEdit: isEdit,
@@ -41,8 +48,11 @@ void showResourceAdd(
     showScreenAsDialog(
       context,
       barrierDismissible: false,
-      child: BlocProvider<ResourceBloc>.value(
-        value: resourceBloc,
+      child: MultiBlocProvider(
+        providers: [
+          BlocProvider<ResourceBloc>.value(value: resourceBloc),
+          BlocProvider<NoteBloc>.value(value: noteBloc),
+        ],
         child: ResourceAddScreen(
           resourceGroupId: resourceGroupId,
           resourceId: resourceId,
@@ -76,6 +86,8 @@ class _ResourceAddScreenState
     extends MultiStepContainerState<ResourceAddScreen> {
   final _detailsKey = GlobalKey<ResourceDetailsState>();
 
+  bool _pendingRedirectToNotebook = false;
+
   @override
   String get screenTitle => widget.isEdit ? 'Edit Resource' : 'Add Resource';
 
@@ -106,32 +118,65 @@ class _ResourceAddScreenState
           if (state is ResourcesError) {
             showSnackBar(context, state.message!, type: SnackType.error);
             setState(() => isSubmitting = false);
-          } else if (state is ResourceCreated || state is ResourceUpdated) {
-            final resource = (state as ResourceEntityState).resource;
+          } else if (state is ResourceCreated) {
+            final noteContent = _detailsKey.currentState?.noteContent;
 
-            // Check for notebook redirect from state
-            final redirectToNotebook =
-                (state is ResourceCreated && state.redirectToNotebook) ||
-                (state is ResourceUpdated && state.redirectToNotebook);
-
-            if (redirectToNotebook) {
-              final linkedNoteId = switch (state) {
-                ResourceCreated(:final linkedNoteId) => linkedNoteId,
-                ResourceUpdated(:final linkedNoteId) => linkedNoteId,
-                _ => null,
-              };
-
-              if (linkedNoteId != null) {
-                context.go('${AppRoute.notebookScreen}?id=$linkedNoteId');
+            if (state.redirectToNotebook) {
+              // CREATE + redirect: note content must be created first to get its ID
+              if (noteContent != null) {
+                _pendingRedirectToNotebook = true;
+                context.read<NoteBloc>().add(CreateNoteEvent(
+                  origin: EventOrigin.subScreen,
+                  request: NoteRequestModel(
+                    content: noteContent,
+                    resourceId: state.resource.id,
+                  ),
+                ));
               } else {
-                context.go('${AppRoute.notebookScreen}?resourceId=${resource.id}&resourceGroupId=${widget.resourceGroupId}');
+                context.go('${AppRoute.notebookScreen}?resourceId=${state.resource.id}&resourceGroupId=${widget.resourceGroupId}');
               }
             } else {
-              if (state is ResourceCreated) {
-                showSnackBar(context, 'Resource created', useRootMessenger: true);
+              if (noteContent != null) {
+                context.read<NoteBloc>().add(CreateNoteEvent(
+                  origin: EventOrigin.subScreen,
+                  request: NoteRequestModel(
+                    content: noteContent,
+                    resourceId: state.resource.id,
+                  ),
+                ));
               }
+              showSnackBar(context, 'Resource created', useRootMessenger: true);
               cancelAction();
             }
+          } else if (state is ResourceUpdated) {
+            if (state.redirectToNotebook) {
+              final linkedNoteId = _detailsKey.currentState?.linkedNoteId;
+              final noteContent = _detailsKey.currentState?.noteContent;
+
+              if (linkedNoteId != null && noteContent != null) {
+                // Existing note being updated — ID is already known
+                context.go('${AppRoute.notebookScreen}?id=$linkedNoteId');
+              } else if (linkedNoteId == null && noteContent != null) {
+                // New note being created by NoteBloc — wait for NoteCreated
+                _pendingRedirectToNotebook = true;
+              } else {
+                // No note content — navigate with resourceId to create one in notebook
+                context.go('${AppRoute.notebookScreen}?resourceId=${state.resource.id}&resourceGroupId=${widget.resourceGroupId}');
+              }
+            } else {
+              cancelAction();
+            }
+          }
+        },
+      ),
+      BlocListener<NoteBloc, NoteState>(
+        listener: (context, state) {
+          if (state is NotesError) {
+            showSnackBar(context, state.message!, type: SnackType.error);
+            setState(() => isSubmitting = false);
+          } else if (state is NoteCreated && _pendingRedirectToNotebook) {
+            _pendingRedirectToNotebook = false;
+            context.go('${AppRoute.notebookScreen}?id=${state.note.id}');
           }
         },
       ),

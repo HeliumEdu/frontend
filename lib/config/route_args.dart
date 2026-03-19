@@ -67,12 +67,14 @@ class CourseAddArgs extends RouteArgs {
 
 class ResourceAddArgs extends RouteArgs {
   final ResourceBloc resourceBloc;
+  final NoteBloc noteBloc;
   final int resourceGroupId;
   final int? resourceId;
   final bool isEdit;
 
   const ResourceAddArgs({
     required this.resourceBloc,
+    required this.noteBloc,
     required this.resourceGroupId,
     this.resourceId,
     required this.isEdit,
@@ -80,7 +82,10 @@ class ResourceAddArgs extends RouteArgs {
 
   @override
   List<BlocProvider>? toProviders() {
-    return [BlocProvider<ResourceBloc>.value(value: resourceBloc)];
+    return [
+      BlocProvider<ResourceBloc>.value(value: resourceBloc),
+      BlocProvider<NoteBloc>.value(value: noteBloc),
+    ];
   }
 }
 

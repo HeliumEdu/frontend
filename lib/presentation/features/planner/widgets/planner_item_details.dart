@@ -81,6 +81,8 @@ class PlannerItemDetails extends StatefulWidget {
 
 class PlannerItemDetailsState extends State<PlannerItemDetails> {
   final PlannerItemFormController _formController = PlannerItemFormController();
+  final FocusNode _titleFocusNode = FocusNode();
+  final FocusNode _notesFocusNode = FocusNode();
 
   // Entity IDs (can be updated for clone)
   int? _eventId;
@@ -88,6 +90,7 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
 
   // State
   bool isLoading = true;
+  bool _hasRequestedInitialFocus = false;
   bool _isEvent = false;
   PlannerItemBaseModel? _plannerItem;
   List<CourseGroupModel> _courseGroups = [];
@@ -142,6 +145,8 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
 
   @override
   void dispose() {
+    _titleFocusNode.dispose();
+    _notesFocusNode.dispose();
     _formController.dispose();
     super.dispose();
   }
@@ -231,7 +236,8 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
                   LabelAndTextFormField(
                     key: const Key(PlannerItemFormController.titleField),
                     label: 'Title',
-                    autofocus: kIsWeb || !widget.isEdit,
+                    autofocus: kIsWeb,
+                    focusNode: _titleFocusNode,
                     controller: _formController.titleController,
                     validator: BasicFormController.validateRequiredField,
                     fieldKey: _formController.getFieldKey('title'),
@@ -308,6 +314,7 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
                   NotesEditor(
                     key: ObjectKey(_formController.notesController),
                     controller: _formController.notesController,
+                    focusNode: _notesFocusNode,
                     onOpenInNotes: widget.isEdit ? () => onSubmit(redirectToNotebook: true) : null,
                   ),
                   const SizedBox(height: 12),
@@ -798,6 +805,14 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
     setState(() {
       isLoading = false;
     });
+
+    // Request focus once on mobile for create mode
+    if (!_hasRequestedInitialFocus && !kIsWeb && !widget.isEdit) {
+      _hasRequestedInitialFocus = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _titleFocusNode.requestFocus();
+      });
+    }
   }
 
   Future<void> _selectDate(BuildContext context, bool isStartDate) async {

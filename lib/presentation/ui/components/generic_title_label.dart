@@ -10,16 +10,20 @@ import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/color_helpers.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 
-class CategoryTitleLabel extends StatelessWidget {
+class GenericTitleLabel extends StatelessWidget {
   final String title;
   final Color color;
+  final IconData icon;
   final bool compact;
+  final VoidCallback? onDelete;
 
-  const CategoryTitleLabel({
+  const GenericTitleLabel({
     super.key,
     required this.title,
     required this.color,
+    required this.icon,
     this.compact = false,
+    this.onDelete,
   });
 
   @override
@@ -40,7 +44,7 @@ class CategoryTitleLabel extends StatelessWidget {
             ),
             child: Center(
               child: Icon(
-                Icons.category_outlined,
+                icon,
                 color: HeliumColors.contrastingTextColor(color),
                 size: Responsive.getIconSize(
                   context,
@@ -60,16 +64,46 @@ class CategoryTitleLabel extends StatelessWidget {
                   topRight: Radius.circular(10),
                   bottomRight: Radius.circular(10),
                 ),
-                border: Border.all(color: BadgeColors.border(context, color)),
+                border: Border.all(
+                  color: BadgeColors.border(context, color),
+                ),
               ),
-              child: Text(
-                title,
-                style: (compact
-                        ? AppStyles.smallSecondaryText(context)
-                        : AppStyles.standardBodyText(context))
-                    .copyWith(color: BadgeColors.foreground(context, color)),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Flexible(
+                    child: Text(
+                      title,
+                      style: (compact
+                              ? AppStyles.smallSecondaryText(context)
+                              : AppStyles.standardBodyText(context))
+                          .copyWith(color: BadgeColors.foreground(context, color)),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  if (onDelete != null) ...[
+                    const SizedBox(width: 2),
+                    IconButton(
+                      onPressed: onDelete,
+                      icon: const Icon(Icons.close),
+                      iconSize: Responsive.getIconSize(
+                        context,
+                        mobile: 16,
+                        tablet: 18,
+                        desktop: 20,
+                      ),
+                      color: BadgeColors.foreground(context, color),
+                      hoverColor: BadgeColors.border(context, color),
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(),
+                      visualDensity: VisualDensity.compact,
+                      style: IconButton.styleFrom(
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      ),
+                    ),
+                  ],
+                ],
               ),
             ),
           ),

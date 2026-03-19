@@ -14,11 +14,13 @@ import 'package:heliumapp/utils/responsive_helpers.dart';
 
 class NotesEditor extends StatelessWidget {
   final QuillController controller;
+  final FocusNode? focusNode;
   final VoidCallback? onOpenInNotes;
 
   const NotesEditor({
     super.key,
     required this.controller,
+    this.focusNode,
     this.onOpenInNotes,
   });
 
@@ -113,10 +115,12 @@ class NotesEditor extends StatelessWidget {
           child: ClipRRect(
             borderRadius: BorderRadius.circular(8),
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                QuillSimpleToolbar(
-                  controller: controller,
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 4),
+                  child: QuillSimpleToolbar(
+                    controller: controller,
                   config: QuillSimpleToolbarConfig(
                     toolbarRunSpacing: 0,
                     showFontFamily: !isMobile,
@@ -141,6 +145,9 @@ class NotesEditor extends StatelessWidget {
                         iconTheme: QuillIconTheme(
                           iconButtonSelectedData: IconButtonData(
                             style: ButtonStyle(
+                              tapTargetSize: isMobile
+                                  ? MaterialTapTargetSize.shrinkWrap
+                                  : null,
                               backgroundColor: WidgetStatePropertyAll(
                                 context.colorScheme.primary,
                               ),
@@ -156,6 +163,12 @@ class NotesEditor extends StatelessWidget {
                           ),
                           iconButtonUnselectedData: IconButtonData(
                             color: context.colorScheme.onSurface,
+                            style: isMobile
+                                ? const ButtonStyle(
+                                    tapTargetSize:
+                                        MaterialTapTargetSize.shrinkWrap,
+                                  )
+                                : null,
                           ),
                         ),
                       ),
@@ -164,6 +177,7 @@ class NotesEditor extends StatelessWidget {
                             showColorPicker(context, ctrl, isBackground),
                       ),
                     ),
+                  ),
                   ),
                 ),
                 const Divider(height: 1),
@@ -174,8 +188,10 @@ class NotesEditor extends StatelessWidget {
                   ),
                   child: QuillEditor.basic(
                     controller: controller,
+                    focusNode: focusNode,
                     config: QuillEditorConfig(
                       padding: const EdgeInsets.all(12),
+                      autoFocus: false,
                       customStyles: buildDefaultStyles(context),
                     ),
                   ),

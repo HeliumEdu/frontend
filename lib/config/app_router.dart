@@ -26,17 +26,8 @@ import 'package:heliumapp/presentation/features/auth/views/verify_email_screen.d
 import 'package:heliumapp/presentation/features/courses/bloc/course_bloc.dart';
 import 'package:heliumapp/presentation/features/courses/views/course_add_screen.dart';
 import 'package:heliumapp/presentation/features/notes/bloc/note_bloc.dart';
-import 'package:heliumapp/data/repositories/course_repository_impl.dart';
-import 'package:heliumapp/data/repositories/event_repository_impl.dart';
-import 'package:heliumapp/data/repositories/homework_repository_impl.dart';
-import 'package:heliumapp/data/repositories/note_repository_impl.dart';
-import 'package:heliumapp/data/repositories/resource_repository_impl.dart';
-import 'package:heliumapp/data/sources/course_remote_data_source.dart';
-import 'package:heliumapp/data/sources/event_remote_data_source.dart';
-import 'package:heliumapp/data/sources/homework_remote_data_source.dart';
-import 'package:heliumapp/data/sources/note_remote_data_source.dart';
-import 'package:heliumapp/data/sources/resource_remote_data_source.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/attachment_bloc.dart';
+import 'package:heliumapp/presentation/features/shared/bloc/core/provider_helpers.dart';
 import 'package:heliumapp/presentation/features/planner/views/planner_item_add_screen.dart';
 import 'package:heliumapp/presentation/features/resources/bloc/resource_bloc.dart';
 import 'package:heliumapp/presentation/features/resources/views/resource_add_screen.dart';
@@ -242,8 +233,11 @@ void initializeRouter() {
             );
           }
           return MaterialPage(
-            child: BlocProvider<ResourceBloc>.value(
-              value: args.resourceBloc,
+            child: MultiBlocProvider(
+              providers: [
+                BlocProvider<ResourceBloc>.value(value: args.resourceBloc),
+                BlocProvider<NoteBloc>.value(value: args.noteBloc),
+              ],
               child: ResourceAddScreen(
                 resourceGroupId: args.resourceGroupId,
                 resourceId: args.resourceId,
@@ -287,26 +281,9 @@ void initializeRouter() {
           }
 
           final noteId = int.tryParse(noteIdParam);
-          final dioClient = DioClient();
           return MaterialPage(
             child: BlocProvider<NoteBloc>(
-              create: (context) => NoteBloc(
-                noteRepository: NoteRepositoryImpl(
-                  remoteDataSource: NoteRemoteDataSourceImpl(dioClient: dioClient),
-                ),
-                homeworkRepository: HomeworkRepositoryImpl(
-                  remoteDataSource: HomeworkRemoteDataSourceImpl(dioClient: dioClient),
-                ),
-                eventRepository: EventRepositoryImpl(
-                  remoteDataSource: EventRemoteDataSourceImpl(dioClient: dioClient),
-                ),
-                resourceRepository: ResourceRepositoryImpl(
-                  remoteDataSource: ResourceRemoteDataSourceImpl(dioClient: dioClient),
-                ),
-                courseRepository: CourseRepositoryImpl(
-                  remoteDataSource: CourseRemoteDataSourceImpl(dioClient: dioClient),
-                ),
-              ),
+              create: ProviderHelpers().createNoteBloc(),
               child: NoteAddScreen(
                 isEdit: noteId != null,
                 isNew: noteId == null,

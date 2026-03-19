@@ -26,6 +26,7 @@ import 'package:heliumapp/data/sources/external_calendar_remote_data_source.dart
 import 'package:heliumapp/data/sources/homework_remote_data_source.dart';
 import 'package:heliumapp/data/sources/note_remote_data_source.dart';
 import 'package:heliumapp/data/sources/resource_remote_data_source.dart';
+import 'package:heliumapp/presentation/features/notes/bloc/note_bloc.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/attachment_bloc.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/planneritem_bloc.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/external_calendar_bloc.dart';
@@ -59,6 +60,26 @@ class ProviderHelpers {
       ),
       noteRepository: NoteRepositoryImpl(
         remoteDataSource: NoteRemoteDataSourceImpl(dioClient: _dioClient),
+      ),
+    );
+  }
+
+  NoteBloc Function(BuildContext context) createNoteBloc() {
+    return (context) => NoteBloc(
+      noteRepository: NoteRepositoryImpl(
+        remoteDataSource: NoteRemoteDataSourceImpl(dioClient: _dioClient),
+      ),
+      homeworkRepository: HomeworkRepositoryImpl(
+        remoteDataSource: HomeworkRemoteDataSourceImpl(dioClient: _dioClient),
+      ),
+      eventRepository: EventRepositoryImpl(
+        remoteDataSource: EventRemoteDataSourceImpl(dioClient: _dioClient),
+      ),
+      resourceRepository: ResourceRepositoryImpl(
+        remoteDataSource: ResourceRemoteDataSourceImpl(dioClient: _dioClient),
+      ),
+      courseRepository: CourseRepositoryImpl(
+        remoteDataSource: CourseRemoteDataSourceImpl(dioClient: _dioClient),
       ),
     );
   }

@@ -30,6 +30,7 @@ import 'package:heliumapp/presentation/features/grades/dialogs/grade_calculator_
 import 'package:heliumapp/presentation/features/planner/bloc/attachment_bloc.dart';
 import 'package:heliumapp/presentation/features/planner/views/planner_item_add_screen.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/core/provider_helpers.dart';
+import 'package:heliumapp/presentation/ui/components/category_title_label.dart';
 import 'package:heliumapp/presentation/ui/components/course_title_label.dart';
 import 'package:heliumapp/presentation/ui/components/grade_label.dart';
 import 'package:heliumapp/presentation/ui/components/group_dropdown.dart';
@@ -895,7 +896,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
                     child: Text(
                       '$maxUngraded in ${topCourse.title}',
                       style: AppStyles.smallSecondaryText(context),
-                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
                 ],
@@ -2029,24 +2030,6 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
         onTap: () => _toggleExpandedCourse(course.id),
         child: Row(
           children: [
-            Container(
-              padding: const EdgeInsets.all(14),
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: course.color.withValues(alpha: 0.15),
-              ),
-              child: Icon(
-                Icons.school_outlined,
-                color: course.color,
-                size: Responsive.getIconSize(
-                  context,
-                  mobile: 24,
-                  tablet: 26,
-                  desktop: 28,
-                ),
-              ),
-            ),
-            const SizedBox(width: 14),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -2059,7 +2042,6 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
                           child: CourseTitleLabel(
                             title: course.title,
                             color: course.color,
-                            showIcon: false,
                           ),
                         ),
                       ),
@@ -2299,6 +2281,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
 
   Widget _buildBreakdownArea(GradeCourseModel course) {
     final currentData = _buildCurrentDistributionData(course);
+    final isMobile = Responsive.isMobile(context);
 
     // Sort by contribution (highest to lowest)
     currentData.sort((a, b) => b.value.compareTo(a.value));
@@ -2307,7 +2290,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          '${!Responsive.isMobile(context) ? 'Grade ' : ''}Breakdown',
+          '${!isMobile ? 'Grade ' : ''}Breakdown',
           style: AppStyles.headingText(context),
           overflow: TextOverflow.ellipsis,
         ),
@@ -2315,71 +2298,182 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
         ...currentData.map(
           (segment) => Padding(
             padding: const EdgeInsets.only(bottom: 12),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Category label
-                Row(
-                  children: [
-                    Icon(
-                      Icons.category_outlined,
-                      size: Responsive.getIconSize(
-                        context,
-                        mobile: 14,
-                        tablet: 16,
-                        desktop: 18,
-                      ),
-                      color: segment.color,
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        segment.label,
-                        style: AppStyles.smallSecondaryTextLight(
-                          context,
-                        ).copyWith(fontWeight: FontWeight.w600),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                    Text(
-                      '${segment.value.toStringAsFixed(1)}%',
-                      style: AppStyles.smallSecondaryTextLight(context)
-                          .copyWith(
-                            fontWeight: FontWeight.w600,
-                            color: segment.color,
-                          ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 6),
-                // Progress bar
-                Stack(
-                  children: [
-                    Container(
-                      height: 20,
-                      decoration: BoxDecoration(
-                        color: context.colorScheme.surfaceContainerHighest,
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                    ),
-                    FractionallySizedBox(
-                      widthFactor: segment.value / 100,
-                      child: Container(
-                        height: 20,
-                        decoration: BoxDecoration(
-                          color: segment.color,
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
+            child: isMobile
+                ? _buildMobileBreakdownBar(segment)
+                : _buildDesktopBreakdownBar(segment),
           ),
         ),
       ],
     );
+  }
+
+  Widget _buildDesktopBreakdownBar(_ChartSegment segment) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(bottom: 6),
+          child: Row(
+            children: [
+              Icon(
+                Icons.category_outlined,
+                size: Responsive.getIconSize(
+                  context,
+                  mobile: 14,
+                  tablet: 16,
+                  desktop: 18,
+                ),
+                color: segment.color,
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  segment.label,
+                  style: AppStyles.smallSecondaryTextLight(
+                    context,
+                  ).copyWith(fontWeight: FontWeight.w600),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              Text(
+                '${segment.value.toStringAsFixed(1)}%',
+                style: AppStyles.smallSecondaryTextLight(context).copyWith(
+                  fontWeight: FontWeight.w600,
+                  color: context.colorScheme.onSurface.withValues(alpha: 0.7),
+                ),
+              ),
+            ],
+          ),
+        ),
+        SizedBox(
+          height: 20,
+          child: SfLinearGauge(
+            minimum: 0,
+            maximum: 100,
+            showLabels: false,
+            showTicks: false,
+            showAxisTrack: true,
+            axisTrackStyle: LinearAxisTrackStyle(
+              thickness: 20,
+              edgeStyle: LinearEdgeStyle.bothCurve,
+              color: context.colorScheme.surfaceContainerHighest,
+            ),
+            barPointers: [
+              LinearBarPointer(
+                value: segment.value,
+                thickness: 20,
+                edgeStyle: LinearEdgeStyle.bothCurve,
+                color: segment.color,
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildMobileBreakdownBar(_ChartSegment segment) {
+    final percentText = '${segment.value.toStringAsFixed(1)}%';
+    final textColor = segment.value > 50
+        ? HeliumColors.contrastingTextColor(segment.color)
+        : context.colorScheme.onSurface;
+
+    return GestureDetector(
+      onTapUp: (details) => _showBreakdownTooltip(details.globalPosition, segment),
+      child: Stack(
+        children: [
+          Container(
+            height: 24,
+            decoration: BoxDecoration(
+              color: context.colorScheme.surfaceContainerHighest,
+              borderRadius: BorderRadius.circular(12),
+            ),
+          ),
+          FractionallySizedBox(
+            widthFactor: segment.value / 100,
+            child: Container(
+              height: 24,
+              decoration: BoxDecoration(
+                color: segment.color,
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+          ),
+          Container(
+            height: 24,
+            alignment: Alignment.center,
+            child: Text(
+              percentText,
+              style: AppStyles.smallSecondaryText(context).copyWith(
+                fontWeight: FontWeight.w600,
+                color: textColor,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showBreakdownTooltip(Offset tapPosition, _ChartSegment segment) {
+    final overlay = Overlay.of(context);
+    late OverlayEntry entry;
+
+    entry = OverlayEntry(
+      builder: (context) => Positioned(
+        left: tapPosition.dx - 60,
+        top: tapPosition.dy - 40,
+        child: Material(
+          color: Colors.transparent,
+          child: TapRegion(
+            onTapOutside: (_) => entry.remove(),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.surface,
+                borderRadius: BorderRadius.circular(5),
+                border: Border.all(
+                  color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.3),
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.1),
+                    blurRadius: 4,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.category_outlined,
+                    size: 14,
+                    color: segment.color,
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    segment.label,
+                    style: AppStyles.smallSecondaryText(context).copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    overlay.insert(entry);
+
+    // Auto-dismiss after 2 seconds
+    Future.delayed(const Duration(seconds: 2), () {
+      if (entry.mounted) {
+        entry.remove();
+      }
+    });
   }
 
   List<_ChartSegment> _buildWeightDistributionData(GradeCourseModel course) {
@@ -2420,32 +2514,18 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
     bool hasWeightedGrading,
   ) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      padding: EdgeInsets.only(left: 12, right: Responsive.isMobile(context) ? 9 : 12, top: 10, bottom: 10),
       child: Row(
         children: [
           Expanded(
             flex: 2,
             child: Row(
               children: [
-                const SizedBox(width: 8),
-                Icon(
-                  Icons.category_outlined,
-                  size: Responsive.getIconSize(
-                    context,
-                    mobile: 14,
-                    tablet: 16,
-                    desktop: 18,
-                  ),
-                  color: category.color,
-                ),
-                const SizedBox(width: 8),
+                if (!Responsive.isMobile(context)) const SizedBox(width: 8),
                 Flexible(
-                  child: Text(
-                    category.title,
-                    style: AppStyles.standardBodyText(
-                      context,
-                    ).copyWith(color: context.colorScheme.onSurface),
-                    overflow: TextOverflow.ellipsis,
+                  child: CategoryTitleLabel(
+                    title: category.title,
+                    color: category.color
                   ),
                 ),
               ],
@@ -2462,6 +2542,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
                 ),
               ),
             ),
+          if (Responsive.isMobile(context)) const SizedBox(width: 4),
           Expanded(
             flex: 2,
             child: Align(

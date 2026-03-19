@@ -79,14 +79,12 @@ class DeleteResourceGroupEvent extends ResourceEvent {
 class CreateResourceEvent extends ResourceEvent {
   final int resourceGroupId;
   final ResourceRequestModel request;
-  final Map<String, dynamic>? noteContent;
   final bool redirectToNotebook;
 
   CreateResourceEvent({
     required super.origin,
     required this.resourceGroupId,
     required this.request,
-    this.noteContent,
     this.redirectToNotebook = false,
   });
 }
@@ -95,8 +93,6 @@ class UpdateResourceEvent extends ResourceEvent {
   final int resourceGroupId;
   final int resourceId;
   final ResourceRequestModel request;
-  final int? linkedNoteId;
-  final Map<String, dynamic>? noteContent;
   final bool redirectToNotebook;
 
   UpdateResourceEvent({
@@ -104,8 +100,6 @@ class UpdateResourceEvent extends ResourceEvent {
     required this.resourceGroupId,
     required this.resourceId,
     required this.request,
-    this.linkedNoteId,
-    this.noteContent,
     this.redirectToNotebook = false,
   });
 }
