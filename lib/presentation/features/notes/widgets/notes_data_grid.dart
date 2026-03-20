@@ -61,6 +61,10 @@ class _NotesDataGridState extends State<NotesDataGrid> {
   void initState() {
     super.initState();
     _dataSource = _buildDataSource();
+    _dataSource.updatePagination(
+      currentPage: _currentPage,
+      itemsPerPage: widget.rowsPerPage,
+    );
   }
 
   @override
@@ -81,6 +85,12 @@ class _NotesDataGridState extends State<NotesDataGrid> {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) setState(() {});
       });
+    }
+    if (oldWidget.rowsPerPage != widget.rowsPerPage) {
+      _dataSource.updatePagination(
+        currentPage: _currentPage,
+        itemsPerPage: widget.rowsPerPage,
+      );
     }
   }
 
