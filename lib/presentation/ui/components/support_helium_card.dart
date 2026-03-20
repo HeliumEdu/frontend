@@ -54,19 +54,19 @@ class SupportHeliumCard extends StatelessWidget {
                     children: [
                       Text(
                         'Keep Helium Free',
-                        style: AppStyles.menuItem(context).copyWith(
-                          color: context.colorScheme.primary,
-                        ),
+                        style: AppStyles.menuItem(
+                          context,
+                        ).copyWith(color: context.colorScheme.primary),
                       ),
                       const SizedBox(height: 4),
                       Text(
                         compact
                             ? 'A passion project, free for everyone—made '
-                                'possible by supporters like you.'
+                                  'possible by supporters like you.'
                             : 'A passion project, free for everyone. '
-                            'Supporters like you are what make that '
-                            'possible, covering real costs like hosting, push '
-                            'notifications, and app store fees.',
+                                  'Supporters like you are what make that '
+                                  'possible, covering real costs like hosting '
+                                  'and app store fees.',
                         style: AppStyles.menuItemHint(context),
                       ),
                     ],

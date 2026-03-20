@@ -230,7 +230,7 @@ class _ImportExportScreenState extends BasePageScreenState<ImportExportScreen> {
         const SizedBox(height: 16),
         HeliumElevatedButton(
           onPressed: _importExampleSchedule,
-          buttonText: 'Re-import Example Schedule',
+          buttonText: 'Re-Import Example Schedule',
           icon: Icons.restore_outlined,
           isLoading: _isImportingExample,
           enabled: !_isImportingExample,
