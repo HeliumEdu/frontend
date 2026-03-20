@@ -61,12 +61,12 @@ class SupportHeliumCard extends StatelessWidget {
                       const SizedBox(height: 4),
                       Text(
                         compact
-                            ? 'A passion project, free for everyone — made '
+                            ? 'A passion project, free for everyone—made '
                                 'possible by supporters like you.'
-                            : 'A passion project, free for everyone. Supporters like '
-                                'you are what make that possible—covering real costs '
-                                'like hosting, push notifications, and app store fees '
-                                'for thousands of students.',
+                            : 'A passion project, free for everyone. '
+                            'Supporters like you are what make that '
+                            'possible, covering real costs like hosting, push '
+                            'notifications, and app store fees.',
                         style: AppStyles.menuItemHint(context),
                       ),
                     ],
