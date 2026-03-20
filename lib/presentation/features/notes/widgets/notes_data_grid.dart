@@ -655,8 +655,8 @@ class NotesDataSource extends DataGridSource with SortableDataGridSource {
           compact: true,
         );
       } else if (entityType == 'event') {
-        badge = GenericTitleLabel(
-          title: linkedTo,
+        badge = GenericLabel(
+          label: linkedTo,
           color: userSettings?.eventsColor ?? context.colorScheme.tertiary,
           icon: AppConstants.eventIcon,
           compact: true,
@@ -666,8 +666,8 @@ class NotesDataSource extends DataGridSource with SortableDataGridSource {
         final badgeColor = (userSettings?.colorByCategory ?? false) && categoryColor != null
             ? categoryColor
             : courseColor;
-        badge = GenericTitleLabel(
-          title: linkedTo,
+        badge = GenericLabel(
+          label: linkedTo,
           color: badgeColor ?? context.colorScheme.primary,
           icon: AppConstants.assignmentIcon,
           compact: true,

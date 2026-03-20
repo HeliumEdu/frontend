@@ -10,16 +10,16 @@ import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/color_helpers.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 
-class GenericTitleLabel extends StatelessWidget {
-  final String title;
+class GenericLabel extends StatelessWidget {
+  final String label;
   final Color color;
   final IconData icon;
   final bool compact;
   final VoidCallback? onDelete;
 
-  const GenericTitleLabel({
+  const GenericLabel({
     super.key,
-    required this.title,
+    required this.label,
     required this.color,
     required this.icon,
     this.compact = false,
@@ -57,7 +57,7 @@ class GenericTitleLabel extends StatelessWidget {
           ),
           Flexible(
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              padding: EdgeInsets.symmetric(horizontal: compact ? 6 : 10, vertical: compact ? 2 : 6),
               decoration: BoxDecoration(
                 color: BadgeColors.background(context, color),
                 borderRadius: const BorderRadius.only(
@@ -73,7 +73,7 @@ class GenericTitleLabel extends StatelessWidget {
                 children: [
                   Flexible(
                     child: Text(
-                      title,
+                      label,
                       style: (compact
                               ? AppStyles.smallSecondaryText(context)
                               : AppStyles.standardBodyText(context))

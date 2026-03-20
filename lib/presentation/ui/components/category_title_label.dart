@@ -53,7 +53,7 @@ class CategoryTitleLabel extends StatelessWidget {
           ),
           Flexible(
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              padding: EdgeInsets.symmetric(horizontal: compact ? 6 : 10, vertical: compact ? 2 : 6),
               decoration: BoxDecoration(
                 color: BadgeColors.background(context, color),
                 borderRadius: const BorderRadius.only(
