@@ -134,6 +134,15 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
   @override
   String get screenTitle => 'Grades';
 
+  // Category table column widths
+  static const double _gradedColTablet = 70;
+  static const double _gradedColDesktop = 120;
+  static const double _contributionColMobile = 70;
+  static const double _contributionColTablet = 100;
+  static const double _contributionColDesktop = 170;
+  static const double _averageColMobile = 90;
+  static const double _averageColDesktop = 95;
+
   // Decision variables - adjust these to tune the grade insights
   static const double _atRiskThreshold =
       70.0; // Courses below this % are flagged as at-risk
@@ -2046,6 +2055,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
                       GradeLabel(
                         grade: GradeHelper.gradeForDisplay(course.overallGrade),
                         userSettings: userSettings!,
+                        compact: Responsive.isMobile(context),
                       ),
                       if (course.trend != null) ...[
                         const SizedBox(width: 4),
@@ -2220,27 +2230,30 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
                 child: Text(
                   'Category',
                   style: AppStyles.standardBodyText(context),
+                  softWrap: false,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
               if (hasWeightedGrading)
-                Expanded(
-                  flex: 3,
+                SizedBox(
+                  width: Responsive.getResponsiveValue(context, mobile: _contributionColMobile, tablet: _contributionColTablet, desktop: _contributionColDesktop),
                   child: Text(
-                    'Contribution',
+                    Responsive.isMobile(context) ? 'Share' : 'Contribution',
                     textAlign: TextAlign.center,
                     style: AppStyles.standardBodyText(context),
                   ),
                 ),
-              Expanded(
-                flex: 2,
-                child: Text(
-                  'Graded',
-                  textAlign: TextAlign.center,
-                  style: AppStyles.standardBodyText(context),
+              if (!hasWeightedGrading || !Responsive.isMobile(context))
+                SizedBox(
+                  width: Responsive.isTablet(context) ? _gradedColTablet : _gradedColDesktop,
+                  child: Text(
+                    'Graded',
+                    textAlign: TextAlign.center,
+                    style: AppStyles.standardBodyText(context),
+                  ),
                 ),
-              ),
-              Expanded(
-                flex: 2,
+              SizedBox(
+                width: Responsive.isMobile(context) ? _averageColMobile : _averageColDesktop,
                 child: Text(
                   'Average',
                   textAlign: TextAlign.right,
@@ -2275,14 +2288,14 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
     double totalBreakdown,
   ) {
     return Padding(
-      padding: const EdgeInsets.only(left: 12, right: 12, top: 10, bottom: 10),
+      padding: EdgeInsets.only(left: 12, right: Responsive.isMobile(context) ? 9 : 12, top: 10, bottom: 10),
       child: Row(
         children: [
           Expanded(
             flex: 2,
             child: Row(
               children: [
-                const SizedBox(width: 8),
+                if (!Responsive.isMobile(context)) const SizedBox(width: 8),
                 Flexible(
                   child: CategoryTitleLabel(
                     title: category.title,
@@ -2293,8 +2306,8 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
             ),
           ),
           if (hasWeightedGrading)
-            Expanded(
-              flex: 3,
+            SizedBox(
+              width: Responsive.getResponsiveValue(context, mobile: _contributionColMobile, tablet: _contributionColTablet, desktop: _contributionColDesktop),
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 8),
                 child: (category.gradeByWeight != null && category.gradeByWeight! > 0 && totalBreakdown > 0)
@@ -2302,23 +2315,25 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
                     : const SizedBox.shrink(),
               ),
             ),
-          Expanded(
-            flex: 2,
-            child: SelectableText(
-              '${category.numHomeworkGraded} of ${category.numHomework}',
-              textAlign: TextAlign.center,
-              style: AppStyles.standardBodyText(context).copyWith(
-                color: context.colorScheme.onSurface.withValues(alpha: 0.7),
+          if (!hasWeightedGrading || !Responsive.isMobile(context))
+            SizedBox(
+              width: Responsive.isTablet(context) ? _gradedColTablet : _gradedColDesktop,
+              child: SelectableText(
+                '${category.numHomeworkGraded} of ${category.numHomework}',
+                textAlign: TextAlign.center,
+                style: AppStyles.standardBodyText(context).copyWith(
+                  color: context.colorScheme.onSurface.withValues(alpha: 0.7),
+                ),
               ),
             ),
-          ),
-          Expanded(
-            flex: 2,
+          SizedBox(
+            width: Responsive.isMobile(context) ? _averageColMobile : _averageColDesktop,
             child: Align(
               alignment: Alignment.centerRight,
               child: GradeLabel(
                 grade: GradeHelper.gradeForDisplay(category.overallGrade),
                 userSettings: userSettings!,
+                compact: Responsive.isMobile(context),
               ),
             ),
           ),
