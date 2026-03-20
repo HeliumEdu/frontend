@@ -96,7 +96,7 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
         emit(NoteScreenDataFetched(
           origin: event.origin,
           note: note,
-          linkedEntityType: note.linkedEntityType,
+          linkedEntityType: note.linkedEntityType.isEmpty ? null : note.linkedEntityType,
           linkedEntityTitle: note.linkedEntityTitle,
           linkedEntityColor: note.courseColor ?? note.categoryColor,
         ));
