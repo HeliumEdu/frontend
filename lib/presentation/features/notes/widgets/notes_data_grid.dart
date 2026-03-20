@@ -168,6 +168,8 @@ class _NotesDataGridState extends State<NotesDataGrid> {
                               const NeverScrollableScrollPhysics(),
                           navigationMode: GridNavigationMode.row,
                           allowSorting: true,
+                          allowMultiColumnSorting: true,
+                          showSortNumbers: true,
                           sortingGestureType: SortingGestureType.tap,
                           allowSwiping: isTouchDevice,
                           swipeMaxOffset: 80,
@@ -222,7 +224,7 @@ class _NotesDataGridState extends State<NotesDataGrid> {
                               GridColumn(
                                 columnName: 'modified',
                                 label: _buildHeaderCell('Modified'),
-                                width: 118,
+                                width: 136,
                               ),
                             if (showActions)
                               GridColumn(
