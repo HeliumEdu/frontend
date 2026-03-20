@@ -36,7 +36,7 @@ final _log = Logger('presentation.widgets');
 
 /// Sort column definitions with responsive visibility breakpoints.
 enum TodosSortColumn {
-  completed(label: '', fixedWidth: 50, isCheckbox: true),
+  completed(label: '', fixedWidth: 52, isCheckbox: true),
   title(label: 'Title'),
   dueDate(label: 'Due Date', mobileWidth: 144, desktopWidth: 154),
   className(label: 'Class', minViewportWidth: 625),
