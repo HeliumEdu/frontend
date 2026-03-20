@@ -2291,14 +2291,13 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
     double totalBreakdown,
   ) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 10),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       child: Row(
         children: [
           Expanded(
             flex: 2,
             child: Row(
               children: [
-                if (!Responsive.isMobile(context)) const SizedBox(width: 8),
                 Flexible(
                   child: SizedBox(
                     height: Responsive.isMobile(context) ? 26 : null,
