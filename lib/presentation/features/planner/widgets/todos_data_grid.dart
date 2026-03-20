@@ -36,7 +36,7 @@ final _log = Logger('presentation.widgets');
 
 /// Sort column definitions with responsive visibility breakpoints.
 enum TodosSortColumn {
-  completed(label: '', fixedWidth: 40, isCheckbox: true),
+  completed(label: '', fixedWidth: 50, isCheckbox: true),
   title(label: 'Title'),
   dueDate(label: 'Due Date', mobileWidth: 144, desktopWidth: 154),
   className(label: 'Class', minViewportWidth: 625),
@@ -45,7 +45,8 @@ enum TodosSortColumn {
   grade(
     label: 'Grade',
     mobileWidth: 90,
-    desktopWidth: 95,
+    tabletWidth: 102,
+    desktopWidth: 105,
     minViewportWidth: 850,
     showOnTouchDevice: true,
   );
@@ -54,6 +55,7 @@ enum TodosSortColumn {
     required this.label,
     this.fixedWidth,
     this.mobileWidth,
+    this.tabletWidth,
     this.desktopWidth,
     this.minViewportWidth,
     this.showOnTouchDevice = false,
@@ -63,14 +65,16 @@ enum TodosSortColumn {
   final String label;
   final double? fixedWidth;
   final double? mobileWidth;
+  final double? tabletWidth;
   final double? desktopWidth;
   final double? minViewportWidth;
   final bool showOnTouchDevice;
   final bool isCheckbox;
 
-  double? widthForLayout({required bool isMobile}) {
+  double? widthForLayout({required bool isMobile, required bool isTablet}) {
     if (isMobile && mobileWidth != null) return mobileWidth;
-    if (!isMobile && desktopWidth != null) return desktopWidth;
+    if (isTablet && tabletWidth != null) return tabletWidth;
+    if (desktopWidth != null) return desktopWidth;
     return fixedWidth;
   }
 }
@@ -218,6 +222,7 @@ class TodosDataGridState extends State<TodosDataGrid> {
         : (startIndex + effectiveItemsPerPage).clamp(0, totalItems);
 
     final isMobile = Responsive.isMobile(context);
+    final isTablet = Responsive.isTablet(context);
     final isTouchDevice = Responsive.isTouchDevice(context);
     final isCompact = _isCompactActionsMode();
     final showActions = !_shouldHideActionsColumn();
@@ -225,7 +230,7 @@ class TodosDataGridState extends State<TodosDataGrid> {
     final headerColor =
         context.colorScheme.surfaceContainerHighest.withValues(alpha: 0.5);
 
-    final columns = _buildColumns(isMobile, showActions, isCompact);
+    final columns = _buildColumns(isMobile, isTablet, showActions, isCompact);
 
     return Stack(
       children: [
@@ -259,6 +264,8 @@ class TodosDataGridState extends State<TodosDataGrid> {
                             const NeverScrollableScrollPhysics(),
                         navigationMode: GridNavigationMode.row,
                         allowSorting: true,
+                        allowMultiColumnSorting: true,
+                        showSortNumbers: true,
                         sortingGestureType: SortingGestureType.tap,
                         allowSwiping: isTouchDevice,
                         swipeMaxOffset: 80,
@@ -357,6 +364,7 @@ class TodosDataGridState extends State<TodosDataGrid> {
 
   List<GridColumn> _buildColumns(
     bool isMobile,
+    bool isTablet,
     bool showActions,
     bool isCompact,
   ) {
@@ -365,7 +373,7 @@ class TodosDataGridState extends State<TodosDataGrid> {
     columns.add(GridColumn(
       columnName: 'completed',
       label: _buildHeaderCell(TodosSortColumn.completed),
-      width: TodosSortColumn.completed.widthForLayout(isMobile: isMobile)!,
+      width: TodosSortColumn.completed.widthForLayout(isMobile: isMobile, isTablet: isTablet)!,
     ));
 
     columns.add(GridColumn(
@@ -377,7 +385,7 @@ class TodosDataGridState extends State<TodosDataGrid> {
     columns.add(GridColumn(
       columnName: 'dueDate',
       label: _buildHeaderCell(TodosSortColumn.dueDate),
-      width: TodosSortColumn.dueDate.widthForLayout(isMobile: isMobile)!,
+      width: TodosSortColumn.dueDate.widthForLayout(isMobile: isMobile, isTablet: isTablet)!,
     ));
 
     if (_shouldShowColumn(TodosSortColumn.className)) {
@@ -392,7 +400,7 @@ class TodosDataGridState extends State<TodosDataGrid> {
       columns.add(GridColumn(
         columnName: 'category',
         label: _buildHeaderCell(TodosSortColumn.category),
-        minimumWidth: 120,
+        minimumWidth: 125,
       ));
     }
 
@@ -408,7 +416,7 @@ class TodosDataGridState extends State<TodosDataGrid> {
       columns.add(GridColumn(
         columnName: 'grade',
         label: _buildHeaderCell(TodosSortColumn.grade),
-        width: TodosSortColumn.grade.widthForLayout(isMobile: isMobile)!,
+        width: TodosSortColumn.grade.widthForLayout(isMobile: isMobile, isTablet: isTablet)!,
       ));
     }
 
