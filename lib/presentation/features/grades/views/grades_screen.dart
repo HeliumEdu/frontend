@@ -48,18 +48,6 @@ import 'package:intl/intl.dart';
 import 'package:syncfusion_flutter_charts/charts.dart' as charts;
 import 'package:syncfusion_flutter_gauges/gauges.dart';
 
-class _ChartSegment {
-  final String label;
-  final double value;
-  final Color color;
-
-  _ChartSegment({
-    required this.label,
-    required this.value,
-    required this.color,
-  });
-}
-
 class GradesScreen extends StatelessWidget {
   final DioClient _dioClient = DioClient();
   final ProviderHelpers _providerHelpers = ProviderHelpers();
@@ -2205,23 +2193,17 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: course.color.withValues(alpha: 0.2)),
       ),
-      child: hasWeightedGrading
-          ? Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(child: _buildBreakdownArea(course)),
-                const SizedBox(width: 16),
-                Expanded(
-                  flex: 2,
-                  child: _buildCategoryTable(course, hasWeightedGrading),
-                ),
-              ],
-            )
-          : _buildCategoryTable(course, hasWeightedGrading),
+      child: _buildCategoryTable(course, hasWeightedGrading),
     );
   }
 
   Widget _buildCategoryTable(GradeCourseModel course, bool hasWeightedGrading) {
+    final sortedCategories = [...course.categories]..sort((a, b) => a.title.compareTo(b.title));
+    final totalBreakdown = course.categories.fold<double>(
+      0,
+      (sum, cat) => sum + (cat.gradeByWeight != null && cat.gradeByWeight! > 0 ? cat.gradeByWeight! : 0),
+    );
+
     return Column(
       children: [
         // Header Row
@@ -2240,15 +2222,23 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
                   style: AppStyles.standardBodyText(context),
                 ),
               ),
-              if (!hasWeightedGrading || !Responsive.isMobile(context))
+              if (hasWeightedGrading)
                 Expanded(
-                  flex: 2,
+                  flex: 3,
                   child: Text(
-                    'Graded',
+                    'Contribution',
                     textAlign: TextAlign.center,
                     style: AppStyles.standardBodyText(context),
                   ),
                 ),
+              Expanded(
+                flex: 2,
+                child: Text(
+                  'Graded',
+                  textAlign: TextAlign.center,
+                  style: AppStyles.standardBodyText(context),
+                ),
+              ),
               Expanded(
                 flex: 2,
                 child: Text(
@@ -2266,10 +2256,10 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
         ListView.separated(
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
-          itemCount: course.categories.length,
+          itemCount: sortedCategories.length,
           itemBuilder: (context, catIndex) {
-            final category = course.categories[catIndex];
-            return _buildCategoryRow(category, hasWeightedGrading);
+            final category = sortedCategories[catIndex];
+            return _buildCategoryRow(category, hasWeightedGrading, totalBreakdown);
           },
           separatorBuilder: (context, catIndex) {
             return const Divider(height: 1, indent: 12, endIndent: 12);
@@ -2279,270 +2269,49 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
     );
   }
 
-  Widget _buildBreakdownArea(GradeCourseModel course) {
-    final currentData = _buildCurrentDistributionData(course);
-    final isMobile = Responsive.isMobile(context);
-
-    // Sort by contribution (highest to lowest)
-    currentData.sort((a, b) => b.value.compareTo(a.value));
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          '${!isMobile ? 'Grade ' : ''}Breakdown',
-          style: AppStyles.headingText(context),
-          overflow: TextOverflow.ellipsis,
-        ),
-        const SizedBox(height: 16),
-        ...currentData.map(
-          (segment) => Padding(
-            padding: const EdgeInsets.only(bottom: 12),
-            child: isMobile
-                ? _buildMobileBreakdownBar(segment)
-                : _buildDesktopBreakdownBar(segment),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildDesktopBreakdownBar(_ChartSegment segment) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.only(bottom: 6),
-          child: Row(
-            children: [
-              Icon(
-                Icons.category_outlined,
-                size: Responsive.getIconSize(
-                  context,
-                  mobile: 14,
-                  tablet: 16,
-                  desktop: 18,
-                ),
-                color: segment.color,
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  segment.label,
-                  style: AppStyles.smallSecondaryTextLight(
-                    context,
-                  ).copyWith(fontWeight: FontWeight.w600),
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-              Text(
-                '${segment.value.toStringAsFixed(1)}%',
-                style: AppStyles.smallSecondaryTextLight(context).copyWith(
-                  fontWeight: FontWeight.w600,
-                  color: context.colorScheme.onSurface.withValues(alpha: 0.7),
-                ),
-              ),
-            ],
-          ),
-        ),
-        SizedBox(
-          height: 20,
-          child: SfLinearGauge(
-            minimum: 0,
-            maximum: 100,
-            showLabels: false,
-            showTicks: false,
-            showAxisTrack: true,
-            axisTrackStyle: LinearAxisTrackStyle(
-              thickness: 20,
-              edgeStyle: LinearEdgeStyle.bothCurve,
-              color: context.colorScheme.surfaceContainerHighest,
-            ),
-            barPointers: [
-              LinearBarPointer(
-                value: segment.value,
-                thickness: 20,
-                edgeStyle: LinearEdgeStyle.bothCurve,
-                color: segment.color,
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildMobileBreakdownBar(_ChartSegment segment) {
-    final percentText = '${segment.value.toStringAsFixed(1)}%';
-    final textColor = segment.value > 50
-        ? HeliumColors.contrastingTextColor(segment.color)
-        : context.colorScheme.onSurface;
-
-    return GestureDetector(
-      onTapUp: (details) => _showBreakdownTooltip(details.globalPosition, segment),
-      child: Stack(
-        children: [
-          Container(
-            height: 24,
-            decoration: BoxDecoration(
-              color: context.colorScheme.surfaceContainerHighest,
-              borderRadius: BorderRadius.circular(12),
-            ),
-          ),
-          FractionallySizedBox(
-            widthFactor: segment.value / 100,
-            child: Container(
-              height: 24,
-              decoration: BoxDecoration(
-                color: segment.color,
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
-          ),
-          Container(
-            height: 24,
-            alignment: Alignment.center,
-            child: Text(
-              percentText,
-              style: AppStyles.smallSecondaryText(context).copyWith(
-                fontWeight: FontWeight.w600,
-                color: textColor,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _showBreakdownTooltip(Offset tapPosition, _ChartSegment segment) {
-    final overlay = Overlay.of(context);
-    late OverlayEntry entry;
-
-    entry = OverlayEntry(
-      builder: (context) => Positioned(
-        left: tapPosition.dx - 60,
-        top: tapPosition.dy - 40,
-        child: Material(
-          color: Colors.transparent,
-          child: TapRegion(
-            onTapOutside: (_) => entry.remove(),
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surface,
-                borderRadius: BorderRadius.circular(5),
-                border: Border.all(
-                  color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.3),
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.1),
-                    blurRadius: 4,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    Icons.category_outlined,
-                    size: 14,
-                    color: segment.color,
-                  ),
-                  const SizedBox(width: 6),
-                  Text(
-                    segment.label,
-                    style: AppStyles.smallSecondaryText(context).copyWith(
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-
-    overlay.insert(entry);
-
-    // Auto-dismiss after 2 seconds
-    Future.delayed(const Duration(seconds: 2), () {
-      if (entry.mounted) {
-        entry.remove();
-      }
-    });
-  }
-
-  List<_ChartSegment> _buildWeightDistributionData(GradeCourseModel course) {
-    return course.categories
-        .where((cat) => cat.weight > 0)
-        .map(
-          (cat) => _ChartSegment(
-            label: cat.title,
-            value: cat.weight,
-            color: cat.color,
-          ),
-        )
-        .toList();
-  }
-
-  List<_ChartSegment> _buildCurrentDistributionData(GradeCourseModel course) {
-    final segments = course.categories
-        .where((cat) => cat.gradeByWeight != null && cat.gradeByWeight! > 0)
-        .map(
-          (cat) => _ChartSegment(
-            label: cat.title,
-            value: cat.gradeByWeight!,
-            color: cat.color,
-          ),
-        )
-        .toList();
-
-    // If no gradeByWeight data, fall back to showing weights
-    if (segments.isEmpty) {
-      return _buildWeightDistributionData(course);
-    }
-
-    return segments;
-  }
-
   Widget _buildCategoryRow(
     GradeCategoryModel category,
     bool hasWeightedGrading,
+    double totalBreakdown,
   ) {
     return Padding(
-      padding: EdgeInsets.only(left: 12, right: Responsive.isMobile(context) ? 9 : 12, top: 10, bottom: 10),
+      padding: const EdgeInsets.only(left: 12, right: 12, top: 10, bottom: 10),
       child: Row(
         children: [
           Expanded(
             flex: 2,
             child: Row(
               children: [
-                if (!Responsive.isMobile(context)) const SizedBox(width: 8),
+                const SizedBox(width: 8),
                 Flexible(
                   child: CategoryTitleLabel(
                     title: category.title,
-                    color: category.color
+                    color: category.color,
                   ),
                 ),
               ],
             ),
           ),
-          if (!hasWeightedGrading || !Responsive.isMobile(context))
+          if (hasWeightedGrading)
             Expanded(
-              flex: 2,
-              child: SelectableText(
-                '${category.numHomeworkGraded} of ${category.numHomework}',
-                textAlign: TextAlign.center,
-                style: AppStyles.standardBodyText(context).copyWith(
-                  color: context.colorScheme.onSurface.withValues(alpha: 0.7),
-                ),
+              flex: 3,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+                child: (category.gradeByWeight != null && category.gradeByWeight! > 0 && totalBreakdown > 0)
+                    ? _buildBreakdownBar(category, totalBreakdown)
+                    : const SizedBox.shrink(),
               ),
             ),
-          if (Responsive.isMobile(context)) const SizedBox(width: 4),
+          Expanded(
+            flex: 2,
+            child: SelectableText(
+              '${category.numHomeworkGraded} of ${category.numHomework}',
+              textAlign: TextAlign.center,
+              style: AppStyles.standardBodyText(context).copyWith(
+                color: context.colorScheme.onSurface.withValues(alpha: 0.7),
+              ),
+            ),
+          ),
           Expanded(
             flex: 2,
             child: Align(
@@ -2555,6 +2324,47 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildBreakdownBar(GradeCategoryModel category, double totalBreakdown) {
+    final normalizedFraction = category.gradeByWeight! / totalBreakdown;
+    final percentText = '${(normalizedFraction * 100).toStringAsFixed(1)}%';
+    final textColor = normalizedFraction > 0.5
+        ? HeliumColors.contrastingTextColor(category.color)
+        : context.colorScheme.onSurface;
+
+    return Stack(
+      children: [
+        Container(
+          height: 24,
+          decoration: BoxDecoration(
+            color: context.colorScheme.surfaceContainerHighest,
+            borderRadius: BorderRadius.circular(12),
+          ),
+        ),
+        FractionallySizedBox(
+          widthFactor: normalizedFraction,
+          child: Container(
+            height: 24,
+            decoration: BoxDecoration(
+              color: category.color,
+              borderRadius: BorderRadius.circular(12),
+            ),
+          ),
+        ),
+        Container(
+          height: 24,
+          alignment: Alignment.center,
+          child: Text(
+            percentText,
+            style: AppStyles.smallSecondaryText(context).copyWith(
+              fontWeight: FontWeight.w600,
+              color: textColor,
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
