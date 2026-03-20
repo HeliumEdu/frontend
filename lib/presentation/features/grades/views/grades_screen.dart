@@ -2210,12 +2210,26 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
     );
   }
 
+  Map<int, int> _largestRemainder(List<GradeCategoryModel> categories, double total) {
+    final gradedCats = categories.where((c) => c.gradeByWeight != null && c.gradeByWeight! > 0).toList();
+    final rawValues = gradedCats.map((c) => c.gradeByWeight! / total * 100).toList();
+    final floors = rawValues.map((v) => v.floor()).toList();
+    final remainder = 100 - floors.reduce((a, b) => a + b);
+    final indices = List.generate(gradedCats.length, (i) => i)
+      ..sort((a, b) => (rawValues[b] - floors[b]).compareTo(rawValues[a] - floors[a]));
+    for (int i = 0; i < remainder; i++) {
+      floors[indices[i]]++;
+    }
+    return {for (int i = 0; i < gradedCats.length; i++) gradedCats[i].id: floors[i]};
+  }
+
   Widget _buildCategoryTable(GradeCourseModel course, bool hasWeightedGrading) {
     final sortedCategories = [...course.categories]..sort((a, b) => a.title.compareTo(b.title));
     final totalBreakdown = course.categories.fold<double>(
       0,
       (sum, cat) => sum + (cat.gradeByWeight != null && cat.gradeByWeight! > 0 ? cat.gradeByWeight! : 0),
     );
+    final roundedPercentages = totalBreakdown > 0 ? _largestRemainder(course.categories, totalBreakdown) : <int, int>{};
 
     return Column(
       children: [
@@ -2275,7 +2289,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
           itemCount: sortedCategories.length,
           itemBuilder: (context, catIndex) {
             final category = sortedCategories[catIndex];
-            return _buildCategoryRow(category, hasWeightedGrading, totalBreakdown);
+            return _buildCategoryRow(category, hasWeightedGrading, totalBreakdown, roundedPercentages);
           },
           separatorBuilder: (context, catIndex) {
             return const Divider(height: 1);
@@ -2289,6 +2303,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
     GradeCategoryModel category,
     bool hasWeightedGrading,
     double totalBreakdown,
+    Map<int, int> roundedPercentages,
   ) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
@@ -2317,7 +2332,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 8),
                 child: (category.gradeByWeight != null && category.gradeByWeight! > 0 && totalBreakdown > 0)
-                    ? _buildBreakdownBar(category, totalBreakdown)
+                    ? _buildBreakdownBar(category, totalBreakdown, roundedPercentages[category.id]!)
                     : const SizedBox.shrink(),
               ),
             ),
@@ -2348,9 +2363,9 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
     );
   }
 
-  Widget _buildBreakdownBar(GradeCategoryModel category, double totalBreakdown) {
+  Widget _buildBreakdownBar(GradeCategoryModel category, double totalBreakdown, int roundedPercent) {
     final normalizedFraction = category.gradeByWeight! / totalBreakdown;
-    final percentText = '${(normalizedFraction * 100).toStringAsFixed(1)}%';
+    final percentText = '$roundedPercent%';
     final textColor = normalizedFraction > 0.5
         ? HeliumColors.contrastingTextColor(category.color)
         : context.colorScheme.onSurface;

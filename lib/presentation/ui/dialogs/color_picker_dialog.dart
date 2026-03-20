@@ -107,7 +107,7 @@ class _ColorPickerWidgetState extends State<_ColorPickerWidget> {
                     child: isCurrentColor
                         ? Icon(
                             Icons.check,
-                            color: context.colorScheme.onPrimary,
+                            color: HeliumColors.contrastingTextColor(color),
                             size: 15,
                           )
                         : null,
