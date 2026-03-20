@@ -140,8 +140,8 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
   // Category table column widths
   static const double _gradedColTablet = 70;
   static const double _gradedColDesktop = 120;
-  static const double _contributionColMobile = 70;
-  static const double _contributionColTablet = 100;
+  static const double _contributionColMobile = 90;
+  static const double _contributionColTablet = 120;
   static const double _contributionColDesktop = 170;
   static const double _averageColMobile = 90;
   static const double _averageColDesktop = 95;
@@ -2200,11 +2200,11 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
 
     return Container(
       margin: const EdgeInsets.only(top: 14),
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.only(top: 16),
       decoration: BoxDecoration(
-        color: context.colorScheme.surface,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: course.color.withValues(alpha: 0.2)),
+        border: Border(
+          top: BorderSide(color: course.color.withValues(alpha: 0.2)),
+        ),
       ),
       child: _buildCategoryTable(course, hasWeightedGrading),
     );
@@ -2241,7 +2241,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
                 SizedBox(
                   width: Responsive.getResponsiveValue(context, mobile: _contributionColMobile, tablet: _contributionColTablet, desktop: _contributionColDesktop),
                   child: Text(
-                    Responsive.isMobile(context) ? 'Share' : 'Contribution',
+                    'Contribution',
                     textAlign: TextAlign.center,
                     style: AppStyles.standardBodyText(context),
                   ),
@@ -2278,7 +2278,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
             return _buildCategoryRow(category, hasWeightedGrading, totalBreakdown);
           },
           separatorBuilder: (context, catIndex) {
-            return const Divider(height: 1, indent: 12, endIndent: 12);
+            return const Divider(height: 1);
           },
         ),
       ],
@@ -2291,7 +2291,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
     double totalBreakdown,
   ) {
     return Padding(
-      padding: EdgeInsets.only(left: 12, right: Responsive.isMobile(context) ? 9 : 12, top: 10, bottom: 10),
+      padding: const EdgeInsets.symmetric(vertical: 10),
       child: Row(
         children: [
           Expanded(
