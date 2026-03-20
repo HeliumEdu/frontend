@@ -134,6 +134,9 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
   @override
   String get screenTitle => 'Grades';
 
+  // Category table row element heights
+  static const double _contributionBarHeight = 24;
+
   // Category table column widths
   static const double _gradedColTablet = 70;
   static const double _gradedColDesktop = 120;
@@ -2297,9 +2300,13 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
               children: [
                 if (!Responsive.isMobile(context)) const SizedBox(width: 8),
                 Flexible(
-                  child: CategoryTitleLabel(
-                    title: category.title,
-                    color: category.color,
+                  child: SizedBox(
+                    height: Responsive.isMobile(context) ? 26 : null,
+                    child: CategoryTitleLabel(
+                      title: category.title,
+                      color: category.color,
+                      compact: Responsive.isMobile(context),
+                    ),
                   ),
                 ),
               ],
@@ -2352,7 +2359,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
     return Stack(
       children: [
         Container(
-          height: 24,
+          height: _contributionBarHeight,
           decoration: BoxDecoration(
             color: context.colorScheme.surfaceContainerHighest,
             borderRadius: BorderRadius.circular(12),
@@ -2361,7 +2368,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
         FractionallySizedBox(
           widthFactor: normalizedFraction,
           child: Container(
-            height: 24,
+            height: _contributionBarHeight,
             decoration: BoxDecoration(
               color: category.color,
               borderRadius: BorderRadius.circular(12),
@@ -2369,7 +2376,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
           ),
         ),
         Container(
-          height: 24,
+          height: _contributionBarHeight,
           alignment: Alignment.center,
           child: Text(
             percentText,

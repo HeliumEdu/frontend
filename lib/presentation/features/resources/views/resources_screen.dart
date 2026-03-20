@@ -459,6 +459,7 @@ class _ResourcesScreenState
                     return CourseTitleLabel(
                       title: course.title,
                       color: course.color,
+                      compact: true,
                     );
                   }).toList(),
                 ),
