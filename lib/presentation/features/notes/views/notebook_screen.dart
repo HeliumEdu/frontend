@@ -29,6 +29,7 @@ import 'package:heliumapp/presentation/features/planner/bloc/planneritem_bloc.da
 import 'package:heliumapp/presentation/features/planner/bloc/planneritem_state.dart';
 import 'package:heliumapp/presentation/features/planner/dialogs/confirm_delete_dialog.dart';
 import 'package:heliumapp/presentation/ui/feedback/error_card.dart';
+import 'package:heliumapp/presentation/ui/layout/shadow_container.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
@@ -163,23 +164,27 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen> 
   @override
   Widget buildHeaderArea(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 16),
-      child: Row(
-        children: [
-          Expanded(
-            child: SizedBox(
-              height: 40,
-              child: Container(
-                decoration: BoxDecoration(
-                  color: context.colorScheme.surface,
-                  border: Border.all(
-                    color: context.colorScheme.outline.withValues(alpha: 0.2),
-                  ),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(8),
-                  child: TapRegion(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: ShadowContainer(
+        padding: const EdgeInsets.only(left: 8, right: 8, top: 4, bottom: 4),
+        child: SizedBox(
+          height: 48,
+          child: Row(
+            children: [
+              Expanded(
+                child: SizedBox(
+                  height: 40,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: context.colorScheme.surface,
+                      border: Border.all(
+                        color: context.colorScheme.outline.withValues(alpha: 0.2),
+                      ),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
+                      child: TapRegion(
                   onTapOutside: Responsive.isMobile(context)
                       ? (_) => _searchFocusNode.unfocus()
                       : null,
@@ -256,7 +261,9 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen> 
               );
             },
           ),
-        ],
+            ],
+          ),
+        ),
       ),
     );
   }
