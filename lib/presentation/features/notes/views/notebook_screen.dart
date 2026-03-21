@@ -250,6 +250,7 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen> 
                 tooltip: 'Filters',
                 icon: const Icon(Icons.filter_alt),
                 style: IconButton.styleFrom(
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                   backgroundColor: hasFilters
                       ? context.colorScheme.primary
                       : null,
