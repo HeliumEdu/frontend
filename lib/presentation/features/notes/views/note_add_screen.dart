@@ -17,18 +17,18 @@ import 'package:heliumapp/config/route_args.dart';
 import 'package:heliumapp/data/models/planner/note_model.dart';
 import 'package:heliumapp/data/models/planner/request/note_request_model.dart';
 import 'package:heliumapp/presentation/core/views/base_page_screen_state.dart';
-import 'package:heliumapp/presentation/ui/layout/page_header.dart';
 import 'package:heliumapp/presentation/features/notes/bloc/note_bloc.dart';
 import 'package:heliumapp/presentation/features/notes/bloc/note_event.dart';
 import 'package:heliumapp/presentation/features/notes/bloc/note_state.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/core/base_event.dart';
 import 'package:heliumapp/presentation/features/shared/controllers/basic_form_controller.dart';
+import 'package:heliumapp/presentation/ui/components/generic_title_label.dart';
 import 'package:heliumapp/presentation/ui/components/label_and_text_form_field.dart';
-import 'package:heliumapp/presentation/ui/components/course_title_label.dart';
-import 'package:heliumapp/presentation/ui/components/resource_title_label.dart';
 import 'package:heliumapp/presentation/ui/components/notes_editor.dart';
 import 'package:heliumapp/presentation/ui/components/quill_search_bar.dart';
+import 'package:heliumapp/presentation/ui/components/resource_title_label.dart';
 import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
+import 'package:heliumapp/presentation/ui/layout/page_header.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 
@@ -119,15 +119,19 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
   Color? _linkedEntityColor;
   bool _showSearch = false;
   bool _hasRequestedInitialFocus = false;
+  late final EventOrigin _origin;
 
   @override
   void initState() {
     super.initState();
     _quillController = QuillController.basic();
+    _origin = DialogModeProvider.isDialogMode(context)
+        ? EventOrigin.dialog
+        : EventOrigin.screen;
 
     context.read<NoteBloc>().add(
       FetchNoteScreenDataEvent(
-        origin: EventOrigin.screen,
+        origin: _origin,
         noteId: widget.noteId,
         homeworkId: widget.homeworkId,
         eventId: widget.eventId,
@@ -174,20 +178,27 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
       });
 
       final title = _titleController.text.trim();
-      final bodyIsEmpty =
-          _quillController.document.toPlainText().trim().isEmpty;
-      final hasLinkedEntity = widget.homeworkId != null ||
+      final bodyIsEmpty = _quillController.document
+          .toPlainText()
+          .trim()
+          .isEmpty;
+      final hasLinkedEntity =
+          widget.homeworkId != null ||
           widget.eventId != null ||
           widget.resourceId != null;
 
       // Standalone notes can be title-only, but linked notes require content
-      final isEmptyNote = (title.isEmpty && bodyIsEmpty) ||
-          (hasLinkedEntity && bodyIsEmpty);
+      final isEmptyNote =
+          (title.isEmpty && bodyIsEmpty) || (hasLinkedEntity && bodyIsEmpty);
       if (widget.isNew && isEmptyNote) {
         setState(() {
           isSubmitting = false;
         });
-        showSnackBar(context, 'Not created, Note is empty', useRootMessenger: true);
+        showSnackBar(
+          context,
+          'Not created, Note is empty',
+          useRootMessenger: true,
+        );
         cancelAction();
         return;
       }
@@ -197,7 +208,7 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
       if (widget.isNew) {
         context.read<NoteBloc>().add(
           CreateNoteEvent(
-            origin: EventOrigin.screen,
+            origin: _origin,
             request: NoteRequestModel(
               title: title,
               content: {'ops': content},
@@ -210,12 +221,9 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
       } else {
         context.read<NoteBloc>().add(
           UpdateNoteEvent(
-            origin: EventOrigin.screen,
+            origin: _origin,
             noteId: _note!.id,
-            request: NoteRequestModel(
-              title: title,
-              content: {'ops': content},
-            ),
+            request: NoteRequestModel(title: title, content: {'ops': content}),
           ),
         );
       }
@@ -296,8 +304,10 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
                   const double gap = 8;
                   final hasBadge = _linkedEntityType != null;
                   final effectiveBadgeMax = hasBadge
-                      ? (constraints.maxWidth - titleMinWidth - gap)
-                          .clamp(0.0, badgeMaxWidth)
+                      ? (constraints.maxWidth - titleMinWidth - gap).clamp(
+                          0.0,
+                          badgeMaxWidth,
+                        )
                       : 0.0;
                   return Row(
                     crossAxisAlignment: CrossAxisAlignment.center,
@@ -318,8 +328,9 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
                       if (hasBadge) ...[
                         const SizedBox(width: gap),
                         ConstrainedBox(
-                          constraints:
-                              BoxConstraints(maxWidth: effectiveBadgeMax),
+                          constraints: BoxConstraints(
+                            maxWidth: effectiveBadgeMax,
+                          ),
                           child: _buildLinkedEntityBadge(),
                         ),
                       ],
@@ -385,7 +396,8 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
                                           context.colorScheme.onPrimary,
                                         ),
                                         overlayColor: WidgetStatePropertyAll(
-                                          context.colorScheme.onPrimary.withValues(alpha: 0.1),
+                                          context.colorScheme.onPrimary
+                                              .withValues(alpha: 0.1),
                                         ),
                                       ),
                                     ),
@@ -395,12 +407,22 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
                                   ),
                                 ),
                                 color: QuillToolbarColorButtonOptions(
-                                  customOnPressedCallback: (ctrl, isBackground) =>
-                                      NotesEditor.showColorPicker(context, ctrl, isBackground),
+                                  customOnPressedCallback:
+                                      (ctrl, isBackground) =>
+                                          NotesEditor.showColorPicker(
+                                            context,
+                                            ctrl,
+                                            isBackground,
+                                          ),
                                 ),
                                 backgroundColor: QuillToolbarColorButtonOptions(
-                                  customOnPressedCallback: (ctrl, isBackground) =>
-                                      NotesEditor.showColorPicker(context, ctrl, isBackground),
+                                  customOnPressedCallback:
+                                      (ctrl, isBackground) =>
+                                          NotesEditor.showColorPicker(
+                                            context,
+                                            ctrl,
+                                            isBackground,
+                                          ),
                                 ),
                               ),
                             ),
@@ -415,12 +437,18 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
                               padding: const EdgeInsets.all(12),
                               autoFocus: false,
                               expands: true,
-                              customStyles: NotesEditor.buildDefaultStyles(context),
+                              customStyles: NotesEditor.buildDefaultStyles(
+                                context,
+                              ),
                               // ignore: experimental_member_use
                               onKeyPressed: (event, node) {
-                                final isFindShortcut = event.logicalKey == LogicalKeyboardKey.keyF &&
+                                final isFindShortcut =
+                                    event.logicalKey ==
+                                        LogicalKeyboardKey.keyF &&
                                     (HardwareKeyboard.instance.isMetaPressed ||
-                                     HardwareKeyboard.instance.isControlPressed);
+                                        HardwareKeyboard
+                                            .instance
+                                            .isControlPressed);
                                 if (isFindShortcut) {
                                   setState(() => _showSearch = !_showSearch);
                                   return KeyEventResult.handled;
@@ -465,19 +493,20 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
     }
 
     if (entityType == 'event') {
-      return CourseTitleLabel(
-        title: title,
+      return GenericLabel(
+        label: title,
         color: userSettings?.eventsColor ?? context.colorScheme.tertiary,
         icon: AppConstants.eventIcon,
       );
     }
 
     // Homework badge - respect colorByCategory setting
-    final badgeColor = (userSettings?.colorByCategory ?? false) && categoryColor != null
+    final badgeColor =
+        (userSettings?.colorByCategory ?? false) && categoryColor != null
         ? categoryColor
         : courseColor;
-    return CourseTitleLabel(
-      title: title,
+    return GenericLabel(
+      label: title,
       color: badgeColor ?? context.colorScheme.primary,
       icon: AppConstants.assignmentIcon,
     );

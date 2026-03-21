@@ -643,7 +643,9 @@ class _CalendarScreenState
         return SfCalendar(
           backgroundColor: context.colorScheme.surface,
           cellBorderColor:
-              Responsive.isMobile(context) ? Colors.transparent : null,
+              (Responsive.isMobile(context) && _currentView == PlannerView.month)
+                  ? Colors.transparent
+                  : null,
           controller: _calendarController,
           headerHeight: 0,
           showCurrentTimeIndicator: true,

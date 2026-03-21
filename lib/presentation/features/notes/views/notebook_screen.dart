@@ -110,7 +110,7 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen> 
     return [
       BlocListener<NoteBloc, NoteState>(
         listener: (context, state) {
-          if (state is NotesError) {
+          if (state is NotesError && state.origin == EventOrigin.screen) {
             showSnackBar(context, state.message!, type: SnackType.error);
           } else if (state is NotesFetched) {
             setState(() {
@@ -265,7 +265,7 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen> 
   Widget buildMainArea(BuildContext context) {
     return BlocBuilder<NoteBloc, NoteState>(
       builder: (context, state) {
-        if (state is NotesError) {
+        if (state is NotesError && state.origin == EventOrigin.screen) {
           return ErrorCard(
             message: state.message!,
             source: 'notes_screen',
