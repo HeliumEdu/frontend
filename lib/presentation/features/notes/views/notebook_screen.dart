@@ -24,6 +24,7 @@ import 'package:heliumapp/presentation/features/notes/bloc/note_state.dart';
 import 'package:heliumapp/presentation/features/notes/views/note_add_screen.dart';
 import 'package:heliumapp/presentation/features/notes/widgets/notes_data_grid.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/core/base_event.dart';
+import 'package:heliumapp/presentation/features/shared/bloc/core/base_state.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/core/provider_helpers.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/planneritem_bloc.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/planneritem_state.dart';
@@ -110,7 +111,7 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen> 
     return [
       BlocListener<NoteBloc, NoteState>(
         listener: (context, state) {
-          if (state is NotesError) {
+          if (state is NotesError && state.origin == EventOrigin.screen) {
             showSnackBar(context, state.message!, type: SnackType.error);
           } else if (state is NotesFetched) {
             setState(() {
@@ -265,7 +266,7 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen> 
   Widget buildMainArea(BuildContext context) {
     return BlocBuilder<NoteBloc, NoteState>(
       builder: (context, state) {
-        if (state is NotesError) {
+        if (state is NotesError && state.origin == EventOrigin.screen) {
           return ErrorCard(
             message: state.message!,
             source: 'notes_screen',

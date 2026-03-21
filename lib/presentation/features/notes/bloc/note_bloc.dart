@@ -8,6 +8,7 @@
 import 'package:bloc/bloc.dart';
 import 'package:heliumapp/core/helium_exception.dart';
 import 'package:heliumapp/data/models/planner/course_model.dart';
+import 'package:heliumapp/data/models/planner/homework_model.dart';
 import 'package:heliumapp/domain/repositories/course_repository.dart';
 import 'package:heliumapp/domain/repositories/event_repository.dart';
 import 'package:heliumapp/domain/repositories/homework_repository.dart';
@@ -108,7 +109,7 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
           homeworkRepository.getHomework(id: event.homeworkId!),
           courseRepository.getCourses(),
         ]);
-        final homework = results[0] as dynamic;
+        final homework = results[0] as HomeworkModel;
         final courses = results[1] as List<CourseModel>;
         final course = courses.cast<CourseModel?>().firstWhere(
           (c) => c?.id == homework.course.id,
@@ -117,7 +118,7 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
         emit(NoteScreenDataFetched(
           origin: event.origin,
           linkedEntityType: 'homework',
-          linkedEntityTitle: homework.label as String,
+          linkedEntityTitle: homework.title,
           linkedEntityColor: course?.color,
         ));
         return;
