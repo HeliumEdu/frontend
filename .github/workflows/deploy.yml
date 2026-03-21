@@ -419,10 +419,9 @@ jobs:
       - name: Upload build to Sentry
         env:
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
-          RELEASE_VERSION: ${{ inputs.artifact_run_id != '' && inputs.specific_version || steps.find_run.outputs.full_version }}
         run: |
           npm install -g @sentry/cli
-          SENTRY_PROPERTIES=sentry.properties sentry-cli build upload --release "$RELEASE_VERSION" ./android-build/app-release.aab
+          SENTRY_PROPERTIES=sentry.properties sentry-cli build upload ./android-build/app-release.aab
 
       - name: Deployment summary
         env:
@@ -571,10 +570,9 @@ jobs:
       - name: Upload build to Sentry
         env:
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
-          RELEASE_VERSION: ${{ inputs.artifact_run_id != '' && inputs.specific_version || steps.find_run.outputs.full_version }}
         run: |
           npm install -g @sentry/cli
-          SENTRY_PROPERTIES=sentry.properties sentry-cli build upload --release "$RELEASE_VERSION" ./ios-build/Helium.ipa
+          SENTRY_PROPERTIES=sentry.properties sentry-cli build upload ./ios-build/Helium.ipa
 
       - name: Deployment summary
         env:

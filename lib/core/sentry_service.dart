@@ -10,6 +10,7 @@ import 'dart:io' show Platform;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:logging/logging.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
 final _log = Logger('core');
@@ -38,13 +39,20 @@ class SentryService {
       return;
     }
 
+
+    const environment = String.fromEnvironment('SENTRY_ENVIRONMENT');
+    String release = const String.fromEnvironment('RELEASE_VERSION');
+    String dist = const String.fromEnvironment('SENTRY_DIST');
+    if (release.isEmpty) {
+      final packageInfo = await PackageInfo.fromPlatform();
+      release = '${packageInfo.version}+${packageInfo.buildNumber}';
+      dist = packageInfo.buildNumber;
+    }
+
     await SentryFlutter.init((options) {
       options.dsn =
           'https://d6522731f64a56983e3504ed78390601@o4510767194570752.ingest.us.sentry.io/4510767197519872';
 
-      const release = String.fromEnvironment('RELEASE_VERSION');
-      const dist = String.fromEnvironment('SENTRY_DIST');
-      const environment = String.fromEnvironment('SENTRY_ENVIRONMENT');
       if (release.isNotEmpty) {
         options.release = release;
         // Default to 'prod' for release builds, but allow override
