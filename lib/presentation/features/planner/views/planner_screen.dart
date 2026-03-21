@@ -796,7 +796,7 @@ class _CalendarScreenState
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: ShadowContainer(
-        padding: EdgeInsets.only(left: Responsive.isMobile(context) ? 4 : 8, right: Responsive.isMobile(context) ? 4 : 8, top: 4, bottom: 4),
+        padding: const EdgeInsets.only(left: 8, right: 8, top: 4, bottom: 4),
         child: LayoutBuilder(
           builder: (context, constraints) {
             return SizedBox(
@@ -1167,7 +1167,7 @@ class _CalendarScreenState
                       ),
                     ),
                     if (showCloseButton) ...[
-                      const SizedBox(width: 4),
+                      const SizedBox(width: 8),
                       IconButton(
                         onPressed: () {
                           setState(() {
@@ -1188,6 +1188,9 @@ class _CalendarScreenState
                         tooltip: 'Collapse',
                         padding: EdgeInsets.zero,
                         constraints: const BoxConstraints(),
+                        style: IconButton.styleFrom(
+                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        ),
                       ),
                     ],
                   ],
@@ -1238,7 +1241,7 @@ class _CalendarScreenState
             );
           },
         ),
-        SizedBox(width: Responsive.isMobile(context) ? 4 : 8),
+        const SizedBox(width: 8),
         Builder(
           builder: (context) {
             final hasFilters = _hasCoursesFilter() || _hasStatusFilters();
@@ -1266,7 +1269,7 @@ class _CalendarScreenState
           },
         ),
         if (!hideSearchButton) ...[
-          SizedBox(width: Responsive.isMobile(context) ? 4 : 8),
+          const SizedBox(width: 8),
           Builder(
             builder: (context) {
               final hasSearchQuery = _hasSearchQuery();

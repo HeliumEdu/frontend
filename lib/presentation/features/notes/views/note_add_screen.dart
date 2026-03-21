@@ -119,19 +119,15 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
   Color? _linkedEntityColor;
   bool _showSearch = false;
   bool _hasRequestedInitialFocus = false;
-  late final EventOrigin _origin;
 
   @override
   void initState() {
     super.initState();
     _quillController = QuillController.basic();
-    _origin = DialogModeProvider.isDialogMode(context)
-        ? EventOrigin.dialog
-        : EventOrigin.screen;
 
     context.read<NoteBloc>().add(
       FetchNoteScreenDataEvent(
-        origin: _origin,
+        origin: EventOrigin.subScreen,
         noteId: widget.noteId,
         homeworkId: widget.homeworkId,
         eventId: widget.eventId,
@@ -208,7 +204,7 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
       if (widget.isNew) {
         context.read<NoteBloc>().add(
           CreateNoteEvent(
-            origin: _origin,
+            origin: EventOrigin.subScreen,
             request: NoteRequestModel(
               title: title,
               content: {'ops': content},
@@ -221,7 +217,7 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
       } else {
         context.read<NoteBloc>().add(
           UpdateNoteEvent(
-            origin: _origin,
+            origin: EventOrigin.subScreen,
             noteId: _note!.id,
             request: NoteRequestModel(title: title, content: {'ops': content}),
           ),
