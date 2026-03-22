@@ -33,7 +33,9 @@ class ResourceTitleLabel extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 6),
+            padding: EdgeInsets.symmetric(
+              horizontal: Responsive.getResponsiveValue(context, mobile: 6, desktop: 5),
+            ),
             decoration: BoxDecoration(
               color: userSettings.resourceColor,
               borderRadius: const BorderRadius.only(
@@ -56,7 +58,7 @@ class ResourceTitleLabel extends StatelessWidget {
           ),
           Flexible(
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              padding: EdgeInsets.symmetric(horizontal: compact ? 6 : 10, vertical: compact ? 2 : 6),
               decoration: BoxDecoration(
                 color: BadgeColors.background(context, userSettings.resourceColor),
                 borderRadius: const BorderRadius.only(

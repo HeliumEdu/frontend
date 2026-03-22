@@ -72,9 +72,9 @@ class GradeLabel extends StatelessWidget {
           Flexible(
             child: Container(
               constraints: BoxConstraints(
-                maxWidth: Responsive.isMobile(context) ? 64 : 70,
+                maxWidth: Responsive.isMobile(context) ? (compact ? 56 : 64) : (compact ? 62 : 70),
               ),
-              padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 2),
+              padding: EdgeInsets.symmetric(horizontal: compact ? 2 : 6, vertical: compact ? 2 : 4),
               decoration: BoxDecoration(
                 color: BadgeColors.background(context, userSettings.gradeColor),
                 borderRadius: const BorderRadius.only(
