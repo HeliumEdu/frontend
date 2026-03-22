@@ -37,7 +37,7 @@ final _log = Logger('presentation.widgets');
 /// Sort column definitions with responsive visibility breakpoints.
 enum TodosSortColumn {
   completed(label: '', fixedWidth: 52, isCheckbox: true),
-  title(label: 'Title'),
+  title(label: 'Title', mobileWidth: 70, desktopWidth: 95),
   dueDate(label: 'Due Date', mobileWidth: 144, desktopWidth: 154),
   className(label: 'Class', minViewportWidth: 625),
   category(label: 'Category', minViewportWidth: 900),
@@ -379,7 +379,7 @@ class TodosDataGridState extends State<TodosDataGrid> {
     columns.add(GridColumn(
       columnName: 'title',
       label: _buildHeaderCell(TodosSortColumn.title),
-      minimumWidth: isMobile ? 70 : 150,
+      minimumWidth: TodosSortColumn.title.widthForLayout(isMobile: isMobile, isTablet: isTablet)!,
     ));
 
     columns.add(GridColumn(
@@ -400,7 +400,7 @@ class TodosDataGridState extends State<TodosDataGrid> {
       columns.add(GridColumn(
         columnName: 'category',
         label: _buildHeaderCell(TodosSortColumn.category),
-        minimumWidth: 125,
+        minimumWidth: 129,
       ));
     }
 
@@ -612,10 +612,10 @@ class TodosDataGridState extends State<TodosDataGrid> {
   }
 
   bool _shouldShowAttachmentsColumn() =>
-      MediaQuery.of(context).size.width >= 1000;
+      MediaQuery.of(context).size.width >= 1050;
 
   bool _shouldShowResourcesColumn() =>
-      MediaQuery.of(context).size.width >= 950;
+      MediaQuery.of(context).size.width >= 1050;
 
   bool _shouldHideActionsColumn() => Responsive.isTouchDevice(context);
 
@@ -847,9 +847,9 @@ class TodosDataSource extends DataGridSource with SortableDataGridSource {
         case 'grade':
           return width >= 850 || isTouchDevice;
         case 'resources':
-          return width >= 950;
+          return width >= 1050;
         case 'attachments':
-          return width >= 1000;
+          return width >= 1050;
         case 'actions':
           return !isTouchDevice;
         default:
