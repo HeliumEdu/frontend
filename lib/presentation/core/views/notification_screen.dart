@@ -12,6 +12,7 @@ import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/config/pref_service.dart';
 import 'package:heliumapp/core/dio_client.dart';
+import 'package:heliumapp/data/models/auth/user_model.dart';
 import 'package:heliumapp/data/models/notification/notification_model.dart';
 import 'package:heliumapp/data/models/planner/homework_model.dart';
 import 'package:heliumapp/data/models/planner/planner_item_base_model.dart';
@@ -110,6 +111,9 @@ class _NotificationsScreenState
   @override
   ScreenType get screenType => ScreenType.subPage;
 
+  @override
+  EdgeInsets get scaffoldInsets => const EdgeInsets.all(0);
+
   final PrefService _prefService = PrefService();
 
   List<NotificationModel> _notifications = [];
@@ -128,16 +132,24 @@ class _NotificationsScreenState
                 .toList();
       });
     });
+  }
 
-    context.read<ReminderBloc>().add(
-      FetchRemindersEvent(
-        origin: EventOrigin.subScreen,
-        sent: true,
-        dismissed: false,
-        type: 3,
-        startOfRange: DateTime.now(),
-      ),
-    );
+  @override
+  Future<UserSettingsModel?> loadSettings() {
+    return super.loadSettings().then((settings) {
+      if (mounted && settings != null) {
+        context.read<ReminderBloc>().add(
+          FetchRemindersEvent(
+            origin: EventOrigin.subScreen,
+            sent: true,
+            dismissed: false,
+            type: 3,
+            startOfRange: DateTime.now(),
+          ),
+        );
+      }
+      return settings;
+    });
   }
 
   @override
@@ -151,7 +163,8 @@ class _NotificationsScreenState
             _populateInitialStateData(state);
           } else if (state is ReminderUpdated) {
             final reminder = state.reminder;
-            final shouldRemove = reminder.dismissed ||
+            final shouldRemove =
+                reminder.dismissed ||
                 !reminder.sent ||
                 reminder.startOfRange.isAfter(DateTime.now());
 
@@ -293,7 +306,8 @@ class _NotificationsScreenState
       final category = reminder.homework?.entity?.category.entity;
 
       title = reminder.homework?.entity?.title as String;
-      color = existingColor ??
+      color =
+          existingColor ??
           (userSettings?.colorByCategory == true
               ? category?.color
               : course?.color) ??
@@ -301,7 +315,8 @@ class _NotificationsScreenState
     } else {
       plannerItem = reminder.event?.entity;
       title = reminder.event?.entity?.title as String;
-      color = existingColor ??
+      color =
+          existingColor ??
           userSettings?.eventsColor ??
           FallbackConstants.fallbackColor;
     }
@@ -333,7 +348,7 @@ class _NotificationsScreenState
       child: InkWell(
         onTap: () => _openNotification(notification),
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+          padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
             border: Border(
               bottom: BorderSide(
@@ -407,6 +422,7 @@ class _NotificationsScreenState
                               child: CourseTitleLabel(
                                 title: plannerItem.course.entity!.title,
                                 color: plannerItem.course.entity!.color,
+                                compact: true,
                               ),
                             ),
                           ),
