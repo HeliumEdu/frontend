@@ -39,9 +39,9 @@ enum TodosSortColumn {
   completed(label: '', fixedWidth: 52, isCheckbox: true),
   title(label: 'Title', mobileWidth: 70, desktopWidth: 95),
   dueDate(label: 'Due Date', mobileWidth: 144, desktopWidth: 154),
-  className(label: 'Class', minViewportWidth: 625),
-  category(label: 'Category', minViewportWidth: 900),
-  priority(label: 'Priority', minViewportWidth: 1150),
+  className(label: 'Class', minViewportWidth: 625, fixedWidth: 120),
+  category(label: 'Category', minViewportWidth: 950, fixedWidth: 129),
+  priority(label: 'Priority', minViewportWidth: 1150, fixedWidth: 116),
   grade(
     label: 'Grade',
     mobileWidth: 90,
@@ -49,7 +49,9 @@ enum TodosSortColumn {
     desktopWidth: 105,
     minViewportWidth: 850,
     showOnTouchDevice: true,
-  );
+  ),
+  resources(label: '', minViewportWidth: 1050, fixedWidth: 40),
+  attachments(label: '', minViewportWidth: 1050, fixedWidth: 40);
 
   const TodosSortColumn({
     required this.label,
@@ -392,7 +394,7 @@ class TodosDataGridState extends State<TodosDataGrid> {
       columns.add(GridColumn(
         columnName: 'className',
         label: _buildHeaderCell(TodosSortColumn.className),
-        minimumWidth: 120,
+        minimumWidth: TodosSortColumn.className.widthForLayout(isMobile: isMobile, isTablet: isTablet)!,
       ));
     }
 
@@ -400,7 +402,7 @@ class TodosDataGridState extends State<TodosDataGrid> {
       columns.add(GridColumn(
         columnName: 'category',
         label: _buildHeaderCell(TodosSortColumn.category),
-        minimumWidth: 129,
+        minimumWidth: TodosSortColumn.category.widthForLayout(isMobile: isMobile, isTablet: isTablet)!,
       ));
     }
 
@@ -408,7 +410,7 @@ class TodosDataGridState extends State<TodosDataGrid> {
       columns.add(GridColumn(
         columnName: 'priority',
         label: _buildHeaderCell(TodosSortColumn.priority),
-        width: 116,
+        width: TodosSortColumn.priority.widthForLayout(isMobile: isMobile, isTablet: isTablet)!,
       ));
     }
 
@@ -420,20 +422,20 @@ class TodosDataGridState extends State<TodosDataGrid> {
       ));
     }
 
-    if (_shouldShowResourcesColumn()) {
+    if (_shouldShowColumn(TodosSortColumn.resources)) {
       columns.add(GridColumn(
         columnName: 'resources',
         label: const SizedBox.shrink(),
-        width: 40,
+        width: TodosSortColumn.resources.widthForLayout(isMobile: isMobile, isTablet: isTablet)!,
         allowSorting: false,
       ));
     }
 
-    if (_shouldShowAttachmentsColumn()) {
+    if (_shouldShowColumn(TodosSortColumn.attachments)) {
       columns.add(GridColumn(
         columnName: 'attachments',
         label: const SizedBox.shrink(),
-        width: 40,
+        width: TodosSortColumn.attachments.widthForLayout(isMobile: isMobile, isTablet: isTablet)!,
         allowSorting: false,
       ));
     }
@@ -610,12 +612,6 @@ class TodosDataGridState extends State<TodosDataGrid> {
     return MediaQuery.of(context).size.width >= column.minViewportWidth! ||
         (column.showOnTouchDevice && Responsive.isTouchDevice(context));
   }
-
-  bool _shouldShowAttachmentsColumn() =>
-      MediaQuery.of(context).size.width >= 1050;
-
-  bool _shouldShowResourcesColumn() =>
-      MediaQuery.of(context).size.width >= 1050;
 
   bool _shouldHideActionsColumn() => Responsive.isTouchDevice(context);
 
@@ -839,17 +835,17 @@ class TodosDataSource extends DataGridSource with SortableDataGridSource {
 
       switch (cell.columnName) {
         case 'className':
-          return width >= 625;
+          return width >= TodosSortColumn.className.minViewportWidth!;
         case 'category':
-          return width >= 900;
+          return width >= TodosSortColumn.category.minViewportWidth!;
         case 'priority':
-          return width >= 1150;
+          return width >= TodosSortColumn.priority.minViewportWidth!;
         case 'grade':
-          return width >= 850 || isTouchDevice;
+          return width >= TodosSortColumn.grade.minViewportWidth! || isTouchDevice;
         case 'resources':
-          return width >= 1050;
+          return width >= TodosSortColumn.resources.minViewportWidth!;
         case 'attachments':
-          return width >= 1050;
+          return width >= TodosSortColumn.attachments.minViewportWidth!;
         case 'actions':
           return !isTouchDevice;
         default:
