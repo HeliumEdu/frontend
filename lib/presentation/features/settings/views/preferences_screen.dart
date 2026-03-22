@@ -500,6 +500,7 @@ class _PreferenceViewState extends BasePageScreenState<PreferencesScreen> {
   }
 
   void _onSubmit() {
+    if (isSubmitting) return;
     setState(() {
       isSubmitting = true;
     });

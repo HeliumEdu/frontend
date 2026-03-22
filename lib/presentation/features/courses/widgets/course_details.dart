@@ -61,6 +61,7 @@ class CourseDetailsState extends State<CourseDetails> {
 
   // State
   bool isLoading = true;
+  bool _isSubmitting = false;
 
   @override
   void initState() {
@@ -437,9 +438,13 @@ class CourseDetailsState extends State<CourseDetails> {
     }
   }
 
+  void resetSubmitting() {
+    setState(() => _isSubmitting = false);
+  }
+
   /// Submit the form. Called by parent screen when header save is pressed.
   bool onSubmit() {
-    if (isLoading) return false;
+    if (isLoading || _isSubmitting) return false;
     if (_formController.validateAndScrollToError()) {
       if (_formController.endDate!.isBefore(_formController.startDate!)) {
         SnackBarHelper.show(
@@ -451,6 +456,7 @@ class CourseDetailsState extends State<CourseDetails> {
       }
 
       // Notify parent that action is starting (validation passed)
+      setState(() => _isSubmitting = true);
       widget.onActionStarted?.call();
 
       final request = CourseRequestModel(

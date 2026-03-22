@@ -180,6 +180,8 @@ class _CourseAddScreenState extends MultiStepContainerState<CourseAddScreen> {
         listener: (context, state) {
           if (state is CoursesError) {
             showSnackBar(context, state.message!, type: SnackType.error);
+            _detailsKey.currentState?.resetSubmitting();
+            _scheduleKey.currentState?.resetSubmitting();
             setState(() => isSubmitting = false);
           } else if (state is CourseCreated || state is CourseUpdated) {
             state as CourseEntityState;

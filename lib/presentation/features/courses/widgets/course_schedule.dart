@@ -46,6 +46,7 @@ class CourseSchedule extends StatefulWidget {
 class CourseScheduleState extends State<CourseSchedule> {
   // State
   bool isLoading = true;
+  bool _isSubmitting = false;
   int? _scheduleId;
   bool _variesByDay = false;
   Set<int> _selectedDays = {};
@@ -429,9 +430,13 @@ class CourseScheduleState extends State<CourseSchedule> {
     return daysString.join('');
   }
 
+  void resetSubmitting() {
+    setState(() => _isSubmitting = false);
+  }
+
   /// Submit the form. Called by parent screen when header save is pressed.
   bool onSubmit() {
-    if (isLoading) return false;
+    if (isLoading || _isSubmitting) return false;
     if (_scheduleId == null) {
       return false;
     }
@@ -473,6 +478,7 @@ class CourseScheduleState extends State<CourseSchedule> {
     }
 
     // Notify parent that action is starting (validation passed)
+    setState(() => _isSubmitting = true);
     widget.onActionStarted?.call();
 
     final String daysOfWeek = _generateDaysOfWeek();

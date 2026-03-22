@@ -158,7 +158,7 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
   @override
   Function? get saveAction {
     return () {
-      if (isLoading) return;
+      if (isLoading || isSubmitting) return;
 
       if (!_formController.validateAndScrollToError()) {
         showSnackBar(
