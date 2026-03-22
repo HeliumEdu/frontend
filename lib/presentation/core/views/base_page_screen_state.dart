@@ -24,9 +24,10 @@ import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:heliumapp/utils/snack_bar_helpers.dart';
-export 'package:heliumapp/utils/snack_bar_helpers.dart' show SnackType;
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
+
+export 'package:heliumapp/utils/snack_bar_helpers.dart' show SnackType;
 
 final _log = Logger('presentation.views');
 
@@ -219,6 +220,13 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
 
   List<BlocProvider>? get inheritableProviders => null;
 
+  EdgeInsets get scaffoldInsets => const EdgeInsets.only(
+    left: 12,
+    right: 12,
+    top: 8,
+    bottom: 0,
+  );
+
   // State
   UserSettingsModel? userSettings;
   bool settingsLoaded = false;
@@ -332,9 +340,8 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
     // Check if we're being displayed as a dialog
     final bool isDialogMode = DialogModeProvider.isDialogMode(context);
 
-    // Build the main content
     final Widget content = Padding(
-      padding: const EdgeInsets.only(left: 12, right: 12, top: 8, bottom: 0),
+      padding: scaffoldInsets,
       child: Column(
         children: [
           // Show error card if settings failed to load
