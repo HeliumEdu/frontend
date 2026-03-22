@@ -318,474 +318,80 @@ class _SettingsScreenViewState extends BasePageScreenState<SettingsScreen> {
       padding: EdgeInsets.zero,
       child: Column(
         children: [
-          Material(
-            color: Colors.transparent,
-            child: InkWell(
-              onTap: () => _navigateToSubSettings(
-                context,
-                (ctx) => showPreferences(ctx),
-              ),
-              borderRadius: BorderRadius.circular(16),
-              child: Padding(
-                padding: const EdgeInsets.all(14),
-                child: Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        color: context.semanticColors.info.withValues(
-                          alpha: 0.1,
-                        ),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Icon(
-                        Icons.tune,
-                        color: context.semanticColors.info,
-                        size: Responsive.getIconSize(
-                          context,
-                          mobile: 22,
-                          tablet: 24,
-                          desktop: 26,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Preferences',
-                            style: AppStyles.menuItem(context),
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            'Tailor Helium to your tastes',
-                            style: AppStyles.menuItemHint(context),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Icon(
-                      Icons.arrow_forward_ios,
-                      color: context.colorScheme.onSurface.withValues(
-                        alpha: 0.3,
-                      ),
-                      size: Responsive.getIconSize(
-                        context,
-                        mobile: 16,
-                        tablet: 18,
-                        desktop: 20,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
+          _buildSettingsItem(
+            icon: Icons.tune,
+            label: 'Preferences',
+            hint: 'Tailor Helium to your tastes',
+            onTap: () =>
+                _navigateToSubSettings(context, (ctx) => showPreferences(ctx)),
+            iconColor: context.semanticColors.info,
+            isFirst: true,
           ),
-
           const Divider(height: 1, indent: 68),
-
-          Material(
-            color: Colors.transparent,
-            child: InkWell(
-              onTap: () {
-                _navigateToSubSettings(
-                  context,
-                  (ctx) => showExternalCalendars(ctx),
-                );
-              },
-              borderRadius: BorderRadius.circular(16),
-              child: Padding(
-                padding: const EdgeInsets.all(14),
-                child: Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        color: context.colorScheme.primary.withValues(
-                          alpha: 0.1,
-                        ),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Icon(
-                        AppConstants.externalCalendarIcon,
-                        color: context.colorScheme.primary,
-                        size: Responsive.getIconSize(
-                          context,
-                          mobile: 22,
-                          tablet: 24,
-                          desktop: 26,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'External Calendars',
-                            style: AppStyles.menuItem(context),
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            'Bring other calendars in to Helium',
-                            style: AppStyles.menuItemHint(context),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Icon(
-                      Icons.arrow_forward_ios,
-                      color: context.colorScheme.onSurface.withValues(
-                        alpha: 0.3,
-                      ),
-                      size: Responsive.getIconSize(
-                        context,
-                        mobile: 16,
-                        tablet: 18,
-                        desktop: 20,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+          _buildSettingsItem(
+            icon: AppConstants.externalCalendarIcon,
+            label: 'External Calendars',
+            hint: 'Bring other calendars in to Helium',
+            onTap: () => _navigateToSubSettings(
+              context,
+              (ctx) => showExternalCalendars(ctx),
             ),
+            iconColor: context.colorScheme.primary,
           ),
-
           const Divider(height: 1, indent: 68),
-
-          Material(
-            color: Colors.transparent,
-            child: InkWell(
-              onTap: () =>
-                  _navigateToSubSettings(context, (ctx) => showFeeds(ctx)),
-              borderRadius: BorderRadius.circular(16),
-              child: Padding(
-                padding: const EdgeInsets.all(14),
-                child: Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        color: context.colorScheme.primary.withValues(
-                          alpha: 0.1,
-                        ),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Icon(
-                        Icons.rss_feed,
-                        color: context.colorScheme.primary,
-                        size: Responsive.getIconSize(
-                          context,
-                          mobile: 22,
-                          tablet: 24,
-                          desktop: 26,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('Feeds', style: AppStyles.menuItem(context)),
-                          const SizedBox(height: 2),
-                          Text(
-                            "Take Helium's calendars elsewhere",
-                            style: AppStyles.menuItemHint(context),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Icon(
-                      Icons.arrow_forward_ios,
-                      color: context.colorScheme.onSurface.withValues(
-                        alpha: 0.3,
-                      ),
-                      size: Responsive.getIconSize(
-                        context,
-                        mobile: 16,
-                        tablet: 18,
-                        desktop: 20,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
+          _buildSettingsItem(
+            icon: Icons.rss_feed,
+            label: 'Feeds',
+            hint: "Take Helium's calendars elsewhere",
+            onTap: () =>
+                _navigateToSubSettings(context, (ctx) => showFeeds(ctx)),
+            iconColor: context.colorScheme.primary,
           ),
-
           if (!_hasOAuthProviders) const Divider(height: 1, indent: 68),
-
           if (!_hasOAuthProviders)
-            Material(
-              color: Colors.transparent,
-              child: InkWell(
-                onTap: () => _navigateToSubSettings(
-                  context,
-                  (ctx) => showChangeEmail(ctx),
-                ),
-                borderRadius: BorderRadius.circular(16),
-                child: Padding(
-                  padding: const EdgeInsets.all(14),
-                  child: Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(10),
-                        decoration: BoxDecoration(
-                          color: context.colorScheme.primary.withValues(
-                            alpha: 0.1,
-                          ),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Icon(
-                          Icons.email_outlined,
-                          color: context.colorScheme.primary,
-                          size: Responsive.getIconSize(
-                            context,
-                            mobile: 22,
-                            tablet: 24,
-                            desktop: 26,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Change Email',
-                              style: AppStyles.menuItem(context),
-                            ),
-                            const SizedBox(height: 2),
-                            Text(
-                              'Update your email address',
-                              style: AppStyles.menuItemHint(context),
-                            ),
-                          ],
-                        ),
-                      ),
-                      Icon(
-                        Icons.arrow_forward_ios,
-                        color: context.colorScheme.onSurface.withValues(
-                          alpha: 0.3,
-                        ),
-                        size: Responsive.getIconSize(
-                          context,
-                          mobile: 16,
-                          tablet: 18,
-                          desktop: 20,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-
-          if (_hasUsablePassword) const Divider(height: 1, indent: 68),
-
-          if (_hasUsablePassword)
-            Material(
-              color: Colors.transparent,
-              child: InkWell(
-                onTap: () => _navigateToSubSettings(
-                  context,
-                  (ctx) => showChangePassword(ctx),
-                ),
-                borderRadius: BorderRadius.circular(16),
-                child: Padding(
-                  padding: const EdgeInsets.all(14),
-                  child: Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(10),
-                        decoration: BoxDecoration(
-                          color: context.colorScheme.primary.withValues(
-                            alpha: 0.1,
-                          ),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Icon(
-                          Icons.lock_outline,
-                          color: context.colorScheme.primary,
-                          size: Responsive.getIconSize(
-                            context,
-                            mobile: 22,
-                            tablet: 24,
-                            desktop: 26,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Change Password',
-                              style: AppStyles.menuItem(context),
-                            ),
-                            const SizedBox(height: 2),
-                            Text(
-                              'Update your password',
-                              style: AppStyles.menuItemHint(context),
-                            ),
-                          ],
-                        ),
-                      ),
-                      Icon(
-                        Icons.arrow_forward_ios,
-                        color: context.colorScheme.onSurface.withValues(
-                          alpha: 0.3,
-                        ),
-                        size: Responsive.getIconSize(
-                          context,
-                          mobile: 16,
-                          tablet: 18,
-                          desktop: 20,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-
-          const Divider(height: 1, indent: 68),
-
-          Material(
-            color: Colors.transparent,
-            child: InkWell(
+            _buildSettingsItem(
+              icon: Icons.email_outlined,
+              label: 'Change Email',
+              hint: 'Update your email address',
               onTap: () => _navigateToSubSettings(
                 context,
-                (ctx) => showImportExport(ctx),
+                (ctx) => showChangeEmail(ctx),
               ),
-              borderRadius: BorderRadius.circular(16),
-              child: Padding(
-                padding: const EdgeInsets.all(14),
-                child: Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        color: context.colorScheme.primary.withValues(
-                          alpha: 0.1,
-                        ),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Icon(
-                        Icons.swap_horiz,
-                        color: context.colorScheme.primary,
-                        size: Responsive.getIconSize(
-                          context,
-                          mobile: 22,
-                          tablet: 24,
-                          desktop: 26,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Import/Export',
-                            style: AppStyles.menuItem(context),
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            'Backup and restore your data',
-                            style: AppStyles.menuItemHint(context),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Icon(
-                      Icons.arrow_forward_ios,
-                      color: context.colorScheme.onSurface.withValues(
-                        alpha: 0.3,
-                      ),
-                      size: Responsive.getIconSize(
-                        context,
-                        mobile: 16,
-                        tablet: 18,
-                        desktop: 20,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+              iconColor: context.colorScheme.primary,
             ),
-          ),
-
+          if (_hasUsablePassword) const Divider(height: 1, indent: 68),
+          if (_hasUsablePassword)
+            _buildSettingsItem(
+              icon: Icons.lock_outline,
+              label: 'Change Password',
+              hint: 'Update your password',
+              onTap: () => _navigateToSubSettings(
+                context,
+                (ctx) => showChangePassword(ctx),
+              ),
+              iconColor: context.colorScheme.primary,
+            ),
           const Divider(height: 1, indent: 68),
-
-          Material(
-            color: Colors.transparent,
-            child: InkWell(
-              onTap: () => _showLogoutDialog(context),
-              borderRadius: BorderRadius.circular(16),
-              child: Padding(
-                padding: const EdgeInsets.all(14),
-                child: Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        color: context.colorScheme.error.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Icon(
-                        Icons.logout_outlined,
-                        color: context.semanticColors.warning,
-                        size: Responsive.getIconSize(
-                          context,
-                          mobile: 22,
-                          tablet: 24,
-                          desktop: 26,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Logout',
-                            style: AppStyles.menuItem(
-                              context,
-                            ).copyWith(color: context.semanticColors.warning),
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            'Sign out of your account',
-                            style: AppStyles.menuItemHint(context),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Icon(
-                      Icons.arrow_forward_ios,
-                      color: context.colorScheme.onSurface.withValues(
-                        alpha: 0.3,
-                      ),
-                      size: Responsive.getIconSize(
-                        context,
-                        mobile: 16,
-                        tablet: 18,
-                        desktop: 20,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+          _buildSettingsItem(
+            icon: Icons.swap_horiz,
+            label: 'Import/Export',
+            hint: 'Backup and restore your data',
+            onTap: () =>
+                _navigateToSubSettings(context, (ctx) => showImportExport(ctx)),
+            iconColor: context.colorScheme.primary,
+          ),
+          const Divider(height: 1, indent: 68),
+          _buildSettingsItem(
+            icon: Icons.logout_outlined,
+            label: 'Logout',
+            hint: 'Sign out of your account',
+            onTap: () => _showLogoutDialog(context),
+            iconColor: context.semanticColors.warning,
+            iconBackgroundColor: context.colorScheme.error.withValues(
+              alpha: 0.1,
             ),
+            labelColor: context.semanticColors.warning,
+            isLast: true,
           ),
         ],
       ),
@@ -834,6 +440,84 @@ class _SettingsScreenViewState extends BasePageScreenState<SettingsScreen> {
     });
   }
 
+  Widget _buildSettingsItem({
+    required IconData icon,
+    required String label,
+    required String hint,
+    required VoidCallback onTap,
+    required Color iconColor,
+    Color? iconBackgroundColor,
+    Color? labelColor,
+    bool isFirst = false,
+    bool isLast = false,
+  }) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.only(
+          topLeft: const Radius.circular(16),
+          topRight: isFirst ? const Radius.circular(16) : Radius.zero,
+          bottomLeft: const Radius.circular(16),
+          bottomRight: isLast ? const Radius.circular(16) : Radius.zero,
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(14),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color:
+                      iconBackgroundColor ?? iconColor.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(
+                  icon,
+                  color: iconColor,
+                  size: Responsive.getIconSize(
+                    context,
+                    mobile: 22,
+                    tablet: 24,
+                    desktop: 26,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      label,
+                      style: labelColor != null
+                          ? AppStyles.menuItem(
+                              context,
+                            ).copyWith(color: labelColor)
+                          : AppStyles.menuItem(context),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(hint, style: AppStyles.menuItemHint(context)),
+                  ],
+                ),
+              ),
+              Icon(
+                Icons.arrow_forward_ios,
+                color: context.colorScheme.onSurface.withValues(alpha: 0.3),
+                size: Responsive.getIconSize(
+                  context,
+                  mobile: 16,
+                  tablet: 18,
+                  desktop: 20,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildDangerZoneArea() {
     return Container(
       decoration: BoxDecoration(
@@ -853,7 +537,7 @@ class _SettingsScreenViewState extends BasePageScreenState<SettingsScreen> {
       color: Colors.transparent,
       child: InkWell(
         onTap: _expandDangerZone,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: const BorderRadius.all(Radius.circular(16)),
         child: Padding(
           padding: const EdgeInsets.all(14),
           child: Row(
@@ -907,6 +591,7 @@ class _SettingsScreenViewState extends BasePageScreenState<SettingsScreen> {
             _resetDangerZoneTimer();
             _showDeleteAllEventsDialog(context);
           },
+          isFirst: true,
         ),
         const Divider(height: 1, indent: 68),
         _buildDangerZoneItem(
@@ -917,6 +602,7 @@ class _SettingsScreenViewState extends BasePageScreenState<SettingsScreen> {
             _resetDangerZoneTimer();
             _showDeleteAccountDialog(context);
           },
+          isLast: true,
         ),
       ],
     );
@@ -927,12 +613,19 @@ class _SettingsScreenViewState extends BasePageScreenState<SettingsScreen> {
     required String label,
     required String hint,
     required VoidCallback onTap,
+    bool isFirst = false,
+    bool isLast = false,
   }) {
     return Material(
       color: Colors.transparent,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.only(
+          topLeft: const Radius.circular(16),
+          topRight: isFirst ? const Radius.circular(16) : Radius.zero,
+          bottomLeft: const Radius.circular(16),
+          bottomRight: isLast ? const Radius.circular(16) : Radius.zero,
+        ),
         child: Padding(
           padding: const EdgeInsets.all(14),
           child: Row(
