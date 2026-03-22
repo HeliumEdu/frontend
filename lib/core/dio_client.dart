@@ -377,22 +377,8 @@ class DioClient {
     await _prefService.init();
 
     try {
-      // Check for critical field to detect if settings have been fetched
-      final timeZone = _prefService.getString('time_zone');
-      if (timeZone == null) {
-        // Settings not in cache - fetch from API to ensure they're available
-        _log.info('Settings not in cache, fetching from API ...');
-        final fetchedSettings = await fetchSettings();
-        if (fetchedSettings != null) {
-          return fetchedSettings;
-        }
-        // Fetch failed - return null so page can show error state with retry
-        _log.warning('Failed to fetch settings from API');
-        return null;
-      }
-
-      return UserSettingsModel.fromJson({
-        'time_zone': timeZone,
+      final cachedJson = <String, dynamic>{
+        'time_zone': _prefService.getString('time_zone'),
         'color_by_category': _prefService.getBool('color_by_category'),
         'default_view': _prefService.getInt('default_view'),
         'color_scheme_theme': _prefService.getInt('color_scheme_theme'),
@@ -420,7 +406,20 @@ class DioClient {
         ),
         'is_setup_complete': _prefService.getBool('is_setup_complete'),
         'calendar_event_limit': _prefService.getBool('calendar_event_limit'),
-      });
+      };
+
+      if (cachedJson.values.any((v) => v == null)) {
+        _log.info('Fetching settings from API ...');
+        final fetchedSettings = await fetchSettings();
+        if (fetchedSettings != null) {
+          return fetchedSettings;
+        }
+        // Fetch failed - return null so page can show error state with retry
+        _log.warning('Failed to fetch settings from API');
+        return null;
+      }
+
+      return UserSettingsModel.fromJson(cachedJson);
     } catch (parseError) {
       _log.info('Failed to parse cached settings: $parseError');
       return await fetchSettings();
