@@ -30,7 +30,9 @@ class CategoryTitleLabel extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 6),
+            padding: EdgeInsets.symmetric(
+              horizontal: Responsive.getResponsiveValue(context, mobile: 6, desktop: 5),
+            ),
             decoration: BoxDecoration(
               color: color,
               borderRadius: const BorderRadius.only(

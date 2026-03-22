@@ -15,7 +15,6 @@ class GenericLabel extends StatelessWidget {
   final Color color;
   final IconData icon;
   final bool compact;
-  final VoidCallback? onDelete;
 
   const GenericLabel({
     super.key,
@@ -23,7 +22,6 @@ class GenericLabel extends StatelessWidget {
     required this.color,
     required this.icon,
     this.compact = false,
-    this.onDelete,
   });
 
   @override
@@ -57,16 +55,17 @@ class GenericLabel extends StatelessWidget {
           ),
           Flexible(
             child: Container(
-              padding: EdgeInsets.symmetric(horizontal: compact ? 6 : 10, vertical: compact ? 2 : 6),
+              padding: EdgeInsets.symmetric(
+                horizontal: compact ? 6 : 10,
+                vertical: compact ? 2 : 6,
+              ),
               decoration: BoxDecoration(
                 color: BadgeColors.background(context, color),
                 borderRadius: const BorderRadius.only(
                   topRight: Radius.circular(10),
                   bottomRight: Radius.circular(10),
                 ),
-                border: Border.all(
-                  color: BadgeColors.border(context, color),
-                ),
+                border: Border.all(color: BadgeColors.border(context, color)),
               ),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
@@ -74,35 +73,17 @@ class GenericLabel extends StatelessWidget {
                   Flexible(
                     child: Text(
                       label,
-                      style: (compact
-                              ? AppStyles.smallSecondaryText(context)
-                              : AppStyles.standardBodyText(context))
-                          .copyWith(color: BadgeColors.foreground(context, color)),
+                      style:
+                          (compact
+                                  ? AppStyles.smallSecondaryText(context)
+                                  : AppStyles.standardBodyText(context))
+                              .copyWith(
+                                color: BadgeColors.foreground(context, color),
+                              ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
-                  if (onDelete != null) ...[
-                    const SizedBox(width: 2),
-                    IconButton(
-                      onPressed: onDelete,
-                      icon: const Icon(Icons.close),
-                      iconSize: Responsive.getIconSize(
-                        context,
-                        mobile: 16,
-                        tablet: 18,
-                        desktop: 20,
-                      ),
-                      color: BadgeColors.foreground(context, color),
-                      hoverColor: BadgeColors.border(context, color),
-                      padding: EdgeInsets.zero,
-                      constraints: const BoxConstraints(),
-                      visualDensity: VisualDensity.compact,
-                      style: IconButton.styleFrom(
-                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                      ),
-                    ),
-                  ],
                 ],
               ),
             ),
