@@ -117,6 +117,7 @@ class _ResourceAddScreenState
         listener: (context, state) {
           if (state is ResourcesError) {
             showSnackBar(context, state.message!, type: SnackType.error);
+            _detailsKey.currentState?.resetSubmitting();
             setState(() => isSubmitting = false);
           } else if (state is ResourceCreated) {
             final noteContent = _detailsKey.currentState?.noteContent;
@@ -173,6 +174,7 @@ class _ResourceAddScreenState
         listener: (context, state) {
           if (state is NotesError) {
             showSnackBar(context, state.message!, type: SnackType.error);
+            _detailsKey.currentState?.resetSubmitting();
             setState(() => isSubmitting = false);
           } else if (state is NoteCreated && _pendingRedirectToNotebook) {
             _pendingRedirectToNotebook = false;
