@@ -21,7 +21,6 @@ import 'package:heliumapp/presentation/ui/feedback/error_card.dart';
 import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
 import 'package:heliumapp/presentation/ui/layout/page_header.dart';
 import 'package:heliumapp/utils/app_globals.dart';
-import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:heliumapp/utils/snack_bar_helpers.dart';
 import 'package:logging/logging.dart';
@@ -382,7 +381,7 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
         borderRadius: BorderRadius.circular(16),
         child: Column(
           children: [
-            buildDialogHeader(context),
+            buildPageHeader(),
             Expanded(child: content),
           ],
         ),
@@ -433,6 +432,7 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
       icon: icon,
       screenType: screenType,
       isLoading: isSubmitting,
+      isDialogMode: DialogModeProvider.isDialogMode(context),
       cancelAction: cancelAction,
       saveAction: saveAction,
       inheritableProviders: inheritableProviders,
@@ -444,48 +444,6 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
   }
 
   Widget buildMainArea(BuildContext context);
-
-  Widget buildDialogHeader(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      decoration: BoxDecoration(
-        border: Border(
-          bottom: BorderSide(
-            color: context.colorScheme.outline.withValues(alpha: 0.2),
-          ),
-        ),
-      ),
-      child: Row(
-        children: [
-          if (icon != null) ...[
-            Icon(icon, color: context.colorScheme.primary),
-            const SizedBox(width: 12),
-          ],
-          Text(screenTitle, style: AppStyles.pageTitle(context)),
-          const Spacer(),
-          IconButton(
-            icon: Icon(Icons.close, color: context.colorScheme.secondary),
-            onPressed: () => Navigator.of(context).pop(),
-          ),
-          if (screenType == ScreenType.entityPage) ...[
-            const SizedBox(width: 8),
-            if (isSubmitting)
-              const LoadingIndicator(
-                size: 20,
-                strokeWidth: 2.5,
-                expanded: false,
-              )
-            else
-              IconButton(
-                icon: const Icon(Icons.check),
-                onPressed: () => saveAction?.call(),
-                color: context.colorScheme.primary,
-              ),
-          ],
-        ],
-      ),
-    );
-  }
 
   Widget buildFloatingActionButton() {
     return Container(
