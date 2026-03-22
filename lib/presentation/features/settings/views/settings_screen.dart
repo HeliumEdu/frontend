@@ -195,7 +195,7 @@ class _SettingsScreenViewState extends BasePageScreenState<SettingsScreen> {
 
             const SizedBox(height: 12),
 
-            if (!Responsive.isIOSPlatform()) const SupportHeliumCard(),
+            const SupportHeliumCard(),
 
             const SizedBox(height: 12),
 
