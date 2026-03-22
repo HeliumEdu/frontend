@@ -1248,7 +1248,7 @@ class _CalendarScreenState
             return IconButton.outlined(
               onPressed: _courses.isEmpty
                   ? null
-                  : () => _openFilterSheet(context),
+                  : () => _openFilterMenu(context),
               tooltip: 'Filters',
               icon: const Icon(Icons.filter_alt),
               style: IconButton.styleFrom(
@@ -2936,7 +2936,7 @@ class _CalendarScreenState
     _plannerItemDataSource!.updatePlannerItem(updatedItem);
   }
 
-  void _openFilterSheet(BuildContext context) {
+  void _openFilterMenu(BuildContext context) {
     final List<CourseModel> displayCourses =
         PlannerHelper.sortByGroupStartThenByTitle(_courses, _courseGroups);
 
@@ -3029,7 +3029,7 @@ class _CalendarScreenState
           maxHeight: MediaQuery.of(context).size.height * 0.8,
         ),
         child: SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
+          padding: const EdgeInsets.all(16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
@@ -3055,7 +3055,6 @@ class _CalendarScreenState
                 ],
               ),
 
-              // CLASSES section
               _buildSheetSectionHeader(context, 'CLASSES'),
               for (int i = 0; i < displayCourses.length; i++) ...[
                 if (i > 0 &&
@@ -3113,7 +3112,6 @@ class _CalendarScreenState
                 ),
               ],
 
-              // TYPES section (hidden in todos view)
               if (_currentView != PlannerView.todos) ...[
                 _buildSheetSectionHeader(context, 'TYPES'),
                 CheckboxListTile(
@@ -3295,7 +3293,6 @@ class _CalendarScreenState
                 ),
               ],
 
-              // STATUS section
               _buildSheetSectionHeader(context, 'STATUS'),
               _CheckboxToggle(
                 isChecked: isCompleteFilterEnabled,
@@ -3347,7 +3344,6 @@ class _CalendarScreenState
               ),
               buildStatusTile(PlannerFilterStatus.overdue.value),
 
-              // CATEGORIES section (conditional)
               if (visibleCategories.isNotEmpty) ...[
                 _buildSheetSectionHeader(context, 'CATEGORIES'),
                 ...visibleCategories.map((category) {
