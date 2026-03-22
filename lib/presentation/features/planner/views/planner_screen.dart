@@ -201,7 +201,6 @@ class _CalendarScreenState
   );
   PlannerView? _previousView;
 
-  // Remember state when user switches to Todos view
   DateTime? _storedSelectedDate;
   DateTime? _storedDisplayDate;
 
@@ -844,11 +843,6 @@ class _CalendarScreenState
         desktop: 24,
       ),
     );
-
-    return _buildTodayButtonWidget(icon, showLabel, key);
-  }
-
-  Widget _buildTodayButtonWidget(Icon icon, bool showLabel, Key? key) {
     if (showLabel) {
       return OutlinedButton.icon(
         key: key,
@@ -2514,7 +2508,7 @@ class _CalendarScreenState
               mode: LaunchMode.externalApplication,
             );
           },
-          icon: Icons.link_outlined,
+          icon: Icons.launch_outlined,
           tooltip: 'Launch class website',
           color: foregroundColor,
         ),

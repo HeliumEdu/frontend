@@ -26,7 +26,7 @@ class NoteRepositoryImpl implements NoteRepository {
     bool includeContent = false,
     bool forceRefresh = false,
   }) async {
-    return await remoteDataSource.getNotes(
+    return remoteDataSource.getNotes(
       search: search,
       linkedEntityType: linkedEntityType,
       homeworkId: homeworkId,
@@ -43,12 +43,12 @@ class NoteRepositoryImpl implements NoteRepository {
     required int id,
     bool forceRefresh = false,
   }) async {
-    return await remoteDataSource.getNote(id: id, forceRefresh: forceRefresh);
+    return remoteDataSource.getNote(id: id, forceRefresh: forceRefresh);
   }
 
   @override
   Future<NoteModel> createNote({required NoteRequestModel request}) async {
-    return await remoteDataSource.createNote(request: request);
+    return remoteDataSource.createNote(request: request);
   }
 
   @override
@@ -56,7 +56,7 @@ class NoteRepositoryImpl implements NoteRepository {
     required int noteId,
     required NoteRequestModel request,
   }) async {
-    return await remoteDataSource.updateNote(
+    return remoteDataSource.updateNote(
       noteId: noteId,
       request: request,
     );
@@ -64,6 +64,6 @@ class NoteRepositoryImpl implements NoteRepository {
 
   @override
   Future<void> deleteNote({required int noteId}) async {
-    return await remoteDataSource.deleteNote(noteId: noteId);
+    return remoteDataSource.deleteNote(noteId: noteId);
   }
 }

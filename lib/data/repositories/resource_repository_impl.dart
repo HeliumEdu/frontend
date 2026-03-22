@@ -19,14 +19,14 @@ class ResourceRepositoryImpl implements ResourceRepository {
 
   @override
   Future<List<ResourceGroupModel>> getResourceGroups({bool forceRefresh = false}) async {
-    return await remoteDataSource.getResourceGroups(forceRefresh: forceRefresh);
+    return remoteDataSource.getResourceGroups(forceRefresh: forceRefresh);
   }
 
   @override
   Future<ResourceGroupModel> createResourceGroup({
     required ResourceGroupRequestModel request,
   }) async {
-    return await remoteDataSource.createResourceGroup(request: request);
+    return remoteDataSource.createResourceGroup(request: request);
   }
 
   @override
@@ -34,7 +34,7 @@ class ResourceRepositoryImpl implements ResourceRepository {
     required int id,
     required ResourceGroupRequestModel request,
   }) async {
-    return await remoteDataSource.updateResourceGroup(
+    return remoteDataSource.updateResourceGroup(
       groupId: id,
       request: request,
     );
@@ -42,7 +42,7 @@ class ResourceRepositoryImpl implements ResourceRepository {
 
   @override
   Future<void> deleteResourceGroup({required int id}) async {
-    return await remoteDataSource.deleteResourceGroup(groupId: id);
+    return remoteDataSource.deleteResourceGroup(groupId: id);
   }
 
   @override
@@ -51,7 +51,7 @@ class ResourceRepositoryImpl implements ResourceRepository {
     bool? shownOnCalendar,
     bool forceRefresh = false,
   }) async {
-    return await remoteDataSource.getResources(
+    return remoteDataSource.getResources(
       groupId: groupId,
       shownOnCalendar: shownOnCalendar,
       forceRefresh: forceRefresh,
@@ -64,7 +64,7 @@ class ResourceRepositoryImpl implements ResourceRepository {
     required int resourceId,
     bool forceRefresh = false,
   }) async {
-    return await remoteDataSource.getResourceById(
+    return remoteDataSource.getResourceById(
       groupId: groupId,
       resourceId: resourceId,
       forceRefresh: forceRefresh,
@@ -76,7 +76,7 @@ class ResourceRepositoryImpl implements ResourceRepository {
     required int groupId,
     required ResourceRequestModel request,
   }) async {
-    return await remoteDataSource.createResource(
+    return remoteDataSource.createResource(
       groupId: groupId,
       request: request,
     );
@@ -88,7 +88,7 @@ class ResourceRepositoryImpl implements ResourceRepository {
     required int resourceId,
     required ResourceRequestModel request,
   }) async {
-    return await remoteDataSource.updateResource(
+    return remoteDataSource.updateResource(
       groupId: groupId,
       resourceId: resourceId,
       request: request,
@@ -100,7 +100,7 @@ class ResourceRepositoryImpl implements ResourceRepository {
     required int groupId,
     required int resourceId,
   }) async {
-    return await remoteDataSource.deleteResource(
+    return remoteDataSource.deleteResource(
       groupId: groupId,
       resourceId: resourceId,
     );

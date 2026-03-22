@@ -604,8 +604,7 @@ class NotesDataSource extends DataGridSource with SortableDataGridSource {
                   )
                   .value
               as String;
-      final title = originalTitle;
-      if (title.isEmpty) {
+      if (originalTitle.isEmpty) {
         return Container(
           padding: const EdgeInsets.symmetric(horizontal: 16),
           alignment: Alignment.centerLeft,
@@ -622,9 +621,9 @@ class NotesDataSource extends DataGridSource with SortableDataGridSource {
         padding: const EdgeInsets.symmetric(horizontal: 8),
         alignment: Alignment.centerLeft,
         child: isSelectable
-            ? SelectableText(title, style: titleStyle, maxLines: 1)
+            ? SelectableText(originalTitle, style: titleStyle, maxLines: 1)
             : Text(
-                title,
+                originalTitle,
                 style: titleStyle,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
@@ -645,8 +644,7 @@ class NotesDataSource extends DataGridSource with SortableDataGridSource {
                   )
                   .value
               as String;
-      final linkedTo = originalLinkedTo;
-      if (linkedTo.isEmpty) {
+      if (originalLinkedTo.isEmpty) {
         return Container(
           padding: const EdgeInsets.symmetric(horizontal: 16),
           alignment: Alignment.centerLeft,
@@ -662,13 +660,13 @@ class NotesDataSource extends DataGridSource with SortableDataGridSource {
       Widget badge;
       if (entityType == 'resource' && userSettings != null) {
         badge = ResourceTitleLabel(
-          title: linkedTo,
+          title: originalLinkedTo,
           userSettings: userSettings!,
           compact: true,
         );
       } else if (entityType == 'event') {
         badge = GenericLabel(
-          label: linkedTo,
+          label: originalLinkedTo,
           color: userSettings?.eventsColor ?? context.colorScheme.tertiary,
           icon: AppConstants.eventIcon,
           compact: true,
@@ -679,7 +677,7 @@ class NotesDataSource extends DataGridSource with SortableDataGridSource {
             ? categoryColor
             : courseColor;
         badge = GenericLabel(
-          label: linkedTo,
+          label: originalLinkedTo,
           color: badgeColor ?? context.colorScheme.primary,
           icon: AppConstants.assignmentIcon,
           compact: true,

@@ -22,7 +22,7 @@ class AttachmentRepositoryImpl implements AttachmentRepository {
     int? homeworkId,
     int? courseId,
   }) async {
-    return await remoteDataSource.getAttachments(
+    return remoteDataSource.getAttachments(
       eventId: eventId,
       homeworkId: homeworkId,
       courseId: courseId,
@@ -37,7 +37,7 @@ class AttachmentRepositoryImpl implements AttachmentRepository {
     int? homework,
     int? course,
   }) async {
-    return await remoteDataSource.createAttachment(
+    return remoteDataSource.createAttachment(
       bytes: bytes,
       filename: filename,
       event: event,
@@ -48,6 +48,6 @@ class AttachmentRepositoryImpl implements AttachmentRepository {
 
   @override
   Future<void> deleteAttachment(int attachmentId) async {
-    return await remoteDataSource.deleteAttachment(attachmentId);
+    return remoteDataSource.deleteAttachment(attachmentId);
   }
 }

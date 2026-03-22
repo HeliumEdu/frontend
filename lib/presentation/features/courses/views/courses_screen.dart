@@ -402,7 +402,7 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen> {
                           mode: LaunchMode.externalApplication,
                         );
                       },
-                      icon: Icons.link_outlined,
+                      icon: Icons.launch_outlined,
                       tooltip: 'Launch class website',
                       color: context.semanticColors.success,
                     ),

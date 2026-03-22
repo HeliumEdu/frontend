@@ -215,11 +215,7 @@ class GradeHelper {
     final gradeValue = parseGrade(grade);
 
     if (gradeValue == null) {
-      if (showNaAsBlank) {
-        return '';
-      } else {
-        return 'N/A';
-      }
+      return showNaAsBlank ? '' : 'N/A';
     }
 
     return '${gradeValue.toStringAsFixed(2)}%';
@@ -232,11 +228,11 @@ class GradeHelper {
       final percentage = double.parse(value);
       if (percentage == 0 && zeroAsNa != null && zeroAsNa) {
         return 'N/A';
-      } else if (percentage == percentage.roundToDouble()) {
-        return '${percentage.toInt()}%';
-      } else {
-        return '${percentage.toStringAsFixed(2).replaceAll(RegExp(r'\.?0+$'), '')}%';
       }
+      if (percentage == percentage.roundToDouble()) {
+        return '${percentage.toInt()}%';
+      }
+      return '${percentage.toStringAsFixed(2).replaceAll(RegExp(r'\.?0+$'), '')}%';
     } catch (e) {
       return 'N/A';
     }

@@ -23,7 +23,7 @@ class EventRepositoryImpl implements EventRepository {
     String? title,
     bool forceRefresh = false,
   }) async {
-    return await remoteDataSource.getEvents(
+    return remoteDataSource.getEvents(
       from: from,
       to: to,
       search: search,
@@ -37,12 +37,12 @@ class EventRepositoryImpl implements EventRepository {
     required int id,
     bool forceRefresh = false,
   }) async {
-    return await remoteDataSource.getEvent(id: id, forceRefresh: forceRefresh);
+    return remoteDataSource.getEvent(id: id, forceRefresh: forceRefresh);
   }
 
   @override
   Future<EventModel> createEvent({required EventRequestModel request}) async {
-    return await remoteDataSource.createEvent(request: request);
+    return remoteDataSource.createEvent(request: request);
   }
 
   @override
@@ -50,7 +50,7 @@ class EventRepositoryImpl implements EventRepository {
     required int eventId,
     required EventRequestModel request,
   }) async {
-    return await remoteDataSource.updateEvent(
+    return remoteDataSource.updateEvent(
       eventId: eventId,
       request: request,
     );
@@ -58,11 +58,11 @@ class EventRepositoryImpl implements EventRepository {
 
   @override
   Future<void> deleteEvent({required int eventId}) async {
-    return await remoteDataSource.deleteEvent(eventId: eventId);
+    return remoteDataSource.deleteEvent(eventId: eventId);
   }
 
   @override
   Future<void> deleteAllEvents() async {
-    return await remoteDataSource.deleteAllEvents();
+    return remoteDataSource.deleteAllEvents();
   }
 }

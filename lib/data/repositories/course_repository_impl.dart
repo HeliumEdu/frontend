@@ -20,7 +20,7 @@ class CourseRepositoryImpl implements CourseRepository {
     bool? shownOnCalendar,
     bool forceRefresh = false,
   }) async {
-    return await remoteDataSource.getCourseGroups(
+    return remoteDataSource.getCourseGroups(
       shownOnCalendar: shownOnCalendar,
       forceRefresh: forceRefresh,
     );
@@ -28,14 +28,14 @@ class CourseRepositoryImpl implements CourseRepository {
 
   @override
   Future<CourseGroupModel> getCourseGroup(int id, {bool forceRefresh = false}) async {
-    return await remoteDataSource.getCourseGroup(id, forceRefresh: forceRefresh);
+    return remoteDataSource.getCourseGroup(id, forceRefresh: forceRefresh);
   }
 
   @override
   Future<CourseGroupModel> createCourseGroup(
     CourseGroupRequestModel request,
   ) async {
-    return await remoteDataSource.createCourseGroup(request);
+    return remoteDataSource.createCourseGroup(request);
   }
 
   @override
@@ -43,12 +43,12 @@ class CourseRepositoryImpl implements CourseRepository {
     int groupId,
     CourseGroupRequestModel request,
   ) async {
-    return await remoteDataSource.updateCourseGroup(groupId, request);
+    return remoteDataSource.updateCourseGroup(groupId, request);
   }
 
   @override
   Future<void> deleteCourseGroup(int groupId) async {
-    return await remoteDataSource.deleteCourseGroup(groupId);
+    return remoteDataSource.deleteCourseGroup(groupId);
   }
 
   CourseRepositoryImpl({required this.remoteDataSource});
@@ -59,7 +59,7 @@ class CourseRepositoryImpl implements CourseRepository {
     bool? shownOnCalendar,
     bool forceRefresh = false,
   }) async {
-    return await remoteDataSource.getCourses(
+    return remoteDataSource.getCourses(
       groupId: groupId,
       shownOnCalendar: shownOnCalendar,
       forceRefresh: forceRefresh,
@@ -68,7 +68,7 @@ class CourseRepositoryImpl implements CourseRepository {
 
   @override
   Future<CourseModel> getCourse(int groupId, int courseId, {bool forceRefresh = false}) async {
-    return await remoteDataSource.getCourse(groupId, courseId, forceRefresh: forceRefresh);
+    return remoteDataSource.getCourse(groupId, courseId, forceRefresh: forceRefresh);
   }
 
   @override
@@ -76,7 +76,7 @@ class CourseRepositoryImpl implements CourseRepository {
     int groupId,
     CourseRequestModel request,
   ) async {
-    return await remoteDataSource.createCourse(groupId, request);
+    return remoteDataSource.createCourse(groupId, request);
   }
 
   @override
@@ -85,11 +85,11 @@ class CourseRepositoryImpl implements CourseRepository {
     int courseId,
     CourseRequestModel request,
   ) async {
-    return await remoteDataSource.updateCourse(groupId, courseId, request);
+    return remoteDataSource.updateCourse(groupId, courseId, request);
   }
 
   @override
   Future<void> deleteCourse(int groupId, int courseId) async {
-    return await remoteDataSource.deleteCourse(groupId, courseId);
+    return remoteDataSource.deleteCourse(groupId, courseId);
   }
 }

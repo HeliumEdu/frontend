@@ -243,7 +243,7 @@ class CourseDetailsState extends State<CourseDetails> {
                           Uri.parse(_formController.urlController.text),
                         );
                       },
-                      icon: Icons.link_outlined,
+                      icon: Icons.launch_outlined,
                       tooltip: 'Launch class website',
                       color: context.semanticColors.success,
                     ),

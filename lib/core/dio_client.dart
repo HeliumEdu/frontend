@@ -64,7 +64,6 @@ class DioClient {
   bool _isRefreshing = false;
   Completer<void>? _refreshCompleter;
 
-  // Getters
   Dio get dio => _dio;
 
   CacheService get cacheService => _cacheService;
@@ -96,7 +95,6 @@ class DioClient {
           return handler.next(response);
         },
         onError: (DioException error, handler) async {
-          // Handle 401 errors by attempting to refresh token
           if (error.response?.statusCode == 401) {
             final requestPath = error.requestOptions.path;
 
@@ -132,7 +130,6 @@ class DioClient {
               }
             }
 
-            // Start token refresh process
             _log.info('Got 401 error, attempting to refresh token ...');
             _isRefreshing = true;
             _refreshCompleter = Completer<void>();
@@ -199,7 +196,6 @@ class DioClient {
                 _refreshCompleter!.complete();
                 _refreshCompleter = null;
 
-                // Retry the original request with new token
                 error.requestOptions.headers['Authorization'] =
                     'Bearer ${refreshResponse.access}';
 
@@ -289,7 +285,6 @@ class DioClient {
       ),
     );
 
-    // Add cache interceptor
     _cacheService = CacheService();
     _dio.interceptors.add(_cacheService.interceptor);
     _dio.interceptors.add(_cacheService.loggingInterceptor);

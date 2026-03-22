@@ -45,7 +45,7 @@ class CourseScheduleRepositoryImpl implements CourseScheduleRepository {
     bool? shownOnCalendar,
     bool forceRefresh = false,
   }) async {
-    return await remoteDataSource.getCourseSchedules(
+    return remoteDataSource.getCourseSchedules(
       shownOnCalendar: shownOnCalendar,
       forceRefresh: forceRefresh,
     );
@@ -57,7 +57,7 @@ class CourseScheduleRepositoryImpl implements CourseScheduleRepository {
     int courseId, {
     bool forceRefresh = false,
   }) async {
-    return await remoteDataSource.getCourseScheduleForCourse(
+    return remoteDataSource.getCourseScheduleForCourse(
       groupId,
       courseId,
       forceRefresh: forceRefresh,
@@ -70,7 +70,7 @@ class CourseScheduleRepositoryImpl implements CourseScheduleRepository {
     int courseId,
     CourseScheduleRequestModel request,
   ) async {
-    return await remoteDataSource.createCourseSchedule(
+    return remoteDataSource.createCourseSchedule(
       groupId,
       courseId,
       request,
@@ -84,7 +84,7 @@ class CourseScheduleRepositoryImpl implements CourseScheduleRepository {
     int scheduleId,
     CourseScheduleRequestModel request,
   ) async {
-    return await remoteDataSource.updateCourseSchedule(
+    return remoteDataSource.updateCourseSchedule(
       groupId,
       courseId,
       scheduleId,
