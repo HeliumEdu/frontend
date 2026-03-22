@@ -221,7 +221,7 @@ class _CalendarScreenState
     _calendarController = CalendarController()
       ..view = PlannerHelper.mapHeliumViewToSfCalendarView(_currentView);
 
-    context.read<PlannerBloc>().add(FetchPlannerScreenDataEvent());
+    context.read<PlannerBloc>().add(FetchPlannerScreenDataEvent(origin: EventOrigin.screen));
 
     _calendarController.addPropertyChangedListener((value) {
       if (value == 'calendarView') {
@@ -483,7 +483,7 @@ class _CalendarScreenState
             message: state.message!,
             source: 'planner_screen',
             onReload: () {
-              FetchPlannerScreenDataEvent();
+              context.read<PlannerBloc>().add(FetchPlannerScreenDataEvent(origin: EventOrigin.screen));
             },
           );
         }
