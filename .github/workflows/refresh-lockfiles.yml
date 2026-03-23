@@ -3,8 +3,6 @@ name: "Refresh Lockfiles"
 run-name: "Refresh Lockfiles"
 
 on:
-  push:
-    branches: [ main ]
   workflow_call:
     inputs:
       ref:
