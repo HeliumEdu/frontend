@@ -399,7 +399,6 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen> {
                       onPressed: () {
                         launchUrl(
                           Uri.parse(course.website),
-                          mode: LaunchMode.externalApplication,
                         );
                       },
                       icon: Icons.launch_outlined,
