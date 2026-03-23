@@ -538,7 +538,7 @@ class TodosDataGridState extends State<TodosDataGrid> {
 
   TodosDataSource _buildDataSource() {
     return TodosDataSource(
-      homeworks: widget.dataSource.filteredHomeworks,
+      homeworks: [],
       context: context,
       dataSource: widget.dataSource,
       onTap: widget.onTap,
