@@ -54,11 +54,14 @@ class SnackBarHelper {
 
     final controller = messenger.showSnackBar(
       SnackBar(
-        content: SelectableText(
-          message,
-          style: AppStyles.standardBodyText(
-            context,
-          ).copyWith(color: type.foregroundColor(context)),
+        content: DefaultSelectionStyle(
+          selectionColor: type.foregroundColor(context).withValues(alpha: 0.3),
+          child: SelectableText(
+            message,
+            style: AppStyles.standardBodyText(
+              context,
+            ).copyWith(color: type.foregroundColor(context)),
+          ),
         ),
         backgroundColor: type.backgroundColor(context),
         duration: Duration(seconds: seconds),
