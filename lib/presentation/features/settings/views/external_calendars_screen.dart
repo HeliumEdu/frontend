@@ -120,39 +120,37 @@ class ExternalCalendarsScreenState extends State<ExternalCalendarsScreen> {
                 ],
               ),
             ),
-          Expanded(
-            child: BlocBuilder<ExternalCalendarBloc, ExternalCalendarState>(
-              builder: (context, state) {
-                if (state is ExternalCalendarsLoading) {
-                  return const LoadingIndicator();
-                }
+          BlocBuilder<ExternalCalendarBloc, ExternalCalendarState>(
+            builder: (context, state) {
+              if (state is ExternalCalendarsLoading) {
+                return const LoadingIndicator();
+              }
 
-                if (state is ExternalCalendarsError &&
-                    state.origin == EventOrigin.screen) {
-                  return ErrorCard(
-                    message: state.message!,
-                    source: 'external_calendars_screen',
-                    onReload: () {
-                      context.read<ExternalCalendarBloc>().add(
-                        FetchExternalCalendarsEvent(
-                          origin: EventOrigin.screen,
-                          forceRefresh: true,
-                        ),
-                      );
-                    },
-                  );
-                }
+              if (state is ExternalCalendarsError &&
+                  state.origin == EventOrigin.screen) {
+                return ErrorCard(
+                  message: state.message!,
+                  source: 'external_calendars_screen',
+                  onReload: () {
+                    context.read<ExternalCalendarBloc>().add(
+                      FetchExternalCalendarsEvent(
+                        origin: EventOrigin.screen,
+                        forceRefresh: true,
+                      ),
+                    );
+                  },
+                );
+              }
 
-                if (_externalCalendars.isEmpty) {
-                  return const EmptyCard(
-                    icon: AppConstants.externalCalendarIcon,
-                    message: 'Click "+" to add an external calendar',
-                  );
-                }
+              if (_externalCalendars.isEmpty) {
+                return const EmptyCard(
+                  icon: AppConstants.externalCalendarIcon,
+                  message: 'Click "+" to add an external calendar',
+                );
+              }
 
-                return _buildExternalCalendarsList();
-              },
-            ),
+              return Expanded(child: _buildExternalCalendarsList());
+            },
           ),
         ],
       ),

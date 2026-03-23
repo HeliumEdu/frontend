@@ -48,35 +48,35 @@ class _FeedsScreenState extends State<FeedsScreen> {
             text: "Feeds allow you to take Helium's calendars elsewhere",
           ),
         ),
-        Expanded(
-          child: BlocBuilder<AuthBloc, AuthState>(
-            builder: (context, state) {
-              if (state is AuthProfileFetched) {
-                if (state.user.settings.privateSlug != null) {
-                  final privateSlug = state.user.settings.privateSlug;
+        BlocBuilder<AuthBloc, AuthState>(
+          builder: (context, state) {
+            if (state is AuthProfileFetched) {
+              if (state.user.settings.privateSlug != null) {
+                final privateSlug = state.user.settings.privateSlug;
 
-                  _feedUrls = PrivateFeedModel(
-                    eventsPrivateUrl:
-                        '${ApiUrl.baseUrl}/feed/private/$privateSlug/events.ics',
-                    homeworkPrivateUrl:
-                        '${ApiUrl.baseUrl}/feed/private/$privateSlug/homework.ics',
-                    courseSchedulesPrivateUrl:
-                        '${ApiUrl.baseUrl}/feed/private/$privateSlug/courseschedules.ics',
-                  );
+                _feedUrls = PrivateFeedModel(
+                  eventsPrivateUrl:
+                      '${ApiUrl.baseUrl}/feed/private/$privateSlug/events.ics',
+                  homeworkPrivateUrl:
+                      '${ApiUrl.baseUrl}/feed/private/$privateSlug/homework.ics',
+                  courseSchedulesPrivateUrl:
+                      '${ApiUrl.baseUrl}/feed/private/$privateSlug/courseschedules.ics',
+                );
 
-                  return _buildFeedsEnabledArea(
+                return Expanded(
+                  child: _buildFeedsEnabledArea(
                     _feedUrls!.homeworkPrivateUrl,
                     _feedUrls!.eventsPrivateUrl,
                     _feedUrls!.courseSchedulesPrivateUrl,
-                  );
-                } else {
-                  return _buildFeedsDisabledArea();
-                }
+                  ),
+                );
+              } else {
+                return Expanded(child: _buildFeedsDisabledArea());
               }
+            }
 
-              return const LoadingIndicator();
-            },
-          ),
+            return const LoadingIndicator();
+          },
         ),
       ],
     );

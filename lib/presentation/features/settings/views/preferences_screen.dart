@@ -15,6 +15,7 @@ import 'package:heliumapp/presentation/features/auth/bloc/auth_bloc.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_event.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_state.dart';
 import 'package:heliumapp/presentation/ui/components/drop_down.dart';
+import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
 import 'package:heliumapp/presentation/ui/components/searchable_dropdown.dart';
 import 'package:heliumapp/presentation/ui/components/spinner_field.dart';
 import 'package:heliumapp/presentation/ui/dialogs/color_picker_dialog.dart';
@@ -47,6 +48,7 @@ class PreferencesScreenState extends State<PreferencesScreen> {
   final TextEditingController _reminderOffsetController =
       TextEditingController();
 
+  bool _isLoading = true;
   bool _isSubmitting = false;
 
   // State
@@ -155,6 +157,7 @@ class PreferencesScreenState extends State<PreferencesScreen> {
           setState(() => _isSubmitting = false);
           widget.onFailed?.call();
         } else if (state is AuthProfileFetched) {
+          setState(() => _isLoading = false);
           _populateInitialStateData(state);
         } else if (state is AuthProfileUpdated) {
           if (!_isRememberFilterSelection) {
@@ -163,7 +166,9 @@ class PreferencesScreenState extends State<PreferencesScreen> {
           widget.onCompleted?.call();
         }
       },
-      child: SingleChildScrollView(
+      child: _isLoading
+          ? const Center(child: LoadingIndicator(expanded: false))
+          : SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
