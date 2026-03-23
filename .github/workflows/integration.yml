@@ -67,10 +67,6 @@ on:
 permissions:
   contents: read
 
-concurrency:
-  group: "integration-tests-${{ inputs.environment }}"
-  cancel-in-progress: false
-
 jobs:
   integration-test:
     name: Integration Tests
@@ -78,6 +74,7 @@ jobs:
 
     env:
       ENVIRONMENT: ${{ inputs.environment || 'dev-local' }}
+      INTEGRATION_EMAIL_SUFFIX: github-frontend-${{ github.run_id }}
       AWS_INTEGRATION_S3_ACCESS_KEY_ID: ${{ secrets.AWS_INTEGRATION_S3_ACCESS_KEY_ID }}
       AWS_INTEGRATION_S3_SECRET_ACCESS_KEY: ${{ secrets.AWS_INTEGRATION_S3_SECRET_ACCESS_KEY }}
       PLATFORM_EMAIL_HOST_USER: ${{ secrets.PLATFORM_EMAIL_HOST_USER }}
@@ -172,9 +169,45 @@ jobs:
             make test-integration \
               ENVIRONMENT=${{ env.ENVIRONMENT }} \
               INTEGRATION_LOG_LEVEL=${{ inputs.log_level || 'fine' }} \
-              INTEGRATION_EMAIL_SUFFIX=github-frontend \
+              INTEGRATION_EMAIL_SUFFIX="${{ env.INTEGRATION_EMAIL_SUFFIX }}" \
               AWS_INTEGRATION_S3_ACCESS_KEY_ID="${{ env.AWS_INTEGRATION_S3_ACCESS_KEY_ID }}" \
               AWS_INTEGRATION_S3_SECRET_ACCESS_KEY="${{ env.AWS_INTEGRATION_S3_SECRET_ACCESS_KEY }}"
+          fi
+
+      - name: Cleanup test account
+        if: always()
+        run: |
+          PASSWORD="IntegrationTestPassword123!"
+          ENVIRONMENT="${{ env.ENVIRONMENT }}"
+          EMAIL_SUFFIX="${{ env.INTEGRATION_EMAIL_SUFFIX }}"
+
+          if [ "$ENVIRONMENT" = "dev-local" ]; then
+            API_HOST="http://localhost:8000"
+            EMAIL_DOMAIN="dev-local.heliumedu.dev"
+          elif [ "$ENVIRONMENT" = "prod" ]; then
+            API_HOST="https://api.heliumedu.com"
+            EMAIL_DOMAIN="heliumedu.dev"
+          else
+            API_HOST="https://api.${ENVIRONMENT}.heliumedu.com"
+            EMAIL_DOMAIN="${ENVIRONMENT}.heliumedu.dev"
+          fi
+
+          EMAIL="heliumedu-cluster+${EMAIL_SUFFIX}@${EMAIL_DOMAIN}"
+
+          LOGIN=$(curl -s -X POST "${API_HOST}/auth/token/" \
+            -H "Content-Type: application/json" \
+            -d "{\"username\": \"${EMAIL}\", \"password\": \"${PASSWORD}\"}" 2>/dev/null || echo "{}")
+          TOKEN=$(echo "$LOGIN" | jq -r '.access // empty')
+
+          if [ -n "$TOKEN" ]; then
+            curl -s -X DELETE "${API_HOST}/auth/user/delete/" \
+              -H "Content-Type: application/json" \
+              -H "Authorization: Bearer ${TOKEN}" \
+              -d "{\"password\": \"${PASSWORD}\"}" || true
+          else
+            curl -s -X DELETE "${API_HOST}/auth/user/delete/inactive/" \
+              -H "Content-Type: application/json" \
+              -d "{\"username\": \"${EMAIL}\", \"password\": \"${PASSWORD}\"}" || true
           fi
 
       - name: Upload screenshots
