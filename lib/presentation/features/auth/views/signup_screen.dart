@@ -292,7 +292,6 @@ class _SignupScreenState extends BasePageScreenState<SignupScreen> {
                               child: GestureDetector(
                                 onTap: () => launchUrl(
                                   Uri.parse('https://www.heliumedu.com/terms'),
-                                  mode: LaunchMode.externalApplication,
                                 ),
                                 child: Text(
                                   'Terms of Service',
@@ -312,7 +311,6 @@ class _SignupScreenState extends BasePageScreenState<SignupScreen> {
                                   Uri.parse(
                                     'https://www.heliumedu.com/privacy',
                                   ),
-                                  mode: LaunchMode.externalApplication,
                                 ),
                                 child: Text(
                                   'Privacy Policy',

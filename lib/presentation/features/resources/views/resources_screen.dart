@@ -379,7 +379,6 @@ class _ResourcesScreenState
                       onPressed: () {
                         launchUrl(
                           Uri.parse(resource.website),
-                          mode: LaunchMode.externalApplication,
                         );
                       },
                       icon: Icons.launch_outlined,

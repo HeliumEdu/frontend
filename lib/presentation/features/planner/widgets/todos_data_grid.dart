@@ -1136,7 +1136,6 @@ class TodosDataSource extends DataGridSource with SortableDataGridSource {
             onPressed: () {
               launchUrl(
                 Uri.parse(course.website),
-                mode: LaunchMode.externalApplication,
               );
             },
             tooltip: 'Launch class website',
