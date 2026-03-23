@@ -35,7 +35,7 @@ jobs:
     steps:
       - uses: actions/checkout@v5
         with:
-          token: ${{ secrets.PERSONAL_ACCESS_TOKEN || secrets.GITHUB_TOKEN }}
+          token: ${{ github.actor == 'dependabot[bot]' && secrets.GITHUB_TOKEN || secrets.PERSONAL_ACCESS_TOKEN }}
           ref: ${{ inputs.ref || 'main' }}
 
       - name: Read Flutter version
