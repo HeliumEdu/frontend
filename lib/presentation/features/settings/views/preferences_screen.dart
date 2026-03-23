@@ -7,12 +7,10 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
-import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/config/pref_service.dart';
 import 'package:heliumapp/data/models/auth/request/update_settings_request_model.dart';
-import 'package:heliumapp/presentation/core/views/base_page_screen_state.dart';
+import 'package:heliumapp/data/models/auth/user_model.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_bloc.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_event.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_state.dart';
@@ -20,39 +18,36 @@ import 'package:heliumapp/presentation/ui/components/drop_down.dart';
 import 'package:heliumapp/presentation/ui/components/searchable_dropdown.dart';
 import 'package:heliumapp/presentation/ui/components/spinner_field.dart';
 import 'package:heliumapp/presentation/ui/dialogs/color_picker_dialog.dart';
-import 'package:heliumapp/presentation/ui/layout/page_header.dart';
 import 'package:heliumapp/presentation/features/planner/constants/reminder_constants.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/color_helpers.dart';
-import 'package:heliumapp/utils/responsive_helpers.dart';
+import 'package:heliumapp/utils/snack_bar_helpers.dart';
 import 'package:heliumapp/utils/time_zone_constants.dart';
 
-/// Shows as a dialog on desktop, or navigates on mobile.
-void showPreferences(BuildContext context) {
-  if (Responsive.isMobile(context)) {
-    context.push(AppRoute.preferencesScreen, extra: true);
-  } else {
-    showScreenAsDialog(
-      context,
-      child: const PreferencesScreen(),
-      width: AppConstants.leftPanelDialogWidth,
-      alignment: Alignment.centerLeft,
-      insetPadding: const EdgeInsets.all(0),
-    );
-  }
-}
-
 class PreferencesScreen extends StatefulWidget {
-  const PreferencesScreen({super.key});
+  final UserSettingsModel? userSettings;
+  final VoidCallback? onActionStarted;
+  final VoidCallback? onCompleted;
+  final VoidCallback? onFailed;
+
+  const PreferencesScreen({
+    super.key,
+    this.userSettings,
+    this.onActionStarted,
+    this.onCompleted,
+    this.onFailed,
+  });
 
   @override
-  State<PreferencesScreen> createState() => _PreferenceViewState();
+  State<PreferencesScreen> createState() => PreferencesScreenState();
 }
 
-class _PreferenceViewState extends BasePageScreenState<PreferencesScreen> {
+class PreferencesScreenState extends State<PreferencesScreen> {
   final TextEditingController _reminderOffsetController =
       TextEditingController();
+
+  bool _isSubmitting = false;
 
   // State
   Color _selectedEventColor = FallbackConstants.defaultEventsColor;
@@ -75,18 +70,6 @@ class _PreferenceViewState extends BasePageScreenState<PreferencesScreen> {
   bool _isCollapseBusyDays = FallbackConstants.defaultCollapseBusyDays;
 
   @override
-  String get screenTitle => 'Preferences';
-
-  @override
-  IconData get icon => Icons.tune;
-
-  @override
-  ScreenType get screenType => ScreenType.entityPage;
-
-  @override
-  Function? get saveAction => _onSubmit;
-
-  @override
   void initState() {
     super.initState();
 
@@ -96,46 +79,90 @@ class _PreferenceViewState extends BasePageScreenState<PreferencesScreen> {
   @override
   void dispose() {
     _reminderOffsetController.dispose();
-
     super.dispose();
   }
 
-  @override
-  List<BlocListener<dynamic, dynamic>> buildListeners(BuildContext context) {
-    return [
-      BlocListener<AuthBloc, AuthState>(
-        listener: (context, state) {
-          if (state is AuthProfileError) {
-            showSnackBar(context, state.message!, type: SnackType.error);
-          } else if (state is AuthProfileFetched) {
-            _populateInitialStateData(state);
-          } else if (state is AuthProfileUpdated) {
-            if (!_isRememberFilterSelection) {
-              PrefService().setString('saved_filter_state', '');
-            }
+  void onSubmit() {
+    if (_isSubmitting) return;
+    setState(() => _isSubmitting = true);
+    widget.onActionStarted?.call();
 
-            // No snackbar on updates
+    final timeZone = _selectedTimeZone;
+    final defaultView = CalendarConstants.defaultViews.indexOf(
+      _selectedDefaultView,
+    );
+    final weekStartsOn = CalendarConstants.dayNames.indexOf(
+      _selectedWeekStartsOn,
+    );
+    String eventsColor = HeliumColors.colorToHex(_selectedEventColor);
+    if (eventsColor.length == 9) {
+      eventsColor = '#${eventsColor.substring(3)}';
+    }
+    eventsColor = eventsColor.toLowerCase();
+    String resourceColor = HeliumColors.colorToHex(_selectedResourceColor);
+    if (resourceColor.length == 9) {
+      resourceColor = '#${resourceColor.substring(3)}';
+    }
+    resourceColor = resourceColor.toLowerCase();
+    String gradeColor = HeliumColors.colorToHex(_selectedGradeColor);
+    if (gradeColor.length == 9) {
+      gradeColor = '#${gradeColor.substring(3)}';
+    }
+    gradeColor = gradeColor.toLowerCase();
+    final reminderType = ReminderConstants.types.indexOf(_selectedReminderType);
+    final reminderOffsetType = ReminderConstants.offsetTypes.indexOf(
+      _selectedReminderOffsetType,
+    );
+    final reminderOffset = int.parse(_reminderOffsetController.text);
+    final showPlannerTooltips = _isShowPlannerTooltips;
+    final dragAndDropOnMobile = _isDragAndDropOnMobile;
+    final colorByCategory = _isSelectedColorByCategory;
+    final rememberFilterState = _isRememberFilterSelection;
+    final collapseBusyDays = _isCollapseBusyDays;
 
-            if (DialogModeProvider.isDialogMode(context)) {
-              Navigator.of(context).pop();
-            } else {
-              context.pop();
-            }
-          }
-
-          if (state is! AuthLoading) {
-            setState(() {
-              isSubmitting = false;
-            });
-          }
-        },
+    context.read<AuthBloc>().add(
+      UpdateProfileEvent(
+        request: UpdateSettingsRequestModel(
+          timeZone: timeZone,
+          defaultView: defaultView,
+          weekStartsOn: weekStartsOn,
+          showPlannerTooltips: showPlannerTooltips,
+          dragAndDropOnMobile: dragAndDropOnMobile,
+          colorByCategory: colorByCategory,
+          eventsColor: eventsColor,
+          resourceColor: resourceColor,
+          gradeColor: gradeColor,
+          defaultReminderType: reminderType,
+          defaultReminderOffset: reminderOffset,
+          defaultReminderOffsetType: reminderOffsetType,
+          rememberFilterState: rememberFilterState,
+          collapseBusyDays: collapseBusyDays,
+        ),
       ),
-    ];
+    );
+  }
+
+  void resetSubmitting() {
+    setState(() => _isSubmitting = false);
   }
 
   @override
-  Widget buildMainArea(BuildContext context) {
-    return Expanded(
+  Widget build(BuildContext context) {
+    return BlocListener<AuthBloc, AuthState>(
+      listener: (context, state) {
+        if (state is AuthProfileError) {
+          SnackBarHelper.show(context, state.message!, type: SnackType.error);
+          setState(() => _isSubmitting = false);
+          widget.onFailed?.call();
+        } else if (state is AuthProfileFetched) {
+          _populateInitialStateData(state);
+        } else if (state is AuthProfileUpdated) {
+          if (!_isRememberFilterSelection) {
+            PrefService().setString('saved_filter_state', '');
+          }
+          widget.onCompleted?.call();
+        }
+      },
       child: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -483,80 +510,14 @@ class _PreferenceViewState extends BasePageScreenState<PreferencesScreen> {
       _selectedResourceColor = state.user.settings.resourceColor;
       if (_reminderOffsetController.text !=
           state.user.settings.defaultReminderOffset.toString()) {
-        _reminderOffsetController.text = state
-            .user
-            .settings
-            .defaultReminderOffset
-            .toString();
+        _reminderOffsetController.text =
+            state.user.settings.defaultReminderOffset.toString();
       }
       _isShowPlannerTooltips = state.user.settings.showPlannerTooltips;
       _isDragAndDropOnMobile = state.user.settings.dragAndDropOnMobile;
       _isSelectedColorByCategory = state.user.settings.colorByCategory;
       _isRememberFilterSelection = state.user.settings.rememberFilterState;
       _isCollapseBusyDays = state.user.settings.collapseBusyDays;
-
-      isLoading = false;
     });
-  }
-
-  void _onSubmit() {
-    if (isSubmitting) return;
-    setState(() {
-      isSubmitting = true;
-    });
-
-    final timeZone = _selectedTimeZone;
-    final defaultView = CalendarConstants.defaultViews.indexOf(
-      _selectedDefaultView,
-    );
-    final weekStartsOn = CalendarConstants.dayNames.indexOf(
-      _selectedWeekStartsOn,
-    );
-    String eventsColor = HeliumColors.colorToHex(_selectedEventColor);
-    if (eventsColor.length == 9) {
-      eventsColor = '#${eventsColor.substring(3)}';
-    }
-    eventsColor = eventsColor.toLowerCase();
-    String resourceColor = HeliumColors.colorToHex(_selectedResourceColor);
-    if (resourceColor.length == 9) {
-      resourceColor = '#${resourceColor.substring(3)}';
-    }
-    resourceColor = resourceColor.toLowerCase();
-    String gradeColor = HeliumColors.colorToHex(_selectedGradeColor);
-    if (gradeColor.length == 9) {
-      gradeColor = '#${gradeColor.substring(3)}';
-    }
-    gradeColor = gradeColor.toLowerCase();
-    final reminderType = ReminderConstants.types.indexOf(_selectedReminderType);
-    final reminderOffsetType = ReminderConstants.offsetTypes.indexOf(
-      _selectedReminderOffsetType,
-    );
-    final reminderOffset = int.parse(_reminderOffsetController.text);
-    final showPlannerTooltips = _isShowPlannerTooltips;
-    final dragAndDropOnMobile = _isDragAndDropOnMobile;
-    final colorByCategory = _isSelectedColorByCategory;
-    final rememberFilterState = _isRememberFilterSelection;
-    final collapseBusyDays = _isCollapseBusyDays;
-
-    context.read<AuthBloc>().add(
-      UpdateProfileEvent(
-        request: UpdateSettingsRequestModel(
-          timeZone: timeZone,
-          defaultView: defaultView,
-          weekStartsOn: weekStartsOn,
-          showPlannerTooltips: showPlannerTooltips,
-          dragAndDropOnMobile: dragAndDropOnMobile,
-          colorByCategory: colorByCategory,
-          eventsColor: eventsColor,
-          resourceColor: resourceColor,
-          gradeColor: gradeColor,
-          defaultReminderType: reminderType,
-          defaultReminderOffset: reminderOffset,
-          defaultReminderOffsetType: reminderOffsetType,
-          rememberFilterState: rememberFilterState,
-          collapseBusyDays: collapseBusyDays,
-        ),
-      ),
-    );
   }
 }

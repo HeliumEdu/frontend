@@ -8,107 +8,80 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
-import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_bloc.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_event.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_state.dart';
 import 'package:heliumapp/presentation/features/shared/controllers/basic_form_controller.dart';
 import 'package:heliumapp/presentation/features/settings/controllers/change_password_form_controller.dart';
-import 'package:heliumapp/presentation/core/views/base_page_screen_state.dart';
 import 'package:heliumapp/presentation/ui/components/label_and_text_form_field.dart';
-import 'package:heliumapp/presentation/ui/layout/page_header.dart';
-import 'package:heliumapp/utils/app_globals.dart';
-import 'package:heliumapp/utils/responsive_helpers.dart';
-
-/// Shows as a dialog on desktop, or navigates on mobile.
-void showChangePassword(BuildContext context) {
-  if (Responsive.isMobile(context)) {
-    context.push(AppRoute.changePasswordScreen, extra: true);
-  } else {
-    showScreenAsDialog(
-      context,
-      child: const ChangePasswordScreen(),
-      width: AppConstants.leftPanelDialogWidth,
-      alignment: Alignment.centerLeft,
-      insetPadding: const EdgeInsets.all(0),
-    );
-  }
-}
+import 'package:heliumapp/utils/snack_bar_helpers.dart';
 
 class ChangePasswordScreen extends StatefulWidget {
-  const ChangePasswordScreen({super.key});
+  final VoidCallback? onActionStarted;
+  final VoidCallback? onCompleted;
+  final VoidCallback? onFailed;
+
+  const ChangePasswordScreen({
+    super.key,
+    this.onActionStarted,
+    this.onCompleted,
+    this.onFailed,
+  });
 
   @override
-  State<ChangePasswordScreen> createState() => _ChangePasswordScreenState();
+  State<ChangePasswordScreen> createState() => ChangePasswordScreenState();
 }
 
-class _ChangePasswordScreenState
-    extends BasePageScreenState<ChangePasswordScreen> {
-  @override
-  String get screenTitle => 'Change Password';
-
-  @override
-  IconData get icon => Icons.lock_outlined;
-
-  @override
-  ScreenType get screenType => ScreenType.entityPage;
-
-  @override
-  Function? get saveAction => _onSubmit;
-
+class ChangePasswordScreenState extends State<ChangePasswordScreen> {
   final ChangePasswordFormController _formController =
       ChangePasswordFormController();
 
-  @override
-  void initState() {
-    super.initState();
-
-    setState(() {
-      isLoading = false;
-    });
-  }
+  bool _isSubmitting = false;
 
   @override
   void dispose() {
     _formController.dispose();
-
     super.dispose();
   }
 
-  @override
-  List<BlocListener<dynamic, dynamic>> buildListeners(BuildContext context) {
-    return [
-      BlocListener<AuthBloc, AuthState>(
-        listener: (context, state) {
-          if (state is AuthError) {
-            showSnackBar(context, state.message!, type: SnackType.error);
-          } else if (state is AuthPasswordChanged) {
-            _formController.clearForm();
+  void onSubmit() {
+    if (_isSubmitting) return;
+    if (_formController.formKey.currentState?.validate() ?? false) {
+      setState(() => _isSubmitting = true);
+      widget.onActionStarted?.call();
 
-            showSnackBar(context, 'Password changed', useRootMessenger: true);
+      context.read<AuthBloc>().add(
+        ChangePasswordEvent(
+          oldPassword: _formController.oldPasswordController.text,
+          newPassword: _formController.newPasswordController.text,
+        ),
+      );
+    }
+  }
 
-            if (DialogModeProvider.isDialogMode(context)) {
-              Navigator.of(context).pop();
-            } else {
-              context.pop();
-            }
-          }
-
-          if (state is! AuthLoading) {
-            setState(() {
-              isSubmitting = false;
-            });
-          }
-        },
-      ),
-    ];
+  void resetSubmitting() {
+    setState(() => _isSubmitting = false);
   }
 
   @override
-  Widget buildMainArea(BuildContext context) {
-    return Expanded(
+  Widget build(BuildContext context) {
+    return BlocListener<AuthBloc, AuthState>(
+      listener: (context, state) {
+        if (state is AuthError) {
+          SnackBarHelper.show(context, state.message!, type: SnackType.error);
+          setState(() => _isSubmitting = false);
+          widget.onFailed?.call();
+        } else if (state is AuthPasswordChanged) {
+          _formController.clearForm();
+          SnackBarHelper.show(
+            context,
+            'Password changed',
+            useRootMessenger: true,
+          );
+          widget.onCompleted?.call();
+        }
+      },
       child: SingleChildScrollView(
         child: Form(
           key: _formController.formKey,
@@ -121,7 +94,7 @@ class _ChangePasswordScreenState
                 prefixIcon: Icons.lock,
                 controller: _formController.oldPasswordController,
                 validator: BasicFormController.validatePassword,
-                onFieldSubmitted: (value) => _onSubmit(),
+                onFieldSubmitted: (value) => onSubmit(),
                 obscureText: !_formController.isOldPasswordVisible,
                 suffixIcon: IconButton(
                   onPressed: () {
@@ -168,7 +141,7 @@ class _ChangePasswordScreenState
                 prefixIcon: Icons.repeat,
                 controller: _formController.confirmPasswordController,
                 validator: _formController.validateConfirmPassword,
-                onFieldSubmitted: (value) => _onSubmit(),
+                onFieldSubmitted: (value) => onSubmit(),
                 obscureText: !_formController.isConfirmPasswordVisible,
                 suffixIcon: IconButton(
                   onPressed: () {
@@ -193,20 +166,4 @@ class _ChangePasswordScreenState
       ),
     );
   }
-
-  void _onSubmit() {
-    if (_formController.formKey.currentState?.validate() ?? false) {
-      setState(() {
-        isSubmitting = true;
-      });
-
-      context.read<AuthBloc>().add(
-        ChangePasswordEvent(
-          oldPassword: _formController.oldPasswordController.text,
-          newPassword: _formController.newPasswordController.text,
-        ),
-      );
-    }
-  }
 }
-

@@ -43,7 +43,16 @@ import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-/// Shows as a dialog on desktop, or navigates on mobile.
+enum SettingsSubScreen {
+  preferences,
+  externalCalendars,
+  feeds,
+  changeEmail,
+  changePassword,
+  importExport,
+}
+
+/// Shows settings as a dialog on desktop, or navigates on mobile.
 void showSettings(BuildContext context) {
   if (Responsive.isMobile(context)) {
     context.push(AppRoute.settingScreen);
@@ -65,18 +74,14 @@ class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
 
   @override
-  State<SettingsScreen> createState() => _SettingsScreenViewState();
+  State<SettingsScreen> createState() => _SettingsScreenState();
 }
 
-class _SettingsScreenViewState extends BasePageScreenState<SettingsScreen> {
-  @override
-  String get screenTitle => 'Settings';
-
-  @override
-  IconData get icon => Icons.settings;
-
-  @override
-  ScreenType get screenType => ScreenType.subPage;
+class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
+  final _preferencesKey = GlobalKey<PreferencesScreenState>();
+  final _changeEmailKey = GlobalKey<ChangeEmailScreenState>();
+  final _changePasswordKey = GlobalKey<ChangePasswordScreenState>();
+  final _externalCalendarsKey = GlobalKey<ExternalCalendarsScreenState>();
 
   final BasicFormController _deleteAccountFormController =
       BasicFormController();
@@ -86,6 +91,7 @@ class _SettingsScreenViewState extends BasePageScreenState<SettingsScreen> {
   final themeNotifier = ThemeNotifier();
 
   // State
+  SettingsSubScreen? _activeSubScreen;
   String _email = '';
   String? _emailChanging;
   String _version = '';
@@ -93,6 +99,75 @@ class _SettingsScreenViewState extends BasePageScreenState<SettingsScreen> {
   bool _hasOAuthProviders = false;
   bool _dangerZoneExpanded = false;
   Timer? _dangerZoneTimer;
+
+  @override
+  String get screenTitle => switch (_activeSubScreen) {
+    SettingsSubScreen.preferences => 'Preferences',
+    SettingsSubScreen.externalCalendars => 'External Calendars',
+    SettingsSubScreen.feeds => 'Feeds',
+    SettingsSubScreen.changeEmail => 'Change Email',
+    SettingsSubScreen.changePassword => 'Change Password',
+    SettingsSubScreen.importExport => 'Import/Export',
+    null => 'Settings',
+  };
+
+  @override
+  IconData get icon => switch (_activeSubScreen) {
+    SettingsSubScreen.preferences => Icons.tune,
+    SettingsSubScreen.externalCalendars => AppConstants.externalCalendarIcon,
+    SettingsSubScreen.feeds => Icons.rss_feed,
+    SettingsSubScreen.changeEmail => Icons.email_outlined,
+    SettingsSubScreen.changePassword => Icons.lock_outlined,
+    SettingsSubScreen.importExport => Icons.swap_horiz,
+    null => Icons.settings,
+  };
+
+  @override
+  ScreenType get screenType => switch (_activeSubScreen) {
+    SettingsSubScreen.preferences => ScreenType.entityPage,
+    SettingsSubScreen.changeEmail => ScreenType.entityPage,
+    SettingsSubScreen.changePassword => ScreenType.entityPage,
+    _ => ScreenType.subPage,
+  };
+
+  @override
+  Function? get saveAction => switch (_activeSubScreen) {
+    SettingsSubScreen.preferences => () {
+      if (isSubmitting) return;
+      _preferencesKey.currentState?.onSubmit();
+    },
+    SettingsSubScreen.changeEmail => () {
+      if (isSubmitting) return;
+      _changeEmailKey.currentState?.onSubmit();
+    },
+    SettingsSubScreen.changePassword => () {
+      if (isSubmitting) return;
+      _changePasswordKey.currentState?.onSubmit();
+    },
+    _ => null,
+  };
+
+  @override
+  Function get cancelAction => () {
+    if (!mounted) return;
+    if (_activeSubScreen != null) {
+      setState(() => _activeSubScreen = null);
+    } else if (DialogModeProvider.isDialogMode(context)) {
+      Navigator.of(context).pop();
+    } else {
+      context.pop();
+    }
+  };
+
+  @override
+  bool get showActionButton =>
+      _activeSubScreen == SettingsSubScreen.externalCalendars;
+
+  @override
+  VoidCallback? get actionButtonCallback =>
+      _activeSubScreen == SettingsSubScreen.externalCalendars
+          ? () => _externalCalendarsKey.currentState?.onAddCalendar()
+          : null;
 
   @override
   void initState() {
@@ -132,7 +207,10 @@ class _SettingsScreenViewState extends BasePageScreenState<SettingsScreen> {
       BlocListener<AuthBloc, AuthState>(
         listener: (context, state) async {
           if (state is AuthError) {
-            showSnackBar(context, state.message!, type: SnackType.error);
+            // Only handle on the main settings page; sub-screens handle their own errors.
+            if (_activeSubScreen == null) {
+              showSnackBar(context, state.message!, type: SnackType.error);
+            }
           } else if (state is AuthProfileFetched) {
             final platform = await PackageInfo.fromPlatform();
 
@@ -146,13 +224,17 @@ class _SettingsScreenViewState extends BasePageScreenState<SettingsScreen> {
 
               isLoading = false;
             });
-          } else if (state is AuthLoggedOut) {
-            if (!context.mounted) return;
-            context.go(AppRoute.loginScreen);
           } else if (state is AuthEmailChangeRequested) {
             setState(() {
               _emailChanging = state.newEmail;
             });
+          } else if (state is AuthEmailChangeCancelled) {
+            setState(() {
+              _emailChanging = null;
+            });
+          } else if (state is AuthLoggedOut) {
+            if (!context.mounted) return;
+            context.go(AppRoute.loginScreen);
           } else if (state is AuthAccountDeleted) {
             showSnackBar(
               context,
@@ -162,7 +244,6 @@ class _SettingsScreenViewState extends BasePageScreenState<SettingsScreen> {
               useRootMessenger: true,
             );
             if (!context.mounted) return;
-            // Close settings dialog if open
             if (DialogModeProvider.isDialogMode(context)) {
               Navigator.of(context).pop();
             }
@@ -175,15 +256,66 @@ class _SettingsScreenViewState extends BasePageScreenState<SettingsScreen> {
 
   @override
   Widget buildMainArea(BuildContext context) {
-    return BlocBuilder<AuthBloc, AuthState>(
-      builder: (context, state) {
-        if (state is AuthLoading) {
-          return const LoadingIndicator();
-        }
+    if (_activeSubScreen == null) {
+      return BlocBuilder<AuthBloc, AuthState>(
+        builder: (context, state) {
+          if (state is AuthLoading) {
+            return const LoadingIndicator();
+          }
 
-        return _buildSettingsPage();
+          return _buildSettingsPage();
+        },
+      );
+    }
+
+    return Expanded(
+      child: switch (_activeSubScreen!) {
+        SettingsSubScreen.preferences => PreferencesScreen(
+          key: _preferencesKey,
+          userSettings: userSettings,
+          onActionStarted: () => setState(() => isSubmitting = true),
+          onCompleted: () => setState(() {
+            isSubmitting = false;
+            _activeSubScreen = null;
+          }),
+          onFailed: () => setState(() => isSubmitting = false),
+        ),
+        SettingsSubScreen.changeEmail => ChangeEmailScreen(
+          key: _changeEmailKey,
+          onActionStarted: () => setState(() => isSubmitting = true),
+          onCompleted: () => setState(() {
+            isSubmitting = false;
+            _activeSubScreen = null;
+          }),
+          onFailed: () => setState(() => isSubmitting = false),
+        ),
+        SettingsSubScreen.changePassword => ChangePasswordScreen(
+          key: _changePasswordKey,
+          onActionStarted: () => setState(() => isSubmitting = true),
+          onCompleted: () => setState(() {
+            isSubmitting = false;
+            _activeSubScreen = null;
+          }),
+          onFailed: () => setState(() => isSubmitting = false),
+        ),
+        SettingsSubScreen.externalCalendars => ExternalCalendarsScreen(
+          key: _externalCalendarsKey,
+        ),
+        SettingsSubScreen.feeds => FeedsScreen(userSettings: userSettings),
+        SettingsSubScreen.importExport => ImportExportScreen(
+          onNavigateRequested: _onNavigateRequested,
+        ),
       },
     );
+  }
+
+  void _onNavigateRequested(String route) {
+    setState(() => _activeSubScreen = null);
+    if (!mounted) return;
+    if (DialogModeProvider.isDialogMode(context)) {
+      Navigator.of(context).pop();
+    }
+    if (mounted) context.go(route);
   }
 
   Widget _buildSettingsPage() {
@@ -322,8 +454,7 @@ class _SettingsScreenViewState extends BasePageScreenState<SettingsScreen> {
             icon: Icons.tune,
             label: 'Preferences',
             hint: 'Tailor Helium to your tastes',
-            onTap: () =>
-                _navigateToSubSettings(context, (ctx) => showPreferences(ctx)),
+            onTap: () => _navigateToSubSettings(SettingsSubScreen.preferences),
             iconColor: context.semanticColors.info,
             isFirst: true,
           ),
@@ -332,10 +463,8 @@ class _SettingsScreenViewState extends BasePageScreenState<SettingsScreen> {
             icon: AppConstants.externalCalendarIcon,
             label: 'External Calendars',
             hint: 'Bring other calendars in to Helium',
-            onTap: () => _navigateToSubSettings(
-              context,
-              (ctx) => showExternalCalendars(ctx),
-            ),
+            onTap: () =>
+                _navigateToSubSettings(SettingsSubScreen.externalCalendars),
             iconColor: context.colorScheme.primary,
           ),
           const Divider(height: 1, indent: 68),
@@ -343,8 +472,7 @@ class _SettingsScreenViewState extends BasePageScreenState<SettingsScreen> {
             icon: Icons.rss_feed,
             label: 'Feeds',
             hint: "Take Helium's calendars elsewhere",
-            onTap: () =>
-                _navigateToSubSettings(context, (ctx) => showFeeds(ctx)),
+            onTap: () => _navigateToSubSettings(SettingsSubScreen.feeds),
             iconColor: context.colorScheme.primary,
           ),
           if (!_hasOAuthProviders) const Divider(height: 1, indent: 68),
@@ -353,10 +481,8 @@ class _SettingsScreenViewState extends BasePageScreenState<SettingsScreen> {
               icon: Icons.email_outlined,
               label: 'Change Email',
               hint: 'Update your email address',
-              onTap: () => _navigateToSubSettings(
-                context,
-                (ctx) => showChangeEmail(ctx),
-              ),
+              onTap: () =>
+                  _navigateToSubSettings(SettingsSubScreen.changeEmail),
               iconColor: context.colorScheme.primary,
             ),
           if (_hasUsablePassword) const Divider(height: 1, indent: 68),
@@ -365,10 +491,8 @@ class _SettingsScreenViewState extends BasePageScreenState<SettingsScreen> {
               icon: Icons.lock_outline,
               label: 'Change Password',
               hint: 'Update your password',
-              onTap: () => _navigateToSubSettings(
-                context,
-                (ctx) => showChangePassword(ctx),
-              ),
+              onTap: () =>
+                  _navigateToSubSettings(SettingsSubScreen.changePassword),
               iconColor: context.colorScheme.primary,
             ),
           const Divider(height: 1, indent: 68),
@@ -377,7 +501,7 @@ class _SettingsScreenViewState extends BasePageScreenState<SettingsScreen> {
             label: 'Import/Export',
             hint: 'Backup and restore your data',
             onTap: () =>
-                _navigateToSubSettings(context, (ctx) => showImportExport(ctx)),
+                _navigateToSubSettings(SettingsSubScreen.importExport),
             iconColor: context.colorScheme.primary,
           ),
           const Divider(height: 1, indent: 68),
@@ -398,21 +522,8 @@ class _SettingsScreenViewState extends BasePageScreenState<SettingsScreen> {
     );
   }
 
-  /// Navigates to a sub-settings screen. In dialog mode, closes the settings
-  /// dialog first, then opens the sub-dialog. This avoids double-stacked
-  /// dialogs with double shadows.
-  void _navigateToSubSettings(
-    BuildContext context,
-    void Function(BuildContext) showSubScreen,
-  ) {
-    if (DialogModeProvider.isDialogMode(context)) {
-      // Get a context that survives the pop (Navigator's context)
-      final navContext = Navigator.of(context, rootNavigator: true).context;
-      Navigator.of(context).pop();
-      showSubScreen(navContext);
-    } else {
-      showSubScreen(context);
-    }
+  void _navigateToSubSettings(SettingsSubScreen subScreen) {
+    setState(() => _activeSubScreen = subScreen);
   }
 
   void _expandDangerZone() {

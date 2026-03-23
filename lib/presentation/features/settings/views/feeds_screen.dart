@@ -8,122 +8,77 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
-import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/core/api_url.dart';
 import 'package:heliumapp/data/models/auth/private_feed_model.dart';
+import 'package:heliumapp/data/models/auth/user_model.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_bloc.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_event.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_state.dart';
-import 'package:heliumapp/presentation/core/views/base_page_screen_state.dart';
 import 'package:heliumapp/presentation/ui/components/helium_elevated_button.dart';
 import 'package:heliumapp/presentation/ui/feedback/info_container.dart';
 import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
-import 'package:heliumapp/presentation/ui/layout/page_header.dart';
 import 'package:heliumapp/presentation/ui/feedback/warning_container.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
+import 'package:heliumapp/utils/snack_bar_helpers.dart';
 import 'package:share_plus/share_plus.dart';
 
-/// Shows as a dialog on desktop, or navigates on mobile.
-void showFeeds(BuildContext context) {
-  if (Responsive.isMobile(context)) {
-    context.push(AppRoute.feedsScreen, extra: true);
-  } else {
-    showScreenAsDialog(
-      context,
-      child: const FeedsScreen(),
-      width: AppConstants.leftPanelDialogWidth,
-      alignment: Alignment.centerLeft,
-      insetPadding: const EdgeInsets.all(0),
-    );
-  }
-}
-
 class FeedsScreen extends StatefulWidget {
-  const FeedsScreen({super.key});
+  final UserSettingsModel? userSettings;
+
+  const FeedsScreen({super.key, this.userSettings});
 
   @override
-  State<FeedsScreen> createState() => _FeedsViewState();
+  State<FeedsScreen> createState() => _FeedsScreenState();
 }
 
-class _FeedsViewState extends BasePageScreenState<FeedsScreen> {
-  @override
-  String get screenTitle => 'Feeds';
-
-  @override
-  IconData? get icon => Icons.rss_feed;
-
-  @override
-  ScreenType get screenType => ScreenType.subPage;
-
+class _FeedsScreenState extends State<FeedsScreen> {
   PrivateFeedModel? _feedUrls;
 
   @override
-  void initState() {
-    super.initState();
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Padding(
+          padding: EdgeInsets.only(bottom: 12),
+          child: InfoContainer(
+            text: "Feeds allow you to take Helium's calendars elsewhere",
+          ),
+        ),
+        Expanded(
+          child: BlocBuilder<AuthBloc, AuthState>(
+            builder: (context, state) {
+              if (state is AuthProfileFetched) {
+                if (state.user.settings.privateSlug != null) {
+                  final privateSlug = state.user.settings.privateSlug;
 
-    context.read<AuthBloc>().add(FetchProfileEvent());
-  }
+                  _feedUrls = PrivateFeedModel(
+                    eventsPrivateUrl:
+                        '${ApiUrl.baseUrl}/feed/private/$privateSlug/events.ics',
+                    homeworkPrivateUrl:
+                        '${ApiUrl.baseUrl}/feed/private/$privateSlug/homework.ics',
+                    courseSchedulesPrivateUrl:
+                        '${ApiUrl.baseUrl}/feed/private/$privateSlug/courseschedules.ics',
+                  );
 
-  @override
-  List<BlocListener<dynamic, dynamic>> buildListeners(BuildContext context) {
-    return [
-      BlocListener<AuthBloc, AuthState>(
-        listener: (context, state) {
-          if (state is AuthError) {
-            showSnackBar(context, state.message!, type: SnackType.error);
-          } else if (state is AuthProfileFetched) {
-            setState(() {
-              isLoading = false;
-            });
-          }
-        },
-      ),
-    ];
-  }
+                  return _buildFeedsEnabledArea(
+                    _feedUrls!.homeworkPrivateUrl,
+                    _feedUrls!.eventsPrivateUrl,
+                    _feedUrls!.courseSchedulesPrivateUrl,
+                  );
+                } else {
+                  return _buildFeedsDisabledArea();
+                }
+              }
 
-  @override
-  Widget buildHeaderArea(BuildContext context) {
-    return const Padding(
-      padding: EdgeInsets.only(bottom: 12),
-      child: InfoContainer(
-        text: "Feeds allow you to take Helium's calendars elsewhere",
-      ),
-    );
-  }
-
-  @override
-  Widget buildMainArea(BuildContext context) {
-    return BlocBuilder<AuthBloc, AuthState>(
-      builder: (context, state) {
-        if (state is AuthProfileFetched) {
-          if (state.user.settings.privateSlug != null) {
-            final privateSlug = state.user.settings.privateSlug;
-
-            _feedUrls = PrivateFeedModel(
-              eventsPrivateUrl:
-                  '${ApiUrl.baseUrl}/feed/private/$privateSlug/events.ics',
-              homeworkPrivateUrl:
-                  '${ApiUrl.baseUrl}/feed/private/$privateSlug/homework.ics',
-              courseSchedulesPrivateUrl:
-                  '${ApiUrl.baseUrl}/feed/private/$privateSlug/courseschedules.ics',
-            );
-
-            return _buildFeedsEnabledArea(
-              _feedUrls!.homeworkPrivateUrl,
-              _feedUrls!.eventsPrivateUrl,
-              _feedUrls!.courseSchedulesPrivateUrl,
-            );
-          } else {
-            return _buildFeedsDisabledArea();
-          }
-        }
-
-        return const LoadingIndicator();
-      },
+              return const LoadingIndicator();
+            },
+          ),
+        ),
+      ],
     );
   }
 
@@ -169,7 +124,6 @@ class _FeedsViewState extends BasePageScreenState<FeedsScreen> {
                   ),
                 ),
               ],
-              // ),
             ),
             const Divider(height: 24),
             Column(
@@ -209,7 +163,10 @@ class _FeedsViewState extends BasePageScreenState<FeedsScreen> {
                         child: HeliumElevatedButton(
                           onPressed: () {
                             Clipboard.setData(ClipboardData(text: url));
-                            showSnackBar(context, '$label feed URL copied');
+                            SnackBarHelper.show(
+                              context,
+                              '$label feed URL copied',
+                            );
                           },
                           icon: Icons.copy,
                           buttonText: 'Copy',
@@ -223,8 +180,7 @@ class _FeedsViewState extends BasePageScreenState<FeedsScreen> {
                           child: IconButton(
                             onPressed: () {
                               final box =
-                                  buttonContext.findRenderObject()
-                                      as RenderBox?;
+                                  buttonContext.findRenderObject() as RenderBox?;
                               final sharePositionOrigin = box != null
                                   ? box.localToGlobal(Offset.zero) & box.size
                                   : null;
@@ -255,44 +211,42 @@ class _FeedsViewState extends BasePageScreenState<FeedsScreen> {
   }
 
   Widget _buildFeedsDisabledArea() {
-    return Expanded(
-      child: Center(
-        child: SingleChildScrollView(
-          child: Column(
-            children: [
-              Container(
-                width: 80,
-                height: 80,
-                decoration: BoxDecoration(
-                  color: context.colorScheme.error.withValues(alpha: 0.08),
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: Icon(
-                  Icons.block_rounded,
-                  size: Responsive.getIconSize(
-                    context,
-                    mobile: 40,
-                    tablet: 44,
-                    desktop: 48,
-                  ),
-                  color: context.colorScheme.error,
-                ),
+    return Center(
+      child: SingleChildScrollView(
+        child: Column(
+          children: [
+            Container(
+              width: 80,
+              height: 80,
+              decoration: BoxDecoration(
+                color: context.colorScheme.error.withValues(alpha: 0.08),
+                borderRadius: BorderRadius.circular(16),
               ),
-              const SizedBox(height: 20),
-              Text('Feeds are Disabled', style: AppStyles.headingText(context)),
-              const SizedBox(height: 25),
-
-              HeliumElevatedButton(
-                icon: Icons.link,
-                buttonText: 'Enable',
-                onPressed: () {
-                  context.read<AuthBloc>().add(EnablePrivateFeedsEvent());
-                },
+              child: Icon(
+                Icons.block_rounded,
+                size: Responsive.getIconSize(
+                  context,
+                  mobile: 40,
+                  tablet: 44,
+                  desktop: 48,
+                ),
+                color: context.colorScheme.error,
               ),
+            ),
+            const SizedBox(height: 20),
+            Text('Feeds are Disabled', style: AppStyles.headingText(context)),
+            const SizedBox(height: 25),
 
-              const SizedBox(height: 12),
-            ],
-          ),
+            HeliumElevatedButton(
+              icon: Icons.link,
+              buttonText: 'Enable',
+              onPressed: () {
+                context.read<AuthBloc>().add(EnablePrivateFeedsEvent());
+              },
+            ),
+
+            const SizedBox(height: 12),
+          ],
         ),
       ),
     );
@@ -375,55 +329,52 @@ class _FeedsViewState extends BasePageScreenState<FeedsScreen> {
     String eventsUrl,
     String courseScheduleUrl,
   ) {
-    return Expanded(
-      child: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            HeliumElevatedButton(
-              icon: Icons.link_off,
-              buttonText: 'Disable All',
-              onPressed: () => _showDisableFeedsDialog(context),
-              backgroundColor: context.colorScheme.error,
-            ),
+    return SingleChildScrollView(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          HeliumElevatedButton(
+            icon: Icons.link_off,
+            buttonText: 'Disable All',
+            onPressed: () => _showDisableFeedsDialog(context),
+            backgroundColor: context.colorScheme.error,
+          ),
 
-            const SizedBox(height: 12),
+          const SizedBox(height: 12),
 
-            const WarningContainer(
-              text:
-                  'Keep private feed URLs secret. Disabling and re-enabling a feed will regenerate its URL.',
-              icon: Icons.privacy_tip_outlined,
-            ),
+          const WarningContainer(
+            text:
+                'Keep private feed URLs secret. Disabling and re-enabling a feed will regenerate its URL.',
+            icon: Icons.privacy_tip_outlined,
+          ),
 
-            const SizedBox(height: 12),
+          const SizedBox(height: 12),
 
-            _buildFeedCard(
-              context: context,
-              icon: AppConstants.assignmentIcon,
-              color: PlannerTypeColors.homework,
-              url: homeworkUrl,
-              label: 'Assignments',
-            ),
+          _buildFeedCard(
+            context: context,
+            icon: AppConstants.assignmentIcon,
+            color: PlannerTypeColors.homework,
+            url: homeworkUrl,
+            label: 'Assignments',
+          ),
 
-            _buildFeedCard(
-              context: context,
-              icon: AppConstants.courseScheduleIcon,
-              color: PlannerTypeColors.classSchedules,
-              url: courseScheduleUrl,
-              label: 'Class Schedules',
-            ),
+          _buildFeedCard(
+            context: context,
+            icon: AppConstants.courseScheduleIcon,
+            color: PlannerTypeColors.classSchedules,
+            url: courseScheduleUrl,
+            label: 'Class Schedules',
+          ),
 
-            _buildFeedCard(
-              context: context,
-              icon: AppConstants.eventIcon,
-              color: PlannerTypeColors.events(userSettings?.eventsColor),
-              url: eventsUrl,
-              label: 'Events',
-            ),
-          ],
-        ),
+          _buildFeedCard(
+            context: context,
+            icon: AppConstants.eventIcon,
+            color: PlannerTypeColors.events(widget.userSettings?.eventsColor),
+            url: eventsUrl,
+            label: 'Events',
+          ),
+        ],
       ),
     );
   }
 }
-

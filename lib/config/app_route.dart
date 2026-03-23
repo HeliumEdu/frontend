@@ -27,10 +27,4 @@ class AppRoute {
   static const String courseAddScreen = '/classes/edit';
   static const String resourcesAddScreen = '/resources/edit';
   static const String settingScreen = '/settings';
-  static const String preferencesScreen = '/settings/preferences';
-  static const String feedsScreen = '/settings/feeds';
-  static const String externalCalendarsScreen = '/settings/external-calendars';
-  static const String changePasswordScreen = '/settings/change-password';
-  static const String changeEmailScreen = '/settings/change-email';
-  static const String importExportScreen = '/settings/import-export';
 }

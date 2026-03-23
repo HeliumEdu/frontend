@@ -11,56 +11,34 @@ import 'package:dio/dio.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
 import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/core/api_url.dart';
-import 'package:heliumapp/presentation/core/views/base_page_screen_state.dart';
+import 'package:heliumapp/core/dio_client.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_bloc.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_event.dart';
 import 'package:heliumapp/presentation/ui/components/helium_elevated_button.dart';
 import 'package:heliumapp/presentation/ui/feedback/info_container.dart';
-import 'package:heliumapp/presentation/ui/layout/page_header.dart';
-import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/format_helpers.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
+import 'package:heliumapp/utils/snack_bar_helpers.dart';
 import 'package:heliumapp/utils/storage_helpers.dart';
 import 'package:logging/logging.dart';
 
 final _log = Logger('presentation.settings');
 
-/// Shows as a dialog on desktop, or navigates on mobile.
-void showImportExport(BuildContext context) {
-  if (Responsive.isMobile(context)) {
-    context.push(AppRoute.importExportScreen, extra: true);
-  } else {
-    showScreenAsDialog(
-      context,
-      child: const ImportExportScreen(),
-      width: AppConstants.leftPanelDialogWidth,
-      alignment: Alignment.centerLeft,
-      insetPadding: const EdgeInsets.all(0),
-    );
-  }
-}
-
 class ImportExportScreen extends StatefulWidget {
-  const ImportExportScreen({super.key});
+  final void Function(String route)? onNavigateRequested;
+
+  const ImportExportScreen({super.key, this.onNavigateRequested});
 
   @override
   State<ImportExportScreen> createState() => _ImportExportScreenState();
 }
 
-class _ImportExportScreenState extends BasePageScreenState<ImportExportScreen> {
-  @override
-  String get screenTitle => 'Import/Export';
-
-  @override
-  IconData? get icon => Icons.swap_horiz;
-
-  @override
-  ScreenType get screenType => ScreenType.subPage;
+class _ImportExportScreenState extends State<ImportExportScreen> {
+  final DioClient _dioClient = DioClient();
 
   // State
   String? _selectedFileName;
@@ -70,46 +48,26 @@ class _ImportExportScreenState extends BasePageScreenState<ImportExportScreen> {
   bool _isImportingExample = false;
 
   @override
-  void initState() {
-    super.initState();
-
-    // No additional data to fetch - mark loading complete once settings load
-    loadSettings().then((_) {
-      if (mounted) {
-        setState(() {
-          isLoading = false;
-        });
-      }
-    });
-  }
-
-  @override
-  Widget buildHeaderArea(BuildContext context) {
-    return const Padding(
-      padding: EdgeInsets.only(bottom: 12),
-      child: InfoContainer(text: 'Backup and restore your Helium data'),
-    );
-  }
-
-  @override
-  Widget buildMainArea(BuildContext context) {
-    return Expanded(
-      child: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildImportSection(context),
-            const SizedBox(height: 24),
-            const Divider(),
-            const SizedBox(height: 24),
-            _buildExportSection(context),
-            const SizedBox(height: 24),
-            const Divider(),
-            const SizedBox(height: 24),
-            _buildExampleScheduleSection(context),
-            const SizedBox(height: 12),
-          ],
-        ),
+  Widget build(BuildContext context) {
+    return SingleChildScrollView(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Padding(
+            padding: EdgeInsets.only(bottom: 12),
+            child: InfoContainer(text: 'Backup and restore your Helium data'),
+          ),
+          _buildImportSection(context),
+          const SizedBox(height: 24),
+          const Divider(),
+          const SizedBox(height: 24),
+          _buildExportSection(context),
+          const SizedBox(height: 24),
+          const Divider(),
+          const SizedBox(height: 24),
+          _buildExampleScheduleSection(context),
+          const SizedBox(height: 12),
+        ],
       ),
     );
   }
@@ -253,7 +211,7 @@ class _ImportExportScreenState extends BasePageScreenState<ImportExportScreen> {
 
         if (file.bytes == null) {
           if (mounted) {
-            showSnackBar(
+            SnackBarHelper.show(
               context,
               'An error occurred while reading the file',
               type: SnackType.error,
@@ -264,7 +222,7 @@ class _ImportExportScreenState extends BasePageScreenState<ImportExportScreen> {
 
         if (file.size > 10 * 1024 * 1024) {
           if (mounted) {
-            showSnackBar(
+            SnackBarHelper.show(
               context,
               'File size cannot exceed 10MB',
               type: SnackType.error,
@@ -281,7 +239,11 @@ class _ImportExportScreenState extends BasePageScreenState<ImportExportScreen> {
     } catch (e) {
       _log.severe('Error picking file', e);
       if (mounted) {
-        showSnackBar(context, 'Error selecting file', type: SnackType.error);
+        SnackBarHelper.show(
+          context,
+          'Error selecting file',
+          type: SnackType.error,
+        );
       }
     }
   }
@@ -301,7 +263,7 @@ class _ImportExportScreenState extends BasePageScreenState<ImportExportScreen> {
         ),
       });
 
-      final response = await dioClient.dio.post(
+      final response = await _dioClient.dio.post(
         ApiUrl.importExportImportUrl,
         data: formData,
       );
@@ -309,29 +271,29 @@ class _ImportExportScreenState extends BasePageScreenState<ImportExportScreen> {
       if (!mounted) return;
 
       if (response.statusCode == 200) {
-        await dioClient.cacheService.invalidateAll();
+        await _dioClient.cacheService.invalidateAll();
 
         final data = response.data as Map<String, dynamic>;
         final counts = _formatImportCounts(data);
 
         if (mounted) {
           context.read<AuthBloc>().add(RefreshScheduleDataEvent());
-          showSnackBar(
+          SnackBarHelper.show(
             context,
             'Imported: $counts',
             seconds: counts == 'nothing' ? 2 : 7,
             useRootMessenger: true,
           );
-          _closeAndNavigateToClasses();
+          widget.onNavigateRequested?.call(AppRoute.coursesScreen);
         }
       } else {
-        showSnackBar(context, 'Import failed', type: SnackType.error);
+        SnackBarHelper.show(context, 'Import failed', type: SnackType.error);
       }
     } on DioException catch (e) {
       _log.severe('Import failed', e);
       if (mounted) {
         final message = _extractErrorMessage(e) ?? 'Import failed';
-        showSnackBar(context, message, type: SnackType.error);
+        SnackBarHelper.show(context, message, type: SnackType.error);
       }
     } finally {
       if (mounted) {
@@ -395,7 +357,7 @@ class _ImportExportScreenState extends BasePageScreenState<ImportExportScreen> {
     });
 
     try {
-      final response = await dioClient.dio.get<Uint8List>(
+      final response = await _dioClient.dio.get<Uint8List>(
         ApiUrl.importExportExportUrl,
         options: Options(responseType: ResponseType.bytes),
       );
@@ -403,7 +365,6 @@ class _ImportExportScreenState extends BasePageScreenState<ImportExportScreen> {
       if (!mounted) return;
 
       if (response.statusCode == 200 && response.data != null) {
-        // Extract filename from Content-Disposition header or use default
         final contentDisposition = response.headers.value(
           'content-disposition',
         );
@@ -422,18 +383,22 @@ class _ImportExportScreenState extends BasePageScreenState<ImportExportScreen> {
 
         if (mounted) {
           if (success) {
-            showSnackBar(context, '"$filename" downloaded');
+            SnackBarHelper.show(context, '"$filename" downloaded');
           } else {
-            showSnackBar(context, 'Failed to save export file', type: SnackType.error);
+            SnackBarHelper.show(
+              context,
+              'Failed to save export file',
+              type: SnackType.error,
+            );
           }
         }
       } else {
-        showSnackBar(context, 'Export failed', type: SnackType.error);
+        SnackBarHelper.show(context, 'Export failed', type: SnackType.error);
       }
     } on DioException catch (e) {
       _log.severe('Export failed', e);
       if (mounted) {
-        showSnackBar(context, 'Export failed', type: SnackType.error);
+        SnackBarHelper.show(context, 'Export failed', type: SnackType.error);
       }
     } finally {
       if (mounted) {
@@ -450,26 +415,26 @@ class _ImportExportScreenState extends BasePageScreenState<ImportExportScreen> {
     });
 
     try {
-      final response = await dioClient.dio.post(
+      final response = await _dioClient.dio.post(
         ApiUrl.importExportExampleScheduleUrl,
       );
 
       if (!mounted) return;
 
       if (response.statusCode == 204) {
-        await dioClient.cacheService.invalidateAll();
+        await _dioClient.cacheService.invalidateAll();
         if (mounted) {
           context.read<AuthBloc>().add(FetchProfileEvent());
           context.read<AuthBloc>().add(RefreshScheduleDataEvent());
-          showSnackBar(
+          SnackBarHelper.show(
             context,
             'Example schedule imported',
             useRootMessenger: true,
           );
-          _closeAndNavigateToClasses();
+          widget.onNavigateRequested?.call(AppRoute.coursesScreen);
         }
       } else {
-        showSnackBar(
+        SnackBarHelper.show(
           context,
           'Failed to import example schedule',
           type: SnackType.error,
@@ -478,7 +443,7 @@ class _ImportExportScreenState extends BasePageScreenState<ImportExportScreen> {
     } on DioException catch (e) {
       _log.severe('Example schedule import failed', e);
       if (mounted) {
-        showSnackBar(
+        SnackBarHelper.show(
           context,
           'Failed to import example schedule',
           type: SnackType.error,
@@ -491,17 +456,6 @@ class _ImportExportScreenState extends BasePageScreenState<ImportExportScreen> {
         });
       }
     }
-  }
-
-  void _closeAndNavigateToClasses() {
-    // Close the screen/dialog first
-    if (DialogModeProvider.isDialogMode(context)) {
-      Navigator.of(context).pop();
-    } else {
-      context.pop();
-    }
-    // Navigate to classes to refresh with imported data
-    context.go(AppRoute.coursesScreen);
   }
 
   String? _extractErrorMessage(DioException e) {
