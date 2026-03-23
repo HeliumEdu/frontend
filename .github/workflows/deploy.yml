@@ -64,6 +64,9 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: "helium-frontend-deploy-${{ inputs.environment }}"
+
 jobs:
   deploy-web:
     name: Deploy Web

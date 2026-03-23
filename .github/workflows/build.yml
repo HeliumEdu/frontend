@@ -20,10 +20,6 @@ permissions:
   issues: none
   pull-requests: none
 
-concurrency:
-  group: "helium-frontend-build-${{ github.ref }}"
-  cancel-in-progress: true
-
 jobs:
   test:
     name: Test
