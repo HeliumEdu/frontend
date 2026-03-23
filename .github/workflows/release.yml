@@ -156,65 +156,10 @@ jobs:
   refresh-lockfiles:
     name: Refresh Lockfiles
     needs: [create-release-branch]
-    runs-on: macos-latest
-    outputs:
-      commit_sha: ${{ steps.commit_lockfiles.outputs.commit_sha }}
-
-    steps:
-      - uses: actions/checkout@v5
-        with:
-          token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
-          ref: ${{ needs['create-release-branch'].outputs.branch_name }}
-
-      - name: Read Flutter version
-        id: flutter-version
-        run: echo "version=$(tr -d '[:space:]' < .flutter-version)" >> $GITHUB_OUTPUT
-
-      - name: Setup Flutter SDK
-        uses: flutter-actions/setup-flutter@v4
-        with:
-          channel: stable
-          version: ${{ steps.flutter-version.outputs.version }}
-          cache: true
-
-      - name: Cache pub dependencies
-        uses: actions/cache@v4
-        with:
-          path: ~/.pub-cache
-          key: ${{ runner.os }}-pub-${{ hashFiles('**/pubspec.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-pub-
-
-      - name: Refresh lockfiles
-        run: |
-          flutter pub get
-          cd ios
-          pod install
-
-      - name: Commit lockfile refresh
-        id: commit_lockfiles
-        run: |
-          git config --global user.name "GitHub Release Bot"
-          git config --global user.email "<support@heliumedu.com>"
-
-          git add pubspec.lock ios/Podfile.lock
-
-          UNEXPECTED_FILES=$(git status --porcelain | awk '{print $2}' | grep -Ev '^(pubspec.lock|ios/Podfile.lock)$' || true)
-          if [ -n "$UNEXPECTED_FILES" ]; then
-            echo "Unexpected file changes detected:"
-            echo "$UNEXPECTED_FILES"
-            exit 1
-          fi
-
-          if git diff --cached --quiet; then
-            echo "Lockfiles already up to date."
-            echo "commit_sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
-
-          git commit -m "Refresh lockfiles"
-          git push origin "HEAD:refs/heads/${{ needs['create-release-branch'].outputs.branch_name }}"
-          echo "commit_sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+    uses: ./.github/workflows/refresh-lockfiles.yml
+    with:
+      ref: ${{ needs['create-release-branch'].outputs.branch_name }}
+    secrets: inherit
 
   bump-version:
     name: Bump Version
