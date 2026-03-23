@@ -676,6 +676,11 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
   void restoreFiltersIfEnabled() {
     if (!userSettings.rememberFilterState) return;
 
+    final savedItemsPerPage = PrefService().getInt('saved_rows_per_page');
+    if (savedItemsPerPage != null) {
+      _todosItemsPerPage = savedItemsPerPage;
+    }
+
     final savedState = PrefService().getString('saved_filter_state');
     if (savedState == null) return;
 
@@ -703,11 +708,6 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
       final savedStatuses = filterState['filterStatuses'] as List<dynamic>?;
       if (savedStatuses != null) {
         _filterStatuses = savedStatuses.cast<String>().toSet();
-      }
-
-      final savedItemsPerPage = PrefService().getInt('saved_rows_per_page');
-      if (savedItemsPerPage != null) {
-        _todosItemsPerPage = savedItemsPerPage;
       }
 
       _log.info('Filter state restored');
