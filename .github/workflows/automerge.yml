@@ -14,6 +14,7 @@ jobs:
     uses: ./.github/workflows/refresh-lockfiles.yml
     with:
       ref: ${{ github.head_ref }}
+      pod_update: true
     secrets: inherit
 
   automerge:
