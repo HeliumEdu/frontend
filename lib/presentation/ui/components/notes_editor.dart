@@ -12,7 +12,7 @@ import 'package:heliumapp/presentation/ui/dialogs/color_picker_dialog.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 
-class NotesEditor extends StatelessWidget {
+class NotesEditor extends StatefulWidget {
   final QuillController controller;
   final FocusNode? focusNode;
   final VoidCallback? onOpenInNotes;
@@ -75,6 +75,55 @@ class NotesEditor extends StatelessWidget {
   }
 
   @override
+  State<NotesEditor> createState() => _NotesEditorState();
+}
+
+class _NotesEditorState extends State<NotesEditor> {
+  final GlobalKey _editorKey = GlobalKey();
+  bool _hasScrolledForFocus = false;
+
+  @override
+  void initState() {
+    super.initState();
+    widget.focusNode?.addListener(_onFocusChange);
+  }
+
+  @override
+  void didUpdateWidget(NotesEditor oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.focusNode != widget.focusNode) {
+      oldWidget.focusNode?.removeListener(_onFocusChange);
+      widget.focusNode?.addListener(_onFocusChange);
+    }
+  }
+
+  @override
+  void dispose() {
+    widget.focusNode?.removeListener(_onFocusChange);
+    super.dispose();
+  }
+
+  void _onFocusChange() {
+    final hasFocus = widget.focusNode?.hasFocus ?? false;
+    if (hasFocus && !_hasScrolledForFocus) {
+      _hasScrolledForFocus = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        final ctx = _editorKey.currentContext;
+        if (ctx != null) {
+          Scrollable.ensureVisible(
+            ctx,
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeInOut,
+            alignmentPolicy: ScrollPositionAlignmentPolicy.keepVisibleAtEnd,
+          );
+        }
+      });
+    } else if (!hasFocus) {
+      _hasScrolledForFocus = false;
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     final isMobile = Responsive.isMobile(context);
 
@@ -85,9 +134,9 @@ class NotesEditor extends StatelessWidget {
           children: [
             Text('Notes', style: AppStyles.formLabel(context)),
             const Spacer(),
-            if (onOpenInNotes != null)
+            if (widget.onOpenInNotes != null)
               TextButton.icon(
-                onPressed: onOpenInNotes,
+                onPressed: widget.onOpenInNotes,
                 icon: Icon(
                   Icons.library_books,
                   size: 16,
@@ -105,6 +154,7 @@ class NotesEditor extends StatelessWidget {
         ),
         const SizedBox(height: 9),
         Container(
+          key: _editorKey,
           decoration: BoxDecoration(
             color: context.colorScheme.surface,
             border: Border.all(
@@ -120,7 +170,7 @@ class NotesEditor extends StatelessWidget {
                 Padding(
                   padding: const EdgeInsets.symmetric(vertical: 4),
                   child: QuillSimpleToolbar(
-                    controller: controller,
+                    controller: widget.controller,
                   config: QuillSimpleToolbarConfig(
                     toolbarRunSpacing: 0,
                     showFontFamily: !isMobile,
@@ -174,7 +224,7 @@ class NotesEditor extends StatelessWidget {
                       ),
                       color: QuillToolbarColorButtonOptions(
                         customOnPressedCallback: (ctrl, isBackground) =>
-                            showColorPicker(context, ctrl, isBackground),
+                            NotesEditor.showColorPicker(context, ctrl, isBackground),
                       ),
                     ),
                   ),
@@ -187,12 +237,12 @@ class NotesEditor extends StatelessWidget {
                     maxHeight: 300,
                   ),
                   child: QuillEditor.basic(
-                    controller: controller,
-                    focusNode: focusNode,
+                    controller: widget.controller,
+                    focusNode: widget.focusNode,
                     config: QuillEditorConfig(
                       padding: const EdgeInsets.all(12),
                       autoFocus: false,
-                      customStyles: buildDefaultStyles(context),
+                      customStyles: NotesEditor.buildDefaultStyles(context),
                     ),
                   ),
                 ),

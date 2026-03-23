@@ -87,10 +87,6 @@ class EmailHelper {
       // Parse email to extract body
       final emailBody = _parseEmailBody(emailStr);
 
-      // Validate email arrived after the action was triggered
-      final nowUtc = DateTime.now().toUtc();
-      final staleThreshold = nowUtc.subtract(const Duration(minutes: 10));
-
       // Validate: arrived after sentAfter, for our user, and has verification code
       // URL-encode the username since the email template uses urlencode filter
       final encodedUsername = Uri.encodeComponent(username);
