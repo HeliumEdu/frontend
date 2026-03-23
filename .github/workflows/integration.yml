@@ -68,7 +68,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: "integration-tests-${{inputs.environment}}"
+  group: "integration-tests-${{ inputs.environment }}"
   cancel-in-progress: false
 
 jobs:
