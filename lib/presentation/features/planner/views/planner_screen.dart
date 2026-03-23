@@ -201,7 +201,6 @@ class _CalendarScreenState
   );
   PlannerView? _previousView;
 
-  // Remember state when user switches to Todos view
   DateTime? _storedSelectedDate;
   DateTime? _storedDisplayDate;
 
@@ -221,7 +220,7 @@ class _CalendarScreenState
     _calendarController = CalendarController()
       ..view = PlannerHelper.mapHeliumViewToSfCalendarView(_currentView);
 
-    context.read<PlannerBloc>().add(FetchPlannerScreenDataEvent());
+    context.read<PlannerBloc>().add(FetchPlannerScreenDataEvent(origin: EventOrigin.screen));
 
     _calendarController.addPropertyChangedListener((value) {
       if (value == 'calendarView') {
@@ -483,7 +482,7 @@ class _CalendarScreenState
             message: state.message!,
             source: 'planner_screen',
             onReload: () {
-              FetchPlannerScreenDataEvent();
+              context.read<PlannerBloc>().add(FetchPlannerScreenDataEvent(origin: EventOrigin.screen));
             },
           );
         }
@@ -844,11 +843,6 @@ class _CalendarScreenState
         desktop: 24,
       ),
     );
-
-    return _buildTodayButtonWidget(icon, showLabel, key);
-  }
-
-  Widget _buildTodayButtonWidget(Icon icon, bool showLabel, Key? key) {
     if (showLabel) {
       return OutlinedButton.icon(
         key: key,
@@ -1248,7 +1242,7 @@ class _CalendarScreenState
             return IconButton.outlined(
               onPressed: _courses.isEmpty
                   ? null
-                  : () => _openFilterSheet(context),
+                  : () => _openFilterMenu(context),
               tooltip: 'Filters',
               icon: const Icon(Icons.filter_alt),
               style: IconButton.styleFrom(
@@ -2514,7 +2508,7 @@ class _CalendarScreenState
               mode: LaunchMode.externalApplication,
             );
           },
-          icon: Icons.link_outlined,
+          icon: Icons.launch_outlined,
           tooltip: 'Launch class website',
           color: foregroundColor,
         ),
@@ -2936,7 +2930,7 @@ class _CalendarScreenState
     _plannerItemDataSource!.updatePlannerItem(updatedItem);
   }
 
-  void _openFilterSheet(BuildContext context) {
+  void _openFilterMenu(BuildContext context) {
     final List<CourseModel> displayCourses =
         PlannerHelper.sortByGroupStartThenByTitle(_courses, _courseGroups);
 
@@ -3029,7 +3023,7 @@ class _CalendarScreenState
           maxHeight: MediaQuery.of(context).size.height * 0.8,
         ),
         child: SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
+          padding: const EdgeInsets.all(16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
@@ -3055,7 +3049,6 @@ class _CalendarScreenState
                 ],
               ),
 
-              // CLASSES section
               _buildSheetSectionHeader(context, 'CLASSES'),
               for (int i = 0; i < displayCourses.length; i++) ...[
                 if (i > 0 &&
@@ -3113,7 +3106,6 @@ class _CalendarScreenState
                 ),
               ],
 
-              // TYPES section (hidden in todos view)
               if (_currentView != PlannerView.todos) ...[
                 _buildSheetSectionHeader(context, 'TYPES'),
                 CheckboxListTile(
@@ -3295,7 +3287,6 @@ class _CalendarScreenState
                 ),
               ],
 
-              // STATUS section
               _buildSheetSectionHeader(context, 'STATUS'),
               _CheckboxToggle(
                 isChecked: isCompleteFilterEnabled,
@@ -3347,7 +3338,6 @@ class _CalendarScreenState
               ),
               buildStatusTile(PlannerFilterStatus.overdue.value),
 
-              // CATEGORIES section (conditional)
               if (visibleCategories.isNotEmpty) ...[
                 _buildSheetSectionHeader(context, 'CATEGORIES'),
                 ...visibleCategories.map((category) {

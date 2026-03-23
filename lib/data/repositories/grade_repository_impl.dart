@@ -16,6 +16,6 @@ class GradeRepositoryImpl implements GradeRepository {
 
   @override
   Future<List<GradeCourseGroupModel>> getGrades({bool forceRefresh = false}) async {
-    return await remoteDataSource.getGrades(forceRefresh: forceRefresh);
+    return remoteDataSource.getGrades(forceRefresh: forceRefresh);
   }
 }

@@ -10,6 +10,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:heliumapp/core/helium_exception.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/planner_bloc.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/planner_event.dart';
+import 'package:heliumapp/presentation/features/shared/bloc/core/base_event.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/planner_state.dart';
 import 'package:mocktail/mocktail.dart';
 
@@ -62,7 +63,7 @@ void main() {
           );
           return calendarBloc;
         },
-        act: (bloc) => bloc.add(FetchPlannerScreenDataEvent()),
+        act: (bloc) => bloc.add(FetchPlannerScreenDataEvent(origin: EventOrigin.screen)),
         expect: () => [
           isA<PlannerLoading>(),
           isA<PlannerScreenDataFetched>()
@@ -88,7 +89,7 @@ void main() {
           ).thenThrow(NetworkException(message: 'Network error'));
           return calendarBloc;
         },
-        act: (bloc) => bloc.add(FetchPlannerScreenDataEvent()),
+        act: (bloc) => bloc.add(FetchPlannerScreenDataEvent(origin: EventOrigin.screen)),
         expect: () => [
           isA<PlannerLoading>(),
           isA<PlannerError>().having(
@@ -113,7 +114,7 @@ void main() {
           ).thenThrow(ServerException(message: 'Server unavailable'));
           return calendarBloc;
         },
-        act: (bloc) => bloc.add(FetchPlannerScreenDataEvent()),
+        act: (bloc) => bloc.add(FetchPlannerScreenDataEvent(origin: EventOrigin.screen)),
         expect: () => [
           isA<PlannerLoading>(),
           isA<PlannerError>().having(
@@ -132,7 +133,7 @@ void main() {
           ).thenThrow(Exception('Something went wrong'));
           return calendarBloc;
         },
-        act: (bloc) => bloc.add(FetchPlannerScreenDataEvent()),
+        act: (bloc) => bloc.add(FetchPlannerScreenDataEvent(origin: EventOrigin.screen)),
         expect: () => [
           isA<PlannerLoading>(),
           isA<PlannerError>().having(
@@ -157,7 +158,7 @@ void main() {
           ).thenAnswer((_) async => []);
           return calendarBloc;
         },
-        act: (bloc) => bloc.add(FetchPlannerScreenDataEvent()),
+        act: (bloc) => bloc.add(FetchPlannerScreenDataEvent(origin: EventOrigin.screen)),
         expect: () => [
           isA<PlannerLoading>(),
           isA<PlannerScreenDataFetched>()

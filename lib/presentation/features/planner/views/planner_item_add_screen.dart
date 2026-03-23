@@ -186,6 +186,7 @@ class _PlannerItemAddScreenState
         listener: (context, state) {
           if (state is PlannerItemsError) {
             showSnackBar(context, state.message!, type: SnackType.error);
+            _detailsKey.currentState?.resetSubmitting();
             setState(() => isSubmitting = false);
           } else if (state is EventDeleted || state is HomeworkDeleted) {
             // Always closes after delete, show on root
@@ -218,6 +219,7 @@ class _PlannerItemAddScreenState
                 '${state.isEvent ? 'Event' : 'Assignment'} cloned',
               );
               // Update state and load the cloned item
+              _detailsKey.currentState?.resetSubmitting();
               setState(() {
                 _currentEntityId = state.entityId;
                 _currentIsEvent = state.isEvent;

@@ -8,58 +8,36 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
-import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_bloc.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_event.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_state.dart';
 import 'package:heliumapp/presentation/features/shared/controllers/basic_form_controller.dart';
 import 'package:heliumapp/presentation/features/settings/controllers/change_email_form_controller.dart';
-import 'package:heliumapp/presentation/core/views/base_page_screen_state.dart';
 import 'package:heliumapp/presentation/ui/components/label_and_text_form_field.dart';
 import 'package:heliumapp/presentation/ui/feedback/warning_container.dart';
-import 'package:heliumapp/presentation/ui/layout/page_header.dart';
-import 'package:heliumapp/utils/app_globals.dart';
-import 'package:heliumapp/utils/responsive_helpers.dart';
-
-/// Shows as a dialog on desktop, or navigates on mobile.
-void showChangeEmail(BuildContext context) {
-  if (Responsive.isMobile(context)) {
-    context.push(AppRoute.changeEmailScreen, extra: true);
-  } else {
-    showScreenAsDialog(
-      context,
-      child: const ChangeEmailScreen(),
-      width: AppConstants.leftPanelDialogWidth,
-      alignment: Alignment.centerLeft,
-      insetPadding: const EdgeInsets.all(0),
-    );
-  }
-}
+import 'package:heliumapp/utils/snack_bar_helpers.dart';
 
 class ChangeEmailScreen extends StatefulWidget {
-  const ChangeEmailScreen({super.key});
+  final VoidCallback? onActionStarted;
+  final VoidCallback? onCompleted;
+  final VoidCallback? onFailed;
+
+  const ChangeEmailScreen({
+    super.key,
+    this.onActionStarted,
+    this.onCompleted,
+    this.onFailed,
+  });
 
   @override
-  State<ChangeEmailScreen> createState() => _ChangeEmailScreenState();
+  State<ChangeEmailScreen> createState() => ChangeEmailScreenState();
 }
 
-class _ChangeEmailScreenState extends BasePageScreenState<ChangeEmailScreen> {
-  @override
-  String get screenTitle => 'Change Email';
-
-  @override
-  IconData get icon => Icons.email_outlined;
-
-  @override
-  ScreenType get screenType => ScreenType.entityPage;
-
-  @override
-  Function? get saveAction => _onSubmit;
-
+class ChangeEmailScreenState extends State<ChangeEmailScreen> {
   final ChangeEmailFormController _formController = ChangeEmailFormController();
 
+  bool _isSubmitting = false;
   String? _currentEmail;
   String? _emailChanging;
 
@@ -73,66 +51,59 @@ class _ChangeEmailScreenState extends BasePageScreenState<ChangeEmailScreen> {
   @override
   void dispose() {
     _formController.dispose();
-
     super.dispose();
   }
 
-  @override
-  List<BlocListener<dynamic, dynamic>> buildListeners(BuildContext context) {
-    return [
-      BlocListener<AuthBloc, AuthState>(
-        listener: (context, state) {
-          if (state is AuthError) {
-            showSnackBar(context, state.message!, type: SnackType.error);
-          } else if (state is AuthProfileFetched) {
-            setState(() {
-              _currentEmail = state.user.email;
-              _emailChanging = state.user.emailChanging;
-              isLoading = false;
-            });
-          } else if (state is AuthEmailChangeRequested) {
-            _formController.clearForm();
+  void onSubmit() {
+    if (_isSubmitting) return;
+    if (_formController.formKey.currentState?.validate() ?? false) {
+      setState(() => _isSubmitting = true);
+      widget.onActionStarted?.call();
 
-            showSnackBar(
-              context,
-              'Verification email sent to ${state.newEmail}',
-              useRootMessenger: true,
-            );
+      context.read<AuthBloc>().add(
+        ChangeEmailEvent(
+          newEmail: _formController.newEmailController.text,
+          oldPassword: _formController.oldPasswordController.text,
+        ),
+      );
+    }
+  }
 
-            if (DialogModeProvider.isDialogMode(context)) {
-              Navigator.of(context).pop();
-            } else {
-              context.pop();
-            }
-          } else if (state is AuthEmailChangeCancelled) {
-            _formController.clearForm();
-
-            showSnackBar(
-              context,
-              'The pending email change was cancelled',
-              useRootMessenger: true,
-            );
-
-            if (DialogModeProvider.isDialogMode(context)) {
-              Navigator.of(context).pop();
-            } else {
-              context.pop();
-            }
-          }
-
-          if (state is! AuthLoading) {
-            setState(() {
-              isSubmitting = false;
-            });
-          }
-        },
-      ),
-    ];
+  void resetSubmitting() {
+    setState(() => _isSubmitting = false);
   }
 
   @override
-  Widget buildMainArea(BuildContext context) {
-    return Expanded(
+  Widget build(BuildContext context) {
+    return BlocListener<AuthBloc, AuthState>(
+      listener: (context, state) {
+        if (state is AuthError) {
+          SnackBarHelper.show(context, state.message!, type: SnackType.error);
+          setState(() => _isSubmitting = false);
+          widget.onFailed?.call();
+        } else if (state is AuthProfileFetched) {
+          setState(() {
+            _currentEmail = state.user.email;
+            _emailChanging = state.user.emailChanging;
+          });
+        } else if (state is AuthEmailChangeRequested) {
+          _formController.clearForm();
+          SnackBarHelper.show(
+            context,
+            'Verification email sent to ${state.newEmail}',
+            useRootMessenger: true,
+          );
+          widget.onCompleted?.call();
+        } else if (state is AuthEmailChangeCancelled) {
+          _formController.clearForm();
+          SnackBarHelper.show(
+            context,
+            'The pending email change was cancelled',
+            useRootMessenger: true,
+          );
+          widget.onCompleted?.call();
+        }
+      },
       child: SingleChildScrollView(
         child: Form(
           key: _formController.formKey,
@@ -154,7 +125,7 @@ class _ChangeEmailScreenState extends BasePageScreenState<ChangeEmailScreen> {
                 keyboardType: TextInputType.emailAddress,
                 controller: _formController.newEmailController,
                 validator: _validateNewEmail,
-                onFieldSubmitted: (value) => _onSubmit(),
+                onFieldSubmitted: (value) => onSubmit(),
               ),
               const SizedBox(height: 14),
 
@@ -163,7 +134,7 @@ class _ChangeEmailScreenState extends BasePageScreenState<ChangeEmailScreen> {
                 prefixIcon: Icons.lock,
                 controller: _formController.oldPasswordController,
                 validator: BasicFormController.validatePassword,
-                onFieldSubmitted: (value) => _onSubmit(),
+                onFieldSubmitted: (value) => onSubmit(),
                 obscureText: !_formController.isPasswordVisible,
                 suffixIcon: IconButton(
                   onPressed: () {
@@ -203,20 +174,5 @@ class _ChangeEmailScreenState extends BasePageScreenState<ChangeEmailScreen> {
     }
 
     return null;
-  }
-
-  void _onSubmit() {
-    if (_formController.formKey.currentState?.validate() ?? false) {
-      setState(() {
-        isSubmitting = true;
-      });
-
-      context.read<AuthBloc>().add(
-        ChangeEmailEvent(
-          newEmail: _formController.newEmailController.text,
-          oldPassword: _formController.oldPasswordController.text,
-        ),
-      );
-    }
   }
 }

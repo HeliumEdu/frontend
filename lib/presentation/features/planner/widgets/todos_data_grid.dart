@@ -1140,7 +1140,7 @@ class TodosDataSource extends DataGridSource with SortableDataGridSource {
               );
             },
             tooltip: 'Launch class website',
-            icon: Icons.link_outlined,
+            icon: Icons.launch_outlined,
             color: _context.colorScheme.onSurface,
           ),
         );

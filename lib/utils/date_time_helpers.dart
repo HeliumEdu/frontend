@@ -158,17 +158,14 @@ class HeliumDateTime {
   static int getDaysBetween(DateTime startDate, DateTime endDate) {
     final now = DateTime.now();
 
-    // If before start date, return 0%
     if (now.isBefore(startDate)) {
       return 0;
     }
 
-    // If after end date, return 100%
     if (now.isAfter(endDate)) {
       return 100;
     }
 
-    // Calculate percentage
     final totalDays = endDate.difference(startDate).inDays;
     if (totalDays <= 0) {
       return 0;

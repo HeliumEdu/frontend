@@ -90,6 +90,7 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
 
   // State
   bool isLoading = true;
+  bool _isSubmitting = false;
   bool _hasRequestedInitialFocus = false;
   bool _isEvent = false;
   PlannerItemBaseModel? _plannerItem;
@@ -879,8 +880,12 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
     await onSubmit();
   }
 
+  void resetSubmitting() {
+    setState(() => _isSubmitting = false);
+  }
+
   Future<void> onSubmit({bool redirectToNotebook = false}) async {
-    if (isLoading) return;
+    if (isLoading || _isSubmitting) return;
     if (_formController.validateAndScrollToError()) {
       if (_formController.endDate.isBefore(_formController.startDate)) {
         SnackBarHelper.show(
@@ -914,6 +919,7 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
       }
 
       // Notify parent that action is starting (validation passed)
+      setState(() => _isSubmitting = true);
       widget.onActionStarted?.call();
 
       // Get note content for bloc

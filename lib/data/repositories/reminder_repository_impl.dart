@@ -24,7 +24,7 @@ class ReminderRepositoryImpl implements ReminderRepository {
     int? type,
     DateTime? startOfRange,
   }) async {
-    return await remoteDataSource.getReminders(
+    return remoteDataSource.getReminders(
       homeworkId: homeworkId,
       eventId: eventId,
       sent: sent,
@@ -36,7 +36,7 @@ class ReminderRepositoryImpl implements ReminderRepository {
 
   @override
   Future<ReminderModel> createReminder(ReminderRequestModel request) async {
-    return await remoteDataSource.createReminder(request);
+    return remoteDataSource.createReminder(request);
   }
 
   @override
@@ -44,11 +44,11 @@ class ReminderRepositoryImpl implements ReminderRepository {
     int id,
     ReminderRequestModel request,
   ) async {
-    return await remoteDataSource.updateReminder(id, request);
+    return remoteDataSource.updateReminder(id, request);
   }
 
   @override
   Future<void> deleteReminder(int id) async {
-    return await remoteDataSource.deleteReminder(id);
+    return remoteDataSource.deleteReminder(id);
   }
 }

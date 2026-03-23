@@ -22,7 +22,7 @@ class CategoryRepositoryImpl implements CategoryRepository {
     bool? shownOnCalendar,
     bool forceRefresh = false,
   }) async {
-    return await remoteDataSource.getCategories(
+    return remoteDataSource.getCategories(
       courseId: courseId,
       title: title,
       shownOnCalendar: shownOnCalendar,
@@ -36,7 +36,7 @@ class CategoryRepositoryImpl implements CategoryRepository {
     int courseId,
     CategoryRequestModel request,
   ) async {
-    return await remoteDataSource.createCategory(groupId, courseId, request);
+    return remoteDataSource.createCategory(groupId, courseId, request);
   }
 
   @override
@@ -46,7 +46,7 @@ class CategoryRepositoryImpl implements CategoryRepository {
     int categoryId,
     CategoryRequestModel request,
   ) async {
-    return await remoteDataSource.updateCategory(
+    return remoteDataSource.updateCategory(
       groupId,
       courseId,
       categoryId,
@@ -56,6 +56,6 @@ class CategoryRepositoryImpl implements CategoryRepository {
 
   @override
   Future<void> deleteCategory(int groupId, int courseId, int categoryId) async {
-    return await remoteDataSource.deleteCategory(groupId, courseId, categoryId);
+    return remoteDataSource.deleteCategory(groupId, courseId, categoryId);
   }
 }

@@ -20,7 +20,7 @@ class ExternalCalendarRepositoryImpl implements ExternalCalendarRepository {
   Future<List<ExternalCalendarModel>> getExternalCalendars({
     bool forceRefresh = false,
   }) async {
-    return await remoteDataSource.getExternalCalendars(forceRefresh: forceRefresh);
+    return remoteDataSource.getExternalCalendars(forceRefresh: forceRefresh);
   }
 
   @override
@@ -31,7 +31,7 @@ class ExternalCalendarRepositoryImpl implements ExternalCalendarRepository {
     bool? shownOnCalendar,
     bool forceRefresh = false,
   }) async {
-    return await remoteDataSource.getExternalCalendarEvents(
+    return remoteDataSource.getExternalCalendarEvents(
       from: from,
       to: to,
       search: search,
@@ -44,7 +44,7 @@ class ExternalCalendarRepositoryImpl implements ExternalCalendarRepository {
   Future<ExternalCalendarModel> createExternalCalendar({
     required ExternalCalendarRequestModel payload,
   }) async {
-    return await remoteDataSource.createExternalCalendar(payload: payload);
+    return remoteDataSource.createExternalCalendar(payload: payload);
   }
 
   @override
@@ -52,7 +52,7 @@ class ExternalCalendarRepositoryImpl implements ExternalCalendarRepository {
     required int calendarId,
     required ExternalCalendarRequestModel payload,
   }) async {
-    return await remoteDataSource.updateExternalCalendar(
+    return remoteDataSource.updateExternalCalendar(
       calendarId: calendarId,
       payload: payload,
     );

@@ -27,7 +27,7 @@ class AuthRepositoryImpl implements AuthRepository {
 
   @override
   Future<NoContentResponseModel> register(RegisterRequestModel request) async {
-    return await remoteDataSource.register(request);
+    return remoteDataSource.register(request);
   }
 
   @override
@@ -35,89 +35,89 @@ class AuthRepositoryImpl implements AuthRepository {
     String email,
     String code,
   ) async {
-    return await remoteDataSource.verifyEmail(email, code);
+    return remoteDataSource.verifyEmail(email, code);
   }
 
   @override
   Future<NoContentResponseModel> resendVerificationEmail(String email) async {
-    return await remoteDataSource.resendVerificationEmail(email);
+    return remoteDataSource.resendVerificationEmail(email);
   }
 
   @override
   Future<TokenResponseModel> login(LoginRequestModel request) async {
-    return await remoteDataSource.login(request);
+    return remoteDataSource.login(request);
   }
 
   @override
   Future<TokenResponseModel> loginWithGoogle(String firebaseIdToken) async {
-    return await remoteDataSource.loginWithGoogle(firebaseIdToken);
+    return remoteDataSource.loginWithGoogle(firebaseIdToken);
   }
 
   @override
   Future<TokenResponseModel> loginWithApple(String firebaseIdToken) async {
-    return await remoteDataSource.loginWithApple(firebaseIdToken);
+    return remoteDataSource.loginWithApple(firebaseIdToken);
   }
 
   @override
   Future<TokenResponseModel> refreshToken(
     RefreshTokenRequestModel request,
   ) async {
-    return await remoteDataSource.refreshToken(request);
+    return remoteDataSource.refreshToken(request);
   }
 
   @override
   Future<void> logout() async {
-    return await remoteDataSource.logout();
+    return remoteDataSource.logout();
   }
 
   @override
   Future<UserModel> getUser() async {
-    return await remoteDataSource.getUser();
+    return remoteDataSource.getUser();
   }
 
   @override
   Future<NoContentResponseModel> deleteAccount(
     DeleteAccountRequestModel request,
   ) async {
-    return await remoteDataSource.deleteAccount(request);
+    return remoteDataSource.deleteAccount(request);
   }
 
   @override
   Future<UserModel> changePassword(ChangePasswordRequestModel request) async {
-    return await remoteDataSource.changePassword(request);
+    return remoteDataSource.changePassword(request);
   }
 
   @override
   Future<UserModel> changeEmail(ChangeEmailRequestModel request) async {
-    return await remoteDataSource.changeEmail(request);
+    return remoteDataSource.changeEmail(request);
   }
 
   @override
   Future<UserSettingsModel> updateUserSettings(
     UpdateSettingsRequestModel request,
   ) async {
-    return await remoteDataSource.updateUserSettings(request);
+    return remoteDataSource.updateUserSettings(request);
   }
 
   @override
   Future<PrivateFeedModel> enablePrivateFeeds() async {
-    return await remoteDataSource.enablePrivateFeeds();
+    return remoteDataSource.enablePrivateFeeds();
   }
 
   @override
   Future<void> disablePrivateFeeds() async {
-    return await remoteDataSource.disablePrivateFeeds();
+    return remoteDataSource.disablePrivateFeeds();
   }
 
   @override
   Future<NoContentResponseModel> forgotPassword(
     ForgotPasswordRequestModel request,
   ) async {
-    return await remoteDataSource.forgotPassword(request);
+    return remoteDataSource.forgotPassword(request);
   }
 
   @override
   Future<void> deleteExampleSchedule() async {
-    return await remoteDataSource.deleteExampleSchedule();
+    return remoteDataSource.deleteExampleSchedule();
   }
 }

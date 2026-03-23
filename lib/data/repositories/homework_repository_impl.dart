@@ -25,7 +25,7 @@ class HomeworkRepositoryImpl implements HomeworkRepository {
     bool? shownOnCalendar,
     bool forceRefresh = false,
   }) async {
-    return await remoteDataSource.getHomeworks(
+    return remoteDataSource.getHomeworks(
       categoryTitles: categoryTitles,
       from: from,
       to: to,
@@ -41,7 +41,7 @@ class HomeworkRepositoryImpl implements HomeworkRepository {
     required int id,
     bool forceRefresh = false,
   }) async {
-    return await remoteDataSource.getHomework(id: id, forceRefresh: forceRefresh);
+    return remoteDataSource.getHomework(id: id, forceRefresh: forceRefresh);
   }
 
   @override
@@ -50,7 +50,7 @@ class HomeworkRepositoryImpl implements HomeworkRepository {
     required int courseId,
     required HomeworkRequestModel request,
   }) async {
-    return await remoteDataSource.createHomework(
+    return remoteDataSource.createHomework(
       groupId: groupId,
       courseId: courseId,
       request: request,
@@ -64,7 +64,7 @@ class HomeworkRepositoryImpl implements HomeworkRepository {
     required int homeworkId,
     required HomeworkRequestModel request,
   }) async {
-    return await remoteDataSource.updateHomework(
+    return remoteDataSource.updateHomework(
       groupId: groupId,
       courseId: courseId,
       homeworkId: homeworkId,
@@ -78,7 +78,7 @@ class HomeworkRepositoryImpl implements HomeworkRepository {
     required int courseId,
     required int homeworkId,
   }) async {
-    return await remoteDataSource.deleteHomework(
+    return remoteDataSource.deleteHomework(
       groupId: groupId,
       courseId: courseId,
       homeworkId: homeworkId,

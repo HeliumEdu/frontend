@@ -382,7 +382,7 @@ class _ResourcesScreenState
                           mode: LaunchMode.externalApplication,
                         );
                       },
-                      icon: Icons.link_outlined,
+                      icon: Icons.launch_outlined,
                       tooltip: "Launch resource's website",
                       color: context.semanticColors.success,
                     ),

@@ -31,12 +31,6 @@ import 'package:heliumapp/presentation/features/shared/bloc/core/provider_helper
 import 'package:heliumapp/presentation/features/planner/views/planner_item_add_screen.dart';
 import 'package:heliumapp/presentation/features/resources/bloc/resource_bloc.dart';
 import 'package:heliumapp/presentation/features/resources/views/resource_add_screen.dart';
-import 'package:heliumapp/presentation/features/settings/views/change_email_screen.dart';
-import 'package:heliumapp/presentation/features/settings/views/change_password_screen.dart';
-import 'package:heliumapp/presentation/features/settings/views/external_calendars_screen.dart';
-import 'package:heliumapp/presentation/features/settings/views/feeds_screen.dart';
-import 'package:heliumapp/presentation/features/settings/views/import_export_screen.dart';
-import 'package:heliumapp/presentation/features/settings/views/preferences_screen.dart';
 import 'package:heliumapp/presentation/features/settings/views/settings_screen.dart';
 import 'package:heliumapp/presentation/features/notes/views/note_add_screen.dart';
 import 'package:heliumapp/presentation/navigation/shell/navigation_shell.dart';
@@ -300,73 +294,6 @@ void initializeRouter() {
         parentNavigatorKey: rootNavigatorKey,
         pageBuilder: (context, state) =>
             const MaterialPage(child: SettingsScreen()),
-      ),
-      // Sub-sub settings pages redirect to /settings if accessed directly via URL
-      GoRoute(
-        path: AppRoute.preferencesScreen,
-        pageBuilder: (context, state) {
-          if (state.extra == null) {
-            return const MaterialPage(
-              child: _RouteRedirect(redirectTo: AppRoute.settingScreen),
-            );
-          }
-          return const MaterialPage(child: PreferencesScreen());
-        },
-      ),
-      GoRoute(
-        path: AppRoute.feedsScreen,
-        pageBuilder: (context, state) {
-          if (state.extra == null) {
-            return const MaterialPage(
-              child: _RouteRedirect(redirectTo: AppRoute.settingScreen),
-            );
-          }
-          return const MaterialPage(child: FeedsScreen());
-        },
-      ),
-      GoRoute(
-        path: AppRoute.externalCalendarsScreen,
-        pageBuilder: (context, state) {
-          if (state.extra == null) {
-            return const MaterialPage(
-              child: _RouteRedirect(redirectTo: AppRoute.settingScreen),
-            );
-          }
-          return const MaterialPage(child: ExternalCalendarsScreen());
-        },
-      ),
-      GoRoute(
-        path: AppRoute.changePasswordScreen,
-        pageBuilder: (context, state) {
-          if (state.extra == null) {
-            return const MaterialPage(
-              child: _RouteRedirect(redirectTo: AppRoute.settingScreen),
-            );
-          }
-          return const MaterialPage(child: ChangePasswordScreen());
-        },
-      ),
-      GoRoute(
-        path: AppRoute.changeEmailScreen,
-        pageBuilder: (context, state) {
-          if (state.extra == null) {
-            return const MaterialPage(
-              child: _RouteRedirect(redirectTo: AppRoute.settingScreen),
-            );
-          }
-          return const MaterialPage(child: ChangeEmailScreen());
-        },
-      ),
-      GoRoute(
-        path: AppRoute.importExportScreen,
-        pageBuilder: (context, state) {
-          if (state.extra == null) {
-            return const MaterialPage(
-              child: _RouteRedirect(redirectTo: AppRoute.settingScreen),
-            );
-          }
-          return const MaterialPage(child: ImportExportScreen());
-        },
       ),
     ],
   );

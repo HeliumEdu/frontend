@@ -31,7 +31,7 @@ class ParsedApiError {
   /// Get the first error for a specific field, or null if none.
   String? getFieldError(String fieldName) {
     final errors = fieldErrors[fieldName];
-    return errors?.isNotEmpty == true ? errors!.first : null;
+    return (errors?.isNotEmpty ?? false) ? errors!.first : null;
   }
 }
 
@@ -58,7 +58,7 @@ class ApiErrorParser {
     } else if (responseData is List) {
       _parseList(responseData, fieldErrors, generalErrors, displayMessages);
     } else if (responseData is String) {
-      _parseString(responseData, fieldErrors, generalErrors, displayMessages);
+      _parseRawMessage(responseData, fieldErrors, generalErrors, displayMessages);
     } else if (rawMessage != null) {
       // Fall back to parsing the raw message if responseData is unusable
       _parseRawMessage(rawMessage, fieldErrors, generalErrors, displayMessages);
@@ -134,15 +134,6 @@ class ApiErrorParser {
         displayMessages.add(message);
       }
     }
-  }
-
-  static void _parseString(
-    String data,
-    Map<String, List<String>> fieldErrors,
-    List<String> generalErrors,
-    List<String> displayMessages,
-  ) {
-    _parseRawMessage(data, fieldErrors, generalErrors, displayMessages);
   }
 
   static void _parseRawMessage(

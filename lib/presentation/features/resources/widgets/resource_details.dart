@@ -63,6 +63,7 @@ class ResourceDetailsState extends State<ResourceDetails> {
   // State
   List<CourseModel> _courses = [];
   bool isLoading = true;
+  bool _isSubmitting = false;
   bool _hasRequestedInitialFocus = false;
 
   @override
@@ -249,7 +250,7 @@ class ResourceDetailsState extends State<ResourceDetails> {
                           Uri.parse(_formController.urlController.text),
                         );
                       },
-                      icon: Icons.link_outlined,
+                      icon: Icons.launch_outlined,
                       tooltip: "Launch resource's website",
                       color: context.semanticColors.success,
                     ),
@@ -323,10 +324,15 @@ class ResourceDetailsState extends State<ResourceDetails> {
 
   int? get linkedNoteId => _formController.linkedNoteId;
 
+  void resetSubmitting() {
+    setState(() => _isSubmitting = false);
+  }
+
   Future<void> onSubmit({bool redirectToNotebook = false}) async {
-    if (isLoading) return;
+    if (isLoading || _isSubmitting) return;
     if (_formController.validateAndScrollToError()) {
       // Notify parent that action is starting (validation passed)
+      setState(() => _isSubmitting = true);
       widget.onActionStarted?.call();
 
       final request = ResourceRequestModel(

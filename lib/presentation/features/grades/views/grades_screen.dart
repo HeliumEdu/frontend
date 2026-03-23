@@ -144,7 +144,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
   static const double _contributionColTablet = 120;
   static const double _contributionColDesktop = 170;
   static const double _averageColMobile = 90;
-  static const double _averageColDesktop = 95;
+  static const double _averageColDesktop = 105;
 
   // Decision variables - adjust these to tune the grade insights
   static const double _atRiskThreshold =

@@ -453,7 +453,7 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen> 
       ];
 
       return Padding(
-        padding: EdgeInsets.fromLTRB(16, 16, 16, isMobile ? 32 : 16),
+        padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,

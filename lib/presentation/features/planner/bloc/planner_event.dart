@@ -5,6 +5,12 @@
 //
 // For details regarding the license, please refer to the LICENSE file.
 
-abstract class PlannerEvent {}
+import 'package:heliumapp/presentation/features/shared/bloc/core/base_event.dart';
 
-class FetchPlannerScreenDataEvent extends PlannerEvent {}
+abstract class PlannerEvent extends BaseEvent {
+  PlannerEvent({required super.origin});
+}
+
+class FetchPlannerScreenDataEvent extends PlannerEvent {
+  FetchPlannerScreenDataEvent({required super.origin});
+}

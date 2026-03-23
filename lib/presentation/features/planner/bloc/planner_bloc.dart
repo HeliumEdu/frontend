@@ -14,6 +14,7 @@ import 'package:heliumapp/domain/repositories/category_repository.dart';
 import 'package:heliumapp/domain/repositories/course_repository.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/planner_event.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/planner_state.dart';
+import 'package:heliumapp/presentation/features/shared/bloc/core/base_event.dart';
 
 class PlannerBloc extends Bloc<PlannerEvent, PlannerState> {
   final CourseRepository courseRepository;
@@ -22,7 +23,7 @@ class PlannerBloc extends Bloc<PlannerEvent, PlannerState> {
   PlannerBloc({
     required this.courseRepository,
     required this.categoryRepository,
-  }) : super(PlannerInitial()) {
+  }) : super(PlannerInitial(origin: EventOrigin.bloc)) {
     on<FetchPlannerScreenDataEvent>(_onFetchPlannerScreenDataEvent);
   }
 
@@ -30,7 +31,7 @@ class PlannerBloc extends Bloc<PlannerEvent, PlannerState> {
     FetchPlannerScreenDataEvent event,
     Emitter<PlannerState> emit,
   ) async {
-    emit(PlannerLoading());
+    emit(PlannerLoading(origin: event.origin));
     try {
       final results = await Future.wait([
         courseRepository.getCourseGroups(shownOnCalendar: true),
@@ -41,11 +42,11 @@ class PlannerBloc extends Bloc<PlannerEvent, PlannerState> {
       final courses = results[1] as List<CourseModel>;
       final categories = results[2] as List<CategoryModel>;
 
-      emit(PlannerScreenDataFetched(courseGroups: courseGroups, courses: courses, categories: categories));
+      emit(PlannerScreenDataFetched(origin: event.origin, courseGroups: courseGroups, courses: courses, categories: categories));
     } on HeliumException catch (e) {
-      emit(PlannerError(message: e.message));
+      emit(PlannerError(origin: event.origin, message: e.message));
     } catch (e) {
-      emit(PlannerError(message: 'An unexpected error occurred.'));
+      emit(PlannerError(origin: event.origin, message: 'An unexpected error occurred.'));
     }
   }
 }

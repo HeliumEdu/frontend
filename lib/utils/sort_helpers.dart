@@ -48,13 +48,7 @@ class Sort {
   /// Calculates the Duration to subtract from end time for timed events.
   /// Uses the same 1-second-per-level scale as the start time adjustment.
   static Duration getTimedEventEndTimeAdjustment(int priority, int position) {
-    // Type priority: Use 1 second per level (3, 2, 1, 0 seconds)
-    final baseSeconds = 3 - priority;
-
-    // Position: Add 1 second per position slot
-    final positionSeconds = 100 - position;
-
-    return Duration(seconds: baseSeconds + positionSeconds);
+    return Duration(seconds: getTimedEventStartTimeAdjustmentSeconds(priority, position));
   }
 
   /// Compares dates only (ignoring time components).

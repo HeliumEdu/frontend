@@ -24,6 +24,7 @@ class PageHeader extends StatelessWidget {
   final IconData? icon;
   final ScreenType screenType;
   final bool isLoading;
+  final bool isDialogMode;
   final Function? cancelAction;
   final Function? saveAction;
   final List<BlocProvider>? inheritableProviders;
@@ -34,6 +35,7 @@ class PageHeader extends StatelessWidget {
     this.icon,
     required this.screenType,
     this.isLoading = false,
+    this.isDialogMode = false,
     this.cancelAction,
     this.saveAction,
     this.inheritableProviders,
@@ -45,7 +47,7 @@ class PageHeader extends StatelessWidget {
       return Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          if (screenType == ScreenType.subPage)
+          if (screenType == ScreenType.subPage && !isDialogMode)
             IconButton(
               visualDensity: VisualDensity.compact,
               onPressed: () {
@@ -60,13 +62,14 @@ class PageHeader extends StatelessWidget {
                 color: context.colorScheme.secondary,
               ),
             )
-          else if (screenType == ScreenType.entityPage)
+          else if (screenType == ScreenType.entityPage ||
+              (screenType == ScreenType.subPage && isDialogMode))
             IconButton(
               visualDensity: VisualDensity.compact,
               onPressed: () {
                 cancelAction?.call();
               },
-              icon: Icon(Icons.cancel, color: context.colorScheme.secondary),
+              icon: Icon(Icons.close, color: context.colorScheme.secondary),
             )
           else if (Responsive.isMobile(context) ||
               (!Responsive.isTouchDevice(context) &&
@@ -115,7 +118,7 @@ class PageHeader extends StatelessWidget {
                           strokeWidth: 2.5,
                         )
                       : Icon(
-                          Icons.check_circle,
+                          Icons.check,
                           color: context.colorScheme.primary,
                         ),
                 ),

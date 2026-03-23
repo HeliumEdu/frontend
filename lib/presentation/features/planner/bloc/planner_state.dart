@@ -8,19 +8,22 @@
 import 'package:heliumapp/data/models/planner/category_model.dart';
 import 'package:heliumapp/data/models/planner/course_group_model.dart';
 import 'package:heliumapp/data/models/planner/course_model.dart';
+import 'package:heliumapp/presentation/features/shared/bloc/core/base_state.dart';
 
-abstract class PlannerState {
-  final String? message;
-
-  PlannerState({this.message});
+abstract class PlannerState extends BaseState {
+  PlannerState({required super.origin, super.message});
 }
 
-class PlannerInitial extends PlannerState {}
+class PlannerInitial extends PlannerState {
+  PlannerInitial({required super.origin});
+}
 
-class PlannerLoading extends PlannerState {}
+class PlannerLoading extends PlannerState {
+  PlannerLoading({required super.origin});
+}
 
 class PlannerError extends PlannerState {
-  PlannerError({required super.message});
+  PlannerError({required super.origin, required super.message});
 }
 
 class PlannerScreenDataFetched extends PlannerState {
@@ -29,6 +32,7 @@ class PlannerScreenDataFetched extends PlannerState {
   final List<CategoryModel> categories;
 
   PlannerScreenDataFetched({
+    required super.origin,
     super.message,
     required this.courseGroups,
     required this.courses,
