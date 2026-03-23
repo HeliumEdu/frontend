@@ -56,7 +56,7 @@ jobs:
         run: |
           flutter pub get
           cd ios
-          pod install
+          pod update
 
       - name: Commit lockfile refresh
         id: commit_lockfiles
