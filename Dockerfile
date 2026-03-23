@@ -41,7 +41,7 @@ RUN set -eux; \
     if [ -n "${RELEASE_VERSION:-}" ]; then BUILD_ARGS="$BUILD_ARGS --dart-define=RELEASE_VERSION=${RELEASE_VERSION}"; fi; \
     if [ -n "${SENTRY_DIST:-}" ]; then BUILD_ARGS="$BUILD_ARGS --dart-define=SENTRY_DIST=${SENTRY_DIST}"; fi; \
     if [ -n "${SENTRY_ENVIRONMENT:-}" ]; then BUILD_ARGS="$BUILD_ARGS --dart-define=SENTRY_ENVIRONMENT=${SENTRY_ENVIRONMENT}"; fi; \
-    flutter build web --release --source-maps $BUILD_ARGS; \
+    flutter build web --release --source-maps --pwa-strategy=none $BUILD_ARGS; \
     dart bin/update_version.dart
 
 ######################################################################

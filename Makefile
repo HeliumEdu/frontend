@@ -114,7 +114,7 @@ build-ios-release: install
 	flutter build ipa --release --export-options-plist=ios/ExportOptions.plist --obfuscate --split-debug-info=build/symbols $(RELEASE_ARGS)
 
 build-web: install
-	flutter build web --release --source-maps --no-tree-shake-icons $(RELEASE_ARGS)
+	flutter build web --release --source-maps --no-tree-shake-icons --pwa-strategy=none $(RELEASE_ARGS)
 	cp -r web/.well-known build/web/
 	rm -f build/web/.last_build_id
 	$(MAKE) update-version
