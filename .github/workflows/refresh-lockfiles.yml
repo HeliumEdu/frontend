@@ -67,7 +67,7 @@ jobs:
         id: commit_lockfiles
         run: |
           git config --global user.name "GitHub Release Bot"
-          git config --global user.email "<support@heliumedu.com>"
+          git config --global user.email "support@heliumedu.com"
 
           git add pubspec.lock ios/Podfile.lock
 

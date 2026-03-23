@@ -210,7 +210,7 @@ jobs:
       - name: Commit version bump
         run: |
           git config --global user.name "GitHub Release Bot"
-          git config --global user.email "<support@heliumedu.com>"
+          git config --global user.email "support@heliumedu.com"
 
           git add pubspec.yaml
 
@@ -258,7 +258,7 @@ jobs:
           RELEASE_BRANCH: ${{ needs['create-release-branch'].outputs.branch_name }}
         run: |
           git config --global user.name "GitHub Release Bot"
-          git config --global user.email "<support@heliumedu.com>"
+          git config --global user.email "support@heliumedu.com"
 
           git fetch origin "$RELEASE_BRANCH" main
           git checkout -B main origin/main
@@ -594,7 +594,7 @@ jobs:
           COMMIT_SHA: ${{ needs['merge-release-branch'].outputs.merged_commit_sha }}
         run: |
           git config --global user.name "GitHub Release Bot"
-          git config --global user.email "<support@heliumedu.com>"
+          git config --global user.email "support@heliumedu.com"
 
           # Fetch latest changes to ensure we have the merge commit
           git fetch origin main
