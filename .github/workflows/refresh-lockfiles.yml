@@ -84,6 +84,6 @@ jobs:
             exit 0
           fi
 
-          git commit -m "Refresh lockfiles"
+          git commit -m "[skip ci] Refresh lockfiles"
           git push origin "HEAD:refs/heads/${{ inputs.ref || 'main' }}"
           echo "commit_sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
