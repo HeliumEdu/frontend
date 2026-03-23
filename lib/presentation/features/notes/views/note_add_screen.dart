@@ -5,6 +5,8 @@
 //
 // For details regarding the license, please refer to the LICENSE file.
 
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -31,6 +33,9 @@ import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
 import 'package:heliumapp/presentation/ui/layout/page_header.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
+
+enum SaveStatus { unsaved, saving, saved, error }
 
 void showNoteAdd(
   BuildContext context, {
@@ -106,6 +111,9 @@ class NoteAddScreen extends StatefulWidget {
 }
 
 class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
+  static const _autoSaveDebounce = Duration(seconds: 5);
+  static const _maxAutoSaveErrors = 3;
+
   final BasicFormController _formController = BasicFormController();
   final TextEditingController _titleController = TextEditingController();
   late QuillController _quillController;
@@ -120,10 +128,24 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
   bool _showSearch = false;
   bool _hasRequestedInitialFocus = false;
 
+  // Auto-save state
+  SaveStatus _saveStatus = SaveStatus.saved;
+  Timer? _debounceTimer;
+  bool _isAutoSaving = false;
+  int _autoSaveErrorCount = 0;
+  bool _autoSaveDisabled = false;
+  StreamSubscription<DocChange>? _documentSubscription;
+
   @override
   void initState() {
     super.initState();
     _quillController = QuillController.basic();
+    // Set initial save status based on whether this is a new or existing note
+    _saveStatus = widget.noteId == null ? SaveStatus.unsaved : SaveStatus.saved;
+
+    // Set up auto-save listeners
+    _titleController.addListener(_onContentChanged);
+    _editorFocusNode.addListener(_onEditorFocusChanged);
 
     context.read<NoteBloc>().add(
       FetchNoteScreenDataEvent(
@@ -137,8 +159,19 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
     );
   }
 
+  void _setupDocumentListener() {
+    _documentSubscription?.cancel();
+    _documentSubscription = _quillController.document.changes.listen((_) {
+      _onContentChanged();
+    });
+  }
+
   @override
   void dispose() {
+    _debounceTimer?.cancel();
+    _documentSubscription?.cancel();
+    _titleController.removeListener(_onContentChanged);
+    _editorFocusNode.removeListener(_onEditorFocusChanged);
     _titleController.dispose();
     _quillController.dispose();
     _titleFocusNode.dispose();
@@ -146,8 +179,135 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
     super.dispose();
   }
 
+  String _getSavedContentAsPlainText() {
+    if (_note?.content == null || _note!.content!['ops'] == null) {
+      return '';
+    }
+    return Document.fromJson(_note!.content!['ops'] as List).toPlainText();
+  }
+
+  void _onContentChanged() {
+    if (isLoading || _autoSaveDisabled || _saveStatus == SaveStatus.saving) {
+      return;
+    }
+
+    // Check if content actually changed from last saved state
+    final currentTitle = _titleController.text;
+    final currentContent = _quillController.document.toPlainText();
+    final savedTitle = _note?.title ?? '';
+    final savedContent = _getSavedContentAsPlainText();
+    if (currentTitle == savedTitle && currentContent == savedContent) {
+      return;
+    }
+
+    setState(() {
+      _saveStatus = SaveStatus.unsaved;
+    });
+
+    // For new notes, only auto-save once title OR body is non-empty
+    final isNewNote = _note == null;
+    if (isNewNote) {
+      final hasTitle = currentTitle.trim().isNotEmpty;
+      final hasBody = currentContent.trim().isNotEmpty;
+      if (!hasTitle && !hasBody) return;
+    }
+
+    _debounceTimer?.cancel();
+    _debounceTimer = Timer(_autoSaveDebounce, _triggerAutoSave);
+  }
+
+  void _onEditorFocusChanged() {
+    // Trigger save on blur if there are unsaved changes
+    if (!_editorFocusNode.hasFocus &&
+        _saveStatus == SaveStatus.unsaved &&
+        !_autoSaveDisabled) {
+      _triggerAutoSave();
+    }
+  }
+
+  void _triggerAutoSave() {
+    if (_saveStatus == SaveStatus.saving || _autoSaveDisabled) return;
+
+    final title = _titleController.text.trim();
+    final bodyIsEmpty = _quillController.document.toPlainText().trim().isEmpty;
+
+    // Require at least title or body
+    if (title.isEmpty && bodyIsEmpty) return;
+
+    _performSave(isAutoSave: true);
+  }
+
+  void _onSaveIconTapped() {
+    if (_saveStatus == SaveStatus.saving) return;
+    _performSave(isAutoSave: true);
+  }
+
+  bool get _isNoteEmpty {
+    final title = _titleController.text.trim();
+    final bodyIsEmpty = _quillController.document.toPlainText().trim().isEmpty;
+    return title.isEmpty && bodyIsEmpty;
+  }
+
+  void _performSave({required bool isAutoSave}) {
+    _debounceTimer?.cancel();
+
+    setState(() {
+      _saveStatus = SaveStatus.saving;
+      _isAutoSaving = isAutoSave;
+    });
+
+    final title = _titleController.text.trim();
+    final content = _quillController.document.toDelta().toJson();
+
+    if (_note?.id == null) {
+      context.read<NoteBloc>().add(
+        CreateNoteEvent(
+          origin: EventOrigin.subScreen,
+          request: NoteRequestModel(
+            title: title,
+            content: {'ops': content},
+            homeworkId: widget.homeworkId,
+            eventId: widget.eventId,
+            resourceId: widget.resourceId,
+          ),
+        ),
+      );
+    } else {
+      context.read<NoteBloc>().add(
+        UpdateNoteEvent(
+          origin: EventOrigin.subScreen,
+          noteId: _note!.id,
+          request: NoteRequestModel(title: title, content: {'ops': content}),
+        ),
+      );
+    }
+  }
+
+  void _handleAutoSaveError(String message) {
+    _autoSaveErrorCount++;
+
+    Sentry.metrics.count('note.autosave.error', 1);
+
+    if (_autoSaveErrorCount >= _maxAutoSaveErrors) {
+      setState(() {
+        _saveStatus = SaveStatus.error;
+        _autoSaveDisabled = true;
+      });
+      showSnackBar(
+        context,
+        'Auto-save disabled due to repeated failures',
+        type: SnackType.error,
+      );
+    } else {
+      setState(() {
+        _saveStatus = SaveStatus.error;
+      });
+      showSnackBar(context, message, type: SnackType.error);
+    }
+  }
+
   @override
-  String get screenTitle => widget.isNew ? 'Add Note' : 'Edit Note';
+  String get screenTitle => _note?.id == null ? 'Add Note' : 'Edit Note';
 
   @override
   IconData get icon => Icons.library_books;
@@ -169,39 +329,30 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
         return;
       }
 
-      setState(() {
-        isSubmitting = true;
-      });
-
       final title = _titleController.text.trim();
       final bodyIsEmpty = _quillController.document
           .toPlainText()
           .trim()
           .isEmpty;
-      final hasLinkedEntity =
-          widget.homeworkId != null ||
-          widget.eventId != null ||
-          widget.resourceId != null;
 
-      // Standalone notes can be title-only, but linked notes require content
-      final isEmptyNote =
-          (title.isEmpty && bodyIsEmpty) || (hasLinkedEntity && bodyIsEmpty);
-      if (widget.isNew && isEmptyNote) {
-        setState(() {
-          isSubmitting = false;
-        });
+      if (_note?.id == null && bodyIsEmpty) {
         showSnackBar(
           context,
-          'Not created, Note is empty',
+          'Note was empty, so nothing to save',
           useRootMessenger: true,
         );
         cancelAction();
         return;
       }
 
+      setState(() {
+        isSubmitting = true;
+        _isAutoSaving = false;
+      });
+
       final content = _quillController.document.toDelta().toJson();
 
-      if (widget.isNew) {
+      if (_note?.id == null) {
         context.read<NoteBloc>().add(
           CreateNoteEvent(
             origin: EventOrigin.subScreen,
@@ -234,6 +385,14 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
       final ops = note.content!['ops'] as List;
       _quillController.document = Document.fromJson(ops);
     }
+
+    _setupDocumentListener();
+    _saveStatus = SaveStatus.saved;
+
+    // Delay clearing isLoading to ignore async document change events
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) setState(() => isLoading = false);
+    });
   }
 
   @override
@@ -242,33 +401,65 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
       BlocListener<NoteBloc, NoteState>(
         listener: (context, state) {
           if (state is NotesError) {
-            setState(() {
-              isSubmitting = false;
-            });
-            showSnackBar(context, state.message!, type: SnackType.error);
+            if (_isAutoSaving) {
+              _handleAutoSaveError(state.message ?? 'Auto-save failed');
+              _isAutoSaving = false;
+            } else {
+              setState(() {
+                isSubmitting = false;
+              });
+              showSnackBar(context, state.message!, type: SnackType.error);
+            }
           } else if (state is NoteScreenDataFetched) {
             setState(() {
-              isLoading = false;
               _linkedEntityType = state.linkedEntityType;
               _linkedEntityTitle = state.linkedEntityTitle;
               _linkedEntityColor = state.linkedEntityColor;
             });
             if (state.note != null) {
               _populateNoteData(state.note!);
+            } else {
+              // New note - set up document listener and clear loading
+              _setupDocumentListener();
+              setState(() => isLoading = false);
             }
 
             // Request focus once on mobile for create mode
-            if (!_hasRequestedInitialFocus && !kIsWeb && widget.isNew) {
+            if (!_hasRequestedInitialFocus && !kIsWeb && _note?.id == null) {
               _hasRequestedInitialFocus = true;
               WidgetsBinding.instance.addPostFrameCallback((_) {
                 if (mounted) _titleFocusNode.requestFocus();
               });
             }
           } else if (state is NoteCreated) {
-            showSnackBar(context, 'Note created', useRootMessenger: true);
-            cancelAction();
+            if (_isAutoSaving) {
+              // Auto-save created the note - update state but don't close
+              setState(() {
+                _note = state.note;
+                _saveStatus = SaveStatus.saved;
+                _autoSaveErrorCount = 0;
+                _autoSaveDisabled = false;
+              });
+              _isAutoSaving = false;
+            } else {
+              // Manual save - show message and close
+              showSnackBar(context, 'Note created', useRootMessenger: true);
+              cancelAction();
+            }
           } else if (state is NoteUpdated) {
-            cancelAction();
+            if (_isAutoSaving) {
+              // Auto-save updated the note - update state but don't close
+              setState(() {
+                _note = state.note;
+                _saveStatus = SaveStatus.saved;
+                _autoSaveErrorCount = 0;
+                _autoSaveDisabled = false;
+              });
+              _isAutoSaving = false;
+            } else {
+              // Manual save - close
+              cancelAction();
+            }
           } else if (state is NoteDeleted) {
             showSnackBar(context, 'Note deleted', useRootMessenger: true);
             cancelAction();
@@ -297,10 +488,10 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
                 builder: (context, constraints) {
                   const double titleMinWidth = 225;
                   const double badgeMaxWidth = 250;
-                  const double gap = 8;
+                  const double gap = 4;
                   final hasBadge = _linkedEntityType != null;
                   final effectiveBadgeMax = hasBadge
-                      ? (constraints.maxWidth - titleMinWidth - gap).clamp(
+                      ? (constraints.maxWidth - titleMinWidth - gap * 2).clamp(
                           0.0,
                           badgeMaxWidth,
                         )
@@ -314,13 +505,13 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
                           controller: _titleController,
                           focusNode: _titleFocusNode,
                           autofocus: kIsWeb,
-                          validator: hasBadge
-                              ? null
-                              : BasicFormController.validateRequiredField,
+                          validator: null,
                           fieldKey: _formController.getFieldKey('title'),
                           onFieldSubmitted: (_) => saveAction?.call(),
                         ),
                       ),
+                      const SizedBox(width: gap),
+                      _buildSaveStatusIcon(),
                       if (hasBadge) ...[
                         const SizedBox(width: gap),
                         ConstrainedBox(
@@ -475,12 +666,72 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
     );
   }
 
+  Widget _buildSaveStatusIcon() {
+    final IconData icon;
+    final Color color;
+    final String tooltip;
+    final bool animate;
+
+    switch (_saveStatus) {
+      case SaveStatus.unsaved:
+        icon = Icons.cloud_outlined;
+        color = context.colorScheme.onSurface.withValues(alpha: 0.5);
+        tooltip = 'Unsaved changes';
+        animate = false;
+      case SaveStatus.saving:
+        icon = Icons.sync;
+        color = context.colorScheme.primary;
+        tooltip = 'Saving ...';
+        animate = true;
+      case SaveStatus.saved:
+        icon = Icons.cloud_done_outlined;
+        color = context.colorScheme.primary;
+        tooltip = 'All changes saved';
+        animate = false;
+      case SaveStatus.error:
+        icon = Icons.cloud_off_outlined;
+        color = context.colorScheme.error;
+        tooltip = _autoSaveDisabled
+            ? 'Auto-save disabled - tap to retry'
+            : 'Save failed - tap to retry';
+        animate = false;
+    }
+
+    final isEmpty = _isNoteEmpty;
+    final isDisabled = isEmpty || _saveStatus == SaveStatus.saving;
+
+    // Dim the icon when disabled due to empty note
+    final effectiveColor = isEmpty ? color.withValues(alpha: 0.3) : color;
+
+    Widget iconWidget = Icon(icon, size: 18, color: effectiveColor);
+
+    if (animate) {
+      iconWidget = _AnimatedSyncIcon(color: effectiveColor);
+    }
+
+    final button = InkWell(
+      onTap: isDisabled ? null : _onSaveIconTapped,
+      borderRadius: BorderRadius.circular(16),
+      child: Padding(
+        padding: const EdgeInsets.all(8),
+        child: iconWidget,
+      ),
+    );
+
+    // No tooltip when empty
+    if (isEmpty) {
+      return button;
+    }
+
+    return Tooltip(
+      message: tooltip,
+      child: button,
+    );
+  }
+
   Widget _buildLinkedEntityBadge() {
     final entityType = _linkedEntityType ?? '';
     final entityTitle = _linkedEntityTitle;
-    final courseColor = _note?.courseColor ?? _linkedEntityColor;
-    final categoryColor = _note?.categoryColor;
-
     final title = entityTitle ?? 'Linked $entityType';
 
     if (entityType == 'resource') {
@@ -497,14 +748,53 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
     }
 
     // Homework badge - respect colorByCategory setting
+    final courseColor = _note?.courseColor ?? _linkedEntityColor;
+    final categoryColor = _note?.categoryColor;
     final badgeColor =
         (userSettings?.colorByCategory ?? false) && categoryColor != null
-        ? categoryColor
-        : courseColor;
+            ? categoryColor
+            : courseColor;
     return GenericLabel(
       label: title,
       color: badgeColor ?? context.colorScheme.primary,
       icon: AppConstants.assignmentIcon,
+    );
+  }
+}
+
+class _AnimatedSyncIcon extends StatefulWidget {
+  final Color color;
+
+  const _AnimatedSyncIcon({required this.color});
+
+  @override
+  State<_AnimatedSyncIcon> createState() => _AnimatedSyncIconState();
+}
+
+class _AnimatedSyncIconState extends State<_AnimatedSyncIcon>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      duration: const Duration(milliseconds: 1000),
+      vsync: this,
+    )..repeat();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return RotationTransition(
+      turns: _controller,
+      child: Icon(Icons.sync, size: 18, color: widget.color),
     );
   }
 }
