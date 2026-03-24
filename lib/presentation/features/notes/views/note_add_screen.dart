@@ -6,6 +6,7 @@
 // For details regarding the license, please refer to the LICENSE file.
 
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -179,11 +180,11 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
     super.dispose();
   }
 
-  String _getSavedContentAsPlainText() {
+  String _getSavedContentAsJson() {
     if (_note?.content == null || _note!.content!['ops'] == null) {
       return '';
     }
-    return Document.fromJson(_note!.content!['ops'] as List).toPlainText();
+    return jsonEncode(_note!.content!['ops']);
   }
 
   void _onContentChanged() {
@@ -191,11 +192,12 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
       return;
     }
 
-    // Check if content actually changed from last saved state
+    // Check if content actually changed from last saved state, comparing Delta
+    // JSON so that formatting-only changes (bold, italic, etc.) are detected
     final currentTitle = _titleController.text;
-    final currentContent = _quillController.document.toPlainText();
+    final currentContent = jsonEncode(_quillController.document.toDelta().toJson());
     final savedTitle = _note?.title ?? '';
-    final savedContent = _getSavedContentAsPlainText();
+    final savedContent = _getSavedContentAsJson();
     if (currentTitle == savedTitle && currentContent == savedContent) {
       return;
     }
@@ -208,7 +210,7 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
     final isNewNote = _note == null;
     if (isNewNote) {
       final hasTitle = currentTitle.trim().isNotEmpty;
-      final hasBody = currentContent.trim().isNotEmpty;
+      final hasBody = _quillController.document.toPlainText().trim().isNotEmpty;
       if (!hasTitle && !hasBody) return;
     }
 
