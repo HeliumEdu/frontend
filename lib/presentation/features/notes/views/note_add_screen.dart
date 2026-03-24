@@ -295,8 +295,9 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
       });
       showSnackBar(
         context,
-        'Auto-save disabled due to repeated failures',
+        'Auto-save disabled. Connect to the Internet and manually save to re-enable.',
         type: SnackType.error,
+        seconds: 5
       );
     } else {
       setState(() {
