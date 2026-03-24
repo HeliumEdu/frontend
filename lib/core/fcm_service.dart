@@ -294,8 +294,10 @@ class FcmService {
               _log.info(
                 'Removed stale push token ID: ${token.id} from this device',
               );
+              Sentry.metrics.count('fcm.push_token.stale_removed', 1);
             } catch (e) {
               _log.warning('Failed to delete stale push token ${token.id}', e);
+            Sentry.metrics.count('fcm.push_token.stale_delete_failed', 1);
             }
           }
         } catch (e) {
@@ -379,6 +381,7 @@ class FcmService {
 
     if (_recentMessageIds.containsKey(payload['id'].toString())) {
       _log.info('Foreground message $messageId within dedupe window, skipping');
+      Sentry.metrics.count('fcm.message.deduplicated', 1);
       return;
     }
     _recentMessageIds[payload['id'].toString()] = now;
@@ -535,11 +538,7 @@ class FcmService {
         if (message.notification?.title == null && message.notification?.body == null) {
           const msg = 'FCM notification has null title and body in test message handler';
           _log.severe(msg);
-          await Sentry.captureException(
-            Exception(msg),
-            stackTrace: StackTrace.current,
-            hint: Hint.withMap({'message_id': messageId, 'message_data': message.data}),
-          );
+          Sentry.metrics.count('fcm.notification.null_title_and_body', 1);
         }
 
         final messageMap = message.toMap();

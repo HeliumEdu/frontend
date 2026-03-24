@@ -28,6 +28,7 @@ import 'package:heliumapp/presentation/features/courses/views/course_add_screen.
 import 'package:heliumapp/presentation/features/notes/bloc/note_bloc.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/attachment_bloc.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/core/provider_helpers.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:heliumapp/presentation/features/planner/views/planner_item_add_screen.dart';
 import 'package:heliumapp/presentation/features/resources/bloc/resource_bloc.dart';
 import 'package:heliumapp/presentation/features/resources/views/resource_add_screen.dart';
@@ -356,6 +357,7 @@ Future<String?> _authRedirect(BuildContext context, GoRouterState state) async {
         'Setup completion flag unavailable during auth redirect '
         '(location=$matchedLocation), skipping setup-based redirect',
       );
+      Sentry.metrics.count('router.auth_redirect.setup_state_unavailable', 1);
       return null;
     }
 

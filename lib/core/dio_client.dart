@@ -27,6 +27,7 @@ import 'package:heliumapp/utils/snack_bar_helpers.dart';
 import 'package:logging/logging.dart';
 import 'package:pretty_dio_logger/pretty_dio_logger.dart';
 import 'package:sentry_dio/sentry_dio.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 
 final _log = Logger('core');
 
@@ -109,6 +110,7 @@ class DioClient {
               _log.info(
                 'Token refresh in progress, waiting for completion ...',
               );
+              Sentry.metrics.count('auth.token_refresh.queued_request', 1);
               try {
                 await _refreshCompleter!.future;
                 // After refresh completes, retry the original request
