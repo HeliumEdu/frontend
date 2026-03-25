@@ -23,7 +23,7 @@ import 'package:heliumapp/utils/deep_link_helpers.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:heliumapp/utils/snack_bar_helpers.dart';
 
-/// Shows resource add/edit as a dialog on desktop, or navigates on mobile
+/// Shows resource add/edit screen (responsive: dialog on desktop, full-screen on mobile)
 Future<void> showResourceAdd(
   BuildContext context, {
   required int resourceGroupId,
@@ -33,50 +33,33 @@ Future<void> showResourceAdd(
 }) {
   final resourceBloc = context.read<ResourceBloc>();
   final noteBloc = context.read<NoteBloc>();
+  final basePath = router.routerDelegate.currentConfiguration.uri.path;
   final idValue = resourceId?.toString() ?? 'new';
 
-  if (Responsive.isMobile(context)) {
-    final basePath = router.routerDelegate.currentConfiguration.uri.path;
-    return Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (_) => MultiBlocProvider(
-          providers: [
-            BlocProvider<ResourceBloc>.value(value: resourceBloc),
-            BlocProvider<NoteBloc>.value(value: noteBloc),
-          ],
-          child: ResourceAddScreen(
-            resourceGroupId: resourceGroupId,
-            resourceId: resourceId,
-            isEdit: isEdit,
-            isNew: !isEdit,
-            initialStep: initialStep,
-          ),
-        ),
+  context.setQueryParam(DeepLinkParam.id, idValue);
+
+  final isMobile = Responsive.isMobile(context);
+
+  return showScreenAsDialog(
+    context,
+    barrierDismissible: false,
+    child: MultiBlocProvider(
+      providers: [
+        BlocProvider<ResourceBloc>.value(value: resourceBloc),
+        BlocProvider<NoteBloc>.value(value: noteBloc),
+      ],
+      child: ResourceAddScreen(
+        resourceGroupId: resourceGroupId,
+        resourceId: resourceId,
+        isEdit: isEdit,
+        isNew: !isEdit,
+        initialStep: initialStep,
       ),
-    ).then((_) => clearRouteQueryParams(basePath));
-  } else {
-    final basePath = router.routerDelegate.currentConfiguration.uri.path;
-    context.setQueryParam(DeepLinkParam.id, idValue);
-    return showScreenAsDialog(
-      context,
-      barrierDismissible: false,
-      child: MultiBlocProvider(
-        providers: [
-          BlocProvider<ResourceBloc>.value(value: resourceBloc),
-          BlocProvider<NoteBloc>.value(value: noteBloc),
-        ],
-        child: ResourceAddScreen(
-          resourceGroupId: resourceGroupId,
-          resourceId: resourceId,
-          isEdit: isEdit,
-          isNew: !isEdit,
-          initialStep: initialStep,
-        ),
-      ),
-      width: AppConstants.centeredDialogWidth,
-      alignment: Alignment.center,
-    ).then((_) => clearRouteQueryParams(basePath));
-  }
+    ),
+    width: isMobile ? double.infinity : AppConstants.centeredDialogWidth,
+    insetPadding: isMobile ? EdgeInsets.zero : const EdgeInsets.all(16),
+    alignment: Alignment.center,
+  ).then((_) => clearRouteQueryParams(basePath));
 }
 
 class ResourceAddScreen extends MultiStepContainer {

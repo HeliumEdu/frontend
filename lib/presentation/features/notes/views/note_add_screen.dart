@@ -47,47 +47,32 @@ Future<void> showNoteAdd(
   int? linkResourceId,
 }) {
   final noteBloc = context.read<NoteBloc>();
+  final basePath = router.routerDelegate.currentConfiguration.uri.path;
   final idParam = noteId?.toString() ?? (isNew ? 'new' : null);
 
-  if (Responsive.isMobile(context)) {
-    final basePath = router.routerDelegate.currentConfiguration.uri.path;
-    return Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (_) => BlocProvider<NoteBloc>.value(
-          value: noteBloc,
-          child: NoteAddScreen(
-            isNew: isNew,
-            noteId: noteId,
-            linkHomeworkId: linkHomeworkId,
-            linkEventId: linkEventId,
-            linkResourceId: linkResourceId,
-          ),
-        ),
-      ),
-    ).then((_) => clearRouteQueryParams(basePath));
-  } else {
-    final basePath = router.routerDelegate.currentConfiguration.uri.path;
-    if (idParam != null) {
-      context.setQueryParam(DeepLinkParam.id, idParam);
-    }
-    return showScreenAsDialog(
-      context,
-      barrierDismissible: false,
-      child: BlocProvider<NoteBloc>.value(
-        value: noteBloc,
-        child: NoteAddScreen(
-          isNew: isNew,
-          noteId: noteId,
-          linkHomeworkId: linkHomeworkId,
-          linkEventId: linkEventId,
-          linkResourceId: linkResourceId,
-        ),
-      ),
-      width: double.infinity,
-      insetPadding: const EdgeInsets.all(32),
-      alignment: Alignment.center,
-    ).then((_) => clearRouteQueryParams(basePath));
+  if (idParam != null) {
+    context.setQueryParam(DeepLinkParam.id, idParam);
   }
+
+  final isMobile = Responsive.isMobile(context);
+
+  return showScreenAsDialog(
+    context,
+    barrierDismissible: false,
+    child: BlocProvider<NoteBloc>.value(
+      value: noteBloc,
+      child: NoteAddScreen(
+        isNew: isNew,
+        noteId: noteId,
+        linkHomeworkId: linkHomeworkId,
+        linkEventId: linkEventId,
+        linkResourceId: linkResourceId,
+      ),
+    ),
+    width: double.infinity,
+    insetPadding: isMobile ? EdgeInsets.zero : const EdgeInsets.all(32),
+    alignment: Alignment.center,
+  ).then((_) => clearRouteQueryParams(basePath));
 }
 
 class NoteAddScreen extends StatefulWidget {

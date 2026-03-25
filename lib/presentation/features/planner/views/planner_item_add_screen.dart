@@ -22,7 +22,7 @@ import 'package:heliumapp/utils/deep_link_helpers.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:heliumapp/utils/snack_bar_helpers.dart';
 
-/// Shows planner item add/edit as a dialog on desktop, or navigates on mobile
+/// Shows planner item add/edit screen (responsive: dialog on desktop, full-screen on mobile)
 Future<void> showPlannerItemAdd(
   BuildContext context, {
   int? eventId,
@@ -40,57 +40,40 @@ Future<void> showPlannerItemAdd(
   final attachmentBloc =
       existingBloc ?? ProviderHelpers().createAttachmentBloc()(context);
 
-  if (Responsive.isMobile(context)) {
-    final basePath = router.routerDelegate.currentConfiguration.uri.path;
-    return Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (_) => MultiBlocProvider(
-          providers: [
-            BlocProvider<AttachmentBloc>.value(value: attachmentBloc),
-          ],
-          child: PlannerItemAddScreen(
-            eventId: eventId,
-            homeworkId: homeworkId,
-            initialDate: initialDate,
-            isFromMonthView: isFromMonthView,
-            isEdit: isEdit,
-            isNew: isNew,
-            initialStep: initialStep,
-          ),
-        ),
-      ),
-    ).then((_) => clearRouteQueryParams(basePath));
-  } else {
-    final basePath = router.routerDelegate.currentConfiguration.uri.path;
-    if (homeworkId != null) {
-      context.setQueryParam(DeepLinkParam.homeworkId, homeworkId.toString());
-    } else if (eventId != null) {
-      context.setQueryParam(DeepLinkParam.eventId, eventId.toString());
-    } else if (isNew) {
-      // FAB case: entity type not yet chosen, default to homework
-      context.setQueryParam(DeepLinkParam.homeworkId, 'new');
-    }
-    return showScreenAsDialog(
-      context,
-      barrierDismissible: false,
-      child: MultiBlocProvider(
-        providers: [
-          BlocProvider<AttachmentBloc>.value(value: attachmentBloc),
-        ],
-        child: PlannerItemAddScreen(
-          eventId: eventId,
-          homeworkId: homeworkId,
-          initialDate: initialDate,
-          isFromMonthView: isFromMonthView,
-          isEdit: isEdit,
-          isNew: isNew,
-          initialStep: initialStep,
-        ),
-      ),
-      width: AppConstants.centeredDialogWidth,
-      alignment: Alignment.center,
-    ).then((_) => clearRouteQueryParams(basePath));
+  final basePath = router.routerDelegate.currentConfiguration.uri.path;
+
+  if (homeworkId != null) {
+    context.setQueryParam(DeepLinkParam.homeworkId, homeworkId.toString());
+  } else if (eventId != null) {
+    context.setQueryParam(DeepLinkParam.eventId, eventId.toString());
+  } else if (isNew) {
+    // FAB case: entity type not yet chosen, default to homework
+    context.setQueryParam(DeepLinkParam.homeworkId, 'new');
   }
+
+  final isMobile = Responsive.isMobile(context);
+
+  return showScreenAsDialog(
+    context,
+    barrierDismissible: false,
+    child: MultiBlocProvider(
+      providers: [
+        BlocProvider<AttachmentBloc>.value(value: attachmentBloc),
+      ],
+      child: PlannerItemAddScreen(
+        eventId: eventId,
+        homeworkId: homeworkId,
+        initialDate: initialDate,
+        isFromMonthView: isFromMonthView,
+        isEdit: isEdit,
+        isNew: isNew,
+        initialStep: initialStep,
+      ),
+    ),
+    width: isMobile ? double.infinity : AppConstants.centeredDialogWidth,
+    insetPadding: isMobile ? EdgeInsets.zero : const EdgeInsets.all(16),
+    alignment: Alignment.center,
+  ).then((_) => clearRouteQueryParams(basePath));
 }
 
 

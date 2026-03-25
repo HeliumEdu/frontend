@@ -54,32 +54,27 @@ enum SettingsSubScreen {
   importExport,
 }
 
-/// Shows settings as a dialog on desktop, or navigates on mobile.
+/// Shows settings screen (responsive: side panel on desktop, full-screen on mobile)
 Future<void> showSettings(BuildContext context, {int? initialTab}) {
-  if (Responsive.isMobile(context)) {
-    final basePath = router.routerDelegate.currentConfiguration.uri.path;
-    return Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (_) => SettingsScreen(initialTab: initialTab),
-      ),
-    ).then((_) => clearRouteQueryParams(basePath));
-  } else {
-    final currentUri = router.routerDelegate.currentConfiguration.uri;
-    final hasDialogParam =
-        currentUri.queryParameters.containsKey(DeepLinkParam.dialog);
-    final basePath = hasDialogParam ? currentUri.path : null;
-    final result = showScreenAsDialog(
-      context,
-      child: SettingsScreen(initialTab: initialTab),
-      width: AppConstants.leftPanelDialogWidth,
-      alignment: Alignment.centerLeft,
-      insetPadding: const EdgeInsets.all(0),
-    );
-    if (basePath != null) {
-      return result.then((_) => clearRouteQueryParams(basePath));
-    }
-    return result;
+  final currentUri = router.routerDelegate.currentConfiguration.uri;
+  final hasDialogParam =
+      currentUri.queryParameters.containsKey(DeepLinkParam.dialog);
+  final basePath = hasDialogParam ? currentUri.path : null;
+
+  final isMobile = Responsive.isMobile(context);
+
+  final result = showScreenAsDialog(
+    context,
+    child: SettingsScreen(initialTab: initialTab),
+    width: isMobile ? double.infinity : AppConstants.leftPanelDialogWidth,
+    alignment: isMobile ? Alignment.center : Alignment.centerLeft,
+    insetPadding: EdgeInsets.zero,
+  );
+
+  if (basePath != null) {
+    return result.then((_) => clearRouteQueryParams(basePath));
   }
+  return result;
 }
 
 class SettingsScreen extends StatefulWidget {

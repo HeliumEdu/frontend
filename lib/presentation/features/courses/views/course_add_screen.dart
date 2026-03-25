@@ -21,7 +21,7 @@ import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:heliumapp/utils/snack_bar_helpers.dart';
 
-/// Shows course add/edit as a dialog on desktop, or navigates on mobile
+/// Shows course add/edit screen (responsive: dialog on desktop, full-screen on mobile)
 Future<void> showCourseAdd(
   BuildContext context, {
   required int courseGroupId,
@@ -31,44 +31,30 @@ Future<void> showCourseAdd(
   int initialStep = 0,
 }) {
   final courseBloc = context.read<CourseBloc>();
+  final basePath = router.routerDelegate.currentConfiguration.uri.path;
   final idValue = courseId?.toString() ?? 'new';
 
-  if (Responsive.isMobile(context)) {
-    final basePath = router.routerDelegate.currentConfiguration.uri.path;
-    return Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (_) => BlocProvider<CourseBloc>.value(
-          value: courseBloc,
-          child: CourseAddScreen(
-            courseGroupId: courseGroupId,
-            courseId: courseId,
-            isEdit: isEdit,
-            isNew: isNew,
-            initialStep: initialStep,
-          ),
-        ),
+  context.setQueryParam(DeepLinkParam.id, idValue);
+
+  final isMobile = Responsive.isMobile(context);
+
+  return showScreenAsDialog(
+    context,
+    barrierDismissible: false,
+    child: BlocProvider<CourseBloc>.value(
+      value: courseBloc,
+      child: CourseAddScreen(
+        courseGroupId: courseGroupId,
+        courseId: courseId,
+        isEdit: isEdit,
+        isNew: isNew,
+        initialStep: initialStep,
       ),
-    ).then((_) => clearRouteQueryParams(basePath));
-  } else {
-    final basePath = router.routerDelegate.currentConfiguration.uri.path;
-    context.setQueryParam(DeepLinkParam.id, idValue);
-    return showScreenAsDialog(
-      context,
-      barrierDismissible: false,
-      child: BlocProvider<CourseBloc>.value(
-        value: courseBloc,
-        child: CourseAddScreen(
-          courseGroupId: courseGroupId,
-          courseId: courseId,
-          isEdit: isEdit,
-          isNew: isNew,
-          initialStep: initialStep,
-        ),
-      ),
-      width: AppConstants.centeredDialogWidth,
-      alignment: Alignment.center,
-    ).then((_) => clearRouteQueryParams(basePath));
-  }
+    ),
+    width: isMobile ? double.infinity : AppConstants.centeredDialogWidth,
+    insetPadding: isMobile ? EdgeInsets.zero : const EdgeInsets.all(16),
+    alignment: Alignment.center,
+  ).then((_) => clearRouteQueryParams(basePath));
 }
 
 class CourseAddScreen extends MultiStepContainer {

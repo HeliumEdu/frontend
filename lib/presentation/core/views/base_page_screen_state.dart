@@ -80,7 +80,8 @@ Future<void> showScreenAsDialog(
     barrierColor: Colors.black54,
     builder: (dialogContext) {
       final screenHeight = MediaQuery.of(dialogContext).size.height;
-      final effectiveHeight = height ?? screenHeight - 32;
+      final isFullScreen = insetPadding == EdgeInsets.zero;
+      final effectiveHeight = height ?? (isFullScreen ? screenHeight : screenHeight - 32);
 
       final Widget dialogContent = DialogModeProvider(
         width: width,
@@ -98,7 +99,7 @@ Future<void> showScreenAsDialog(
             width: width,
             height: effectiveHeight,
             child: ClipRRect(
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(isFullScreen ? 0 : 16),
               // ScaffoldMessenger to ensure SnackBar is shown properly in dialogs
               child: ScaffoldMessenger(
                 key: dialogMessengerKey,
@@ -154,11 +155,6 @@ class _DialogRouteListenerState extends State<_DialogRouteListener> {
   void _onRouteChanged() {
     final currentUri = router.routerDelegate.currentConfiguration.uri;
 
-    _log.fine(
-      '_DialogRouteListener._onRouteChanged: '
-      'initial=$_initialUri, current=$currentUri, mounted=$mounted',
-    );
-
     // If params were added after dialog opened, update our reference.
     // This handles the case where the dialog is shown before the URL is
     // updated with entity params (e.g., showScreenAsDialog called, then
@@ -167,7 +163,6 @@ class _DialogRouteListenerState extends State<_DialogRouteListener> {
         _initialUri.queryParameters.isEmpty &&
         currentUri.queryParameters.isNotEmpty) {
       _initialUri = currentUri;
-      _log.fine('_DialogRouteListener: updated _initialUri to $currentUri');
       return;
     }
 
@@ -198,14 +193,10 @@ class _DialogRouteListenerState extends State<_DialogRouteListener> {
     // Defer pop() to avoid calling it while Navigator is locked during
     // GoRouter's route change notification.
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _log.fine('_deferredPop callback: mounted=$mounted');
       if (!mounted) return;
       final nav = Navigator.of(context, rootNavigator: true);
       if (nav.canPop()) {
-        _log.fine('_deferredPop: popping dialog');
         nav.pop();
-      } else {
-        _log.fine('_deferredPop: cannot pop');
       }
     });
   }

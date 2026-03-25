@@ -42,35 +42,29 @@ import 'package:heliumapp/utils/deep_link_helpers.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:heliumapp/utils/sort_helpers.dart';
 
-/// Shows notifications as a dialog on desktop, or navigates on mobile.
+/// Shows notifications screen (responsive: side panel on desktop, full-screen on mobile)
 Future<void> showNotifications(BuildContext context) {
-  if (Responsive.isMobile(context)) {
-    final basePath = router.routerDelegate.currentConfiguration.uri.path;
-    return Navigator.of(context).push(
-      MaterialPageRoute(builder: (_) => NotificationsScreen()),
-    ).then((_) => clearRouteQueryParams(basePath));
-  } else {
-    final currentUri = router.routerDelegate.currentConfiguration.uri;
-    final hasDialogParam =
-        currentUri.queryParameters.containsKey(DeepLinkParam.dialog);
-    final basePath = hasDialogParam ? currentUri.path : null;
-    final result = showScreenAsDialog(
-      context,
-      child: NotificationsScreen(),
-      width: AppConstants.notificationsDialogWidth,
-      alignment: Alignment.centerRight,
-      insetPadding: const EdgeInsets.only(
-        top: 16,
-        bottom: 16,
-        right: 16,
-        left: 100,
-      ),
-    );
-    if (basePath != null) {
-      return result.then((_) => clearRouteQueryParams(basePath));
-    }
-    return result;
+  final currentUri = router.routerDelegate.currentConfiguration.uri;
+  final hasDialogParam =
+      currentUri.queryParameters.containsKey(DeepLinkParam.dialog);
+  final basePath = hasDialogParam ? currentUri.path : null;
+
+  final isMobile = Responsive.isMobile(context);
+
+  final result = showScreenAsDialog(
+    context,
+    child: NotificationsScreen(),
+    width: isMobile ? double.infinity : AppConstants.notificationsDialogWidth,
+    alignment: isMobile ? Alignment.center : Alignment.centerRight,
+    insetPadding: isMobile
+        ? EdgeInsets.zero
+        : const EdgeInsets.only(top: 16, bottom: 16, right: 16, left: 100),
+  );
+
+  if (basePath != null) {
+    return result.then((_) => clearRouteQueryParams(basePath));
   }
+  return result;
 }
 
 class NotificationsScreen extends StatelessWidget {
