@@ -63,6 +63,11 @@ void clearRouteQueryParams(String expectedPath) {
 
 /// Navigates to [uri] and clears all Navigator-pushed routes from the stack.
 void navigateAndClearStack(BuildContext context, String uri) {
-  router.go(uri);
+  // Clear all pushed routes (dialogs, /notifications, etc.) first, then defer
+  // navigation to next frame. This ensures cleanup callbacks complete before
+  // the route change, preventing race conditions with GoRouter's async redirect.
   Navigator.of(context).popUntil((route) => route.isFirst);
+  WidgetsBinding.instance.addPostFrameCallback((_) {
+    router.go(uri);
+  });
 }
