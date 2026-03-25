@@ -200,6 +200,12 @@ class _NavigationShellState extends State<NavigationShell> {
       // Double-check we're still authenticated before showing dialogs
       if (!mounted || _isLoggingOut || !await DioClient().isAuthenticated()) return;
 
+      // Skip startup dialogs when landing on a deep link — avoid stacking
+      // dialogs on top of content the deep link is about to open.
+      final hasDeepLinkParams = router
+          .routerDelegate.currentConfiguration.uri.queryParameters.isNotEmpty;
+      if (hasDeepLinkParams) return;
+
       if (showGettingStarted) {
         await _showGettingStartedDialogSafely();
         if (!mounted || _isLoggingOut) return;
