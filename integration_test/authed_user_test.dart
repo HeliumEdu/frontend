@@ -295,7 +295,6 @@ void main() {
         await tester.tap(settingsButton);
 
         // Wait for close button to appear (full-screen dialog opened)
-        final closeButton = find.byIcon(Icons.close);
         final screenOpened = await waitForWidget(
           tester,
           closeButton,
