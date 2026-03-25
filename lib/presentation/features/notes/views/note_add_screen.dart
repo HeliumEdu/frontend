@@ -309,7 +309,7 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
   }
 
   @override
-  String get screenTitle => _note?.id == null ? 'Add Note' : 'Edit Note';
+  String get screenTitle => widget.isNew ? 'Add Note' : 'Edit Note';
 
   @override
   IconData get icon => Icons.library_books;
