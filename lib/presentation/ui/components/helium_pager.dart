@@ -75,7 +75,7 @@ class HeliumPager extends StatelessWidget {
   Widget _buildItemsCountText(BuildContext context) {
     final displayStart = totalItems > 0 ? startIndex + 1 : 0;
     return Text(
-      '${!Responsive.isMobile(context) ? 'Showing ' : ''}$displayStart to $endIndex of $totalItems',
+      '${Responsive.isDesktop(context) ? 'Showing ' : ''}$displayStart to $endIndex of $totalItems',
       style: AppStyles.standardBodyTextLight(
         context,
       ).copyWith(color: context.colorScheme.onSurface.withValues(alpha: 0.7)),
@@ -112,9 +112,9 @@ class HeliumPager extends StatelessWidget {
             ),
           ),
         ],
-        SizedBox(width: Responsive.isMobile(context) ? 8 : 12),
+        const SizedBox(width: 8),
         ..._buildPageNumbers(context, isMobile),
-        SizedBox(width: Responsive.isMobile(context) ? 8 : 12),
+        const SizedBox(width: 8),
         if (!isMobile) ...[
           IconButton(
             onPressed: currentPage < totalPages
@@ -147,7 +147,7 @@ class HeliumPager extends StatelessWidget {
   }
 
   List<Widget> _buildPageNumbers(BuildContext context, bool isMobile) {
-    final List<Widget> pages = [];
+    final List<Widget> items = [];
 
     if (isMobile) {
       // On mobile: show up to 3 pages centered around current, no ellipsis
@@ -158,80 +158,81 @@ class HeliumPager extends StatelessWidget {
       );
       final int end = (start + maxVisible - 1).clamp(1, totalPages);
       for (int i = start; i <= end; i++) {
-        pages.add(_buildPageButton(context, i));
+        items.add(_buildPageButton(context, i));
       }
     } else {
       // Desktop: full ellipsis behavior
       const int maxVisiblePages = 5;
       if (totalPages <= maxVisiblePages) {
         for (int i = 1; i <= totalPages; i++) {
-          pages.add(_buildPageButton(context, i));
+          items.add(_buildPageButton(context, i));
         }
       } else {
-        pages.add(_buildPageButton(context, 1));
+        items.add(_buildPageButton(context, 1));
 
         final int start = (currentPage - 1).clamp(2, totalPages - 3);
         final int end = (currentPage + 1).clamp(4, totalPages - 1);
 
         if (start > 2) {
-          pages.add(_buildEllipsis(context));
+          items.add(_buildEllipsis(context));
         }
 
         for (int i = start; i <= end; i++) {
-          pages.add(_buildPageButton(context, i));
+          items.add(_buildPageButton(context, i));
         }
 
         if (end < totalPages - 1) {
-          pages.add(_buildEllipsis(context));
+          items.add(_buildEllipsis(context));
         }
 
-        pages.add(_buildPageButton(context, totalPages));
+        items.add(_buildPageButton(context, totalPages));
       }
     }
 
-    return pages;
+    // Join items with spacing
+    final List<Widget> result = [];
+    for (int i = 0; i < items.length; i++) {
+      if (i > 0) result.add(const SizedBox(width: 8));
+      result.add(items[i]);
+    }
+    return result;
   }
 
   Widget _buildPageButton(BuildContext context, int pageNumber) {
     final isActive = currentPage == pageNumber;
 
-    return Padding(
-      padding: const EdgeInsets.only(left: 4),
-      child: OutlinedButton(
-        onPressed: isActive ? null : () => onPageChanged(pageNumber),
-        style: OutlinedButton.styleFrom(
-          backgroundColor: isActive
-              ? context.colorScheme.primary
-              : context.colorScheme.surface,
-          disabledBackgroundColor: isActive
-              ? context.colorScheme.primary
-              : null,
-          minimumSize: const Size(40, 40),
-          padding: EdgeInsets.zero,
-          side: BorderSide(color: context.colorScheme.primary),
-        ),
-        child: Text(
-          pageNumber.toString(),
-          style: AppStyles.buttonText(context).copyWith(
-            color: isActive
-                ? context.colorScheme.onPrimary
-                : context.colorScheme.primary,
-          ),
+    return OutlinedButton(
+      onPressed: isActive ? null : () => onPageChanged(pageNumber),
+      style: OutlinedButton.styleFrom(
+        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        backgroundColor: isActive
+            ? context.colorScheme.primary
+            : context.colorScheme.surface,
+        disabledBackgroundColor: isActive
+            ? context.colorScheme.primary
+            : null,
+        minimumSize: const Size(40, 40),
+        padding: EdgeInsets.zero,
+        side: BorderSide(color: context.colorScheme.primary),
+      ),
+      child: Text(
+        pageNumber.toString(),
+        style: AppStyles.buttonText(context).copyWith(
+          color: isActive
+              ? context.colorScheme.onPrimary
+              : context.colorScheme.primary,
         ),
       ),
     );
   }
 
   Widget _buildEllipsis(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(left: 4),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-        child: Text(
-          '...',
-          style: AppStyles.standardBodyTextLight(context).copyWith(
-            color: context.colorScheme.onSurface.withValues(alpha: 0.7),
-          ),
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+      child: Text(
+        '...',
+        style: AppStyles.standardBodyTextLight(context).copyWith(
+          color: context.colorScheme.onSurface.withValues(alpha: 0.7),
         ),
       ),
     );
