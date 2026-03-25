@@ -85,13 +85,16 @@ void clearRouteQueryParams(String expectedPath) {
   router.replace(currentPath);
 }
 
-/// Clears all Navigator-pushed routes and navigates to [uri] via GoRouter.
+/// Navigates to [uri] via GoRouter and clears all Navigator-pushed routes.
 ///
 /// Use when a sub-page needs to redirect to a different shell route (e.g.,
 /// "Open in Notebook" from a planner item). Without this, Navigator-pushed
 /// screens (notifications, entity editors) remain on the stack and the close
 /// button walks back through them instead of closing to the target route.
+///
+/// The route change fires first so that any `.then()` cleanup callbacks
+/// (e.g., `clearRouteQueryParams`) see the new path and skip clearing.
 void navigateAndClearStack(BuildContext context, String uri) {
-  Navigator.of(context).popUntil((route) => route.isFirst);
   router.go(uri);
+  Navigator.of(context).popUntil((route) => route.isFirst);
 }
