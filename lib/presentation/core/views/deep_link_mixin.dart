@@ -148,11 +148,14 @@ mixin DeepLinkMixin<T extends StatefulWidget> on BasePageScreenState<T> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       if (dialogParam == DeepLinkParam.dialogSettings) {
-        final tab =
-            int.tryParse(queryParams[DeepLinkParam.tab] ?? '');
-        showSettings(context, initialTab: tab);
+        final tab = int.tryParse(queryParams[DeepLinkParam.tab] ?? '');
+        showSettings(context, initialTab: tab).then(
+          (_) => openedDeepLinkParam = null,
+        );
       } else if (dialogParam == DeepLinkParam.dialogNotifications) {
-        showNotifications(context);
+        showNotifications(context).then(
+          (_) => openedDeepLinkParam = null,
+        );
       }
     });
   }

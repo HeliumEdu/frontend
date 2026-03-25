@@ -40,7 +40,6 @@ enum SaveStatus { unsaved, saving, saved, error }
 
 Future<void> showNoteAdd(
   BuildContext context, {
-  required bool isEdit,
   required bool isNew,
   int? noteId,
   int? linkHomeworkId,
@@ -56,7 +55,6 @@ Future<void> showNoteAdd(
         builder: (_) => BlocProvider<NoteBloc>.value(
           value: noteBloc,
           child: NoteAddScreen(
-            isEdit: !isNew,
             isNew: isNew,
             noteId: noteId,
             linkHomeworkId: linkHomeworkId,
@@ -77,7 +75,6 @@ Future<void> showNoteAdd(
       child: BlocProvider<NoteBloc>.value(
         value: noteBloc,
         child: NoteAddScreen(
-          isEdit: !isNew,
           isNew: isNew,
           noteId: noteId,
           linkHomeworkId: linkHomeworkId,
@@ -93,7 +90,6 @@ Future<void> showNoteAdd(
 }
 
 class NoteAddScreen extends StatefulWidget {
-  final bool isEdit;
   final bool isNew;
   final int? noteId;
   final int? linkHomeworkId;
@@ -102,7 +98,6 @@ class NoteAddScreen extends StatefulWidget {
 
   const NoteAddScreen({
     super.key,
-    required this.isEdit,
     required this.isNew,
     this.noteId,
     this.linkHomeworkId,
