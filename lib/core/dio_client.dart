@@ -113,7 +113,6 @@ class DioClient {
               Sentry.metrics.count('auth.token_refresh.queued_request', 1);
               try {
                 await _refreshCompleter!.future;
-                // After refresh completes, retry the original request
                 final newToken = await getAccessToken();
                 if (newToken?.isNotEmpty ?? false) {
                   error.requestOptions.headers['Authorization'] =
@@ -121,12 +120,10 @@ class DioClient {
                   final retryResponse = await _dio.fetch(error.requestOptions);
                   return handler.resolve(retryResponse);
                 } else {
-                  // Refresh completed but no token available, logout
                   await _forceLogout();
                   return handler.next(error);
                 }
               } catch (e) {
-                // Refresh failed, logout
                 await _forceLogout();
                 return handler.next(error);
               }
@@ -169,7 +166,6 @@ class DioClient {
                 data: request.toJson(),
               );
 
-              // Handle auth failures from refresh endpoint explicitly
               final refreshStatusCode = response.statusCode;
               if (refreshStatusCode == 401 || refreshStatusCode == 403) {
                 _log.info(
@@ -192,8 +188,6 @@ class DioClient {
                   refreshResponse.refresh,
                 );
                 _log.info('Token refreshed successfully');
-
-                // Complete the refresh completer to unblock queued requests
                 _isRefreshing = false;
                 _refreshCompleter!.complete();
                 _refreshCompleter = null;
@@ -211,7 +205,6 @@ class DioClient {
                 _refreshCompleter!.completeError('Token refresh failed');
                 _refreshCompleter = null;
 
-                // Check if the error is due to blacklisted/invalid refresh token
                 if (_isInvalidTokenError(response.data)) {
                   _log.info(
                     'Refresh token is invalid/expired, clearing tokens',
@@ -233,8 +226,6 @@ class DioClient {
                 _refreshCompleter = null;
               }
 
-              // Check if the error is due to blacklisted/invalid refresh token
-              // or if the user/account no longer exists
               bool shouldLogout = false;
               if (e is DioException) {
                 final statusCode = e.response?.statusCode;
@@ -249,12 +240,10 @@ class DioClient {
                 }
               }
 
-              // Only logout if refresh token is actually invalid/expired
-              // or account doesn't exist. Don't logout on network errors.
+              // Don't logout on network errors, only on invalid/expired token
               if (shouldLogout) {
                 await _forceLogout();
               } else {
-                // Only log severe for truly unexpected errors (network, etc.)
                 _log.severe('Unexpected error during token refresh', e);
               }
               return handler.next(error);
@@ -370,7 +359,6 @@ class DioClient {
   }
 
   Future<UserSettingsModel?> getSettings() async {
-    // Ensure PrefService is initialized
     await _prefService.init();
 
     try {
@@ -411,7 +399,6 @@ class DioClient {
         if (fetchedSettings != null) {
           return fetchedSettings;
         }
-        // Fetch failed - return null so page can show error state with retry
         _log.warning('Failed to fetch settings from API');
         return null;
       }
@@ -424,7 +411,6 @@ class DioClient {
   }
 
   Future<List<void>> saveSettings(UserSettingsModel settings) async {
-    // Sync ThemeNotifier with backend value
     final themeMode = switch (settings.colorSchemeTheme) {
       0 => ThemeMode.light,
       1 => ThemeMode.dark,

@@ -233,10 +233,8 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
   void didChangeDependencies() {
     super.didChangeDependencies();
 
-    // Register inheritable providers with NavigationShell if we're inside one
     final notifier = InheritableProvidersScope.of(context);
     if (notifier != null) {
-      // Use post-frame callback to avoid updating during build
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!mounted) return;
 
@@ -244,11 +242,9 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
       });
     }
 
-    // Register _ModalScopeStatus dependency for non-shell screens so build()
-    // is called whenever isCurrent changes (sub-screen pushed/popped).
-    // Shell routes are excluded — NavigationShell manages their titles.
+    // Register dependency so build() fires when isCurrent changes (push/pop)
     if (!NavigationShellProvider.of(context)) {
-      ModalRoute.of(context); // Register _ModalScopeStatus dependency
+      ModalRoute.of(context);
     }
   }
 
@@ -281,12 +277,7 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
 
   @override
   Widget build(BuildContext context) {
-    // Update browser title on every build for non-shell screens. Using build()
-    // rather than didChangeDependencies catches dynamic screenTitle changes
-    // (e.g., PlannerItemAdd resolving its type after user interaction).
-    // postFrameCallback ensures the foreground route's title wins when multiple
-    // screens rebuild simultaneously. Skips empty titles so the previous title
-    // (e.g., "Planner | Helium") remains until this screen knows its own title.
+    // postFrameCallback ensures the foreground route's title wins
     if (!NavigationShellProvider.of(context) && screenTitle.isNotEmpty) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!mounted) return;
@@ -312,17 +303,13 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
   }
 
   Widget buildScaffold(BuildContext context) {
-    // Check if we're inside a NavigationShell (which has its own Scaffold)
     final bool hasNavigationShell = NavigationShellProvider.of(context);
-
-    // Check if we're being displayed as a dialog
     final bool isDialogMode = DialogModeProvider.isDialogMode(context);
 
     final Widget content = Padding(
       padding: scaffoldInsets,
       child: Column(
         children: [
-          // Show error card if settings failed to load
           if (settingsError)
             ErrorCard(
               message: 'An unknown error occurred',
@@ -341,7 +328,6 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
                 });
               },
             )
-          // Show loading until settings are loaded for authenticated screens
           else if (isLoading || (isAuthenticatedScreen && !settingsLoaded))
             const LoadingIndicator()
           else ...[
@@ -353,7 +339,6 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
       ),
     );
 
-    // When displayed as a dialog, wrap as such
     if (isDialogMode) {
       return Material(
         color: context.colorScheme.surface,
@@ -367,8 +352,6 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
       );
     }
 
-    // When inside NavigationShell, don't wrap in another Scaffold.
-    // NavigationShell manages the browser title for shell routes.
     if (hasNavigationShell) {
       return Stack(
         children: [
@@ -383,9 +366,6 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
       );
     }
 
-    // When NOT inside NavigationScaffold (sub-pages), use full Scaffold.
-    // The browser title is managed via didChangeDependencies + isCurrent rather
-    // than a Title widget, avoiding race conditions during exit animations.
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
