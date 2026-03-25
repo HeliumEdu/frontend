@@ -6,7 +6,6 @@
 // For details regarding the license, please refer to the LICENSE file.
 
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/config/app_router.dart';
 import 'package:heliumapp/presentation/core/views/base_page_screen_state.dart';
@@ -33,13 +32,15 @@ mixin DeepLinkMixin<T extends StatefulWidget> on BasePageScreenState<T> {
   @protected
   String get routePath;
 
-  /// Reads query params from the current route. Override to use
-  /// `router.routerDelegate.currentConfiguration.uri` when needed
-  /// (e.g., planner/grades router listener callbacks where
-  /// GoRouterState lags by one build).
+  /// Reads query params from the current route.
+  ///
+  /// Uses [router.routerDelegate] directly rather than [GoRouterState.of]
+  /// because [GoRouterState] is an [InheritedWidget] that updates on the next
+  /// build — it lags by one frame when [_onRouteChanged] fires immediately
+  /// after a [router.go] or [router.replace] call.
   @protected
   Map<String, String> readQueryParams() =>
-      GoRouterState.of(context).uri.queryParameters;
+      router.routerDelegate.currentConfiguration.uri.queryParameters;
 
   /// Override to handle route-specific entity params (e.g., `id` on /classes).
   /// Return true if a param was consumed (skips dialog param handling).

@@ -186,10 +186,6 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
   }
 
   @override
-  Map<String, String> readQueryParams() =>
-      router.routerDelegate.currentConfiguration.uri.queryParameters;
-
-  @override
   void initState() {
     super.initState();
 

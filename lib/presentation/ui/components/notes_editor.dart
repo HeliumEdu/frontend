@@ -79,50 +79,6 @@ class NotesEditor extends StatefulWidget {
 }
 
 class _NotesEditorState extends State<NotesEditor> {
-  final GlobalKey _editorKey = GlobalKey();
-  bool _hasScrolledForFocus = false;
-
-  @override
-  void initState() {
-    super.initState();
-    widget.focusNode?.addListener(_onFocusChange);
-  }
-
-  @override
-  void didUpdateWidget(NotesEditor oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.focusNode != widget.focusNode) {
-      oldWidget.focusNode?.removeListener(_onFocusChange);
-      widget.focusNode?.addListener(_onFocusChange);
-    }
-  }
-
-  @override
-  void dispose() {
-    widget.focusNode?.removeListener(_onFocusChange);
-    super.dispose();
-  }
-
-  void _onFocusChange() {
-    final hasFocus = widget.focusNode?.hasFocus ?? false;
-    if (hasFocus && !_hasScrolledForFocus) {
-      _hasScrolledForFocus = true;
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        final ctx = _editorKey.currentContext;
-        if (ctx != null) {
-          Scrollable.ensureVisible(
-            ctx,
-            duration: const Duration(milliseconds: 300),
-            curve: Curves.easeInOut,
-            alignmentPolicy: ScrollPositionAlignmentPolicy.keepVisibleAtEnd,
-          );
-        }
-      });
-    } else if (!hasFocus) {
-      _hasScrolledForFocus = false;
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final isMobile = Responsive.isMobile(context);
@@ -154,7 +110,6 @@ class _NotesEditorState extends State<NotesEditor> {
         ),
         const SizedBox(height: 9),
         Container(
-          key: _editorKey,
           decoration: BoxDecoration(
             color: context.colorScheme.surface,
             border: Border.all(
@@ -243,6 +198,7 @@ class _NotesEditorState extends State<NotesEditor> {
                       padding: const EdgeInsets.all(12),
                       autoFocus: false,
                       customStyles: NotesEditor.buildDefaultStyles(context),
+                      scrollBottomInset: MediaQuery.of(context).viewInsets.bottom,
                     ),
                   ),
                 ),

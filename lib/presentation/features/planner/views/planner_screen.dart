@@ -192,10 +192,6 @@ class _CalendarScreenState
     CalendarView.schedule,
   ];
 
-  @override
-  Map<String, String> readQueryParams() =>
-      router.routerDelegate.currentConfiguration.uri.queryParameters;
-
   // State
   List<CourseGroupModel> _courseGroups = [];
   List<CourseModel> _courses = [];
