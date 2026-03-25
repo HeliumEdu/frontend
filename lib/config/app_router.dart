@@ -248,15 +248,23 @@ Future<String?> _authRedirect(BuildContext context, GoRouterState state) async {
           state.uri.queryParameters[DeepLinkParam.homeworkId];
       final eventIdParam = state.uri.queryParameters[DeepLinkParam.eventId];
       if (homeworkIdParam != null) {
-        return '${AppRoute.plannerScreen}'
-            '?${DeepLinkParam.homeworkId}=$homeworkIdParam';
+        return Uri(
+          path: AppRoute.plannerScreen,
+          queryParameters: {DeepLinkParam.homeworkId: homeworkIdParam},
+        ).toString();
       }
       if (eventIdParam != null) {
-        return '${AppRoute.plannerScreen}'
-            '?${DeepLinkParam.eventId}=$eventIdParam';
+        return Uri(
+          path: AppRoute.plannerScreen,
+          queryParameters: {DeepLinkParam.eventId: eventIdParam},
+        ).toString();
       }
-      return '${AppRoute.plannerScreen}'
-          '?${DeepLinkParam.dialog}=${DeepLinkParam.dialogNotifications}';
+      return Uri(
+        path: AppRoute.plannerScreen,
+        queryParameters: {
+          DeepLinkParam.dialog: DeepLinkParam.dialogNotifications,
+        },
+      ).toString();
     }
   }
 

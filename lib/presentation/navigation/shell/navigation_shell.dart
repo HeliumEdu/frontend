@@ -202,8 +202,16 @@ class _NavigationShellState extends State<NavigationShell> {
 
       // Skip startup dialogs when landing on a deep link — avoid stacking
       // dialogs on top of content the deep link is about to open.
-      final hasDeepLinkParams = router
-          .routerDelegate.currentConfiguration.uri.queryParameters.isNotEmpty;
+      final params =
+          router.routerDelegate.currentConfiguration.uri.queryParameters;
+      final hasDeepLinkParams =
+          params.containsKey(DeepLinkParam.homeworkId) ||
+          params.containsKey(DeepLinkParam.eventId) ||
+          params.containsKey(DeepLinkParam.id) ||
+          params.containsKey(DeepLinkParam.dialog) ||
+          params.containsKey(DeepLinkParam.linkHomeworkId) ||
+          params.containsKey(DeepLinkParam.linkEventId) ||
+          params.containsKey(DeepLinkParam.linkResourceId);
       if (hasDeepLinkParams) return;
 
       if (showGettingStarted) {

@@ -47,6 +47,7 @@ dependencies:
   syncfusion_flutter_charts: ^32.1.0
   syncfusion_flutter_gauges: ^32.1.0
   syncfusion_flutter_datagrid: ^32.1.0
+  syncfusion_localizations: ^32.1.0
   flutter_quill: ^11.5.0
   flutter_html: ^3.0.0
   flutter_colorpicker: ^1.1.0

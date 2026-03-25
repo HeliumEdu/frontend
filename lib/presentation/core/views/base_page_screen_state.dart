@@ -448,6 +448,7 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
         ],
       ),
       child: FloatingActionButton.small(
+        heroTag: null,
         shape: const CircleBorder(),
         onPressed: actionButtonCallback!,
         backgroundColor: context.colorScheme.primary,

@@ -393,7 +393,6 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen>
       final parsed = DeepLinkParam.parseId(idParam);
       return showNoteAdd(
         context,
-        isEdit: parsed.id != null,
         isNew: parsed.isNew || (idParam != null && parsed.id == null),
         noteId: parsed.id,
         linkHomeworkId: linkHomeworkId,
@@ -411,7 +410,6 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen>
       if (resources.isEmpty) return;
       await showNoteAdd(
         context,
-        isEdit: false,
         isNew: true,
         linkResourceId: resourceId,
       );
@@ -611,14 +609,14 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen>
   void _createNewNote() {
     openWithGuard(
       '${DeepLinkParam.id}:new',
-      () => showNoteAdd(context, isEdit: false, isNew: true),
+      () => showNoteAdd(context, isNew: true),
     );
   }
 
   void _openNote(NoteModel note) {
     openWithGuard(
       '${DeepLinkParam.id}:${note.id}',
-      () => showNoteAdd(context, isEdit: true, isNew: false, noteId: note.id),
+      () => showNoteAdd(context, isNew: false, noteId: note.id),
     );
   }
 
