@@ -15,6 +15,8 @@ import 'package:heliumapp/config/pref_service.dart';
 import 'package:heliumapp/core/dio_client.dart';
 import 'package:heliumapp/data/models/auth/user_model.dart';
 import 'package:heliumapp/data/models/planner/note_model.dart';
+import 'package:heliumapp/data/sources/event_remote_data_source.dart';
+import 'package:heliumapp/data/sources/homework_remote_data_source.dart';
 import 'package:heliumapp/data/sources/resource_remote_data_source.dart';
 import 'package:heliumapp/presentation/core/views/base_page_screen_state.dart';
 import 'package:heliumapp/presentation/core/views/deep_link_mixin.dart';
@@ -374,6 +376,15 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen>
       return false;
     }
 
+    // Validate note ID exists (for edit case)
+    if (idParam != null) {
+      final parsed = DeepLinkParam.parseId(idParam);
+      if (!parsed.isNew && parsed.id != null) {
+        final noteExists = _notes.any((n) => n.id == parsed.id);
+        if (!noteExists) return false;
+      }
+    }
+
     final String key;
     if (idParam != null) {
       key = '${DeepLinkParam.id}:$idParam';
@@ -385,8 +396,15 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen>
       key = '${DeepLinkParam.linkResourceId}:$linkResourceId';
     }
 
+    // Use async validation for linked entities
     if (linkResourceId != null) {
-      return openFromDeepLink(key, () => _resolveResourceGroupAndOpenNote(linkResourceId));
+      return openFromDeepLink(key, () => _resolveResourceAndOpenNote(linkResourceId));
+    }
+    if (linkHomeworkId != null) {
+      return openFromDeepLink(key, () => _resolveHomeworkAndOpenNote(linkHomeworkId));
+    }
+    if (linkEventId != null) {
+      return openFromDeepLink(key, () => _resolveEventAndOpenNote(linkEventId));
     }
 
     return openFromDeepLink(key, () {
@@ -395,13 +413,11 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen>
         context,
         isNew: parsed.isNew || (idParam != null && parsed.id == null),
         noteId: parsed.id,
-        linkHomeworkId: linkHomeworkId,
-        linkEventId: linkEventId,
       );
     });
   }
 
-  Future<void> _resolveResourceGroupAndOpenNote(int resourceId) async {
+  Future<void> _resolveResourceAndOpenNote(int resourceId) async {
     try {
       final resources = await ResourceRemoteDataSourceImpl(
         dioClient: DioClient(),
@@ -415,6 +431,38 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen>
       );
     } catch (_) {
       // silently fail — bad or stale deep link
+    }
+  }
+
+  Future<void> _resolveHomeworkAndOpenNote(int homeworkId) async {
+    try {
+      await HomeworkRemoteDataSourceImpl(
+        dioClient: DioClient(),
+      ).getHomework(id: homeworkId);
+      if (!mounted) return;
+      await showNoteAdd(
+        context,
+        isNew: true,
+        linkHomeworkId: homeworkId,
+      );
+    } catch (_) {
+      // silently fail — bad or stale deep link (404)
+    }
+  }
+
+  Future<void> _resolveEventAndOpenNote(int eventId) async {
+    try {
+      await EventRemoteDataSourceImpl(
+        dioClient: DioClient(),
+      ).getEvent(id: eventId);
+      if (!mounted) return;
+      await showNoteAdd(
+        context,
+        isNew: true,
+        linkEventId: eventId,
+      );
+    } catch (_) {
+      // silently fail — bad or stale deep link (404)
     }
   }
 

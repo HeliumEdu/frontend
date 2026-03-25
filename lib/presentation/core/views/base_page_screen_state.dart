@@ -133,7 +133,7 @@ class _DialogRouteListener extends StatefulWidget {
 
 class _DialogRouteListenerState extends State<_DialogRouteListener> {
   VoidCallback? _routeListener;
-  late final Uri _initialUri;
+  late Uri _initialUri;
 
   @override
   void initState() {
@@ -154,20 +154,60 @@ class _DialogRouteListenerState extends State<_DialogRouteListener> {
   void _onRouteChanged() {
     final currentUri = router.routerDelegate.currentConfiguration.uri;
 
-    // Ignore query-only URL changes, close only when the route path changes.
+    _log.fine(
+      '_DialogRouteListener._onRouteChanged: '
+      'initial=$_initialUri, current=$currentUri, mounted=$mounted',
+    );
+
+    // If params were added after dialog opened, update our reference.
+    // This handles the case where the dialog is shown before the URL is
+    // updated with entity params (e.g., showScreenAsDialog called, then
+    // router.replace adds ?id=123).
+    if (currentUri.path == _initialUri.path &&
+        _initialUri.queryParameters.isEmpty &&
+        currentUri.queryParameters.isNotEmpty) {
+      _initialUri = currentUri;
+      _log.fine('_DialogRouteListener: updated _initialUri to $currentUri');
+      return;
+    }
+
+    // Close on path change (e.g., navigated to different tab)
     if (currentUri.path != _initialUri.path && mounted) {
       _log.info(
         'Browser navigation detected, closing dialog: '
         '${widget.initialLocation} --> ${currentUri.toString()}',
       );
-      // Defer pop() to avoid calling it while Navigator is locked during
-      // GoRouter's route change notification.
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted && Navigator.of(context).canPop()) {
-          Navigator.of(context).pop();
-        }
-      });
+      _deferredPop();
+      return;
     }
+
+    // Close when query params are cleared (e.g., browser back from ?id=123 to /)
+    // but not on param updates within the dialog (e.g., id=new → id=123)
+    if (_initialUri.queryParameters.isNotEmpty &&
+        currentUri.queryParameters.isEmpty &&
+        mounted) {
+      _log.info(
+        'Browser back detected (params cleared), closing dialog: '
+        '${widget.initialLocation} --> ${currentUri.toString()}',
+      );
+      _deferredPop();
+    }
+  }
+
+  void _deferredPop() {
+    // Defer pop() to avoid calling it while Navigator is locked during
+    // GoRouter's route change notification.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _log.fine('_deferredPop callback: mounted=$mounted');
+      if (!mounted) return;
+      final nav = Navigator.of(context, rootNavigator: true);
+      if (nav.canPop()) {
+        _log.fine('_deferredPop: popping dialog');
+        nav.pop();
+      } else {
+        _log.fine('_deferredPop: cannot pop');
+      }
+    });
   }
 
   @override

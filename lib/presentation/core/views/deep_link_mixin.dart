@@ -8,6 +8,9 @@
 import 'package:flutter/material.dart';
 import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/config/app_router.dart';
+import 'package:heliumapp/core/dio_client.dart';
+import 'package:heliumapp/data/sources/event_remote_data_source.dart';
+import 'package:heliumapp/data/sources/homework_remote_data_source.dart';
 import 'package:heliumapp/presentation/core/views/base_page_screen_state.dart';
 import 'package:heliumapp/presentation/core/views/notification_screen.dart';
 import 'package:heliumapp/presentation/features/planner/views/planner_item_add_screen.dart';
@@ -113,6 +116,7 @@ mixin DeepLinkMixin<T extends StatefulWidget> on BasePageScreenState<T> {
 
     final rawParam = homeworkIdParam ?? eventIdParam!;
     final parsed = DeepLinkParam.parseId(rawParam);
+
     final tabValue =
         int.tryParse(queryParams[DeepLinkParam.tab] ?? '') ?? 1;
     final initialStep = (tabValue - 1).clamp(0, 2);
@@ -123,14 +127,47 @@ mixin DeepLinkMixin<T extends StatefulWidget> on BasePageScreenState<T> {
 
     return openFromDeepLink(
       paramKey,
-      () => showPlannerItemAdd(
-        context,
+      () => _validateAndOpenPlannerItem(
         homeworkId: homeworkIdParam != null ? parsed.id : null,
         eventId: eventIdParam != null ? parsed.id : null,
-        isEdit: !parsed.isNew,
         isNew: parsed.isNew,
         initialStep: initialStep,
       ),
+    );
+  }
+
+  Future<void> _validateAndOpenPlannerItem({
+    int? homeworkId,
+    int? eventId,
+    required bool isNew,
+    required int initialStep,
+  }) async {
+    // For new items, skip validation
+    if (!isNew) {
+      try {
+        final dioClient = DioClient();
+        if (homeworkId != null) {
+          await HomeworkRemoteDataSourceImpl(dioClient: dioClient)
+              .getHomework(id: homeworkId);
+        } else if (eventId != null) {
+          await EventRemoteDataSourceImpl(dioClient: dioClient)
+              .getEvent(id: eventId);
+        }
+      } catch (_) {
+        // Entity doesn't exist (404) — silently skip
+        return;
+      }
+    }
+
+    if (!mounted) return;
+
+    await showPlannerItemAdd(
+      context,
+      homeworkId: homeworkId,
+      eventId: eventId,
+      isEdit: !isNew,
+      isNew: isNew,
+      initialStep: initialStep,
     );
   }
 

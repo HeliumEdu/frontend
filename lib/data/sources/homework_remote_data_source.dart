@@ -119,10 +119,8 @@ class HomeworkRemoteDataSourceImpl extends HomeworkRemoteDataSource {
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
     } catch (e, s) {
+      if (e is HeliumException) rethrow;
       _log.severe('An unexpected error occurred', e, s);
-      if (e is HeliumException) {
-        rethrow;
-      }
       throw HeliumException(message: 'An unexpected error occurred.');
     }
   }
@@ -154,10 +152,8 @@ class HomeworkRemoteDataSourceImpl extends HomeworkRemoteDataSource {
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
     } catch (e, s) {
+      if (e is HeliumException) rethrow;
       _log.severe('An unexpected error occurred', e, s);
-      if (e is HeliumException) {
-        rethrow;
-      }
       throw HeliumException(message: 'An unexpected error occurred.');
     }
   }
