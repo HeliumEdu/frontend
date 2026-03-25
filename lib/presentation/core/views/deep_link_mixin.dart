@@ -82,8 +82,10 @@ mixin DeepLinkMixin<T extends StatefulWidget> on BasePageScreenState<T> {
   }
 
   /// Sets the guard and opens content immediately (for in-app taps).
+  /// Skips if a dialog is already open (guard already set).
   @protected
   void openWithGuard(String paramKey, Future<void> Function() open) {
+    if (openedDeepLinkParam != null) return;
     openedDeepLinkParam = paramKey;
     open().then((_) => openedDeepLinkParam = null);
   }

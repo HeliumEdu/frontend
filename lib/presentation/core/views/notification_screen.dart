@@ -124,6 +124,7 @@ class _NotificationsScreenState
 
   List<NotificationModel> _notifications = [];
   List<int> _readNotificationIds = [];
+  bool _isOpeningEntity = false;
 
   @override
   void initState() {
@@ -522,6 +523,9 @@ class _NotificationsScreenState
   }
 
   Future<void> _openNotification(NotificationModel notification) async {
+    if (_isOpeningEntity) return;
+    _isOpeningEntity = true;
+
     _readNotificationIds.add(notification.id);
 
     await _storeReadNotifications();
@@ -578,6 +582,7 @@ class _NotificationsScreenState
       isEdit: true,
       isNew: false,
     );
+    _isOpeningEntity = false;
   }
 
   Future<void> _dismissReminder(NotificationModel notification) async {
