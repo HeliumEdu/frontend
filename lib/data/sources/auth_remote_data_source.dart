@@ -97,9 +97,6 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
       throw handleDioError(e, s);
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
-      if (e is HeliumException) {
-        rethrow;
-      }
       throw HeliumException(message: 'An unexpected error occurred.');
     }
   }
@@ -149,9 +146,6 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
       throw handleDioError(e, s);
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
-      if (e is HeliumException) {
-        rethrow;
-      }
       throw HeliumException(message: 'An unexpected error occurred.');
     }
   }
@@ -179,9 +173,6 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
       throw handleDioError(e, s);
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
-      if (e is HeliumException) {
-        rethrow;
-      }
       throw HeliumException(message: 'An unexpected error occurred.');
     }
   }
@@ -231,9 +222,6 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
       throw handleDioError(e, s);
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
-      if (e is HeliumException) {
-        rethrow;
-      }
       throw HeliumException(message: 'An unexpected error occurred.');
     }
   }
@@ -292,9 +280,6 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
       throw handleDioError(e, s);
     } catch (e, s) {
       _log.severe('An unexpected error occurred during $provider login', e, s);
-      if (e is HeliumException) {
-        rethrow;
-      }
       throw HeliumException(message: 'OAuth login failed: $e');
     }
   }
@@ -334,9 +319,6 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
       throw handleDioError(e, s);
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
-      if (e is HeliumException) {
-        rethrow;
-      }
       throw HeliumException(message: 'An unexpected error occurred.');
     }
   }
@@ -389,9 +371,6 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
       throw handleDioError(e, s);
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
-      if (e is HeliumException) {
-        rethrow;
-      }
       throw HeliumException(message: 'An unexpected error occurred.');
     }
   }
@@ -413,9 +392,6 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
       throw handleDioError(e, s);
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
-      if (e is HeliumException) {
-        rethrow;
-      }
       throw HeliumException(message: 'An unexpected error occurred.');
     }
   }
@@ -435,9 +411,6 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
       throw handleDioError(e, s);
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
-      if (e is HeliumException) {
-        rethrow;
-      }
       throw HeliumException(message: 'An unexpected error occurred.');
     }
   }
@@ -467,9 +440,6 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
       throw handleDioError(e, s);
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
-      if (e is HeliumException) {
-        rethrow;
-      }
       throw HeliumException(message: 'An unexpected error occurred.');
     }
   }
@@ -494,9 +464,6 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
       throw handleDioError(e, s);
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
-      if (e is HeliumException) {
-        rethrow;
-      }
       throw HeliumException(message: 'An unexpected error occurred.');
     }
   }
@@ -521,9 +488,6 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
       throw handleDioError(e, s);
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
-      if (e is HeliumException) {
-        rethrow;
-      }
       throw HeliumException(message: 'An unexpected error occurred.');
     }
   }
@@ -554,9 +518,6 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
       throw handleDioError(e, s);
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
-      if (e is HeliumException) {
-        rethrow;
-      }
       throw HeliumException(message: 'An unexpected error occurred.');
     }
   }
@@ -583,9 +544,6 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
       throw handleDioError(e, s);
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
-      if (e is HeliumException) {
-        rethrow;
-      }
       throw HeliumException(message: 'An unexpected error occurred.');
     }
   }
@@ -610,9 +568,6 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
       throw handleDioError(e, s);
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
-      if (e is HeliumException) {
-        rethrow;
-      }
       throw HeliumException(message: 'An unexpected error occurred.');
     }
   }
@@ -636,9 +591,6 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
       throw handleDioError(e, s);
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
-      if (e is HeliumException) {
-        rethrow;
-      }
       throw HeliumException(message: 'An unexpected error occurred.');
     }
   }

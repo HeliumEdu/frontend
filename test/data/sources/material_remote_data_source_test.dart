@@ -74,7 +74,7 @@ void main() {
         expect(result, isEmpty);
       });
 
-      test('throws ServerException on invalid response format', () async {
+      test('throws HeliumException on invalid response format', () async {
         // GIVEN
         when(
           () => mockDio.get(any()),
@@ -83,7 +83,7 @@ void main() {
         // WHEN/THEN
         expect(
           () => dataSource.getResourceGroups(),
-          throwsA(isA<ServerException>()),
+          throwsA(isA<HeliumException>()),
         );
       });
     });

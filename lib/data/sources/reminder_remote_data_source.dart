@@ -86,9 +86,6 @@ class ReminderRemoteDataSourceImpl extends ReminderRemoteDataSource {
       throw handleDioError(e, s);
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
-      if (e is HeliumException) {
-        rethrow;
-      }
       throw HeliumException(message: 'An unexpected error occurred.');
     }
   }
@@ -116,9 +113,6 @@ class ReminderRemoteDataSourceImpl extends ReminderRemoteDataSource {
       throw handleDioError(e, s);
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
-      if (e is HeliumException) {
-        rethrow;
-      }
       throw HeliumException(message: 'An unexpected error occurred.');
     }
   }
@@ -148,9 +142,6 @@ class ReminderRemoteDataSourceImpl extends ReminderRemoteDataSource {
       throw handleDioError(e, s);
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
-      if (e is HeliumException) {
-        rethrow;
-      }
       throw HeliumException(message: 'An unexpected error occurred.');
     }
   }
@@ -175,9 +166,6 @@ class ReminderRemoteDataSourceImpl extends ReminderRemoteDataSource {
       throw handleDioError(e, s);
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
-      if (e is HeliumException) {
-        rethrow;
-      }
       throw HeliumException(message: 'An unexpected error occurred.');
     }
   }
