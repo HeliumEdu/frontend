@@ -9,15 +9,6 @@ import 'package:flutter/material.dart';
 import 'package:heliumapp/config/app_router.dart';
 
 /// URL synchronization helpers for deep link support.
-///
-/// These extensions keep the browser/app URL in sync with open dialogs and
-/// sub-screens. The pattern is:
-///
-/// 1. Call [setQueryParam] before opening a dialog to write the deep link URL.
-/// 2. Chain `.then((_) => clearRouteQueryParams(basePath))` on [showScreenAsDialog]
-///    to clear it when the dialog closes.
-/// 3. On a direct URL visit the screen reads the same params after data loads
-///    and opens accordingly (existing pattern, unchanged).
 extension DeepLinkContext on BuildContext {
   /// Adds or replaces [key]=[value] in the current URL without pushing a new
   /// history entry. All other query parameters are preserved.
@@ -59,26 +50,10 @@ extension DeepLinkContext on BuildContext {
   }
 }
 
-/// Strips all query parameters from the current URL without pushing a new
-/// history entry. Use this in dialog close callbacks to restore the base URL:
+/// Clears all query params from the URL if still on [expectedPath].
 ///
-/// ```dart
-/// final basePath = router.routerDelegate.currentConfiguration.uri.path;
-/// showScreenAsDialog(context, child: ...).then((_) => clearRouteQueryParams(basePath));
-/// ```
-///
-/// [expectedPath] is the route path that was active when the dialog opened.
-/// If the user navigated away before the dialog closed (e.g., "Open in
-/// Notebook" triggers `context.go()` to a new route), clearing is skipped
-/// so the new route's query params are not wiped.
-///
-/// This is a free function (not an extension) so it can be called safely from
-/// `.then()` callbacks where the original [BuildContext] may no longer be
-/// mounted.
-///
-/// Note: uses [currentUri.path] directly rather than
-/// `currentUri.replace(queryParameters: null)` — in Dart, passing null for
-/// queryParameters preserves the existing params rather than clearing them.
+/// Skips if the user navigated away (e.g., "Open in Notebook") so the new
+/// route's params aren't wiped. Free function so it's safe in `.then()`.
 void clearRouteQueryParams(String expectedPath) {
   final currentUri = router.routerDelegate.currentConfiguration.uri;
   if (currentUri.path != expectedPath) return;
@@ -86,15 +61,7 @@ void clearRouteQueryParams(String expectedPath) {
   router.replace(currentUri.path);
 }
 
-/// Navigates to [uri] via GoRouter and clears all Navigator-pushed routes.
-///
-/// Use when a sub-page needs to redirect to a different shell route (e.g.,
-/// "Open in Notebook" from a planner item). Without this, Navigator-pushed
-/// screens (notifications, entity editors) remain on the stack and the close
-/// button walks back through them instead of closing to the target route.
-///
-/// The route change fires first so that any `.then()` cleanup callbacks
-/// (e.g., `clearRouteQueryParams`) see the new path and skip clearing.
+/// Navigates to [uri] and clears all Navigator-pushed routes from the stack.
 void navigateAndClearStack(BuildContext context, String uri) {
   router.go(uri);
   Navigator.of(context).popUntil((route) => route.isFirst);

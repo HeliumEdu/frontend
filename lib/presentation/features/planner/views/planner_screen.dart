@@ -192,7 +192,6 @@ class _CalendarScreenState
     CalendarView.schedule,
   ];
 
-  // State
   List<CourseGroupModel> _courseGroups = [];
   List<CourseModel> _courses = [];
   final Map<int, CategoryModel> _categoriesMap = {};

@@ -44,7 +44,6 @@ class CourseSchedule extends StatefulWidget {
 }
 
 class CourseScheduleState extends State<CourseSchedule> {
-  // State
   bool isLoading = true;
   bool _isSubmitting = false;
   int? _scheduleId;

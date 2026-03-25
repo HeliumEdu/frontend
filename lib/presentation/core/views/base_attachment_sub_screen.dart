@@ -90,7 +90,6 @@ abstract class BaseAttachmentScreenState<T>
   @override
   ScreenType get screenType => ScreenType.subPage;
 
-  // State
   List<AttachmentFile> filesToUpload = [];
   List<AttachmentModel> attachments = [];
 

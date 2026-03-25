@@ -92,7 +92,6 @@ class _CourseAddScreenState extends MultiStepContainerState<CourseAddScreen> {
   final _detailsKey = GlobalKey<CourseDetailsState>();
   final _scheduleKey = GlobalKey<CourseScheduleState>();
 
-  // State
   int? _currentCourseId;
   int? _targetStep;
 

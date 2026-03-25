@@ -22,7 +22,6 @@ abstract class BaseDialogState<T extends StatefulWidget> extends State<T> {
   @mustBeOverridden
   BasicFormController get formController;
 
-  // State
   bool isSubmitting = false;
   String? errorMessage;
 

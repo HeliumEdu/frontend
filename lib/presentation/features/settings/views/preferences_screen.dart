@@ -51,7 +51,6 @@ class PreferencesScreenState extends State<PreferencesScreen> {
   bool _isLoading = true;
   bool _isSubmitting = false;
 
-  // State
   Color _selectedEventColor = FallbackConstants.defaultEventsColor;
   Color _selectedResourceColor = FallbackConstants.defaultResourceColor;
   Color _selectedGradeColor = FallbackConstants.defaultGradeColor;

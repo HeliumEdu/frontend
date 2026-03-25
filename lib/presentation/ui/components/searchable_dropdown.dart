@@ -32,7 +32,6 @@ class _SearchableDropdownState<T> extends State<SearchableDropdown<T>> {
   TextEditingController? _fieldController;
   FocusNode? _focusNode;
 
-  // State
   List<DropDownItem<T>> _filteredOptions = [];
   DropDownItem<T>? _selectedItem;
 

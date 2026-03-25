@@ -56,17 +56,10 @@ class DialogModeProvider extends InheritedWidget {
   }
 }
 
-/// Shows any widget using [BasePageScreenState] as a dialog with standard
-/// dialog chrome.
+/// Shows any widget using [BasePageScreenState] as a dialog.
 ///
-/// Returns the [Future] from [showDialog], which completes when the dialog is
-/// dismissed. Use this to clear URL query params on close:
-/// ```dart
-/// final basePath = router.routerDelegate.currentConfiguration.uri.path;
-/// showScreenAsDialog(context, child: MyScreen()).then((_) {
-///   clearRouteQueryParams(basePath);
-/// });
-/// ```
+/// Returns a [Future] that completes when dismissed — chain
+/// `.then((_) => clearRouteQueryParams(basePath))` to clear URL params.
 Future<void> showScreenAsDialog(
   BuildContext context, {
   required Widget child,
@@ -76,10 +69,7 @@ Future<void> showScreenAsDialog(
   EdgeInsets insetPadding = const EdgeInsets.all(16),
   bool? barrierDismissible,
 }) {
-  // Create a key for this dialog's ScaffoldMessenger
   final dialogMessengerKey = GlobalKey<ScaffoldMessengerState>();
-
-  // Capture the initial route to detect browser navigation
   final initialLocation = router.routerDelegate.currentConfiguration.uri
       .toString();
 
@@ -216,7 +206,6 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
     bottom: 0,
   );
 
-  // State
   UserSettingsModel? userSettings;
   bool settingsLoaded = false;
   bool settingsError = false;

@@ -41,7 +41,6 @@ class _ForgotPasswordScreenState
   final BasicFormController _formController = BasicFormController();
   final TextEditingController _emailController = TextEditingController();
 
-  // State
   bool _emailSent = false;
 
   @override

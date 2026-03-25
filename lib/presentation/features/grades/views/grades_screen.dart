@@ -161,20 +161,18 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
       5.0; // Default boost above current grade for calculator
   static const double _chartAnimationDurationMs = 250;
 
-  // State
   List<CourseGroupModel> _courseGroups = [];
   List<GradeCourseGroupModel> _grades = [];
   int? _selectedGroupId;
   final Set<int> _expandedCourseIds = {};
   final Map<int, GlobalKey> _courseCardKeys = {};
 
-  // Graph state
   _GraphViewMode _graphViewMode = const _GraphViewMode.term();
   final Map<String, bool> _visibleSeries = {}; // series ID -> visibility
   bool _autoAdjustToGradedRange =
-      false; // Fit X-axis to actual grade point dates
+      false;
   bool _hideLegend = false;
-  bool _graphExpanded = true; // Whether the graph area is expanded
+  bool _graphExpanded = true;
 
   @override
   Future<UserSettingsModel?> loadSettings() {

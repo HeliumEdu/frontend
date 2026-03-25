@@ -59,7 +59,6 @@ class CourseDetails extends StatefulWidget {
 class CourseDetailsState extends State<CourseDetails> {
   final CourseFormController _formController = CourseFormController();
 
-  // State
   bool isLoading = true;
   bool _isSubmitting = false;
 

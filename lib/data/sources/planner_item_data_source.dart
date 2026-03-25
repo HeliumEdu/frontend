@@ -55,7 +55,6 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
 
   final Map<String, List<PlannerItemBaseModel>> _dateRangeCache = {};
 
-  // State
   bool _hasLoadedInitialData = false;
   Map<int, bool> _filteredCourses = {};
   List<String> _filterCategories = [];

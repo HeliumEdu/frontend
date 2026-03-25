@@ -121,7 +121,6 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen>
   @override
   bool get showActionButton => _courseGroups.isNotEmpty;
 
-  // State
   List<CourseGroupModel> _courseGroups = [];
   final Map<int, List<CourseModel>> _coursesMap = {};
   int? _selectedGroupId;

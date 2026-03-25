@@ -109,7 +109,6 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
 
   final themeNotifier = ThemeNotifier();
 
-  // State
   SettingsSubScreen? _activeSubScreen;
   String _email = '';
   String? _emailChanging;

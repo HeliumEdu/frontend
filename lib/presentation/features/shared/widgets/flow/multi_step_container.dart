@@ -61,7 +61,6 @@ abstract class MultiStepContainerState<T extends MultiStepContainer>
 
   bool get enableNextSteps => false;
 
-  // State
   late int _currentStep;
   int _previousStep = 0;
 

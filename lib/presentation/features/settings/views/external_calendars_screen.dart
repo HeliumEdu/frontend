@@ -43,7 +43,6 @@ class ExternalCalendarsScreenState extends State<ExternalCalendarsScreen> {
   final ExternalCalendarFormController _formController =
       ExternalCalendarFormController();
 
-  // State
   List<ExternalCalendarModel> _externalCalendars = [];
   final Set<int> _updatingCalendarIds = {};
 

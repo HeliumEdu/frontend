@@ -119,7 +119,6 @@ class _PlannerItemAddScreenState
     extends MultiStepContainerState<PlannerItemAddScreen> {
   final _detailsKey = GlobalKey<PlannerItemDetailsState>();
 
-  // State
   int? _currentEntityId;
   bool? _currentIsEvent;
   int? _targetStep;

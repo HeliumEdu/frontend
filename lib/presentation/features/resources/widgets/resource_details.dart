@@ -60,7 +60,6 @@ class ResourceDetailsState extends State<ResourceDetails> {
   final FocusNode _titleFocusNode = FocusNode();
   final FocusNode _notesFocusNode = FocusNode();
 
-  // State
   List<CourseModel> _courses = [];
   bool isLoading = true;
   bool _isSubmitting = false;

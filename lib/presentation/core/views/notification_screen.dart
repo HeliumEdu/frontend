@@ -552,11 +552,7 @@ class _NotificationsScreenState
 
     if (!mounted) return;
 
-    // On desktop, the notifications panel is a dialog. Close it first, then
-    // set the entity param URL. Future.delayed(Duration.zero) runs as a timer
-    // event (after all microtasks), ensuring the dialog close completes before
-    // the URL change. The shell screen's router listener detects the new param
-    // and opens the editor dialog.
+    // Desktop: close dialog, then set entity param so shell opens the editor.
     if (DialogModeProvider.isDialogMode(context)) {
       final homeworkId = notification.reminder.homework?.id;
       final eventId = notification.reminder.event?.id;

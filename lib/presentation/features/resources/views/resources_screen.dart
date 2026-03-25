@@ -123,7 +123,6 @@ class _ResourcesScreenState
   @override
   bool get showActionButton => _resourceGroups.isNotEmpty;
 
-  // State
   List<ResourceGroupModel> _resourceGroups = [];
   final Map<int, List<ResourceModel>> _resourcesMap = {};
   Map<int, CourseModel> _coursesMap = {};
