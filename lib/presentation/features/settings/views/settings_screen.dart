@@ -68,7 +68,9 @@ Future<void> showSettings(BuildContext context, {int? initialTab}) {
     child: SettingsScreen(initialTab: initialTab),
     width: isMobile ? double.infinity : AppConstants.leftPanelDialogWidth,
     alignment: isMobile ? Alignment.center : Alignment.centerLeft,
-    insetPadding: EdgeInsets.zero,
+    insetPadding: isMobile
+        ? EdgeInsets.zero
+        : const EdgeInsets.only(top: 16, bottom: 16, left: 16, right: 100),
   );
 
   if (basePath != null) {
