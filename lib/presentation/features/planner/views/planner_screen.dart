@@ -1394,6 +1394,7 @@ class _CalendarScreenState
     if (isEnteringNonCalendarView && !wasInNonCalendarView) {
       _storedSelectedDate = _calendarController.selectedDate;
       _storedDisplayDate = _calendarController.displayDate;
+      _todosDataGridKey.currentState?.resetForViewChange();
     }
 
     if (isEnteringCalendarView && wasInNonCalendarView) {
