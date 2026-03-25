@@ -9,7 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:heliumapp/config/app_route.dart';
-import 'package:heliumapp/config/route_args.dart';
+import 'package:heliumapp/config/app_router.dart';
 import 'package:heliumapp/data/models/planner/request/note_request_model.dart';
 import 'package:heliumapp/presentation/features/notes/bloc/note_bloc.dart';
 import 'package:heliumapp/presentation/features/notes/bloc/note_event.dart';
@@ -20,32 +20,44 @@ import 'package:heliumapp/presentation/features/shared/bloc/core/base_event.dart
 import 'package:heliumapp/presentation/features/shared/widgets/flow/multi_step_container.dart';
 import 'package:heliumapp/presentation/features/resources/widgets/resource_details.dart';
 import 'package:heliumapp/utils/app_globals.dart';
+import 'package:heliumapp/utils/deep_link_helpers.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:heliumapp/utils/snack_bar_helpers.dart';
 
 /// Shows resource add/edit as a dialog on desktop, or navigates on mobile
-void showResourceAdd(
+Future<void> showResourceAdd(
   BuildContext context, {
   required int resourceGroupId,
   int? resourceId,
   bool isEdit = false,
+  int initialStep = 0,
 }) {
   final resourceBloc = context.read<ResourceBloc>();
   final noteBloc = context.read<NoteBloc>();
+  final idValue = resourceId?.toString() ?? 'new';
 
   if (Responsive.isMobile(context)) {
-    context.push(
-      AppRoute.resourcesAddScreen,
-      extra: ResourceAddArgs(
-        resourceBloc: resourceBloc,
-        noteBloc: noteBloc,
-        resourceGroupId: resourceGroupId,
-        resourceId: resourceId,
-        isEdit: isEdit,
+    return Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => MultiBlocProvider(
+          providers: [
+            BlocProvider<ResourceBloc>.value(value: resourceBloc),
+            BlocProvider<NoteBloc>.value(value: noteBloc),
+          ],
+          child: ResourceAddScreen(
+            resourceGroupId: resourceGroupId,
+            resourceId: resourceId,
+            isEdit: isEdit,
+            isNew: !isEdit,
+            initialStep: initialStep,
+          ),
+        ),
       ),
     );
   } else {
-    showScreenAsDialog(
+    final basePath = router.routerDelegate.currentConfiguration.uri.path;
+    context.setQueryParam(DeepLinkParam.id, idValue);
+    return showScreenAsDialog(
       context,
       barrierDismissible: false,
       child: MultiBlocProvider(
@@ -58,11 +70,12 @@ void showResourceAdd(
           resourceId: resourceId,
           isEdit: isEdit,
           isNew: !isEdit,
+          initialStep: initialStep,
         ),
       ),
       width: AppConstants.centeredDialogWidth,
       alignment: Alignment.center,
-    );
+    ).then((_) => clearRouteQueryParams(basePath));
   }
 }
 
@@ -76,6 +89,7 @@ class ResourceAddScreen extends MultiStepContainer {
     this.resourceId,
     required super.isEdit,
     required super.isNew,
+    super.initialStep = 0,
   });
 
   @override
@@ -123,6 +137,9 @@ class _ResourceAddScreenState
             final noteContent = _detailsKey.currentState?.noteContent;
 
             if (state.redirectToNotebook) {
+              _detailsKey.currentState?.resetSubmitting();
+              setState(() => isSubmitting = false);
+
               // CREATE + redirect: note content must be created first to get its ID
               if (noteContent != null) {
                 _pendingRedirectToNotebook = true;
@@ -134,7 +151,7 @@ class _ResourceAddScreenState
                   ),
                 ));
               } else {
-                context.go('${AppRoute.notebookScreen}?resourceId=${state.resource.id}&resourceGroupId=${widget.resourceGroupId}');
+                context.go('${AppRoute.notebookScreen}?${DeepLinkParam.linkResourceId}=${state.resource.id}');
               }
             } else {
               if (noteContent != null) {
@@ -146,11 +163,20 @@ class _ResourceAddScreenState
                   ),
                 ));
               }
+              if (!Responsive.isMobile(context)) {
+                context.setQueryParam(
+                  DeepLinkParam.id,
+                  state.resource.id.toString(),
+                );
+              }
               showSnackBar(context, 'Resource created', useRootMessenger: true);
               cancelAction();
             }
           } else if (state is ResourceUpdated) {
             if (state.redirectToNotebook) {
+              _detailsKey.currentState?.resetSubmitting();
+              setState(() => isSubmitting = false);
+
               final linkedNoteId = _detailsKey.currentState?.linkedNoteId;
               final noteContent = _detailsKey.currentState?.noteContent;
 
@@ -161,8 +187,8 @@ class _ResourceAddScreenState
                 // New note being created by NoteBloc — wait for NoteCreated
                 _pendingRedirectToNotebook = true;
               } else {
-                // No note content — navigate with resourceId to create one in notebook
-                context.go('${AppRoute.notebookScreen}?resourceId=${state.resource.id}&resourceGroupId=${widget.resourceGroupId}');
+                // No note content — navigate with linkResourceId to create one in notebook
+                context.go('${AppRoute.notebookScreen}?${DeepLinkParam.linkResourceId}=${state.resource.id}');
               }
             } else {
               cancelAction();

@@ -25,6 +25,7 @@ abstract class ResourceRepository {
   Future<void> deleteResourceGroup({required int id});
 
   Future<List<ResourceModel>> getResources({
+    int? id,
     int? groupId,
     bool? shownOnCalendar,
     bool forceRefresh = false,

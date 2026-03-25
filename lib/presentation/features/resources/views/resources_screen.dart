@@ -8,6 +8,7 @@
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/core/dio_client.dart';
 import 'package:heliumapp/data/models/planner/course_model.dart';
@@ -21,6 +22,7 @@ import 'package:heliumapp/data/sources/course_remote_data_source.dart';
 import 'package:heliumapp/data/sources/note_remote_data_source.dart';
 import 'package:heliumapp/data/sources/resource_remote_data_source.dart';
 import 'package:heliumapp/presentation/core/views/base_page_screen_state.dart';
+import 'package:heliumapp/presentation/core/views/deep_link_mixin.dart';
 import 'package:heliumapp/presentation/features/planner/dialogs/confirm_delete_dialog.dart';
 import 'package:heliumapp/presentation/features/notes/bloc/note_bloc.dart';
 import 'package:heliumapp/presentation/features/notes/bloc/note_state.dart';
@@ -94,17 +96,24 @@ class _ResourcesProvidedScreen extends StatefulWidget {
 }
 
 class _ResourcesScreenState
-    extends BasePageScreenState<_ResourcesProvidedScreen> {
+    extends BasePageScreenState<_ResourcesProvidedScreen>
+    with DeepLinkMixin {
   @override
   String get screenTitle => 'Resources';
 
   @override
+  String get routePath => AppRoute.resourcesScreen;
+
+  @override
   VoidCallback get actionButtonCallback => () {
     if (_selectedGroupId != null) {
-      showResourceAdd(
-        context,
-        resourceGroupId: _selectedGroupId!,
-        isEdit: false,
+      openWithGuard(
+        '${DeepLinkParam.id}:new',
+        () => showResourceAdd(
+          context,
+          resourceGroupId: _selectedGroupId!,
+          isEdit: false,
+        ),
       );
     } else {
       showSnackBar(context, 'Create a group first', type: SnackType.info);
@@ -351,6 +360,8 @@ class _ResourcesScreenState
 
       isLoading = false;
     });
+
+    openFromQueryParams();
   }
 
   Widget _buildResourceCard(BuildContext context, ResourceModel resource) {
@@ -479,11 +490,56 @@ class _ResourcesScreenState
   }
 
   void _onEdit(ResourceModel resource) {
-    showResourceAdd(
-      context,
-      resourceGroupId: _selectedGroupId!,
-      resourceId: resource.id,
-      isEdit: true,
+    openWithGuard(
+      '${DeepLinkParam.id}:${resource.id}',
+      () => showResourceAdd(
+        context,
+        resourceGroupId: resource.resourceGroup,
+        resourceId: resource.id,
+        isEdit: true,
+      ),
     );
+  }
+
+  @override
+  bool handleRouteEntityParams(Map<String, String> queryParams) {
+    final idParam = queryParams[DeepLinkParam.id];
+    if (idParam == null) return false;
+
+    final parsed = DeepLinkParam.parseId(idParam);
+    final tabValue = int.tryParse(queryParams[DeepLinkParam.tab] ?? '') ?? 1;
+    final initialStep = (tabValue - 1).clamp(0, 2);
+
+    if (parsed.isNew) {
+      if (_selectedGroupId == null) return false;
+      return openFromDeepLink('${DeepLinkParam.id}:new', () {
+        return showResourceAdd(
+          context,
+          resourceGroupId: _selectedGroupId!,
+          isEdit: false,
+          initialStep: initialStep,
+        );
+      });
+    }
+
+    if (parsed.id != null) {
+      ResourceModel? resource;
+      for (final resources in _resourcesMap.values) {
+        resource = resources.firstWhereOrNull((r) => r.id == parsed.id);
+        if (resource != null) break;
+      }
+      if (resource == null) return false;
+      return openFromDeepLink('${DeepLinkParam.id}:${parsed.id}', () {
+        return showResourceAdd(
+          context,
+          resourceGroupId: resource!.resourceGroup,
+          resourceId: resource.id,
+          isEdit: true,
+          initialStep: initialStep,
+        );
+      });
+    }
+
+    return false;
   }
 }

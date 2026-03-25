@@ -38,6 +38,7 @@ abstract class ResourceRemoteDataSource extends BaseDataSource {
   Future<void> deleteResourceGroup({required int groupId});
 
   Future<List<ResourceModel>> getResources({
+    int? id,
     int? groupId,
     bool? shownOnCalendar,
     bool forceRefresh = false,
@@ -241,6 +242,7 @@ class ResourceRemoteDataSourceImpl extends ResourceRemoteDataSource {
 
   @override
   Future<List<ResourceModel>> getResources({
+    int? id,
     int? groupId,
     bool? shownOnCalendar,
     bool forceRefresh = false,
@@ -251,6 +253,9 @@ class ResourceRemoteDataSourceImpl extends ResourceRemoteDataSource {
 
       // shownOnCalendar requires server-side filtering (hierarchical check on parent groups)
       final Map<String, dynamic> queryParameters = {};
+      if (id != null) {
+        queryParameters['id'] = id;
+      }
       if (shownOnCalendar != null) {
         queryParameters['shown_on_calendar'] = shownOnCalendar;
       }

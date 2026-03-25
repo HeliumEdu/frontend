@@ -7,10 +7,8 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
 import 'package:heliumapp/config/app_router.dart';
 import 'package:heliumapp/config/app_theme.dart';
-import 'package:heliumapp/config/route_args.dart';
 import 'package:heliumapp/core/dio_client.dart';
 import 'package:heliumapp/data/models/auth/user_model.dart';
 import 'package:heliumapp/presentation/navigation/shell/navigation_shell.dart';
@@ -60,10 +58,18 @@ class DialogModeProvider extends InheritedWidget {
 
 /// Shows any widget using [BasePageScreenState] as a dialog with standard
 /// dialog chrome.
-void showScreenAsDialog(
+///
+/// Returns the [Future] from [showDialog], which completes when the dialog is
+/// dismissed. Use this to clear URL query params on close:
+/// ```dart
+/// final basePath = router.routerDelegate.currentConfiguration.uri.path;
+/// showScreenAsDialog(context, child: MyScreen()).then((_) {
+///   clearRouteQueryParams(basePath);
+/// });
+/// ```
+Future<void> showScreenAsDialog(
   BuildContext context, {
   required Widget child,
-  RouteArgs? extra,
   double width = 500,
   double? height,
   AlignmentGeometry alignment = Alignment.center,
@@ -77,7 +83,7 @@ void showScreenAsDialog(
   final initialLocation = router.routerDelegate.currentConfiguration.uri
       .toString();
 
-  showDialog(
+  return showDialog(
     context: context,
     barrierDismissible:
         barrierDismissible ?? !Responsive.isTouchDevice(context),
@@ -86,24 +92,12 @@ void showScreenAsDialog(
       final screenHeight = MediaQuery.of(dialogContext).size.height;
       final effectiveHeight = height ?? screenHeight - 32;
 
-      Widget dialogContent = DialogModeProvider(
+      final Widget dialogContent = DialogModeProvider(
         width: width,
         height: effectiveHeight,
         scaffoldMessengerKey: dialogMessengerKey,
         child: child,
       );
-
-      final providers = extra?.toProviders();
-      if (providers != null && providers.isNotEmpty) {
-        _log.info(
-          'Using ${providers.length} inherited provider(s): '
-          '${providers.map((p) => p.runtimeType).join(', ')}',
-        );
-        dialogContent = MultiBlocProvider(
-          providers: providers,
-          child: dialogContent,
-        );
-      }
 
       return _DialogRouteListener(
         initialLocation: initialLocation,
@@ -204,11 +198,7 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
 
   Function get cancelAction => () {
     if (!mounted) return;
-    if (DialogModeProvider.isDialogMode(context)) {
-      Navigator.of(context).pop();
-    } else {
-      context.pop();
-    }
+    Navigator.of(context).pop();
   };
 
   Function? get saveAction => null;

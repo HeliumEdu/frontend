@@ -13,10 +13,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_quill/flutter_quill.dart';
-import 'package:go_router/go_router.dart';
 import 'package:heliumapp/config/app_route.dart';
+import 'package:heliumapp/config/app_router.dart';
 import 'package:heliumapp/config/app_theme.dart';
-import 'package:heliumapp/config/route_args.dart';
 import 'package:heliumapp/data/models/planner/note_model.dart';
 import 'package:heliumapp/data/models/planner/request/note_request_model.dart';
 import 'package:heliumapp/presentation/core/views/base_page_screen_state.dart';
@@ -33,39 +32,46 @@ import 'package:heliumapp/presentation/ui/components/resource_title_label.dart';
 import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
 import 'package:heliumapp/presentation/ui/layout/page_header.dart';
 import 'package:heliumapp/utils/app_globals.dart';
+import 'package:heliumapp/utils/deep_link_helpers.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
 enum SaveStatus { unsaved, saving, saved, error }
 
-void showNoteAdd(
+Future<void> showNoteAdd(
   BuildContext context, {
   required bool isEdit,
   required bool isNew,
   int? noteId,
-  int? homeworkId,
-  int? eventId,
-  int? resourceId,
-  int? resourceGroupId,
+  int? linkHomeworkId,
+  int? linkEventId,
+  int? linkResourceId,
 }) {
   final noteBloc = context.read<NoteBloc>();
+  final idParam = noteId?.toString() ?? (isNew ? 'new' : null);
 
   if (Responsive.isMobile(context)) {
-    context.push(
-      AppRoute.notebookEditScreen,
-      extra: NoteAddArgs(
-        noteBloc: noteBloc,
-        isEdit: !isNew,
-        isNew: isNew,
-        noteId: noteId,
-        homeworkId: homeworkId,
-        eventId: eventId,
-        resourceId: resourceId,
-        resourceGroupId: resourceGroupId,
+    return Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => BlocProvider<NoteBloc>.value(
+          value: noteBloc,
+          child: NoteAddScreen(
+            isEdit: !isNew,
+            isNew: isNew,
+            noteId: noteId,
+            linkHomeworkId: linkHomeworkId,
+            linkEventId: linkEventId,
+            linkResourceId: linkResourceId,
+          ),
+        ),
       ),
     );
   } else {
-    showScreenAsDialog(
+    final basePath = router.routerDelegate.currentConfiguration.uri.path;
+    if (idParam != null) {
+      context.setQueryParam(DeepLinkParam.id, idParam);
+    }
+    return showScreenAsDialog(
       context,
       barrierDismissible: false,
       child: BlocProvider<NoteBloc>.value(
@@ -74,16 +80,15 @@ void showNoteAdd(
           isEdit: !isNew,
           isNew: isNew,
           noteId: noteId,
-          homeworkId: homeworkId,
-          eventId: eventId,
-          resourceId: resourceId,
-          resourceGroupId: resourceGroupId,
+          linkHomeworkId: linkHomeworkId,
+          linkEventId: linkEventId,
+          linkResourceId: linkResourceId,
         ),
       ),
       width: double.infinity,
       insetPadding: const EdgeInsets.all(32),
       alignment: Alignment.center,
-    );
+    ).then((_) => clearRouteQueryParams(basePath));
   }
 }
 
@@ -91,20 +96,18 @@ class NoteAddScreen extends StatefulWidget {
   final bool isEdit;
   final bool isNew;
   final int? noteId;
-  final int? homeworkId;
-  final int? eventId;
-  final int? resourceId;
-  final int? resourceGroupId;
+  final int? linkHomeworkId;
+  final int? linkEventId;
+  final int? linkResourceId;
 
   const NoteAddScreen({
     super.key,
     required this.isEdit,
     required this.isNew,
     this.noteId,
-    this.homeworkId,
-    this.eventId,
-    this.resourceId,
-    this.resourceGroupId,
+    this.linkHomeworkId,
+    this.linkEventId,
+    this.linkResourceId,
   });
 
   @override
@@ -152,10 +155,9 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
       FetchNoteScreenDataEvent(
         origin: EventOrigin.subScreen,
         noteId: widget.noteId,
-        homeworkId: widget.homeworkId,
-        eventId: widget.eventId,
-        resourceId: widget.resourceId,
-        resourceGroupId: widget.resourceGroupId,
+        linkHomeworkId: widget.linkHomeworkId,
+        linkEventId: widget.linkEventId,
+        linkResourceId: widget.linkResourceId,
       ),
     );
   }
@@ -195,7 +197,9 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
     // Check if content actually changed from last saved state, comparing Delta
     // JSON so that formatting-only changes (bold, italic, etc.) are detected
     final currentTitle = _titleController.text;
-    final currentContent = jsonEncode(_quillController.document.toDelta().toJson());
+    final currentContent = jsonEncode(
+      _quillController.document.toDelta().toJson(),
+    );
     final savedTitle = _note?.title ?? '';
     final savedContent = _getSavedContentAsJson();
     if (currentTitle == savedTitle && currentContent == savedContent) {
@@ -268,9 +272,9 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
           request: NoteRequestModel(
             title: title,
             content: {'ops': content},
-            homeworkId: widget.homeworkId,
-            eventId: widget.eventId,
-            resourceId: widget.resourceId,
+            homeworkId: widget.linkHomeworkId,
+            eventId: widget.linkEventId,
+            resourceId: widget.linkResourceId,
           ),
         ),
       );
@@ -299,7 +303,7 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
         context,
         'Auto-save disabled. Connect to the Internet and manually save to re-enable.',
         type: SnackType.error,
-        seconds: 5
+        seconds: 5,
       );
     } else {
       setState(() {
@@ -338,7 +342,11 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
           .trim()
           .isEmpty;
 
-      if (_note?.id == null && bodyIsEmpty) {
+      if (_note?.id == null &&
+          (widget.linkEventId != null ||
+          widget.linkHomeworkId != null ||
+          widget.linkResourceId != null) &&
+          bodyIsEmpty) {
         showSnackBar(
           context,
           'Note was empty, so nothing to save',
@@ -362,9 +370,9 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
             request: NoteRequestModel(
               title: title,
               content: {'ops': content},
-              homeworkId: widget.homeworkId,
-              eventId: widget.eventId,
-              resourceId: widget.resourceId,
+              homeworkId: widget.linkHomeworkId,
+              eventId: widget.linkEventId,
+              resourceId: widget.linkResourceId,
             ),
           ),
         );
@@ -444,6 +452,14 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
                 _autoSaveDisabled = false;
               });
               _isAutoSaving = false;
+              // Update URL from id=new to the actual ID
+              if (!Responsive.isMobile(context)) {
+                context.setQueryParam(
+                  DeepLinkParam.id,
+                  state.note.id.toString(),
+                );
+              }
+              showSnackBar(context, 'Note created');
             } else {
               // Manual save - show message and close
               showSnackBar(context, 'Note created', useRootMessenger: true);
@@ -715,10 +731,7 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
     final button = InkWell(
       onTap: isDisabled ? null : _onSaveIconTapped,
       borderRadius: BorderRadius.circular(16),
-      child: Padding(
-        padding: const EdgeInsets.all(8),
-        child: iconWidget,
-      ),
+      child: Padding(padding: const EdgeInsets.all(8), child: iconWidget),
     );
 
     // No tooltip when empty
@@ -726,10 +739,7 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
       return button;
     }
 
-    return Tooltip(
-      message: tooltip,
-      child: button,
-    );
+    return Tooltip(message: tooltip, child: button);
   }
 
   Widget _buildLinkedEntityBadge() {
@@ -755,8 +765,8 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
     final categoryColor = _note?.categoryColor;
     final badgeColor =
         (userSettings?.colorByCategory ?? false) && categoryColor != null
-            ? categoryColor
-            : courseColor;
+        ? categoryColor
+        : courseColor;
     return GenericLabel(
       label: title,
       color: badgeColor ?? context.colorScheme.primary,

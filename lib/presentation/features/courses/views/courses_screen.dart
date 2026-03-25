@@ -8,7 +8,7 @@
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
+import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/utils/color_helpers.dart';
 import 'package:heliumapp/core/dio_client.dart';
@@ -32,6 +32,7 @@ import 'package:heliumapp/presentation/features/courses/bloc/course_state.dart';
 import 'package:heliumapp/presentation/features/planner/dialogs/confirm_delete_dialog.dart';
 import 'package:heliumapp/presentation/features/courses/dialogs/course_group_dialog.dart';
 import 'package:heliumapp/presentation/core/views/base_page_screen_state.dart';
+import 'package:heliumapp/presentation/core/views/deep_link_mixin.dart';
 import 'package:heliumapp/presentation/features/courses/views/course_add_screen.dart';
 import 'package:heliumapp/presentation/ui/components/course_title_label.dart';
 import 'package:heliumapp/presentation/ui/feedback/empty_card.dart';
@@ -92,18 +93,25 @@ class _CoursesProvidedScreen extends StatefulWidget {
   State<_CoursesProvidedScreen> createState() => _CoursesScreenState();
 }
 
-class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen> {
+class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen>
+    with DeepLinkMixin {
   @override
   String get screenTitle => 'Classes';
 
   @override
+  String get routePath => AppRoute.coursesScreen;
+
+  @override
   VoidCallback get actionButtonCallback => () {
     if (_selectedGroupId != null) {
-      showCourseAdd(
-        context,
-        courseGroupId: _selectedGroupId!,
-        isEdit: false,
-        isNew: true,
+      openWithGuard(
+        '${DeepLinkParam.id}:new',
+        () => showCourseAdd(
+          context,
+          courseGroupId: _selectedGroupId!,
+          isEdit: false,
+          isNew: true,
+        ),
       );
     } else {
       showSnackBar(context, 'Create a group first', type: SnackType.info);
@@ -335,33 +343,51 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen> {
       isLoading = false;
     });
 
-    // Check if we should open a course edit dialog based on query parameters
-    final queryParams = GoRouterState.of(context).uri.queryParameters;
-    final idParam = queryParams['id'];
-    final stepParam = queryParams['step'];
+    openFromQueryParams();
+  }
 
-    if (idParam != null) {
-      final courseId = int.tryParse(idParam);
-      final step = int.tryParse(stepParam ?? '0') ?? 0;
+  @override
+  bool handleRouteEntityParams(Map<String, String> queryParams) {
+    final idParam = queryParams[DeepLinkParam.id];
+    if (idParam == null) return false;
 
-      if (courseId != null) {
-        final course = state.courses.firstWhereOrNull((c) => c.id == courseId);
+    final parsed = DeepLinkParam.parseId(idParam);
+    final tabValue = int.tryParse(queryParams[DeepLinkParam.tab] ?? '') ?? 1;
+    final initialStep = (tabValue - 1).clamp(0, 3);
 
-        if (course != null) {
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (!mounted) return;
-            showCourseAdd(
-              context,
-              courseGroupId: course.courseGroup,
-              courseId: course.id,
-              isEdit: true,
-              isNew: false,
-              initialStep: step,
-            );
-          });
-        }
-      }
+    if (parsed.isNew) {
+      if (_selectedGroupId == null) return false;
+      return openFromDeepLink('${DeepLinkParam.id}:new', () {
+        return showCourseAdd(
+          context,
+          courseGroupId: _selectedGroupId!,
+          isEdit: false,
+          isNew: true,
+          initialStep: initialStep,
+        );
+      });
     }
+
+    if (parsed.id != null) {
+      CourseModel? course;
+      for (final courses in _coursesMap.values) {
+        course = courses.firstWhereOrNull((c) => c.id == parsed.id);
+        if (course != null) break;
+      }
+      if (course == null) return false;
+      return openFromDeepLink('${DeepLinkParam.id}:${parsed.id}', () {
+        return showCourseAdd(
+          context,
+          courseGroupId: course!.courseGroup,
+          courseId: course.id,
+          isEdit: true,
+          isNew: false,
+          initialStep: initialStep,
+        );
+      });
+    }
+
+    return false;
   }
 
   Widget _buildCoursesCard(BuildContext context, CourseModel course) {
@@ -634,12 +660,15 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen> {
   }
 
   void _onEdit(CourseModel course) {
-    showCourseAdd(
-      context,
-      courseGroupId: course.courseGroup,
-      courseId: course.id,
-      isEdit: true,
-      isNew: false,
+    openWithGuard(
+      '${DeepLinkParam.id}:${course.id}',
+      () => showCourseAdd(
+        context,
+        courseGroupId: course.courseGroup,
+        courseId: course.id,
+        isEdit: true,
+        isNew: false,
+      ),
     );
   }
 }

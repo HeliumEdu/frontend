@@ -51,8 +51,8 @@ class PageHeader extends StatelessWidget {
             IconButton(
               visualDensity: VisualDensity.compact,
               onPressed: () {
-                if (context.canPop()) {
-                  context.pop();
+                if (Navigator.of(context).canPop()) {
+                  Navigator.of(context).pop();
                 } else {
                   context.go(AppRoute.plannerScreen);
                 }

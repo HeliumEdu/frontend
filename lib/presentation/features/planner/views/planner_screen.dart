@@ -12,6 +12,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:heliumapp/config/app_route.dart';
+import 'package:heliumapp/config/app_router.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/core/dio_client.dart';
 import 'package:heliumapp/data/models/auth/user_model.dart';
@@ -43,7 +44,7 @@ import 'package:heliumapp/data/sources/external_calendar_remote_data_source.dart
 import 'package:heliumapp/data/sources/homework_remote_data_source.dart';
 import 'package:heliumapp/data/sources/planner_item_data_source.dart';
 import 'package:heliumapp/presentation/core/views/base_page_screen_state.dart';
-import 'package:heliumapp/presentation/core/views/notification_screen.dart';
+import 'package:heliumapp/presentation/core/views/deep_link_mixin.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_bloc.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_state.dart';
 import 'package:heliumapp/presentation/features/courses/bloc/category_bloc.dart';
@@ -62,7 +63,6 @@ import 'package:heliumapp/presentation/features/planner/dialogs/confirm_delete_d
 import 'package:heliumapp/presentation/features/planner/views/planner_item_add_screen.dart';
 import 'package:heliumapp/presentation/features/planner/widgets/day_popout_dialog.dart';
 import 'package:heliumapp/presentation/features/planner/widgets/todos_data_grid.dart';
-import 'package:heliumapp/presentation/features/settings/views/settings_screen.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/core/base_event.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/core/provider_helpers.dart';
 import 'package:heliumapp/presentation/ui/components/helium_icon_button.dart';
@@ -131,7 +131,8 @@ class _CalendarProvidedScreen extends StatefulWidget {
 }
 
 class _CalendarScreenState
-    extends BasePageScreenState<_CalendarProvidedScreen> {
+    extends BasePageScreenState<_CalendarProvidedScreen>
+    with DeepLinkMixin {
   static const _agendaHeightMobile = 53.0;
   static const _agendaHeightDesktop = 57.0;
   static const _uiAnimationDuration = Duration(milliseconds: 300);
@@ -140,6 +141,9 @@ class _CalendarScreenState
 
   @override
   String get screenTitle => 'Planner';
+
+  @override
+  String get routePath => AppRoute.plannerScreen;
 
   @override
   List<BlocProvider>? get inheritableProviders => [
@@ -158,15 +162,15 @@ class _CalendarScreenState
         ? truncatedNow
         : _calendarController.selectedDate;
 
-    final attachmentBloc = context.read<AttachmentBloc>();
-
-    showPlannerItemAdd(
-      context,
-      initialDate: initialDate,
-      isFromMonthView: _calendarController.view == CalendarView.month,
-      isEdit: false,
-      isNew: true,
-      attachmentBloc: attachmentBloc,
+    openWithGuard(
+      '${DeepLinkParam.homeworkId}:new',
+      () => showPlannerItemAdd(
+        context,
+        initialDate: initialDate,
+        isFromMonthView: _calendarController.view == CalendarView.month,
+        isEdit: false,
+        isNew: true,
+      ),
     );
   };
 
@@ -187,6 +191,10 @@ class _CalendarScreenState
     CalendarView.day,
     CalendarView.schedule,
   ];
+
+  @override
+  Map<String, String> readQueryParams() =>
+      router.routerDelegate.currentConfiguration.uri.queryParameters;
 
   // State
   List<CourseGroupModel> _courseGroups = [];
@@ -236,7 +244,6 @@ class _CalendarScreenState
     });
 
     _goToToday();
-
   }
 
   @override
@@ -322,29 +329,8 @@ class _CalendarScreenState
           if (state is PlannerScreenDataFetched) {
             _populateInitialCalendarStateData(state);
 
-            // Check if we should open a dialog based on query parameters
-            final openDialog = GoRouterState.of(
-              context,
-            ).uri.queryParameters['dialog'];
-            if (openDialog != null) {
-              WidgetsBinding.instance.addPostFrameCallback((_) {
-                if (!mounted) return;
-
-                // Clear the query parameter from URL
-                context.go(
-                  GoRouterState.of(
-                    context,
-                  ).uri.replace(queryParameters: {}).toString(),
-                );
-
-                // Open the appropriate dialog
-                if (openDialog == 'notifications') {
-                  showNotifications(context);
-                } else if (openDialog == 'settings') {
-                  showSettings(context);
-                }
-              });
-            }
+            // Check if we should open a dialog or entity based on query params
+            openFromQueryParams();
           }
         },
       ),
@@ -775,15 +761,19 @@ class _CalendarScreenState
         ? plannerItem.id
         : null;
 
-    final attachmentBloc = context.read<AttachmentBloc>();
+    final paramKey = homeworkId != null
+        ? '${DeepLinkParam.homeworkId}:$homeworkId'
+        : '${DeepLinkParam.eventId}:$eventId';
 
-    showPlannerItemAdd(
-      context,
-      eventId: eventId,
-      homeworkId: homeworkId,
-      isEdit: true,
-      isNew: false,
-      attachmentBloc: attachmentBloc,
+    openWithGuard(
+      paramKey,
+      () => showPlannerItemAdd(
+        context,
+        eventId: eventId,
+        homeworkId: homeworkId,
+        isEdit: true,
+        isNew: false,
+      ),
     );
 
     return true;
@@ -2709,7 +2699,7 @@ class _CalendarScreenState
         label: 'Go',
         textColor: context.semanticColors.onInfo,
         onPressed: () {
-          context.go('${AppRoute.coursesScreen}?id=$courseId&step=1');
+          context.go('${AppRoute.coursesScreen}?id=$courseId&${DeepLinkParam.tab}=2');
         },
       ),
       type: SnackType.info,
@@ -2803,6 +2793,7 @@ class _CalendarScreenState
       ),
     );
   }
+
 
   void _populateInitialCalendarStateData(PlannerScreenDataFetched state) {
     _log.info(

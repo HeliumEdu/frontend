@@ -8,10 +8,8 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:heliumapp/config/app_route.dart';
-import 'package:heliumapp/config/route_args.dart';
 import 'package:heliumapp/config/pref_service.dart';
 import 'package:heliumapp/core/analytics_service.dart';
 import 'package:heliumapp/core/dio_client.dart';
@@ -23,18 +21,9 @@ import 'package:heliumapp/presentation/features/auth/views/login_screen.dart';
 import 'package:heliumapp/presentation/features/auth/views/setup_account_screen.dart';
 import 'package:heliumapp/presentation/features/auth/views/signup_screen.dart';
 import 'package:heliumapp/presentation/features/auth/views/verify_email_screen.dart';
-import 'package:heliumapp/presentation/features/courses/bloc/course_bloc.dart';
-import 'package:heliumapp/presentation/features/courses/views/course_add_screen.dart';
-import 'package:heliumapp/presentation/features/notes/bloc/note_bloc.dart';
-import 'package:heliumapp/presentation/features/planner/bloc/attachment_bloc.dart';
-import 'package:heliumapp/presentation/features/shared/bloc/core/provider_helpers.dart';
-import 'package:sentry_flutter/sentry_flutter.dart';
-import 'package:heliumapp/presentation/features/planner/views/planner_item_add_screen.dart';
-import 'package:heliumapp/presentation/features/resources/bloc/resource_bloc.dart';
-import 'package:heliumapp/presentation/features/resources/views/resource_add_screen.dart';
 import 'package:heliumapp/presentation/features/settings/views/settings_screen.dart';
-import 'package:heliumapp/presentation/features/notes/views/note_add_screen.dart';
 import 'package:heliumapp/presentation/navigation/shell/navigation_shell.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:logging/logging.dart';
 
@@ -153,142 +142,6 @@ void initializeRouter() {
         ),
       ),
 
-      GoRoute(
-        path: AppRoute.plannerItemAddScreen,
-        pageBuilder: (context, state) {
-          final args = state.extra as PlannerItemAddArgs?;
-          if (args == null) {
-            return const MaterialPage(
-              child: _RouteRedirect(redirectTo: AppRoute.plannerScreen),
-            );
-          }
-          return MaterialPage(
-            child: BlocProvider<AttachmentBloc>.value(
-              value: args.attachmentBloc,
-              child: PlannerItemAddScreen(
-                eventId: args.eventId,
-                homeworkId: args.homeworkId,
-                initialDate: args.initialDate,
-                isFromMonthView: args.isFromMonthView,
-                isEdit: args.isEdit,
-                isNew: args.isNew,
-              ),
-            ),
-          );
-        },
-      ),
-
-      GoRoute(
-        path: AppRoute.courseAddScreen,
-        pageBuilder: (context, state) {
-          final courseIdParam = state.uri.queryParameters['id'];
-          final stepParam = state.uri.queryParameters['step'];
-
-          if (courseIdParam != null) {
-            final queryParams = {'class': courseIdParam};
-            if (stepParam != null) {
-              queryParams['step'] = stepParam;
-            }
-            return MaterialPage(
-              child: _RouteRedirect(
-                redirectTo: AppRoute.coursesScreen,
-                queryParams: queryParams,
-              ),
-            );
-          }
-
-          final args = state.extra as CourseAddArgs?;
-          if (args == null) {
-            return const MaterialPage(
-              child: _RouteRedirect(redirectTo: AppRoute.coursesScreen),
-            );
-          }
-          return MaterialPage(
-            child: BlocProvider<CourseBloc>.value(
-              value: args.courseBloc,
-              child: CourseAddScreen(
-                courseGroupId: args.courseGroupId,
-                courseId: args.courseId,
-                isEdit: args.isEdit,
-                isNew: args.isNew,
-                initialStep: args.initialStep,
-              ),
-            ),
-          );
-        },
-      ),
-
-      GoRoute(
-        path: AppRoute.resourcesAddScreen,
-        pageBuilder: (context, state) {
-          final args = state.extra as ResourceAddArgs?;
-          if (args == null) {
-            return const MaterialPage(
-              child: _RouteRedirect(redirectTo: AppRoute.resourcesScreen),
-            );
-          }
-          return MaterialPage(
-            child: MultiBlocProvider(
-              providers: [
-                BlocProvider<ResourceBloc>.value(value: args.resourceBloc),
-                BlocProvider<NoteBloc>.value(value: args.noteBloc),
-              ],
-              child: ResourceAddScreen(
-                resourceGroupId: args.resourceGroupId,
-                resourceId: args.resourceId,
-                isEdit: args.isEdit,
-                isNew: !args.isEdit,
-              ),
-            ),
-          );
-        },
-      ),
-
-      GoRoute(
-        path: AppRoute.notebookEditScreen,
-        parentNavigatorKey: rootNavigatorKey,
-        pageBuilder: (context, state) {
-          final args = state.extra as NoteAddArgs?;
-
-          if (args != null) {
-            return MaterialPage(
-              child: BlocProvider<NoteBloc>.value(
-                value: args.noteBloc,
-                child: NoteAddScreen(
-                  isEdit: args.isEdit,
-                  isNew: args.isNew,
-                  noteId: args.noteId,
-                  homeworkId: args.homeworkId,
-                  eventId: args.eventId,
-                  resourceId: args.resourceId,
-                  resourceGroupId: args.resourceGroupId,
-                ),
-              ),
-            );
-          }
-
-          final noteIdParam = state.uri.queryParameters['id'];
-
-          if (noteIdParam == null) {
-            return const MaterialPage(
-              child: _RouteRedirect(redirectTo: AppRoute.notebookScreen),
-            );
-          }
-
-          final noteId = int.tryParse(noteIdParam);
-          return MaterialPage(
-            child: BlocProvider<NoteBloc>(
-              create: ProviderHelpers().createNoteBloc(),
-              child: NoteAddScreen(
-                isEdit: noteId != null,
-                isNew: noteId == null,
-                noteId: noteId,
-              ),
-            ),
-          );
-        },
-      ),
-
       // Settings routes
       GoRoute(
         path: AppRoute.settingScreen,
@@ -374,6 +227,37 @@ Future<String?> _authRedirect(BuildContext context, GoRouterState state) async {
     if (matchedLocation == AppRoute.setupAccountScreen && isSetupComplete) {
       return AppRoute.plannerScreen;
     }
+
+    // /settings and /notifications are opened via showSettings()/showNotifications()
+    // in-app. Direct URL access redirects to the shell route with query params,
+    // where _openFromQueryParams() handles opening them.
+    if (matchedLocation == AppRoute.settingScreen) {
+      final tabParam = state.uri.queryParameters[DeepLinkParam.tab];
+      final params = <String, String>{
+        DeepLinkParam.dialog: DeepLinkParam.dialogSettings,
+      };
+      if (tabParam != null) params[DeepLinkParam.tab] = tabParam;
+      return Uri(
+        path: AppRoute.plannerScreen,
+        queryParameters: params,
+      ).toString();
+    }
+
+    if (matchedLocation == AppRoute.notificationsScreen) {
+      final homeworkIdParam =
+          state.uri.queryParameters[DeepLinkParam.homeworkId];
+      final eventIdParam = state.uri.queryParameters[DeepLinkParam.eventId];
+      if (homeworkIdParam != null) {
+        return '${AppRoute.plannerScreen}'
+            '?${DeepLinkParam.homeworkId}=$homeworkIdParam';
+      }
+      if (eventIdParam != null) {
+        return '${AppRoute.plannerScreen}'
+            '?${DeepLinkParam.eventId}=$eventIdParam';
+      }
+      return '${AppRoute.plannerScreen}'
+          '?${DeepLinkParam.dialog}=${DeepLinkParam.dialogNotifications}';
+    }
   }
 
   return null;
@@ -400,24 +284,15 @@ bool _shouldShowMobileWebPrompt(BuildContext context, GoRouterState state) {
 /// Widget that redirects to a fallback route when arguments are missing.
 class _RouteRedirect extends StatelessWidget {
   final String redirectTo;
-  final Map<String, String>? queryParams;
 
-  const _RouteRedirect({required this.redirectTo, this.queryParams});
+  const _RouteRedirect({required this.redirectTo});
 
   @override
   Widget build(BuildContext context) {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!context.mounted) return;
 
-      if (queryParams != null && queryParams!.isNotEmpty) {
-        final uri = Uri.parse(redirectTo);
-        final newUri = uri.replace(
-          queryParameters: {...uri.queryParameters, ...queryParams!},
-        );
-        context.go(newUri.toString());
-      } else {
-        context.go(redirectTo);
-      }
+      context.go(redirectTo);
     });
     return const Scaffold(body: SizedBox.shrink());
   }

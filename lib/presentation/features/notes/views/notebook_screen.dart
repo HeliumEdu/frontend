@@ -9,12 +9,15 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
+import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/config/pref_service.dart';
+import 'package:heliumapp/core/dio_client.dart';
 import 'package:heliumapp/data/models/auth/user_model.dart';
 import 'package:heliumapp/data/models/planner/note_model.dart';
+import 'package:heliumapp/data/sources/resource_remote_data_source.dart';
 import 'package:heliumapp/presentation/core/views/base_page_screen_state.dart';
+import 'package:heliumapp/presentation/core/views/deep_link_mixin.dart';
 import 'package:heliumapp/presentation/ui/layout/page_header.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_bloc.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_state.dart';
@@ -54,12 +57,16 @@ class _NotebookProvidedScreen extends StatefulWidget {
   State<_NotebookProvidedScreen> createState() => _NotebookScreenState();
 }
 
-class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen> {
+class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen>
+    with DeepLinkMixin {
   static const _savedNotebookFilterStateKey = 'saved_notebook_filter_state';
   static const _savedRowsPerPageKey = 'saved_rows_per_page';
 
   @override
   String get screenTitle => 'Notebook';
+
+  @override
+  String get routePath => AppRoute.notebookScreen;
 
   @override
   IconData get icon => Icons.library_books;
@@ -118,7 +125,7 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen> 
               _notes = state.notes;
               _notesReady = true;
             });
-            _openFromQueryParams();
+            openFromQueryParams();
           } else if (state is NoteCreated) {
             setState(() {
               _notes = [..._notes, state.note];
@@ -350,29 +357,67 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen> 
     return filtered;
   }
 
-  void _openFromQueryParams() {
-    final queryParams = GoRouterState.of(context).uri.queryParameters;
-    final noteId = int.tryParse(queryParams['id'] ?? '');
-    final homeworkId = int.tryParse(queryParams['homeworkId'] ?? '');
-    final eventId = int.tryParse(queryParams['eventId'] ?? '');
-    final resourceId = int.tryParse(queryParams['resourceId'] ?? '');
-    final resourceGroupId = int.tryParse(queryParams['resourceGroupId'] ?? '');
+  @override
+  bool handleRouteEntityParams(Map<String, String> queryParams) {
+    final idParam = queryParams[DeepLinkParam.id];
+    final linkHomeworkId =
+        int.tryParse(queryParams[DeepLinkParam.linkHomeworkId] ?? '');
+    final linkEventId =
+        int.tryParse(queryParams[DeepLinkParam.linkEventId] ?? '');
+    final linkResourceId =
+        int.tryParse(queryParams[DeepLinkParam.linkResourceId] ?? '');
 
-    if (noteId == null && homeworkId == null && eventId == null && resourceId == null) return;
+    if (idParam == null &&
+        linkHomeworkId == null &&
+        linkEventId == null &&
+        linkResourceId == null) {
+      return false;
+    }
 
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
-      showNoteAdd(
+    final String key;
+    if (idParam != null) {
+      key = '${DeepLinkParam.id}:$idParam';
+    } else if (linkHomeworkId != null) {
+      key = '${DeepLinkParam.linkHomeworkId}:$linkHomeworkId';
+    } else if (linkEventId != null) {
+      key = '${DeepLinkParam.linkEventId}:$linkEventId';
+    } else {
+      key = '${DeepLinkParam.linkResourceId}:$linkResourceId';
+    }
+
+    if (linkResourceId != null) {
+      return openFromDeepLink(key, () => _resolveResourceGroupAndOpenNote(linkResourceId));
+    }
+
+    return openFromDeepLink(key, () {
+      final parsed = DeepLinkParam.parseId(idParam);
+      return showNoteAdd(
         context,
-        isEdit: noteId != null,
-        isNew: noteId == null,
-        noteId: noteId,
-        homeworkId: homeworkId,
-        eventId: eventId,
-        resourceId: resourceId,
-        resourceGroupId: resourceGroupId,
+        isEdit: parsed.id != null,
+        isNew: parsed.isNew || (idParam != null && parsed.id == null),
+        noteId: parsed.id,
+        linkHomeworkId: linkHomeworkId,
+        linkEventId: linkEventId,
       );
     });
+  }
+
+  Future<void> _resolveResourceGroupAndOpenNote(int resourceId) async {
+    try {
+      final resources = await ResourceRemoteDataSourceImpl(
+        dioClient: DioClient(),
+      ).getResources(id: resourceId);
+      if (!mounted) return;
+      if (resources.isEmpty) return;
+      await showNoteAdd(
+        context,
+        isEdit: false,
+        isNew: true,
+        linkResourceId: resourceId,
+      );
+    } catch (_) {
+      // silently fail — bad or stale deep link
+    }
   }
 
   void _saveFilterStateIfEnabled() {
@@ -564,11 +609,17 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen> 
   }
 
   void _createNewNote() {
-    showNoteAdd(context, isEdit: false, isNew: true);
+    openWithGuard(
+      '${DeepLinkParam.id}:new',
+      () => showNoteAdd(context, isEdit: false, isNew: true),
+    );
   }
 
   void _openNote(NoteModel note) {
-    showNoteAdd(context, isEdit: true, isNew: false, noteId: note.id);
+    openWithGuard(
+      '${DeepLinkParam.id}:${note.id}',
+      () => showNoteAdd(context, isEdit: true, isNew: false, noteId: note.id),
+    );
   }
 
   void _confirmDeleteNote(BuildContext context, NoteModel note) {

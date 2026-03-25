@@ -7,9 +7,9 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
 import 'package:heliumapp/config/app_route.dart';
-import 'package:heliumapp/config/route_args.dart';
+import 'package:heliumapp/config/app_router.dart';
+import 'package:heliumapp/utils/deep_link_helpers.dart';
 import 'package:heliumapp/presentation/features/courses/bloc/course_bloc.dart';
 import 'package:heliumapp/presentation/features/courses/bloc/course_state.dart';
 import 'package:heliumapp/presentation/features/shared/widgets/flow/multi_step_container.dart';
@@ -22,7 +22,7 @@ import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:heliumapp/utils/snack_bar_helpers.dart';
 
 /// Shows course add/edit as a dialog on desktop, or navigates on mobile
-void showCourseAdd(
+Future<void> showCourseAdd(
   BuildContext context, {
   required int courseGroupId,
   int? courseId,
@@ -31,21 +31,27 @@ void showCourseAdd(
   int initialStep = 0,
 }) {
   final courseBloc = context.read<CourseBloc>();
+  final idValue = courseId?.toString() ?? 'new';
 
   if (Responsive.isMobile(context)) {
-    context.push(
-      AppRoute.courseAddScreen,
-      extra: CourseAddArgs(
-        courseBloc: courseBloc,
-        courseGroupId: courseGroupId,
-        courseId: courseId,
-        isEdit: isEdit,
-        isNew: isNew,
-        initialStep: initialStep,
+    return Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => BlocProvider<CourseBloc>.value(
+          value: courseBloc,
+          child: CourseAddScreen(
+            courseGroupId: courseGroupId,
+            courseId: courseId,
+            isEdit: isEdit,
+            isNew: isNew,
+            initialStep: initialStep,
+          ),
+        ),
       ),
     );
   } else {
-    showScreenAsDialog(
+    final basePath = router.routerDelegate.currentConfiguration.uri.path;
+    context.setQueryParam(DeepLinkParam.id, idValue);
+    return showScreenAsDialog(
       context,
       barrierDismissible: false,
       child: BlocProvider<CourseBloc>.value(
@@ -60,7 +66,7 @@ void showCourseAdd(
       ),
       width: AppConstants.centeredDialogWidth,
       alignment: Alignment.center,
-    );
+    ).then((_) => clearRouteQueryParams(basePath));
   }
 }
 
@@ -195,6 +201,13 @@ class _CourseAddScreenState extends MultiStepContainerState<CourseAddScreen> {
               _currentCourseId = state.course.id;
               isSubmitting = false;
             });
+
+            if (!Responsive.isMobile(context) && state is CourseCreated) {
+              context.setQueryParam(
+                DeepLinkParam.id,
+                state.course.id.toString(),
+              );
+            }
 
             _navigateAfterSave();
           } else if (state is CourseScheduleUpdated) {
