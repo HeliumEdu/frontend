@@ -103,6 +103,7 @@ class ResourceRemoteDataSourceImpl extends ResourceRemoteDataSource {
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
     } catch (e, s) {
+      if (e is HeliumException) rethrow;
       _log.severe('An unexpected error occurred', e, s);
       throw HeliumException(message: 'An unexpected error occurred.');
     }
