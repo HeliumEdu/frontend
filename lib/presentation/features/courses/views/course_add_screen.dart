@@ -34,6 +34,7 @@ Future<void> showCourseAdd(
   final idValue = courseId?.toString() ?? 'new';
 
   if (Responsive.isMobile(context)) {
+    final basePath = router.routerDelegate.currentConfiguration.uri.path;
     return Navigator.of(context).push(
       MaterialPageRoute(
         builder: (_) => BlocProvider<CourseBloc>.value(
@@ -47,7 +48,7 @@ Future<void> showCourseAdd(
           ),
         ),
       ),
-    );
+    ).then((_) => clearRouteQueryParams(basePath));
   } else {
     final basePath = router.routerDelegate.currentConfiguration.uri.path;
     context.setQueryParam(DeepLinkParam.id, idValue);

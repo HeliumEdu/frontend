@@ -57,11 +57,12 @@ enum SettingsSubScreen {
 /// Shows settings as a dialog on desktop, or navigates on mobile.
 Future<void> showSettings(BuildContext context, {int? initialTab}) {
   if (Responsive.isMobile(context)) {
+    final basePath = router.routerDelegate.currentConfiguration.uri.path;
     return Navigator.of(context).push(
       MaterialPageRoute(
         builder: (_) => SettingsScreen(initialTab: initialTab),
       ),
-    );
+    ).then((_) => clearRouteQueryParams(basePath));
   } else {
     final currentUri = router.routerDelegate.currentConfiguration.uri;
     final hasDialogParam =

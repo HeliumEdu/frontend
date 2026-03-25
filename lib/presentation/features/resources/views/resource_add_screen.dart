@@ -36,6 +36,7 @@ Future<void> showResourceAdd(
   final idValue = resourceId?.toString() ?? 'new';
 
   if (Responsive.isMobile(context)) {
+    final basePath = router.routerDelegate.currentConfiguration.uri.path;
     return Navigator.of(context).push(
       MaterialPageRoute(
         builder: (_) => MultiBlocProvider(
@@ -52,7 +53,7 @@ Future<void> showResourceAdd(
           ),
         ),
       ),
-    );
+    ).then((_) => clearRouteQueryParams(basePath));
   } else {
     final basePath = router.routerDelegate.currentConfiguration.uri.path;
     context.setQueryParam(DeepLinkParam.id, idValue);

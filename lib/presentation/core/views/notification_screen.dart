@@ -45,9 +45,10 @@ import 'package:heliumapp/utils/sort_helpers.dart';
 /// Shows notifications as a dialog on desktop, or navigates on mobile.
 Future<void> showNotifications(BuildContext context) {
   if (Responsive.isMobile(context)) {
+    final basePath = router.routerDelegate.currentConfiguration.uri.path;
     return Navigator.of(context).push(
       MaterialPageRoute(builder: (_) => NotificationsScreen()),
-    );
+    ).then((_) => clearRouteQueryParams(basePath));
   } else {
     final currentUri = router.routerDelegate.currentConfiguration.uri;
     final hasDialogParam =

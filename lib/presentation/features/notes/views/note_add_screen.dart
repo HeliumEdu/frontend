@@ -50,6 +50,7 @@ Future<void> showNoteAdd(
   final idParam = noteId?.toString() ?? (isNew ? 'new' : null);
 
   if (Responsive.isMobile(context)) {
+    final basePath = router.routerDelegate.currentConfiguration.uri.path;
     return Navigator.of(context).push(
       MaterialPageRoute(
         builder: (_) => BlocProvider<NoteBloc>.value(
@@ -63,7 +64,7 @@ Future<void> showNoteAdd(
           ),
         ),
       ),
-    );
+    ).then((_) => clearRouteQueryParams(basePath));
   } else {
     final basePath = router.routerDelegate.currentConfiguration.uri.path;
     if (idParam != null) {

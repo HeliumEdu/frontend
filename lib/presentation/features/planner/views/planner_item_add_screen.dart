@@ -41,6 +41,7 @@ Future<void> showPlannerItemAdd(
       existingBloc ?? ProviderHelpers().createAttachmentBloc()(context);
 
   if (Responsive.isMobile(context)) {
+    final basePath = router.routerDelegate.currentConfiguration.uri.path;
     return Navigator.of(context).push(
       MaterialPageRoute(
         builder: (_) => MultiBlocProvider(
@@ -58,7 +59,7 @@ Future<void> showPlannerItemAdd(
           ),
         ),
       ),
-    );
+    ).then((_) => clearRouteQueryParams(basePath));
   } else {
     final basePath = router.routerDelegate.currentConfiguration.uri.path;
     if (homeworkId != null) {

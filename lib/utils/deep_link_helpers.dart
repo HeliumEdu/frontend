@@ -80,9 +80,10 @@ extension DeepLinkContext on BuildContext {
 /// `currentUri.replace(queryParameters: null)` — in Dart, passing null for
 /// queryParameters preserves the existing params rather than clearing them.
 void clearRouteQueryParams(String expectedPath) {
-  final currentPath = router.routerDelegate.currentConfiguration.uri.path;
-  if (currentPath != expectedPath) return;
-  router.replace(currentPath);
+  final currentUri = router.routerDelegate.currentConfiguration.uri;
+  if (currentUri.path != expectedPath) return;
+  if (currentUri.queryParameters.isEmpty) return;
+  router.replace(currentUri.path);
 }
 
 /// Navigates to [uri] via GoRouter and clears all Navigator-pushed routes.
