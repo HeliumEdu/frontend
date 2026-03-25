@@ -91,14 +91,17 @@ Future<void> showScreenAsDialog(
     barrierColor: isFullScreen ? Colors.transparent : Colors.black54,
     builder: (dialogContext) {
       final mediaQuery = MediaQuery.of(dialogContext);
+      final screenWidth = mediaQuery.size.width;
       final screenHeight = mediaQuery.size.height;
       final keyboardHeight = mediaQuery.viewInsets.bottom;
       // For full-screen dialogs, subtract keyboard height so content remains visible
       final effectiveHeight = height ??
           (isFullScreen ? screenHeight - keyboardHeight : screenHeight - 32);
+      // Use screen width when infinity is passed (full-screen mobile dialogs)
+      final effectiveWidth = width.isFinite ? width : screenWidth;
 
       final Widget dialogContent = DialogModeProvider(
-        width: width,
+        width: effectiveWidth,
         height: effectiveHeight,
         isFullScreen: isFullScreen,
         scaffoldMessengerKey: dialogMessengerKey,
@@ -118,7 +121,7 @@ Future<void> showScreenAsDialog(
               ? const RoundedRectangleBorder(borderRadius: BorderRadius.zero)
               : null,
           child: SizedBox(
-            width: width,
+            width: effectiveWidth,
             height: effectiveHeight,
             child: ClipRRect(
               borderRadius: BorderRadius.circular(isFullScreen ? 0 : 16),

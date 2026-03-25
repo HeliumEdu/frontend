@@ -322,33 +322,36 @@ class TodosDataGridState extends State<TodosDataGrid> {
                   ],
                 ),
               ),
-              HeliumPager(
-                startIndex: startIndex,
-                endIndex: endIndex,
-                totalItems: totalItems,
-                isShowingAll: isShowingAll,
-                totalPages: totalPages,
-                currentPage: effectiveCurrentPage,
-                onPageChanged: (page) {
-                  _currentPage = page;
-                  _dataSource.updatePagination(
-                    currentPage: page,
-                    itemsPerPage: _itemsPerPage,
-                  );
-                  setState(() {});
-                },
-                itemsPerPage: _itemsPerPage,
-                itemsPerPageOptions: _itemsPerPageOptions,
-                onItemsPerPageChanged: (value) {
-                  _itemsPerPage = value;
-                  _currentPage = 1;
-                  widget.dataSource.todosItemsPerPage = value;
-                  _dataSource.updatePagination(
-                    currentPage: 1,
-                    itemsPerPage: value,
-                  );
-                  setState(() {});
-                },
+              Opacity(
+                opacity: _isInitialized ? 1.0 : 0.0,
+                child: HeliumPager(
+                  startIndex: startIndex,
+                  endIndex: endIndex,
+                  totalItems: totalItems,
+                  isShowingAll: isShowingAll,
+                  totalPages: totalPages,
+                  currentPage: effectiveCurrentPage,
+                  onPageChanged: (page) {
+                    _currentPage = page;
+                    _dataSource.updatePagination(
+                      currentPage: page,
+                      itemsPerPage: _itemsPerPage,
+                    );
+                    setState(() {});
+                  },
+                  itemsPerPage: _itemsPerPage,
+                  itemsPerPageOptions: _itemsPerPageOptions,
+                  onItemsPerPageChanged: (value) {
+                    _itemsPerPage = value;
+                    _currentPage = 1;
+                    widget.dataSource.todosItemsPerPage = value;
+                    _dataSource.updatePagination(
+                      currentPage: 1,
+                      itemsPerPage: value,
+                    );
+                    setState(() {});
+                  },
+                ),
               ),
             ],
           ),
