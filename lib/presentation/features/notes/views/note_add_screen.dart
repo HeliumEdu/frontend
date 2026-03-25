@@ -626,6 +626,7 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
                               customStyles: NotesEditor.buildDefaultStyles(
                                 context,
                               ),
+                              scrollBottomInset: MediaQuery.of(context).viewInsets.bottom,
                               // ignore: experimental_member_use
                               onKeyPressed: (event, node) {
                                 final isFindShortcut =

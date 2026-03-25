@@ -32,6 +32,7 @@ final _log = Logger('presentation.views');
 class DialogModeProvider extends InheritedWidget {
   final double? width;
   final double? height;
+  final bool isFullScreen;
   final GlobalKey<ScaffoldMessengerState>? scaffoldMessengerKey;
 
   const DialogModeProvider({
@@ -39,6 +40,7 @@ class DialogModeProvider extends InheritedWidget {
     required super.child,
     this.width,
     this.height,
+    this.isFullScreen = false,
     this.scaffoldMessengerKey,
   });
 
@@ -50,9 +52,15 @@ class DialogModeProvider extends InheritedWidget {
     return maybeOf(context) != null;
   }
 
+  static bool isFullScreenMode(BuildContext context) {
+    return maybeOf(context)?.isFullScreen ?? false;
+  }
+
   @override
   bool updateShouldNotify(DialogModeProvider oldWidget) {
-    return width != oldWidget.width || height != oldWidget.height;
+    return width != oldWidget.width ||
+        height != oldWidget.height ||
+        isFullScreen != oldWidget.isFullScreen;
   }
 }
 
@@ -73,19 +81,26 @@ Future<void> showScreenAsDialog(
   final initialLocation = router.routerDelegate.currentConfiguration.uri
       .toString();
 
+  final isFullScreen = insetPadding == EdgeInsets.zero;
+
   return showDialog(
     context: context,
+    useSafeArea: !isFullScreen,
     barrierDismissible:
         barrierDismissible ?? !Responsive.isTouchDevice(context),
-    barrierColor: Colors.black54,
+    barrierColor: isFullScreen ? Colors.transparent : Colors.black54,
     builder: (dialogContext) {
-      final screenHeight = MediaQuery.of(dialogContext).size.height;
-      final isFullScreen = insetPadding == EdgeInsets.zero;
-      final effectiveHeight = height ?? (isFullScreen ? screenHeight : screenHeight - 32);
+      final mediaQuery = MediaQuery.of(dialogContext);
+      final screenHeight = mediaQuery.size.height;
+      final keyboardHeight = mediaQuery.viewInsets.bottom;
+      // For full-screen dialogs, subtract keyboard height so content remains visible
+      final effectiveHeight = height ??
+          (isFullScreen ? screenHeight - keyboardHeight : screenHeight - 32);
 
       final Widget dialogContent = DialogModeProvider(
         width: width,
         height: effectiveHeight,
+        isFullScreen: isFullScreen,
         scaffoldMessengerKey: dialogMessengerKey,
         child: child,
       );
@@ -95,6 +110,13 @@ Future<void> showScreenAsDialog(
         child: Dialog(
           alignment: alignment,
           insetPadding: insetPadding,
+          backgroundColor: isFullScreen
+              ? Theme.of(dialogContext).colorScheme.surface
+              : null,
+          elevation: isFullScreen ? 0 : null,
+          shape: isFullScreen
+              ? const RoundedRectangleBorder(borderRadius: BorderRadius.zero)
+              : null,
           child: SizedBox(
             width: width,
             height: effectiveHeight,
@@ -371,14 +393,21 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
     );
 
     if (isDialogMode) {
+      final isFullScreen = DialogModeProvider.isFullScreenMode(context);
       return Material(
         color: context.colorScheme.surface,
-        borderRadius: BorderRadius.circular(16),
-        child: Column(
-          children: [
-            buildPageHeader(),
-            Expanded(child: content),
-          ],
+        borderRadius: BorderRadius.circular(isFullScreen ? 0 : 16),
+        child: SafeArea(
+          top: isFullScreen,
+          bottom: isFullScreen,
+          left: false,
+          right: false,
+          child: Column(
+            children: [
+              buildPageHeader(),
+              Expanded(child: content),
+            ],
+          ),
         ),
       );
     }

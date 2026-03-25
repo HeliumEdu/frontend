@@ -78,12 +78,84 @@ class NotesEditor extends StatefulWidget {
   State<NotesEditor> createState() => _NotesEditorState();
 }
 
-class _NotesEditorState extends State<NotesEditor> {
+class _NotesEditorState extends State<NotesEditor> with WidgetsBindingObserver {
+  final _editorKey = GlobalKey();
+  bool _pendingScrollOnKeyboard = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    widget.focusNode?.addListener(_onFocusChange);
+  }
+
+  @override
+  void didUpdateWidget(covariant NotesEditor oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.focusNode != widget.focusNode) {
+      oldWidget.focusNode?.removeListener(_onFocusChange);
+      widget.focusNode?.addListener(_onFocusChange);
+    }
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    widget.focusNode?.removeListener(_onFocusChange);
+    super.dispose();
+  }
+
+  @override
+  void didChangeMetrics() {
+    if (!_pendingScrollOnKeyboard || !mounted) return;
+
+    final viewInsets = WidgetsBinding
+        .instance.platformDispatcher.views.first.viewInsets.bottom;
+
+    // Keyboard starting to appear - wait for animation to complete
+    if (viewInsets > 0) {
+      _pendingScrollOnKeyboard = false;
+      // Keyboard animation is ~250-300ms; wait for it to finish
+      Future.delayed(const Duration(milliseconds: 150), _scrollToEditor);
+    }
+  }
+
+  void _scrollToEditor() {
+    if (!mounted) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final ctx = _editorKey.currentContext;
+      if (ctx != null) {
+        Scrollable.ensureVisible(
+          ctx,
+          duration: const Duration(milliseconds: 200),
+          curve: Curves.easeOut,
+        );
+      }
+    });
+  }
+
+  void _onFocusChange() {
+    if (widget.focusNode?.hasFocus ?? false) {
+      final viewInsets = WidgetsBinding
+          .instance.platformDispatcher.views.first.viewInsets.bottom;
+
+      // If keyboard is already visible, scroll immediately
+      if (viewInsets > 0) {
+        _scrollToEditor();
+      } else {
+        // Wait for keyboard to appear via didChangeMetrics
+        _pendingScrollOnKeyboard = true;
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final isMobile = Responsive.isMobile(context);
 
     return Column(
+      key: _editorKey,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
@@ -198,7 +270,6 @@ class _NotesEditorState extends State<NotesEditor> {
                       padding: const EdgeInsets.all(12),
                       autoFocus: false,
                       customStyles: NotesEditor.buildDefaultStyles(context),
-                      scrollBottomInset: MediaQuery.of(context).viewInsets.bottom,
                     ),
                   ),
                 ),
