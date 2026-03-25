@@ -294,28 +294,23 @@ void main() {
         );
         await tester.tap(settingsButton);
 
-        // Wait for back button to appear (screen navigation complete)
-        final backButton = find.byIcon(Icons.keyboard_arrow_left);
+        // Wait for close button to appear (full-screen dialog opened)
+        final closeButton = find.byIcon(Icons.close);
         final screenOpened = await waitForWidget(
           tester,
-          backButton,
+          closeButton,
           timeout: const Duration(seconds: 5),
         );
         expect(screenOpened, isTrue, reason: 'Settings screen should open');
 
-        // Verify browser title changed to Settings (screen mode)
-        expectOnSettingsScreen(isDialog: false);
-        expect(
-          find.byIcon(Icons.close),
-          findsNothing,
-          reason: 'Should not have dialog close button',
-        );
-        _log.info('Settings screen opened, browser title is Settings');
+        // Verify browser title changed to Settings (full-screen dialog mode)
+        expectOnSettingsScreen(isDialog: true);
+        _log.info('Settings full-screen dialog opened, browser title is Settings');
 
-        // 7. Click back button, wait until we're back on the Planner screen.
+        // 7. Click close button, wait until we're back on the Planner screen.
         // Use waitForRoute with browserTitle so we confirm both the route and
         // the browser title have settled before resizing back to desktop.
-        await tester.tap(backButton);
+        await tester.tap(closeButton);
         final backToPlanner = await waitForRoute(
           tester,
           AppRoute.plannerScreen,
