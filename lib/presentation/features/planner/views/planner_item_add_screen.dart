@@ -7,7 +7,6 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
 import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/config/app_router.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/attachment_bloc.dart';
@@ -267,11 +266,11 @@ class _PlannerItemAddScreenState
               setState(() => isSubmitting = false);
 
               if (linkedNoteId != null) {
-                context.go('${AppRoute.notebookScreen}?id=$linkedNoteId');
+                navigateAndClearStack(context, '${AppRoute.notebookScreen}?id=$linkedNoteId');
               } else if (state.isEvent) {
-                context.go('${AppRoute.notebookScreen}?${DeepLinkParam.linkEventId}=${state.entityId}');
+                navigateAndClearStack(context, '${AppRoute.notebookScreen}?${DeepLinkParam.linkEventId}=${state.entityId}');
               } else {
-                context.go('${AppRoute.notebookScreen}?${DeepLinkParam.linkHomeworkId}=${state.entityId}');
+                navigateAndClearStack(context, '${AppRoute.notebookScreen}?${DeepLinkParam.linkHomeworkId}=${state.entityId}');
               }
             } else {
               if (state is HomeworkCreated || state is EventCreated) {

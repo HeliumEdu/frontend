@@ -7,7 +7,6 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
 import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/config/app_router.dart';
 import 'package:heliumapp/data/models/planner/request/note_request_model.dart';
@@ -151,7 +150,7 @@ class _ResourceAddScreenState
                   ),
                 ));
               } else {
-                context.go('${AppRoute.notebookScreen}?${DeepLinkParam.linkResourceId}=${state.resource.id}');
+                navigateAndClearStack(context, '${AppRoute.notebookScreen}?${DeepLinkParam.linkResourceId}=${state.resource.id}');
               }
             } else {
               if (noteContent != null) {
@@ -182,13 +181,13 @@ class _ResourceAddScreenState
 
               if (linkedNoteId != null && noteContent != null) {
                 // Existing note being updated — ID is already known
-                context.go('${AppRoute.notebookScreen}?id=$linkedNoteId');
+                navigateAndClearStack(context, '${AppRoute.notebookScreen}?id=$linkedNoteId');
               } else if (linkedNoteId == null && noteContent != null) {
                 // New note being created by NoteBloc — wait for NoteCreated
                 _pendingRedirectToNotebook = true;
               } else {
                 // No note content — navigate with linkResourceId to create one in notebook
-                context.go('${AppRoute.notebookScreen}?${DeepLinkParam.linkResourceId}=${state.resource.id}');
+                navigateAndClearStack(context, '${AppRoute.notebookScreen}?${DeepLinkParam.linkResourceId}=${state.resource.id}');
               }
             } else {
               cancelAction();
@@ -204,7 +203,7 @@ class _ResourceAddScreenState
             setState(() => isSubmitting = false);
           } else if (state is NoteCreated && _pendingRedirectToNotebook) {
             _pendingRedirectToNotebook = false;
-            context.go('${AppRoute.notebookScreen}?id=${state.note.id}');
+            navigateAndClearStack(context, '${AppRoute.notebookScreen}?id=${state.note.id}');
           }
         },
       ),
