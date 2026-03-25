@@ -162,7 +162,7 @@ void main() {
         expect(dataSource.deleteAttachment(1), completes);
       });
 
-      test('throws ServerException on non-204 response', () async {
+      test('throws HeliumException on non-204 response', () async {
         // GIVEN
         when(
           () => mockDio.delete(any()),
@@ -171,7 +171,7 @@ void main() {
         // WHEN/THEN
         expect(
           () => dataSource.deleteAttachment(1),
-          throwsA(isA<ServerException>()),
+          throwsA(isA<HeliumException>()),
         );
       });
     });

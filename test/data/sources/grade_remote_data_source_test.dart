@@ -111,24 +111,24 @@ void main() {
         expect(result[0].numHomeworkGraded, equals(20));
       });
 
-      test('throws ServerException when course_groups key missing', () async {
+      test('throws HeliumException when course_groups key missing', () async {
         // GIVEN
         when(
           () => mockDio.get(any()),
         ).thenAnswer((_) async => givenSuccessResponse({'other_key': []}));
 
         // WHEN/THEN
-        expect(() => dataSource.getGrades(), throwsA(isA<ServerException>()));
+        expect(() => dataSource.getGrades(), throwsA(isA<HeliumException>()));
       });
 
-      test('throws ServerException on non-map response', () async {
+      test('throws HeliumException on non-map response', () async {
         // GIVEN
         when(
           () => mockDio.get(any()),
         ).thenAnswer((_) async => givenSuccessResponse([]));
 
         // WHEN/THEN
-        expect(() => dataSource.getGrades(), throwsA(isA<ServerException>()));
+        expect(() => dataSource.getGrades(), throwsA(isA<HeliumException>()));
       });
     });
 

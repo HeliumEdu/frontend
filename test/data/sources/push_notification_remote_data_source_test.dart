@@ -46,7 +46,7 @@ void main() {
         verifyPushTokenMatchesJson(result, json);
       });
 
-      test('throws ServerException on non-201 response', () async {
+      test('throws HeliumException on non-201 response', () async {
         // GIVEN
         when(
           () => mockDio.post(any(), data: any(named: 'data')),
@@ -57,7 +57,7 @@ void main() {
         // WHEN/THEN
         expect(
           () => dataSource.registerPushToken(request),
-          throwsA(isA<ServerException>()),
+          throwsA(isA<HeliumException>()),
         );
       });
     });
@@ -137,7 +137,7 @@ void main() {
         expect(dataSource.deletePushTokenById(1), completes);
       });
 
-      test('throws ServerException on non-204 response', () async {
+      test('throws HeliumException on non-204 response', () async {
         // GIVEN
         when(
           () => mockDio.delete(any()),
@@ -146,7 +146,7 @@ void main() {
         // WHEN/THEN
         expect(
           () => dataSource.deletePushTokenById(1),
-          throwsA(isA<ServerException>()),
+          throwsA(isA<HeliumException>()),
         );
       });
     });
