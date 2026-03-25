@@ -55,9 +55,6 @@ enum SettingsSubScreen {
 }
 
 /// Shows settings as a dialog on desktop, or navigates on mobile.
-///
-/// On desktop, syncs the URL to `?dialog=settings` (with optional `&tab=N`)
-/// while the dialog is open, then clears all query params on close.
 Future<void> showSettings(BuildContext context, {int? initialTab}) {
   if (Responsive.isMobile(context)) {
     return Navigator.of(context).push(
@@ -66,18 +63,21 @@ Future<void> showSettings(BuildContext context, {int? initialTab}) {
       ),
     );
   } else {
-    final basePath = router.routerDelegate.currentConfiguration.uri.path;
-    context.setQueryParam(DeepLinkParam.dialog, DeepLinkParam.dialogSettings);
-    if (initialTab != null) {
-      context.setQueryParam(DeepLinkParam.tab, initialTab.toString());
-    }
-    return showScreenAsDialog(
+    final currentUri = router.routerDelegate.currentConfiguration.uri;
+    final hasDialogParam =
+        currentUri.queryParameters.containsKey(DeepLinkParam.dialog);
+    final basePath = hasDialogParam ? currentUri.path : null;
+    final result = showScreenAsDialog(
       context,
       child: SettingsScreen(initialTab: initialTab),
       width: AppConstants.leftPanelDialogWidth,
       alignment: Alignment.centerLeft,
       insetPadding: const EdgeInsets.all(0),
-    ).then((_) => clearRouteQueryParams(basePath));
+    );
+    if (basePath != null) {
+      return result.then((_) => clearRouteQueryParams(basePath));
+    }
+    return result;
   }
 }
 

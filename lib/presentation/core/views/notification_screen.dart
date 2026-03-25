@@ -43,21 +43,17 @@ import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:heliumapp/utils/sort_helpers.dart';
 
 /// Shows notifications as a dialog on desktop, or navigates on mobile.
-///
-/// On desktop, syncs the URL to `?dialog=notifications` while the dialog is
-/// open, then clears all query params on close.
 Future<void> showNotifications(BuildContext context) {
   if (Responsive.isMobile(context)) {
     return Navigator.of(context).push(
       MaterialPageRoute(builder: (_) => NotificationsScreen()),
     );
   } else {
-    final basePath = router.routerDelegate.currentConfiguration.uri.path;
-    context.setQueryParam(
-      DeepLinkParam.dialog,
-      DeepLinkParam.dialogNotifications,
-    );
-    return showScreenAsDialog(
+    final currentUri = router.routerDelegate.currentConfiguration.uri;
+    final hasDialogParam =
+        currentUri.queryParameters.containsKey(DeepLinkParam.dialog);
+    final basePath = hasDialogParam ? currentUri.path : null;
+    final result = showScreenAsDialog(
       context,
       child: NotificationsScreen(),
       width: AppConstants.notificationsDialogWidth,
@@ -68,7 +64,11 @@ Future<void> showNotifications(BuildContext context) {
         right: 16,
         left: 100,
       ),
-    ).then((_) => clearRouteQueryParams(basePath));
+    );
+    if (basePath != null) {
+      return result.then((_) => clearRouteQueryParams(basePath));
+    }
+    return result;
   }
 }
 
@@ -548,11 +548,10 @@ class _NotificationsScreenState
     if (!mounted) return;
 
     // On desktop, the notifications panel is a dialog. Close it first, then
-    // schedule the entity-param URL after the .then() microtask clears params.
-    // Future.delayed(Duration.zero) runs as a timer event, which executes after
-    // all microtasks — so clearRouteQueryParams() from .then() completes first.
-    // The shell screen's router listener detects the new param and opens the
-    // editor dialog.
+    // set the entity param URL. Future.delayed(Duration.zero) runs as a timer
+    // event (after all microtasks), ensuring the dialog close completes before
+    // the URL change. The shell screen's router listener detects the new param
+    // and opens the editor dialog.
     if (DialogModeProvider.isDialogMode(context)) {
       final homeworkId = notification.reminder.homework?.id;
       final eventId = notification.reminder.event?.id;
