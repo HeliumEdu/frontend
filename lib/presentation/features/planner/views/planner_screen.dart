@@ -1497,8 +1497,13 @@ class _CalendarScreenState
     final PlannerItemBaseModel plannerItem =
         tapDetails.appointments![0] as PlannerItemBaseModel;
 
-    if (_currentView == PlannerView.agenda &&
-        PlannerHelper.shouldShowEditButton(context)) {
+    // Agenda-style items handle taps internally via column-based tap zones.
+    // This includes pure agenda view and mobile month view (which renders
+    // items as agenda-style in the bottom section).
+    if (_currentView == PlannerView.agenda ||
+        (_currentView == PlannerView.month &&
+            Responsive.isMobile(context) &&
+            Responsive.isTouchDevice(context))) {
       return;
     }
 
@@ -1848,8 +1853,10 @@ class _CalendarScreenState
     // items. Handle both directly on the widget to bypass this SfCalendar quirk
     // (drag-and-drop in month view on touch is unsupported by SfCalendar, so
     // consuming the long-press has no functional cost).
+    // Skip for agenda-style items which handle taps internally via column zones.
     if (_currentView == PlannerView.month &&
-        Responsive.isTouchDevice(context)) {
+        Responsive.isTouchDevice(context) &&
+        !isInAgenda) {
       calendarItemWidget = GestureDetector(
         onTap: () => _openPlannerItem(plannerItem),
         onLongPress: () {},
@@ -2205,21 +2212,13 @@ class _CalendarScreenState
     }
   }
 
-  Widget _buildCalendarItemLeftForAgenda({
+  Widget? _buildCalendarItemLeftIconForAgenda({
     required PlannerItemBaseModel plannerItem,
     bool? completedOverride,
     required Color backgroundColor,
   }) {
-    Widget? iconWidget;
-
-    final isCheckbox = PlannerHelper.shouldShowCheckbox(
-      context,
-      plannerItem,
-      _currentView,
-    );
-
-    if (isCheckbox) {
-      iconWidget = _buildCheckboxWidget(
+    if (PlannerHelper.shouldShowCheckbox(context, plannerItem, _currentView)) {
+      return _buildCheckboxWidget(
         homework: plannerItem as HomeworkModel,
         completedOverride: completedOverride,
         backgroundColor: backgroundColor,
@@ -2229,37 +2228,9 @@ class _CalendarScreenState
       plannerItem,
       _currentView,
     )) {
-      iconWidget = _buildSchoolIconWidget(backgroundColor: backgroundColor);
+      return _buildSchoolIconWidget(backgroundColor: backgroundColor);
     }
-
-    if (iconWidget == null) {
-      return const SizedBox.shrink();
-    }
-
-    final rowWidget = Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Center(child: iconWidget),
-        const SizedBox(width: 8),
-      ],
-    );
-
-    if (Responsive.isTouchDevice(context) && isCheckbox) {
-      final homework = plannerItem as HomeworkModel;
-      return MouseRegion(
-        cursor: SystemMouseCursors.click,
-        child: GestureDetector(
-          behavior: HitTestBehavior.opaque,
-          onTap: () {
-            final newValue = !(completedOverride ?? homework.completed);
-            _onToggleCompleted(homework, newValue);
-          },
-          child: rowWidget,
-        ),
-      );
-    }
-
-    return rowWidget;
+    return null;
   }
 
   Widget? _getInlineIconWidget({
@@ -2288,6 +2259,7 @@ class _CalendarScreenState
     String? location,
     bool? completedOverride,
     required Color backgroundColor,
+    bool wrapInExpanded = true,
   }) {
     final contentColumn = Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -2320,12 +2292,15 @@ class _CalendarScreenState
       ],
     );
 
-    return Expanded(
-      child: Padding(
-        padding: _recurringContentPadding(plannerItem),
-        child: contentColumn,
-      ),
+    final paddedContent = Padding(
+      padding: _recurringContentPadding(plannerItem),
+      child: contentColumn,
     );
+
+    if (wrapInExpanded) {
+      return Expanded(child: paddedContent);
+    }
+    return paddedContent;
   }
 
   Widget _buildCalendarItemCenterForTimeline({
@@ -2555,7 +2530,7 @@ class _CalendarScreenState
     final location = _plannerItemDataSource!.getLocationForItem(plannerItem);
     final course = _getCourseForPlannerItem(plannerItem);
 
-    final leftWidget = _buildCalendarItemLeftForAgenda(
+    final leftIcon = _buildCalendarItemLeftIconForAgenda(
       plannerItem: plannerItem,
       completedOverride: completedOverride,
       backgroundColor: color,
@@ -2574,29 +2549,112 @@ class _CalendarScreenState
       backgroundColor: color,
     );
 
+    final agendaHeight = Responsive.isMobile(context)
+        ? _agendaHeightMobile
+        : _agendaHeightDesktop;
+
+    final isCheckbox = plannerItem is HomeworkModel &&
+        PlannerHelper.shouldShowCheckbox(context, plannerItem, _currentView);
+    final isTouchDevice = Responsive.isTouchDevice(context);
+
+    // Build left column with tap zone for checkbox on touch devices
+    Widget leftColumn;
+    if (leftIcon != null) {
+      final leftContent = Padding(
+        padding: const EdgeInsets.only(left: 8),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Center(child: leftIcon),
+            const SizedBox(width: 8),
+          ],
+        ),
+      );
+
+      if (isTouchDevice && isCheckbox) {
+        // Wrap checkbox in IgnorePointer so only the column GestureDetector
+        // handles taps, preventing double-toggle from both handlers firing
+        final leftContentIgnorePointer = Padding(
+          padding: const EdgeInsets.only(left: 8),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Center(child: IgnorePointer(child: leftIcon)),
+              const SizedBox(width: 8),
+            ],
+          ),
+        );
+        leftColumn = MouseRegion(
+          cursor: SystemMouseCursors.click,
+          child: GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: () {
+              // Fetch current value at tap time, not build time, to avoid
+              // stale closures on rapid taps
+              final homework = plannerItem as HomeworkModel;
+              final currentValue =
+                  _plannerItemDataSource!.isHomeworkCompleted(homework);
+              _onToggleCompleted(homework, !currentValue);
+            },
+            child: SizedBox(
+              height: agendaHeight,
+              child: leftContentIgnorePointer,
+            ),
+          ),
+        );
+      } else {
+        leftColumn = leftContent;
+      }
+    } else {
+      leftColumn = const SizedBox(width: 8);
+    }
+
+    // Build center column with tap zone to open item on touch devices
+    Widget centerColumn;
+    if (isTouchDevice) {
+      final centerContent = _buildCalendarItemCenterForAgenda(
+        plannerItem: plannerItem,
+        location: location,
+        completedOverride: completedOverride,
+        backgroundColor: color,
+        wrapInExpanded: false,
+      );
+      centerColumn = Expanded(
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: () => _openPlannerItem(plannerItem),
+          child: SizedBox(
+            height: agendaHeight,
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: centerContent,
+            ),
+          ),
+        ),
+      );
+    } else {
+      centerColumn = centerWidget;
+    }
+
     return Container(
       width: width,
-      constraints: BoxConstraints(
-        minHeight: Responsive.isMobile(context)
-            ? _agendaHeightMobile
-            : _agendaHeightDesktop,
-      ),
+      constraints: BoxConstraints(minHeight: agendaHeight),
       decoration: BoxDecoration(
         color: color,
         borderRadius: BorderRadius.circular(4),
       ),
       clipBehavior: Clip.hardEdge,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 8),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            leftWidget,
-            centerWidget,
-            const SizedBox(width: 8),
-            rightWidget,
-          ],
-        ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          leftColumn,
+          centerColumn,
+          const SizedBox(width: 8),
+          Padding(
+            padding: const EdgeInsets.only(right: 8),
+            child: rightWidget,
+          ),
+        ],
       ),
     );
   }
@@ -2839,7 +2897,7 @@ class _CalendarScreenState
     _plannerItemDataSource!.setCompletedOverride(homework.id, value);
 
     final request = HomeworkRequestModel(
-      completed: !homework.completed,
+      completed: value,
       course: homework.course.id,
     );
 
@@ -3493,9 +3551,13 @@ class _CalendarScreenState
     bool? completedOverride,
     required Color backgroundColor,
   }) {
-    final isCompleted =
-        completedOverride ??
-        (plannerItem is HomeworkModel && plannerItem.completed);
+    // Use data source's isHomeworkCompleted() directly to get the latest
+    // override value, matching how TodosDataGrid and the checkbox work
+    final isCompleted = plannerItem is HomeworkModel
+        ? (_plannerItemDataSource?.isHomeworkCompleted(plannerItem) ??
+            completedOverride ??
+            plannerItem.completed)
+        : false;
 
     final foregroundColor = backgroundColor.contrasting;
     final titleStyle = AppStyles.smallSecondaryTextLight(context).copyWith(
