@@ -136,8 +136,10 @@ class TodosDataGridState extends State<TodosDataGrid> {
   }
 
   void resetForViewChange() {
-    _isInitialized = false;
-    _hasInitializedNavigation = false;
+    setState(() {
+      _isInitialized = false;
+      _hasInitializedNavigation = false;
+    });
     _initializeData();
   }
 
