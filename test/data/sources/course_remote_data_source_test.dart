@@ -75,7 +75,7 @@ void main() {
         expect(result, isEmpty);
       });
 
-      test('throws ServerException on invalid response format', () async {
+      test('throws HeliumException on invalid response format', () async {
         // GIVEN
         when(
           () => mockDio.get(any()),
@@ -84,7 +84,7 @@ void main() {
         // WHEN/THEN
         expect(
           () => dataSource.getCourseGroups(),
-          throwsA(isA<ServerException>()),
+          throwsA(isA<HeliumException>()),
         );
       });
 
@@ -126,7 +126,7 @@ void main() {
         verifyCourseGroupMatchesJson(result, json);
       });
 
-      test('throws ServerException on non-200 response', () async {
+      test('throws HeliumException on non-200 response', () async {
         // GIVEN
         when(
           () => mockDio.get(any()),
@@ -135,7 +135,7 @@ void main() {
         // WHEN/THEN
         expect(
           () => dataSource.getCourseGroup(999),
-          throwsA(isA<ServerException>()),
+          throwsA(isA<HeliumException>()),
         );
       });
     });
@@ -220,7 +220,7 @@ void main() {
         expect(dataSource.deleteCourseGroup(1), completes);
       });
 
-      test('throws ServerException on non-204 response', () async {
+      test('throws HeliumException on non-204 response', () async {
         // GIVEN
         when(
           () => mockDio.delete(any()),
@@ -229,7 +229,7 @@ void main() {
         // WHEN/THEN
         expect(
           () => dataSource.deleteCourseGroup(1),
-          throwsA(isA<ServerException>()),
+          throwsA(isA<HeliumException>()),
         );
       });
     });

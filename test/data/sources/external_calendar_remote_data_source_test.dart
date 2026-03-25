@@ -140,7 +140,7 @@ void main() {
         expect(result, isEmpty);
       });
 
-      test('throws ServerException on invalid response format', () async {
+      test('throws HeliumException on invalid response format', () async {
         // GIVEN
         when(
           () => mockDio.get(
@@ -155,7 +155,7 @@ void main() {
             from: DateTime(2025, 8, 1),
             to: DateTime(2025, 12, 31),
           ),
-          throwsA(isA<ServerException>()),
+          throwsA(isA<HeliumException>()),
         );
       });
     });
@@ -217,7 +217,7 @@ void main() {
         expect(dataSource.deleteExternalCalendar(calendarId: 1), completes);
       });
 
-      test('throws ServerException on non-204 response', () async {
+      test('throws HeliumException on non-204 response', () async {
         // GIVEN
         when(
           () => mockDio.delete(any()),
@@ -226,7 +226,7 @@ void main() {
         // WHEN/THEN
         expect(
           () => dataSource.deleteExternalCalendar(calendarId: 1),
-          throwsA(isA<ServerException>()),
+          throwsA(isA<HeliumException>()),
         );
       });
     });

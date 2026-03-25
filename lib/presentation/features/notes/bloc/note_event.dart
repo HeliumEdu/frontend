@@ -38,18 +38,16 @@ class FetchNoteEvent extends NoteEvent {
 
 class FetchNoteScreenDataEvent extends NoteEvent {
   final int? noteId;
-  final int? homeworkId;
-  final int? eventId;
-  final int? resourceId;
-  final int? resourceGroupId;
+  final int? linkHomeworkId;
+  final int? linkEventId;
+  final int? linkResourceId;
 
   FetchNoteScreenDataEvent({
     required super.origin,
     this.noteId,
-    this.homeworkId,
-    this.eventId,
-    this.resourceId,
-    this.resourceGroupId,
+    this.linkHomeworkId,
+    this.linkEventId,
+    this.linkResourceId,
   });
 }
 

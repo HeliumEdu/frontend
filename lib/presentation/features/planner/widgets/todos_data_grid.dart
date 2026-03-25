@@ -135,6 +135,13 @@ class TodosDataGridState extends State<TodosDataGrid> {
     super.dispose();
   }
 
+  void resetForViewChange() {
+    setState(() {
+      _isInitialized = false;
+    });
+    _initializeData();
+  }
+
   void goToToday({bool isInitialLoad = false}) {
     final homeworks = widget.dataSource.filteredHomeworks;
     _log.info(

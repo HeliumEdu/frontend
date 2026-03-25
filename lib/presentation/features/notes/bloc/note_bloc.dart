@@ -104,9 +104,9 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
         return;
       }
 
-      if (event.homeworkId != null) {
+      if (event.linkHomeworkId != null) {
         final results = await Future.wait([
-          homeworkRepository.getHomework(id: event.homeworkId!),
+          homeworkRepository.getHomework(id: event.linkHomeworkId!),
           courseRepository.getCourses(),
         ]);
         final homework = results[0] as HomeworkModel;
@@ -124,8 +124,8 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
         return;
       }
 
-      if (event.eventId != null) {
-        final entity = await eventRepository.getEvent(id: event.eventId!);
+      if (event.linkEventId != null) {
+        final entity = await eventRepository.getEvent(id: event.linkEventId!);
         emit(NoteScreenDataFetched(
           origin: event.origin,
           linkedEntityType: 'event',
@@ -134,17 +134,18 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
         return;
       }
 
-      if (event.resourceId != null && event.resourceGroupId != null) {
-        final resource = await resourceRepository.getResource(
-          groupId: event.resourceGroupId!,
-          resourceId: event.resourceId!,
+      if (event.linkResourceId != null) {
+        final resources = await resourceRepository.getResources(
+          id: event.linkResourceId!,
         );
-        emit(NoteScreenDataFetched(
-          origin: event.origin,
-          linkedEntityType: 'resource',
-          linkedEntityTitle: resource.title,
-        ));
-        return;
+        if (resources.isNotEmpty) {
+          emit(NoteScreenDataFetched(
+            origin: event.origin,
+            linkedEntityType: 'resource',
+            linkedEntityTitle: resources.first.title,
+          ));
+          return;
+        }
       }
 
       emit(NoteScreenDataFetched(origin: event.origin));

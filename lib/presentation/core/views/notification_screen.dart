@@ -7,8 +7,8 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
 import 'package:heliumapp/config/app_route.dart';
+import 'package:heliumapp/config/app_router.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/config/pref_service.dart';
 import 'package:heliumapp/core/dio_client.dart';
@@ -21,7 +21,6 @@ import 'package:heliumapp/data/models/planner/request/reminder_request_model.dar
 import 'package:heliumapp/data/repositories/reminder_repository_impl.dart';
 import 'package:heliumapp/data/sources/reminder_remote_data_source.dart';
 import 'package:heliumapp/presentation/core/views/base_page_screen_state.dart';
-import 'package:heliumapp/presentation/features/planner/bloc/attachment_bloc.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/planneritem_bloc.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/planneritem_state.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/reminder_bloc.dart';
@@ -29,7 +28,6 @@ import 'package:heliumapp/presentation/features/planner/bloc/reminder_event.dart
 import 'package:heliumapp/presentation/features/planner/bloc/reminder_state.dart';
 import 'package:heliumapp/presentation/features/planner/views/planner_item_add_screen.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/core/base_event.dart';
-import 'package:heliumapp/presentation/features/shared/bloc/core/provider_helpers.dart';
 import 'package:heliumapp/presentation/ui/components/course_title_label.dart';
 import 'package:heliumapp/presentation/ui/components/non_touch_selectable_text.dart';
 import 'package:heliumapp/presentation/ui/feedback/empty_card.dart';
@@ -40,30 +38,33 @@ import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/conversion_helpers.dart';
 import 'package:heliumapp/utils/date_time_helpers.dart';
+import 'package:heliumapp/utils/deep_link_helpers.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:heliumapp/utils/sort_helpers.dart';
-import 'package:logging/logging.dart';
 
-final _log = Logger('presentation.views');
+/// Shows notifications screen (responsive: side panel on desktop, full-screen on mobile)
+Future<void> showNotifications(BuildContext context) {
+  final currentUri = router.routerDelegate.currentConfiguration.uri;
+  final hasDialogParam =
+      currentUri.queryParameters.containsKey(DeepLinkParam.dialog);
+  final basePath = hasDialogParam ? currentUri.path : null;
 
-/// Shows notifications as a dialog on desktop, or navigates on mobile.
-void showNotifications(BuildContext context) {
-  if (Responsive.isMobile(context)) {
-    context.push(AppRoute.notificationsScreen);
-  } else {
-    showScreenAsDialog(
-      context,
-      child: NotificationsScreen(),
-      width: AppConstants.notificationsDialogWidth,
-      alignment: Alignment.centerRight,
-      insetPadding: const EdgeInsets.only(
-        top: 16,
-        bottom: 16,
-        right: 16,
-        left: 100,
-      ),
-    );
+  final isMobile = Responsive.isMobile(context);
+
+  final result = showScreenAsDialog(
+    context,
+    child: NotificationsScreen(),
+    width: isMobile ? double.infinity : AppConstants.notificationsDialogWidth,
+    alignment: isMobile ? Alignment.center : Alignment.centerRight,
+    insetPadding: isMobile
+        ? EdgeInsets.zero
+        : const EdgeInsets.only(top: 16, bottom: 16, right: 16, left: 100),
+  );
+
+  if (basePath != null) {
+    return result.then((_) => clearRouteQueryParams(basePath));
   }
+  return result;
 }
 
 class NotificationsScreen extends StatelessWidget {
@@ -118,6 +119,7 @@ class _NotificationsScreenState
 
   List<NotificationModel> _notifications = [];
   List<int> _readNotificationIds = [];
+  bool _isOpeningEntity = false;
 
   @override
   void initState() {
@@ -516,6 +518,9 @@ class _NotificationsScreenState
   }
 
   Future<void> _openNotification(NotificationModel notification) async {
+    if (_isOpeningEntity) return;
+    _isOpeningEntity = true;
+
     _readNotificationIds.add(notification.id);
 
     await _storeReadNotifications();
@@ -541,31 +546,34 @@ class _NotificationsScreenState
 
     if (!mounted) return;
 
-    // Close the dialog first if we're in dialog mode
+    // Desktop: close dialog, then set entity param so shell opens the editor.
     if (DialogModeProvider.isDialogMode(context)) {
+      final homeworkId = notification.reminder.homework?.id;
+      final eventId = notification.reminder.event?.id;
+      final basePath = router.routerDelegate.currentConfiguration.uri.path;
       Navigator.of(context).pop();
+      Future.delayed(Duration.zero, () {
+        if (homeworkId != null) {
+          router.replace(
+            '$basePath?${DeepLinkParam.homeworkId}=$homeworkId',
+          );
+        } else if (eventId != null) {
+          router.replace(
+            '$basePath?${DeepLinkParam.eventId}=$eventId',
+          );
+        }
+      });
+      return;
     }
 
-    AttachmentBloc? attachmentBloc;
-    try {
-      final found = context.read<AttachmentBloc>();
-      attachmentBloc = found.isClosed ? null : found;
-    } catch (_) {
-      // Bloc not in context
-    }
-    if (attachmentBloc == null) {
-      _log.fine('AttachmentBloc not in context or closed, creating a new one');
-      attachmentBloc = ProviderHelpers().createAttachmentBloc()(context);
-    }
-
-    showPlannerItemAdd(
+    await showPlannerItemAdd(
       context,
       eventId: notification.reminder.event?.id,
       homeworkId: notification.reminder.homework?.id,
       isEdit: true,
       isNew: false,
-      attachmentBloc: attachmentBloc,
     );
+    _isOpeningEntity = false;
   }
 
   Future<void> _dismissReminder(NotificationModel notification) async {

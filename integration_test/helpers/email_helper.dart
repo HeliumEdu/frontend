@@ -87,10 +87,6 @@ class EmailHelper {
       // Parse email to extract body
       final emailBody = _parseEmailBody(emailStr);
 
-      // Validate email arrived after the action was triggered
-      final nowUtc = DateTime.now().toUtc();
-      final staleThreshold = nowUtc.subtract(const Duration(minutes: 10));
-
       // Validate: arrived after sentAfter, for our user, and has verification code
       // URL-encode the username since the email template uses urlencode filter
       final encodedUsername = Uri.encodeComponent(username);
@@ -124,9 +120,6 @@ class EmailHelper {
       await _minio.removeObject(_config.s3BucketName, latestObj.key!);
       _log.info('Deleted matching email: ${latestObj.key}');
 
-      // Clean up old emails (>10 min) now that we succeeded
-      await _cleanupOldEmails(allObjects, staleThreshold);
-
       return verificationCode;
     } catch (e) {
       _log.warning('Error during email fetch: $e');
@@ -148,26 +141,6 @@ class EmailHelper {
     throw Exception(
       'No matching verification email found after ${_maxRetries * _retryDelay.inSeconds} seconds. Last reason: $reason',
     );
-  }
-
-  /// Cleans up old emails (>10 min) after successfully finding our email.
-  Future<void> _cleanupOldEmails(
-    List<minio_models.Object> allObjects,
-    DateTime staleThreshold,
-  ) async {
-    var cleanedCount = 0;
-    for (final obj in allObjects) {
-      if (obj.key == null || obj.lastModified == null) continue;
-
-      // Use S3 object's lastModified for simple staleness check
-      if (obj.lastModified!.isBefore(staleThreshold)) {
-        await _minio.removeObject(_config.s3BucketName, obj.key!);
-        cleanedCount++;
-      }
-    }
-    if (cleanedCount > 0) {
-      _log.info('Cleaned up $cleanedCount old email(s)');
-    }
   }
 
   /// Parses a raw email string to extract the plain text body.

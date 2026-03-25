@@ -31,7 +31,6 @@ class _SelectWidget<T extends BaseTitledModel> extends StatefulWidget {
 }
 
 class _SelectWidgetState<T extends BaseTitledModel> extends State<_SelectWidget<T>> {
-  // State
   final Set<int> selected = <int>{};
   bool _isSubmitting = false;
 

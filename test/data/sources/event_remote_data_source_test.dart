@@ -113,7 +113,7 @@ void main() {
         expect(result[0].color, isNotNull);
       });
 
-      test('throws ServerException on invalid response format', () async {
+      test('throws HeliumException on invalid response format', () async {
         // GIVEN
         when(
           () => mockDio.get(
@@ -123,7 +123,7 @@ void main() {
         ).thenAnswer((_) async => givenSuccessResponse({'invalid': 'format'}));
 
         // WHEN/THEN
-        expect(() => dataSource.getEvents(), throwsA(isA<ServerException>()));
+        expect(() => dataSource.getEvents(), throwsA(isA<HeliumException>()));
       });
     });
 
@@ -264,7 +264,7 @@ void main() {
         expect(dataSource.deleteEvent(eventId: 1), completes);
       });
 
-      test('throws ServerException on non-204 response', () async {
+      test('throws HeliumException on non-204 response', () async {
         // GIVEN
         when(
           () => mockDio.delete(any()),
@@ -273,7 +273,7 @@ void main() {
         // WHEN/THEN
         expect(
           () => dataSource.deleteEvent(eventId: 1),
-          throwsA(isA<ServerException>()),
+          throwsA(isA<HeliumException>()),
         );
       });
     });

@@ -88,7 +88,6 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
   int? _eventId;
   int? _homeworkId;
 
-  // State
   bool isLoading = true;
   bool _isSubmitting = false;
   bool _hasRequestedInitialFocus = false;

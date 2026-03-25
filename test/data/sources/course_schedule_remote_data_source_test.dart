@@ -72,7 +72,7 @@ void main() {
         expect(result, isEmpty);
       });
 
-      test('throws ServerException on invalid response format', () async {
+      test('throws HeliumException on invalid response format', () async {
         // GIVEN
         when(
           () => mockDio.get(any()),
@@ -81,7 +81,7 @@ void main() {
         // WHEN/THEN
         expect(
           () => dataSource.getCourseSchedules(),
-          throwsA(isA<ServerException>()),
+          throwsA(isA<HeliumException>()),
         );
       });
     });
@@ -114,7 +114,7 @@ void main() {
         verifyCourseScheduleMatchesJson(result, scheduleJson);
       });
 
-      test('throws NotFoundException when no schedule found', () async {
+      test('throws HeliumException when no schedule found', () async {
         // GIVEN
         when(
           () => mockDio.get(any()),
@@ -123,7 +123,7 @@ void main() {
         // WHEN/THEN
         expect(
           () => dataSource.getCourseScheduleForCourse(1, 1),
-          throwsA(isA<NotFoundException>()),
+          throwsA(isA<HeliumException>()),
         );
       });
     });

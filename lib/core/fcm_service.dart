@@ -48,7 +48,6 @@ class FcmService {
 
   String? _deviceId;
 
-  // Getters
   String? get fcmToken => _fcmToken;
   bool get isSupported => _isSupported;
 
@@ -91,9 +90,7 @@ class FcmService {
   Future<void> init() async {
     if (isInitialized) return;
 
-    // Check browser support on web BEFORE accessing FirebaseMessaging.instance
     if (kIsWeb) {
-      // First check basic browser APIs
       if (!web_notifications.isMessagingSupported()) {
         _log.info('FCM not supported in this browser (missing APIs), skipping initialization');
         _isSupported = false;
@@ -101,7 +98,6 @@ class FcmService {
       }
     }
 
-    // Access FirebaseMessaging.instance - may throw on unsupported browsers
     try {
       _firebaseMessaging = FirebaseMessaging.instance;
     } catch (e) {
@@ -110,7 +106,6 @@ class FcmService {
       return;
     }
 
-    // Additional Firebase-level support check for web
     if (kIsWeb) {
       final isSupported = await _firebaseMessaging?.isSupported() ?? false;
       if (!isSupported) {
@@ -261,7 +256,6 @@ class FcmService {
       final bool tokenUnchanged =
           storedToken != null && storedToken == _fcmToken;
 
-      // Get user ID from access token
       final accessToken = await _prefService.getSecure('access_token');
       if (accessToken == null) {
         return;
@@ -277,25 +271,24 @@ class FcmService {
             final bool isCurrentToken = token.token == _fcmToken;
             final bool isCurrentDevice = token.deviceId == _deviceId;
 
-            // Keep if it's the current token on the current device
             if (isCurrentToken && isCurrentDevice) {
               hasCurrent = true;
               continue;
             }
 
-            // Ignore tokens for other devices
             if (!isCurrentDevice) {
               continue;
             }
 
-            // Delete stale tokens from this device (old or duplicates)
             try {
               await pushTokenRepo.deletePushTokenById(token.id);
               _log.info(
                 'Removed stale push token ID: ${token.id} from this device',
               );
+              Sentry.metrics.count('fcm.push_token.stale_removed', 1);
             } catch (e) {
               _log.warning('Failed to delete stale push token ${token.id}', e);
+            Sentry.metrics.count('fcm.push_token.stale_delete_failed', 1);
             }
           }
         } catch (e) {
@@ -344,14 +337,10 @@ class FcmService {
     FirebaseMessaging.onBackgroundMessage(_onBackgroundMessage);
 
     FirebaseMessaging.onMessage.listen(_onForegroundMessage);
-
-    // Handle taps from background
     FirebaseMessaging.onMessageOpenedApp.listen(_onNotificationTap);
-
-    // Handle taps from terminated
     _handleInitialMessage();
 
-    // Listen for token refreshes (important for iOS when APN token becomes available)
+    // iOS: APN token may become available after initial FCM setup
     _firebaseMessaging?.onTokenRefresh.listen((newToken) {
       _log.info('FCM token refreshed');
       _fcmToken = newToken;
@@ -364,10 +353,7 @@ class FcmService {
     _log.info('Foreground message $messageId received from FCM');
 
     if (kDebugMode) {
-      if (await _handleTestMessages(message, messageId)) {
-        // Return early when test messages are already handled
-        return;
-      }
+      if (await _handleTestMessages(message, messageId)) return;
     }
 
     final payload = json.decode(message.data['json_payload']);
@@ -379,6 +365,7 @@ class FcmService {
 
     if (_recentMessageIds.containsKey(payload['id'].toString())) {
       _log.info('Foreground message $messageId within dedupe window, skipping');
+      Sentry.metrics.count('fcm.message.deduplicated', 1);
       return;
     }
     _recentMessageIds[payload['id'].toString()] = now;
@@ -426,10 +413,8 @@ class FcmService {
     }
   }
 
-  // Show local notification
   Future<void> showLocalNotification(NotificationModel notification) async {
     if (kIsWeb) {
-      // On web, use browser's Notification API directly
       if (await web_notifications.requestWebNotificationPermission()) {
         web_notifications.showWebNotification(
           notification,
@@ -491,7 +476,6 @@ class FcmService {
 
     final existingTokens = await pushTokenRepo.retrievePushTokens();
 
-    // Delete existing tokens for this device
     for (final token in existingTokens) {
       if (token.deviceId == _deviceId) {
         await pushTokenRepo.deletePushTokenById(token.id);
@@ -501,7 +485,6 @@ class FcmService {
       }
     }
 
-    // Clear local state
     await _prefService.setSecure('pushtoken_device_id', '');
     await _prefService.setSecure('last_pushtoken', '');
     _fcmToken = null;
@@ -535,11 +518,7 @@ class FcmService {
         if (message.notification?.title == null && message.notification?.body == null) {
           const msg = 'FCM notification has null title and body in test message handler';
           _log.severe(msg);
-          await Sentry.captureException(
-            Exception(msg),
-            stackTrace: StackTrace.current,
-            hint: Hint.withMap({'message_id': messageId, 'message_data': message.data}),
-          );
+          Sentry.metrics.count('fcm.notification.null_title_and_body', 1);
         }
 
         final messageMap = message.toMap();

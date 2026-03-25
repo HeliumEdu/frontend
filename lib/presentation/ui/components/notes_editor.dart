@@ -12,7 +12,7 @@ import 'package:heliumapp/presentation/ui/dialogs/color_picker_dialog.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 
-class NotesEditor extends StatelessWidget {
+class NotesEditor extends StatefulWidget {
   final QuillController controller;
   final FocusNode? focusNode;
   final VoidCallback? onOpenInNotes;
@@ -75,19 +75,96 @@ class NotesEditor extends StatelessWidget {
   }
 
   @override
+  State<NotesEditor> createState() => _NotesEditorState();
+}
+
+class _NotesEditorState extends State<NotesEditor> with WidgetsBindingObserver {
+  final _editorKey = GlobalKey();
+  bool _pendingScrollOnKeyboard = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    widget.focusNode?.addListener(_onFocusChange);
+  }
+
+  @override
+  void didUpdateWidget(covariant NotesEditor oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.focusNode != widget.focusNode) {
+      oldWidget.focusNode?.removeListener(_onFocusChange);
+      widget.focusNode?.addListener(_onFocusChange);
+    }
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    widget.focusNode?.removeListener(_onFocusChange);
+    super.dispose();
+  }
+
+  @override
+  void didChangeMetrics() {
+    if (!_pendingScrollOnKeyboard || !mounted) return;
+
+    final viewInsets = WidgetsBinding
+        .instance.platformDispatcher.views.first.viewInsets.bottom;
+
+    // Keyboard starting to appear - wait for animation to complete
+    if (viewInsets > 0) {
+      _pendingScrollOnKeyboard = false;
+      // Keyboard animation is ~250-300ms; wait for it to finish
+      Future.delayed(const Duration(milliseconds: 150), _scrollToEditor);
+    }
+  }
+
+  void _scrollToEditor() {
+    if (!mounted) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final ctx = _editorKey.currentContext;
+      if (ctx != null) {
+        Scrollable.ensureVisible(
+          ctx,
+          duration: const Duration(milliseconds: 200),
+          curve: Curves.easeOut,
+        );
+      }
+    });
+  }
+
+  void _onFocusChange() {
+    if (widget.focusNode?.hasFocus ?? false) {
+      final viewInsets = WidgetsBinding
+          .instance.platformDispatcher.views.first.viewInsets.bottom;
+
+      // If keyboard is already visible, scroll immediately
+      if (viewInsets > 0) {
+        _scrollToEditor();
+      } else {
+        // Wait for keyboard to appear via didChangeMetrics
+        _pendingScrollOnKeyboard = true;
+      }
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     final isMobile = Responsive.isMobile(context);
 
     return Column(
+      key: _editorKey,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
           children: [
             Text('Notes', style: AppStyles.formLabel(context)),
             const Spacer(),
-            if (onOpenInNotes != null)
+            if (widget.onOpenInNotes != null)
               TextButton.icon(
-                onPressed: onOpenInNotes,
+                onPressed: widget.onOpenInNotes,
                 icon: Icon(
                   Icons.library_books,
                   size: 16,
@@ -120,7 +197,7 @@ class NotesEditor extends StatelessWidget {
                 Padding(
                   padding: const EdgeInsets.symmetric(vertical: 4),
                   child: QuillSimpleToolbar(
-                    controller: controller,
+                    controller: widget.controller,
                   config: QuillSimpleToolbarConfig(
                     toolbarRunSpacing: 0,
                     showFontFamily: !isMobile,
@@ -174,7 +251,7 @@ class NotesEditor extends StatelessWidget {
                       ),
                       color: QuillToolbarColorButtonOptions(
                         customOnPressedCallback: (ctrl, isBackground) =>
-                            showColorPicker(context, ctrl, isBackground),
+                            NotesEditor.showColorPicker(context, ctrl, isBackground),
                       ),
                     ),
                   ),
@@ -187,12 +264,12 @@ class NotesEditor extends StatelessWidget {
                     maxHeight: 300,
                   ),
                   child: QuillEditor.basic(
-                    controller: controller,
-                    focusNode: focusNode,
+                    controller: widget.controller,
+                    focusNode: widget.focusNode,
                     config: QuillEditorConfig(
                       padding: const EdgeInsets.all(12),
                       autoFocus: false,
-                      customStyles: buildDefaultStyles(context),
+                      customStyles: NotesEditor.buildDefaultStyles(context),
                     ),
                   ),
                 ),

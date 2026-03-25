@@ -43,7 +43,6 @@ class _QuillSearchBarState extends State<QuillSearchBar> {
   @override
   void initState() {
     super.initState();
-    // Request focus after the widget is built
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _searchFocusNode.requestFocus();
     });
@@ -88,7 +87,6 @@ class _QuillSearchBarState extends State<QuillSearchBar> {
       if (_offsets.isEmpty) {
         _clearSelection();
       } else {
-        // Select the next hit position from current
         for (var n = 0; n < _offsets.length; n++) {
           if (_offsets[n] >= currPos) {
             _index = n;
@@ -99,7 +97,6 @@ class _QuillSearchBarState extends State<QuillSearchBar> {
       }
     });
 
-    // Re-request focus after selection update
     _searchFocusNode.requestFocus();
   }
 
@@ -119,7 +116,6 @@ class _QuillSearchBarState extends State<QuillSearchBar> {
     final offset = _offsets[_index];
     var len = _searchText.length;
 
-    // If search hit is within an embed, only select the embed
     final leaf = widget.controller.queryNode(offset);
     if (leaf is Embed) {
       len = 1;
@@ -133,7 +129,6 @@ class _QuillSearchBarState extends State<QuillSearchBar> {
       ChangeSource.local,
     );
 
-    // Re-request focus after selection update
     _searchFocusNode.requestFocus();
   }
 
@@ -164,7 +159,6 @@ class _QuillSearchBarState extends State<QuillSearchBar> {
   }
 
   void _close() {
-    // Clear selection highlight before closing
     _clearSelection();
     widget.onClose();
   }

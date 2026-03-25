@@ -901,8 +901,8 @@ void expectOnGradesScreen() {
 
 /// Assert we're on the Settings screen/dialog.
 /// Verifies: volunteer_activism icon, "Keep Helium Free" text, and "Change Password" button.
-/// For dialog mode: FAB IS shown (from underlying Planner), browser title stays "Planner".
-/// For mobile screen mode: FAB NOT shown, "Settings" shown in page header (browser title unchanged).
+/// [isDialog] should be true for both desktop (overlay dialog) and mobile (full-screen dialog).
+/// Dialog mode shows close (X) button; non-dialog mode shows back arrow (legacy behavior).
 void expectOnSettingsScreen({required bool isDialog}) {
   expect(
     find.byIcon(Icons.volunteer_activism),

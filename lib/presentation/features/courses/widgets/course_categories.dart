@@ -97,7 +97,6 @@ class _CourseCategoriesContent extends StatefulWidget {
 }
 
 class _CourseCategoriesContentState extends State<_CourseCategoriesContent> {
-  // State
   bool isLoading = true;
   List<CategoryModel> _categories = [];
 

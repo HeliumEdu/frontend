@@ -87,7 +87,6 @@ abstract class BaseAttachmentsContent extends StatefulWidget {
 
 abstract class BaseAttachmentsState<T extends BaseAttachmentsContent>
     extends State<T> {
-  // State
   List<AttachmentFile> filesToUpload = [];
   List<AttachmentModel> attachments = [];
   bool isLoading = true;

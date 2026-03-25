@@ -12,6 +12,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:heliumapp/config/app_route.dart';
+import 'package:heliumapp/config/app_router.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/config/theme_notifier.dart';
 import 'package:heliumapp/data/models/auth/request/update_settings_request_model.dart';
@@ -39,6 +40,7 @@ import 'package:heliumapp/presentation/ui/layout/page_header.dart';
 import 'package:heliumapp/presentation/ui/layout/shadow_container.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/app_style.dart';
+import 'package:heliumapp/utils/deep_link_helpers.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -52,26 +54,38 @@ enum SettingsSubScreen {
   importExport,
 }
 
-/// Shows settings as a dialog on desktop, or navigates on mobile.
-void showSettings(BuildContext context) {
-  if (Responsive.isMobile(context)) {
-    context.push(AppRoute.settingScreen);
-  } else {
-    showScreenAsDialog(
-      context,
-      child: const SettingsScreen(),
-      width: AppConstants.leftPanelDialogWidth,
-      alignment: Alignment.centerLeft,
-      insetPadding: const EdgeInsets.all(0),
-    );
+/// Shows settings screen (responsive: side panel on desktop, full-screen on mobile)
+Future<void> showSettings(BuildContext context, {int? initialTab}) {
+  final currentUri = router.routerDelegate.currentConfiguration.uri;
+  final hasDialogParam =
+      currentUri.queryParameters.containsKey(DeepLinkParam.dialog);
+  final basePath = hasDialogParam ? currentUri.path : null;
+
+  final isMobile = Responsive.isMobile(context);
+
+  final result = showScreenAsDialog(
+    context,
+    child: SettingsScreen(initialTab: initialTab),
+    width: isMobile ? double.infinity : AppConstants.leftPanelDialogWidth,
+    alignment: isMobile ? Alignment.center : Alignment.centerLeft,
+    insetPadding: EdgeInsets.zero,
+  );
+
+  if (basePath != null) {
+    return result.then((_) => clearRouteQueryParams(basePath));
   }
+  return result;
 }
 
 class SettingsScreen extends StatefulWidget {
   // Field name constants for integration testing
   static const String deleteAccountPasswordField = 'delete_account_password';
 
-  const SettingsScreen({super.key});
+  /// 1-based tab index to open at, corresponding to [SettingsSubScreen] ordinal.
+  /// Null opens the settings home page.
+  final int? initialTab;
+
+  const SettingsScreen({super.key, this.initialTab});
 
   @override
   State<SettingsScreen> createState() => _SettingsScreenState();
@@ -90,7 +104,6 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
 
   final themeNotifier = ThemeNotifier();
 
-  // State
   SettingsSubScreen? _activeSubScreen;
   String _email = '';
   String? _emailChanging;
@@ -174,7 +187,25 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
     super.initState();
 
     context.read<AuthBloc>().add(FetchProfileEvent());
+
+    final tab = widget.initialTab;
+    if (tab != null) {
+      final subScreen = _subScreenFromTab(tab);
+      if (subScreen != null) {
+        _activeSubScreen = subScreen;
+      }
+    }
   }
+
+  static SettingsSubScreen? _subScreenFromTab(int tab) => switch (tab) {
+    1 => SettingsSubScreen.preferences,
+    2 => SettingsSubScreen.externalCalendars,
+    3 => SettingsSubScreen.feeds,
+    4 => SettingsSubScreen.changeEmail,
+    5 => SettingsSubScreen.changePassword,
+    6 => SettingsSubScreen.importExport,
+    _ => null,
+  };
 
   @override
   void dispose() {

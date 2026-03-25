@@ -62,7 +62,6 @@ class LabelAndTextFormField extends StatefulWidget {
 }
 
 class _LabelAndTextFormFieldState extends State<LabelAndTextFormField> {
-  // State
   bool _isTrailingButtonEnabled = false;
 
   @override

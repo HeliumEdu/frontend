@@ -85,7 +85,6 @@ abstract class BaseRemindersContent extends StatefulWidget {
 
 abstract class BaseReminderWidgetState<T extends BaseRemindersContent>
     extends State<T> {
-  // State
   List<ReminderModel> reminders = [];
   bool isLoading = true;
 

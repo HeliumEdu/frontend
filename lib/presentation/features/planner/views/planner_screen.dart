@@ -43,7 +43,7 @@ import 'package:heliumapp/data/sources/external_calendar_remote_data_source.dart
 import 'package:heliumapp/data/sources/homework_remote_data_source.dart';
 import 'package:heliumapp/data/sources/planner_item_data_source.dart';
 import 'package:heliumapp/presentation/core/views/base_page_screen_state.dart';
-import 'package:heliumapp/presentation/core/views/notification_screen.dart';
+import 'package:heliumapp/presentation/core/views/deep_link_mixin.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_bloc.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_state.dart';
 import 'package:heliumapp/presentation/features/courses/bloc/category_bloc.dart';
@@ -62,7 +62,6 @@ import 'package:heliumapp/presentation/features/planner/dialogs/confirm_delete_d
 import 'package:heliumapp/presentation/features/planner/views/planner_item_add_screen.dart';
 import 'package:heliumapp/presentation/features/planner/widgets/day_popout_dialog.dart';
 import 'package:heliumapp/presentation/features/planner/widgets/todos_data_grid.dart';
-import 'package:heliumapp/presentation/features/settings/views/settings_screen.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/core/base_event.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/core/provider_helpers.dart';
 import 'package:heliumapp/presentation/ui/components/helium_icon_button.dart';
@@ -131,7 +130,8 @@ class _CalendarProvidedScreen extends StatefulWidget {
 }
 
 class _CalendarScreenState
-    extends BasePageScreenState<_CalendarProvidedScreen> {
+    extends BasePageScreenState<_CalendarProvidedScreen>
+    with DeepLinkMixin {
   static const _agendaHeightMobile = 53.0;
   static const _agendaHeightDesktop = 57.0;
   static const _uiAnimationDuration = Duration(milliseconds: 300);
@@ -140,6 +140,9 @@ class _CalendarScreenState
 
   @override
   String get screenTitle => 'Planner';
+
+  @override
+  String get routePath => AppRoute.plannerScreen;
 
   @override
   List<BlocProvider>? get inheritableProviders => [
@@ -158,15 +161,15 @@ class _CalendarScreenState
         ? truncatedNow
         : _calendarController.selectedDate;
 
-    final attachmentBloc = context.read<AttachmentBloc>();
-
-    showPlannerItemAdd(
-      context,
-      initialDate: initialDate,
-      isFromMonthView: _calendarController.view == CalendarView.month,
-      isEdit: false,
-      isNew: true,
-      attachmentBloc: attachmentBloc,
+    openWithGuard(
+      '${DeepLinkParam.homeworkId}:new',
+      () => showPlannerItemAdd(
+        context,
+        initialDate: initialDate,
+        isFromMonthView: _calendarController.view == CalendarView.month,
+        isEdit: false,
+        isNew: true,
+      ),
     );
   };
 
@@ -188,7 +191,6 @@ class _CalendarScreenState
     CalendarView.schedule,
   ];
 
-  // State
   List<CourseGroupModel> _courseGroups = [];
   List<CourseModel> _courses = [];
   final Map<int, CategoryModel> _categoriesMap = {};
@@ -236,7 +238,6 @@ class _CalendarScreenState
     });
 
     _goToToday();
-
   }
 
   @override
@@ -298,7 +299,6 @@ class _CalendarScreenState
             userSettings: settings,
           );
 
-          // If planner data was already fetched, populate the data source
           if (_courses.isNotEmpty) {
             _plannerItemDataSource!.courses = _courses;
             _plannerItemDataSource!.categoriesMap = _categoriesMap;
@@ -321,30 +321,7 @@ class _CalendarScreenState
         listener: (context, state) {
           if (state is PlannerScreenDataFetched) {
             _populateInitialCalendarStateData(state);
-
-            // Check if we should open a dialog based on query parameters
-            final openDialog = GoRouterState.of(
-              context,
-            ).uri.queryParameters['dialog'];
-            if (openDialog != null) {
-              WidgetsBinding.instance.addPostFrameCallback((_) {
-                if (!mounted) return;
-
-                // Clear the query parameter from URL
-                context.go(
-                  GoRouterState.of(
-                    context,
-                  ).uri.replace(queryParameters: {}).toString(),
-                );
-
-                // Open the appropriate dialog
-                if (openDialog == 'notifications') {
-                  showNotifications(context);
-                } else if (openDialog == 'settings') {
-                  showSettings(context);
-                }
-              });
-            }
+            openFromQueryParams();
           }
         },
       ),
@@ -355,7 +332,6 @@ class _CalendarScreenState
           if (state is EventCreated) {
             _plannerItemDataSource!.addPlannerItem(state.event);
           } else if (state is EventUpdated) {
-            // No snackbar on updates
             _plannerItemDataSource!.updatePlannerItem(state.event);
           } else if (state is EventDeleted) {
             showSnackBar(context, 'Event deleted');
@@ -378,7 +354,6 @@ class _CalendarScreenState
           } else if (state is HomeworkCreated) {
             _plannerItemDataSource!.addPlannerItem(state.homework);
           } else if (state is HomeworkUpdated) {
-            // No snackbar on updates
             _plannerItemDataSource!.updatePlannerItem(state.homework);
           } else if (state is HomeworkDeleted) {
             showSnackBar(context, 'Assignment deleted');
@@ -751,8 +726,6 @@ class _CalendarScreenState
 
             WidgetsBinding.instance.addPostFrameCallback((_) {
               if (!mounted) return;
-
-              // Ensure the date header is updated
               setState(() {});
             });
           },
@@ -775,15 +748,19 @@ class _CalendarScreenState
         ? plannerItem.id
         : null;
 
-    final attachmentBloc = context.read<AttachmentBloc>();
+    final paramKey = homeworkId != null
+        ? '${DeepLinkParam.homeworkId}:$homeworkId'
+        : '${DeepLinkParam.eventId}:$eventId';
 
-    showPlannerItemAdd(
-      context,
-      eventId: eventId,
-      homeworkId: homeworkId,
-      isEdit: true,
-      isNew: false,
-      attachmentBloc: attachmentBloc,
+    openWithGuard(
+      paramKey,
+      () => showPlannerItemAdd(
+        context,
+        eventId: eventId,
+        homeworkId: homeworkId,
+        isEdit: true,
+        isNew: false,
+      ),
     );
 
     return true;
@@ -1413,13 +1390,13 @@ class _CalendarScreenState
       _mobileMonthAutoSelectApplied = false;
     }
 
-    // Store calendar view state when entering Todos
+    // Store/restore calendar state when entering/leaving Todos view
     if (isEnteringNonCalendarView && !wasInNonCalendarView) {
       _storedSelectedDate = _calendarController.selectedDate;
       _storedDisplayDate = _calendarController.displayDate;
+      _todosDataGridKey.currentState?.resetForViewChange();
     }
 
-    // Restore calendar view state when leaving Todos
     if (isEnteringCalendarView && wasInNonCalendarView) {
       if (_storedSelectedDate != null) {
         _calendarController.selectedDate = _storedSelectedDate;
@@ -1429,8 +1406,7 @@ class _CalendarScreenState
       }
     }
 
-    // When switching between calendar views (Month/Week/Day), sync displayDate
-    // to selectedDate so the view navigates to the selected date
+    // Sync displayDate to selectedDate when switching calendar views
     if (isEnteringCalendarView &&
         !wasInNonCalendarView &&
         _calendarController.selectedDate != null) {
@@ -1440,15 +1416,14 @@ class _CalendarScreenState
     _previousView = _currentView;
     _currentView = newView;
 
-    // Only update the calendar controller's view if not switching to Todos
-    // (Todos is a custom view that doesn't exist in SfCalendar)
+    // Todos is a custom view, not an SfCalendar view
     if (newView != PlannerView.todos) {
       _calendarController.view = PlannerHelper.mapHeliumViewToSfCalendarView(
         newView,
       );
     }
 
-    // On mobile, select a date on month view so the agenda is always shown
+    // On mobile month view, auto-select a date so the agenda is always shown
     if (Responsive.isMobile(context) &&
         newView == PlannerView.month &&
         _calendarController.selectedDate == null) {
@@ -1479,15 +1454,11 @@ class _CalendarScreenState
 
     _log.info('Selection changed: ${details.date}');
 
-    // User made a manual selection, clear any mobile-specific paths as that
-    // logic now follows all standard paths (since a selection can't be undone
-    // unless page is reloaded)
     if (_mobileMonthAutoSelectApplied) {
       _mobileMonthAutoSelectApplied = false;
     }
 
-    // In month view, include the current hour in the date selection so
-    // created items don't populate with midnight
+    // Include current hour so new items don't default to midnight
     if (_currentView == PlannerView.month) {
       final now = DateTime.now();
       final selectedWithTime = DateTime(
@@ -2273,7 +2244,6 @@ class _CalendarScreenState
       ],
     );
 
-    // On mobile, make the entire left area tappable for checkboxes
     if (Responsive.isTouchDevice(context) && isCheckbox) {
       final homework = plannerItem as HomeworkModel;
       return MouseRegion(
@@ -2709,7 +2679,7 @@ class _CalendarScreenState
         label: 'Go',
         textColor: context.semanticColors.onInfo,
         onPressed: () {
-          context.go('${AppRoute.coursesScreen}?id=$courseId&step=1');
+          context.go('${AppRoute.coursesScreen}?id=$courseId&${DeepLinkParam.tab}=2');
         },
       ),
       type: SnackType.info,
@@ -2804,6 +2774,7 @@ class _CalendarScreenState
     );
   }
 
+
   void _populateInitialCalendarStateData(PlannerScreenDataFetched state) {
     _log.info(
       'Planner screen data loaded: ${state.courses.length} courses, '
@@ -2844,9 +2815,7 @@ class _CalendarScreenState
     bool offsetForVisibility = false,
   }) {
     _log.fine('Jumping to date: $date (setSelected: $setSelectedDate)');
-    // Truncate to nearest hour (remove minutes/seconds)
     final truncatedDate = DateTime(date.year, date.month, date.day, date.hour);
-    // Optionally offset by 2 hours so current time is visible (used for "today")
     final displayDate = offsetForVisibility
         ? truncatedDate.subtract(const Duration(hours: 2))
         : truncatedDate;
@@ -2867,7 +2836,6 @@ class _CalendarScreenState
 
     _log.info('Homework ${homework.id} completion toggled: $value');
 
-    // Set optimistic override immediately for instant visual feedback
     _plannerItemDataSource!.setCompletedOverride(homework.id, value);
 
     final request = HomeworkRequestModel(
@@ -3027,7 +2995,6 @@ class _CalendarScreenState
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-              // Header row
               Row(
                 children: [
                   Expanded(

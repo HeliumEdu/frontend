@@ -38,6 +38,7 @@ abstract class ResourceRemoteDataSource extends BaseDataSource {
   Future<void> deleteResourceGroup({required int groupId});
 
   Future<List<ResourceModel>> getResources({
+    int? id,
     int? groupId,
     bool? shownOnCalendar,
     bool forceRefresh = false,
@@ -103,9 +104,6 @@ class ResourceRemoteDataSourceImpl extends ResourceRemoteDataSource {
       throw handleDioError(e, s);
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
-      if (e is HeliumException) {
-        rethrow;
-      }
       throw HeliumException(message: 'An unexpected error occurred.');
     }
   }
@@ -135,9 +133,6 @@ class ResourceRemoteDataSourceImpl extends ResourceRemoteDataSource {
       throw handleDioError(e, s);
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
-      if (e is HeliumException) {
-        rethrow;
-      }
       throw HeliumException(message: 'An unexpected error occurred.');
     }
   }
@@ -169,9 +164,6 @@ class ResourceRemoteDataSourceImpl extends ResourceRemoteDataSource {
       throw handleDioError(e, s);
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
-      if (e is HeliumException) {
-        rethrow;
-      }
       throw HeliumException(message: 'An unexpected error occurred.');
     }
   }
@@ -203,9 +195,6 @@ class ResourceRemoteDataSourceImpl extends ResourceRemoteDataSource {
       throw handleDioError(e, s);
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
-      if (e is HeliumException) {
-        rethrow;
-      }
       throw HeliumException(message: 'An unexpected error occurred.');
     }
   }
@@ -232,15 +221,13 @@ class ResourceRemoteDataSourceImpl extends ResourceRemoteDataSource {
       throw handleDioError(e, s);
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
-      if (e is HeliumException) {
-        rethrow;
-      }
       throw HeliumException(message: 'An unexpected error occurred.');
     }
   }
 
   @override
   Future<List<ResourceModel>> getResources({
+    int? id,
     int? groupId,
     bool? shownOnCalendar,
     bool forceRefresh = false,
@@ -251,6 +238,9 @@ class ResourceRemoteDataSourceImpl extends ResourceRemoteDataSource {
 
       // shownOnCalendar requires server-side filtering (hierarchical check on parent groups)
       final Map<String, dynamic> queryParameters = {};
+      if (id != null) {
+        queryParameters['id'] = id;
+      }
       if (shownOnCalendar != null) {
         queryParameters['shown_on_calendar'] = shownOnCalendar;
       }
@@ -290,9 +280,6 @@ class ResourceRemoteDataSourceImpl extends ResourceRemoteDataSource {
       throw handleDioError(e, s);
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
-      if (e is HeliumException) {
-        rethrow;
-      }
       throw HeliumException(message: 'An unexpected error occurred.');
     }
   }
@@ -323,9 +310,6 @@ class ResourceRemoteDataSourceImpl extends ResourceRemoteDataSource {
       throw handleDioError(e, s);
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
-      if (e is HeliumException) {
-        rethrow;
-      }
       throw HeliumException(message: 'An unexpected error occurred.');
     }
   }
@@ -358,9 +342,6 @@ class ResourceRemoteDataSourceImpl extends ResourceRemoteDataSource {
       throw handleDioError(e, s);
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
-      if (e is HeliumException) {
-        rethrow;
-      }
       throw HeliumException(message: 'An unexpected error occurred.');
     }
   }
@@ -392,9 +373,6 @@ class ResourceRemoteDataSourceImpl extends ResourceRemoteDataSource {
       throw handleDioError(e, s);
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
-      if (e is HeliumException) {
-        rethrow;
-      }
       throw HeliumException(message: 'An unexpected error occurred.');
     }
   }
@@ -424,9 +402,6 @@ class ResourceRemoteDataSourceImpl extends ResourceRemoteDataSource {
       throw handleDioError(e, s);
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
-      if (e is HeliumException) {
-        rethrow;
-      }
       throw HeliumException(message: 'An unexpected error occurred.');
     }
   }

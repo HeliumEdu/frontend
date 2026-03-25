@@ -44,10 +44,12 @@ class _StepperHeaderState extends State<StepperHeader> {
   @override
   Widget build(BuildContext context) {
     final dialogProvider = DialogModeProvider.maybeOf(context);
+    final screenWidth = MediaQuery.sizeOf(context).width;
 
-    // Use dialog width if available, otherwise use screen width
+    // Use dialog width if available and finite, otherwise use screen width
+    final dialogWidth = dialogProvider?.width;
     final availableWidth =
-        dialogProvider?.width ?? MediaQuery.sizeOf(context).width;
+        (dialogWidth != null && dialogWidth.isFinite) ? dialogWidth : screenWidth;
 
     // Account for container padding (8 from ShadowContainer, 12 from outer padding on each side)
     final contentWidth = availableWidth - 40;

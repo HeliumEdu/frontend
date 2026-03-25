@@ -55,7 +55,6 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
 
   final Map<String, List<PlannerItemBaseModel>> _dateRangeCache = {};
 
-  // State
   bool _hasLoadedInitialData = false;
   Map<int, bool> _filteredCourses = {};
   List<String> _filterCategories = [];
@@ -124,7 +123,6 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
       _dateRangeCache.clear();
       _hasLoadedInitialData = false;
 
-      // Reload data for visible range if provided
       if (visibleStart != null && visibleEnd != null) {
         await handleLoadMore(visibleStart, visibleEnd, forceRefresh: true);
       }
@@ -147,7 +145,6 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
     try {
       _log.info('Refreshing external calendar events only');
 
-      // Re-fetch external calendar events for the visible range
       if (visibleStart != null && visibleEnd != null) {
         final newEvents = await externalCalendarRepository.getExternalCalendarEvents(
           from: visibleStart,
@@ -156,12 +153,10 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
           forceRefresh: true,
         );
 
-        // Update each cached date range by removing old external events and adding new ones
         for (final entry in _dateRangeCache.entries) {
           final items = entry.value;
           items.removeWhere((item) => item is ExternalCalendarEventModel);
 
-          // Add new events that fall within this cache entry's range
           final parts = entry.key.split('_');
           final rangeStart = DateTime.parse(parts[0]);
           final rangeEnd = DateTime.parse(parts[1]);
@@ -174,7 +169,6 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
         }
       }
 
-      // Re-apply filters to update the calendar view
       if (PlannerItemDataSource.filterDebounceDuration == Duration.zero) {
         _applyFiltersSynchronously();
       } else {
@@ -508,7 +502,6 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
       _log.fine('Items for date range already cached: $startDate to $endDate');
     }
 
-    // Rebuild calendar items from filters
     if (filterDebounceDuration == Duration.zero) {
       _applyFiltersSynchronously();
     } else {
@@ -531,7 +524,6 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
     return appointments![index] as PlannerItemBaseModel;
   }
 
-  // Typed getters for all items
   List<HomeworkModel> get allHomeworks =>
       allPlannerItems.whereType<HomeworkModel>().toList();
 
@@ -559,19 +551,16 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
     final items = <PlannerItemBaseModel>[];
     final includeAllTypes = _filterTypes.isEmpty;
 
-    // Homeworks - use filteredHomeworks, which already has all filters applied
     if (includeAllTypes ||
         _filterTypes.contains(PlannerFilterType.assignments.value)) {
       items.addAll(filteredHomeworks);
     }
 
-    // Events - apply search filter only
     if (includeAllTypes ||
         _filterTypes.contains(PlannerFilterType.events.value)) {
       items.addAll(_applySearchFilterToItems(allEvents));
     }
 
-    // CourseSchedule events - apply course and search filters
     if (includeAllTypes ||
         _filterTypes.contains(PlannerFilterType.classSchedules.value)) {
       final courseScheduleEvents = allCourseScheduleEvents
@@ -717,7 +706,6 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
   }
 
   void addPlannerItem(PlannerItemBaseModel plannerItem) {
-    // Check if already exists in any cache entry
     for (final items in _dateRangeCache.values) {
       if (items.any((existing) => existing.id == plannerItem.id)) {
         return;
@@ -728,7 +716,6 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
       'Calendar item added: ${plannerItem.runtimeType} ${plannerItem.id} "${plannerItem.title}"',
     );
 
-    // Add to all cache entries whose range overlaps with this item's dates
     final itemStart = plannerItem.start;
     final itemEnd = plannerItem.end;
 
@@ -737,15 +724,12 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
       final rangeStart = DateTime.parse(parts[0]);
       final rangeEnd = DateTime.parse(parts[1]);
 
-      // Check if item overlaps with this cached range
       if (itemStart.isBefore(rangeEnd) && itemEnd.isAfter(rangeStart)) {
         entry.value.add(plannerItem);
       }
     }
 
-    // Add directly to appointments for immediate visibility, then schedule
-    // async refilter for proper sorting. This provides better UX as users
-    // see their added items immediately.
+    // Add immediately for instant visibility, then async refilter for sorting
     if (!appointments!.any(
       (item) => (item as PlannerItemBaseModel).id == plannerItem.id,
     )) {
@@ -763,7 +747,6 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
   void updatePlannerItem(PlannerItemBaseModel plannerItem) {
     bool updated = false;
 
-    // Update in all cache entries where the item exists
     for (final items in _dateRangeCache.values) {
       final index = items.indexWhere(
         (existing) => existing.id == plannerItem.id,
@@ -780,14 +763,11 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
       );
     }
 
-    // Clear any overrides since we have real data now
     if (plannerItem is HomeworkModel) {
       _completedOverrides.remove(plannerItem.id);
     }
     _timeOverrides.remove(plannerItem.id);
 
-    // Find and update the item directly, using targeted, to reduce unnecessary
-    // rebuilds and reduce the potential for UI flickers
     final oldIndex = appointments!.indexWhere(
       (item) => (item as PlannerItemBaseModel).id == plannerItem.id,
     );
@@ -799,7 +779,6 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
         notifyListeners(CalendarDataSourceAction.remove, [oldItem]);
       }
 
-      // Re-add at correct sorted position
       appointments!.add(plannerItem);
       Sort.byStartThenTitle(appointments!.cast<PlannerItemBaseModel>());
       _buildSortPositions(appointments!.cast<PlannerItemBaseModel>());
@@ -807,7 +786,6 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
         notifyListeners(CalendarDataSourceAction.add, [plannerItem]);
       }
     } else {
-      // Item not in current view, do full refresh
       _applyFiltersAndNotify();
     }
 
@@ -817,7 +795,6 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
   void removePlannerItem(int plannerItemId) {
     PlannerItemBaseModel? removedItem;
 
-    // Remove from all cache entries where the item exists
     for (final items in _dateRangeCache.values) {
       final index = items.indexWhere(
         (existing) => existing.id == plannerItemId,
@@ -846,7 +823,6 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
   // Optimistic UI methods
   void setCompletedOverride(int homeworkId, bool completed) {
     _completedOverrides[homeworkId] = completed;
-    // Notify immediately for instant UI feedback, then async filter for sorting
     _notifyChangeListeners();
     _applyFiltersAndNotify();
   }
@@ -856,11 +832,10 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
     _notifyChangeListeners();
   }
 
-  // Optimistic UI methods for drag-drop/resize
+  // Optimistic UI for drag-drop/resize
   void setTimeOverride(int itemId, String start, String end) {
     _timeOverrides[itemId] = PlannerItemTimeOverride(start: start, end: end);
 
-    // Re-sort and rebuild positions to maintain correct order with new time
     Sort.byStartThenTitle(appointments!.cast<PlannerItemBaseModel>());
     _buildSortPositions(appointments!.cast<PlannerItemBaseModel>());
 

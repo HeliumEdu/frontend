@@ -76,7 +76,6 @@ class OAuthSignInService {
         userCredential = await _signInWithFirebaseAuthProvider(provider);
       }
 
-      // Get the Firebase ID token - this is what we send to the backend
       final String? firebaseIdToken = await userCredential.user?.getIdToken();
 
       if (firebaseIdToken == null) {
@@ -145,7 +144,6 @@ class OAuthSignInService {
 
     _log.info('Google Sign-In successful, getting authentication details');
 
-    // Obtain the auth details from the Google Sign-In
     final GoogleSignInAuthentication googleAuth = googleUser.authentication;
 
     if (googleAuth.idToken == null) {
@@ -155,14 +153,12 @@ class OAuthSignInService {
       );
     }
 
-    // Create a new credential for Firebase Auth (only needs ID token in v7)
+    // google_sign_in v7 only needs ID token
     final credential = GoogleAuthProvider.credential(
       idToken: googleAuth.idToken,
     );
 
     _log.info('Signing in to Firebase with Google credentials');
-
-    // Sign in to Firebase with the Google credentials
     return await _firebaseAuth.signInWithCredential(credential);
   }
 
@@ -171,12 +167,10 @@ class OAuthSignInService {
   ) async {
     final providerName = provider == OAuthProvider.google ? 'Google' : 'Apple';
 
-    // Create the appropriate auth provider
     final dynamic authProvider = provider == OAuthProvider.google
         ? GoogleAuthProvider()
         : AppleAuthProvider();
 
-    // Add scopes
     if (provider == OAuthProvider.google) {
       authProvider.addScope('email');
       authProvider.addScope('profile');
@@ -186,11 +180,9 @@ class OAuthSignInService {
     }
 
     if (kIsWeb) {
-      // On web, use popup
       _log.info('Using Firebase Auth popup for $providerName on web');
       return await _firebaseAuth.signInWithPopup(authProvider);
     } else {
-      // On mobile, use provider (Apple only - Google mobile uses different path)
       _log.info('Using Firebase Auth for $providerName on mobile');
       return await _firebaseAuth.signInWithProvider(authProvider);
     }

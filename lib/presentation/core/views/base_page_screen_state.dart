@@ -7,10 +7,8 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
 import 'package:heliumapp/config/app_router.dart';
 import 'package:heliumapp/config/app_theme.dart';
-import 'package:heliumapp/config/route_args.dart';
 import 'package:heliumapp/core/dio_client.dart';
 import 'package:heliumapp/data/models/auth/user_model.dart';
 import 'package:heliumapp/presentation/navigation/shell/navigation_shell.dart';
@@ -34,6 +32,7 @@ final _log = Logger('presentation.views');
 class DialogModeProvider extends InheritedWidget {
   final double? width;
   final double? height;
+  final bool isFullScreen;
   final GlobalKey<ScaffoldMessengerState>? scaffoldMessengerKey;
 
   const DialogModeProvider({
@@ -41,6 +40,7 @@ class DialogModeProvider extends InheritedWidget {
     required super.child,
     this.width,
     this.height,
+    this.isFullScreen = false,
     this.scaffoldMessengerKey,
   });
 
@@ -52,69 +52,79 @@ class DialogModeProvider extends InheritedWidget {
     return maybeOf(context) != null;
   }
 
+  static bool isFullScreenMode(BuildContext context) {
+    return maybeOf(context)?.isFullScreen ?? false;
+  }
+
   @override
   bool updateShouldNotify(DialogModeProvider oldWidget) {
-    return width != oldWidget.width || height != oldWidget.height;
+    return width != oldWidget.width ||
+        height != oldWidget.height ||
+        isFullScreen != oldWidget.isFullScreen;
   }
 }
 
-/// Shows any widget using [BasePageScreenState] as a dialog with standard
-/// dialog chrome.
-void showScreenAsDialog(
+/// Shows any widget using [BasePageScreenState] as a dialog.
+///
+/// Returns a [Future] that completes when dismissed — chain
+/// `.then((_) => clearRouteQueryParams(basePath))` to clear URL params.
+Future<void> showScreenAsDialog(
   BuildContext context, {
   required Widget child,
-  RouteArgs? extra,
   double width = 500,
   double? height,
   AlignmentGeometry alignment = Alignment.center,
   EdgeInsets insetPadding = const EdgeInsets.all(16),
   bool? barrierDismissible,
 }) {
-  // Create a key for this dialog's ScaffoldMessenger
   final dialogMessengerKey = GlobalKey<ScaffoldMessengerState>();
-
-  // Capture the initial route to detect browser navigation
   final initialLocation = router.routerDelegate.currentConfiguration.uri
       .toString();
 
-  showDialog(
+  final isFullScreen = insetPadding == EdgeInsets.zero;
+
+  return showDialog(
     context: context,
+    useSafeArea: !isFullScreen,
     barrierDismissible:
         barrierDismissible ?? !Responsive.isTouchDevice(context),
-    barrierColor: Colors.black54,
+    barrierColor: isFullScreen ? Colors.transparent : Colors.black54,
     builder: (dialogContext) {
-      final screenHeight = MediaQuery.of(dialogContext).size.height;
-      final effectiveHeight = height ?? screenHeight - 32;
+      final mediaQuery = MediaQuery.of(dialogContext);
+      final screenWidth = mediaQuery.size.width;
+      final screenHeight = mediaQuery.size.height;
+      final keyboardHeight = mediaQuery.viewInsets.bottom;
+      // For full-screen dialogs, subtract keyboard height so content remains visible
+      final effectiveHeight = height ??
+          (isFullScreen ? screenHeight - keyboardHeight : screenHeight - 32);
+      // Use screen width when infinity is passed (full-screen mobile dialogs)
+      final effectiveWidth = width.isFinite ? width : screenWidth;
 
-      Widget dialogContent = DialogModeProvider(
-        width: width,
+      final Widget dialogContent = DialogModeProvider(
+        width: effectiveWidth,
         height: effectiveHeight,
+        isFullScreen: isFullScreen,
         scaffoldMessengerKey: dialogMessengerKey,
         child: child,
       );
-
-      final providers = extra?.toProviders();
-      if (providers != null && providers.isNotEmpty) {
-        _log.info(
-          'Using ${providers.length} inherited provider(s): '
-          '${providers.map((p) => p.runtimeType).join(', ')}',
-        );
-        dialogContent = MultiBlocProvider(
-          providers: providers,
-          child: dialogContent,
-        );
-      }
 
       return _DialogRouteListener(
         initialLocation: initialLocation,
         child: Dialog(
           alignment: alignment,
           insetPadding: insetPadding,
+          backgroundColor: isFullScreen
+              ? Theme.of(dialogContext).colorScheme.surface
+              : null,
+          elevation: isFullScreen ? 0 : null,
+          shape: isFullScreen
+              ? const RoundedRectangleBorder(borderRadius: BorderRadius.zero)
+              : null,
           child: SizedBox(
-            width: width,
+            width: effectiveWidth,
             height: effectiveHeight,
             child: ClipRRect(
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(isFullScreen ? 0 : 16),
               // ScaffoldMessenger to ensure SnackBar is shown properly in dialogs
               child: ScaffoldMessenger(
                 key: dialogMessengerKey,
@@ -149,7 +159,7 @@ class _DialogRouteListener extends StatefulWidget {
 
 class _DialogRouteListenerState extends State<_DialogRouteListener> {
   VoidCallback? _routeListener;
-  late final Uri _initialUri;
+  late Uri _initialUri;
 
   @override
   void initState() {
@@ -170,20 +180,50 @@ class _DialogRouteListenerState extends State<_DialogRouteListener> {
   void _onRouteChanged() {
     final currentUri = router.routerDelegate.currentConfiguration.uri;
 
-    // Ignore query-only URL changes, close only when the route path changes.
+    // If params were added after dialog opened, update our reference.
+    // This handles the case where the dialog is shown before the URL is
+    // updated with entity params (e.g., showScreenAsDialog called, then
+    // router.replace adds ?id=123).
+    if (currentUri.path == _initialUri.path &&
+        _initialUri.queryParameters.isEmpty &&
+        currentUri.queryParameters.isNotEmpty) {
+      _initialUri = currentUri;
+      return;
+    }
+
+    // Close on path change (e.g., navigated to different tab)
     if (currentUri.path != _initialUri.path && mounted) {
       _log.info(
         'Browser navigation detected, closing dialog: '
         '${widget.initialLocation} --> ${currentUri.toString()}',
       );
-      // Defer pop() to avoid calling it while Navigator is locked during
-      // GoRouter's route change notification.
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted && Navigator.of(context).canPop()) {
-          Navigator.of(context).pop();
-        }
-      });
+      _deferredPop();
+      return;
     }
+
+    // Close when query params are cleared (e.g., browser back from ?id=123 to /)
+    // but not on param updates within the dialog (e.g., id=new → id=123)
+    if (_initialUri.queryParameters.isNotEmpty &&
+        currentUri.queryParameters.isEmpty &&
+        mounted) {
+      _log.info(
+        'Browser back detected (params cleared), closing dialog: '
+        '${widget.initialLocation} --> ${currentUri.toString()}',
+      );
+      _deferredPop();
+    }
+  }
+
+  void _deferredPop() {
+    // Defer pop() to avoid calling it while Navigator is locked during
+    // GoRouter's route change notification.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final nav = Navigator.of(context, rootNavigator: true);
+      if (nav.canPop()) {
+        nav.pop();
+      }
+    });
   }
 
   @override
@@ -204,11 +244,7 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
 
   Function get cancelAction => () {
     if (!mounted) return;
-    if (DialogModeProvider.isDialogMode(context)) {
-      Navigator.of(context).pop();
-    } else {
-      context.pop();
-    }
+    Navigator.of(context).pop();
   };
 
   Function? get saveAction => null;
@@ -226,7 +262,6 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
     bottom: 0,
   );
 
-  // State
   UserSettingsModel? userSettings;
   bool settingsLoaded = false;
   bool settingsError = false;
@@ -254,10 +289,8 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
   void didChangeDependencies() {
     super.didChangeDependencies();
 
-    // Register inheritable providers with NavigationShell if we're inside one
     final notifier = InheritableProvidersScope.of(context);
     if (notifier != null) {
-      // Use post-frame callback to avoid updating during build
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!mounted) return;
 
@@ -265,11 +298,9 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
       });
     }
 
-    // Register _ModalScopeStatus dependency for non-shell screens so build()
-    // is called whenever isCurrent changes (sub-screen pushed/popped).
-    // Shell routes are excluded — NavigationShell manages their titles.
+    // Register dependency so build() fires when isCurrent changes (push/pop)
     if (!NavigationShellProvider.of(context)) {
-      ModalRoute.of(context); // Register _ModalScopeStatus dependency
+      ModalRoute.of(context);
     }
   }
 
@@ -302,12 +333,7 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
 
   @override
   Widget build(BuildContext context) {
-    // Update browser title on every build for non-shell screens. Using build()
-    // rather than didChangeDependencies catches dynamic screenTitle changes
-    // (e.g., PlannerItemAdd resolving its type after user interaction).
-    // postFrameCallback ensures the foreground route's title wins when multiple
-    // screens rebuild simultaneously. Skips empty titles so the previous title
-    // (e.g., "Planner | Helium") remains until this screen knows its own title.
+    // postFrameCallback ensures the foreground route's title wins
     if (!NavigationShellProvider.of(context) && screenTitle.isNotEmpty) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!mounted) return;
@@ -333,17 +359,13 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
   }
 
   Widget buildScaffold(BuildContext context) {
-    // Check if we're inside a NavigationShell (which has its own Scaffold)
     final bool hasNavigationShell = NavigationShellProvider.of(context);
-
-    // Check if we're being displayed as a dialog
     final bool isDialogMode = DialogModeProvider.isDialogMode(context);
 
     final Widget content = Padding(
       padding: scaffoldInsets,
       child: Column(
         children: [
-          // Show error card if settings failed to load
           if (settingsError)
             ErrorCard(
               message: 'An unknown error occurred',
@@ -362,7 +384,6 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
                 });
               },
             )
-          // Show loading until settings are loaded for authenticated screens
           else if (isLoading || (isAuthenticatedScreen && !settingsLoaded))
             const LoadingIndicator()
           else ...[
@@ -374,22 +395,26 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
       ),
     );
 
-    // When displayed as a dialog, wrap as such
     if (isDialogMode) {
+      final isFullScreen = DialogModeProvider.isFullScreenMode(context);
       return Material(
         color: context.colorScheme.surface,
-        borderRadius: BorderRadius.circular(16),
-        child: Column(
-          children: [
-            buildPageHeader(),
-            Expanded(child: content),
-          ],
+        borderRadius: BorderRadius.circular(isFullScreen ? 0 : 16),
+        child: SafeArea(
+          top: isFullScreen,
+          bottom: isFullScreen,
+          left: false,
+          right: false,
+          child: Column(
+            children: [
+              buildPageHeader(),
+              Expanded(child: content),
+            ],
+          ),
         ),
       );
     }
 
-    // When inside NavigationShell, don't wrap in another Scaffold.
-    // NavigationShell manages the browser title for shell routes.
     if (hasNavigationShell) {
       return Stack(
         children: [
@@ -404,9 +429,6 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
       );
     }
 
-    // When NOT inside NavigationScaffold (sub-pages), use full Scaffold.
-    // The browser title is managed via didChangeDependencies + isCurrent rather
-    // than a Title widget, avoiding race conditions during exit animations.
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
@@ -458,6 +480,7 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
         ],
       ),
       child: FloatingActionButton.small(
+        heroTag: null,
         shape: const CircleBorder(),
         onPressed: actionButtonCallback!,
         backgroundColor: context.colorScheme.primary,

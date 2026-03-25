@@ -261,10 +261,10 @@ packages:
     dependency: "direct main"
     description:
       name: dio_cache_interceptor
-      sha256: ac9f312e5a81d79cbccb15f56b78aeae7343a981c1d7c169b11194fae806ec0b
+      sha256: "3644ce3e0c9ba21885cbb0578b3d2ffe022c8badc6f6f4042cb56ecdbe90a7ad"
       url: "https://pub.dev"
     source: hosted
-    version: "4.0.5"
+    version: "4.0.6"
   dio_smart_retry:
     dependency: "direct main"
     description:
@@ -657,10 +657,10 @@ packages:
     dependency: "direct main"
     description:
       name: flutter_timezone
-      sha256: "978192f2f9ea6d019a4de4f0211d76a9af955ca24865828fa98ca4e20cf0cb3c"
+      sha256: e8d63f50f2806a3a71a08697286a0369e1d8f0902961327810459871c0bb01c2
       url: "https://pub.dev"
     source: hosted
-    version: "5.0.1"
+    version: "5.0.2"
   flutter_web_plugins:
     dependency: "direct main"
     description: flutter
@@ -1280,26 +1280,26 @@ packages:
     dependency: transitive
     description:
       name: sentry
-      sha256: "605ad1f6f1ae5b72018cbe8fc20f490fa3bd53e58882e5579566776030d8c8c1"
+      sha256: a49b4fb1cba576fe216347dc2a0e6d76076fb998e6012857db96f991c23b7b3c
       url: "https://pub.dev"
     source: hosted
-    version: "9.14.0"
+    version: "9.15.0"
   sentry_dio:
     dependency: "direct main"
     description:
       name: sentry_dio
-      sha256: bd2b3010bae9facba9bd75054148acfe1013e87c841fefaa0240b8086ee0b327
+      sha256: "17fa65cd6cdb3d7c77a67081f3117370db538ab9a015308841bc3e2d7c2bfa9e"
       url: "https://pub.dev"
     source: hosted
-    version: "9.14.0"
+    version: "9.15.0"
   sentry_flutter:
     dependency: "direct main"
     description:
       name: sentry_flutter
-      sha256: "7fd0fb80050c1f6a77ae185bda997a76d384326d6777cf5137a6c38952c4ac7d"
+      sha256: "25150030c93bd1d4b727ab61cfb09e99121c69ce90fa820bb9ca16dab433e43a"
       url: "https://pub.dev"
     source: hosted
-    version: "9.14.0"
+    version: "9.15.0"
   share_plus:
     dependency: "direct main"
     description:
@@ -1522,7 +1522,7 @@ packages:
     source: hosted
     version: "32.2.8"
   syncfusion_localizations:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: syncfusion_localizations
       sha256: b762a6a285a4cdb507f39644442412d6c05192a34194038dbcca8ee5ad1a2515

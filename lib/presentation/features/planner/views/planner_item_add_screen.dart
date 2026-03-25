@@ -7,9 +7,8 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
 import 'package:heliumapp/config/app_route.dart';
-import 'package:heliumapp/config/route_args.dart';
+import 'package:heliumapp/config/app_router.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/attachment_bloc.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/planneritem_bloc.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/planneritem_state.dart';
@@ -17,12 +16,14 @@ import 'package:heliumapp/presentation/features/shared/widgets/flow/multi_step_c
 import 'package:heliumapp/presentation/features/planner/widgets/planner_item_attachments.dart';
 import 'package:heliumapp/presentation/features/planner/widgets/planner_item_details.dart';
 import 'package:heliumapp/presentation/features/planner/widgets/planner_item_reminders.dart';
+import 'package:heliumapp/presentation/features/shared/bloc/core/provider_helpers.dart';
 import 'package:heliumapp/utils/app_globals.dart';
+import 'package:heliumapp/utils/deep_link_helpers.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:heliumapp/utils/snack_bar_helpers.dart';
 
-/// Shows planner item add/edit as a dialog on desktop, or navigates on mobile
-void showPlannerItemAdd(
+/// Shows planner item add/edit screen (responsive: dialog on desktop, full-screen on mobile)
+Future<void> showPlannerItemAdd(
   BuildContext context, {
   int? eventId,
   int? homeworkId,
@@ -31,44 +32,50 @@ void showPlannerItemAdd(
   required bool isEdit,
   required bool isNew,
   int initialStep = 0,
-  required AttachmentBloc attachmentBloc,
 }) {
-  if (Responsive.isMobile(context)) {
-    context.push(
-      AppRoute.plannerItemAddScreen,
-      extra: PlannerItemAddArgs(
-        attachmentBloc: attachmentBloc,
+  AttachmentBloc? existingBloc;
+  try {
+    existingBloc = context.read<AttachmentBloc>();
+  } catch (_) {}
+  final attachmentBloc =
+      existingBloc ?? ProviderHelpers().createAttachmentBloc()(context);
+
+  final basePath = router.routerDelegate.currentConfiguration.uri.path;
+
+  if (homeworkId != null) {
+    context.setQueryParam(DeepLinkParam.homeworkId, homeworkId.toString());
+  } else if (eventId != null) {
+    context.setQueryParam(DeepLinkParam.eventId, eventId.toString());
+  } else if (isNew) {
+    // FAB case: entity type not yet chosen, default to homework
+    context.setQueryParam(DeepLinkParam.homeworkId, 'new');
+  }
+
+  final isMobile = Responsive.isMobile(context);
+
+  return showScreenAsDialog(
+    context,
+    barrierDismissible: false,
+    child: MultiBlocProvider(
+      providers: [
+        BlocProvider<AttachmentBloc>.value(value: attachmentBloc),
+      ],
+      child: PlannerItemAddScreen(
         eventId: eventId,
         homeworkId: homeworkId,
         initialDate: initialDate,
         isFromMonthView: isFromMonthView,
         isEdit: isEdit,
         isNew: isNew,
+        initialStep: initialStep,
       ),
-    );
-  } else {
-    showScreenAsDialog(
-      context,
-      barrierDismissible: false,
-      child: MultiBlocProvider(
-        providers: [
-          BlocProvider<AttachmentBloc>.value(value: attachmentBloc),
-        ],
-        child: PlannerItemAddScreen(
-          eventId: eventId,
-          homeworkId: homeworkId,
-          initialDate: initialDate,
-          isFromMonthView: isFromMonthView,
-          isEdit: isEdit,
-          isNew: isNew,
-          initialStep: initialStep,
-        ),
-      ),
-      width: AppConstants.centeredDialogWidth,
-      alignment: Alignment.center,
-    );
-  }
+    ),
+    width: isMobile ? double.infinity : AppConstants.centeredDialogWidth,
+    insetPadding: isMobile ? EdgeInsets.zero : const EdgeInsets.all(16),
+    alignment: Alignment.center,
+  ).then((_) => clearRouteQueryParams(basePath));
 }
+
 
 class PlannerItemAddScreen extends MultiStepContainer {
   final int? eventId;
@@ -95,7 +102,6 @@ class _PlannerItemAddScreenState
     extends MultiStepContainerState<PlannerItemAddScreen> {
   final _detailsKey = GlobalKey<PlannerItemDetailsState>();
 
-  // State
   int? _currentEntityId;
   bool? _currentIsEvent;
   int? _targetStep;
@@ -239,12 +245,15 @@ class _PlannerItemAddScreenState
                 _ => null,
               };
 
+              _detailsKey.currentState?.resetSubmitting();
+              setState(() => isSubmitting = false);
+
               if (linkedNoteId != null) {
-                context.go('${AppRoute.notebookScreen}?id=$linkedNoteId');
+                navigateAndClearStack(context, '${AppRoute.notebookScreen}?id=$linkedNoteId');
               } else if (state.isEvent) {
-                context.go('${AppRoute.notebookScreen}?eventId=${state.entityId}');
+                navigateAndClearStack(context, '${AppRoute.notebookScreen}?${DeepLinkParam.linkEventId}=${state.entityId}');
               } else {
-                context.go('${AppRoute.notebookScreen}?homeworkId=${state.entityId}');
+                navigateAndClearStack(context, '${AppRoute.notebookScreen}?${DeepLinkParam.linkHomeworkId}=${state.entityId}');
               }
             } else {
               if (state is HomeworkCreated || state is EventCreated) {
@@ -261,6 +270,22 @@ class _PlannerItemAddScreenState
                 _currentIsEvent = state.isEvent;
                 isSubmitting = false;
               });
+
+              // Update URL from id=new to the actual ID, clearing opposite param
+              if (!Responsive.isMobile(context) &&
+                  (state is HomeworkCreated || state is EventCreated)) {
+                final removeKey = state.isEvent
+                    ? DeepLinkParam.homeworkId
+                    : DeepLinkParam.eventId;
+                final setKey = state.isEvent
+                    ? DeepLinkParam.eventId
+                    : DeepLinkParam.homeworkId;
+                context.replaceQueryParam(
+                  removeKey,
+                  setKey,
+                  state.entityId.toString(),
+                );
+              }
 
               _navigateAfterSave();
             }
@@ -288,6 +313,21 @@ class _PlannerItemAddScreenState
           setState(() {
             _currentIsEvent = isEvent;
           });
+          if (!Responsive.isMobile(context) && _currentEntityId == null) {
+            if (isEvent) {
+              context.replaceQueryParam(
+                DeepLinkParam.homeworkId,
+                DeepLinkParam.eventId,
+                'new',
+              );
+            } else {
+              context.replaceQueryParam(
+                DeepLinkParam.eventId,
+                DeepLinkParam.homeworkId,
+                'new',
+              );
+            }
+          }
         },
         onActionStarted: () => setState(() => isSubmitting = true),
         onSubmitRequested: () => saveAction?.call(),

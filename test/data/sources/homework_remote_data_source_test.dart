@@ -150,7 +150,7 @@ void main() {
         expect(captured['category__title_in'], equals('Homework,Quizzes'));
       });
 
-      test('throws ServerException on invalid response format', () async {
+      test('throws HeliumException on invalid response format', () async {
         // GIVEN
         when(
           () => mockDio.get(
@@ -165,7 +165,7 @@ void main() {
             from: DateTime(2025, 8, 1),
             to: DateTime(2025, 12, 31),
           ),
-          throwsA(isA<ServerException>()),
+          throwsA(isA<HeliumException>()),
         );
       });
     });
@@ -188,7 +188,7 @@ void main() {
         verifyHomeworkMatchesJson(result, json);
       });
 
-      test('throws NotFoundException when homework not found', () async {
+      test('throws HeliumException when homework not found', () async {
         // GIVEN
         when(
           () => mockDio.get(
@@ -200,7 +200,7 @@ void main() {
         // WHEN/THEN
         expect(
           () => dataSource.getHomework(id: 999),
-          throwsA(isA<NotFoundException>()),
+          throwsA(isA<HeliumException>()),
         );
       });
 
@@ -333,7 +333,7 @@ void main() {
         );
       });
 
-      test('throws ServerException on non-204 response', () async {
+      test('throws HeliumException on non-204 response', () async {
         // GIVEN
         when(
           () => mockDio.delete(any()),
@@ -343,7 +343,7 @@ void main() {
         expect(
           () =>
               dataSource.deleteHomework(groupId: 1, courseId: 1, homeworkId: 1),
-          throwsA(isA<ServerException>()),
+          throwsA(isA<HeliumException>()),
         );
       });
     });

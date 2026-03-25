@@ -65,12 +65,9 @@ class SentryService {
         options.dist = dist;
       }
 
-      // Performance monitoring
       options.tracesSampleRate = 0.1;
       // ignore: experimental_member_use
       options.profilesSampleRate = 0.1;
-
-      // Track user interactions and navigation
       options.enableAutoPerformanceTracing = true;
       options.enableUserInteractionTracing = true;
 
@@ -82,18 +79,12 @@ class SentryService {
       // app_router.dart).
       options.ignoreErrors = [
         '(?i)(status code of|http status error \\[)(401|403)',
-        // DioException "bad response" format with auth status codes
         '(?i)dioexception.*bad response.*(401|403)',
         '(?i)bad response.*(401|403)',
-        // GoRouter wraps DioExceptions during redirect - catch those too
         '(?i)goexception.*(401|403)',
-        // Filter CanvasKit initialization failures - these are Flutter runtime
-        // issues we can't fix (usually caused by WASM loading failures or
-        // browser incompatibility)
         '(?i)flutterCanvasKit.*is not a constructor',
       ];
 
-      // Ignore background/infrastructure transactions that aren't user-initiated
       options.ignoreTransactions = [
         '(?i)/auth/token/refresh/',
         '(?i)/auth/user/pushtoken/',
@@ -160,7 +151,6 @@ class SentryService {
       }
     }
 
-    // Check the exception types in the event
     if (event.exceptions != null) {
       for (final exception in event.exceptions!) {
         if (_shouldFilterSentryException(exception)) {
@@ -170,7 +160,6 @@ class SentryService {
       }
     }
 
-    // Fall back to text-based filtering for edge cases
     if (_shouldFilterByText(event)) {
       _log.info('Filtered event from Sentry (via text matching)');
       return true;
@@ -185,59 +174,47 @@ class SentryService {
     final value = exception.value?.toLowerCase() ?? '';
     final combined = '$type $value';
 
-    // Filter CanvasKit initialization failures - these are Flutter runtime
-    // issues we can't fix (usually caused by WASM loading failures or
-    // browser incompatibility). This complements ignoreErrors which only
-    // catches window.onerror events, not FlutterError mechanism events.
+    // CanvasKit failures are Flutter runtime issues we can't fix
     if (value.contains('fluttercanvaskit') &&
         value.contains('is not a constructor')) {
       return true;
     }
 
-    // Check exception types directly
     if (type.contains('unauthorizedexception')) {
       return true;
     }
 
-    // Check for GoException wrapping auth errors (e.g., during GoRouter redirects)
     if (type.contains('goexception') && _containsAuthStatusCode(combined)) {
       return true;
     }
 
-    // Check for DioException with auth status codes (type or value may contain "dio")
     if (type.contains('dioexception') || combined.contains('dio')) {
       if (_containsAuthStatusCode(combined)) {
         return true;
       }
     }
 
-    // Check for GoException wrapping a DioException with auth status codes.
-    // GoRouter throws GoException when its redirect callback throws; the
-    // wrapped DioException message ends up in the value.
+    // GoRouter wraps redirect errors; wrapped DioException ends up in value
     if (type.contains('goexception')) {
       if (_containsAuthStatusCode(combined) && _looksLikeHttpError(combined)) {
         return true;
       }
     }
 
-    // Check for "status code of 401/403" pattern (common in DioException messages)
     if (value.contains('status code of 401') ||
         value.contains('status code of 403')) {
       return true;
     }
 
-    // Check for "bad response" pattern with auth status codes
     if (value.contains('bad response') && _containsAuthStatusCode(value)) {
       return true;
     }
 
-    // Check for any HTTP error with auth status codes
     if (_containsAuthStatusCode(combined) && _looksLikeHttpError(combined)) {
       return true;
     }
 
-    // Filter network errors to background/infrastructure endpoints - these are
-    // expected when the device goes offline (especially in background)
+    // Expected when device goes offline in background
     if (_looksLikeNetworkError(combined) &&
         (combined.contains('/auth/token/refresh/') ||
             combined.contains('/auth/user/pushtoken/'))) {
@@ -256,13 +233,11 @@ class SentryService {
     ];
     final eventText = textParts.join(' ').toLowerCase();
 
-    // Filter /auth/user/verify/ 400 errors
     if (eventText.contains('/auth/user/verify/') &&
         eventText.contains('400')) {
       return true;
     }
 
-    // Filter any text mentioning 401/403 in HTTP context
     if (_containsAuthStatusCode(eventText) && _looksLikeHttpError(eventText)) {
       return true;
     }

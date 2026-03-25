@@ -10,6 +10,7 @@ import 'dart:convert';
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/config/pref_service.dart';
 import 'package:heliumapp/core/dio_client.dart';
@@ -23,11 +24,11 @@ import 'package:heliumapp/data/repositories/grade_repository_impl.dart';
 import 'package:heliumapp/data/sources/course_remote_data_source.dart';
 import 'package:heliumapp/data/sources/grade_remote_data_source.dart';
 import 'package:heliumapp/presentation/core/views/base_page_screen_state.dart';
+import 'package:heliumapp/presentation/core/views/deep_link_mixin.dart';
 import 'package:heliumapp/presentation/features/grades/bloc/grade_bloc.dart';
 import 'package:heliumapp/presentation/features/grades/bloc/grade_event.dart';
 import 'package:heliumapp/presentation/features/grades/bloc/grade_state.dart';
 import 'package:heliumapp/presentation/features/grades/dialogs/grade_calculator_dialog.dart';
-import 'package:heliumapp/presentation/features/planner/bloc/attachment_bloc.dart';
 import 'package:heliumapp/presentation/features/planner/views/planner_item_add_screen.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/core/provider_helpers.dart';
 import 'package:heliumapp/presentation/ui/components/category_title_label.dart';
@@ -127,12 +128,16 @@ class _GradesProvidedScreen extends StatefulWidget {
   State<_GradesProvidedScreen> createState() => _GradesScreenState();
 }
 
-class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
+class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
+    with DeepLinkMixin {
   static const _savedGradeGraphSettingsKey = 'saved_grades_graph_settings';
   static const _overallSeriesName = 'Overall Grade';
 
   @override
   String get screenTitle => 'Grades';
+
+  @override
+  String get routePath => AppRoute.gradesScreen;
 
   // Category table row element heights
   static const double _contributionBarHeight = 24;
@@ -155,20 +160,18 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
       5.0; // Default boost above current grade for calculator
   static const double _chartAnimationDurationMs = 250;
 
-  // State
   List<CourseGroupModel> _courseGroups = [];
   List<GradeCourseGroupModel> _grades = [];
   int? _selectedGroupId;
   final Set<int> _expandedCourseIds = {};
   final Map<int, GlobalKey> _courseCardKeys = {};
 
-  // Graph state
   _GraphViewMode _graphViewMode = const _GraphViewMode.term();
   final Map<String, bool> _visibleSeries = {}; // series ID -> visibility
   bool _autoAdjustToGradedRange =
-      false; // Fit X-axis to actual grade point dates
+      false;
   bool _hideLegend = false;
-  bool _graphExpanded = true; // Whether the graph area is expanded
+  bool _graphExpanded = true;
 
   @override
   Future<UserSettingsModel?> loadSettings() {
@@ -195,6 +198,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
             showSnackBar(context, state.message!, type: SnackType.error);
           } else if (state is GradeScreenDataFetched) {
             _populateInitiateStateData(state);
+            openFromQueryParams();
           }
         },
       ),
@@ -1677,7 +1681,6 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
 
     if (pointIndex == null || pointIndex >= dataSource.length) return;
 
-    // Get the actual _ChartDataPoint from the data source
     final chartDataPoint = dataSource[pointIndex];
     final homeworkId = chartDataPoint.homeworkId;
 
@@ -1686,14 +1689,14 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
     }
 
     // Open the calendar item (assignment)
-    final attachmentBloc = context.read<AttachmentBloc>();
-
-    showPlannerItemAdd(
-      context,
-      homeworkId: homeworkId,
-      isEdit: true,
-      isNew: false,
-      attachmentBloc: attachmentBloc,
+    openWithGuard(
+      '${DeepLinkParam.homeworkId}:$homeworkId',
+      () => showPlannerItemAdd(
+        context,
+        homeworkId: homeworkId,
+        isEdit: true,
+        isNew: false,
+      ),
     );
   }
 
@@ -1761,7 +1764,6 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
       }
     }
 
-    // If we found dates, use them; otherwise fall back to course group dates
     if (earliestDate != null && latestDate != null) {
       return _DateTimeRange(min: earliestDate, max: latestDate);
     }

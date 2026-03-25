@@ -47,11 +47,13 @@ class ResourceRepositoryImpl implements ResourceRepository {
 
   @override
   Future<List<ResourceModel>> getResources({
+    int? id,
     int? groupId,
     bool? shownOnCalendar,
     bool forceRefresh = false,
   }) async {
     return remoteDataSource.getResources(
+      id: id,
       groupId: groupId,
       shownOnCalendar: shownOnCalendar,
       forceRefresh: forceRefresh,

@@ -91,7 +91,6 @@ abstract class BaseReminderScreenState<T>
 
   final ReminderFormController _formController = ReminderFormController();
 
-  // State
   List<ReminderModel> _reminders = [];
 
   @mustBeOverridden
