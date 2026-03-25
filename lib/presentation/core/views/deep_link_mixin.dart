@@ -95,13 +95,7 @@ mixin DeepLinkMixin<T extends StatefulWidget> on BasePageScreenState<T> {
     if (openedDeepLinkParam != null) return;
     final uri = router.routerDelegate.currentConfiguration.uri;
     if (uri.path != routePath) return;
-    // Only react to entity params set externally (e.g., from notifications).
-    // Dialog params (settings/notifications) are opened by their own callers
-    // and don't need router-listener-driven detection.
-    final hasEntityParam =
-        uri.queryParameters.containsKey(DeepLinkParam.homeworkId) ||
-        uri.queryParameters.containsKey(DeepLinkParam.eventId);
-    if (!hasEntityParam) return;
+    if (uri.queryParameters.isEmpty) return;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       openFromQueryParams();
