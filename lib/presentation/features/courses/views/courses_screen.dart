@@ -564,7 +564,6 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen>
 
     final schedulesByTime = _groupSchedulesByTime(course.schedules);
 
-    // Build a container for each time group
     for (final timeEntry in schedulesByTime.entries) {
       final timeRange = timeEntry.key;
       final days = timeEntry.value;

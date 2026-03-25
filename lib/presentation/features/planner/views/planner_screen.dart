@@ -300,7 +300,6 @@ class _CalendarScreenState
             userSettings: settings,
           );
 
-          // If planner data was already fetched, populate the data source
           if (_courses.isNotEmpty) {
             _plannerItemDataSource!.courses = _courses;
             _plannerItemDataSource!.categoriesMap = _categoriesMap;
@@ -323,8 +322,6 @@ class _CalendarScreenState
         listener: (context, state) {
           if (state is PlannerScreenDataFetched) {
             _populateInitialCalendarStateData(state);
-
-            // Check if we should open a dialog or entity based on query params
             openFromQueryParams();
           }
         },
@@ -336,7 +333,6 @@ class _CalendarScreenState
           if (state is EventCreated) {
             _plannerItemDataSource!.addPlannerItem(state.event);
           } else if (state is EventUpdated) {
-            // No snackbar on updates
             _plannerItemDataSource!.updatePlannerItem(state.event);
           } else if (state is EventDeleted) {
             showSnackBar(context, 'Event deleted');
@@ -359,7 +355,6 @@ class _CalendarScreenState
           } else if (state is HomeworkCreated) {
             _plannerItemDataSource!.addPlannerItem(state.homework);
           } else if (state is HomeworkUpdated) {
-            // No snackbar on updates
             _plannerItemDataSource!.updatePlannerItem(state.homework);
           } else if (state is HomeworkDeleted) {
             showSnackBar(context, 'Assignment deleted');
@@ -732,8 +727,6 @@ class _CalendarScreenState
 
             WidgetsBinding.instance.addPostFrameCallback((_) {
               if (!mounted) return;
-
-              // Ensure the date header is updated
               setState(() {});
             });
           },
@@ -1398,13 +1391,12 @@ class _CalendarScreenState
       _mobileMonthAutoSelectApplied = false;
     }
 
-    // Store calendar view state when entering Todos
+    // Store/restore calendar state when entering/leaving Todos view
     if (isEnteringNonCalendarView && !wasInNonCalendarView) {
       _storedSelectedDate = _calendarController.selectedDate;
       _storedDisplayDate = _calendarController.displayDate;
     }
 
-    // Restore calendar view state when leaving Todos
     if (isEnteringCalendarView && wasInNonCalendarView) {
       if (_storedSelectedDate != null) {
         _calendarController.selectedDate = _storedSelectedDate;
@@ -1414,8 +1406,7 @@ class _CalendarScreenState
       }
     }
 
-    // When switching between calendar views (Month/Week/Day), sync displayDate
-    // to selectedDate so the view navigates to the selected date
+    // Sync displayDate to selectedDate when switching calendar views
     if (isEnteringCalendarView &&
         !wasInNonCalendarView &&
         _calendarController.selectedDate != null) {
@@ -1425,15 +1416,14 @@ class _CalendarScreenState
     _previousView = _currentView;
     _currentView = newView;
 
-    // Only update the calendar controller's view if not switching to Todos
-    // (Todos is a custom view that doesn't exist in SfCalendar)
+    // Todos is a custom view, not an SfCalendar view
     if (newView != PlannerView.todos) {
       _calendarController.view = PlannerHelper.mapHeliumViewToSfCalendarView(
         newView,
       );
     }
 
-    // On mobile, select a date on month view so the agenda is always shown
+    // On mobile month view, auto-select a date so the agenda is always shown
     if (Responsive.isMobile(context) &&
         newView == PlannerView.month &&
         _calendarController.selectedDate == null) {
@@ -1464,15 +1454,11 @@ class _CalendarScreenState
 
     _log.info('Selection changed: ${details.date}');
 
-    // User made a manual selection, clear any mobile-specific paths as that
-    // logic now follows all standard paths (since a selection can't be undone
-    // unless page is reloaded)
     if (_mobileMonthAutoSelectApplied) {
       _mobileMonthAutoSelectApplied = false;
     }
 
-    // In month view, include the current hour in the date selection so
-    // created items don't populate with midnight
+    // Include current hour so new items don't default to midnight
     if (_currentView == PlannerView.month) {
       final now = DateTime.now();
       final selectedWithTime = DateTime(
@@ -2258,7 +2244,6 @@ class _CalendarScreenState
       ],
     );
 
-    // On mobile, make the entire left area tappable for checkboxes
     if (Responsive.isTouchDevice(context) && isCheckbox) {
       final homework = plannerItem as HomeworkModel;
       return MouseRegion(
@@ -2830,9 +2815,7 @@ class _CalendarScreenState
     bool offsetForVisibility = false,
   }) {
     _log.fine('Jumping to date: $date (setSelected: $setSelectedDate)');
-    // Truncate to nearest hour (remove minutes/seconds)
     final truncatedDate = DateTime(date.year, date.month, date.day, date.hour);
-    // Optionally offset by 2 hours so current time is visible (used for "today")
     final displayDate = offsetForVisibility
         ? truncatedDate.subtract(const Duration(hours: 2))
         : truncatedDate;
@@ -2853,7 +2836,6 @@ class _CalendarScreenState
 
     _log.info('Homework ${homework.id} completion toggled: $value');
 
-    // Set optimistic override immediately for instant visual feedback
     _plannerItemDataSource!.setCompletedOverride(homework.id, value);
 
     final request = HomeworkRequestModel(
@@ -3013,7 +2995,6 @@ class _CalendarScreenState
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-              // Header row
               Row(
                 children: [
                   Expanded(

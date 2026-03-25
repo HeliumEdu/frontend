@@ -58,7 +58,6 @@ class PrefService {
     _isInitialized = true;
   }
 
-  // Getters
   bool get isInitialized => _isInitialized;
 
   List<String>? getStringList(String key) {

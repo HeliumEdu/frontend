@@ -120,7 +120,6 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
   final FocusNode _titleFocusNode = FocusNode();
   final FocusNode _editorFocusNode = FocusNode();
 
-  // State
   NoteModel? _note;
   String? _linkedEntityType;
   String? _linkedEntityTitle;

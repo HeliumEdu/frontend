@@ -347,7 +347,6 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
       // Get the refresh token before clearing
       final refreshToken = await dioClient.getRefreshToken();
 
-      // Unregister push notification token for this device
       try {
         final fcmService = FcmService();
         await fcmService.unregisterToken();
@@ -358,7 +357,6 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
 
       await dioClient.clearStorage();
 
-      // If we have a refresh token, blacklist it on the server
       if (refreshToken?.isNotEmpty ?? false) {
         try {
           await _blacklistRefreshToken(refreshToken!);

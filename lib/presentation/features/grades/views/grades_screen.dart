@@ -1682,7 +1682,6 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
 
     if (pointIndex == null || pointIndex >= dataSource.length) return;
 
-    // Get the actual _ChartDataPoint from the data source
     final chartDataPoint = dataSource[pointIndex];
     final homeworkId = chartDataPoint.homeworkId;
 
@@ -1766,7 +1765,6 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
       }
     }
 
-    // If we found dates, use them; otherwise fall back to course group dates
     if (earliestDate != null && latestDate != null) {
       return _DateTimeRange(min: earliestDate, max: latestDate);
     }
