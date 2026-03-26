@@ -95,7 +95,7 @@ class _GettingStartedDialogWidget extends StatelessWidget {
                             icon: Icons.school_outlined,
                             title: 'Organized by class',
                             description:
-                                'Visit Classes to see how schedules, categories, and assignments connect—so you can track weeks, deadlines, and grades in one place.',
+                                'View Classes to you see how schedules, categories, and assignments connect—so you can track weeks, deadlines, and grades in one place.',
                           ),
                           const SizedBox(height: 12),
                           _buildFeatureItem(
@@ -103,7 +103,7 @@ class _GettingStartedDialogWidget extends StatelessWidget {
                             icon: Icons.bar_chart_outlined,
                             title: 'Track your grades',
                             description:
-                                'Check out Grades to see how your scores break down by class—great for seeing your progress and helping you decide where to focus next.',
+                                'Check out Grades to understand how your scores break down by class—great for seeing your progress and helping you decide where to focus next.',
                           ),
                           const SizedBox(height: 12),
                           _buildFeatureItem(
@@ -111,7 +111,7 @@ class _GettingStartedDialogWidget extends StatelessWidget {
                             icon: Icons.library_books,
                             title: 'Keep a Notebook',
                             description:
-                            'Write rich notes, linked directly to your items in your planner, so your context is always right where you need it.',
+                            'Write rich notes, linked directly to items in your planner, so your context is always right where you need it.',
                           ),
                           const SizedBox(height: 12),
                           _buildFeatureItem(
@@ -119,7 +119,7 @@ class _GettingStartedDialogWidget extends StatelessWidget {
                             icon: Icons.sync_outlined,
                             title: 'Sync with other calendars',
                             description:
-                                'In Settings, use External Calendars to pull in events from Google Calendar, Apple Calendar, or Outlook—and enable Feeds to share your Helium schedule back to those apps.',
+                                'Use External Calendars to pull in events from Google Calendar, Apple Calendar, or Outlook. Enable Feeds to share your Helium schedule back to those other apps.',
                           ),
                           const SizedBox(height: 12),
                           _buildFeatureItem(

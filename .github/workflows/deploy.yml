@@ -74,7 +74,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
 
       - name: Determine version to deploy
         id: version
@@ -147,7 +147,7 @@ jobs:
 
       - name: Download web artifact from current run
         if: ${{ inputs.artifact_run_id != '' }}
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v8
         with:
           name: helium-${{ inputs.specific_version }}-web
           path: ./web-build
@@ -294,7 +294,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
 
       - name: Determine version to deploy
         id: version
@@ -367,7 +367,7 @@ jobs:
 
       - name: Download Android artifact from current run
         if: ${{ inputs.artifact_run_id != '' }}
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v8
         with:
           name: helium-${{ inputs.specific_version }}-android.aab
           path: ./android-build
@@ -436,7 +436,7 @@ jobs:
     runs-on: macos-latest
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
 
       - name: Determine version to deploy
         id: version
@@ -509,7 +509,7 @@ jobs:
 
       - name: Download iOS artifact from current run
         if: ${{ inputs.artifact_run_id != '' }}
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v8
         with:
           name: helium-${{ inputs.specific_version }}-ios.ipa
           path: ./ios-build
