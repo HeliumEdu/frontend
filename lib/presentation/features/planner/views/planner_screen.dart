@@ -2591,10 +2591,9 @@ class _CalendarScreenState
             onTap: () {
               // Fetch current value at tap time, not build time, to avoid
               // stale closures on rapid taps
-              final homework = plannerItem;
               final currentValue =
-                  _plannerItemDataSource!.isHomeworkCompleted(homework);
-              _onToggleCompleted(homework, !currentValue);
+                  _plannerItemDataSource!.isHomeworkCompleted(plannerItem);
+              _onToggleCompleted(plannerItem, !currentValue);
             },
             child: SizedBox(
               height: agendaHeight,
