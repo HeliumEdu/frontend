@@ -168,8 +168,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
 
   _GraphViewMode _graphViewMode = const _GraphViewMode.term();
   final Map<String, bool> _visibleSeries = {}; // series ID -> visibility
-  bool _autoAdjustToGradedRange =
-      false;
+  bool _autoAdjustToGradedRange = false;
   bool _hideLegend = false;
   bool _graphExpanded = true;
 
@@ -945,32 +944,13 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
             itemBuilder: (context, index) {
               final course = eligibleCourses[index];
               return ListTile(
-                title: Row(
-                  children: [
-                    Icon(
-                      Icons.school,
-                      size: Responsive.getIconSize(
-                        context,
-                        mobile: 14,
-                        tablet: 16,
-                        desktop: 18,
-                      ),
-                      color: course.color,
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        course.title,
-                        style: AppStyles.formText(
-                          context,
-                        ).copyWith(color: context.colorScheme.onSurface),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  ],
+                title: CourseTitleLabel(
+                  title: course.title,
+                  color: course.color,
+                  compact: true,
                 ),
                 subtitle: Padding(
-                  padding: const EdgeInsets.only(top: 6),
+                  padding: const EdgeInsets.only(top: 4),
                   child: GradeLabel(
                     grade: GradeHelper.gradeForDisplay(course.overallGrade),
                     userSettings: userSettings!,
@@ -2212,26 +2192,45 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
     );
   }
 
-  Map<int, int> _largestRemainder(List<GradeCategoryModel> categories, double total) {
-    final gradedCats = categories.where((c) => c.gradeByWeight != null && c.gradeByWeight! > 0).toList();
-    final rawValues = gradedCats.map((c) => c.gradeByWeight! / total * 100).toList();
+  Map<int, int> _largestRemainder(
+    List<GradeCategoryModel> categories,
+    double total,
+  ) {
+    final gradedCats = categories
+        .where((c) => c.gradeByWeight != null && c.gradeByWeight! > 0)
+        .toList();
+    final rawValues = gradedCats
+        .map((c) => c.gradeByWeight! / total * 100)
+        .toList();
     final floors = rawValues.map((v) => v.floor()).toList();
     final remainder = 100 - floors.reduce((a, b) => a + b);
     final indices = List.generate(gradedCats.length, (i) => i)
-      ..sort((a, b) => (rawValues[b] - floors[b]).compareTo(rawValues[a] - floors[a]));
+      ..sort(
+        (a, b) =>
+            (rawValues[b] - floors[b]).compareTo(rawValues[a] - floors[a]),
+      );
     for (int i = 0; i < remainder; i++) {
       floors[indices[i]]++;
     }
-    return {for (int i = 0; i < gradedCats.length; i++) gradedCats[i].id: floors[i]};
+    return {
+      for (int i = 0; i < gradedCats.length; i++) gradedCats[i].id: floors[i],
+    };
   }
 
   Widget _buildCategoryTable(GradeCourseModel course, bool hasWeightedGrading) {
-    final sortedCategories = [...course.categories]..sort((a, b) => a.title.compareTo(b.title));
+    final sortedCategories = [...course.categories]
+      ..sort((a, b) => a.title.compareTo(b.title));
     final totalBreakdown = course.categories.fold<double>(
       0,
-      (sum, cat) => sum + (cat.gradeByWeight != null && cat.gradeByWeight! > 0 ? cat.gradeByWeight! : 0),
+      (sum, cat) =>
+          sum +
+          (cat.gradeByWeight != null && cat.gradeByWeight! > 0
+              ? cat.gradeByWeight!
+              : 0),
     );
-    final roundedPercentages = totalBreakdown > 0 ? _largestRemainder(course.categories, totalBreakdown) : <int, int>{};
+    final roundedPercentages = totalBreakdown > 0
+        ? _largestRemainder(course.categories, totalBreakdown)
+        : <int, int>{};
 
     return Column(
       children: [
@@ -2255,7 +2254,12 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
               ),
               if (hasWeightedGrading)
                 SizedBox(
-                  width: Responsive.getResponsiveValue(context, mobile: _contributionColMobile, tablet: _contributionColTablet, desktop: _contributionColDesktop),
+                  width: Responsive.getResponsiveValue(
+                    context,
+                    mobile: _contributionColMobile,
+                    tablet: _contributionColTablet,
+                    desktop: _contributionColDesktop,
+                  ),
                   child: Text(
                     'Contribution',
                     textAlign: TextAlign.center,
@@ -2264,7 +2268,9 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
                 ),
               if (!hasWeightedGrading || !Responsive.isMobile(context))
                 SizedBox(
-                  width: Responsive.isTablet(context) ? _gradedColTablet : _gradedColDesktop,
+                  width: Responsive.isTablet(context)
+                      ? _gradedColTablet
+                      : _gradedColDesktop,
                   child: Text(
                     'Graded',
                     textAlign: TextAlign.center,
@@ -2272,7 +2278,9 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
                   ),
                 ),
               SizedBox(
-                width: Responsive.isMobile(context) ? _averageColMobile : _averageColDesktop,
+                width: Responsive.isMobile(context)
+                    ? _averageColMobile
+                    : _averageColDesktop,
                 child: Text(
                   'Average',
                   textAlign: TextAlign.right,
@@ -2291,7 +2299,12 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
           itemCount: sortedCategories.length,
           itemBuilder: (context, catIndex) {
             final category = sortedCategories[catIndex];
-            return _buildCategoryRow(category, hasWeightedGrading, totalBreakdown, roundedPercentages);
+            return _buildCategoryRow(
+              category,
+              hasWeightedGrading,
+              totalBreakdown,
+              roundedPercentages,
+            );
           },
           separatorBuilder: (context, catIndex) {
             return const Divider(height: 1);
@@ -2330,17 +2343,31 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
           ),
           if (hasWeightedGrading)
             SizedBox(
-              width: Responsive.getResponsiveValue(context, mobile: _contributionColMobile, tablet: _contributionColTablet, desktop: _contributionColDesktop),
+              width: Responsive.getResponsiveValue(
+                context,
+                mobile: _contributionColMobile,
+                tablet: _contributionColTablet,
+                desktop: _contributionColDesktop,
+              ),
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 8),
-                child: (category.gradeByWeight != null && category.gradeByWeight! > 0 && totalBreakdown > 0)
-                    ? _buildBreakdownBar(category, totalBreakdown, roundedPercentages[category.id]!)
+                child:
+                    (category.gradeByWeight != null &&
+                        category.gradeByWeight! > 0 &&
+                        totalBreakdown > 0)
+                    ? _buildBreakdownBar(
+                        category,
+                        totalBreakdown,
+                        roundedPercentages[category.id]!,
+                      )
                     : const SizedBox.shrink(),
               ),
             ),
           if (!hasWeightedGrading || !Responsive.isMobile(context))
             SizedBox(
-              width: Responsive.isTablet(context) ? _gradedColTablet : _gradedColDesktop,
+              width: Responsive.isTablet(context)
+                  ? _gradedColTablet
+                  : _gradedColDesktop,
               child: SelectableText(
                 '${category.numHomeworkGraded} of ${category.numHomework}',
                 textAlign: TextAlign.center,
@@ -2350,7 +2377,9 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
               ),
             ),
           SizedBox(
-            width: Responsive.isMobile(context) ? _averageColMobile : _averageColDesktop,
+            width: Responsive.isMobile(context)
+                ? _averageColMobile
+                : _averageColDesktop,
             child: Align(
               alignment: Alignment.centerRight,
               child: GradeLabel(
@@ -2365,7 +2394,11 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
     );
   }
 
-  Widget _buildBreakdownBar(GradeCategoryModel category, double totalBreakdown, int roundedPercent) {
+  Widget _buildBreakdownBar(
+    GradeCategoryModel category,
+    double totalBreakdown,
+    int roundedPercent,
+  ) {
     final normalizedFraction = category.gradeByWeight! / totalBreakdown;
     final percentText = '$roundedPercent%';
     final textColor = normalizedFraction > 0.5
@@ -2396,10 +2429,9 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
           alignment: Alignment.center,
           child: Text(
             percentText,
-            style: AppStyles.smallSecondaryText(context).copyWith(
-              fontWeight: FontWeight.w600,
-              color: textColor,
-            ),
+            style: AppStyles.smallSecondaryText(
+              context,
+            ).copyWith(fontWeight: FontWeight.w600, color: textColor),
           ),
         ),
       ],

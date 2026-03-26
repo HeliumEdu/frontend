@@ -15,6 +15,8 @@ class ResponsiveBreakpoints {
 
   /// Desktop: 1024px+
   /// (no upper limit needed)
+
+  static const double compactDialogHeight = 410.0;
 }
 
 enum DeviceType { mobile, tablet, desktop }
@@ -152,6 +154,19 @@ class Responsive {
       case DeviceType.mobile:
         return mobile;
     }
+  }
+
+  /// Returns true when the available viewport height (after subtracting the
+  /// keyboard and system padding) is at or below [ResponsiveBreakpoints.compactDialogHeight].
+  /// Useful for collapsing optional vertical space inside dialogs on very
+  /// small devices when the keyboard is open.
+  static bool isCompactDialogHeight(BuildContext context) {
+    final mq = MediaQuery.of(context);
+    final availableHeight = mq.size.height
+        - mq.viewInsets.bottom
+        - mq.padding.top
+        - mq.padding.bottom;
+    return availableHeight <= ResponsiveBreakpoints.compactDialogHeight;
   }
 
   static double getDialogWidth(BuildContext context, {double fallback = 350}) {

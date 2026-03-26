@@ -45,6 +45,9 @@ abstract class BaseDialogState<T extends StatefulWidget> extends State<T> {
   Dialog buildDialog(BuildContext context) {
     return Dialog(
       backgroundColor: Colors.transparent,
+      insetPadding: Responsive.isMobile(context)
+          ? const EdgeInsets.symmetric(horizontal: 16, vertical: 16)
+          : const EdgeInsets.symmetric(horizontal: 40, vertical: 24),
       child: SizedBox(
         width: Responsive.getDialogWidth(context),
         child: SingleChildScrollView(

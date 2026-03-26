@@ -188,12 +188,12 @@ class _GradeCalculatorDialogState
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         CourseTitleLabel(title: widget.courseTitle, color: widget.courseColor),
-        const SizedBox(height: 8),
+        const SizedBox(height: 4),
         GradeLabel(
           grade: GradeHelper.gradeForDisplay(widget.currentOverallGrade),
           userSettings: widget.userSettings,
         ),
-        const SizedBox(height: 24),
+        const SizedBox(height: 12),
 
         Text('Category', style: AppStyles.formLabel(context)),
         const SizedBox(height: 9),
@@ -253,7 +253,7 @@ class _GradeCalculatorDialogState
             });
           },
         ),
-        const SizedBox(height: 24),
+        const SizedBox(height: 12),
 
         Text('Desired Class Grade', style: AppStyles.formLabel(context)),
         const SizedBox(height: 9),
@@ -295,7 +295,8 @@ class _GradeCalculatorDialogState
           onFieldSubmitted: (_) => handleSubmit(),
         ),
 
-        const SizedBox(height: 12),
+        if (_validationErrorMessage != null || _result != null)
+          const SizedBox(height: 12),
 
         if (_validationErrorMessage != null) ...[
           ErrorContainer(
