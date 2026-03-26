@@ -127,7 +127,7 @@ jobs:
       # dev-local: Login to ECR to avoid rate limits
       - name: Configure AWS credentials (dev-local only)
         if: ${{ inputs.environment == 'dev-local' }}
-        uses: aws-actions/configure-aws-credentials@v4
+        uses: aws-actions/configure-aws-credentials@v6
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
