@@ -5,6 +5,7 @@
 //
 // For details regarding the license, please refer to the LICENSE file.
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:heliumapp/config/app_theme.dart';
@@ -108,7 +109,7 @@ class _ExternalCalendarWidgetState
       children: [
         LabelAndTextFormField(
           label: 'Name',
-          autofocus: true,
+          autofocus: kIsWeb || !widget.isEdit,
           controller: _formController.titleController,
           validator: BasicFormController.validateRequiredField,
           onFieldSubmitted: (value) => handleSubmit(),
