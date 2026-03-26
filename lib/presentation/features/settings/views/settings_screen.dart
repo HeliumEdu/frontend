@@ -1122,8 +1122,9 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
               ),
             ],
           );
-        },
-      ),
+          },
+        ),
     );
   }
 }
+

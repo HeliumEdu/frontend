@@ -122,53 +122,58 @@ class _ExternalCalendarWidgetState
         ),
         const SizedBox(height: 14),
         Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text('Color', style: AppStyles.formLabel(context)),
-            const SizedBox(width: 12),
-            MouseRegion(
-              cursor: SystemMouseCursors.click,
-              child: GestureDetector(
-                onTap: () {
-                  Feedback.forTap(context);
-                  showColorPickerDialog(
-                    parentContext: context,
-                    initialColor: _formController.selectedColor,
-                    onSelected: (color) {
-                      setState(() {
-                        _formController.selectedColor = color;
-                      });
+            Row(
+              children: [
+                Text('Color', style: AppStyles.formLabel(context)),
+                const SizedBox(width: 12),
+                MouseRegion(
+                  cursor: SystemMouseCursors.click,
+                  child: GestureDetector(
+                    onTap: () {
+                      Feedback.forTap(context);
+                      showColorPickerDialog(
+                        parentContext: context,
+                        initialColor: _formController.selectedColor,
+                        onSelected: (color) {
+                          setState(() {
+                            _formController.selectedColor = color;
+                          });
+                        },
+                      );
                     },
-                  );
-                },
-                child: Container(
-                  width: 33,
-                  height: 33,
-                  decoration: BoxDecoration(
-                    color: _formController.selectedColor,
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(
-                      color: context.colorScheme.outline.withValues(alpha: 0.2),
+                    child: Container(
+                      width: 33,
+                      height: 33,
+                      decoration: BoxDecoration(
+                        color: _formController.selectedColor,
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color: context.colorScheme.outline
+                              .withValues(alpha: 0.2),
+                        ),
+                      ),
                     ),
                   ),
                 ),
-              ),
+              ],
             ),
-          ],
-        ),
-        const SizedBox(height: 14),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text('Show on calendar', style: AppStyles.formLabel(context)),
-            Switch.adaptive(
-              value: _formController.shownOnCalendar,
-              activeTrackColor: context.colorScheme.primary,
-              onChanged: (value) {
-                Feedback.forTap(context);
-                setState(() {
-                  _formController.shownOnCalendar = value;
-                });
-              },
+            Row(
+              children: [
+                Text('Show on calendar', style: AppStyles.formLabel(context)),
+                const SizedBox(width: 4),
+                Switch.adaptive(
+                  value: _formController.shownOnCalendar,
+                  activeTrackColor: context.colorScheme.primary,
+                  onChanged: (value) {
+                    Feedback.forTap(context);
+                    setState(() {
+                      _formController.shownOnCalendar = value;
+                    });
+                  },
+                ),
+              ],
             ),
           ],
         ),

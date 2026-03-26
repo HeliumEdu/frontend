@@ -24,6 +24,7 @@ import 'package:heliumapp/presentation/ui/components/label_and_text_form_field.d
 import 'package:heliumapp/presentation/ui/components/spinner_field.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/conversion_helpers.dart';
+import 'package:heliumapp/utils/responsive_helpers.dart';
 
 class _ReminderProvidedWidget extends StatefulWidget {
   final bool isEdit;
@@ -111,7 +112,7 @@ class _ReminderWidgetState extends BaseDialogState<_ReminderProvidedWidget> {
         LabelAndTextFormField(
           label: 'Message',
           autofocus: kIsWeb || !widget.isEdit,
-          maxLines: 3,
+          maxLines: Responsive.isCompactDialogHeight(context) ? 1 : 3,
           controller: _formController.messageController,
           validator: BasicFormController.validateRequiredField,
           onFieldSubmitted: (value) => handleSubmit(),

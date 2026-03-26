@@ -104,64 +104,94 @@ class _CourseGroupWidgetState
           onFieldSubmitted: (value) => handleSubmit(),
         ),
         const SizedBox(height: 14),
-        Text('From', style: AppStyles.formLabel(context)),
-        const SizedBox(height: 9),
-        GestureDetector(
-          onTap: () => _selectDate(context, true),
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(6),
-              border: Border.all(
-                color: context.colorScheme.outline.withValues(alpha: 0.2),
+        Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('From', style: AppStyles.formLabel(context)),
+                  const SizedBox(height: 9),
+                  GestureDetector(
+                    onTap: () => _selectDate(context, true),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 12,
+                      ),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(6),
+                        border: Border.all(
+                          color: context.colorScheme.outline
+                              .withValues(alpha: 0.2),
+                        ),
+                        color: context.colorScheme.surface,
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            HeliumDateTime.formatDate(
+                              _formController.startDate!,
+                            ),
+                            style: AppStyles.formText(context),
+                          ),
+                          Icon(
+                            Icons.calendar_today,
+                            color: context.colorScheme.primary,
+                            size: 18,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
               ),
-              color: context.colorScheme.surface,
             ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  HeliumDateTime.formatDate(_formController.startDate!),
-                  style: AppStyles.formText(context),
-                ),
-                Icon(
-                  Icons.calendar_today,
-                  color: context.colorScheme.primary,
-                  size: 18,
-                ),
-              ],
-            ),
-          ),
-        ),
-        const SizedBox(height: 14),
-        Text('To', style: AppStyles.formLabel(context)),
-        const SizedBox(height: 9),
-        GestureDetector(
-          onTap: () => _selectDate(context, false),
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(6),
-              border: Border.all(
-                color: context.colorScheme.outline.withValues(alpha: 0.2),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('To', style: AppStyles.formLabel(context)),
+                  const SizedBox(height: 9),
+                  GestureDetector(
+                    onTap: () => _selectDate(context, false),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 12,
+                      ),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(6),
+                        border: Border.all(
+                          color: context.colorScheme.outline
+                              .withValues(alpha: 0.2),
+                        ),
+                        color: context.colorScheme.surface,
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            HeliumDateTime.formatDate(
+                              _formController.endDate!,
+                            ),
+                            style: AppStyles.formText(context),
+                          ),
+                          Icon(
+                            Icons.calendar_today,
+                            color: context.colorScheme.primary,
+                            size: 18,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
               ),
-              color: context.colorScheme.surface,
             ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  HeliumDateTime.formatDate(_formController.endDate!),
-                  style: AppStyles.formText(context),
-                ),
-                Icon(
-                  Icons.calendar_today,
-                  color: context.colorScheme.primary,
-                  size: 18,
-                ),
-              ],
-            ),
-          ),
+          ],
         ),
         const SizedBox(height: 14),
         Row(
