@@ -1816,164 +1816,177 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
   }
 
   void _showGraphSettings(BuildContext buttonContext) {
+    final isMobile = Responsive.isMobile(context);
     final selectedGroup = _grades.firstWhere(
       (g) => g.id == _selectedGroupId,
       orElse: () => _grades.first,
     );
 
-    final RenderBox button = buttonContext.findRenderObject() as RenderBox;
-    final RenderBox overlay =
-        Overlay.of(context).context.findRenderObject() as RenderBox;
-    final RelativeRect position = RelativeRect.fromRect(
-      Rect.fromPoints(
-        button.localToGlobal(Offset.zero, ancestor: overlay),
-        button.localToGlobal(
-          button.size.bottomRight(Offset.zero),
-          ancestor: overlay,
-        ),
-      ),
-      Offset.zero & overlay.size,
-    );
-
-    showMenu(
-      context: context,
-      position: position,
-      color: context.colorScheme.surface,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-      items: [
-        PopupMenuItem(
-          enabled: false,
-          padding: EdgeInsets.zero,
-          child: StatefulBuilder(
-            builder: (menuContext, setMenuState) {
-              return Material(
-                color: context.colorScheme.surface,
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      // Radio group for graph view mode
-                      RadioGroup<String>(
-                        groupValue: _graphViewMode.radioValue,
-                        onChanged: (value) {
-                          if (value == null) return;
-                          setState(() {
-                            _graphViewMode = _GraphViewMode.fromRadioValue(
-                              value,
-                            );
-                          });
-                          Navigator.pop(menuContext);
-                        },
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
+    Widget buildContent(BuildContext menuContext, StateSetter setMenuState) {
+      return Material(
+        color: context.colorScheme.surface,
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Radio group for graph view mode
+              RadioGroup<String>(
+                groupValue: _graphViewMode.radioValue,
+                onChanged: (value) {
+                  if (value == null) return;
+                  setState(() {
+                    _graphViewMode = _GraphViewMode.fromRadioValue(
+                      value,
+                    );
+                  });
+                  Navigator.pop(menuContext);
+                },
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // Entire Term option
+                    InkWell(
+                      onTap: () {
+                        setState(() {
+                          _graphViewMode = const _GraphViewMode.term();
+                        });
+                        Navigator.pop(menuContext);
+                      },
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 8,
+                        ),
+                        child: Row(
                           children: [
-                            // Entire Term option
-                            InkWell(
-                              onTap: () {
-                                setState(() {
-                                  _graphViewMode = const _GraphViewMode.term();
-                                });
-                                Navigator.pop(menuContext);
-                              },
-                              child: Padding(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 12,
-                                  vertical: 8,
-                                ),
-                                child: Row(
-                                  children: [
-                                    const Radio<String>(value: 'term'),
-                                    Expanded(
-                                      child: Text(
-                                        'Entire Term',
-                                        style: AppStyles.formText(context),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                            const Divider(height: 20),
-                            // Individual courses
-                            ...selectedGroup.courses.map(
-                              (course) => InkWell(
-                                onTap: () {
-                                  setState(
-                                    () => _graphViewMode =
-                                        _GraphViewMode.course(course.id),
-                                  );
-                                  Navigator.pop(menuContext);
-                                },
-                                child: Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 12,
-                                    vertical: 8,
-                                  ),
-                                  child: Row(
-                                    children: [
-                                      Radio<String>(
-                                        value: _GraphViewMode.course(
-                                          course.id,
-                                        ).radioValue,
-                                      ),
-                                      Icon(
-                                        Icons.school,
-                                        size: 16,
-                                        color: course.color,
-                                      ),
-                                      const SizedBox(width: 8),
-                                      Expanded(
-                                        child: Text(
-                                          course.title,
-                                          style: AppStyles.formText(context),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
+                            const Radio<String>(value: 'term'),
+                            Expanded(
+                              child: Text(
+                                'Entire Term',
+                                style: AppStyles.formText(context),
                               ),
                             ),
                           ],
                         ),
                       ),
-                      const Divider(height: 20),
-                      CheckboxListTile(
-                        controlAffinity: ListTileControlAffinity.leading,
-                        title: Text(
-                          'Auto-adjust to graded range',
-                          style: AppStyles.formText(context),
-                        ),
-                        value: _autoAdjustToGradedRange == true,
-                        onChanged: (value) {
-                          _setAutoAdjustToGradedRange(value ?? false);
-                          setMenuState(() {});
+                    ),
+                    const Divider(height: 20),
+                    // Individual courses
+                    ...selectedGroup.courses.map(
+                      (course) => InkWell(
+                        onTap: () {
+                          setState(
+                            () => _graphViewMode =
+                                _GraphViewMode.course(course.id),
+                          );
+                          Navigator.pop(menuContext);
                         },
-                        dense: true,
-                      ),
-                      CheckboxListTile(
-                        controlAffinity: ListTileControlAffinity.leading,
-                        title: Text(
-                          'Hide legend',
-                          style: AppStyles.formText(context),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 8,
+                          ),
+                          child: Row(
+                            children: [
+                              Radio<String>(
+                                value: _GraphViewMode.course(
+                                  course.id,
+                                ).radioValue,
+                              ),
+                              Icon(
+                                Icons.school,
+                                size: 16,
+                                color: course.color,
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  course.title,
+                                  style: AppStyles.formText(context),
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
-                        value: _hideLegend == true,
-                        onChanged: (value) {
-                          _setHideLegend(value ?? false);
-                          setMenuState(() {});
-                        },
-                        dense: true,
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
-              );
-            },
+              ),
+              const Divider(height: 20),
+              CheckboxListTile(
+                controlAffinity: ListTileControlAffinity.leading,
+                title: Text(
+                  'Auto-adjust to graded range',
+                  style: AppStyles.formText(context),
+                ),
+                value: _autoAdjustToGradedRange == true,
+                onChanged: (value) {
+                  _setAutoAdjustToGradedRange(value ?? false);
+                  setMenuState(() {});
+                },
+                dense: true,
+              ),
+              CheckboxListTile(
+                controlAffinity: ListTileControlAffinity.leading,
+                title: Text(
+                  'Hide legend',
+                  style: AppStyles.formText(context),
+                ),
+                value: _hideLegend == true,
+                onChanged: (value) {
+                  _setHideLegend(value ?? false);
+                  setMenuState(() {});
+                },
+                dense: true,
+              ),
+            ],
           ),
         ),
-      ],
-    );
+      );
+    }
+
+    if (isMobile) {
+      showModalBottomSheet(
+        context: context,
+        isScrollControlled: true,
+        backgroundColor: context.colorScheme.surface,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+        ),
+        builder: (context) => StatefulBuilder(builder: buildContent),
+      );
+    } else {
+      final RenderBox button = buttonContext.findRenderObject() as RenderBox;
+      final RenderBox overlay =
+          Overlay.of(context).context.findRenderObject() as RenderBox;
+      final RelativeRect position = RelativeRect.fromRect(
+        Rect.fromPoints(
+          button.localToGlobal(Offset.zero, ancestor: overlay),
+          button.localToGlobal(
+            button.size.bottomRight(Offset.zero),
+            ancestor: overlay,
+          ),
+        ),
+        Offset.zero & overlay.size,
+      );
+
+      showMenu(
+        context: context,
+        position: position,
+        color: context.colorScheme.surface,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        items: [
+          PopupMenuItem(
+            enabled: false,
+            padding: EdgeInsets.zero,
+            child: StatefulBuilder(builder: buildContent),
+          ),
+        ],
+      );
+    }
   }
 
   Widget _buildCourseCard(int index, GradeCourseModel course) {
