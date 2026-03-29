@@ -91,6 +91,7 @@ abstract class BaseAttachmentsState<T extends BaseAttachmentsContent>
   List<AttachmentModel> attachments = [];
   bool isLoading = true;
   bool isSubmitting = false;
+  bool _isChoosingFiles = false;
 
   @mustBeOverridden
   FetchAttachmentsEvent createFetchAttachmentsEvent();
@@ -202,6 +203,8 @@ abstract class BaseAttachmentsState<T extends BaseAttachmentsContent>
           onPressed: _openFileChooserDialog,
           icon: Icons.cloud_upload_outlined,
           buttonText: 'Choose Files',
+          isLoading: _isChoosingFiles,
+          enabled: !_isChoosingFiles,
         ),
         const SizedBox(height: 12),
         if (filesToUpload.isNotEmpty)
@@ -232,6 +235,10 @@ abstract class BaseAttachmentsState<T extends BaseAttachmentsContent>
       );
 
       if (result != null) {
+        setState(() {
+          _isChoosingFiles = true;
+        });
+
         filesToUpload.clear();
 
         for (var platFile in result.files) {
@@ -268,10 +275,17 @@ abstract class BaseAttachmentsState<T extends BaseAttachmentsContent>
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (!mounted) return;
 
-          setState(() {});
+          setState(() {
+            _isChoosingFiles = false;
+          });
         });
       }
     } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isChoosingFiles = false;
+        });
+      }
       if (!mounted) return;
       SnackBarHelper.show(context, 'Error picking file: $e', type: SnackType.error);
     }
