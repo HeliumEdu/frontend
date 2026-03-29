@@ -91,7 +91,6 @@ abstract class BaseAttachmentsState<T extends BaseAttachmentsContent>
   List<AttachmentModel> attachments = [];
   bool isLoading = true;
   bool isSubmitting = false;
-  bool _isChoosingFiles = false;
 
   @mustBeOverridden
   FetchAttachmentsEvent createFetchAttachmentsEvent();
@@ -114,6 +113,10 @@ abstract class BaseAttachmentsState<T extends BaseAttachmentsContent>
 
   @override
   Widget build(BuildContext context) {
+    return _buildContent(context);
+  }
+
+  Widget _buildContent(BuildContext context) {
     return BlocListener<AttachmentBloc, AttachmentState>(
       listener: (context, state) {
         if (state is AttachmentsError) {
@@ -153,16 +156,9 @@ abstract class BaseAttachmentsState<T extends BaseAttachmentsContent>
           });
         }
       },
-      child: _buildContent(context),
-    );
-  }
-
-  Widget _buildContent(BuildContext context) {
-    if (isLoading || widget.userSettings == null) {
-      return const Center(child: LoadingIndicator(expanded: false));
-    }
-
-    return Column(
+      child: isLoading || widget.userSettings == null
+          ? const Center(child: LoadingIndicator(expanded: false))
+          : Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text('Attachments', style: AppStyles.featureText(context)),
@@ -203,8 +199,6 @@ abstract class BaseAttachmentsState<T extends BaseAttachmentsContent>
           onPressed: _openFileChooserDialog,
           icon: Icons.cloud_upload_outlined,
           buttonText: 'Choose Files',
-          isLoading: _isChoosingFiles,
-          enabled: !_isChoosingFiles,
         ),
         const SizedBox(height: 12),
         if (filesToUpload.isNotEmpty)
@@ -223,6 +217,7 @@ abstract class BaseAttachmentsState<T extends BaseAttachmentsContent>
         ),
         const SizedBox(height: 12),
       ],
+      ),
     );
   }
 
@@ -235,11 +230,7 @@ abstract class BaseAttachmentsState<T extends BaseAttachmentsContent>
       );
 
       if (result != null) {
-        setState(() {
-          _isChoosingFiles = true;
-        });
-
-        filesToUpload.clear();
+        final newFiles = <AttachmentFile>[];
 
         for (var platFile in result.files) {
           if (platFile.bytes == null) {
@@ -253,7 +244,7 @@ abstract class BaseAttachmentsState<T extends BaseAttachmentsContent>
             continue;
           }
 
-          final fileSize = platFile.size;
+          final fileSize = platFile.bytes!.length;
 
           if (fileSize > 10 * 1024 * 1024) {
             if (mounted) {
@@ -266,26 +257,22 @@ abstract class BaseAttachmentsState<T extends BaseAttachmentsContent>
             continue;
           }
 
-          filesToUpload.add(
+          newFiles.add(
             AttachmentFile(bytes: platFile.bytes!, title: platFile.name),
           );
         }
 
-        // Defer setState to avoid layout conflicts during pointer events
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (!mounted) return;
+        if (newFiles.isEmpty && mounted) {
+          SnackBarHelper.show(context, 'Nothing selected for upload');
+        }
 
-          setState(() {
-            _isChoosingFiles = false;
-          });
+        setState(() {
+          filesToUpload = newFiles;
         });
+      } else if (mounted) {
+        SnackBarHelper.show(context, 'Nothing selected for upload');
       }
     } catch (e) {
-      if (mounted) {
-        setState(() {
-          _isChoosingFiles = false;
-        });
-      }
       if (!mounted) return;
       SnackBarHelper.show(context, 'Error picking file: $e', type: SnackType.error);
     }
