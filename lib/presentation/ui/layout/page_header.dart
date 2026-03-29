@@ -7,8 +7,6 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
-import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/presentation/core/views/notification_screen.dart';
 import 'package:heliumapp/presentation/ui/components/settings_button.dart';
@@ -24,7 +22,6 @@ class PageHeader extends StatelessWidget {
   final IconData? icon;
   final ScreenType screenType;
   final bool isLoading;
-  final bool isDialogMode;
   final Function? cancelAction;
   final Function? saveAction;
   final List<BlocProvider>? inheritableProviders;
@@ -35,7 +32,6 @@ class PageHeader extends StatelessWidget {
     this.icon,
     required this.screenType,
     this.isLoading = false,
-    this.isDialogMode = false,
     this.cancelAction,
     this.saveAction,
     this.inheritableProviders,
@@ -47,25 +43,9 @@ class PageHeader extends StatelessWidget {
       return Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          if (screenType == ScreenType.subPage && !isDialogMode)
+          if (screenType == ScreenType.entityPage ||
+              screenType == ScreenType.subPage)
             IconButton(
-              visualDensity: VisualDensity.compact,
-              onPressed: () {
-                if (Navigator.of(context).canPop()) {
-                  Navigator.of(context).pop();
-                } else {
-                  context.go(AppRoute.plannerScreen);
-                }
-              },
-              icon: Icon(
-                Icons.keyboard_arrow_left,
-                color: context.colorScheme.secondary,
-              ),
-            )
-          else if (screenType == ScreenType.entityPage ||
-              (screenType == ScreenType.subPage && isDialogMode))
-            IconButton(
-              visualDensity: VisualDensity.compact,
               onPressed: () {
                 cancelAction?.call();
               },
@@ -94,7 +74,6 @@ class PageHeader extends StatelessWidget {
             children: [
               if (screenType == ScreenType.page)
                 IconButton(
-                  visualDensity: VisualDensity.compact,
                   onPressed: () {
                     showNotifications(context);
                   },
@@ -105,7 +84,6 @@ class PageHeader extends StatelessWidget {
                 )
               else if (screenType == ScreenType.entityPage)
                 IconButton(
-                  visualDensity: VisualDensity.compact,
                   onPressed: isLoading
                       ? null
                       : () {
