@@ -3489,7 +3489,7 @@ class _CalendarScreenState
                       value: PlannerView.values[index],
                       controlAffinity: ListTileControlAffinity.leading,
                       dense: true,
-                      contentPadding: EdgeInsets.zero,
+                      contentPadding: const EdgeInsets.only(left: 4),
                     );
                   }),
                 ),
