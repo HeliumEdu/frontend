@@ -39,7 +39,7 @@ class HeliumElevatedButton extends StatelessWidget {
         backgroundColor ?? colorScheme.primary,
       ),
       foregroundColor: WidgetStatePropertyAll(colorScheme.onPrimary),
-      minimumSize: const WidgetStatePropertyAll(Size(0, 45)),
+      minimumSize: const WidgetStatePropertyAll(Size(double.infinity, 45)),
       padding: const WidgetStatePropertyAll(
         EdgeInsets.symmetric(horizontal: 12),
       ),

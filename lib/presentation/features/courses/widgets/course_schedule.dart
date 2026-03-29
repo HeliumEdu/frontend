@@ -74,7 +74,7 @@ class CourseScheduleState extends State<CourseSchedule> {
           ? (_startTimes[dayIndex] ?? _singleStartTime)
           : (_endTimes[dayIndex] ?? _singleEndTime),
       initialEntryMode: TimePickerEntryMode.input,
-      confirmText: 'Confirm',
+      confirmText: 'Select',
     );
     if (pickedTime != null) {
       setState(() {
@@ -410,7 +410,7 @@ class CourseScheduleState extends State<CourseSchedule> {
       context: context,
       initialTime: isStartTime ? _singleStartTime : _singleEndTime,
       initialEntryMode: TimePickerEntryMode.input,
-      confirmText: 'Confirm',
+      confirmText: 'Select',
     );
     if (pickedTime != null) {
       setState(() {

@@ -147,7 +147,7 @@ Future<bool> _downloadFileIOS(String url, String filename) async {
     );
 
     _log.info('iOS share sheet result: ${result.status}');
-    return true;
+    return result.status != ShareResultStatus.dismissed;
   } catch (e) {
     _log.severe('iOS download failed', e);
     return false;
@@ -224,7 +224,7 @@ Future<bool> _downloadBytesIOS(Uint8List bytes, String filename) async {
     );
 
     _log.info('iOS share sheet result: ${result.status}');
-    return true;
+    return result.status != ShareResultStatus.dismissed;
   } catch (e) {
     _log.severe('iOS bytes download failed', e);
     return false;

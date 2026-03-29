@@ -424,7 +424,7 @@ class CourseDetailsState extends State<CourseDetails> {
           : _formController.endDate,
       firstDate: DateTime.now().subtract(const Duration(days: 365 * 10)),
       lastDate: DateTime.now().add(const Duration(days: 365 * 10)),
-      confirmText: 'Confirm',
+      confirmText: 'Select',
     );
 
     if (picked != null) {

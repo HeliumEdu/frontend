@@ -823,7 +823,7 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
           : _formController.endDate,
       firstDate: DateTime.now().subtract(const Duration(days: 365 * 10)),
       lastDate: DateTime.now().add(const Duration(days: 365 * 10)),
-      confirmText: 'Confirm',
+      confirmText: 'Select',
     );
 
     if (picked != null) {
@@ -844,7 +844,7 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
           ? _formController.startTime
           : _formController.endTime,
       initialEntryMode: TimePickerEntryMode.input,
-      confirmText: 'Confirm',
+      confirmText: 'Select',
     );
 
     if (picked != null) {
