@@ -45,7 +45,7 @@ class HeliumElevatedButton extends StatelessWidget {
         EdgeInsets.symmetric(horizontal: 12),
       ),
       shape: WidgetStatePropertyAll(
-        RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
       ),
     );
   }

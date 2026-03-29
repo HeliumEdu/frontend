@@ -34,9 +34,6 @@ class HeliumIconButton extends StatelessWidget {
 
     return IconButton.filled(
       style: ButtonStyle(
-        shape: WidgetStateProperty.all<OutlinedBorder>(
-          RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
-        ),
         backgroundColor: WidgetStateColor.resolveWith((states) {
           if (states.contains(WidgetState.hovered)) {
             return useColor.withValues(alpha: 0.4);
