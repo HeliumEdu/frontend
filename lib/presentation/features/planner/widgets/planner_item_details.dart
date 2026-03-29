@@ -27,7 +27,7 @@ import 'package:heliumapp/presentation/features/planner/bloc/planneritem_event.d
 import 'package:heliumapp/presentation/features/planner/bloc/planneritem_state.dart';
 import 'package:heliumapp/presentation/features/planner/controllers/planner_item_form_controller.dart';
 import 'package:heliumapp/presentation/features/planner/dialogs/confirm_delete_dialog.dart';
-import 'package:heliumapp/presentation/features/planner/dialogs/select_dialog.dart';
+import 'package:heliumapp/presentation/ui/components/select_field.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/core/base_event.dart';
 import 'package:heliumapp/presentation/features/shared/controllers/basic_form_controller.dart';
 import 'package:heliumapp/presentation/features/shared/widgets/flow/multi_step_container.dart';
@@ -504,64 +504,17 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
         const SizedBox(height: 14),
         Text('Resources', style: AppStyles.formLabel(context)),
         const SizedBox(height: 9),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(6),
-            border: Border.all(
-              color: context.colorScheme.outline.withValues(alpha: 0.2),
-            ),
-            color: context.colorScheme.surface,
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              if (_formController.selectedResources.isNotEmpty)
-                Wrap(
-                  spacing: 4,
-                  runSpacing: 2,
-                  children: _formController.selectedResources.map((id) {
-                    return ResourceTitleLabel(
-                      title: _resourceTitleById(id),
-                      userSettings: widget.userSettings!,
-                      onDelete: () => _removeResource(id),
-                    );
-                  }).toList(),
-                ),
-              const SizedBox(height: 2),
-              Align(
-                alignment: Alignment.centerLeft,
-                child: AbsorbPointer(
-                  absorbing:
-                      _formController.selectedCourse == null ||
-                      filteredResources.isEmpty,
-                  child: Opacity(
-                    opacity:
-                        _formController.selectedCourse == null ||
-                            filteredResources.isEmpty
-                        ? 0.5
-                        : 1,
-                    child: TextButton.icon(
-                      onPressed: () => showSelectDialog<ResourceModel>(
-                        parentContext: context,
-                        items: filteredResources,
-                        initialSelected: _formController.selectedResources
-                            .toSet(),
-                        onConfirm: (selected) =>
-                            _updateSelectedResources(selected.toList()),
-                      ),
-                      icon: Icon(Icons.add, color: context.colorScheme.primary),
-                      label: Text(
-                        'Select resources',
-                        style: AppStyles.formLabel(
-                          context,
-                        ).copyWith(color: context.colorScheme.primary),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ],
+        SelectField<ResourceModel>(
+          items: filteredResources,
+          selectedIds: _formController.selectedResources,
+          onChanged: (selected) => _updateSelectedResources(selected),
+          enabled: _formController.selectedCourse != null &&
+              filteredResources.isNotEmpty,
+          buttonLabel: 'Select resources',
+          labelBuilder: (item, onDelete) => ResourceTitleLabel(
+            title: item.title,
+            userSettings: widget.userSettings!,
+            onDelete: onDelete,
           ),
         ),
         const SizedBox(height: 14),
