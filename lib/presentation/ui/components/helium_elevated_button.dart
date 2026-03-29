@@ -43,8 +43,10 @@ class HeliumElevatedButton extends StatelessWidget {
         backgroundColor: !isLoading && enabled
             ? backgroundColor ?? context.colorScheme.primary
             : context.colorScheme.onSurface.withValues(alpha: 0.12),
-        minimumSize: const Size(double.infinity, 45),
+        minimumSize: const Size(0, 45),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        padding: const EdgeInsets.symmetric(horizontal: 12),
+        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
       ),
       label: isLoading
           ? LoadingIndicator(

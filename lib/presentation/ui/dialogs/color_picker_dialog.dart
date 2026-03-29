@@ -167,7 +167,6 @@ class _ColorPickerWidgetState extends State<_ColorPickerWidget> {
       children: [
         SizedBox(
           child: ColorPicker(
-            colorPickerWidth: 325,
             pickerColor: pickerColor,
             onColorChanged: (color) {
               setState(() {
@@ -200,7 +199,7 @@ class _ColorPickerWidgetState extends State<_ColorPickerWidget> {
                 style: TextStyle(color: context.colorScheme.primary),
               ),
             ),
-            const SizedBox(width: 4),
+            const SizedBox(width: 8),
             Expanded(
               child: HeliumElevatedButton(
                 onPressed: widget.onCancel,
@@ -208,7 +207,7 @@ class _ColorPickerWidgetState extends State<_ColorPickerWidget> {
                 buttonText: 'Cancel',
               ),
             ),
-            const SizedBox(width: 4),
+            const SizedBox(width: 8),
             Expanded(
               child: HeliumElevatedButton(
                 onPressed: () => widget.onSelect(pickerColor),

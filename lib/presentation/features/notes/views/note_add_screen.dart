@@ -509,8 +509,6 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
                           onFieldSubmitted: (_) => saveAction?.call(),
                         ),
                       ),
-                      const SizedBox(width: gap),
-                      _buildSaveStatusIcon(),
                       if (hasBadge) ...[
                         const SizedBox(width: gap),
                         ConstrainedBox(
@@ -520,6 +518,8 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
                           child: _buildLinkedEntityBadge(),
                         ),
                       ],
+                      const SizedBox(width: gap),
+                      _buildSaveStatusIcon(),
                     ],
                   );
                 },
@@ -711,7 +711,7 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
 
     final button = InkWell(
       onTap: isDisabled ? null : _onSaveIconTapped,
-      borderRadius: BorderRadius.circular(16),
+      borderRadius: BorderRadius.circular(6),
       child: Padding(padding: const EdgeInsets.all(8), child: iconWidget),
     );
 
