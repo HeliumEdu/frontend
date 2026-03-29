@@ -475,6 +475,7 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
     }
 
     final isMobile = Responsive.isMobile(context);
+    final isCompact = Responsive.useCompactLayout(context);
 
     return Expanded(
       child: Form(
@@ -562,7 +563,8 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
                               showSubscript: !isMobile,
                               showSuperscript: !isMobile,
                               showBackgroundColorButton: !isMobile,
-                              showSearchButton: true,
+                              showRedo: !isCompact,
+                              showSearchButton: !isCompact,
                               buttonOptions: QuillSimpleToolbarButtonOptions(
                                 search: QuillToolbarSearchButtonOptions(
                                   customOnPressedCallback: (_) async {
