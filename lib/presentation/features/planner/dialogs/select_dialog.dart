@@ -105,7 +105,7 @@ class _SelectWidgetState<T extends BaseTitledModel> extends State<_SelectWidget<
               const SizedBox(width: 12),
               Expanded(
                 child: HeliumElevatedButton(
-                  buttonText: 'Confirm',
+                  buttonText: 'Select',
                   isLoading: _isSubmitting,
                   onPressed: () {
                     setState(() {
