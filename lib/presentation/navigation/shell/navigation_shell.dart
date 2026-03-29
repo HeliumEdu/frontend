@@ -8,11 +8,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-
-// Conditional import for web platform
-import 'package:heliumapp/presentation/navigation/shell/navigation_shell_title_stub.dart'
-    if (dart.library.js_interop) 'package:heliumapp/presentation/navigation/shell/navigation_shell_title_web.dart'
-    as title_helper;
 import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/config/app_router.dart';
 import 'package:heliumapp/config/app_theme.dart';
@@ -24,9 +19,13 @@ import 'package:heliumapp/presentation/features/auth/bloc/auth_bloc.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_state.dart';
 import 'package:heliumapp/presentation/features/courses/views/courses_screen.dart';
 import 'package:heliumapp/presentation/features/grades/views/grades_screen.dart';
+import 'package:heliumapp/presentation/features/notes/views/notebook_screen.dart';
 import 'package:heliumapp/presentation/features/planner/views/planner_screen.dart';
 import 'package:heliumapp/presentation/features/resources/views/resources_screen.dart';
-import 'package:heliumapp/presentation/features/notes/views/notebook_screen.dart';
+// Conditional import for web platform
+import 'package:heliumapp/presentation/navigation/shell/navigation_shell_title_stub.dart'
+    if (dart.library.js_interop) 'package:heliumapp/presentation/navigation/shell/navigation_shell_title_web.dart'
+    as title_helper;
 import 'package:heliumapp/presentation/ui/components/settings_button.dart';
 import 'package:heliumapp/presentation/ui/layout/page_header.dart';
 import 'package:heliumapp/utils/app_globals.dart';
@@ -198,7 +197,8 @@ class _NavigationShellState extends State<NavigationShell> {
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       // Double-check we're still authenticated before showing dialogs
-      if (!mounted || _isLoggingOut || !await DioClient().isAuthenticated()) return;
+      if (!mounted || _isLoggingOut || !await DioClient().isAuthenticated())
+        return;
 
       // Skip startup dialogs when landing on a deep link.
       final params =
@@ -270,10 +270,10 @@ class _NavigationShellState extends State<NavigationShell> {
     // Use global router state since the shell's local GoRouterState doesn't know
     // about routes pushed outside of it (like Settings or Notifications).
     // Also check ModalRoute.isCurrent to skip when dialogs are open.
-    final globalLocation =
-        router.routerDelegate.currentConfiguration.uri.path;
-    final isShellRoute =
-        NavigationPage.values.any((p) => p.route == globalLocation);
+    final globalLocation = router.routerDelegate.currentConfiguration.uri.path;
+    final isShellRoute = NavigationPage.values.any(
+      (p) => p.route == globalLocation,
+    );
     final isCurrentRoute = ModalRoute.of(context)?.isCurrent ?? false;
     if (isShellRoute && isCurrentRoute) {
       _updateBrowserTitle(currentPage);
@@ -284,13 +284,21 @@ class _NavigationShellState extends State<NavigationShell> {
         if (state is AuthLoggedOut) {
           _isLoggingOut = true;
           // Pop any open dialogs before navigating to login
-          Navigator.of(context, rootNavigator: true).popUntil((route) => route.isFirst);
+          Navigator.of(
+            context,
+            rootNavigator: true,
+          ).popUntil((route) => route.isFirst);
           context.go(AppRoute.loginScreen);
         }
       },
       child: LayoutBuilder(
         builder: (context, constraints) {
           final useNavigationRail = !Responsive.isMobile(context);
+
+          final isPhoneLandscape = Responsive.isPhoneLandscape(context);
+          final destinationPadding = isPhoneLandscape
+              ? const EdgeInsets.symmetric(vertical: 0)
+              : const EdgeInsets.symmetric(vertical: 8);
 
           return Scaffold(
             body: Row(
@@ -301,7 +309,9 @@ class _NavigationShellState extends State<NavigationShell> {
                     selectedIndex: currentPage.index,
                     onDestinationSelected: (index) =>
                         _onDestinationSelected(context, index),
-                    labelType: NavigationRailLabelType.all,
+                    labelType: isPhoneLandscape
+                        ? NavigationRailLabelType.selected
+                        : NavigationRailLabelType.all,
                     destinations: NavigationPage.values
                         .map(
                           (page) => NavigationRailDestination(
@@ -313,6 +323,7 @@ class _NavigationShellState extends State<NavigationShell> {
                               page.label,
                               style: AppStyles.smallSecondaryText(context),
                             ),
+                            padding: destinationPadding,
                           ),
                         )
                         .toList(),
@@ -429,8 +440,10 @@ class _NavigationShellState extends State<NavigationShell> {
           )
         : const SettingsButton(compact: false);
 
+    final bottomPadding = Responsive.isPhoneLandscape(context) ? 0.0 : 16.0;
+
     return Padding(
-      padding: const EdgeInsets.only(bottom: 16.0),
+      padding: EdgeInsets.only(bottom: bottomPadding),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
