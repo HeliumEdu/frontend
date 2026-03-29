@@ -945,34 +945,40 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
             children: [
               for (int i = 0; i < eligibleCourses.length; i++) ...[
                 if (i > 0) const Divider(height: 1),
-                ListTile(
-                  leading: Padding(
-                    padding: const EdgeInsets.only(left: 8),
-                    child: Icon(
-                      Icons.school,
-                      size: 16,
-                      color: eligibleCourses[i].color,
+                Padding(
+                  padding: EdgeInsets.only(
+                    top: i == 0 ? 0 : 8,
+                    bottom: i == eligibleCourses.length - 1 ? 0 : 8,
+                  ),
+                  child: ListTile(
+                    leading: Padding(
+                      padding: const EdgeInsets.only(left: 8),
+                      child: Icon(
+                        Icons.school,
+                        size: 16,
+                        color: eligibleCourses[i].color,
+                      ),
                     ),
-                  ),
-                  title: Text(
-                    eligibleCourses[i].title,
-                    style: AppStyles.formText(context),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  subtitle: GradeLabel(
-                    grade: GradeHelper.gradeForDisplay(
-                      eligibleCourses[i].overallGrade,
+                    title: Text(
+                      eligibleCourses[i].title,
+                      style: AppStyles.formText(context),
+                      overflow: TextOverflow.ellipsis,
                     ),
-                    userSettings: userSettings!,
-                    compact: true,
-                    selectable: false,
+                    subtitle: GradeLabel(
+                      grade: GradeHelper.gradeForDisplay(
+                        eligibleCourses[i].overallGrade,
+                      ),
+                      userSettings: userSettings!,
+                      compact: true,
+                      selectable: false,
+                    ),
+                    dense: true,
+                    contentPadding: EdgeInsets.zero,
+                    onTap: () {
+                      Navigator.pop(menuContext);
+                      _openGradeCalculator(eligibleCourses[i]);
+                    },
                   ),
-                  dense: true,
-                  contentPadding: EdgeInsets.zero,
-                  onTap: () {
-                    Navigator.pop(menuContext);
-                    _openGradeCalculator(eligibleCourses[i]);
-                  },
                 ),
               ],
             ],
