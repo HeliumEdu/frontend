@@ -45,9 +45,6 @@ class _PlannerDayPopOutDialogState extends State<PlannerDayPopOutDialog> {
         final currentItems = widget.dataSource.getItemsForDay(widget.date);
 
         return Dialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
           child: Container(
             width: 360,
             constraints: const BoxConstraints(maxHeight: 480),

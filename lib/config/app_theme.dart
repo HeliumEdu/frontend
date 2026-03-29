@@ -151,7 +151,7 @@ class AppTheme {
       ),
       dialogTheme: DialogThemeData(
         backgroundColor: colorScheme.surface,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
@@ -232,6 +232,7 @@ class AppTheme {
       ),
       sliderTheme: const SliderThemeData(trackHeight: 6.0),
       timePickerTheme: TimePickerThemeData(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         dayPeriodColor: colorScheme.primary.withValues(alpha: 0.3),
         hourMinuteTextStyle: AppStyles.poppins(
           fontSize: 56,
@@ -257,6 +258,7 @@ class AppTheme {
         ),
       ),
       datePickerTheme: DatePickerThemeData(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         headerHelpStyle: AppStyles.poppins(
           fontSize: 14,
           fontWeight: FontWeight.w500,
