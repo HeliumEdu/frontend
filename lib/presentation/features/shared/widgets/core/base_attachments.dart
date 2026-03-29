@@ -129,8 +129,12 @@ abstract class BaseAttachmentsState<T extends BaseAttachmentsContent>
             '${state.attachments.length} ${state.attachments.length.plural('attachment')} uploaded',
           );
 
+          final uploadedTitles =
+              state.attachments.map((a) => a.title).toSet();
           setState(() {
-            filesToUpload.clear();
+            filesToUpload.removeWhere(
+              (f) => uploadedTitles.contains(f.title),
+            );
             attachments.addAll(state.attachments);
             Sort.byTitle(attachments);
           });
