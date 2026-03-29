@@ -477,191 +477,204 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
     final isCompact = Responsive.useCompactLayout(context);
 
     return Expanded(
-      child: Form(
-        key: _formController.formKey,
-        child: Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.only(bottom: 4),
-              child: LayoutBuilder(
-                builder: (context, constraints) {
-                  const double titleMinWidth = 225;
-                  const double badgeMaxWidth = 250;
-                  const double gap = 4;
-                  final hasBadge = _linkedEntityType != null;
-                  final effectiveBadgeMax = hasBadge
-                      ? (constraints.maxWidth - titleMinWidth - gap * 2).clamp(
-                          0.0,
-                          badgeMaxWidth,
-                        )
-                      : 0.0;
-                  return Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      Expanded(
-                        child: LabelAndTextFormField(
-                          hintText: 'Title',
-                          controller: _titleController,
-                          focusNode: _titleFocusNode,
-                          autofocus: kIsWeb,
-                          validator: null,
-                          fieldKey: _formController.getFieldKey('title'),
-                          onFieldSubmitted: (_) => saveAction?.call(),
-                        ),
-                      ),
-                      if (hasBadge) ...[
-                        const SizedBox(width: gap),
-                        ConstrainedBox(
-                          constraints: BoxConstraints(
-                            maxWidth: effectiveBadgeMax,
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          // Reserve space for title row and padding
+          const double titleRowHeight = 60;
+          const double toolbarHeight = 50;
+          const double minEditorHeight = 150;
+
+          final editorContainerHeight = (constraints.maxHeight - titleRowHeight)
+              .clamp(minEditorHeight + toolbarHeight, double.infinity);
+          final editorHeight = editorContainerHeight - toolbarHeight;
+
+          return SingleChildScrollView(
+            child: ConstrainedBox(
+              constraints: BoxConstraints(minHeight: constraints.maxHeight),
+              child: Form(
+                key: _formController.formKey,
+                child: Column(
+                  children: [
+                    _buildTitleRow(context),
+                    Padding(
+                      padding: const EdgeInsets.only(top: 4, bottom: 8),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: context.colorScheme.surface,
+                          border: Border.all(
+                            color: context.colorScheme.outline
+                                .withValues(alpha: 0.2),
                           ),
-                          child: _buildLinkedEntityBadge(),
+                          borderRadius: BorderRadius.circular(8),
                         ),
-                      ],
-                      const SizedBox(width: gap),
-                      _buildSaveStatusIcon(),
-                    ],
-                  );
-                },
-              ),
-            ),
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.only(top: 4, bottom: 8),
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: context.colorScheme.surface,
-                    border: Border.all(
-                      color: context.colorScheme.outline.withValues(alpha: 0.2),
-                    ),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(8),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 4),
-                          child: QuillSimpleToolbar(
-                            controller: _quillController,
-                            config: QuillSimpleToolbarConfig(
-                              toolbarRunSpacing: 0,
-                              showDividers: !isCompact,
-                              showFontSize: !isCompact,
-                              showHeaderStyle: !isCompact,
-                              showInlineCode: !isCompact,
-                              showClearFormat: !isCompact,
-                              showStrikeThrough: !isCompact,
-                              showAlignmentButtons: !isCompact,
-                              showLeftAlignment: !isCompact,
-                              showCenterAlignment: !isCompact,
-                              showRightAlignment: !isCompact,
-                              showCodeBlock: !isCompact,
-                              showIndent: !isCompact,
-                              showSubscript: !isCompact,
-                              showSuperscript: !isCompact,
-                              showBackgroundColorButton: !isCompact,
-                              showRedo: !isCompact,
-                              showSearchButton: !isCompact,
-                              buttonOptions: QuillSimpleToolbarButtonOptions(
-                                search: QuillToolbarSearchButtonOptions(
-                                  customOnPressedCallback: (_) async {
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(8),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              _buildQuillToolbar(context, isCompact),
+                              const Divider(height: 1),
+                              SizedBox(
+                                height: editorHeight,
+                                child: QuillEditor.basic(
+                                  controller: _quillController,
+                                  focusNode: _editorFocusNode,
+                                  config: QuillEditorConfig(
+                                    padding: const EdgeInsets.all(12),
+                                    autoFocus: false,
+                                    expands: true,
+                                    customStyles:
+                                        NotesEditor.buildDefaultStyles(context),
+                                    scrollBottomInset:
+                                        MediaQuery.of(context).viewInsets.bottom,
+                                    // ignore: experimental_member_use
+                                    onKeyPressed: (event, node) {
+                                      final isFindShortcut = event.logicalKey ==
+                                              LogicalKeyboardKey.keyF &&
+                                          (HardwareKeyboard
+                                                  .instance.isMetaPressed ||
+                                              HardwareKeyboard
+                                                  .instance.isControlPressed);
+                                      if (isFindShortcut) {
+                                        setState(
+                                          () => _showSearch = !_showSearch,
+                                        );
+                                        return KeyEventResult.handled;
+                                      }
+                                      return null;
+                                    },
+                                  ),
+                                ),
+                              ),
+                              if (_showSearch)
+                                QuillSearchBar(
+                                  controller: _quillController,
+                                  onClose: () {
                                     setState(() {
-                                      _showSearch = !_showSearch;
+                                      _showSearch = false;
                                     });
                                   },
                                 ),
-                                base: QuillToolbarBaseButtonOptions(
-                                  iconTheme: QuillIconTheme(
-                                    iconButtonSelectedData: IconButtonData(
-                                      style: ButtonStyle(
-                                        backgroundColor: WidgetStatePropertyAll(
-                                          context.colorScheme.primary,
-                                        ),
-                                        foregroundColor: WidgetStatePropertyAll(
-                                          context.colorScheme.onPrimary,
-                                        ),
-                                        overlayColor: WidgetStatePropertyAll(
-                                          context.colorScheme.onPrimary
-                                              .withValues(alpha: 0.1),
-                                        ),
-                                      ),
-                                    ),
-                                    iconButtonUnselectedData: IconButtonData(
-                                      color: context.colorScheme.onSurface,
-                                    ),
-                                  ),
-                                ),
-                                color: QuillToolbarColorButtonOptions(
-                                  customOnPressedCallback:
-                                      (ctrl, isBackground) =>
-                                          NotesEditor.showColorPicker(
-                                            context,
-                                            ctrl,
-                                            isBackground,
-                                          ),
-                                ),
-                                backgroundColor: QuillToolbarColorButtonOptions(
-                                  customOnPressedCallback:
-                                      (ctrl, isBackground) =>
-                                          NotesEditor.showColorPicker(
-                                            context,
-                                            ctrl,
-                                            isBackground,
-                                          ),
-                                ),
-                              ),
-                            ),
+                            ],
                           ),
                         ),
-                        const Divider(height: 1),
-                        Expanded(
-                          child: QuillEditor.basic(
-                            controller: _quillController,
-                            focusNode: _editorFocusNode,
-                            config: QuillEditorConfig(
-                              padding: const EdgeInsets.all(12),
-                              autoFocus: false,
-                              expands: true,
-                              customStyles: NotesEditor.buildDefaultStyles(
-                                context,
-                              ),
-                              scrollBottomInset: MediaQuery.of(context).viewInsets.bottom,
-                              // ignore: experimental_member_use
-                              onKeyPressed: (event, node) {
-                                final isFindShortcut =
-                                    event.logicalKey ==
-                                        LogicalKeyboardKey.keyF &&
-                                    (HardwareKeyboard.instance.isMetaPressed ||
-                                        HardwareKeyboard
-                                            .instance
-                                            .isControlPressed);
-                                if (isFindShortcut) {
-                                  setState(() => _showSearch = !_showSearch);
-                                  return KeyEventResult.handled;
-                                }
-                                return null;
-                              },
-                            ),
-                          ),
-                        ),
-                        if (_showSearch)
-                          QuillSearchBar(
-                            controller: _quillController,
-                            onClose: () {
-                              setState(() {
-                                _showSearch = false;
-                              });
-                            },
-                          ),
-                      ],
+                      ),
                     ),
-                  ),
+                  ],
                 ),
               ),
             ),
-          ],
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildTitleRow(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 4),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          const double titleMinWidth = 225;
+          const double badgeMaxWidth = 250;
+          const double gap = 4;
+          final hasBadge = _linkedEntityType != null;
+          final effectiveBadgeMax = hasBadge
+              ? (constraints.maxWidth - titleMinWidth - gap * 2)
+                  .clamp(0.0, badgeMaxWidth)
+              : 0.0;
+          return Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Expanded(
+                child: LabelAndTextFormField(
+                  hintText: 'Title',
+                  controller: _titleController,
+                  focusNode: _titleFocusNode,
+                  autofocus: kIsWeb,
+                  validator: null,
+                  fieldKey: _formController.getFieldKey('title'),
+                  onFieldSubmitted: (_) => saveAction?.call(),
+                ),
+              ),
+              if (hasBadge) ...[
+                const SizedBox(width: gap),
+                ConstrainedBox(
+                  constraints: BoxConstraints(maxWidth: effectiveBadgeMax),
+                  child: _buildLinkedEntityBadge(),
+                ),
+              ],
+              const SizedBox(width: gap),
+              _buildSaveStatusIcon(),
+            ],
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildQuillToolbar(BuildContext context, bool isCompact) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: QuillSimpleToolbar(
+        controller: _quillController,
+        config: QuillSimpleToolbarConfig(
+          toolbarRunSpacing: 0,
+          showDividers: !isCompact,
+          showFontSize: !isCompact,
+          showHeaderStyle: !isCompact,
+          showInlineCode: !isCompact,
+          showClearFormat: !isCompact,
+          showStrikeThrough: !isCompact,
+          showAlignmentButtons: !isCompact,
+          showLeftAlignment: !isCompact,
+          showCenterAlignment: !isCompact,
+          showRightAlignment: !isCompact,
+          showCodeBlock: !isCompact,
+          showIndent: !isCompact,
+          showSubscript: !isCompact,
+          showSuperscript: !isCompact,
+          showBackgroundColorButton: !isCompact,
+          showRedo: !isCompact,
+          showSearchButton: !isCompact,
+          buttonOptions: QuillSimpleToolbarButtonOptions(
+            search: QuillToolbarSearchButtonOptions(
+              customOnPressedCallback: (_) async {
+                setState(() {
+                  _showSearch = !_showSearch;
+                });
+              },
+            ),
+            base: QuillToolbarBaseButtonOptions(
+              iconTheme: QuillIconTheme(
+                iconButtonSelectedData: IconButtonData(
+                  style: ButtonStyle(
+                    backgroundColor: WidgetStatePropertyAll(
+                      context.colorScheme.primary,
+                    ),
+                    foregroundColor: WidgetStatePropertyAll(
+                      context.colorScheme.onPrimary,
+                    ),
+                    overlayColor: WidgetStatePropertyAll(
+                      context.colorScheme.onPrimary.withValues(alpha: 0.1),
+                    ),
+                  ),
+                ),
+                iconButtonUnselectedData: IconButtonData(
+                  color: context.colorScheme.onSurface,
+                ),
+              ),
+            ),
+            color: QuillToolbarColorButtonOptions(
+              customOnPressedCallback: (ctrl, isBackground) =>
+                  NotesEditor.showColorPicker(context, ctrl, isBackground),
+            ),
+            backgroundColor: QuillToolbarColorButtonOptions(
+              customOnPressedCallback: (ctrl, isBackground) =>
+                  NotesEditor.showColorPicker(context, ctrl, isBackground),
+            ),
+          ),
         ),
       ),
     );
