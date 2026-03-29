@@ -454,7 +454,6 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
       icon: icon,
       screenType: screenType,
       isLoading: isSubmitting,
-      isDialogMode: DialogModeProvider.isDialogMode(context),
       cancelAction: cancelAction,
       saveAction: saveAction,
       inheritableProviders: inheritableProviders,

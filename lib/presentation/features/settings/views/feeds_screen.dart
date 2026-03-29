@@ -260,9 +260,6 @@ class _FeedsScreenState extends State<FeedsScreen> {
       builder: (dialogContext) => StatefulBuilder(
         builder: (BuildContext context, StateSetter setState) {
           return AlertDialog(
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
-            ),
             title: Row(
               children: [
                 Icon(

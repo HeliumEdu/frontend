@@ -30,22 +30,42 @@ class HeliumElevatedButton extends StatelessWidget {
     this.backgroundColor,
   });
 
+  static ButtonStyle baseStyle(
+    ColorScheme colorScheme, {
+    Color? backgroundColor,
+    double minimumWidth = double.infinity,
+  }) {
+    return ButtonStyle(
+      backgroundColor: WidgetStatePropertyAll(
+        backgroundColor ?? colorScheme.primary,
+      ),
+      foregroundColor: WidgetStatePropertyAll(colorScheme.onPrimary),
+      minimumSize: WidgetStatePropertyAll(Size(minimumWidth, 45)),
+      padding: const WidgetStatePropertyAll(
+        EdgeInsets.symmetric(horizontal: 12),
+      ),
+      shape: WidgetStatePropertyAll(
+        RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final effectiveIconColor = iconColor ?? context.colorScheme.onPrimary;
+    final effectiveBg = !isLoading && enabled
+        ? backgroundColor ?? context.colorScheme.primary
+        : context.colorScheme.onSurface.withValues(alpha: 0.12);
 
     return ElevatedButton.icon(
       onPressed: isLoading || !enabled ? null : () => {onPressed()},
       icon: !isLoading && icon != null
           ? Icon(icon, size: 16, color: effectiveIconColor)
           : null,
-      style: ElevatedButton.styleFrom(
-        backgroundColor: !isLoading && enabled
-            ? backgroundColor ?? context.colorScheme.primary
-            : context.colorScheme.onSurface.withValues(alpha: 0.12),
-        minimumSize: const Size(double.infinity, 45),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-      ),
+      style: baseStyle(
+        context.colorScheme,
+        backgroundColor: effectiveBg,
+      ).copyWith(tapTargetSize: MaterialTapTargetSize.shrinkWrap),
       label: isLoading
           ? LoadingIndicator(
               size: 20,

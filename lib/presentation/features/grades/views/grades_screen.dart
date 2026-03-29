@@ -912,12 +912,12 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
   }
 
   void _showGradeCalculatorOptions(
+    BuildContext buttonContext,
     GradeCourseGroupModel selectedGroup,
     List<GradeCourseModel> courses,
   ) {
-    final eligibleCourses = courses
-        .where(_courseHasEligibleGradeCalculatorCategory)
-        .toList();
+    final eligibleCourses =
+        courses.where(_courseHasEligibleGradeCalculatorCategory).toList();
 
     if (eligibleCourses.isEmpty) {
       showSnackBar(
@@ -932,39 +932,106 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
       return;
     }
 
-    showDialog(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
+    final isMobile = Responsive.isMobile(context);
+
+    if (isMobile) {
+      showModalBottomSheet(
+        context: context,
+        isScrollControlled: true,
         backgroundColor: context.colorScheme.surface,
-        content: SizedBox(
-          width: Responsive.getDialogWidth(context),
-          child: ListView.builder(
-            shrinkWrap: true,
-            itemCount: eligibleCourses.length,
-            itemBuilder: (context, index) {
-              final course = eligibleCourses[index];
-              return ListTile(
-                title: CourseTitleLabel(
-                  title: course.title,
-                  color: course.color,
-                  compact: true,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+        ),
+        builder: (ctx) => StatefulBuilder(
+          builder: (menuContext, _) =>
+              _buildGradeCalculatorPickerContent(menuContext, eligibleCourses),
+        ),
+      );
+    } else {
+      final RenderBox button = buttonContext.findRenderObject() as RenderBox;
+      final RenderBox overlay =
+          Overlay.of(context).context.findRenderObject() as RenderBox;
+      final RelativeRect position = RelativeRect.fromRect(
+        Rect.fromPoints(
+          button.localToGlobal(Offset.zero, ancestor: overlay),
+          button.localToGlobal(
+            button.size.bottomRight(Offset.zero),
+            ancestor: overlay,
+          ),
+        ),
+        Offset.zero & overlay.size,
+      );
+
+      showMenu(
+        context: context,
+        position: position,
+        color: context.colorScheme.surface,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        items: [
+          PopupMenuItem(
+            enabled: false,
+            padding: EdgeInsets.zero,
+            child: StatefulBuilder(
+              builder: (menuContext, _) =>
+                  _buildGradeCalculatorPickerContent(menuContext, eligibleCourses),
+            ),
+          ),
+        ],
+      );
+    }
+  }
+
+  Widget _buildGradeCalculatorPickerContent(
+    BuildContext menuContext,
+    List<GradeCourseModel> eligibleCourses,
+  ) {
+    return Material(
+      color: context.colorScheme.surface,
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            for (int i = 0; i < eligibleCourses.length; i++) ...[
+              if (i > 0) const Divider(height: 1),
+              Padding(
+                padding: EdgeInsets.only(
+                  top: i == 0 ? 0 : 8,
+                  bottom: i == eligibleCourses.length - 1 ? 0 : 8,
                 ),
-                subtitle: Padding(
-                  padding: const EdgeInsets.only(top: 4),
-                  child: GradeLabel(
-                    grade: GradeHelper.gradeForDisplay(course.overallGrade),
+                child: ListTile(
+                  leading: Padding(
+                    padding: const EdgeInsets.only(left: 8),
+                    child: Icon(
+                      Icons.school,
+                      size: 16,
+                      color: eligibleCourses[i].color,
+                    ),
+                  ),
+                  title: Text(
+                    eligibleCourses[i].title,
+                    style: AppStyles.formText(context),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  subtitle: GradeLabel(
+                    grade: GradeHelper.gradeForDisplay(
+                      eligibleCourses[i].overallGrade,
+                    ),
                     userSettings: userSettings!,
                     compact: true,
                     selectable: false,
                   ),
+                  dense: true,
+                  contentPadding: EdgeInsets.zero,
+                  onTap: () {
+                    Navigator.pop(menuContext);
+                    _openGradeCalculator(eligibleCourses[i]);
+                  },
                 ),
-                onTap: () {
-                  Navigator.of(dialogContext).pop();
-                  _openGradeCalculator(course);
-                },
-              );
-            },
-          ),
+              ),
+            ],
+          ],
         ),
       ),
     );
@@ -1115,13 +1182,16 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
             ),
             // Calculator icon for grade calculator
             if (coursesWithCategories.isNotEmpty)
-              Tooltip(
-                message: 'What Grade Do I Need?',
-                child: IconButton(
-                  icon: const Icon(Icons.calculate_outlined),
-                  onPressed: () => _showGradeCalculatorOptions(
-                    gradeGroup,
-                    coursesWithCategories,
+              Builder(
+                builder: (buttonContext) => Tooltip(
+                  message: 'What Grade Do I Need?',
+                  child: IconButton(
+                    icon: const Icon(Icons.calculate_outlined),
+                    onPressed: () => _showGradeCalculatorOptions(
+                      buttonContext,
+                      gradeGroup,
+                      coursesWithCategories,
+                    ),
                   ),
                 ),
               ),
@@ -1855,17 +1925,16 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
                         Navigator.pop(menuContext);
                       },
                       child: Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 8,
-                        ),
+                        padding: const EdgeInsets.only(left: 4, top: 8, bottom: 8),
                         child: Row(
                           children: [
                             const Radio<String>(value: 'term'),
+                            const SizedBox(width: 8),
                             Expanded(
                               child: Text(
                                 'Entire Term',
                                 style: AppStyles.formText(context),
+                                overflow: TextOverflow.ellipsis,
                               ),
                             ),
                           ],
@@ -1884,10 +1953,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
                           Navigator.pop(menuContext);
                         },
                         child: Padding(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 8,
-                          ),
+                          padding: const EdgeInsets.only(left: 4, top: 8, bottom: 8),
                           child: Row(
                             children: [
                               Radio<String>(
@@ -1895,6 +1961,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
                                   course.id,
                                 ).radioValue,
                               ),
+                              const SizedBox(width: 8),
                               Icon(
                                 Icons.school,
                                 size: 16,
@@ -1905,6 +1972,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
                                 child: Text(
                                   course.title,
                                   style: AppStyles.formText(context),
+                                  overflow: TextOverflow.ellipsis,
                                 ),
                               ),
                             ],
@@ -1928,6 +1996,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
                   setMenuState(() {});
                 },
                 dense: true,
+                contentPadding: EdgeInsets.zero,
               ),
               CheckboxListTile(
                 controlAffinity: ListTileControlAffinity.leading,
@@ -1941,6 +2010,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
                   setMenuState(() {});
                 },
                 dense: true,
+                contentPadding: EdgeInsets.zero,
               ),
             ],
           ),

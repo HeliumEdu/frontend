@@ -21,7 +21,7 @@ import 'package:heliumapp/presentation/features/resources/bloc/resource_event.da
 import 'package:heliumapp/presentation/features/resources/bloc/resource_state.dart';
 import 'package:heliumapp/presentation/features/shared/controllers/basic_form_controller.dart';
 import 'package:heliumapp/presentation/features/resources/controllers/resource_form_controller.dart';
-import 'package:heliumapp/presentation/features/planner/dialogs/select_dialog.dart';
+import 'package:heliumapp/presentation/ui/components/select_field.dart';
 import 'package:heliumapp/utils/snack_bar_helpers.dart';
 import 'package:heliumapp/presentation/ui/components/course_title_label.dart';
 import 'package:heliumapp/presentation/ui/components/drop_down.dart';
@@ -136,78 +136,20 @@ class ResourceDetailsState extends State<ResourceDetails> {
                   const SizedBox(height: 14),
                   Text('Classes', style: AppStyles.formLabel(context)),
                   const SizedBox(height: 9),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 8,
-                    ),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(6),
-                      border: Border.all(
-                        color: context.colorScheme.outline.withValues(
-                          alpha: 0.2,
-                        ),
-                      ),
-                      color: context.colorScheme.surface,
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        if (_formController.selectedCourses.isNotEmpty)
-                          Wrap(
-                            spacing: 4,
-                            runSpacing: 2,
-                            children: _formController.selectedCourses.map((id) {
-                              final course = _courses.firstWhere(
-                                (c) => c.id == id,
-                              );
-                              return CourseTitleLabel(
-                                title: course.title,
-                                color: course.color,
-                                onDelete: () {
-                                  setState(() {
-                                    _formController.selectedCourses.remove(id);
-                                  });
-                                },
-                              );
-                            }).toList(),
-                          ),
-                        const SizedBox(height: 2),
-                        Align(
-                          alignment: Alignment.centerLeft,
-                          child: AbsorbPointer(
-                            absorbing: _courses.isEmpty,
-                            child: Opacity(
-                              opacity: _courses.isEmpty ? 0.5 : 1,
-                              child: TextButton.icon(
-                                onPressed: () => showSelectDialog<CourseModel>(
-                                  parentContext: context,
-                                  items: _courses,
-                                  initialSelected: _formController
-                                      .selectedCourses
-                                      .toSet(),
-                                  onConfirm: (selected) {
-                                    setState(() {
-                                      _formController.selectedCourses = selected
-                                          .toList();
-                                    });
-                                  },
-                                ),
-                                icon: Icon(
-                                  Icons.add,
-                                  color: context.colorScheme.primary,
-                                ),
-                                label: Text(
-                                  'Select classes',
-                                  style: AppStyles.formLabel(context).copyWith(
-                                    color: context.colorScheme.primary,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
+                  SelectField<CourseModel>(
+                    items: _courses,
+                    selectedIds: _formController.selectedCourses,
+                    onChanged: (selected) {
+                      setState(() {
+                        _formController.selectedCourses = selected;
+                      });
+                    },
+                    enabled: _courses.isNotEmpty,
+                    buttonLabel: 'Select classes',
+                    labelBuilder: (course, onDelete) => CourseTitleLabel(
+                      title: course.title,
+                      color: course.color,
+                      onDelete: onDelete,
                     ),
                   ),
                   const SizedBox(height: 14),

@@ -1363,6 +1363,7 @@ class _CalendarScreenState
       initialDate: _calendarController.displayDate!,
       firstDate: DateTime.now().subtract(const Duration(days: 365 * 10)),
       lastDate: DateTime.now().add(const Duration(days: 365 * 10)),
+      confirmText: 'Select',
     );
 
     if (picked != null) {
@@ -3365,16 +3366,9 @@ class _CalendarScreenState
                 _buildSheetSectionHeader(context, 'CATEGORIES'),
                 ...visibleCategories.map((category) {
                   return CheckboxListTile(
-                    title: Row(
-                      children: [
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Text(
-                            category.title,
-                            style: AppStyles.formText(context),
-                          ),
-                        ),
-                      ],
+                    title: Text(
+                      category.title,
+                      style: AppStyles.formText(context),
                     ),
                     value: _plannerItemDataSource!.filterCategories.contains(
                       category.title,
@@ -3455,84 +3449,106 @@ class _CalendarScreenState
     );
   }
 
-  void _openViewMenu(BuildContext context) {
-    final RenderBox button = context.findRenderObject() as RenderBox;
-    final RenderBox overlay =
-        Overlay.of(context).context.findRenderObject() as RenderBox;
-    final RelativeRect position = RelativeRect.fromRect(
-      Rect.fromPoints(
-        button.localToGlobal(Offset.zero, ancestor: overlay),
-        button.localToGlobal(
-          button.size.bottomRight(Offset.zero),
-          ancestor: overlay,
-        ),
-      ),
-      Offset.zero & overlay.size,
-    );
-
-    showMenu(
-      context: context,
-      position: position,
+  Widget _buildViewMenuContent(
+    BuildContext menuContext,
+    StateSetter setMenuState, {
+    required bool isMobile,
+  }) {
+    return Material(
       color: context.colorScheme.surface,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-      items: [
-        PopupMenuItem(
-          enabled: false,
-          padding: EdgeInsets.zero,
-          child: Material(
-            color: context.colorScheme.surface,
-            child: Padding(
-              padding: const EdgeInsets.all(16),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            RadioGroup<PlannerView>(
+              groupValue: _currentView,
+              onChanged: (value) {
+                setState(() {
+                  _changeView(value!);
+                });
+
+                Navigator.pop(menuContext);
+
+                if (isMobile) {
+                  setState(() {
+                    _isFilterExpanded = false;
+                  });
+                }
+              },
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  StatefulBuilder(
-                    builder: (innerContext, setMenuState) {
-                      return RadioGroup<PlannerView>(
-                        groupValue: _currentView,
-                        onChanged: (value) {
-                          setState(() {
-                            _changeView(value!);
-                          });
-
-                          Navigator.pop(context);
-
-                          if (Responsive.isMobile(context)) {
-                            setState(() {
-                              _isFilterExpanded = false;
-                            });
-                          }
-                        },
-                        child: Column(
-                          children: List.generate(PlannerView.values.length, (
-                            index,
-                          ) {
-                            return RadioListTile<PlannerView>(
-                              title: Text(
-                                CalendarConstants
-                                    .defaultViews[PlannerHelper.mapHeliumViewToApiView(
-                                  PlannerView.values[index],
-                                )],
-                                style: AppStyles.formText(context),
-                              ),
-                              value: PlannerView.values[index],
-                              controlAffinity: ListTileControlAffinity.leading,
-                              dense: true,
-                              contentPadding: EdgeInsets.zero,
-                            );
-                          }),
-                        ),
-                      );
-                    },
-                  ),
-                ],
+                children: List.generate(PlannerView.values.length, (index) {
+                  return RadioListTile<PlannerView>(
+                    title: Text(
+                      CalendarConstants
+                          .defaultViews[PlannerHelper.mapHeliumViewToApiView(
+                        PlannerView.values[index],
+                      )],
+                      style: AppStyles.formText(context),
+                    ),
+                    value: PlannerView.values[index],
+                    controlAffinity: ListTileControlAffinity.leading,
+                    dense: true,
+                    contentPadding: const EdgeInsets.only(left: 4),
+                  );
+                }),
               ),
             ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _openViewMenu(BuildContext buttonContext) {
+    final isMobile = Responsive.isMobile(context);
+
+    if (isMobile) {
+      showModalBottomSheet(
+        context: context,
+        isScrollControlled: true,
+        backgroundColor: context.colorScheme.surface,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+        ),
+        builder: (context) => StatefulBuilder(
+          builder: (ctx, ss) =>
+              _buildViewMenuContent(ctx, ss, isMobile: isMobile),
+        ),
+      );
+    } else {
+      final RenderBox button = buttonContext.findRenderObject() as RenderBox;
+      final RenderBox overlay =
+          Overlay.of(context).context.findRenderObject() as RenderBox;
+      final RelativeRect position = RelativeRect.fromRect(
+        Rect.fromPoints(
+          button.localToGlobal(Offset.zero, ancestor: overlay),
+          button.localToGlobal(
+            button.size.bottomRight(Offset.zero),
+            ancestor: overlay,
           ),
         ),
-      ],
-    );
+        Offset.zero & overlay.size,
+      );
+
+      showMenu(
+        context: context,
+        position: position,
+        color: context.colorScheme.surface,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        items: [
+          PopupMenuItem(
+            enabled: false,
+            padding: EdgeInsets.zero,
+            child: StatefulBuilder(
+              builder: (ctx, ss) =>
+                  _buildViewMenuContent(ctx, ss, isMobile: isMobile),
+            ),
+          ),
+        ],
+      );
+    }
   }
 
   Widget _buildTodosView() {

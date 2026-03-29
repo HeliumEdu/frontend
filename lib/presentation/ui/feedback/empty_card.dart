@@ -28,9 +28,12 @@ class EmptyCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final onSurface = context.colorScheme.onSurface.withValues(alpha: 0.5);
     final content = Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
+      child: SingleChildScrollView(
+        child: SizedBox(
+          width: double.infinity,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+          children: [
           Icon(
             icon,
             size: Responsive.getIconSize(
@@ -51,7 +54,9 @@ class EmptyCard extends StatelessWidget {
             message,
             style: AppStyles.standardBodyTextLight(context).copyWith(color: onSurface),
           ),
-        ],
+            ],
+          ),
+        ),
       ),
     );
 

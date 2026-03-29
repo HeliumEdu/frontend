@@ -113,6 +113,10 @@ abstract class BaseAttachmentsState<T extends BaseAttachmentsContent>
 
   @override
   Widget build(BuildContext context) {
+    return _buildContent(context);
+  }
+
+  Widget _buildContent(BuildContext context) {
     return BlocListener<AttachmentBloc, AttachmentState>(
       listener: (context, state) {
         if (state is AttachmentsError) {
@@ -129,8 +133,12 @@ abstract class BaseAttachmentsState<T extends BaseAttachmentsContent>
             '${state.attachments.length} ${state.attachments.length.plural('attachment')} uploaded',
           );
 
+          final uploadedTitles =
+              state.attachments.map((a) => a.title).toSet();
           setState(() {
-            filesToUpload.clear();
+            filesToUpload.removeWhere(
+              (f) => uploadedTitles.contains(f.title),
+            );
             attachments.addAll(state.attachments);
             Sort.byTitle(attachments);
           });
@@ -148,16 +156,9 @@ abstract class BaseAttachmentsState<T extends BaseAttachmentsContent>
           });
         }
       },
-      child: _buildContent(context),
-    );
-  }
-
-  Widget _buildContent(BuildContext context) {
-    if (isLoading || widget.userSettings == null) {
-      return const Center(child: LoadingIndicator(expanded: false));
-    }
-
-    return Column(
+      child: isLoading || widget.userSettings == null
+          ? const Center(child: LoadingIndicator(expanded: false))
+          : Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text('Attachments', style: AppStyles.featureText(context)),
@@ -216,6 +217,7 @@ abstract class BaseAttachmentsState<T extends BaseAttachmentsContent>
         ),
         const SizedBox(height: 12),
       ],
+      ),
     );
   }
 
@@ -228,7 +230,7 @@ abstract class BaseAttachmentsState<T extends BaseAttachmentsContent>
       );
 
       if (result != null) {
-        filesToUpload.clear();
+        final newFiles = <AttachmentFile>[];
 
         for (var platFile in result.files) {
           if (platFile.bytes == null) {
@@ -242,7 +244,7 @@ abstract class BaseAttachmentsState<T extends BaseAttachmentsContent>
             continue;
           }
 
-          final fileSize = platFile.size;
+          final fileSize = platFile.bytes!.length;
 
           if (fileSize > 10 * 1024 * 1024) {
             if (mounted) {
@@ -255,17 +257,20 @@ abstract class BaseAttachmentsState<T extends BaseAttachmentsContent>
             continue;
           }
 
-          filesToUpload.add(
+          newFiles.add(
             AttachmentFile(bytes: platFile.bytes!, title: platFile.name),
           );
         }
 
-        // Defer setState to avoid layout conflicts during pointer events
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (!mounted) return;
+        if (newFiles.isEmpty && mounted) {
+          SnackBarHelper.show(context, 'Nothing selected for upload');
+        }
 
-          setState(() {});
+        setState(() {
+          filesToUpload = newFiles;
         });
+      } else if (mounted) {
+        SnackBarHelper.show(context, 'Nothing selected for upload');
       }
     } catch (e) {
       if (!mounted) return;
@@ -274,6 +279,15 @@ abstract class BaseAttachmentsState<T extends BaseAttachmentsContent>
   }
 
   Future<void> _saveAttachments() async {
+    if (filesToUpload.length > 4) {
+      SnackBarHelper.show(
+        context,
+        'You can only upload a max of 4 files at a time',
+        type: SnackType.error,
+      );
+      return;
+    }
+
     setState(() {
       isSubmitting = true;
     });

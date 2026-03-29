@@ -51,9 +51,6 @@ class _GettingStartedDialogWidget extends StatelessWidget {
           final isLoading = state is AuthLoading;
 
           return AlertDialog(
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
-            ),
             title: Row(
               children: [
                 Icon(

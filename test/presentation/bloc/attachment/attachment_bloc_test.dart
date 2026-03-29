@@ -310,7 +310,9 @@ void main() {
               event: any(named: 'event'),
               course: any(named: 'course'),
             ),
-          ).thenThrow(ServerException(message: 'Upload failed'));
+          ).thenAnswer(
+            (_) async => throw ServerException(message: 'Upload failed'),
+          );
           return attachmentBloc;
         },
         act: (bloc) => bloc.add(
@@ -324,7 +326,7 @@ void main() {
           isA<AttachmentsError>().having(
             (e) => e.message,
             'message',
-            'Upload failed',
+            '1 attachment failed to upload',
           ),
         ],
       );
@@ -340,7 +342,9 @@ void main() {
               event: any(named: 'event'),
               course: any(named: 'course'),
             ),
-          ).thenThrow(Exception('Network timeout'));
+          ).thenAnswer(
+            (_) async => throw Exception('Network timeout'),
+          );
           return attachmentBloc;
         },
         act: (bloc) => bloc.add(
@@ -354,7 +358,7 @@ void main() {
           isA<AttachmentsError>().having(
             (e) => e.message,
             'message',
-            contains('unexpected'),
+            '1 attachment failed to upload',
           ),
         ],
       );

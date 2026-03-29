@@ -7,9 +7,11 @@
 
 import 'package:bloc/bloc.dart';
 import 'package:heliumapp/core/helium_exception.dart';
+import 'package:heliumapp/data/models/planner/attachment_model.dart';
 import 'package:heliumapp/domain/repositories/attachment_repository.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/attachment_event.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/attachment_state.dart';
+import 'package:heliumapp/utils/format_helpers.dart';
 
 class AttachmentBloc extends Bloc<AttachmentEvent, AttachmentState> {
   final AttachmentRepository attachmentRepository;
@@ -46,23 +48,43 @@ class AttachmentBloc extends Bloc<AttachmentEvent, AttachmentState> {
   ) async {
     emit(AttachmentsLoading());
 
-    try {
-      final attachments = await Future.wait(
-        event.files.map(
-          (file) => attachmentRepository.createAttachment(
-            bytes: file.bytes,
-            filename: file.title,
-            course: event.courseId,
-            event: event.eventId,
-            homework: event.homeworkId,
-          ),
+    final successes = <AttachmentModel>[];
+    var failureCount = 0;
+
+    final results = await Future.wait(
+      event.files.map(
+        (file) => attachmentRepository
+            .createAttachment(
+              bytes: file.bytes,
+              filename: file.title,
+              course: event.courseId,
+              event: event.eventId,
+              homework: event.homeworkId,
+            )
+            .then<AttachmentModel?>((a) => a)
+            .catchError((_) => null),
+      ),
+    );
+
+    for (final result in results) {
+      if (result != null) {
+        successes.add(result);
+      } else {
+        failureCount++;
+      }
+    }
+
+    if (successes.isNotEmpty) {
+      emit(AttachmentsCreated(attachments: successes));
+    }
+
+    if (failureCount > 0) {
+      emit(
+        AttachmentsError(
+          message:
+              '$failureCount ${failureCount.plural('attachment')} failed to upload',
         ),
       );
-      emit(AttachmentsCreated(attachments: attachments));
-    } on HeliumException catch (e) {
-      emit(AttachmentsError(message: e.message));
-    } catch (e) {
-      emit(AttachmentsError(message: 'An unexpected error occurred.'));
     }
   }
 

@@ -828,9 +828,6 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
       builder: (dialogContext) => StatefulBuilder(
         builder: (context, setState) {
           return AlertDialog(
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
-            ),
             title: Row(
               children: [
                 Icon(
@@ -916,9 +913,6 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
       builder: (dialogContext) => StatefulBuilder(
         builder: (BuildContext context, StateSetter setState) {
           return AlertDialog(
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
-            ),
             title: Row(
               children: [
                 Icon(
@@ -1007,9 +1001,6 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
           }
 
           return AlertDialog(
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
-            ),
             title: Row(
               children: [
                 Icon(

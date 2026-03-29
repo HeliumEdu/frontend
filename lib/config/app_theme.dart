@@ -6,6 +6,7 @@
 // For details regarding the license, please refer to the LICENSE file.
 
 import 'package:flutter/material.dart';
+import 'package:heliumapp/presentation/ui/components/helium_elevated_button.dart';
 import 'package:heliumapp/utils/app_style.dart';
 
 const Color seedColor = Color(0xff418eb9);
@@ -150,7 +151,7 @@ class AppTheme {
       ),
       dialogTheme: DialogThemeData(
         backgroundColor: colorScheme.surface,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
@@ -171,14 +172,19 @@ class AppTheme {
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
           foregroundColor: colorScheme.primary,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
         ),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           backgroundColor: colorScheme.primary,
           foregroundColor: colorScheme.onPrimary,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+        ),
+      ),
+      textButtonTheme: TextButtonThemeData(
+        style: TextButton.styleFrom(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
         ),
       ),
       segmentedButtonTheme: SegmentedButtonThemeData(
@@ -226,6 +232,7 @@ class AppTheme {
       ),
       sliderTheme: const SliderThemeData(trackHeight: 6.0),
       timePickerTheme: TimePickerThemeData(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         dayPeriodColor: colorScheme.primary.withValues(alpha: 0.3),
         hourMinuteTextStyle: AppStyles.poppins(
           fontSize: 56,
@@ -240,8 +247,18 @@ class AppTheme {
           fontWeight: FontWeight.w500,
           color: colorScheme.onSurface.withValues(alpha: 0.6),
         ),
+        cancelButtonStyle: HeliumElevatedButton.baseStyle(
+          colorScheme,
+          backgroundColor: colorScheme.outline,
+          minimumWidth: 0,
+        ),
+        confirmButtonStyle: HeliumElevatedButton.baseStyle(
+          colorScheme,
+          minimumWidth: 0,
+        ),
       ),
       datePickerTheme: DatePickerThemeData(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         headerHelpStyle: AppStyles.poppins(
           fontSize: 14,
           fontWeight: FontWeight.w500,
@@ -258,6 +275,15 @@ class AppTheme {
         ),
         dayStyle: AppStyles.poppins(fontSize: 14, fontWeight: FontWeight.w400),
         yearStyle: AppStyles.poppins(fontSize: 14, fontWeight: FontWeight.w400),
+        cancelButtonStyle: HeliumElevatedButton.baseStyle(
+          colorScheme,
+          backgroundColor: colorScheme.outline,
+          minimumWidth: 0,
+        ),
+        confirmButtonStyle: HeliumElevatedButton.baseStyle(
+          colorScheme,
+          minimumWidth: 0,
+        ),
       ),
       snackBarTheme: SnackBarThemeData(
         contentTextStyle: AppStyles.poppins(

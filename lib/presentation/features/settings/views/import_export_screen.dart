@@ -386,7 +386,7 @@ class _ImportExportScreenState extends State<ImportExportScreen> {
           } else {
             SnackBarHelper.show(
               context,
-              'Failed to save export file',
+              'File not exported',
               type: SnackType.error,
             );
           }
