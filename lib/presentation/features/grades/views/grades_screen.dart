@@ -912,12 +912,12 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
   }
 
   void _showGradeCalculatorOptions(
+    BuildContext buttonContext,
     GradeCourseGroupModel selectedGroup,
     List<GradeCourseModel> courses,
   ) {
-    final eligibleCourses = courses
-        .where(_courseHasEligibleGradeCalculatorCategory)
-        .toList();
+    final eligibleCourses =
+        courses.where(_courseHasEligibleGradeCalculatorCategory).toList();
 
     if (eligibleCourses.isEmpty) {
       showSnackBar(
@@ -932,42 +932,85 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
       return;
     }
 
-    showDialog(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        backgroundColor: context.colorScheme.surface,
-        content: SizedBox(
-          width: Responsive.getDialogWidth(context),
-          child: ListView.builder(
-            shrinkWrap: true,
-            itemCount: eligibleCourses.length,
-            itemBuilder: (context, index) {
-              final course = eligibleCourses[index];
+    final isMobile = Responsive.isMobile(context);
+
+    Widget buildContent(BuildContext menuContext, StateSetter setMenuState) {
+      return Material(
+        color: context.colorScheme.surface,
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: eligibleCourses.map((course) {
               return ListTile(
-                title: CourseTitleLabel(
-                  title: course.title,
+                leading: Icon(
+                  Icons.school,
+                  size: 16,
                   color: course.color,
+                ),
+                title: Text(
+                  course.title,
+                  style: AppStyles.formText(context),
+                ),
+                subtitle: GradeLabel(
+                  grade: GradeHelper.gradeForDisplay(course.overallGrade),
+                  userSettings: userSettings!,
                   compact: true,
+                  selectable: false,
                 ),
-                subtitle: Padding(
-                  padding: const EdgeInsets.only(top: 4),
-                  child: GradeLabel(
-                    grade: GradeHelper.gradeForDisplay(course.overallGrade),
-                    userSettings: userSettings!,
-                    compact: true,
-                    selectable: false,
-                  ),
-                ),
+                dense: true,
+                contentPadding: EdgeInsets.zero,
                 onTap: () {
-                  Navigator.of(dialogContext).pop();
+                  Navigator.pop(menuContext);
                   _openGradeCalculator(course);
                 },
               );
-            },
+            }).toList(),
           ),
         ),
-      ),
-    );
+      );
+    }
+
+    if (isMobile) {
+      showModalBottomSheet(
+        context: context,
+        isScrollControlled: true,
+        backgroundColor: context.colorScheme.surface,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+        ),
+        builder: (context) => StatefulBuilder(builder: buildContent),
+      );
+    } else {
+      final RenderBox button = buttonContext.findRenderObject() as RenderBox;
+      final RenderBox overlay =
+          Overlay.of(context).context.findRenderObject() as RenderBox;
+      final RelativeRect position = RelativeRect.fromRect(
+        Rect.fromPoints(
+          button.localToGlobal(Offset.zero, ancestor: overlay),
+          button.localToGlobal(
+            button.size.bottomRight(Offset.zero),
+            ancestor: overlay,
+          ),
+        ),
+        Offset.zero & overlay.size,
+      );
+
+      showMenu(
+        context: context,
+        position: position,
+        color: context.colorScheme.surface,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        items: [
+          PopupMenuItem(
+            enabled: false,
+            padding: EdgeInsets.zero,
+            child: StatefulBuilder(builder: buildContent),
+          ),
+        ],
+      );
+    }
   }
 
   bool _courseHasEligibleGradeCalculatorCategory(GradeCourseModel course) {
@@ -1115,13 +1158,16 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
             ),
             // Calculator icon for grade calculator
             if (coursesWithCategories.isNotEmpty)
-              Tooltip(
-                message: 'What Grade Do I Need?',
-                child: IconButton(
-                  icon: const Icon(Icons.calculate_outlined),
-                  onPressed: () => _showGradeCalculatorOptions(
-                    gradeGroup,
-                    coursesWithCategories,
+              Builder(
+                builder: (buttonContext) => Tooltip(
+                  message: 'What Grade Do I Need?',
+                  child: IconButton(
+                    icon: const Icon(Icons.calculate_outlined),
+                    onPressed: () => _showGradeCalculatorOptions(
+                      buttonContext,
+                      gradeGroup,
+                      coursesWithCategories,
+                    ),
                   ),
                 ),
               ),

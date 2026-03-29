@@ -3456,84 +3456,96 @@ class _CalendarScreenState
     );
   }
 
-  void _openViewMenu(BuildContext context) {
-    final RenderBox button = context.findRenderObject() as RenderBox;
-    final RenderBox overlay =
-        Overlay.of(context).context.findRenderObject() as RenderBox;
-    final RelativeRect position = RelativeRect.fromRect(
-      Rect.fromPoints(
-        button.localToGlobal(Offset.zero, ancestor: overlay),
-        button.localToGlobal(
-          button.size.bottomRight(Offset.zero),
-          ancestor: overlay,
-        ),
-      ),
-      Offset.zero & overlay.size,
-    );
+  void _openViewMenu(BuildContext buttonContext) {
+    final isMobile = Responsive.isMobile(context);
 
-    showMenu(
-      context: context,
-      position: position,
-      color: context.colorScheme.surface,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-      items: [
-        PopupMenuItem(
-          enabled: false,
-          padding: EdgeInsets.zero,
-          child: Material(
-            color: context.colorScheme.surface,
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  StatefulBuilder(
-                    builder: (innerContext, setMenuState) {
-                      return RadioGroup<PlannerView>(
-                        groupValue: _currentView,
-                        onChanged: (value) {
-                          setState(() {
-                            _changeView(value!);
-                          });
+    Widget buildContent(BuildContext menuContext, StateSetter setMenuState) {
+      return Material(
+        color: context.colorScheme.surface,
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              RadioGroup<PlannerView>(
+                groupValue: _currentView,
+                onChanged: (value) {
+                  setState(() {
+                    _changeView(value!);
+                  });
 
-                          Navigator.pop(context);
+                  Navigator.pop(menuContext);
 
-                          if (Responsive.isMobile(context)) {
-                            setState(() {
-                              _isFilterExpanded = false;
-                            });
-                          }
-                        },
-                        child: Column(
-                          children: List.generate(PlannerView.values.length, (
-                            index,
-                          ) {
-                            return RadioListTile<PlannerView>(
-                              title: Text(
-                                CalendarConstants
-                                    .defaultViews[PlannerHelper.mapHeliumViewToApiView(
-                                  PlannerView.values[index],
-                                )],
-                                style: AppStyles.formText(context),
-                              ),
-                              value: PlannerView.values[index],
-                              controlAffinity: ListTileControlAffinity.leading,
-                              dense: true,
-                              contentPadding: EdgeInsets.zero,
-                            );
-                          }),
-                        ),
-                      );
-                    },
-                  ),
-                ],
+                  if (isMobile) {
+                    setState(() {
+                      _isFilterExpanded = false;
+                    });
+                  }
+                },
+                child: Column(
+                  children: List.generate(PlannerView.values.length, (index) {
+                    return RadioListTile<PlannerView>(
+                      title: Text(
+                        CalendarConstants
+                            .defaultViews[PlannerHelper.mapHeliumViewToApiView(
+                          PlannerView.values[index],
+                        )],
+                        style: AppStyles.formText(context),
+                      ),
+                      value: PlannerView.values[index],
+                      controlAffinity: ListTileControlAffinity.leading,
+                      dense: true,
+                      contentPadding: EdgeInsets.zero,
+                    );
+                  }),
+                ),
               ),
-            ),
+            ],
           ),
         ),
-      ],
-    );
+      );
+    }
+
+    if (isMobile) {
+      showModalBottomSheet(
+        context: context,
+        isScrollControlled: true,
+        backgroundColor: context.colorScheme.surface,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+        ),
+        builder: (context) => StatefulBuilder(builder: buildContent),
+      );
+    } else {
+      final RenderBox button = buttonContext.findRenderObject() as RenderBox;
+      final RenderBox overlay =
+          Overlay.of(context).context.findRenderObject() as RenderBox;
+      final RelativeRect position = RelativeRect.fromRect(
+        Rect.fromPoints(
+          button.localToGlobal(Offset.zero, ancestor: overlay),
+          button.localToGlobal(
+            button.size.bottomRight(Offset.zero),
+            ancestor: overlay,
+          ),
+        ),
+        Offset.zero & overlay.size,
+      );
+
+      showMenu(
+        context: context,
+        position: position,
+        color: context.colorScheme.surface,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        items: [
+          PopupMenuItem(
+            enabled: false,
+            padding: EdgeInsets.zero,
+            child: StatefulBuilder(builder: buildContent),
+          ),
+        ],
+      );
+    }
   }
 
   Widget _buildTodosView() {
