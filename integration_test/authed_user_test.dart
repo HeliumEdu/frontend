@@ -725,7 +725,7 @@ void main() {
       await tester.tapAt(tapAt);
       await tester.pumpAndSettle();
 
-      await tester.tap(find.text('OK'));
+      await tester.tap(find.text('Select'));
       await tester.pumpAndSettle();
 
       // 3. Scroll to and tap the Complete checkbox
