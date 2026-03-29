@@ -1094,12 +1094,6 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
     });
   }
 
-  void _removeResource(int id) {
-    final updated = List<int>.from(_formController.selectedResources)
-      ..remove(id);
-    _updateSelectedResources(updated);
-  }
-
   void _onDelete() {
     if (_plannerItem == null) return;
 
