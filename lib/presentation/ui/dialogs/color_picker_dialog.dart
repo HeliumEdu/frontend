@@ -8,6 +8,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:heliumapp/config/app_theme.dart';
+import 'package:heliumapp/presentation/ui/components/helium_elevated_button.dart';
 import 'package:heliumapp/utils/color_helpers.dart';
 
 class _ColorPickerWidget extends StatefulWidget {
@@ -129,20 +130,29 @@ class _ColorPickerWidgetState extends State<_ColorPickerWidget> {
         ),
         const SizedBox(height: 8),
         Center(
-          child: TextButton.icon(
+          child: TextButton(
             onPressed: () {
               setState(() {
                 _isExpanded = true;
               });
             },
-            icon: Icon(
-              Icons.color_lens_outlined,
-              size: 18,
-              color: context.colorScheme.primary,
-            ),
-            label: Text(
-              'Custom color ...',
-              style: TextStyle(color: context.colorScheme.primary),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  Icons.color_lens_outlined,
+                  size: 18,
+                  color: context.colorScheme.primary,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  'Custom color',
+                  style: TextStyle(color: context.colorScheme.primary),
+                ),
+                const SizedBox(width: 8),
+                Icon(Icons.arrow_forward, color: context.colorScheme.primary),
+              ],
             ),
           ),
         ),
@@ -156,8 +166,8 @@ class _ColorPickerWidgetState extends State<_ColorPickerWidget> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         SizedBox(
-          width: 300,
           child: ColorPicker(
+            colorPickerWidth: 325,
             pickerColor: pickerColor,
             onColorChanged: (color) {
               setState(() {
@@ -171,7 +181,6 @@ class _ColorPickerWidgetState extends State<_ColorPickerWidget> {
             labelTypes: const [],
           ),
         ),
-        const SizedBox(height: 12),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
@@ -191,23 +200,20 @@ class _ColorPickerWidgetState extends State<_ColorPickerWidget> {
                 style: TextStyle(color: context.colorScheme.primary),
               ),
             ),
-            Row(
-              children: [
-                TextButton(
-                  onPressed: widget.onCancel,
-                  child: Text(
-                    'Cancel',
-                    style: TextStyle(
-                      color: context.colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                FilledButton(
-                  onPressed: () => widget.onSelect(pickerColor),
-                  child: const Text('Select'),
-                ),
-              ],
+            const SizedBox(width: 4),
+            Expanded(
+              child: HeliumElevatedButton(
+                onPressed: widget.onCancel,
+                backgroundColor: context.colorScheme.outline,
+                buttonText: 'Cancel',
+              ),
+            ),
+            const SizedBox(width: 4),
+            Expanded(
+              child: HeliumElevatedButton(
+                onPressed: () => widget.onSelect(pickerColor),
+                buttonText: 'Select',
+              ),
             ),
           ],
         ),
