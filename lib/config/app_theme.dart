@@ -6,6 +6,7 @@
 // For details regarding the license, please refer to the LICENSE file.
 
 import 'package:flutter/material.dart';
+import 'package:heliumapp/presentation/ui/components/helium_elevated_button.dart';
 import 'package:heliumapp/utils/app_style.dart';
 
 const Color seedColor = Color(0xff418eb9);
@@ -240,6 +241,11 @@ class AppTheme {
           fontWeight: FontWeight.w500,
           color: colorScheme.onSurface.withValues(alpha: 0.6),
         ),
+        cancelButtonStyle: HeliumElevatedButton.baseStyle(
+          colorScheme,
+          backgroundColor: colorScheme.outline,
+        ),
+        confirmButtonStyle: HeliumElevatedButton.baseStyle(colorScheme),
       ),
       datePickerTheme: DatePickerThemeData(
         headerHelpStyle: AppStyles.poppins(
@@ -258,6 +264,11 @@ class AppTheme {
         ),
         dayStyle: AppStyles.poppins(fontSize: 14, fontWeight: FontWeight.w400),
         yearStyle: AppStyles.poppins(fontSize: 14, fontWeight: FontWeight.w400),
+        cancelButtonStyle: HeliumElevatedButton.baseStyle(
+          colorScheme,
+          backgroundColor: colorScheme.outline,
+        ),
+        confirmButtonStyle: HeliumElevatedButton.baseStyle(colorScheme),
       ),
       snackBarTheme: SnackBarThemeData(
         contentTextStyle: AppStyles.poppins(
