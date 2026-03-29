@@ -33,13 +33,14 @@ class HeliumElevatedButton extends StatelessWidget {
   static ButtonStyle baseStyle(
     ColorScheme colorScheme, {
     Color? backgroundColor,
+    double minimumWidth = double.infinity,
   }) {
     return ButtonStyle(
       backgroundColor: WidgetStatePropertyAll(
         backgroundColor ?? colorScheme.primary,
       ),
       foregroundColor: WidgetStatePropertyAll(colorScheme.onPrimary),
-      minimumSize: const WidgetStatePropertyAll(Size(double.infinity, 45)),
+      minimumSize: WidgetStatePropertyAll(Size(minimumWidth, 45)),
       padding: const WidgetStatePropertyAll(
         EdgeInsets.symmetric(horizontal: 12),
       ),
@@ -64,9 +65,7 @@ class HeliumElevatedButton extends StatelessWidget {
       style: baseStyle(
         context.colorScheme,
         backgroundColor: effectiveBg,
-      ).copyWith(
-        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-      ),
+      ).copyWith(tapTargetSize: MaterialTapTargetSize.shrinkWrap),
       label: isLoading
           ? LoadingIndicator(
               size: 20,

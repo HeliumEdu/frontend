@@ -244,8 +244,12 @@ class AppTheme {
         cancelButtonStyle: HeliumElevatedButton.baseStyle(
           colorScheme,
           backgroundColor: colorScheme.outline,
+          minimumWidth: 0,
         ),
-        confirmButtonStyle: HeliumElevatedButton.baseStyle(colorScheme),
+        confirmButtonStyle: HeliumElevatedButton.baseStyle(
+          colorScheme,
+          minimumWidth: 0,
+        ),
       ),
       datePickerTheme: DatePickerThemeData(
         headerHelpStyle: AppStyles.poppins(
@@ -267,8 +271,12 @@ class AppTheme {
         cancelButtonStyle: HeliumElevatedButton.baseStyle(
           colorScheme,
           backgroundColor: colorScheme.outline,
+          minimumWidth: 0,
         ),
-        confirmButtonStyle: HeliumElevatedButton.baseStyle(colorScheme),
+        confirmButtonStyle: HeliumElevatedButton.baseStyle(
+          colorScheme,
+          minimumWidth: 0,
+        ),
       ),
       snackBarTheme: SnackBarThemeData(
         contentTextStyle: AppStyles.poppins(
