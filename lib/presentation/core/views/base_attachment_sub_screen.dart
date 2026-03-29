@@ -131,8 +131,12 @@ abstract class BaseAttachmentScreenState<T>
               '${state.attachments.length} ${state.attachments.length.plural('attachment')} uploaded',
             );
 
+            final uploadedTitles =
+                state.attachments.map((a) => a.title).toSet();
             setState(() {
-              filesToUpload.clear();
+              filesToUpload.removeWhere(
+                (f) => uploadedTitles.contains(f.title),
+              );
 
               attachments.addAll(state.attachments);
               Sort.byTitle(attachments);
@@ -286,6 +290,15 @@ abstract class BaseAttachmentScreenState<T>
   }
 
   Future<void> _saveAttachments() async {
+    if (filesToUpload.length > 4) {
+      showSnackBar(
+        context,
+        'You can only upload a max of 4 files at a time',
+        type: SnackType.error,
+      );
+      return;
+    }
+
     setState(() {
       isSubmitting = true;
     });

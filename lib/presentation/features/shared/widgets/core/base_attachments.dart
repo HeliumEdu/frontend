@@ -274,6 +274,15 @@ abstract class BaseAttachmentsState<T extends BaseAttachmentsContent>
   }
 
   Future<void> _saveAttachments() async {
+    if (filesToUpload.length > 4) {
+      SnackBarHelper.show(
+        context,
+        'You can only upload a max of 4 files at a time',
+        type: SnackType.error,
+      );
+      return;
+    }
+
     setState(() {
       isSubmitting = true;
     });
