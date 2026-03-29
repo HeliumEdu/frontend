@@ -474,7 +474,6 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
       return const LoadingIndicator();
     }
 
-    final isMobile = Responsive.isMobile(context);
     final isCompact = Responsive.useCompactLayout(context);
 
     return Expanded(
@@ -548,21 +547,21 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
                             controller: _quillController,
                             config: QuillSimpleToolbarConfig(
                               toolbarRunSpacing: 0,
-                              showDividers: !isMobile,
-                              showFontSize: !isMobile,
-                              showHeaderStyle: !isMobile,
-                              showInlineCode: !isMobile,
-                              showClearFormat: !isMobile,
-                              showStrikeThrough: !isMobile,
-                              showAlignmentButtons: !isMobile,
-                              showLeftAlignment: !isMobile,
-                              showCenterAlignment: !isMobile,
-                              showRightAlignment: !isMobile,
-                              showCodeBlock: !isMobile,
-                              showIndent: !isMobile,
-                              showSubscript: !isMobile,
-                              showSuperscript: !isMobile,
-                              showBackgroundColorButton: !isMobile,
+                              showDividers: !isCompact,
+                              showFontSize: !isCompact,
+                              showHeaderStyle: !isCompact,
+                              showInlineCode: !isCompact,
+                              showClearFormat: !isCompact,
+                              showStrikeThrough: !isCompact,
+                              showAlignmentButtons: !isCompact,
+                              showLeftAlignment: !isCompact,
+                              showCenterAlignment: !isCompact,
+                              showRightAlignment: !isCompact,
+                              showCodeBlock: !isCompact,
+                              showIndent: !isCompact,
+                              showSubscript: !isCompact,
+                              showSuperscript: !isCompact,
+                              showBackgroundColorButton: !isCompact,
                               showRedo: !isCompact,
                               showSearchButton: !isCompact,
                               buttonOptions: QuillSimpleToolbarButtonOptions(
