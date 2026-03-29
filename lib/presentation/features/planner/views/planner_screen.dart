@@ -3366,16 +3366,9 @@ class _CalendarScreenState
                 _buildSheetSectionHeader(context, 'CATEGORIES'),
                 ...visibleCategories.map((category) {
                   return CheckboxListTile(
-                    title: Row(
-                      children: [
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Text(
-                            category.title,
-                            style: AppStyles.formText(context),
-                          ),
-                        ),
-                      ],
+                    title: Text(
+                      category.title,
+                      style: AppStyles.formText(context),
                     ),
                     value: _plannerItemDataSource!.filterCategories.contains(
                       category.title,
