@@ -37,86 +37,86 @@ class PageHeader extends StatelessWidget {
     this.inheritableProviders,
   });
 
+  Widget _buildContent(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        if (screenType == ScreenType.entityPage ||
+            screenType == ScreenType.subPage)
+          IconButton(
+            onPressed: () {
+              cancelAction?.call();
+            },
+            icon: Icon(Icons.close, color: context.colorScheme.secondary),
+          )
+        else if (Responsive.isMobile(context) ||
+            (!Responsive.isTouchDevice(context) &&
+                MediaQuery.of(context).size.height <
+                    AppConstants.minHeightForTrailingNav))
+          const SettingsButton()
+        else
+          const Icon(Icons.space_bar, color: Colors.transparent),
+
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (icon != null) ...[
+              Icon(icon, color: context.colorScheme.primary),
+              const SizedBox(width: 8),
+            ],
+            Text(title, style: AppStyles.pageTitle(context)),
+          ],
+        ),
+
+        Row(
+          children: [
+            if (screenType == ScreenType.page)
+              IconButton(
+                onPressed: () {
+                  showNotifications(context);
+                },
+                icon: Icon(
+                  Icons.notifications,
+                  color: context.colorScheme.primary,
+                ),
+              )
+            else if (screenType == ScreenType.entityPage)
+              IconButton(
+                onPressed: isLoading
+                    ? null
+                    : () {
+                        saveAction?.call();
+                      },
+                icon: isLoading
+                    ? const LoadingIndicator(
+                        size: 20,
+                        expanded: false,
+                        strokeWidth: 2.5,
+                      )
+                    : Icon(
+                        Icons.check,
+                        color: context.colorScheme.primary,
+                      ),
+              ),
+
+            // Help keep things centered when no right button
+            if (screenType == ScreenType.subPage)
+              const Icon(Icons.space_bar, color: Colors.transparent),
+          ],
+        ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    Widget buildContent(BuildContext context) {
-      return Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          if (screenType == ScreenType.entityPage ||
-              screenType == ScreenType.subPage)
-            IconButton(
-              onPressed: () {
-                cancelAction?.call();
-              },
-              icon: Icon(Icons.close, color: context.colorScheme.secondary),
-            )
-          else if (Responsive.isMobile(context) ||
-              (!Responsive.isTouchDevice(context) &&
-                  MediaQuery.of(context).size.height <
-                      AppConstants.minHeightForTrailingNav))
-            const SettingsButton()
-          else
-            const Icon(Icons.space_bar, color: Colors.transparent),
-
-          Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              if (icon != null) ...[
-                Icon(icon, color: context.colorScheme.primary),
-                const SizedBox(width: 8),
-              ],
-              Text(title, style: AppStyles.pageTitle(context)),
-            ],
-          ),
-
-          Row(
-            children: [
-              if (screenType == ScreenType.page)
-                IconButton(
-                  onPressed: () {
-                    showNotifications(context);
-                  },
-                  icon: Icon(
-                    Icons.notifications,
-                    color: context.colorScheme.primary,
-                  ),
-                )
-              else if (screenType == ScreenType.entityPage)
-                IconButton(
-                  onPressed: isLoading
-                      ? null
-                      : () {
-                          saveAction?.call();
-                        },
-                  icon: isLoading
-                      ? const LoadingIndicator(
-                          size: 20,
-                          expanded: false,
-                          strokeWidth: 2.5,
-                        )
-                      : Icon(
-                          Icons.check,
-                          color: context.colorScheme.primary,
-                        ),
-                ),
-
-              // Help keep things centered when no right button
-              if (screenType == ScreenType.subPage)
-                const Icon(Icons.space_bar, color: Colors.transparent),
-            ],
-          ),
-        ],
-      );
-    }
-
     final wrappedContent =
         inheritableProviders != null && inheritableProviders!.isNotEmpty
         ? MultiBlocProvider(
             providers: inheritableProviders!,
-            child: Builder(builder: (context) => buildContent(context)),
+            child: Builder(builder: (context) => _buildContent(context)),
           )
-        : buildContent(context);
+        : _buildContent(context);
 
     return Container(
       color: context.colorScheme.surface,

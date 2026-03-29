@@ -3449,56 +3449,60 @@ class _CalendarScreenState
     );
   }
 
+  Widget _buildViewMenuContent(
+    BuildContext menuContext,
+    StateSetter setMenuState, {
+    required bool isMobile,
+  }) {
+    return Material(
+      color: context.colorScheme.surface,
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            RadioGroup<PlannerView>(
+              groupValue: _currentView,
+              onChanged: (value) {
+                setState(() {
+                  _changeView(value!);
+                });
+
+                Navigator.pop(menuContext);
+
+                if (isMobile) {
+                  setState(() {
+                    _isFilterExpanded = false;
+                  });
+                }
+              },
+              child: Column(
+                children: List.generate(PlannerView.values.length, (index) {
+                  return RadioListTile<PlannerView>(
+                    title: Text(
+                      CalendarConstants
+                          .defaultViews[PlannerHelper.mapHeliumViewToApiView(
+                        PlannerView.values[index],
+                      )],
+                      style: AppStyles.formText(context),
+                    ),
+                    value: PlannerView.values[index],
+                    controlAffinity: ListTileControlAffinity.leading,
+                    dense: true,
+                    contentPadding: const EdgeInsets.only(left: 4),
+                  );
+                }),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   void _openViewMenu(BuildContext buttonContext) {
     final isMobile = Responsive.isMobile(context);
-
-    Widget buildContent(BuildContext menuContext, StateSetter setMenuState) {
-      return Material(
-        color: context.colorScheme.surface,
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              RadioGroup<PlannerView>(
-                groupValue: _currentView,
-                onChanged: (value) {
-                  setState(() {
-                    _changeView(value!);
-                  });
-
-                  Navigator.pop(menuContext);
-
-                  if (isMobile) {
-                    setState(() {
-                      _isFilterExpanded = false;
-                    });
-                  }
-                },
-                child: Column(
-                  children: List.generate(PlannerView.values.length, (index) {
-                    return RadioListTile<PlannerView>(
-                      title: Text(
-                        CalendarConstants
-                            .defaultViews[PlannerHelper.mapHeliumViewToApiView(
-                          PlannerView.values[index],
-                        )],
-                        style: AppStyles.formText(context),
-                      ),
-                      value: PlannerView.values[index],
-                      controlAffinity: ListTileControlAffinity.leading,
-                      dense: true,
-                      contentPadding: const EdgeInsets.only(left: 4),
-                    );
-                  }),
-                ),
-              ),
-            ],
-          ),
-        ),
-      );
-    }
 
     if (isMobile) {
       showModalBottomSheet(
@@ -3508,7 +3512,10 @@ class _CalendarScreenState
         shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
         ),
-        builder: (context) => StatefulBuilder(builder: buildContent),
+        builder: (context) => StatefulBuilder(
+          builder: (ctx, ss) =>
+              _buildViewMenuContent(ctx, ss, isMobile: isMobile),
+        ),
       );
     } else {
       final RenderBox button = buttonContext.findRenderObject() as RenderBox;
@@ -3534,7 +3541,10 @@ class _CalendarScreenState
           PopupMenuItem(
             enabled: false,
             padding: EdgeInsets.zero,
-            child: StatefulBuilder(builder: buildContent),
+            child: StatefulBuilder(
+              builder: (ctx, ss) =>
+                  _buildViewMenuContent(ctx, ss, isMobile: isMobile),
+            ),
           ),
         ],
       );
