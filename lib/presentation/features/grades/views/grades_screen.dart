@@ -942,31 +942,40 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
-            children: eligibleCourses.map((course) {
-              return ListTile(
-                leading: Icon(
-                  Icons.school,
-                  size: 16,
-                  color: course.color,
+            children: [
+              for (int i = 0; i < eligibleCourses.length; i++) ...[
+                if (i > 0) const Divider(height: 1),
+                ListTile(
+                  leading: Padding(
+                    padding: const EdgeInsets.only(left: 8),
+                    child: Icon(
+                      Icons.school,
+                      size: 16,
+                      color: eligibleCourses[i].color,
+                    ),
+                  ),
+                  title: Text(
+                    eligibleCourses[i].title,
+                    style: AppStyles.formText(context),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  subtitle: GradeLabel(
+                    grade: GradeHelper.gradeForDisplay(
+                      eligibleCourses[i].overallGrade,
+                    ),
+                    userSettings: userSettings!,
+                    compact: true,
+                    selectable: false,
+                  ),
+                  dense: true,
+                  contentPadding: EdgeInsets.zero,
+                  onTap: () {
+                    Navigator.pop(menuContext);
+                    _openGradeCalculator(eligibleCourses[i]);
+                  },
                 ),
-                title: Text(
-                  course.title,
-                  style: AppStyles.formText(context),
-                ),
-                subtitle: GradeLabel(
-                  grade: GradeHelper.gradeForDisplay(course.overallGrade),
-                  userSettings: userSettings!,
-                  compact: true,
-                  selectable: false,
-                ),
-                dense: true,
-                contentPadding: EdgeInsets.zero,
-                onTap: () {
-                  Navigator.pop(menuContext);
-                  _openGradeCalculator(course);
-                },
-              );
-            }).toList(),
+              ],
+            ],
           ),
         ),
       );
@@ -1901,17 +1910,16 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
                         Navigator.pop(menuContext);
                       },
                       child: Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 8,
-                        ),
+                        padding: const EdgeInsets.only(left: 4, top: 8, bottom: 8),
                         child: Row(
                           children: [
                             const Radio<String>(value: 'term'),
+                            const SizedBox(width: 8),
                             Expanded(
                               child: Text(
                                 'Entire Term',
                                 style: AppStyles.formText(context),
+                                overflow: TextOverflow.ellipsis,
                               ),
                             ),
                           ],
@@ -1930,10 +1938,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
                           Navigator.pop(menuContext);
                         },
                         child: Padding(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 8,
-                          ),
+                          padding: const EdgeInsets.only(left: 4, top: 8, bottom: 8),
                           child: Row(
                             children: [
                               Radio<String>(
@@ -1941,6 +1946,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
                                   course.id,
                                 ).radioValue,
                               ),
+                              const SizedBox(width: 8),
                               Icon(
                                 Icons.school,
                                 size: 16,
@@ -1951,6 +1957,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
                                 child: Text(
                                   course.title,
                                   style: AppStyles.formText(context),
+                                  overflow: TextOverflow.ellipsis,
                                 ),
                               ),
                             ],
@@ -1974,6 +1981,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
                   setMenuState(() {});
                 },
                 dense: true,
+                contentPadding: EdgeInsets.zero,
               ),
               CheckboxListTile(
                 controlAffinity: ListTileControlAffinity.leading,
@@ -1987,6 +1995,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
                   setMenuState(() {});
                 },
                 dense: true,
+                contentPadding: EdgeInsets.zero,
               ),
             ],
           ),
