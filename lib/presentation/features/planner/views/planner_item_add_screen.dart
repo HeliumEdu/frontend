@@ -51,7 +51,7 @@ Future<void> showPlannerItemAdd(
     context.setQueryParam(DeepLinkParam.homeworkId, 'new');
   }
 
-  final isMobile = Responsive.isMobile(context);
+  final useCompact = Responsive.useCompactLayout(context);
 
   return showScreenAsDialog(
     context,
@@ -70,8 +70,8 @@ Future<void> showPlannerItemAdd(
         initialStep: initialStep,
       ),
     ),
-    width: isMobile ? double.infinity : AppConstants.centeredDialogWidth,
-    insetPadding: isMobile ? EdgeInsets.zero : const EdgeInsets.all(16),
+    width: useCompact ? double.infinity : AppConstants.centeredDialogWidth,
+    insetPadding: useCompact ? EdgeInsets.zero : const EdgeInsets.all(16),
     alignment: Alignment.center,
   ).then((_) => clearRouteQueryParams(basePath));
 }

@@ -54,7 +54,7 @@ Future<void> showNoteAdd(
     context.setQueryParam(DeepLinkParam.id, idParam);
   }
 
-  final isMobile = Responsive.isMobile(context);
+  final useCompact = Responsive.useCompactLayout(context);
 
   return showScreenAsDialog(
     context,
@@ -70,7 +70,7 @@ Future<void> showNoteAdd(
       ),
     ),
     width: double.infinity,
-    insetPadding: isMobile ? EdgeInsets.zero : const EdgeInsets.all(32),
+    insetPadding: useCompact ? EdgeInsets.zero : const EdgeInsets.all(32),
     alignment: Alignment.center,
   ).then((_) => clearRouteQueryParams(basePath));
 }

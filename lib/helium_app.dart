@@ -6,13 +6,11 @@
 // For details regarding the license, please refer to the LICENSE file.
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:heliumapp/config/app_router.dart';
 import 'package:heliumapp/config/theme_notifier.dart';
 import 'package:heliumapp/utils/quill_helpers.dart';
 import 'package:heliumapp/utils/sf_calendar_helpers.dart';
 import 'package:heliumapp/utils/snack_bar_helpers.dart';
-import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:logging/logging.dart';
 
@@ -47,15 +45,6 @@ class _HeliumAppState extends State<HeliumApp> {
 
   @override
   Widget build(BuildContext context) {
-    if (!Responsive.isMobile(context)) {
-      SystemChrome.setPreferredOrientations([
-        DeviceOrientation.portraitUp,
-        DeviceOrientation.portraitDown,
-        DeviceOrientation.landscapeLeft,
-        DeviceOrientation.landscapeRight,
-      ]);
-    }
-
     return MaterialApp.router(
       scaffoldMessengerKey: rootScaffoldMessengerKey,
       routerConfig: router,

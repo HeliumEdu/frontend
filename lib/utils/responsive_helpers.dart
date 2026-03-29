@@ -31,6 +31,21 @@ class Responsive {
     return isMobileWidth(MediaQuery.of(context).size.width);
   }
 
+  /// Returns true when the device is in a "phone landscape" configuration:
+  /// width qualifies as tablet (600-1024px) but height is very short (<500px).
+  static bool isPhoneLandscape(BuildContext context) {
+    final size = MediaQuery.of(context).size;
+    return size.width >= ResponsiveBreakpoints.mobile &&
+        size.width < ResponsiveBreakpoints.tablet &&
+        size.height < 500;
+  }
+
+  /// Returns true when compact/mobile layout should be used.
+  /// This includes both mobile portrait and phone landscape orientations.
+  static bool useCompactLayout(BuildContext context) {
+    return isMobile(context) || isPhoneLandscape(context);
+  }
+
   static bool isTablet(BuildContext context) {
     return isTabletWidth(MediaQuery.of(context).size.width);
   }

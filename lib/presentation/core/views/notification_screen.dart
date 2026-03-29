@@ -49,14 +49,14 @@ Future<void> showNotifications(BuildContext context) {
       currentUri.queryParameters.containsKey(DeepLinkParam.dialog);
   final basePath = hasDialogParam ? currentUri.path : null;
 
-  final isMobile = Responsive.isMobile(context);
+  final useCompact = Responsive.useCompactLayout(context);
 
   final result = showScreenAsDialog(
     context,
     child: NotificationsScreen(),
-    width: isMobile ? double.infinity : AppConstants.notificationsDialogWidth,
-    alignment: isMobile ? Alignment.center : Alignment.centerRight,
-    insetPadding: isMobile
+    width: useCompact ? double.infinity : AppConstants.notificationsDialogWidth,
+    alignment: useCompact ? Alignment.center : Alignment.centerRight,
+    insetPadding: useCompact
         ? EdgeInsets.zero
         : const EdgeInsets.only(top: 16, bottom: 16, right: 16, left: 100),
   );
