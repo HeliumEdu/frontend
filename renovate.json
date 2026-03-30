@@ -1,0 +1,30 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["config:recommended"],
+  "timezone": "America/Chicago",
+  "schedule": ["before 6am on monday"],
+  "enabledManagers": ["pub"],
+  "platformAutomerge": true,
+  "packageRules": [
+    {
+      "matchUpdateTypes": ["major"],
+      "enabled": false
+    },
+    {
+      "matchPackagePatterns": ["^syncfusion_flutter_"],
+      "enabled": false
+    },
+    {
+      "matchManagers": ["pub"],
+      "automerge": true
+    }
+  ],
+  "postUpgradeTasks": {
+    "commands": [
+      "flutter pub get",
+      "cd ios && pod update"
+    ],
+    "fileFilters": ["pubspec.lock", "ios/Podfile.lock"],
+    "executionMode": "branch"
+  }
+}
