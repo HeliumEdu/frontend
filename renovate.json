@@ -6,7 +6,7 @@
   "rangeStrategy": "bump",
   "ignoreDeps": ["dart"],
   "timezone": "America/Chicago",
-  "schedule": ["at any time"],
+  "schedule": ["before 6am on monday"],
   "enabledManagers": ["pub"],
   "platformAutomerge": true,
   "packageRules": [

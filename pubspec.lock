@@ -535,34 +535,34 @@ packages:
     dependency: "direct main"
     description:
       name: flutter_local_notifications
-      sha256: "2b50e938a275e1ad77352d6a25e25770f4130baa61eaf02de7a9a884680954ad"
+      sha256: "0d9035862236fe38250fe1644d7ed3b8254e34a21b2c837c9f539fbb3bba5ef1"
       url: "https://pub.dev"
     source: hosted
-    version: "20.1.0"
+    version: "21.0.0"
   flutter_local_notifications_linux:
     dependency: transitive
     description:
       name: flutter_local_notifications_linux
-      sha256: dce0116868cedd2cdf768af0365fc37ff1cbef7c02c4f51d0587482e625868d0
+      sha256: e0f25e243c6c44c825bbbc6b2b2e76f7d9222362adcfe9fd780bf01923c840bd
       url: "https://pub.dev"
     source: hosted
-    version: "7.0.0"
+    version: "8.0.0"
   flutter_local_notifications_platform_interface:
     dependency: transitive
     description:
       name: flutter_local_notifications_platform_interface
-      sha256: "23de31678a48c084169d7ae95866df9de5c9d2a44be3e5915a2ff067aeeba899"
+      sha256: e7db3d5b49c2b7ecc68deba4aaaa67a348f92ee0fef34c8e4b4459dbef0d7307
       url: "https://pub.dev"
     source: hosted
-    version: "10.0.0"
+    version: "11.0.0"
   flutter_local_notifications_windows:
     dependency: transitive
     description:
       name: flutter_local_notifications_windows
-      sha256: e97a1a3016512437d9c0b12fae7d1491c3c7b9aa7f03a69b974308840656b02a
+      sha256: "3a2654ba104fbb52c618ebed9def24ef270228470718c43b3a6afcd5c81bef0c"
       url: "https://pub.dev"
     source: hosted
-    version: "2.0.1"
+    version: "3.0.0"
   flutter_localizations:
     dependency: transitive
     description: flutter
@@ -1280,26 +1280,26 @@ packages:
     dependency: transitive
     description:
       name: sentry
-      sha256: a49b4fb1cba576fe216347dc2a0e6d76076fb998e6012857db96f991c23b7b3c
+      sha256: "288aee3d35f252ac0dc3a4b0accbbe7212fa2867604027f2cc5bc65334afd743"
       url: "https://pub.dev"
     source: hosted
-    version: "9.15.0"
+    version: "9.16.0"
   sentry_dio:
     dependency: "direct main"
     description:
       name: sentry_dio
-      sha256: "17fa65cd6cdb3d7c77a67081f3117370db538ab9a015308841bc3e2d7c2bfa9e"
+      sha256: "750afa9a14297908038b91b6322efb3f42d24aa79a21eb09053425e283d6c7ef"
       url: "https://pub.dev"
     source: hosted
-    version: "9.15.0"
+    version: "9.16.0"
   sentry_flutter:
     dependency: "direct main"
     description:
       name: sentry_flutter
-      sha256: "25150030c93bd1d4b727ab61cfb09e99121c69ce90fa820bb9ca16dab433e43a"
+      sha256: f9e87d5895cc437902aa2b081727ee7e46524fe7cc2e1910f535480a3eeb8bed
       url: "https://pub.dev"
     source: hosted
-    version: "9.15.0"
+    version: "9.16.0"
   share_plus:
     dependency: "direct main"
     description:
@@ -1477,58 +1477,58 @@ packages:
     dependency: "direct main"
     description:
       name: syncfusion_flutter_calendar
-      sha256: af27535ba4d3c6e64a318172c8a76363c174863b4e2583b21555c47be92c315d
+      sha256: ff20d16fbfeb1ab324608657eb92accc3b2964e68271d4d5cf83a2918211d3ec
       url: "https://pub.dev"
     source: hosted
-    version: "32.1.23"
+    version: "33.1.45"
   syncfusion_flutter_charts:
     dependency: "direct main"
     description:
       name: syncfusion_flutter_charts
-      sha256: f2ad24787d7d0e7f9ccdd0ba2961147a6ebbad8e6836969413af7f15c9754f1d
+      sha256: dcd4e579119d6c93bff270c3bb5034d6dfcf48d1ba98085f42917fd5c1a633a4
       url: "https://pub.dev"
     source: hosted
-    version: "32.2.8"
+    version: "33.1.45"
   syncfusion_flutter_core:
     dependency: "direct main"
     description:
       name: syncfusion_flutter_core
-      sha256: "080c4a57f12cb03869c863f6b33fb170ce9653ac741281f11ff8e067dc96fe99"
+      sha256: cdc9f865a2447b75446c6583e68b2800411687cc1a36df83769b66f96ed70df1
       url: "https://pub.dev"
     source: hosted
-    version: "32.2.8"
+    version: "33.1.45"
   syncfusion_flutter_datagrid:
     dependency: "direct main"
     description:
       name: syncfusion_flutter_datagrid
-      sha256: "22251a0d8da40fd50eb8ce8bff4e08e513f7d2e7f8767c1b6a239203f900f2e5"
+      sha256: "512c4894edbe8bf1925d68b6d396ca99d4d9e0fc15c93b8e3a1cddc4abe02653"
       url: "https://pub.dev"
     source: hosted
-    version: "32.2.8"
+    version: "33.1.45"
   syncfusion_flutter_datepicker:
     dependency: transitive
     description:
       name: syncfusion_flutter_datepicker
-      sha256: "730cec4eba46ead75fb2f20ea060d9949aeaf0962faf9dda5f8fe0d64eca3d10"
+      sha256: "0afd0ad196263f045dbae57b4e893d24ec2e3f2d5aeb783548f8a7b3a9c29f9a"
       url: "https://pub.dev"
     source: hosted
-    version: "32.2.8"
+    version: "33.1.45"
   syncfusion_flutter_gauges:
     dependency: "direct main"
     description:
       name: syncfusion_flutter_gauges
-      sha256: "11ec00997cf37c5b02c00689b7083875f0f77561b43fbe760997eda30a321a99"
+      sha256: "68ea4803ec9ec1f108e51598694b563077ed60e7e2b5fe02307b79dd77aca7e9"
       url: "https://pub.dev"
     source: hosted
-    version: "32.2.8"
+    version: "33.1.45"
   syncfusion_localizations:
     dependency: "direct main"
     description:
       name: syncfusion_localizations
-      sha256: b762a6a285a4cdb507f39644442412d6c05192a34194038dbcca8ee5ad1a2515
+      sha256: "804a0b456e4a58bd7b9ac63005a696e444d7d1646c4344bf9bcba082676606d9"
       url: "https://pub.dev"
     source: hosted
-    version: "32.2.8"
+    version: "33.1.45"
   term_glyph:
     dependency: transitive
     description:
@@ -1565,10 +1565,10 @@ packages:
     dependency: "direct main"
     description:
       name: timezone
-      sha256: dd14a3b83cfd7cb19e7888f1cbc20f258b8d71b54c06f79ac585f14093a287d1
+      sha256: "784a5e34d2eb62e1326f24d6f600aaaee452eb8ca8ef2f384a59244e292d158b"
       url: "https://pub.dev"
     source: hosted
-    version: "0.10.1"
+    version: "0.11.0"
   typed_data:
     dependency: transitive
     description:
