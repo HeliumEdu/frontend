@@ -140,13 +140,12 @@ class _ReminderWidgetState extends BaseDialogState<_ReminderProvidedWidget> {
         const SizedBox(height: 8),
         Row(
           children: [
-            Expanded(
-              flex: 2,
+            SizedBox(
+              width: 120,
               child: SpinnerField(controller: _formController.offsetController),
             ),
             const SizedBox(width: 8),
             Expanded(
-              flex: 3,
               child: DropDown(
                 initialValue: ReminderConstants.offsetTypeItems.firstWhere(
                   (ot) => ot.id == _formController.reminderOffsetType,

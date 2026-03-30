@@ -47,6 +47,8 @@ class PreferencesScreen extends StatefulWidget {
 class PreferencesScreenState extends State<PreferencesScreen> {
   final TextEditingController _reminderOffsetController =
       TextEditingController();
+  final TextEditingController _atRiskThresholdController =
+      TextEditingController();
 
   bool _isLoading = true;
   bool _isSubmitting = false;
@@ -80,6 +82,7 @@ class PreferencesScreenState extends State<PreferencesScreen> {
   @override
   void dispose() {
     _reminderOffsetController.dispose();
+    _atRiskThresholdController.dispose();
     super.dispose();
   }
 
@@ -120,6 +123,7 @@ class PreferencesScreenState extends State<PreferencesScreen> {
     final colorByCategory = _isSelectedColorByCategory;
     final rememberFilterState = _isRememberFilterSelection;
     final collapseBusyDays = _isCollapseBusyDays;
+    final atRiskThreshold = int.parse(_atRiskThresholdController.text);
 
     context.read<AuthBloc>().add(
       UpdateProfileEvent(
@@ -138,6 +142,7 @@ class PreferencesScreenState extends State<PreferencesScreen> {
           defaultReminderOffsetType: reminderOffsetType,
           rememberFilterState: rememberFilterState,
           collapseBusyDays: collapseBusyDays,
+          atRiskThreshold: atRiskThreshold,
         ),
       ),
     );
@@ -171,6 +176,24 @@ class PreferencesScreenState extends State<PreferencesScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            _buildSectionHeader('GENERAL'),
+            SearchableDropdown(
+              label: 'Time zone',
+              initialValue: TimeZoneConstants.items.firstWhere(
+                (tz) => tz.value == _selectedTimeZone,
+                orElse: () => TimeZoneConstants.items.firstWhere(
+                  (tz) => tz.value == 'Etc/UTC',
+                ),
+              ),
+              items: TimeZoneConstants.items,
+              onChanged: (value) {
+                setState(() {
+                  _selectedTimeZone = value!.value!;
+                });
+              },
+            ),
+
+            _buildSectionHeader('PLANNER'),
             DropDown(
               label: 'Default view',
               initialValue: CalendarConstants.defaultViewItems.firstWhere(
@@ -183,7 +206,50 @@ class PreferencesScreenState extends State<PreferencesScreen> {
                 });
               },
             ),
-            const SizedBox(height: 14),
+            CheckboxListTile(
+              title: Text(
+                'Show tooltips on Planner',
+                style: AppStyles.formLabel(context),
+              ),
+              value: _isShowPlannerTooltips,
+              onChanged: (value) {
+                setState(() {
+                  _isShowPlannerTooltips = value!;
+                });
+              },
+              controlAffinity: ListTileControlAffinity.leading,
+              contentPadding: EdgeInsets.zero,
+            ),
+            CheckboxListTile(
+              title: Text(
+                'Allow drag-and-drop on touch devices',
+                style: AppStyles.formLabel(context),
+              ),
+              value: _isDragAndDropOnMobile,
+              onChanged: (value) {
+                setState(() {
+                  _isDragAndDropOnMobile = value!;
+                });
+              },
+              controlAffinity: ListTileControlAffinity.leading,
+              contentPadding: EdgeInsets.zero,
+            ),
+            CheckboxListTile(
+              title: Text(
+                'Remember filter selections',
+                style: AppStyles.formLabel(context),
+              ),
+              value: _isRememberFilterSelection,
+              onChanged: (value) {
+                setState(() {
+                  _isRememberFilterSelection = value!;
+                });
+              },
+              controlAffinity: ListTileControlAffinity.leading,
+              contentPadding: EdgeInsets.zero,
+            ),
+
+            _buildSectionHeader('CALENDAR'),
             DropDown(
               label: 'Week starts on',
               initialValue: CalendarConstants.dayNamesItems.firstWhere(
@@ -196,11 +262,25 @@ class PreferencesScreenState extends State<PreferencesScreen> {
                 });
               },
             ),
-            const SizedBox(height: 14),
+            CheckboxListTile(
+              title: Text(
+                'Collapse busy days',
+                style: AppStyles.formLabel(context),
+              ),
+              value: _isCollapseBusyDays,
+              onChanged: (value) {
+                setState(() {
+                  _isCollapseBusyDays = value!;
+                });
+              },
+              controlAffinity: ListTileControlAffinity.leading,
+              contentPadding: EdgeInsets.zero,
+            ),
+
+            _buildSectionHeader('DISPLAY'),
             Row(
               children: [
-                Text('Color for Events', style: AppStyles.formLabel(context)),
-                const SizedBox(width: 12),
+                SizedBox(width: 160, child: Text('Color for Events', style: AppStyles.formLabel(context))),
                 MouseRegion(
                   cursor: SystemMouseCursors.click,
                   child: GestureDetector(
@@ -233,16 +313,10 @@ class PreferencesScreenState extends State<PreferencesScreen> {
                 ),
               ],
             ),
-
             const SizedBox(height: 14),
-
             Row(
               children: [
-                Text(
-                  'Color for grades',
-                  style: AppStyles.formLabel(context),
-                ),
-                const SizedBox(width: 12),
+                SizedBox(width: 160, child: Text('Color for grades', style: AppStyles.formLabel(context))),
                 MouseRegion(
                   cursor: SystemMouseCursors.click,
                   child: GestureDetector(
@@ -273,14 +347,9 @@ class PreferencesScreenState extends State<PreferencesScreen> {
               ],
             ),
             const SizedBox(height: 14),
-
             Row(
               children: [
-                Text(
-                  'Color for resources',
-                  style: AppStyles.formLabel(context),
-                ),
-                const SizedBox(width: 12),
+                SizedBox(width: 160, child: Text('Color for resources', style: AppStyles.formLabel(context))),
                 MouseRegion(
                   cursor: SystemMouseCursors.click,
                   child: GestureDetector(
@@ -310,133 +379,38 @@ class PreferencesScreenState extends State<PreferencesScreen> {
                 ),
               ],
             ),
-
-            const SizedBox(height: 14),
-
-            Row(
-              children: [
-                Expanded(
-                  child: CheckboxListTile(
-                    title: Text(
-                      'Show tooltips on Planner',
-                      style: AppStyles.formLabel(context),
-                    ),
-                    value: _isShowPlannerTooltips,
-                    onChanged: (value) {
-                      setState(() {
-                        _isShowPlannerTooltips = value!;
-                      });
-                    },
-                    controlAffinity: ListTileControlAffinity.leading,
-                    contentPadding: EdgeInsets.zero,
-                  ),
-                ),
-              ],
-            ),
-
-            Row(
-              children: [
-                Expanded(
-                  child: CheckboxListTile(
-                    title: Text(
-                      'Allow drag-and-drop on touch devices',
-                      style: AppStyles.formLabel(context),
-                    ),
-                    value: _isDragAndDropOnMobile,
-                    onChanged: (value) {
-                      setState(() {
-                        _isDragAndDropOnMobile = value!;
-                      });
-                    },
-                    controlAffinity: ListTileControlAffinity.leading,
-                    contentPadding: EdgeInsets.zero,
-                  ),
-                ),
-              ],
-            ),
-
-            Row(
-              children: [
-                Expanded(
-                  child: CheckboxListTile(
-                    title: Text(
-                      'Remember filter selections',
-                      style: AppStyles.formLabel(context),
-                    ),
-                    value: _isRememberFilterSelection,
-                    onChanged: (value) {
-                      setState(() {
-                        _isRememberFilterSelection = value!;
-                      });
-                    },
-                    controlAffinity: ListTileControlAffinity.leading,
-                    contentPadding: EdgeInsets.zero,
-                  ),
-                ),
-              ],
-            ),
-
-            Row(
-              children: [
-                Expanded(
-                  child: CheckboxListTile(
-                    title: Text(
-                      'Collapse busy days',
-                      style: AppStyles.formLabel(context),
-                    ),
-                    value: _isCollapseBusyDays,
-                    onChanged: (value) {
-                      setState(() {
-                        _isCollapseBusyDays = value!;
-                      });
-                    },
-                    controlAffinity: ListTileControlAffinity.leading,
-                    contentPadding: EdgeInsets.zero,
-                  ),
-                ),
-              ],
-            ),
-
-            Row(
-              children: [
-                Expanded(
-                  child: CheckboxListTile(
-                    title: Text(
-                      'Color by category',
-                      style: AppStyles.formLabel(context),
-                    ),
-                    value: _isSelectedColorByCategory,
-                    onChanged: (value) {
-                      setState(() {
-                        _isSelectedColorByCategory = value!;
-                      });
-                    },
-                    controlAffinity: ListTileControlAffinity.leading,
-                    contentPadding: EdgeInsets.zero,
-                  ),
-                ),
-              ],
-            ),
-
-            const SizedBox(height: 14),
-
-            SearchableDropdown(
-              label: 'Time zone',
-              initialValue: TimeZoneConstants.items.firstWhere(
-                (tz) => tz.value == _selectedTimeZone,
-                orElse: () => TimeZoneConstants.items.firstWhere(
-                  (tz) => tz.value == 'Etc/UTC',
-                ),
+            const SizedBox(height: 4),
+            CheckboxListTile(
+              title: Text(
+                'Color by category',
+                style: AppStyles.formLabel(context),
               ),
-              items: TimeZoneConstants.items,
+              value: _isSelectedColorByCategory,
               onChanged: (value) {
                 setState(() {
-                  _selectedTimeZone = value!.value!;
+                  _isSelectedColorByCategory = value!;
                 });
               },
+              controlAffinity: ListTileControlAffinity.leading,
+              contentPadding: EdgeInsets.zero,
             ),
 
-            const SizedBox(height: 14),
+            _buildSectionHeader('GRADES'),
+            Text(
+              'At-risk threshold (%)',
+              style: AppStyles.formLabel(context),
+            ),
+            const SizedBox(height: 8),
+            SizedBox(
+              width: 120,
+              child: SpinnerField(
+                controller: _atRiskThresholdController,
+                minValue: 0,
+                maxValue: 100,
+              ),
+            ),
+
+            _buildSectionHeader('REMINDERS'),
             DropDown(
               label: 'Default reminder',
               initialValue: ReminderConstants.typeItems.firstWhere(
@@ -461,7 +435,6 @@ class PreferencesScreenState extends State<PreferencesScreen> {
               },
             ),
             const SizedBox(height: 14),
-
             Text(
               'Default "Remind before"',
               style: AppStyles.formLabel(context),
@@ -469,13 +442,12 @@ class PreferencesScreenState extends State<PreferencesScreen> {
             const SizedBox(height: 8),
             Row(
               children: [
-                Expanded(
-                  flex: 2,
+                SizedBox(
+                  width: 120,
                   child: SpinnerField(controller: _reminderOffsetController),
                 ),
                 const SizedBox(width: 8),
                 Expanded(
-                  flex: 3,
                   child: DropDown(
                     initialValue: ReminderConstants.offsetTypeItems.firstWhere(
                       (rot) => rot.value == _selectedReminderOffsetType,
@@ -494,6 +466,22 @@ class PreferencesScreenState extends State<PreferencesScreen> {
             const SizedBox(height: 12),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildSectionHeader(String title) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 16),
+      child: Row(
+        children: [
+          const Expanded(child: Divider()),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 10),
+            child: Text(title, style: AppStyles.smallSecondaryTextLight(context)),
+          ),
+          const Expanded(child: Divider()),
+        ],
       ),
     );
   }
@@ -522,6 +510,11 @@ class PreferencesScreenState extends State<PreferencesScreen> {
       _isSelectedColorByCategory = state.user.settings.colorByCategory;
       _isRememberFilterSelection = state.user.settings.rememberFilterState;
       _isCollapseBusyDays = state.user.settings.collapseBusyDays;
+      if (_atRiskThresholdController.text !=
+          state.user.settings.atRiskThreshold.toString()) {
+        _atRiskThresholdController.text =
+            state.user.settings.atRiskThreshold.toString();
+      }
     });
   }
 }

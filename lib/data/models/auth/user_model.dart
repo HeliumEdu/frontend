@@ -8,6 +8,7 @@
 import 'dart:ui';
 
 import 'package:heliumapp/data/models/base_model.dart';
+import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/color_helpers.dart';
 import 'package:timezone/standalone.dart' as tz;
 
@@ -70,6 +71,7 @@ class UserSettingsModel {
   final bool dragAndDropOnMobile;
   final bool rememberFilterState;
   final bool collapseBusyDays;
+  final int atRiskThreshold;
   final String? privateSlug;
 
   UserSettingsModel({
@@ -92,6 +94,7 @@ class UserSettingsModel {
     required this.dragAndDropOnMobile,
     required this.rememberFilterState,
     required this.collapseBusyDays,
+    required this.atRiskThreshold,
     this.privateSlug,
   });
 
@@ -122,6 +125,7 @@ class UserSettingsModel {
       dragAndDropOnMobile: json['drag_and_drop_on_mobile'],
       rememberFilterState: json['remember_filter_state'],
       collapseBusyDays: json['calendar_event_limit'],
+      atRiskThreshold: json['at_risk_threshold'] ?? FallbackConstants.defaultAtRiskThreshold,
       privateSlug: json['private_slug'],
     );
   }
@@ -146,6 +150,7 @@ class UserSettingsModel {
       'drag_and_drop_on_mobile': dragAndDropOnMobile,
       'remember_filter_state': rememberFilterState,
       'calendar_event_limit': collapseBusyDays,
+      'at_risk_threshold': atRiskThreshold,
       'private_slug': privateSlug,
     };
   }

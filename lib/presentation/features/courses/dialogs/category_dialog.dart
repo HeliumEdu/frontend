@@ -7,7 +7,6 @@
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/data/models/base_model.dart';
@@ -22,6 +21,7 @@ import 'package:heliumapp/presentation/ui/dialogs/color_picker_dialog.dart';
 import 'package:heliumapp/presentation/features/shared/controllers/basic_form_controller.dart';
 import 'package:heliumapp/presentation/features/courses/controllers/category_form_controller.dart';
 import 'package:heliumapp/presentation/ui/components/label_and_text_form_field.dart';
+import 'package:heliumapp/presentation/ui/components/spinner_field.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/color_helpers.dart';
 
@@ -114,13 +114,14 @@ class _CategoryWidgetState extends BaseDialogState<_CategoryProvidedWidget> {
           onFieldSubmitted: (value) => handleSubmit(),
         ),
         const SizedBox(height: 14),
-        LabelAndTextFormField(
-          label: 'Weight (%)',
-          controller: _formController.weightController,
-          keyboardType: TextInputType.number,
-          inputFormatters: [
-            FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')),
-          ],
+        SizedBox(
+          width: 120,
+          child: SpinnerField(
+            label: 'Weight (%)',
+            controller: _formController.weightController,
+            minValue: 0,
+            maxValue: 100,
+          ),
         ),
         const SizedBox(height: 14),
         Row(

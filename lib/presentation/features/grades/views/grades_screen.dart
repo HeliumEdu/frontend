@@ -152,8 +152,8 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
   static const double _averageColDesktop = 105;
 
   // Decision variables - adjust these to tune the grade insights
-  static const double _atRiskThreshold =
-      70.0; // Courses below this % are flagged as at-risk
+  double get _atRiskThreshold =>
+      (userSettings?.atRiskThreshold ?? FallbackConstants.defaultAtRiskThreshold).toDouble();
   static const double _onTrackTolerance =
       10.0; // tolerance for "on track" status (work vs time)
   static const double _defaultDesiredGradeBoost =

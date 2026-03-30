@@ -52,6 +52,7 @@ class FallbackConstants {
   static const defaultDragAndDropOnMobile = true;
   static const defaultRememberFilterState = false;
   static const defaultCollapseBusyDays = false;
+  static const defaultAtRiskThreshold = 70;
 }
 
 /// Colors for planner item types (Events, Homework, Class Schedules, External Calendars).

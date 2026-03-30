@@ -23,6 +23,7 @@ class UpdateSettingsRequestModel {
   final int? defaultReminderOffsetType;
   final bool? rememberFilterState;
   final bool? collapseBusyDays;
+  final int? atRiskThreshold;
 
   UpdateSettingsRequestModel({
     this.timeZone,
@@ -42,6 +43,7 @@ class UpdateSettingsRequestModel {
     this.defaultReminderOffsetType,
     this.rememberFilterState,
     this.collapseBusyDays,
+    this.atRiskThreshold,
   });
 
   Map<String, dynamic> toJson() {
@@ -97,6 +99,9 @@ class UpdateSettingsRequestModel {
     }
     if (collapseBusyDays != null) {
       json['calendar_event_limit'] = collapseBusyDays;
+    }
+    if (atRiskThreshold != null) {
+      json['at_risk_threshold'] = atRiskThreshold;
     }
 
     return json;
