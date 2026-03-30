@@ -307,9 +307,7 @@ class _NavigationShellState extends State<NavigationShell> {
                     selectedIndex: currentPage.index,
                     onDestinationSelected: (index) =>
                         _onDestinationSelected(context, index),
-                    labelType: isPhoneLandscape
-                        ? NavigationRailLabelType.selected
-                        : NavigationRailLabelType.all,
+                    labelType: NavigationRailLabelType.all,
                     destinations: NavigationPage.values
                         .map(
                           (page) => NavigationRailDestination(
