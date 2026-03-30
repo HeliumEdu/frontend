@@ -231,6 +231,15 @@ void main() {
         when(
           () => mockPrefService.getBool('calendar_event_limit'),
         ).thenReturn(true);
+        when(
+          () => mockPrefService.getInt('at_risk_threshold'),
+        ).thenReturn(70);
+        when(
+          () => mockPrefService.getInt('on_track_tolerance'),
+        ).thenReturn(10);
+        when(
+          () => mockPrefService.getBool('show_week_numbers'),
+        ).thenReturn(true);
 
         // WHEN
         final settings = await dioClient.getSettings();
