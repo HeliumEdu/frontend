@@ -81,7 +81,7 @@ class EmailHelper {
       }
 
       if (allObjects.isEmpty) {
-        return _retry(username, sentAfter, attempt, 'No emails found in bucket');
+        return _retry(username, sentAfter, startedAt, attempt, 'No emails found in bucket');
       }
 
       _log.info('Found ${allObjects.length} email(s) in bucket');
@@ -93,7 +93,7 @@ class EmailHelper {
         ..sort((a, b) => b.lastModified!.compareTo(a.lastModified!));
 
       if (validObjects.isEmpty) {
-        return _retry(username, sentAfter, attempt, 'No valid emails found');
+        return _retry(username, sentAfter, startedAt, attempt, 'No valid emails found');
       }
 
       // URL-encode the username since the email template uses urlencode filter
