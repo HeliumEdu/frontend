@@ -23,13 +23,5 @@
       "matchManagers": ["pub"],
       "automerge": true
     }
-  ],
-  "postUpgradeTasks": {
-    "commands": [
-      "flutter pub get",
-      "cd ios && pod update"
-    ],
-    "fileFilters": ["pubspec.lock", "ios/Podfile.lock"],
-    "executionMode": "branch"
-  }
+  ]
 }
