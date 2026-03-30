@@ -320,9 +320,7 @@ class _NavigationShellState extends State<NavigationShell> {
                               page.label,
                               style: AppStyles.smallSecondaryText(context),
                             ),
-                            padding: isPhoneLandscape
-                                ? EdgeInsets.zero
-                                : null,
+                            padding: isPhoneLandscape ? EdgeInsets.zero : null,
                           ),
                         )
                         .toList(),

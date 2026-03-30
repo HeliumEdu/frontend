@@ -479,14 +479,17 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
     return Expanded(
       child: LayoutBuilder(
         builder: (context, constraints) {
-          // Reserve space for title row and padding
+          // Reserve space for title row, padding, toolbar, and divider
           const double titleRowHeight = 60;
+          const double containerPadding = 12;
           const double toolbarHeight = 50;
+          const double dividerHeight = 1;
           const double minEditorHeight = 150;
+          const double overhead =
+              titleRowHeight + containerPadding + toolbarHeight + dividerHeight;
 
-          final editorContainerHeight = (constraints.maxHeight - titleRowHeight)
-              .clamp(minEditorHeight + toolbarHeight, double.infinity);
-          final editorHeight = editorContainerHeight - toolbarHeight;
+          final editorHeight =
+              (constraints.maxHeight - overhead).clamp(minEditorHeight, double.infinity);
 
           return SingleChildScrollView(
             child: ConstrainedBox(
