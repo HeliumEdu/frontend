@@ -61,14 +61,14 @@ Future<void> showSettings(BuildContext context, {int? initialTab}) {
       currentUri.queryParameters.containsKey(DeepLinkParam.dialog);
   final basePath = hasDialogParam ? currentUri.path : null;
 
-  final isMobile = Responsive.isMobile(context);
+  final useCompact = Responsive.useCompactLayout(context);
 
   final result = showScreenAsDialog(
     context,
     child: SettingsScreen(initialTab: initialTab),
-    width: isMobile ? double.infinity : AppConstants.leftPanelDialogWidth,
-    alignment: isMobile ? Alignment.center : Alignment.centerLeft,
-    insetPadding: isMobile
+    width: useCompact ? double.infinity : AppConstants.leftPanelDialogWidth,
+    alignment: useCompact ? Alignment.center : Alignment.centerLeft,
+    insetPadding: useCompact
         ? EdgeInsets.zero
         : const EdgeInsets.only(top: 16, bottom: 16, left: 16, right: 100),
   );
@@ -1118,4 +1118,3 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
     );
   }
 }
-

@@ -37,6 +37,16 @@ class PageHeader extends StatelessWidget {
     this.inheritableProviders,
   });
 
+  /// Returns true if the settings button should appear in the page header
+  /// (mobile, or desktop with short height). When false, settings appears
+  /// in the navigation rail instead.
+  static bool showSettingsInHeader(BuildContext context) {
+    return Responsive.isMobile(context) ||
+        (!Responsive.isTouchDevice(context) &&
+            MediaQuery.of(context).size.height <
+                AppConstants.minHeightForTrailingNav);
+  }
+
   Widget _buildContent(BuildContext context) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -49,10 +59,7 @@ class PageHeader extends StatelessWidget {
             },
             icon: Icon(Icons.close, color: context.colorScheme.secondary),
           )
-        else if (Responsive.isMobile(context) ||
-            (!Responsive.isTouchDevice(context) &&
-                MediaQuery.of(context).size.height <
-                    AppConstants.minHeightForTrailingNav))
+        else if (showSettingsInHeader(context))
           const SettingsButton()
         else
           const Icon(Icons.space_bar, color: Colors.transparent),
