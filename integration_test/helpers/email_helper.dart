@@ -15,8 +15,18 @@ import 'test_config.dart';
 
 final _log = Logger('email_helper');
 
-const _maxRetries = 60; // 12 * 5 = 60 retries
 const _retryDelay = Duration(seconds: 5);
+const _defaultTimeoutMinutes = 5;
+const _maxTimeoutMinutes = 30;
+
+int get _timeoutMinutes {
+  const envValue = String.fromEnvironment('EMAIL_POLL_TIMEOUT_MINUTES');
+  if (envValue.isEmpty) return _defaultTimeoutMinutes;
+  final parsed = int.tryParse(envValue);
+  if (parsed == null || parsed < 1) return _defaultTimeoutMinutes;
+  if (parsed > _maxTimeoutMinutes) return _maxTimeoutMinutes;
+  return parsed;
+}
 
 class EmailHelper {
   final TestConfig _config = TestConfig();
@@ -37,13 +47,26 @@ class EmailHelper {
   /// [username] is the email address used during signup (URL-encoded in the verification link).
   /// [sentAfter] is the timestamp before the email-triggering action was initiated.
   ///   Emails must have S3 timestamp >= sentAfter to be considered.
-  /// Returns the verification code, or throws if not found within timeout.
+  /// Returns the verification code.
+  ///
+  /// Timeout defaults to 5 minutes for local runs. Set EMAIL_POLL_TIMEOUT_MINUTES
+  /// env var to override (max 30 minutes) for CI with high concurrency.
   Future<String> getVerificationCode(
     String username, {
     required DateTime sentAfter,
-    int retry = 0,
+    DateTime? startedAt,
+    int attempt = 0,
   }) async {
-    _log.info('Polling for verification email (attempt ${retry + 1}/$_maxRetries)');
+    startedAt ??= DateTime.now();
+    final timeout = Duration(minutes: _timeoutMinutes);
+    final elapsed = DateTime.now().difference(startedAt);
+    if (elapsed > timeout) {
+      throw Exception(
+        'No matching verification email found after ${elapsed.inMinutes} minutes '
+        '(timeout: $_timeoutMinutes min). Checked $attempt attempts.',
+      );
+    }
+    _log.info('Polling for verification email for $username (attempt ${attempt + 1})');
     try {
       // List objects in the inbound email prefix (environment-specific)
       final results = await _minio.listObjects(
@@ -58,88 +81,88 @@ class EmailHelper {
       }
 
       if (allObjects.isEmpty) {
-        return _retryOrFail(username, sentAfter, retry, 'No emails found in bucket');
+        return _retry(username, sentAfter, attempt, 'No emails found in bucket');
       }
 
       _log.info('Found ${allObjects.length} email(s) in bucket');
 
-      // Find the most recent email by S3 lastModified (matches Python logic)
-      minio_models.Object? latestObj;
-      for (final obj in allObjects) {
-        if (obj.key == null || obj.lastModified == null) continue;
-        if (latestObj == null || obj.lastModified!.isAfter(latestObj.lastModified!)) {
-          latestObj = obj;
-        }
+      // Sort by newest first so we check recent emails before older ones
+      final validObjects = allObjects
+          .where((obj) => obj.key != null && obj.lastModified != null)
+          .toList()
+        ..sort((a, b) => b.lastModified!.compareTo(a.lastModified!));
+
+      if (validObjects.isEmpty) {
+        return _retry(username, sentAfter, attempt, 'No valid emails found');
       }
 
-      if (latestObj == null) {
-        return _retryOrFail(username, sentAfter, retry, 'No valid emails found');
-      }
-
-      final s3Timestamp = latestObj.lastModified!;
-      _log.info('Latest email: ${latestObj.key} (S3 timestamp: $s3Timestamp)');
-
-      // Get the email content
-      final stream = await _minio.getObject(_config.s3BucketName, latestObj.key!);
-      final bytes = await stream.fold<List<int>>([], (prev, chunk) => prev..addAll(chunk));
-      final emailStr = utf8.decode(bytes);
-
-      // Parse email to extract body
-      final emailBody = _parseEmailBody(emailStr);
-
-      // Validate: arrived after sentAfter, for our user, and has verification code
       // URL-encode the username since the email template uses urlencode filter
       final encodedUsername = Uri.encodeComponent(username);
-      final emailPattern = 'email=$encodedUsername&code';
       final verifyPattern = 'verify?email=$encodedUsername&code=';
 
-      final arrivedAfterAction = !s3Timestamp.isBefore(sentAfter);
-      final isForOurUser = emailBody?.contains(emailPattern) ?? false;
-      final hasVerifyUrl = emailBody?.contains(verifyPattern) ?? false;
+      // Check each email (newest first) looking for one that matches our user
+      for (final obj in validObjects) {
+        final s3Timestamp = obj.lastModified!;
 
-      if (!arrivedAfterAction || !isForOurUser || !hasVerifyUrl) {
-        final reason = !arrivedAfterAction
-            ? 'Email arrived before action was triggered'
-            : !isForOurUser
-                ? 'Email not for our user'
-                : 'Email missing verification URL';
-        return _retryOrFail(username, sentAfter, retry, reason);
+        // Skip emails that arrived before our action was triggered
+        if (s3Timestamp.isBefore(sentAfter)) {
+          _log.fine('Skipping ${obj.key} - arrived before action triggered');
+          continue;
+        }
+
+        // Get the email content
+        final stream = await _minio.getObject(_config.s3BucketName, obj.key!);
+        final bytes = await stream.fold<List<int>>([], (prev, chunk) => prev..addAll(chunk));
+        final emailStr = utf8.decode(bytes);
+
+        // Parse email to extract body
+        final emailBody = _parseEmailBody(emailStr);
+        if (emailBody == null || !emailBody.contains(verifyPattern)) {
+          _log.fine('Skipping ${obj.key} - not for our user');
+          continue;
+        }
+
+        // Found our email - extract the verification code
+        _log.info('Found matching email: ${obj.key} (S3 timestamp: $s3Timestamp)');
+
+        final codeStart = emailBody.indexOf(verifyPattern);
+        final codeStartIndex = codeStart + verifyPattern.length;
+        final codeEndIndex = emailBody.indexOf('\n', codeStartIndex);
+        final verificationCode = emailBody
+            .substring(codeStartIndex, codeEndIndex == -1 ? null : codeEndIndex)
+            .trim();
+
+        _log.info('Extracted verification code: $verificationCode');
+
+        // Delete our email
+        await _minio.removeObject(_config.s3BucketName, obj.key!);
+        _log.info('Deleted matching email: ${obj.key}');
+
+        return verificationCode;
       }
 
-      // Extract the verification code
-      final codeStart = emailBody!.indexOf(verifyPattern);
-      final codeStartIndex = codeStart + verifyPattern.length;
-      final codeEndIndex = emailBody.indexOf('\n', codeStartIndex);
-      final verificationCode = emailBody
-          .substring(codeStartIndex, codeEndIndex == -1 ? null : codeEndIndex)
-          .trim();
-
-      _log.info('Extracted verification code: $verificationCode');
-
-      // Delete our email
-      await _minio.removeObject(_config.s3BucketName, latestObj.key!);
-      _log.info('Deleted matching email: ${latestObj.key}');
-
-      return verificationCode;
+      // No matching email found in this pass
+      return _retry(username, sentAfter, startedAt, attempt, 'No email found for our user');
     } catch (e) {
       _log.warning('Error during email fetch: $e');
-      return _retryOrFail(username, sentAfter, retry, 'Error: $e');
+      return _retry(username, sentAfter, startedAt, attempt, 'Error: $e');
     }
   }
 
-  Future<String> _retryOrFail(
+  Future<String> _retry(
     String username,
     DateTime sentAfter,
-    int retry,
+    DateTime startedAt,
+    int attempt,
     String reason,
   ) async {
-    if (retry < _maxRetries) {
-      _log.info('$reason. Retrying in ${_retryDelay.inSeconds}s ...');
-      await Future.delayed(_retryDelay);
-      return getVerificationCode(username, sentAfter: sentAfter, retry: retry + 1);
-    }
-    throw Exception(
-      'No matching verification email found after ${_maxRetries * _retryDelay.inSeconds} seconds. Last reason: $reason',
+    _log.info('$reason. Retrying in ${_retryDelay.inSeconds}s ...');
+    await Future.delayed(_retryDelay);
+    return getVerificationCode(
+      username,
+      sentAfter: sentAfter,
+      startedAt: startedAt,
+      attempt: attempt + 1,
     );
   }
 
