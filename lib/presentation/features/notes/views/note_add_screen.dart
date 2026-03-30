@@ -627,6 +627,7 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
   }
 
   Widget _buildQuillToolbar(BuildContext context, bool isCompact) {
+    final isPhoneLandscape = Responsive.isPhoneLandscape(context);
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: QuillSimpleToolbar(
@@ -648,8 +649,8 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
           showSubscript: !isCompact,
           showSuperscript: !isCompact,
           showBackgroundColorButton: !isCompact,
-          showRedo: !isCompact,
-          showSearchButton: !isCompact,
+          showRedo: !isPhoneLandscape,
+          showSearchButton: !isPhoneLandscape,
           buttonOptions: QuillSimpleToolbarButtonOptions(
             search: QuillToolbarSearchButtonOptions(
               customOnPressedCallback: (_) async {
