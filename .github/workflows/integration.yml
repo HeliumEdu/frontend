@@ -75,6 +75,7 @@ jobs:
     env:
       ENVIRONMENT: ${{ inputs.environment || 'dev-local' }}
       INTEGRATION_EMAIL_SUFFIX: github-frontend-${{ github.run_id }}
+      EMAIL_POLL_TIMEOUT_MINUTES: 30
       AWS_INTEGRATION_S3_ACCESS_KEY_ID: ${{ secrets.AWS_INTEGRATION_S3_ACCESS_KEY_ID }}
       AWS_INTEGRATION_S3_SECRET_ACCESS_KEY: ${{ secrets.AWS_INTEGRATION_S3_SECRET_ACCESS_KEY }}
       PLATFORM_EMAIL_HOST_USER: ${{ secrets.PLATFORM_EMAIL_HOST_USER }}
@@ -170,6 +171,7 @@ jobs:
               ENVIRONMENT=${{ env.ENVIRONMENT }} \
               INTEGRATION_LOG_LEVEL=${{ inputs.log_level || 'fine' }} \
               INTEGRATION_EMAIL_SUFFIX="${{ env.INTEGRATION_EMAIL_SUFFIX }}" \
+              EMAIL_POLL_TIMEOUT_MINUTES="${{ env.EMAIL_POLL_TIMEOUT_MINUTES }}" \
               AWS_INTEGRATION_S3_ACCESS_KEY_ID="${{ env.AWS_INTEGRATION_S3_ACCESS_KEY_ID }}" \
               AWS_INTEGRATION_S3_SECRET_ACCESS_KEY="${{ env.AWS_INTEGRATION_S3_SECRET_ACCESS_KEY }}"
           fi
