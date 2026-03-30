@@ -201,7 +201,7 @@ class _NavigationShellState extends State<NavigationShell> {
         return;
       }
 
-      // Skip startup dialogs when landing on a deep link.
+      // Skip startup dialogs when landing on a deep link
       final params =
           router.routerDelegate.currentConfiguration.uri.queryParameters;
       final hasDeepLinkParams =
@@ -321,7 +321,6 @@ class _NavigationShellState extends State<NavigationShell> {
                               page.label,
                               style: AppStyles.smallSecondaryText(context),
                             ),
-                            padding: isPhoneLandscape ? EdgeInsets.zero : null,
                           ),
                         )
                         .toList(),
