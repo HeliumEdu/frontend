@@ -20,7 +20,12 @@
     },
     {
       "matchPackagePatterns": ["^firebase_"],
-      "groupName": "firebase"
+      "groupName": "firebase",
+      "enabled": true
+    },
+    {
+      "matchPackagePatterns": ["^sentry_"],
+      "groupName": "sentry"
     },
     {
       "matchPackagePatterns": ["^syncfusion_"],
