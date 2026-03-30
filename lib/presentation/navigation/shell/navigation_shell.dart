@@ -296,8 +296,6 @@ class _NavigationShellState extends State<NavigationShell> {
         builder: (context, constraints) {
           final useNavigationRail = !Responsive.isMobile(context);
 
-          final isPhoneLandscape = Responsive.isPhoneLandscape(context);
-
           return Scaffold(
             body: Row(
               children: [
