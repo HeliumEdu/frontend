@@ -31,6 +31,8 @@ Map<String, dynamic> givenUserSettingsJson({
   bool rememberFilterState = false,
   bool collapseBusyDays = true,
   int atRiskThreshold = 70,
+  int onTrackTolerance = 10,
+  bool showWeekNumbers = false,
   String? privateSlug,
 }) {
   return {
@@ -53,6 +55,8 @@ Map<String, dynamic> givenUserSettingsJson({
     'remember_filter_state': rememberFilterState,
     'calendar_event_limit': collapseBusyDays,
     'at_risk_threshold': atRiskThreshold,
+    'on_track_tolerance': onTrackTolerance,
+    'show_week_numbers': showWeekNumbers,
     'private_slug': privateSlug,
   };
 }
@@ -149,6 +153,8 @@ void verifyUserSettingsMatchesJson(
   expect(settings.rememberFilterState, equals(json['remember_filter_state']));
   expect(settings.collapseBusyDays, equals(json['calendar_event_limit']));
   expect(settings.atRiskThreshold, equals(json['at_risk_threshold']));
+  expect(settings.onTrackTolerance, equals(json['on_track_tolerance']));
+  expect(settings.showWeekNumbers, equals(json['show_week_numbers']));
   expect(settings.privateSlug, equals(json['private_slug']));
 }
 

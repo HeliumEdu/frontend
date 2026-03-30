@@ -81,6 +81,8 @@ class MockModels {
     bool rememberFilterState = false,
     bool collapseBusyDays = true,
     int atRiskThreshold = 70,
+    int onTrackTolerance = 10,
+    bool showWeekNumbers = false,
     String? privateSlug,
   }) {
     _ensureTzInitialized();
@@ -103,6 +105,8 @@ class MockModels {
       rememberFilterState: rememberFilterState,
       collapseBusyDays: collapseBusyDays,
       atRiskThreshold: atRiskThreshold,
+      onTrackTolerance: onTrackTolerance,
+      showWeekNumbers: showWeekNumbers,
       privateSlug: privateSlug,
       dragAndDropOnMobile: true,
     );

@@ -24,6 +24,8 @@ class UpdateSettingsRequestModel {
   final bool? rememberFilterState;
   final bool? collapseBusyDays;
   final int? atRiskThreshold;
+  final int? onTrackTolerance;
+  final bool? showWeekNumbers;
 
   UpdateSettingsRequestModel({
     this.timeZone,
@@ -44,6 +46,8 @@ class UpdateSettingsRequestModel {
     this.rememberFilterState,
     this.collapseBusyDays,
     this.atRiskThreshold,
+    this.onTrackTolerance,
+    this.showWeekNumbers,
   });
 
   Map<String, dynamic> toJson() {
@@ -102,6 +106,12 @@ class UpdateSettingsRequestModel {
     }
     if (atRiskThreshold != null) {
       json['at_risk_threshold'] = atRiskThreshold;
+    }
+    if (onTrackTolerance != null) {
+      json['on_track_tolerance'] = onTrackTolerance;
+    }
+    if (showWeekNumbers != null) {
+      json['show_week_numbers'] = showWeekNumbers;
     }
 
     return json;

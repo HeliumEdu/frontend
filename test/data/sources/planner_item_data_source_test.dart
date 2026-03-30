@@ -113,6 +113,9 @@ void main() {
       collapseBusyDays: true,
       isSetupComplete: true,
       dragAndDropOnMobile: true,
+      atRiskThreshold: 70,
+      showWeekNumbers: false,
+      onTrackTolerance: 10,
     );
 
     dataSource = PlannerItemDataSource(
@@ -303,6 +306,9 @@ void main() {
           collapseBusyDays: true,
           isSetupComplete: true,
           dragAndDropOnMobile: true,
+          atRiskThreshold: 70,
+          showWeekNumbers: false,
+          onTrackTolerance: 10,
         );
 
         final colorByCategoryDataSource = PlannerItemDataSource(

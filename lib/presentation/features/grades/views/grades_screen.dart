@@ -154,8 +154,8 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
   // Decision variables - adjust these to tune the grade insights
   double get _atRiskThreshold =>
       (userSettings?.atRiskThreshold ?? FallbackConstants.defaultAtRiskThreshold).toDouble();
-  static const double _onTrackTolerance =
-      10.0; // tolerance for "on track" status (work vs time)
+  double get _onTrackTolerance =>
+      (userSettings?.onTrackTolerance ?? FallbackConstants.defaultOnTrackTolerance).toDouble();
   static const double _defaultDesiredGradeBoost =
       5.0; // Default boost above current grade for calculator
   static const double _chartAnimationDurationMs = 250;

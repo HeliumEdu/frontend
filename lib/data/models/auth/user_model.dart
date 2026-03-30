@@ -71,6 +71,8 @@ class UserSettingsModel {
   final bool rememberFilterState;
   final bool collapseBusyDays;
   final int atRiskThreshold;
+  final int onTrackTolerance;
+  final bool showWeekNumbers;
   final String? privateSlug;
 
   UserSettingsModel({
@@ -93,6 +95,8 @@ class UserSettingsModel {
     required this.rememberFilterState,
     required this.collapseBusyDays,
     required this.atRiskThreshold,
+    required this.onTrackTolerance,
+    required this.showWeekNumbers,
     this.privateSlug,
   });
 
@@ -123,6 +127,8 @@ class UserSettingsModel {
       rememberFilterState: json['remember_filter_state'],
       collapseBusyDays: json['calendar_event_limit'],
       atRiskThreshold: json['at_risk_threshold'] ?? FallbackConstants.defaultAtRiskThreshold,
+      onTrackTolerance: json['on_track_tolerance'] ?? FallbackConstants.defaultOnTrackTolerance,
+      showWeekNumbers: json['show_week_numbers'] ?? FallbackConstants.defaultShowWeekNumbers,
       privateSlug: json['private_slug'],
     );
   }
@@ -147,6 +153,8 @@ class UserSettingsModel {
       'remember_filter_state': rememberFilterState,
       'calendar_event_limit': collapseBusyDays,
       'at_risk_threshold': atRiskThreshold,
+      'on_track_tolerance': onTrackTolerance,
+      'show_week_numbers': showWeekNumbers,
       'private_slug': privateSlug,
     };
   }

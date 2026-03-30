@@ -390,6 +390,9 @@ class DioClient {
         ),
         'is_setup_complete': _prefService.getBool('is_setup_complete'),
         'calendar_event_limit': _prefService.getBool('calendar_event_limit'),
+        'at_risk_threshold': _prefService.getInt('at_risk_threshold'),
+        'on_track_tolerance': _prefService.getInt('on_track_tolerance'),
+        'show_week_numbers': _prefService.getBool('show_week_numbers'),
       };
 
       if (cachedJson.values.any((v) => v == null)) {
@@ -472,6 +475,9 @@ class DioClient {
         settings.dragAndDropOnMobile,
       ),
       ?_prefService.setBool('is_setup_complete', settings.isSetupComplete),
+      ?_prefService.setInt('at_risk_threshold', settings.atRiskThreshold),
+      ?_prefService.setInt('on_track_tolerance', settings.onTrackTolerance),
+      ?_prefService.setBool('show_week_numbers', settings.showWeekNumbers),
     ]);
   }
 

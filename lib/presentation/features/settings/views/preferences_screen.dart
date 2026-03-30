@@ -49,6 +49,8 @@ class PreferencesScreenState extends State<PreferencesScreen> {
       TextEditingController();
   final TextEditingController _atRiskThresholdController =
       TextEditingController();
+  final TextEditingController _onTrackToleranceController =
+      TextEditingController();
 
   bool _isLoading = true;
   bool _isSubmitting = false;
@@ -71,6 +73,7 @@ class PreferencesScreenState extends State<PreferencesScreen> {
   bool _isRememberFilterSelection =
       FallbackConstants.defaultRememberFilterState;
   bool _isCollapseBusyDays = FallbackConstants.defaultCollapseBusyDays;
+  bool _isShowWeekNumbers = FallbackConstants.defaultShowWeekNumbers;
 
   @override
   void initState() {
@@ -83,6 +86,7 @@ class PreferencesScreenState extends State<PreferencesScreen> {
   void dispose() {
     _reminderOffsetController.dispose();
     _atRiskThresholdController.dispose();
+    _onTrackToleranceController.dispose();
     super.dispose();
   }
 
@@ -123,7 +127,9 @@ class PreferencesScreenState extends State<PreferencesScreen> {
     final colorByCategory = _isSelectedColorByCategory;
     final rememberFilterState = _isRememberFilterSelection;
     final collapseBusyDays = _isCollapseBusyDays;
+    final showWeekNumbers = _isShowWeekNumbers;
     final atRiskThreshold = int.parse(_atRiskThresholdController.text);
+    final onTrackTolerance = int.parse(_onTrackToleranceController.text);
 
     context.read<AuthBloc>().add(
       UpdateProfileEvent(
@@ -142,7 +148,9 @@ class PreferencesScreenState extends State<PreferencesScreen> {
           defaultReminderOffsetType: reminderOffsetType,
           rememberFilterState: rememberFilterState,
           collapseBusyDays: collapseBusyDays,
+          showWeekNumbers: showWeekNumbers,
           atRiskThreshold: atRiskThreshold,
+          onTrackTolerance: onTrackTolerance,
         ),
       ),
     );
@@ -276,6 +284,20 @@ class PreferencesScreenState extends State<PreferencesScreen> {
               controlAffinity: ListTileControlAffinity.leading,
               contentPadding: EdgeInsets.zero,
             ),
+            CheckboxListTile(
+              title: Text(
+                'Show week numbers',
+                style: AppStyles.formLabel(context),
+              ),
+              value: _isShowWeekNumbers,
+              onChanged: (value) {
+                setState(() {
+                  _isShowWeekNumbers = value!;
+                });
+              },
+              controlAffinity: ListTileControlAffinity.leading,
+              contentPadding: EdgeInsets.zero,
+            ),
 
             _buildSectionHeader('DISPLAY'),
             Row(
@@ -397,6 +419,20 @@ class PreferencesScreenState extends State<PreferencesScreen> {
 
             _buildSectionHeader('GRADES'),
             Text(
+              'On-track tolerance (%)',
+              style: AppStyles.formLabel(context),
+            ),
+            const SizedBox(height: 8),
+            SizedBox(
+              width: 120,
+              child: SpinnerField(
+                controller: _onTrackToleranceController,
+                minValue: 0,
+                maxValue: 100,
+              ),
+            ),
+            const SizedBox(height: 14),
+            Text(
               'At-risk threshold (%)',
               style: AppStyles.formLabel(context),
             ),
@@ -510,6 +546,12 @@ class PreferencesScreenState extends State<PreferencesScreen> {
       _isSelectedColorByCategory = state.user.settings.colorByCategory;
       _isRememberFilterSelection = state.user.settings.rememberFilterState;
       _isCollapseBusyDays = state.user.settings.collapseBusyDays;
+      _isShowWeekNumbers = state.user.settings.showWeekNumbers;
+      if (_onTrackToleranceController.text !=
+          state.user.settings.onTrackTolerance.toString()) {
+        _onTrackToleranceController.text =
+            state.user.settings.onTrackTolerance.toString();
+      }
       if (_atRiskThresholdController.text !=
           state.user.settings.atRiskThreshold.toString()) {
         _atRiskThresholdController.text =

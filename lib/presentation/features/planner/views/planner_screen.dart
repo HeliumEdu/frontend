@@ -623,7 +623,7 @@ class _CalendarScreenState
           controller: _calendarController,
           headerHeight: 0,
           showCurrentTimeIndicator: true,
-          showWeekNumber: !Responsive.isMobile(context),
+          showWeekNumber: userSettings?.showWeekNumbers ?? false,
           allowDragAndDrop:
               _allowCalendarDragAndDrop &&
               (!Responsive.isTouchDevice(context) ||
