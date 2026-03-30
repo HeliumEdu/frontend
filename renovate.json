@@ -15,8 +15,12 @@
       "enabled": false
     },
     {
-      "matchPackagePatterns": ["^syncfusion_flutter_"],
-      "enabled": false
+      "matchPackagePatterns": ["^firebase_"],
+      "groupName": "firebase"
+    },
+    {
+      "matchPackagePatterns": ["^syncfusion_"],
+      "groupName": "syncfusion"
     },
     {
       "matchManagers": ["pub"],
