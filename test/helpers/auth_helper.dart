@@ -16,7 +16,6 @@ Map<String, dynamic> givenUserSettingsJson({
   int defaultView = 0,
   int colorSchemeTheme = 0,
   int weekStartsOn = 0,
-  int allDayOffset = 0,
   int whatsNewVersionSeen = 0,
   String eventsColor = '#4CAF50',
   String resourceColor = '#2196F3',
@@ -38,7 +37,6 @@ Map<String, dynamic> givenUserSettingsJson({
     'default_view': defaultView,
     'color_scheme_theme': colorSchemeTheme,
     'week_starts_on': weekStartsOn,
-    'all_day_offset': allDayOffset,
     'whats_new_version_seen': whatsNewVersionSeen,
     'events_color': eventsColor,
     'material_color': resourceColor,
@@ -131,7 +129,6 @@ void verifyUserSettingsMatchesJson(
   expect(settings.defaultView, equals(json['default_view']));
   expect(settings.weekStartsOn, equals(json['week_starts_on']));
   expect(settings.colorSchemeTheme, equals(json['color_scheme_theme']));
-  expect(settings.allDayOffset, equals(json['all_day_offset']));
   expect(settings.whatsNewVersionSeen, equals(json['whats_new_version_seen']));
   expect(settings.defaultReminderType, equals(json['default_reminder_type']));
   expect(

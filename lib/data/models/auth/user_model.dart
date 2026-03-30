@@ -56,7 +56,6 @@ class UserSettingsModel {
   final int defaultView;
   final int colorSchemeTheme;
   final int weekStartsOn;
-  final int allDayOffset;
   final int whatsNewVersionSeen;
   final bool showGettingStarted;
   final bool isSetupComplete;
@@ -79,7 +78,6 @@ class UserSettingsModel {
     required this.defaultView,
     required this.colorSchemeTheme,
     required this.weekStartsOn,
-    required this.allDayOffset,
     required this.whatsNewVersionSeen,
     required this.showGettingStarted,
     required this.isSetupComplete,
@@ -110,7 +108,6 @@ class UserSettingsModel {
       defaultView: json['default_view'],
       colorSchemeTheme: json['color_scheme_theme'],
       weekStartsOn: json['week_starts_on'],
-      allDayOffset: json['all_day_offset'],
       whatsNewVersionSeen: json['whats_new_version_seen'],
       showGettingStarted: json['show_getting_started'],
       isSetupComplete: json['is_setup_complete'],
@@ -136,7 +133,6 @@ class UserSettingsModel {
       'default_view': defaultView,
       'color_scheme_theme': colorSchemeTheme,
       'week_starts_on': weekStartsOn,
-      'all_day_offset': allDayOffset,
       'show_getting_started': showGettingStarted,
       'is_setup_complete': isSetupComplete,
       'events_color': eventsColor,

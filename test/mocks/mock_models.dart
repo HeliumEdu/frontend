@@ -67,7 +67,6 @@ class MockModels {
     int defaultView = 0,
     int colorSchemeTheme = 0,
     int weekStartsOn = 0,
-    int allDayOffset = 0,
     int whatsNewVersionSeen = 0,
     bool showGettingStarted = false,
     bool isSetupComplete = true,
@@ -81,6 +80,7 @@ class MockModels {
     bool showPlannerTooltips = true,
     bool rememberFilterState = false,
     bool collapseBusyDays = true,
+    int atRiskThreshold = 70,
     String? privateSlug,
   }) {
     _ensureTzInitialized();
@@ -89,7 +89,6 @@ class MockModels {
       defaultView: defaultView,
       colorSchemeTheme: colorSchemeTheme,
       weekStartsOn: weekStartsOn,
-      allDayOffset: allDayOffset,
       whatsNewVersionSeen: whatsNewVersionSeen,
       showGettingStarted: showGettingStarted,
       isSetupComplete: isSetupComplete,
@@ -103,6 +102,7 @@ class MockModels {
       showPlannerTooltips: showPlannerTooltips,
       rememberFilterState: rememberFilterState,
       collapseBusyDays: collapseBusyDays,
+      atRiskThreshold: atRiskThreshold,
       privateSlug: privateSlug,
       dragAndDropOnMobile: true,
     );

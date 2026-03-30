@@ -41,7 +41,6 @@ class FallbackConstants {
   static const defaultReminderOffsetType = 0; // Minutes
   static const defaultColorByCategory = false;
   static const defaultColorSchemeTheme = 2; // System
-  static const defaultAllDayOffset = 0;
   static const defaultWhatsNewVersionSeen = 0;
   static const defaultShowGettingStarted = false;
   static const defaultEventsColor = Color(0xffe74674);

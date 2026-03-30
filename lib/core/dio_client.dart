@@ -368,7 +368,6 @@ class DioClient {
         'default_view': _prefService.getInt('default_view'),
         'color_scheme_theme': _prefService.getInt('color_scheme_theme'),
         'week_starts_on': _prefService.getInt('week_starts_on'),
-        'all_day_offset': _prefService.getInt('all_day_offset'),
         'whats_new_version_seen': _prefService.getInt('whats_new_version_seen'),
         'show_getting_started': _prefService.getBool('show_getting_started'),
         'events_color': _prefService.getString('events_color'),
@@ -424,7 +423,6 @@ class DioClient {
       ?_prefService.setInt('default_view', settings.defaultView),
       ?_prefService.setInt('color_scheme_theme', settings.colorSchemeTheme),
       ?_prefService.setInt('week_starts_on', settings.weekStartsOn),
-      ?_prefService.setInt('all_day_offset', settings.allDayOffset),
       ?_prefService.setString(
         'events_color',
         HeliumColors.colorToHex(settings.eventsColor),
