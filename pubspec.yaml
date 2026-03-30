@@ -65,11 +65,10 @@ dev_dependencies:
     sdk: flutter
   integration_test:
     sdk: flutter
-  test_api: 0.7.9
+  test_api: ^0.7.0
   flutter_launcher_icons: 0.14.4
   flutter_native_splash: 2.4.7
   flutter_lints: 6.0.0
-  shared_preferences_platform_interface: 2.4.1
   firebase_core_platform_interface: 6.0.2
   bloc_test: 10.0.0
   mocktail: 1.0.4

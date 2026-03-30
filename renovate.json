@@ -11,6 +11,10 @@
   "platformAutomerge": true,
   "packageRules": [
     {
+      "matchDepTypes": ["dev_dependencies"],
+      "enabled": false
+    },
+    {
       "matchUpdateTypes": ["major"],
       "enabled": false
     },
