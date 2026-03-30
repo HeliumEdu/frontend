@@ -4,6 +4,7 @@
   "dependencyDashboard": false,
   "prHourlyLimit": 0,
   "rangeStrategy": "bump",
+  "ignoreDeps": ["dart"],
   "timezone": "America/Chicago",
   "schedule": ["at any time"],
   "enabledManagers": ["pub"],
