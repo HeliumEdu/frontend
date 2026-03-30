@@ -201,7 +201,7 @@ class _NavigationShellState extends State<NavigationShell> {
         return;
       }
 
-      // Skip startup dialogs when landing on a deep link.
+      // Skip startup dialogs when landing on a deep link
       final params =
           router.routerDelegate.currentConfiguration.uri.queryParameters;
       final hasDeepLinkParams =
@@ -296,8 +296,6 @@ class _NavigationShellState extends State<NavigationShell> {
         builder: (context, constraints) {
           final useNavigationRail = !Responsive.isMobile(context);
 
-          final isPhoneLandscape = Responsive.isPhoneLandscape(context);
-
           return Scaffold(
             body: Row(
               children: [
@@ -307,9 +305,7 @@ class _NavigationShellState extends State<NavigationShell> {
                     selectedIndex: currentPage.index,
                     onDestinationSelected: (index) =>
                         _onDestinationSelected(context, index),
-                    labelType: isPhoneLandscape
-                        ? NavigationRailLabelType.selected
-                        : NavigationRailLabelType.all,
+                    labelType: NavigationRailLabelType.all,
                     destinations: NavigationPage.values
                         .map(
                           (page) => NavigationRailDestination(
@@ -321,7 +317,6 @@ class _NavigationShellState extends State<NavigationShell> {
                               page.label,
                               style: AppStyles.smallSecondaryText(context),
                             ),
-                            padding: isPhoneLandscape ? EdgeInsets.zero : null,
                           ),
                         )
                         .toList(),
