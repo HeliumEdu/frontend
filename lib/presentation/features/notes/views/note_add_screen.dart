@@ -526,7 +526,7 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
 
   Widget _buildEditorContainer(BuildContext context, bool isCompact) {
     return Padding(
-      padding: const EdgeInsets.only(top: 4, bottom: 8),
+      padding: EdgeInsets.only(top: 4, bottom: isCompact ? 2 : 10),
       child: Container(
         decoration: BoxDecoration(
           color: context.colorScheme.surface,
