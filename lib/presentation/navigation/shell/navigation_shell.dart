@@ -197,8 +197,9 @@ class _NavigationShellState extends State<NavigationShell> {
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       // Double-check we're still authenticated before showing dialogs
-      if (!mounted || _isLoggingOut || !await DioClient().isAuthenticated())
+      if (!mounted || _isLoggingOut || !await DioClient().isAuthenticated()) {
         return;
+      }
 
       // Skip startup dialogs when landing on a deep link.
       final params =
@@ -469,8 +470,10 @@ class _NavigationShellState extends State<NavigationShell> {
               url: AppConstants.patreonUrl,
             ),
           ],
-          const SizedBox(width: 40, child: Divider()),
-          settingsButton,
+          if (!PageHeader.showSettingsInHeader(context)) ...[
+            const SizedBox(width: 40, child: Divider()),
+            settingsButton,
+          ],
         ],
       ),
     );

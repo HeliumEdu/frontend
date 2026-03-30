@@ -476,100 +476,109 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
 
     final isCompact = Responsive.useCompactLayout(context);
 
-    return Expanded(
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          // Reserve space for title row, padding, toolbar, and divider
-          const double titleRowHeight = 60;
-          const double containerPadding = 12;
-          const double toolbarHeight = 50;
-          const double dividerHeight = 1;
-          const double minEditorHeight = 150;
-          const double overhead =
-              titleRowHeight + containerPadding + toolbarHeight + dividerHeight;
+    if (isCompact) {
+      return Expanded(child: _buildCompactLayout(context, isCompact));
+    }
+    return Expanded(child: _buildDesktopLayout(context, isCompact));
+  }
 
-          final editorHeight =
-              (constraints.maxHeight - overhead).clamp(minEditorHeight, double.infinity);
+  Widget _buildDesktopLayout(BuildContext context, bool isCompact) {
+    return Form(
+      key: _formController.formKey,
+      child: Column(
+        children: [
+          _buildTitleRow(context),
+          Expanded(child: _buildEditorContainer(context, isCompact)),
+        ],
+      ),
+    );
+  }
 
-          return SingleChildScrollView(
-            child: ConstrainedBox(
-              constraints: BoxConstraints(minHeight: constraints.maxHeight),
-              child: Form(
-                key: _formController.formKey,
-                child: Column(
-                  children: [
-                    _buildTitleRow(context),
-                    Padding(
-                      padding: const EdgeInsets.only(top: 4, bottom: 8),
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: context.colorScheme.surface,
-                          border: Border.all(
-                            color: context.colorScheme.outline
-                                .withValues(alpha: 0.2),
-                          ),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(8),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              _buildQuillToolbar(context, isCompact),
-                              const Divider(height: 1),
-                              SizedBox(
-                                height: editorHeight,
-                                child: QuillEditor.basic(
-                                  controller: _quillController,
-                                  focusNode: _editorFocusNode,
-                                  config: QuillEditorConfig(
-                                    padding: const EdgeInsets.all(12),
-                                    autoFocus: false,
-                                    expands: true,
-                                    customStyles:
-                                        NotesEditor.buildDefaultStyles(context),
-                                    scrollBottomInset:
-                                        MediaQuery.of(context).viewInsets.bottom,
-                                    // ignore: experimental_member_use
-                                    onKeyPressed: (event, node) {
-                                      final isFindShortcut = event.logicalKey ==
-                                              LogicalKeyboardKey.keyF &&
-                                          (HardwareKeyboard
-                                                  .instance.isMetaPressed ||
-                                              HardwareKeyboard
-                                                  .instance.isControlPressed);
-                                      if (isFindShortcut) {
-                                        setState(
-                                          () => _showSearch = !_showSearch,
-                                        );
-                                        return KeyEventResult.handled;
-                                      }
-                                      return null;
-                                    },
-                                  ),
-                                ),
-                              ),
-                              if (_showSearch)
-                                QuillSearchBar(
-                                  controller: _quillController,
-                                  onClose: () {
-                                    setState(() {
-                                      _showSearch = false;
-                                    });
-                                  },
-                                ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
+  Widget _buildCompactLayout(BuildContext context, bool isCompact) {
+    const double titleRowHeight = 64;
+    const double minEditorContainerHeight = 260;
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final editorContainerHeight =
+            (constraints.maxHeight - titleRowHeight).clamp(
+          minEditorContainerHeight,
+          double.infinity,
+        );
+
+        return SingleChildScrollView(
+          child: Form(
+            key: _formController.formKey,
+            child: Column(
+              children: [
+                _buildTitleRow(context),
+                SizedBox(
+                  height: editorContainerHeight,
+                  child: _buildEditorContainer(context, isCompact),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildEditorContainer(BuildContext context, bool isCompact) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 4, bottom: 8),
+      child: Container(
+        decoration: BoxDecoration(
+          color: context.colorScheme.surface,
+          border: Border.all(
+            color: context.colorScheme.outline.withValues(alpha: 0.2),
+          ),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(8),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              _buildQuillToolbar(context, isCompact),
+              const Divider(height: 1),
+              Expanded(
+                child: QuillEditor.basic(
+                  controller: _quillController,
+                  focusNode: _editorFocusNode,
+                  config: QuillEditorConfig(
+                    padding: const EdgeInsets.all(12),
+                    autoFocus: false,
+                    expands: true,
+                    customStyles: NotesEditor.buildDefaultStyles(context),
+                    scrollBottomInset: MediaQuery.of(context).viewInsets.bottom,
+                    // ignore: experimental_member_use
+                    onKeyPressed: (event, node) {
+                      final isFindShortcut =
+                          event.logicalKey == LogicalKeyboardKey.keyF &&
+                              (HardwareKeyboard.instance.isMetaPressed ||
+                                  HardwareKeyboard.instance.isControlPressed);
+                      if (isFindShortcut) {
+                        setState(() => _showSearch = !_showSearch);
+                        return KeyEventResult.handled;
+                      }
+                      return null;
+                    },
+                  ),
                 ),
               ),
-            ),
-          );
-        },
+              if (_showSearch)
+                QuillSearchBar(
+                  controller: _quillController,
+                  onClose: () {
+                    setState(() {
+                      _showSearch = false;
+                    });
+                  },
+                ),
+            ],
+          ),
+        ),
       ),
     );
   }
