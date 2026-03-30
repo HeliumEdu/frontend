@@ -24,7 +24,7 @@ class AppConstants {
   static const externalCalendarIcon = Icons.hub;
 
   static const authContainerSize = 120.0;
-  static const minHeightForTrailingNav = 500.0;
+  static const minHeightForTrailingNav = 550.0;
   static const leftPanelDialogWidth = 500.0;
   static const notificationsDialogWidth = 420.0;
   static const centeredDialogWidth = 550.0;

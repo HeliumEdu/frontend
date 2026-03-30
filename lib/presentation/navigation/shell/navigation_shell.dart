@@ -296,9 +296,6 @@ class _NavigationShellState extends State<NavigationShell> {
           final useNavigationRail = !Responsive.isMobile(context);
 
           final isPhoneLandscape = Responsive.isPhoneLandscape(context);
-          final destinationPadding = isPhoneLandscape
-              ? const EdgeInsets.symmetric(vertical: 0)
-              : const EdgeInsets.symmetric(vertical: 8);
 
           return Scaffold(
             body: Row(
@@ -323,7 +320,9 @@ class _NavigationShellState extends State<NavigationShell> {
                               page.label,
                               style: AppStyles.smallSecondaryText(context),
                             ),
-                            padding: destinationPadding,
+                            padding: isPhoneLandscape
+                                ? EdgeInsets.zero
+                                : null,
                           ),
                         )
                         .toList(),
