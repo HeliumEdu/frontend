@@ -11,12 +11,20 @@
   "platformAutomerge": true,
   "packageRules": [
     {
+      "matchDepTypes": ["dev_dependencies"],
+      "enabled": false
+    },
+    {
       "matchUpdateTypes": ["major"],
       "enabled": false
     },
     {
-      "matchPackagePatterns": ["^syncfusion_flutter_"],
-      "enabled": false
+      "matchPackagePatterns": ["^firebase_"],
+      "groupName": "firebase"
+    },
+    {
+      "matchPackagePatterns": ["^syncfusion_"],
+      "groupName": "syncfusion"
     },
     {
       "matchManagers": ["pub"],
