@@ -3,7 +3,7 @@
   "extends": ["config:recommended"],
   "dependencyDashboard": false,
   "timezone": "America/Chicago",
-  "schedule": ["before 6am on monday"],
+  "schedule": ["at any time"],
   "enabledManagers": ["pub"],
   "platformAutomerge": true,
   "packageRules": [
