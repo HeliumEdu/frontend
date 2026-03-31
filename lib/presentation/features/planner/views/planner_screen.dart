@@ -14,6 +14,7 @@ import 'package:go_router/go_router.dart';
 import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/core/dio_client.dart';
+import 'package:heliumapp/core/helium_exception.dart';
 import 'package:heliumapp/data/models/auth/user_model.dart';
 import 'package:heliumapp/data/models/id_or_entity.dart';
 import 'package:heliumapp/data/models/planner/attachment_model.dart';
@@ -59,6 +60,7 @@ import 'package:heliumapp/presentation/features/planner/bloc/planneritem_bloc.da
 import 'package:heliumapp/presentation/features/planner/bloc/planneritem_event.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/planneritem_state.dart';
 import 'package:heliumapp/presentation/features/planner/dialogs/confirm_delete_dialog.dart';
+import 'package:heliumapp/presentation/features/planner/dialogs/course_schedule_event_dialog.dart';
 import 'package:heliumapp/presentation/features/planner/views/planner_item_add_screen.dart';
 import 'package:heliumapp/presentation/features/planner/widgets/day_popout_dialog.dart';
 import 'package:heliumapp/presentation/features/planner/widgets/todos_data_grid.dart';
@@ -301,6 +303,9 @@ class _CalendarScreenState
 
           if (_courses.isNotEmpty) {
             _plannerItemDataSource!.courses = _courses;
+            _plannerItemDataSource!.courseGroupsById = {
+              for (final g in _courseGroups) g.id: g,
+            };
             _plannerItemDataSource!.categoriesMap = _categoriesMap;
           }
 
@@ -734,9 +739,15 @@ class _CalendarScreenState
     );
   }
 
-  bool _openPlannerItem(PlannerItemBaseModel plannerItem) {
+  bool _openPlannerItem(
+    PlannerItemBaseModel plannerItem, {
+    DateTime? occurrenceDate,
+  }) {
     if (plannerItem is CourseScheduleEventModel) {
-      _showEditClassScheduleEventSnackBar(plannerItem.ownerId);
+      _showCourseScheduleEventDialog(
+        plannerItem,
+        occurrenceDate ?? plannerItem.start,
+      );
       return false;
     } else if (plannerItem is ExternalCalendarEventModel) {
       _showEditExternalCalendarEventSnackBar();
@@ -1510,7 +1521,7 @@ class _CalendarScreenState
 
     Feedback.forTap(context);
 
-    _openPlannerItem(plannerItem);
+    _openPlannerItem(plannerItem, occurrenceDate: tapDetails.date);
   }
 
   void _dropCalendarItem(AppointmentDragEndDetails dropDetails) {
@@ -1593,7 +1604,7 @@ class _CalendarScreenState
         );
       }
     } else if (plannerItem is CourseScheduleEventModel) {
-      _showEditClassScheduleEventSnackBar(plannerItem.ownerId);
+      _showCourseScheduleEventDialog(plannerItem, dropDetails.droppingTime!);
     } else if (plannerItem is ExternalCalendarEventModel) {
       _showEditExternalCalendarEventSnackBar();
     }
@@ -1682,7 +1693,7 @@ class _CalendarScreenState
         );
       }
     } else if (plannerItem is CourseScheduleEventModel) {
-      _showEditClassScheduleEventSnackBar(plannerItem.ownerId);
+      _showCourseScheduleEventDialog(plannerItem, resizeDetails.startTime!);
     } else if (plannerItem is ExternalCalendarEventModel) {
       _showEditExternalCalendarEventSnackBar();
     }
@@ -1859,7 +1870,7 @@ class _CalendarScreenState
         Responsive.isTouchDevice(context) &&
         !isInAgenda) {
       calendarItemWidget = GestureDetector(
-        onTap: () => _openPlannerItem(plannerItem),
+        onTap: () => _openPlannerItem(plannerItem, occurrenceDate: details.date),
         onLongPress: () {},
         child: calendarItemWidget,
       );
@@ -1959,14 +1970,10 @@ class _CalendarScreenState
     final mutedIconColor = context.colorScheme.onSurface.withValues(
       alpha: 0.75,
     );
-    final rows = <_PlannerTooltipRow>[
-      _PlannerTooltipRow.text(
-        icon: _isRecurringPlannerItem(plannerItem)
-            ? Icons.repeat
-            : Icons.access_time,
-        text: _buildTooltipWhenLine(plannerItem),
-      ),
-    ];
+    final whenIcon = _isRecurringPlannerItem(plannerItem)
+        ? Icons.repeat
+        : Icons.access_time;
+    final rows = <_PlannerTooltipRow>[];
     final location = _plannerItemDataSource?.getLocationForItem(plannerItem);
 
     if (!hideLocation &&
@@ -2056,10 +2063,6 @@ class _CalendarScreenState
       );
     }
 
-    if (rows.isEmpty) {
-      return null;
-    }
-
     final typeIcon = plannerItem is HomeworkModel
         ? AppConstants.assignmentIcon
         : plannerItem is EventModel
@@ -2088,32 +2091,44 @@ class _CalendarScreenState
         ),
       ),
       const TextSpan(text: '\n'),
+      WidgetSpan(
+        alignment: PlaceholderAlignment.middle,
+        child: Icon(whenIcon, size: 14, color: mutedIconColor),
+      ),
+      TextSpan(
+        text: ' ${_buildTooltipWhenLine(plannerItem)}',
+        style: bodyStyle,
+      ),
     ];
 
-    for (int i = 0; i < rows.length; i++) {
-      final row = rows[i];
-      if (row.widget != null) {
-        children.add(
-          WidgetSpan(
-            alignment: PlaceholderAlignment.middle,
-            child: row.widget!,
-          ),
-        );
-      } else {
-        children.add(
-          WidgetSpan(
-            alignment: PlaceholderAlignment.middle,
-            child: Icon(
-              row.icon!,
-              size: 14,
-              color: row.color ?? mutedIconColor,
+    if (rows.isNotEmpty) {
+      children.add(const TextSpan(text: '\n'));
+
+      for (int i = 0; i < rows.length; i++) {
+        final row = rows[i];
+        if (row.widget != null) {
+          children.add(
+            WidgetSpan(
+              alignment: PlaceholderAlignment.middle,
+              child: row.widget!,
             ),
-          ),
-        );
-        children.add(TextSpan(text: ' ${row.text}', style: bodyStyle));
-      }
-      if (i != rows.length - 1) {
-        children.add(const TextSpan(text: '\n'));
+          );
+        } else {
+          children.add(
+            WidgetSpan(
+              alignment: PlaceholderAlignment.middle,
+              child: Icon(
+                row.icon!,
+                size: 14,
+                color: row.color ?? mutedIconColor,
+              ),
+            ),
+          );
+          children.add(TextSpan(text: ' ${row.text}', style: bodyStyle));
+        }
+        if (i != rows.length - 1) {
+          children.add(const TextSpan(text: '\n'));
+        }
       }
     }
 
@@ -2728,19 +2743,57 @@ class _CalendarScreenState
     );
   }
 
-  void _showEditClassScheduleEventSnackBar(String courseId) {
-    showSnackBar(
-      context,
-      'Edit the Class to change its Schedule',
-      seconds: 4,
-      action: SnackBarAction(
-        label: 'Go',
-        textColor: context.semanticColors.onInfo,
-        onPressed: () {
-          context.go('${AppRoute.coursesScreen}?id=$courseId&${DeepLinkParam.tab}=2');
+  void _showCourseScheduleEventDialog(
+    CourseScheduleEventModel event,
+    DateTime occurrenceDate,
+  ) {
+    final courseId = int.tryParse(event.ownerId);
+    if (courseId == null) return;
+
+    final course = _courses.firstWhereOrNull((c) => c.id == courseId);
+    if (course == null) return;
+
+    final courseGroup = _courseGroups.firstWhereOrNull(
+      (g) => g.id == course.courseGroup,
+    );
+
+    showCourseScheduleEventDialog(
+      context: context,
+      courseTitle: course.title,
+      courseColor: course.color,
+      occurrenceDate: occurrenceDate,
+      actions: CourseScheduleEventActions(
+        onSkip: (date) async {
+          final updated = [
+            ...course.exceptions,
+            date,
+          ]..sort();
+          try {
+            await context
+                .read<PlannerItemBloc>()
+                .courseRepository
+                .updateCourseExceptions(course.courseGroup, courseId, updated);
+            await _plannerItemDataSource?.refreshCalendarSources(
+              visibleStart: _visibleDates.isNotEmpty ? _visibleDates.first : null,
+              visibleEnd: _visibleDates.isNotEmpty ? _visibleDates.last : null,
+            );
+          } on HeliumException catch (e) {
+            if (mounted) {
+              showSnackBar(context, e.displayMessage, type: SnackType.error);
+            }
+          } catch (e) {
+            if (mounted) {
+              showSnackBar(context, 'An unexpected error occurred.', type: SnackType.error);
+            }
+          }
+        },
+        websiteUrl: course.website.isNotEmpty ? course.website : null,
+        onEditSchedule: () {
+          context.go(
+            '${AppRoute.coursesScreen}?id=${event.ownerId}&${DeepLinkParam.tab}=2',
+          );
         },
       ),
-      type: SnackType.info,
     );
   }
 
@@ -2847,6 +2900,9 @@ class _CalendarScreenState
 
       if (_plannerItemDataSource != null) {
         _plannerItemDataSource!.courses = _courses;
+        _plannerItemDataSource!.courseGroupsById = {
+          for (final g in _courseGroups) g.id: g,
+        };
         _plannerItemDataSource!.categoriesMap = _categoriesMap;
       }
 

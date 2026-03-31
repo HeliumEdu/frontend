@@ -746,6 +746,7 @@ class TodosDataSource extends DataGridSource with SortableDataGridSource {
       courseGroup: 0,
       currentGrade: null,
       schedules: const [],
+      exceptions: const [],
     );
   }
 

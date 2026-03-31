@@ -158,6 +158,7 @@ class MockModels {
       startDate: startDate ?? DateTime.parse('2025-08-25'),
       endDate: endDate ?? DateTime.parse('2025-12-15'),
       shownOnCalendar: shownOnCalendar,
+      exceptions: const [],
       averageGrade: averageGrade,
       numDays: numDays,
       numDaysCompleted: numDaysCompleted,
@@ -237,6 +238,7 @@ class MockModels {
       teacherEmail: teacherEmail,
       currentGrade: currentGrade,
       schedules: schedules ?? [createCourseSchedule(course: id)],
+      exceptions: const [],
     );
   }
 

@@ -15,6 +15,7 @@ import 'package:heliumapp/config/pref_service.dart';
 import 'package:heliumapp/data/models/auth/user_model.dart';
 import 'package:heliumapp/data/models/planner/planner_item_base_model.dart';
 import 'package:heliumapp/data/models/planner/category_model.dart';
+import 'package:heliumapp/data/models/planner/course_group_model.dart';
 import 'package:heliumapp/data/models/planner/course_model.dart';
 import 'package:heliumapp/data/models/planner/course_schedule_event_model.dart';
 import 'package:heliumapp/data/models/planner/event_model.dart';
@@ -51,6 +52,7 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
   UserSettingsModel userSettings;
 
   List<CourseModel>? courses;
+  Map<int, CourseGroupModel>? courseGroupsById;
   Map<int, CategoryModel>? categoriesMap;
 
   final Map<String, List<PlannerItemBaseModel>> _dateRangeCache = {};
@@ -275,6 +277,7 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
               color: appointment.color,
               ownerId: appointment.ownerId,
               recurrenceRule: appointment.recurrenceRule,
+              exceptionDates: appointment.exceptionDates,
             ),
           );
         }
@@ -386,6 +389,15 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
     return null;
   }
 
+  @override
+  List<DateTime>? getRecurrenceExceptionDates(int index) {
+    final item = _getData(index);
+    if (item is CourseScheduleEventModel && item.exceptionDates.isNotEmpty) {
+      return item.exceptionDates;
+    }
+    return null;
+  }
+
   Color getColorForItem(PlannerItemBaseModel plannerItem) {
     if (plannerItem is EventModel) {
       return userSettings.eventsColor;
@@ -469,6 +481,7 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
           courses: courses ?? [],
           from: startDate,
           to: endDate,
+          courseGroupsById: courseGroupsById,
           shownOnCalendar: true,
           forceRefresh: forceRefresh,
         ),

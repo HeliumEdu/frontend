@@ -15,9 +15,11 @@ import 'package:heliumapp/presentation/features/shared/bloc/core/base_event.dart
 import 'package:heliumapp/presentation/features/courses/bloc/course_bloc.dart';
 import 'package:heliumapp/presentation/features/courses/bloc/course_event.dart';
 import 'package:heliumapp/presentation/features/courses/bloc/course_state.dart';
+import 'package:heliumapp/presentation/features/courses/dialogs/course_exceptions_dialog.dart';
 import 'package:heliumapp/presentation/ui/dialogs/base_dialog_state.dart';
 import 'package:heliumapp/presentation/features/shared/controllers/basic_form_controller.dart';
 import 'package:heliumapp/presentation/features/courses/controllers/course_group_form_controller.dart';
+import 'package:heliumapp/presentation/ui/components/helium_elevated_button.dart';
 import 'package:heliumapp/presentation/ui/components/label_and_text_form_field.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/config/app_theme.dart';
@@ -36,6 +38,7 @@ class _CourseGroupProvidedWidget extends StatefulWidget {
 class _CourseGroupWidgetState
     extends BaseDialogState<_CourseGroupProvidedWidget> {
   final CourseGroupFormController _formController = CourseGroupFormController();
+  late List<DateTime> _groupExceptions;
 
   @override
   String get dialogTitle => 'Class Group';
@@ -52,7 +55,9 @@ class _CourseGroupWidgetState
       _formController.startDate = widget.group!.startDate;
       _formController.endDate = widget.group!.endDate;
       _formController.shownOnCalendar = widget.group!.shownOnCalendar!;
+      _groupExceptions = List<DateTime>.from(widget.group!.exceptions);
     } else {
+      _groupExceptions = [];
       _formController.titleController.clear();
       _formController.startDate = DateTime.now();
       _formController.endDate = DateTime.now().add(const Duration(days: 30));
@@ -214,6 +219,30 @@ class _CourseGroupWidgetState
             ),
           ],
         ),
+        if (widget.isEdit) ...[
+          const SizedBox(height: 14),
+          HeliumElevatedButton(
+            buttonText: 'Holidays & Breaks',
+            backgroundColor: context.colorScheme.outline,
+            onPressed: () async {
+              await showCourseGroupExceptionsDialog(
+                context: context,
+                exceptions: _groupExceptions,
+                onSave: (exceptions) async {
+                  await context.read<CourseBloc>().courseRepository.updateCourseGroupExceptions(
+                    widget.group!.id,
+                    exceptions,
+                  );
+                  if (context.mounted) {
+                    setState(() => _groupExceptions = exceptions);
+                  }
+                },
+                firstDate: widget.group!.startDate,
+                lastDate: widget.group!.endDate,
+              );
+            },
+          ),
+        ],
       ],
     );
   }

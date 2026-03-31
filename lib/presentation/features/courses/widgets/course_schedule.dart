@@ -9,12 +9,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/data/models/planner/request/course_schedule_request_model.dart';
+import 'package:heliumapp/presentation/features/courses/dialogs/course_exceptions_dialog.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/core/base_event.dart';
 import 'package:heliumapp/presentation/features/courses/bloc/course_bloc.dart';
 import 'package:heliumapp/presentation/features/courses/bloc/course_event.dart';
 import 'package:heliumapp/presentation/features/courses/bloc/course_state.dart';
 import 'package:heliumapp/utils/snack_bar_helpers.dart';
 import 'package:heliumapp/presentation/features/shared/widgets/flow/multi_step_container.dart';
+import 'package:heliumapp/presentation/ui/components/helium_elevated_button.dart';
 import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/app_style.dart';
@@ -54,12 +56,26 @@ class CourseScheduleState extends State<CourseSchedule> {
   final Map<int, TimeOfDay?> _startTimes = {};
   final Map<int, TimeOfDay?> _endTimes = {};
 
+  List<DateTime> _courseExceptions = [];
+  List<DateTime> _courseGroupExceptions = [];
+  DateTime? _courseStartDate;
+  DateTime? _courseEndDate;
+  String? _courseTitle;
+
   @override
   void initState() {
     super.initState();
 
     context.read<CourseBloc>().add(
       FetchCourseScheduleEvent(
+        origin: EventOrigin.subScreen,
+        courseGroupId: widget.courseGroupId,
+        courseId: widget.courseId,
+      ),
+    );
+
+    context.read<CourseBloc>().add(
+      FetchCourseScreenDataEvent(
         origin: EventOrigin.subScreen,
         courseGroupId: widget.courseGroupId,
         courseId: widget.courseId,
@@ -95,6 +111,14 @@ class CourseScheduleState extends State<CourseSchedule> {
       listener: (context, state) {
         if (state is CourseScheduleFetched) {
           _populateInitialStateData(state);
+        } else if (state is CourseScreenDataFetched) {
+          setState(() {
+            _courseExceptions = state.course?.exceptions ?? [];
+            _courseGroupExceptions = state.courseGroup.exceptions;
+            _courseStartDate = state.course?.startDate;
+            _courseEndDate = state.course?.endDate;
+            _courseTitle = state.course?.title;
+          });
         }
       },
       child: _buildContent(context),
@@ -234,6 +258,8 @@ class CourseScheduleState extends State<CourseSchedule> {
                   const SizedBox(height: 16),
                   _buildSingleTimeContainer(context, scaffoldBgColor),
                 ],
+                const SizedBox(height: 25),
+                _buildCancellationsButton(context),
               ],
             ),
           ),
@@ -380,6 +406,41 @@ class CourseScheduleState extends State<CourseSchedule> {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildCancellationsButton(BuildContext context) {
+    if (!widget.isEdit) return const SizedBox.shrink();
+
+    return HeliumElevatedButton(
+      buttonText: 'Class Cancellations',
+      backgroundColor: context.colorScheme.outline,
+      onPressed: () async {
+        await showCourseExceptionsDialog(
+          context: context,
+          courseTitle: _courseTitle ?? '',
+          courseExceptions: _courseExceptions,
+          onSave: (exceptions) async {
+            await context.read<CourseBloc>().courseRepository.updateCourseExceptions(
+              widget.courseGroupId,
+              widget.courseId,
+              exceptions,
+            );
+            if (context.mounted) {
+              context.read<CourseBloc>().add(
+                FetchCourseScreenDataEvent(
+                  origin: EventOrigin.subScreen,
+                  courseGroupId: widget.courseGroupId,
+                  courseId: widget.courseId,
+                ),
+              );
+            }
+          },
+          courseGroupExceptions: _courseGroupExceptions,
+          firstDate: _courseStartDate,
+          lastDate: _courseEndDate,
+        );
+      },
     );
   }
 
