@@ -25,6 +25,26 @@ class PlannerBloc extends Bloc<PlannerEvent, PlannerState> {
     required this.categoryRepository,
   }) : super(PlannerInitial(origin: EventOrigin.bloc)) {
     on<FetchPlannerScreenDataEvent>(_onFetchPlannerScreenDataEvent);
+    on<SkipCourseOccurrenceEvent>(_onSkipCourseOccurrence);
+  }
+
+  Future<void> _onSkipCourseOccurrence(
+    SkipCourseOccurrenceEvent event,
+    Emitter<PlannerState> emit,
+  ) async {
+    try {
+      final exceptions = [...event.course.exceptions, event.date]..sort();
+      await courseRepository.updateCourseExceptions(
+        event.course.courseGroup,
+        event.course.id,
+        exceptions,
+      );
+      emit(CourseOccurrenceSkipped(origin: event.origin));
+    } on HeliumException catch (e) {
+      emit(PlannerError(origin: event.origin, message: e.displayMessage));
+    } catch (e) {
+      emit(PlannerError(origin: event.origin, message: 'An unexpected error occurred.'));
+    }
   }
 
   Future<void> _onFetchPlannerScreenDataEvent(

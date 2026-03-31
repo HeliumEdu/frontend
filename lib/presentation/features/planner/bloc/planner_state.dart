@@ -39,3 +39,7 @@ class PlannerScreenDataFetched extends PlannerState {
     required this.categories,
   });
 }
+
+class CourseOccurrenceSkipped extends PlannerState {
+  CourseOccurrenceSkipped({required super.origin});
+}
