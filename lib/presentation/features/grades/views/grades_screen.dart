@@ -928,7 +928,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
                       ),
                       if (sortedCourses.length > 1) ...[
                         const SizedBox(width: 4),
-                        Icon(Icons.loop, size: 12, color: displayCourse.color),
+                        Icon(Icons.swap_horiz, size: 12, color: displayCourse.color),
                       ],
                     ],
                   ),
