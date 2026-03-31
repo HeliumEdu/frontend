@@ -13,8 +13,9 @@ class FetchAttachmentsEvent extends AttachmentEvent {
   int? eventId;
   int? homeworkId;
   int? courseId;
+  bool forceRefresh;
 
-  FetchAttachmentsEvent({this.eventId, this.homeworkId, this.courseId});
+  FetchAttachmentsEvent({this.eventId, this.homeworkId, this.courseId, this.forceRefresh = false});
 }
 
 class CreateAttachmentEvent extends AttachmentEvent {

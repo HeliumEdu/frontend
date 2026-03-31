@@ -46,10 +46,11 @@ class _CourseRemindersContent extends BaseRemindersContent {
 class _CourseRemindersState
     extends BaseReminderWidgetState<_CourseRemindersContent> {
   @override
-  FetchRemindersEvent createFetchRemindersEvent() {
+  FetchRemindersEvent createFetchRemindersEvent({bool forceRefresh = false}) {
     return FetchRemindersEvent(
       origin: EventOrigin.subScreen,
       courseId: widget.entityId,
+      forceRefresh: forceRefresh,
     );
   }
 

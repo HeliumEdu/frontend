@@ -479,7 +479,7 @@ class _CalendarScreenState
             message: state.message!,
             source: 'planner_screen',
             onReload: () {
-              context.read<PlannerBloc>().add(FetchPlannerScreenDataEvent(origin: EventOrigin.screen));
+              context.read<PlannerBloc>().add(FetchPlannerScreenDataEvent(origin: EventOrigin.screen, forceRefresh: true));
             },
           );
         }

@@ -21,11 +21,13 @@ class AttachmentRepositoryImpl implements AttachmentRepository {
     int? eventId,
     int? homeworkId,
     int? courseId,
+    bool forceRefresh = false,
   }) async {
     return remoteDataSource.getAttachments(
       eventId: eventId,
       homeworkId: homeworkId,
       courseId: courseId,
+      forceRefresh: forceRefresh,
     );
   }
 

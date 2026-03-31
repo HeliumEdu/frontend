@@ -93,7 +93,7 @@ abstract class BaseReminderWidgetState<T extends BaseRemindersContent>
   bool isLoading = true;
 
   @mustBeOverridden
-  FetchRemindersEvent createFetchRemindersEvent();
+  FetchRemindersEvent createFetchRemindersEvent({bool forceRefresh = false});
 
   @mustBeOverridden
   ReminderRequestModel createReminderRequest(
@@ -192,7 +192,7 @@ abstract class BaseReminderWidgetState<T extends BaseRemindersContent>
                   source: 'reminders_widget',
                   onReload: () {
                     context.read<ReminderBloc>().add(
-                      createFetchRemindersEvent(),
+                      createFetchRemindersEvent(forceRefresh: true),
                     );
                   },
                   expanded: false,

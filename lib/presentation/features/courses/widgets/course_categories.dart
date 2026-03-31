@@ -197,6 +197,7 @@ class _CourseCategoriesContentState extends State<_CourseCategoriesContent> {
                       FetchCategoriesEvent(
                         origin: EventOrigin.screen,
                         courseId: widget.courseId,
+                        forceRefresh: true,
                       ),
                     );
                   },

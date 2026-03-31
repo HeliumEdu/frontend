@@ -13,7 +13,9 @@ abstract class PlannerEvent extends BaseEvent {
 }
 
 class FetchPlannerScreenDataEvent extends PlannerEvent {
-  FetchPlannerScreenDataEvent({required super.origin});
+  final bool forceRefresh;
+
+  FetchPlannerScreenDataEvent({required super.origin, this.forceRefresh = false});
 }
 
 class SkipCourseOccurrenceEvent extends PlannerEvent {

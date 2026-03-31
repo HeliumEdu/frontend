@@ -31,8 +31,8 @@ class GradeBloc extends Bloc<GradeEvent, GradeState> {
 
     try {
       final results = await Future.wait([
-        courseRepository.getCourseGroups(),
-        gradeRepository.getGrades(),
+        courseRepository.getCourseGroups(forceRefresh: event.forceRefresh),
+        gradeRepository.getGrades(forceRefresh: event.forceRefresh),
       ]);
       final courseGroups = results[0] as List<CourseGroupModel>;
       final grades = results[1] as List<GradeCourseGroupModel>;

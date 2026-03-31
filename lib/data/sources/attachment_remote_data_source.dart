@@ -22,6 +22,7 @@ abstract class AttachmentRemoteDataSource extends BaseDataSource {
     int? eventId,
     int? homeworkId,
     int? courseId,
+    bool forceRefresh = false,
   });
 
   Future<AttachmentModel> createAttachment({
@@ -106,6 +107,7 @@ class AttachmentRemoteDataSourceImpl extends AttachmentRemoteDataSource {
     int? eventId,
     int? homeworkId,
     int? courseId,
+    bool forceRefresh = false,
   }) async {
     try {
       final parentInfo = eventId != null
@@ -125,6 +127,7 @@ class AttachmentRemoteDataSourceImpl extends AttachmentRemoteDataSource {
       final response = await dioClient.dio.get(
         ApiUrl.plannerAttachmentsListUrl,
         queryParameters: queryParameters,
+        options: forceRefresh ? dioClient.cacheService.forceRefreshOptions() : null,
       );
 
       if (response.statusCode == 200) {

@@ -286,7 +286,7 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen>
             source: 'courses_screen',
             onReload: () {
               context.read<CourseBloc>().add(
-                FetchCoursesScreenDataEvent(origin: EventOrigin.screen),
+                FetchCoursesScreenDataEvent(origin: EventOrigin.screen, forceRefresh: true),
               );
             },
           );

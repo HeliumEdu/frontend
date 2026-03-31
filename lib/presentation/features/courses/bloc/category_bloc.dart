@@ -33,6 +33,7 @@ class CategoryBloc extends Bloc<CategoryEvent, CategoryState> {
       final categories = await categoryRepository.getCategories(
         courseId: event.courseId,
         title: event.title,
+        forceRefresh: event.forceRefresh,
       );
       emit(CategoriesFetched(origin: event.origin, categories: categories));
     } on HeliumException catch (e) {

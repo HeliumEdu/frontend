@@ -48,8 +48,8 @@ class _CourseAttachmentsContent extends BaseAttachmentsContent {
 class _CourseAttachmentsWidgetState
     extends BaseAttachmentsState<_CourseAttachmentsContent> {
   @override
-  FetchAttachmentsEvent createFetchAttachmentsEvent() {
-    return FetchAttachmentsEvent(courseId: widget.entityId);
+  FetchAttachmentsEvent createFetchAttachmentsEvent({bool forceRefresh = false}) {
+    return FetchAttachmentsEvent(courseId: widget.entityId, forceRefresh: forceRefresh);
   }
 
   @override

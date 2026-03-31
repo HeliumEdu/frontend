@@ -51,8 +51,8 @@ class CourseBloc extends Bloc<CourseEvent, CourseState> {
     emit(CoursesLoading(origin: event.origin));
     try {
       final results = await Future.wait([
-        courseRepository.getCourseGroups(),
-        courseRepository.getCourses(),
+        courseRepository.getCourseGroups(forceRefresh: event.forceRefresh),
+        courseRepository.getCourses(forceRefresh: event.forceRefresh),
       ]);
       final courseGroups = results[0] as List<CourseGroupModel>;
       final courses = results[1] as List<CourseModel>;

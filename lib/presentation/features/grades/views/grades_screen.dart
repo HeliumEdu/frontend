@@ -257,7 +257,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
             message: state.message!,
             source: 'grades_screen',
             onReload: () {
-              return context.read<GradeBloc>().add(FetchGradeScreenDataEvent());
+              return context.read<GradeBloc>().add(FetchGradeScreenDataEvent(forceRefresh: true));
             },
           );
         }

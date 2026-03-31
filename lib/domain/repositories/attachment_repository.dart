@@ -14,6 +14,7 @@ abstract class AttachmentRepository {
     int? eventId,
     int? homeworkId,
     int? courseId,
+    bool forceRefresh = false,
   });
 
   Future<AttachmentModel> createAttachment({

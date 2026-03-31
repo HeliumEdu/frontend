@@ -57,9 +57,9 @@ class PlannerBloc extends Bloc<PlannerEvent, PlannerState> {
     emit(PlannerLoading(origin: event.origin));
     try {
       final results = await Future.wait([
-        courseRepository.getCourseGroups(shownOnCalendar: true),
-        courseRepository.getCourses(shownOnCalendar: true),
-        categoryRepository.getCategories(shownOnCalendar: true),
+        courseRepository.getCourseGroups(shownOnCalendar: true, forceRefresh: event.forceRefresh),
+        courseRepository.getCourses(shownOnCalendar: true, forceRefresh: event.forceRefresh),
+        categoryRepository.getCategories(shownOnCalendar: true, forceRefresh: event.forceRefresh),
       ]);
       final courseGroups = results[0] as List<CourseGroupModel>;
       final courses = results[1] as List<CourseModel>;

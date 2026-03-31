@@ -301,7 +301,7 @@ class _ResourcesScreenState
             source: 'resources_screen',
             onReload: () {
               context.read<ResourceBloc>().add(
-                FetchResourcesScreenDataEvent(origin: EventOrigin.screen),
+                FetchResourcesScreenDataEvent(origin: EventOrigin.screen, forceRefresh: true),
               );
             },
           );

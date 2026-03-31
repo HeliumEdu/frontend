@@ -237,7 +237,7 @@ class _NotificationsScreenState
           return ErrorCard(
             message: state.message!,
             source: 'notification_screen',
-            onReload: _fetchReminders,
+            onReload: () => _fetchReminders(forceRefresh: true),
           );
         }
 

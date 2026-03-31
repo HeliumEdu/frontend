@@ -93,7 +93,7 @@ abstract class BaseAttachmentsState<T extends BaseAttachmentsContent>
   bool isSubmitting = false;
 
   @mustBeOverridden
-  FetchAttachmentsEvent createFetchAttachmentsEvent();
+  FetchAttachmentsEvent createFetchAttachmentsEvent({bool forceRefresh = false});
 
   @mustBeOverridden
   CreateAttachmentEvent createCreateAttachmentsEvent();
@@ -176,7 +176,7 @@ abstract class BaseAttachmentsState<T extends BaseAttachmentsContent>
                   source: 'attachments_widget',
                   onReload: () {
                     context.read<AttachmentBloc>().add(
-                      createFetchAttachmentsEvent(),
+                      createFetchAttachmentsEvent(forceRefresh: true),
                     );
                   },
                   expanded: false,
