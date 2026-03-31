@@ -759,12 +759,17 @@ class _CalendarScreenState
   bool _openPlannerItem(
     PlannerItemBaseModel plannerItem, {
     DateTime? occurrenceDate,
+    bool? hideWebsiteLink,
   }) {
     if (plannerItem is CourseScheduleEventModel) {
+      final shouldHideWebsiteLink = hideWebsiteLink ??
+          (_currentView == PlannerView.agenda ||
+              (_currentView == PlannerView.month &&
+                  Responsive.isMobile(context)));
       _showCourseScheduleEventDialog(
         plannerItem,
         occurrenceDate ?? plannerItem.start,
-        hideWebsiteLink: true,
+        hideWebsiteLink: shouldHideWebsiteLink,
       );
       return false;
     } else if (plannerItem is ExternalCalendarEventModel) {
@@ -2513,6 +2518,7 @@ class _CalendarScreenState
           onPressed: () => _openPlannerItem(
             plannerItem,
             occurrenceDate: occurrenceDate,
+            hideWebsiteLink: true,
           ),
           icon: Icons.more_vert,
           color: foregroundColor,
@@ -2896,7 +2902,7 @@ class _CalendarScreenState
           )) {
             return false;
           }
-          return _openPlannerItem(plannerItem);
+          return _openPlannerItem(plannerItem, hideWebsiteLink: true);
         },
         itemBuilder: (context, plannerItem, completedOverride) {
           return _buildPlannerItemTooltip(
