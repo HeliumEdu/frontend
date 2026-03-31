@@ -38,12 +38,14 @@ abstract class BaseReminders extends StatelessWidget {
   final int entityId;
   final bool isEdit;
   final UserSettingsModel? userSettings;
+  final String headerTitle;
 
   BaseReminders({
     super.key,
     required this.entityId,
     required this.isEdit,
     this.userSettings,
+    this.headerTitle = 'Reminders',
   });
 
   BaseRemindersContent buildContent();
@@ -71,12 +73,14 @@ abstract class BaseRemindersContent extends StatefulWidget {
   final int entityId;
   final bool isEdit;
   final UserSettingsModel? userSettings;
+  final String headerTitle;
 
   const BaseRemindersContent({
     super.key,
     required this.entityId,
     required this.isEdit,
     this.userSettings,
+    this.headerTitle = 'Reminders',
   });
 
   @override
@@ -159,7 +163,7 @@ abstract class BaseReminderWidgetState<T extends BaseRemindersContent>
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text('Reminders', style: AppStyles.featureText(context)),
+            Text(widget.headerTitle, style: AppStyles.featureText(context)),
             HeliumIconButton(
               onPressed: () {
                 showReminderDialog(

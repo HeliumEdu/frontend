@@ -239,12 +239,13 @@ class _CourseAddScreenState extends MultiStepContainerState<CourseAddScreen> {
     ),
     MultiStepDefinition(
       icon: Icons.notifications_outlined,
-      tooltip: 'Reminders',
+      tooltip: 'Schedule Reminders',
       stepScreenType: ScreenType.subPage,
       builder: (context) => CourseReminders(
         entityId: _currentCourseId!,
         isEdit: widget.isEdit || _currentCourseId != null,
         userSettings: userSettings,
+        headerTitle: 'Schedule Reminders',
       ),
     ),
     MultiStepDefinition(
