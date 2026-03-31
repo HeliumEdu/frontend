@@ -1513,9 +1513,7 @@ class _CalendarScreenState
     // This includes pure agenda view and mobile month view (which renders
     // items as agenda-style in the bottom section).
     if (_currentView == PlannerView.agenda ||
-        (_currentView == PlannerView.month &&
-            Responsive.isMobile(context) &&
-            Responsive.isTouchDevice(context))) {
+        (_currentView == PlannerView.month && Responsive.isMobile(context))) {
       return;
     }
 
@@ -1867,7 +1865,7 @@ class _CalendarScreenState
     // consuming the long-press has no functional cost).
     // Skip for agenda-style items which handle taps internally via column zones.
     if (_currentView == PlannerView.month &&
-        Responsive.isTouchDevice(context) &&
+        Responsive.isMobile(context) &&
         !isInAgenda) {
       calendarItemWidget = GestureDetector(
         onTap: () => _openPlannerItem(plannerItem, occurrenceDate: details.date),
@@ -2572,6 +2570,7 @@ class _CalendarScreenState
     final isCheckbox = plannerItem is HomeworkModel &&
         PlannerHelper.shouldShowCheckbox(context, plannerItem, _currentView);
     final isTouchDevice = Responsive.isTouchDevice(context);
+    final isMobileLayout = Responsive.isMobile(context);
 
     // Build left column with tap zone for checkbox on touch devices
     Widget leftColumn;
@@ -2624,9 +2623,9 @@ class _CalendarScreenState
       leftColumn = const SizedBox(width: 8);
     }
 
-    // Build center column with tap zone to open item on touch devices
+    // Build center column with tap zone to open item on mobile
     Widget centerColumn;
-    if (isTouchDevice) {
+    if (isMobileLayout) {
       final centerContent = _buildCalendarItemCenterForAgenda(
         plannerItem: plannerItem,
         location: location,
