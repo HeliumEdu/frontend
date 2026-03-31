@@ -891,79 +891,46 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
           if (displayCourse != null && displayUngraded > 0) ...[
             const SizedBox(height: 8),
             MouseRegion(
-              cursor: SystemMouseCursors.click,
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                decoration: BoxDecoration(
-                  color: displayCourse.color.withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: DropdownButtonHideUnderline(
-                  child: DropdownButton<int>(
-                    value: _pendingImpactCourseId ?? topCourse!.id,
-                    isDense: true,
-                    focusColor: Colors.transparent,
-                    icon: Icon(
-                      Icons.keyboard_arrow_down,
-                      size: 12,
-                      color: displayCourse.color,
-                    ),
-                    dropdownColor: context.colorScheme.surface,
-                    borderRadius: BorderRadius.circular(8),
-                    selectedItemBuilder: (_) => sortedCourses.map((course) {
-                      final u = course.numHomework - course.numHomeworkGraded;
-                      return Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Container(
-                            width: 8,
-                            height: 8,
-                            decoration: BoxDecoration(
-                              color: course.color,
-                              shape: BoxShape.circle,
-                            ),
-                          ),
-                          const SizedBox(width: 6),
-                          Flexible(
-                            child: Text(
-                              '$u in ${course.title}',
-                              style: AppStyles.smallSecondaryText(context),
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                        ],
-                      );
-                    }).toList(),
-                    items: sortedCourses.map((course) {
-                      final u = course.numHomework - course.numHomeworkGraded;
-                      return DropdownMenuItem<int>(
-                        value: course.id,
-                        child: Row(
-                          children: [
-                            Container(
-                              width: 8,
-                              height: 8,
-                              decoration: BoxDecoration(
-                                color: course.color,
-                                shape: BoxShape.circle,
-                              ),
-                            ),
-                            const SizedBox(width: 6),
-                            Flexible(
-                              child: Text(
-                                '$u in ${course.title}',
-                                style: AppStyles.formText(context),
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                          ],
+              cursor: sortedCourses.length > 1
+                  ? SystemMouseCursors.click
+                  : MouseCursor.defer,
+              child: GestureDetector(
+                onTap: sortedCourses.length > 1
+                    ? () => _cyclePendingImpactCourse(sortedCourses)
+                    : null,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: displayCourse.color.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        width: 8,
+                        height: 8,
+                        decoration: BoxDecoration(
+                          color: displayCourse.color,
+                          shape: BoxShape.circle,
                         ),
-                      );
-                    }).toList(),
-                    onChanged: (id) {
-                      if (id == null) return;
-                      setState(() => _pendingImpactCourseId = id);
-                    },
+                      ),
+                      const SizedBox(width: 6),
+                      Flexible(
+                        child: Text(
+                          '$displayUngraded in ${displayCourse.title}',
+                          style: AppStyles.smallSecondaryText(context),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      if (sortedCourses.length > 1) ...[
+                        const SizedBox(width: 4),
+                        Icon(Icons.loop, size: 12, color: displayCourse.color),
+                      ],
+                    ],
                   ),
                 ),
               ),
@@ -972,6 +939,13 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
         ],
       ),
     );
+  }
+
+  void _cyclePendingImpactCourse(List<GradeCourseModel> sortedCourses) {
+    final currentId = _pendingImpactCourseId ?? sortedCourses.first.id;
+    final currentIndex = sortedCourses.indexWhere((c) => c.id == currentId);
+    final nextIndex = (currentIndex + 1) % sortedCourses.length;
+    setState(() => _pendingImpactCourseId = sortedCourses[nextIndex].id);
   }
 
   void _showGradeCalculatorOptions(
