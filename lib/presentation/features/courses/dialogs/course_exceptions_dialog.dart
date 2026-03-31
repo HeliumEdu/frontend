@@ -12,9 +12,11 @@ import 'package:heliumapp/presentation/ui/components/helium_elevated_button.dart
 import 'package:heliumapp/presentation/ui/components/helium_icon_button.dart';
 import 'package:heliumapp/presentation/ui/feedback/empty_card.dart';
 import 'package:heliumapp/presentation/ui/feedback/error_container.dart';
+import 'package:heliumapp/presentation/ui/feedback/info_container.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/date_time_helpers.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
+import 'package:heliumapp/utils/snack_bar_helpers.dart';
 
 /// Reusable dialog for managing a list of exception dates.
 ///
@@ -49,7 +51,8 @@ class CourseExceptionsDialog extends StatefulWidget {
 class _CourseExceptionsDialogState extends State<CourseExceptionsDialog> {
   late List<DateTime> _exceptions;
   bool _isSaving = false;
-  String? _errorMessage;
+  String? _message;
+  SnackType _messageType = SnackType.error;
 
   @override
   void initState() {
@@ -76,7 +79,12 @@ class _CourseExceptionsDialogState extends State<CourseExceptionsDialog> {
           d.month == dateOnly.month &&
           d.day == dateOnly.day,
     );
-    if (!alreadyExists) {
+    if (alreadyExists) {
+      setState(() {
+        _message = 'Already on exception list';
+        _messageType = SnackType.info;
+      });
+    } else {
       setState(() {
         _exceptions = [..._exceptions, dateOnly]..sort();
       });
@@ -100,7 +108,7 @@ class _CourseExceptionsDialogState extends State<CourseExceptionsDialog> {
   Future<void> _save() async {
     setState(() {
       _isSaving = true;
-      _errorMessage = null;
+      _message = null;
     });
     try {
       await widget.onSave(_exceptions);
@@ -109,14 +117,16 @@ class _CourseExceptionsDialogState extends State<CourseExceptionsDialog> {
       if (mounted) {
         setState(() {
           _isSaving = false;
-          _errorMessage = e.displayMessage;
+          _message = e.displayMessage;
+          _messageType = SnackType.error;
         });
       }
     } catch (e) {
       if (mounted) {
         setState(() {
           _isSaving = false;
-          _errorMessage = 'An unexpected error occurred.';
+          _message = 'An unexpected error occurred.';
+          _messageType = SnackType.error;
         });
       }
     }
@@ -155,13 +165,18 @@ class _CourseExceptionsDialogState extends State<CourseExceptionsDialog> {
                   _buildReadOnlySection(context),
                 ],
 
-                if (_errorMessage != null) ...[
+                if (_message != null) ...[
                   const SizedBox(height: 12),
-                  ErrorContainer(
-                    text: _errorMessage!,
-                    onDismiss: () =>
-                        setState(() => _errorMessage = null),
-                  ),
+                  if (_messageType == SnackType.info)
+                    InfoContainer(
+                      text: _message!,
+                      onDismiss: () => setState(() => _message = null),
+                    )
+                  else
+                    ErrorContainer(
+                      text: _message!,
+                      onDismiss: () => setState(() => _message = null),
+                    ),
                 ],
 
                 const SizedBox(height: 16),
@@ -229,7 +244,7 @@ class _CourseExceptionsDialogState extends State<CourseExceptionsDialog> {
     return Card(
       margin: const EdgeInsets.only(bottom: 6),
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(8),
         child: Row(
           children: [
             Icon(
@@ -264,40 +279,37 @@ class _CourseExceptionsDialogState extends State<CourseExceptionsDialog> {
         Divider(color: context.colorScheme.outline.withValues(alpha: 0.3)),
         const SizedBox(height: 4),
         Text(
-          widget.readOnlyLabel ?? 'Also cancelled',
+          widget.readOnlyLabel!,
           style: AppStyles.smallSecondaryTextLight(context),
         ),
         const SizedBox(height: 8),
-        ListView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          itemCount: widget.readOnlyExceptions.length,
-          itemBuilder: (context, index) =>
-              _buildReadOnlyRow(context, widget.readOnlyExceptions[index]),
+        Wrap(
+          spacing: 8,
+          runSpacing: 6,
+          children: [
+            for (final date in widget.readOnlyExceptions)
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.block_outlined,
+                    size: 13,
+                    color: context.colorScheme.onSurface.withValues(alpha: 0.4),
+                  ),
+                  const SizedBox(width: 5),
+                  Text(
+                    HeliumDateTime.formatDate(date),
+                    style: AppStyles.standardBodyTextLight(context).copyWith(
+                      color: context.colorScheme.onSurface.withValues(
+                        alpha: 0.55,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+          ],
         ),
       ],
-    );
-  }
-
-  Widget _buildReadOnlyRow(BuildContext context, DateTime date) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Row(
-        children: [
-          Icon(
-            Icons.block_outlined,
-            size: 14,
-            color: context.colorScheme.onSurface.withValues(alpha: 0.4),
-          ),
-          const SizedBox(width: 10),
-          Text(
-            HeliumDateTime.formatDate(date),
-            style: AppStyles.standardBodyTextLight(context).copyWith(
-              color: context.colorScheme.onSurface.withValues(alpha: 0.55),
-            ),
-          ),
-        ],
-      ),
     );
   }
 }
@@ -323,7 +335,7 @@ Future<void> showCourseExceptionsDialog({
       exceptions: courseExceptions,
       onSave: onSave,
       readOnlyExceptions: courseGroupExceptions,
-      readOnlyLabel: 'Also cancelled via semester holidays',
+      readOnlyLabel: 'Also cancelled via class group exceptions',
       firstDate: firstDate,
       lastDate: lastDate,
     ),

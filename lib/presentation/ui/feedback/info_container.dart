@@ -57,17 +57,17 @@ class InfoContainer extends StatelessWidget {
           ),
           if (onDismiss != null) ...[
             const SizedBox(width: 8),
-            GestureDetector(
-              onTap: onDismiss,
-              child: Icon(
-                Icons.close,
-                color: primaryColor.withValues(alpha: 0.7),
-                size: Responsive.getIconSize(
-                  context,
-                  mobile: 16,
-                  tablet: 18,
-                  desktop: 20,
-                ),
+            IconButton(
+              onPressed: onDismiss,
+              icon: Icon(Icons.close, color: primaryColor.withValues(alpha: 0.7)),
+              iconSize: Responsive.getIconSize(
+                context,
+                mobile: 16,
+                tablet: 18,
+                desktop: 20,
+              ),
+              style: IconButton.styleFrom(
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
               ),
             ),
           ],
