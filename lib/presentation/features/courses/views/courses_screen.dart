@@ -356,7 +356,7 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen>
 
     final parsed = DeepLinkParam.parseId(idParam);
     final tabValue = int.tryParse(queryParams[DeepLinkParam.tab] ?? '') ?? 1;
-    final initialStep = (tabValue - 1).clamp(0, 3);
+    final initialStep = (tabValue - 1).clamp(0, 4);
 
     if (parsed.isNew) {
       if (_selectedGroupId == null) return false;

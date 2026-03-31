@@ -20,6 +20,7 @@ abstract class ReminderRemoteDataSource extends BaseDataSource {
   Future<List<ReminderModel>> getReminders({
     int? homeworkId,
     int? eventId,
+    int? courseId,
     bool? sent,
     bool? dismissed,
     int? type,
@@ -42,6 +43,7 @@ class ReminderRemoteDataSourceImpl extends ReminderRemoteDataSource {
   Future<List<ReminderModel>> getReminders({
     int? homeworkId,
     int? eventId,
+    int? courseId,
     bool? sent,
     bool? dismissed,
     int? type,
@@ -52,12 +54,15 @@ class ReminderRemoteDataSourceImpl extends ReminderRemoteDataSource {
           ? 'Event $eventId'
           : homeworkId != null
               ? 'Homework $homeworkId'
-              : 'all';
+              : courseId != null
+                  ? 'Course $courseId'
+                  : 'all';
       _log.info('Fetching Reminders for $parentInfo ...');
 
       final Map<String, dynamic> queryParameters = {};
       if (homeworkId != null) queryParameters['homework'] = homeworkId;
       if (eventId != null) queryParameters['event'] = eventId;
+      if (courseId != null) queryParameters['course'] = courseId;
       if (sent != null) queryParameters['sent'] = sent;
       if (dismissed != null) queryParameters['dismissed'] = dismissed;
       if (type != null) queryParameters['type'] = type;

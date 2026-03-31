@@ -35,6 +35,7 @@ class ReminderBloc extends Bloc<ReminderEvent, ReminderState> {
         type: event.type,
         eventId: event.eventId,
         homeworkId: event.homeworkId,
+        courseId: event.courseId,
         startOfRange: event.startOfRange,
       );
       emit(RemindersFetched(origin: event.origin, reminders: reminders));

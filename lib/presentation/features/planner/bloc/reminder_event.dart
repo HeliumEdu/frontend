@@ -18,6 +18,7 @@ class FetchRemindersEvent extends ReminderEvent {
   int? type;
   int? eventId;
   int? homeworkId;
+  int? courseId;
   DateTime? startOfRange;
 
   FetchRemindersEvent({
@@ -27,6 +28,7 @@ class FetchRemindersEvent extends ReminderEvent {
     this.type,
     this.eventId,
     this.homeworkId,
+    this.courseId,
     this.startOfRange,
   });
 }

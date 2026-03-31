@@ -16,6 +16,7 @@ import 'package:heliumapp/presentation/features/shared/widgets/flow/multi_step_c
 import 'package:heliumapp/presentation/features/courses/widgets/course_attachments.dart';
 import 'package:heliumapp/presentation/features/courses/widgets/course_categories.dart';
 import 'package:heliumapp/presentation/features/courses/widgets/course_details.dart';
+import 'package:heliumapp/presentation/features/courses/widgets/course_reminders.dart';
 import 'package:heliumapp/presentation/features/courses/widgets/course_schedule.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
@@ -234,6 +235,16 @@ class _CourseAddScreenState extends MultiStepContainerState<CourseAddScreen> {
         isNew: widget.isNew,
         userSettings: userSettings,
         onActionStarted: () => setState(() => isSubmitting = true),
+      ),
+    ),
+    MultiStepDefinition(
+      icon: Icons.notifications_outlined,
+      tooltip: 'Reminders',
+      stepScreenType: ScreenType.subPage,
+      builder: (context) => CourseReminders(
+        entityId: _currentCourseId!,
+        isEdit: widget.isEdit || _currentCourseId != null,
+        userSettings: userSettings,
       ),
     ),
     MultiStepDefinition(

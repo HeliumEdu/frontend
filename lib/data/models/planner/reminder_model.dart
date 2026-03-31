@@ -7,6 +7,7 @@
 
 import 'package:heliumapp/data/models/base_model.dart';
 import 'package:heliumapp/data/models/id_or_entity.dart';
+import 'package:heliumapp/data/models/planner/course_model.dart';
 import 'package:heliumapp/data/models/planner/event_model.dart';
 import 'package:heliumapp/data/models/planner/homework_model.dart';
 import 'package:heliumapp/utils/conversion_helpers.dart';
@@ -21,6 +22,7 @@ class ReminderModel extends BaseTitledModel {
   final bool dismissed;
   final IdOrEntity<HomeworkModel>? homework;
   final IdOrEntity<EventModel>? event;
+  final IdOrEntity<CourseModel>? course;
 
   ReminderModel({
     required super.id,
@@ -34,6 +36,7 @@ class ReminderModel extends BaseTitledModel {
     required this.dismissed,
     this.homework,
     this.event,
+    this.course,
   });
 
   factory ReminderModel.fromJson(Map<String, dynamic> json) {
@@ -53,6 +56,9 @@ class ReminderModel extends BaseTitledModel {
       event: json['event'] != null
           ? idOrEntityFrom(json['event'], EventModel.fromJson)
           : null,
+      course: json['course'] != null
+          ? idOrEntityFrom(json['course'], CourseModel.fromJson)
+          : null,
     );
   }
 
@@ -69,6 +75,7 @@ class ReminderModel extends BaseTitledModel {
       'dismissed': dismissed,
       'homework': homework,
       'event': event,
+      'course': course,
     };
   }
 
@@ -84,6 +91,7 @@ class ReminderModel extends BaseTitledModel {
     bool? dismissed,
     IdOrEntity<HomeworkModel>? homework,
     IdOrEntity<EventModel>? event,
+    IdOrEntity<CourseModel>? course,
   }) {
     return ReminderModel(
       id: id ?? this.id,
@@ -97,6 +105,7 @@ class ReminderModel extends BaseTitledModel {
       dismissed: dismissed ?? this.dismissed,
       homework: homework ?? this.homework,
       event: event ?? this.event,
+      course: course ?? this.course,
     );
   }
 }

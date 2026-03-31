@@ -15,6 +15,7 @@ class ReminderRequestModel {
   final bool dismissed;
   final int? homework;
   final int? event;
+  final int? course;
 
   ReminderRequestModel({
     required this.title,
@@ -26,6 +27,7 @@ class ReminderRequestModel {
     required this.dismissed,
     this.homework,
     this.event,
+    this.course,
   });
 
   Map<String, dynamic> toJson() {
@@ -41,6 +43,7 @@ class ReminderRequestModel {
 
     if (homework != null) data['homework'] = homework;
     if (event != null) data['event'] = event;
+    if (course != null) data['course'] = course;
 
     return data;
   }

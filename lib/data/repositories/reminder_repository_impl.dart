@@ -19,6 +19,7 @@ class ReminderRepositoryImpl implements ReminderRepository {
   Future<List<ReminderModel>> getReminders({
     int? homeworkId,
     int? eventId,
+    int? courseId,
     bool? sent,
     bool? dismissed,
     int? type,
@@ -27,6 +28,7 @@ class ReminderRepositoryImpl implements ReminderRepository {
     return remoteDataSource.getReminders(
       homeworkId: homeworkId,
       eventId: eventId,
+      courseId: courseId,
       sent: sent,
       dismissed: dismissed,
       type: type,

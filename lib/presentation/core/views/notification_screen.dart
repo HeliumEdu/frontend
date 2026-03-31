@@ -295,18 +295,54 @@ class _NotificationsScreenState
     });
   }
 
+  String _formatCourseScheduleTime(ReminderModel reminder) {
+    final course = reminder.course?.entity;
+    final localDate = HeliumDateTime.toLocal(
+      reminder.startOfRange,
+      userSettings!.timeZone,
+    );
+
+    if (course == null || course.schedules.isEmpty) {
+      return HeliumDateTime.formatDate(localDate);
+    }
+
+    final schedule = course.schedules.first;
+    final dayIndex = HeliumDateTime.getDayIndex(localDate);
+
+    if (!schedule.isDayActive(dayIndex)) {
+      return HeliumDateTime.formatDate(localDate);
+    }
+
+    final startTime = schedule.getStartTimeForDayIndex(dayIndex);
+    final endTime = schedule.getEndTimeForDayIndex(dayIndex);
+    final classStart = DateTime(
+      localDate.year,
+      localDate.month,
+      localDate.day,
+      startTime.hour,
+      startTime.minute,
+    );
+    final classEnd = DateTime(
+      localDate.year,
+      localDate.month,
+      localDate.day,
+      endTime.hour,
+      endTime.minute,
+    );
+    return HeliumDateTime.formatDateTimeRange(classStart, classEnd, true, false);
+  }
+
   NotificationModel _mapReminderToNotification(
     ReminderModel reminder, {
     Color? existingColor,
   }) {
-    final PlannerItemBaseModel? plannerItem;
     final String title;
     final Color? color;
+    final String timestamp;
+
     if (reminder.homework != null) {
-      plannerItem = reminder.homework?.entity;
       final course = reminder.homework?.entity?.course.entity;
       final category = reminder.homework?.entity?.category.entity;
-
       title = reminder.homework?.entity?.title as String;
       color =
           existingColor ??
@@ -314,13 +350,19 @@ class _NotificationsScreenState
               ? category?.color
               : course?.color) ??
           FallbackConstants.fallbackColor;
-    } else {
-      plannerItem = reminder.event?.entity;
+      timestamp = reminder.homework!.entity!.start.toIso8601String();
+    } else if (reminder.event != null) {
       title = reminder.event?.entity?.title as String;
       color =
           existingColor ??
           userSettings?.eventsColor ??
           FallbackConstants.fallbackColor;
+      timestamp = reminder.event!.entity!.start.toIso8601String();
+    } else {
+      final course = reminder.course?.entity;
+      title = course?.title ?? '';
+      color = existingColor ?? course?.color ?? FallbackConstants.fallbackColor;
+      timestamp = reminder.startOfRange.toIso8601String();
     }
 
     return NotificationModel(
@@ -328,19 +370,20 @@ class _NotificationsScreenState
       title: title,
       body: reminder.title,
       color: color,
-      timestamp: plannerItem!.start.toIso8601String(),
+      timestamp: timestamp,
       isRead: _readNotificationIds.contains(reminder.id),
       reminder: reminder,
     );
   }
 
   Widget _buildNotificationRow(NotificationModel notification) {
-    final PlannerItemBaseModel plannerItem;
+    final PlannerItemBaseModel? plannerItem;
     if (notification.reminder.homework != null) {
-      plannerItem =
-          notification.reminder.homework?.entity as PlannerItemBaseModel;
+      plannerItem = notification.reminder.homework?.entity;
+    } else if (notification.reminder.event != null) {
+      plannerItem = notification.reminder.event?.entity;
     } else {
-      plannerItem = notification.reminder.event?.entity as PlannerItemBaseModel;
+      plannerItem = null;
     }
 
     final isTouchDevice = Responsive.isTouchDevice(context);
@@ -431,6 +474,7 @@ class _NotificationsScreenState
                         ],
                       ],
                     ),
+
                     const SizedBox(height: 4),
                     NonTouchSelectableText(
                       notification.body,
@@ -445,18 +489,22 @@ class _NotificationsScreenState
                     Row(
                       children: [
                         NonTouchSelectableText(
-                          HeliumDateTime.formatDateTimeRange(
-                            HeliumDateTime.toLocal(
-                              plannerItem.start,
-                              userSettings!.timeZone,
-                            ),
-                            HeliumDateTime.toLocal(
-                              plannerItem.end,
-                              userSettings!.timeZone,
-                            ),
-                            plannerItem.showEndTime,
-                            plannerItem.allDay,
-                          ),
+                          plannerItem != null
+                              ? HeliumDateTime.formatDateTimeRange(
+                                  HeliumDateTime.toLocal(
+                                    plannerItem.start,
+                                    userSettings!.timeZone,
+                                  ),
+                                  HeliumDateTime.toLocal(
+                                    plannerItem.end,
+                                    userSettings!.timeZone,
+                                  ),
+                                  plannerItem.showEndTime,
+                                  plannerItem.allDay,
+                                )
+                              : _formatCourseScheduleTime(
+                                  notification.reminder,
+                                ),
                           style: AppStyles.standardBodyTextLight(context)
                               .copyWith(
                                 fontSize: 12,
@@ -546,6 +594,18 @@ class _NotificationsScreenState
 
     if (!mounted) return;
 
+    // Course reminders: navigate to /classes and open the course editor there.
+    final courseId = notification.reminder.course?.id;
+    if (courseId != null) {
+      Navigator.of(context).pop();
+      Future.delayed(Duration.zero, () {
+        router.go(
+          '${AppRoute.coursesScreen}?${DeepLinkParam.id}=$courseId',
+        );
+      });
+      return;
+    }
+
     // Desktop: close dialog, then set entity param so shell opens the editor.
     if (DialogModeProvider.isDialogMode(context)) {
       final homeworkId = notification.reminder.homework?.id;
@@ -587,6 +647,7 @@ class _NotificationsScreenState
       sent: notification.reminder.sent,
       homework: notification.reminder.homework?.id,
       event: notification.reminder.event?.id,
+      course: notification.reminder.course?.id,
     );
 
     context.read<ReminderBloc>().add(
