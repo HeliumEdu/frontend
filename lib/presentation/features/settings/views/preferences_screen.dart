@@ -216,13 +216,13 @@ class PreferencesScreenState extends State<PreferencesScreen> {
             ),
             CheckboxListTile(
               title: Text(
-                'Show tooltips on Planner',
+                'Remember filter selections',
                 style: AppStyles.formLabel(context),
               ),
-              value: _isShowPlannerTooltips,
+              value: _isRememberFilterSelection,
               onChanged: (value) {
                 setState(() {
-                  _isShowPlannerTooltips = value!;
+                  _isRememberFilterSelection = value!;
                 });
               },
               controlAffinity: ListTileControlAffinity.leading,
@@ -230,7 +230,7 @@ class PreferencesScreenState extends State<PreferencesScreen> {
             ),
             CheckboxListTile(
               title: Text(
-                'Allow drag-and-drop on touch devices',
+                'Drag-and-drop on touch devices',
                 style: AppStyles.formLabel(context),
               ),
               value: _isDragAndDropOnMobile,
@@ -244,13 +244,13 @@ class PreferencesScreenState extends State<PreferencesScreen> {
             ),
             CheckboxListTile(
               title: Text(
-                'Remember filter selections',
+                'Show tooltips',
                 style: AppStyles.formLabel(context),
               ),
-              value: _isRememberFilterSelection,
+              value: _isShowPlannerTooltips,
               onChanged: (value) {
                 setState(() {
-                  _isRememberFilterSelection = value!;
+                  _isShowPlannerTooltips = value!;
                 });
               },
               controlAffinity: ListTileControlAffinity.leading,
@@ -404,7 +404,7 @@ class PreferencesScreenState extends State<PreferencesScreen> {
             const SizedBox(height: 4),
             CheckboxListTile(
               title: Text(
-                'Color by category',
+                'Color by assignment category',
                 style: AppStyles.formLabel(context),
               ),
               value: _isSelectedColorByCategory,
@@ -419,20 +419,6 @@ class PreferencesScreenState extends State<PreferencesScreen> {
 
             _buildSectionHeader('GRADES'),
             Text(
-              'On-track tolerance (%)',
-              style: AppStyles.formLabel(context),
-            ),
-            const SizedBox(height: 8),
-            SizedBox(
-              width: 120,
-              child: SpinnerField(
-                controller: _onTrackToleranceController,
-                minValue: 0,
-                maxValue: 100,
-              ),
-            ),
-            const SizedBox(height: 14),
-            Text(
               'At-risk threshold (%)',
               style: AppStyles.formLabel(context),
             ),
@@ -441,6 +427,20 @@ class PreferencesScreenState extends State<PreferencesScreen> {
               width: 120,
               child: SpinnerField(
                 controller: _atRiskThresholdController,
+                minValue: 0,
+                maxValue: 100,
+              ),
+            ),
+            const SizedBox(height: 14),
+            Text(
+              'On-track tolerance (%)',
+              style: AppStyles.formLabel(context),
+            ),
+            const SizedBox(height: 8),
+            SizedBox(
+              width: 120,
+              child: SpinnerField(
+                controller: _onTrackToleranceController,
                 minValue: 0,
                 maxValue: 100,
               ),
