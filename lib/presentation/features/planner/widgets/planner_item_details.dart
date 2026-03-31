@@ -769,13 +769,22 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
   }
 
   Future<void> _selectDate(BuildContext context, bool isStartDate) async {
+    CourseModel? selectedCourse;
+    if (!_isEvent && _formController.selectedCourse != null) {
+      selectedCourse = _courses.where((c) => c.id == _formController.selectedCourse).firstOrNull;
+    }
+
+    final firstDate = selectedCourse?.startDate ?? DateTime.now().subtract(const Duration(days: 365 * 10));
+    final lastDate = selectedCourse?.endDate ?? DateTime.now().add(const Duration(days: 365 * 10));
+    final rawInitial = isStartDate ? _formController.startDate : _formController.endDate;
+    final initialDate = rawInitial.isBefore(firstDate) ? firstDate
+        : (rawInitial.isAfter(lastDate) ? lastDate : rawInitial);
+
     final DateTime? picked = await showDatePicker(
       context: context,
-      initialDate: isStartDate
-          ? _formController.startDate
-          : _formController.endDate,
-      firstDate: DateTime.now().subtract(const Duration(days: 365 * 10)),
-      lastDate: DateTime.now().add(const Duration(days: 365 * 10)),
+      initialDate: initialDate,
+      firstDate: firstDate,
+      lastDate: lastDate,
       confirmText: 'Select',
     );
 

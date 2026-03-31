@@ -9,6 +9,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:heliumapp/config/app_theme.dart';
+import 'package:heliumapp/data/models/planner/course_group_model.dart';
 import 'package:heliumapp/data/models/planner/request/course_request_model.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/core/base_event.dart';
 import 'package:heliumapp/presentation/features/courses/bloc/course_bloc.dart';
@@ -61,6 +62,7 @@ class CourseDetailsState extends State<CourseDetails> {
 
   bool isLoading = true;
   bool _isSubmitting = false;
+  CourseGroupModel? _courseGroup;
 
   @override
   void initState() {
@@ -367,6 +369,8 @@ class CourseDetailsState extends State<CourseDetails> {
 
   void _populateInitialStateData(CourseScreenDataFetched state) {
     setState(() {
+      _courseGroup = state.courseGroup;
+
       if (widget.isEdit) {
         _formController.titleController.text = state.course!.title;
         _formController.roomController.text = state.course!.room;
@@ -397,13 +401,18 @@ class CourseDetailsState extends State<CourseDetails> {
   }
 
   Future<void> _selectDate(BuildContext context, bool isStartDate) async {
+    final firstDate = _courseGroup?.startDate ?? DateTime.now().subtract(const Duration(days: 365 * 10));
+    final lastDate = _courseGroup?.endDate ?? DateTime.now().add(const Duration(days: 365 * 10));
+    final rawInitial = isStartDate ? _formController.startDate : _formController.endDate;
+    final initialDate = rawInitial == null ? firstDate
+        : (rawInitial.isBefore(firstDate) ? firstDate
+        : (rawInitial.isAfter(lastDate) ? lastDate : rawInitial));
+
     final DateTime? picked = await showDatePicker(
       context: context,
-      initialDate: isStartDate
-          ? _formController.startDate
-          : _formController.endDate,
-      firstDate: DateTime.now().subtract(const Duration(days: 365 * 10)),
-      lastDate: DateTime.now().add(const Duration(days: 365 * 10)),
+      initialDate: initialDate,
+      firstDate: firstDate,
+      lastDate: lastDate,
       confirmText: 'Select',
     );
 
