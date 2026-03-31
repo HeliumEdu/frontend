@@ -7,6 +7,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:heliumapp/data/models/planner/course_group_model.dart';
 import 'package:heliumapp/data/models/planner/course_model.dart';
 import 'package:heliumapp/data/sources/course_schedule_builder_source.dart';
 
@@ -753,6 +754,197 @@ void main() {
 
         expect(mfEvent.recurrenceRule, contains('BYDAY=MO,FR'));
         expect(wEvent.recurrenceRule, contains('BYDAY=WE'));
+      });
+
+      test('event has empty exceptionDates when course has no exceptions', () {
+        // GIVEN
+        final course = CourseModel.fromJson(
+          givenCourseJson(
+            id: 1,
+            title: 'CS 101',
+            startDate: '2025-08-25',
+            endDate: '2025-12-15',
+            schedules: [givenCourseScheduleJson(id: 1, daysOfWeek: '0100000')],
+            exceptions: '',
+          ),
+        );
+
+        // WHEN
+        final events = builderSource.buildCourseScheduleEvents(
+          courses: [course],
+          from: DateTime(2025, 8, 25),
+          to: DateTime(2025, 8, 31),
+        );
+
+        // THEN
+        expect(events.length, equals(1));
+        expect(events[0].exceptionDates, isEmpty);
+      });
+
+      test('event carries course-level exception dates', () {
+        // GIVEN - course has two cancelled classes
+        final course = CourseModel.fromJson(
+          givenCourseJson(
+            id: 1,
+            title: 'CS 101',
+            startDate: '2025-08-25',
+            endDate: '2025-12-15',
+            schedules: [givenCourseScheduleJson(id: 1, daysOfWeek: '0100000')],
+            exceptions: '20251103,20251110',
+          ),
+        );
+
+        // WHEN
+        final events = builderSource.buildCourseScheduleEvents(
+          courses: [course],
+          from: DateTime(2025, 8, 25),
+          to: DateTime(2025, 8, 31),
+        );
+
+        // THEN
+        expect(events.length, equals(1));
+        expect(events[0].exceptionDates, equals([
+          DateTime(2025, 11, 3),
+          DateTime(2025, 11, 10),
+        ]));
+      });
+
+      test('event carries course-group exception dates when course has none', () {
+        // GIVEN - group has a holiday, course has no exceptions
+        final course = CourseModel.fromJson(
+          givenCourseJson(
+            id: 1,
+            title: 'CS 101',
+            startDate: '2025-08-25',
+            endDate: '2025-12-15',
+            courseGroup: 10,
+            schedules: [givenCourseScheduleJson(id: 1, daysOfWeek: '0100000')],
+            exceptions: '',
+          ),
+        );
+        final group = CourseGroupModel.fromJson(
+          givenCourseGroupJson(id: 10, exceptions: '20251127'),
+        );
+
+        // WHEN
+        final events = builderSource.buildCourseScheduleEvents(
+          courses: [course],
+          from: DateTime(2025, 8, 25),
+          to: DateTime(2025, 8, 31),
+          courseGroupsById: {10: group},
+        );
+
+        // THEN
+        expect(events.length, equals(1));
+        expect(events[0].exceptionDates, equals([DateTime(2025, 11, 27)]));
+      });
+
+      test('merges and deduplicates course and group exceptions', () {
+        // GIVEN - Nov 27 appears in both; Dec 25 is group-only
+        final course = CourseModel.fromJson(
+          givenCourseJson(
+            id: 1,
+            title: 'CS 101',
+            startDate: '2025-08-25',
+            endDate: '2025-12-15',
+            courseGroup: 10,
+            schedules: [givenCourseScheduleJson(id: 1, daysOfWeek: '0100000')],
+            exceptions: '20251103,20251127',
+          ),
+        );
+        final group = CourseGroupModel.fromJson(
+          givenCourseGroupJson(id: 10, exceptions: '20251127,20251225'),
+        );
+
+        // WHEN
+        final events = builderSource.buildCourseScheduleEvents(
+          courses: [course],
+          from: DateTime(2025, 8, 25),
+          to: DateTime(2025, 8, 31),
+          courseGroupsById: {10: group},
+        );
+
+        // THEN - Nov 27 deduplicated; three unique dates in sorted order
+        expect(events.length, equals(1));
+        expect(events[0].exceptionDates, equals([
+          DateTime(2025, 11, 3),
+          DateTime(2025, 11, 27),
+          DateTime(2025, 12, 25),
+        ]));
+      });
+
+      test('all events for a course share the same merged exceptionDates', () {
+        // GIVEN - course has two schedules (lecture + lab), one group holiday
+        final course = CourseModel.fromJson(
+          givenCourseJson(
+            id: 1,
+            title: 'CS 101',
+            startDate: '2025-08-25',
+            endDate: '2025-12-15',
+            courseGroup: 10,
+            schedules: [
+              givenCourseScheduleJson(
+                id: 1,
+                daysOfWeek: '0100000',
+                monStartTime: '09:00:00',
+                monEndTime: '10:30:00',
+              ),
+              givenCourseScheduleJson(
+                id: 2,
+                daysOfWeek: '0001000',
+                wedStartTime: '14:00:00',
+                wedEndTime: '16:00:00',
+              ),
+            ],
+            exceptions: '20251103',
+          ),
+        );
+        final group = CourseGroupModel.fromJson(
+          givenCourseGroupJson(id: 10, exceptions: '20251127'),
+        );
+
+        // WHEN
+        final events = builderSource.buildCourseScheduleEvents(
+          courses: [course],
+          from: DateTime(2025, 8, 25),
+          to: DateTime(2025, 8, 31),
+          courseGroupsById: {10: group},
+        );
+
+        // THEN - both events share the same merged exceptions
+        expect(events.length, equals(2));
+        final expectedExceptions = [
+          DateTime(2025, 11, 3),
+          DateTime(2025, 11, 27),
+        ];
+        expect(events[0].exceptionDates, equals(expectedExceptions));
+        expect(events[1].exceptionDates, equals(expectedExceptions));
+      });
+
+      test('uses empty exceptions when courseGroupsById is null', () {
+        // GIVEN - no group map provided; course has its own exceptions
+        final course = CourseModel.fromJson(
+          givenCourseJson(
+            id: 1,
+            title: 'CS 101',
+            startDate: '2025-08-25',
+            endDate: '2025-12-15',
+            courseGroup: 10,
+            schedules: [givenCourseScheduleJson(id: 1, daysOfWeek: '0100000')],
+            exceptions: '20251103',
+          ),
+        );
+
+        // WHEN - courseGroupsById not passed
+        final events = builderSource.buildCourseScheduleEvents(
+          courses: [course],
+          from: DateTime(2025, 8, 25),
+          to: DateTime(2025, 8, 31),
+        );
+
+        // THEN - only course-level exceptions; no crash
+        expect(events.length, equals(1));
+        expect(events[0].exceptionDates, equals([DateTime(2025, 11, 3)]));
       });
     });
   });

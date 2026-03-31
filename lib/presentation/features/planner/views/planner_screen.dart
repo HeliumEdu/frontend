@@ -2753,10 +2753,6 @@ class _CalendarScreenState
     final course = _courses.firstWhereOrNull((c) => c.id == courseId);
     if (course == null) return;
 
-    final courseGroup = _courseGroups.firstWhereOrNull(
-      (g) => g.id == course.courseGroup,
-    );
-
     showCourseScheduleEventDialog(
       context: context,
       courseTitle: course.title,
