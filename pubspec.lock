@@ -1408,10 +1408,10 @@ packages:
     dependency: "direct main"
     description:
       name: sign_in_button
-      sha256: "7bcd5e3ca5f80578da6a92b8749badf4003cf4dc578b5cb737b9082871354ff8"
+      sha256: "1eeaecb2eb8566160c224a6ab243d5cc617c5a5c5a8e0d146734aa8f5f924f6c"
       url: "https://pub.dev"
     source: hosted
-    version: "4.0.1"
+    version: "4.1.0"
   sky_engine:
     dependency: transitive
     description: flutter
