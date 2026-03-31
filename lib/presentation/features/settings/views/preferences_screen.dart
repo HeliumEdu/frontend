@@ -18,7 +18,7 @@ import 'package:heliumapp/presentation/ui/components/drop_down.dart';
 import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
 import 'package:heliumapp/presentation/ui/components/searchable_dropdown.dart';
 import 'package:heliumapp/presentation/ui/components/spinner_field.dart';
-import 'package:heliumapp/presentation/ui/dialogs/color_picker_dialog.dart';
+import 'package:heliumapp/presentation/ui/components/color_selector.dart';
 import 'package:heliumapp/presentation/features/planner/constants/reminder_constants.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/app_style.dart';
@@ -303,33 +303,13 @@ class PreferencesScreenState extends State<PreferencesScreen> {
             Row(
               children: [
                 SizedBox(width: 160, child: Text('Color for Events', style: AppStyles.formLabel(context))),
-                InkWell(
-                  onTap: () {
-                    Feedback.forTap(context);
-                    showColorPickerDialog(
-                      parentContext: context,
-                      initialColor: _selectedEventColor,
-                      onSelected: (color) {
-                        setState(() {
-                          _selectedEventColor = color;
-                        });
-                      },
-                    );
+                ColorSelector(
+                  selectedColor: _selectedEventColor,
+                  onColorSelected: (color) {
+                    setState(() {
+                      _selectedEventColor = color;
+                    });
                   },
-                  borderRadius: BorderRadius.circular(8),
-                  child: Container(
-                    width: 33,
-                    height: 33,
-                    decoration: BoxDecoration(
-                      color: _selectedEventColor,
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(
-                        color: context.colorScheme.outline.withValues(
-                          alpha: 0.2,
-                        ),
-                      ),
-                    ),
-                  ),
                 ),
               ],
             ),
@@ -337,30 +317,13 @@ class PreferencesScreenState extends State<PreferencesScreen> {
             Row(
               children: [
                 SizedBox(width: 160, child: Text('Color for grades', style: AppStyles.formLabel(context))),
-                InkWell(
-                  onTap: () => showColorPickerDialog(
-                    parentContext: context,
-                    initialColor: _selectedGradeColor,
-                    onSelected: (color) {
-                      setState(() {
-                        _selectedGradeColor = color;
-                      });
-                    },
-                  ),
-                  borderRadius: BorderRadius.circular(8),
-                  child: Container(
-                    width: 33,
-                    height: 33,
-                    decoration: BoxDecoration(
-                      color: _selectedGradeColor,
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(
-                        color: context.colorScheme.outline.withValues(
-                          alpha: 0.2,
-                        ),
-                      ),
-                    ),
-                  ),
+                ColorSelector(
+                  selectedColor: _selectedGradeColor,
+                  onColorSelected: (color) {
+                    setState(() {
+                      _selectedGradeColor = color;
+                    });
+                  },
                 ),
               ],
             ),
@@ -368,30 +331,13 @@ class PreferencesScreenState extends State<PreferencesScreen> {
             Row(
               children: [
                 SizedBox(width: 160, child: Text('Color for resources', style: AppStyles.formLabel(context))),
-                InkWell(
-                  onTap: () => showColorPickerDialog(
-                    parentContext: context,
-                    initialColor: _selectedResourceColor,
-                    onSelected: (color) {
-                      setState(() {
-                        _selectedResourceColor = color;
-                      });
-                    },
-                  ),
-                  borderRadius: BorderRadius.circular(8),
-                  child: Container(
-                    width: 33,
-                    height: 33,
-                    decoration: BoxDecoration(
-                      color: _selectedResourceColor,
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(
-                        color: context.colorScheme.outline.withValues(
-                            alpha: 0.2,
-                          ),
-                        ),
-                      ),
-                    ),
+                ColorSelector(
+                  selectedColor: _selectedResourceColor,
+                  onColorSelected: (color) {
+                    setState(() {
+                      _selectedResourceColor = color;
+                    });
+                  },
                 ),
               ],
             ),

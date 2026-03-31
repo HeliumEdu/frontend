@@ -17,7 +17,7 @@ import 'package:heliumapp/presentation/features/courses/bloc/category_event.dart
 import 'package:heliumapp/presentation/features/courses/bloc/category_state.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/core/base_event.dart';
 import 'package:heliumapp/presentation/ui/dialogs/base_dialog_state.dart';
-import 'package:heliumapp/presentation/ui/dialogs/color_picker_dialog.dart';
+import 'package:heliumapp/presentation/ui/components/color_selector.dart';
 import 'package:heliumapp/presentation/features/shared/controllers/basic_form_controller.dart';
 import 'package:heliumapp/presentation/features/courses/controllers/category_form_controller.dart';
 import 'package:heliumapp/presentation/ui/components/label_and_text_form_field.dart';
@@ -124,37 +124,14 @@ class _CategoryWidgetState extends BaseDialogState<_CategoryProvidedWidget> {
           ),
         ),
         const SizedBox(height: 14),
-        Row(
-          children: [
-            Text('Color', style: AppStyles.formLabel(context)),
-            const SizedBox(width: 12),
-            InkWell(
-              onTap: () {
-                Feedback.forTap(context);
-                showColorPickerDialog(
-                  parentContext: context,
-                  initialColor: _formController.selectedColor,
-                  onSelected: (color) {
-                    setState(() {
-                      _formController.selectedColor = color;
-                    });
-                  },
-                );
-              },
-              borderRadius: BorderRadius.circular(8),
-              child: Container(
-                width: 33,
-                height: 33,
-                decoration: BoxDecoration(
-                  color: _formController.selectedColor,
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(
-                    color: context.colorScheme.outline.withValues(alpha: 0.2),
-                  ),
-                ),
-              ),
-            ),
-          ],
+        ColorSelector(
+          label: 'Color',
+          selectedColor: _formController.selectedColor,
+          onColorSelected: (color) {
+            setState(() {
+              _formController.selectedColor = color;
+            });
+          },
         ),
       ],
     );
