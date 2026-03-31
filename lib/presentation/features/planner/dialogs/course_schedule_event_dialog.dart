@@ -78,16 +78,17 @@ void showCourseScheduleEventDialog({
                           ),
                         ),
                       ),
-                      IconButton(
-                        onPressed: () => Navigator.of(menuContext).pop(),
-                        icon: Icon(
-                          Icons.close,
-                          size: 20,
-                          color: menuContext.colorScheme.primary,
+                      if (!isMobile)
+                        IconButton(
+                          onPressed: () => Navigator.of(menuContext).pop(),
+                          icon: Icon(
+                            Icons.close,
+                            size: 20,
+                            color: menuContext.colorScheme.primary,
+                          ),
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(),
                         ),
-                        padding: EdgeInsets.zero,
-                        constraints: const BoxConstraints(),
-                      ),
                     ],
                   ),
                   const SizedBox(height: 4),
