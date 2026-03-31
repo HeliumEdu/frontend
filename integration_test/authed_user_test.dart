@@ -236,7 +236,7 @@ void main() {
         );
         await tester.tap(settingsButton);
 
-        // Wait for close button to appear (dialog is open)
+        // Wait for close button to appear (dialog shell is open)
         final closeButton = find.byIcon(Icons.close);
         final dialogOpened = await waitForWidget(
           tester,
@@ -244,6 +244,16 @@ void main() {
           timeout: const Duration(seconds: 5),
         );
         expect(dialogOpened, isTrue, reason: 'Settings dialog should open');
+
+        // Wait for settings body to load (AuthBloc fetches profile async; body
+        // shows LoadingIndicator until AuthProfileFetched, so the close button
+        // may appear before "Keep Helium Free" is in the tree).
+        final bodyLoaded = await waitForWidget(
+          tester,
+          find.text('Change Password'),
+          timeout: const Duration(seconds: 5),
+        );
+        expect(bodyLoaded, isTrue, reason: 'Settings body should finish loading');
 
         // Verify browser title did NOT change (dialog mode)
         expectOnSettingsScreen(isDialog: true);
@@ -294,13 +304,25 @@ void main() {
         );
         await tester.tap(settingsButton);
 
-        // Wait for close button to appear (full-screen dialog opened)
+        // Wait for close button to appear (full-screen dialog shell is open)
         final screenOpened = await waitForWidget(
           tester,
           closeButton,
           timeout: const Duration(seconds: 5),
         );
         expect(screenOpened, isTrue, reason: 'Settings screen should open');
+
+        // Wait for settings body to load (same AuthBloc race as desktop path above)
+        final mobileBodyLoaded = await waitForWidget(
+          tester,
+          find.text('Change Password'),
+          timeout: const Duration(seconds: 5),
+        );
+        expect(
+          mobileBodyLoaded,
+          isTrue,
+          reason: 'Settings body should finish loading on mobile',
+        );
 
         // Verify browser title changed to Settings (full-screen dialog mode)
         expectOnSettingsScreen(isDialog: true);
