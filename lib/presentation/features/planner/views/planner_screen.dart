@@ -14,7 +14,6 @@ import 'package:go_router/go_router.dart';
 import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/core/dio_client.dart';
-import 'package:heliumapp/core/helium_exception.dart';
 import 'package:heliumapp/data/models/auth/user_model.dart';
 import 'package:heliumapp/data/models/id_or_entity.dart';
 import 'package:heliumapp/data/models/planner/attachment_model.dart';
@@ -195,6 +194,10 @@ class _CalendarScreenState
 
   List<CourseGroupModel> _courseGroups = [];
   List<CourseModel> _courses = [];
+
+  Map<int, CourseGroupModel> get _courseGroupsById => {
+    for (final g in _courseGroups) g.id: g,
+  };
   final Map<int, CategoryModel> _categoriesMap = {};
   final List<CategoryModel> _deduplicatedCategories = [];
   bool _isSearchExpanded = false;
@@ -303,9 +306,7 @@ class _CalendarScreenState
 
           if (_courses.isNotEmpty) {
             _plannerItemDataSource!.courses = _courses;
-            _plannerItemDataSource!.courseGroupsById = {
-              for (final g in _courseGroups) g.id: g,
-            };
+            _plannerItemDataSource!.courseGroupsById = _courseGroupsById;
             _plannerItemDataSource!.categoriesMap = _categoriesMap;
           }
 
@@ -327,6 +328,15 @@ class _CalendarScreenState
           if (state is PlannerScreenDataFetched) {
             _populateInitialCalendarStateData(state);
             openFromQueryParams();
+          } else if (state is CourseOccurrenceSkipped) {
+            unawaited(
+              _plannerItemDataSource?.refreshCalendarSources(
+                visibleStart: _visibleDates.isNotEmpty ? _visibleDates.first : null,
+                visibleEnd: _visibleDates.isNotEmpty ? _visibleDates.last : null,
+              ),
+            );
+          } else if (state is PlannerError) {
+            showSnackBar(context, state.message!, type: SnackType.error);
           }
         },
       ),
@@ -2110,38 +2120,42 @@ class _CalendarScreenState
       ),
     ];
 
-    if (rows.isNotEmpty) {
-      children.add(const TextSpan(text: '\n'));
-
-      for (int i = 0; i < rows.length; i++) {
-        final row = rows[i];
-        if (row.widget != null) {
-          children.add(
-            WidgetSpan(
-              alignment: PlaceholderAlignment.middle,
-              child: row.widget!,
-            ),
-          );
-        } else {
-          children.add(
-            WidgetSpan(
-              alignment: PlaceholderAlignment.middle,
-              child: Icon(
-                row.icon!,
-                size: 14,
-                color: row.color ?? mutedIconColor,
-              ),
-            ),
-          );
-          children.add(TextSpan(text: ' ${row.text}', style: bodyStyle));
-        }
-        if (i != rows.length - 1) {
-          children.add(const TextSpan(text: '\n'));
-        }
-      }
-    }
+    children.addAll(_buildTooltipRowSpans(rows, bodyStyle, mutedIconColor));
 
     return TextSpan(children: children);
+  }
+
+  List<InlineSpan> _buildTooltipRowSpans(
+    List<_PlannerTooltipRow> rows,
+    TextStyle bodyStyle,
+    Color mutedIconColor,
+  ) {
+    if (rows.isEmpty) return [];
+
+    final spans = <InlineSpan>[const TextSpan(text: '\n')];
+    for (int i = 0; i < rows.length; i++) {
+      final row = rows[i];
+      if (row.widget != null) {
+        spans.add(
+          WidgetSpan(
+            alignment: PlaceholderAlignment.middle,
+            child: row.widget!,
+          ),
+        );
+      } else {
+        spans.add(
+          WidgetSpan(
+            alignment: PlaceholderAlignment.middle,
+            child: Icon(row.icon!, size: 14, color: row.color ?? mutedIconColor),
+          ),
+        );
+        spans.add(TextSpan(text: ' ${row.text}', style: bodyStyle));
+      }
+      if (i != rows.length - 1) {
+        spans.add(const TextSpan(text: '\n'));
+      }
+    }
+    return spans;
   }
 
   String _buildTooltipWhenLine(PlannerItemBaseModel plannerItem) {
@@ -2790,39 +2804,13 @@ class _CalendarScreenState
       occurrenceDate: occurrenceDate,
       actions: CourseScheduleEventActions(
         onSkip: (date) async {
-          final updated = [
-            ...course.exceptions,
-            date,
-          ]..sort();
-          try {
-            await context
-                .read<PlannerItemBloc>()
-                .courseRepository
-                .updateCourseExceptions(course.courseGroup, courseId, updated);
-            // Update the local course list so the data source uses the new
-            // exceptions when regenerating course schedule events on refresh.
-            if (mounted) {
-              setState(() {
-                _courses = [
-                  for (final c in _courses)
-                    if (c.id == courseId) c.copyWith(exceptions: updated) else c,
-                ];
-                _plannerItemDataSource!.courses = _courses;
-              });
-            }
-            await _plannerItemDataSource?.refreshCalendarSources(
-              visibleStart: _visibleDates.isNotEmpty ? _visibleDates.first : null,
-              visibleEnd: _visibleDates.isNotEmpty ? _visibleDates.last : null,
-            );
-          } on HeliumException catch (e) {
-            if (mounted) {
-              showSnackBar(context, e.displayMessage, type: SnackType.error);
-            }
-          } catch (e) {
-            if (mounted) {
-              showSnackBar(context, 'An unexpected error occurred.', type: SnackType.error);
-            }
-          }
+          context.read<PlannerBloc>().add(
+            SkipCourseOccurrenceEvent(
+              origin: EventOrigin.screen,
+              course: course,
+              date: date,
+            ),
+          );
         },
         websiteUrl: (!hideWebsiteLink && course.website.isNotEmpty)
             ? course.website

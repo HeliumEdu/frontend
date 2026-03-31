@@ -5,6 +5,7 @@
 //
 // For details regarding the license, please refer to the LICENSE file.
 
+import 'package:heliumapp/data/models/planner/course_model.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/core/base_event.dart';
 
 abstract class PlannerEvent extends BaseEvent {
@@ -13,4 +14,15 @@ abstract class PlannerEvent extends BaseEvent {
 
 class FetchPlannerScreenDataEvent extends PlannerEvent {
   FetchPlannerScreenDataEvent({required super.origin});
+}
+
+class SkipCourseOccurrenceEvent extends PlannerEvent {
+  final CourseModel course;
+  final DateTime date;
+
+  SkipCourseOccurrenceEvent({
+    required super.origin,
+    required this.course,
+    required this.date,
+  });
 }
