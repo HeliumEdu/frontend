@@ -2801,6 +2801,17 @@ class _CalendarScreenState
                 .read<PlannerItemBloc>()
                 .courseRepository
                 .updateCourseExceptions(course.courseGroup, courseId, updated);
+            // Update the local course list so the data source uses the new
+            // exceptions when regenerating course schedule events on refresh.
+            if (mounted) {
+              setState(() {
+                _courses = [
+                  for (final c in _courses)
+                    if (c.id == courseId) c.copyWith(exceptions: updated) else c,
+                ];
+                _plannerItemDataSource!.courses = _courses;
+              });
+            }
             await _plannerItemDataSource?.refreshCalendarSources(
               visibleStart: _visibleDates.isNotEmpty ? _visibleDates.first : null,
               visibleEnd: _visibleDates.isNotEmpty ? _visibleDates.last : null,

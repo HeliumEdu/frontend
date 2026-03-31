@@ -95,6 +95,58 @@ class CourseModel extends BaseTitledModel {
     );
   }
 
+  CourseModel copyWith({
+    int? id,
+    String? title,
+    bool? shownOnCalendar,
+    DateTime? startDate,
+    DateTime? endDate,
+    String? room,
+    double? credits,
+    Color? color,
+    String? website,
+    bool? isOnline,
+    int? courseGroup,
+    String? teacherName,
+    String? teacherEmail,
+    double? currentGrade,
+    List<CourseScheduleModel>? schedules,
+    List<DateTime>? exceptions,
+    double? trend,
+    int? numDays,
+    int? numDaysCompleted,
+    bool? hasWeightedGrading,
+    int? numHomework,
+    int? numHomeworkCompleted,
+    int? numHomeworkGraded,
+  }) {
+    return CourseModel(
+      id: id ?? this.id,
+      title: title ?? this.title,
+      shownOnCalendar: shownOnCalendar ?? this.shownOnCalendar,
+      startDate: startDate ?? this.startDate,
+      endDate: endDate ?? this.endDate,
+      room: room ?? this.room,
+      credits: credits ?? this.credits,
+      color: color ?? this.color,
+      website: website ?? this.website,
+      isOnline: isOnline ?? this.isOnline,
+      courseGroup: courseGroup ?? this.courseGroup,
+      teacherName: teacherName ?? this.teacherName,
+      teacherEmail: teacherEmail ?? this.teacherEmail,
+      currentGrade: currentGrade ?? this.currentGrade,
+      schedules: schedules ?? this.schedules,
+      exceptions: exceptions ?? this.exceptions,
+      trend: trend ?? this.trend,
+      numDays: numDays ?? this.numDays,
+      numDaysCompleted: numDaysCompleted ?? this.numDaysCompleted,
+      hasWeightedGrading: hasWeightedGrading ?? this.hasWeightedGrading,
+      numHomework: numHomework ?? this.numHomework,
+      numHomeworkCompleted: numHomeworkCompleted ?? this.numHomeworkCompleted,
+      numHomeworkGraded: numHomeworkGraded ?? this.numHomeworkGraded,
+    );
+  }
+
   Map<String, dynamic> toJson() {
     return {
       'id': id,
