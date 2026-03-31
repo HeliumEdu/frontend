@@ -39,7 +39,10 @@ class PlannerBloc extends Bloc<PlannerEvent, PlannerState> {
         event.course.id,
         exceptions,
       );
-      emit(CourseOccurrenceSkipped(origin: event.origin));
+      emit(CourseOccurrenceSkipped(
+        origin: event.origin,
+        updatedCourse: event.course.copyWith(exceptions: exceptions),
+      ));
     } on HeliumException catch (e) {
       emit(PlannerError(origin: event.origin, message: e.displayMessage));
     } catch (e) {

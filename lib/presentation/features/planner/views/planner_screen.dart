@@ -329,6 +329,13 @@ class _CalendarScreenState
             _populateInitialCalendarStateData(state);
             openFromQueryParams();
           } else if (state is CourseOccurrenceSkipped) {
+            setState(() {
+              _courses = [
+                for (final c in _courses)
+                  if (c.id == state.updatedCourse.id) state.updatedCourse else c,
+              ];
+            });
+            _plannerItemDataSource?.courses = _courses;
             unawaited(
               _plannerItemDataSource?.refreshCalendarSources(
                 visibleStart: _visibleDates.isNotEmpty ? _visibleDates.first : null,

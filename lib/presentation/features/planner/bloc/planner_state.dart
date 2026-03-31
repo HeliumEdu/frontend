@@ -41,5 +41,7 @@ class PlannerScreenDataFetched extends PlannerState {
 }
 
 class CourseOccurrenceSkipped extends PlannerState {
-  CourseOccurrenceSkipped({required super.origin});
+  final CourseModel updatedCourse;
+
+  CourseOccurrenceSkipped({required super.origin, required this.updatedCourse});
 }
