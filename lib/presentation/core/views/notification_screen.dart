@@ -140,18 +140,23 @@ class _NotificationsScreenState
   Future<UserSettingsModel?> loadSettings() {
     return super.loadSettings().then((settings) {
       if (mounted && settings != null) {
-        context.read<ReminderBloc>().add(
-          FetchRemindersEvent(
-            origin: EventOrigin.subScreen,
-            sent: true,
-            dismissed: false,
-            type: 3,
-            startOfRange: DateTime.now(),
-          ),
-        );
+        _fetchReminders();
       }
       return settings;
     });
+  }
+
+  void _fetchReminders({bool forceRefresh = false}) {
+    context.read<ReminderBloc>().add(
+      FetchRemindersEvent(
+        origin: EventOrigin.subScreen,
+        sent: true,
+        dismissed: false,
+        type: 3,
+        startOfRange: DateTime.now(),
+        forceRefresh: forceRefresh,
+      ),
+    );
   }
 
   @override
@@ -232,24 +237,20 @@ class _NotificationsScreenState
           return ErrorCard(
             message: state.message!,
             source: 'notification_screen',
-            onReload: () {
-              context.read<ReminderBloc>().add(
-                FetchRemindersEvent(
-                  origin: EventOrigin.subScreen,
-                  sent: true,
-                  dismissed: false,
-                  type: 3,
-                  startOfRange: DateTime.now(),
-                ),
-              );
-            },
+            onReload: _fetchReminders,
           );
         }
 
         if (_notifications.isEmpty) {
-          return EmptyCard(
-            icon: icon,
-            message: 'Reminders will appear here when they are due',
+          return RefreshIndicator(
+            onRefresh: () async => _fetchReminders(forceRefresh: true),
+            child: SingleChildScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              child: EmptyCard(
+                icon: icon,
+                message: 'Reminders will appear here when they are due',
+              ),
+            ),
           );
         }
 
@@ -260,12 +261,15 @@ class _NotificationsScreenState
 
   Widget _buildNotificationsList() {
     return Expanded(
-      child: ListView.builder(
-        itemCount: _notifications.length,
-        itemBuilder: (context, index) {
-          final notification = _notifications[index];
-          return _buildNotificationRow(notification);
-        },
+      child: RefreshIndicator(
+        onRefresh: () async => _fetchReminders(forceRefresh: true),
+        child: ListView.builder(
+          itemCount: _notifications.length,
+          itemBuilder: (context, index) {
+            final notification = _notifications[index];
+            return _buildNotificationRow(notification);
+          },
+        ),
       ),
     );
   }

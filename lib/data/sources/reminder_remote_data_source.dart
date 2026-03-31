@@ -25,6 +25,7 @@ abstract class ReminderRemoteDataSource extends BaseDataSource {
     bool? dismissed,
     int? type,
     DateTime? startOfRange,
+    bool forceRefresh = false,
   });
 
   Future<ReminderModel> createReminder(ReminderRequestModel request);
@@ -48,6 +49,7 @@ class ReminderRemoteDataSourceImpl extends ReminderRemoteDataSource {
     bool? dismissed,
     int? type,
     DateTime? startOfRange,
+    bool forceRefresh = false,
   }) async {
     try {
       final parentInfo = eventId != null
@@ -74,6 +76,7 @@ class ReminderRemoteDataSourceImpl extends ReminderRemoteDataSource {
       final response = await dioClient.dio.get(
         ApiUrl.plannerRemindersListUrl,
         queryParameters: queryParameters,
+        options: forceRefresh ? dioClient.cacheService.forceRefreshOptions() : null,
       );
 
       if (response.statusCode == 200) {
