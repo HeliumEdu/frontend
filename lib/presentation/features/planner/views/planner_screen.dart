@@ -1850,6 +1850,7 @@ class _CalendarScreenState
       completedOverride: homeworkId != null
           ? _plannerItemDataSource!.completedOverrides[homeworkId]
           : null,
+      occurrenceDate: details.date,
     );
     if (_isLockedCalendarInteractionItem(plannerItem)) {
       calendarItemWidget = Listener(
@@ -2441,6 +2442,7 @@ class _CalendarScreenState
     required PlannerItemBaseModel plannerItem,
     CourseModel? course,
     required Color backgroundColor,
+    DateTime? occurrenceDate,
   }) {
     final foregroundColor = backgroundColor.contrasting;
     final buttons = <Widget>[];
@@ -2468,6 +2470,20 @@ class _CalendarScreenState
           },
           icon: Icons.launch_outlined,
           tooltip: 'Launch class website',
+          color: foregroundColor,
+        ),
+      );
+    }
+
+    if (plannerItem is CourseScheduleEventModel &&
+        !Responsive.isMobile(context)) {
+      buttons.add(
+        HeliumIconButton(
+          onPressed: () => _openPlannerItem(
+            plannerItem,
+            occurrenceDate: occurrenceDate,
+          ),
+          icon: Icons.more_vert,
           color: foregroundColor,
         ),
       );
@@ -2518,12 +2534,14 @@ class _CalendarScreenState
     double? height,
     required bool isInAgenda,
     bool? completedOverride,
+    DateTime? occurrenceDate,
   }) {
     if (isInAgenda) {
       return _buildCalendarItemWidgetForAgenda(
         plannerItem: plannerItem,
         width: width,
         completedOverride: completedOverride,
+        occurrenceDate: occurrenceDate,
       );
     } else {
       return _buildCalendarItemWidgetForTimeline(
@@ -2539,6 +2557,7 @@ class _CalendarScreenState
     required PlannerItemBaseModel plannerItem,
     required double width,
     bool? completedOverride,
+    DateTime? occurrenceDate,
   }) {
     final color = _plannerItemDataSource!.getColorForItem(plannerItem);
     final location = _plannerItemDataSource!.getLocationForItem(plannerItem);
@@ -2561,6 +2580,7 @@ class _CalendarScreenState
       plannerItem: plannerItem,
       course: course,
       backgroundColor: color,
+      occurrenceDate: occurrenceDate,
     );
 
     final agendaHeight = Responsive.isMobile(context)
@@ -2636,7 +2656,7 @@ class _CalendarScreenState
       centerColumn = Expanded(
         child: GestureDetector(
           behavior: HitTestBehavior.opaque,
-          onTap: () => _openPlannerItem(plannerItem),
+          onTap: () => _openPlannerItem(plannerItem, occurrenceDate: occurrenceDate),
           child: SizedBox(
             height: agendaHeight,
             child: Align(
@@ -2872,6 +2892,7 @@ class _CalendarScreenState
                 width: double.infinity,
                 isInAgenda: true,
                 completedOverride: completedOverride,
+                occurrenceDate: date,
               ),
             ),
           );

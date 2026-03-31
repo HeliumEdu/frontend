@@ -58,12 +58,11 @@ void showCourseScheduleEventDialog({
           mainAxisSize: MainAxisSize.min,
           children: [
             Padding(
-              padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
+              padding: const EdgeInsets.fromLTRB(16, 8, 8, 4),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
-                    mainAxisSize: MainAxisSize.min,
                     children: [
                       Icon(
                         AppConstants.courseScheduleIcon,
@@ -71,13 +70,23 @@ void showCourseScheduleEventDialog({
                         color: courseColor,
                       ),
                       const SizedBox(width: 6),
-                      Flexible(
+                      Expanded(
                         child: Text(
                           courseTitle,
                           style: AppStyles.formText(menuContext).copyWith(
                             fontWeight: FontWeight.w600,
                           ),
                         ),
+                      ),
+                      IconButton(
+                        onPressed: () => Navigator.of(menuContext).pop(),
+                        icon: Icon(
+                          Icons.close,
+                          size: 20,
+                          color: menuContext.colorScheme.primary,
+                        ),
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(),
                       ),
                     ],
                   ),
