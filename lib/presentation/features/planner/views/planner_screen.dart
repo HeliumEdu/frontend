@@ -747,6 +747,7 @@ class _CalendarScreenState
       _showCourseScheduleEventDialog(
         plannerItem,
         occurrenceDate ?? plannerItem.start,
+        hideWebsiteLink: true,
       );
       return false;
     } else if (plannerItem is ExternalCalendarEventModel) {
@@ -1852,9 +1853,20 @@ class _CalendarScreenState
           : null,
       occurrenceDate: details.date,
     );
-    if (_isLockedCalendarInteractionItem(plannerItem)) {
+    // Agenda views don't support drag and drop, so no Listener needed there.
+    // In timeline views, locked items (course schedules, external calendar
+    // events) still need the Listener to prevent SfCalendar from initiating
+    // a drag. Defer the setState so it fires after the current gesture phase —
+    // drag initiation requires a sustained hold (~300-500ms), so a one-frame
+    // delay still reliably prevents accidental drags without interfering with
+    // quick taps.
+    if (_isLockedCalendarInteractionItem(plannerItem) && !isInAgenda) {
       calendarItemWidget = Listener(
-        onPointerDown: (_) => _temporarilyDisableCalendarDragAndDrop(),
+        onPointerDown: (_) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            _temporarilyDisableCalendarDragAndDrop();
+          });
+        },
         child: calendarItemWidget,
       );
     }
@@ -2764,8 +2776,9 @@ class _CalendarScreenState
 
   void _showCourseScheduleEventDialog(
     CourseScheduleEventModel event,
-    DateTime occurrenceDate,
-  ) {
+    DateTime occurrenceDate, {
+    bool hideWebsiteLink = false,
+  }) {
     final courseId = int.tryParse(event.ownerId);
     if (courseId == null) return;
 
@@ -2802,7 +2815,9 @@ class _CalendarScreenState
             }
           }
         },
-        websiteUrl: course.website.isNotEmpty ? course.website : null,
+        websiteUrl: (!hideWebsiteLink && course.website.isNotEmpty)
+            ? course.website
+            : null,
         onEditSchedule: () {
           context.go(
             '${AppRoute.coursesScreen}?id=${event.ownerId}&${DeepLinkParam.tab}=2',
