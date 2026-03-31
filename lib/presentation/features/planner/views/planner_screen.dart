@@ -1867,6 +1867,7 @@ class _CalendarScreenState
       key: ValueKey('planner_item_${plannerItem.id}'),
       child: _buildPlannerItemTooltip(
         plannerItem: plannerItem,
+        isInAgendaStyle: isInAgenda,
         child: calendarItemWidget,
       ),
     );
@@ -1912,7 +1913,7 @@ class _CalendarScreenState
   Widget _buildPlannerItemTooltip({
     required PlannerItemBaseModel plannerItem,
     required Widget child,
-    bool hideLocation = false,
+    bool isInAgendaStyle = false,
   }) {
     if (_isCalendarInteractionInProgress ||
         Responsive.isTouchDevice(context) ||
@@ -1920,10 +1921,13 @@ class _CalendarScreenState
       return child;
     }
 
-    final tooltipMessage = _buildPlannerItemTooltipMessage(
-      plannerItem,
-      hideLocation: hideLocation,
-    );
+    if (isInAgendaStyle &&
+        plannerItem is! HomeworkModel &&
+        plannerItem is! EventModel) {
+      return child;
+    }
+
+    final tooltipMessage = _buildPlannerItemTooltipMessage(plannerItem);
     if (tooltipMessage == null) {
       return child;
     }
@@ -1943,10 +1947,7 @@ class _CalendarScreenState
     );
   }
 
-  InlineSpan? _buildPlannerItemTooltipMessage(
-    PlannerItemBaseModel plannerItem, {
-    bool hideLocation = false,
-  }) {
+  InlineSpan? _buildPlannerItemTooltipMessage(PlannerItemBaseModel plannerItem) {
     final titleStyle = AppStyles.formText(context).copyWith(
       color: context.colorScheme.onSurface,
       fontWeight: FontWeight.w600,
@@ -1967,10 +1968,7 @@ class _CalendarScreenState
     ];
     final location = _plannerItemDataSource?.getLocationForItem(plannerItem);
 
-    if (!hideLocation &&
-        _currentView != PlannerView.agenda &&
-        location != null &&
-        location.isNotEmpty) {
+    if (location != null && location.isNotEmpty) {
       rows.add(
         _PlannerTooltipRow.text(icon: Icons.pin_drop_outlined, text: location),
       );
@@ -2813,7 +2811,7 @@ class _CalendarScreenState
         itemBuilder: (context, plannerItem, completedOverride) {
           return _buildPlannerItemTooltip(
             plannerItem: plannerItem,
-            hideLocation: true,
+            isInAgendaStyle: true,
             child: ConstrainedBox(
               constraints: const BoxConstraints(
                 maxHeight: _agendaHeightDesktop,
