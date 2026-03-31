@@ -75,7 +75,7 @@ jobs:
 
   integration-test:
     name: Integration Test
-    if: ${{ github.actor != 'dependabot[bot]' && !contains(github.event.head_commit.message, '[skip ci]') && (github.event_name != 'workflow_dispatch' || inputs.run_integration_tests) }}
+    if: ${{ github.actor != 'renovate[bot]' && !contains(github.event.head_commit.message, '[skip ci]') && (github.event_name != 'workflow_dispatch' || inputs.run_integration_tests) }}
     uses: ./.github/workflows/integration.yml
     with:
       suite: full
@@ -153,13 +153,9 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-pub-
 
-      - name: Update pods for Dependabot
-        if: github.actor == 'dependabot[bot]'
-        run: |
-          flutter pub get
-          cd ios && pod update
-
       - name: Build iOS
+        env:
+          COCOAPODS_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: make build-ios
 
   build-web:

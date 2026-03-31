@@ -451,6 +451,7 @@ jobs:
 
       - name: Build iOS release IPA
         env:
+          COCOAPODS_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           RELEASE_VERSION: ${{ needs['bump-version'].outputs.version }}
         run: |
           SENTRY_DIST="${RELEASE_VERSION##*+}"
