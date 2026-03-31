@@ -289,7 +289,7 @@ class _SignupScreenState extends BasePageScreenState<SignupScreen> {
                           style: AppStyles.formText(context),
                           children: [
                             WidgetSpan(
-                              child: GestureDetector(
+                              child: InkWell(
                                 onTap: () => launchUrl(
                                   Uri.parse('https://www.heliumedu.com/terms'),
                                 ),
@@ -306,7 +306,7 @@ class _SignupScreenState extends BasePageScreenState<SignupScreen> {
                               style: AppStyles.formText(context),
                             ),
                             WidgetSpan(
-                              child: GestureDetector(
+                              child: InkWell(
                                 onTap: () => launchUrl(
                                   Uri.parse(
                                     'https://www.heliumedu.com/privacy',

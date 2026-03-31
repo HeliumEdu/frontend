@@ -303,31 +303,29 @@ class PreferencesScreenState extends State<PreferencesScreen> {
             Row(
               children: [
                 SizedBox(width: 160, child: Text('Color for Events', style: AppStyles.formLabel(context))),
-                MouseRegion(
-                  cursor: SystemMouseCursors.click,
-                  child: GestureDetector(
-                    onTap: () {
-                      Feedback.forTap(context);
-                      showColorPickerDialog(
-                        parentContext: context,
-                        initialColor: _selectedEventColor,
-                        onSelected: (color) {
-                          setState(() {
-                            _selectedEventColor = color;
-                          });
-                        },
-                      );
-                    },
-                    child: Container(
-                      width: 33,
-                      height: 33,
-                      decoration: BoxDecoration(
-                        color: _selectedEventColor,
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(
-                          color: context.colorScheme.outline.withValues(
-                            alpha: 0.2,
-                          ),
+                InkWell(
+                  onTap: () {
+                    Feedback.forTap(context);
+                    showColorPickerDialog(
+                      parentContext: context,
+                      initialColor: _selectedEventColor,
+                      onSelected: (color) {
+                        setState(() {
+                          _selectedEventColor = color;
+                        });
+                      },
+                    );
+                  },
+                  borderRadius: BorderRadius.circular(8),
+                  child: Container(
+                    width: 33,
+                    height: 33,
+                    decoration: BoxDecoration(
+                      color: _selectedEventColor,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(
+                        color: context.colorScheme.outline.withValues(
+                          alpha: 0.2,
                         ),
                       ),
                     ),
@@ -339,28 +337,26 @@ class PreferencesScreenState extends State<PreferencesScreen> {
             Row(
               children: [
                 SizedBox(width: 160, child: Text('Color for grades', style: AppStyles.formLabel(context))),
-                MouseRegion(
-                  cursor: SystemMouseCursors.click,
-                  child: GestureDetector(
-                    onTap: () => showColorPickerDialog(
-                      parentContext: context,
-                      initialColor: _selectedGradeColor,
-                      onSelected: (color) {
-                        setState(() {
-                          _selectedGradeColor = color;
-                        });
-                      },
-                    ),
-                    child: Container(
-                      width: 33,
-                      height: 33,
-                      decoration: BoxDecoration(
-                        color: _selectedGradeColor,
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(
-                          color: context.colorScheme.outline.withValues(
-                            alpha: 0.2,
-                          ),
+                InkWell(
+                  onTap: () => showColorPickerDialog(
+                    parentContext: context,
+                    initialColor: _selectedGradeColor,
+                    onSelected: (color) {
+                      setState(() {
+                        _selectedGradeColor = color;
+                      });
+                    },
+                  ),
+                  borderRadius: BorderRadius.circular(8),
+                  child: Container(
+                    width: 33,
+                    height: 33,
+                    decoration: BoxDecoration(
+                      color: _selectedGradeColor,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(
+                        color: context.colorScheme.outline.withValues(
+                          alpha: 0.2,
                         ),
                       ),
                     ),
@@ -372,32 +368,30 @@ class PreferencesScreenState extends State<PreferencesScreen> {
             Row(
               children: [
                 SizedBox(width: 160, child: Text('Color for resources', style: AppStyles.formLabel(context))),
-                MouseRegion(
-                  cursor: SystemMouseCursors.click,
-                  child: GestureDetector(
-                    onTap: () => showColorPickerDialog(
-                      parentContext: context,
-                      initialColor: _selectedResourceColor,
-                      onSelected: (color) {
-                        setState(() {
-                          _selectedResourceColor = color;
-                        });
-                      },
-                    ),
-                    child: Container(
-                      width: 33,
-                      height: 33,
-                      decoration: BoxDecoration(
-                        color: _selectedResourceColor,
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(
-                          color: context.colorScheme.outline.withValues(
+                InkWell(
+                  onTap: () => showColorPickerDialog(
+                    parentContext: context,
+                    initialColor: _selectedResourceColor,
+                    onSelected: (color) {
+                      setState(() {
+                        _selectedResourceColor = color;
+                      });
+                    },
+                  ),
+                  borderRadius: BorderRadius.circular(8),
+                  child: Container(
+                    width: 33,
+                    height: 33,
+                    decoration: BoxDecoration(
+                      color: _selectedResourceColor,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(
+                        color: context.colorScheme.outline.withValues(
                             alpha: 0.2,
                           ),
                         ),
                       ),
                     ),
-                  ),
                 ),
               ],
             ),

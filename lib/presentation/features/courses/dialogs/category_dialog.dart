@@ -128,30 +128,28 @@ class _CategoryWidgetState extends BaseDialogState<_CategoryProvidedWidget> {
           children: [
             Text('Color', style: AppStyles.formLabel(context)),
             const SizedBox(width: 12),
-            MouseRegion(
-              cursor: SystemMouseCursors.click,
-              child: GestureDetector(
-                onTap: () {
-                  Feedback.forTap(context);
-                  showColorPickerDialog(
-                    parentContext: context,
-                    initialColor: _formController.selectedColor,
-                    onSelected: (color) {
-                      setState(() {
-                        _formController.selectedColor = color;
-                      });
-                    },
-                  );
-                },
-                child: Container(
-                  width: 33,
-                  height: 33,
-                  decoration: BoxDecoration(
-                    color: _formController.selectedColor,
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(
-                      color: context.colorScheme.outline.withValues(alpha: 0.2),
-                    ),
+            InkWell(
+              onTap: () {
+                Feedback.forTap(context);
+                showColorPickerDialog(
+                  parentContext: context,
+                  initialColor: _formController.selectedColor,
+                  onSelected: (color) {
+                    setState(() {
+                      _formController.selectedColor = color;
+                    });
+                  },
+                );
+              },
+              borderRadius: BorderRadius.circular(8),
+              child: Container(
+                width: 33,
+                height: 33,
+                decoration: BoxDecoration(
+                  color: _formController.selectedColor,
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(
+                    color: context.colorScheme.outline.withValues(alpha: 0.2),
                   ),
                 ),
               ),

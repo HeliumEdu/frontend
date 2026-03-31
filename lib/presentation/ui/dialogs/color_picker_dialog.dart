@@ -87,14 +87,13 @@ class _ColorPickerWidgetState extends State<_ColorPickerWidget> {
             },
             availableColors: HeliumColors.preferredColors,
             itemBuilder: (color, isCurrentColor, changeColor) {
-              return MouseRegion(
-                cursor: SystemMouseCursors.click,
-                child: GestureDetector(
-                  onTap: () {
-                    Feedback.forTap(context);
-                    changeColor();
-                  },
-                  child: Container(
+              return InkWell(
+                onTap: () {
+                  Feedback.forTap(context);
+                  changeColor();
+                },
+                borderRadius: BorderRadius.circular(4),
+                child: Container(
                     margin: const EdgeInsets.all(4),
                     decoration: BoxDecoration(
                       color: color,
@@ -113,7 +112,6 @@ class _ColorPickerWidgetState extends State<_ColorPickerWidget> {
                           )
                         : null,
                   ),
-                ),
               );
             },
             layoutBuilder: (context, colors, child) {
