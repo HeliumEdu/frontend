@@ -16,7 +16,6 @@ Map<String, dynamic> givenUserSettingsJson({
   int defaultView = 0,
   int colorSchemeTheme = 0,
   int weekStartsOn = 0,
-  int allDayOffset = 0,
   int whatsNewVersionSeen = 0,
   String eventsColor = '#4CAF50',
   String resourceColor = '#2196F3',
@@ -31,6 +30,9 @@ Map<String, dynamic> givenUserSettingsJson({
   bool dragAndDropOnMobile = true,
   bool rememberFilterState = false,
   bool collapseBusyDays = true,
+  int atRiskThreshold = 70,
+  int onTrackTolerance = 10,
+  bool showWeekNumbers = false,
   String? privateSlug,
 }) {
   return {
@@ -38,7 +40,6 @@ Map<String, dynamic> givenUserSettingsJson({
     'default_view': defaultView,
     'color_scheme_theme': colorSchemeTheme,
     'week_starts_on': weekStartsOn,
-    'all_day_offset': allDayOffset,
     'whats_new_version_seen': whatsNewVersionSeen,
     'events_color': eventsColor,
     'material_color': resourceColor,
@@ -53,6 +54,9 @@ Map<String, dynamic> givenUserSettingsJson({
     'drag_and_drop_on_mobile': dragAndDropOnMobile,
     'remember_filter_state': rememberFilterState,
     'calendar_event_limit': collapseBusyDays,
+    'at_risk_threshold': atRiskThreshold,
+    'on_track_tolerance': onTrackTolerance,
+    'show_week_numbers': showWeekNumbers,
     'private_slug': privateSlug,
   };
 }
@@ -131,7 +135,6 @@ void verifyUserSettingsMatchesJson(
   expect(settings.defaultView, equals(json['default_view']));
   expect(settings.weekStartsOn, equals(json['week_starts_on']));
   expect(settings.colorSchemeTheme, equals(json['color_scheme_theme']));
-  expect(settings.allDayOffset, equals(json['all_day_offset']));
   expect(settings.whatsNewVersionSeen, equals(json['whats_new_version_seen']));
   expect(settings.defaultReminderType, equals(json['default_reminder_type']));
   expect(
@@ -149,6 +152,9 @@ void verifyUserSettingsMatchesJson(
   expect(settings.showPlannerTooltips, equals(json['show_planner_tooltips']));
   expect(settings.rememberFilterState, equals(json['remember_filter_state']));
   expect(settings.collapseBusyDays, equals(json['calendar_event_limit']));
+  expect(settings.atRiskThreshold, equals(json['at_risk_threshold']));
+  expect(settings.onTrackTolerance, equals(json['on_track_tolerance']));
+  expect(settings.showWeekNumbers, equals(json['show_week_numbers']));
   expect(settings.privateSlug, equals(json['private_slug']));
 }
 

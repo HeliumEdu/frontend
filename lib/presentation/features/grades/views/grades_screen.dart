@@ -15,6 +15,8 @@ import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/config/pref_service.dart';
 import 'package:heliumapp/core/dio_client.dart';
 import 'package:heliumapp/data/models/auth/user_model.dart';
+import 'package:heliumapp/presentation/features/auth/bloc/auth_bloc.dart';
+import 'package:heliumapp/presentation/features/auth/bloc/auth_state.dart';
 import 'package:heliumapp/data/models/planner/course_group_model.dart';
 import 'package:heliumapp/data/models/planner/grade_category_model.dart';
 import 'package:heliumapp/data/models/planner/grade_course_group_model.dart';
@@ -152,10 +154,10 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
   static const double _averageColDesktop = 105;
 
   // Decision variables - adjust these to tune the grade insights
-  static const double _atRiskThreshold =
-      70.0; // Courses below this % are flagged as at-risk
-  static const double _onTrackTolerance =
-      10.0; // tolerance for "on track" status (work vs time)
+  double get _atRiskThreshold =>
+      (userSettings?.atRiskThreshold ?? FallbackConstants.defaultAtRiskThreshold).toDouble();
+  double get _onTrackTolerance =>
+      (userSettings?.onTrackTolerance ?? FallbackConstants.defaultOnTrackTolerance).toDouble();
   static const double _defaultDesiredGradeBoost =
       5.0; // Default boost above current grade for calculator
   static const double _chartAnimationDurationMs = 250;
@@ -163,6 +165,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
   List<CourseGroupModel> _courseGroups = [];
   List<GradeCourseGroupModel> _grades = [];
   int? _selectedGroupId;
+  int? _pendingImpactCourseId;
   final Set<int> _expandedCourseIds = {};
   final Map<int, GlobalKey> _courseCardKeys = {};
 
@@ -191,6 +194,15 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
   @override
   List<BlocListener<dynamic, dynamic>> buildListeners(BuildContext context) {
     return [
+      BlocListener<AuthBloc, AuthState>(
+        listener: (context, state) {
+          if (state is AuthProfileUpdated) {
+            setState(() {
+              userSettings = state.user.settings;
+            });
+          }
+        },
+      ),
       BlocListener<GradeBloc, GradeState>(
         listener: (context, state) {
           if (state is GradesError) {
@@ -224,6 +236,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
 
           setState(() {
             _selectedGroupId = value.id;
+            _pendingImpactCourseId = null;
             _expandedCourseIds.clear();
           });
         },
@@ -273,7 +286,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
       if (_courseGroups.isNotEmpty) {
         _selectedGroupId = _courseGroups.first.id;
       }
-
+      _pendingImpactCourseId = null;
       isLoading = false;
     });
   }
@@ -785,15 +798,6 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
                   textAlign: TextAlign.center,
                 ),
               ],
-              if (atRiskCount > 0) ...[
-                const SizedBox(height: 8),
-                Text(
-                  'Tap to view',
-                  style: AppStyles.smallSecondaryText(
-                    context,
-                  ).copyWith(fontStyle: FontStyle.italic),
-                ),
-              ],
             ],
           ),
         ),
@@ -806,16 +810,32 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
         ? selectedGroup.numHomework - selectedGroup.numHomeworkGraded
         : selectedGroup.numHomework;
 
-    // Find course with most ungraded work
-    GradeCourseModel? topCourse;
-    int maxUngraded = 0;
-    for (var course in selectedGroup.courses) {
-      final courseUngraded = course.numHomework - course.numHomeworkGraded;
-      if (courseUngraded > maxUngraded) {
-        maxUngraded = courseUngraded;
-        topCourse = course;
-      }
-    }
+    // Courses sorted by ungraded count descending — top course is first
+    final sortedCourses = [...selectedGroup.courses]
+      ..sort((a, b) {
+        final aU = a.numHomework - a.numHomeworkGraded;
+        final bU = b.numHomework - b.numHomeworkGraded;
+        return bU.compareTo(aU);
+      });
+
+    final topCourse =
+        sortedCourses.isNotEmpty &&
+            (sortedCourses.first.numHomework -
+                    sortedCourses.first.numHomeworkGraded) >
+                0
+        ? sortedCourses.first
+        : null;
+
+    final displayCourse = _pendingImpactCourseId != null
+        ? selectedGroup.courses.firstWhereOrNull(
+              (c) => c.id == _pendingImpactCourseId,
+            ) ??
+              topCourse
+        : topCourse;
+
+    final displayUngraded = displayCourse != null
+        ? displayCourse.numHomework - displayCourse.numHomeworkGraded
+        : 0;
 
     return _buildSummaryCard(
       child: Column(
@@ -839,29 +859,22 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
               ),
             ),
             child: Center(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    ungradedCount.toString(),
-                    style: AppStyles.headingText(context).copyWith(
-                      fontSize: Responsive.getFontSize(
-                        context,
-                        mobile: 28,
-                        tablet: 24,
-                        desktop: 36,
-                      ),
-                      color: ungradedCount > 0
-                          ? context.semanticColors.warning
-                          : context.colorScheme.onSurface.withValues(
-                              alpha: 0.5,
-                            ),
-                      fontWeight: FontWeight.bold,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+              child: Text(
+                ungradedCount.toString(),
+                style: AppStyles.headingText(context).copyWith(
+                  fontSize: Responsive.getFontSize(
+                    context,
+                    mobile: 28,
+                    tablet: 24,
+                    desktop: 36,
                   ),
-                ],
+                  color: ungradedCount > 0
+                      ? context.semanticColors.warning
+                      : context.colorScheme.onSurface.withValues(alpha: 0.5),
+                  fontWeight: FontWeight.bold,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
             ),
           ),
@@ -875,40 +888,64 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
             ),
             textAlign: TextAlign.center,
           ),
-          if (topCourse != null && maxUngraded > 0) ...[
+          if (displayCourse != null && displayUngraded > 0) ...[
             const SizedBox(height: 8),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              decoration: BoxDecoration(
-                color: topCourse.color.withValues(alpha: 0.15),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Container(
-                    width: 8,
-                    height: 8,
-                    decoration: BoxDecoration(
-                      color: topCourse.color,
-                      shape: BoxShape.circle,
-                    ),
+            MouseRegion(
+              cursor: sortedCourses.length > 1
+                  ? SystemMouseCursors.click
+                  : MouseCursor.defer,
+              child: GestureDetector(
+                onTap: sortedCourses.length > 1
+                    ? () => _cyclePendingImpactCourse(sortedCourses)
+                    : null,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
                   ),
-                  const SizedBox(width: 6),
-                  Flexible(
-                    child: Text(
-                      '$maxUngraded in ${topCourse.title}',
-                      style: AppStyles.smallSecondaryText(context),
-                      overflow: TextOverflow.ellipsis,
-                    ),
+                  decoration: BoxDecoration(
+                    color: displayCourse.color.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(12),
                   ),
-                ],
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        width: 8,
+                        height: 8,
+                        decoration: BoxDecoration(
+                          color: displayCourse.color,
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      Flexible(
+                        child: Text(
+                          '$displayUngraded in ${displayCourse.title}',
+                          style: AppStyles.smallSecondaryText(context),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      if (sortedCourses.length > 1) ...[
+                        const SizedBox(width: 4),
+                        Icon(Icons.swap_horiz, size: 12, color: displayCourse.color),
+                      ],
+                    ],
+                  ),
+                ),
               ),
             ),
           ],
         ],
       ),
     );
+  }
+
+  void _cyclePendingImpactCourse(List<GradeCourseModel> sortedCourses) {
+    final currentId = _pendingImpactCourseId ?? sortedCourses.first.id;
+    final currentIndex = sortedCourses.indexWhere((c) => c.id == currentId);
+    final nextIndex = (currentIndex + 1) % sortedCourses.length;
+    setState(() => _pendingImpactCourseId = sortedCourses[nextIndex].id);
   }
 
   void _showGradeCalculatorOptions(

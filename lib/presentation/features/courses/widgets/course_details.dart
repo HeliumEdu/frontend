@@ -365,11 +365,17 @@ class CourseDetailsState extends State<CourseDetails> {
                         ),
                         const SizedBox(width: 12),
                         Expanded(
-                          child: SpinnerField(
-                            label: 'Credits',
-                            controller: _formController.creditsController,
-                            step: 0.5,
-                            allowDecimal: true,
+                          child: Align(
+                            alignment: Alignment.centerLeft,
+                            child: SizedBox(
+                              width: 120,
+                              child: SpinnerField(
+                                label: 'Credits',
+                                controller: _formController.creditsController,
+                                step: 0.5,
+                                allowDecimal: true,
+                              ),
+                            ),
                           ),
                         ),
                       ],

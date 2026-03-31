@@ -99,7 +99,6 @@ void main() {
       defaultView: 0,
       colorSchemeTheme: 0,
       weekStartsOn: 0,
-      allDayOffset: 0,
       whatsNewVersionSeen: 0,
       showGettingStarted: false,
       eventsColor: const Color(0xFF4CAF50),
@@ -114,6 +113,9 @@ void main() {
       collapseBusyDays: true,
       isSetupComplete: true,
       dragAndDropOnMobile: true,
+      atRiskThreshold: 70,
+      showWeekNumbers: false,
+      onTrackTolerance: 10,
     );
 
     dataSource = PlannerItemDataSource(
@@ -290,7 +292,6 @@ void main() {
           defaultView: 0,
           colorSchemeTheme: 0,
           weekStartsOn: 0,
-          allDayOffset: 0,
           whatsNewVersionSeen: 0,
           showGettingStarted: false,
           eventsColor: const Color(0xFF4CAF50),
@@ -305,6 +306,9 @@ void main() {
           collapseBusyDays: true,
           isSetupComplete: true,
           dragAndDropOnMobile: true,
+          atRiskThreshold: 70,
+          showWeekNumbers: false,
+          onTrackTolerance: 10,
         );
 
         final colorByCategoryDataSource = PlannerItemDataSource(

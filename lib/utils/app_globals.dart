@@ -41,7 +41,6 @@ class FallbackConstants {
   static const defaultReminderOffsetType = 0; // Minutes
   static const defaultColorByCategory = false;
   static const defaultColorSchemeTheme = 2; // System
-  static const defaultAllDayOffset = 0;
   static const defaultWhatsNewVersionSeen = 0;
   static const defaultShowGettingStarted = false;
   static const defaultEventsColor = Color(0xffe74674);
@@ -52,6 +51,9 @@ class FallbackConstants {
   static const defaultDragAndDropOnMobile = true;
   static const defaultRememberFilterState = false;
   static const defaultCollapseBusyDays = false;
+  static const defaultAtRiskThreshold = 70;
+  static const defaultOnTrackTolerance = 10;
+  static const defaultShowWeekNumbers = true;
 }
 
 /// Colors for planner item types (Events, Homework, Class Schedules, External Calendars).

@@ -464,9 +464,10 @@ class _NavigationShellState extends State<NavigationShell> {
               tooltip: 'Keep Helium Free',
               url: AppConstants.patreonUrl,
             ),
+            if (!PageHeader.showSettingsInHeader(context))
+              const SizedBox(width: 40, child: Divider())
           ],
           if (!PageHeader.showSettingsInHeader(context)) ...[
-            const SizedBox(width: 40, child: Divider()),
             settingsButton,
           ],
         ],

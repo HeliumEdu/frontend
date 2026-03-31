@@ -368,7 +368,6 @@ class DioClient {
         'default_view': _prefService.getInt('default_view'),
         'color_scheme_theme': _prefService.getInt('color_scheme_theme'),
         'week_starts_on': _prefService.getInt('week_starts_on'),
-        'all_day_offset': _prefService.getInt('all_day_offset'),
         'whats_new_version_seen': _prefService.getInt('whats_new_version_seen'),
         'show_getting_started': _prefService.getBool('show_getting_started'),
         'events_color': _prefService.getString('events_color'),
@@ -391,6 +390,9 @@ class DioClient {
         ),
         'is_setup_complete': _prefService.getBool('is_setup_complete'),
         'calendar_event_limit': _prefService.getBool('calendar_event_limit'),
+        'at_risk_threshold': _prefService.getInt('at_risk_threshold'),
+        'on_track_tolerance': _prefService.getInt('on_track_tolerance'),
+        'show_week_numbers': _prefService.getBool('show_week_numbers'),
       };
 
       if (cachedJson.values.any((v) => v == null)) {
@@ -424,7 +426,6 @@ class DioClient {
       ?_prefService.setInt('default_view', settings.defaultView),
       ?_prefService.setInt('color_scheme_theme', settings.colorSchemeTheme),
       ?_prefService.setInt('week_starts_on', settings.weekStartsOn),
-      ?_prefService.setInt('all_day_offset', settings.allDayOffset),
       ?_prefService.setString(
         'events_color',
         HeliumColors.colorToHex(settings.eventsColor),
@@ -474,6 +475,9 @@ class DioClient {
         settings.dragAndDropOnMobile,
       ),
       ?_prefService.setBool('is_setup_complete', settings.isSetupComplete),
+      ?_prefService.setInt('at_risk_threshold', settings.atRiskThreshold),
+      ?_prefService.setInt('on_track_tolerance', settings.onTrackTolerance),
+      ?_prefService.setBool('show_week_numbers', settings.showWeekNumbers),
     ]);
   }
 

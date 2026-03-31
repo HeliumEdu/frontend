@@ -302,7 +302,7 @@ class PlannerHelper {
   }
 
   static bool shouldShowEditButton(BuildContext context) {
-    return !Responsive.isTouchDevice(context);
+    return !Responsive.isMobile(context);
   }
 
   static bool shouldShowEditButtonForPlannerItem(

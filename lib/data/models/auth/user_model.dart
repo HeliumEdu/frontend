@@ -8,6 +8,7 @@
 import 'dart:ui';
 
 import 'package:heliumapp/data/models/base_model.dart';
+import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/color_helpers.dart';
 import 'package:timezone/standalone.dart' as tz;
 
@@ -55,7 +56,6 @@ class UserSettingsModel {
   final int defaultView;
   final int colorSchemeTheme;
   final int weekStartsOn;
-  final int allDayOffset;
   final int whatsNewVersionSeen;
   final bool showGettingStarted;
   final bool isSetupComplete;
@@ -70,6 +70,9 @@ class UserSettingsModel {
   final bool dragAndDropOnMobile;
   final bool rememberFilterState;
   final bool collapseBusyDays;
+  final int atRiskThreshold;
+  final int onTrackTolerance;
+  final bool showWeekNumbers;
   final String? privateSlug;
 
   UserSettingsModel({
@@ -77,7 +80,6 @@ class UserSettingsModel {
     required this.defaultView,
     required this.colorSchemeTheme,
     required this.weekStartsOn,
-    required this.allDayOffset,
     required this.whatsNewVersionSeen,
     required this.showGettingStarted,
     required this.isSetupComplete,
@@ -92,6 +94,9 @@ class UserSettingsModel {
     required this.dragAndDropOnMobile,
     required this.rememberFilterState,
     required this.collapseBusyDays,
+    required this.atRiskThreshold,
+    required this.onTrackTolerance,
+    required this.showWeekNumbers,
     this.privateSlug,
   });
 
@@ -107,7 +112,6 @@ class UserSettingsModel {
       defaultView: json['default_view'],
       colorSchemeTheme: json['color_scheme_theme'],
       weekStartsOn: json['week_starts_on'],
-      allDayOffset: json['all_day_offset'],
       whatsNewVersionSeen: json['whats_new_version_seen'],
       showGettingStarted: json['show_getting_started'],
       isSetupComplete: json['is_setup_complete'],
@@ -122,6 +126,9 @@ class UserSettingsModel {
       dragAndDropOnMobile: json['drag_and_drop_on_mobile'],
       rememberFilterState: json['remember_filter_state'],
       collapseBusyDays: json['calendar_event_limit'],
+      atRiskThreshold: json['at_risk_threshold'] ?? FallbackConstants.defaultAtRiskThreshold,
+      onTrackTolerance: json['on_track_tolerance'] ?? FallbackConstants.defaultOnTrackTolerance,
+      showWeekNumbers: json['show_week_numbers'] ?? FallbackConstants.defaultShowWeekNumbers,
       privateSlug: json['private_slug'],
     );
   }
@@ -132,7 +139,6 @@ class UserSettingsModel {
       'default_view': defaultView,
       'color_scheme_theme': colorSchemeTheme,
       'week_starts_on': weekStartsOn,
-      'all_day_offset': allDayOffset,
       'show_getting_started': showGettingStarted,
       'is_setup_complete': isSetupComplete,
       'events_color': eventsColor,
@@ -146,6 +152,9 @@ class UserSettingsModel {
       'drag_and_drop_on_mobile': dragAndDropOnMobile,
       'remember_filter_state': rememberFilterState,
       'calendar_event_limit': collapseBusyDays,
+      'at_risk_threshold': atRiskThreshold,
+      'on_track_tolerance': onTrackTolerance,
+      'show_week_numbers': showWeekNumbers,
       'private_slug': privateSlug,
     };
   }

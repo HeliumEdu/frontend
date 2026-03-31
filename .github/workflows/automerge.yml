@@ -1,4 +1,4 @@
-name: Auto-Merge Dependabot PRs
+name: Auto-Merge Renovate PRs
 
 on:
   pull_request:
@@ -10,7 +10,7 @@ permissions:
 jobs:
   refresh-lockfiles:
     name: Refresh Lockfiles
-    if: github.actor == 'dependabot[bot]'
+    if: github.event.pull_request.user.login == 'renovate[bot]'
     uses: ./.github/workflows/refresh-lockfiles.yml
     with:
       ref: ${{ github.head_ref }}
@@ -18,16 +18,12 @@ jobs:
     secrets: inherit
 
   automerge:
-    name: Auto-Merge Dependabot PRs
+    name: Auto-Merge Renovate PRs
     runs-on: ubuntu-latest
     needs: refresh-lockfiles
-    if: github.actor == 'dependabot[bot]'
+    if: github.event.pull_request.user.login == 'renovate[bot]'
     steps:
-      - name: Get Dependabot metadata
-        uses: dependabot/fetch-metadata@v3
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-      - name: Enable auto-merge
+      - name: Approve and enable auto-merge
         run: |
           gh pr review --approve "$PR_URL"
           gh pr merge --squash --auto "$PR_URL"

@@ -143,6 +143,10 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen>
             context.read<CourseBloc>().add(
               FetchCoursesScreenDataEvent(origin: EventOrigin.screen),
             );
+          } else if (state is AuthProfileUpdated) {
+            setState(() {
+              userSettings = state.user.settings;
+            });
           }
         },
       ),

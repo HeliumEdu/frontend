@@ -189,7 +189,6 @@ void main() {
         when(() => mockPrefService.getInt('default_view')).thenReturn(0);
         when(() => mockPrefService.getInt('color_scheme_theme')).thenReturn(1);
         when(() => mockPrefService.getInt('week_starts_on')).thenReturn(0);
-        when(() => mockPrefService.getInt('all_day_offset')).thenReturn(0);
         when(
           () => mockPrefService.getInt('whats_new_version_seen'),
         ).thenReturn(0);
@@ -231,6 +230,15 @@ void main() {
         ).thenReturn(true);
         when(
           () => mockPrefService.getBool('calendar_event_limit'),
+        ).thenReturn(true);
+        when(
+          () => mockPrefService.getInt('at_risk_threshold'),
+        ).thenReturn(70);
+        when(
+          () => mockPrefService.getInt('on_track_tolerance'),
+        ).thenReturn(10);
+        when(
+          () => mockPrefService.getBool('show_week_numbers'),
         ).thenReturn(true);
 
         // WHEN
