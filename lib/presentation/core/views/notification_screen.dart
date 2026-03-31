@@ -244,6 +244,7 @@ class _NotificationsScreenState
         if (_notifications.isEmpty) {
           return RefreshIndicator(
             onRefresh: () async => _fetchReminders(forceRefresh: true),
+            color: context.colorScheme.primary,
             child: SingleChildScrollView(
               physics: const AlwaysScrollableScrollPhysics(),
               child: EmptyCard(
@@ -263,6 +264,7 @@ class _NotificationsScreenState
     return Expanded(
       child: RefreshIndicator(
         onRefresh: () async => _fetchReminders(forceRefresh: true),
+        color: context.colorScheme.primary,
         child: ListView.builder(
           itemCount: _notifications.length,
           itemBuilder: (context, index) {
