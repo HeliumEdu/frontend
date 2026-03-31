@@ -155,11 +155,15 @@ jobs:
 
       - name: Update pods for Dependabot
         if: github.actor == 'dependabot[bot]'
+        env:
+          COCOAPODS_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           flutter pub get
           cd ios && pod update
 
       - name: Build iOS
+        env:
+          COCOAPODS_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: make build-ios
 
   build-web:
