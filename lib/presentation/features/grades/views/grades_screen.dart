@@ -15,6 +15,8 @@ import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/config/pref_service.dart';
 import 'package:heliumapp/core/dio_client.dart';
 import 'package:heliumapp/data/models/auth/user_model.dart';
+import 'package:heliumapp/presentation/features/auth/bloc/auth_bloc.dart';
+import 'package:heliumapp/presentation/features/auth/bloc/auth_state.dart';
 import 'package:heliumapp/data/models/planner/course_group_model.dart';
 import 'package:heliumapp/data/models/planner/grade_category_model.dart';
 import 'package:heliumapp/data/models/planner/grade_course_group_model.dart';
@@ -192,6 +194,15 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
   @override
   List<BlocListener<dynamic, dynamic>> buildListeners(BuildContext context) {
     return [
+      BlocListener<AuthBloc, AuthState>(
+        listener: (context, state) {
+          if (state is AuthProfileUpdated) {
+            setState(() {
+              userSettings = state.user.settings;
+            });
+          }
+        },
+      ),
       BlocListener<GradeBloc, GradeState>(
         listener: (context, state) {
           if (state is GradesError) {
