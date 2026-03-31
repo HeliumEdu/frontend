@@ -260,6 +260,16 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
             continue;
           }
 
+          final isException = appointment.exceptionDates.any(
+            (e) =>
+                e.year == occurrenceStart.year &&
+                e.month == occurrenceStart.month &&
+                e.day == occurrenceStart.day,
+          );
+          if (isException) {
+            continue;
+          }
+
           final duration = appointment.end.difference(appointment.start);
           itemsForDay.add(
             CourseScheduleEventModel(
