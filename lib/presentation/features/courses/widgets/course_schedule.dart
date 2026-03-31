@@ -260,6 +260,7 @@ class CourseScheduleState extends State<CourseSchedule> {
                 ],
                 const SizedBox(height: 25),
                 _buildCancellationsButton(context),
+                const SizedBox(height: 12),
               ],
             ),
           ),
