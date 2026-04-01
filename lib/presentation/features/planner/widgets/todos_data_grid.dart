@@ -156,9 +156,15 @@ class TodosDataGridState extends State<TodosDataGrid> {
     final userSettings = widget.dataSource.userSettings;
     final coursesById = <int, CourseModel>{for (final c in courses) c.id: c};
 
+    final resourcesMap = widget.dataSource.resourcesMap ?? {};
+    final hasResources = homeworks.any(
+      (h) => h.resources.any((r) => resourcesMap.containsKey(r.id)),
+    );
+
     final buffer = StringBuffer();
     buffer.writeln(_csvRow([
       'Completed', 'Title', 'Due Date', 'Class', 'Category', 'Priority', 'Grade',
+      if (hasResources) 'Materials',
     ]));
 
     for (final homework in homeworks) {
@@ -184,6 +190,11 @@ class TodosDataGridState extends State<TodosDataGrid> {
         isCompleted && gradeValue != null
             ? gradeValue.toStringAsFixed(2)
             : '',
+        if (hasResources)
+          homework.resources
+              .map((r) => resourcesMap[r.id]?.title ?? '')
+              .where((t) => t.isNotEmpty)
+              .join('; '),
       ]));
     }
 

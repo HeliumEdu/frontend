@@ -17,6 +17,7 @@ import 'package:heliumapp/data/models/planner/planner_item_base_model.dart';
 import 'package:heliumapp/data/models/planner/category_model.dart';
 import 'package:heliumapp/data/models/planner/course_group_model.dart';
 import 'package:heliumapp/data/models/planner/course_model.dart';
+import 'package:heliumapp/data/models/planner/resource_model.dart';
 import 'package:heliumapp/data/models/planner/course_schedule_event_model.dart';
 import 'package:heliumapp/data/models/planner/event_model.dart';
 import 'package:heliumapp/data/models/planner/external_calendar_event_model.dart';
@@ -54,6 +55,7 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
   List<CourseModel>? courses;
   Map<int, CourseGroupModel>? courseGroupsById;
   Map<int, CategoryModel>? categoriesMap;
+  Map<int, ResourceModel>? resourcesMap;
 
   final Map<String, List<PlannerItemBaseModel>> _dateRangeCache = {};
 

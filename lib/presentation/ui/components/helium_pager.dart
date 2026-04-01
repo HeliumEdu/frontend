@@ -7,6 +7,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:heliumapp/config/app_theme.dart';
+import 'package:heliumapp/utils/print_helpers.dart';
 import 'package:heliumapp/data/models/drop_down_item.dart';
 import 'package:heliumapp/presentation/ui/components/drop_down.dart';
 import 'package:heliumapp/utils/app_style.dart';
@@ -63,12 +64,13 @@ class HeliumPager extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               _buildItemsCountText(context),
-              if (!isShowingAll && totalPages > 1) _buildPagination(context),
+              if (!isShowingAll && totalPages > 1)
+                PrintHidden(child: _buildPagination(context)),
             ],
           ),
           const SizedBox(height: 4),
           if (onItemsPerPageChanged != null)
-            _buildItemsPerPageDropdown(context),
+            PrintHidden(child: _buildItemsPerPageDropdown(context)),
         ],
       ),
     );

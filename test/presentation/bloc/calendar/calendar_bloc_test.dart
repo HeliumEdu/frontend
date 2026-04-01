@@ -21,6 +21,7 @@ import '../../../mocks/register_fallbacks.dart';
 void main() {
   late MockCourseRepository mockCourseRepository;
   late MockCategoryRepository mockCategoryRepository;
+  late MockResourceRepository mockResourceRepository;
   late PlannerBloc calendarBloc;
 
   setUpAll(() {
@@ -30,9 +31,11 @@ void main() {
   setUp(() {
     mockCourseRepository = MockCourseRepository();
     mockCategoryRepository = MockCategoryRepository();
+    mockResourceRepository = MockResourceRepository();
     calendarBloc = PlannerBloc(
       courseRepository: mockCourseRepository,
       categoryRepository: mockCategoryRepository,
+      resourceRepository: mockResourceRepository,
     );
   });
 

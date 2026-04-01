@@ -13,6 +13,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_quill/flutter_quill.dart';
+import 'package:flutter_quill/quill_delta.dart';
 import 'package:flutter_quill_to_pdf/flutter_quill_to_pdf.dart';
 import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/config/app_router.dart';
@@ -34,10 +35,10 @@ import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
 import 'package:heliumapp/presentation/ui/layout/page_header.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/deep_link_helpers.dart';
+import 'package:heliumapp/utils/print_helpers.dart';
 import 'package:heliumapp/utils/print_service.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:pdf/widgets.dart' as pw;
-import 'package:printing/printing.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
 enum SaveStatus { unsaved, saving, saved, error }
@@ -108,6 +109,7 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
   late QuillController _quillController;
   final FocusNode _titleFocusNode = FocusNode();
   final FocusNode _editorFocusNode = FocusNode();
+  PrintHandler? _printHandler;
 
   NoteModel? _note;
   String? _linkedEntityType;
@@ -134,7 +136,8 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
     // Set up auto-save listeners
     _titleController.addListener(_onContentChanged);
     _editorFocusNode.addListener(_onEditorFocusChanged);
-    PrintService().register(_printNote);
+    _printHandler = _printNote;
+    PrintService().register(_printHandler!);
 
     context.read<NoteBloc>().add(
       FetchNoteScreenDataEvent(
@@ -156,7 +159,7 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
 
   @override
   void dispose() {
-    PrintService().unregister();
+    PrintService().unregister(_printHandler);
     _debounceTimer?.cancel();
     _documentSubscription?.cancel();
     _titleController.removeListener(_onContentChanged);
@@ -764,9 +767,23 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
   }
 
   Future<void> _printNote() async {
-    final title = _titleController.text.trim();
+    final title =
+        _titleController.text.trim().isNotEmpty
+            ? _titleController.text.trim()
+            : (_linkedEntityTitle ?? '');
     final delta = _quillController.document.toDelta();
 
+    if (!mounted) return;
+
+    await showPdfPreview(
+      context,
+      pdfBytesFuture: _buildNotePdf(delta),
+      title: title.isNotEmpty ? title : 'Note Preview',
+      filename: title.isNotEmpty ? '$title.pdf' : 'note.pdf',
+    );
+  }
+
+  Future<Uint8List> _buildNotePdf(Delta delta) async {
     final fontData = await rootBundle.load('assets/fonts/NotoSans-Regular.ttf');
     final notoSans = pw.Font.ttf(fontData);
 
@@ -774,7 +791,7 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
       pageFormat: PDFPageFormat.a4,
       document: delta,
       fallbacks: [notoSans],
-      iconsFont: pw.Font.zapfDingbats(),
+      iconsFont: pw.Font.zapfDingbats(), // ignore: experimental_member_use
       themeData: pw.ThemeData.withFont(
         base: notoSans,
         bold: notoSans,
@@ -790,56 +807,8 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
     );
 
     final document = await converter.createDocument();
-
-    if (document == null || !mounted) return;
-
-    final pdfFilename = title.isNotEmpty ? '$title.pdf' : 'note.pdf';
-
-    await showDialog(
-      context: context,
-      builder: (dialogContext) => Dialog.fullscreen(
-        child: Scaffold(
-          appBar: AppBar(
-            leading: IconButton(
-              icon: const Icon(Icons.close),
-              onPressed: () => Navigator.of(dialogContext).pop(),
-              tooltip: 'Close',
-            ),
-            title: Text(title.isNotEmpty ? title : 'Note Preview'),
-            actions: [
-              IconButton(
-                icon: const Icon(Icons.share),
-                tooltip: 'Share',
-                onPressed: () async {
-                  final bytes = await document.save();
-                  await Printing.sharePdf(
-                    bytes: bytes,
-                    filename: pdfFilename,
-                  );
-                },
-              ),
-              IconButton(
-                icon: const Icon(Icons.print),
-                tooltip: 'Print',
-                onPressed: () async {
-                  await Printing.layoutPdf(
-                    onLayout: (_) async => document.save(),
-                    name: title.isNotEmpty ? title : 'Note',
-                  );
-                },
-              ),
-            ],
-          ),
-          body: PdfPreview(
-            build: (format) async => document.save(),
-            useActions: false,
-            canChangeOrientation: false,
-            canChangePageFormat: false,
-            canDebug: false,
-          ),
-        ),
-      ),
-    );
+    if (document == null) throw Exception('Failed to create PDF');
+    return document.save();
   }
 
   Widget _buildLinkedEntityBadge() {

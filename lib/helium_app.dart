@@ -5,8 +5,6 @@
 //
 // For details regarding the license, please refer to the LICENSE file.
 
-import 'dart:js_interop';
-
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -57,15 +55,19 @@ class _HeliumAppState extends State<HeliumApp> {
         (HardwareKeyboard.instance.isMetaPressed ||
             HardwareKeyboard.instance.isControlPressed);
     if (!isPrint) return false;
-    _handlePrint();
+    if (PrintService().hasHandler) {
+      FocusManager.instance.primaryFocus?.unfocus();
+      _handlePrint();
+    } else if (kIsWeb) {
+      // Call synchronously within the key event to satisfy the browser's
+      // user-activation requirement; async delay would cause it to be blocked.
+      web.window.print();
+    }
     return true;
   }
 
   Future<void> _handlePrint() async {
-    final handled = await PrintService().printCurrent();
-    if (!handled && kIsWeb) {
-      web.window.print();
-    }
+    await PrintService().printCurrent();
   }
 
   @override
