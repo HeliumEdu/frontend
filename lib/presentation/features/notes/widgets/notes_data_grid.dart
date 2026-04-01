@@ -55,6 +55,9 @@ class NotesDataGrid extends StatefulWidget {
 
 class _NotesDataGridState extends State<NotesDataGrid> {
   final DataGridController _controller = DataGridController();
+  final GlobalKey _gridKey = GlobalKey();
+  PrintableAreaScope? _printableAreaScope;
+
   int _currentPage = 1;
   late NotesDataSource _dataSource;
 
@@ -67,15 +70,38 @@ class _NotesDataGridState extends State<NotesDataGrid> {
       currentPage: _currentPage,
       itemsPerPage: widget.rowsPerPage,
     );
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      _printableAreaScope = PrintableAreaScope.findIn(context);
+      _printableAreaScope?.registerHintsProvider(_pageBreakHintsProvider);
+    });
   }
 
   @override
   void dispose() {
+    _printableAreaScope?.unregisterHintsProvider(_pageBreakHintsProvider);
     PrintableArea.capturing.removeListener(_onCapturingChanged);
     super.dispose();
   }
 
   void _onCapturingChanged() => setState(() {});
+
+  List<double> _pageBreakHintsProvider(RenderBox captureBox) {
+    const double headerRowHeight = 40;
+    const double rowHeight = 50;
+    final gridBox = _gridKey.currentContext?.findRenderObject() as RenderBox?;
+    if (gridBox == null || !gridBox.hasSize) return [];
+    final gridTop =
+        captureBox.globalToLocal(gridBox.localToGlobal(Offset.zero)).dy;
+    final gridHeight = gridBox.size.height;
+    final boundaries = <double>[];
+    double y = gridTop + headerRowHeight + rowHeight;
+    while (y <= gridTop + gridHeight) {
+      boundaries.add(y);
+      y += rowHeight;
+    }
+    return boundaries;
+  }
 
   @override
   void didUpdateWidget(NotesDataGrid oldWidget) {
@@ -162,149 +188,16 @@ class _NotesDataGridState extends State<NotesDataGrid> {
               topRight: Radius.circular(8),
             ),
             child: Column(
+              mainAxisSize: isCapturing ? MainAxisSize.min : MainAxisSize.max,
               children: [
-                Expanded(
-                  child: Stack(
-                    children: [
-                      SfDataGridTheme(
-                        data: SfDataGridThemeData(
-                          sortIconColor: context.colorScheme.primary,
-                          headerColor: headerColor,
-                        ),
-                        child: SfDataGrid(
-                          key: ValueKey(
-                            'notes_grid_${showModified}_${showActions}_${isCompact}_$isCapturing',
-                          ),
-                          source: _dataSource,
-                          controller: _controller,
-                          columnWidthMode: ColumnWidthMode.fill,
-                          headerRowHeight: 40,
-                          rowHeight: 50,
-                          gridLinesVisibility: GridLinesVisibility.none,
-                          headerGridLinesVisibility: GridLinesVisibility.none,
-                          selectionMode: (isTouchDevice || isCompact)
-                              ? SelectionMode.single
-                              : SelectionMode.none,
-                          horizontalScrollPhysics:
-                              const NeverScrollableScrollPhysics(),
-                          navigationMode: GridNavigationMode.row,
-                          allowSorting: true,
-                          allowMultiColumnSorting: !isTouchDevice,
-                          showSortNumbers: !isTouchDevice,
-                          sortingGestureType: SortingGestureType.tap,
-                          allowSwiping: isTouchDevice,
-                          swipeMaxOffset: 80,
-                          onSwipeStart: (details) {
-                            return details.swipeDirection ==
-                                DataGridRowSwipeDirection.endToStart;
-                          },
-                          endSwipeActionsBuilder: (context, row, rowIndex) {
-                            final note = _dataSource.getNoteFromRow(row);
-                            return GestureDetector(
-                              onTap: () {
-                                if (note != null) {
-                                  widget.onDelete(context, note);
-                                }
-                                _dataSource.notifyListeners();
-                              },
-                              child: Container(
-                                color: context.colorScheme.error,
-                                alignment: Alignment.centerRight,
-                                padding: const EdgeInsets.only(right: 24),
-                                child: Icon(
-                                  Icons.delete_outline,
-                                  color: context.colorScheme.onError,
-                                ),
-                              ),
-                            );
-                          },
-                          onSelectionChanged: (addedRows, removedRows) {
-                            if (addedRows.isNotEmpty) {
-                              final note =
-                                  _dataSource.getNoteFromRow(addedRows.first);
-                              if (note != null) {
-                                widget.onNoteTap(note);
-                                _controller.selectedRow = null;
-                              }
-                            }
-                          },
-                          columns: [
-                            GridColumn(
-                              columnName: 'title',
-                              label: _buildHeaderCell('Title'),
-                              minimumWidth: 170,
-                            ),
-                            if (showModified)
-                              GridColumn(
-                                columnName: 'due',
-                                label: _buildHeaderCell('Due'),
-                                width: 154,
-                              ),
-                            GridColumn(
-                              columnName: 'linkedTo',
-                              label: _buildHeaderCell('Linked To'),
-                              width: isCompact
-                                  ? (isTouchDevice ? 150 : 130)
-                                  : 200,
-                            ),
-                            if (showModified)
-                              GridColumn(
-                                columnName: 'modified',
-                                label: _buildHeaderCell('Modified'),
-                                width: 136,
-                              ),
-                            if (showActions)
-                              GridColumn(
-                                columnName: 'actions',
-                                label: const SizedBox.shrink(),
-                                width: isCompact ? 51 : 93,
-                                allowSorting: false,
-                              ),
-                          ],
-                        ),
-                      ),
-                      if (!widget.isLoading && widget.notes.isEmpty)
-                        Positioned(
-                          top: 40,
-                          left: 0,
-                          right: 0,
-                          bottom: 0,
-                          child: !widget.hasAnyNotes
-                              ? const EmptyCard(
-                                  expanded: false,
-                                  icon: Icons.library_books,
-                                  title: "You haven't added any notes yet",
-                                  message: 'Click "+" to get started',
-                                )
-                              : Center(
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Icon(
-                                        Icons.library_books,
-                                        size: 48,
-                                        color: context.colorScheme.onSurface
-                                            .withValues(alpha: 0.3),
-                                      ),
-                                      const SizedBox(height: 16),
-                                      Text(
-                                        widget.emptyMessage ?? 'No notes found',
-                                        style:
-                                            AppStyles.standardBodyTextLight(
-                                              context,
-                                            ).copyWith(
-                                              color: context
-                                                  .colorScheme
-                                                  .onSurface
-                                                  .withValues(alpha: 0.5),
-                                            ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                        ),
-                    ],
-                  ),
+                _buildGridSection(
+                  context,
+                  headerColor,
+                  showModified,
+                  showActions,
+                  isCompact,
+                  isTouchDevice,
+                  isCapturing,
                 ),
                 HeliumPager(
                   startIndex: startIndex,
@@ -350,6 +243,169 @@ class _NotesDataGridState extends State<NotesDataGrid> {
             ),
           ),
       ],
+    );
+  }
+
+  Widget _buildGridSection(
+    BuildContext context,
+    Color headerColor,
+    bool showModified,
+    bool showActions,
+    bool isCompact,
+    bool isTouchDevice,
+    bool isCapturing,
+  ) {
+    final grid = Container(
+      key: _gridKey,
+      child: SfDataGridTheme(
+        data: SfDataGridThemeData(
+          sortIconColor: context.colorScheme.primary,
+          headerColor: headerColor,
+        ),
+        child: SfDataGrid(
+        key: ValueKey(
+          'notes_grid_${showModified}_${showActions}_${isCompact}_$isCapturing',
+        ),
+        source: _dataSource,
+        controller: _controller,
+        columnWidthMode: ColumnWidthMode.fill,
+        headerRowHeight: 40,
+        rowHeight: 50,
+        shrinkWrapRows: isCapturing,
+        gridLinesVisibility: GridLinesVisibility.none,
+        headerGridLinesVisibility: GridLinesVisibility.none,
+        selectionMode: (isTouchDevice || isCompact)
+            ? SelectionMode.single
+            : SelectionMode.none,
+        horizontalScrollPhysics: const NeverScrollableScrollPhysics(),
+        navigationMode: GridNavigationMode.row,
+        allowSorting: true,
+        allowMultiColumnSorting: !isTouchDevice,
+        showSortNumbers: !isTouchDevice,
+        sortingGestureType: SortingGestureType.tap,
+        allowSwiping: isTouchDevice,
+        swipeMaxOffset: 80,
+        onSwipeStart: (details) {
+          return details.swipeDirection ==
+              DataGridRowSwipeDirection.endToStart;
+        },
+        endSwipeActionsBuilder: (context, row, rowIndex) {
+          final note = _dataSource.getNoteFromRow(row);
+          return GestureDetector(
+            onTap: () {
+              if (note != null) {
+                widget.onDelete(context, note);
+              }
+              _dataSource.notifyListeners();
+            },
+            child: Container(
+              color: context.colorScheme.error,
+              alignment: Alignment.centerRight,
+              padding: const EdgeInsets.only(right: 24),
+              child: Icon(
+                Icons.delete_outline,
+                color: context.colorScheme.onError,
+              ),
+            ),
+          );
+        },
+        onSelectionChanged: (addedRows, removedRows) {
+          if (addedRows.isNotEmpty) {
+            final note = _dataSource.getNoteFromRow(addedRows.first);
+            if (note != null) {
+              widget.onNoteTap(note);
+              _controller.selectedRow = null;
+            }
+          }
+        },
+        columns: [
+          GridColumn(
+            columnName: 'title',
+            label: _buildHeaderCell('Title'),
+            minimumWidth: 170,
+          ),
+          if (showModified)
+            GridColumn(
+              columnName: 'due',
+              label: _buildHeaderCell('Due'),
+              width: 154,
+            ),
+          GridColumn(
+            columnName: 'linkedTo',
+            label: _buildHeaderCell('Linked To'),
+            width: isCompact ? (isTouchDevice ? 150 : 130) : 200,
+          ),
+          if (showModified)
+            GridColumn(
+              columnName: 'modified',
+              label: _buildHeaderCell('Modified'),
+              width: 136,
+            ),
+          if (showActions)
+            GridColumn(
+              columnName: 'actions',
+              label: const SizedBox.shrink(),
+              width: isCompact ? 51 : 93,
+              allowSorting: false,
+            ),
+        ],
+      ),
+      ),
+    );
+
+    final emptyState = !widget.isLoading && widget.notes.isEmpty
+        ? !widget.hasAnyNotes
+            ? const EmptyCard(
+                expanded: false,
+                icon: Icons.library_books,
+                title: "You haven't added any notes yet",
+                message: 'Click "+" to get started',
+              )
+            : Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.library_books,
+                      size: 48,
+                      color: context.colorScheme.onSurface.withValues(alpha: 0.3),
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      widget.emptyMessage ?? 'No notes found',
+                      style: AppStyles.standardBodyTextLight(context).copyWith(
+                        color: context.colorScheme.onSurface.withValues(alpha: 0.5),
+                      ),
+                    ),
+                  ],
+                ),
+              )
+        : null;
+
+    if (isCapturing) {
+      return Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          grid,
+          if (emptyState != null) SizedBox(height: 200, child: emptyState),
+        ],
+      );
+    }
+
+    return Expanded(
+      child: Stack(
+        children: [
+          grid,
+          if (emptyState != null)
+            Positioned(
+              top: 40,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              child: emptyState,
+            ),
+        ],
+      ),
     );
   }
 

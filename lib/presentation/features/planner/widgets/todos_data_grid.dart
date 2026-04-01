@@ -109,6 +109,8 @@ class TodosDataGridState extends State<TodosDataGrid> {
   static const List<int> _itemsPerPageOptions = [5, 10, 25, 50, 100, -1];
 
   final DataGridController _gridController = DataGridController();
+  final GlobalKey _gridKey = GlobalKey();
+  PrintableAreaScope? _printableAreaScope;
 
   late TodosDataSource _dataSource;
   bool _isInitialized = false;
@@ -125,6 +127,11 @@ class TodosDataGridState extends State<TodosDataGrid> {
     widget.dataSource.changeNotifier.addListener(_onDataSourceChanged);
     _dataSource = _buildDataSource();
     _initializeData();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      _printableAreaScope = PrintableAreaScope.findIn(context);
+      _printableAreaScope?.registerHintsProvider(_pageBreakHintsProvider);
+    });
   }
 
   @override
@@ -137,10 +144,28 @@ class TodosDataGridState extends State<TodosDataGrid> {
 
   @override
   void dispose() {
+    _printableAreaScope?.unregisterHintsProvider(_pageBreakHintsProvider);
     PrintableArea.capturing.removeListener(_onCapturingChanged);
     widget.dataSource.changeNotifier.removeListener(_onDataSourceChanged);
     _gridController.dispose();
     super.dispose();
+  }
+
+  List<double> _pageBreakHintsProvider(RenderBox captureBox) {
+    const double headerRowHeight = 40;
+    const double rowHeight = 50;
+    final gridBox = _gridKey.currentContext?.findRenderObject() as RenderBox?;
+    if (gridBox == null || !gridBox.hasSize) return [];
+    final gridTop =
+        captureBox.globalToLocal(gridBox.localToGlobal(Offset.zero)).dy;
+    final gridHeight = gridBox.size.height;
+    final boundaries = <double>[];
+    double y = gridTop + headerRowHeight + rowHeight;
+    while (y <= gridTop + gridHeight) {
+      boundaries.add(y);
+      y += rowHeight;
+    }
+    return boundaries;
   }
 
   void resetForViewChange() {
@@ -316,6 +341,7 @@ class TodosDataGridState extends State<TodosDataGrid> {
     final isTablet = Responsive.isTablet(context);
     final isTouchDevice = Responsive.isTouchDevice(context);
     final isCompact = _isCompactActionsMode();
+    final isCapturing = PrintableArea.capturing.value;
     final showActions = !_shouldHideActionsColumn();
 
     final headerColor =
@@ -328,89 +354,9 @@ class TodosDataGridState extends State<TodosDataGrid> {
         Container(
           decoration: BoxDecoration(color: context.colorScheme.surface),
           child: Column(
+            mainAxisSize: isCapturing ? MainAxisSize.min : MainAxisSize.max,
             children: [
-              Expanded(
-                child: Stack(
-                  children: [
-                    SfDataGridTheme(
-                      data: SfDataGridThemeData(
-                        sortIconColor: context.colorScheme.primary,
-                        headerColor: headerColor,
-                      ),
-                      child: SfDataGrid(
-                        key: ValueKey(
-                          'todos_grid_${columns.length}_${isCompact}_${PrintableArea.capturing.value}',
-                        ),
-                        source: _dataSource,
-                        controller: _gridController,
-                        columnWidthMode: ColumnWidthMode.fill,
-                        headerRowHeight: 40,
-                        rowHeight: 50,
-                        gridLinesVisibility: GridLinesVisibility.none,
-                        headerGridLinesVisibility: GridLinesVisibility.none,
-                        selectionMode: (isTouchDevice || isCompact)
-                            ? SelectionMode.single
-                            : SelectionMode.none,
-                        horizontalScrollPhysics:
-                            const NeverScrollableScrollPhysics(),
-                        navigationMode: GridNavigationMode.row,
-                        allowSorting: true,
-                        allowMultiColumnSorting: !isTouchDevice,
-                        showSortNumbers: !isTouchDevice,
-                        sortingGestureType: SortingGestureType.tap,
-                        allowSwiping: isTouchDevice,
-                        swipeMaxOffset: 80,
-                        onSwipeStart: (details) {
-                          return details.swipeDirection ==
-                              DataGridRowSwipeDirection.endToStart;
-                        },
-                        endSwipeActionsBuilder: (context, row, rowIndex) {
-                          final homework = _dataSource.getHomeworkFromRow(row);
-                          return GestureDetector(
-                            onTap: () {
-                              if (homework != null &&
-                                  PlannerHelper.shouldShowDeleteButton(
-                                    homework,
-                                  )) {
-                                widget.onDelete(context, homework);
-                              }
-                              _dataSource.notifyListeners();
-                            },
-                            child: Container(
-                              color: context.colorScheme.error,
-                              alignment: Alignment.centerRight,
-                              padding: const EdgeInsets.only(right: 24),
-                              child: Icon(
-                                Icons.delete_outline,
-                                color: context.colorScheme.onError,
-                              ),
-                            ),
-                          );
-                        },
-                        onSelectionChanged: (addedRows, removedRows) {
-                          if (addedRows.isNotEmpty) {
-                            final homework =
-                                _dataSource.getHomeworkFromRow(addedRows.first);
-                            if (homework != null) {
-                              widget.onTap(homework);
-                              _gridController.selectedRow = null;
-                            }
-                          }
-                        },
-                        columns: columns,
-                      ),
-                    ),
-                    if (_isInitialized && totalItems == 0)
-                      Positioned(
-                        top: 40,
-                        left: 0,
-                        right: 0,
-                        bottom: 0,
-                        child: _buildEmptyState(),
-                      ),
-                  ],
-                ),
-              ),
+              _buildGridSection(context, headerColor, columns, isCompact, isTouchDevice, isCapturing, totalItems),
               HeliumPager(
                 startIndex: startIndex,
                 endIndex: endIndex,
@@ -624,6 +570,107 @@ class TodosDataGridState extends State<TodosDataGrid> {
   }
 
   void _onCapturingChanged() => setState(() {});
+
+  Widget _buildGridSection(
+    BuildContext context,
+    Color headerColor,
+    List<GridColumn> columns,
+    bool isCompact,
+    bool isTouchDevice,
+    bool isCapturing,
+    int totalItems,
+  ) {
+    final grid = Container(
+      key: _gridKey,
+      child: SfDataGridTheme(
+        data: SfDataGridThemeData(
+          sortIconColor: context.colorScheme.primary,
+          headerColor: headerColor,
+        ),
+        child: SfDataGrid(
+          key: ValueKey(
+            'todos_grid_${columns.length}_${isCompact}_$isCapturing',
+          ),
+        source: _dataSource,
+        controller: _gridController,
+        columnWidthMode: ColumnWidthMode.fill,
+        headerRowHeight: 40,
+        rowHeight: 50,
+        shrinkWrapRows: isCapturing,
+        gridLinesVisibility: GridLinesVisibility.none,
+        headerGridLinesVisibility: GridLinesVisibility.none,
+        selectionMode: (isTouchDevice || isCompact)
+            ? SelectionMode.single
+            : SelectionMode.none,
+        horizontalScrollPhysics: const NeverScrollableScrollPhysics(),
+        navigationMode: GridNavigationMode.row,
+        allowSorting: true,
+        allowMultiColumnSorting: !isTouchDevice,
+        showSortNumbers: !isTouchDevice,
+        sortingGestureType: SortingGestureType.tap,
+        allowSwiping: isTouchDevice,
+        swipeMaxOffset: 80,
+        onSwipeStart: (details) =>
+            details.swipeDirection == DataGridRowSwipeDirection.endToStart,
+        endSwipeActionsBuilder: (context, row, rowIndex) {
+          final homework = _dataSource.getHomeworkFromRow(row);
+          return GestureDetector(
+            onTap: () {
+              if (homework != null &&
+                  PlannerHelper.shouldShowDeleteButton(homework)) {
+                widget.onDelete(context, homework);
+              }
+              _dataSource.notifyListeners();
+            },
+            child: Container(
+              color: context.colorScheme.error,
+              alignment: Alignment.centerRight,
+              padding: const EdgeInsets.only(right: 24),
+              child: Icon(Icons.delete_outline, color: context.colorScheme.onError),
+            ),
+          );
+        },
+        onSelectionChanged: (addedRows, removedRows) {
+          if (addedRows.isNotEmpty) {
+            final homework = _dataSource.getHomeworkFromRow(addedRows.first);
+            if (homework != null) {
+              widget.onTap(homework);
+              _gridController.selectedRow = null;
+            }
+          }
+        },
+        columns: columns,
+      ),
+      ),
+    );
+
+    if (isCapturing) {
+      return Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          grid,
+          if (_isInitialized && totalItems == 0)
+            SizedBox(height: 200, child: _buildEmptyState()),
+        ],
+      );
+    }
+
+    return Expanded(
+      child: Stack(
+        children: [
+          grid,
+          if (_isInitialized && totalItems == 0)
+            Positioned(
+              top: 40,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              child: _buildEmptyState(),
+            ),
+        ],
+      ),
+    );
+  }
 
   void _onDataSourceChanged() {
     if (!mounted) return;

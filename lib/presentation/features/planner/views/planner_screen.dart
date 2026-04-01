@@ -513,53 +513,63 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
   Widget _buildCalendarPage() {
     return Expanded(
       child: PrintableArea(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            _buildCalendarHeader(),
+        child: ValueListenableBuilder<bool>(
+          valueListenable: PrintableArea.capturing,
+          builder: (context, isCapturing, _) => Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            mainAxisSize: isCapturing ? MainAxisSize.min : MainAxisSize.max,
+            children: [
+              _buildCalendarHeader(),
+              // Flexible instead of toggling Expanded/bare child — keeping the
+              // widget type constant prevents SfCalendar from being disposed
+              // and remounted when isCapturing changes.
+              Flexible(
+                fit: isCapturing ? FlexFit.loose : FlexFit.tight,
+                child: _buildTodosContent(),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 
-            Expanded(
-              child: Container(
-                decoration: BoxDecoration(
-                  border: Border.all(
-                    color: context.colorScheme.outlineVariant.withValues(
-                      alpha: 0.5,
+  Widget _buildTodosContent() {
+    final decoration = BoxDecoration(
+      border: Border.all(
+        color: context.colorScheme.outlineVariant.withValues(alpha: 0.5),
+      ),
+      borderRadius: const BorderRadius.only(
+        topLeft: Radius.circular(8),
+        topRight: Radius.circular(8),
+      ),
+    );
+    return Container(
+      decoration: decoration,
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(8),
+        child: ListenableBuilder(
+          listenable: _plannerItemDataSource!.changeNotifier,
+          builder: (context, _) {
+            return Stack(
+              children: [
+                _currentView == PlannerView.todos
+                    ? _buildTodosView()
+                    : _buildCalendarView(context),
+                if (_plannerItemDataSource!.isRefreshing)
+                  PrintHidden(
+                    child: Positioned.fill(
+                      child: Container(
+                        color: context.colorScheme.surface.withValues(alpha: 0.7),
+                        child: const Center(
+                          child: LoadingIndicator(expanded: false),
+                        ),
+                      ),
                     ),
                   ),
-                  borderRadius: const BorderRadius.only(
-                    topLeft: Radius.circular(8),
-                    topRight: Radius.circular(8),
-                  ),
-                ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(8),
-                  child: ListenableBuilder(
-                    listenable: _plannerItemDataSource!.changeNotifier,
-                    builder: (context, _) {
-                      return Stack(
-                        children: [
-                          _currentView == PlannerView.todos
-                              ? _buildTodosView()
-                              : _buildCalendarView(context),
-                        if (_plannerItemDataSource!.isRefreshing)
-                          Positioned.fill(
-                            child: Container(
-                              color: context.colorScheme.surface.withValues(
-                                alpha: 0.7,
-                              ),
-                              child: const Center(
-                                child: LoadingIndicator(expanded: false),
-                              ),
-                            ),
-                          ),
-                        ],
-                      );
-                    },
-                  ),
-                ),
-              ),
-            ),
-          ],
+              ],
+            );
+          },
         ),
       ),
     );
@@ -632,6 +642,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
 
   double _calculateCalendarHeight(double maxHeight) {
     final double minCalendarHeight = Responsive.isMobile(context) ? 480 : 600;
+    if (maxHeight.isInfinite) return minCalendarHeight;
     return maxHeight < minCalendarHeight ? minCalendarHeight : maxHeight;
   }
 
