@@ -617,6 +617,8 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
     const int monthRows = 6;
     const int minCount = 3;
 
+    if (availableHeight.isInfinite) return minCount;
+
     final cellHeight = (availableHeight - dayHeaderHeight) / monthRows;
     final availableForCalendarItems = cellHeight - dayNumberHeight;
     final count = (availableForCalendarItems / calendarItemHeight).floor();
@@ -657,7 +659,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
             ? _agendaHeightMobile
             : _agendaHeightDesktop;
 
-        return SfCalendar(
+        final calendar = SfCalendar(
           backgroundColor: context.colorScheme.surface,
           cellBorderColor:
               (Responsive.isMobile(context) &&
@@ -774,6 +776,24 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
             });
           },
         );
+
+        if (constraints.maxHeight.isInfinite) {
+          // During capture the OverflowBox removes the height constraint.
+          // Size week/day/agenda to one Portrait Letter content area (720pt ×
+          // 540pt = 4:3), then subtract the calendar header height so that
+          // header + calendar together fill exactly one page.
+          // Header breakdown: SizedBox(48) + ShadowContainer(top:4, bottom:4)
+          //                   + Padding(bottom:12) = 68px.
+          const double letterPortraitContentAspect = 720.0 / 540.0;
+          const double calendarHeaderHeight = 68.0;
+          return SizedBox(
+            height: constraints.maxWidth * letterPortraitContentAspect -
+                calendarHeaderHeight,
+            child: calendar,
+          );
+        }
+
+        return calendar;
       },
     );
   }
@@ -2670,11 +2690,13 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
       backgroundColor: color,
     );
 
-    final rightWidget = _buildCalendarItemRight(
-      plannerItem: plannerItem,
-      course: course,
-      backgroundColor: color,
-      occurrenceDate: occurrenceDate,
+    final rightWidget = PrintHidden(
+      child: _buildCalendarItemRight(
+        plannerItem: plannerItem,
+        course: course,
+        backgroundColor: color,
+        occurrenceDate: occurrenceDate,
+      ),
     );
 
     final agendaHeight = Responsive.isMobile(context)

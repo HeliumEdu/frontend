@@ -133,7 +133,7 @@ class _PdfPreviewDialogState extends State<_PdfPreviewDialog> {
 /// [RenderBox] of the [PrintableArea]'s capture boundary) where it is safe
 /// to slice the screenshot between pages. Each value marks the gap between
 /// two rows, so the slicer never cuts through a row.
-typedef PdfPdfPageBreakHintsProvider = List<double> Function(RenderBox captureBox);
+typedef PdfPageBreakHintsProvider = List<double> Function(RenderBox captureBox);
 
 /// Computes page-break Y positions for a fixed-row-height [SfDataGrid].
 ///
