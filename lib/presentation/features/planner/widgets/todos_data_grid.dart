@@ -23,6 +23,7 @@ import 'package:heliumapp/presentation/ui/components/helium_pager.dart';
 import 'package:heliumapp/presentation/ui/feedback/empty_card.dart';
 import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
 import 'package:heliumapp/utils/app_globals.dart';
+import 'package:heliumapp/utils/print_helpers.dart';
 import 'package:heliumapp/utils/snack_bar_helpers.dart';
 import 'package:heliumapp/utils/sort_helpers.dart';
 import 'package:heliumapp/utils/storage_helpers.dart';
@@ -119,6 +120,7 @@ class TodosDataGridState extends State<TodosDataGrid> {
   @override
   void initState() {
     super.initState();
+    PrintableArea.capturing.addListener(_onCapturingChanged);
     _itemsPerPage = widget.dataSource.todosItemsPerPage;
     widget.dataSource.changeNotifier.addListener(_onDataSourceChanged);
     _dataSource = _buildDataSource();
@@ -135,6 +137,7 @@ class TodosDataGridState extends State<TodosDataGrid> {
 
   @override
   void dispose() {
+    PrintableArea.capturing.removeListener(_onCapturingChanged);
     widget.dataSource.changeNotifier.removeListener(_onDataSourceChanged);
     _gridController.dispose();
     super.dispose();
@@ -336,7 +339,7 @@ class TodosDataGridState extends State<TodosDataGrid> {
                       ),
                       child: SfDataGrid(
                         key: ValueKey(
-                          'todos_grid_${columns.length}_$isCompact',
+                          'todos_grid_${columns.length}_${isCompact}_${PrintableArea.capturing.value}',
                         ),
                         source: _dataSource,
                         controller: _gridController,
@@ -620,6 +623,8 @@ class TodosDataGridState extends State<TodosDataGrid> {
     );
   }
 
+  void _onCapturingChanged() => setState(() {});
+
   void _onDataSourceChanged() {
     if (!mounted) return;
 
@@ -719,7 +724,8 @@ class TodosDataGridState extends State<TodosDataGrid> {
         (column.showOnTouchDevice && Responsive.isTouchDevice(context));
   }
 
-  bool _shouldHideActionsColumn() => Responsive.isTouchDevice(context);
+  bool _shouldHideActionsColumn() =>
+      Responsive.isTouchDevice(context) || PrintableArea.capturing.value;
 
   bool _isCompactActionsMode() => Responsive.isCompact(context);
 }
@@ -954,7 +960,7 @@ class TodosDataSource extends DataGridSource with SortableDataGridSource {
         case 'attachments':
           return width >= TodosSortColumn.attachments.minViewportWidth!;
         case 'actions':
-          return !isTouchDevice;
+          return !isTouchDevice && !PrintableArea.capturing.value;
         default:
           return true;
       }

@@ -59,8 +59,8 @@ class NoteModel extends BaseTitledModel {
       resources: resources,
       linkedEntityType: json['linked_entity_type'] ?? '',
       linkedEntityTitle: json['linked_entity_title'],
-      linkedEntityDue: json['linked_entity_due_date'] != null
-          ? DateTime.parse(json['linked_entity_due_date'])
+      linkedEntityDue: json['linked_entity_due'] != null
+          ? DateTime.parse(json['linked_entity_due'])
           : null,
       linkedEntityCompleted: json['linked_entity_completed'] as bool?,
       courseColor: json['course_color'] != null

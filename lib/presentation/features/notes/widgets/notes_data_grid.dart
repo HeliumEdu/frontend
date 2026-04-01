@@ -20,6 +20,7 @@ import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/color_helpers.dart';
 import 'package:heliumapp/utils/date_time_helpers.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
+import 'package:heliumapp/utils/print_helpers.dart';
 import 'package:heliumapp/utils/sort_helpers.dart';
 import 'package:syncfusion_flutter_core/theme.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
@@ -60,12 +61,21 @@ class _NotesDataGridState extends State<NotesDataGrid> {
   @override
   void initState() {
     super.initState();
+    PrintableArea.capturing.addListener(_onCapturingChanged);
     _dataSource = _buildDataSource();
     _dataSource.updatePagination(
       currentPage: _currentPage,
       itemsPerPage: widget.rowsPerPage,
     );
   }
+
+  @override
+  void dispose() {
+    PrintableArea.capturing.removeListener(_onCapturingChanged);
+    super.dispose();
+  }
+
+  void _onCapturingChanged() => setState(() {});
 
   @override
   void didUpdateWidget(NotesDataGrid oldWidget) {
@@ -99,7 +109,8 @@ class _NotesDataGridState extends State<NotesDataGrid> {
     final isTouchDevice = Responsive.isTouchDevice(context);
     final isCompact = Responsive.isCompact(context);
     final showModified = !Responsive.isMobile(context);
-    final showActions = !isTouchDevice;
+    final isCapturing = PrintableArea.capturing.value;
+    final showActions = !isTouchDevice && !isCapturing;
 
     final isShowingAll = widget.rowsPerPage == -1;
     final totalItems = widget.notes.length;
@@ -162,7 +173,7 @@ class _NotesDataGridState extends State<NotesDataGrid> {
                         ),
                         child: SfDataGrid(
                           key: ValueKey(
-                            'notes_grid_${showModified}_${showActions}_$isCompact',
+                            'notes_grid_${showModified}_${showActions}_${isCompact}_$isCapturing',
                           ),
                           source: _dataSource,
                           controller: _controller,
@@ -564,7 +575,9 @@ class NotesDataSource extends DataGridSource with SortableDataGridSource {
         )
         .where(
           (c) =>
-              !Responsive.isTouchDevice(context) || c.columnName != 'actions',
+              (!Responsive.isTouchDevice(context) &&
+                  !PrintableArea.capturing.value) ||
+              c.columnName != 'actions',
         )
         .toList();
 
