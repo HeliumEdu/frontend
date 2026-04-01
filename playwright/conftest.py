@@ -54,3 +54,31 @@ def test_credentials() -> dict:
     assert password, "PLAYWRIGHT_SMOKE_TEST_PASSWORD environment variable is required"
 
     return {"email": email, "password": password}
+
+
+@pytest.fixture(scope="session")
+def firebase_credentials() -> dict:
+    project_id = os.environ.get("PLATFORM_FIREBASE_PROJECT_ID")
+    client_email = os.environ.get("PLATFORM_FIREBASE_CLIENT_EMAIL")
+    private_key = os.environ.get("PLATFORM_FIREBASE_PRIVATE_KEY", "").replace("\\n", "\n")
+
+    assert project_id, "PLATFORM_FIREBASE_PROJECT_ID environment variable is required"
+    assert client_email, "PLATFORM_FIREBASE_CLIENT_EMAIL environment variable is required"
+    assert private_key, "PLATFORM_FIREBASE_PRIVATE_KEY environment variable is required"
+
+    return {"project_id": project_id, "client_email": client_email, "private_key": private_key}
+
+
+@pytest.fixture(scope="session")
+def apple_sign_in_credentials() -> dict:
+    key_p8 = os.environ.get("PLATFORM_APPLE_KEY_P8", "").replace("\\n", "\n")
+    key_id = os.environ.get("PLATFORM_APPLE_KEY_ID")
+    team_id = os.environ.get("APP_STORE_CONNECT_TEAM_ID")
+    client_id = os.environ.get("PLATFORM_APPLE_CLIENT_ID")
+
+    assert key_p8, "PLATFORM_APPLE_KEY_P8 environment variable is required"
+    assert key_id, "PLATFORM_APPLE_KEY_ID environment variable is required"
+    assert team_id, "APP_STORE_CONNECT_TEAM_ID environment variable is required"
+    assert client_id, "PLATFORM_APPLE_CLIENT_ID environment variable is required"
+
+    return {"key_p8": key_p8, "key_id": key_id, "team_id": team_id, "client_id": client_id}
