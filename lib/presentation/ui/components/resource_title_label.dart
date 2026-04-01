@@ -83,6 +83,8 @@ class ResourceTitleLabel extends StatelessWidget {
                           .copyWith(
                             color: BadgeColors.foreground(context, userSettings.resourceColor),
                             decoration: textDecoration,
+                            decorationColor: BadgeColors.foreground(context, userSettings.resourceColor),
+                            decorationThickness: textDecoration != null ? 2.0 : null,
                           ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,

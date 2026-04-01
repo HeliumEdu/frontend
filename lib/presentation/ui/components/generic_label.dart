@@ -82,6 +82,8 @@ class GenericLabel extends StatelessWidget {
                               .copyWith(
                                 color: BadgeColors.foreground(context, color),
                                 decoration: textDecoration,
+                                decorationColor: BadgeColors.foreground(context, color),
+                                decorationThickness: textDecoration != null ? 2.0 : null,
                               ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,

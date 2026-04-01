@@ -745,7 +745,11 @@ class NotesDataSource extends DataGridSource with SortableDataGridSource {
       final localDate = userSettings != null
           ? HeliumDateTime.toLocal(due, userSettings!.timeZone)
           : due;
-      final formattedDate = HeliumDateTime.formatDateForTodos(localDate);
+      final isAllDay =
+          localDate.hour == 0 && localDate.minute == 0 && localDate.second == 0;
+      final formattedDate = isAllDay
+          ? HeliumDateTime.formatDateForTodos(localDate)
+          : HeliumDateTime.formatDateAndTimeForTodos(localDate);
       final dateStyle = AppStyles.smallSecondaryText(context);
 
       return Container(
