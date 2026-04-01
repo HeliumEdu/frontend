@@ -13,6 +13,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_quill/flutter_quill.dart';
+import 'package:flutter_quill_to_pdf/flutter_quill_to_pdf.dart';
+import 'package:pdf/widgets.dart' as pw;
+import 'package:printing/printing.dart';
 import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/config/app_router.dart';
 import 'package:heliumapp/config/app_theme.dart';
@@ -634,6 +637,13 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
         controller: _quillController,
         config: QuillSimpleToolbarConfig(
           toolbarRunSpacing: 0,
+          customButtons: [
+            QuillToolbarCustomButtonOptions(
+              icon: const Icon(Icons.print_outlined),
+              tooltip: 'Print',
+              onPressed: _printNote,
+            ),
+          ],
           showDividers: !isCompact,
           showFontSize: !isCompact,
           showHeaderStyle: !isCompact,
@@ -748,6 +758,86 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
     }
 
     return Tooltip(message: tooltip, child: button);
+  }
+
+  Future<void> _printNote() async {
+    final title = _titleController.text.trim();
+    final delta = _quillController.document.toDelta();
+
+    final fontData = await rootBundle.load('assets/fonts/NotoSans-Regular.ttf');
+    final notoSans = pw.Font.ttf(fontData);
+
+    final converter = PDFConverter(
+      pageFormat: PDFPageFormat.a4,
+      document: delta,
+      fallbacks: [notoSans],
+      frontMatterDelta: null,
+      backMatterDelta: null,
+      themeData: pw.ThemeData.withFont(
+        base: notoSans,
+        bold: notoSans,
+        italic: notoSans,
+        boldItalic: notoSans,
+      ),
+      onRequestFontFamily: (_) => FontFamilyResponse(
+        fontNormalV: notoSans,
+        boldFontV: notoSans,
+        italicFontV: notoSans,
+        boldItalicFontV: notoSans,
+      ),
+    );
+
+    final document = await converter.createDocument();
+
+    if (document == null || !mounted) return;
+
+    final pdfFilename = title.isNotEmpty ? '$title.pdf' : 'note.pdf';
+
+    await showDialog(
+      context: context,
+      builder: (dialogContext) => Dialog.fullscreen(
+        child: Scaffold(
+          appBar: AppBar(
+            leading: IconButton(
+              icon: const Icon(Icons.close),
+              onPressed: () => Navigator.of(dialogContext).pop(),
+              tooltip: 'Close',
+            ),
+            title: Text(title.isNotEmpty ? title : 'Note Preview'),
+            actions: [
+              IconButton(
+                icon: const Icon(Icons.share),
+                tooltip: 'Share',
+                onPressed: () async {
+                  final bytes = await document.save();
+                  await Printing.sharePdf(
+                    bytes: bytes,
+                    filename: pdfFilename,
+                  );
+                },
+              ),
+              IconButton(
+                icon: const Icon(Icons.print),
+                tooltip: 'Print',
+                onPressed: () async {
+                  await Printing.layoutPdf(
+                    onLayout: (_) async => document.save(),
+                    name: title.isNotEmpty ? title : 'Note',
+                  );
+                },
+              ),
+            ],
+          ),
+          body: PdfPreview(
+            build: (format) async => document.save(),
+            useActions: false,
+            canChangeOrientation: false,
+            canChangePageFormat: false,
+            canDebug: false,
+          ),
+        ),
+      ),
+    );
   }
 
   Widget _buildLinkedEntityBadge() {
