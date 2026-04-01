@@ -5,9 +5,15 @@
 //
 // For details regarding the license, please refer to the LICENSE file.
 
+import 'dart:js_interop';
+
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:heliumapp/config/app_router.dart';
+import 'package:web/web.dart' as web;
 import 'package:heliumapp/config/theme_notifier.dart';
+import 'package:heliumapp/utils/print_service.dart';
 import 'package:heliumapp/utils/quill_helpers.dart';
 import 'package:heliumapp/utils/sf_calendar_helpers.dart';
 import 'package:heliumapp/utils/snack_bar_helpers.dart';
@@ -30,17 +36,36 @@ class _HeliumAppState extends State<HeliumApp> {
   void initState() {
     super.initState();
     _themeNotifier.addListener(_onThemeChanged);
+    HardwareKeyboard.instance.addHandler(_handleKeyEvent);
     _log.info('HeliumApp initialized with theme: ${_themeNotifier.themeMode}');
   }
 
   @override
   void dispose() {
     _themeNotifier.removeListener(_onThemeChanged);
+    HardwareKeyboard.instance.removeHandler(_handleKeyEvent);
     super.dispose();
   }
 
   void _onThemeChanged() {
     setState(() {});
+  }
+
+  bool _handleKeyEvent(KeyEvent event) {
+    if (event is! KeyDownEvent) return false;
+    final isPrint = event.logicalKey == LogicalKeyboardKey.keyP &&
+        (HardwareKeyboard.instance.isMetaPressed ||
+            HardwareKeyboard.instance.isControlPressed);
+    if (!isPrint) return false;
+    _handlePrint();
+    return true;
+  }
+
+  Future<void> _handlePrint() async {
+    final handled = await PrintService().printCurrent();
+    if (!handled && kIsWeb) {
+      web.window.print();
+    }
   }
 
   @override

@@ -34,6 +34,7 @@ import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
 import 'package:heliumapp/presentation/ui/layout/page_header.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/deep_link_helpers.dart';
+import 'package:heliumapp/utils/print_service.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
@@ -133,6 +134,7 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
     // Set up auto-save listeners
     _titleController.addListener(_onContentChanged);
     _editorFocusNode.addListener(_onEditorFocusChanged);
+    PrintService().register(_printNote);
 
     context.read<NoteBloc>().add(
       FetchNoteScreenDataEvent(
@@ -154,6 +156,7 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
 
   @override
   void dispose() {
+    PrintService().unregister();
     _debounceTimer?.cancel();
     _documentSubscription?.cancel();
     _titleController.removeListener(_onContentChanged);
