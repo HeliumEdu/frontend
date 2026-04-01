@@ -5,6 +5,9 @@
 //
 // For details regarding the license, please refer to the LICENSE file.
 
+import 'dart:convert';
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/data/models/auth/user_model.dart';
@@ -20,7 +23,9 @@ import 'package:heliumapp/presentation/ui/components/helium_pager.dart';
 import 'package:heliumapp/presentation/ui/feedback/empty_card.dart';
 import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
 import 'package:heliumapp/utils/app_globals.dart';
+import 'package:heliumapp/utils/snack_bar_helpers.dart';
 import 'package:heliumapp/utils/sort_helpers.dart';
+import 'package:heliumapp/utils/storage_helpers.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/color_helpers.dart';
 import 'package:heliumapp/utils/date_time_helpers.dart';
@@ -140,6 +145,69 @@ class TodosDataGridState extends State<TodosDataGrid> {
       _isInitialized = false;
     });
     _initializeData();
+  }
+
+  ({Uint8List bytes, String filename}) buildExportCsv() {
+    final homeworks = List<HomeworkModel>.from(
+      widget.dataSource.filteredHomeworks,
+    )..sort((a, b) => a.start.compareTo(b.start));
+    final courses = widget.dataSource.courses ?? [];
+    final categoriesMap = widget.dataSource.categoriesMap ?? {};
+    final userSettings = widget.dataSource.userSettings;
+    final coursesById = <int, CourseModel>{for (final c in courses) c.id: c};
+
+    final buffer = StringBuffer();
+    buffer.writeln(_csvRow([
+      'Completed', 'Title', 'Due Date', 'Class', 'Category', 'Priority', 'Grade',
+    ]));
+
+    for (final homework in homeworks) {
+      final isCompleted = widget.dataSource.isHomeworkCompleted(homework);
+      final course = coursesById[homework.course.id];
+      final category = categoriesMap[homework.category.id];
+      final localDate = HeliumDateTime.toLocal(
+        homework.start,
+        userSettings.timeZone,
+      );
+      final dateText = homework.allDay
+          ? HeliumDateTime.formatDateForTodos(localDate)
+          : HeliumDateTime.formatDateAndTimeForTodos(localDate);
+      final gradeValue = GradeHelper.parseGrade(homework.currentGrade);
+
+      buffer.writeln(_csvRow([
+        isCompleted ? 'Yes' : 'No',
+        homework.title,
+        dateText,
+        course?.title ?? '',
+        category?.title ?? '',
+        homework.priority > 0 ? (homework.priority / 10).round().toString() : '',
+        isCompleted && gradeValue != null
+            ? gradeValue.toStringAsFixed(2)
+            : '',
+      ]));
+    }
+
+    final now = DateTime.now();
+    final date =
+        '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
+
+    return (
+      bytes: Uint8List.fromList(utf8.encode(buffer.toString())),
+      filename: 'helium_todos_$date.csv',
+    );
+  }
+
+  static String _csvRow(List<String> fields) =>
+      fields.map(_csvField).join(',');
+
+  static String _csvField(String value) {
+    if (value.contains(',') ||
+        value.contains('"') ||
+        value.contains('\n') ||
+        value.contains('\r')) {
+      return '"${value.replaceAll('"', '""')}"';
+    }
+    return value;
   }
 
   void goToToday({bool isInitialLoad = false}) {
@@ -356,6 +424,26 @@ class TodosDataGridState extends State<TodosDataGrid> {
                   );
                   setState(() {});
                 },
+                trailingAction: TextButton.icon(
+                  onPressed: () async {
+                    final export = buildExportCsv();
+                    final success = await HeliumStorage.downloadBytes(
+                      export.bytes,
+                      export.filename,
+                    );
+                    if (context.mounted) {
+                      SnackBarHelper.show(
+                        context,
+                        success
+                            ? 'Exported ${export.filename}'
+                            : 'Export failed',
+                        type: success ? SnackType.success : SnackType.error,
+                      );
+                    }
+                  },
+                  icon: const Icon(Icons.download, size: 16),
+                  label: const Text('Export CSV'),
+                ),
               ),
             ],
           ),

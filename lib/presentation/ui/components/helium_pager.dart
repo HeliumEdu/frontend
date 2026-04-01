@@ -23,6 +23,7 @@ class HeliumPager extends StatelessWidget {
   final int itemsPerPage;
   final List<int> itemsPerPageOptions;
   final void Function(int)? onItemsPerPageChanged;
+  final Widget? trailingAction;
 
   const HeliumPager({
     super.key,
@@ -36,6 +37,7 @@ class HeliumPager extends StatelessWidget {
     required this.itemsPerPage,
     required this.itemsPerPageOptions,
     this.onItemsPerPageChanged,
+    this.trailingAction,
   });
 
   @override
@@ -272,6 +274,10 @@ class HeliumPager extends StatelessWidget {
             },
           ),
         ),
+        if (trailingAction != null) ...[
+          const SizedBox(width: 16),
+          trailingAction!,
+        ],
       ],
     );
   }
