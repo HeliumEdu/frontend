@@ -37,6 +37,7 @@ import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/deep_link_helpers.dart';
 import 'package:heliumapp/utils/print_helpers.dart';
 import 'package:heliumapp/utils/print_service.dart';
+import 'package:heliumapp/utils/quill_helpers.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:sentry_flutter/sentry_flutter.dart';
@@ -789,9 +790,8 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
 
     final converter = PDFConverter(
       pageFormat: PDFPageFormat.a4,
-      document: delta,
+      document: resolveCheckboxesForPdf(delta),
       fallbacks: [notoSans],
-      iconsFont: pw.Font.zapfDingbats(), // ignore: experimental_member_use
       themeData: pw.ThemeData.withFont(
         base: notoSans,
         bold: notoSans,

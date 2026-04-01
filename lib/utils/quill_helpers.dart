@@ -8,6 +8,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_quill/flutter_quill.dart';
+import 'package:flutter_quill/quill_delta.dart';
 // ignore: implementation_imports
 import 'package:flutter_quill/src/l10n/generated/quill_localizations_en.dart';
 
@@ -60,6 +61,47 @@ bool isNotesEmpty(Map<String, dynamic>? notes) {
   if (ops is! List || ops.isEmpty) return true;
   if (ops.length == 1 && ops[0]['insert'] == '\n') return true;
   return false;
+}
+
+/// Converts checkbox list items in [delta] to plain paragraphs prefixed with
+/// ☑ or ☐ so they render reliably in PDF output without requiring an
+/// experimental iconsFont. The [list] block attribute is stripped so the PDF
+/// renderer treats the line as a normal paragraph.
+Delta resolveCheckboxesForPdf(Delta delta) {
+  final ops = delta.toJson();
+  final result = <Map<String, dynamic>>[];
+  int paragraphStart = 0;
+
+  for (final raw in ops) {
+    final op = Map<String, dynamic>.from(raw as Map);
+    final insert = op['insert'];
+    final attrs = (op['attributes'] as Map?)?.cast<String, dynamic>();
+    final list = attrs?['list'] as String?;
+
+    if (insert == '\n' && (list == 'checked' || list == 'unchecked')) {
+      final symbol = list == 'checked' ? '☑ ' : '☐ ';
+      if (paragraphStart < result.length &&
+          result[paragraphStart]['insert'] is String) {
+        final first = Map<String, dynamic>.from(result[paragraphStart]);
+        first['insert'] = symbol + (first['insert'] as String);
+        result[paragraphStart] = first;
+      } else {
+        // Empty checkbox line — insert the symbol as its own op.
+        result.insert(paragraphStart, {'insert': symbol.trim()});
+      }
+      final newAttrs = Map<String, dynamic>.from(attrs!)..remove('list');
+      result.add({
+        'insert': '\n',
+        if (newAttrs.isNotEmpty) 'attributes': newAttrs,
+      });
+      paragraphStart = result.length;
+    } else {
+      result.add(op);
+      if (insert == '\n') paragraphStart = result.length;
+    }
+  }
+
+  return Delta.fromJson(result);
 }
 
 /// Builds a Quill Delta JSON map from a QuillController.
