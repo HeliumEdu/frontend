@@ -133,7 +133,33 @@ class _PdfPreviewDialogState extends State<_PdfPreviewDialog> {
 /// [RenderBox] of the [PrintableArea]'s capture boundary) where it is safe
 /// to slice the screenshot between pages. Each value marks the gap between
 /// two rows, so the slicer never cuts through a row.
-typedef PageBreakHintsProvider = List<double> Function(RenderBox captureBox);
+typedef PdfPdfPageBreakHintsProvider = List<double> Function(RenderBox captureBox);
+
+/// Computes page-break Y positions for a fixed-row-height [SfDataGrid].
+///
+/// Returns logical-pixel Y positions (relative to [captureBox]) after each
+/// data row, so the PDF slicer avoids cutting through a row. [gridKey] must
+/// be attached to the container wrapping the grid. [headerRowHeight] and
+/// [rowHeight] default to the SfDataGrid defaults used throughout the app.
+List<double> dataGridPdfPageBreakHints(
+  RenderBox captureBox,
+  GlobalKey gridKey, {
+  double headerRowHeight = 40,
+  double rowHeight = 50,
+}) {
+  final gridBox = gridKey.currentContext?.findRenderObject() as RenderBox?;
+  if (gridBox == null || !gridBox.hasSize) return [];
+  final gridTop =
+      captureBox.globalToLocal(gridBox.localToGlobal(Offset.zero)).dy;
+  final gridHeight = gridBox.size.height;
+  final boundaries = <double>[];
+  double y = gridTop + headerRowHeight + rowHeight;
+  while (y <= gridTop + gridHeight) {
+    boundaries.add(y);
+    y += rowHeight;
+  }
+  return boundaries;
+}
 
 /// Exposes [PrintableArea]'s page-break hint registration to descendants.
 ///
@@ -141,13 +167,13 @@ typedef PageBreakHintsProvider = List<double> Function(RenderBox captureBox);
 /// [registerHintsProvider] in [State.initState] and
 /// [unregisterHintsProvider] in [State.dispose].
 class PrintableAreaScope extends InheritedWidget {
-  final void Function(PageBreakHintsProvider) _register;
-  final void Function(PageBreakHintsProvider) _unregister;
+  final void Function(PdfPageBreakHintsProvider) _register;
+  final void Function(PdfPageBreakHintsProvider) _unregister;
 
   const PrintableAreaScope._({
     required super.child,
-    required void Function(PageBreakHintsProvider) register,
-    required void Function(PageBreakHintsProvider) unregister,
+    required void Function(PdfPageBreakHintsProvider) register,
+    required void Function(PdfPageBreakHintsProvider) unregister,
   })  : _register = register,
         _unregister = unregister;
 
@@ -156,10 +182,10 @@ class PrintableAreaScope extends InheritedWidget {
   static PrintableAreaScope? findIn(BuildContext context) =>
       context.findAncestorWidgetOfExactType<PrintableAreaScope>();
 
-  void registerHintsProvider(PageBreakHintsProvider provider) =>
+  void registerHintsProvider(PdfPageBreakHintsProvider provider) =>
       _register(provider);
 
-  void unregisterHintsProvider(PageBreakHintsProvider provider) =>
+  void unregisterHintsProvider(PdfPageBreakHintsProvider provider) =>
       _unregister(provider);
 
   @override
@@ -182,6 +208,44 @@ class PrintHidden extends StatelessWidget {
       valueListenable: PrintableArea.capturing,
       builder: (context, isCapturing, _) =>
           isCapturing ? const SizedBox.shrink() : child,
+    );
+  }
+}
+
+/// A [PrintableArea] that lays out a [header] above a [body] in a [Column]
+/// whose [MainAxisSize] and the body's [FlexFit] switch automatically during
+/// a capture.
+///
+/// During normal rendering the column fills its parent ([MainAxisSize.max],
+/// [FlexFit.tight]); during a screenshot capture it shrinks to content
+/// ([MainAxisSize.min], [FlexFit.loose]) so the full height is captured.
+class PrintableFlexColumn extends StatelessWidget {
+  final WidgetBuilder header;
+  final WidgetBuilder body;
+
+  const PrintableFlexColumn({
+    super.key,
+    required this.header,
+    required this.body,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return PrintableArea(
+      child: ValueListenableBuilder<bool>(
+        valueListenable: PrintableArea.capturing,
+        builder: (context, isCapturing, _) => Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          mainAxisSize: isCapturing ? MainAxisSize.min : MainAxisSize.max,
+          children: [
+            header(context),
+            Flexible(
+              fit: isCapturing ? FlexFit.loose : FlexFit.tight,
+              child: body(context),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
@@ -213,12 +277,12 @@ class PrintableArea extends StatefulWidget {
 
 class _PrintableAreaState extends State<PrintableArea> {
   final GlobalKey _repaintKey = GlobalKey();
-  final List<PageBreakHintsProvider> _hintsProviders = [];
+  final List<PdfPageBreakHintsProvider> _hintsProviders = [];
 
-  void _registerHintsProvider(PageBreakHintsProvider p) =>
+  void _registerHintsProvider(PdfPageBreakHintsProvider p) =>
       _hintsProviders.add(p);
 
-  void _unregisterHintsProvider(PageBreakHintsProvider p) =>
+  void _unregisterHintsProvider(PdfPageBreakHintsProvider p) =>
       _hintsProviders.removeWhere((e) => identical(e, p));
 
   // Stored once so register/unregister use the same closure identity.
@@ -331,27 +395,27 @@ class _PrintableAreaState extends State<PrintableArea> {
       final bool isLandscape = image.width > image.height;
       final PdfPageFormat baseFormat =
           isLandscape ? PdfPageFormat.letter.landscape : PdfPageFormat.letter;
-      final pageFormat = PdfPageFormat(
+      final pdfPageFormat = PdfPageFormat(
         baseFormat.width,
         baseFormat.height,
         marginAll: margin,
       );
 
       // Scale image to fit the content width (page minus margins).
-      final double contentWidthPt = pageFormat.availableWidth;
-      final double contentHeightPt = pageFormat.availableHeight;
+      final double contentWidthPt = pdfPageFormat.availableWidth;
+      final double contentHeightPt = pdfPageFormat.availableHeight;
       final double scale = contentWidthPt / image.width;
 
       // Maximum image pixels that fit in one page's content area.
-      final double pageHeightPx = contentHeightPt / scale;
+      final double pdfPageHeightPx = contentHeightPt / scale;
 
       final document = pw.Document();
       double startPx = 0;
-      int pageIndex = 0;
+      int pdfPageIndex = 0;
 
       while (startPx < image.height) {
         double endPx =
-            (startPx + pageHeightPx).clamp(0.0, image.height.toDouble());
+            (startPx + pdfPageHeightPx).clamp(0.0, image.height.toDouble());
 
         // Snap the page break to the last row boundary that fits within this
         // page so we never cut through a row. Skip snapping on the final page
@@ -385,7 +449,7 @@ class _PrintableAreaState extends State<PrintableArea> {
         final sliceImage = await picture.toImage(image.width, sliceHeightPx);
         final sliceData =
             await sliceImage.toByteData(format: ui.ImageByteFormat.png);
-        if (sliceData == null) throw Exception('Failed to encode page $pageIndex');
+        if (sliceData == null) throw Exception('Failed to encode page $pdfPageIndex');
         // Yield a frame after each blocking PNG encode so the loading spinner
         // can animate between pages rather than freezing for the full duration.
         await WidgetsBinding.instance.endOfFrame;
@@ -395,7 +459,7 @@ class _PrintableAreaState extends State<PrintableArea> {
 
         document.addPage(
           pw.Page(
-            pageFormat: pageFormat,
+            pageFormat: pdfPageFormat,
             build: (ctx) => pw.Align(
               alignment: pw.Alignment.topLeft,
               child: pw.Image(
@@ -409,7 +473,7 @@ class _PrintableAreaState extends State<PrintableArea> {
         );
 
         startPx = endPx;
-        pageIndex++;
+        pdfPageIndex++;
       }
 
       return document.save();

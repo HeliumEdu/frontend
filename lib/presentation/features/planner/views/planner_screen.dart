@@ -505,32 +505,16 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
           );
         }
 
-        return _buildCalendarPage();
-      },
-    );
-  }
-
-  Widget _buildCalendarPage() {
-    return Expanded(
-      child: PrintableArea(
-        child: ValueListenableBuilder<bool>(
-          valueListenable: PrintableArea.capturing,
-          builder: (context, isCapturing, _) => Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            mainAxisSize: isCapturing ? MainAxisSize.min : MainAxisSize.max,
-            children: [
-              _buildCalendarHeader(),
-              // Flexible instead of toggling Expanded/bare child — keeping the
-              // widget type constant prevents SfCalendar from being disposed
-              // and remounted when isCapturing changes.
-              Flexible(
-                fit: isCapturing ? FlexFit.loose : FlexFit.tight,
-                child: _buildTodosContent(),
-              ),
-            ],
+        // Flexible instead of toggling Expanded/bare child — keeping the
+        // widget type constant prevents SfCalendar from being disposed
+        // and remounted when isCapturing changes.
+        return Expanded(
+          child: PrintableFlexColumn(
+            header: (_) => _buildCalendarHeader(),
+            body: (_) => _buildTodosContent(),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 

@@ -73,35 +73,21 @@ class _NotesDataGridState extends State<NotesDataGrid> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       _printableAreaScope = PrintableAreaScope.findIn(context);
-      _printableAreaScope?.registerHintsProvider(_pageBreakHintsProvider);
+      _printableAreaScope?.registerHintsProvider(_pdfPageBreakHintsProvider);
     });
   }
 
   @override
   void dispose() {
-    _printableAreaScope?.unregisterHintsProvider(_pageBreakHintsProvider);
+    _printableAreaScope?.unregisterHintsProvider(_pdfPageBreakHintsProvider);
     PrintableArea.capturing.removeListener(_onCapturingChanged);
     super.dispose();
   }
 
   void _onCapturingChanged() => setState(() {});
 
-  List<double> _pageBreakHintsProvider(RenderBox captureBox) {
-    const double headerRowHeight = 40;
-    const double rowHeight = 50;
-    final gridBox = _gridKey.currentContext?.findRenderObject() as RenderBox?;
-    if (gridBox == null || !gridBox.hasSize) return [];
-    final gridTop =
-        captureBox.globalToLocal(gridBox.localToGlobal(Offset.zero)).dy;
-    final gridHeight = gridBox.size.height;
-    final boundaries = <double>[];
-    double y = gridTop + headerRowHeight + rowHeight;
-    while (y <= gridTop + gridHeight) {
-      boundaries.add(y);
-      y += rowHeight;
-    }
-    return boundaries;
-  }
+  List<double> _pdfPageBreakHintsProvider(RenderBox captureBox) =>
+      dataGridPdfPageBreakHints(captureBox, _gridKey);
 
   @override
   void didUpdateWidget(NotesDataGrid oldWidget) {
