@@ -226,6 +226,11 @@ void main() {
         );
         expect(loggedIn, isTrue, reason: 'Should be logged in');
 
+        // Align the calendar with the user's configured timezone (America/Chicago).
+        // The CI device runs UTC, which can differ at month boundaries, causing items
+        // anchored to Chicago time to land in a month the UTC calendar doesn't show.
+        await navigateCalendarToUserTimezone(tester, 'America/Chicago');
+
         // --- PART 1: Desktop/Tablet (wide) - Settings opens as dialog ---
         tester.view.physicalSize = const Size(nonMobileWidth, testHeight);
         tester.view.devicePixelRatio = 1.0;
@@ -277,9 +282,14 @@ void main() {
         expectBrowserTitle('Planner');
 
         // 3. Assert that "Quiz 4" can be seen on desktop calendar
-        expect(
+        final quiz4Visible = await waitForWidget(
+          tester,
           findRichTextContaining('Quiz 4'),
-          findsWidgets,
+          timeout: config.apiTimeout,
+        );
+        expect(
+          quiz4Visible,
+          isTrue,
           reason: 'Quiz 4 should be visible on desktop calendar',
         );
         _log.info('Quiz 4 visible on desktop');
