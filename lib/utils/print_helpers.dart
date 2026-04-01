@@ -129,14 +129,6 @@ class _PdfPreviewDialogState extends State<_PdfPreviewDialog> {
   }
 }
 
-/// Wraps [child] in a [RepaintBoundary] and auto-registers a print handler
-/// with [PrintService] for the duration the widget is in the tree.
-///
-/// When Cmd+P / Ctrl+P is triggered, the dialog opens immediately with a
-/// loading spinner while the screenshot is captured and the PDF is built.
-/// On narrow (mobile) viewports the content is temporarily expanded to a
-/// minimum print width before capture. Dark mode is suppressed during
-/// capture so the PDF renders with a light background.
 /// A widget that hides its child during a [PrintableArea] capture.
 ///
 /// Wrap any button or interactive element that should be excluded from the
@@ -160,11 +152,12 @@ class PrintHidden extends StatelessWidget {
 /// Wraps [child] in a [RepaintBoundary] and auto-registers a print handler
 /// with [PrintService] for the duration the widget is in the tree.
 ///
-/// When Cmd+P / Ctrl+P is triggered, the dialog opens immediately with a
-/// loading spinner while the screenshot is captured and the PDF is built.
-/// On narrow (mobile) viewports the content is temporarily expanded to a
-/// minimum print width before capture. Dark mode is suppressed during
-/// capture so the PDF renders with a light background.
+/// On supported platforms (web and desktop), Cmd+P / Ctrl+P triggers an
+/// immediate PDF preview dialog. The capture renders at the current viewport
+/// width — size the browser/window as desired before printing. Dark mode is
+/// suppressed during capture so the PDF renders with a light background.
+///
+/// On mobile this widget is a transparent passthrough; print is not registered.
 ///
 /// Wrap any element that should be excluded from the printed output with
 /// [PrintHidden] — it will hide itself automatically during capture.
@@ -189,23 +182,23 @@ class _PrintableAreaState extends State<PrintableArea> {
   // so storing the reference is required for removeWhere(identical) to work.
   late final PrintHandler _registeredHandler;
 
-  // When true, child is rendered at _minPrintWidth via OverflowBox so that
-  // mobile-width viewports produce a full-resolution capture.
-  bool _capturePending = false;
-  // 1150 is the highest minViewportWidth across all TodosDataGrid columns
-  // (priority column), ensuring every column is visible in the printed output.
-  static const double _minPrintWidth = 1150.0;
+  static bool get _isSupported =>
+      kIsWeb ||
+      (defaultTargetPlatform != TargetPlatform.android &&
+          defaultTargetPlatform != TargetPlatform.iOS);
 
   @override
   void initState() {
     super.initState();
-    _registeredHandler = _printArea;
-    PrintService().register(_registeredHandler);
+    if (_isSupported) {
+      _registeredHandler = _printArea;
+      PrintService().register(_registeredHandler);
+    }
   }
 
   @override
   void dispose() {
-    PrintService().unregister(_registeredHandler);
+    if (_isSupported) PrintService().unregister(_registeredHandler);
     super.dispose();
   }
 
@@ -213,15 +206,6 @@ class _PrintableAreaState extends State<PrintableArea> {
     final themeNotifier = ThemeNotifier();
     final originalMode = themeNotifier.themeMode;
     final wasDark = themeNotifier.isDarkMode;
-
-    // Expand to minimum print width on narrow viewports.
-    final needsExpansion =
-        MediaQuery.of(context).size.width < _minPrintWidth;
-    if (needsExpansion) {
-      setState(() => _capturePending = true);
-      await WidgetsBinding.instance.endOfFrame;
-      await WidgetsBinding.instance.endOfFrame;
-    }
 
     // Force light mode so the PDF doesn't render with dark colors.
     if (wasDark) {
@@ -231,7 +215,6 @@ class _PrintableAreaState extends State<PrintableArea> {
     }
 
     if (!mounted) {
-      if (needsExpansion) setState(() => _capturePending = false);
       if (wasDark) await themeNotifier.setThemeMode(originalMode);
       return;
     }
@@ -240,7 +223,6 @@ class _PrintableAreaState extends State<PrintableArea> {
       themeNotifier: themeNotifier,
       originalMode: originalMode,
       wasDark: wasDark,
-      needsExpansion: needsExpansion,
     );
 
     await showPdfPreview(context, pdfBytesFuture: pdfBytesFuture);
@@ -250,7 +232,6 @@ class _PrintableAreaState extends State<PrintableArea> {
     required ThemeNotifier themeNotifier,
     required ThemeMode originalMode,
     required bool wasDark,
-    required bool needsExpansion,
   }) async {
     try {
       final boundary =
@@ -274,13 +255,18 @@ class _PrintableAreaState extends State<PrintableArea> {
       final pngBytes = byteData.buffer.asUint8List();
       final pdfImage = pw.MemoryImage(pngBytes);
 
-      // Derive page dimensions from the image aspect ratio. Using
-      // pw.PageOrientation would set a Rotate entry in the PDF page dictionary,
-      // causing viewers to rotate the page.
-      final double pdfPageWidth = PdfPageFormat.a4.width;
-      final double pdfPageHeight = pdfPageWidth * image.height / image.width;
-      final pageFormat =
-          PdfPageFormat(pdfPageWidth, pdfPageHeight, marginAll: 0);
+      // Use standard A4 (no margins) in the orientation that best fits the
+      // content so the OS print dialog and PdfPreview agree on page size.
+      // PdfPageFormat.a4 has 2cm built-in margins that would shrink the content
+      // area; zeroing them ensures the image fills the full page.
+      final bool isLandscape = image.width > image.height;
+      final PdfPageFormat baseFormat =
+          isLandscape ? PdfPageFormat.a4.landscape : PdfPageFormat.a4;
+      final pageFormat = PdfPageFormat(
+        baseFormat.width,
+        baseFormat.height,
+        marginAll: 0,
+      );
 
       final document = pw.Document();
       document.addPage(
@@ -294,31 +280,12 @@ class _PrintableAreaState extends State<PrintableArea> {
       return document.save();
     } finally {
       PrintableArea.capturing.value = false;
-      if (needsExpansion && mounted) setState(() => _capturePending = false);
       if (wasDark) await themeNotifier.setThemeMode(originalMode);
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    if (_capturePending) {
-      // Temporarily render at full print width, clipped visually to the
-      // actual viewport so the screen layout is unaffected. The MediaQuery
-      // override ensures viewport-width-gated logic (e.g. column visibility
-      // checks) also sees the wider width.
-      final mq = MediaQuery.of(context);
-      return ClipRect(
-        child: MediaQuery(
-          data: mq.copyWith(size: Size(_minPrintWidth, mq.size.height)),
-          child: OverflowBox(
-            alignment: Alignment.topLeft,
-            minWidth: _minPrintWidth,
-            maxWidth: _minPrintWidth,
-            child: RepaintBoundary(key: _repaintKey, child: widget.child),
-          ),
-        ),
-      );
-    }
     return RepaintBoundary(key: _repaintKey, child: widget.child);
   }
 }

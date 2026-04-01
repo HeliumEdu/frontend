@@ -270,6 +270,11 @@ mixin SortableDataGridSource on DataGridSource {
       final valueA = cellA.value;
       final valueB = cellB.value;
 
+      // Null values always sort to the end regardless of direction.
+      if (valueA == null && valueB == null) return 0;
+      if (valueA == null) return 1;
+      if (valueB == null) return -1;
+
       // For string values, put empty strings at the end regardless of sort direction
       if (valueA is String && valueB is String) {
         final aEmpty = valueA.isEmpty;
