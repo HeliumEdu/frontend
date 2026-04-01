@@ -14,8 +14,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_quill/flutter_quill.dart';
 import 'package:flutter_quill_to_pdf/flutter_quill_to_pdf.dart';
-import 'package:pdf/widgets.dart' as pw;
-import 'package:printing/printing.dart';
 import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/config/app_router.dart';
 import 'package:heliumapp/config/app_theme.dart';
@@ -37,6 +35,8 @@ import 'package:heliumapp/presentation/ui/layout/page_header.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/deep_link_helpers.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
+import 'package:pdf/widgets.dart' as pw;
+import 'package:printing/printing.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
 enum SaveStatus { unsaved, saving, saved, error }
@@ -771,8 +771,6 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
       pageFormat: PDFPageFormat.a4,
       document: delta,
       fallbacks: [notoSans],
-      frontMatterDelta: null,
-      backMatterDelta: null,
       themeData: pw.ThemeData.withFont(
         base: notoSans,
         bold: notoSans,
