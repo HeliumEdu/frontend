@@ -659,7 +659,7 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
           showSubscript: !isCompact,
           showSuperscript: !isCompact,
           showBackgroundColorButton: !isCompact,
-          showRedo: !isPhoneLandscape,
+          showRedo: !isCompact,
           showSearchButton: !isPhoneLandscape,
           buttonOptions: QuillSimpleToolbarButtonOptions(
             search: QuillToolbarSearchButtonOptions(
