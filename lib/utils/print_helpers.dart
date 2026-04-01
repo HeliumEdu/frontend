@@ -5,7 +5,6 @@
 //
 // For details regarding the license, please refer to the LICENSE file.
 
-import 'dart:typed_data';
 import 'dart:ui' as ui;
 
 import 'package:flutter/foundation.dart';
@@ -267,7 +266,7 @@ class _PrintableAreaState extends State<PrintableArea> {
 
       // Lower pixel ratio on web — CanvasKit rasterization is synchronous and
       // scales quadratically; 1.5 is ~2.5× faster than 2.0.
-      final double pixelRatio = kIsWeb ? 1.5 : 2.0;
+      const double pixelRatio = kIsWeb ? 1.5 : 2.0;
       final image = await boundary.toImage(pixelRatio: pixelRatio);
       final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
       if (byteData == null) throw Exception('Failed to encode screenshot');

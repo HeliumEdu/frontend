@@ -28,7 +28,6 @@ import 'package:heliumapp/data/models/planner/homework_model.dart';
 import 'package:heliumapp/data/models/planner/planner_item_base_model.dart';
 import 'package:heliumapp/data/models/planner/request/event_request_model.dart';
 import 'package:heliumapp/data/models/planner/request/homework_request_model.dart';
-import 'package:heliumapp/data/models/planner/resource_model.dart';
 import 'package:heliumapp/data/repositories/category_repository_impl.dart';
 import 'package:heliumapp/data/repositories/course_repository_impl.dart';
 import 'package:heliumapp/data/repositories/course_schedule_event_repository_impl.dart';

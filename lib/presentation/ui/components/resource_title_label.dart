@@ -16,6 +16,7 @@ class ResourceTitleLabel extends StatelessWidget {
   final UserSettingsModel userSettings;
   final bool compact;
   final VoidCallback? onDelete;
+  final TextDecoration? textDecoration;
 
   const ResourceTitleLabel({
     super.key,
@@ -23,6 +24,7 @@ class ResourceTitleLabel extends StatelessWidget {
     required this.userSettings,
     this.compact = false,
     this.onDelete,
+    this.textDecoration,
   });
 
   @override
@@ -78,7 +80,10 @@ class ResourceTitleLabel extends StatelessWidget {
                       style: (compact
                               ? AppStyles.smallSecondaryText(context)
                               : AppStyles.standardBodyText(context))
-                          .copyWith(color: BadgeColors.foreground(context, userSettings.resourceColor)),
+                          .copyWith(
+                            color: BadgeColors.foreground(context, userSettings.resourceColor),
+                            decoration: textDecoration,
+                          ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),

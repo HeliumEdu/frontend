@@ -553,7 +553,7 @@ void main() {
       );
 
       // 6. Assert the row shows "Homework 1" with strikethrough, time, class, and grade
-      // TodosTable uses SelectableText for title and due date
+      // TodosTable uses SelectableText for title and due
       final homework1Finder = find.byWidgetPredicate(
         (w) =>
             w is SelectableText &&
@@ -572,14 +572,14 @@ void main() {
         reason: 'Homework 1 should have strikethrough (completed)',
       );
 
-      // Due date format is "EEE, MMM d • h:mm a" (e.g., "Fri, Oct 10 • 11 AM")
+      // Due format is "EEE, MMM d • h:mm a" (e.g., "Fri, Oct 10 • 11 AM")
       // User timezone is set to America/Chicago during registration
       expect(
         find.byWidgetPredicate(
           (w) => w is SelectableText && (w.data?.contains('11 AM') ?? false),
         ),
         findsOneWidget,
-        reason: 'Row should show due date with 11 AM (Chicago timezone)',
+        reason: 'Row should show due with 11 AM (Chicago timezone)',
       );
 
       // Class uses CourseTitleLabel which contains text

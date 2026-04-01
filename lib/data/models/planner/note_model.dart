@@ -18,6 +18,8 @@ class NoteModel extends BaseTitledModel {
   final List<int> resources;
   final String linkedEntityType;
   final String? linkedEntityTitle;
+  final DateTime? linkedEntityDue;
+  final bool? linkedEntityCompleted;
   final Color? courseColor;
   final Color? categoryColor;
 
@@ -32,6 +34,8 @@ class NoteModel extends BaseTitledModel {
     this.resources = const [],
     this.linkedEntityType = '',
     this.linkedEntityTitle,
+    this.linkedEntityDue,
+    this.linkedEntityCompleted,
     this.courseColor,
     this.categoryColor,
   });
@@ -55,6 +59,10 @@ class NoteModel extends BaseTitledModel {
       resources: resources,
       linkedEntityType: json['linked_entity_type'] ?? '',
       linkedEntityTitle: json['linked_entity_title'],
+      linkedEntityDue: json['linked_entity_due_date'] != null
+          ? DateTime.parse(json['linked_entity_due_date'])
+          : null,
+      linkedEntityCompleted: json['linked_entity_completed'] as bool?,
       courseColor: json['course_color'] != null
           ? HeliumColors.hexToColor(json['course_color'])
           : null,

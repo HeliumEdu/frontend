@@ -223,6 +223,12 @@ class _NotesDataGridState extends State<NotesDataGrid> {
                               label: _buildHeaderCell('Title'),
                               minimumWidth: 170,
                             ),
+                            if (showModified)
+                              GridColumn(
+                                columnName: 'due',
+                                label: _buildHeaderCell('Due'),
+                                width: 154,
+                              ),
                             GridColumn(
                               columnName: 'linkedTo',
                               label: _buildHeaderCell('Linked To'),
@@ -402,6 +408,7 @@ class NotesDataSource extends DataGridSource with SortableDataGridSource {
             columnName: 'title',
             value: note.title.toLowerCase(),
           ),
+          DataGridCell<DateTime?>(columnName: 'due', value: note.linkedEntityDue),
           DataGridCell<String>(
             columnName: 'linkedTo',
             value: note.linkedEntityTitle?.toLowerCase() ?? '',
@@ -424,6 +431,10 @@ class NotesDataSource extends DataGridSource with SortableDataGridSource {
           DataGridCell<String>(
             columnName: '_originalLinkedTo',
             value: note.linkedEntityTitle ?? '',
+          ),
+          DataGridCell<bool?>(
+            columnName: '_linkedEntityCompleted',
+            value: note.linkedEntityCompleted,
           ),
         ],
       );
@@ -530,11 +541,26 @@ class NotesDataSource extends DataGridSource with SortableDataGridSource {
       rowColor = userSettings?.resourceColor;
     }
 
+    final linkedEntityCompleted =
+        row
+                .getCells()
+                .firstWhere(
+                  (c) => c.columnName == '_linkedEntityCompleted',
+                  orElse: () => const DataGridCell<bool?>(
+                    columnName: '_linkedEntityCompleted',
+                    value: null,
+                  ),
+                )
+                .value
+            as bool?;
+
     final displayCells = row
         .getCells()
         .where((c) => !c.columnName.startsWith('_'))
         .where(
-          (c) => !Responsive.isMobile(context) || c.columnName != 'modified',
+          (c) =>
+              !Responsive.isMobile(context) ||
+              (c.columnName != 'modified' && c.columnName != 'due'),
         )
         .where(
           (c) =>
@@ -571,6 +597,7 @@ class NotesDataSource extends DataGridSource with SortableDataGridSource {
                   entityType,
                   courseColor,
                   categoryColor,
+                  linkedEntityCompleted,
                 ),
               ),
             ),
@@ -586,6 +613,7 @@ class NotesDataSource extends DataGridSource with SortableDataGridSource {
     String entityType,
     Color? courseColor,
     Color? categoryColor,
+    bool? linkedEntityCompleted,
   ) {
     final isTouchDevice = Responsive.isTouchDevice(context);
     final isCompact = Responsive.isCompact(context);
@@ -657,12 +685,17 @@ class NotesDataSource extends DataGridSource with SortableDataGridSource {
         );
       }
 
+      final strikethrough = linkedEntityCompleted == true
+          ? TextDecoration.lineThrough
+          : null;
+
       Widget badge;
       if (entityType == 'resource' && userSettings != null) {
         badge = ResourceTitleLabel(
           title: originalLinkedTo,
           userSettings: userSettings!,
           compact: true,
+          textDecoration: strikethrough,
         );
       } else if (entityType == 'event') {
         badge = GenericLabel(
@@ -670,6 +703,7 @@ class NotesDataSource extends DataGridSource with SortableDataGridSource {
           color: userSettings?.eventsColor ?? context.colorScheme.tertiary,
           icon: AppConstants.eventIcon,
           compact: true,
+          textDecoration: strikethrough,
         );
       } else {
         // Homework badge - respect colorByCategory setting
@@ -681,6 +715,7 @@ class NotesDataSource extends DataGridSource with SortableDataGridSource {
           color: badgeColor ?? context.colorScheme.primary,
           icon: AppConstants.assignmentIcon,
           compact: true,
+          textDecoration: strikethrough,
         );
       }
 
@@ -688,6 +723,42 @@ class NotesDataSource extends DataGridSource with SortableDataGridSource {
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
         alignment: Alignment.centerLeft,
         child: badge,
+      );
+    }
+
+    if (cell.columnName == 'due') {
+      final due = cell.value as DateTime?;
+
+      if (due == null) {
+        return Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          alignment: Alignment.centerLeft,
+          child: Text(
+            '—',
+            style: AppStyles.standardBodyTextLight(context).copyWith(
+              color: context.colorScheme.onSurface.withValues(alpha: 0.3),
+            ),
+          ),
+        );
+      }
+
+      final localDate = userSettings != null
+          ? HeliumDateTime.toLocal(due, userSettings!.timeZone)
+          : due;
+      final formattedDate = HeliumDateTime.formatDateForTodos(localDate);
+      final dateStyle = AppStyles.smallSecondaryText(context);
+
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8),
+        alignment: Alignment.centerLeft,
+        child: isSelectable
+            ? SelectableText(formattedDate, style: dateStyle, maxLines: 1)
+            : Text(
+                formattedDate,
+                style: dateStyle,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
       );
     }
 

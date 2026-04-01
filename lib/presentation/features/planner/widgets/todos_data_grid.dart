@@ -43,7 +43,7 @@ final _log = Logger('presentation.widgets');
 enum TodosSortColumn {
   completed(label: '', fixedWidth: 52, isCheckbox: true),
   title(label: 'Title', mobileWidth: 70, desktopWidth: 95),
-  dueDate(label: 'Due Date', mobileWidth: 144, desktopWidth: 154),
+  due(label: 'Due', mobileWidth: 144, desktopWidth: 154),
   className(label: 'Class', minViewportWidth: 625, fixedWidth: 120),
   category(label: 'Category', minViewportWidth: 950, fixedWidth: 129),
   priority(label: 'Priority', minViewportWidth: 1150, fixedWidth: 116),
@@ -163,7 +163,7 @@ class TodosDataGridState extends State<TodosDataGrid> {
 
     final buffer = StringBuffer();
     buffer.writeln(_csvRow([
-      'Completed', 'Title', 'Due Date', 'Class', 'Category', 'Priority', 'Grade',
+      'Completed', 'Title', 'Due', 'Class', 'Category', 'Priority', 'Grade',
       if (hasResources) 'Materials',
     ]));
 
@@ -231,7 +231,7 @@ class TodosDataGridState extends State<TodosDataGrid> {
     _dataSource.sortedColumns.clear();
     _dataSource.sortedColumns.add(
       const SortColumnDetails(
-        name: 'dueDate',
+        name: 'due',
         sortDirection: DataGridSortDirection.ascending,
       ),
     );
@@ -251,8 +251,8 @@ class TodosDataGridState extends State<TodosDataGrid> {
 
     int targetIndex = -1;
     for (int i = 0; i < sorted.length; i++) {
-      final dueDateOnly = HeliumDateTime.dateOnly(sorted[i].start);
-      if (dueDateOnly.isAtSameMomentAs(today) || dueDateOnly.isAfter(today)) {
+      final dueOnly = HeliumDateTime.dateOnly(sorted[i].start);
+      if (dueOnly.isAtSameMomentAs(today) || dueOnly.isAfter(today)) {
         targetIndex = i;
         break;
       }
@@ -491,9 +491,9 @@ class TodosDataGridState extends State<TodosDataGrid> {
     ));
 
     columns.add(GridColumn(
-      columnName: 'dueDate',
-      label: _buildHeaderCell(TodosSortColumn.dueDate),
-      width: TodosSortColumn.dueDate.widthForLayout(isMobile: isMobile, isTablet: isTablet)!,
+      columnName: 'due',
+      label: _buildHeaderCell(TodosSortColumn.due),
+      width: TodosSortColumn.due.widthForLayout(isMobile: isMobile, isTablet: isTablet)!,
     ));
 
     if (_shouldShowColumn(TodosSortColumn.className)) {
@@ -756,7 +756,7 @@ class TodosDataSource extends DataGridSource with SortableDataGridSource {
     _rebuildRows();
     sortedColumns.add(
       const SortColumnDetails(
-        name: 'dueDate',
+        name: 'due',
         sortDirection: DataGridSortDirection.ascending,
       ),
     );
@@ -810,7 +810,7 @@ class TodosDataSource extends DataGridSource with SortableDataGridSource {
       return DataGridRow(cells: [
         DataGridCell<int>(columnName: 'completed', value: isCompleted ? 1 : 0),
         DataGridCell<String>(columnName: 'title', value: homework.title.toLowerCase()),
-        DataGridCell<DateTime>(columnName: 'dueDate', value: homework.start),
+        DataGridCell<DateTime>(columnName: 'due', value: homework.start),
         DataGridCell<String>(columnName: 'className', value: courseTitle),
         DataGridCell<String>(columnName: 'category', value: categoryTitle),
         DataGridCell<int>(columnName: 'priority', value: homework.priority),
@@ -980,8 +980,8 @@ class TodosDataSource extends DataGridSource with SortableDataGridSource {
       case 'title':
         return _buildTitleCell(homework.title, isCompleted, isSelectable);
 
-      case 'dueDate':
-        return _buildDueDateCell(homework, userSettings, isSelectable);
+      case 'due':
+        return _buildDueCell(homework, userSettings, isSelectable);
 
       case 'className':
         final course = courses.firstWhere(
@@ -1066,7 +1066,7 @@ class TodosDataSource extends DataGridSource with SortableDataGridSource {
     );
   }
 
-  Widget _buildDueDateCell(
+  Widget _buildDueCell(
     HomeworkModel homework,
     UserSettingsModel userSettings,
     bool isSelectable,
