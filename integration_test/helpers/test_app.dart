@@ -29,6 +29,7 @@ import 'package:http/http.dart' as http;
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
+import 'package:timezone/timezone.dart' as tzlib;
 import 'package:web/web.dart' as web;
 
 import 'test_config.dart';
@@ -632,6 +633,38 @@ Future<bool> loginAndNavigateToPlanner(
   _log.info('Successfully navigated to planner');
 
   return true;
+}
+
+/// Navigates the month-view calendar to the current month in [timezoneName],
+/// correcting for any offset between the CI device's UTC clock and the user's
+/// configured timezone.
+///
+/// The example schedule is anchored relative to the user's configured timezone,
+/// so on CI (which runs UTC) the calendar may open on a different month than
+/// where items land. Navigating here mirrors what a real user's device would
+/// show when their device and account timezone agree.
+Future<void> navigateCalendarToUserTimezone(
+  WidgetTester tester,
+  String timezoneName,
+) async {
+  final userLocation = tzlib.getLocation(timezoneName);
+  final nowInUserTz = tzlib.TZDateTime.now(userLocation);
+  final deviceNow = DateTime.now();
+
+  final monthDiff = (nowInUserTz.year * 12 + nowInUserTz.month) -
+      (deviceNow.year * 12 + deviceNow.month);
+
+  if (monthDiff < 0) {
+    for (var i = 0; i < -monthDiff; i++) {
+      await tester.tap(find.byIcon(Icons.chevron_left).first);
+      await tester.pumpAndSettle();
+    }
+  } else if (monthDiff > 0) {
+    for (var i = 0; i < monthDiff; i++) {
+      await tester.tap(find.byIcon(Icons.chevron_right).first);
+      await tester.pumpAndSettle();
+    }
+  }
 }
 
 /// Get the current browser document title.

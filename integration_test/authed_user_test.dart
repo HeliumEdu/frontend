@@ -172,6 +172,11 @@ void main() {
       );
       expect(loggedIn, isTrue, reason: 'Should be logged in');
 
+      // Align the calendar with the user's configured timezone (America/Chicago).
+      // The CI device runs UTC, which can differ at month boundaries, causing items
+      // anchored to Chicago time to land in a month the UTC calendar doesn't show.
+      await navigateCalendarToUserTimezone(tester, 'America/Chicago');
+
       final quizLoaded = await waitForWidget(
         tester,
         findRichTextContaining('Quiz 4'),
@@ -662,12 +667,21 @@ void main() {
       );
       expect(loggedIn, isTrue, reason: 'Should be logged in');
 
-      // Find "Quiz 4" to edit (calendar uses RichText, not Text)
-      final homeworkItem = findRichTextContaining('Quiz 4');
-      expect(homeworkItem, findsWidgets, reason: 'Quiz 4 should exist');
+      // Align the calendar with the user's configured timezone (America/Chicago).
+      // The CI device runs UTC, which can differ at month boundaries, causing items
+      // anchored to Chicago time to land in a month the UTC calendar doesn't show.
+      await navigateCalendarToUserTimezone(tester, 'America/Chicago');
+
+      // Wait for Quiz 4 to load in the correct month, then tap to edit
+      final quizVisible = await waitForWidget(
+        tester,
+        findRichTextContaining('Quiz 4'),
+        timeout: config.apiTimeout,
+      );
+      expect(quizVisible, isTrue, reason: 'Quiz 4 should be visible after navigating to user timezone month');
 
       // Tap on the homework item to open edit screen
-      await tester.tap(homeworkItem.first);
+      await tester.tap(findRichTextContaining('Quiz 4').first);
       await tester.pumpAndSettle(const Duration(seconds: 3));
 
       // Verify we're on the edit screen and store reference to the dialog
