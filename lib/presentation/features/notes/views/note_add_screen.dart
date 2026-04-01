@@ -774,6 +774,7 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
       pageFormat: PDFPageFormat.a4,
       document: delta,
       fallbacks: [notoSans],
+      iconsFont: pw.Font.zapfDingbats(),
       themeData: pw.ThemeData.withFont(
         base: notoSans,
         bold: notoSans,
