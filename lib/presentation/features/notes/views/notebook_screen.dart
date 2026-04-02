@@ -37,6 +37,7 @@ import 'package:heliumapp/presentation/ui/feedback/error_card.dart';
 import 'package:heliumapp/presentation/ui/layout/shadow_container.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/app_style.dart';
+import 'package:heliumapp/utils/print_helpers.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:heliumapp/utils/sort_helpers.dart';
 
@@ -172,106 +173,108 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen>
 
   @override
   Widget buildHeaderArea(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: ShadowContainer(
-        padding: const EdgeInsets.only(left: 8, right: 8, top: 4, bottom: 4),
-        child: SizedBox(
-          height: 48,
-          child: Row(
-            children: [
-              Expanded(
-                child: SizedBox(
-                  height: 40,
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: context.colorScheme.surface,
-                      border: Border.all(
-                        color: context.colorScheme.outline.withValues(alpha: 0.2),
-                      ),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(8),
-                      child: TapRegion(
-                  onTapOutside: Responsive.isMobile(context)
-                      ? (_) => _searchFocusNode.unfocus()
-                      : null,
-                  child: TextField(
-                  focusNode: _searchFocusNode,
-                  controller: _searchController,
-                  style: AppStyles.formText(context),
-                  decoration: InputDecoration(
-                    hintText: 'Search ...',
-                    hintStyle: AppStyles.formHint(context),
-                    prefixIcon: Icon(
-                      Icons.search,
-                      color: context.colorScheme.onSurface.withValues(alpha: 0.4),
-                    ),
-                    border: InputBorder.none,
-                    enabledBorder: InputBorder.none,
-                    focusedBorder: InputBorder.none,
-                    isDense: true,
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 10,
-                    ),
-                    suffixIcon: ValueListenableBuilder<TextEditingValue>(
-                      valueListenable: _searchController,
-                      builder: (context, value, _) {
-                        if (value.text.isEmpty) {
-                          return const SizedBox.shrink();
-                        }
-                        return IconButton(
-                          onPressed: () {
-                            _searchController.clear();
-                            setState(() {
-                              _searchQuery = null;
-                            });
-                          },
-                          icon: Icon(
-                            Icons.close,
-                            size: 20,
-                            color: context.colorScheme.onSurface.withValues(alpha: 0.4),
+    return PrintHidden(
+      child: Padding(
+        padding: const EdgeInsets.only(bottom: 12),
+        child: ShadowContainer(
+          padding: const EdgeInsets.only(left: 8, right: 8, top: 4, bottom: 4),
+          child: SizedBox(
+            height: 48,
+            child: Row(
+              children: [
+                Expanded(
+                  child: SizedBox(
+                    height: 40,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: context.colorScheme.surface,
+                        border: Border.all(
+                          color: context.colorScheme.outline.withValues(alpha: 0.2),
                         ),
-                        tooltip: 'Clear',
-                      );
-                    },
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: TapRegion(
+                          onTapOutside: Responsive.isMobile(context)
+                              ? (_) => _searchFocusNode.unfocus()
+                              : null,
+                          child: TextField(
+                            focusNode: _searchFocusNode,
+                            controller: _searchController,
+                            style: AppStyles.formText(context),
+                            decoration: InputDecoration(
+                              hintText: 'Search ...',
+                              hintStyle: AppStyles.formHint(context),
+                              prefixIcon: Icon(
+                                Icons.search,
+                                color: context.colorScheme.onSurface.withValues(alpha: 0.4),
+                              ),
+                              border: InputBorder.none,
+                              enabledBorder: InputBorder.none,
+                              focusedBorder: InputBorder.none,
+                              isDense: true,
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 10,
+                              ),
+                              suffixIcon: ValueListenableBuilder<TextEditingValue>(
+                                valueListenable: _searchController,
+                                builder: (context, value, _) {
+                                  if (value.text.isEmpty) {
+                                    return const SizedBox.shrink();
+                                  }
+                                  return IconButton(
+                                    onPressed: () {
+                                      _searchController.clear();
+                                      setState(() {
+                                        _searchQuery = null;
+                                      });
+                                    },
+                                    icon: Icon(
+                                      Icons.close,
+                                      size: 20,
+                                      color: context.colorScheme.onSurface.withValues(alpha: 0.4),
+                                    ),
+                                    tooltip: 'Clear',
+                                  );
+                                },
+                              ),
+                            ),
+                            onChanged: (value) {
+                              setState(() {
+                                _searchQuery = value.isEmpty ? null : value;
+                              });
+                            },
+                          ),
+                        ),
+                      ),
+                    ),
                   ),
                 ),
-                onChanged: (value) {
-                  setState(() {
-                    _searchQuery = value.isEmpty ? null : value;
-                  });
-                },
-              ),
-              ),
-              ),
-              ),
-            ),
-          ),
-          const SizedBox(width: 8),
-          Builder(
-            builder: (context) {
-              final hasFilters = _filterEntityTypes.isNotEmpty;
-              return IconButton.outlined(
-                onPressed: () => _openFilterMenu(context),
-                tooltip: 'Filters',
-                icon: const Icon(Icons.filter_alt),
-                style: IconButton.styleFrom(
-                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                  backgroundColor: hasFilters
-                      ? context.colorScheme.primary
-                      : null,
-                  foregroundColor: hasFilters
-                      ? context.colorScheme.onPrimary
-                      : null,
-                  side: BorderSide(color: context.colorScheme.primary),
+                const SizedBox(width: 8),
+                Builder(
+                  builder: (context) {
+                    final hasFilters = _filterEntityTypes.isNotEmpty;
+                    return IconButton.outlined(
+                      onPressed: () => _openFilterMenu(context),
+                      tooltip: 'Filters',
+                      icon: const Icon(Icons.filter_alt),
+                      style: IconButton.styleFrom(
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        backgroundColor: hasFilters
+                            ? context.colorScheme.primary
+                            : null,
+                        foregroundColor: hasFilters
+                            ? context.colorScheme.onPrimary
+                            : null,
+                        side: BorderSide(color: context.colorScheme.primary),
+                      ),
+                    );
+                  },
                 ),
-              );
-            },
-          ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -297,21 +300,23 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen>
             : _getFilteredNotes();
 
         return Expanded(
-          child: NotesDataGrid(
-            notes: filteredNotes,
-            isLoading: notesLoading,
-            hasAnyNotes: hasAnyNotes,
-            emptyMessage: 'No notes match the applied filters or search',
-            onNoteTap: _openNote,
-            onDelete: _confirmDeleteNote,
-            userSettings: userSettings,
-            rowsPerPage: _rowsPerPage,
-            onRowsPerPageChanged: (rowsPerPage) {
-              setState(() {
-                _rowsPerPage = rowsPerPage;
-              });
-              _saveFilterStateIfEnabled();
-            },
+          child: PrintableArea(
+            child: NotesDataGrid(
+              notes: filteredNotes,
+              isLoading: notesLoading,
+              hasAnyNotes: hasAnyNotes,
+              emptyMessage: 'No notes match the applied filters or search',
+              onNoteTap: _openNote,
+              onDelete: _confirmDeleteNote,
+              userSettings: userSettings,
+              rowsPerPage: _rowsPerPage,
+              onRowsPerPageChanged: (rowsPerPage) {
+                setState(() {
+                  _rowsPerPage = rowsPerPage;
+                });
+                _saveFilterStateIfEnabled();
+              },
+            ),
           ),
         );
       },
