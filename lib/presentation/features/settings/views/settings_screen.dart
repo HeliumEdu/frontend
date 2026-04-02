@@ -559,31 +559,6 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
     setState(() => _activeSubScreen = subScreen);
   }
 
-  void _expandDangerZone() {
-    _dangerZoneTimer?.cancel();
-    setState(() {
-      _dangerZoneExpanded = true;
-    });
-    _dangerZoneTimer = Timer(const Duration(seconds: 5), () {
-      if (mounted) {
-        setState(() {
-          _dangerZoneExpanded = false;
-        });
-      }
-    });
-  }
-
-  void _resetDangerZoneTimer() {
-    _dangerZoneTimer?.cancel();
-    _dangerZoneTimer = Timer(const Duration(seconds: 5), () {
-      if (mounted) {
-        setState(() {
-          _dangerZoneExpanded = false;
-        });
-      }
-    });
-  }
-
   Widget _buildSettingsItem({
     required IconData icon,
     required String label,
@@ -680,7 +655,19 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        onTap: _expandDangerZone,
+        onTap: () {
+          _dangerZoneTimer?.cancel();
+          setState(() {
+            _dangerZoneExpanded = true;
+          });
+          _dangerZoneTimer = Timer(const Duration(seconds: 5), () {
+            if (mounted) {
+              setState(() {
+                _dangerZoneExpanded = false;
+              });
+            }
+          });
+        },
         borderRadius: const BorderRadius.all(Radius.circular(16.0)),
         child: Padding(
           padding: const EdgeInsets.all(14.0),
@@ -732,7 +719,14 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
           label: 'Delete All Events',
           hint: 'Permanently delete all Events',
           onTap: () {
-            _resetDangerZoneTimer();
+            _dangerZoneTimer?.cancel();
+            _dangerZoneTimer = Timer(const Duration(seconds: 5), () {
+              if (mounted) {
+                setState(() {
+                  _dangerZoneExpanded = false;
+                });
+              }
+            });
             _showDeleteAllEventsDialog(context);
           },
           isFirst: true,
@@ -743,7 +737,14 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
           label: 'Delete Account',
           hint: 'Permanently delete your account',
           onTap: () {
-            _resetDangerZoneTimer();
+            _dangerZoneTimer?.cancel();
+            _dangerZoneTimer = Timer(const Duration(seconds: 5), () {
+              if (mounted) {
+                setState(() {
+                  _dangerZoneExpanded = false;
+                });
+              }
+            });
             _showDeleteAccountDialog(context);
           },
           isLast: true,
