@@ -21,6 +21,9 @@ import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/deep_link_helpers.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:heliumapp/utils/snack_bar_helpers.dart';
+import 'package:logging/logging.dart';
+
+final _log = Logger('presentation.views');
 
 /// Shows planner item add/edit screen (responsive: dialog on desktop, full-screen on mobile)
 Future<void> showPlannerItemAdd(
@@ -220,6 +223,7 @@ class _PlannerItemAddScreenState
                 (state is HomeworkUpdated && state.redirectToNotebook);
 
             if (isClone) {
+              _log.info('Planner item cloned (entityId=${state.entityId}, isEvent=${state.isEvent})');
               showSnackBar(
                 context,
                 '${state.isEvent ? 'Event' : 'Assignment'} cloned',
@@ -237,6 +241,7 @@ class _PlannerItemAddScreenState
                 homeworkId: !state.isEvent ? state.entityId : null,
               );
             } else if (redirectToNotebook) {
+              _log.info('Planner item saved with notebook redirect (entityId=${state.entityId}, isEvent=${state.isEvent})');
               final linkedNoteId = switch (state) {
                 EventCreated(:final linkedNoteId) => linkedNoteId,
                 EventUpdated(:final linkedNoteId) => linkedNoteId,
@@ -256,6 +261,7 @@ class _PlannerItemAddScreenState
                 navigateAndClearStack(context, '${AppRoute.notebookScreen}?${DeepLinkParam.linkHomeworkId}=${state.entityId}');
               }
             } else {
+              _log.info('Planner item saved normally (entityId=${state.entityId}, isEvent=${state.isEvent}, isNew=${state is HomeworkCreated || state is EventCreated})');
               if (state is HomeworkCreated || state is EventCreated) {
                 final willClose = _willCloseAfterSave();
                 showSnackBar(

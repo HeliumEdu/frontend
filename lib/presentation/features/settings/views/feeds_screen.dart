@@ -35,6 +35,13 @@ class FeedsScreen extends StatefulWidget {
 }
 
 class _FeedsScreenState extends State<FeedsScreen> {
+  static const _cardIconContainerBorderRadius = 12.0;
+  static const _cardIconContainerPadding = 12.0;
+  static const _urlContainerBorderRadius = 10.0;
+  static const _urlContainerPadding = 12.0;
+  static const _disabledIconContainerSize = 80.0;
+  static const _disabledIconContainerBorderRadius = 16.0;
+
   PrivateFeedModel? _feedUrls;
 
   @override
@@ -98,10 +105,10 @@ class _FeedsScreenState extends State<FeedsScreen> {
             Row(
               children: [
                 Container(
-                  padding: const EdgeInsets.all(12),
+                  padding: const EdgeInsets.all(_cardIconContainerPadding),
                   decoration: BoxDecoration(
                     color: color.withValues(alpha: 0.12),
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(_cardIconContainerBorderRadius),
                   ),
                   child: Icon(
                     icon,
@@ -134,12 +141,12 @@ class _FeedsScreenState extends State<FeedsScreen> {
                     Expanded(
                       child: Container(
                         padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 12,
+                          horizontal: _urlContainerPadding,
+                          vertical: _urlContainerPadding,
                         ),
                         decoration: BoxDecoration(
                           color: context.colorScheme.surfaceContainer,
-                          borderRadius: BorderRadius.circular(10),
+                          borderRadius: BorderRadius.circular(_urlContainerBorderRadius),
                           border: Border.all(
                             color: context.colorScheme.outline.withValues(
                               alpha: 0.2,
@@ -216,11 +223,11 @@ class _FeedsScreenState extends State<FeedsScreen> {
         child: Column(
           children: [
             Container(
-              width: 80,
-              height: 80,
+              width: _disabledIconContainerSize,
+              height: _disabledIconContainerSize,
               decoration: BoxDecoration(
                 color: context.colorScheme.error.withValues(alpha: 0.08),
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: BorderRadius.circular(_disabledIconContainerBorderRadius),
               ),
               child: Icon(
                 Icons.block_rounded,

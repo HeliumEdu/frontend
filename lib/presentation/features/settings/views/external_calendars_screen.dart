@@ -40,6 +40,9 @@ class ExternalCalendarsScreen extends StatefulWidget {
 }
 
 class ExternalCalendarsScreenState extends State<ExternalCalendarsScreen> {
+  static const _colorDotSize = 12.0;
+  static const _colorDotBorderRadius = 3.0;
+
   final ExternalCalendarFormController _formController =
       ExternalCalendarFormController();
 
@@ -209,11 +212,11 @@ class ExternalCalendarsScreenState extends State<ExternalCalendarsScreen> {
           child: Row(
             children: [
               Container(
-                width: 12,
-                height: 12,
+                width: _colorDotSize,
+                height: _colorDotSize,
                 decoration: BoxDecoration(
                   color: externalCalendar.color,
-                  borderRadius: BorderRadius.circular(3),
+                  borderRadius: BorderRadius.circular(_colorDotBorderRadius),
                 ),
               ),
               const SizedBox(width: 12),

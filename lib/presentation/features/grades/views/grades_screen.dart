@@ -84,6 +84,8 @@ class GradesScreen extends StatelessWidget {
 }
 
 class _AtRiskBadge extends StatelessWidget {
+  static const _pillBorderRadius = 999.0;
+
   const _AtRiskBadge();
 
   @override
@@ -92,7 +94,7 @@ class _AtRiskBadge extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(
         color: context.colorScheme.error.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(999),
+        borderRadius: BorderRadius.circular(_pillBorderRadius),
         border: Border.all(
           color: context.colorScheme.error.withValues(alpha: 0.3),
         ),
@@ -147,6 +149,14 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
 
   // Category table row element heights
   static const double _contributionBarHeight = 24;
+
+  static const _progressBarLabelWidth = 60.0;
+  static const _gradeCircleBorderRadius = 20.0;
+  static const _courseCardBorderRadius = 12.0;
+  static const _gradeSummaryCardBorderRadius = 16.0;
+  static const _chartBarBorderRadius = 5.0;
+  static const _chartTooltipBorderRadius = 10.0;
+  static const _menuItemBorderRadius = 8.0;
 
   // Category table column widths
   static const double _gradedColTablet = 70;
@@ -584,7 +594,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
           Row(
             children: [
               SizedBox(
-                width: 60,
+                width: _progressBarLabelWidth,
                 child: Text(
                   'Work',
                   style: AppStyles.smallSecondaryText(context),
@@ -597,7 +607,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
                       height: 24,
                       decoration: BoxDecoration(
                         color: context.colorScheme.surfaceContainerHighest,
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(_courseCardBorderRadius),
                       ),
                     ),
                     FractionallySizedBox(
@@ -606,7 +616,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
                         height: 24,
                         decoration: BoxDecoration(
                           color: statusColor,
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(_courseCardBorderRadius),
                         ),
                       ),
                     ),
@@ -633,7 +643,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
           Row(
             children: [
               SizedBox(
-                width: 60,
+                width: _progressBarLabelWidth,
                 child: Text(
                   'Time',
                   style: AppStyles.smallSecondaryText(context),
@@ -646,7 +656,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
                       height: 24,
                       decoration: BoxDecoration(
                         color: context.colorScheme.surfaceContainerHighest,
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(_courseCardBorderRadius),
                       ),
                     ),
                     FractionallySizedBox(
@@ -655,7 +665,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
                         height: 24,
                         decoration: BoxDecoration(
                           color: context.colorScheme.outline,
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(_courseCardBorderRadius),
                         ),
                       ),
                     ),
@@ -686,7 +696,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               decoration: BoxDecoration(
                 color: statusColor.withValues(alpha: 0.15),
-                borderRadius: BorderRadius.circular(20),
+                borderRadius: BorderRadius.circular(_gradeCircleBorderRadius),
                 border: Border.all(color: statusColor, width: 1.5),
               ),
               child: Row(
@@ -827,7 +837,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
         ? selectedGroup.numHomework - selectedGroup.numHomeworkGraded
         : selectedGroup.numHomework;
 
-    // Courses sorted by ungraded count descending — top course is first
+    // Courses sorted by ungraded count descending; top course is first
     final sortedCourses = [...selectedGroup.courses]
       ..sort((a, b) {
         final aU = a.numHomework - a.numHomeworkGraded;
@@ -922,7 +932,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
                   ),
                   decoration: BoxDecoration(
                     color: displayCourse.color.withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(_courseCardBorderRadius),
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
@@ -1020,7 +1030,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
         context: context,
         position: position,
         color: context.colorScheme.surface,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(_menuItemBorderRadius)),
         items: [
           PopupMenuItem(
             enabled: false,
@@ -1127,7 +1137,6 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
     final List<charts.CartesianSeries<_ChartDataPoint, DateTime>> series = [];
 
     if (isTermView) {
-      // Show overall grade + all courses
       if (selectedGroup.gradePoints.isNotEmpty) {
         series.add(_buildOverallSeries(selectedGroup.gradePoints));
       }
@@ -1137,7 +1146,6 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
         }
       }
     } else {
-      // Show specific course with its categories
       final selectedCourseId = _graphViewMode.courseId;
       final course = selectedCourseId == null
           ? null
@@ -1173,7 +1181,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: context.colorScheme.surface,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(_gradeSummaryCardBorderRadius),
         border: Border.all(
           color: context.colorScheme.outline.withValues(alpha: 0.2),
         ),
@@ -1200,7 +1208,6 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
   }
 
   Widget _buildGraphHeader(GradeCourseGroupModel gradeGroup, bool isTermView) {
-    // Get all courses with categories
     final coursesWithCategories = gradeGroup.courses
         .where((course) => course.categories.isNotEmpty)
         .toList();
@@ -1513,7 +1520,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
       decoration: BoxDecoration(
         color: context.colorScheme.surface,
-        borderRadius: BorderRadius.circular(5),
+        borderRadius: BorderRadius.circular(_chartBarBorderRadius),
         border: Border.all(
           color: context.colorScheme.outline.withValues(alpha: 0.3),
         ),
@@ -2107,7 +2114,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
         context: context,
         position: position,
         color: context.colorScheme.surface,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(_menuItemBorderRadius)),
         items: [
           PopupMenuItem(
             enabled: false,
@@ -2388,7 +2395,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
           decoration: BoxDecoration(
             color: course.color.withValues(alpha: 0.05),
-            borderRadius: BorderRadius.circular(10),
+            borderRadius: BorderRadius.circular(_chartTooltipBorderRadius),
           ),
           child: Row(
             children: [
@@ -2560,7 +2567,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
           height: _contributionBarHeight,
           decoration: BoxDecoration(
             color: context.colorScheme.surfaceContainerHighest,
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(_courseCardBorderRadius),
           ),
         ),
         FractionallySizedBox(
@@ -2569,7 +2576,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
             height: _contributionBarHeight,
             decoration: BoxDecoration(
               color: category.color,
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(_courseCardBorderRadius),
             ),
           ),
         ),

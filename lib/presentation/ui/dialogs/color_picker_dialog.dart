@@ -27,6 +27,15 @@ class _ColorPickerWidget extends StatefulWidget {
 }
 
 class _ColorPickerWidgetState extends State<_ColorPickerWidget> {
+  static const _containerBorderRadius = 8.0;
+  static const _containerPadding = 12.0;
+  static const _shadowBlurRadius = 10.0;
+  static const _shadowOffset = Offset(0, 2);
+  static const _presetPickerWidth = 255.0;
+  static const _presetPickerHeight = 295.0;
+  static const _presetCheckIconSize = 15.0;
+  static const _buttonIconSize = 18.0;
+  static const _swatchBorderRadius = 4.0;
   late Color pickerColor;
   late bool _isExpanded;
 
@@ -50,15 +59,15 @@ class _ColorPickerWidgetState extends State<_ColorPickerWidget> {
       backgroundColor: context.colorScheme.surface,
       contentPadding: EdgeInsets.zero,
       content: Container(
-        padding: const EdgeInsets.all(12),
+        padding: const EdgeInsets.all(_containerPadding),
         decoration: BoxDecoration(
           color: context.colorScheme.surface,
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(_containerBorderRadius),
           boxShadow: [
             BoxShadow(
               color: context.colorScheme.shadow.withValues(alpha: 0.1),
-              blurRadius: 10,
-              offset: const Offset(0, 2),
+              blurRadius: _shadowBlurRadius,
+              offset: _shadowOffset,
             ),
           ],
         ),
@@ -75,8 +84,8 @@ class _ColorPickerWidgetState extends State<_ColorPickerWidget> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         SizedBox(
-          width: 255,
-          height: 295,
+          width: _presetPickerWidth,
+          height: _presetPickerHeight,
           child: BlockPicker(
             pickerColor: pickerColor,
             onColorChanged: (color) {
@@ -97,7 +106,7 @@ class _ColorPickerWidgetState extends State<_ColorPickerWidget> {
                     margin: const EdgeInsets.all(4),
                     decoration: BoxDecoration(
                       color: color,
-                      borderRadius: BorderRadius.circular(4),
+                      borderRadius: BorderRadius.circular(_swatchBorderRadius),
                       border: Border.all(
                         color: context.colorScheme.outline.withValues(
                           alpha: 0.2,
@@ -108,7 +117,7 @@ class _ColorPickerWidgetState extends State<_ColorPickerWidget> {
                         ? Icon(
                             Icons.check,
                             color: HeliumColors.contrastingTextColor(color),
-                            size: 15,
+                            size: _presetCheckIconSize,
                           )
                         : null,
                   ),
@@ -189,7 +198,7 @@ class _ColorPickerWidgetState extends State<_ColorPickerWidget> {
               },
               icon: Icon(
                 Icons.arrow_back,
-                size: 18,
+                size: _buttonIconSize,
                 color: context.colorScheme.primary,
               ),
               label: Text(

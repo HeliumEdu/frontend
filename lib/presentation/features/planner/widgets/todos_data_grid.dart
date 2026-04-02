@@ -40,7 +40,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 final _log = Logger('presentation.widgets');
 
-/// Column definitions with responsive visibility breakpoints.
+/// Column definitions with responsive visibility breakpoints
 enum TodosColumn {
   completed(label: '', fixedWidth: 52, isCheckbox: true),
   title(label: 'Title', mobileWidth: 70, desktopWidth: 95),
@@ -309,9 +309,9 @@ class TodosDataGridState extends BaseDataGridState<TodosDataGrid> {
     final isMobile = Responsive.isMobile(context);
     final isTablet = Responsive.isTablet(context);
     final isTouchDevice = Responsive.isTouchDevice(context);
-    final isCompact = _isCompactActionsMode();
+    final isCompact = Responsive.isCompact(context);
     final isCapturing = PrintableArea.capturing.value;
-    final showActions = !_shouldHideActionsColumn();
+    final showActions = !(isTouchDevice || isCapturing);
 
     final headerColor =
         context.colorScheme.surfaceContainerHighest.withValues(alpha: 0.5);
@@ -770,14 +770,9 @@ class TodosDataGridState extends BaseDataGridState<TodosDataGrid> {
         (column.showOnTouchDevice && Responsive.isTouchDevice(context));
   }
 
-  bool _shouldHideActionsColumn() =>
-      Responsive.isTouchDevice(context) || PrintableArea.capturing.value;
-
-  bool _isCompactActionsMode() => Responsive.isCompact(context);
 }
 
 /// DataGridSource that wraps PlannerItemDataSource for SfDataGrid.
-/// References the same underlying data - no duplication.
 class TodosDataSource extends BaseDataGridSource {
   List<HomeworkModel> _homeworks;
   BuildContext _context;

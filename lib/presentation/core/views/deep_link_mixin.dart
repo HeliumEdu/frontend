@@ -39,7 +39,7 @@ mixin DeepLinkMixin<T extends StatefulWidget> on BasePageScreenState<T> {
   ///
   /// Uses [router.routerDelegate] directly rather than [GoRouterState.of]
   /// because [GoRouterState] is an [InheritedWidget] that updates on the next
-  /// build — it lags by one frame when [_onRouteChanged] fires immediately
+  /// build; it lags by one frame when [_onRouteChanged] fires immediately
   /// after a [router.go] or [router.replace] call.
   @protected
   Map<String, String> readQueryParams() =>

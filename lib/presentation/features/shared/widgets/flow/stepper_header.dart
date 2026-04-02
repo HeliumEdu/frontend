@@ -108,10 +108,8 @@ class _StepperHeaderState extends State<StepperHeader> {
     final List<Widget> widgets = [];
 
     for (int i = 0; i < steps.length; i++) {
-      // Add step circle
       widgets.add(_buildStepCircle(context, i, circleSize, iconSize));
 
-      // Add connecting line after each step except the last
       if (i < steps.length - 1) {
         widgets.add(_buildConnectingLine(context, i, lineLength));
       }

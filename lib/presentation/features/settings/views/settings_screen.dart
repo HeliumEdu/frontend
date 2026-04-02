@@ -94,14 +94,6 @@ class SettingsScreen extends StatefulWidget {
 }
 
 class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
-  static const _helpIconSize = 30.0;
-  static const _settingsItemPadding = 14.0;
-  static const _settingsIconPadding = 10.0;
-  static const _settingsIconBorderRadius = 12.0;
-  static const _settingsContainerBorderRadius = 16.0;
-  static const _settingsItemSpacing = 16.0;
-  static const _settingsHintSpacing = 2.0;
-
   final _preferencesKey = GlobalKey<PreferencesScreenState>();
   final _changeEmailKey = GlobalKey<ChangeEmailScreenState>();
   final _changePasswordKey = GlobalKey<ChangePasswordScreenState>();
@@ -356,7 +348,7 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
     if (DialogModeProvider.isDialogMode(context)) {
       Navigator.of(context).pop();
     }
-    if (mounted) context.go(route);
+    context.go(route);
   }
 
   Widget _buildSettingsPage() {
@@ -413,7 +405,7 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
                 icon: Icon(
                   Icons.help_center,
                   color: context.colorScheme.primary,
-                  size: _helpIconSize,
+                  size: 30.0,
                 ),
                 tooltip: 'Get support',
               ),
@@ -608,21 +600,21 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.only(
-          topLeft: const Radius.circular(_settingsContainerBorderRadius),
-          topRight: isFirst ? const Radius.circular(_settingsContainerBorderRadius) : Radius.zero,
-          bottomLeft: const Radius.circular(_settingsContainerBorderRadius),
-          bottomRight: isLast ? const Radius.circular(_settingsContainerBorderRadius) : Radius.zero,
+          topLeft: const Radius.circular(16.0),
+          topRight: isFirst ? const Radius.circular(16.0) : Radius.zero,
+          bottomLeft: const Radius.circular(16.0),
+          bottomRight: isLast ? const Radius.circular(16.0) : Radius.zero,
         ),
         child: Padding(
-          padding: const EdgeInsets.all(_settingsItemPadding),
+          padding: const EdgeInsets.all(14.0),
           child: Row(
             children: [
               Container(
-                padding: const EdgeInsets.all(_settingsIconPadding),
+                padding: const EdgeInsets.all(10.0),
                 decoration: BoxDecoration(
                   color:
                       iconBackgroundColor ?? iconColor.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(_settingsIconBorderRadius),
+                  borderRadius: BorderRadius.circular(12.0),
                 ),
                 child: Icon(
                   icon,
@@ -635,7 +627,7 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
                   ),
                 ),
               ),
-              const SizedBox(width: _settingsItemSpacing),
+              const SizedBox(width: 16.0),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -648,7 +640,7 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
                             ).copyWith(color: labelColor)
                           : AppStyles.menuItem(context),
                     ),
-                    const SizedBox(height: _settingsHintSpacing),
+                    const SizedBox(height: 2.0),
                     Text(hint, style: AppStyles.menuItemHint(context)),
                   ],
                 ),
@@ -673,7 +665,7 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
   Widget _buildDangerZoneArea() {
     return Container(
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(_settingsContainerBorderRadius),
+        borderRadius: BorderRadius.circular(16.0),
         border: Border.all(
           color: context.colorScheme.error.withValues(alpha: 0.2),
         ),
@@ -689,16 +681,16 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
       color: Colors.transparent,
       child: InkWell(
         onTap: _expandDangerZone,
-        borderRadius: const BorderRadius.all(Radius.circular(_settingsContainerBorderRadius)),
+        borderRadius: const BorderRadius.all(Radius.circular(16.0)),
         child: Padding(
-          padding: const EdgeInsets.all(_settingsItemPadding),
+          padding: const EdgeInsets.all(14.0),
           child: Row(
             children: [
               Container(
-                padding: const EdgeInsets.all(_settingsIconPadding),
+                padding: const EdgeInsets.all(10.0),
                 decoration: BoxDecoration(
                   color: context.colorScheme.error.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(_settingsIconBorderRadius),
+                  borderRadius: BorderRadius.circular(12.0),
                 ),
                 child: Icon(
                   Icons.warning_amber_rounded,
@@ -711,7 +703,7 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
                   ),
                 ),
               ),
-              const SizedBox(width: _settingsItemSpacing),
+              const SizedBox(width: 16.0),
               Expanded(
                 child: Text(
                   'Danger Zone',
@@ -773,20 +765,20 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.only(
-          topLeft: const Radius.circular(_settingsContainerBorderRadius),
-          topRight: isFirst ? const Radius.circular(_settingsContainerBorderRadius) : Radius.zero,
-          bottomLeft: const Radius.circular(_settingsContainerBorderRadius),
-          bottomRight: isLast ? const Radius.circular(_settingsContainerBorderRadius) : Radius.zero,
+          topLeft: const Radius.circular(16.0),
+          topRight: isFirst ? const Radius.circular(16.0) : Radius.zero,
+          bottomLeft: const Radius.circular(16.0),
+          bottomRight: isLast ? const Radius.circular(16.0) : Radius.zero,
         ),
         child: Padding(
-          padding: const EdgeInsets.all(_settingsItemPadding),
+          padding: const EdgeInsets.all(14.0),
           child: Row(
             children: [
               Container(
-                padding: const EdgeInsets.all(_settingsIconPadding),
+                padding: const EdgeInsets.all(10.0),
                 decoration: BoxDecoration(
                   color: context.colorScheme.error.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(_settingsIconBorderRadius),
+                  borderRadius: BorderRadius.circular(12.0),
                 ),
                 child: Icon(
                   icon,
@@ -799,7 +791,7 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
                   ),
                 ),
               ),
-              const SizedBox(width: _settingsItemSpacing),
+              const SizedBox(width: 16.0),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -810,7 +802,7 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
                         context,
                       ).copyWith(color: context.colorScheme.error),
                     ),
-                    const SizedBox(height: _settingsHintSpacing),
+                    const SizedBox(height: 2.0),
                     Text(hint, style: AppStyles.menuItemHint(context)),
                   ],
                 ),

@@ -86,7 +86,7 @@ Delta resolveCheckboxesForPdf(Delta delta) {
         first['insert'] = symbol + (first['insert'] as String);
         result[paragraphStart] = first;
       } else {
-        // Empty checkbox line — insert the symbol as its own op.
+        // Empty checkbox line; insert the symbol as its own op.
         result.insert(paragraphStart, {'insert': symbol.trim()});
       }
       final newAttrs = Map<String, dynamic>.from(attrs!)..remove('list');

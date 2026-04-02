@@ -51,7 +51,7 @@ class _SignupScreenState extends BasePageScreenState<SignupScreen> {
   bool get isAuthenticatedScreen => false;
 
   final SignupFormController _formController = SignupFormController();
-  bool isOAuthLoading = false;
+  bool _isOAuthLoading = false;
 
   @override
   void initState() {
@@ -82,9 +82,9 @@ class _SignupScreenState extends BasePageScreenState<SignupScreen> {
       BlocListener<AuthBloc, AuthState>(
         listener: (context, state) {
           if (state is AuthLoggedIn) {
-            final wasOAuthFlow = isOAuthLoading;
+            final wasOAuthFlow = _isOAuthLoading;
             setState(() {
-              isOAuthLoading = false;
+              _isOAuthLoading = false;
               isSubmitting = true;
             });
 
@@ -141,7 +141,7 @@ class _SignupScreenState extends BasePageScreenState<SignupScreen> {
           if (state is! AuthLoading && state is! AuthLoggedIn) {
             setState(() {
               isSubmitting = false;
-              isOAuthLoading = false;
+              _isOAuthLoading = false;
             });
           }
         },
@@ -347,7 +347,7 @@ class _SignupScreenState extends BasePageScreenState<SignupScreen> {
                   return HeliumElevatedButton(
                     buttonText: 'Sign Up',
                     isLoading: isSubmitting,
-                    enabled: !isOAuthLoading,
+                    enabled: !_isOAuthLoading,
                     onPressed: _onSubmit,
                   );
                 },
@@ -379,14 +379,14 @@ class _SignupScreenState extends BasePageScreenState<SignupScreen> {
                 width: _oauthButtonWidth,
                 height: _oauthButtonHeight,
                 child: IgnorePointer(
-                  ignoring: isOAuthLoading || isSubmitting,
+                  ignoring: _isOAuthLoading || isSubmitting,
                   child: Opacity(
-                    opacity: isOAuthLoading || isSubmitting ? 0.5 : 1.0,
+                    opacity: _isOAuthLoading || isSubmitting ? 0.5 : 1.0,
                     child: SignInButton(
                       Buttons.google,
                       onPressed: () {
                         setState(() {
-                          isOAuthLoading = true;
+                          _isOAuthLoading = true;
                         });
                         context.read<AuthBloc>().add(GoogleLoginEvent());
                       },
@@ -403,14 +403,14 @@ class _SignupScreenState extends BasePageScreenState<SignupScreen> {
                   width: _oauthButtonWidth,
                   height: _oauthButtonHeight,
                   child: IgnorePointer(
-                    ignoring: isOAuthLoading || isSubmitting,
+                    ignoring: _isOAuthLoading || isSubmitting,
                     child: Opacity(
-                      opacity: isOAuthLoading || isSubmitting ? 0.5 : 1.0,
+                      opacity: _isOAuthLoading || isSubmitting ? 0.5 : 1.0,
                       child: SignInButton(
                         Buttons.apple,
                         onPressed: () {
                           setState(() {
-                            isOAuthLoading = true;
+                            _isOAuthLoading = true;
                           });
                           context.read<AuthBloc>().add(AppleLoginEvent());
                         },

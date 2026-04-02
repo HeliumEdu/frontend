@@ -47,7 +47,10 @@ import 'package:heliumapp/utils/planner_helper.dart';
 import 'package:heliumapp/utils/quill_helpers.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:heliumapp/utils/snack_bar_helpers.dart';
+import 'package:logging/logging.dart';
 import 'package:timezone/standalone.dart' as tz;
+
+final _log = Logger('presentation.widgets');
 
 class PlannerItemDetails extends StatefulWidget {
   final int? eventId;
@@ -849,6 +852,7 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
 
   Future<void> onSubmit({bool redirectToNotebook = false}) async {
     if (isLoading || _isSubmitting) return;
+    _log.info('Submitting planner item (isEvent=$_isEvent, isEdit=${widget.isEdit}, redirectToNotebook=$redirectToNotebook)');
     if (_formController.validateAndScrollToError()) {
       if (_formController.endDate.isBefore(_formController.startDate)) {
         SnackBarHelper.show(
@@ -872,6 +876,7 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
 
         if (homeworkStart.isBefore(courseStart) ||
             homeworkEnd.isAfter(courseEnd)) {
+          _log.warning('Assignment dates fall outside course date range (courseId=${selectedCourse.id}, courseStart=$courseStart, courseEnd=$courseEnd, homeworkStart=$homeworkStart, homeworkEnd=$homeworkEnd)');
           SnackBarHelper.show(
             context,
             "This assignment won't appear in the Todos view, since it is now outside the class's date range",

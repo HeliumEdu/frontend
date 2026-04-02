@@ -52,7 +52,7 @@ class NotesEditor extends StatefulWidget {
 
     Color initial = Colors.black;
     if (stored != null) {
-      // Quill stores as #AARRGGBB — strip # and parse
+      // Quill stores as #AARRGGBB; strip # and parse
       final hex = stored.startsWith('#') ? stored.substring(1) : stored;
       final padded = hex.length == 6 ? 'ff$hex' : hex;
       initial = Color(int.tryParse(padded, radix: 16) ?? 0xFF000000);
@@ -79,6 +79,12 @@ class NotesEditor extends StatefulWidget {
 }
 
 class _NotesEditorState extends State<NotesEditor> with WidgetsBindingObserver {
+  static const _openInNotesIconSize = 16.0;
+  static const _openInNotesFontSize = 12.0;
+  static const _editorBorderRadius = 8.0;
+  static const _editorMinHeight = 125.0;
+  static const _editorMaxHeight = 300.0;
+  static const _editorContentPadding = 12.0;
   final _editorKey = GlobalKey();
   bool _pendingScrollOnKeyboard = false;
 
@@ -167,13 +173,13 @@ class _NotesEditorState extends State<NotesEditor> with WidgetsBindingObserver {
                 onPressed: widget.onOpenInNotes,
                 icon: Icon(
                   Icons.library_books,
-                  size: 16,
+                  size: _openInNotesIconSize,
                   color: context.colorScheme.primary,
                 ),
                 label: Text(
                   'Open in Notebook',
                   style: TextStyle(
-                    fontSize: 12,
+                    fontSize: _openInNotesFontSize,
                     color: context.colorScheme.primary,
                   ),
                 ),
@@ -187,10 +193,10 @@ class _NotesEditorState extends State<NotesEditor> with WidgetsBindingObserver {
             border: Border.all(
               color: context.colorScheme.outline.withValues(alpha: 0.2),
             ),
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(_editorBorderRadius),
           ),
           child: ClipRRect(
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(_editorBorderRadius),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
@@ -260,14 +266,14 @@ class _NotesEditorState extends State<NotesEditor> with WidgetsBindingObserver {
                 const Divider(height: 1),
                 ConstrainedBox(
                   constraints: const BoxConstraints(
-                    minHeight: 125,
-                    maxHeight: 300,
+                    minHeight: _editorMinHeight,
+                    maxHeight: _editorMaxHeight,
                   ),
                   child: QuillEditor.basic(
                     controller: widget.controller,
                     focusNode: widget.focusNode,
                     config: QuillEditorConfig(
-                      padding: const EdgeInsets.all(12),
+                      padding: const EdgeInsets.all(_editorContentPadding),
                       autoFocus: false,
                       customStyles: NotesEditor.buildDefaultStyles(context),
                     ),

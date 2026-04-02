@@ -293,7 +293,7 @@ class ResourceDetailsState extends State<ResourceDetails> {
 
       if (!mounted) return;
       if (widget.isEdit && widget.resourceId != null) {
-        // Dispatch note operations to NoteBloc directly — resource.id is known
+        // Dispatch note operations to NoteBloc directly; resource.id is known
         final content = noteContent;
         final existingNoteId = _formController.linkedNoteId;
         if (existingNoteId != null) {

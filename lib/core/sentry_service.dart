@@ -73,7 +73,7 @@ class SentryService {
 
       // Belt-and-suspenders for auth errors with non-null values. In
       // sentry_flutter, ignoreErrors is a Dart-side filter that runs on the
-      // deserialized SentryEvent — same as beforeSend. For onerror events where
+      // deserialized SentryEvent; same as beforeSend. For onerror events where
       // exception.value is null after deserialization, neither filter can match;
       // those cases are prevented at the source (see _authRedirect in
       // app_router.dart).

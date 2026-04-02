@@ -22,6 +22,10 @@ class _GettingStartedDialogWidget extends StatelessWidget {
   const _GettingStartedDialogWidget();
 
   static const double fallbackWidth = 425.0;
+  static const _headerIconSize = 28.0;
+  static const _featureIconContainerPadding = 8.0;
+  static const _featureIconContainerBorderRadius = 8.0;
+  static const _featureIconSize = 20.0;
 
   @override
   Widget build(BuildContext context) {
@@ -56,7 +60,7 @@ class _GettingStartedDialogWidget extends StatelessWidget {
                 Icon(
                   Icons.rocket_launch_outlined,
                   color: context.colorScheme.primary,
-                  size: 28,
+                  size: _headerIconSize,
                 ),
                 const SizedBox(width: 12),
                 Text('Welcome to Helium!', style: AppStyles.pageTitle(context)),
@@ -191,12 +195,12 @@ class _GettingStartedDialogWidget extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Container(
-          padding: const EdgeInsets.all(8),
+          padding: const EdgeInsets.all(_featureIconContainerPadding),
           decoration: BoxDecoration(
             color: context.colorScheme.primary.withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(_featureIconContainerBorderRadius),
           ),
-          child: Icon(icon, color: context.colorScheme.primary, size: 20),
+          child: Icon(icon, color: context.colorScheme.primary, size: _featureIconSize),
         ),
         const SizedBox(width: 12),
         Expanded(

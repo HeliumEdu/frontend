@@ -29,6 +29,7 @@ class SearchableDropdown<T> extends StatefulWidget {
 }
 
 class _SearchableDropdownState<T> extends State<SearchableDropdown<T>> {
+  static const _fieldBorderRadius = 8.0;
   TextEditingController? _fieldController;
   FocusNode? _focusNode;
 
@@ -119,7 +120,7 @@ class _SearchableDropdownState<T> extends State<SearchableDropdown<T>> {
                     color: isDisabled
                         ? context.theme.scaffoldBackgroundColor
                         : context.colorScheme.surface,
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: BorderRadius.circular(_fieldBorderRadius),
                   ),
                   child: TextFormField(
                     controller: textEditingController,

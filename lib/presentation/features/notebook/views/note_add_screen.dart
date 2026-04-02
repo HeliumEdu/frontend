@@ -131,10 +131,8 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
   void initState() {
     super.initState();
     _quillController = QuillController.basic();
-    // Set initial save status based on whether this is a new or existing note
     _saveStatus = widget.noteId == null ? SaveStatus.unsaved : SaveStatus.saved;
 
-    // Set up auto-save listeners
     _titleController.addListener(_onContentChanged);
     _editorFocusNode.addListener(_onEditorFocusChanged);
     _printHandler = _printNote;
@@ -759,7 +757,6 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
       child: Padding(padding: const EdgeInsets.all(8), child: iconWidget),
     );
 
-    // No tooltip when empty
     if (isEmpty) {
       return button;
     }

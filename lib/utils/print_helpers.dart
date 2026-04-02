@@ -449,7 +449,7 @@ class PrintableAreaScope extends InheritedWidget {
         _unregister = unregister;
 
   /// Returns the nearest [PrintableAreaScope] without establishing a rebuild
-  /// dependency — suitable for one-time registration in [State.initState].
+  /// dependency; suitable for one-time registration in [State.initState].
   static PrintableAreaScope? findIn(BuildContext context) =>
       context.findAncestorWidgetOfExactType<PrintableAreaScope>();
 
@@ -468,7 +468,7 @@ class PrintableAreaScope extends InheritedWidget {
 /// A widget that hides its child during a [PrintableArea] capture.
 ///
 /// Wrap any button or interactive element that should be excluded from the
-/// printed output. Reacts to [PrintableArea.capturing] — no additional wiring
+/// printed output. Reacts to [PrintableArea.capturing]; no additional wiring
 /// required.
 class PrintHidden extends StatelessWidget {
   final Widget child;
@@ -492,13 +492,13 @@ class PrintHidden extends StatelessWidget {
 ///
 /// On supported platforms (web and desktop), Cmd+P / Ctrl+P triggers an
 /// immediate PDF preview dialog. The capture renders at the current viewport
-/// width — size the browser/window as desired before printing. Dark mode is
+/// width; size the browser/window as desired before printing. Dark mode is
 /// suppressed during capture so the PDF renders with a light background.
 ///
 /// On mobile this widget is a transparent passthrough; print is not registered.
 ///
 /// Wrap any element that should be excluded from the printed output with
-/// [PrintHidden] — it will hide itself automatically during capture.
+/// [PrintHidden]; it will hide itself automatically during capture.
 class PrintableArea extends StatefulWidget {
   /// Notifier that is `true` for the duration of a screenshot capture.
   /// [PrintHidden] listens to this; other widgets can too for custom behavior.
@@ -566,7 +566,7 @@ class _PrintableAreaState extends State<PrintableArea> {
   void _unregisterHintsProvider(PdfPageBreakHintsProvider p) =>
       _hintsProviders.removeWhere((e) => identical(e, p));
 
-  // Stored once — Dart method tear-offs aren't referentially identical across
+  // Stored once; Dart method tear-offs aren't referentially identical across
   // evaluations, so identity-based unregister requires a stable reference.
   late final PrintHandler _registeredHandler;
 
@@ -592,7 +592,7 @@ class _PrintableAreaState extends State<PrintableArea> {
     final originalMode = themeNotifier.themeMode;
     final wasDark = themeNotifier.isDarkMode;
 
-    // Both flags must flip before any endOfFrame await — _capturePending
+    // Both flags must flip before any endOfFrame await; _capturePending
     // unconstrains the OverflowBox; capturing switches layout/grid modes.
     // They must be consistent on the same frame before content settles.
     setState(() => _capturePending = true);
@@ -633,7 +633,7 @@ class _PrintableAreaState extends State<PrintableArea> {
   /// Performs the GPU readback and collects page-break hints.
   ///
   /// Resets [PrintableArea.capturing] and [_capturePending] as soon as the
-  /// image is in hand — the OverflowBox and PrintHidden overrides are no
+  /// image is in hand; the OverflowBox and PrintHidden overrides are no
   /// longer needed once [toImage] returns.
   Future<_CaptureResult> _captureImage() async {
     final boundary =
@@ -658,7 +658,7 @@ class _PrintableAreaState extends State<PrintableArea> {
 
     final image = await boundary.toImage(pixelRatio: pixelRatio);
 
-    // GPU readback is done — restore layout to normal immediately so the
+    // GPU readback is done; restore layout to normal immediately so the
     // screen behind the dialog returns to its interactive state.
     PrintableArea.capturing.value = false;
     if (mounted) setState(() => _capturePending = false);
@@ -685,7 +685,7 @@ class _PrintableAreaState extends State<PrintableArea> {
 
   @override
   Widget build(BuildContext context) {
-    // OverflowBox is always present — removing it during capture would change
+    // OverflowBox is always present; removing it during capture would change
     // the GlobalKey element's tree position, causing lifecycle failures in
     // SfDataGrid. maxHeight: null = no-op; double.infinity = unconstrained.
     return PrintableAreaScope._(

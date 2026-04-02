@@ -514,7 +514,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
           );
         }
 
-        // Flexible instead of toggling Expanded/bare child — keeping the
+        // Flexible instead of toggling Expanded/bare child; keeping the
         // widget type constant prevents SfCalendar from being disposed
         // and remounted when isCapturing changes.
         return _buildTodosContent();
@@ -1948,7 +1948,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
     // Agenda views don't support drag and drop, so no Listener needed there.
     // In timeline views, locked items (course schedules, external calendar
     // events) still need the Listener to prevent SfCalendar from initiating
-    // a drag. Defer the setState so it fires after the current gesture phase —
+    // a drag. Defer the setState so it fires after the current gesture phase;
     // drag initiation requires a sustained hold (~300-500ms), so a one-frame
     // delay still reliably prevents accidental drags without interfering with
     // quick taps.

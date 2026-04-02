@@ -8,6 +8,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:heliumapp/config/app_route.dart';
+import 'package:logging/logging.dart';
 import 'package:heliumapp/config/app_router.dart';
 import 'package:heliumapp/data/models/planner/request/note_request_model.dart';
 import 'package:heliumapp/presentation/features/notebook/bloc/note_bloc.dart';
@@ -22,6 +23,8 @@ import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/deep_link_helpers.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:heliumapp/utils/snack_bar_helpers.dart';
+
+final _log = Logger('presentation.views');
 
 /// Shows resource add/edit screen (responsive: dialog on desktop, full-screen on mobile)
 Future<void> showResourceAdd(
@@ -125,6 +128,7 @@ class _ResourceAddScreenState
 
               // CREATE + redirect: note content must be created first to get its ID
               if (noteContent != null) {
+                _log.info('Resource created with note content; creating note before notebook redirect (resourceId=${state.resource.id})');
                 _pendingRedirectToNotebook = true;
                 context.read<NoteBloc>().add(CreateNoteEvent(
                   origin: EventOrigin.subScreen,
@@ -137,6 +141,7 @@ class _ResourceAddScreenState
                 navigateAndClearStack(context, '${AppRoute.notebookScreen}?${DeepLinkParam.linkResourceId}=${state.resource.id}');
               }
             } else {
+              _log.info('Resource created without notebook redirect (resourceId=${state.resource.id}, hasNoteContent=${noteContent != null})');
               if (noteContent != null) {
                 context.read<NoteBloc>().add(CreateNoteEvent(
                   origin: EventOrigin.subScreen,
@@ -157,6 +162,7 @@ class _ResourceAddScreenState
             }
           } else if (state is ResourceUpdated) {
             if (state.redirectToNotebook) {
+              _log.info('Resource updated with notebook redirect (resourceId=${state.resource.id})');
               _detailsKey.currentState?.resetSubmitting();
               setState(() => isSubmitting = false);
 
@@ -164,13 +170,13 @@ class _ResourceAddScreenState
               final noteContent = _detailsKey.currentState?.noteContent;
 
               if (linkedNoteId != null && noteContent != null) {
-                // Existing note being updated — ID is already known
+                // Existing note being updated; ID is already known
                 navigateAndClearStack(context, '${AppRoute.notebookScreen}?id=$linkedNoteId');
               } else if (linkedNoteId == null && noteContent != null) {
-                // New note being created by NoteBloc — wait for NoteCreated
+                // New note being created by NoteBloc; wait for NoteCreated
                 _pendingRedirectToNotebook = true;
               } else {
-                // No note content — navigate with linkResourceId to create one in notebook
+                // No note content; navigate with linkResourceId to create one in notebook
                 navigateAndClearStack(context, '${AppRoute.notebookScreen}?${DeepLinkParam.linkResourceId}=${state.resource.id}');
               }
             } else {

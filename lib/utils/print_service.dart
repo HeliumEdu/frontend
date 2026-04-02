@@ -22,7 +22,7 @@ class PrintService {
 
   PrintService._internal();
 
-  /// True on web and non-mobile desktop — platforms where printing is supported
+  /// True on web and non-mobile desktop; platforms where printing is supported
   static bool get isSupported =>
       kIsWeb ||
       (defaultTargetPlatform != TargetPlatform.android &&

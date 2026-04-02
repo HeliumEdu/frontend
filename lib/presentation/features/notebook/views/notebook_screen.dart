@@ -40,6 +40,9 @@ import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/print_helpers.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:heliumapp/utils/sort_helpers.dart';
+import 'package:logging/logging.dart';
+
+final _log = Logger('presentation.views');
 
 class NotebookScreen extends StatelessWidget {
   const NotebookScreen({super.key});
@@ -434,7 +437,8 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen>
         linkResourceId: resourceId,
       );
     } catch (_) {
-      // silently fail — bad or stale deep link
+      // silently fail; bad or stale deep link
+      _log.warning('Failed to resolve resource deep link for note (resourceId=$resourceId); link may be stale or invalid');
     }
   }
 
@@ -450,7 +454,8 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen>
         linkHomeworkId: homeworkId,
       );
     } catch (_) {
-      // silently fail — bad or stale deep link (404)
+      // silently fail; bad or stale deep link (404)
+      _log.warning('Failed to resolve homework deep link for note (homeworkId=$homeworkId); link may be stale or invalid');
     }
   }
 
@@ -466,7 +471,8 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen>
         linkEventId: eventId,
       );
     } catch (_) {
-      // silently fail — bad or stale deep link (404)
+      // silently fail; bad or stale deep link (404)
+      _log.warning('Failed to resolve event deep link for note (eventId=$eventId); link may be stale or invalid');
     }
   }
 

@@ -104,7 +104,7 @@ class UserSettingsModel {
     // Do not all default fallbacks here; userSettings must be populated and
     // non-null before base pages will move past isLoading, meaning if tests
     // fail and adding default values here would "fix" them, that is not the
-    // correct solution, that is an incorrect workaround—find the actual
+    // correct solution, that is an incorrect workaround; find the actual
     // regression further up the stack and patch with default values
     // there (if necessary)
     return UserSettingsModel(

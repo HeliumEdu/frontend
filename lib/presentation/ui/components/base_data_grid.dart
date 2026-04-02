@@ -7,14 +7,17 @@
 
 import 'package:flutter/material.dart';
 import 'package:heliumapp/utils/print_helpers.dart';
+import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
+
+final _log = Logger('presentation.components');
 
 /// Mixin that provides standard sorting behavior for SfDataGrid data sources.
 ///
 /// Sorting rules applied uniformly across all columns:
-/// - Null values are treated as maximum — last when ascending, first when descending.
-/// - Empty strings are treated as maximum — last when ascending, first when descending.
+/// - Null values are treated as maximum; last when ascending, first when descending.
+/// - Empty strings are treated as maximum; last when ascending, first when descending.
 /// - All other values sort via [Comparable.compareTo].
 ///
 /// Cell values should be stored as sortable types (lowercase strings for
@@ -44,7 +47,7 @@ mixin SortableDataGridSource on DataGridSource {
       final valueA = cellA.value;
       final valueB = cellB.value;
 
-      // Null and empty strings are treated as maximum: last ascending, first descending.
+      // Null and empty strings are treated as maximum: last ascending, first descending
       if (valueA == null && valueB == null) return 0;
       if (valueA == null) return ascending ? 1 : -1;
       if (valueB == null) return ascending ? -1 : 1;
@@ -130,6 +133,7 @@ abstract class BaseDataGridSource extends DataGridSource
 
   @override
   Future<void> performSorting(List<DataGridRow> rows) async {
+    _log.fine('performSorting: totalRows=${dataGridRows.length}, currentPage=$_currentPage, itemsPerPage=$_itemsPerPage, sortedColumns=${sortedColumns.map((c) => '${c.name}:${c.sortDirection.name}').join(',')}');
     sortDataGridRows(dataGridRows);
     // Syncfusion captures `rows` (_effectiveRows) from our `rows` getter BEFORE
     // calling performSorting, so it holds a pre-sort snapshot. We must repopulate

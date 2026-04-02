@@ -23,9 +23,12 @@ import 'package:heliumapp/utils/date_time_helpers.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:heliumapp/utils/print_helpers.dart';
 import 'package:syncfusion_flutter_core/theme.dart';
+import 'package:logging/logging.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 
-/// Column definitions with responsive visibility breakpoints.
+final _log = Logger('presentation.widgets');
+
+/// Column definitions with responsive visibility breakpoints
 enum NotebookColumn {
   title(label: 'Title'),
   due(label: 'Due', minViewportWidth: 900, mobileWidth: 144, desktopWidth: 154),
@@ -610,7 +613,6 @@ class NotesDataSource extends BaseDataGridSource {
 
     Color? rowColor;
     if (entityType == 'homework') {
-      // Use category color if colorByCategory is enabled, otherwise course color
       rowColor = (userSettings?.colorByCategory ?? false) && categoryColor != null
           ? categoryColor
           : courseColor;
@@ -618,6 +620,8 @@ class NotesDataSource extends BaseDataGridSource {
       rowColor = userSettings?.eventsColor;
     } else if (entityType == 'resource') {
       rowColor = userSettings?.resourceColor;
+    } else if (entityType.isNotEmpty) {
+      _log.fine('buildRow: unsupported entityType "$entityType"; rowColor will be null');
     }
 
     final linkedEntityCompleted =
