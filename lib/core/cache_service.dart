@@ -14,8 +14,9 @@ final _log = Logger('core');
 
 /// Centralized cache service for HTTP requests.
 ///
-/// Provides a 30-minute TTL cache for GET requests using an in-memory store.
-/// Automatically invalidates cache when returning from background after 5+ minutes.
+/// Provides a TTL-based cache for GET requests using an in-memory store.
+/// Automatically invalidates cache when returning from background after a
+/// defined period.
 class CacheService with WidgetsBindingObserver {
   late final CacheStore _store;
   late final CacheOptions _options;
@@ -98,7 +99,6 @@ class CacheService with WidgetsBindingObserver {
     );
   }
 
-  /// Call this when the service is no longer needed.
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
   }

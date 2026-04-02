@@ -23,11 +23,11 @@ import 'package:heliumapp/presentation/core/views/deep_link_mixin.dart';
 import 'package:heliumapp/presentation/ui/layout/page_header.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_bloc.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_state.dart';
-import 'package:heliumapp/presentation/features/notes/bloc/note_bloc.dart';
-import 'package:heliumapp/presentation/features/notes/bloc/note_event.dart';
-import 'package:heliumapp/presentation/features/notes/bloc/note_state.dart';
-import 'package:heliumapp/presentation/features/notes/views/note_add_screen.dart';
-import 'package:heliumapp/presentation/features/notes/widgets/notes_data_grid.dart';
+import 'package:heliumapp/presentation/features/notebook/bloc/note_bloc.dart';
+import 'package:heliumapp/presentation/features/notebook/bloc/note_event.dart';
+import 'package:heliumapp/presentation/features/notebook/bloc/note_state.dart';
+import 'package:heliumapp/presentation/features/notebook/views/note_add_screen.dart';
+import 'package:heliumapp/presentation/features/notebook/widgets/notebook_data_grid.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/core/base_event.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/core/provider_helpers.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/planneritem_bloc.dart';
@@ -301,7 +301,7 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen>
 
         return Expanded(
           child: PrintableArea(
-            child: NotesDataGrid(
+            child: NotebookDataGrid(
               notes: filteredNotes,
               isLoading: notesLoading,
               hasAnyNotes: hasAnyNotes,

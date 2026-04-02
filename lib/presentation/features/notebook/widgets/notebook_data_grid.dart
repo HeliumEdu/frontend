@@ -25,9 +25,35 @@ import 'package:heliumapp/utils/sort_helpers.dart';
 import 'package:syncfusion_flutter_core/theme.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 
-const double _dueColumnMinWidth = 900;
+/// Column definitions with responsive visibility breakpoints.
+enum NotebookColumn {
+  title(label: 'Title'),
+  due(label: 'Due', minViewportWidth: 900, mobileWidth: 144, desktopWidth: 154),
+  linkedEntity(label: 'Linked Entity', minViewportWidth: 625, fixedWidth: 120),
+  modified(label: 'Modified', minViewportWidth: 950, fixedWidth: 129);
 
-class NotesDataGrid extends StatefulWidget {
+  const NotebookColumn({
+    required this.label,
+    this.fixedWidth,
+    this.mobileWidth,
+    this.desktopWidth,
+    this.minViewportWidth,
+  });
+
+  final String label;
+  final double? fixedWidth;
+  final double? mobileWidth;
+  final double? desktopWidth;
+  final double? minViewportWidth;
+
+  double? widthForLayout({required bool isMobile, required bool isTablet}) {
+    if (isMobile && mobileWidth != null) return mobileWidth;
+    if (desktopWidth != null) return desktopWidth;
+    return fixedWidth;
+  }
+}
+
+class NotebookDataGrid extends StatefulWidget {
   final List<NoteModel> notes;
   final Function(NoteModel) onNoteTap;
   final Function(BuildContext, NoteModel) onDelete;
@@ -38,7 +64,7 @@ class NotesDataGrid extends StatefulWidget {
   final bool hasAnyNotes;
   final String? emptyMessage;
 
-  const NotesDataGrid({
+  const NotebookDataGrid({
     super.key,
     required this.notes,
     required this.onNoteTap,
@@ -52,10 +78,10 @@ class NotesDataGrid extends StatefulWidget {
   });
 
   @override
-  State<NotesDataGrid> createState() => _NotesDataGridState();
+  State<NotebookDataGrid> createState() => _NotebookDataGridState();
 }
 
-class _NotesDataGridState extends State<NotesDataGrid> {
+class _NotebookDataGridState extends State<NotebookDataGrid> {
   final DataGridController _controller = DataGridController();
   final GlobalKey _gridKey = GlobalKey();
   PrintableAreaScope? _printableAreaScope;
@@ -92,7 +118,7 @@ class _NotesDataGridState extends State<NotesDataGrid> {
       dataGridPdfPageBreakHints(captureBox, _gridKey);
 
   @override
-  void didUpdateWidget(NotesDataGrid oldWidget) {
+  void didUpdateWidget(NotebookDataGrid oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.notes != widget.notes ||
         oldWidget.userSettings != widget.userSettings ||
@@ -123,7 +149,7 @@ class _NotesDataGridState extends State<NotesDataGrid> {
     final isTouchDevice = Responsive.isTouchDevice(context);
     final isCompact = Responsive.isCompact(context);
     final width = MediaQuery.of(context).size.width;
-    final showDue = width >= _dueColumnMinWidth;
+    final showDue = width >= NotebookColumn.due.minViewportWidth!;
     final showModified = !Responsive.isMobile(context);
     final isCapturing = PrintableArea.capturing.value;
     final showActions = !isTouchDevice && !isCapturing;
@@ -132,7 +158,7 @@ class _NotesDataGridState extends State<NotesDataGrid> {
     final totalItems = widget.notes.length;
     final totalPages = isShowingAll
         ? 1
-        : (totalItems / widget.rowsPerPage).ceil().clamp(1, 999999);
+        : (totalItems / widget.rowsPerPage).ceil().clamp(1, double.infinity.toInt());
 
     var effectiveCurrentPage = _currentPage;
     if (effectiveCurrentPage > totalPages && totalPages > 0) {
@@ -619,7 +645,7 @@ class NotesDataSource extends DataGridSource with SortableDataGridSource {
         .where((c) => !c.columnName.startsWith('_'))
         .where(
           (c) =>
-              (c.columnName != 'due' || width >= _dueColumnMinWidth) &&
+              (c.columnName != 'due' || width >= NotebookColumn.due.minViewportWidth!) &&
               (c.columnName != 'modified' || !Responsive.isMobileWidth(width)),
         )
         .where(

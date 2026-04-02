@@ -5,15 +5,15 @@
 //
 // For details regarding the license, please refer to the LICENSE file.
 
-/// Parsed API error containing field-specific and general errors.
+/// Parsed API error containing field-specific and general errors
 class ParsedApiError {
-  /// Map of field names to their error messages.
+  /// Map of field names to their error messages
   final Map<String, List<String>> fieldErrors;
 
-  /// General errors that aren't associated with a specific field.
+  /// General errors that aren't associated with a specific field
   final List<String> generalErrors;
 
-  /// User-friendly display message (without field prefixes).
+  /// User-friendly display message (cleaned up)
   final String displayMessage;
 
   const ParsedApiError({
@@ -22,10 +22,8 @@ class ParsedApiError {
     required this.displayMessage,
   });
 
-  /// Whether there are any field-specific errors.
   bool get hasFieldErrors => fieldErrors.isNotEmpty;
 
-  /// Whether there are any errors at all.
   bool get hasErrors => fieldErrors.isNotEmpty || generalErrors.isNotEmpty;
 
   /// Get the first error for a specific field, or null if none.
@@ -37,7 +35,7 @@ class ParsedApiError {
 
 /// Utility class for parsing API error responses into structured errors.
 class ApiErrorParser {
-  // Pattern to match "field_name: error message" format
+  // Pattern to match "field_name: error message" format from API
   static final _fieldPrefixPattern = RegExp(r'^([a-zA-Z_][a-zA-Z0-9_]*): (.+)$');
 
   /// Parses a raw API error response into a structured [ParsedApiError].

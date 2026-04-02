@@ -26,7 +26,7 @@ import 'package:heliumapp/data/sources/external_calendar_remote_data_source.dart
 import 'package:heliumapp/data/sources/homework_remote_data_source.dart';
 import 'package:heliumapp/data/sources/note_remote_data_source.dart';
 import 'package:heliumapp/data/sources/resource_remote_data_source.dart';
-import 'package:heliumapp/presentation/features/notes/bloc/note_bloc.dart';
+import 'package:heliumapp/presentation/features/notebook/bloc/note_bloc.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/attachment_bloc.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/planneritem_bloc.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/external_calendar_bloc.dart';

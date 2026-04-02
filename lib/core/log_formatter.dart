@@ -7,7 +7,7 @@
 
 import 'package:logging/logging.dart';
 
-/// ANSI color codes for log levels.
+/// ANSI color codes for log levels
 class LogColors {
   static const String shout = '\x1B[31m'; // Dark red
   static const String severe = '\x1B[91m'; // Light red
@@ -15,9 +15,8 @@ class LogColors {
   static const String info = '\x1B[36m'; // Cyan
   static const String debug = '\x1B[90m'; // Grey
   static const String reset = '\x1B[0m';
-  static const String green = '\x1B[32m'; // Green (for success)
+  static const String green = '\x1B[32m'; // Green
 
-  /// Get the color code for a log level.
   static String forLevel(Level level) {
     if (level >= Level.SHOUT) {
       return shout;
@@ -33,9 +32,9 @@ class LogColors {
   }
 }
 
-/// Formats a log record for console output with colors.
+/// Formats a log record for console output with colors
 class LogFormatter {
-  /// Check if a logger name is from test code (vs app code).
+  /// Check if a logger name is from test code (vs app code)
   static bool isTestLogger(String loggerName) {
     return loggerName.endsWith('_test') || loggerName.endsWith('_helper');
   }
@@ -76,7 +75,7 @@ class LogFormatter {
     return buffer.toString();
   }
 
-  /// Format a simple message with a color.
+  /// Format a simple message with a color
   static String colorize(String message, String colorCode) {
     return '$colorCode$message${LogColors.reset}';
   }

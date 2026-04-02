@@ -96,8 +96,8 @@ mixin DeepLinkMixin<T extends StatefulWidget> on BasePageScreenState<T> {
 
   void _onRouteChanged() {
     if (!mounted) return;
-    // Skip if a dialog is already open — URL changes are from the dialog
-    // itself (e.g., entity type toggle), not from an external source.
+    // Skip if a dialog is already open, URL changes are from the dialog
+    // itself, not from an external source.
     if (openedDeepLinkParam != null) return;
     final uri = router.routerDelegate.currentConfiguration.uri;
     if (uri.path != routePath) return;
@@ -154,7 +154,7 @@ mixin DeepLinkMixin<T extends StatefulWidget> on BasePageScreenState<T> {
               .getEvent(id: eventId);
         }
       } catch (_) {
-        // Entity doesn't exist (404) — silently skip
+        // Entity doesn't exist, skip silently
         return;
       }
     }

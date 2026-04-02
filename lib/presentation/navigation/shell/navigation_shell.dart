@@ -19,7 +19,7 @@ import 'package:heliumapp/presentation/features/auth/bloc/auth_bloc.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_state.dart';
 import 'package:heliumapp/presentation/features/courses/views/courses_screen.dart';
 import 'package:heliumapp/presentation/features/grades/views/grades_screen.dart';
-import 'package:heliumapp/presentation/features/notes/views/notebook_screen.dart';
+import 'package:heliumapp/presentation/features/notebook/views/notebook_screen.dart';
 import 'package:heliumapp/presentation/features/planner/views/planner_screen.dart';
 import 'package:heliumapp/presentation/features/resources/views/resources_screen.dart';
 // Conditional import for web platform
@@ -465,11 +465,9 @@ class _NavigationShellState extends State<NavigationShell> {
               url: AppConstants.patreonUrl,
             ),
             if (!PageHeader.showSettingsInHeader(context))
-              const SizedBox(width: 40, child: Divider())
+              const SizedBox(width: 40, child: Divider()),
           ],
-          if (!PageHeader.showSettingsInHeader(context)) ...[
-            settingsButton,
-          ],
+          if (!PageHeader.showSettingsInHeader(context)) ...[settingsButton],
         ],
       ),
     );
