@@ -302,37 +302,57 @@ class _NotificationsScreenState
     });
   }
 
+  Duration _offsetToDuration(ReminderModel reminder) {
+    switch (reminder.offsetType) {
+      case 1:
+        return Duration(hours: reminder.offset);
+      case 2:
+        return Duration(days: reminder.offset);
+      case 3:
+        return Duration(days: reminder.offset * 7);
+      default:
+        return Duration(minutes: reminder.offset);
+    }
+  }
+
   String _formatCourseScheduleTime(ReminderModel reminder) {
     final course = reminder.course?.entity;
-    final localDate = HeliumDateTime.toLocal(
-      reminder.startOfRange,
+
+    // Derive the actual class start by adding the offset back to startOfRange,
+    // matching the backend's class_start = start_of_range + offset logic.
+    final classStartLocal = HeliumDateTime.toLocal(
+      reminder.startOfRange.add(_offsetToDuration(reminder)),
       userSettings!.timeZone,
     );
 
     if (course == null || course.schedules.isEmpty) {
-      return HeliumDateTime.formatDate(localDate);
+      return HeliumDateTime.formatDate(classStartLocal);
     }
 
-    final schedule = course.schedules.first;
-    final dayIndex = HeliumDateTime.getDayIndex(localDate);
+    final dayIndex = HeliumDateTime.getDayIndex(classStartLocal);
 
-    if (!schedule.isDayActive(dayIndex)) {
-      return HeliumDateTime.formatDate(localDate);
+    // Search all schedules for one active on this day.
+    final activeSchedule = course.schedules
+        .where((s) => s.isDayActive(dayIndex))
+        .firstOrNull;
+
+    if (activeSchedule == null) {
+      return HeliumDateTime.formatDate(classStartLocal);
     }
 
-    final startTime = schedule.getStartTimeForDayIndex(dayIndex);
-    final endTime = schedule.getEndTimeForDayIndex(dayIndex);
+    final startTime = activeSchedule.getStartTimeForDayIndex(dayIndex);
+    final endTime = activeSchedule.getEndTimeForDayIndex(dayIndex);
     final classStart = DateTime(
-      localDate.year,
-      localDate.month,
-      localDate.day,
+      classStartLocal.year,
+      classStartLocal.month,
+      classStartLocal.day,
       startTime.hour,
       startTime.minute,
     );
     final classEnd = DateTime(
-      localDate.year,
-      localDate.month,
-      localDate.day,
+      classStartLocal.year,
+      classStartLocal.month,
+      classStartLocal.day,
       endTime.hour,
       endTime.minute,
     );
