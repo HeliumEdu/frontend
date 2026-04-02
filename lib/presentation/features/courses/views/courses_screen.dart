@@ -235,14 +235,16 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen>
 
   @override
   Widget buildHeaderArea(BuildContext context) {
-    return PrintHidden(
-      child: Padding(
+    return ValueListenableBuilder<bool>(
+      valueListenable: PrintableArea.capturing,
+      builder: (context, isCapturing, _) => Padding(
         padding: const EdgeInsets.only(bottom: 12),
         child: GroupDropdown(
           groups: _courseGroups,
           initialSelection: _courseGroups.firstWhereOrNull(
             (g) => g.id == _selectedGroupId,
           ),
+          isReadOnly: isCapturing,
           onChanged: (value) {
             // The "+" button has a null value
             if (value == null) return;
