@@ -7,6 +7,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:heliumapp/utils/print_helpers.dart';
 import 'package:heliumapp/config/app_router.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/core/dio_client.dart';
@@ -157,6 +158,10 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
   final DioClient dioClient = DioClient();
 
   bool get isAuthenticatedScreen => true;
+
+  bool get enablePrint => false;
+
+  bool get enablePrintFlexColumn => false;
 
   @mustBeOverridden
   String get screenTitle;
@@ -309,11 +314,8 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
             )
           else if (isLoading || (isAuthenticatedScreen && !settingsLoaded))
             const LoadingIndicator()
-          else ...[
-            buildHeaderArea(context),
-
-            buildMainArea(context),
-          ],
+          else
+            ..._buildContent(context),
         ],
       ),
     );
@@ -381,6 +383,22 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
       saveAction: saveAction,
       inheritableProviders: inheritableProviders,
     );
+  }
+
+  List<Widget> _buildContent(BuildContext context) {
+    if (!enablePrint) {
+      return [buildHeaderArea(context), buildMainArea(context)];
+    }
+    return [
+      Expanded(
+        child: PrintableArea(
+          title: screenTitle,
+          flexColumn: enablePrintFlexColumn,
+          header: buildHeaderArea,
+          body: buildMainArea,
+        ),
+      ),
+    ];
   }
 
   Widget buildHeaderArea(BuildContext context) {

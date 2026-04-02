@@ -140,6 +140,9 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
   String get screenTitle => 'Grades';
 
   @override
+  bool get enablePrint => true;
+
+  @override
   String get routePath => AppRoute.gradesScreen;
 
   // Category table row element heights
@@ -223,24 +226,27 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
       return Container();
     }
 
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: GroupDropdown(
-        groups: _courseGroups,
-        initialSelection: _courseGroups.firstWhereOrNull(
-          (g) => g.id == _selectedGroupId,
-        ),
-        isReadOnly: true,
-        onChanged: (value) {
-          if (value == null) return;
-          if (value.id == _selectedGroupId) return;
+    return ValueListenableBuilder<bool>(
+      valueListenable: PrintableArea.capturing,
+      builder: (context, isCapturing, _) => Padding(
+        padding: const EdgeInsets.only(bottom: 12),
+        child: GroupDropdown(
+          groups: _courseGroups,
+          initialSelection: _courseGroups.firstWhereOrNull(
+            (g) => g.id == _selectedGroupId,
+          ),
+          isReadOnly: isCapturing,
+          onChanged: (value) {
+            if (value == null) return;
+            if (value.id == _selectedGroupId) return;
 
-          setState(() {
-            _selectedGroupId = value.id;
-            _pendingImpactCourseId = null;
-            _expandedCourseIds.clear();
-          });
-        },
+            setState(() {
+              _selectedGroupId = value.id;
+              _pendingImpactCourseId = null;
+              _expandedCourseIds.clear();
+            });
+          },
+        ),
       ),
     );
   }
@@ -293,44 +299,39 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
   }
 
   Widget _buildGradesPage(List<GradeCourseModel> courses) {
-    return Expanded(
-      child: PrintableArea(
-        title: screenTitle,
-        child: ValueListenableBuilder<bool>(
-          valueListenable: PrintableArea.capturing,
-          builder: (context, isCapturing, _) {
-            final content = Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                PrintPageBreak(child: _buildTermSummaryArea()),
+    return ValueListenableBuilder<bool>(
+      valueListenable: PrintableArea.capturing,
+      builder: (context, isCapturing, _) {
+        final content = Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            PrintPageBreak(child: _buildTermSummaryArea()),
 
-                PrintPageBreak(child: _buildGraphArea()),
+            PrintPageBreak(child: _buildGraphArea()),
 
-                const SizedBox(height: 12),
+            const SizedBox(height: 12),
 
-                ListView.builder(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  itemCount: courses.length,
-                  itemBuilder: (context, index) {
-                    final course = courses[index];
-                    return PrintPageBreak(
-                      child: _buildCourseCard(
-                        index,
-                        course,
-                        forceExpanded: isCapturing,
-                      ),
-                    );
-                  },
-                ),
-              ],
-            );
+            ListView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: courses.length,
+              itemBuilder: (context, index) {
+                final course = courses[index];
+                return PrintPageBreak(
+                  child: _buildCourseCard(
+                    index,
+                    course,
+                    forceExpanded: isCapturing,
+                  ),
+                );
+              },
+            ),
+          ],
+        );
 
-            if (isCapturing) return content;
-            return SingleChildScrollView(child: content);
-          },
-        ),
-      ),
+        if (isCapturing) return content;
+        return SingleChildScrollView(child: content);
+      },
     );
   }
 

@@ -105,6 +105,9 @@ class _ResourcesScreenState
   String get screenTitle => 'Resources';
 
   @override
+  bool get enablePrint => true;
+
+  @override
   String get routePath => AppRoute.resourcesScreen;
 
   @override
@@ -339,18 +342,13 @@ class _ResourcesScreenState
       return const SizedBox.shrink();
     }
 
-    return Expanded(
-      child: PrintableArea(
-        title: screenTitle,
-        child: ValueListenableBuilder<bool>(
-          valueListenable: PrintableArea.capturing,
-          builder: (context, isCapturing, _) => ResponsiveCardGrid<ResourceModel>(
-            shrinkWrap: isCapturing,
-            printPageBreakAfterRow: true,
-            items: _resourcesMap[_selectedGroupId]!,
-            itemBuilder: _buildResourceCard,
-          ),
-        ),
+    return ValueListenableBuilder<bool>(
+      valueListenable: PrintableArea.capturing,
+      builder: (context, isCapturing, _) => ResponsiveCardGrid<ResourceModel>(
+        shrinkWrap: isCapturing,
+        printPageBreakAfterRow: true,
+        items: _resourcesMap[_selectedGroupId]!,
+        itemBuilder: _buildResourceCard,
       ),
     );
   }

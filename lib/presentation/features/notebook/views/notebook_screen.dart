@@ -69,6 +69,9 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen>
   String get screenTitle => 'Notebook';
 
   @override
+  bool get enablePrint => true;
+
+  @override
   String get routePath => AppRoute.notebookScreen;
 
   @override
@@ -299,26 +302,21 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen>
             ? <NoteModel>[]
             : _getFilteredNotes();
 
-        return Expanded(
-          child: PrintableArea(
-            title: screenTitle,
-            child: NotebookDataGrid(
-              notes: filteredNotes,
-              isLoading: notesLoading,
-              hasAnyNotes: hasAnyNotes,
-              emptyMessage: 'No notes match the applied filters or search',
-              onNoteTap: _openNote,
-              onDelete: _confirmDeleteNote,
-              userSettings: userSettings,
-              rowsPerPage: _rowsPerPage,
-              onRowsPerPageChanged: (rowsPerPage) {
-                setState(() {
-                  _rowsPerPage = rowsPerPage;
-                });
-                _saveFilterStateIfEnabled();
-              },
-            ),
-          ),
+        return NotebookDataGrid(
+          notes: filteredNotes,
+          isLoading: notesLoading,
+          hasAnyNotes: hasAnyNotes,
+          emptyMessage: 'No notes match the applied filters or search',
+          onNoteTap: _openNote,
+          onDelete: _confirmDeleteNote,
+          userSettings: userSettings,
+          rowsPerPage: _rowsPerPage,
+          onRowsPerPageChanged: (rowsPerPage) {
+            setState(() {
+              _rowsPerPage = rowsPerPage;
+            });
+            _saveFilterStateIfEnabled();
+          },
         );
       },
     );

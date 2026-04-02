@@ -29,8 +29,8 @@ import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 enum NotebookColumn {
   title(label: 'Title'),
   due(label: 'Due', minViewportWidth: 900, mobileWidth: 144, desktopWidth: 154),
-  linkedEntity(label: 'Linked Entity', minViewportWidth: 625, fixedWidth: 120),
-  modified(label: 'Modified', minViewportWidth: 950, fixedWidth: 129);
+  linkedTo(label: 'Linked To', mobileWidth: 130, desktopWidth: 200),
+  modified(label: 'Modified', minViewportWidth: 950, fixedWidth: 136);
 
   const NotebookColumn({
     required this.label,
@@ -339,24 +339,24 @@ class _NotebookDataGridState extends State<NotebookDataGrid> {
         columns: [
           GridColumn(
             columnName: 'title',
-            label: _buildHeaderCell('Title'),
+            label: _buildHeaderCell(NotebookColumn.title),
             minimumWidth: 170,
           ),
           if (showDue)
             GridColumn(
               columnName: 'due',
-              label: _buildHeaderCell('Due'),
+              label: _buildHeaderCell(NotebookColumn.due),
               width: 154,
             ),
           GridColumn(
             columnName: 'linkedTo',
-            label: _buildHeaderCell('Linked To'),
+            label: _buildHeaderCell(NotebookColumn.linkedTo),
             width: isCompact ? (isTouchDevice ? 150 : 130) : 200,
           ),
           if (showModified)
             GridColumn(
               columnName: 'modified',
-              label: _buildHeaderCell('Modified'),
+              label: _buildHeaderCell(NotebookColumn.modified),
               width: 136,
             ),
           if (showActions)
@@ -437,14 +437,14 @@ class _NotebookDataGridState extends State<NotebookDataGrid> {
     );
   }
 
-  Widget _buildHeaderCell(String text) {
+  Widget _buildHeaderCell(NotebookColumn column) {
     return MouseRegion(
       cursor: SystemMouseCursors.click,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16),
         alignment: Alignment.centerLeft,
         child: Text(
-          text,
+          column.label,
           style: AppStyles.standardBodyText(context).copyWith(
             color: context.colorScheme.onSurface,
             fontSize: Responsive.getFontSize(context, mobile: 13, tablet: 14),

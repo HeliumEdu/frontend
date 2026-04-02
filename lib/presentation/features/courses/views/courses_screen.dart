@@ -100,6 +100,9 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen>
   String get screenTitle => 'Classes';
 
   @override
+  bool get enablePrint => true;
+
+  @override
   String get routePath => AppRoute.coursesScreen;
 
   @override
@@ -324,18 +327,13 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen>
       return const SizedBox.shrink();
     }
 
-    return Expanded(
-      child: PrintableArea(
-        title: screenTitle,
-        child: ValueListenableBuilder<bool>(
-          valueListenable: PrintableArea.capturing,
-          builder: (context, isCapturing, _) => ResponsiveCardGrid<CourseModel>(
-            shrinkWrap: isCapturing,
-            printPageBreakAfterRow: true,
-            items: _coursesMap[_selectedGroupId]!,
-            itemBuilder: _buildCoursesCard,
-          ),
-        ),
+    return ValueListenableBuilder<bool>(
+      valueListenable: PrintableArea.capturing,
+      builder: (context, isCapturing, _) => ResponsiveCardGrid<CourseModel>(
+        shrinkWrap: isCapturing,
+        printPageBreakAfterRow: true,
+        items: _coursesMap[_selectedGroupId]!,
+        itemBuilder: _buildCoursesCard,
       ),
     );
   }

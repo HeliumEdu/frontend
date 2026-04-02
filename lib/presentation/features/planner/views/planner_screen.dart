@@ -150,6 +150,15 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
   String get screenTitle => 'Planner';
 
   @override
+  bool get enablePrint => true;
+
+  @override
+  bool get enablePrintFlexColumn => true;
+
+  @override
+  Widget buildHeaderArea(BuildContext context) => _buildCalendarHeader();
+
+  @override
   String get routePath => AppRoute.plannerScreen;
 
   @override
@@ -508,13 +517,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
         // Flexible instead of toggling Expanded/bare child — keeping the
         // widget type constant prevents SfCalendar from being disposed
         // and remounted when isCapturing changes.
-        return Expanded(
-          child: PrintableFlexColumn(
-            title: screenTitle,
-            header: (_) => _buildCalendarHeader(),
-            body: (_) => _buildTodosContent(),
-          ),
-        );
+        return _buildTodosContent();
       },
     );
   }

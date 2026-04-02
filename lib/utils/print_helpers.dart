@@ -485,51 +485,10 @@ class PrintHidden extends StatelessWidget {
   }
 }
 
-/// A [PrintableArea] that lays out a [header] above a [body] in a [Column]
-/// whose [MainAxisSize] and the body's [FlexFit] switch automatically during
-/// a capture.
-///
-/// During normal rendering the column fills its parent ([MainAxisSize.max],
-/// [FlexFit.tight]); during a screenshot capture it shrinks to content
-/// ([MainAxisSize.min], [FlexFit.loose]) so the full height is captured.
-class PrintableFlexColumn extends StatelessWidget {
-  final WidgetBuilder header;
-  final WidgetBuilder body;
-  final String title;
-
-  const PrintableFlexColumn({
-    super.key,
-    required this.header,
-    required this.body,
-    this.title = '',
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return PrintableArea(
-      title: title,
-      child: ValueListenableBuilder<bool>(
-        valueListenable: PrintableArea.capturing,
-        builder: (context, isCapturing, _) => Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          mainAxisSize: isCapturing ? MainAxisSize.min : MainAxisSize.max,
-          children: [
-            header(context),
-            Flexible(
-              fit: isCapturing ? FlexFit.loose : FlexFit.tight,
-              child: body(context),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
 // ── PrintableArea ─────────────────────────────────────────────────────────────
 
-/// Wraps [child] in a [RepaintBoundary] and auto-registers a print handler
-/// with [PrintService] for the duration the widget is in the tree.
+/// Wraps a [header]/[body] pair in a [RepaintBoundary] and auto-registers a
+/// print handler with [PrintService] for the duration the widget is in the tree.
 ///
 /// On supported platforms (web and desktop), Cmd+P / Ctrl+P triggers an
 /// immediate PDF preview dialog. The capture renders at the current viewport
@@ -574,13 +533,24 @@ class PrintableArea extends StatefulWidget {
 
   // ───────────────────────────────────────────────────────────────────────────
 
-  final Widget child;
+  final WidgetBuilder header;
+  final WidgetBuilder body;
+
+  /// Retained for API compatibility; both modes now use the same
+  /// [MainAxisSize]/[FlexFit]-switching layout, so this flag is a no-op.
+  final bool flexColumn;
 
   /// Screen name included in the generated PDF filename:
   /// `Helium_<title>_<yyyy-MM-dd>.pdf`. Leave empty for a generic filename.
   final String title;
 
-  const PrintableArea({super.key, required this.child, this.title = ''});
+  const PrintableArea({
+    super.key,
+    required this.header,
+    required this.body,
+    this.flexColumn = false,
+    this.title = '',
+  });
 
   @override
   State<PrintableArea> createState() => _PrintableAreaState();
@@ -696,6 +666,23 @@ class _PrintableAreaState extends State<PrintableArea> {
     return (image: image, imageBoundaries: imageBoundaries);
   }
 
+  Widget _buildChild(BuildContext context) {
+    return ValueListenableBuilder<bool>(
+      valueListenable: PrintableArea.capturing,
+      builder: (context, isCapturing, _) => Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        mainAxisSize: isCapturing ? MainAxisSize.min : MainAxisSize.max,
+        children: [
+          widget.header(context),
+          Flexible(
+            fit: isCapturing ? FlexFit.loose : FlexFit.tight,
+            child: widget.body(context),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     // OverflowBox is always present — removing it during capture would change
@@ -708,7 +695,7 @@ class _PrintableAreaState extends State<PrintableArea> {
         child: OverflowBox(
           alignment: Alignment.topLeft,
           maxHeight: _capturePending ? double.infinity : null,
-          child: RepaintBoundary(key: _repaintKey, child: widget.child),
+          child: RepaintBoundary(key: _repaintKey, child: _buildChild(context)),
         ),
       ),
     );
