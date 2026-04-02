@@ -149,13 +149,6 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
     );
   }
 
-  void _setupDocumentListener() {
-    _documentSubscription?.cancel();
-    _documentSubscription = _quillController.document.changes.listen((_) {
-      _onContentChanged();
-    });
-  }
-
   @override
   void dispose() {
     PrintService().unregister(_printHandler);
@@ -168,6 +161,179 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
     _titleFocusNode.dispose();
     _editorFocusNode.dispose();
     super.dispose();
+  }
+
+  @override
+  String get screenTitle => widget.isNew ? 'Add Note' : 'Edit Note';
+
+  @override
+  IconData get icon => Icons.library_books;
+
+  @override
+  ScreenType get screenType => ScreenType.entityPage;
+
+  @override
+  Function? get saveAction {
+    return () {
+      if (isLoading || isSubmitting) return;
+
+      if (!_formController.validateAndScrollToError()) {
+        showSnackBar(
+          context,
+          'Fix the highlighted fields, then try again.',
+          type: SnackType.error,
+        );
+        return;
+      }
+
+      final title = _titleController.text.trim();
+      final bodyIsEmpty = _quillController.document
+          .toPlainText()
+          .trim()
+          .isEmpty;
+
+      if (_note?.id == null &&
+          (widget.linkEventId != null ||
+          widget.linkHomeworkId != null ||
+          widget.linkResourceId != null) &&
+          bodyIsEmpty) {
+        showSnackBar(
+          context,
+          'Note was empty, so nothing to save',
+          useRootMessenger: true,
+        );
+        cancelAction();
+        return;
+      }
+
+      setState(() {
+        isSubmitting = true;
+        _isAutoSaving = false;
+      });
+
+      final content = _quillController.document.toDelta().toJson();
+
+      if (_note?.id == null) {
+        context.read<NoteBloc>().add(
+          CreateNoteEvent(
+            origin: EventOrigin.subScreen,
+            request: NoteRequestModel(
+              title: title,
+              content: {'ops': content},
+              homeworkId: widget.linkHomeworkId,
+              eventId: widget.linkEventId,
+              resourceId: widget.linkResourceId,
+            ),
+          ),
+        );
+      } else {
+        context.read<NoteBloc>().add(
+          UpdateNoteEvent(
+            origin: EventOrigin.subScreen,
+            noteId: _note!.id,
+            request: NoteRequestModel(title: title, content: {'ops': content}),
+          ),
+        );
+      }
+    };
+  }
+
+  @override
+  List<BlocListener<dynamic, dynamic>> buildListeners(BuildContext context) {
+    return [
+      BlocListener<NoteBloc, NoteState>(
+        listener: (context, state) {
+          if (state is NotesError) {
+            if (_isAutoSaving) {
+              _handleAutoSaveError(state.message ?? 'Auto-save failed');
+              _isAutoSaving = false;
+            } else {
+              setState(() {
+                isSubmitting = false;
+              });
+              showSnackBar(context, state.message!, type: SnackType.error);
+            }
+          } else if (state is NoteScreenDataFetched) {
+            setState(() {
+              _linkedEntityType = state.linkedEntityType;
+              _linkedEntityTitle = state.linkedEntityTitle;
+              _linkedEntityColor = state.linkedEntityColor;
+            });
+            if (state.note != null) {
+              _populateNoteData(state.note!);
+            } else {
+              // New note - set up document listener and clear loading
+              _setupDocumentListener();
+              setState(() => isLoading = false);
+            }
+
+            // Request focus once on mobile for create mode
+            if (!_hasRequestedInitialFocus && !kIsWeb && _note?.id == null) {
+              _hasRequestedInitialFocus = true;
+              // Defer focus request so the text field is attached to the tree
+              // before requestFocus is called; BLoC listeners run during build
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                if (mounted) _titleFocusNode.requestFocus();
+              });
+            }
+          } else if (state is NoteCreated) {
+            if (_isAutoSaving) {
+              // Auto-save created the note - update state but don't close
+              setState(() {
+                _note = state.note;
+                _saveStatus = SaveStatus.saved;
+                _autoSaveErrorCount = 0;
+                _autoSaveDisabled = false;
+              });
+              _isAutoSaving = false;
+              // Update URL from id=new to the actual ID
+              if (!Responsive.isMobile(context)) {
+                context.setQueryParam(
+                  DeepLinkParam.id,
+                  state.note.id.toString(),
+                );
+              }
+              showSnackBar(context, 'Note created');
+            } else {
+              // Manual save - show message and close
+              showSnackBar(context, 'Note created', useRootMessenger: true);
+              cancelAction();
+            }
+          } else if (state is NoteUpdated) {
+            if (_isAutoSaving) {
+              // Auto-save updated the note - update state but don't close
+              setState(() {
+                _note = state.note;
+                _saveStatus = SaveStatus.saved;
+                _autoSaveErrorCount = 0;
+                _autoSaveDisabled = false;
+              });
+              _isAutoSaving = false;
+            } else {
+              // Manual save - close
+              cancelAction();
+            }
+          } else if (state is NoteDeleted) {
+            showSnackBar(context, 'Note deleted', useRootMessenger: true);
+            cancelAction();
+          }
+        },
+      ),
+    ];
+  }
+
+  @override
+  Widget buildMainArea(BuildContext context) {
+    if (isLoading) {
+      return const LoadingIndicator();
+    }
+
+    final isCompact = Responsive.useCompactLayout(context);
+
+    if (isCompact) {
+      return Expanded(child: _buildCompactLayout(context, isCompact));
+    }
+    return Expanded(child: _buildDesktopLayout(context, isCompact));
   }
 
   String _getSavedContentAsJson() {
@@ -301,79 +467,11 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
     }
   }
 
-  @override
-  String get screenTitle => widget.isNew ? 'Add Note' : 'Edit Note';
-
-  @override
-  IconData get icon => Icons.library_books;
-
-  @override
-  ScreenType get screenType => ScreenType.entityPage;
-
-  @override
-  Function? get saveAction {
-    return () {
-      if (isLoading || isSubmitting) return;
-
-      if (!_formController.validateAndScrollToError()) {
-        showSnackBar(
-          context,
-          'Fix the highlighted fields, then try again.',
-          type: SnackType.error,
-        );
-        return;
-      }
-
-      final title = _titleController.text.trim();
-      final bodyIsEmpty = _quillController.document
-          .toPlainText()
-          .trim()
-          .isEmpty;
-
-      if (_note?.id == null &&
-          (widget.linkEventId != null ||
-          widget.linkHomeworkId != null ||
-          widget.linkResourceId != null) &&
-          bodyIsEmpty) {
-        showSnackBar(
-          context,
-          'Note was empty, so nothing to save',
-          useRootMessenger: true,
-        );
-        cancelAction();
-        return;
-      }
-
-      setState(() {
-        isSubmitting = true;
-        _isAutoSaving = false;
-      });
-
-      final content = _quillController.document.toDelta().toJson();
-
-      if (_note?.id == null) {
-        context.read<NoteBloc>().add(
-          CreateNoteEvent(
-            origin: EventOrigin.subScreen,
-            request: NoteRequestModel(
-              title: title,
-              content: {'ops': content},
-              homeworkId: widget.linkHomeworkId,
-              eventId: widget.linkEventId,
-              resourceId: widget.linkResourceId,
-            ),
-          ),
-        );
-      } else {
-        context.read<NoteBloc>().add(
-          UpdateNoteEvent(
-            origin: EventOrigin.subScreen,
-            noteId: _note!.id,
-            request: NoteRequestModel(title: title, content: {'ops': content}),
-          ),
-        );
-      }
-    };
+  void _setupDocumentListener() {
+    _documentSubscription?.cancel();
+    _documentSubscription = _quillController.document.changes.listen((_) {
+      _onContentChanged();
+    });
   }
 
   void _populateNoteData(NoteModel note) {
@@ -392,102 +490,6 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) setState(() => isLoading = false);
     });
-  }
-
-  @override
-  List<BlocListener<dynamic, dynamic>> buildListeners(BuildContext context) {
-    return [
-      BlocListener<NoteBloc, NoteState>(
-        listener: (context, state) {
-          if (state is NotesError) {
-            if (_isAutoSaving) {
-              _handleAutoSaveError(state.message ?? 'Auto-save failed');
-              _isAutoSaving = false;
-            } else {
-              setState(() {
-                isSubmitting = false;
-              });
-              showSnackBar(context, state.message!, type: SnackType.error);
-            }
-          } else if (state is NoteScreenDataFetched) {
-            setState(() {
-              _linkedEntityType = state.linkedEntityType;
-              _linkedEntityTitle = state.linkedEntityTitle;
-              _linkedEntityColor = state.linkedEntityColor;
-            });
-            if (state.note != null) {
-              _populateNoteData(state.note!);
-            } else {
-              // New note - set up document listener and clear loading
-              _setupDocumentListener();
-              setState(() => isLoading = false);
-            }
-
-            // Request focus once on mobile for create mode
-            if (!_hasRequestedInitialFocus && !kIsWeb && _note?.id == null) {
-              _hasRequestedInitialFocus = true;
-              WidgetsBinding.instance.addPostFrameCallback((_) {
-                if (mounted) _titleFocusNode.requestFocus();
-              });
-            }
-          } else if (state is NoteCreated) {
-            if (_isAutoSaving) {
-              // Auto-save created the note - update state but don't close
-              setState(() {
-                _note = state.note;
-                _saveStatus = SaveStatus.saved;
-                _autoSaveErrorCount = 0;
-                _autoSaveDisabled = false;
-              });
-              _isAutoSaving = false;
-              // Update URL from id=new to the actual ID
-              if (!Responsive.isMobile(context)) {
-                context.setQueryParam(
-                  DeepLinkParam.id,
-                  state.note.id.toString(),
-                );
-              }
-              showSnackBar(context, 'Note created');
-            } else {
-              // Manual save - show message and close
-              showSnackBar(context, 'Note created', useRootMessenger: true);
-              cancelAction();
-            }
-          } else if (state is NoteUpdated) {
-            if (_isAutoSaving) {
-              // Auto-save updated the note - update state but don't close
-              setState(() {
-                _note = state.note;
-                _saveStatus = SaveStatus.saved;
-                _autoSaveErrorCount = 0;
-                _autoSaveDisabled = false;
-              });
-              _isAutoSaving = false;
-            } else {
-              // Manual save - close
-              cancelAction();
-            }
-          } else if (state is NoteDeleted) {
-            showSnackBar(context, 'Note deleted', useRootMessenger: true);
-            cancelAction();
-          }
-        },
-      ),
-    ];
-  }
-
-  @override
-  Widget buildMainArea(BuildContext context) {
-    if (isLoading) {
-      return const LoadingIndicator();
-    }
-
-    final isCompact = Responsive.useCompactLayout(context);
-
-    if (isCompact) {
-      return Expanded(child: _buildCompactLayout(context, isCompact));
-    }
-    return Expanded(child: _buildDesktopLayout(context, isCompact));
   }
 
   Widget _buildDesktopLayout(BuildContext context, bool isCompact) {

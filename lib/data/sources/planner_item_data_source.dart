@@ -536,6 +536,9 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
     if (!_hasLoadedInitialData) {
       _hasLoadedInitialData = true;
       try {
+        // Defer initial notifyListeners to avoid calling it while SfCalendar
+        // is still performing its first layout; falls back to sync if binding
+        // is unavailable (e.g., during tests)
         WidgetsBinding.instance.addPostFrameCallback((_) {
           _notifyChangeListeners();
         });

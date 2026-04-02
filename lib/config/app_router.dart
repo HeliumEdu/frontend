@@ -297,6 +297,7 @@ class _RouteRedirect extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Defer navigation so context.go is not called during a build phase
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!context.mounted) return;
 

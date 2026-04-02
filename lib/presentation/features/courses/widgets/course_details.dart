@@ -86,14 +86,6 @@ class CourseDetailsState extends State<CourseDetails> {
     super.dispose();
   }
 
-  void _onUrlFocusChange() {
-    if (!_formController.urlFocusNode.hasFocus) {
-      _formController.urlController.text = BasicFormController.cleanUrl(
-        _formController.urlController.text.trim(),
-      );
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return BlocListener<CourseBloc, CourseState>(
@@ -367,66 +359,6 @@ class CourseDetailsState extends State<CourseDetails> {
     );
   }
 
-  void _populateInitialStateData(CourseScreenDataFetched state) {
-    setState(() {
-      _courseGroup = state.courseGroup;
-
-      if (widget.isEdit) {
-        _formController.titleController.text = state.course!.title;
-        _formController.roomController.text = state.course!.room;
-        _formController.urlController.text = state.course!.website;
-        _formController.teacherNameController.text = state.course!.teacherName;
-        _formController.teacherEmailController.text =
-            state.course!.teacherEmail;
-        _formController.creditsController.text = state.course!.credits
-            .toString();
-
-        _formController.startDate = state.course!.startDate;
-        _formController.endDate = state.course!.endDate;
-
-        _formController.isOnline = state.course!.isOnline;
-
-        try {
-          _formController.selectedColor = state.course!.color;
-        } catch (e) {
-          _log.info('Error parsing color', e);
-        }
-      } else {
-        _formController.startDate = state.courseGroup.startDate;
-        _formController.endDate = state.courseGroup.endDate;
-      }
-
-      isLoading = false;
-    });
-  }
-
-  Future<void> _selectDate(BuildContext context, bool isStartDate) async {
-    final firstDate = _courseGroup?.startDate ?? DateTime.now().subtract(const Duration(days: 365 * 10));
-    final lastDate = _courseGroup?.endDate ?? DateTime.now().add(const Duration(days: 365 * 10));
-    final rawInitial = isStartDate ? _formController.startDate : _formController.endDate;
-    final initialDate = rawInitial == null ? firstDate
-        : (rawInitial.isBefore(firstDate) ? firstDate
-        : (rawInitial.isAfter(lastDate) ? lastDate : rawInitial));
-
-    final DateTime? picked = await showDatePicker(
-      context: context,
-      initialDate: initialDate,
-      firstDate: firstDate,
-      lastDate: lastDate,
-      confirmText: 'Select',
-    );
-
-    if (picked != null) {
-      setState(() {
-        if (isStartDate) {
-          _formController.startDate = picked;
-        } else {
-          _formController.endDate = picked;
-        }
-      });
-    }
-  }
-
   void resetSubmitting() {
     setState(() => _isSubmitting = false);
   }
@@ -493,4 +425,73 @@ class CourseDetailsState extends State<CourseDetails> {
       return false;
     }
   }
+
+  void _onUrlFocusChange() {
+    if (!_formController.urlFocusNode.hasFocus) {
+      _formController.urlController.text = BasicFormController.cleanUrl(
+        _formController.urlController.text.trim(),
+      );
+    }
+  }
+
+  void _populateInitialStateData(CourseScreenDataFetched state) {
+    setState(() {
+      _courseGroup = state.courseGroup;
+
+      if (widget.isEdit) {
+        _formController.titleController.text = state.course!.title;
+        _formController.roomController.text = state.course!.room;
+        _formController.urlController.text = state.course!.website;
+        _formController.teacherNameController.text = state.course!.teacherName;
+        _formController.teacherEmailController.text =
+            state.course!.teacherEmail;
+        _formController.creditsController.text = state.course!.credits
+            .toString();
+
+        _formController.startDate = state.course!.startDate;
+        _formController.endDate = state.course!.endDate;
+
+        _formController.isOnline = state.course!.isOnline;
+
+        try {
+          _formController.selectedColor = state.course!.color;
+        } catch (e) {
+          _log.info('Error parsing color', e);
+        }
+      } else {
+        _formController.startDate = state.courseGroup.startDate;
+        _formController.endDate = state.courseGroup.endDate;
+      }
+
+      isLoading = false;
+    });
+  }
+
+  Future<void> _selectDate(BuildContext context, bool isStartDate) async {
+    final firstDate = _courseGroup?.startDate ?? DateTime.now().subtract(const Duration(days: 365 * 10));
+    final lastDate = _courseGroup?.endDate ?? DateTime.now().add(const Duration(days: 365 * 10));
+    final rawInitial = isStartDate ? _formController.startDate : _formController.endDate;
+    final initialDate = rawInitial == null ? firstDate
+        : (rawInitial.isBefore(firstDate) ? firstDate
+        : (rawInitial.isAfter(lastDate) ? lastDate : rawInitial));
+
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: initialDate,
+      firstDate: firstDate,
+      lastDate: lastDate,
+      confirmText: 'Select',
+    );
+
+    if (picked != null) {
+      setState(() {
+        if (isStartDate) {
+          _formController.startDate = picked;
+        } else {
+          _formController.endDate = picked;
+        }
+      });
+    }
+  }
+
 }

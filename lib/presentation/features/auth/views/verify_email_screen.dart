@@ -77,6 +77,8 @@ class _VerifyEmailScreenState extends BasePageScreenState<VerifyEmailScreen> {
 
     // Auto-submit if both email and code are provided (e.g., from email link)
     if (widget.email != null && widget.code != null) {
+      // Defer submission until after initState so the form widgets are built
+      // and BLoC events can be dispatched with a valid context
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!mounted) return;
 

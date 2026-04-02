@@ -54,25 +54,6 @@ class ChangeEmailScreenState extends State<ChangeEmailScreen> {
     super.dispose();
   }
 
-  void onSubmit() {
-    if (_isSubmitting) return;
-    if (_formController.formKey.currentState?.validate() ?? false) {
-      setState(() => _isSubmitting = true);
-      widget.onActionStarted?.call();
-
-      context.read<AuthBloc>().add(
-        ChangeEmailEvent(
-          newEmail: _formController.newEmailController.text,
-          oldPassword: _formController.oldPasswordController.text,
-        ),
-      );
-    }
-  }
-
-  void resetSubmitting() {
-    setState(() => _isSubmitting = false);
-  }
-
   @override
   Widget build(BuildContext context) {
     return BlocListener<AuthBloc, AuthState>(
@@ -158,6 +139,25 @@ class ChangeEmailScreenState extends State<ChangeEmailScreen> {
         ),
       ),
     );
+  }
+
+  void onSubmit() {
+    if (_isSubmitting) return;
+    if (_formController.formKey.currentState?.validate() ?? false) {
+      setState(() => _isSubmitting = true);
+      widget.onActionStarted?.call();
+
+      context.read<AuthBloc>().add(
+        ChangeEmailEvent(
+          newEmail: _formController.newEmailController.text,
+          oldPassword: _formController.oldPasswordController.text,
+        ),
+      );
+    }
+  }
+
+  void resetSubmitting() {
+    setState(() => _isSubmitting = false);
   }
 
   String? _validateNewEmail(String? value) {

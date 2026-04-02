@@ -122,6 +122,8 @@ class _NotesEditorState extends State<NotesEditor> with WidgetsBindingObserver {
 
   void _scrollToEditor() {
     if (!mounted) return;
+    // Defer scroll until after the keyboard-triggered layout pass so the
+    // editor's final position is known before calling ensureVisible
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       final ctx = _editorKey.currentContext;

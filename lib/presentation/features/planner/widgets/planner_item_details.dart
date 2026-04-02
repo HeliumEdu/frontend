@@ -128,24 +128,6 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
     );
   }
 
-  /// Loads a different entity (used after clone)
-  void loadEntity({int? eventId, int? homeworkId}) {
-    setState(() {
-      _eventId = eventId;
-      _homeworkId = homeworkId;
-      isLoading = true;
-      _plannerItem = null;
-    });
-
-    context.read<PlannerItemBloc>().add(
-      FetchPlannerItemScreenDataEvent(
-        origin: EventOrigin.subScreen,
-        eventId: eventId,
-        homeworkId: homeworkId,
-      ),
-    );
-  }
-
   @override
   void dispose() {
     _titleFocusNode.dispose();
@@ -163,6 +145,24 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
         }
       },
       child: _buildContent(context),
+    );
+  }
+
+  /// Loads a different entity (used after clone)
+  void loadEntity({int? eventId, int? homeworkId}) {
+    setState(() {
+      _eventId = eventId;
+      _homeworkId = homeworkId;
+      isLoading = true;
+      _plannerItem = null;
+    });
+
+    context.read<PlannerItemBloc>().add(
+      FetchPlannerItemScreenDataEvent(
+        origin: EventOrigin.subScreen,
+        eventId: eventId,
+        homeworkId: homeworkId,
+      ),
     );
   }
 
@@ -619,233 +619,6 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
     );
   }
 
-  Future<void> _populateInitialPlannerItemStateData(
-    PlannerItemScreenDataFetched state,
-  ) async {
-    setState(() {
-      _courseGroups = state.courseGroups;
-      _courses = state.courses;
-      final sortedCourses = PlannerHelper.sortByGroupStartThenByTitle(
-        _courses,
-        _courseGroups,
-      );
-      _courseItems = [];
-      for (int i = 0; i < sortedCourses.length; i++) {
-        final course = sortedCourses[i];
-        if (i > 0 && course.courseGroup != sortedCourses[i - 1].courseGroup) {
-          _courseItems.add(DropDownItem(id: -1, isDivider: true));
-        }
-        _courseItems.add(
-          DropDownItem(
-            id: course.id,
-            value: course,
-            iconData: Icons.school_outlined,
-            iconColor: course.color,
-          ),
-        );
-      }
-      _courseSchedules = state.courseSchedules;
-      _categories = state.categories;
-      _categoryItems = _categories
-          .map(
-            (c) => DropDownItem(
-              id: c.id,
-              value: c,
-              iconData: Icons.category_outlined,
-              iconColor: c.color,
-            ),
-          )
-          .toList();
-      _resources = state.resources;
-
-      if (_courses.isEmpty) {
-        _isEvent = true;
-      }
-      if (!widget.isEdit) {
-        widget.onIsEventChanged?.call(_isEvent);
-      }
-    });
-
-    if (widget.isEdit) {
-      final plannerItem = state.plannerItem!;
-      _plannerItem = plannerItem;
-
-      setState(() {
-        _formController.titleController.text = plannerItem.title;
-        _formController.isAllDay = plannerItem.allDay;
-        _formController.showEndDateTime = plannerItem.showEndTime;
-        _formController.priorityValue = plannerItem.priority.toDouble();
-
-        final startDateTime = HeliumDateTime.toLocal(
-          plannerItem.start,
-          widget.userSettings!.timeZone,
-        );
-        _formController.startDate = startDateTime;
-        if (!_formController.isAllDay) {
-          _formController.startTime = TimeOfDay.fromDateTime(startDateTime);
-        }
-
-        final endDateTime = HeliumDateTime.toLocal(
-          plannerItem.end,
-          widget.userSettings!.timeZone,
-        );
-        if (_formController.isAllDay) {
-          _formController.endDate = endDateTime.subtract(
-            const Duration(days: 1),
-          );
-        } else {
-          _formController.endDate = endDateTime;
-          _formController.endTime = TimeOfDay.fromDateTime(endDateTime);
-        }
-
-        if (plannerItem is HomeworkModel) {
-          _formController.selectedCourse = plannerItem.course.id;
-          _formController.isCompleted = plannerItem.completed;
-          if (plannerItem.currentGrade != null &&
-              plannerItem.currentGrade!.isNotEmpty) {
-            if (plannerItem.currentGrade == '-1/100') {
-              _formController.gradeController.text = '';
-            } else {
-              _formController.gradeController.text = plannerItem.currentGrade!;
-            }
-          }
-
-          _formController.selectedCategory = plannerItem.category.id;
-
-          if (plannerItem.resources.isNotEmpty) {
-            _formController.selectedResources = plannerItem.resources
-                .where((e) => _resources.any((m) => m.id == e.id))
-                .map((e) => e.id)
-                .toList();
-          } else {
-            _formController.selectedResources = [];
-          }
-        }
-      });
-
-      // Update _isEvent based on entity type
-      _isEvent = widget.eventId != null;
-    } else {
-      if (widget.initialDate != null) {
-        _formController.startDate = widget.initialDate!;
-        _formController.endDate = widget.initialDate!;
-      }
-
-      if (!_isEvent && _courses.isNotEmpty) {
-        _selectCourse(_courses.first.id);
-      }
-
-      if (widget.initialDate != null && !widget.isFromMonthView) {
-        final tzDateTime = tz.TZDateTime.from(
-          widget.initialDate!,
-          widget.userSettings!.timeZone,
-        );
-        setState(() {
-          _formController.startTime = TimeOfDay.fromDateTime(tzDateTime);
-          _formController.endTime = TimeOfDay.fromDateTime(tzDateTime);
-        });
-      }
-    }
-
-    if (widget.isEdit && state.linkedNote != null) {
-      _formController.linkedNoteId = state.linkedNote!.id;
-      _formController.notesController.dispose();
-      _formController.notesController = state.linkedNote!.content != null
-          ? QuillController(
-              document: Document.fromJson(state.linkedNote!.content!['ops'] as List),
-              selection: const TextSelection.collapsed(offset: 0),
-            )
-          : QuillController.basic();
-    }
-
-    setState(() {
-      isLoading = false;
-    });
-
-    // Request focus once on mobile for create mode
-    if (!_hasRequestedInitialFocus && !kIsWeb && !widget.isEdit) {
-      _hasRequestedInitialFocus = true;
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) _titleFocusNode.requestFocus();
-      });
-    }
-  }
-
-  Future<void> _selectDate(BuildContext context, bool isStartDate) async {
-    CourseModel? selectedCourse;
-    if (!_isEvent && _formController.selectedCourse != null) {
-      selectedCourse = _courses.where((c) => c.id == _formController.selectedCourse).firstOrNull;
-    }
-
-    final firstDate = selectedCourse?.startDate ?? DateTime.now().subtract(const Duration(days: 365 * 10));
-    final lastDate = selectedCourse?.endDate ?? DateTime.now().add(const Duration(days: 365 * 10));
-    final rawInitial = isStartDate ? _formController.startDate : _formController.endDate;
-    final initialDate = rawInitial.isBefore(firstDate) ? firstDate
-        : (rawInitial.isAfter(lastDate) ? lastDate : rawInitial);
-
-    final DateTime? picked = await showDatePicker(
-      context: context,
-      initialDate: initialDate,
-      firstDate: firstDate,
-      lastDate: lastDate,
-      confirmText: 'Select',
-    );
-
-    if (picked != null) {
-      setState(() {
-        if (isStartDate) {
-          _formController.startDate = picked;
-        } else {
-          _formController.endDate = picked;
-        }
-      });
-    }
-  }
-
-  Future<void> _selectTime(BuildContext context, bool isStartTime) async {
-    final TimeOfDay? picked = await showTimePicker(
-      context: context,
-      initialTime: isStartTime
-          ? _formController.startTime
-          : _formController.endTime,
-      initialEntryMode: TimePickerEntryMode.input,
-      confirmText: 'Select',
-    );
-
-    if (picked != null) {
-      setState(() {
-        if (isStartTime) {
-          _formController.startTime = picked;
-        } else {
-          _formController.endTime = picked;
-        }
-      });
-    }
-  }
-
-  String _resourceTitleById(int id) {
-    return _resources.firstWhere((m) => m.id == id).title;
-  }
-
-  int _getPriorityValue() {
-    return _formController.priorityValue.round();
-  }
-
-  void _onGradeFieldSubmitted(String _) {
-    _submitAfterGradeBlur();
-  }
-
-  Future<void> _submitAfterGradeBlur() async {
-    if (_formController.gradeFocusNode.hasFocus) {
-      _formController.gradeFocusNode.unfocus();
-      // Let blur listeners normalize grade input before form validation runs.
-      await Future<void>.delayed(Duration.zero);
-    }
-
-    if (!mounted) return;
-    await onSubmit();
-  }
-
   void resetSubmitting() {
     setState(() => _isSubmitting = false);
   }
@@ -1023,6 +796,235 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
         type: SnackType.error,
       );
     }
+  }
+
+  Future<void> _populateInitialPlannerItemStateData(
+    PlannerItemScreenDataFetched state,
+  ) async {
+    setState(() {
+      _courseGroups = state.courseGroups;
+      _courses = state.courses;
+      final sortedCourses = PlannerHelper.sortByGroupStartThenByTitle(
+        _courses,
+        _courseGroups,
+      );
+      _courseItems = [];
+      for (int i = 0; i < sortedCourses.length; i++) {
+        final course = sortedCourses[i];
+        if (i > 0 && course.courseGroup != sortedCourses[i - 1].courseGroup) {
+          _courseItems.add(DropDownItem(id: -1, isDivider: true));
+        }
+        _courseItems.add(
+          DropDownItem(
+            id: course.id,
+            value: course,
+            iconData: Icons.school_outlined,
+            iconColor: course.color,
+          ),
+        );
+      }
+      _courseSchedules = state.courseSchedules;
+      _categories = state.categories;
+      _categoryItems = _categories
+          .map(
+            (c) => DropDownItem(
+              id: c.id,
+              value: c,
+              iconData: Icons.category_outlined,
+              iconColor: c.color,
+            ),
+          )
+          .toList();
+      _resources = state.resources;
+
+      if (_courses.isEmpty) {
+        _isEvent = true;
+      }
+      if (!widget.isEdit) {
+        widget.onIsEventChanged?.call(_isEvent);
+      }
+    });
+
+    if (widget.isEdit) {
+      final plannerItem = state.plannerItem!;
+      _plannerItem = plannerItem;
+
+      setState(() {
+        _formController.titleController.text = plannerItem.title;
+        _formController.isAllDay = plannerItem.allDay;
+        _formController.showEndDateTime = plannerItem.showEndTime;
+        _formController.priorityValue = plannerItem.priority.toDouble();
+
+        final startDateTime = HeliumDateTime.toLocal(
+          plannerItem.start,
+          widget.userSettings!.timeZone,
+        );
+        _formController.startDate = startDateTime;
+        if (!_formController.isAllDay) {
+          _formController.startTime = TimeOfDay.fromDateTime(startDateTime);
+        }
+
+        final endDateTime = HeliumDateTime.toLocal(
+          plannerItem.end,
+          widget.userSettings!.timeZone,
+        );
+        if (_formController.isAllDay) {
+          _formController.endDate = endDateTime.subtract(
+            const Duration(days: 1),
+          );
+        } else {
+          _formController.endDate = endDateTime;
+          _formController.endTime = TimeOfDay.fromDateTime(endDateTime);
+        }
+
+        if (plannerItem is HomeworkModel) {
+          _formController.selectedCourse = plannerItem.course.id;
+          _formController.isCompleted = plannerItem.completed;
+          if (plannerItem.currentGrade != null &&
+              plannerItem.currentGrade!.isNotEmpty) {
+            if (plannerItem.currentGrade == '-1/100') {
+              _formController.gradeController.text = '';
+            } else {
+              _formController.gradeController.text = plannerItem.currentGrade!;
+            }
+          }
+
+          _formController.selectedCategory = plannerItem.category.id;
+
+          if (plannerItem.resources.isNotEmpty) {
+            _formController.selectedResources = plannerItem.resources
+                .where((e) => _resources.any((m) => m.id == e.id))
+                .map((e) => e.id)
+                .toList();
+          } else {
+            _formController.selectedResources = [];
+          }
+        }
+      });
+
+      // Update _isEvent based on entity type
+      _isEvent = widget.eventId != null;
+    } else {
+      if (widget.initialDate != null) {
+        _formController.startDate = widget.initialDate!;
+        _formController.endDate = widget.initialDate!;
+      }
+
+      if (!_isEvent && _courses.isNotEmpty) {
+        _selectCourse(_courses.first.id);
+      }
+
+      if (widget.initialDate != null && !widget.isFromMonthView) {
+        final tzDateTime = tz.TZDateTime.from(
+          widget.initialDate!,
+          widget.userSettings!.timeZone,
+        );
+        setState(() {
+          _formController.startTime = TimeOfDay.fromDateTime(tzDateTime);
+          _formController.endTime = TimeOfDay.fromDateTime(tzDateTime);
+        });
+      }
+    }
+
+    if (widget.isEdit && state.linkedNote != null) {
+      _formController.linkedNoteId = state.linkedNote!.id;
+      _formController.notesController.dispose();
+      _formController.notesController = state.linkedNote!.content != null
+          ? QuillController(
+              document: Document.fromJson(state.linkedNote!.content!['ops'] as List),
+              selection: const TextSelection.collapsed(offset: 0),
+            )
+          : QuillController.basic();
+    }
+
+    setState(() {
+      isLoading = false;
+    });
+
+    // Request focus once on mobile for create mode
+    if (!_hasRequestedInitialFocus && !kIsWeb && !widget.isEdit) {
+      _hasRequestedInitialFocus = true;
+      // Defer focus request so the text field is attached to the tree before
+      // requestFocus is called; BLoC listeners fire during the build pipeline
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _titleFocusNode.requestFocus();
+      });
+    }
+  }
+
+  Future<void> _selectDate(BuildContext context, bool isStartDate) async {
+    CourseModel? selectedCourse;
+    if (!_isEvent && _formController.selectedCourse != null) {
+      selectedCourse = _courses.where((c) => c.id == _formController.selectedCourse).firstOrNull;
+    }
+
+    final firstDate = selectedCourse?.startDate ?? DateTime.now().subtract(const Duration(days: 365 * 10));
+    final lastDate = selectedCourse?.endDate ?? DateTime.now().add(const Duration(days: 365 * 10));
+    final rawInitial = isStartDate ? _formController.startDate : _formController.endDate;
+    final initialDate = rawInitial.isBefore(firstDate) ? firstDate
+        : (rawInitial.isAfter(lastDate) ? lastDate : rawInitial);
+
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: initialDate,
+      firstDate: firstDate,
+      lastDate: lastDate,
+      confirmText: 'Select',
+    );
+
+    if (picked != null) {
+      setState(() {
+        if (isStartDate) {
+          _formController.startDate = picked;
+        } else {
+          _formController.endDate = picked;
+        }
+      });
+    }
+  }
+
+  Future<void> _selectTime(BuildContext context, bool isStartTime) async {
+    final TimeOfDay? picked = await showTimePicker(
+      context: context,
+      initialTime: isStartTime
+          ? _formController.startTime
+          : _formController.endTime,
+      initialEntryMode: TimePickerEntryMode.input,
+      confirmText: 'Select',
+    );
+
+    if (picked != null) {
+      setState(() {
+        if (isStartTime) {
+          _formController.startTime = picked;
+        } else {
+          _formController.endTime = picked;
+        }
+      });
+    }
+  }
+
+  String _resourceTitleById(int id) {
+    return _resources.firstWhere((m) => m.id == id).title;
+  }
+
+  int _getPriorityValue() {
+    return _formController.priorityValue.round();
+  }
+
+  void _onGradeFieldSubmitted(String _) {
+    _submitAfterGradeBlur();
+  }
+
+  Future<void> _submitAfterGradeBlur() async {
+    if (_formController.gradeFocusNode.hasFocus) {
+      _formController.gradeFocusNode.unfocus();
+      // Let blur listeners normalize grade input before form validation runs.
+      await Future<void>.delayed(Duration.zero);
+    }
+
+    if (!mounted) return;
+    await onSubmit();
   }
 
   void _selectCourse(int courseId) {

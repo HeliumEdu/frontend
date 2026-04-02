@@ -30,6 +30,72 @@ class SelectField<T extends BaseTitledModel> extends StatelessWidget {
     this.enabled = true,
   });
 
+  @override
+  Widget build(BuildContext context) {
+    final selectedItems = selectedIds
+        .map((id) => items.cast<T?>().firstWhere(
+              (item) => item!.id == id,
+              orElse: () => null,
+            ))
+        .whereType<T>()
+        .toList();
+
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: 12.0,
+        vertical: 8.0,
+      ),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(6.0),
+        border: Border.all(
+          color: context.colorScheme.outline.withValues(alpha: 0.2),
+        ),
+        color: context.colorScheme.surface,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (selectedItems.isNotEmpty)
+            Wrap(
+              spacing: 4,
+              runSpacing: 2,
+              children: selectedItems.map((item) {
+                return labelBuilder(
+                  item,
+                  () {
+                    final updated = List<int>.of(selectedIds)..remove(item.id);
+                    onChanged(updated);
+                  },
+                );
+              }).toList(),
+            ),
+          const SizedBox(height: 2),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: AbsorbPointer(
+              absorbing: !enabled,
+              child: Opacity(
+                opacity: enabled ? 1 : 0.5,
+                child: Builder(
+                  builder: (buttonContext) => TextButton.icon(
+                    onPressed: () => _openSelectMenu(buttonContext),
+                    icon: Icon(Icons.add, color: context.colorScheme.primary),
+                    label: Text(
+                      buttonLabel,
+                      style: AppStyles.formLabel(
+                        context,
+                      ).copyWith(color: context.colorScheme.primary),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   void _openSelectMenu(BuildContext buttonContext) {
     final isMobile = Responsive.isMobile(buttonContext);
     final parentContext = buttonContext;
@@ -98,7 +164,7 @@ class SelectField<T extends BaseTitledModel> extends StatelessWidget {
         context: parentContext,
         isScrollControlled: true,
         backgroundColor: Theme.of(parentContext).colorScheme.surface,
-        shape: RoundedRectangleBorder(
+        shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(top: Radius.circular(16.0)),
         ),
         builder: (context) => StatefulBuilder(builder: buildContent),
@@ -132,71 +198,5 @@ class SelectField<T extends BaseTitledModel> extends StatelessWidget {
         ],
       );
     }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final selectedItems = selectedIds
-        .map((id) => items.cast<T?>().firstWhere(
-              (item) => item!.id == id,
-              orElse: () => null,
-            ))
-        .whereType<T>()
-        .toList();
-
-    return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: 12.0,
-        vertical: 8.0,
-      ),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(6.0),
-        border: Border.all(
-          color: context.colorScheme.outline.withValues(alpha: 0.2),
-        ),
-        color: context.colorScheme.surface,
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          if (selectedItems.isNotEmpty)
-            Wrap(
-              spacing: 4,
-              runSpacing: 2,
-              children: selectedItems.map((item) {
-                return labelBuilder(
-                  item,
-                  () {
-                    final updated = List<int>.of(selectedIds)..remove(item.id);
-                    onChanged(updated);
-                  },
-                );
-              }).toList(),
-            ),
-          const SizedBox(height: 2),
-          Align(
-            alignment: Alignment.centerLeft,
-            child: AbsorbPointer(
-              absorbing: !enabled,
-              child: Opacity(
-                opacity: enabled ? 1 : 0.5,
-                child: Builder(
-                  builder: (buttonContext) => TextButton.icon(
-                    onPressed: () => _openSelectMenu(buttonContext),
-                    icon: Icon(Icons.add, color: context.colorScheme.primary),
-                    label: Text(
-                      buttonLabel,
-                      style: AppStyles.formLabel(
-                        context,
-                      ).copyWith(color: context.colorScheme.primary),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
   }
 }

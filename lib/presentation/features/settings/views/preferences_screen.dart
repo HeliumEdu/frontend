@@ -89,76 +89,6 @@ class PreferencesScreenState extends State<PreferencesScreen> {
     super.dispose();
   }
 
-  void onSubmit() {
-    if (_isSubmitting) return;
-    setState(() => _isSubmitting = true);
-    widget.onActionStarted?.call();
-
-    final timeZone = _selectedTimeZone;
-    final defaultView = CalendarConstants.defaultViews.indexOf(
-      _selectedDefaultView,
-    );
-    final weekStartsOn = CalendarConstants.dayNames.indexOf(
-      _selectedWeekStartsOn,
-    );
-    String eventsColor = HeliumColors.colorToHex(_selectedEventColor);
-    if (eventsColor.length == 9) {
-      eventsColor = '#${eventsColor.substring(3)}';
-    }
-    eventsColor = eventsColor.toLowerCase();
-    String resourceColor = HeliumColors.colorToHex(_selectedResourceColor);
-    if (resourceColor.length == 9) {
-      resourceColor = '#${resourceColor.substring(3)}';
-    }
-    resourceColor = resourceColor.toLowerCase();
-    String gradeColor = HeliumColors.colorToHex(_selectedGradeColor);
-    if (gradeColor.length == 9) {
-      gradeColor = '#${gradeColor.substring(3)}';
-    }
-    gradeColor = gradeColor.toLowerCase();
-    final reminderType = ReminderConstants.types.indexOf(_selectedReminderType);
-    final reminderOffsetType = ReminderConstants.offsetTypes.indexOf(
-      _selectedReminderOffsetType,
-    );
-    final reminderOffset = int.parse(_reminderOffsetController.text);
-    final showPlannerTooltips = _isShowPlannerTooltips;
-    final dragAndDropOnMobile = _isDragAndDropOnMobile;
-    final colorByCategory = _isSelectedColorByCategory;
-    final rememberFilterState = _isRememberFilterSelection;
-    final collapseBusyDays = _isCollapseBusyDays;
-    final showWeekNumbers = _isShowWeekNumbers;
-    final atRiskThreshold = int.parse(_atRiskThresholdController.text);
-    final onTrackTolerance = int.parse(_onTrackToleranceController.text);
-
-    context.read<AuthBloc>().add(
-      UpdateProfileEvent(
-        request: UpdateSettingsRequestModel(
-          timeZone: timeZone,
-          defaultView: defaultView,
-          weekStartsOn: weekStartsOn,
-          showPlannerTooltips: showPlannerTooltips,
-          dragAndDropOnMobile: dragAndDropOnMobile,
-          colorByCategory: colorByCategory,
-          eventsColor: eventsColor,
-          resourceColor: resourceColor,
-          gradeColor: gradeColor,
-          defaultReminderType: reminderType,
-          defaultReminderOffset: reminderOffset,
-          defaultReminderOffsetType: reminderOffsetType,
-          rememberFilterState: rememberFilterState,
-          collapseBusyDays: collapseBusyDays,
-          showWeekNumbers: showWeekNumbers,
-          atRiskThreshold: atRiskThreshold,
-          onTrackTolerance: onTrackTolerance,
-        ),
-      ),
-    );
-  }
-
-  void resetSubmitting() {
-    setState(() => _isSubmitting = false);
-  }
-
   @override
   Widget build(BuildContext context) {
     return BlocListener<AuthBloc, AuthState>(
@@ -443,6 +373,76 @@ class PreferencesScreenState extends State<PreferencesScreen> {
         ),
       ),
     );
+  }
+
+  void onSubmit() {
+    if (_isSubmitting) return;
+    setState(() => _isSubmitting = true);
+    widget.onActionStarted?.call();
+
+    final timeZone = _selectedTimeZone;
+    final defaultView = CalendarConstants.defaultViews.indexOf(
+      _selectedDefaultView,
+    );
+    final weekStartsOn = CalendarConstants.dayNames.indexOf(
+      _selectedWeekStartsOn,
+    );
+    String eventsColor = HeliumColors.colorToHex(_selectedEventColor);
+    if (eventsColor.length == 9) {
+      eventsColor = '#${eventsColor.substring(3)}';
+    }
+    eventsColor = eventsColor.toLowerCase();
+    String resourceColor = HeliumColors.colorToHex(_selectedResourceColor);
+    if (resourceColor.length == 9) {
+      resourceColor = '#${resourceColor.substring(3)}';
+    }
+    resourceColor = resourceColor.toLowerCase();
+    String gradeColor = HeliumColors.colorToHex(_selectedGradeColor);
+    if (gradeColor.length == 9) {
+      gradeColor = '#${gradeColor.substring(3)}';
+    }
+    gradeColor = gradeColor.toLowerCase();
+    final reminderType = ReminderConstants.types.indexOf(_selectedReminderType);
+    final reminderOffsetType = ReminderConstants.offsetTypes.indexOf(
+      _selectedReminderOffsetType,
+    );
+    final reminderOffset = int.parse(_reminderOffsetController.text);
+    final showPlannerTooltips = _isShowPlannerTooltips;
+    final dragAndDropOnMobile = _isDragAndDropOnMobile;
+    final colorByCategory = _isSelectedColorByCategory;
+    final rememberFilterState = _isRememberFilterSelection;
+    final collapseBusyDays = _isCollapseBusyDays;
+    final showWeekNumbers = _isShowWeekNumbers;
+    final atRiskThreshold = int.parse(_atRiskThresholdController.text);
+    final onTrackTolerance = int.parse(_onTrackToleranceController.text);
+
+    context.read<AuthBloc>().add(
+      UpdateProfileEvent(
+        request: UpdateSettingsRequestModel(
+          timeZone: timeZone,
+          defaultView: defaultView,
+          weekStartsOn: weekStartsOn,
+          showPlannerTooltips: showPlannerTooltips,
+          dragAndDropOnMobile: dragAndDropOnMobile,
+          colorByCategory: colorByCategory,
+          eventsColor: eventsColor,
+          resourceColor: resourceColor,
+          gradeColor: gradeColor,
+          defaultReminderType: reminderType,
+          defaultReminderOffset: reminderOffset,
+          defaultReminderOffsetType: reminderOffsetType,
+          rememberFilterState: rememberFilterState,
+          collapseBusyDays: collapseBusyDays,
+          showWeekNumbers: showWeekNumbers,
+          atRiskThreshold: atRiskThreshold,
+          onTrackTolerance: onTrackTolerance,
+        ),
+      ),
+    );
+  }
+
+  void resetSubmitting() {
+    setState(() => _isSubmitting = false);
   }
 
   Widget _buildSectionHeader(String title) {

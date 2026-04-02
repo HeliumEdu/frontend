@@ -83,26 +83,6 @@ class CourseScheduleState extends State<CourseSchedule> {
     );
   }
 
-  Future<void> _selectTime(int dayIndex, bool isStartTime) async {
-    final pickedTime = await showTimePicker(
-      context: context,
-      initialTime: isStartTime
-          ? (_startTimes[dayIndex] ?? _singleStartTime)
-          : (_endTimes[dayIndex] ?? _singleEndTime),
-      initialEntryMode: TimePickerEntryMode.input,
-      confirmText: 'Select',
-    );
-    if (pickedTime != null) {
-      setState(() {
-        if (isStartTime) {
-          _startTimes[dayIndex] = pickedTime;
-        } else {
-          _endTimes[dayIndex] = pickedTime;
-        }
-      });
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     // Navigation and save success are handled by the parent screen's buildListeners().
@@ -123,6 +103,159 @@ class CourseScheduleState extends State<CourseSchedule> {
       },
       child: _buildContent(context),
     );
+  }
+
+  void resetSubmitting() {
+    setState(() => _isSubmitting = false);
+  }
+
+  /// Submit the form. Called by parent screen when header save is pressed.
+  bool onSubmit() {
+    if (isLoading || _isSubmitting) return false;
+    if (_scheduleId == null) {
+      return false;
+    }
+
+    if (_variesByDay) {
+      if (_selectedDays.isEmpty) {
+        SnackBarHelper.show(context, 'Select at least one day', type: SnackType.error);
+        return false;
+      }
+
+      for (int dayIndex in _selectedDays) {
+        if (_startTimes[dayIndex] == null || _endTimes[dayIndex] == null) {
+          SnackBarHelper.show(
+            context,
+            'Set times for all selected days',
+            type: SnackType.error,
+          );
+          return false;
+        }
+
+        if (_startTimes[dayIndex]!.isAfter(_endTimes[dayIndex]!)) {
+          SnackBarHelper.show(
+            context,
+            '"End Time" for "${CalendarConstants.dayNamesAbbrev[dayIndex]}" must come after "Start Time"',
+            type: SnackType.error,
+          );
+          return false;
+        }
+      }
+    } else {
+      if (_singleStartTime.isAfter(_singleEndTime)) {
+        SnackBarHelper.show(
+          context,
+          '"End Time" must come after "Start Time"',
+          type: SnackType.error,
+        );
+        return false;
+      }
+    }
+
+    // Notify parent that action is starting (validation passed)
+    setState(() => _isSubmitting = true);
+    widget.onActionStarted?.call();
+
+    final String daysOfWeek = _generateDaysOfWeek();
+    const TimeOfDay defaultTime = TimeOfDay(hour: 0, minute: 0);
+
+    TimeOfDay sunStart, sunEnd;
+    TimeOfDay monStart, monEnd;
+    TimeOfDay tueStart, tueEnd;
+    TimeOfDay wedStart, wedEnd;
+    TimeOfDay thuStart, thuEnd;
+    TimeOfDay friStart, friEnd;
+    TimeOfDay satStart, satEnd;
+
+    if (_variesByDay) {
+      sunStart = _selectedDays.contains(0) && _startTimes[0] != null
+          ? _startTimes[0]!
+          : defaultTime;
+      sunEnd = _selectedDays.contains(0) && _endTimes[0] != null
+          ? _endTimes[0]!
+          : defaultTime;
+      monStart = _selectedDays.contains(1) && _startTimes[1] != null
+          ? _startTimes[1]!
+          : defaultTime;
+      monEnd = _selectedDays.contains(1) && _endTimes[1] != null
+          ? _endTimes[1]!
+          : defaultTime;
+      tueStart = _selectedDays.contains(2) && _startTimes[2] != null
+          ? _startTimes[2]!
+          : defaultTime;
+      tueEnd = _selectedDays.contains(2) && _endTimes[2] != null
+          ? _endTimes[2]!
+          : defaultTime;
+      wedStart = _selectedDays.contains(3) && _startTimes[3] != null
+          ? _startTimes[3]!
+          : defaultTime;
+      wedEnd = _selectedDays.contains(3) && _endTimes[3] != null
+          ? _endTimes[3]!
+          : defaultTime;
+      thuStart = _selectedDays.contains(4) && _startTimes[4] != null
+          ? _startTimes[4]!
+          : defaultTime;
+      thuEnd = _selectedDays.contains(4) && _endTimes[4] != null
+          ? _endTimes[4]!
+          : defaultTime;
+      friStart = _selectedDays.contains(5) && _startTimes[5] != null
+          ? _startTimes[5]!
+          : defaultTime;
+      friEnd = _selectedDays.contains(5) && _endTimes[5] != null
+          ? _endTimes[5]!
+          : defaultTime;
+      satStart = _selectedDays.contains(6) && _startTimes[6] != null
+          ? _startTimes[6]!
+          : defaultTime;
+      satEnd = _selectedDays.contains(6) && _endTimes[6] != null
+          ? _endTimes[6]!
+          : defaultTime;
+    } else {
+      sunStart = _singleStartTime;
+      sunEnd = _singleEndTime;
+      monStart = _singleStartTime;
+      monEnd = _singleEndTime;
+      tueStart = _singleStartTime;
+      tueEnd = _singleEndTime;
+      wedStart = _singleStartTime;
+      wedEnd = _singleEndTime;
+      thuStart = _singleStartTime;
+      thuEnd = _singleEndTime;
+      friStart = _singleStartTime;
+      friEnd = _singleEndTime;
+      satStart = _singleStartTime;
+      satEnd = _singleEndTime;
+    }
+
+    final request = CourseScheduleRequestModel(
+      daysOfWeek: daysOfWeek,
+      sunStartTime: sunStart,
+      sunEndTime: sunEnd,
+      monStartTime: monStart,
+      monEndTime: monEnd,
+      tueStartTime: tueStart,
+      tueEndTime: tueEnd,
+      wedStartTime: wedStart,
+      wedEndTime: wedEnd,
+      thuStartTime: thuStart,
+      thuEndTime: thuEnd,
+      friStartTime: friStart,
+      friEndTime: friEnd,
+      satStartTime: satStart,
+      satEndTime: satEnd,
+    );
+
+    context.read<CourseBloc>().add(
+      UpdateCourseScheduleEvent(
+        origin: EventOrigin.subScreen,
+        courseGroupId: widget.courseGroupId,
+        courseId: widget.courseId,
+        scheduleId: _scheduleId!,
+        request: request,
+      ),
+    );
+
+    return true;
   }
 
   Widget _buildContent(BuildContext context) {
@@ -267,6 +400,26 @@ class CourseScheduleState extends State<CourseSchedule> {
         ),
       ],
     );
+  }
+
+  Future<void> _selectTime(int dayIndex, bool isStartTime) async {
+    final pickedTime = await showTimePicker(
+      context: context,
+      initialTime: isStartTime
+          ? (_startTimes[dayIndex] ?? _singleStartTime)
+          : (_endTimes[dayIndex] ?? _singleEndTime),
+      initialEntryMode: TimePickerEntryMode.input,
+      confirmText: 'Select',
+    );
+    if (pickedTime != null) {
+      setState(() {
+        if (isStartTime) {
+          _startTimes[dayIndex] = pickedTime;
+        } else {
+          _endTimes[dayIndex] = pickedTime;
+        }
+      });
+    }
   }
 
   Widget _buildDayTimeContainer(
@@ -493,156 +646,4 @@ class CourseScheduleState extends State<CourseSchedule> {
     return daysString.join('');
   }
 
-  void resetSubmitting() {
-    setState(() => _isSubmitting = false);
-  }
-
-  /// Submit the form. Called by parent screen when header save is pressed.
-  bool onSubmit() {
-    if (isLoading || _isSubmitting) return false;
-    if (_scheduleId == null) {
-      return false;
-    }
-
-    if (_variesByDay) {
-      if (_selectedDays.isEmpty) {
-        SnackBarHelper.show(context, 'Select at least one day', type: SnackType.error);
-        return false;
-      }
-
-      for (int dayIndex in _selectedDays) {
-        if (_startTimes[dayIndex] == null || _endTimes[dayIndex] == null) {
-          SnackBarHelper.show(
-            context,
-            'Set times for all selected days',
-            type: SnackType.error,
-          );
-          return false;
-        }
-
-        if (_startTimes[dayIndex]!.isAfter(_endTimes[dayIndex]!)) {
-          SnackBarHelper.show(
-            context,
-            '"End Time" for "${CalendarConstants.dayNamesAbbrev[dayIndex]}" must come after "Start Time"',
-            type: SnackType.error,
-          );
-          return false;
-        }
-      }
-    } else {
-      if (_singleStartTime.isAfter(_singleEndTime)) {
-        SnackBarHelper.show(
-          context,
-          '"End Time" must come after "Start Time"',
-          type: SnackType.error,
-        );
-        return false;
-      }
-    }
-
-    // Notify parent that action is starting (validation passed)
-    setState(() => _isSubmitting = true);
-    widget.onActionStarted?.call();
-
-    final String daysOfWeek = _generateDaysOfWeek();
-    const TimeOfDay defaultTime = TimeOfDay(hour: 0, minute: 0);
-
-    TimeOfDay sunStart, sunEnd;
-    TimeOfDay monStart, monEnd;
-    TimeOfDay tueStart, tueEnd;
-    TimeOfDay wedStart, wedEnd;
-    TimeOfDay thuStart, thuEnd;
-    TimeOfDay friStart, friEnd;
-    TimeOfDay satStart, satEnd;
-
-    if (_variesByDay) {
-      sunStart = _selectedDays.contains(0) && _startTimes[0] != null
-          ? _startTimes[0]!
-          : defaultTime;
-      sunEnd = _selectedDays.contains(0) && _endTimes[0] != null
-          ? _endTimes[0]!
-          : defaultTime;
-      monStart = _selectedDays.contains(1) && _startTimes[1] != null
-          ? _startTimes[1]!
-          : defaultTime;
-      monEnd = _selectedDays.contains(1) && _endTimes[1] != null
-          ? _endTimes[1]!
-          : defaultTime;
-      tueStart = _selectedDays.contains(2) && _startTimes[2] != null
-          ? _startTimes[2]!
-          : defaultTime;
-      tueEnd = _selectedDays.contains(2) && _endTimes[2] != null
-          ? _endTimes[2]!
-          : defaultTime;
-      wedStart = _selectedDays.contains(3) && _startTimes[3] != null
-          ? _startTimes[3]!
-          : defaultTime;
-      wedEnd = _selectedDays.contains(3) && _endTimes[3] != null
-          ? _endTimes[3]!
-          : defaultTime;
-      thuStart = _selectedDays.contains(4) && _startTimes[4] != null
-          ? _startTimes[4]!
-          : defaultTime;
-      thuEnd = _selectedDays.contains(4) && _endTimes[4] != null
-          ? _endTimes[4]!
-          : defaultTime;
-      friStart = _selectedDays.contains(5) && _startTimes[5] != null
-          ? _startTimes[5]!
-          : defaultTime;
-      friEnd = _selectedDays.contains(5) && _endTimes[5] != null
-          ? _endTimes[5]!
-          : defaultTime;
-      satStart = _selectedDays.contains(6) && _startTimes[6] != null
-          ? _startTimes[6]!
-          : defaultTime;
-      satEnd = _selectedDays.contains(6) && _endTimes[6] != null
-          ? _endTimes[6]!
-          : defaultTime;
-    } else {
-      sunStart = _singleStartTime;
-      sunEnd = _singleEndTime;
-      monStart = _singleStartTime;
-      monEnd = _singleEndTime;
-      tueStart = _singleStartTime;
-      tueEnd = _singleEndTime;
-      wedStart = _singleStartTime;
-      wedEnd = _singleEndTime;
-      thuStart = _singleStartTime;
-      thuEnd = _singleEndTime;
-      friStart = _singleStartTime;
-      friEnd = _singleEndTime;
-      satStart = _singleStartTime;
-      satEnd = _singleEndTime;
-    }
-
-    final request = CourseScheduleRequestModel(
-      daysOfWeek: daysOfWeek,
-      sunStartTime: sunStart,
-      sunEndTime: sunEnd,
-      monStartTime: monStart,
-      monEndTime: monEnd,
-      tueStartTime: tueStart,
-      tueEndTime: tueEnd,
-      wedStartTime: wedStart,
-      wedEndTime: wedEnd,
-      thuStartTime: thuStart,
-      thuEndTime: thuEnd,
-      friStartTime: friStart,
-      friEndTime: friEnd,
-      satStartTime: satStart,
-      satEndTime: satEnd,
-    );
-
-    context.read<CourseBloc>().add(
-      UpdateCourseScheduleEvent(
-        origin: EventOrigin.subScreen,
-        courseGroupId: widget.courseGroupId,
-        courseId: widget.courseId,
-        scheduleId: _scheduleId!,
-        request: request,
-      ),
-    );
-
-    return true;
-  }
 }

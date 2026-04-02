@@ -104,6 +104,42 @@ class GroupDropdown<T extends BaseTitledModel> extends StatelessWidget {
     );
   }
 
+  List<Widget> buildEditButtons(BuildContext context, T item) {
+    return isReadOnly
+        ? []
+        : [
+            const SizedBox(width: 12),
+            HeliumIconButton(
+              onPressed: () {
+                if (Navigator.canPop(context)) {
+                  Navigator.pop(context);
+                }
+                onEdit!(item);
+              },
+              icon: Icons.edit_outlined,
+            ),
+            const SizedBox(width: 8),
+            HeliumIconButton(
+              onPressed: () {
+                if (Navigator.canPop(context)) {
+                  Navigator.pop(context);
+                }
+                showConfirmDeleteDialog(
+                  parentContext: context,
+                  item: item,
+                  additionalWarning:
+                      'Anything in this group, including attachments and other data, will also be deleted.',
+                  onDelete: (value) {
+                    onDelete!(value);
+                  },
+                );
+              },
+              icon: Icons.delete_outlined,
+              color: context.colorScheme.error,
+            ),
+          ];
+  }
+
   Widget _buildItem(BuildContext context, T item) {
     String? dateRange;
     if (item is CourseGroupModel) {
@@ -160,41 +196,5 @@ class GroupDropdown<T extends BaseTitledModel> extends StatelessWidget {
         ...buildEditButtons(context, item),
       ],
     );
-  }
-
-  List<Widget> buildEditButtons(BuildContext context, T item) {
-    return isReadOnly
-        ? []
-        : [
-            const SizedBox(width: 12),
-            HeliumIconButton(
-              onPressed: () {
-                if (Navigator.canPop(context)) {
-                  Navigator.pop(context);
-                }
-                onEdit!(item);
-              },
-              icon: Icons.edit_outlined,
-            ),
-            const SizedBox(width: 8),
-            HeliumIconButton(
-              onPressed: () {
-                if (Navigator.canPop(context)) {
-                  Navigator.pop(context);
-                }
-                showConfirmDeleteDialog(
-                  parentContext: context,
-                  item: item,
-                  additionalWarning:
-                      'Anything in this group, including attachments and other data, will also be deleted.',
-                  onDelete: (value) {
-                    onDelete!(value);
-                  },
-                );
-              },
-              icon: Icons.delete_outlined,
-              color: context.colorScheme.error,
-            ),
-          ];
   }
 }

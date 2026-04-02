@@ -90,14 +90,6 @@ class ResourceDetailsState extends State<ResourceDetails> {
     super.dispose();
   }
 
-  void _onUrlFocusChange() {
-    if (!_formController.urlFocusNode.hasFocus) {
-      _formController.urlController.text = BasicFormController.cleanUrl(
-        _formController.urlController.text.trim(),
-      );
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return BlocListener<ResourceBloc, ResourceState>(
@@ -218,48 +210,6 @@ class ResourceDetailsState extends State<ResourceDetails> {
     );
   }
 
-  void _populateInitialStateData(ResourceScreenDataFetched state) {
-    _courses = state.courses;
-    Sort.byTitle(_courses);
-
-    if (widget.isEdit) {
-      _formController.titleController.text = state.resource!.title;
-      _formController.urlController.text = state.resource!.website;
-      _formController.priceController.text = state.resource!.price ?? '';
-      _formController.initialNotes = state.resource!.details ?? '';
-      _formController.selectedStatus = state.resource!.status;
-      _formController.selectedCondition = state.resource!.condition;
-      _formController.selectedCourses = List<int>.from(
-        state.resource!.courses,
-      );
-
-      _formController.notesController.dispose();
-      if (state.linkedNote != null) {
-        _formController.linkedNoteId = state.linkedNote!.id;
-        _formController.notesController = state.linkedNote!.content != null
-            ? QuillController(
-                document: Document.fromJson(state.linkedNote!.content!['ops'] as List),
-                selection: const TextSelection.collapsed(offset: 0),
-              )
-            : QuillController.basic();
-      } else {
-        _formController.notesController = QuillController.basic();
-      }
-    }
-
-    setState(() {
-      isLoading = false;
-    });
-
-    // Request focus once on mobile for create mode
-    if (!_hasRequestedInitialFocus && !kIsWeb && !widget.isEdit) {
-      _hasRequestedInitialFocus = true;
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) _titleFocusNode.requestFocus();
-      });
-    }
-  }
-
   Map<String, dynamic>? get noteContent =>
       buildNotesDelta(_formController.notesController);
 
@@ -341,4 +291,57 @@ class ResourceDetailsState extends State<ResourceDetails> {
       );
     }
   }
+
+  void _populateInitialStateData(ResourceScreenDataFetched state) {
+    _courses = state.courses;
+    Sort.byTitle(_courses);
+
+    if (widget.isEdit) {
+      _formController.titleController.text = state.resource!.title;
+      _formController.urlController.text = state.resource!.website;
+      _formController.priceController.text = state.resource!.price ?? '';
+      _formController.initialNotes = state.resource!.details ?? '';
+      _formController.selectedStatus = state.resource!.status;
+      _formController.selectedCondition = state.resource!.condition;
+      _formController.selectedCourses = List<int>.from(
+        state.resource!.courses,
+      );
+
+      _formController.notesController.dispose();
+      if (state.linkedNote != null) {
+        _formController.linkedNoteId = state.linkedNote!.id;
+        _formController.notesController = state.linkedNote!.content != null
+            ? QuillController(
+                document: Document.fromJson(state.linkedNote!.content!['ops'] as List),
+                selection: const TextSelection.collapsed(offset: 0),
+              )
+            : QuillController.basic();
+      } else {
+        _formController.notesController = QuillController.basic();
+      }
+    }
+
+    setState(() {
+      isLoading = false;
+    });
+
+    // Request focus once on mobile for create mode
+    if (!_hasRequestedInitialFocus && !kIsWeb && !widget.isEdit) {
+      _hasRequestedInitialFocus = true;
+      // Defer focus request so the text field is attached to the tree before
+      // requestFocus is called; BLoC listeners fire during the build pipeline
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _titleFocusNode.requestFocus();
+      });
+    }
+  }
+
+  void _onUrlFocusChange() {
+    if (!_formController.urlFocusNode.hasFocus) {
+      _formController.urlController.text = BasicFormController.cleanUrl(
+        _formController.urlController.text.trim(),
+      );
+    }
+  }
+
 }

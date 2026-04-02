@@ -219,6 +219,9 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
 
     final notifier = InheritableProvidersScope.of(context);
     if (notifier != null) {
+      // Defer provider registration because didChangeDependencies runs during
+      // the build pipeline; mutating inherited state synchronously here would
+      // cause descendant widgets to rebuild mid-frame
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!mounted) return;
 
@@ -385,22 +388,6 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
     );
   }
 
-  List<Widget> _buildContent(BuildContext context) {
-    if (!enablePrint) {
-      return [buildHeaderArea(context), buildMainArea(context)];
-    }
-    return [
-      Expanded(
-        child: PrintableArea(
-          title: screenTitle,
-          flexColumn: enablePrintFlexColumn,
-          header: buildHeaderArea,
-          body: buildMainArea,
-        ),
-      ),
-    ];
-  }
-
   Widget buildHeaderArea(BuildContext context) {
     return const SizedBox.shrink();
   }
@@ -457,6 +444,22 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
       action: action,
       useRootMessenger: useRootMessenger,
     );
+  }
+
+  List<Widget> _buildContent(BuildContext context) {
+    if (!enablePrint) {
+      return [buildHeaderArea(context), buildMainArea(context)];
+    }
+    return [
+      Expanded(
+        child: PrintableArea(
+          title: screenTitle,
+          flexColumn: enablePrintFlexColumn,
+          header: buildHeaderArea,
+          body: buildMainArea,
+        ),
+      ),
+    ];
   }
 }
 

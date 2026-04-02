@@ -252,6 +252,9 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
         _calendarViewChanged();
       } else if (value == 'displayDate' && _currentView == PlannerView.agenda) {
         _log.fine('Display date change: $value');
+        // Defer setState because the property-changed listener fires during
+        // SfCalendar's internal layout pass; calling setState synchronously
+        // would trigger a build during build error
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (!mounted) return;
 
@@ -269,6 +272,8 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
 
     final isDesktop = Responsive.isDesktop(context);
     if (_wasDesktop && !isDesktop && _isSearchExpanded) {
+      // Defer setState because didChangeDependencies runs during the build
+      // pipeline; calling setState here directly would cause a nested rebuild
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
           setState(() {
@@ -774,6 +779,8 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
             _visibleDates = details.visibleDates;
             if (!mounted) return;
 
+            // Defer setState because onViewChanged fires during SfCalendar's
+            // internal rendering; calling setState mid-paint would crash
             WidgetsBinding.instance.addPostFrameCallback((_) {
               if (!mounted) return;
               setState(() {});

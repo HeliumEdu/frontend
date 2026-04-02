@@ -43,6 +43,7 @@ class _QuillSearchBarState extends State<QuillSearchBar> {
   @override
   void initState() {
     super.initState();
+    // Defer focus request until after initState so the FocusNode is attached
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _searchFocusNode.requestFocus();
     });

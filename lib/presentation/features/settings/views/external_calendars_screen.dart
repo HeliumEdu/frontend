@@ -64,10 +64,6 @@ class ExternalCalendarsScreenState extends State<ExternalCalendarsScreen> {
     super.dispose();
   }
 
-  void onAddCalendar() {
-    showExternalCalendarDialog(parentContext: context, isEdit: false);
-  }
-
   @override
   Widget build(BuildContext context) {
     return BlocListener<ExternalCalendarBloc, ExternalCalendarState>(
@@ -154,6 +150,10 @@ class ExternalCalendarsScreenState extends State<ExternalCalendarsScreen> {
         ],
       ),
     );
+  }
+
+  void onAddCalendar() {
+    showExternalCalendarDialog(parentContext: context, isEdit: false);
   }
 
   void _populateInitialStateData(ExternalCalendarsFetched state) {

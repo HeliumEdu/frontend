@@ -8,7 +8,6 @@
 import 'package:flutter/material.dart';
 import 'package:heliumapp/utils/print_helpers.dart';
 import 'package:logging/logging.dart';
-import 'package:meta/meta.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 
 final _log = Logger('presentation.components');
@@ -81,6 +80,8 @@ abstract class BaseDataGridState<T extends StatefulWidget> extends State<T> {
   void initState() {
     super.initState();
     PrintableArea.capturing.addListener(_onCapturingChanged);
+    // Defer scope lookup until after initState so the inherited widget tree
+    // is fully built and PrintableAreaScope.findIn can locate the ancestor
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       printableAreaScope = PrintableAreaScope.findIn(context);
@@ -114,14 +115,6 @@ abstract class BaseDataGridSource extends DataGridSource
   int _currentPage = 1;
   int _itemsPerPage = 10;
 
-  int get totalRows => dataGridRows.length;
-
-  void updatePagination({required int currentPage, required int itemsPerPage}) {
-    _currentPage = currentPage;
-    _itemsPerPage = itemsPerPage;
-    notifyListeners();
-  }
-
   @override
   List<DataGridRow> get rows {
     if (_itemsPerPage == -1) return dataGridRows;
@@ -154,5 +147,13 @@ abstract class BaseDataGridSource extends DataGridSource
               : [],
         );
     }
+  }
+
+  int get totalRows => dataGridRows.length;
+
+  void updatePagination({required int currentPage, required int itemsPerPage}) {
+    _currentPage = currentPage;
+    _itemsPerPage = itemsPerPage;
+    notifyListeners();
   }
 }

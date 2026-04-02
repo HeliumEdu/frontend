@@ -147,19 +147,6 @@ class _NotificationsScreenState
     });
   }
 
-  void _fetchReminders({bool forceRefresh = false}) {
-    context.read<ReminderBloc>().add(
-      FetchRemindersEvent(
-        origin: EventOrigin.subScreen,
-        sent: true,
-        dismissed: false,
-        type: 3,
-        startOfRange: DateTime.now(),
-        forceRefresh: forceRefresh,
-      ),
-    );
-  }
-
   @override
   List<BlocListener<dynamic, dynamic>> buildListeners(BuildContext context) {
     return [
@@ -258,6 +245,19 @@ class _NotificationsScreenState
 
         return _buildNotificationsList();
       },
+    );
+  }
+
+  void _fetchReminders({bool forceRefresh = false}) {
+    context.read<ReminderBloc>().add(
+      FetchRemindersEvent(
+        origin: EventOrigin.subScreen,
+        sent: true,
+        dismissed: false,
+        type: 3,
+        startOfRange: DateTime.now(),
+        forceRefresh: forceRefresh,
+      ),
     );
   }
 
@@ -646,6 +646,9 @@ class _NotificationsScreenState
     final courseId = notification.reminder.course?.id;
     if (courseId != null) {
       Navigator.of(context).pop();
+      // Defer navigation so the pop completes and GoRouter processes the stack
+      // change before we push the next route; calling router.go synchronously
+      // after pop can conflict with GoRouter's async redirect handling
       Future.delayed(Duration.zero, () {
         router.go(
           '${AppRoute.coursesScreen}?${DeepLinkParam.id}=$courseId',
@@ -660,6 +663,9 @@ class _NotificationsScreenState
       final eventId = notification.reminder.event?.id;
       final basePath = router.routerDelegate.currentConfiguration.uri.path;
       Navigator.of(context).pop();
+      // Defer navigation so the pop completes and GoRouter processes the stack
+      // change before we push the next route; calling router.replace
+      // synchronously after pop can conflict with GoRouter's async redirect
       Future.delayed(Duration.zero, () {
         if (homeworkId != null) {
           router.replace(

@@ -102,6 +102,8 @@ mixin DeepLinkMixin<T extends StatefulWidget> on BasePageScreenState<T> {
     final uri = router.routerDelegate.currentConfiguration.uri;
     if (uri.path != routePath) return;
     if (uri.queryParameters.isEmpty) return;
+    // Defer until after GoRouter's route-change notification completes so
+    // the new route is fully committed before we attempt to open content
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       openFromQueryParams();
@@ -179,6 +181,8 @@ mixin DeepLinkMixin<T extends StatefulWidget> on BasePageScreenState<T> {
     if (openedDeepLinkParam == key) return;
     openedDeepLinkParam = key;
 
+    // Defer dialog launch until after the current frame so the route is fully
+    // settled before showDialog is called from a deep-link or route change
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       if (dialogParam == DeepLinkParam.dialogSettings) {

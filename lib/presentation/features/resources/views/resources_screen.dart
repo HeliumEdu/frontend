@@ -144,10 +144,6 @@ class _ResourcesScreenState
     );
   }
 
-  void _upsertNoteForResource(int resourceId, NoteModel note) {
-    _notesMap[resourceId] = note;
-  }
-
   @override
   List<BlocListener<dynamic, dynamic>> buildListeners(BuildContext context) {
     return [
@@ -335,6 +331,52 @@ class _ResourcesScreenState
         return _buildResourcesList();
       },
     );
+  }
+
+  @override
+  bool handleRouteEntityParams(Map<String, String> queryParams) {
+    final idParam = queryParams[DeepLinkParam.id];
+    if (idParam == null) return false;
+
+    final parsed = DeepLinkParam.parseId(idParam);
+    final tabValue = int.tryParse(queryParams[DeepLinkParam.tab] ?? '') ?? 1;
+    final initialStep = (tabValue - 1).clamp(0, 2);
+
+    if (parsed.isNew) {
+      if (_selectedGroupId == null) return false;
+      return openFromDeepLink('${DeepLinkParam.id}:new', () {
+        return showResourceAdd(
+          context,
+          resourceGroupId: _selectedGroupId!,
+          isEdit: false,
+          initialStep: initialStep,
+        );
+      });
+    }
+
+    if (parsed.id != null) {
+      ResourceModel? resource;
+      for (final resources in _resourcesMap.values) {
+        resource = resources.firstWhereOrNull((r) => r.id == parsed.id);
+        if (resource != null) break;
+      }
+      if (resource == null) return false;
+      return openFromDeepLink('${DeepLinkParam.id}:${parsed.id}', () {
+        return showResourceAdd(
+          context,
+          resourceGroupId: resource!.resourceGroup,
+          resourceId: resource.id,
+          isEdit: true,
+          initialStep: initialStep,
+        );
+      });
+    }
+
+    return false;
+  }
+
+  void _upsertNoteForResource(int resourceId, NoteModel note) {
+    _notesMap[resourceId] = note;
   }
 
   Widget _buildResourcesList() {
@@ -525,45 +567,4 @@ class _ResourcesScreenState
     );
   }
 
-  @override
-  bool handleRouteEntityParams(Map<String, String> queryParams) {
-    final idParam = queryParams[DeepLinkParam.id];
-    if (idParam == null) return false;
-
-    final parsed = DeepLinkParam.parseId(idParam);
-    final tabValue = int.tryParse(queryParams[DeepLinkParam.tab] ?? '') ?? 1;
-    final initialStep = (tabValue - 1).clamp(0, 2);
-
-    if (parsed.isNew) {
-      if (_selectedGroupId == null) return false;
-      return openFromDeepLink('${DeepLinkParam.id}:new', () {
-        return showResourceAdd(
-          context,
-          resourceGroupId: _selectedGroupId!,
-          isEdit: false,
-          initialStep: initialStep,
-        );
-      });
-    }
-
-    if (parsed.id != null) {
-      ResourceModel? resource;
-      for (final resources in _resourcesMap.values) {
-        resource = resources.firstWhereOrNull((r) => r.id == parsed.id);
-        if (resource != null) break;
-      }
-      if (resource == null) return false;
-      return openFromDeepLink('${DeepLinkParam.id}:${parsed.id}', () {
-        return showResourceAdd(
-          context,
-          resourceGroupId: resource!.resourceGroup,
-          resourceId: resource.id,
-          isEdit: true,
-          initialStep: initialStep,
-        );
-      });
-    }
-
-    return false;
-  }
 }

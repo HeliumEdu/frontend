@@ -159,110 +159,6 @@ class _NavigationShellState extends State<NavigationShell> {
     super.dispose();
   }
 
-  void _onInactivityResume() {
-    _checkGettingStartedDialog();
-  }
-
-  Future<void> _checkGettingStartedDialog() async {
-    if (_isShowingGettingStarted || !mounted || _isLoggingOut) return;
-
-    try {
-      final settings = await DioClient().getSettings();
-      final showGettingStarted =
-          settings?.showGettingStarted ??
-          FallbackConstants.defaultShowGettingStarted;
-
-      if (!mounted || !showGettingStarted) return;
-      await _showGettingStartedDialogSafely();
-    } catch (e) {
-      _log.warning('Failed to check getting started dialog state: $e');
-    }
-  }
-
-  Future<void> _checkDialogs() async {
-    bool showGettingStarted = FallbackConstants.defaultShowGettingStarted;
-    bool showWhatsNew = false;
-
-    try {
-      final settings = await DioClient().getSettings();
-      showGettingStarted =
-          settings?.showGettingStarted ??
-          FallbackConstants.defaultShowGettingStarted;
-      showWhatsNew = await WhatsNewService().shouldShowWhatsNew();
-    } catch (e) {
-      _log.warning('Failed to prepare startup dialogs: $e');
-    }
-
-    if (!mounted) return;
-
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
-      // Double-check we're still authenticated before showing dialogs
-      if (!mounted || _isLoggingOut || !await DioClient().isAuthenticated()) {
-        return;
-      }
-
-      // Skip startup dialogs when landing on a deep link
-      final params =
-          router.routerDelegate.currentConfiguration.uri.queryParameters;
-      final hasDeepLinkParams =
-          params.containsKey(DeepLinkParam.homeworkId) ||
-          params.containsKey(DeepLinkParam.eventId) ||
-          params.containsKey(DeepLinkParam.id) ||
-          params.containsKey(DeepLinkParam.dialog) ||
-          params.containsKey(DeepLinkParam.linkHomeworkId) ||
-          params.containsKey(DeepLinkParam.linkEventId) ||
-          params.containsKey(DeepLinkParam.linkResourceId);
-      if (hasDeepLinkParams) return;
-
-      if (showGettingStarted) {
-        await _showGettingStartedDialogSafely();
-        if (!mounted || _isLoggingOut) return;
-      }
-
-      if (showWhatsNew) {
-        if (!await DioClient().isAuthenticated() || !mounted) return;
-        try {
-          await showWhatsNewDialog(context);
-        } catch (e) {
-          _log.warning('Failed to show What\'s New dialog: $e');
-        }
-      }
-    });
-  }
-
-  Future<void> _showGettingStartedDialogSafely() async {
-    if (_isShowingGettingStarted || !mounted || _isLoggingOut) return;
-
-    _isShowingGettingStarted = true;
-    try {
-      await showGettingStartedDialog(context);
-    } catch (e) {
-      _log.warning('Failed to show getting started dialog: $e');
-    } finally {
-      _isShowingGettingStarted = false;
-    }
-  }
-
-  NavigationPage _getCurrentPage(BuildContext context) {
-    final location = GoRouterState.of(context).matchedLocation;
-    return NavigationPage.fromRoute(location) ?? NavigationPage.planner;
-  }
-
-  void _onDestinationSelected(BuildContext context, int index) {
-    final newPage = NavigationPage.values[index];
-    final currentPage = _getCurrentPage(context);
-    if (newPage != currentPage) {
-      context.go(newPage.route);
-    }
-  }
-
-  /// Updates the browser title directly via DOM when navigating within the
-  /// shell. This avoids using a Title widget which would compete with pushed
-  /// routes like Settings/Notifications for control of the browser title.
-  void _updateBrowserTitle(NavigationPage page) {
-    title_helper.setTitle('${page.label} | ${AppConstants.appName}');
-  }
-
   @override
   Widget build(BuildContext context) {
     final currentPage = _getCurrentPage(context);
@@ -421,6 +317,112 @@ class _NavigationShellState extends State<NavigationShell> {
         },
       ),
     );
+  }
+
+  void _onInactivityResume() {
+    _checkGettingStartedDialog();
+  }
+
+  Future<void> _checkGettingStartedDialog() async {
+    if (_isShowingGettingStarted || !mounted || _isLoggingOut) return;
+
+    try {
+      final settings = await DioClient().getSettings();
+      final showGettingStarted =
+          settings?.showGettingStarted ??
+          FallbackConstants.defaultShowGettingStarted;
+
+      if (!mounted || !showGettingStarted) return;
+      await _showGettingStartedDialogSafely();
+    } catch (e) {
+      _log.warning('Failed to check getting started dialog state: $e');
+    }
+  }
+
+  Future<void> _checkDialogs() async {
+    bool showGettingStarted = FallbackConstants.defaultShowGettingStarted;
+    bool showWhatsNew = false;
+
+    try {
+      final settings = await DioClient().getSettings();
+      showGettingStarted =
+          settings?.showGettingStarted ??
+          FallbackConstants.defaultShowGettingStarted;
+      showWhatsNew = await WhatsNewService().shouldShowWhatsNew();
+    } catch (e) {
+      _log.warning('Failed to prepare startup dialogs: $e');
+    }
+
+    if (!mounted) return;
+
+    // Defer dialog presentation to post-frame so the widget tree is stable
+    // after the async settings fetch; showing a dialog mid-frame would crash
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      // Double-check we're still authenticated before showing dialogs
+      if (!mounted || _isLoggingOut || !await DioClient().isAuthenticated()) {
+        return;
+      }
+
+      // Skip startup dialogs when landing on a deep link
+      final params =
+          router.routerDelegate.currentConfiguration.uri.queryParameters;
+      final hasDeepLinkParams =
+          params.containsKey(DeepLinkParam.homeworkId) ||
+          params.containsKey(DeepLinkParam.eventId) ||
+          params.containsKey(DeepLinkParam.id) ||
+          params.containsKey(DeepLinkParam.dialog) ||
+          params.containsKey(DeepLinkParam.linkHomeworkId) ||
+          params.containsKey(DeepLinkParam.linkEventId) ||
+          params.containsKey(DeepLinkParam.linkResourceId);
+      if (hasDeepLinkParams) return;
+
+      if (showGettingStarted) {
+        await _showGettingStartedDialogSafely();
+        if (!mounted || _isLoggingOut) return;
+      }
+
+      if (showWhatsNew) {
+        if (!await DioClient().isAuthenticated() || !mounted) return;
+        try {
+          await showWhatsNewDialog(context);
+        } catch (e) {
+          _log.warning('Failed to show What\'s New dialog: $e');
+        }
+      }
+    });
+  }
+
+  Future<void> _showGettingStartedDialogSafely() async {
+    if (_isShowingGettingStarted || !mounted || _isLoggingOut) return;
+
+    _isShowingGettingStarted = true;
+    try {
+      await showGettingStartedDialog(context);
+    } catch (e) {
+      _log.warning('Failed to show getting started dialog: $e');
+    } finally {
+      _isShowingGettingStarted = false;
+    }
+  }
+
+  NavigationPage _getCurrentPage(BuildContext context) {
+    final location = GoRouterState.of(context).matchedLocation;
+    return NavigationPage.fromRoute(location) ?? NavigationPage.planner;
+  }
+
+  void _onDestinationSelected(BuildContext context, int index) {
+    final newPage = NavigationPage.values[index];
+    final currentPage = _getCurrentPage(context);
+    if (newPage != currentPage) {
+      context.go(newPage.route);
+    }
+  }
+
+  /// Updates the browser title directly via DOM when navigating within the
+  /// shell. This avoids using a Title widget which would compete with pushed
+  /// routes like Settings/Notifications for control of the browser title.
+  void _updateBrowserTitle(NavigationPage page) {
+    title_helper.setTitle('${page.label} | ${AppConstants.appName}');
   }
 
   Widget? _buildTrailing(BuildContext context, double availableHeight) {

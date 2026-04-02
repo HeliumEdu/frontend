@@ -345,6 +345,8 @@ abstract class BaseAttachmentsState<T extends BaseAttachmentsContent>
             IconButton(
               onPressed: () {
                 if (index < filesToUpload.length) {
+                  // Defer setState so any in-progress frame caused by the tap
+                  // gesture completes before the list is mutated and rebuilt
                   WidgetsBinding.instance.addPostFrameCallback((_) {
                     if (!mounted) return;
 

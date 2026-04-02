@@ -53,6 +53,8 @@ class _LoginScreenViewState extends BasePageScreenState<LoginScreen> {
   void initState() {
     super.initState();
 
+    // Defer until after initState so GoRouterState and snackbar scaffold are
+    // available; both require an attached BuildContext
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
 
@@ -145,26 +147,6 @@ class _LoginScreenViewState extends BasePageScreenState<LoginScreen> {
         },
       ),
     ];
-  }
-
-  void _showInactiveAccountSnackBar(
-    BuildContext context,
-    String email,
-    String? message,
-  ) {
-    showSnackBar(
-      context,
-      message ?? 'Your account is not yet verified.',
-      type: SnackType.error,
-      seconds: 10,
-      action: SnackBarAction(
-        label: 'Resend Email',
-        textColor: context.colorScheme.onError,
-        onPressed: () {
-          context.read<AuthBloc>().add(ResendVerificationEvent(email: email));
-        },
-      ),
-    );
   }
 
   @override
@@ -362,6 +344,26 @@ class _LoginScreenViewState extends BasePageScreenState<LoginScreen> {
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  void _showInactiveAccountSnackBar(
+    BuildContext context,
+    String email,
+    String? message,
+  ) {
+    showSnackBar(
+      context,
+      message ?? 'Your account is not yet verified.',
+      type: SnackType.error,
+      seconds: 10,
+      action: SnackBarAction(
+        label: 'Resend Email',
+        textColor: context.colorScheme.onError,
+        onPressed: () {
+          context.read<AuthBloc>().add(ResendVerificationEvent(email: email));
+        },
       ),
     );
   }

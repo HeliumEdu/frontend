@@ -107,11 +107,11 @@ class _MobileWebScreenState extends BasePageScreenState<MobileWebScreen> {
           ..._buildStoreButtonsForDetectedPlatform(),
           if (_isOpeningStore) ...[
             const SizedBox(height: 8),
-            Center(
+            const Center(
               child: SizedBox(
                 width: 18.0,
                 height: 18.0,
-                child: const CircularProgressIndicator(strokeWidth: 2.0),
+                child: CircularProgressIndicator(strokeWidth: 2.0),
               ),
             ),
           ],

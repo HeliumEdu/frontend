@@ -57,27 +57,8 @@ abstract class MultiStepContainerState<T extends MultiStepContainer>
   @override
   ScreenType get screenType => steps[_currentStep].stepScreenType;
 
-  int get currentStep => _currentStep;
-
-  bool get enableNextSteps => false;
-
   late int _currentStep;
   int _previousStep = 0;
-
-  void navigateToStep(int step) {
-    if (step < 0 || step >= steps.length) return;
-    if (!mounted) return;
-
-    setState(() {
-      _previousStep = _currentStep;
-      _currentStep = step;
-    });
-  }
-
-  void onStepRequested(int step) {
-    if (step == _currentStep) return;
-    navigateToStep(step);
-  }
 
   @override
   void initState() {
@@ -143,6 +124,25 @@ abstract class MultiStepContainerState<T extends MultiStepContainer>
         ),
       ),
     );
+  }
+
+  int get currentStep => _currentStep;
+
+  bool get enableNextSteps => false;
+
+  void navigateToStep(int step) {
+    if (step < 0 || step >= steps.length) return;
+    if (!mounted) return;
+
+    setState(() {
+      _previousStep = _currentStep;
+      _currentStep = step;
+    });
+  }
+
+  void onStepRequested(int step) {
+    if (step == _currentStep) return;
+    navigateToStep(step);
   }
 
   Widget _buildStepperHeader(BuildContext context) {

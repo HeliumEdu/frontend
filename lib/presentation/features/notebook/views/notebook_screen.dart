@@ -325,47 +325,6 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen>
     );
   }
 
-  void _fetchNotes() {
-    context.read<NoteBloc>().add(
-      FetchNotesEvent(
-        origin: EventOrigin.screen,
-        forceRefresh: true,
-      ),
-    );
-  }
-
-  List<NoteModel> _getFilteredNotes() {
-    var filtered = _notes;
-
-    if (_searchQuery != null && _searchQuery!.isNotEmpty) {
-      final query = _searchQuery!.toLowerCase();
-      filtered = filtered.where((note) {
-        return note.title.toLowerCase().contains(query) ||
-            (note.linkedEntityTitle?.toLowerCase().contains(query) ?? false);
-      }).toList();
-    }
-
-    if (_filterEntityTypes.isNotEmpty) {
-      filtered = filtered.where((note) {
-        if (_filterEntityTypes.contains('standalone')) {
-          if (note.isStandalone) return true;
-        }
-        if (_filterEntityTypes.contains('homework')) {
-          if (note.linkedEntityType == 'homework') return true;
-        }
-        if (_filterEntityTypes.contains('event')) {
-          if (note.linkedEntityType == 'event') return true;
-        }
-        if (_filterEntityTypes.contains('resource')) {
-          if (note.linkedEntityType == 'resource') return true;
-        }
-        return false;
-      }).toList();
-    }
-
-    return filtered;
-  }
-
   @override
   bool handleRouteEntityParams(Map<String, String> queryParams) {
     final idParam = queryParams[DeepLinkParam.id];
@@ -422,6 +381,47 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen>
         noteId: parsed.id,
       );
     });
+  }
+
+  void _fetchNotes() {
+    context.read<NoteBloc>().add(
+      FetchNotesEvent(
+        origin: EventOrigin.screen,
+        forceRefresh: true,
+      ),
+    );
+  }
+
+  List<NoteModel> _getFilteredNotes() {
+    var filtered = _notes;
+
+    if (_searchQuery != null && _searchQuery!.isNotEmpty) {
+      final query = _searchQuery!.toLowerCase();
+      filtered = filtered.where((note) {
+        return note.title.toLowerCase().contains(query) ||
+            (note.linkedEntityTitle?.toLowerCase().contains(query) ?? false);
+      }).toList();
+    }
+
+    if (_filterEntityTypes.isNotEmpty) {
+      filtered = filtered.where((note) {
+        if (_filterEntityTypes.contains('standalone')) {
+          if (note.isStandalone) return true;
+        }
+        if (_filterEntityTypes.contains('homework')) {
+          if (note.linkedEntityType == 'homework') return true;
+        }
+        if (_filterEntityTypes.contains('event')) {
+          if (note.linkedEntityType == 'event') return true;
+        }
+        if (_filterEntityTypes.contains('resource')) {
+          if (note.linkedEntityType == 'resource') return true;
+        }
+        return false;
+      }).toList();
+    }
+
+    return filtered;
   }
 
   Future<void> _resolveResourceAndOpenNote(int resourceId) async {
@@ -574,6 +574,8 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen>
                     _filterEntityTypes.clear();
                     _saveFilterStateIfEnabled();
                     setMenuState(() {});
+                    // Defer outer setState because setMenuState may still be
+                    // executing its rebuild when this callback runs
                     WidgetsBinding.instance.addPostFrameCallback((_) {
                       if (mounted) setState(() {});
                     });
@@ -609,6 +611,8 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen>
                   }
                   _saveFilterStateIfEnabled();
                   setMenuState(() {});
+                  // Defer outer setState because setMenuState may still be
+                  // executing its rebuild when this callback runs
                   WidgetsBinding.instance.addPostFrameCallback((_) {
                     if (mounted) setState(() {});
                   });

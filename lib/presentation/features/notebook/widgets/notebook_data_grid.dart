@@ -115,7 +115,8 @@ class _NotebookDataGridState extends BaseDataGridState<NotebookDataGrid> {
         onEdit: widget.onNoteTap,
         onDelete: widget.onDelete,
       );
-      // Use post-frame callback to ensure UI fully updates after data source change
+      // Defer setState because didUpdateWidget fires during the parent's build;
+      // calling setState synchronously here would trigger a nested rebuild error
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) setState(() {});
       });
@@ -147,6 +148,8 @@ class _NotebookDataGridState extends BaseDataGridState<NotebookDataGrid> {
     var effectiveCurrentPage = _currentPage;
     if (effectiveCurrentPage > totalPages && totalPages > 0) {
       effectiveCurrentPage = 1;
+      // Defer page reset because this runs during build; setState must wait
+      // until the current frame completes to avoid a nested rebuild error
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted && _currentPage != 1) {
           _currentPage = 1;
@@ -483,93 +486,6 @@ class NotesDataSource extends BaseDataGridSource {
     _rebuildRows();
   }
 
-  void _rebuildRows() {
-    _notesById = {for (var note in notes) note.id: note};
-    _allRows = notes.map((note) {
-      return DataGridRow(
-        cells: [
-          DataGridCell<String>(
-            columnName: 'title',
-            value: note.title.toLowerCase(),
-          ),
-          DataGridCell<DateTime?>(columnName: 'due', value: note.linkedEntityDue),
-          DataGridCell<String>(
-            columnName: 'linkedTo',
-            value: note.linkedEntityTitle?.toLowerCase() ?? '',
-          ),
-          DataGridCell<DateTime>(columnName: 'modified', value: note.updatedAt),
-          DataGridCell<int>(columnName: 'actions', value: note.id),
-          DataGridCell<Color?>(
-            columnName: '_courseColor',
-            value: note.courseColor,
-          ),
-          DataGridCell<Color?>(
-            columnName: '_categoryColor',
-            value: note.categoryColor,
-          ),
-          DataGridCell<String>(
-            columnName: '_entityType',
-            value: note.linkedEntityType,
-          ),
-          DataGridCell<String>(columnName: '_originalTitle', value: note.title),
-          DataGridCell<String>(
-            columnName: '_originalLinkedTo',
-            value: note.linkedEntityTitle ?? '',
-          ),
-          DataGridCell<bool?>(
-            columnName: '_linkedEntityCompleted',
-            value: note.linkedEntityCompleted,
-          ),
-        ],
-      );
-    }).toList();
-    dataGridRows = _allRows;
-    sortDataGridRows(dataGridRows);
-  }
-
-  void update({
-    required List<NoteModel> notes,
-    required BuildContext context,
-    required Function(NoteModel) onEdit,
-    required Function(BuildContext, NoteModel) onDelete,
-    UserSettingsModel? userSettings,
-  }) {
-    this.notes = notes;
-    this.context = context;
-    this.userSettings = userSettings;
-    this.onEdit = onEdit;
-    this.onDelete = onDelete;
-    _rebuildRows();
-    notifyListeners();
-  }
-
-  NoteModel? getNoteFromRow(DataGridRow row) {
-    final noteId =
-        row.getCells().firstWhere((c) => c.columnName == 'actions').value
-            as int;
-    return _notesById[noteId];
-  }
-
-  List<DataGridCell> _getDisplayCells(DataGridRow row) {
-    final width = MediaQuery.of(context).size.width;
-    final isTouchDevice = Responsive.isTouchDevice(context);
-
-    return row.getCells().where((cell) {
-      if (cell.columnName.startsWith('_')) return false;
-
-      switch (cell.columnName) {
-        case 'due':
-          return width >= NotebookColumn.due.minViewportWidth!;
-        case 'modified':
-          return width >= NotebookColumn.modified.minViewportWidth!;
-        case 'actions':
-          return !isTouchDevice && !PrintableArea.capturing.value;
-        default:
-          return true;
-      }
-    }).toList();
-  }
-
   @override
   DataGridRowAdapter? buildRow(DataGridRow row) {
     final courseColor =
@@ -675,6 +591,93 @@ class NotesDataSource extends BaseDataGridSource {
           )
           .toList(),
     );
+  }
+
+  void update({
+    required List<NoteModel> notes,
+    required BuildContext context,
+    required Function(NoteModel) onEdit,
+    required Function(BuildContext, NoteModel) onDelete,
+    UserSettingsModel? userSettings,
+  }) {
+    this.notes = notes;
+    this.context = context;
+    this.userSettings = userSettings;
+    this.onEdit = onEdit;
+    this.onDelete = onDelete;
+    _rebuildRows();
+    notifyListeners();
+  }
+
+  NoteModel? getNoteFromRow(DataGridRow row) {
+    final noteId =
+        row.getCells().firstWhere((c) => c.columnName == 'actions').value
+            as int;
+    return _notesById[noteId];
+  }
+
+  void _rebuildRows() {
+    _notesById = {for (var note in notes) note.id: note};
+    _allRows = notes.map((note) {
+      return DataGridRow(
+        cells: [
+          DataGridCell<String>(
+            columnName: 'title',
+            value: note.title.toLowerCase(),
+          ),
+          DataGridCell<DateTime?>(columnName: 'due', value: note.linkedEntityDue),
+          DataGridCell<String>(
+            columnName: 'linkedTo',
+            value: note.linkedEntityTitle?.toLowerCase() ?? '',
+          ),
+          DataGridCell<DateTime>(columnName: 'modified', value: note.updatedAt),
+          DataGridCell<int>(columnName: 'actions', value: note.id),
+          DataGridCell<Color?>(
+            columnName: '_courseColor',
+            value: note.courseColor,
+          ),
+          DataGridCell<Color?>(
+            columnName: '_categoryColor',
+            value: note.categoryColor,
+          ),
+          DataGridCell<String>(
+            columnName: '_entityType',
+            value: note.linkedEntityType,
+          ),
+          DataGridCell<String>(columnName: '_originalTitle', value: note.title),
+          DataGridCell<String>(
+            columnName: '_originalLinkedTo',
+            value: note.linkedEntityTitle ?? '',
+          ),
+          DataGridCell<bool?>(
+            columnName: '_linkedEntityCompleted',
+            value: note.linkedEntityCompleted,
+          ),
+        ],
+      );
+    }).toList();
+    dataGridRows = _allRows;
+    sortDataGridRows(dataGridRows);
+  }
+
+  List<DataGridCell> _getDisplayCells(DataGridRow row) {
+    final width = MediaQuery.of(context).size.width;
+    final isTouchDevice = Responsive.isTouchDevice(context);
+
+    return row.getCells().where((cell) {
+      if (cell.columnName.startsWith('_')) return false;
+
+      switch (cell.columnName) {
+        case 'due':
+          return width >= NotebookColumn.due.minViewportWidth!;
+        case 'modified':
+          return width >= NotebookColumn.modified.minViewportWidth!;
+        case 'actions':
+          return !isTouchDevice && !PrintableArea.capturing.value;
+        default:
+          return true;
+      }
+    }).toList();
   }
 
   Widget _buildCell(

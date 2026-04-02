@@ -139,138 +139,6 @@ class TodosDataGridState extends BaseDataGridState<TodosDataGrid> {
     super.dispose();
   }
 
-  void resetForViewChange() {
-    setState(() {
-      _isInitialized = false;
-    });
-    _initializeData();
-  }
-
-  ({Uint8List bytes, String filename}) buildExportCsv() {
-    final homeworks = List<HomeworkModel>.from(
-      widget.dataSource.filteredHomeworks,
-    )..sort((a, b) => a.start.compareTo(b.start));
-    final courses = widget.dataSource.courses ?? [];
-    final categoriesMap = widget.dataSource.categoriesMap ?? {};
-    final userSettings = widget.dataSource.userSettings;
-    final coursesById = <int, CourseModel>{for (final c in courses) c.id: c};
-
-    final resourcesMap = widget.dataSource.resourcesMap ?? {};
-    final hasResources = homeworks.any(
-      (h) => h.resources.any((r) => resourcesMap.containsKey(r.id)),
-    );
-
-    final buffer = StringBuffer();
-    buffer.writeln(_csvRow([
-      'Completed', 'Title', 'Due', 'Class', 'Category', 'Priority', 'Grade',
-      if (hasResources) 'Materials',
-    ]));
-
-    for (final homework in homeworks) {
-      final isCompleted = widget.dataSource.isHomeworkCompleted(homework);
-      final course = coursesById[homework.course.id];
-      final category = categoriesMap[homework.category.id];
-      final localDate = HeliumDateTime.toLocal(
-        homework.start,
-        userSettings.timeZone,
-      );
-      final dateText = homework.allDay
-          ? HeliumDateTime.formatDateForTodos(localDate)
-          : HeliumDateTime.formatDateAndTimeForTodos(localDate);
-      final gradeValue = GradeHelper.parseGrade(homework.currentGrade);
-
-      buffer.writeln(_csvRow([
-        isCompleted ? 'Yes' : 'No',
-        homework.title,
-        dateText,
-        course?.title ?? '',
-        category?.title ?? '',
-        homework.priority > 0 ? (homework.priority / 10).round().toString() : '',
-        isCompleted && gradeValue != null
-            ? gradeValue.toStringAsFixed(2)
-            : '',
-        if (hasResources)
-          homework.resources
-              .map((r) => resourcesMap[r.id]?.title ?? '')
-              .where((t) => t.isNotEmpty)
-              .join('; '),
-      ]));
-    }
-
-    final date = HeliumDateTime.formatDateForApi(DateTime.now());
-
-    return (
-      bytes: Uint8List.fromList(utf8.encode(buffer.toString())),
-      filename: 'Helium_todos_$date.csv',
-    );
-  }
-
-  static String _csvRow(List<String> fields) =>
-      fields.map(_csvField).join(',');
-
-  static String _csvField(String value) {
-    if (value.contains(',') ||
-        value.contains('"') ||
-        value.contains('\n') ||
-        value.contains('\r')) {
-      return '"${value.replaceAll('"', '""')}"';
-    }
-    return value;
-  }
-
-  void goToToday({bool isInitialLoad = false}) {
-    final homeworks = widget.dataSource.filteredHomeworks;
-    _log.info(
-      "Jump to today's Todos page, calculating with ${homeworks.length} items and $_itemsPerPage items per page",
-    );
-    _hasInitializedNavigation = true;
-
-    _dataSource.sortedColumns.clear();
-    _dataSource.sortedColumns.add(
-      const SortColumnDetails(
-        name: 'due',
-        sortDirection: DataGridSortDirection.ascending,
-      ),
-    );
-
-    final sorted = List<HomeworkModel>.from(homeworks);
-    sorted.sort((a, b) => a.start.compareTo(b.start));
-
-    if (sorted.isEmpty) {
-      _currentPage = 1;
-      _log.fine('No items, setting page to 1');
-      _syncPagerAndRefresh(markInitialized: isInitialLoad);
-      return;
-    }
-
-    final now = DateTime.now();
-    final today = HeliumDateTime.dateOnly(now);
-
-    int targetIndex = -1;
-    for (int i = 0; i < sorted.length; i++) {
-      final dueOnly = HeliumDateTime.dateOnly(sorted[i].start);
-      if (dueOnly.isAtSameMomentAs(today) || dueOnly.isAfter(today)) {
-        targetIndex = i;
-        break;
-      }
-    }
-
-    final effectiveItemsPerPage =
-        _itemsPerPage == -1 ? sorted.length : _itemsPerPage;
-
-    if (targetIndex == -1) {
-      _currentPage = (sorted.length / effectiveItemsPerPage).ceil();
-      _log.fine('No future items, showing last page: $_currentPage');
-    } else {
-      _currentPage = (targetIndex / effectiveItemsPerPage).floor() + 1;
-      _log.fine(
-        'Found item at index $targetIndex, navigating to page $_currentPage',
-      );
-    }
-
-    _syncPagerAndRefresh(markInitialized: isInitialLoad);
-  }
-
   @override
   Widget build(BuildContext context) {
     final homeworks = widget.dataSource.filteredHomeworks;
@@ -288,6 +156,8 @@ class TodosDataGridState extends BaseDataGridState<TodosDataGrid> {
     var effectiveCurrentPage = _currentPage;
     if (_isInitialized && effectiveCurrentPage > totalPages && totalPages > 0) {
       effectiveCurrentPage = 1;
+      // Defer page reset because this runs during build; setState must wait
+      // until the current frame completes to avoid a nested rebuild error
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted && _currentPage != 1) {
           _currentPage = 1;
@@ -418,6 +288,138 @@ class TodosDataGridState extends BaseDataGridState<TodosDataGrid> {
           ),
       ],
     );
+  }
+
+  void resetForViewChange() {
+    setState(() {
+      _isInitialized = false;
+    });
+    _initializeData();
+  }
+
+  ({Uint8List bytes, String filename}) buildExportCsv() {
+    final homeworks = List<HomeworkModel>.from(
+      widget.dataSource.filteredHomeworks,
+    )..sort((a, b) => a.start.compareTo(b.start));
+    final courses = widget.dataSource.courses ?? [];
+    final categoriesMap = widget.dataSource.categoriesMap ?? {};
+    final userSettings = widget.dataSource.userSettings;
+    final coursesById = <int, CourseModel>{for (final c in courses) c.id: c};
+
+    final resourcesMap = widget.dataSource.resourcesMap ?? {};
+    final hasResources = homeworks.any(
+      (h) => h.resources.any((r) => resourcesMap.containsKey(r.id)),
+    );
+
+    final buffer = StringBuffer();
+    buffer.writeln(_csvRow([
+      'Completed', 'Title', 'Due', 'Class', 'Category', 'Priority', 'Grade',
+      if (hasResources) 'Materials',
+    ]));
+
+    for (final homework in homeworks) {
+      final isCompleted = widget.dataSource.isHomeworkCompleted(homework);
+      final course = coursesById[homework.course.id];
+      final category = categoriesMap[homework.category.id];
+      final localDate = HeliumDateTime.toLocal(
+        homework.start,
+        userSettings.timeZone,
+      );
+      final dateText = homework.allDay
+          ? HeliumDateTime.formatDateForTodos(localDate)
+          : HeliumDateTime.formatDateAndTimeForTodos(localDate);
+      final gradeValue = GradeHelper.parseGrade(homework.currentGrade);
+
+      buffer.writeln(_csvRow([
+        isCompleted ? 'Yes' : 'No',
+        homework.title,
+        dateText,
+        course?.title ?? '',
+        category?.title ?? '',
+        homework.priority > 0 ? (homework.priority / 10).round().toString() : '',
+        isCompleted && gradeValue != null
+            ? gradeValue.toStringAsFixed(2)
+            : '',
+        if (hasResources)
+          homework.resources
+              .map((r) => resourcesMap[r.id]?.title ?? '')
+              .where((t) => t.isNotEmpty)
+              .join('; '),
+      ]));
+    }
+
+    final date = HeliumDateTime.formatDateForApi(DateTime.now());
+
+    return (
+      bytes: Uint8List.fromList(utf8.encode(buffer.toString())),
+      filename: 'Helium_todos_$date.csv',
+    );
+  }
+
+  static String _csvRow(List<String> fields) =>
+      fields.map(_csvField).join(',');
+
+  static String _csvField(String value) {
+    if (value.contains(',') ||
+        value.contains('"') ||
+        value.contains('\n') ||
+        value.contains('\r')) {
+      return '"${value.replaceAll('"', '""')}"';
+    }
+    return value;
+  }
+
+  void goToToday({bool isInitialLoad = false}) {
+    final homeworks = widget.dataSource.filteredHomeworks;
+    _log.info(
+      "Jump to today's Todos page, calculating with ${homeworks.length} items and $_itemsPerPage items per page",
+    );
+    _hasInitializedNavigation = true;
+
+    _dataSource.sortedColumns.clear();
+    _dataSource.sortedColumns.add(
+      const SortColumnDetails(
+        name: 'due',
+        sortDirection: DataGridSortDirection.ascending,
+      ),
+    );
+
+    final sorted = List<HomeworkModel>.from(homeworks);
+    sorted.sort((a, b) => a.start.compareTo(b.start));
+
+    if (sorted.isEmpty) {
+      _currentPage = 1;
+      _log.fine('No items, setting page to 1');
+      _syncPagerAndRefresh(markInitialized: isInitialLoad);
+      return;
+    }
+
+    final now = DateTime.now();
+    final today = HeliumDateTime.dateOnly(now);
+
+    int targetIndex = -1;
+    for (int i = 0; i < sorted.length; i++) {
+      final dueOnly = HeliumDateTime.dateOnly(sorted[i].start);
+      if (dueOnly.isAtSameMomentAs(today) || dueOnly.isAfter(today)) {
+        targetIndex = i;
+        break;
+      }
+    }
+
+    final effectiveItemsPerPage =
+        _itemsPerPage == -1 ? sorted.length : _itemsPerPage;
+
+    if (targetIndex == -1) {
+      _currentPage = (sorted.length / effectiveItemsPerPage).ceil();
+      _log.fine('No future items, showing last page: $_currentPage');
+    } else {
+      _currentPage = (targetIndex / effectiveItemsPerPage).floor() + 1;
+      _log.fine(
+        'Found item at index $targetIndex, navigating to page $_currentPage',
+      );
+    }
+
+    _syncPagerAndRefresh(markInitialized: isInitialLoad);
   }
 
   List<GridColumn> _buildColumns(
@@ -688,6 +690,9 @@ class TodosDataGridState extends BaseDataGridState<TodosDataGrid> {
       itemsPerPage: _itemsPerPage,
     );
 
+    // Defer setState because _onDataSourceChanged is a listener callback that
+    // may fire while the data source is still notifying; calling setState
+    // synchronously would schedule a rebuild inside an ongoing rebuild
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) setState(() {});
     });
@@ -805,6 +810,60 @@ class TodosDataSource extends BaseDataGridSource {
     _rebuildRows();
   }
 
+  @override
+  DataGridRowAdapter? buildRow(DataGridRow row) {
+    final homeworkId = row
+        .getCells()
+        .firstWhere((c) => c.columnName == '_homeworkId')
+        .value as int;
+    final homework = _homeworksById[homeworkId];
+    if (homework == null) return null;
+
+    final courseColor = row
+        .getCells()
+        .firstWhere((c) => c.columnName == '_courseColor')
+        .value as Color;
+    final categoryColor = row
+        .getCells()
+        .firstWhere((c) => c.columnName == '_categoryColor',
+            orElse: () => const DataGridCell<Color?>(
+                columnName: '_categoryColor', value: null))
+        .value as Color?;
+
+    final userSettings = _dataSource.userSettings;
+    final isCompleted = _dataSource.isHomeworkCompleted(homework);
+
+    final rowColor = userSettings.colorByCategory && categoryColor != null
+        ? categoryColor
+        : courseColor;
+
+    final isTouchDevice = Responsive.isTouchDevice(_context);
+    final isCompact = Responsive.isCompact(_context);
+    final rowCursor =
+        (isTouchDevice || isCompact) ? SystemMouseCursors.click : MouseCursor.defer;
+
+    final displayCells = _getDisplayCells(row);
+
+    return DataGridRowAdapter(
+      color: BadgeColors.background(_context, rowColor),
+      cells: displayCells.map((cell) {
+        return MouseRegion(
+          cursor: rowCursor,
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              border: Border(
+                bottom: BorderSide(
+                  color: _context.colorScheme.outline.withValues(alpha: 0.1),
+                ),
+              ),
+            ),
+            child: _buildCell(cell, homework, isCompleted),
+          ),
+        );
+      }).toList(),
+    );
+  }
+
   void update({
     required List<HomeworkModel> homeworks,
     required BuildContext context,
@@ -821,6 +880,14 @@ class TodosDataSource extends BaseDataGridSource {
     _onDelete = onDelete;
     _rebuildRows();
     notifyListeners();
+  }
+
+  HomeworkModel? getHomeworkFromRow(DataGridRow row) {
+    final homeworkId = row
+        .getCells()
+        .firstWhere((c) => c.columnName == '_homeworkId')
+        .value as int;
+    return _homeworksById[homeworkId];
   }
 
   void _rebuildRows() {
@@ -889,68 +956,6 @@ class TodosDataSource extends BaseDataGridSource {
       currentGrade: null,
       schedules: const [],
       exceptions: const [],
-    );
-  }
-
-  HomeworkModel? getHomeworkFromRow(DataGridRow row) {
-    final homeworkId = row
-        .getCells()
-        .firstWhere((c) => c.columnName == '_homeworkId')
-        .value as int;
-    return _homeworksById[homeworkId];
-  }
-
-  @override
-  DataGridRowAdapter? buildRow(DataGridRow row) {
-    final homeworkId = row
-        .getCells()
-        .firstWhere((c) => c.columnName == '_homeworkId')
-        .value as int;
-    final homework = _homeworksById[homeworkId];
-    if (homework == null) return null;
-
-    final courseColor = row
-        .getCells()
-        .firstWhere((c) => c.columnName == '_courseColor')
-        .value as Color;
-    final categoryColor = row
-        .getCells()
-        .firstWhere((c) => c.columnName == '_categoryColor',
-            orElse: () => const DataGridCell<Color?>(
-                columnName: '_categoryColor', value: null))
-        .value as Color?;
-
-    final userSettings = _dataSource.userSettings;
-    final isCompleted = _dataSource.isHomeworkCompleted(homework);
-
-    final rowColor = userSettings.colorByCategory && categoryColor != null
-        ? categoryColor
-        : courseColor;
-
-    final isTouchDevice = Responsive.isTouchDevice(_context);
-    final isCompact = Responsive.isCompact(_context);
-    final rowCursor =
-        (isTouchDevice || isCompact) ? SystemMouseCursors.click : MouseCursor.defer;
-
-    final displayCells = _getDisplayCells(row);
-
-    return DataGridRowAdapter(
-      color: BadgeColors.background(_context, rowColor),
-      cells: displayCells.map((cell) {
-        return MouseRegion(
-          cursor: rowCursor,
-          child: DecoratedBox(
-            decoration: BoxDecoration(
-              border: Border(
-                bottom: BorderSide(
-                  color: _context.colorScheme.outline.withValues(alpha: 0.1),
-                ),
-              ),
-            ),
-            child: _buildCell(cell, homework, isCompleted),
-          ),
-        );
-      }).toList(),
     );
   }
 

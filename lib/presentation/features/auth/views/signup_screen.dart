@@ -64,11 +64,6 @@ class _SignupScreenState extends BasePageScreenState<SignupScreen> {
     });
   }
 
-  Future<void> _initializeForm() async {
-    await _formController.initializeTimeZones();
-    if (mounted) setState(() {});
-  }
-
   @override
   void dispose() {
     _formController.dispose();
@@ -460,6 +455,11 @@ class _SignupScreenState extends BasePageScreenState<SignupScreen> {
         ),
       ),
     );
+  }
+
+  Future<void> _initializeForm() async {
+    await _formController.initializeTimeZones();
+    if (mounted) setState(() {});
   }
 
   void _onSubmit() {

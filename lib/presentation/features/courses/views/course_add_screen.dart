@@ -141,31 +141,6 @@ class _CourseAddScreenState extends MultiStepContainerState<CourseAddScreen> {
     };
   }
 
-  bool _willCloseAfterSave() {
-    if (_targetStep != null) {
-      return _targetStep! >= steps.length;
-    }
-    return !widget.isNew || currentStep + 1 >= steps.length;
-  }
-
-  void _navigateAfterSave() {
-    if (_targetStep != null) {
-      // User explicitly requested a specific step (clicked step icon)
-      final step = _targetStep!;
-      _targetStep = null;
-      if (step < steps.length) {
-        navigateToStep(step);
-      } else {
-        cancelAction();
-      }
-    } else if (widget.isNew && currentStep + 1 < steps.length) {
-      // In create mode, auto-advance to next step
-      navigateToStep(currentStep + 1);
-    } else {
-      cancelAction();
-    }
-  }
-
   @override
   List<BlocListener<dynamic, dynamic>> buildListeners(BuildContext context) {
     return [
@@ -205,6 +180,31 @@ class _CourseAddScreenState extends MultiStepContainerState<CourseAddScreen> {
         },
       ),
     ];
+  }
+
+  bool _willCloseAfterSave() {
+    if (_targetStep != null) {
+      return _targetStep! >= steps.length;
+    }
+    return !widget.isNew || currentStep + 1 >= steps.length;
+  }
+
+  void _navigateAfterSave() {
+    if (_targetStep != null) {
+      // User explicitly requested a specific step (clicked step icon)
+      final step = _targetStep!;
+      _targetStep = null;
+      if (step < steps.length) {
+        navigateToStep(step);
+      } else {
+        cancelAction();
+      }
+    } else if (widget.isNew && currentStep + 1 < steps.length) {
+      // In create mode, auto-advance to next step
+      navigateToStep(currentStep + 1);
+    } else {
+      cancelAction();
+    }
   }
 
   late final List<MultiStepDefinition> _steps = [

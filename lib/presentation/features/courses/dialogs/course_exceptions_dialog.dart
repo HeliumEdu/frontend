@@ -60,78 +60,6 @@ class _CourseExceptionsDialogState extends State<CourseExceptionsDialog> {
     _exceptions = List<DateTime>.from(widget.exceptions);
   }
 
-  Future<void> _addDate() async {
-    final picked = await showDatePicker(
-      context: context,
-      initialDate: DateTime.now(),
-      firstDate: widget.firstDate ??
-          DateTime.now().subtract(const Duration(days: 365 * 10)),
-      lastDate:
-          widget.lastDate ?? DateTime.now().add(const Duration(days: 365 * 10)),
-      confirmText: 'Select',
-    );
-    if (picked == null) return;
-
-    final dateOnly = DateTime(picked.year, picked.month, picked.day);
-    final alreadyExists = _exceptions.any(
-      (d) =>
-          d.year == dateOnly.year &&
-          d.month == dateOnly.month &&
-          d.day == dateOnly.day,
-    );
-    if (alreadyExists) {
-      setState(() {
-        _message = 'Already on exception list';
-        _messageType = SnackType.info;
-      });
-    } else {
-      setState(() {
-        _exceptions = [..._exceptions, dateOnly]..sort();
-      });
-    }
-  }
-
-  void _removeDate(DateTime date) {
-    setState(() {
-      _exceptions =
-          _exceptions
-              .where(
-                (d) =>
-                    d.year != date.year ||
-                    d.month != date.month ||
-                    d.day != date.day,
-              )
-              .toList();
-    });
-  }
-
-  Future<void> _save() async {
-    setState(() {
-      _isSaving = true;
-      _message = null;
-    });
-    try {
-      await widget.onSave(_exceptions);
-      if (mounted) Navigator.pop(context);
-    } on HeliumException catch (e) {
-      if (mounted) {
-        setState(() {
-          _isSaving = false;
-          _message = e.displayMessage;
-          _messageType = SnackType.error;
-        });
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() {
-          _isSaving = false;
-          _message = 'An unexpected error occurred.';
-          _messageType = SnackType.error;
-        });
-      }
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Dialog(
@@ -205,6 +133,78 @@ class _CourseExceptionsDialogState extends State<CourseExceptionsDialog> {
         ),
       ),
     );
+  }
+
+  Future<void> _addDate() async {
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: widget.firstDate ??
+          DateTime.now().subtract(const Duration(days: 365 * 10)),
+      lastDate:
+          widget.lastDate ?? DateTime.now().add(const Duration(days: 365 * 10)),
+      confirmText: 'Select',
+    );
+    if (picked == null) return;
+
+    final dateOnly = DateTime(picked.year, picked.month, picked.day);
+    final alreadyExists = _exceptions.any(
+      (d) =>
+          d.year == dateOnly.year &&
+          d.month == dateOnly.month &&
+          d.day == dateOnly.day,
+    );
+    if (alreadyExists) {
+      setState(() {
+        _message = 'Already on exception list';
+        _messageType = SnackType.info;
+      });
+    } else {
+      setState(() {
+        _exceptions = [..._exceptions, dateOnly]..sort();
+      });
+    }
+  }
+
+  void _removeDate(DateTime date) {
+    setState(() {
+      _exceptions =
+          _exceptions
+              .where(
+                (d) =>
+                    d.year != date.year ||
+                    d.month != date.month ||
+                    d.day != date.day,
+              )
+              .toList();
+    });
+  }
+
+  Future<void> _save() async {
+    setState(() {
+      _isSaving = true;
+      _message = null;
+    });
+    try {
+      await widget.onSave(_exceptions);
+      if (mounted) Navigator.pop(context);
+    } on HeliumException catch (e) {
+      if (mounted) {
+        setState(() {
+          _isSaving = false;
+          _message = e.displayMessage;
+          _messageType = SnackType.error;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isSaving = false;
+          _message = 'An unexpected error occurred.';
+          _messageType = SnackType.error;
+        });
+      }
+    }
   }
 
   Widget _buildEditableSection(BuildContext context) {
