@@ -792,7 +792,6 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
       pageFormat: PDFPageFormat.a4,
       document: delta,
       fallbacks: [notoSans],
-      paintStrikethoughStyleOnCheckedElements: true,
       listLeadingBuilder: _buildPdfCheckbox,
       themeData: pw.ThemeData.withFont(
         base: notoSans,
