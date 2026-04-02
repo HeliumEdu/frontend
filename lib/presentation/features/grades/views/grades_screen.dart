@@ -15,8 +15,6 @@ import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/config/pref_service.dart';
 import 'package:heliumapp/core/dio_client.dart';
 import 'package:heliumapp/data/models/auth/user_model.dart';
-import 'package:heliumapp/presentation/features/auth/bloc/auth_bloc.dart';
-import 'package:heliumapp/presentation/features/auth/bloc/auth_state.dart';
 import 'package:heliumapp/data/models/planner/course_group_model.dart';
 import 'package:heliumapp/data/models/planner/grade_category_model.dart';
 import 'package:heliumapp/data/models/planner/grade_course_group_model.dart';
@@ -27,6 +25,8 @@ import 'package:heliumapp/data/sources/course_remote_data_source.dart';
 import 'package:heliumapp/data/sources/grade_remote_data_source.dart';
 import 'package:heliumapp/presentation/core/views/base_page_screen_state.dart';
 import 'package:heliumapp/presentation/core/views/deep_link_mixin.dart';
+import 'package:heliumapp/presentation/features/auth/bloc/auth_bloc.dart';
+import 'package:heliumapp/presentation/features/auth/bloc/auth_state.dart';
 import 'package:heliumapp/presentation/features/grades/bloc/grade_bloc.dart';
 import 'package:heliumapp/presentation/features/grades/bloc/grade_event.dart';
 import 'package:heliumapp/presentation/features/grades/bloc/grade_state.dart';
@@ -42,11 +42,11 @@ import 'package:heliumapp/presentation/ui/feedback/error_card.dart';
 import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/app_style.dart';
-import 'package:heliumapp/utils/print_helpers.dart';
 import 'package:heliumapp/utils/color_helpers.dart';
 import 'package:heliumapp/utils/date_time_helpers.dart';
 import 'package:heliumapp/utils/format_helpers.dart';
 import 'package:heliumapp/utils/grade_helpers.dart';
+import 'package:heliumapp/utils/print_helpers.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:intl/intl.dart';
 import 'package:syncfusion_flutter_charts/charts.dart' as charts;
@@ -159,9 +159,14 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
 
   // Decision variables - adjust these to tune the grade insights
   double get _atRiskThreshold =>
-      (userSettings?.atRiskThreshold ?? FallbackConstants.defaultAtRiskThreshold).toDouble();
+      (userSettings?.atRiskThreshold ??
+              FallbackConstants.defaultAtRiskThreshold)
+          .toDouble();
+
   double get _onTrackTolerance =>
-      (userSettings?.onTrackTolerance ?? FallbackConstants.defaultOnTrackTolerance).toDouble();
+      (userSettings?.onTrackTolerance ??
+              FallbackConstants.defaultOnTrackTolerance)
+          .toDouble();
   static const double _defaultDesiredGradeBoost =
       5.0; // Default boost above current grade for calculator
   static const double _chartAnimationDurationMs = 250;
@@ -264,7 +269,9 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
             message: state.message!,
             source: 'grades_screen',
             onReload: () {
-              return context.read<GradeBloc>().add(FetchGradeScreenDataEvent(forceRefresh: true));
+              return context.read<GradeBloc>().add(
+                FetchGradeScreenDataEvent(forceRefresh: true),
+              );
             },
           );
         }
@@ -845,8 +852,8 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
 
     final displayCourse = _pendingImpactCourseId != null
         ? selectedGroup.courses.firstWhereOrNull(
-              (c) => c.id == _pendingImpactCourseId,
-            ) ??
+                (c) => c.id == _pendingImpactCourseId,
+              ) ??
               topCourse
         : topCourse;
 
@@ -945,7 +952,11 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
                       ),
                       if (sortedCourses.length > 1) ...[
                         const SizedBox(width: 4),
-                        Icon(Icons.swap_horiz, size: 12, color: displayCourse.color),
+                        Icon(
+                          Icons.swap_horiz,
+                          size: 12,
+                          color: displayCourse.color,
+                        ),
                       ],
                     ],
                   ),
@@ -970,8 +981,9 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
     GradeCourseGroupModel selectedGroup,
     List<GradeCourseModel> courses,
   ) {
-    final eligibleCourses =
-        courses.where(_courseHasEligibleGradeCalculatorCategory).toList();
+    final eligibleCourses = courses
+        .where(_courseHasEligibleGradeCalculatorCategory)
+        .toList();
 
     if (eligibleCourses.isEmpty) {
       showSnackBar(
@@ -1026,8 +1038,10 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
             enabled: false,
             padding: EdgeInsets.zero,
             child: StatefulBuilder(
-              builder: (menuContext, _) =>
-                  _buildGradeCalculatorPickerContent(menuContext, eligibleCourses),
+              builder: (menuContext, _) => _buildGradeCalculatorPickerContent(
+                menuContext,
+                eligibleCourses,
+              ),
             ),
           ),
         ],
@@ -1207,7 +1221,11 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
       cursor: SystemMouseCursors.click,
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
-        onTap: _toggleGraphExpanded,
+        onTap: () {
+          setState(() {
+            _graphExpanded = !_graphExpanded;
+          });
+        },
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
@@ -1266,19 +1284,17 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
                   duration: const Duration(milliseconds: 300),
                   child: const Icon(Icons.keyboard_arrow_down),
                 ),
-                onPressed: _toggleGraphExpanded,
+                onPressed: () {
+                  setState(() {
+                    _graphExpanded = !_graphExpanded;
+                  });
+                },
               ),
             ),
           ],
         ),
       ),
     );
-  }
-
-  void _toggleGraphExpanded() {
-    setState(() {
-      _graphExpanded = !_graphExpanded;
-    });
   }
 
   Widget _buildChart(
@@ -1964,9 +1980,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
                 onChanged: (value) {
                   if (value == null) return;
                   setState(() {
-                    _graphViewMode = _GraphViewMode.fromRadioValue(
-                      value,
-                    );
+                    _graphViewMode = _GraphViewMode.fromRadioValue(value);
                   });
                   Navigator.pop(menuContext);
                 },
@@ -1982,7 +1996,11 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
                         Navigator.pop(menuContext);
                       },
                       child: Padding(
-                        padding: const EdgeInsets.only(left: 4, top: 8, bottom: 8),
+                        padding: const EdgeInsets.only(
+                          left: 4,
+                          top: 8,
+                          bottom: 8,
+                        ),
                         child: Row(
                           children: [
                             const Radio<String>(value: 'term'),
@@ -2004,13 +2022,18 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
                       (course) => InkWell(
                         onTap: () {
                           setState(
-                            () => _graphViewMode =
-                                _GraphViewMode.course(course.id),
+                            () => _graphViewMode = _GraphViewMode.course(
+                              course.id,
+                            ),
                           );
                           Navigator.pop(menuContext);
                         },
                         child: Padding(
-                          padding: const EdgeInsets.only(left: 4, top: 8, bottom: 8),
+                          padding: const EdgeInsets.only(
+                            left: 4,
+                            top: 8,
+                            bottom: 8,
+                          ),
                           child: Row(
                             children: [
                               Radio<String>(
@@ -2019,11 +2042,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
                                 ).radioValue,
                               ),
                               const SizedBox(width: 8),
-                              Icon(
-                                Icons.school,
-                                size: 16,
-                                color: course.color,
-                              ),
+                              Icon(Icons.school, size: 16, color: course.color),
                               const SizedBox(width: 8),
                               Expanded(
                                 child: Text(
@@ -2057,10 +2076,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
               ),
               CheckboxListTile(
                 controlAffinity: ListTileControlAffinity.leading,
-                title: Text(
-                  'Hide legend',
-                  style: AppStyles.formText(context),
-                ),
+                title: Text('Hide legend', style: AppStyles.formText(context)),
                 value: _hideLegend == true,
                 onChanged: (value) {
                   _setHideLegend(value ?? false);

@@ -60,10 +60,7 @@ class _QuillSearchBarState extends State<QuillSearchBar> {
   void _onTextChanged(String text) {
     _searchText = text;
     _searchTimer?.cancel();
-    _searchTimer = Timer(
-      const Duration(milliseconds: 300),
-      _findText,
-    );
+    _searchTimer = Timer(const Duration(milliseconds: 300), _findText);
   }
 
   void _findText() {
@@ -123,10 +120,7 @@ class _QuillSearchBarState extends State<QuillSearchBar> {
     }
 
     widget.controller.updateSelection(
-      TextSelection(
-        baseOffset: offset,
-        extentOffset: offset + len,
-      ),
+      TextSelection(baseOffset: offset, extentOffset: offset + len),
       ChangeSource.local,
     );
 
@@ -159,11 +153,6 @@ class _QuillSearchBarState extends State<QuillSearchBar> {
     _moveToPosition();
   }
 
-  void _close() {
-    _clearSelection();
-    widget.onClose();
-  }
-
   String get _matchText {
     if (_searchText.isEmpty) return '';
     if (_offsets.isEmpty) return '0/0';
@@ -177,7 +166,8 @@ class _QuillSearchBarState extends State<QuillSearchBar> {
       onKeyEvent: (event) {
         if (event is KeyDownEvent &&
             event.logicalKey == LogicalKeyboardKey.escape) {
-          _close();
+          _clearSelection();
+          widget.onClose();
         }
       },
       child: Container(
@@ -199,7 +189,10 @@ class _QuillSearchBarState extends State<QuillSearchBar> {
                 color: context.colorScheme.onSurface.withValues(alpha: 0.4),
               ),
               visualDensity: VisualDensity.compact,
-              onPressed: _close,
+              onPressed: () {
+                _clearSelection();
+                widget.onClose();
+              },
             ),
             const SizedBox(width: 4),
             Expanded(
@@ -232,9 +225,9 @@ class _QuillSearchBarState extends State<QuillSearchBar> {
                           vertical: 10,
                         ),
                         suffixText: _matchText,
-                        suffixStyle: AppStyles.formHint(context).copyWith(
-                          fontSize: 12,
-                        ),
+                        suffixStyle: AppStyles.formHint(
+                          context,
+                        ).copyWith(fontSize: 12),
                       ),
                       onChanged: _onTextChanged,
                       textInputAction: TextInputAction.search,

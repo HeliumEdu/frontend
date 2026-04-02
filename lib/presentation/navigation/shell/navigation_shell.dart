@@ -146,14 +146,14 @@ class _NavigationShellState extends State<NavigationShell> {
       _screenCache[page] = page.buildScreen();
     }
 
-    DioClient().cacheService.addInactivityResumeListener(_onInactivityResume);
+    DioClient().cacheService.addInactivityResumeListener(_checkGettingStartedDialog);
     _checkDialogs();
   }
 
   @override
   void dispose() {
     DioClient().cacheService.removeInactivityResumeListener(
-      _onInactivityResume,
+      _checkGettingStartedDialog,
     );
     _inheritableProvidersNotifier.dispose();
     super.dispose();
@@ -317,10 +317,6 @@ class _NavigationShellState extends State<NavigationShell> {
         },
       ),
     );
-  }
-
-  void _onInactivityResume() {
-    _checkGettingStartedDialog();
   }
 
   Future<void> _checkGettingStartedDialog() async {
