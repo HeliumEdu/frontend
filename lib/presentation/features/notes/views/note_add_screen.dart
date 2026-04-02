@@ -787,11 +787,14 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
   Future<Uint8List> _buildNotePdf(Delta delta) async {
     final fontData = await rootBundle.load('assets/fonts/NotoSans-Regular.ttf');
     final notoSans = pw.Font.ttf(fontData);
+    final symbolsData =
+        await rootBundle.load('assets/fonts/NotoSansSymbols2-Regular.ttf');
+    final notoSymbols = pw.Font.ttf(symbolsData);
 
     final converter = PDFConverter(
       pageFormat: PDFPageFormat.a4,
       document: resolveCheckboxesForPdf(delta),
-      fallbacks: [notoSans],
+      fallbacks: [notoSans, notoSymbols],
       themeData: pw.ThemeData.withFont(
         base: notoSans,
         bold: notoSans,
@@ -803,6 +806,7 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
         boldFontV: notoSans,
         italicFontV: notoSans,
         boldItalicFontV: notoSans,
+        fallbacks: [notoSymbols],
       ),
     );
 
