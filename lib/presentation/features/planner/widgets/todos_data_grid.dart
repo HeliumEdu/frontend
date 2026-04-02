@@ -223,7 +223,7 @@ class TodosDataGridState extends BaseDataGridState<TodosDataGrid> {
                   );
                   setState(() {});
                 },
-                trailingAction: OutlinedButton.icon(
+                trailingAction: TextButton.icon(
                   onPressed: _isExporting
                       ? null
                       : () async {
@@ -248,20 +248,14 @@ class TodosDataGridState extends BaseDataGridState<TodosDataGrid> {
                             if (mounted) setState(() => _isExporting = false);
                           }
                         },
-                  style: OutlinedButton.styleFrom(
+                  style: TextButton.styleFrom(
                     minimumSize: const Size(0, 40),
-                    maximumSize: const Size(double.infinity, 40),
                     padding: const EdgeInsets.symmetric(horizontal: 12),
-                    side: BorderSide(color: context.colorScheme.primary),
                     tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                   ),
                   icon: _isExporting
                       ? const SizedBox.shrink()
-                      : Icon(
-                          Icons.download,
-                          size: 16,
-                          color: context.colorScheme.primary,
-                        ),
+                      : Icon(Icons.download, size: 16),
                   label: _isExporting
                       ? LoadingIndicator(
                           size: 16,
