@@ -382,7 +382,7 @@ class TodosDataGridState extends State<TodosDataGrid> {
                         context,
                         success
                             ? 'Exported ${export.filename}'
-                            : 'Export failed',
+                            : 'File not exported',
                         type: success ? SnackType.success : SnackType.error,
                       );
                     }
