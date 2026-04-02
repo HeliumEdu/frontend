@@ -115,6 +115,7 @@ class TodosDataGridState extends State<TodosDataGrid> {
   late TodosDataSource _dataSource;
   bool _isInitialized = false;
   bool _hasInitializedNavigation = false;
+  bool _isExporting = false;
 
   int _currentPage = 1;
   int _itemsPerPage = 10;
@@ -368,25 +369,54 @@ class TodosDataGridState extends State<TodosDataGrid> {
                   );
                   setState(() {});
                 },
-                trailingAction: TextButton.icon(
-                  onPressed: () async {
-                    final export = buildExportCsv();
-                    final success = await HeliumStorage.downloadBytes(
-                      export.bytes,
-                      export.filename,
-                    );
-                    if (context.mounted) {
-                      SnackBarHelper.show(
-                        context,
-                        success
-                            ? 'Exported ${export.filename}'
-                            : 'Nothing exported',
-                        type: success ? SnackType.success : SnackType.error,
-                      );
-                    }
-                  },
-                  icon: const Icon(Icons.download, size: 16),
-                  label: const Text('Export CSV'),
+                trailingAction: OutlinedButton.icon(
+                  onPressed: _isExporting
+                      ? null
+                      : () async {
+                          setState(() => _isExporting = true);
+                          try {
+                            final export = buildExportCsv();
+                            final success = await HeliumStorage.downloadBytes(
+                              export.bytes,
+                              export.filename,
+                            );
+                            if (context.mounted) {
+                              SnackBarHelper.show(
+                                context,
+                                success
+                                    ? 'Exported ${export.filename}'
+                                    : 'Nothing exported',
+                                type:
+                                    success ? SnackType.success : SnackType.error,
+                              );
+                            }
+                          } finally {
+                            if (mounted) setState(() => _isExporting = false);
+                          }
+                        },
+                  style: OutlinedButton.styleFrom(
+                    minimumSize: const Size(0, 40),
+                    maximumSize: const Size(double.infinity, 40),
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    side: BorderSide(color: context.colorScheme.primary),
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  ),
+                  icon: _isExporting
+                      ? const LoadingIndicator(
+                          size: 16,
+                          strokeWidth: 2,
+                          expanded: false,
+                        )
+                      : Icon(
+                          Icons.download,
+                          size: 16,
+                          color: context.colorScheme.primary,
+                        ),
+                  label: Text(
+                    'Export CSV',
+                    style: AppStyles.buttonText(context)
+                        .copyWith(color: context.colorScheme.primary, fontSize: 12),
+                  ),
                 ),
               ),
             ],

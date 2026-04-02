@@ -255,7 +255,7 @@ class _GradeCalculatorDialogState
         ),
         const SizedBox(height: 12),
 
-        Text('Desired Class Grade', style: AppStyles.formLabel(context)),
+        Text('Desired Class Grade (%)', style: AppStyles.formLabel(context)),
         const SizedBox(height: 9),
         TextFormField(
           controller: _desiredGradeController,
@@ -265,10 +265,6 @@ class _GradeCalculatorDialogState
             FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}')),
           ],
           decoration: InputDecoration(
-            hintText: 'e.g., 90',
-            hintStyle: AppStyles.formHint(context),
-            suffixText: '%',
-            suffixStyle: AppStyles.formText(context),
             filled: true,
             fillColor: context.colorScheme.surface,
             contentPadding: const EdgeInsets.only(left: 12),
