@@ -29,13 +29,14 @@ import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 enum NotebookColumn {
   title(label: 'Title'),
   due(label: 'Due', minViewportWidth: 900, mobileWidth: 144, desktopWidth: 154),
-  linkedTo(label: 'Linked To', mobileWidth: 130, desktopWidth: 200),
+  linkedTo(label: 'Linked To', mobileWidth: 130, tabletWidth: 150, desktopWidth: 200),
   modified(label: 'Modified', minViewportWidth: 950, fixedWidth: 136);
 
   const NotebookColumn({
     required this.label,
     this.fixedWidth,
     this.mobileWidth,
+    this.tabletWidth,
     this.desktopWidth,
     this.minViewportWidth,
   });
@@ -43,11 +44,13 @@ enum NotebookColumn {
   final String label;
   final double? fixedWidth;
   final double? mobileWidth;
+  final double? tabletWidth;
   final double? desktopWidth;
   final double? minViewportWidth;
 
   double? widthForLayout({required bool isMobile, required bool isTablet}) {
     if (isMobile && mobileWidth != null) return mobileWidth;
+    if (isTablet && tabletWidth != null) return tabletWidth;
     if (desktopWidth != null) return desktopWidth;
     return fixedWidth;
   }
@@ -146,13 +149,13 @@ class _NotebookDataGridState extends State<NotebookDataGrid> {
 
   @override
   Widget build(BuildContext context) {
+    final isMobile = Responsive.isMobile(context);
+    final isTablet = Responsive.isTablet(context);
     final isTouchDevice = Responsive.isTouchDevice(context);
     final isCompact = Responsive.isCompact(context);
-    final width = MediaQuery.of(context).size.width;
-    final showDue = width >= NotebookColumn.due.minViewportWidth!;
-    final showModified = !Responsive.isMobile(context);
     final isCapturing = PrintableArea.capturing.value;
     final showActions = !isTouchDevice && !isCapturing;
+    final columns = _buildColumns(isMobile, isTablet, showActions, isCompact);
 
     final isShowingAll = widget.rowsPerPage == -1;
     final totalItems = widget.notes.length;
@@ -209,9 +212,7 @@ class _NotebookDataGridState extends State<NotebookDataGrid> {
                 _buildGridSection(
                   context,
                   headerColor,
-                  showDue,
-                  showModified,
-                  showActions,
+                  columns,
                   isCompact,
                   isTouchDevice,
                   isCapturing,
@@ -266,9 +267,7 @@ class _NotebookDataGridState extends State<NotebookDataGrid> {
   Widget _buildGridSection(
     BuildContext context,
     Color headerColor,
-    bool showDue,
-    bool showModified,
-    bool showActions,
+    List<GridColumn> columns,
     bool isCompact,
     bool isTouchDevice,
     bool isCapturing,
@@ -281,93 +280,63 @@ class _NotebookDataGridState extends State<NotebookDataGrid> {
           headerColor: headerColor,
         ),
         child: SfDataGrid(
-        key: ValueKey(
-          'notes_grid_${showDue}_${showModified}_${showActions}_${isCompact}_$isCapturing',
-        ),
-        source: _dataSource,
-        controller: _controller,
-        columnWidthMode: ColumnWidthMode.fill,
-        headerRowHeight: 40,
-        rowHeight: 50,
-        shrinkWrapRows: isCapturing,
-        gridLinesVisibility: GridLinesVisibility.none,
-        headerGridLinesVisibility: GridLinesVisibility.none,
-        selectionMode: (isTouchDevice || isCompact)
-            ? SelectionMode.single
-            : SelectionMode.none,
-        horizontalScrollPhysics: const NeverScrollableScrollPhysics(),
-        navigationMode: GridNavigationMode.row,
-        allowSorting: true,
-        allowMultiColumnSorting: !isTouchDevice,
-        showSortNumbers: !isTouchDevice,
-        sortingGestureType: SortingGestureType.tap,
-        allowSwiping: isTouchDevice,
-        swipeMaxOffset: 80,
-        onSwipeStart: (details) {
-          return details.swipeDirection ==
-              DataGridRowSwipeDirection.endToStart;
-        },
-        endSwipeActionsBuilder: (context, row, rowIndex) {
-          final note = _dataSource.getNoteFromRow(row);
-          return GestureDetector(
-            onTap: () {
-              if (note != null) {
-                widget.onDelete(context, note);
-              }
-              _dataSource.notifyListeners();
-            },
-            child: Container(
-              color: context.colorScheme.error,
-              alignment: Alignment.centerRight,
-              padding: const EdgeInsets.only(right: 24),
-              child: Icon(
-                Icons.delete_outline,
-                color: context.colorScheme.onError,
+          key: ValueKey(
+            'notes_grid_${columns.length}_${isCompact}_$isCapturing',
+          ),
+          source: _dataSource,
+          controller: _controller,
+          columnWidthMode: ColumnWidthMode.fill,
+          headerRowHeight: 40,
+          rowHeight: 50,
+          shrinkWrapRows: isCapturing,
+          gridLinesVisibility: GridLinesVisibility.none,
+          headerGridLinesVisibility: GridLinesVisibility.none,
+          selectionMode: (isTouchDevice || isCompact)
+              ? SelectionMode.single
+              : SelectionMode.none,
+          horizontalScrollPhysics: const NeverScrollableScrollPhysics(),
+          navigationMode: GridNavigationMode.row,
+          allowSorting: true,
+          allowMultiColumnSorting: !isTouchDevice,
+          showSortNumbers: !isTouchDevice,
+          sortingGestureType: SortingGestureType.tap,
+          allowSwiping: isTouchDevice,
+          swipeMaxOffset: 80,
+          onSwipeStart: (details) {
+            return details.swipeDirection ==
+                DataGridRowSwipeDirection.endToStart;
+          },
+          endSwipeActionsBuilder: (context, row, rowIndex) {
+            final note = _dataSource.getNoteFromRow(row);
+            return GestureDetector(
+              onTap: () {
+                if (note != null) {
+                  widget.onDelete(context, note);
+                }
+                _dataSource.notifyListeners();
+              },
+              child: Container(
+                color: context.colorScheme.error,
+                alignment: Alignment.centerRight,
+                padding: const EdgeInsets.only(right: 24),
+                child: Icon(
+                  Icons.delete_outline,
+                  color: context.colorScheme.onError,
+                ),
               ),
-            ),
-          );
-        },
-        onSelectionChanged: (addedRows, removedRows) {
-          if (addedRows.isNotEmpty) {
-            final note = _dataSource.getNoteFromRow(addedRows.first);
-            if (note != null) {
-              widget.onNoteTap(note);
-              _controller.selectedRow = null;
+            );
+          },
+          onSelectionChanged: (addedRows, removedRows) {
+            if (addedRows.isNotEmpty) {
+              final note = _dataSource.getNoteFromRow(addedRows.first);
+              if (note != null) {
+                widget.onNoteTap(note);
+                _controller.selectedRow = null;
+              }
             }
-          }
-        },
-        columns: [
-          GridColumn(
-            columnName: 'title',
-            label: _buildHeaderCell(NotebookColumn.title),
-            minimumWidth: 170,
-          ),
-          if (showDue)
-            GridColumn(
-              columnName: 'due',
-              label: _buildHeaderCell(NotebookColumn.due),
-              width: 154,
-            ),
-          GridColumn(
-            columnName: 'linkedTo',
-            label: _buildHeaderCell(NotebookColumn.linkedTo),
-            width: isCompact ? (isTouchDevice ? 150 : 130) : 200,
-          ),
-          if (showModified)
-            GridColumn(
-              columnName: 'modified',
-              label: _buildHeaderCell(NotebookColumn.modified),
-              width: 136,
-            ),
-          if (showActions)
-            GridColumn(
-              columnName: 'actions',
-              label: const SizedBox.shrink(),
-              width: isCompact ? 51 : 93,
-              allowSorting: false,
-            ),
-        ],
-      ),
+          },
+          columns: columns,
+        ),
       ),
     );
 
@@ -425,6 +394,59 @@ class _NotebookDataGridState extends State<NotebookDataGrid> {
         ],
       ),
     );
+  }
+
+  bool _shouldShowColumn(NotebookColumn column) {
+    if (column.minViewportWidth == null) return true;
+    return MediaQuery.of(context).size.width >= column.minViewportWidth!;
+  }
+
+  List<GridColumn> _buildColumns(
+    bool isMobile,
+    bool isTablet,
+    bool showActions,
+    bool isCompact,
+  ) {
+    final columns = <GridColumn>[];
+
+    columns.add(GridColumn(
+      columnName: 'title',
+      label: _buildHeaderCell(NotebookColumn.title),
+      minimumWidth: 170,
+    ));
+
+    if (_shouldShowColumn(NotebookColumn.due)) {
+      columns.add(GridColumn(
+        columnName: 'due',
+        label: _buildHeaderCell(NotebookColumn.due),
+        width: NotebookColumn.due.widthForLayout(isMobile: isMobile, isTablet: isTablet)!,
+      ));
+    }
+
+    columns.add(GridColumn(
+      columnName: 'linkedTo',
+      label: _buildHeaderCell(NotebookColumn.linkedTo),
+      width: NotebookColumn.linkedTo.widthForLayout(isMobile: isMobile, isTablet: isTablet)!,
+    ));
+
+    if (_shouldShowColumn(NotebookColumn.modified)) {
+      columns.add(GridColumn(
+        columnName: 'modified',
+        label: _buildHeaderCell(NotebookColumn.modified),
+        width: NotebookColumn.modified.widthForLayout(isMobile: isMobile, isTablet: isTablet)!,
+      ));
+    }
+
+    if (showActions) {
+      columns.add(GridColumn(
+        columnName: 'actions',
+        label: const SizedBox.shrink(),
+        width: isCompact ? 51 : 93,
+        allowSorting: false,
+      ));
+    }
+
+    return columns;
   }
 
   NotesDataSource _buildDataSource() {
@@ -573,6 +595,26 @@ class NotesDataSource extends DataGridSource with SortableDataGridSource {
     return _notesById[noteId];
   }
 
+  List<DataGridCell> _getDisplayCells(DataGridRow row) {
+    final width = MediaQuery.of(context).size.width;
+    final isTouchDevice = Responsive.isTouchDevice(context);
+
+    return row.getCells().where((cell) {
+      if (cell.columnName.startsWith('_')) return false;
+
+      switch (cell.columnName) {
+        case 'due':
+          return width >= NotebookColumn.due.minViewportWidth!;
+        case 'modified':
+          return width >= NotebookColumn.modified.minViewportWidth!;
+        case 'actions':
+          return !isTouchDevice && !PrintableArea.capturing.value;
+        default:
+          return true;
+      }
+    }).toList();
+  }
+
   @override
   DataGridRowAdapter? buildRow(DataGridRow row) {
     final courseColor =
@@ -639,22 +681,7 @@ class NotesDataSource extends DataGridSource with SortableDataGridSource {
                 .value
             as bool?;
 
-    final width = MediaQuery.of(context).size.width;
-    final displayCells = row
-        .getCells()
-        .where((c) => !c.columnName.startsWith('_'))
-        .where(
-          (c) =>
-              (c.columnName != 'due' || width >= NotebookColumn.due.minViewportWidth!) &&
-              (c.columnName != 'modified' || !Responsive.isMobileWidth(width)),
-        )
-        .where(
-          (c) =>
-              (!Responsive.isTouchDevice(context) &&
-                  !PrintableArea.capturing.value) ||
-              c.columnName != 'actions',
-        )
-        .toList();
+    final displayCells = _getDisplayCells(row);
 
     final isTouchDevice = Responsive.isTouchDevice(context);
     final isCompact = Responsive.isCompact(context);

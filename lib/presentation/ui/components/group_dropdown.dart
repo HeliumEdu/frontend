@@ -15,6 +15,7 @@ import 'package:heliumapp/presentation/ui/components/helium_icon_button.dart';
 import 'package:heliumapp/presentation/ui/layout/shadow_container.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/date_time_helpers.dart';
+import 'package:heliumapp/utils/print_helpers.dart';
 
 class GroupDropdown<T extends BaseTitledModel> extends StatelessWidget {
   final List<T> groups;
@@ -77,21 +78,26 @@ class GroupDropdown<T extends BaseTitledModel> extends StatelessWidget {
       child: DropdownButtonHideUnderline(
         child: ButtonTheme(
           alignedDropdown: true,
-          child: DropdownButton<T>(
-            icon: Icon(Icons.keyboard_arrow_down, color: context.colorScheme.primary),
-            dropdownColor: context.colorScheme.surface,
-            isExpanded: true,
-            underline: const SizedBox(),
-            value: initialSelection,
-            items: items,
-            selectedItemBuilder: (BuildContext context) {
-              return groups.map<Widget>((T item) {
-                return _buildItem(context, item);
-              }).toList();
-            },
-            onChanged: onChanged,
-            alignment: AlignmentDirectional.centerStart,
-            menuMaxHeight: 400,
+          child: PrintHidden(
+            child: DropdownButton<T>(
+              icon: Icon(
+                Icons.keyboard_arrow_down,
+                color: context.colorScheme.primary,
+              ),
+              dropdownColor: context.colorScheme.surface,
+              isExpanded: true,
+              underline: const SizedBox(),
+              value: initialSelection,
+              items: items,
+              selectedItemBuilder: (BuildContext context) {
+                return groups.map<Widget>((T item) {
+                  return _buildItem(context, item);
+                }).toList();
+              },
+              onChanged: onChanged,
+              alignment: AlignmentDirectional.centerStart,
+              menuMaxHeight: 400,
+            ),
           ),
         ),
       ),
