@@ -29,6 +29,7 @@ import 'package:heliumapp/presentation/features/planner/bloc/reminder_state.dart
 import 'package:heliumapp/presentation/features/planner/views/planner_item_add_screen.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/core/base_event.dart';
 import 'package:heliumapp/presentation/ui/components/course_title_label.dart';
+import 'package:heliumapp/presentation/ui/components/generic_label.dart';
 import 'package:heliumapp/presentation/ui/components/non_touch_selectable_text.dart';
 import 'package:heliumapp/presentation/ui/feedback/empty_card.dart';
 import 'package:heliumapp/presentation/ui/feedback/error_card.dart';
@@ -437,10 +438,13 @@ class _NotificationsScreenState
                   children: [
                     Row(
                       children: [
-                        // When course label follows, Text hugs content;
+                        // When a badge follows, Text hugs content;
                         // when alone, Flexible allows ellipsis
                         if (plannerItem is HomeworkModel &&
-                            plannerItem.course.entity != null)
+                                plannerItem.course.entity != null ||
+                            notification.reminder.course?.entity != null &&
+                                notification
+                                    .reminder.course!.entity!.room.isNotEmpty)
                           Text(
                             notification.title,
                             style: AppStyles.standardBodyText(context).copyWith(
@@ -473,6 +477,24 @@ class _NotificationsScreenState
                               child: CourseTitleLabel(
                                 title: plannerItem.course.entity!.title,
                                 color: plannerItem.course.entity!.color,
+                                compact: true,
+                              ),
+                            ),
+                          ),
+                        ] else if (notification.reminder.course?.entity !=
+                                null &&
+                            notification
+                                .reminder.course!.entity!.room.isNotEmpty) ...[
+                          const SizedBox(width: 4),
+                          Expanded(
+                            child: Align(
+                              alignment: Alignment.centerRight,
+                              child: GenericLabel(
+                                label:
+                                    notification.reminder.course!.entity!.room,
+                                color:
+                                    notification.reminder.course!.entity!.color,
+                                icon: Icons.pin_drop_outlined,
                                 compact: true,
                               ),
                             ),
