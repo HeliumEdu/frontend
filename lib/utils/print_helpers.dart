@@ -321,6 +321,35 @@ class PrintableArea extends StatefulWidget {
   /// [PrintHidden] listens to this; other widgets can too for custom behavior.
   static final ValueNotifier<bool> capturing = ValueNotifier(false);
 
+  // ── PDF rendering configuration ────────────────────────────────────────────
+
+  /// Pixel ratio used on web. CanvasKit rasterization is synchronous and
+  /// scales quadratically; 1.5 is ~2.5× faster than 2.0 with negligible
+  /// quality difference.
+  static const double pixelRatioWeb = 1.5;
+
+  /// Pixel ratio used on native platforms.
+  static const double pixelRatioNative = 2.0;
+
+  /// Page margin in inches, applied to all four sides.
+  static const double marginInches = 0.5;
+
+  /// Base page format. Letter rather than A4: A4 (11.69") is taller than
+  /// Letter (11"), causing the OS to clip the bottom on US Letter printers.
+  static const PdfPageFormat pageFormat = PdfPageFormat.letter;
+
+  // ── Timing configuration ───────────────────────────────────────────────────
+
+  /// How long to wait after switching to light mode before capturing.
+  /// [AnimatedTheme] has a 200 ms crossfade; this must exceed that.
+  static const Duration themeCrossfadeSettle = Duration(milliseconds: 250);
+
+  /// Extra settle delay on web after triggering layout changes, to allow
+  /// CanvasKit to finish rasterizing before the GPU readback.
+  static const Duration canvasKitSettle = Duration(milliseconds: 50);
+
+  // ───────────────────────────────────────────────────────────────────────────
+
   final Widget child;
 
   const PrintableArea({super.key, required this.child});
@@ -375,10 +404,10 @@ class _PrintableAreaState extends State<PrintableArea> {
     // a dependent layout pass, so a single frame isn't always enough to settle.
     await WidgetsBinding.instance.endOfFrame;
 
-    // Force light mode. AnimatedTheme has a 200ms crossfade; 250ms ensures it completes.
+    // Force light mode and wait for AnimatedTheme crossfade to complete.
     if (wasDark) {
       await themeNotifier.setThemeMode(ThemeMode.light);
-      await Future.delayed(const Duration(milliseconds: 250));
+      await Future.delayed(PrintableArea.themeCrossfadeSettle);
     }
 
     if (!mounted) {
@@ -410,11 +439,10 @@ class _PrintableAreaState extends State<PrintableArea> {
 
       // Yield a frame for PrintHidden/layout re-renders and loading spinner.
       await WidgetsBinding.instance.endOfFrame;
-      // CanvasKit rasterization is synchronous and scales quadratically;
-      // 1.5 is ~2.5× faster than 2.0 with negligible quality difference on web.
-      if (kIsWeb) await Future.delayed(const Duration(milliseconds: 50));
+      if (kIsWeb) await Future.delayed(PrintableArea.canvasKitSettle);
 
-      const double pixelRatio = kIsWeb ? 1.5 : 2.0;
+      const double pixelRatio =
+          kIsWeb ? PrintableArea.pixelRatioWeb : PrintableArea.pixelRatioNative;
 
       // Collect hints before the costly toImage() GPU readback;
       // convert logical px to image px by applying the pixel ratio.
@@ -426,12 +454,11 @@ class _PrintableAreaState extends State<PrintableArea> {
 
       final image = await boundary.toImage(pixelRatio: pixelRatio);
 
-      // 0.5-inch margins. Letter rather than A4: A4 (11.69") is taller than
-      // Letter (11"), causing the OS to clip the bottom on US Letter printers.
-      const double margin = PdfPageFormat.inch * 0.5;
+      const double margin = PdfPageFormat.inch * PrintableArea.marginInches;
       final bool isLandscape = image.width > image.height;
-      final PdfPageFormat baseFormat =
-          isLandscape ? PdfPageFormat.letter.landscape : PdfPageFormat.letter;
+      final PdfPageFormat baseFormat = isLandscape
+          ? PrintableArea.pageFormat.landscape
+          : PrintableArea.pageFormat;
       final pdfPageFormat = PdfPageFormat(
         baseFormat.width,
         baseFormat.height,
