@@ -25,6 +25,8 @@ import 'package:heliumapp/utils/sort_helpers.dart';
 import 'package:syncfusion_flutter_core/theme.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 
+const double _dueColumnMinWidth = 900;
+
 class NotesDataGrid extends StatefulWidget {
   final List<NoteModel> notes;
   final Function(NoteModel) onNoteTap;
@@ -120,6 +122,8 @@ class _NotesDataGridState extends State<NotesDataGrid> {
   Widget build(BuildContext context) {
     final isTouchDevice = Responsive.isTouchDevice(context);
     final isCompact = Responsive.isCompact(context);
+    final width = MediaQuery.of(context).size.width;
+    final showDue = width >= 900;
     final showModified = !Responsive.isMobile(context);
     final isCapturing = PrintableArea.capturing.value;
     final showActions = !isTouchDevice && !isCapturing;
@@ -179,6 +183,7 @@ class _NotesDataGridState extends State<NotesDataGrid> {
                 _buildGridSection(
                   context,
                   headerColor,
+                  showDue,
                   showModified,
                   showActions,
                   isCompact,
@@ -235,6 +240,7 @@ class _NotesDataGridState extends State<NotesDataGrid> {
   Widget _buildGridSection(
     BuildContext context,
     Color headerColor,
+    bool showDue,
     bool showModified,
     bool showActions,
     bool isCompact,
@@ -250,7 +256,7 @@ class _NotesDataGridState extends State<NotesDataGrid> {
         ),
         child: SfDataGrid(
         key: ValueKey(
-          'notes_grid_${showModified}_${showActions}_${isCompact}_$isCapturing',
+          'notes_grid_${showDue}_${showModified}_${showActions}_${isCompact}_$isCapturing',
         ),
         source: _dataSource,
         controller: _controller,
@@ -310,7 +316,7 @@ class _NotesDataGridState extends State<NotesDataGrid> {
             label: _buildHeaderCell('Title'),
             minimumWidth: 170,
           ),
-          if (showModified)
+          if (showDue)
             GridColumn(
               columnName: 'due',
               label: _buildHeaderCell('Due'),
@@ -607,13 +613,14 @@ class NotesDataSource extends DataGridSource with SortableDataGridSource {
                 .value
             as bool?;
 
+    final width = MediaQuery.of(context).size.width;
     final displayCells = row
         .getCells()
         .where((c) => !c.columnName.startsWith('_'))
         .where(
           (c) =>
-              !Responsive.isMobile(context) ||
-              (c.columnName != 'modified' && c.columnName != 'due'),
+              (c.columnName != 'due' || width >= 900) &&
+              (c.columnName != 'modified' || !Responsive.isMobileWidth(width)),
         )
         .where(
           (c) =>
