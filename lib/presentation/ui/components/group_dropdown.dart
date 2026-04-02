@@ -78,26 +78,26 @@ class GroupDropdown<T extends BaseTitledModel> extends StatelessWidget {
       child: DropdownButtonHideUnderline(
         child: ButtonTheme(
           alignedDropdown: true,
-          child: PrintHidden(
-            child: DropdownButton<T>(
-              icon: Icon(
+          child: DropdownButton<T>(
+            icon: PrintHidden(
+              child: Icon(
                 Icons.keyboard_arrow_down,
                 color: context.colorScheme.primary,
               ),
-              dropdownColor: context.colorScheme.surface,
-              isExpanded: true,
-              underline: const SizedBox(),
-              value: initialSelection,
-              items: items,
-              selectedItemBuilder: (BuildContext context) {
-                return groups.map<Widget>((T item) {
-                  return _buildItem(context, item);
-                }).toList();
-              },
-              onChanged: onChanged,
-              alignment: AlignmentDirectional.centerStart,
-              menuMaxHeight: 400,
             ),
+            dropdownColor: context.colorScheme.surface,
+            isExpanded: true,
+            underline: const SizedBox(),
+            value: initialSelection,
+            items: items,
+            selectedItemBuilder: (BuildContext context) {
+              return groups.map<Widget>((T item) {
+                return _buildItem(context, item);
+              }).toList();
+            },
+            onChanged: onChanged,
+            alignment: AlignmentDirectional.centerStart,
+            menuMaxHeight: 400,
           ),
         ),
       ),
