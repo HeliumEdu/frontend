@@ -12,6 +12,7 @@ class ResponsiveCardGrid<T> extends StatelessWidget {
   final Widget Function(BuildContext context, T item) itemBuilder;
   final double maxCardWidth;
   final double crossAxisSpacing;
+  final bool shrinkWrap;
 
   const ResponsiveCardGrid({
     super.key,
@@ -19,6 +20,7 @@ class ResponsiveCardGrid<T> extends StatelessWidget {
     required this.itemBuilder,
     this.maxCardWidth = 350.0,
     this.crossAxisSpacing = 12.0,
+    this.shrinkWrap = false,
   });
 
   @override
@@ -34,16 +36,18 @@ class ResponsiveCardGrid<T> extends StatelessWidget {
         if (columnsCount == 1) {
           // Single column can use ListView directly for better performance
           return ListView.builder(
+            shrinkWrap: shrinkWrap,
+            physics: shrinkWrap ? const NeverScrollableScrollPhysics() : null,
             itemCount: items.length,
-            itemBuilder: (context, index) {
-              return itemBuilder(context, items[index]);
-            },
+            itemBuilder: (context, index) => itemBuilder(context, items[index]),
           );
         }
 
         final rowCount = (items.length / columnsCount).ceil();
 
         return ListView.builder(
+          shrinkWrap: shrinkWrap,
+          physics: shrinkWrap ? const NeverScrollableScrollPhysics() : null,
           itemCount: rowCount,
           itemBuilder: (context, rowIndex) {
             final startIndex = rowIndex * columnsCount;

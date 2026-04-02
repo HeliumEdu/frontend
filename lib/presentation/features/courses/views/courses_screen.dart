@@ -45,6 +45,7 @@ import 'package:heliumapp/presentation/ui/components/pill_badge.dart';
 import 'package:heliumapp/presentation/ui/layout/responsive_card_grid.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/date_time_helpers.dart';
+import 'package:heliumapp/utils/print_helpers.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:heliumapp/utils/sort_helpers.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -234,40 +235,42 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen>
 
   @override
   Widget buildHeaderArea(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: GroupDropdown(
-        groups: _courseGroups,
-        initialSelection: _courseGroups.firstWhereOrNull(
-          (g) => g.id == _selectedGroupId,
-        ),
-        onChanged: (value) {
-          // The "+" button has a null value
-          if (value == null) return;
-          if (value.id == _selectedGroupId) return;
-
-          setState(() {
-            _selectedGroupId = value.id;
-          });
-        },
-        onCreate: () {
-          showCourseGroupDialog(parentContext: context, isEdit: false);
-        },
-        onEdit: (group) {
-          showCourseGroupDialog(
-            parentContext: context,
-            isEdit: true,
-            group: group,
-          );
-        },
-        onDelete: (g) => {
-          context.read<CourseBloc>().add(
-            DeleteCourseGroupEvent(
-              origin: EventOrigin.screen,
-              courseGroupId: (g as BaseModel).id,
-            ),
+    return PrintHidden(
+      child: Padding(
+        padding: const EdgeInsets.only(bottom: 12),
+        child: GroupDropdown(
+          groups: _courseGroups,
+          initialSelection: _courseGroups.firstWhereOrNull(
+            (g) => g.id == _selectedGroupId,
           ),
-        },
+          onChanged: (value) {
+            // The "+" button has a null value
+            if (value == null) return;
+            if (value.id == _selectedGroupId) return;
+
+            setState(() {
+              _selectedGroupId = value.id;
+            });
+          },
+          onCreate: () {
+            showCourseGroupDialog(parentContext: context, isEdit: false);
+          },
+          onEdit: (group) {
+            showCourseGroupDialog(
+              parentContext: context,
+              isEdit: true,
+              group: group,
+            );
+          },
+          onDelete: (g) => {
+            context.read<CourseBloc>().add(
+              DeleteCourseGroupEvent(
+                origin: EventOrigin.screen,
+                courseGroupId: (g as BaseModel).id,
+              ),
+            ),
+          },
+        ),
       ),
     );
   }
@@ -320,9 +323,15 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen>
     }
 
     return Expanded(
-      child: ResponsiveCardGrid<CourseModel>(
-        items: _coursesMap[_selectedGroupId]!,
-        itemBuilder: (context, course) => _buildCoursesCard(context, course),
+      child: PrintableArea(
+        child: ValueListenableBuilder<bool>(
+          valueListenable: PrintableArea.capturing,
+          builder: (context, isCapturing, _) => ResponsiveCardGrid<CourseModel>(
+            shrinkWrap: isCapturing,
+            items: _coursesMap[_selectedGroupId]!,
+            itemBuilder: _buildCoursesCard,
+          ),
+        ),
       ),
     );
   }
@@ -413,56 +422,62 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen>
                   ),
                   const SizedBox(width: 8),
                   if (course.teacherEmail.isNotEmpty) ...[
-                    HeliumIconButton(
-                      onPressed: () {
-                        launchUrl(Uri.parse('mailto:${course.teacherEmail}'));
-                      },
-                      icon: Icons.email_outlined,
-                      tooltip: 'Email teacher',
-                      color: context.semanticColors.info,
+                    PrintHidden(
+                      child: HeliumIconButton(
+                        onPressed: () {
+                          launchUrl(Uri.parse('mailto:${course.teacherEmail}'));
+                        },
+                        icon: Icons.email_outlined,
+                        tooltip: 'Email teacher',
+                        color: context.semanticColors.info,
+                      ),
                     ),
                     const SizedBox(width: 8),
                   ],
                   if (course.website.isNotEmpty) ...[
-                    HeliumIconButton(
-                      onPressed: () {
-                        launchUrl(
-                          Uri.parse(course.website),
-                        );
-                      },
-                      icon: Icons.launch_outlined,
-                      tooltip: 'Launch class website',
-                      color: context.semanticColors.success,
+                    PrintHidden(
+                      child: HeliumIconButton(
+                        onPressed: () {
+                          launchUrl(Uri.parse(course.website));
+                        },
+                        icon: Icons.launch_outlined,
+                        tooltip: 'Launch class website',
+                        color: context.semanticColors.success,
+                      ),
                     ),
                     const SizedBox(width: 8),
                   ],
                   if (!Responsive.isMobile(context)) ...[
-                    HeliumIconButton(
-                      onPressed: () => _onEdit(course),
-                      icon: Icons.edit_outlined,
+                    PrintHidden(
+                      child: HeliumIconButton(
+                        onPressed: () => _onEdit(course),
+                        icon: Icons.edit_outlined,
+                      ),
                     ),
                     const SizedBox(width: 8),
                   ],
-                  HeliumIconButton(
-                    onPressed: () {
-                      showConfirmDeleteDialog(
-                        parentContext: context,
-                        item: course,
-                        additionalWarning:
-                            'Any assignments associated with this class, including attachments and other data, will also be deleted.',
-                        onDelete: (c) {
-                          context.read<CourseBloc>().add(
-                            DeleteCourseEvent(
-                              origin: EventOrigin.screen,
-                              courseGroupId: c.courseGroup,
-                              courseId: c.id,
-                            ),
-                          );
-                        },
-                      );
-                    },
-                    icon: Icons.delete_outline,
-                    color: context.colorScheme.error,
+                  PrintHidden(
+                    child: HeliumIconButton(
+                      onPressed: () {
+                        showConfirmDeleteDialog(
+                          parentContext: context,
+                          item: course,
+                          additionalWarning:
+                              'Any assignments associated with this class, including attachments and other data, will also be deleted.',
+                          onDelete: (c) {
+                            context.read<CourseBloc>().add(
+                              DeleteCourseEvent(
+                                origin: EventOrigin.screen,
+                                courseGroupId: c.courseGroup,
+                                courseId: c.id,
+                              ),
+                            );
+                          },
+                        );
+                      },
+                      icon: Icons.delete_outline,
+                      color: context.colorScheme.error,
+                    ),
                   ),
                 ],
               ),

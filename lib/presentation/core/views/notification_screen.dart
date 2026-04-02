@@ -438,18 +438,36 @@ class _NotificationsScreenState
                   children: [
                     Row(
                       children: [
-                        Flexible(
-                          child: Text(
+                        // When a badge follows, Text hugs content;
+                        // when alone, Flexible allows ellipsis
+                        if (plannerItem is HomeworkModel &&
+                                plannerItem.course.entity != null ||
+                            notification.reminder.course?.entity != null &&
+                                notification
+                                    .reminder.course!.entity!.room.isNotEmpty)
+                          Text(
                             notification.title,
-                            overflow: TextOverflow.ellipsis,
-                            maxLines: 1,
                             style: AppStyles.standardBodyText(context).copyWith(
                               fontWeight: notification.isRead
                                   ? FontWeight.normal
                                   : FontWeight.w600,
                             ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          )
+                        else
+                          Flexible(
+                            child: Text(
+                              notification.title,
+                              overflow: TextOverflow.ellipsis,
+                              style: AppStyles.standardBodyText(context)
+                                  .copyWith(
+                                    fontWeight: notification.isRead
+                                        ? FontWeight.normal
+                                        : FontWeight.w600,
+                                  ),
+                            ),
                           ),
-                        ),
                         if (plannerItem is HomeworkModel &&
                             plannerItem.course.entity != null) ...[
                           const SizedBox(width: 4),
