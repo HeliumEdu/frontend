@@ -258,7 +258,7 @@ class TodosDataGridState extends BaseDataGridState<TodosDataGrid> {
                     maintainSize: true,
                     maintainAnimation: true,
                     maintainState: true,
-                    child: Icon(Icons.download, size: 16),
+                    child: const Icon(Icons.download, size: 16),
                   ),
                   label: Stack(
                     alignment: Alignment.center,
