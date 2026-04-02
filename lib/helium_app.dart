@@ -31,23 +31,18 @@ class HeliumApp extends StatefulWidget {
 class _HeliumAppState extends State<HeliumApp> {
   final _themeNotifier = ThemeNotifier();
 
-  bool get _isPrintSupported =>
-      kIsWeb ||
-      (defaultTargetPlatform != TargetPlatform.android &&
-          defaultTargetPlatform != TargetPlatform.iOS);
-
   @override
   void initState() {
     super.initState();
     _themeNotifier.addListener(_onThemeChanged);
-    if (_isPrintSupported) HardwareKeyboard.instance.addHandler(_handleKeyEvent);
+    if (PrintService.isSupported) HardwareKeyboard.instance.addHandler(_handleKeyEvent);
     _log.info('HeliumApp initialized with theme: ${_themeNotifier.themeMode}');
   }
 
   @override
   void dispose() {
     _themeNotifier.removeListener(_onThemeChanged);
-    if (_isPrintSupported) HardwareKeyboard.instance.removeHandler(_handleKeyEvent);
+    if (PrintService.isSupported) HardwareKeyboard.instance.removeHandler(_handleKeyEvent);
     super.dispose();
   }
 

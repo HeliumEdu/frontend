@@ -285,25 +285,16 @@ class _PrintableAreaState extends State<PrintableArea> {
   void _unregisterHintsProvider(PdfPageBreakHintsProvider p) =>
       _hintsProviders.removeWhere((e) => identical(e, p));
 
-  // Stored once so register/unregister use the same closure identity.
-  // Dart method tear-offs are not referentially identical across evaluations,
-  // so storing the reference is required for removeWhere(identical) to work.
+  // Stored once — Dart method tear-offs aren't referentially identical across
+  // evaluations, so identity-based unregister requires a stable reference.
   late final PrintHandler _registeredHandler;
 
-  // When true, child is rendered with unconstrained height so that content
-  // taller than the viewport (e.g. a paginated data grid) renders fully before
-  // the screenshot is taken.
   bool _capturePending = false;
-
-  static bool get _isSupported =>
-      kIsWeb ||
-      (defaultTargetPlatform != TargetPlatform.android &&
-          defaultTargetPlatform != TargetPlatform.iOS);
 
   @override
   void initState() {
     super.initState();
-    if (_isSupported) {
+    if (PrintService.isSupported) {
       _registeredHandler = _printArea;
       PrintService().register(_registeredHandler);
     }
@@ -311,7 +302,7 @@ class _PrintableAreaState extends State<PrintableArea> {
 
   @override
   void dispose() {
-    if (_isSupported) PrintService().unregister(_registeredHandler);
+    if (PrintService.isSupported) PrintService().unregister(_registeredHandler);
     super.dispose();
   }
 
@@ -320,19 +311,17 @@ class _PrintableAreaState extends State<PrintableArea> {
     final originalMode = themeNotifier.themeMode;
     final wasDark = themeNotifier.isDarkMode;
 
-    // Unconstrain height so bounded children (e.g. Expanded grids) render at
-    // their full natural height before the screenshot is taken.
-    // Both flags must flip synchronously before any endOfFrame await —
-    // _capturePending expands OverflowBox while capturing triggers
-    // Column/grid layout changes, and they must be consistent on the same frame.
+    // Both flags must flip before any endOfFrame await — _capturePending
+    // unconstrain the OverflowBox; capturing switches layout/grid modes.
+    // They must be consistent on the same frame before content settles.
     setState(() => _capturePending = true);
     PrintableArea.capturing.value = true;
     await WidgetsBinding.instance.endOfFrame;
+    // Second frame: Syncfusion and OverflowBox layout changes can each trigger
+    // a dependent layout pass, so a single frame isn't always enough to settle.
     await WidgetsBinding.instance.endOfFrame;
 
-    // Force light mode so the PDF doesn't render with dark colors.
-    // AnimatedTheme (inside MaterialApp) has a 200ms crossfade; wait long
-    // enough for it to fully complete before taking the screenshot.
+    // Force light mode. AnimatedTheme has a 200ms crossfade; 250ms ensures it completes.
     if (wasDark) {
       await themeNotifier.setThemeMode(ThemeMode.light);
       await Future.delayed(const Duration(milliseconds: 250));
@@ -365,18 +354,16 @@ class _PrintableAreaState extends State<PrintableArea> {
               as RenderRepaintBoundary?;
       if (boundary == null) throw Exception('RepaintBoundary not available');
 
-      // Yield a frame so PrintHidden widgets and layout changes re-render
-      // before the screenshot. Also lets the loading spinner paint first.
+      // Yield a frame for PrintHidden/layout re-renders and loading spinner.
       await WidgetsBinding.instance.endOfFrame;
+      // CanvasKit rasterization is synchronous and scales quadratically;
+      // 1.5 is ~2.5× faster than 2.0 with negligible quality difference on web.
       if (kIsWeb) await Future.delayed(const Duration(milliseconds: 50));
 
-      // Lower pixel ratio on web — CanvasKit rasterization is synchronous and
-      // scales quadratically; 1.5 is ~2.5× faster than 2.0.
       const double pixelRatio = kIsWeb ? 1.5 : 2.0;
 
-      // Collect row-boundary hints while the render tree is stable (before
-      // the costly toImage() GPU readback). Each provider returns logical-pixel
-      // Y positions; convert to image pixels by applying the pixel ratio.
+      // Collect hints before the costly toImage() GPU readback;
+      // convert logical px to image px by applying the pixel ratio.
       final logicalHints = <double>[
         for (final provider in _hintsProviders) ...provider(boundary),
       ];
@@ -385,13 +372,9 @@ class _PrintableAreaState extends State<PrintableArea> {
 
       final image = await boundary.toImage(pixelRatio: pixelRatio);
 
-      // 0.5-inch margins on all sides. Letter is used rather than A4 because
-      // A4 (11.69") is taller than Letter (11"), causing the OS to clip ~0.69"
-      // from the bottom when printing on US Letter paper — eating almost all
-      // of any bottom margin buffer.
+      // 0.5-inch margins. Letter rather than A4: A4 (11.69") is taller than
+      // Letter (11"), causing the OS to clip the bottom on US Letter printers.
       const double margin = PdfPageFormat.inch * 0.5;
-
-      // Use US Letter in the orientation that best fits the content.
       final bool isLandscape = image.width > image.height;
       final PdfPageFormat baseFormat =
           isLandscape ? PdfPageFormat.letter.landscape : PdfPageFormat.letter;
@@ -401,81 +384,8 @@ class _PrintableAreaState extends State<PrintableArea> {
         marginAll: margin,
       );
 
-      // Scale image to fit the content width (page minus margins).
-      final double contentWidthPt = pdfPageFormat.availableWidth;
-      final double contentHeightPt = pdfPageFormat.availableHeight;
-      final double scale = contentWidthPt / image.width;
-
-      // Maximum image pixels that fit in one page's content area.
-      final double pdfPageHeightPx = contentHeightPt / scale;
-
       final document = pw.Document();
-      double startPx = 0;
-      int pdfPageIndex = 0;
-
-      while (startPx < image.height) {
-        double endPx =
-            (startPx + pdfPageHeightPx).clamp(0.0, image.height.toDouble());
-
-        // Snap the page break to the last row boundary that fits within this
-        // page so we never cut through a row. Skip snapping on the final page
-        // (endPx == image.height) since nothing follows it.
-        if (imageBoundaries.isNotEmpty && endPx < image.height) {
-          final snapped = imageBoundaries
-              .where((b) => b > startPx && b <= endPx)
-              .fold<double>(0, (prev, b) => b > prev ? b : prev);
-          if (snapped > startPx) endPx = snapped;
-        }
-
-        final int sliceHeightPx = (endPx - startPx).ceil();
-        if (sliceHeightPx <= 0) break;
-
-        // Crop this page's slice from the full screenshot.
-        final recorder = ui.PictureRecorder();
-        final canvas = ui.Canvas(
-          recorder,
-          ui.Rect.fromLTWH(
-              0, 0, image.width.toDouble(), sliceHeightPx.toDouble()),
-        );
-        canvas.drawImageRect(
-          image,
-          ui.Rect.fromLTWH(
-              0, startPx, image.width.toDouble(), sliceHeightPx.toDouble()),
-          ui.Rect.fromLTWH(
-              0, 0, image.width.toDouble(), sliceHeightPx.toDouble()),
-          ui.Paint(),
-        );
-        final picture = recorder.endRecording();
-        final sliceImage = await picture.toImage(image.width, sliceHeightPx);
-        final sliceData =
-            await sliceImage.toByteData(format: ui.ImageByteFormat.png);
-        if (sliceData == null) throw Exception('Failed to encode page $pdfPageIndex');
-        // Yield a frame after each blocking PNG encode so the loading spinner
-        // can animate between pages rather than freezing for the full duration.
-        await WidgetsBinding.instance.endOfFrame;
-
-        final slicePngBytes = sliceData.buffer.asUint8List();
-        final sliceHeightPt = sliceHeightPx * scale;
-
-        document.addPage(
-          pw.Page(
-            pageFormat: pdfPageFormat,
-            build: (ctx) => pw.Align(
-              alignment: pw.Alignment.topLeft,
-              child: pw.Image(
-                pw.MemoryImage(slicePngBytes),
-                width: contentWidthPt,
-                height: sliceHeightPt,
-                fit: pw.BoxFit.fill,
-              ),
-            ),
-          ),
-        );
-
-        startPx = endPx;
-        pdfPageIndex++;
-      }
-
+      await _buildPdfPages(document, image, pdfPageFormat, imageBoundaries);
       return document.save();
     } finally {
       PrintableArea.capturing.value = false;
@@ -484,13 +394,81 @@ class _PrintableAreaState extends State<PrintableArea> {
     }
   }
 
+  /// Slices [image] into page-height chunks and adds each as a [pw.Page] to
+  /// [document]. [imageBoundaries] are image-pixel Y positions of safe row
+  /// boundaries; the slicer snaps to the last one that fits each page so it
+  /// never cuts through a data-grid row.
+  Future<void> _buildPdfPages(
+    pw.Document document,
+    ui.Image image,
+    PdfPageFormat pdfPageFormat,
+    List<double> imageBoundaries,
+  ) async {
+    final double contentWidthPt = pdfPageFormat.availableWidth;
+    final double contentHeightPt = pdfPageFormat.availableHeight;
+    final double scale = contentWidthPt / image.width;
+    final double pdfPageHeightPx = contentHeightPt / scale;
+
+    double startPx = 0;
+    int pageIndex = 0;
+
+    while (startPx < image.height) {
+      double endPx =
+          (startPx + pdfPageHeightPx).clamp(0.0, image.height.toDouble());
+
+      // Snap to the last row boundary within this page (skip on final page).
+      if (imageBoundaries.isNotEmpty && endPx < image.height) {
+        final snapped = imageBoundaries
+            .where((b) => b > startPx && b <= endPx)
+            .fold<double>(0, (prev, b) => b > prev ? b : prev);
+        if (snapped > startPx) endPx = snapped;
+      }
+
+      final int sliceHeightPx = (endPx - startPx).ceil();
+      if (sliceHeightPx <= 0) break;
+
+      final recorder = ui.PictureRecorder();
+      final canvas = ui.Canvas(
+        recorder,
+        ui.Rect.fromLTWH(0, 0, image.width.toDouble(), sliceHeightPx.toDouble()),
+      );
+      canvas.drawImageRect(
+        image,
+        ui.Rect.fromLTWH(0, startPx, image.width.toDouble(), sliceHeightPx.toDouble()),
+        ui.Rect.fromLTWH(0, 0, image.width.toDouble(), sliceHeightPx.toDouble()),
+        ui.Paint(),
+      );
+      final sliceImage = await recorder.endRecording().toImage(image.width, sliceHeightPx);
+      final sliceData = await sliceImage.toByteData(format: ui.ImageByteFormat.png);
+      if (sliceData == null) throw Exception('Failed to encode page $pageIndex');
+      // Yield between pages so the loading spinner can animate.
+      await WidgetsBinding.instance.endOfFrame;
+
+      document.addPage(
+        pw.Page(
+          pageFormat: pdfPageFormat,
+          build: (ctx) => pw.Align(
+            alignment: pw.Alignment.topLeft,
+            child: pw.Image(
+              pw.MemoryImage(sliceData.buffer.asUint8List()),
+              width: contentWidthPt,
+              height: sliceHeightPx * scale,
+              fit: pw.BoxFit.fill,
+            ),
+          ),
+        ),
+      );
+
+      startPx = endPx;
+      pageIndex++;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    // OverflowBox is always present to keep RepaintBoundary at a stable tree
-    // position — changing the structure around a GlobalKey element during layout
-    // (e.g. inside SfDataGrid's LayoutBuilder) causes element lifecycle failures.
-    // maxHeight: null passes through parent constraints (no-op); double.infinity
-    // unconstrain the boundary so toImage() captures full natural content height.
+    // OverflowBox is always present — removing it during capture would change
+    // the GlobalKey element's tree position, causing lifecycle failures in
+    // SfDataGrid. maxHeight: null = no-op; double.infinity = unconstrained.
     return PrintableAreaScope._(
       register: _registerHintsProvider,
       unregister: _unregisterHintsProvider,
