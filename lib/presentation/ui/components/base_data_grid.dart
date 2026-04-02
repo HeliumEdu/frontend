@@ -77,5 +77,24 @@ abstract class BaseDataGridSource extends DataGridSource
   @override
   Future<void> performSorting(List<DataGridRow> rows) async {
     sortDataGridRows(dataGridRows);
+    // Syncfusion captures `rows` (_effectiveRows) from our `rows` getter BEFORE
+    // calling performSorting, so it holds a pre-sort snapshot. We must repopulate
+    // it from the now-sorted dataGridRows so the grid renders the correct order.
+    if (_itemsPerPage == -1) {
+      rows
+        ..clear()
+        ..addAll(dataGridRows);
+    } else {
+      final startIndex = (_currentPage - 1) * _itemsPerPage;
+      final endIndex =
+          (startIndex + _itemsPerPage).clamp(0, dataGridRows.length);
+      rows
+        ..clear()
+        ..addAll(
+          startIndex < dataGridRows.length
+              ? dataGridRows.sublist(startIndex, endIndex)
+              : [],
+        );
+    }
   }
 }

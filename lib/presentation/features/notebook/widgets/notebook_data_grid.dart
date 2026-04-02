@@ -472,13 +472,13 @@ class NotesDataSource extends BaseDataGridSource {
     required this.onDelete,
     this.userSettings,
   }) {
-    _rebuildRows();
     sortedColumns.add(
       const SortColumnDetails(
         name: 'title',
         sortDirection: DataGridSortDirection.ascending,
       ),
     );
+    _rebuildRows();
   }
 
   void _rebuildRows() {

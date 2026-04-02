@@ -802,13 +802,13 @@ class TodosDataSource extends BaseDataGridSource {
         _onTap = onTap,
         _onToggleCompleted = onToggleCompleted,
         _onDelete = onDelete {
-    _rebuildRows();
     sortedColumns.add(
       const SortColumnDetails(
         name: 'due',
         sortDirection: DataGridSortDirection.ascending,
       ),
     );
+    _rebuildRows();
   }
 
   void update({
