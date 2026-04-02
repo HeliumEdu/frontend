@@ -15,6 +15,7 @@ import 'package:heliumapp/presentation/ui/components/helium_pager.dart';
 import 'package:heliumapp/presentation/ui/components/resource_title_label.dart';
 import 'package:heliumapp/presentation/ui/feedback/empty_card.dart';
 import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
+import 'package:heliumapp/presentation/ui/components/base_data_grid.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/color_helpers.dart';
@@ -84,41 +85,19 @@ class NotebookDataGrid extends StatefulWidget {
   State<NotebookDataGrid> createState() => _NotebookDataGridState();
 }
 
-class _NotebookDataGridState extends State<NotebookDataGrid> {
-  final DataGridController _controller = DataGridController();
-  final GlobalKey _gridKey = GlobalKey();
-  PrintableAreaScope? _printableAreaScope;
-
+class _NotebookDataGridState extends BaseDataGridState<NotebookDataGrid> {
   int _currentPage = 1;
   late NotesDataSource _dataSource;
 
   @override
   void initState() {
     super.initState();
-    PrintableArea.capturing.addListener(_onCapturingChanged);
     _dataSource = _buildDataSource();
     _dataSource.updatePagination(
       currentPage: _currentPage,
       itemsPerPage: widget.rowsPerPage,
     );
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
-      _printableAreaScope = PrintableAreaScope.findIn(context);
-      _printableAreaScope?.registerHintsProvider(_pdfPageBreakHintsProvider);
-    });
   }
-
-  @override
-  void dispose() {
-    _printableAreaScope?.unregisterHintsProvider(_pdfPageBreakHintsProvider);
-    PrintableArea.capturing.removeListener(_onCapturingChanged);
-    super.dispose();
-  }
-
-  void _onCapturingChanged() => setState(() {});
-
-  List<double> _pdfPageBreakHintsProvider(RenderBox captureBox) =>
-      dataGridPdfPageBreakHints(captureBox, _gridKey);
 
   @override
   void didUpdateWidget(NotebookDataGrid oldWidget) {
@@ -273,7 +252,7 @@ class _NotebookDataGridState extends State<NotebookDataGrid> {
     bool isCapturing,
   ) {
     final grid = Container(
-      key: _gridKey,
+      key: gridKey,
       child: SfDataGridTheme(
         data: SfDataGridThemeData(
           sortIconColor: context.colorScheme.primary,
@@ -284,7 +263,7 @@ class _NotebookDataGridState extends State<NotebookDataGrid> {
             'notes_grid_${columns.length}_${isCompact}_$isCapturing',
           ),
           source: _dataSource,
-          controller: _controller,
+          controller: gridController,
           columnWidthMode: ColumnWidthMode.fill,
           headerRowHeight: 40,
           rowHeight: 50,
@@ -331,7 +310,7 @@ class _NotebookDataGridState extends State<NotebookDataGrid> {
               final note = _dataSource.getNoteFromRow(addedRows.first);
               if (note != null) {
                 widget.onNoteTap(note);
-                _controller.selectedRow = null;
+                gridController.selectedRow = null;
               }
             }
           },
@@ -477,18 +456,14 @@ class _NotebookDataGridState extends State<NotebookDataGrid> {
   }
 }
 
-class NotesDataSource extends DataGridSource with SortableDataGridSource {
+class NotesDataSource extends BaseDataGridSource {
   List<NoteModel> notes;
   BuildContext context;
   UserSettingsModel? userSettings;
   Function(NoteModel) onEdit;
   Function(BuildContext, NoteModel) onDelete;
-  List<DataGridRow> _dataGridRows = [];
   late List<DataGridRow> _allRows;
   late Map<int, NoteModel> _notesById;
-
-  int _currentPage = 1;
-  int _itemsPerPage = 10;
 
   NotesDataSource({
     required this.notes,
@@ -546,8 +521,8 @@ class NotesDataSource extends DataGridSource with SortableDataGridSource {
         ],
       );
     }).toList();
-    _dataGridRows = _allRows;
-    sortDataGridRows(_dataGridRows);
+    dataGridRows = _allRows;
+    sortDataGridRows(dataGridRows);
   }
 
   void update({
@@ -564,28 +539,6 @@ class NotesDataSource extends DataGridSource with SortableDataGridSource {
     this.onDelete = onDelete;
     _rebuildRows();
     notifyListeners();
-  }
-
-  int get totalRows => _dataGridRows.length;
-
-  void updatePagination({required int currentPage, required int itemsPerPage}) {
-    _currentPage = currentPage;
-    _itemsPerPage = itemsPerPage;
-    notifyListeners();
-  }
-
-  @override
-  List<DataGridRow> get rows {
-    if (_itemsPerPage == -1) return _dataGridRows;
-    final startIndex = (_currentPage - 1) * _itemsPerPage;
-    final endIndex = (startIndex + _itemsPerPage).clamp(0, _dataGridRows.length);
-    if (startIndex >= _dataGridRows.length) return [];
-    return _dataGridRows.sublist(startIndex, endIndex);
-  }
-
-  @override
-  Future<void> performSorting(List<DataGridRow> rows) async {
-    sortDataGridRows(_dataGridRows);
   }
 
   NoteModel? getNoteFromRow(DataGridRow row) {

@@ -22,6 +22,7 @@ import 'package:heliumapp/presentation/ui/components/helium_icon_button.dart';
 import 'package:heliumapp/presentation/ui/components/helium_pager.dart';
 import 'package:heliumapp/presentation/ui/feedback/empty_card.dart';
 import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
+import 'package:heliumapp/presentation/ui/components/base_data_grid.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/print_helpers.dart';
 import 'package:heliumapp/utils/snack_bar_helpers.dart';
@@ -105,12 +106,8 @@ class TodosDataGrid extends StatefulWidget {
   State<TodosDataGrid> createState() => TodosDataGridState();
 }
 
-class TodosDataGridState extends State<TodosDataGrid> {
+class TodosDataGridState extends BaseDataGridState<TodosDataGrid> {
   static const List<int> _itemsPerPageOptions = [5, 10, 25, 50, 100, -1];
-
-  final DataGridController _gridController = DataGridController();
-  final GlobalKey _gridKey = GlobalKey();
-  PrintableAreaScope? _printableAreaScope;
 
   late TodosDataSource _dataSource;
   bool _isInitialized = false;
@@ -123,16 +120,10 @@ class TodosDataGridState extends State<TodosDataGrid> {
   @override
   void initState() {
     super.initState();
-    PrintableArea.capturing.addListener(_onCapturingChanged);
     _itemsPerPage = widget.dataSource.todosItemsPerPage;
     widget.dataSource.changeNotifier.addListener(_onDataSourceChanged);
     _dataSource = _buildDataSource();
     _initializeData();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
-      _printableAreaScope = PrintableAreaScope.findIn(context);
-      _printableAreaScope?.registerHintsProvider(_pdfPageBreakHintsProvider);
-    });
   }
 
   @override
@@ -145,15 +136,9 @@ class TodosDataGridState extends State<TodosDataGrid> {
 
   @override
   void dispose() {
-    _printableAreaScope?.unregisterHintsProvider(_pdfPageBreakHintsProvider);
-    PrintableArea.capturing.removeListener(_onCapturingChanged);
     widget.dataSource.changeNotifier.removeListener(_onDataSourceChanged);
-    _gridController.dispose();
     super.dispose();
   }
-
-  List<double> _pdfPageBreakHintsProvider(RenderBox captureBox) =>
-      dataGridPdfPageBreakHints(captureBox, _gridKey);
 
   void resetForViewChange() {
     setState(() {
@@ -402,21 +387,24 @@ class TodosDataGridState extends State<TodosDataGrid> {
                     tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                   ),
                   icon: _isExporting
-                      ? const LoadingIndicator(
-                          size: 16,
-                          strokeWidth: 2,
-                          expanded: false,
-                        )
+                      ? const SizedBox.shrink()
                       : Icon(
                           Icons.download,
                           size: 16,
                           color: context.colorScheme.primary,
                         ),
-                  label: Text(
-                    'Export CSV',
-                    style: AppStyles.buttonText(context)
-                        .copyWith(color: context.colorScheme.primary, fontSize: 12),
-                  ),
+                  label: _isExporting
+                      ? LoadingIndicator(
+                          size: 16,
+                          strokeWidth: 2,
+                          expanded: false,
+                          color: context.colorScheme.onSurface.withValues(alpha: 0.38),
+                        )
+                      : Text(
+                          'Export CSV',
+                          style: AppStyles.buttonText(context)
+                              .copyWith(color: context.colorScheme.primary, fontSize: 12),
+                        ),
                 ),
               ),
             ],
@@ -583,8 +571,6 @@ class TodosDataGridState extends State<TodosDataGrid> {
     );
   }
 
-  void _onCapturingChanged() => setState(() {});
-
   Widget _buildGridSection(
     BuildContext context,
     Color headerColor,
@@ -595,7 +581,7 @@ class TodosDataGridState extends State<TodosDataGrid> {
     int totalItems,
   ) {
     final grid = Container(
-      key: _gridKey,
+      key: gridKey,
       child: SfDataGridTheme(
         data: SfDataGridThemeData(
           sortIconColor: context.colorScheme.primary,
@@ -606,7 +592,7 @@ class TodosDataGridState extends State<TodosDataGrid> {
             'todos_grid_${columns.length}_${isCompact}_$isCapturing',
           ),
         source: _dataSource,
-        controller: _gridController,
+        controller: gridController,
         columnWidthMode: ColumnWidthMode.fill,
         headerRowHeight: 40,
         rowHeight: 50,
@@ -649,7 +635,7 @@ class TodosDataGridState extends State<TodosDataGrid> {
             final homework = _dataSource.getHomeworkFromRow(addedRows.first);
             if (homework != null) {
               widget.onTap(homework);
-              _gridController.selectedRow = null;
+              gridController.selectedRow = null;
             }
           }
         },
@@ -793,7 +779,7 @@ class TodosDataGridState extends State<TodosDataGrid> {
 
 /// DataGridSource that wraps PlannerItemDataSource for SfDataGrid.
 /// References the same underlying data - no duplication.
-class TodosDataSource extends DataGridSource with SortableDataGridSource {
+class TodosDataSource extends BaseDataGridSource {
   List<HomeworkModel> _homeworks;
   BuildContext _context;
   PlannerItemDataSource _dataSource;
@@ -801,11 +787,7 @@ class TodosDataSource extends DataGridSource with SortableDataGridSource {
   Function(HomeworkModel, bool) _onToggleCompleted;
   Function(BuildContext, HomeworkModel) _onDelete;
 
-  List<DataGridRow> _dataGridRows = [];
   Map<int, HomeworkModel> _homeworksById = {};
-
-  int _currentPage = 1;
-  int _itemsPerPage = 10;
 
   TodosDataSource({
     required List<HomeworkModel> homeworks,
@@ -852,7 +834,7 @@ class TodosDataSource extends DataGridSource with SortableDataGridSource {
     final courses = _dataSource.courses ?? [];
     final categoriesMap = _dataSource.categoriesMap ?? {};
 
-    _dataGridRows = _homeworks.map((homework) {
+    dataGridRows = _homeworks.map((homework) {
       final course = courses.firstWhere(
         (c) => c.id == homework.course.id,
         orElse: () => courses.isNotEmpty ? courses.first : _fallbackCourse(),
@@ -893,7 +875,7 @@ class TodosDataSource extends DataGridSource with SortableDataGridSource {
       ]);
     }).toList();
 
-    sortDataGridRows(_dataGridRows);
+    sortDataGridRows(dataGridRows);
   }
 
   CourseModel _fallbackCourse() {
@@ -914,28 +896,6 @@ class TodosDataSource extends DataGridSource with SortableDataGridSource {
       schedules: const [],
       exceptions: const [],
     );
-  }
-
-  int get totalRows => _dataGridRows.length;
-
-  void updatePagination({required int currentPage, required int itemsPerPage}) {
-    _currentPage = currentPage;
-    _itemsPerPage = itemsPerPage;
-    notifyListeners();
-  }
-
-  @override
-  List<DataGridRow> get rows {
-    if (_itemsPerPage == -1) return _dataGridRows;
-    final startIndex = (_currentPage - 1) * _itemsPerPage;
-    final endIndex = (startIndex + _itemsPerPage).clamp(0, _dataGridRows.length);
-    if (startIndex >= _dataGridRows.length) return [];
-    return _dataGridRows.sublist(startIndex, endIndex);
-  }
-
-  @override
-  Future<void> performSorting(List<DataGridRow> rows) async {
-    sortDataGridRows(_dataGridRows);
   }
 
   HomeworkModel? getHomeworkFromRow(DataGridRow row) {
