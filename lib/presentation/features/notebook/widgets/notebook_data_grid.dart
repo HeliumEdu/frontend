@@ -158,7 +158,7 @@ class _NotebookDataGridState extends State<NotebookDataGrid> {
     final totalItems = widget.notes.length;
     final totalPages = isShowingAll
         ? 1
-        : (totalItems / widget.rowsPerPage).ceil().clamp(1, double.infinity.toInt());
+        : (totalItems / widget.rowsPerPage).ceil().clamp(1, double.maxFinite.toInt());
 
     var effectiveCurrentPage = _currentPage;
     if (effectiveCurrentPage > totalPages && totalPages > 0) {

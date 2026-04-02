@@ -776,7 +776,7 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
 
     if (!mounted) return;
 
-    await showPdfPreview(
+    await showBuiltPdfPreview(
       context,
       pdfBytesFuture: _buildNotePdf(delta),
       title: title.isNotEmpty ? title : 'Note Preview',

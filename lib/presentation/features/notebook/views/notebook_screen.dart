@@ -301,6 +301,7 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen>
 
         return Expanded(
           child: PrintableArea(
+            title: screenTitle,
             child: NotebookDataGrid(
               notes: filteredNotes,
               isLoading: notesLoading,

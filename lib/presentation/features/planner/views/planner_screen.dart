@@ -510,6 +510,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
         // and remounted when isCapturing changes.
         return Expanded(
           child: PrintableFlexColumn(
+            title: screenTitle,
             header: (_) => _buildCalendarHeader(),
             body: (_) => _buildTodosContent(),
           ),

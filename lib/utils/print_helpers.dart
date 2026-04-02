@@ -10,28 +10,114 @@ import 'dart:ui' as ui;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/config/theme_notifier.dart';
+import 'package:heliumapp/utils/date_time_helpers.dart';
 import 'package:heliumapp/utils/print_service.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
 
-/// Opens a full-screen PDF preview dialog immediately, showing a loading
-/// spinner while [pdfBytesFuture] resolves. Once the bytes are ready the
-/// spinner is replaced by a [PdfPreview], with print and share actions in the
-/// app bar.
-Future<void> showPdfPreview(
+// ── Internal capture result ───────────────────────────────────────────────────
+
+typedef _CaptureResult = ({ui.Image image, List<double> imageBoundaries});
+
+// ── PDF page slicing (top-level so both dialog and tests can reach it) ────────
+
+/// Slices [image] into page-height chunks and adds each as a [pw.Page].
+/// [imageBoundaries] are image-pixel Y positions of safe row boundaries;
+/// the slicer snaps each cut to the last boundary that fits a page.
+Future<void> _sliceImageToPdf(
+  pw.Document document,
+  ui.Image image,
+  PdfPageFormat pdfPageFormat,
+  List<double> imageBoundaries,
+) async {
+  final double contentWidthPt = pdfPageFormat.availableWidth;
+  final double contentHeightPt = pdfPageFormat.availableHeight;
+  final double scale = contentWidthPt / image.width;
+  final double pdfPageHeightPx = contentHeightPt / scale;
+
+  double startPx = 0;
+  int pageIndex = 0;
+
+  while (startPx < image.height) {
+    double endPx =
+        (startPx + pdfPageHeightPx).clamp(0.0, image.height.toDouble());
+
+    // Snap to the last row boundary within this page (skip on final page).
+    if (imageBoundaries.isNotEmpty && endPx < image.height) {
+      final snapped = imageBoundaries
+          .where((b) => b > startPx && b <= endPx)
+          .fold<double>(0, (prev, b) => b > prev ? b : prev);
+      if (snapped > startPx) endPx = snapped;
+    }
+
+    final int sliceHeightPx = (endPx - startPx).ceil();
+    if (sliceHeightPx <= 0) break;
+
+    final recorder = ui.PictureRecorder();
+    final canvas = ui.Canvas(
+      recorder,
+      ui.Rect.fromLTWH(0, 0, image.width.toDouble(), sliceHeightPx.toDouble()),
+    );
+    canvas.drawImageRect(
+      image,
+      ui.Rect.fromLTWH(
+          0, startPx, image.width.toDouble(), sliceHeightPx.toDouble()),
+      ui.Rect.fromLTWH(
+          0, 0, image.width.toDouble(), sliceHeightPx.toDouble()),
+      ui.Paint(),
+    );
+    final sliceImage = await recorder
+        .endRecording()
+        .toImage(image.width, sliceHeightPx);
+    final sliceData =
+        await sliceImage.toByteData(format: ui.ImageByteFormat.png);
+    if (sliceData == null) throw Exception('Failed to encode page $pageIndex');
+
+    // Yield between pages so the loading spinner can animate.
+    await WidgetsBinding.instance.endOfFrame;
+
+    document.addPage(
+      pw.Page(
+        pageFormat: pdfPageFormat,
+        build: (ctx) => pw.Align(
+          alignment: pw.Alignment.topLeft,
+          child: pw.Image(
+            pw.MemoryImage(sliceData.buffer.asUint8List()),
+            width: contentWidthPt,
+            height: sliceHeightPx * scale,
+            fit: pw.BoxFit.fill,
+          ),
+        ),
+      ),
+    );
+
+    startPx = endPx;
+    pageIndex++;
+  }
+}
+
+// ── Public preview entry points ───────────────────────────────────────────────
+
+/// Opens a full-screen PDF preview dialog from pre-built PDF bytes.
+///
+/// Use this for natively-generated PDFs (e.g. notebook export) that are built
+/// directly with `pw` rather than via a screenshot capture. For screenshot-
+/// based printing use [showPdfPreview] instead.
+Future<void> showBuiltPdfPreview(
   BuildContext context, {
   required Future<Uint8List> pdfBytesFuture,
   String title = '',
   String? filename,
 }) async {
   final pdfFilename =
-      filename ?? (title.isNotEmpty ? '$title.pdf' : 'print.pdf');
+      filename ?? (title.isNotEmpty ? '$title.pdf' : 'Helium_print.pdf');
 
   await showDialog(
     context: context,
-    builder: (dialogContext) => _PdfPreviewDialog(
+    builder: (dialogContext) => _BuiltPdfPreviewDialog(
       pdfBytesFuture: pdfBytesFuture,
       title: title,
       pdfFilename: pdfFilename,
@@ -39,22 +125,22 @@ Future<void> showPdfPreview(
   );
 }
 
-class _PdfPreviewDialog extends StatefulWidget {
+class _BuiltPdfPreviewDialog extends StatefulWidget {
   final Future<Uint8List> pdfBytesFuture;
   final String title;
   final String pdfFilename;
 
-  const _PdfPreviewDialog({
+  const _BuiltPdfPreviewDialog({
     required this.pdfBytesFuture,
     required this.title,
     required this.pdfFilename,
   });
 
   @override
-  State<_PdfPreviewDialog> createState() => _PdfPreviewDialogState();
+  State<_BuiltPdfPreviewDialog> createState() => _BuiltPdfPreviewDialogState();
 }
 
-class _PdfPreviewDialogState extends State<_PdfPreviewDialog> {
+class _BuiltPdfPreviewDialogState extends State<_BuiltPdfPreviewDialog> {
   Uint8List? _pdfBytes;
   Object? _error;
 
@@ -129,10 +215,128 @@ class _PdfPreviewDialogState extends State<_PdfPreviewDialog> {
   }
 }
 
+/// Opens a full-screen PDF preview dialog.
+///
+/// [captureImage] is called once inside the dialog while its loading spinner
+/// is shown. The resulting [ui.Image] is cached; subsequent user-driven format
+/// or orientation changes re-slice the same image (fast, CPU-only) without a
+/// new GPU readback.
+Future<void> showPdfPreview(
+  BuildContext context, {
+  required captureImage,
+  String title = '',
+  String? filename,
+}) async {
+  final pdfFilename =
+      filename ?? (title.isNotEmpty ? '$title.pdf' : 'print.pdf');
+
+  await showDialog(
+    context: context,
+    builder: (dialogContext) => _PdfPreviewDialog(
+      captureImage: captureImage,
+      title: title,
+      pdfFilename: pdfFilename,
+    ),
+  );
+}
+
+class _PdfPreviewDialog extends StatefulWidget {
+  final Future<_CaptureResult> Function() captureImage;
+  final String title;
+  final String pdfFilename;
+
+  const _PdfPreviewDialog({
+    required this.captureImage,
+    required this.title,
+    required this.pdfFilename,
+  });
+
+  @override
+  State<_PdfPreviewDialog> createState() => _PdfPreviewDialogState();
+}
+
+class _PdfPreviewDialogState extends State<_PdfPreviewDialog> {
+  _CaptureResult? _capture;
+
+  /// Called by [PdfPreview] on first load and whenever the user changes format
+  /// or orientation. Capture is performed once and cached; subsequent calls
+  /// only re-slice, which is fast CPU-only work.
+  Future<Uint8List> _buildPdf(PdfPageFormat baseFormat) async {
+    _capture ??= await widget.captureImage();
+
+    const double margin = PdfPageFormat.inch * PrintableArea.marginInches;
+    final pdfPageFormat = PdfPageFormat(
+      baseFormat.width,
+      baseFormat.height,
+      marginAll: margin,
+    );
+
+    final document = pw.Document();
+    await _sliceImageToPdf(
+      document,
+      _capture!.image,
+      pdfPageFormat,
+      _capture!.imageBoundaries,
+    );
+    return document.save();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Dialog.fullscreen(
+      child: Scaffold(
+        appBar: AppBar(
+          leading: IconButton(
+            icon: const Icon(Icons.close),
+            onPressed: () => Navigator.of(context).pop(),
+            tooltip: 'Close',
+          ),
+          title: Text(widget.title.isNotEmpty ? widget.title : 'Preview'),
+          actions: [
+            IconButton(
+              icon: Icon(Icons.share, color: context.colorScheme.primary),
+              tooltip: 'Share',
+              onPressed: () async {
+                final bytes = await _buildPdf(PrintableArea.pageFormat);
+                await Printing.sharePdf(
+                  bytes: bytes,
+                  filename: widget.pdfFilename,
+                );
+              },
+            ),
+            IconButton(
+              icon: Icon(Icons.print, color: context.colorScheme.primary),
+              tooltip: 'Print',
+              onPressed: () async {
+                await Printing.layoutPdf(
+                  onLayout: (_) => _buildPdf(PrintableArea.pageFormat),
+                  name: widget.title.isNotEmpty ? widget.title : 'Document',
+                );
+              },
+            ),
+          ],
+        ),
+        body: PdfPreview(
+          build: _buildPdf,
+          useActions: true,
+          allowPrinting: false,
+          allowSharing: false,
+          canChangeOrientation: true,
+          canChangePageFormat: true,
+          canDebug: false,
+          initialPageFormat: PrintableArea.pageFormat,
+          pdfFileName: widget.pdfFilename,
+        ),
+      ),
+    );
+  }
+}
+
+// ── Page-break infrastructure ─────────────────────────────────────────────────
+
 /// Provides page-break Y positions (in logical pixels, relative to the
 /// [RenderBox] of the [PrintableArea]'s capture boundary) where it is safe
-/// to slice the screenshot between pages. Each value marks the gap between
-/// two rows, so the slicer never cuts through a row.
+/// to slice the screenshot between pages.
 typedef PdfPageBreakHintsProvider = List<double> Function(RenderBox captureBox);
 
 /// Computes page-break Y positions for a fixed-row-height [SfDataGrid].
@@ -246,6 +450,8 @@ class PrintableAreaScope extends InheritedWidget {
   bool updateShouldNotify(PrintableAreaScope oldWidget) => false;
 }
 
+// ── Print visibility helpers ──────────────────────────────────────────────────
+
 /// A widget that hides its child during a [PrintableArea] capture.
 ///
 /// Wrap any button or interactive element that should be excluded from the
@@ -276,16 +482,19 @@ class PrintHidden extends StatelessWidget {
 class PrintableFlexColumn extends StatelessWidget {
   final WidgetBuilder header;
   final WidgetBuilder body;
+  final String title;
 
   const PrintableFlexColumn({
     super.key,
     required this.header,
     required this.body,
+    this.title = '',
   });
 
   @override
   Widget build(BuildContext context) {
     return PrintableArea(
+      title: title,
       child: ValueListenableBuilder<bool>(
         valueListenable: PrintableArea.capturing,
         builder: (context, isCapturing, _) => Column(
@@ -303,6 +512,8 @@ class PrintableFlexColumn extends StatelessWidget {
     );
   }
 }
+
+// ── PrintableArea ─────────────────────────────────────────────────────────────
 
 /// Wraps [child] in a [RepaintBoundary] and auto-registers a print handler
 /// with [PrintService] for the duration the widget is in the tree.
@@ -352,7 +563,11 @@ class PrintableArea extends StatefulWidget {
 
   final Widget child;
 
-  const PrintableArea({super.key, required this.child});
+  /// Screen name included in the generated PDF filename:
+  /// `Helium_<title>_<yyyy-MM-dd>.pdf`. Leave empty for a generic filename.
+  final String title;
+
+  const PrintableArea({super.key, required this.child, this.title = ''});
 
   @override
   State<PrintableArea> createState() => _PrintableAreaState();
@@ -395,7 +610,7 @@ class _PrintableAreaState extends State<PrintableArea> {
     final wasDark = themeNotifier.isDarkMode;
 
     // Both flags must flip before any endOfFrame await — _capturePending
-    // unconstrain the OverflowBox; capturing switches layout/grid modes.
+    // unconstrains the OverflowBox; capturing switches layout/grid modes.
     // They must be consistent on the same frame before content settles.
     setState(() => _capturePending = true);
     PrintableArea.capturing.value = true;
@@ -417,132 +632,55 @@ class _PrintableAreaState extends State<PrintableArea> {
       return;
     }
 
-    final pdfBytesFuture = _captureAndBuildPdf(
-      themeNotifier: themeNotifier,
-      originalMode: originalMode,
-      wasDark: wasDark,
-    );
-
-    await showPdfPreview(context, pdfBytesFuture: pdfBytesFuture);
-  }
-
-  Future<Uint8List> _captureAndBuildPdf({
-    required ThemeNotifier themeNotifier,
-    required ThemeMode originalMode,
-    required bool wasDark,
-  }) async {
     try {
-      final boundary =
-          _repaintKey.currentContext?.findRenderObject()
-              as RenderRepaintBoundary?;
-      if (boundary == null) throw Exception('RepaintBoundary not available');
-
-      // Yield a frame for PrintHidden/layout re-renders and loading spinner.
-      await WidgetsBinding.instance.endOfFrame;
-      if (kIsWeb) await Future.delayed(PrintableArea.canvasKitSettle);
-
-      const double pixelRatio =
-          kIsWeb ? PrintableArea.pixelRatioWeb : PrintableArea.pixelRatioNative;
-
-      // Collect hints before the costly toImage() GPU readback;
-      // convert logical px to image px by applying the pixel ratio.
-      final logicalHints = <double>[
-        for (final provider in _hintsProviders) ...provider(boundary),
-      ];
-      final imageBoundaries = logicalHints.map((y) => y * pixelRatio).toList()
-        ..sort();
-
-      final image = await boundary.toImage(pixelRatio: pixelRatio);
-
-      const double margin = PdfPageFormat.inch * PrintableArea.marginInches;
-      final bool isLandscape = image.width > image.height;
-      final PdfPageFormat baseFormat = isLandscape
-          ? PrintableArea.pageFormat.landscape
-          : PrintableArea.pageFormat;
-      final pdfPageFormat = PdfPageFormat(
-        baseFormat.width,
-        baseFormat.height,
-        marginAll: margin,
+      final date = HeliumDateTime.formatDateForApi(DateTime.now());
+      final title = widget.title.isNotEmpty ? widget.title : 'Print';
+      await showPdfPreview(
+        context,
+        captureImage: _captureImage,
+        title: title,
+        filename: 'Helium_${title.toLowerCase()}_$date.pdf',
       );
-
-      final document = pw.Document();
-      await _buildPdfPages(document, image, pdfPageFormat, imageBoundaries);
-      return document.save();
     } finally {
-      PrintableArea.capturing.value = false;
+      // Restore theme regardless of how the dialog exits.
       if (wasDark) await themeNotifier.setThemeMode(originalMode);
-      if (mounted) setState(() => _capturePending = false);
     }
   }
 
-  /// Slices [image] into page-height chunks and adds each as a [pw.Page] to
-  /// [document]. [imageBoundaries] are image-pixel Y positions of safe row
-  /// boundaries; the slicer snaps to the last one that fits each page so it
-  /// never cuts through a data-grid row.
-  Future<void> _buildPdfPages(
-    pw.Document document,
-    ui.Image image,
-    PdfPageFormat pdfPageFormat,
-    List<double> imageBoundaries,
-  ) async {
-    final double contentWidthPt = pdfPageFormat.availableWidth;
-    final double contentHeightPt = pdfPageFormat.availableHeight;
-    final double scale = contentWidthPt / image.width;
-    final double pdfPageHeightPx = contentHeightPt / scale;
+  /// Performs the GPU readback and collects page-break hints.
+  ///
+  /// Resets [PrintableArea.capturing] and [_capturePending] as soon as the
+  /// image is in hand — the OverflowBox and PrintHidden overrides are no
+  /// longer needed once [toImage] returns.
+  Future<_CaptureResult> _captureImage() async {
+    final boundary =
+        _repaintKey.currentContext?.findRenderObject()
+            as RenderRepaintBoundary?;
+    if (boundary == null) throw Exception('RepaintBoundary not available');
 
-    double startPx = 0;
-    int pageIndex = 0;
+    // Yield a frame for PrintHidden/layout re-renders and the dialog spinner.
+    await WidgetsBinding.instance.endOfFrame;
+    if (kIsWeb) await Future.delayed(PrintableArea.canvasKitSettle);
 
-    while (startPx < image.height) {
-      double endPx =
-          (startPx + pdfPageHeightPx).clamp(0.0, image.height.toDouble());
+    const double pixelRatio =
+        kIsWeb ? PrintableArea.pixelRatioWeb : PrintableArea.pixelRatioNative;
 
-      // Snap to the last row boundary within this page (skip on final page).
-      if (imageBoundaries.isNotEmpty && endPx < image.height) {
-        final snapped = imageBoundaries
-            .where((b) => b > startPx && b <= endPx)
-            .fold<double>(0, (prev, b) => b > prev ? b : prev);
-        if (snapped > startPx) endPx = snapped;
-      }
+    // Collect hints before the costly toImage() GPU readback;
+    // convert logical px to image px by applying the pixel ratio.
+    final logicalHints = <double>[
+      for (final provider in _hintsProviders) ...provider(boundary),
+    ];
+    final imageBoundaries = logicalHints.map((y) => y * pixelRatio).toList()
+      ..sort();
 
-      final int sliceHeightPx = (endPx - startPx).ceil();
-      if (sliceHeightPx <= 0) break;
+    final image = await boundary.toImage(pixelRatio: pixelRatio);
 
-      final recorder = ui.PictureRecorder();
-      final canvas = ui.Canvas(
-        recorder,
-        ui.Rect.fromLTWH(0, 0, image.width.toDouble(), sliceHeightPx.toDouble()),
-      );
-      canvas.drawImageRect(
-        image,
-        ui.Rect.fromLTWH(0, startPx, image.width.toDouble(), sliceHeightPx.toDouble()),
-        ui.Rect.fromLTWH(0, 0, image.width.toDouble(), sliceHeightPx.toDouble()),
-        ui.Paint(),
-      );
-      final sliceImage = await recorder.endRecording().toImage(image.width, sliceHeightPx);
-      final sliceData = await sliceImage.toByteData(format: ui.ImageByteFormat.png);
-      if (sliceData == null) throw Exception('Failed to encode page $pageIndex');
-      // Yield between pages so the loading spinner can animate.
-      await WidgetsBinding.instance.endOfFrame;
+    // GPU readback is done — restore layout to normal immediately so the
+    // screen behind the dialog returns to its interactive state.
+    PrintableArea.capturing.value = false;
+    if (mounted) setState(() => _capturePending = false);
 
-      document.addPage(
-        pw.Page(
-          pageFormat: pdfPageFormat,
-          build: (ctx) => pw.Align(
-            alignment: pw.Alignment.topLeft,
-            child: pw.Image(
-              pw.MemoryImage(sliceData.buffer.asUint8List()),
-              width: contentWidthPt,
-              height: sliceHeightPx * scale,
-              fit: pw.BoxFit.fill,
-            ),
-          ),
-        ),
-      );
-
-      startPx = endPx;
-      pageIndex++;
-    }
+    return (image: image, imageBoundaries: imageBoundaries);
   }
 
   @override

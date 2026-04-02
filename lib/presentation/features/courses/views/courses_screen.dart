@@ -324,6 +324,7 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen>
 
     return Expanded(
       child: PrintableArea(
+        title: screenTitle,
         child: ValueListenableBuilder<bool>(
           valueListenable: PrintableArea.capturing,
           builder: (context, isCapturing, _) => ResponsiveCardGrid<CourseModel>(

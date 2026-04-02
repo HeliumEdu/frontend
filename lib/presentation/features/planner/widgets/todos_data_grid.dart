@@ -212,13 +212,11 @@ class TodosDataGridState extends State<TodosDataGrid> {
       ]));
     }
 
-    final now = DateTime.now();
-    final date =
-        '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
+    final date = HeliumDateTime.formatDateForApi(DateTime.now());
 
     return (
       bytes: Uint8List.fromList(utf8.encode(buffer.toString())),
-      filename: 'helium_todos_$date.csv',
+      filename: 'Helium_todos_$date.csv',
     );
   }
 

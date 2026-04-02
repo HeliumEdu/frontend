@@ -297,6 +297,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
   Widget _buildGradesPage(List<GradeCourseModel> courses) {
     return Expanded(
       child: PrintableArea(
+        title: screenTitle,
         child: ValueListenableBuilder<bool>(
           valueListenable: PrintableArea.capturing,
           builder: (context, isCapturing, _) {

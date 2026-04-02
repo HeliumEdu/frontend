@@ -339,6 +339,7 @@ class _ResourcesScreenState
 
     return Expanded(
       child: PrintableArea(
+        title: screenTitle,
         child: ValueListenableBuilder<bool>(
           valueListenable: PrintableArea.capturing,
           builder: (context, isCapturing, _) => ResponsiveCardGrid<ResourceModel>(
