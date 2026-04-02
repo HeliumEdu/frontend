@@ -253,21 +253,36 @@ class TodosDataGridState extends BaseDataGridState<TodosDataGrid> {
                     padding: const EdgeInsets.symmetric(horizontal: 12),
                     tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                   ),
-                  icon: _isExporting
-                      ? const SizedBox.shrink()
-                      : Icon(Icons.download, size: 16),
-                  label: _isExporting
-                      ? LoadingIndicator(
-                          size: 16,
-                          strokeWidth: 2,
-                          expanded: false,
-                          color: context.colorScheme.onSurface.withValues(alpha: 0.38),
-                        )
-                      : Text(
+                  icon: Visibility(
+                    visible: !_isExporting,
+                    maintainSize: true,
+                    maintainAnimation: true,
+                    maintainState: true,
+                    child: Icon(Icons.download, size: 16),
+                  ),
+                  label: Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      Visibility(
+                        visible: !_isExporting,
+                        maintainSize: true,
+                        maintainAnimation: true,
+                        maintainState: true,
+                        child: Text(
                           'Export CSV',
                           style: AppStyles.buttonText(context)
                               .copyWith(color: context.colorScheme.primary, fontSize: 12),
                         ),
+                      ),
+                      if (_isExporting)
+                        LoadingIndicator(
+                          size: 16,
+                          strokeWidth: 2,
+                          expanded: false,
+                          color: context.colorScheme.onSurface.withValues(alpha: 0.38),
+                        ),
+                    ],
+                  ),
                 ),
               ),
             ],
