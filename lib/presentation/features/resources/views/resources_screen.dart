@@ -48,6 +48,7 @@ import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
 import 'package:heliumapp/presentation/ui/layout/mobile_gesture_detector.dart';
 import 'package:heliumapp/presentation/ui/layout/responsive_card_grid.dart';
 import 'package:heliumapp/utils/app_style.dart';
+import 'package:heliumapp/utils/print_helpers.dart';
 import 'package:heliumapp/utils/quill_helpers.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:heliumapp/utils/sort_helpers.dart';
@@ -249,40 +250,42 @@ class _ResourcesScreenState
 
   @override
   Widget buildHeaderArea(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: GroupDropdown(
-        groups: _resourceGroups,
-        initialSelection: _resourceGroups.firstWhereOrNull(
-          (g) => g.id == _selectedGroupId,
-        ),
-        onChanged: (value) {
-          // The "+" button has a null value
-          if (value == null) return;
-          if (value.id == _selectedGroupId) return;
+    return PrintHidden(
+      child: Padding(
+        padding: const EdgeInsets.only(bottom: 12),
+        child: GroupDropdown(
+          groups: _resourceGroups,
+          initialSelection: _resourceGroups.firstWhereOrNull(
+            (g) => g.id == _selectedGroupId,
+          ),
+          onChanged: (value) {
+            // The "+" button has a null value
+            if (value == null) return;
+            if (value.id == _selectedGroupId) return;
 
-          setState(() {
-            _selectedGroupId = value.id;
-          });
-        },
-        onCreate: () {
-          showResourceGroupDialog(parentContext: context, isEdit: false);
-        },
-        onEdit: (group) {
-          showResourceGroupDialog(
-            parentContext: context,
-            isEdit: true,
-            group: group,
-          );
-        },
-        onDelete: (g) {
-          context.read<ResourceBloc>().add(
-            DeleteResourceGroupEvent(
-              origin: EventOrigin.screen,
-              resourceGroupId: g.id,
-            ),
-          );
-        },
+            setState(() {
+              _selectedGroupId = value.id;
+            });
+          },
+          onCreate: () {
+            showResourceGroupDialog(parentContext: context, isEdit: false);
+          },
+          onEdit: (group) {
+            showResourceGroupDialog(
+              parentContext: context,
+              isEdit: true,
+              group: group,
+            );
+          },
+          onDelete: (g) {
+            context.read<ResourceBloc>().add(
+              DeleteResourceGroupEvent(
+                origin: EventOrigin.screen,
+                resourceGroupId: g.id,
+              ),
+            );
+          },
+        ),
       ),
     );
   }
@@ -335,10 +338,15 @@ class _ResourcesScreenState
     }
 
     return Expanded(
-      child: ResponsiveCardGrid<ResourceModel>(
-        items: _resourcesMap[_selectedGroupId]!,
-        itemBuilder: (context, resource) =>
-            _buildResourceCard(context, resource),
+      child: PrintableArea(
+        child: ValueListenableBuilder<bool>(
+          valueListenable: PrintableArea.capturing,
+          builder: (context, isCapturing, _) => ResponsiveCardGrid<ResourceModel>(
+            shrinkWrap: isCapturing,
+            items: _resourcesMap[_selectedGroupId]!,
+            itemBuilder: _buildResourceCard,
+          ),
+        ),
       ),
     );
   }
@@ -396,45 +404,49 @@ class _ResourcesScreenState
                   ),
                   const SizedBox(width: 8),
                   if (resource.website.isNotEmpty) ...[
-                    HeliumIconButton(
-                      onPressed: () {
-                        launchUrl(
-                          Uri.parse(resource.website),
-                        );
-                      },
-                      icon: Icons.launch_outlined,
-                      tooltip: "Launch resource's website",
-                      color: context.semanticColors.success,
+                    PrintHidden(
+                      child: HeliumIconButton(
+                        onPressed: () {
+                          launchUrl(Uri.parse(resource.website));
+                        },
+                        icon: Icons.launch_outlined,
+                        tooltip: "Launch resource's website",
+                        color: context.semanticColors.success,
+                      ),
                     ),
                     const SizedBox(width: 8),
                   ],
                   if (!Responsive.isMobile(context)) ...[
-                    HeliumIconButton(
-                      onPressed: () => _onEdit(resource),
-                      icon: Icons.edit_outlined,
+                    PrintHidden(
+                      child: HeliumIconButton(
+                        onPressed: () => _onEdit(resource),
+                        icon: Icons.edit_outlined,
+                      ),
                     ),
                     const SizedBox(width: 8),
                   ],
-                  HeliumIconButton(
-                    onPressed: () {
-                      showConfirmDeleteDialog(
-                        parentContext: context,
-                        item: resource,
-                        additionalWarning:
-                            'Its associated attachments and note will also be deleted.',
-                        onDelete: (m) {
-                          context.read<ResourceBloc>().add(
-                            DeleteResourceEvent(
-                              origin: EventOrigin.screen,
-                              resourceGroupId: m.resourceGroup,
-                              resourceId: m.id,
-                            ),
-                          );
-                        },
-                      );
-                    },
-                    icon: Icons.delete_outline,
-                    color: context.colorScheme.error,
+                  PrintHidden(
+                    child: HeliumIconButton(
+                      onPressed: () {
+                        showConfirmDeleteDialog(
+                          parentContext: context,
+                          item: resource,
+                          additionalWarning:
+                              'Its associated attachments and note will also be deleted.',
+                          onDelete: (m) {
+                            context.read<ResourceBloc>().add(
+                              DeleteResourceEvent(
+                                origin: EventOrigin.screen,
+                                resourceGroupId: m.resourceGroup,
+                                resourceId: m.id,
+                              ),
+                            );
+                          },
+                        );
+                      },
+                      icon: Icons.delete_outline,
+                      color: context.colorScheme.error,
+                    ),
                   ),
                 ],
               ),
