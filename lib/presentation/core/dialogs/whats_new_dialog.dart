@@ -41,7 +41,7 @@ class _WhatsNewDialogWidget extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             SelectableText(
-              "We've completely rebuilt Helium from the ground up—sleek, modern, fast, and built to last.",
+              "Your study sidekick just leveled up. Here's what changed.",
               style: AppStyles.standardBodyText(context),
             ),
             const SizedBox(height: 16),
