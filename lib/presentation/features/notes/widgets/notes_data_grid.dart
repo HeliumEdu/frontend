@@ -123,7 +123,7 @@ class _NotesDataGridState extends State<NotesDataGrid> {
     final isTouchDevice = Responsive.isTouchDevice(context);
     final isCompact = Responsive.isCompact(context);
     final width = MediaQuery.of(context).size.width;
-    final showDue = width >= 900;
+    final showDue = width >= _dueColumnMinWidth;
     final showModified = !Responsive.isMobile(context);
     final isCapturing = PrintableArea.capturing.value;
     final showActions = !isTouchDevice && !isCapturing;
@@ -619,7 +619,7 @@ class NotesDataSource extends DataGridSource with SortableDataGridSource {
         .where((c) => !c.columnName.startsWith('_'))
         .where(
           (c) =>
-              (c.columnName != 'due' || width >= 900) &&
+              (c.columnName != 'due' || width >= _dueColumnMinWidth) &&
               (c.columnName != 'modified' || !Responsive.isMobileWidth(width)),
         )
         .where(
