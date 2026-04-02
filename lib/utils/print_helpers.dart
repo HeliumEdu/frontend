@@ -161,6 +161,60 @@ List<double> dataGridPdfPageBreakHints(
   return boundaries;
 }
 
+/// A transparent wrapper that, when inside a [PrintableArea], registers its
+/// bottom edge as a safe page-break boundary for PDF output.
+///
+/// Wrap cards or rows whose content should never be split across pages. The
+/// PDF slicer will snap each page cut to the bottom of the nearest registered
+/// boundary rather than cutting mid-widget.
+class PrintPageBreak extends StatefulWidget {
+  final Widget child;
+
+  const PrintPageBreak({super.key, required this.child});
+
+  @override
+  State<PrintPageBreak> createState() => _PrintPageBreakState();
+}
+
+class _PrintPageBreakState extends State<PrintPageBreak> {
+  final GlobalKey _key = GlobalKey();
+  late final PdfPageBreakHintsProvider _provider;
+  PrintableAreaScope? _scope;
+
+  @override
+  void initState() {
+    super.initState();
+    _provider = _hints;
+    // Registration deferred to post-frame so PrintableAreaScope is fully built
+    // when this widget is at the root of a PrintableArea's content tree.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      _scope = PrintableAreaScope.findIn(context);
+      _scope?.registerHintsProvider(_provider);
+    });
+  }
+
+  @override
+  void dispose() {
+    _scope?.unregisterHintsProvider(_provider);
+    super.dispose();
+  }
+
+  List<double> _hints(RenderBox captureBox) {
+    final box = _key.currentContext?.findRenderObject() as RenderBox?;
+    if (box == null || !box.hasSize) return [];
+    final bottomLocal = captureBox.globalToLocal(
+      box.localToGlobal(Offset(0, box.size.height)),
+    );
+    return [bottomLocal.dy];
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(key: _key, child: widget.child);
+  }
+}
+
 /// Exposes [PrintableArea]'s page-break hint registration to descendants.
 ///
 /// Data-grid widgets that want row-aware page breaking call

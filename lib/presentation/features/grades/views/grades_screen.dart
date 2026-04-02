@@ -42,6 +42,7 @@ import 'package:heliumapp/presentation/ui/feedback/error_card.dart';
 import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/app_style.dart';
+import 'package:heliumapp/utils/print_helpers.dart';
 import 'package:heliumapp/utils/color_helpers.dart';
 import 'package:heliumapp/utils/date_time_helpers.dart';
 import 'package:heliumapp/utils/format_helpers.dart';
@@ -222,24 +223,26 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
       return Container();
     }
 
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: GroupDropdown(
-        groups: _courseGroups,
-        initialSelection: _courseGroups.firstWhereOrNull(
-          (g) => g.id == _selectedGroupId,
-        ),
-        isReadOnly: true,
-        onChanged: (value) {
-          if (value == null) return;
-          if (value.id == _selectedGroupId) return;
+    return PrintHidden(
+      child: Padding(
+        padding: const EdgeInsets.only(bottom: 12),
+        child: GroupDropdown(
+          groups: _courseGroups,
+          initialSelection: _courseGroups.firstWhereOrNull(
+            (g) => g.id == _selectedGroupId,
+          ),
+          isReadOnly: true,
+          onChanged: (value) {
+            if (value == null) return;
+            if (value.id == _selectedGroupId) return;
 
-          setState(() {
-            _selectedGroupId = value.id;
-            _pendingImpactCourseId = null;
-            _expandedCourseIds.clear();
-          });
-        },
+            setState(() {
+              _selectedGroupId = value.id;
+              _pendingImpactCourseId = null;
+              _expandedCourseIds.clear();
+            });
+          },
+        ),
       ),
     );
   }
@@ -293,26 +296,40 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
 
   Widget _buildGradesPage(List<GradeCourseModel> courses) {
     return Expanded(
-      child: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildTermSummaryArea(),
+      child: PrintableArea(
+        child: ValueListenableBuilder<bool>(
+          valueListenable: PrintableArea.capturing,
+          builder: (context, isCapturing, _) {
+            final content = Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                PrintPageBreak(child: _buildTermSummaryArea()),
 
-            _buildGraphArea(),
+                PrintPageBreak(child: _buildGraphArea()),
 
-            const SizedBox(height: 12),
+                const SizedBox(height: 12),
 
-            ListView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: courses.length,
-              itemBuilder: (context, index) {
-                final course = courses[index];
-                return _buildCourseCard(index, course);
-              },
-            ),
-          ],
+                ListView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: courses.length,
+                  itemBuilder: (context, index) {
+                    final course = courses[index];
+                    return PrintPageBreak(
+                      child: _buildCourseCard(
+                        index,
+                        course,
+                        forceExpanded: isCapturing,
+                      ),
+                    );
+                  },
+                ),
+              ],
+            );
+
+            if (isCapturing) return content;
+            return SingleChildScrollView(child: content);
+          },
         ),
       ),
     );
@@ -1219,35 +1236,41 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
             ),
             // Calculator icon for grade calculator
             if (coursesWithCategories.isNotEmpty)
-              Builder(
-                builder: (buttonContext) => Tooltip(
-                  message: 'What Grade Do I Need?',
-                  child: IconButton(
-                    icon: const Icon(Icons.calculate_outlined),
-                    onPressed: () => _showGradeCalculatorOptions(
-                      buttonContext,
-                      gradeGroup,
-                      coursesWithCategories,
+              PrintHidden(
+                child: Builder(
+                  builder: (buttonContext) => Tooltip(
+                    message: 'What Grade Do I Need?',
+                    child: IconButton(
+                      icon: const Icon(Icons.calculate_outlined),
+                      onPressed: () => _showGradeCalculatorOptions(
+                        buttonContext,
+                        gradeGroup,
+                        coursesWithCategories,
+                      ),
                     ),
                   ),
                 ),
               ),
             // Gear icon for settings
-            Builder(
-              builder: (buttonContext) => IconButton(
-                tooltip: 'Graph settings',
-                icon: const Icon(Icons.settings),
-                onPressed: () => _showGraphSettings(buttonContext),
+            PrintHidden(
+              child: Builder(
+                builder: (buttonContext) => IconButton(
+                  tooltip: 'Graph settings',
+                  icon: const Icon(Icons.settings),
+                  onPressed: () => _showGraphSettings(buttonContext),
+                ),
               ),
             ),
             // Expand/collapse chevron
-            IconButton(
-              icon: AnimatedRotation(
-                turns: _graphExpanded ? 0.5 : 0,
-                duration: const Duration(milliseconds: 300),
-                child: const Icon(Icons.keyboard_arrow_down),
+            PrintHidden(
+              child: IconButton(
+                icon: AnimatedRotation(
+                  turns: _graphExpanded ? 0.5 : 0,
+                  duration: const Duration(milliseconds: 300),
+                  child: const Icon(Icons.keyboard_arrow_down),
+                ),
+                onPressed: _toggleGraphExpanded,
               ),
-              onPressed: _toggleGraphExpanded,
             ),
           ],
         ),
@@ -2096,8 +2119,12 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
     }
   }
 
-  Widget _buildCourseCard(int index, GradeCourseModel course) {
-    final isExpanded = _expandedCourseIds.contains(course.id);
+  Widget _buildCourseCard(
+    int index,
+    GradeCourseModel course, {
+    bool forceExpanded = false,
+  }) {
+    final isExpanded = forceExpanded || _expandedCourseIds.contains(course.id);
 
     return Card(
       key: _courseCardKeys.putIfAbsent(course.id, () => GlobalKey()),
@@ -2212,22 +2239,24 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
                 ],
               ),
             ),
-            IconButton(
-              icon: AnimatedRotation(
-                turns: isExpanded ? 0.5 : 0,
-                duration: const Duration(milliseconds: 300),
-                child: Icon(
-                  Icons.keyboard_arrow_down,
-                  color: context.colorScheme.primary,
-                  size: Responsive.getIconSize(
-                    context,
-                    mobile: 20,
-                    tablet: 22,
-                    desktop: 24,
+            PrintHidden(
+              child: IconButton(
+                icon: AnimatedRotation(
+                  turns: isExpanded ? 0.5 : 0,
+                  duration: const Duration(milliseconds: 300),
+                  child: Icon(
+                    Icons.keyboard_arrow_down,
+                    color: context.colorScheme.primary,
+                    size: Responsive.getIconSize(
+                      context,
+                      mobile: 20,
+                      tablet: 22,
+                      desktop: 24,
+                    ),
                   ),
                 ),
+                onPressed: () => _toggleExpandedCourse(course.id),
               ),
-              onPressed: () => _toggleExpandedCourse(course.id),
             ),
           ],
         ),

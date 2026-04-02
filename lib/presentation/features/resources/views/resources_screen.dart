@@ -343,6 +343,7 @@ class _ResourcesScreenState
           valueListenable: PrintableArea.capturing,
           builder: (context, isCapturing, _) => ResponsiveCardGrid<ResourceModel>(
             shrinkWrap: isCapturing,
+            printPageBreakAfterRow: true,
             items: _resourcesMap[_selectedGroupId]!,
             itemBuilder: _buildResourceCard,
           ),
