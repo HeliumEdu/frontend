@@ -24,10 +24,10 @@ class CacheService with WidgetsBindingObserver {
   late final Interceptor _interceptor;
   late final Interceptor _loggingInterceptor;
 
-  /// How long cached responses remain valid.
+  /// How long cached responses remain valid
   static const cacheTtl = Duration(minutes: 30);
 
-  /// If app is backgrounded longer than this, cache is invalidated on resume.
+  /// If app is backgrounded longer than this, cache is invalidated on resume
   static const inactivityThreshold = Duration(minutes: 10);
 
   DateTime? _pausedAt;
@@ -48,7 +48,7 @@ class CacheService with WidgetsBindingObserver {
     _initLifecycleObserver();
   }
 
-  /// Constructor for testing with a custom store.
+  /// Constructor for testing with a custom store
   @visibleForTesting
   CacheService.withStore(CacheStore store) {
     _store = store;
@@ -121,12 +121,12 @@ class CacheService with WidgetsBindingObserver {
     }
   }
 
-  /// Register a callback to be notified when app resumes after inactivity threshold.
+  /// Register a callback to be notified when app resumes after inactivity threshold
   void addInactivityResumeListener(VoidCallback callback) {
     _onInactivityResumeCallbacks.add(callback);
   }
 
-  /// Remove a previously registered callback.
+  /// Remove a previously registered callback
   void removeInactivityResumeListener(VoidCallback callback) {
     _onInactivityResumeCallbacks.remove(callback);
   }

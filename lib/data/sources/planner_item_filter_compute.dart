@@ -40,7 +40,7 @@ class FilterableItem {
   });
 }
 
-/// Parameters for filtering planner items.
+/// Parameters for filtering planner items
 class FilterParams {
   final List<String> filterTypes;
   final List<String> filterCategories;
@@ -61,7 +61,7 @@ class FilterParams {
   });
 }
 
-/// Input data for the compute function.
+/// Input data for the compute function
 class FilterComputeInput {
   final List<FilterableItem> items;
   final FilterParams params;

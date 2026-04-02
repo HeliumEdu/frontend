@@ -2917,7 +2917,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
     );
   }
 
-  /// Shows a warning if homework dates fall outside the course's date range.
+  /// Shows a warning if homework dates fall outside the course's date range
   void _warnIfHomeworkOutsideDateRange(
     HomeworkModel homework,
     DateTime newStart,

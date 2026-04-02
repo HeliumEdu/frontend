@@ -62,6 +62,11 @@ class LabelAndTextFormField extends StatefulWidget {
 }
 
 class _LabelAndTextFormFieldState extends State<LabelAndTextFormField> {
+  static const _fieldBorderRadius = 8.0;
+  static const _fieldContentPaddingLeft = 12.0;
+  static const _trailingButtonSize = 48.0;
+  static const _trailingButtonLabelOffset = 30.0;
+  static const _verticalContentPaddingWithAffordance = 15.0;
   bool _isTrailingButtonEnabled = false;
 
   @override
@@ -106,10 +111,10 @@ class _LabelAndTextFormFieldState extends State<LabelAndTextFormField> {
             border: Border.all(
               color: context.colorScheme.outline.withValues(alpha: 0.2),
             ),
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(_fieldBorderRadius),
           ),
           child: ClipRRect(
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(_fieldBorderRadius),
             child: TextFormField(
               key: widget.fieldKey,
               initialValue: widget.initialValue,
@@ -136,7 +141,7 @@ class _LabelAndTextFormFieldState extends State<LabelAndTextFormField> {
                       )
                     : null,
                 contentPadding: EdgeInsets.only(
-                  left: 12,
+                  left: _fieldContentPaddingLeft,
                   top: _horizontalPadding(),
                   bottom: _horizontalPadding(),
                 ),
@@ -166,10 +171,12 @@ class _LabelAndTextFormFieldState extends State<LabelAndTextFormField> {
           Expanded(child: formField),
           const SizedBox(width: 8),
           Padding(
-            padding: EdgeInsets.only(top: widget.label != null ? 30 : 0),
+            padding: EdgeInsets.only(
+              top: widget.label != null ? _trailingButtonLabelOffset : 0,
+            ),
             child: SizedBox(
-              width: 48,
-              height: 48,
+              width: _trailingButtonSize,
+              height: _trailingButtonSize,
               child: IgnorePointer(
                 ignoring: !_isTrailingButtonEnabled,
                 child: Opacity(
@@ -190,7 +197,7 @@ class _LabelAndTextFormFieldState extends State<LabelAndTextFormField> {
     if (widget.prefixIcon != null ||
         widget.suffixIcon != null ||
         widget.maxLines > 1) {
-      return 15;
+      return _verticalContentPaddingWithAffordance;
     } else {
       return 0;
     }

@@ -36,6 +36,9 @@ class SetupAccountScreen extends StatefulWidget {
 }
 
 class _SetupAccountScreenState extends BasePageScreenState<SetupAccountScreen> {
+  static const _logoHeight = 120.0;
+  static const _statusFontSize = 18.0;
+
   @override
   String get screenTitle => '';
 
@@ -70,7 +73,7 @@ class _SetupAccountScreenState extends BasePageScreenState<SetupAccountScreen> {
       showCard: false,
       child: Column(
         children: [
-          Image.asset(AppAssets.logoImagePath, height: 120),
+          Image.asset(AppAssets.logoImagePath, height: _logoHeight),
 
           const SizedBox(height: 50),
 
@@ -82,7 +85,7 @@ class _SetupAccountScreenState extends BasePageScreenState<SetupAccountScreen> {
             'Getting things ready ...',
             style: AppStyles.standardBodyText(
               context,
-            ).copyWith(fontSize: 18, fontWeight: FontWeight.w500),
+            ).copyWith(fontSize: _statusFontSize, fontWeight: FontWeight.w500),
             textAlign: TextAlign.center,
           ),
         ],

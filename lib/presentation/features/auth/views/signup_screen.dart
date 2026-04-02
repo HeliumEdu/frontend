@@ -41,6 +41,9 @@ class SignupScreen extends StatefulWidget {
 }
 
 class _SignupScreenState extends BasePageScreenState<SignupScreen> {
+  static const _oauthButtonWidth = 250.0;
+  static const _oauthButtonHeight = 40.0;
+
   @override
   String get screenTitle => 'Create an Account';
 
@@ -373,8 +376,8 @@ class _SignupScreenState extends BasePageScreenState<SignupScreen> {
               const SizedBox(height: 25),
 
               SizedBox(
-                width: 250,
-                height: 40,
+                width: _oauthButtonWidth,
+                height: _oauthButtonHeight,
                 child: IgnorePointer(
                   ignoring: isOAuthLoading || isSubmitting,
                   child: Opacity(
@@ -397,8 +400,8 @@ class _SignupScreenState extends BasePageScreenState<SignupScreen> {
               if (kIsWeb || !Platform.isAndroid) ...[
                 const SizedBox(height: 12),
                 SizedBox(
-                  width: 250,
-                  height: 40,
+                  width: _oauthButtonWidth,
+                  height: _oauthButtonHeight,
                   child: IgnorePointer(
                     ignoring: isOAuthLoading || isSubmitting,
                     child: Opacity(
@@ -475,7 +478,6 @@ class _SignupScreenState extends BasePageScreenState<SignupScreen> {
         isSubmitting = true;
       });
 
-      // Dispatch register event
       context.read<AuthBloc>().add(
         RegisterEvent(
           email: _formController.emailController.text.trim(),

@@ -13,15 +13,15 @@ import 'package:heliumapp/utils/date_time_helpers.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-/// Options presented when a user taps a course schedule event on the planner.
+/// Options presented when a user taps a course schedule event on the planner
 class CourseScheduleEventActions {
   /// Called when the user taps "Skip this class". Receives the occurrence date.
   final Future<void> Function(DateTime date)? onSkip;
 
-  /// If non-null, an "Open class website" option is shown.
+  /// If non-null, an "Open class website" option is shown
   final String? websiteUrl;
 
-  /// Called when the user taps "Edit class schedule".
+  /// Called when the user taps "Edit class schedule"
   final VoidCallback onEditSchedule;
 
   const CourseScheduleEventActions({

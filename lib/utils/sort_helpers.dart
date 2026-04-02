@@ -6,7 +6,6 @@
 // For details regarding the license, please refer to the LICENSE file.
 
 import 'package:heliumapp/data/models/base_model.dart';
-import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 import 'package:heliumapp/data/models/planner/course_schedule_event_model.dart';
 import 'package:heliumapp/data/models/planner/course_group_model.dart';
 import 'package:heliumapp/data/models/planner/homework_model.dart';
@@ -51,14 +50,14 @@ class Sort {
     return Duration(seconds: getTimedEventStartTimeAdjustmentSeconds(priority, position));
   }
 
-  /// Compares dates only (ignoring time components).
+  /// Compares dates only (ignoring time components)
   static int compareDatesOnly(DateTime a, DateTime b) {
     final aDate = DateTime(a.year, a.month, a.day);
     final bDate = DateTime(b.year, b.month, b.day);
     return aDate.compareTo(bDate);
   }
 
-  /// Checks if two dates are the same (ignoring time components).
+  /// Checks if two dates are the same (ignoring time components)
   static bool isSameDate(DateTime a, DateTime b) {
     return a.year == b.year && a.month == b.month && a.day == b.day;
   }
@@ -228,67 +227,3 @@ class Sort {
   }
 }
 
-/// Mixin that provides standard sorting behavior for SfDataGrid data sources.
-///
-/// This mixin implements case-insensitive sorting using the cell values stored
-/// in DataGridRow. Cell values should be stored as sortable types (lowercase
-/// strings for case-insensitive text sorting, numeric values for grades, etc.).
-///
-/// Usage:
-/// ```dart
-/// class MyDataSource extends DataGridSource with SortableDataGridSource {
-///   void _rebuildRows() {
-///     _rows = ...;
-///     sortDataGridRows(_rows); // Apply current sort after rebuilding
-///   }
-/// }
-/// ```
-mixin SortableDataGridSource on DataGridSource {
-  /// Sorts the given rows based on the current [sortedColumns] state.
-  ///
-  /// Call this after rebuilding rows to maintain sort order, and from
-  /// [performSorting] to handle user-initiated sorts.
-  ///
-  /// Empty strings are always sorted to the end, regardless of sort direction.
-  void sortDataGridRows(List<DataGridRow> rows) {
-    if (sortedColumns.isEmpty) return;
-
-    final sortColumn = sortedColumns.first;
-    final ascending =
-        sortColumn.sortDirection == DataGridSortDirection.ascending;
-
-    rows.sort((a, b) {
-      final cellA = a.getCells().firstWhere(
-            (c) => c.columnName == sortColumn.name,
-            orElse: () => const DataGridCell<String>(columnName: '', value: ''),
-          );
-      final cellB = b.getCells().firstWhere(
-            (c) => c.columnName == sortColumn.name,
-            orElse: () => const DataGridCell<String>(columnName: '', value: ''),
-          );
-
-      final valueA = cellA.value;
-      final valueB = cellB.value;
-
-      // Null values always sort to the end regardless of direction.
-      if (valueA == null && valueB == null) return 0;
-      if (valueA == null) return 1;
-      if (valueB == null) return -1;
-
-      // For string values, put empty strings at the end regardless of sort direction
-      if (valueA is String && valueB is String) {
-        final aEmpty = valueA.isEmpty;
-        final bEmpty = valueB.isEmpty;
-        if (aEmpty && !bEmpty) return 1; // a goes to end
-        if (!aEmpty && bEmpty) return -1; // b goes to end
-      }
-
-      int comparison = 0;
-      if (valueA is Comparable && valueB is Comparable) {
-        comparison = valueA.compareTo(valueB);
-      }
-
-      return ascending ? comparison : -comparison;
-    });
-  }
-}

@@ -87,7 +87,7 @@ class HeliumStorage {
     }
   }
 
-  /// Downloads bytes directly to a file (for in-memory data like API responses).
+  /// Downloads bytes directly to a file (for in-memory data like API responses)
   static Future<bool> downloadBytes(
     Uint8List bytes,
     String filename,

@@ -7,9 +7,63 @@
 
 import 'package:flutter/material.dart';
 import 'package:heliumapp/utils/print_helpers.dart';
-import 'package:heliumapp/utils/sort_helpers.dart';
 import 'package:meta/meta.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
+
+/// Mixin that provides standard sorting behavior for SfDataGrid data sources.
+///
+/// Sorting rules applied uniformly across all columns:
+/// - Null values are treated as maximum — last when ascending, first when descending.
+/// - Empty strings are treated as maximum — last when ascending, first when descending.
+/// - All other values sort via [Comparable.compareTo].
+///
+/// Cell values should be stored as sortable types (lowercase strings for
+/// case-insensitive text sorting, numeric values for grades, etc.).
+mixin SortableDataGridSource on DataGridSource {
+  /// Sorts [rows] in place based on the current [sortedColumns] state.
+  ///
+  /// Call this after rebuilding rows to maintain sort order, and it is called
+  /// automatically from [performSorting] for user-initiated sorts.
+  void sortDataGridRows(List<DataGridRow> rows) {
+    if (sortedColumns.isEmpty) return;
+
+    final sortColumn = sortedColumns.first;
+    final ascending =
+        sortColumn.sortDirection == DataGridSortDirection.ascending;
+
+    rows.sort((a, b) {
+      final cellA = a.getCells().firstWhere(
+            (c) => c.columnName == sortColumn.name,
+            orElse: () => const DataGridCell<String>(columnName: '', value: ''),
+          );
+      final cellB = b.getCells().firstWhere(
+            (c) => c.columnName == sortColumn.name,
+            orElse: () => const DataGridCell<String>(columnName: '', value: ''),
+          );
+
+      final valueA = cellA.value;
+      final valueB = cellB.value;
+
+      // Null and empty strings are treated as maximum: last ascending, first descending.
+      if (valueA == null && valueB == null) return 0;
+      if (valueA == null) return ascending ? 1 : -1;
+      if (valueB == null) return ascending ? -1 : 1;
+
+      if (valueA is String && valueB is String) {
+        if (valueA.isEmpty && valueB.isEmpty) return 0;
+        if (valueA.isEmpty) return ascending ? 1 : -1;
+        if (valueB.isEmpty) return ascending ? -1 : 1;
+      }
+
+      int comparison = 0;
+      if (valueA is Comparable && valueB is Comparable) {
+        comparison = valueA.compareTo(valueB);
+      }
+
+      return ascending ? comparison : -comparison;
+    });
+  }
+}
 
 /// Base state class for data grid screens. Manages shared lifecycle
 /// responsibilities: PrintableArea capture listener, printable area scope

@@ -37,7 +37,7 @@ import 'package:syncfusion_flutter_calendar/calendar.dart';
 
 final _log = Logger('data.sources');
 
-/// Optimistic override for planner item start/end times during drag-drop/resize.
+/// Optimistic override for planner item start/end times during drag-drop/resize
 class PlannerItemTimeOverride {
   final String start;
   final String end;
@@ -216,7 +216,7 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
   Map<int, bool> get completedOverrides =>
       Map.unmodifiable(_completedOverrides);
 
-  /// Returns all planner items from all cached date ranges, deduplicated by type and id.
+  /// Returns all planner items from all cached date ranges, deduplicated by type and id
   List<PlannerItemBaseModel> get allPlannerItems {
     final seen = <String>{};
     final items = <PlannerItemBaseModel>[];
@@ -934,7 +934,7 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
     _notifyChangeListeners();
   }
 
-  /// Waits for any pending filter operations to complete.
+  /// Waits for any pending filter operations to complete
   Future<void> waitForFilters() async {
     _filterDebounceTimer?.cancel();
     _filterDebounceTimer = null;

@@ -36,7 +36,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 final _log = Logger('presentation.navigation');
 
-/// Notifier for screens to share their inheritable providers with NavigationShell.
+/// Notifier for screens to share their inheritable providers with NavigationShell
 class InheritableProvidersNotifier extends ChangeNotifier {
   List<BlocProvider>? _providers;
 
@@ -48,7 +48,7 @@ class InheritableProvidersNotifier extends ChangeNotifier {
   }
 }
 
-/// InheritedWidget to share the InheritableProvidersNotifier with child screens.
+/// InheritedWidget to share the InheritableProvidersNotifier with child screens
 class InheritableProvidersScope extends InheritedWidget {
   final InheritableProvidersNotifier notifier;
 
@@ -69,7 +69,7 @@ class InheritableProvidersScope extends InheritedWidget {
       notifier != oldWidget.notifier;
 }
 
-/// InheritedWidget to tell child screens to hide their header.
+/// InheritedWidget to tell child screens to hide their header
 class NavigationShellProvider extends InheritedWidget {
   const NavigationShellProvider({super.key, required super.child});
 
@@ -120,7 +120,7 @@ enum NavigationPage {
   }
 }
 
-/// Shell widget for main tab navigation using go_router.
+/// Shell widget for main tab navigation using go_router
 class NavigationShell extends StatefulWidget {
   final Widget child;
 

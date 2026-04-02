@@ -17,10 +17,10 @@ typedef StepperHeaderStep = ({IconData icon, bool isEnabled, String? tooltip});
 /// connecting lines, supporting current step highlighting, disabled states,
 /// and tap navigation.
 class StepperHeader extends StatefulWidget {
-  /// List of steps to display.
+  /// List of steps to display
   final List<StepperHeaderStep> steps;
 
-  /// The currently active step index (0-based).
+  /// The currently active step index (0-based)
   final int currentStep;
 
   /// Callback when a step is tapped. If null, steps are not tappable.

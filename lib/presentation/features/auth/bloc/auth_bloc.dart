@@ -412,7 +412,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     } catch (e) {
       await dioClient.clearStorage();
       emit(AuthError(message: 'An unexpected error occurred.'));
-    } finally {}
+    }
   }
 
   Future<void> _onUpdateProfile(

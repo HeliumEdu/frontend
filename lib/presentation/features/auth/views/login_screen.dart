@@ -39,6 +39,10 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenViewState extends BasePageScreenState<LoginScreen> {
+  static const _logoHeight = 120.0;
+  static const _oauthButtonWidth = 250.0;
+  static const _oauthButtonHeight = 40.0;
+
   @override
   String get screenTitle => 'Login';
 
@@ -182,7 +186,7 @@ class _LoginScreenViewState extends BasePageScreenState<LoginScreen> {
             children: [
               const SizedBox(height: 50),
 
-              Center(child: Image.asset(AppAssets.logoImagePath, height: 120)),
+              Center(child: Image.asset(AppAssets.logoImagePath, height: _logoHeight)),
 
               const SizedBox(height: 50),
 
@@ -283,8 +287,8 @@ class _LoginScreenViewState extends BasePageScreenState<LoginScreen> {
               const SizedBox(height: 25),
 
               SizedBox(
-                width: 250,
-                height: 40,
+                width: _oauthButtonWidth,
+                height: _oauthButtonHeight,
                 child: IgnorePointer(
                   ignoring: isOAuthLoading || isSubmitting,
                   child: Opacity(

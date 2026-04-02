@@ -41,6 +41,9 @@ class VerifyEmailScreen extends StatefulWidget {
 }
 
 class _VerifyEmailScreenState extends BasePageScreenState<VerifyEmailScreen> {
+  static const _resendSpinnerSize = 16.0;
+  static const _resendSpinnerStrokeWidth = 2.0;
+
   @override
   String get screenTitle => 'Verify Email';
 
@@ -232,10 +235,10 @@ class _VerifyEmailScreenState extends BasePageScreenState<VerifyEmailScreen> {
                 onPressed: _canResend ? _onResend : null,
                 child: _isResending
                     ? SizedBox(
-                        width: 16,
-                        height: 16,
+                        width: _resendSpinnerSize,
+                        height: _resendSpinnerSize,
                         child: CircularProgressIndicator(
-                          strokeWidth: 2,
+                          strokeWidth: _resendSpinnerStrokeWidth,
                           color: context.colorScheme.primary,
                         ),
                       )

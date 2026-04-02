@@ -342,7 +342,7 @@ Future<void> showCourseExceptionsDialog({
   );
 }
 
-/// Shows a [CourseExceptionsDialog] for course-group holidays.
+/// Shows a [CourseExceptionsDialog] for course-group holidays
 Future<void> showCourseGroupExceptionsDialog({
   required BuildContext context,
   required List<DateTime> exceptions,

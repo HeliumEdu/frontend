@@ -153,7 +153,7 @@ void initializeRouter() {
   );
 }
 
-/// Auth redirect logic for go_router.
+/// Auth redirect logic for go_router
 Future<String?> _authRedirect(BuildContext context, GoRouterState state) async {
   if (_shouldShowMobileWebPrompt(context, state)) {
     if (state.matchedLocation != AppRoute.mobileWebScreen) {
@@ -289,7 +289,7 @@ bool _shouldShowMobileWebPrompt(BuildContext context, GoRouterState state) {
   return true;
 }
 
-/// Widget that redirects to a fallback route when arguments are missing.
+/// Widget that redirects to a fallback route when arguments are missing
 class _RouteRedirect extends StatelessWidget {
   final String redirectTo;
 

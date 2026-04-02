@@ -11,6 +11,10 @@ import 'package:heliumapp/data/models/drop_down_item.dart';
 import 'package:heliumapp/utils/app_style.dart';
 
 class DropDown<T> extends StatelessWidget {
+  static const _fieldBorderRadius = 8.0;
+  static const _contentPadding = 12.0;
+  static const _iconTextSpacing = 10.0;
+
   final String? label;
   final IconData? prefixIcon;
   final DropDownItem<T>? initialValue;
@@ -43,7 +47,7 @@ class DropDown<T> extends StatelessWidget {
             color: isDisabled
                 ? context.theme.scaffoldBackgroundColor
                 : context.colorScheme.surface,
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(_fieldBorderRadius),
           ),
           child: DropdownButtonFormField<DropDownItem<T>>(
             initialValue: initialValue,
@@ -52,8 +56,8 @@ class DropDown<T> extends StatelessWidget {
                   ? Icon(prefixIcon, color: iconColor)
                   : null,
               contentPadding: EdgeInsets.only(
-                top: prefixIcon != null ? 12 : 0,
-                left: 12,
+                top: prefixIcon != null ? _contentPadding : 0,
+                left: _contentPadding,
               ),
               enabledBorder: OutlineInputBorder(
                 borderSide: BorderSide(
@@ -84,7 +88,7 @@ class DropDown<T> extends StatelessWidget {
                   children: [
                     if (item.iconData != null) ...[
                       Icon(item.iconData, color: item.iconColor ?? iconColor),
-                      const SizedBox(width: 10),
+                      const SizedBox(width: _iconTextSpacing),
                     ],
                     Text(
                       item.value.toString(),

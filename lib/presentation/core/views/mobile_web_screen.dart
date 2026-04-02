@@ -28,6 +28,15 @@ class MobileWebScreen extends StatefulWidget {
 }
 
 class _MobileWebScreenState extends BasePageScreenState<MobileWebScreen> {
+  static const _cardMaxWidth = 350.0;
+  static const _storeButtonHeight = 40.0;
+  static const _featureIconSize = 18.0;
+  static const _featureIconPadding = 7.0;
+  static const _featureIconBorderRadius = 8.0;
+  static const _featureIconSpacing = 10.0;
+  static const _spinnerSize = 18.0;
+  static const _spinnerStrokeWidth = 2.0;
+
   @override
   String get screenTitle => 'Get the Helium App';
 
@@ -48,7 +57,7 @@ class _MobileWebScreenState extends BasePageScreenState<MobileWebScreen> {
   @override
   Widget buildMainArea(BuildContext context) {
     return ResponsiveCenterCard(
-      maxWidth: 350,
+      maxWidth: _cardMaxWidth,
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -64,7 +73,7 @@ class _MobileWebScreenState extends BasePageScreenState<MobileWebScreen> {
               Icon(
                 Icons.arrow_forward_rounded,
                 color: context.colorScheme.primary.withValues(alpha: 0.8),
-                size: 18,
+                size: _featureIconSize,
               ),
               const SizedBox(width: 8),
               Icon(Icons.download_rounded, color: context.colorScheme.primary),
@@ -107,11 +116,11 @@ class _MobileWebScreenState extends BasePageScreenState<MobileWebScreen> {
           ..._buildStoreButtonsForDetectedPlatform(),
           if (_isOpeningStore) ...[
             const SizedBox(height: 8),
-            const Center(
+            Center(
               child: SizedBox(
-                width: 18,
-                height: 18,
-                child: CircularProgressIndicator(strokeWidth: 2),
+                width: _spinnerSize,
+                height: _spinnerSize,
+                child: const CircularProgressIndicator(strokeWidth: _spinnerStrokeWidth),
               ),
             ),
           ],
@@ -151,7 +160,7 @@ class _MobileWebScreenState extends BasePageScreenState<MobileWebScreen> {
     required VoidCallback onPressed,
   }) {
     return SizedBox(
-      height: 40,
+      height: _storeButtonHeight,
       child: IgnorePointer(
         ignoring: _isOpeningStore,
         child: Opacity(
@@ -172,14 +181,14 @@ class _MobileWebScreenState extends BasePageScreenState<MobileWebScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Container(
-          padding: const EdgeInsets.all(7),
+          padding: const EdgeInsets.all(_featureIconPadding),
           decoration: BoxDecoration(
             color: context.colorScheme.primary.withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(_featureIconBorderRadius),
           ),
-          child: Icon(icon, color: context.colorScheme.primary, size: 18),
+          child: Icon(icon, color: context.colorScheme.primary, size: _featureIconSize),
         ),
-        const SizedBox(width: 10),
+        const SizedBox(width: _featureIconSpacing),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,

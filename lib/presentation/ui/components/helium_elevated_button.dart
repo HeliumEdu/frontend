@@ -11,6 +11,13 @@ import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
 import 'package:heliumapp/utils/app_style.dart';
 
 class HeliumElevatedButton extends StatelessWidget {
+  static const _buttonBorderRadius = 6.0;
+  static const _buttonMinHeight = 45.0;
+  static const _buttonHorizontalPadding = 12.0;
+  static const _iconSize = 16.0;
+  static const _loadingIndicatorSize = 20.0;
+  static const _loadingIndicatorStrokeWidth = 2.5;
+
   final String buttonText;
   final IconData? icon;
   final Color? iconColor;
@@ -40,12 +47,12 @@ class HeliumElevatedButton extends StatelessWidget {
         backgroundColor ?? colorScheme.primary,
       ),
       foregroundColor: WidgetStatePropertyAll(colorScheme.onPrimary),
-      minimumSize: WidgetStatePropertyAll(Size(minimumWidth, 45)),
+      minimumSize: WidgetStatePropertyAll(Size(minimumWidth, _buttonMinHeight)),
       padding: const WidgetStatePropertyAll(
-        EdgeInsets.symmetric(horizontal: 12),
+        EdgeInsets.symmetric(horizontal: _buttonHorizontalPadding),
       ),
       shape: WidgetStatePropertyAll(
-        RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+        RoundedRectangleBorder(borderRadius: BorderRadius.circular(_buttonBorderRadius)),
       ),
     );
   }
@@ -60,7 +67,7 @@ class HeliumElevatedButton extends StatelessWidget {
     return ElevatedButton.icon(
       onPressed: isLoading || !enabled ? null : () => {onPressed()},
       icon: !isLoading && icon != null
-          ? Icon(icon, size: 16, color: effectiveIconColor)
+          ? Icon(icon, size: _iconSize, color: effectiveIconColor)
           : null,
       style: baseStyle(
         context.colorScheme,
@@ -68,8 +75,8 @@ class HeliumElevatedButton extends StatelessWidget {
       ).copyWith(tapTargetSize: MaterialTapTargetSize.shrinkWrap),
       label: isLoading
           ? LoadingIndicator(
-              size: 20,
-              strokeWidth: 2.5,
+              size: _loadingIndicatorSize,
+              strokeWidth: _loadingIndicatorStrokeWidth,
               expanded: false,
               color: context.colorScheme.onSurface.withValues(alpha: 0.38),
             )

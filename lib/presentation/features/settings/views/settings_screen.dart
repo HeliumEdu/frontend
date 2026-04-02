@@ -94,6 +94,14 @@ class SettingsScreen extends StatefulWidget {
 }
 
 class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
+  static const _helpIconSize = 30.0;
+  static const _settingsItemPadding = 14.0;
+  static const _settingsIconPadding = 10.0;
+  static const _settingsIconBorderRadius = 12.0;
+  static const _settingsContainerBorderRadius = 16.0;
+  static const _settingsItemSpacing = 16.0;
+  static const _settingsHintSpacing = 2.0;
+
   final _preferencesKey = GlobalKey<PreferencesScreenState>();
   final _changeEmailKey = GlobalKey<ChangeEmailScreenState>();
   final _changePasswordKey = GlobalKey<ChangePasswordScreenState>();
@@ -405,7 +413,7 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
                 icon: Icon(
                   Icons.help_center,
                   color: context.colorScheme.primary,
-                  size: 30,
+                  size: _helpIconSize,
                 ),
                 tooltip: 'Get support',
               ),
@@ -600,21 +608,21 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.only(
-          topLeft: const Radius.circular(16),
-          topRight: isFirst ? const Radius.circular(16) : Radius.zero,
-          bottomLeft: const Radius.circular(16),
-          bottomRight: isLast ? const Radius.circular(16) : Radius.zero,
+          topLeft: const Radius.circular(_settingsContainerBorderRadius),
+          topRight: isFirst ? const Radius.circular(_settingsContainerBorderRadius) : Radius.zero,
+          bottomLeft: const Radius.circular(_settingsContainerBorderRadius),
+          bottomRight: isLast ? const Radius.circular(_settingsContainerBorderRadius) : Radius.zero,
         ),
         child: Padding(
-          padding: const EdgeInsets.all(14),
+          padding: const EdgeInsets.all(_settingsItemPadding),
           child: Row(
             children: [
               Container(
-                padding: const EdgeInsets.all(10),
+                padding: const EdgeInsets.all(_settingsIconPadding),
                 decoration: BoxDecoration(
                   color:
                       iconBackgroundColor ?? iconColor.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(_settingsIconBorderRadius),
                 ),
                 child: Icon(
                   icon,
@@ -627,7 +635,7 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
                   ),
                 ),
               ),
-              const SizedBox(width: 16),
+              const SizedBox(width: _settingsItemSpacing),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -640,7 +648,7 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
                             ).copyWith(color: labelColor)
                           : AppStyles.menuItem(context),
                     ),
-                    const SizedBox(height: 2),
+                    const SizedBox(height: _settingsHintSpacing),
                     Text(hint, style: AppStyles.menuItemHint(context)),
                   ],
                 ),
@@ -665,7 +673,7 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
   Widget _buildDangerZoneArea() {
     return Container(
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(_settingsContainerBorderRadius),
         border: Border.all(
           color: context.colorScheme.error.withValues(alpha: 0.2),
         ),
@@ -681,16 +689,16 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
       color: Colors.transparent,
       child: InkWell(
         onTap: _expandDangerZone,
-        borderRadius: const BorderRadius.all(Radius.circular(16)),
+        borderRadius: const BorderRadius.all(Radius.circular(_settingsContainerBorderRadius)),
         child: Padding(
-          padding: const EdgeInsets.all(14),
+          padding: const EdgeInsets.all(_settingsItemPadding),
           child: Row(
             children: [
               Container(
-                padding: const EdgeInsets.all(10),
+                padding: const EdgeInsets.all(_settingsIconPadding),
                 decoration: BoxDecoration(
                   color: context.colorScheme.error.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(_settingsIconBorderRadius),
                 ),
                 child: Icon(
                   Icons.warning_amber_rounded,
@@ -703,7 +711,7 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
                   ),
                 ),
               ),
-              const SizedBox(width: 16),
+              const SizedBox(width: _settingsItemSpacing),
               Expanded(
                 child: Text(
                   'Danger Zone',
@@ -715,7 +723,7 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
               Icon(
                 Icons.arrow_forward_ios,
                 color: context.colorScheme.onSurface.withValues(alpha: 0.3),
-                size: 16,
+                size: Responsive.getIconSize(context, mobile: 16, tablet: 18, desktop: 20),
               ),
             ],
           ),
@@ -765,20 +773,20 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.only(
-          topLeft: const Radius.circular(16),
-          topRight: isFirst ? const Radius.circular(16) : Radius.zero,
-          bottomLeft: const Radius.circular(16),
-          bottomRight: isLast ? const Radius.circular(16) : Radius.zero,
+          topLeft: const Radius.circular(_settingsContainerBorderRadius),
+          topRight: isFirst ? const Radius.circular(_settingsContainerBorderRadius) : Radius.zero,
+          bottomLeft: const Radius.circular(_settingsContainerBorderRadius),
+          bottomRight: isLast ? const Radius.circular(_settingsContainerBorderRadius) : Radius.zero,
         ),
         child: Padding(
-          padding: const EdgeInsets.all(14),
+          padding: const EdgeInsets.all(_settingsItemPadding),
           child: Row(
             children: [
               Container(
-                padding: const EdgeInsets.all(10),
+                padding: const EdgeInsets.all(_settingsIconPadding),
                 decoration: BoxDecoration(
                   color: context.colorScheme.error.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(_settingsIconBorderRadius),
                 ),
                 child: Icon(
                   icon,
@@ -791,7 +799,7 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
                   ),
                 ),
               ),
-              const SizedBox(width: 16),
+              const SizedBox(width: _settingsItemSpacing),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -802,7 +810,7 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
                         context,
                       ).copyWith(color: context.colorScheme.error),
                     ),
-                    const SizedBox(height: 2),
+                    const SizedBox(height: _settingsHintSpacing),
                     Text(hint, style: AppStyles.menuItemHint(context)),
                   ],
                 ),
@@ -810,7 +818,7 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
               Icon(
                 Icons.arrow_forward_ios,
                 color: context.colorScheme.onSurface.withValues(alpha: 0.3),
-                size: 16,
+                size: Responsive.getIconSize(context, mobile: 16, tablet: 18, desktop: 20),
               ),
             ],
           ),

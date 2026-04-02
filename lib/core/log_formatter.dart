@@ -39,7 +39,7 @@ class LogFormatter {
     return loggerName.endsWith('_test') || loggerName.endsWith('_helper');
   }
 
-  /// Format a log record with colors.
+  /// Format a log record with colors
   static String format(LogRecord record, {bool includeLoggerName = true, bool includeSourcePrefix = false}) {
     final colorCode = LogColors.forLevel(record.level);
     const resetCode = LogColors.reset;

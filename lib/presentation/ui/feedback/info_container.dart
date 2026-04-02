@@ -11,6 +11,10 @@ import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 
 class InfoContainer extends StatelessWidget {
+  static const _containerBorderRadius = 12.0;
+  static const _containerPadding = 14.0;
+  static const _iconTextSpacing = 10.0;
+
   final String text;
   final IconData? icon;
   final VoidCallback? onDismiss;
@@ -27,10 +31,10 @@ class InfoContainer extends StatelessWidget {
     final primaryColor = context.colorScheme.primary;
 
     return Container(
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.all(_containerPadding),
       decoration: BoxDecoration(
         color: primaryColor.withValues(alpha: 0.06),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(_containerBorderRadius),
         border: Border.all(
           color: primaryColor.withValues(alpha: 0.15),
         ),
@@ -48,7 +52,7 @@ class InfoContainer extends StatelessWidget {
               desktop: 22,
             ),
           ),
-          const SizedBox(width: 10),
+          const SizedBox(width: _iconTextSpacing),
           Expanded(
             child: SelectableText(
               text,

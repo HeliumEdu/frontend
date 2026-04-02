@@ -26,14 +26,14 @@ class ParsedApiError {
 
   bool get hasErrors => fieldErrors.isNotEmpty || generalErrors.isNotEmpty;
 
-  /// Get the first error for a specific field, or null if none.
+  /// Get the first error for a specific field, or null if none
   String? getFieldError(String fieldName) {
     final errors = fieldErrors[fieldName];
     return (errors?.isNotEmpty ?? false) ? errors!.first : null;
   }
 }
 
-/// Utility class for parsing API error responses into structured errors.
+/// Utility class for parsing API error responses into structured errors
 class ApiErrorParser {
   // Pattern to match "field_name: error message" format from API
   static final _fieldPrefixPattern = RegExp(r'^([a-zA-Z_][a-zA-Z0-9_]*): (.+)$');

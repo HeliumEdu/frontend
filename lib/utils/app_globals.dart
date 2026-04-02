@@ -33,14 +33,14 @@ class AppConstants {
 class FallbackConstants {
   static const fallbackColor = seedColor;
 
-  static const defaultViewIndex = 2; // Day view
-  static const defaultWeekStartsOn = 0; // Sunday
+  static const defaultViewIndex = 2;
+  static const defaultWeekStartsOn = 0;
   static const defaultTimeZone = 'Etc/UTC';
-  static const defaultReminderType = 3; // Push
-  static const defaultReminderOffset = 30; // 30 minutes
-  static const defaultReminderOffsetType = 0; // Minutes
+  static const defaultReminderType = 3;
+  static const defaultReminderOffset = 30;
+  static const defaultReminderOffsetType = 0;
   static const defaultColorByCategory = false;
-  static const defaultColorSchemeTheme = 2; // System
+  static const defaultColorSchemeTheme = 2;
   static const defaultWhatsNewVersionSeen = 0;
   static const defaultShowGettingStarted = false;
   static const defaultEventsColor = Color(0xffe74674);
@@ -56,7 +56,7 @@ class FallbackConstants {
   static const defaultShowWeekNumbers = true;
 }
 
-/// Colors for planner item types (Events, Homework, Class Schedules, External Calendars).
+/// Colors for planner item types (Events, Homework, Class Schedules, External Calendars)
 class PlannerTypeColors {
   static const homework = Color(0xffcfa25e);
   static const classSchedules = Color(0xff5658d7);

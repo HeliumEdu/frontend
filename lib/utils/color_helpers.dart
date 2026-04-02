@@ -143,7 +143,7 @@ class BadgeColors {
     )!;
   }
 
-  /// Creates a border color by blending the color with the surface at higher ratio.
+  /// Creates a border color by blending the color with the surface at higher ratio
   static Color border(BuildContext context, Color color) {
     return Color.lerp(
       context.colorScheme.surface,

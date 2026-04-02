@@ -11,7 +11,7 @@ import 'package:logging/logging.dart';
 
 final _log = Logger('analytics');
 
-/// A no-op navigator observer for use when analytics is disabled.
+/// A no-op navigator observer for use when analytics is disabled
 class _NoOpNavigatorObserver extends NavigatorObserver {}
 
 class AnalyticsService {

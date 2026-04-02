@@ -22,7 +22,7 @@ class PrintService {
 
   PrintService._internal();
 
-  /// True on web and non-mobile desktop — platforms where printing is supported.
+  /// True on web and non-mobile desktop — platforms where printing is supported
   static bool get isSupported =>
       kIsWeb ||
       (defaultTargetPlatform != TargetPlatform.android &&
@@ -46,7 +46,7 @@ class PrintService {
     }
   }
 
-  /// Returns true if a handler was registered and invoked, false otherwise.
+  /// Returns true if a handler was registered and invoked, false otherwise
   Future<bool> printCurrent() async {
     if (_stack.isEmpty) return false;
     await _stack.last.call();
