@@ -104,12 +104,6 @@ class _NotificationsProvidedScreen extends StatefulWidget {
 
 class _NotificationsScreenState
     extends BasePageScreenState<_NotificationsProvidedScreen> {
-  static const _rowPadding = 12.0;
-  static const _unreadDotSize = 8.0;
-  static const _colorStripWidth = 4.0;
-  static const _colorStripHeight = 48.0;
-  static const _colorStripBorderRadius = 2.0;
-
   @override
   String get screenTitle => 'Notifications';
 
@@ -426,7 +420,7 @@ class _NotificationsScreenState
       child: InkWell(
         onTap: () => _openNotification(notification),
         child: Container(
-          padding: const EdgeInsets.all(_rowPadding),
+          padding: const EdgeInsets.all(12.0),
           decoration: BoxDecoration(
             border: Border(
               bottom: BorderSide(
@@ -438,9 +432,9 @@ class _NotificationsScreenState
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Container(
-                width: _unreadDotSize,
-                height: _unreadDotSize,
-                margin: const EdgeInsets.only(top: 6, right: _rowPadding),
+                width: 8.0,
+                height: 8.0,
+                margin: const EdgeInsets.only(top: 6, right: 12.0),
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   color: notification.isRead
@@ -450,12 +444,12 @@ class _NotificationsScreenState
               ),
               if (notification.color != null)
                 Container(
-                  width: _colorStripWidth,
-                  height: _colorStripHeight,
-                  margin: const EdgeInsets.only(right: _rowPadding),
+                  width: 4.0,
+                  height: 48.0,
+                  margin: const EdgeInsets.only(right: 12.0),
                   decoration: BoxDecoration(
                     color: notification.color,
-                    borderRadius: BorderRadius.circular(_colorStripBorderRadius),
+                    borderRadius: BorderRadius.circular(2.0),
                   ),
                 ),
               Expanded(

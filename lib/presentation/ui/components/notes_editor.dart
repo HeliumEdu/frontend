@@ -79,12 +79,6 @@ class NotesEditor extends StatefulWidget {
 }
 
 class _NotesEditorState extends State<NotesEditor> with WidgetsBindingObserver {
-  static const _openInNotesIconSize = 16.0;
-  static const _openInNotesFontSize = 12.0;
-  static const _editorBorderRadius = 8.0;
-  static const _editorMinHeight = 125.0;
-  static const _editorMaxHeight = 300.0;
-  static const _editorContentPadding = 12.0;
   final _editorKey = GlobalKey();
   bool _pendingScrollOnKeyboard = false;
 
@@ -173,13 +167,13 @@ class _NotesEditorState extends State<NotesEditor> with WidgetsBindingObserver {
                 onPressed: widget.onOpenInNotes,
                 icon: Icon(
                   Icons.library_books,
-                  size: _openInNotesIconSize,
+                  size: 16.0,
                   color: context.colorScheme.primary,
                 ),
                 label: Text(
                   'Open in Notebook',
                   style: TextStyle(
-                    fontSize: _openInNotesFontSize,
+                    fontSize: 12.0,
                     color: context.colorScheme.primary,
                   ),
                 ),
@@ -193,10 +187,10 @@ class _NotesEditorState extends State<NotesEditor> with WidgetsBindingObserver {
             border: Border.all(
               color: context.colorScheme.outline.withValues(alpha: 0.2),
             ),
-            borderRadius: BorderRadius.circular(_editorBorderRadius),
+            borderRadius: BorderRadius.circular(8.0),
           ),
           child: ClipRRect(
-            borderRadius: BorderRadius.circular(_editorBorderRadius),
+            borderRadius: BorderRadius.circular(8.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
@@ -266,14 +260,14 @@ class _NotesEditorState extends State<NotesEditor> with WidgetsBindingObserver {
                 const Divider(height: 1),
                 ConstrainedBox(
                   constraints: const BoxConstraints(
-                    minHeight: _editorMinHeight,
-                    maxHeight: _editorMaxHeight,
+                    minHeight: 125.0,
+                    maxHeight: 300.0,
                   ),
                   child: QuillEditor.basic(
                     controller: widget.controller,
                     focusNode: widget.focusNode,
                     config: QuillEditorConfig(
-                      padding: const EdgeInsets.all(_editorContentPadding),
+                      padding: const EdgeInsets.all(12.0),
                       autoFocus: false,
                       customStyles: NotesEditor.buildDefaultStyles(context),
                     ),

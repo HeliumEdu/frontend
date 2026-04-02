@@ -13,13 +13,6 @@ import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 
 class SelectField<T extends BaseTitledModel> extends StatelessWidget {
-  static const _menuContentPadding = 16.0;
-  static const _bottomSheetTopRadius = 16.0;
-  static const _menuBorderRadius = 8.0;
-  static const _colorDotSize = 12.0;
-  static const _containerBorderRadius = 6.0;
-  static const _containerHorizontalPadding = 12.0;
-  static const _containerVerticalPadding = 8.0;
   final List<T> items;
   final List<int> selectedIds;
   final ValueChanged<List<int>> onChanged;
@@ -47,7 +40,7 @@ class SelectField<T extends BaseTitledModel> extends StatelessWidget {
         color: Theme.of(parentContext).colorScheme.surface,
         child: SingleChildScrollView(
           child: Padding(
-            padding: const EdgeInsets.all(_menuContentPadding),
+            padding: const EdgeInsets.all(16.0),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: items.map((item) {
@@ -63,8 +56,8 @@ class SelectField<T extends BaseTitledModel> extends StatelessWidget {
                     children: [
                       if (itemColor != null) ...[
                         Container(
-                          width: _colorDotSize,
-                          height: _colorDotSize,
+                          width: 12.0,
+                          height: 12.0,
                           decoration: BoxDecoration(
                             color: itemColor,
                             shape: BoxShape.circle,
@@ -106,7 +99,7 @@ class SelectField<T extends BaseTitledModel> extends StatelessWidget {
         isScrollControlled: true,
         backgroundColor: Theme.of(parentContext).colorScheme.surface,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(_bottomSheetTopRadius)),
+          borderRadius: BorderRadius.vertical(top: Radius.circular(16.0)),
         ),
         builder: (context) => StatefulBuilder(builder: buildContent),
       );
@@ -129,7 +122,7 @@ class SelectField<T extends BaseTitledModel> extends StatelessWidget {
         context: parentContext,
         position: position,
         color: Theme.of(parentContext).colorScheme.surface,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(_menuBorderRadius)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0)),
         items: [
           PopupMenuItem(
             enabled: false,
@@ -153,11 +146,11 @@ class SelectField<T extends BaseTitledModel> extends StatelessWidget {
 
     return Container(
       padding: const EdgeInsets.symmetric(
-        horizontal: _containerHorizontalPadding,
-        vertical: _containerVerticalPadding,
+        horizontal: 12.0,
+        vertical: 8.0,
       ),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(_containerBorderRadius),
+        borderRadius: BorderRadius.circular(6.0),
         border: Border.all(
           color: context.colorScheme.outline.withValues(alpha: 0.2),
         ),

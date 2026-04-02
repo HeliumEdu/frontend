@@ -15,11 +15,6 @@ import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class _WhatsNewDialogWidget extends StatelessWidget {
-  static const _headerIconSize = 28.0;
-  static const _featureIconContainerPadding = 8.0;
-  static const _featureIconContainerBorderRadius = 8.0;
-  static const _featureIconSize = 20.0;
-
   const _WhatsNewDialogWidget();
 
   @override
@@ -30,7 +25,7 @@ class _WhatsNewDialogWidget extends StatelessWidget {
           Icon(
             Icons.auto_awesome,
             color: context.colorScheme.primary,
-            size: _headerIconSize,
+            size: 28.0,
           ),
           const SizedBox(width: 12),
           Text(
@@ -161,12 +156,12 @@ class _WhatsNewDialogWidget extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Container(
-          padding: const EdgeInsets.all(_featureIconContainerPadding),
+          padding: const EdgeInsets.all(8.0),
           decoration: BoxDecoration(
             color: context.colorScheme.primary.withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(_featureIconContainerBorderRadius),
+            borderRadius: BorderRadius.circular(8.0),
           ),
-          child: Icon(icon, color: context.colorScheme.primary, size: _featureIconSize),
+          child: Icon(icon, color: context.colorScheme.primary, size: 20.0),
         ),
         const SizedBox(width: 12),
         Expanded(

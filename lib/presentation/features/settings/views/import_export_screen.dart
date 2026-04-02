@@ -38,9 +38,6 @@ class ImportExportScreen extends StatefulWidget {
 }
 
 class _ImportExportScreenState extends State<ImportExportScreen> {
-  static const _fileContainerBorderRadius = 10.0;
-  static const _fileContainerPadding = 12.0;
-
   final DioClient _dioClient = DioClient();
 
   String? _selectedFileName;
@@ -90,12 +87,12 @@ class _ImportExportScreenState extends State<ImportExportScreen> {
             Expanded(
               child: Container(
                 padding: const EdgeInsets.symmetric(
-                  horizontal: _fileContainerPadding,
-                  vertical: _fileContainerPadding,
+                  horizontal: 12.0,
+                  vertical: 12.0,
                 ),
                 decoration: BoxDecoration(
                   color: context.colorScheme.surfaceContainer,
-                  borderRadius: BorderRadius.circular(_fileContainerBorderRadius),
+                  borderRadius: BorderRadius.circular(10.0),
                   border: Border.all(
                     color: context.colorScheme.outline.withValues(alpha: 0.2),
                   ),
