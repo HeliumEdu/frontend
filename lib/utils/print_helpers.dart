@@ -47,10 +47,23 @@ Future<void> _sliceImageToPdf(
 
     // Snap to the last row boundary within this page (skip on final page).
     if (imageBoundaries.isNotEmpty && endPx < image.height) {
-      final snapped = imageBoundaries
+      final candidates = imageBoundaries
           .where((b) => b > startPx && b <= endPx)
-          .fold<double>(0, (prev, b) => b > prev ? b : prev);
-      if (snapped > startPx) endPx = snapped;
+          .toList()
+        ..sort();
+
+      if (candidates.isNotEmpty) {
+        double snap = candidates.last;
+
+        // If no boundaries follow snap, the next page would contain only a
+        // footer. Back up one row so at least one row accompanies the footer.
+        final hasLaterBoundary = imageBoundaries.any((b) => b > snap);
+        if (!hasLaterBoundary && candidates.length > 1) {
+          snap = candidates[candidates.length - 2];
+        }
+
+        endPx = snap;
+      }
     }
 
     final int sliceHeightPx = (endPx - startPx).ceil();
