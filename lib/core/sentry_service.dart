@@ -30,7 +30,11 @@ class SentryService {
     return _instance._shouldFilter(event);
   }
 
+  bool get isEnabled => !kDebugMode && !kProfileMode;
+
   Future<void> init() async {
+    if (!isEnabled) return;
+
     // Skip Sentry entirely on Google Play pre-launch test farm devices.
     // Native crashes bypass Dart-level filters (sent via captureEnvelope),
     // so we must prevent initialization at the source.

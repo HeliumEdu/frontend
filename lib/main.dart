@@ -39,12 +39,10 @@ void main() async {
   // Initialize logging (log level can be set via --dart-define=LOG_LEVEL=FINE)
   // In release mode, also initialize Sentry for error reporting
   LogService().init();
-  if (!kDebugMode) {
-    try {
-      await SentryService().init();
-    } catch (e) {
-      _log.severe('Sentry initialization failed', e);
-    }
+  try {
+    await SentryService().init();
+  } catch (e) {
+    _log.severe('Sentry initialization failed', e);
   }
 
   GoogleFonts.config.allowRuntimeFetching = false;
