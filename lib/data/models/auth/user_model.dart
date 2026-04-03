@@ -74,7 +74,8 @@ class UserSettingsModel {
   final int onTrackTolerance;
   final bool showWeekNumbers;
   final String? privateSlug;
-  final bool promptUserForReview;
+  final bool promptForReview;
+  final int reviewPromptsShown;
 
   UserSettingsModel({
     required this.timeZone,
@@ -99,7 +100,8 @@ class UserSettingsModel {
     required this.onTrackTolerance,
     required this.showWeekNumbers,
     this.privateSlug,
-    this.promptUserForReview = false,
+    this.promptForReview = false,
+    this.reviewPromptsShown = 0,
   });
 
   factory UserSettingsModel.fromJson(Map<String, dynamic> json) {
@@ -132,7 +134,8 @@ class UserSettingsModel {
       onTrackTolerance: json['on_track_tolerance'] ?? FallbackConstants.defaultOnTrackTolerance,
       showWeekNumbers: json['show_week_numbers'] ?? FallbackConstants.defaultShowWeekNumbers,
       privateSlug: json['private_slug'],
-      promptUserForReview: json['prompt_user_for_review'] ?? false,
+      promptForReview: json['prompt_for_review'] ?? false,
+      reviewPromptsShown: json['review_prompts_shown'] ?? 0,
     );
   }
 

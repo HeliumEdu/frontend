@@ -13,6 +13,7 @@ import 'package:flutter/widgets.dart';
 import 'package:heliumapp/config/pref_service.dart';
 import 'package:heliumapp/core/dio_client.dart';
 import 'package:heliumapp/data/models/auth/request/update_settings_request_model.dart';
+import 'package:heliumapp/data/models/auth/user_model.dart';
 import 'package:in_app_review/in_app_review.dart';
 import 'package:logging/logging.dart';
 
@@ -95,9 +96,10 @@ class FeedbackService with WidgetsBindingObserver {
     final cleanSessions = _prefService.getInt(_keyCleanSessionCount) ?? 0;
     if (cleanSessions < _cleanSessionThreshold) return;
 
+    final UserSettingsModel? settings;
     try {
-      final settings = await _dioClient.getSettings();
-      if (settings == null || !settings.promptUserForReview) return;
+      settings = await _dioClient.getSettings();
+      if (settings == null || !settings.promptForReview) return;
     } catch (e) {
       _log.warning('Failed to fetch settings for review check: $e');
       return;
@@ -111,8 +113,8 @@ class FeedbackService with WidgetsBindingObserver {
 
       await _dioClient.updateSettings(
         UpdateSettingsRequestModel(
-          promptUserForReview: false,
-          lastReviewPromptedDate: DateTime.now().toUtc(),
+          promptForReview: false,
+          reviewPromptsShown: settings.reviewPromptsShown + 1,
         ),
       );
     } catch (e) {
