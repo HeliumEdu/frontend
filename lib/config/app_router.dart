@@ -13,6 +13,7 @@ import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/config/pref_service.dart';
 import 'package:heliumapp/core/analytics_service.dart';
 import 'package:heliumapp/core/dio_client.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:heliumapp/presentation/core/views/landing_screen.dart';
 import 'package:heliumapp/presentation/core/views/mobile_web_screen.dart';
 import 'package:heliumapp/presentation/core/views/notification_screen.dart';
@@ -210,6 +211,7 @@ Future<String?> _authRedirect(BuildContext context, GoRouterState state) async {
         '(location=$matchedLocation), skipping setup-based redirect',
       );
       AnalyticsService().logEvent(name: 'router_auth_redirect_no_setup_state', parameters: {'category': 'edge_case'});
+      Sentry.captureMessage('Auth redirect skipped setup-based redirect: setup state unavailable at location=$matchedLocation', level: SentryLevel.error);
       return null;
     }
 

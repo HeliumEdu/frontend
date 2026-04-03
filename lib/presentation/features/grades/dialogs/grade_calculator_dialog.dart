@@ -21,6 +21,7 @@ import 'package:heliumapp/presentation/ui/feedback/warning_container.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/grade_helpers.dart';
 import 'package:heliumapp/core/analytics_service.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 
 class GradeCalculatorDialog extends StatefulWidget {
   final List<GradeCategoryModel> categories;
@@ -169,6 +170,7 @@ class _GradeCalculatorDialogState
       case NeededGradeState.targetCategoryHasNoWeight:
         // It should be impossible to reach this state
         AnalyticsService().logEvent(name: 'grades_calculator_no_weight_state', parameters: {'category': 'edge_case'});
+        Sentry.captureMessage('Grade calculator reached impossible no-weight state for category: $targetCategoryTitle', level: SentryLevel.error);
         return "Selected category has no weight, so we can't help make accurate predictions";
       case NeededGradeState.invalidTotalWeight:
         return "Category weights do not add up to 100%, so we can't help make accurate predictions";

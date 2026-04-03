@@ -41,6 +41,7 @@ import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:heliumapp/core/analytics_service.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 
 enum SaveStatus { unsaved, saving, saved, error }
 
@@ -447,6 +448,11 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
     _autoSaveErrorCount++;
 
     AnalyticsService().logEvent(name: 'note_autosave_error', parameters: {'category': 'edge_case'});
+    Sentry.captureMessage(
+      'Note autosave failed',
+      level: SentryLevel.error,
+      withScope: (scope) => scope.setExtra('error', message),
+    );
 
     if (_autoSaveErrorCount >= _maxAutoSaveErrors) {
       setState(() {
