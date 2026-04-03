@@ -427,6 +427,8 @@ class _ImportExportScreenState extends State<ImportExportScreen> {
       if (response.statusCode == 204) {
         await _dioClient.cacheService.invalidateAll();
         if (mounted) {
+          unawaited(AnalyticsService().logEvent(name: 'example_schedule_imported', parameters: {'category': 'onboarding'}));
+          unawaited(AnalyticsService().setUserProperty(name: 'onboarding_complete', value: 'false'));
           context.read<AuthBloc>().add(FetchProfileEvent());
           context.read<AuthBloc>().add(RefreshScheduleDataEvent());
           SnackBarHelper.show(

@@ -582,6 +582,8 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
 
       // Clear all cached data since the example data is now deleted
       await dioClient.cacheService.clearAll();
+      unawaited(AnalyticsService().logEvent(name: 'example_schedule_cleared', parameters: {'category': 'onboarding'}));
+      unawaited(AnalyticsService().setUserProperty(name: 'onboarding_complete', value: 'true'));
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
     } catch (e, s) {

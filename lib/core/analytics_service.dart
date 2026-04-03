@@ -121,5 +121,17 @@ class AnalyticsService {
     }
   }
 
+  Future<void> setUserProperty({
+    required String name,
+    required String? value,
+  }) async {
+    if (!isEnabled) return;
+    try {
+      await analytics.setUserProperty(name: name, value: value);
+    } catch (e) {
+      _log.warning('Failed to set user property: $name', e);
+    }
+  }
+
   bool get isInitialized => _isInitialized;
 }
