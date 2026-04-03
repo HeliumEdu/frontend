@@ -334,7 +334,13 @@ class CourseRemoteDataSourceImpl extends CourseRemoteDataSource {
         final group = CourseGroupModel.fromJson(response.data);
         _log.info('... CourseGroup ${group.id} created');
         await dioClient.cacheService.invalidateAll();
-        unawaited(AnalyticsService().logEvent(name: 'course_group_created', parameters: {'category': 'feature_interaction'}));
+        unawaited(AnalyticsService().logEvent(
+          name: 'course_group_created',
+          parameters: {
+            'category': 'feature_interaction',
+            'semester_status': _semesterStatus(request.startDate, request.endDate),
+          },
+        ));
         return group;
       } else {
         throw ServerException(
@@ -466,4 +472,13 @@ class CourseRemoteDataSourceImpl extends CourseRemoteDataSource {
       throw HeliumException(message: 'An unexpected error occurred.');
     }
   }
+}
+
+String _semesterStatus(String startDate, String endDate) {
+  final now = DateTime.now();
+  final start = DateTime.parse(startDate);
+  final end = DateTime.parse(endDate);
+  if (end.isBefore(now)) return 'past';
+  if (start.isAfter(now)) return 'future';
+  return 'current';
 }

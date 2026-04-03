@@ -115,6 +115,7 @@ class ReminderRemoteDataSourceImpl extends ReminderRemoteDataSource {
         _log.info('... Reminder ${reminder.id} created');
         await dioClient.cacheService.invalidateAll();
         unawaited(AnalyticsService().logEvent(name: 'reminder_created', parameters: {'category': 'feature_interaction'}));
+        unawaited(AnalyticsService().setUserProperty(name: 'uses_reminders', value: 'true'));
         return reminder;
       } else {
         throw ServerException(

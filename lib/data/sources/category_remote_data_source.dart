@@ -5,7 +5,10 @@
 //
 // For details regarding the license, please refer to the LICENSE file.
 
+import 'dart:async';
+
 import 'package:dio/dio.dart';
+import 'package:heliumapp/core/analytics_service.dart';
 import 'package:heliumapp/core/api_url.dart';
 import 'package:heliumapp/core/dio_client.dart';
 import 'package:heliumapp/core/helium_exception.dart';
@@ -115,6 +118,14 @@ class CategoryRemoteDataSourceImpl extends CategoryRemoteDataSource {
         final category = CategoryModel.fromJson(response.data);
         _log.info('... Category ${category.id} created for Course $courseId');
         await dioClient.cacheService.invalidateAll();
+        final weight = double.tryParse(request.weight) ?? 0.0;
+        unawaited(AnalyticsService().logEvent(
+          name: 'category_created',
+          parameters: {
+            'category': 'feature_interaction',
+            'grade_tracking_depth': weight > 0 ? 'weighted' : 'unweighted',
+          },
+        ));
         return category;
       } else {
         throw ServerException(

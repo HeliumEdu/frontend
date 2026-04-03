@@ -5,11 +5,14 @@
 //
 // For details regarding the license, please refer to the LICENSE file.
 
+import 'dart:async';
+
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/config/app_theme.dart';
+import 'package:heliumapp/core/analytics_service.dart';
 import 'package:heliumapp/utils/color_helpers.dart';
 import 'package:heliumapp/core/dio_client.dart';
 import 'package:heliumapp/data/models/base_model.dart';
@@ -198,6 +201,11 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen>
               _coursesMap[_selectedGroupId]!.add(state.course);
               Sort.byTitle(_coursesMap[_selectedGroupId]!);
             });
+            final totalCourses = _coursesMap.values.fold<int>(0, (sum, c) => sum + c.length);
+            unawaited(AnalyticsService().setUserProperty(
+              name: 'course_load_bucket',
+              value: _courseLoadBucket(totalCourses),
+            ));
           } else if (state is CourseUpdated) {
             if (_selectedGroupId == null) return;
 
@@ -219,6 +227,11 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen>
               );
               Sort.byTitle(_coursesMap[_selectedGroupId]!);
             });
+            final totalCourses = _coursesMap.values.fold<int>(0, (sum, c) => sum + c.length);
+            unawaited(AnalyticsService().setUserProperty(
+              name: 'course_load_bucket',
+              value: _courseLoadBucket(totalCourses),
+            ));
           } else if (state is CourseScheduleUpdated) {
             if (_selectedGroupId == null) return;
 
@@ -689,5 +702,12 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen>
         isNew: false,
       ),
     );
+  }
+
+  String _courseLoadBucket(int count) {
+    if (count <= 1) return '1';
+    if (count <= 3) return '2_3';
+    if (count <= 5) return '4_5';
+    return '6_plus';
   }
 }

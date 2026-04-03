@@ -5,6 +5,7 @@
 //
 // For details regarding the license, please refer to the LICENSE file.
 
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:collection/collection.dart';
@@ -13,6 +14,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/config/pref_service.dart';
+import 'package:heliumapp/core/analytics_service.dart';
 import 'package:heliumapp/core/dio_client.dart';
 import 'package:heliumapp/data/models/auth/user_model.dart';
 import 'package:heliumapp/data/models/planner/course_group_model.dart';
@@ -1113,6 +1115,11 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
   }
 
   void _openGradeCalculator(GradeCourseModel course) {
+    unawaited(AnalyticsService().logEvent(
+      name: 'grade_calculator_opened',
+      parameters: {'category': 'feature_interaction'},
+    ));
+    unawaited(AnalyticsService().setUserProperty(name: 'uses_grade_calculator', value: 'true'));
     showDialog(
       context: context,
       builder: (context) => GradeCalculatorDialog(

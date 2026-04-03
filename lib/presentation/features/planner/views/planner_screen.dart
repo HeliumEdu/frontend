@@ -425,9 +425,13 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
             if (newGrade != null &&
                 newGrade.isNotEmpty &&
                 newGrade != previousHomework?.currentGrade) {
+              final daysSinceDue = DateTime.now().difference(state.homework.start).inDays;
               unawaited(AnalyticsService().logEvent(
                 name: 'grade_entered',
-                parameters: {'category': 'feature_interaction'},
+                parameters: {
+                  'category': 'feature_interaction',
+                  'days_since_due': daysSinceDue,
+                },
               ));
             }
           } else if (state is HomeworkDeleted) {
