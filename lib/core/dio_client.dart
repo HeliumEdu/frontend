@@ -344,6 +344,8 @@ class DioClient {
 
         await saveSettings(user.settings);
 
+        unawaited(AnalyticsService().setStaffStatus(user.email));
+
         return user.settings;
       } else {
         _log.severe(

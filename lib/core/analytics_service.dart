@@ -18,7 +18,9 @@ class _NoOpNavigatorObserver extends NavigatorObserver {}
 class AnalyticsService {
   FirebaseAnalytics? _analytics;
 
-  bool get isEnabled => !kDebugMode;
+  bool _isStaff = false;
+
+  bool get isEnabled => !kDebugMode && !_isStaff;
 
   bool _isInitialized = false;
 
@@ -128,4 +130,18 @@ class AnalyticsService {
   }
 
   bool get isInitialized => _isInitialized;
+
+  Future<void> setStaffStatus(String email) async {
+    final lowerEmail = email.toLowerCase();
+    if (lowerEmail.endsWith('@heliumedu.com') ||
+        lowerEmail.endsWith('@heliumedu.dev')) {
+      _isStaff = true;
+      try {
+        await analytics.setAnalyticsCollectionEnabled(false);
+        _log.info('Analytics disabled for staff user');
+      } catch (e) {
+        _log.warning('Failed to disable analytics collection', e);
+      }
+    }
+  }
 }
