@@ -451,7 +451,7 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
     Sentry.captureMessage(
       'Note autosave failed',
       level: SentryLevel.error,
-      withScope: (scope) => scope.setExtra('error', message),
+      withScope: (scope) => scope.setContext('autosave_error', {'error': message}),
     );
 
     if (_autoSaveErrorCount >= _maxAutoSaveErrors) {
