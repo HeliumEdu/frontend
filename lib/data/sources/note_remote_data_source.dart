@@ -5,7 +5,10 @@
 //
 // For details regarding the license, please refer to the LICENSE file.
 
+import 'dart:async';
+
 import 'package:dio/dio.dart';
+import 'package:heliumapp/core/analytics_service.dart';
 import 'package:heliumapp/core/api_url.dart';
 import 'package:heliumapp/core/dio_client.dart';
 import 'package:heliumapp/core/helium_exception.dart';
@@ -151,6 +154,7 @@ class NoteRemoteDataSourceImpl extends NoteRemoteDataSource {
         final note = NoteModel.fromJson(response.data);
         _log.info('... Note ${note.id} created');
         await dioClient.cacheService.invalidateAll();
+        unawaited(AnalyticsService().logEvent(name: 'note_created', parameters: {'category': 'feature_interaction'}));
         return note;
       } else {
         throw ServerException(

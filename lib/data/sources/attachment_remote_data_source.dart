@@ -5,9 +5,11 @@
 //
 // For details regarding the license, please refer to the LICENSE file.
 
+import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
+import 'package:heliumapp/core/analytics_service.dart';
 import 'package:heliumapp/core/api_url.dart';
 import 'package:heliumapp/core/dio_client.dart';
 import 'package:heliumapp/core/helium_exception.dart';
@@ -87,7 +89,7 @@ class AttachmentRemoteDataSourceImpl extends AttachmentRemoteDataSource {
         final attachment = AttachmentModel.fromJson(response.data[0]);
         _log.info('... Attachment ${attachment.id} created');
         await dioClient.cacheService.invalidateAll();
-
+        unawaited(AnalyticsService().logEvent(name: 'attachment_uploaded', parameters: {'category': 'feature_interaction'}));
         return attachment;
       } else {
         throw ServerException(

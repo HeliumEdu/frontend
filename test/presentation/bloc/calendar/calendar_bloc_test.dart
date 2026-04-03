@@ -64,6 +64,9 @@ void main() {
               MockModels.createCategory(id: 2, title: 'Exam'),
             ],
           );
+          when(
+            () => mockResourceRepository.getResources(shownOnCalendar: true),
+          ).thenAnswer((_) async => []);
           return calendarBloc;
         },
         act: (bloc) => bloc.add(FetchPlannerScreenDataEvent(origin: EventOrigin.screen)),
@@ -158,6 +161,9 @@ void main() {
           ).thenAnswer((_) async => []);
           when(
             () => mockCategoryRepository.getCategories(shownOnCalendar: true),
+          ).thenAnswer((_) async => []);
+          when(
+            () => mockResourceRepository.getResources(shownOnCalendar: true),
           ).thenAnswer((_) async => []);
           return calendarBloc;
         },

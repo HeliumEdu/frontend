@@ -5,6 +5,7 @@
 //
 // For details regarding the license, please refer to the LICENSE file.
 
+import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
@@ -13,6 +14,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/config/app_theme.dart';
+import 'package:heliumapp/core/analytics_service.dart';
 import 'package:heliumapp/core/api_url.dart';
 import 'package:heliumapp/core/dio_client.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_bloc.dart';
@@ -277,6 +279,7 @@ class _ImportExportScreenState extends State<ImportExportScreen> {
 
         if (mounted) {
           context.read<AuthBloc>().add(RefreshScheduleDataEvent());
+          unawaited(AnalyticsService().logEvent(name: 'import_completed', parameters: {'category': 'feature_interaction'}));
           SnackBarHelper.show(
             context,
             'Imported: $counts',
@@ -364,6 +367,7 @@ class _ImportExportScreenState extends State<ImportExportScreen> {
       if (!mounted) return;
 
       if (response.statusCode == 200 && response.data != null) {
+        unawaited(AnalyticsService().logEvent(name: 'export_triggered', parameters: {'category': 'feature_interaction'}));
         final contentDisposition = response.headers.value(
           'content-disposition',
         );

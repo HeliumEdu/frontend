@@ -5,7 +5,10 @@
 //
 // For details regarding the license, please refer to the LICENSE file.
 
+import 'dart:async';
+
 import 'package:bloc/bloc.dart';
+import 'package:heliumapp/core/analytics_service.dart';
 import 'package:heliumapp/core/helium_exception.dart';
 import 'package:heliumapp/data/models/planner/planner_item_base_model.dart';
 import 'package:heliumapp/data/models/planner/category_model.dart';
@@ -408,6 +411,13 @@ class PlannerItemBloc extends Bloc<PlannerItemEvent, PlannerItemState> {
 
       final results = await Future.wait(futures);
       final homework = results[0] as HomeworkModel;
+
+      if (homework.completed) {
+        unawaited(AnalyticsService().logEvent(name: 'homework_completed', parameters: {'category': 'feature_interaction'}));
+      }
+      if (event.request.currentGrade?.isNotEmpty == true) {
+        unawaited(AnalyticsService().logEvent(name: 'grade_entered', parameters: {'category': 'feature_interaction'}));
+      }
 
       if (event.linkedNoteId == null && results.length > 1) {
         linkedNoteId = (results[1] as NoteModel).id;

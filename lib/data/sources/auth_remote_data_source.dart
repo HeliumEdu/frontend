@@ -5,11 +5,15 @@
 //
 // For details regarding the license, please refer to the LICENSE file.
 
+import 'dart:async';
+
 import 'package:dio/dio.dart';
+import 'package:heliumapp/core/analytics_service.dart';
 import 'package:heliumapp/core/api_url.dart';
 import 'package:heliumapp/core/dio_client.dart';
 import 'package:heliumapp/core/fcm_service.dart';
 import 'package:heliumapp/core/helium_exception.dart';
+import 'package:heliumapp/core/jwt_utils.dart';
 import 'package:heliumapp/data/models/auth/login_request_model.dart';
 import 'package:heliumapp/data/models/auth/private_feed_model.dart';
 import 'package:heliumapp/data/models/auth/register_request_model.dart';
@@ -135,6 +139,10 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
           _log.warning('Failed to register FCM token after verification', e);
         }
 
+        final verifyUserId = JwtUtils.getUserId(response.data['access'] as String);
+        unawaited(AnalyticsService().setUserId(verifyUserId?.toString()));
+        unawaited(AnalyticsService().logSignUp());
+
         return tokenResponse;
       } else {
         throw ServerException(
@@ -211,6 +219,10 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
           _log.warning('Failed to register FCM token after login', e);
         }
 
+        final loginUserId = JwtUtils.getUserId(response.data['access'] as String);
+        unawaited(AnalyticsService().setUserId(loginUserId?.toString()));
+        unawaited(AnalyticsService().logLogin(loginMethod: 'email'));
+
         return loginResponse;
       } else {
         throw ServerException(
@@ -268,6 +280,10 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
         } catch (e) {
           _log.warning('Failed to register FCM token after $provider login', e);
         }
+
+        final oauthUserId = JwtUtils.getUserId(response.data['access'] as String);
+        unawaited(AnalyticsService().setUserId(oauthUserId?.toString()));
+        unawaited(AnalyticsService().logLogin(loginMethod: provider));
 
         return loginResponse;
       } else {
@@ -381,6 +397,7 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
       final response = await dioClient.dio.put(ApiUrl.feedPrivateEnableUrl);
 
       if (response.statusCode == 200) {
+        unawaited(AnalyticsService().logEvent(name: 'feeds_enabled', parameters: {'category': 'feature_interaction'}));
         return PrivateFeedModel.fromJson(response.data);
       } else {
         throw ServerException(
@@ -407,6 +424,7 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
           code: response.statusCode.toString(),
         );
       }
+      unawaited(AnalyticsService().logEvent(name: 'feeds_disabled', parameters: {'category': 'feature_interaction'}));
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
     } catch (e, s) {

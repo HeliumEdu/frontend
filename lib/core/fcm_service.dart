@@ -5,6 +5,7 @@
 //
 // For details regarding the license, please refer to the LICENSE file.
 
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io'
     if (dart.library.html) 'package:heliumapp/core/platform_stub.dart';
@@ -287,7 +288,7 @@ class FcmService {
               );
             } catch (e) {
               _log.warning('Failed to delete stale push token ${token.id}', e);
-            AnalyticsService().logEvent(name: 'fcm_push_token_stale_delete_failed', parameters: {'category': 'operational'});
+              unawaited(AnalyticsService().logEvent(name: 'fcm_push_token_stale_delete_failed', parameters: {'category': 'operational'}));
             }
           }
         } catch (e) {
@@ -364,7 +365,7 @@ class FcmService {
 
     if (_recentMessageIds.containsKey(payload['id'].toString())) {
       _log.info('Foreground message $messageId within dedupe window, skipping');
-      AnalyticsService().logEvent(name: 'fcm_message_deduplicated', parameters: {'category': 'operational'});
+      unawaited(AnalyticsService().logEvent(name: 'fcm_message_deduplicated', parameters: {'category': 'operational'}));
       return;
     }
     _recentMessageIds[payload['id'].toString()] = now;
@@ -517,7 +518,7 @@ class FcmService {
         if (message.notification?.title == null && message.notification?.body == null) {
           const msg = 'FCM notification has null title and body in test message handler';
           _log.severe(msg);
-          AnalyticsService().logEvent(name: 'fcm_notification_null_title_body', parameters: {'category': 'operational'});
+          unawaited(AnalyticsService().logEvent(name: 'fcm_notification_null_title_body', parameters: {'category': 'operational'}));
         }
 
         final messageMap = message.toMap();

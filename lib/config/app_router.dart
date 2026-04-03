@@ -5,6 +5,8 @@
 //
 // For details regarding the license, please refer to the LICENSE file.
 
+import 'dart:async';
+
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -210,8 +212,8 @@ Future<String?> _authRedirect(BuildContext context, GoRouterState state) async {
         'Setup completion flag unavailable during auth redirect '
         '(location=$matchedLocation), skipping setup-based redirect',
       );
-      AnalyticsService().logEvent(name: 'router_auth_redirect_no_setup_state', parameters: {'category': 'edge_case'});
-      Sentry.captureMessage('Auth redirect skipped setup-based redirect: setup state unavailable at location=$matchedLocation', level: SentryLevel.error);
+      unawaited(AnalyticsService().logEvent(name: 'router_auth_redirect_no_setup_state', parameters: {'category': 'edge_case'}));
+      unawaited(Sentry.captureMessage('Auth redirect skipped setup-based redirect: setup state unavailable at location=$matchedLocation', level: SentryLevel.error));
       return null;
     }
 

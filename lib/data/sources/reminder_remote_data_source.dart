@@ -5,7 +5,10 @@
 //
 // For details regarding the license, please refer to the LICENSE file.
 
+import 'dart:async';
+
 import 'package:dio/dio.dart';
+import 'package:heliumapp/core/analytics_service.dart';
 import 'package:heliumapp/core/api_url.dart';
 import 'package:heliumapp/core/dio_client.dart';
 import 'package:heliumapp/core/helium_exception.dart';
@@ -111,6 +114,7 @@ class ReminderRemoteDataSourceImpl extends ReminderRemoteDataSource {
         final reminder = ReminderModel.fromJson(response.data);
         _log.info('... Reminder ${reminder.id} created');
         await dioClient.cacheService.invalidateAll();
+        unawaited(AnalyticsService().logEvent(name: 'reminder_created', parameters: {'category': 'feature_interaction'}));
         return reminder;
       } else {
         throw ServerException(

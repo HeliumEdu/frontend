@@ -5,7 +5,10 @@
 //
 // For details regarding the license, please refer to the LICENSE file.
 
+import 'dart:async';
+
 import 'package:dio/dio.dart';
+import 'package:heliumapp/core/analytics_service.dart';
 import 'package:heliumapp/core/api_url.dart';
 import 'package:heliumapp/core/dio_client.dart';
 import 'package:heliumapp/core/helium_exception.dart';
@@ -169,6 +172,7 @@ class CourseRemoteDataSourceImpl extends CourseRemoteDataSource {
         final course = CourseModel.fromJson(response.data);
         _log.info('... Course ${course.id} created in CourseGroup $groupId');
         await dioClient.cacheService.invalidateAll();
+        unawaited(AnalyticsService().logEvent(name: 'course_created', parameters: {'category': 'feature_interaction'}));
         return course;
       } else {
         throw ServerException(
