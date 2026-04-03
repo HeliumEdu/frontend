@@ -22,7 +22,7 @@ import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/time_zone_constants.dart';
 import 'package:logging/logging.dart';
-import 'package:sentry_flutter/sentry_flutter.dart';
+import 'package:heliumapp/core/analytics_service.dart';
 
 final _log = Logger('presentation.views');
 
@@ -180,7 +180,7 @@ class _SetupAccountScreenState extends BasePageScreenState<SetupAccountScreen> {
     // who are already configured are not blocked on /setup.
     if (_consecutiveStatusFailures < 2 || !mounted) return;
 
-    Sentry.metrics.count('setup.status_check.fallback_to_cache', 1);
+    AnalyticsService().logEvent(name: 'setup_status_check_cache_fallback');
 
     try {
       final cachedSettings = await DioClient().getSettings();

@@ -23,7 +23,6 @@ import 'package:heliumapp/presentation/features/auth/views/signup_screen.dart';
 import 'package:heliumapp/presentation/features/auth/views/verify_email_screen.dart';
 import 'package:heliumapp/presentation/features/settings/views/settings_screen.dart';
 import 'package:heliumapp/presentation/navigation/shell/navigation_shell.dart';
-import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:logging/logging.dart';
 
@@ -210,7 +209,7 @@ Future<String?> _authRedirect(BuildContext context, GoRouterState state) async {
         'Setup completion flag unavailable during auth redirect '
         '(location=$matchedLocation), skipping setup-based redirect',
       );
-      Sentry.metrics.count('router.auth_redirect.setup_state_unavailable', 1);
+      AnalyticsService().logEvent(name: 'router_auth_redirect_no_setup_state');
       return null;
     }
 

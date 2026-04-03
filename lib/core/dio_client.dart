@@ -16,6 +16,7 @@ import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/config/app_router.dart';
 import 'package:heliumapp/config/pref_service.dart';
 import 'package:heliumapp/config/theme_notifier.dart';
+import 'package:heliumapp/core/analytics_service.dart';
 import 'package:heliumapp/core/api_url.dart';
 import 'package:heliumapp/core/cache_service.dart';
 import 'package:heliumapp/data/models/auth/request/refresh_token_request_model.dart';
@@ -27,7 +28,6 @@ import 'package:heliumapp/utils/snack_bar_helpers.dart';
 import 'package:logging/logging.dart';
 import 'package:pretty_dio_logger/pretty_dio_logger.dart';
 import 'package:sentry_dio/sentry_dio.dart';
-import 'package:sentry_flutter/sentry_flutter.dart';
 
 final _log = Logger('core');
 
@@ -110,7 +110,7 @@ class DioClient {
               _log.info(
                 'Token refresh in progress, waiting for completion ...',
               );
-              Sentry.metrics.count('auth.token_refresh.queued_request', 1);
+              AnalyticsService().logEvent(name: 'auth_token_refresh_queued');
               try {
                 await _refreshCompleter!.future;
                 final newToken = await getAccessToken();

@@ -16,6 +16,7 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:heliumapp/config/app_router.dart';
 import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/config/pref_service.dart';
+import 'package:heliumapp/core/analytics_service.dart';
 import 'package:heliumapp/core/dio_client.dart';
 import 'package:heliumapp/core/fcm_web_notifications_stub.dart'
     if (dart.library.html) 'package:heliumapp/core/fcm_web_notifications_web.dart'
@@ -27,7 +28,6 @@ import 'package:heliumapp/data/repositories/push_notification_repository_impl.da
 import 'package:heliumapp/data/sources/push_notification_remote_data_source.dart';
 import 'package:heliumapp/utils/planner_helper.dart';
 import 'package:logging/logging.dart';
-import 'package:sentry_flutter/sentry_flutter.dart';
 
 final _log = Logger('core');
 
@@ -285,10 +285,10 @@ class FcmService {
               _log.info(
                 'Removed stale push token ID: ${token.id} from this device',
               );
-              Sentry.metrics.count('fcm.push_token.stale_removed', 1);
+              AnalyticsService().logEvent(name: 'fcm_push_token_stale_removed');
             } catch (e) {
               _log.warning('Failed to delete stale push token ${token.id}', e);
-            Sentry.metrics.count('fcm.push_token.stale_delete_failed', 1);
+            AnalyticsService().logEvent(name: 'fcm_push_token_stale_delete_failed');
             }
           }
         } catch (e) {
@@ -365,7 +365,7 @@ class FcmService {
 
     if (_recentMessageIds.containsKey(payload['id'].toString())) {
       _log.info('Foreground message $messageId within dedupe window, skipping');
-      Sentry.metrics.count('fcm.message.deduplicated', 1);
+      AnalyticsService().logEvent(name: 'fcm_message_deduplicated');
       return;
     }
     _recentMessageIds[payload['id'].toString()] = now;
@@ -518,7 +518,7 @@ class FcmService {
         if (message.notification?.title == null && message.notification?.body == null) {
           const msg = 'FCM notification has null title and body in test message handler';
           _log.severe(msg);
-          Sentry.metrics.count('fcm.notification.null_title_and_body', 1);
+          AnalyticsService().logEvent(name: 'fcm_notification_null_title_body');
         }
 
         final messageMap = message.toMap();
