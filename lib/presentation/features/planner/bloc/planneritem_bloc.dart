@@ -412,10 +412,6 @@ class PlannerItemBloc extends Bloc<PlannerItemEvent, PlannerItemState> {
       final results = await Future.wait(futures);
       final homework = results[0] as HomeworkModel;
 
-      if (event.request.currentGrade?.isNotEmpty == true) {
-        unawaited(AnalyticsService().logEvent(name: 'grade_entered', parameters: {'category': 'feature_interaction'}));
-      }
-
       if (event.linkedNoteId == null && results.length > 1) {
         linkedNoteId = (results[1] as NoteModel).id;
       }

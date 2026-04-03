@@ -334,6 +334,7 @@ class CourseRemoteDataSourceImpl extends CourseRemoteDataSource {
         final group = CourseGroupModel.fromJson(response.data);
         _log.info('... CourseGroup ${group.id} created');
         await dioClient.cacheService.invalidateAll();
+        unawaited(AnalyticsService().logEvent(name: 'course_group_created', parameters: {'category': 'feature_interaction'}));
         return group;
       } else {
         throw ServerException(

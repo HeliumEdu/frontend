@@ -13,6 +13,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/config/app_theme.dart';
+import 'package:heliumapp/core/analytics_service.dart';
 import 'package:heliumapp/core/dio_client.dart';
 import 'package:heliumapp/core/feedback_service.dart';
 import 'package:heliumapp/data/models/auth/user_model.dart';
@@ -412,6 +413,22 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
             _plannerItemDataSource!.updatePlannerItem(state.homework);
             if (state.homework.completed && previousHomework?.completed == false) {
               FeedbackService().triggerReviewRequest();
+              unawaited(AnalyticsService().logEvent(
+                name: 'homework_completed',
+                parameters: {
+                  'category': 'feature_interaction',
+                  'on_time': (!DateTime.now().isAfter(state.homework.end)).toString(),
+                },
+              ));
+            }
+            final newGrade = state.homework.currentGrade;
+            if (newGrade != null &&
+                newGrade.isNotEmpty &&
+                newGrade != previousHomework?.currentGrade) {
+              unawaited(AnalyticsService().logEvent(
+                name: 'grade_entered',
+                parameters: {'category': 'feature_interaction'},
+              ));
             }
           } else if (state is HomeworkDeleted) {
             showSnackBar(context, 'Assignment deleted');
