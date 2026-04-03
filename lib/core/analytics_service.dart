@@ -20,7 +20,7 @@ class AnalyticsService {
 
   bool _isStaff = false;
 
-  bool get isEnabled => !kDebugMode && !_isStaff;
+  bool get isEnabled => !kDebugMode && !kProfileMode && !_isStaff;
 
   bool _isInitialized = false;
 
