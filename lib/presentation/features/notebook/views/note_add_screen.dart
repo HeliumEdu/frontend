@@ -446,7 +446,7 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
   void _handleAutoSaveError(String message) {
     _autoSaveErrorCount++;
 
-    AnalyticsService().logEvent(name: 'note_autosave_error');
+    AnalyticsService().logEvent(name: 'note_autosave_error', parameters: {'category': 'edge_case'});
 
     if (_autoSaveErrorCount >= _maxAutoSaveErrors) {
       setState(() {

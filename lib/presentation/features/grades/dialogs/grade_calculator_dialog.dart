@@ -168,7 +168,7 @@ class _GradeCalculatorDialogState
     switch (result.state) {
       case NeededGradeState.targetCategoryHasNoWeight:
         // It should be impossible to reach this state
-        AnalyticsService().logEvent(name: 'grades_calculator_no_weight_state');
+        AnalyticsService().logEvent(name: 'grades_calculator_no_weight_state', parameters: {'category': 'edge_case'});
         return "Selected category has no weight, so we can't help make accurate predictions";
       case NeededGradeState.invalidTotalWeight:
         return "Category weights do not add up to 100%, so we can't help make accurate predictions";

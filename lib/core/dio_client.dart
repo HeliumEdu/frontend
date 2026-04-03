@@ -110,7 +110,7 @@ class DioClient {
               _log.info(
                 'Token refresh in progress, waiting for completion ...',
               );
-              AnalyticsService().logEvent(name: 'auth_token_refresh_queued');
+              AnalyticsService().logEvent(name: 'auth_token_refresh_queued', parameters: {'category': 'operational'});
               try {
                 await _refreshCompleter!.future;
                 final newToken = await getAccessToken();

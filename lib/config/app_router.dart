@@ -209,7 +209,7 @@ Future<String?> _authRedirect(BuildContext context, GoRouterState state) async {
         'Setup completion flag unavailable during auth redirect '
         '(location=$matchedLocation), skipping setup-based redirect',
       );
-      AnalyticsService().logEvent(name: 'router_auth_redirect_no_setup_state');
+      AnalyticsService().logEvent(name: 'router_auth_redirect_no_setup_state', parameters: {'category': 'edge_case'});
       return null;
     }
 
