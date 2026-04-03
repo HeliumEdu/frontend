@@ -6,6 +6,7 @@
 // For details regarding the license, please refer to the LICENSE file.
 
 import 'package:firebase_analytics/firebase_analytics.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:logging/logging.dart';
 
@@ -17,14 +18,7 @@ class _NoOpNavigatorObserver extends NavigatorObserver {}
 class AnalyticsService {
   FirebaseAnalytics? _analytics;
 
-  /// Whether analytics is enabled. Configured via ANALYTICS_ENABLED env var.
-  /// Defaults to true. Set to 'false' to disable analytics collection.
-  static const _analyticsEnabled = String.fromEnvironment(
-    'ANALYTICS_ENABLED',
-    defaultValue: 'true',
-  );
-
-  bool get isEnabled => _analyticsEnabled.toLowerCase() == 'true';
+  bool get isEnabled => !kDebugMode;
 
   bool _isInitialized = false;
 
