@@ -16,6 +16,7 @@ import 'package:heliumapp/config/pref_service.dart';
 import 'package:heliumapp/core/analytics_service.dart';
 import 'package:heliumapp/core/dio_client.dart';
 import 'package:heliumapp/core/fcm_service.dart';
+import 'package:heliumapp/core/feedback_service.dart';
 import 'package:heliumapp/core/log_service.dart';
 import 'package:heliumapp/core/sentry_service.dart';
 import 'package:heliumapp/data/repositories/auth_repository_impl.dart';
@@ -69,6 +70,12 @@ void main() async {
   }
 
   await PrefService().init();
+
+  try {
+    await FeedbackService().init();
+  } catch (e) {
+    _log.severe('FeedbackService initialization failed', e);
+  }
 
   usePathUrlStrategy();
 

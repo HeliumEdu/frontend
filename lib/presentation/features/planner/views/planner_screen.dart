@@ -14,6 +14,7 @@ import 'package:go_router/go_router.dart';
 import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/core/dio_client.dart';
+import 'package:heliumapp/core/feedback_service.dart';
 import 'package:heliumapp/data/models/auth/user_model.dart';
 import 'package:heliumapp/data/models/id_or_entity.dart';
 import 'package:heliumapp/data/models/planner/attachment_model.dart';
@@ -406,7 +407,12 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
           } else if (state is HomeworkCreated) {
             _plannerItemDataSource!.addPlannerItem(state.homework);
           } else if (state is HomeworkUpdated) {
+            final previousHomework = _plannerItemDataSource!.allHomeworks
+                .firstWhereOrNull((h) => h.id == state.homework.id);
             _plannerItemDataSource!.updatePlannerItem(state.homework);
+            if (state.homework.completed && previousHomework?.completed == false) {
+              FeedbackService().triggerReviewRequest();
+            }
           } else if (state is HomeworkDeleted) {
             showSnackBar(context, 'Assignment deleted');
             _plannerItemDataSource!.removePlannerItem(state.id);
@@ -3098,6 +3104,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
         request: request,
       ),
     );
+
   }
 
   void _updatePlannerItemAttachments(

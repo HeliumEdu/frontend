@@ -26,6 +26,8 @@ class UpdateSettingsRequestModel {
   final int? atRiskThreshold;
   final int? onTrackTolerance;
   final bool? showWeekNumbers;
+  final bool? promptUserForReview;
+  final DateTime? lastReviewPromptedDate;
 
   UpdateSettingsRequestModel({
     this.timeZone,
@@ -48,6 +50,8 @@ class UpdateSettingsRequestModel {
     this.atRiskThreshold,
     this.onTrackTolerance,
     this.showWeekNumbers,
+    this.promptUserForReview,
+    this.lastReviewPromptedDate,
   });
 
   Map<String, dynamic> toJson() {
@@ -112,6 +116,12 @@ class UpdateSettingsRequestModel {
     }
     if (showWeekNumbers != null) {
       json['show_week_numbers'] = showWeekNumbers;
+    }
+    if (promptUserForReview != null) {
+      json['prompt_user_for_review'] = promptUserForReview;
+    }
+    if (lastReviewPromptedDate != null) {
+      json['last_review_prompted_date'] = lastReviewPromptedDate!.toUtc().toIso8601String();
     }
 
     return json;
