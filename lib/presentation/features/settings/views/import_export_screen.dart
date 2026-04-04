@@ -10,6 +10,7 @@ import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:heliumapp/config/app_route.dart';
@@ -200,15 +201,29 @@ class _ImportExportScreenState extends State<ImportExportScreen> {
 
   Future<void> _openFileChooser() async {
     try {
+      // Use FileType.any on mobile to avoid flaky iOS UTI mapping for custom
+      // extensions, then validate the extension manually after selection
+      final bool useCustomType = kIsWeb;
       final result = await FilePicker.platform.pickFiles(
-        type: FileType.custom,
-        allowedExtensions: ['json'],
+        type: useCustomType ? FileType.custom : FileType.any,
+        allowedExtensions: useCustomType ? ['json'] : null,
         allowMultiple: false,
         withData: true,
       );
 
       if (result != null && result.files.isNotEmpty) {
         final file = result.files.first;
+
+        if (!useCustomType && file.extension?.toLowerCase() != 'json') {
+          if (mounted) {
+            SnackBarHelper.show(
+              context,
+              'Please select a JSON file',
+              type: SnackType.error,
+            );
+          }
+          return;
+        }
 
         if (file.bytes == null) {
           if (mounted) {
