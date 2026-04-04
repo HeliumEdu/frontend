@@ -230,14 +230,25 @@ class _NotificationsScreenState
         }
 
         if (_notifications.isEmpty) {
-          return RefreshIndicator(
-            onRefresh: () async => _fetchReminders(forceRefresh: true),
-            color: context.colorScheme.primary,
-            child: SingleChildScrollView(
-              physics: const AlwaysScrollableScrollPhysics(),
-              child: EmptyCard(
-                icon: icon,
-                message: 'Reminders will appear here when they are due',
+          return Expanded(
+            child: RefreshIndicator(
+              onRefresh: () async => _fetchReminders(forceRefresh: true),
+              color: context.colorScheme.primary,
+              child: LayoutBuilder(
+                builder: (context, constraints) => SingleChildScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(
+                      minHeight: constraints.maxHeight,
+                    ),
+                    child: EmptyCard(
+                      icon: icon,
+                      message:
+                          'Reminders will appear here when they are due',
+                      expanded: false,
+                    ),
+                  ),
+                ),
               ),
             ),
           );
