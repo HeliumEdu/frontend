@@ -233,27 +233,24 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
       return Container();
     }
 
-    return ValueListenableBuilder<bool>(
-      valueListenable: PrintableArea.capturing,
-      builder: (context, isCapturing, _) => Padding(
-        padding: const EdgeInsets.only(bottom: 12),
-        child: GroupDropdown(
-          groups: _courseGroups,
-          initialSelection: _courseGroups.firstWhereOrNull(
-            (g) => g.id == _selectedGroupId,
-          ),
-          isReadOnly: isCapturing,
-          onChanged: (value) {
-            if (value == null) return;
-            if (value.id == _selectedGroupId) return;
-
-            setState(() {
-              _selectedGroupId = value.id;
-              _pendingImpactCourseId = null;
-              _expandedCourseIds.clear();
-            });
-          },
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: GroupDropdown(
+        groups: _courseGroups,
+        initialSelection: _courseGroups.firstWhereOrNull(
+          (g) => g.id == _selectedGroupId,
         ),
+        isReadOnly: true,
+        onChanged: (value) {
+          if (value == null) return;
+          if (value.id == _selectedGroupId) return;
+
+          setState(() {
+            _selectedGroupId = value.id;
+            _pendingImpactCourseId = null;
+            _expandedCourseIds.clear();
+          });
+        },
       ),
     );
   }

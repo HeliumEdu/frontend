@@ -8,7 +8,6 @@
 import 'dart:async';
 
 import 'package:bloc/bloc.dart';
-import 'package:heliumapp/core/analytics_service.dart';
 import 'package:heliumapp/core/helium_exception.dart';
 import 'package:heliumapp/data/models/planner/planner_item_base_model.dart';
 import 'package:heliumapp/data/models/planner/category_model.dart';
