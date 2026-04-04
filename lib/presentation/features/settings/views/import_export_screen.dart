@@ -6,7 +6,6 @@
 // For details regarding the license, please refer to the LICENSE file.
 
 import 'dart:async';
-import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
 import 'package:file_picker/file_picker.dart';
@@ -203,7 +202,7 @@ class _ImportExportScreenState extends State<ImportExportScreen> {
     try {
       // Use FileType.any on mobile to avoid flaky iOS UTI mapping for custom
       // extensions, then validate the extension manually after selection
-      final bool useCustomType = kIsWeb;
+      const bool useCustomType = kIsWeb;
       final result = await FilePicker.platform.pickFiles(
         type: useCustomType ? FileType.custom : FileType.any,
         allowedExtensions: useCustomType ? ['json'] : null,
