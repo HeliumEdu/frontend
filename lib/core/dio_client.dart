@@ -29,6 +29,7 @@ import 'package:logging/logging.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:pretty_dio_logger/pretty_dio_logger.dart';
 import 'package:sentry_dio/sentry_dio.dart';
+import 'package:uuid/uuid.dart';
 
 final _log = Logger('core');
 
@@ -66,6 +67,7 @@ class DioClient {
   bool _isRefreshing = false;
   Completer<void>? _refreshCompleter;
   String? _clientVersion;
+  String? _clientPlatform;
 
   Dio get dio => _dio;
 
@@ -92,6 +94,10 @@ class DioClient {
             options.headers['X-Client-Version'] = _clientVersion;
           }
 
+          _clientPlatform ??= _resolveClientPlatform();
+          options.headers['X-Client-Platform'] = _clientPlatform;
+          options.headers['X-Request-ID'] = const Uuid().v4();
+
           final token = await _prefService.getSecure('access_token');
           if (token?.isNotEmpty ?? false) {
             options.headers['Authorization'] = 'Bearer $token';
@@ -117,7 +123,12 @@ class DioClient {
               _log.info(
                 'Token refresh in progress, waiting for completion ...',
               );
-              unawaited(AnalyticsService().logEvent(name: 'auth_token_refresh_queued', parameters: {'category': 'operational'}));
+              unawaited(
+                AnalyticsService().logEvent(
+                  name: 'auth_token_refresh_queued',
+                  parameters: {'category': 'operational'},
+                ),
+              );
               try {
                 await _refreshCompleter!.future;
                 final newToken = await getAccessToken();
@@ -517,6 +528,13 @@ class DioClient {
     }
   }
 
+  String _resolveClientPlatform() {
+    if (kIsWeb) return 'web';
+    if (Platform.isIOS) return 'ios';
+    if (Platform.isAndroid) return 'android';
+    return 'unknown';
+  }
+
   bool _isInvalidTokenError(dynamic responseData) {
     if (responseData is Map<String, dynamic>) {
       final detail = responseData['detail'];
@@ -530,12 +548,19 @@ class DioClient {
     return false;
   }
 
-  Future<void> _forceLogout([String message = 'Please login to continue.']) async {
+  Future<void> _forceLogout([
+    String message = 'Please login to continue.',
+  ]) async {
     try {
       await clearStorage();
       final context = rootNavigatorKey.currentContext;
       if (context != null && context.mounted) {
-        SnackBarHelper.show(context, message, seconds: 4, type: SnackType.error);
+        SnackBarHelper.show(
+          context,
+          message,
+          seconds: 4,
+          type: SnackType.error,
+        );
 
         router.go(AppRoute.loginScreen);
       }
