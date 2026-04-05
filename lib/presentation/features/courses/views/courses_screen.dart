@@ -402,6 +402,13 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen>
         if (course != null) break;
       }
       if (course == null) return false;
+
+      if (_selectedGroupId != course.courseGroup) {
+        setState(() {
+          _selectedGroupId = course!.courseGroup;
+        });
+      }
+
       return openFromDeepLink('${DeepLinkParam.id}:${parsed.id}', () {
         return showCourseAdd(
           context,
