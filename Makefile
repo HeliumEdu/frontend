@@ -35,8 +35,6 @@ endif
 RUN_ARGS :=
 ifneq ($(HEADLESS),false)
     RUN_ARGS += -d web-server
-else
-	RUN_ARGS += --web-browser-flag=--disable-web-security
 endif
 RUN_ARGS += --dart-define=PROJECT_API_HOST=$(PROJECT_API_HOST)
 ifdef LOG_LEVEL
@@ -49,7 +47,6 @@ else
 endif
 
 DRIVE_ARGS := --driver=test_driver/integration_test.dart -d web-server --web-port=8080 --browser-name=chrome --profile --dart-define=ENVIRONMENT=$(ENVIRONMENT)
-DRIVE_ARGS += --web-browser-flag="--disable-web-security"
 DRIVE_ARGS += --web-browser-flag="--user-data-dir=/tmp/chrome_test_profile"
 ifeq ($(HEADLESS),true)
     DRIVE_ARGS += --headless
