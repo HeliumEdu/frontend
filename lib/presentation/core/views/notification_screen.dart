@@ -300,6 +300,18 @@ class _NotificationsScreenState
 
   void _populateInitialStateData(RemindersFetched state) {
     final reminders = state.reminders;
+
+    final unsupported = reminders.where((r) => r.startOfRange == null).toList();
+    for (final r in unsupported) {
+      ErrorHelpers.logAndReport(
+        'Skipping reminder ${r.id} with null startOfRange',
+        Exception('Reminder ${r.id} has null startOfRange'),
+        StackTrace.current,
+        hints: {'reminder_id': r.id},
+      );
+    }
+    reminders.removeWhere((r) => r.startOfRange == null);
+
     Sort.byStartOfRange(reminders, userSettings!.timeZone);
 
     final notifications = <NotificationModel>[];
@@ -417,10 +429,14 @@ class _NotificationsScreenState
           userSettings?.eventsColor ??
           FallbackConstants.fallbackColor;
       timestamp = reminder.event!.entity!.start.toIso8601String();
-    } else {
+    } else if (reminder.course != null) {
       final course = reminder.course?.entity;
       title = course?.title ?? '';
       color = existingColor ?? course?.color ?? FallbackConstants.fallbackColor;
+      timestamp = reminder.startOfRange.toIso8601String();
+    } else {
+      title = reminder.title;
+      color = existingColor ?? FallbackConstants.fallbackColor;
       timestamp = reminder.startOfRange.toIso8601String();
     }
 

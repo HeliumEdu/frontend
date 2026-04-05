@@ -780,7 +780,7 @@ class NotesDataSource extends BaseDataGridSource {
           ? TextDecoration.lineThrough
           : null;
 
-      Widget badge;
+      final Widget badge;
       if (entityType == 'resource' && userSettings != null) {
         badge = ResourceTitleLabel(
           title: originalLinkedTo,
@@ -796,8 +796,7 @@ class NotesDataSource extends BaseDataGridSource {
           compact: true,
           textDecoration: strikethrough,
         );
-      } else {
-        // Homework badge - respect colorByCategory setting
+      } else if (entityType == 'homework') {
         final badgeColor = (userSettings?.colorByCategory ?? false) && categoryColor != null
             ? categoryColor
             : courseColor;
@@ -807,6 +806,16 @@ class NotesDataSource extends BaseDataGridSource {
           icon: AppConstants.assignmentIcon,
           compact: true,
           textDecoration: strikethrough,
+        );
+      } else {
+        return Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          alignment: Alignment.centerLeft,
+          child: Text(
+            originalLinkedTo,
+            style: AppStyles.standardBodyTextLight(context),
+            overflow: TextOverflow.ellipsis,
+          ),
         );
       }
 

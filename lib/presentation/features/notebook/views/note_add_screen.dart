@@ -874,17 +874,23 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
       );
     }
 
-    // Homework badge - respect colorByCategory setting
-    final courseColor = _note?.courseColor ?? _linkedEntityColor;
-    final categoryColor = _note?.categoryColor;
-    final badgeColor =
-        (userSettings?.colorByCategory ?? false) && categoryColor != null
-        ? categoryColor
-        : courseColor;
+    if (entityType == 'homework') {
+      final courseColor = _note?.courseColor ?? _linkedEntityColor;
+      final categoryColor = _note?.categoryColor;
+      final badgeColor =
+          (userSettings?.colorByCategory ?? false) && categoryColor != null
+          ? categoryColor
+          : courseColor;
+      return GenericLabel(
+        label: title,
+        color: badgeColor ?? context.colorScheme.primary,
+        icon: AppConstants.assignmentIcon,
+      );
+    }
+
     return GenericLabel(
       label: title,
-      color: badgeColor ?? context.colorScheme.primary,
-      icon: AppConstants.assignmentIcon,
+      color: context.colorScheme.onSurface.withValues(alpha: 0.6),
     );
   }
 }
