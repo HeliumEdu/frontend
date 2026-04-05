@@ -60,6 +60,8 @@ void main() async {
     _log.severe('Analytics initialization failed', e);
   }
 
+  initializeRouter();
+
   try {
     await FcmService().init();
   } catch (e) {
@@ -78,8 +80,6 @@ void main() async {
 
   final DioClient dioClient = DioClient();
   final providerHelpers = ProviderHelpers();
-
-  initializeRouter();
 
   // Handle pending notification navigation after first frame renders
   WidgetsBinding.instance.addPostFrameCallback((_) {
