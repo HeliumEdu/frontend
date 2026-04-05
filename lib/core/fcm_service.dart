@@ -125,6 +125,8 @@ class FcmService {
 
       _configureMessageHandlers();
 
+      await _handleInitialMessage();
+
       await _registerToken();
 
       _isInitialized = true;
@@ -338,7 +340,6 @@ class FcmService {
 
     FirebaseMessaging.onMessage.listen(_onForegroundMessage);
     FirebaseMessaging.onMessageOpenedApp.listen(_onNotificationTap);
-    _handleInitialMessage();
 
     // iOS: APN token may become available after initial FCM setup
     _firebaseMessaging?.onTokenRefresh.listen((newToken) {
@@ -382,7 +383,14 @@ class FcmService {
   Future<void> _onNotificationTap(RemoteMessage message) async {
     final messageId = message.messageId;
     _log.info('Notification $messageId tapped');
-    await router.push(AppRoute.notificationsScreen);
+    await router.push(
+      Uri(
+        path: AppRoute.plannerScreen,
+        queryParameters: {
+          DeepLinkParam.dialog: DeepLinkParam.dialogNotifications,
+        },
+      ).toString(),
+    );
   }
 
   /// Pending route to navigate to once the router is initialized.
@@ -399,7 +407,12 @@ class FcmService {
       _log.info('App opened from terminated state via notification');
       // Defer navigation - router may not be initialized yet during cold start.
       // The app's main widget should check pendingRoute after router is ready.
-      pendingRoute = AppRoute.notificationsScreen;
+      pendingRoute = Uri(
+        path: AppRoute.plannerScreen,
+        queryParameters: {
+          DeepLinkParam.dialog: DeepLinkParam.dialogNotifications,
+        },
+      ).toString();
     }
   }
 
@@ -457,7 +470,14 @@ class FcmService {
 
   void _onNotificationTapped(NotificationResponse response) {
     _log.info('Local notification tapped: ${response.id}');
-    router.push(AppRoute.notificationsScreen);
+    router.push(
+      Uri(
+        path: AppRoute.plannerScreen,
+        queryParameters: {
+          DeepLinkParam.dialog: DeepLinkParam.dialogNotifications,
+        },
+      ).toString(),
+    );
   }
 
   Future<void> registerToken({bool force = false}) async {
