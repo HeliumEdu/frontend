@@ -383,14 +383,7 @@ class FcmService {
   Future<void> _onNotificationTap(RemoteMessage message) async {
     final messageId = message.messageId;
     _log.info('Notification $messageId tapped');
-    await router.push(
-      Uri(
-        path: AppRoute.plannerScreen,
-        queryParameters: {
-          DeepLinkParam.dialog: DeepLinkParam.dialogNotifications,
-        },
-      ).toString(),
-    );
+    await router.push(AppRoute.notificationsScreen);
   }
 
   /// Pending route to navigate to once the router is initialized.
@@ -407,12 +400,7 @@ class FcmService {
       _log.info('App opened from terminated state via notification');
       // Defer navigation - router may not be initialized yet during cold start.
       // The app's main widget should check pendingRoute after router is ready.
-      pendingRoute = Uri(
-        path: AppRoute.plannerScreen,
-        queryParameters: {
-          DeepLinkParam.dialog: DeepLinkParam.dialogNotifications,
-        },
-      ).toString();
+      pendingRoute = AppRoute.notificationsScreen;
     }
   }
 
@@ -470,14 +458,7 @@ class FcmService {
 
   void _onNotificationTapped(NotificationResponse response) {
     _log.info('Local notification tapped: ${response.id}');
-    router.push(
-      Uri(
-        path: AppRoute.plannerScreen,
-        queryParameters: {
-          DeepLinkParam.dialog: DeepLinkParam.dialogNotifications,
-        },
-      ).toString(),
-    );
+    router.push(AppRoute.notificationsScreen);
   }
 
   Future<void> registerToken({bool force = false}) async {
