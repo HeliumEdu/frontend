@@ -26,6 +26,7 @@ import 'package:heliumapp/data/models/auth/user_model.dart';
 import 'package:heliumapp/utils/color_helpers.dart';
 import 'package:heliumapp/utils/snack_bar_helpers.dart';
 import 'package:logging/logging.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:pretty_dio_logger/pretty_dio_logger.dart';
 import 'package:sentry_dio/sentry_dio.dart';
 
@@ -64,6 +65,7 @@ class DioClient {
 
   bool _isRefreshing = false;
   Completer<void>? _refreshCompleter;
+  String? _clientVersion;
 
   Dio get dio => _dio;
 
@@ -85,6 +87,11 @@ class DioClient {
     _dio.interceptors.add(
       InterceptorsWrapper(
         onRequest: (options, handler) async {
+          _clientVersion ??= await _resolveClientVersion();
+          if (_clientVersion != null) {
+            options.headers['X-Client-Version'] = _clientVersion;
+          }
+
           final token = await _prefService.getSecure('access_token');
           if (token?.isNotEmpty ?? false) {
             options.headers['Authorization'] = 'Bearer $token';
@@ -497,6 +504,16 @@ class DioClient {
     } catch (e) {
       _log.severe('Failed to update settings', e);
       rethrow;
+    }
+  }
+
+  Future<String?> _resolveClientVersion() async {
+    try {
+      final info = await PackageInfo.fromPlatform();
+      return '${info.version}+${info.buildNumber}';
+    } catch (e) {
+      _log.warning('Failed to resolve client version', e);
+      return null;
     }
   }
 
