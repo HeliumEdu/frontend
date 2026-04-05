@@ -50,6 +50,7 @@ class _CourseRemindersState
     return FetchRemindersEvent(
       origin: EventOrigin.subScreen,
       courseId: widget.entityId,
+      sent: false,
       forceRefresh: forceRefresh,
     );
   }
