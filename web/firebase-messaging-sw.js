@@ -16,6 +16,25 @@ firebase.initializeApp({
 // Retrieve an instance of Firebase Messaging
 const messaging = firebase.messaging();
 
+// Handle notification taps. Routes the user to /notifications, which the app
+// redirects to /planner?dialog=notifications. This handler is required for
+// macOS/desktop notification center taps, which route through the service
+// worker rather than the page's onclick handler.
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+
+  event.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then((windowClients) => {
+      for (const client of windowClients) {
+        if ('focus' in client) {
+          return client.focus().then((c) => c.navigate('/notifications'));
+        }
+      }
+      return clients.openWindow('/notifications');
+    })
+  );
+});
+
 // Handle background messages
 messaging.onBackgroundMessage((payload) => {
   console.log('[firebase-messaging-sw.js] Received background message:', payload);

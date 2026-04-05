@@ -13,6 +13,10 @@ import 'package:web/web.dart' as web;
 
 final _log = Logger('core');
 
+// Holds active notification references to prevent the Dart GC from collecting
+// them (and their onclick callbacks) before the user taps.
+final _activeNotifications = <web.Notification>{};
+
 bool isMessagingSupported() {
   try {
     // Check for required APIs: Service Worker, Notification API
@@ -56,10 +60,17 @@ void showWebNotification(
     );
 
     final webNotification = web.Notification(notification.title, options);
+    _activeNotifications.add(webNotification);
 
     webNotification.onclick = (web.Event event) {
+      _log.info('Web notification tapped');
+      _activeNotifications.remove(webNotification);
       onTap({});
       webNotification.close();
+    }.toJS;
+
+    webNotification.onclose = (web.Event event) {
+      _activeNotifications.remove(webNotification);
     }.toJS;
 
     _log.info('Web notification displayed: ${notification.title}');

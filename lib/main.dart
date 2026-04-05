@@ -32,6 +32,10 @@ import 'package:timezone/data/latest_all.dart' as tz;
 final _log = Logger('main');
 
 void main() async {
+  // Must be called before WidgetsFlutterBinding.ensureInitialized() — Flutter
+  // web locks the URL strategy during binding initialization.
+  usePathUrlStrategy();
+
   // Always ensure this is the first thing initialized
   WidgetsFlutterBinding.ensureInitialized();
 
@@ -60,6 +64,8 @@ void main() async {
     _log.severe('Analytics initialization failed', e);
   }
 
+  initializeRouter();
+
   try {
     await FcmService().init();
   } catch (e) {
@@ -74,12 +80,8 @@ void main() async {
     _log.severe('FeedbackService initialization failed', e);
   }
 
-  usePathUrlStrategy();
-
   final DioClient dioClient = DioClient();
   final providerHelpers = ProviderHelpers();
-
-  initializeRouter();
 
   // Handle pending notification navigation after first frame renders
   WidgetsBinding.instance.addPostFrameCallback((_) {

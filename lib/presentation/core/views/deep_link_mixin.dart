@@ -37,13 +37,15 @@ mixin DeepLinkMixin<T extends StatefulWidget> on BasePageScreenState<T> {
 
   /// Reads query params from the current route.
   ///
-  /// Uses [router.routerDelegate] directly rather than [GoRouterState.of]
-  /// because [GoRouterState] is an [InheritedWidget] that updates on the next
-  /// build; it lags by one frame when [_onRouteChanged] fires immediately
-  /// after a [router.go] or [router.replace] call.
+  /// Uses [router.routeInformationProvider] rather than [router.routerDelegate]
+  /// because [routeInformationProvider] fires (and updates) for same-shell-path
+  /// URL changes (e.g., `/planner` → `/planner?dialog=notifications`) that
+  /// [routerDelegate] may skip when the navigator stack doesn't change.
+  /// Reading from the same source we listen to keeps the check and the read
+  /// in sync, preventing stale-param feedback loops on dialog close.
   @protected
   Map<String, String> readQueryParams() =>
-      router.routerDelegate.currentConfiguration.uri.queryParameters;
+      router.routeInformationProvider.value.uri.queryParameters;
 
   /// Override to handle route-specific entity params (e.g., `id` on /classes).
   /// Return true if a param was consumed (skips dialog param handling).
@@ -53,12 +55,12 @@ mixin DeepLinkMixin<T extends StatefulWidget> on BasePageScreenState<T> {
   @override
   void initState() {
     super.initState();
-    router.routerDelegate.addListener(_onRouteChanged);
+    router.routeInformationProvider.addListener(_onRouteChanged);
   }
 
   @override
   void dispose() {
-    router.routerDelegate.removeListener(_onRouteChanged);
+    router.routeInformationProvider.removeListener(_onRouteChanged);
     super.dispose();
   }
 
@@ -99,7 +101,7 @@ mixin DeepLinkMixin<T extends StatefulWidget> on BasePageScreenState<T> {
     // Skip if a dialog is already open, URL changes are from the dialog
     // itself, not from an external source.
     if (openedDeepLinkParam != null) return;
-    final uri = router.routerDelegate.currentConfiguration.uri;
+    final uri = router.routeInformationProvider.value.uri;
     if (uri.path != routePath) return;
     if (uri.queryParameters.isEmpty) return;
     // Defer until after GoRouter's route-change notification completes so
