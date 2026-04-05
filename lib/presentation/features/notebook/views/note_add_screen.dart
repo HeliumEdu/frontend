@@ -18,6 +18,7 @@ import 'package:flutter_quill_to_pdf/flutter_quill_to_pdf.dart';
 import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/config/app_router.dart';
 import 'package:heliumapp/config/app_theme.dart';
+import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/data/models/planner/note_model.dart';
 import 'package:heliumapp/data/models/planner/request/note_request_model.dart';
 import 'package:heliumapp/presentation/core/views/base_page_screen_state.dart';
@@ -888,9 +889,12 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
       );
     }
 
-    return GenericLabel(
-      label: title,
-      color: context.colorScheme.onSurface.withValues(alpha: 0.6),
+    return Text(
+      title,
+      style: AppStyles.standardBodyText(context).copyWith(
+        color: context.colorScheme.onSurface.withValues(alpha: 0.6),
+      ),
+      overflow: TextOverflow.ellipsis,
     );
   }
 }

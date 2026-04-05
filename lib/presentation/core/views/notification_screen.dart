@@ -162,7 +162,8 @@ class _NotificationsScreenState
             final shouldRemove =
                 reminder.dismissed ||
                 !reminder.sent ||
-                reminder.startOfRange.isAfter(DateTime.now());
+                reminder.startOfRange == null ||
+                reminder.startOfRange!.isAfter(DateTime.now());
 
             if (shouldRemove) {
               if (reminder.dismissed) {
@@ -365,7 +366,7 @@ class _NotificationsScreenState
     // Derive the actual class start by adding the offset back to startOfRange,
     // matching the backend's class_start = start_of_range + offset logic.
     final classStartLocal = HeliumDateTime.toLocal(
-      reminder.startOfRange.add(_offsetToDuration(reminder)),
+      reminder.startOfRange!.add(_offsetToDuration(reminder)),
       userSettings!.timeZone,
     );
 
@@ -433,11 +434,11 @@ class _NotificationsScreenState
       final course = reminder.course?.entity;
       title = course?.title ?? '';
       color = existingColor ?? course?.color ?? FallbackConstants.fallbackColor;
-      timestamp = reminder.startOfRange.toIso8601String();
+      timestamp = reminder.startOfRange!.toIso8601String();
     } else {
       title = reminder.title;
       color = existingColor ?? FallbackConstants.fallbackColor;
-      timestamp = reminder.startOfRange.toIso8601String();
+      timestamp = reminder.startOfRange!.toIso8601String();
     }
 
     return NotificationModel(

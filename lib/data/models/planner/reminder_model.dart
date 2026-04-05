@@ -14,7 +14,7 @@ import 'package:heliumapp/utils/conversion_helpers.dart';
 
 class ReminderModel extends BaseTitledModel {
   final String message;
-  final DateTime startOfRange;
+  final DateTime? startOfRange;
   final int offset;
   final int offsetType;
   final int type;
@@ -28,7 +28,7 @@ class ReminderModel extends BaseTitledModel {
     required super.id,
     required super.title,
     required this.message,
-    required this.startOfRange,
+    this.startOfRange,
     required this.offset,
     required this.offsetType,
     required this.type,
@@ -44,7 +44,9 @@ class ReminderModel extends BaseTitledModel {
       id: json['id'],
       title: json['title'],
       message: json['message'],
-      startOfRange: DateTime.parse(json['start_of_range']),
+      startOfRange: json['start_of_range'] != null
+          ? DateTime.parse(json['start_of_range'])
+          : null,
       offset: json['offset'],
       offsetType: json['offset_type'],
       type: json['type'],
@@ -67,7 +69,7 @@ class ReminderModel extends BaseTitledModel {
       'id': id,
       'title': title,
       'message': message,
-      'start_of_range': startOfRange.toIso8601String(),
+      'start_of_range': startOfRange?.toIso8601String(),
       'offset': offset,
       'offset_type': offsetType,
       'type': type,

@@ -150,7 +150,7 @@ class Sort {
   }
 
   static void byStartOfRange(List<ReminderModel> list, timeZone) {
-    list.sort((a, b) => b.startOfRange.compareTo(a.startOfRange));
+    list.sort((a, b) => b.startOfRange!.compareTo(a.startOfRange!));
   }
 
   static void byStartThenTitle(List<PlannerItemBaseModel> list) {

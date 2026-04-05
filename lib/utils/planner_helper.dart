@@ -7,7 +7,6 @@
 
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/foundation.dart';
 import 'package:heliumapp/core/helium_exception.dart';
 import 'package:heliumapp/data/models/notification/notification_model.dart';
 import 'package:heliumapp/data/models/planner/planner_item_base_model.dart';
@@ -81,28 +80,24 @@ class PlannerHelper {
     if (reminder.homework != null) {
       if (reminder.homework!.entity == null) {
         _logMissingEntity(reminder.id, 'homework', reminder.homework!.id);
-        startDt = reminder.startOfRange;
+        startDt = reminder.startOfRange ?? DateTime.now();
       } else {
         startDt = reminder.homework!.entity!.start;
       }
     } else if (reminder.event != null) {
       if (reminder.event!.entity == null) {
         _logMissingEntity(reminder.id, 'event', reminder.event!.id);
-        startDt = reminder.startOfRange;
+        startDt = reminder.startOfRange ?? DateTime.now();
       } else {
         startDt = reminder.event!.entity!.start;
       }
+    } else if (reminder.course != null) {
+      startDt = reminder.startOfRange ?? DateTime.now();
     } else {
-      if (!kDebugMode) {
-        throw ArgumentError.notNull(
-          'Both homework and event are null on Reminder ${reminder.id}, which is not allowed',
-        );
-      } else {
-        _log.warning(
-          'Both homework and event are null on Reminder ${reminder.id}, using now as "start"',
-        );
-        startDt = DateTime.now();
-      }
+      _log.warning(
+        'Reminder ${reminder.id} has no linked entity, using now as "start"',
+      );
+      startDt = DateTime.now();
     }
     final String start = startDt.toIso8601String();
 

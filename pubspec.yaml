@@ -52,6 +52,7 @@ dependencies:
   flutter_quill_to_pdf: ^2.3.9
   pdf: ^3.12.0
   printing: ^5.14.3
+  uuid: ^4.5.3
   flutter_html: 3.0.0
   flutter_colorpicker: 1.1.0
   file_picker: 10.3.10
