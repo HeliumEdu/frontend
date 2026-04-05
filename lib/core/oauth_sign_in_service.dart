@@ -37,8 +37,8 @@ class OAuthSignInService {
 
       await _googleSignIn.initialize(clientId: _getWebClientId());
     } else {
-      // Android Credential Manager API (used by google_sign_in v7) requires serverClientId
-      // (the web OAuth client ID) to authenticate properly; without it [16] Account reauth fails.
+      // Android Credential Manager API (used by google_sign_in) requires serverClientId
+      // (the web OAuth client ID) to authenticate properly; without it account reauth fails.
       await _googleSignIn.initialize(serverClientId: _getWebClientId());
     }
 

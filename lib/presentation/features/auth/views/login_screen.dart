@@ -47,12 +47,14 @@ class _LoginScreenViewState extends BasePageScreenState<LoginScreen> {
 
   final CredentialsFormController _formController = CredentialsFormController();
   String? _nextRoute;
-  bool isOAuthLoading = false;
+  bool _isOAuthLoading = false;
 
   @override
   void initState() {
     super.initState();
 
+    // Defer until after initState so GoRouterState and snackbar scaffold are
+    // available; both require an attached BuildContext
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
 
@@ -86,11 +88,11 @@ class _LoginScreenViewState extends BasePageScreenState<LoginScreen> {
       BlocListener<AuthBloc, AuthState>(
         listener: (context, state) {
           if (state is AuthLoggedIn) {
-            final wasOAuthFlow = isOAuthLoading;
+            final wasOAuthFlow = _isOAuthLoading;
             _formController.clearForm();
 
             setState(() {
-              isOAuthLoading = false;
+              _isOAuthLoading = false;
               isSubmitting = true;
             });
 
@@ -125,7 +127,7 @@ class _LoginScreenViewState extends BasePageScreenState<LoginScreen> {
             // Only suppress 401/403 if NOT from active login attempt (force logout already showed snackbar)
             final isForceLogoutError =
                 !isSubmitting &&
-                !isOAuthLoading &&
+                !_isOAuthLoading &&
                 (state.httpStatusCode == 401 || state.httpStatusCode == 403);
             if (isForceLogoutError) {
               _log.info(
@@ -139,32 +141,12 @@ class _LoginScreenViewState extends BasePageScreenState<LoginScreen> {
           if (state is! AuthLoading && state is! AuthLoggedIn) {
             setState(() {
               isSubmitting = false;
-              isOAuthLoading = false;
+              _isOAuthLoading = false;
             });
           }
         },
       ),
     ];
-  }
-
-  void _showInactiveAccountSnackBar(
-    BuildContext context,
-    String email,
-    String? message,
-  ) {
-    showSnackBar(
-      context,
-      message ?? 'Your account is not yet verified.',
-      type: SnackType.error,
-      seconds: 10,
-      action: SnackBarAction(
-        label: 'Resend Email',
-        textColor: context.colorScheme.onError,
-        onPressed: () {
-          context.read<AuthBloc>().add(ResendVerificationEvent(email: email));
-        },
-      ),
-    );
   }
 
   @override
@@ -182,7 +164,7 @@ class _LoginScreenViewState extends BasePageScreenState<LoginScreen> {
             children: [
               const SizedBox(height: 50),
 
-              Center(child: Image.asset(AppAssets.logoImagePath, height: 120)),
+              Center(child: Image.asset(AppAssets.logoImagePath, height: 120.0)),
 
               const SizedBox(height: 50),
 
@@ -252,7 +234,7 @@ class _LoginScreenViewState extends BasePageScreenState<LoginScreen> {
                       HeliumElevatedButton(
                         buttonText: 'Sign In',
                         isLoading: isSubmitting,
-                        enabled: !isOAuthLoading,
+                        enabled: !_isOAuthLoading,
                         onPressed: _onSubmit,
                       ),
                     ],
@@ -283,17 +265,17 @@ class _LoginScreenViewState extends BasePageScreenState<LoginScreen> {
               const SizedBox(height: 25),
 
               SizedBox(
-                width: 250,
-                height: 40,
+                width: 250.0,
+                height: 40.0,
                 child: IgnorePointer(
-                  ignoring: isOAuthLoading || isSubmitting,
+                  ignoring: _isOAuthLoading || isSubmitting,
                   child: Opacity(
-                    opacity: isOAuthLoading || isSubmitting ? 0.5 : 1.0,
+                    opacity: _isOAuthLoading || isSubmitting ? 0.5 : 1.0,
                     child: SignInButton(
                       Buttons.google,
                       onPressed: () {
                         setState(() {
-                          isOAuthLoading = true;
+                          _isOAuthLoading = true;
                         });
                         context.read<AuthBloc>().add(GoogleLoginEvent());
                       },
@@ -310,14 +292,14 @@ class _LoginScreenViewState extends BasePageScreenState<LoginScreen> {
                   width: 250,
                   height: 40,
                   child: IgnorePointer(
-                    ignoring: isOAuthLoading || isSubmitting,
+                    ignoring: _isOAuthLoading || isSubmitting,
                     child: Opacity(
-                      opacity: isOAuthLoading || isSubmitting ? 0.5 : 1.0,
+                      opacity: _isOAuthLoading || isSubmitting ? 0.5 : 1.0,
                       child: SignInButton(
                         Buttons.apple,
                         onPressed: () {
                           setState(() {
-                            isOAuthLoading = true;
+                            _isOAuthLoading = true;
                           });
                           context.read<AuthBloc>().add(AppleLoginEvent());
                         },
@@ -362,6 +344,26 @@ class _LoginScreenViewState extends BasePageScreenState<LoginScreen> {
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  void _showInactiveAccountSnackBar(
+    BuildContext context,
+    String email,
+    String? message,
+  ) {
+    showSnackBar(
+      context,
+      message ?? 'Your account is not yet verified.',
+      type: SnackType.error,
+      seconds: 10,
+      action: SnackBarAction(
+        label: 'Resend Email',
+        textColor: context.colorScheme.onError,
+        onPressed: () {
+          context.read<AuthBloc>().add(ResendVerificationEvent(email: email));
+        },
       ),
     );
   }

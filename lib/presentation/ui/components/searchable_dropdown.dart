@@ -119,7 +119,7 @@ class _SearchableDropdownState<T> extends State<SearchableDropdown<T>> {
                     color: isDisabled
                         ? context.theme.scaffoldBackgroundColor
                         : context.colorScheme.surface,
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: BorderRadius.circular(8.0),
                   ),
                   child: TextFormField(
                     controller: textEditingController,

@@ -100,7 +100,8 @@ class PrefService {
     try {
       await _secureStorage.write(key: key, value: value);
     } on PlatformException catch (e) {
-      // iOS keychain error -25299: item already exists. Delete and retry.
+      // Edge case for this iOS keychain error, which means the item already
+      // exists; delete and retry
       if (e.message?.contains('-25299') == true) {
         await _secureStorage.delete(key: key);
         await _secureStorage.write(key: key, value: value);

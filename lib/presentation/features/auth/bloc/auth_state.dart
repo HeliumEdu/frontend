@@ -84,10 +84,10 @@ class AuthError extends AuthState {
     this.parsedError,
   });
 
-  /// Returns the error message for a specific field, or null if none.
+  /// Returns the error message for a specific field, or null if none
   String? getFieldError(String fieldName) => parsedError?.getFieldError(fieldName);
 
-  /// Whether this error has field-specific errors.
+  /// Whether this error has field-specific errors
   bool get hasFieldErrors => parsedError?.hasFieldErrors ?? false;
 }
 

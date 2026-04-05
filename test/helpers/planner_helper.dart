@@ -37,6 +37,7 @@ Map<String, dynamic> givenCourseGroupJson({
   double? averageGrade,
   int? numDays = 112,
   int? numDaysCompleted = 50,
+  String exceptions = '',
 }) {
   return {
     'id': id,
@@ -47,6 +48,7 @@ Map<String, dynamic> givenCourseGroupJson({
     'average_grade': averageGrade,
     'num_days': numDays,
     'num_days_completed': numDaysCompleted,
+    'exceptions': exceptions,
   };
 }
 
@@ -154,6 +156,7 @@ Map<String, dynamic> givenCourseJson({
   String teacherEmail = 'smith@university.edu',
   double? currentGrade = 85.5,
   List<Map<String, dynamic>>? schedules,
+  String exceptions = '',
 }) {
   return {
     'id': id,
@@ -170,6 +173,7 @@ Map<String, dynamic> givenCourseJson({
     'teacher_email': teacherEmail,
     'current_grade': currentGrade,
     'schedules': schedules ?? [givenCourseScheduleJson(course: id)],
+    'exceptions': exceptions,
   };
 }
 

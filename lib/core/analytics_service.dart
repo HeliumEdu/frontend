@@ -6,25 +6,21 @@
 // For details regarding the license, please refer to the LICENSE file.
 
 import 'package:firebase_analytics/firebase_analytics.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:logging/logging.dart';
 
 final _log = Logger('analytics');
 
-/// A no-op navigator observer for use when analytics is disabled.
+/// A no-op navigator observer for use when analytics is disabled
 class _NoOpNavigatorObserver extends NavigatorObserver {}
 
 class AnalyticsService {
   FirebaseAnalytics? _analytics;
 
-  /// Whether analytics is enabled. Configured via ANALYTICS_ENABLED env var.
-  /// Defaults to true. Set to 'false' to disable analytics collection.
-  static const _analyticsEnabled = String.fromEnvironment(
-    'ANALYTICS_ENABLED',
-    defaultValue: 'true',
-  );
+  bool _isStaff = false;
 
-  bool get isEnabled => _analyticsEnabled.toLowerCase() == 'true';
+  bool get isEnabled => !kDebugMode && !kProfileMode && !_isStaff;
 
   bool _isInitialized = false;
 
@@ -121,5 +117,31 @@ class AnalyticsService {
     }
   }
 
+  Future<void> setUserProperty({
+    required String name,
+    required String? value,
+  }) async {
+    if (!isEnabled) return;
+    try {
+      await analytics.setUserProperty(name: name, value: value);
+    } catch (e) {
+      _log.warning('Failed to set user property: $name', e);
+    }
+  }
+
   bool get isInitialized => _isInitialized;
+
+  Future<void> setStaffStatus(String email) async {
+    final lowerEmail = email.toLowerCase();
+    if (lowerEmail.endsWith('@heliumedu.com') ||
+        lowerEmail.endsWith('@heliumedu.dev')) {
+      _isStaff = true;
+      try {
+        await analytics.setAnalyticsCollectionEnabled(false);
+        _log.info('Analytics disabled for staff user');
+      } catch (e) {
+        _log.warning('Failed to disable analytics collection', e);
+      }
+    }
+  }
 }

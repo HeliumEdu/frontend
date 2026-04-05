@@ -5,9 +5,11 @@
 //
 // For details regarding the license, please refer to the LICENSE file.
 
+import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
+import 'package:heliumapp/core/analytics_service.dart';
 import 'package:heliumapp/core/api_url.dart';
 import 'package:heliumapp/core/dio_client.dart';
 import 'package:heliumapp/core/helium_exception.dart';
@@ -22,6 +24,7 @@ abstract class AttachmentRemoteDataSource extends BaseDataSource {
     int? eventId,
     int? homeworkId,
     int? courseId,
+    bool forceRefresh = false,
   });
 
   Future<AttachmentModel> createAttachment({
@@ -86,7 +89,7 @@ class AttachmentRemoteDataSourceImpl extends AttachmentRemoteDataSource {
         final attachment = AttachmentModel.fromJson(response.data[0]);
         _log.info('... Attachment ${attachment.id} created');
         await dioClient.cacheService.invalidateAll();
-
+        unawaited(AnalyticsService().logEvent(name: 'attachment_uploaded', parameters: {'category': 'feature_interaction'}));
         return attachment;
       } else {
         throw ServerException(
@@ -106,6 +109,7 @@ class AttachmentRemoteDataSourceImpl extends AttachmentRemoteDataSource {
     int? eventId,
     int? homeworkId,
     int? courseId,
+    bool forceRefresh = false,
   }) async {
     try {
       final parentInfo = eventId != null
@@ -125,6 +129,7 @@ class AttachmentRemoteDataSourceImpl extends AttachmentRemoteDataSource {
       final response = await dioClient.dio.get(
         ApiUrl.plannerAttachmentsListUrl,
         queryParameters: queryParameters,
+        options: forceRefresh ? dioClient.cacheService.forceRefreshOptions() : null,
       );
 
       if (response.statusCode == 200) {

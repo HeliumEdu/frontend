@@ -5,7 +5,10 @@
 //
 // For details regarding the license, please refer to the LICENSE file.
 
+import 'dart:async';
+
 import 'package:dio/dio.dart';
+import 'package:heliumapp/core/analytics_service.dart';
 import 'package:heliumapp/core/api_url.dart';
 import 'package:heliumapp/core/dio_client.dart';
 import 'package:heliumapp/core/helium_exception.dart';
@@ -20,10 +23,12 @@ abstract class ReminderRemoteDataSource extends BaseDataSource {
   Future<List<ReminderModel>> getReminders({
     int? homeworkId,
     int? eventId,
+    int? courseId,
     bool? sent,
     bool? dismissed,
     int? type,
     DateTime? startOfRange,
+    bool forceRefresh = false,
   });
 
   Future<ReminderModel> createReminder(ReminderRequestModel request);
@@ -42,22 +47,27 @@ class ReminderRemoteDataSourceImpl extends ReminderRemoteDataSource {
   Future<List<ReminderModel>> getReminders({
     int? homeworkId,
     int? eventId,
+    int? courseId,
     bool? sent,
     bool? dismissed,
     int? type,
     DateTime? startOfRange,
+    bool forceRefresh = false,
   }) async {
     try {
       final parentInfo = eventId != null
           ? 'Event $eventId'
           : homeworkId != null
               ? 'Homework $homeworkId'
-              : 'all';
+              : courseId != null
+                  ? 'Course $courseId'
+                  : 'all';
       _log.info('Fetching Reminders for $parentInfo ...');
 
       final Map<String, dynamic> queryParameters = {};
       if (homeworkId != null) queryParameters['homework'] = homeworkId;
       if (eventId != null) queryParameters['event'] = eventId;
+      if (courseId != null) queryParameters['course'] = courseId;
       if (sent != null) queryParameters['sent'] = sent;
       if (dismissed != null) queryParameters['dismissed'] = dismissed;
       if (type != null) queryParameters['type'] = type;
@@ -69,6 +79,7 @@ class ReminderRemoteDataSourceImpl extends ReminderRemoteDataSource {
       final response = await dioClient.dio.get(
         ApiUrl.plannerRemindersListUrl,
         queryParameters: queryParameters,
+        options: forceRefresh ? dioClient.cacheService.forceRefreshOptions() : null,
       );
 
       if (response.statusCode == 200) {
@@ -103,6 +114,8 @@ class ReminderRemoteDataSourceImpl extends ReminderRemoteDataSource {
         final reminder = ReminderModel.fromJson(response.data);
         _log.info('... Reminder ${reminder.id} created');
         await dioClient.cacheService.invalidateAll();
+        unawaited(AnalyticsService().logEvent(name: 'reminder_created', parameters: {'category': 'feature_interaction'}));
+        unawaited(AnalyticsService().setUserProperty(name: 'uses_reminders', value: 'true'));
         return reminder;
       } else {
         throw ServerException(

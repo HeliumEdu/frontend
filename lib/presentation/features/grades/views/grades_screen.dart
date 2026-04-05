@@ -5,6 +5,7 @@
 //
 // For details regarding the license, please refer to the LICENSE file.
 
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:collection/collection.dart';
@@ -13,10 +14,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/config/pref_service.dart';
+import 'package:heliumapp/core/analytics_service.dart';
 import 'package:heliumapp/core/dio_client.dart';
 import 'package:heliumapp/data/models/auth/user_model.dart';
-import 'package:heliumapp/presentation/features/auth/bloc/auth_bloc.dart';
-import 'package:heliumapp/presentation/features/auth/bloc/auth_state.dart';
 import 'package:heliumapp/data/models/planner/course_group_model.dart';
 import 'package:heliumapp/data/models/planner/grade_category_model.dart';
 import 'package:heliumapp/data/models/planner/grade_course_group_model.dart';
@@ -27,6 +27,8 @@ import 'package:heliumapp/data/sources/course_remote_data_source.dart';
 import 'package:heliumapp/data/sources/grade_remote_data_source.dart';
 import 'package:heliumapp/presentation/core/views/base_page_screen_state.dart';
 import 'package:heliumapp/presentation/core/views/deep_link_mixin.dart';
+import 'package:heliumapp/presentation/features/auth/bloc/auth_bloc.dart';
+import 'package:heliumapp/presentation/features/auth/bloc/auth_state.dart';
 import 'package:heliumapp/presentation/features/grades/bloc/grade_bloc.dart';
 import 'package:heliumapp/presentation/features/grades/bloc/grade_event.dart';
 import 'package:heliumapp/presentation/features/grades/bloc/grade_state.dart';
@@ -40,12 +42,14 @@ import 'package:heliumapp/presentation/ui/components/group_dropdown.dart';
 import 'package:heliumapp/presentation/ui/feedback/empty_card.dart';
 import 'package:heliumapp/presentation/ui/feedback/error_card.dart';
 import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
+import 'package:heliumapp/utils/error_helpers.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/color_helpers.dart';
 import 'package:heliumapp/utils/date_time_helpers.dart';
 import 'package:heliumapp/utils/format_helpers.dart';
 import 'package:heliumapp/utils/grade_helpers.dart';
+import 'package:heliumapp/utils/print_helpers.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:intl/intl.dart';
 import 'package:syncfusion_flutter_charts/charts.dart' as charts;
@@ -91,7 +95,7 @@ class _AtRiskBadge extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(
         color: context.colorScheme.error.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(999),
+        borderRadius: BorderRadius.circular(999.0),
         border: Border.all(
           color: context.colorScheme.error.withValues(alpha: 0.3),
         ),
@@ -139,6 +143,9 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
   String get screenTitle => 'Grades';
 
   @override
+  bool get enablePrint => true;
+
+  @override
   String get routePath => AppRoute.gradesScreen;
 
   // Category table row element heights
@@ -155,9 +162,14 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
 
   // Decision variables - adjust these to tune the grade insights
   double get _atRiskThreshold =>
-      (userSettings?.atRiskThreshold ?? FallbackConstants.defaultAtRiskThreshold).toDouble();
+      (userSettings?.atRiskThreshold ??
+              FallbackConstants.defaultAtRiskThreshold)
+          .toDouble();
+
   double get _onTrackTolerance =>
-      (userSettings?.onTrackTolerance ?? FallbackConstants.defaultOnTrackTolerance).toDouble();
+      (userSettings?.onTrackTolerance ??
+              FallbackConstants.defaultOnTrackTolerance)
+          .toDouble();
   static const double _defaultDesiredGradeBoost =
       5.0; // Default boost above current grade for calculator
   static const double _chartAnimationDurationMs = 250;
@@ -257,7 +269,9 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
             message: state.message!,
             source: 'grades_screen',
             onReload: () {
-              return context.read<GradeBloc>().add(FetchGradeScreenDataEvent());
+              return context.read<GradeBloc>().add(
+                FetchGradeScreenDataEvent(forceRefresh: true),
+              );
             },
           );
         }
@@ -292,14 +306,36 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
   }
 
   Widget _buildGradesPage(List<GradeCourseModel> courses) {
-    return Expanded(
-      child: SingleChildScrollView(
-        child: Column(
+    return ValueListenableBuilder<bool>(
+      valueListenable: PrintableArea.capturing,
+      builder: (context, isCapturing, _) {
+        final content = Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildTermSummaryArea(),
+            PrintPageBreak(child: _buildTermSummaryArea()),
 
-            _buildGraphArea(),
+            PrintPageBreak(child: Builder(
+              builder: (context) {
+                try {
+                  return _buildGraphArea();
+                } catch (e, st) {
+                  ErrorHelpers.logAndReport(
+                    'Failed to render grades graph',
+                    e,
+                    st,
+                  );
+                  return ErrorCard(
+                    message: 'An unknown error occurred loading the graph.',
+                    source: 'grades_screen',
+                    onReload: () {
+                      context.read<GradeBloc>().add(
+                        FetchGradeScreenDataEvent(forceRefresh: true),
+                      );
+                    },
+                  );
+                }
+              },
+            )),
 
             const SizedBox(height: 12),
 
@@ -308,13 +344,31 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
               physics: const NeverScrollableScrollPhysics(),
               itemCount: courses.length,
               itemBuilder: (context, index) {
-                final course = courses[index];
-                return _buildCourseCard(index, course);
+                try {
+                  final course = courses[index];
+                  return PrintPageBreak(
+                    child: _buildCourseCard(
+                      index,
+                      course,
+                      forceExpanded: isCapturing,
+                    ),
+                  );
+                } catch (e, st) {
+                  ErrorHelpers.logAndReport(
+                    'Failed to render grade course card at index $index',
+                    e,
+                    st,
+                  );
+                  return const SizedBox.shrink();
+                }
               },
             ),
           ],
-        ),
-      ),
+        );
+
+        if (isCapturing) return content;
+        return SingleChildScrollView(child: content);
+      },
     );
   }
 
@@ -328,12 +382,24 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
       orElse: () => _grades.first,
     );
 
-    final cards = [
-      _buildOverallGradeCard(selectedGroup),
-      _buildProgressVsPaceCard(selectedGroup),
-      _buildAtRiskCoursesCard(selectedGroup),
-      _buildPendingImpactCard(selectedGroup),
+    final cardBuilders = [
+      () => _buildOverallGradeCard(selectedGroup),
+      () => _buildProgressVsPaceCard(selectedGroup),
+      () => _buildAtRiskCoursesCard(selectedGroup),
+      () => _buildPendingImpactCard(selectedGroup),
     ];
+    final cards = cardBuilders.map((build) {
+      try {
+        return build();
+      } catch (e, st) {
+        ErrorHelpers.logAndReport(
+          'Failed to render grades summary card',
+          e,
+          st,
+        );
+        return const SizedBox.shrink();
+      }
+    }).toList();
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -567,7 +633,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
           Row(
             children: [
               SizedBox(
-                width: 60,
+                width: 60.0,
                 child: Text(
                   'Work',
                   style: AppStyles.smallSecondaryText(context),
@@ -580,7 +646,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
                       height: 24,
                       decoration: BoxDecoration(
                         color: context.colorScheme.surfaceContainerHighest,
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(12.0),
                       ),
                     ),
                     FractionallySizedBox(
@@ -589,7 +655,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
                         height: 24,
                         decoration: BoxDecoration(
                           color: statusColor,
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(12.0),
                         ),
                       ),
                     ),
@@ -616,7 +682,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
           Row(
             children: [
               SizedBox(
-                width: 60,
+                width: 60.0,
                 child: Text(
                   'Time',
                   style: AppStyles.smallSecondaryText(context),
@@ -629,7 +695,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
                       height: 24,
                       decoration: BoxDecoration(
                         color: context.colorScheme.surfaceContainerHighest,
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(12.0),
                       ),
                     ),
                     FractionallySizedBox(
@@ -638,7 +704,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
                         height: 24,
                         decoration: BoxDecoration(
                           color: context.colorScheme.outline,
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(12.0),
                         ),
                       ),
                     ),
@@ -669,7 +735,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               decoration: BoxDecoration(
                 color: statusColor.withValues(alpha: 0.15),
-                borderRadius: BorderRadius.circular(20),
+                borderRadius: BorderRadius.circular(20.0),
                 border: Border.all(color: statusColor, width: 1.5),
               ),
               child: Row(
@@ -810,7 +876,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
         ? selectedGroup.numHomework - selectedGroup.numHomeworkGraded
         : selectedGroup.numHomework;
 
-    // Courses sorted by ungraded count descending — top course is first
+    // Courses sorted by ungraded count descending; top course is first
     final sortedCourses = [...selectedGroup.courses]
       ..sort((a, b) {
         final aU = a.numHomework - a.numHomeworkGraded;
@@ -828,8 +894,8 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
 
     final displayCourse = _pendingImpactCourseId != null
         ? selectedGroup.courses.firstWhereOrNull(
-              (c) => c.id == _pendingImpactCourseId,
-            ) ??
+                (c) => c.id == _pendingImpactCourseId,
+              ) ??
               topCourse
         : topCourse;
 
@@ -905,7 +971,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
                   ),
                   decoration: BoxDecoration(
                     color: displayCourse.color.withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(12.0),
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
@@ -928,7 +994,11 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
                       ),
                       if (sortedCourses.length > 1) ...[
                         const SizedBox(width: 4),
-                        Icon(Icons.swap_horiz, size: 12, color: displayCourse.color),
+                        Icon(
+                          Icons.swap_horiz,
+                          size: 12,
+                          color: displayCourse.color,
+                        ),
                       ],
                     ],
                   ),
@@ -953,8 +1023,9 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
     GradeCourseGroupModel selectedGroup,
     List<GradeCourseModel> courses,
   ) {
-    final eligibleCourses =
-        courses.where(_courseHasEligibleGradeCalculatorCategory).toList();
+    final eligibleCourses = courses
+        .where(_courseHasEligibleGradeCalculatorCategory)
+        .toList();
 
     if (eligibleCourses.isEmpty) {
       showSnackBar(
@@ -1003,14 +1074,16 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
         context: context,
         position: position,
         color: context.colorScheme.surface,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0)),
         items: [
           PopupMenuItem(
             enabled: false,
             padding: EdgeInsets.zero,
             child: StatefulBuilder(
-              builder: (menuContext, _) =>
-                  _buildGradeCalculatorPickerContent(menuContext, eligibleCourses),
+              builder: (menuContext, _) => _buildGradeCalculatorPickerContent(
+                menuContext,
+                eligibleCourses,
+              ),
             ),
           ),
         ],
@@ -1082,6 +1155,11 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
   }
 
   void _openGradeCalculator(GradeCourseModel course) {
+    unawaited(AnalyticsService().logEvent(
+      name: 'grade_calculator_opened',
+      parameters: {'category': 'feature_interaction'},
+    ));
+    unawaited(AnalyticsService().setUserProperty(name: 'uses_grade_calculator', value: 'true'));
     showDialog(
       context: context,
       builder: (context) => GradeCalculatorDialog(
@@ -1110,7 +1188,6 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
     final List<charts.CartesianSeries<_ChartDataPoint, DateTime>> series = [];
 
     if (isTermView) {
-      // Show overall grade + all courses
       if (selectedGroup.gradePoints.isNotEmpty) {
         series.add(_buildOverallSeries(selectedGroup.gradePoints));
       }
@@ -1120,7 +1197,6 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
         }
       }
     } else {
-      // Show specific course with its categories
       final selectedCourseId = _graphViewMode.courseId;
       final course = selectedCourseId == null
           ? null
@@ -1156,7 +1232,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: context.colorScheme.surface,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(16.0),
         border: Border.all(
           color: context.colorScheme.outline.withValues(alpha: 0.2),
         ),
@@ -1183,7 +1259,6 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
   }
 
   Widget _buildGraphHeader(GradeCourseGroupModel gradeGroup, bool isTermView) {
-    // Get all courses with categories
     final coursesWithCategories = gradeGroup.courses
         .where((course) => course.categories.isNotEmpty)
         .toList();
@@ -1193,7 +1268,11 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
       cursor: SystemMouseCursors.click,
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
-        onTap: _toggleGraphExpanded,
+        onTap: () {
+          setState(() {
+            _graphExpanded = !_graphExpanded;
+          });
+        },
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
@@ -1219,46 +1298,50 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
             ),
             // Calculator icon for grade calculator
             if (coursesWithCategories.isNotEmpty)
-              Builder(
-                builder: (buttonContext) => Tooltip(
-                  message: 'What Grade Do I Need?',
-                  child: IconButton(
-                    icon: const Icon(Icons.calculate_outlined),
-                    onPressed: () => _showGradeCalculatorOptions(
-                      buttonContext,
-                      gradeGroup,
-                      coursesWithCategories,
+              PrintHidden(
+                child: Builder(
+                  builder: (buttonContext) => Tooltip(
+                    message: 'What Grade Do I Need?',
+                    child: IconButton(
+                      icon: const Icon(Icons.calculate_outlined),
+                      onPressed: () => _showGradeCalculatorOptions(
+                        buttonContext,
+                        gradeGroup,
+                        coursesWithCategories,
+                      ),
                     ),
                   ),
                 ),
               ),
             // Gear icon for settings
-            Builder(
-              builder: (buttonContext) => IconButton(
-                tooltip: 'Graph settings',
-                icon: const Icon(Icons.settings),
-                onPressed: () => _showGraphSettings(buttonContext),
+            PrintHidden(
+              child: Builder(
+                builder: (buttonContext) => IconButton(
+                  tooltip: 'Graph settings',
+                  icon: const Icon(Icons.settings),
+                  onPressed: () => _showGraphSettings(buttonContext),
+                ),
               ),
             ),
             // Expand/collapse chevron
-            IconButton(
-              icon: AnimatedRotation(
-                turns: _graphExpanded ? 0.5 : 0,
-                duration: const Duration(milliseconds: 300),
-                child: const Icon(Icons.keyboard_arrow_down),
+            PrintHidden(
+              child: IconButton(
+                icon: AnimatedRotation(
+                  turns: _graphExpanded ? 0.5 : 0,
+                  duration: const Duration(milliseconds: 300),
+                  child: const Icon(Icons.keyboard_arrow_down),
+                ),
+                onPressed: () {
+                  setState(() {
+                    _graphExpanded = !_graphExpanded;
+                  });
+                },
               ),
-              onPressed: _toggleGraphExpanded,
             ),
           ],
         ),
       ),
     );
-  }
-
-  void _toggleGraphExpanded() {
-    setState(() {
-      _graphExpanded = !_graphExpanded;
-    });
   }
 
   Widget _buildChart(
@@ -1490,7 +1573,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
       decoration: BoxDecoration(
         color: context.colorScheme.surface,
-        borderRadius: BorderRadius.circular(5),
+        borderRadius: BorderRadius.circular(5.0),
         border: Border.all(
           color: context.colorScheme.outline.withValues(alpha: 0.3),
         ),
@@ -1944,9 +2027,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
                 onChanged: (value) {
                   if (value == null) return;
                   setState(() {
-                    _graphViewMode = _GraphViewMode.fromRadioValue(
-                      value,
-                    );
+                    _graphViewMode = _GraphViewMode.fromRadioValue(value);
                   });
                   Navigator.pop(menuContext);
                 },
@@ -1962,7 +2043,11 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
                         Navigator.pop(menuContext);
                       },
                       child: Padding(
-                        padding: const EdgeInsets.only(left: 4, top: 8, bottom: 8),
+                        padding: const EdgeInsets.only(
+                          left: 4,
+                          top: 8,
+                          bottom: 8,
+                        ),
                         child: Row(
                           children: [
                             const Radio<String>(value: 'term'),
@@ -1984,13 +2069,18 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
                       (course) => InkWell(
                         onTap: () {
                           setState(
-                            () => _graphViewMode =
-                                _GraphViewMode.course(course.id),
+                            () => _graphViewMode = _GraphViewMode.course(
+                              course.id,
+                            ),
                           );
                           Navigator.pop(menuContext);
                         },
                         child: Padding(
-                          padding: const EdgeInsets.only(left: 4, top: 8, bottom: 8),
+                          padding: const EdgeInsets.only(
+                            left: 4,
+                            top: 8,
+                            bottom: 8,
+                          ),
                           child: Row(
                             children: [
                               Radio<String>(
@@ -1999,11 +2089,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
                                 ).radioValue,
                               ),
                               const SizedBox(width: 8),
-                              Icon(
-                                Icons.school,
-                                size: 16,
-                                color: course.color,
-                              ),
+                              Icon(Icons.school, size: 16, color: course.color),
                               const SizedBox(width: 8),
                               Expanded(
                                 child: Text(
@@ -2037,10 +2123,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
               ),
               CheckboxListTile(
                 controlAffinity: ListTileControlAffinity.leading,
-                title: Text(
-                  'Hide legend',
-                  style: AppStyles.formText(context),
-                ),
+                title: Text('Hide legend', style: AppStyles.formText(context)),
                 value: _hideLegend == true,
                 onChanged: (value) {
                   _setHideLegend(value ?? false);
@@ -2084,7 +2167,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
         context: context,
         position: position,
         color: context.colorScheme.surface,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0)),
         items: [
           PopupMenuItem(
             enabled: false,
@@ -2096,8 +2179,12 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
     }
   }
 
-  Widget _buildCourseCard(int index, GradeCourseModel course) {
-    final isExpanded = _expandedCourseIds.contains(course.id);
+  Widget _buildCourseCard(
+    int index,
+    GradeCourseModel course, {
+    bool forceExpanded = false,
+  }) {
+    final isExpanded = forceExpanded || _expandedCourseIds.contains(course.id);
 
     return Card(
       key: _courseCardKeys.putIfAbsent(course.id, () => GlobalKey()),
@@ -2212,22 +2299,24 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
                 ],
               ),
             ),
-            IconButton(
-              icon: AnimatedRotation(
-                turns: isExpanded ? 0.5 : 0,
-                duration: const Duration(milliseconds: 300),
-                child: Icon(
-                  Icons.keyboard_arrow_down,
-                  color: context.colorScheme.primary,
-                  size: Responsive.getIconSize(
-                    context,
-                    mobile: 20,
-                    tablet: 22,
-                    desktop: 24,
+            PrintHidden(
+              child: IconButton(
+                icon: AnimatedRotation(
+                  turns: isExpanded ? 0.5 : 0,
+                  duration: const Duration(milliseconds: 300),
+                  child: Icon(
+                    Icons.keyboard_arrow_down,
+                    color: context.colorScheme.primary,
+                    size: Responsive.getIconSize(
+                      context,
+                      mobile: 20,
+                      tablet: 22,
+                      desktop: 24,
+                    ),
                   ),
                 ),
+                onPressed: () => _toggleExpandedCourse(course.id),
               ),
-              onPressed: () => _toggleExpandedCourse(course.id),
             ),
           ],
         ),
@@ -2359,7 +2448,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
           decoration: BoxDecoration(
             color: course.color.withValues(alpha: 0.05),
-            borderRadius: BorderRadius.circular(10),
+            borderRadius: BorderRadius.circular(10.0),
           ),
           child: Row(
             children: [
@@ -2531,7 +2620,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
           height: _contributionBarHeight,
           decoration: BoxDecoration(
             color: context.colorScheme.surfaceContainerHighest,
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(12.0),
           ),
         ),
         FractionallySizedBox(
@@ -2540,7 +2629,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
             height: _contributionBarHeight,
             decoration: BoxDecoration(
               color: category.color,
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(12.0),
             ),
           ),
         ),

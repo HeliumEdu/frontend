@@ -31,23 +31,6 @@ class _ConfirmDeleteWidget<T extends BaseTitledModel> extends StatefulWidget {
 class _ConfirmDeleteWidgetState<T extends BaseTitledModel> extends State<_ConfirmDeleteWidget<T>> {
   bool _isSubmitting = false;
 
-  static String _withTrailingSpace(String? additionalWarning) {
-    if (additionalWarning?.isNotEmpty ?? false) {
-      return '$additionalWarning ';
-    } else {
-      return '';
-    }
-  }
-
-  void _handleDelete() {
-    setState(() {
-      _isSubmitting = true;
-    });
-
-    Navigator.pop(context);
-    widget.onDelete(widget.item);
-  }
-
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
@@ -85,6 +68,23 @@ class _ConfirmDeleteWidgetState<T extends BaseTitledModel> extends State<_Confir
         ),
       ],
     );
+  }
+
+  static String _withTrailingSpace(String? additionalWarning) {
+    if (additionalWarning?.isNotEmpty ?? false) {
+      return '$additionalWarning ';
+    } else {
+      return '';
+    }
+  }
+
+  void _handleDelete() {
+    setState(() {
+      _isSubmitting = true;
+    });
+
+    Navigator.pop(context);
+    widget.onDelete(widget.item);
   }
 }
 

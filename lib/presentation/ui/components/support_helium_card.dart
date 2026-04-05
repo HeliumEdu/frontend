@@ -12,6 +12,11 @@ import 'package:heliumapp/utils/app_style.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class SupportHeliumCard extends StatelessWidget {
+  static const _cardBorderRadius = 16.0;
+  static const _cardPadding = 16.0;
+  static const _iconSize = 32.0;
+  static const _arrowIconSize = 16.0;
+
   const SupportHeliumCard({super.key, this.compact = false});
 
   final bool compact;
@@ -28,7 +33,7 @@ class SupportHeliumCard extends StatelessWidget {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(_cardBorderRadius),
         border: Border.all(
           color: context.colorScheme.primary.withValues(alpha: 0.2),
         ),
@@ -37,15 +42,15 @@ class SupportHeliumCard extends StatelessWidget {
         color: Colors.transparent,
         child: InkWell(
           onTap: () => launchUrl(Uri.parse(AppConstants.patreonUrl)),
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(_cardBorderRadius),
           child: Padding(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(_cardPadding),
             child: Row(
               children: [
                 Icon(
                   Icons.volunteer_activism,
                   color: context.colorScheme.primary,
-                  size: 32,
+                  size: _iconSize,
                 ),
                 const SizedBox(width: 12),
                 Expanded(
@@ -76,7 +81,7 @@ class SupportHeliumCard extends StatelessWidget {
                 Icon(
                   Icons.arrow_forward_ios,
                   color: context.colorScheme.onSurface.withValues(alpha: 0.3),
-                  size: 16,
+                  size: _arrowIconSize,
                 ),
               ],
             ),

@@ -9,7 +9,6 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:heliumapp/config/app_theme.dart';
-import 'package:heliumapp/presentation/core/views/base_page_screen_state.dart';
 import 'package:heliumapp/presentation/ui/layout/shadow_container.dart';
 
 typedef StepperHeaderStep = ({IconData icon, bool isEnabled, String? tooltip});
@@ -18,10 +17,10 @@ typedef StepperHeaderStep = ({IconData icon, bool isEnabled, String? tooltip});
 /// connecting lines, supporting current step highlighting, disabled states,
 /// and tap navigation.
 class StepperHeader extends StatefulWidget {
-  /// List of steps to display.
+  /// List of steps to display
   final List<StepperHeaderStep> steps;
 
-  /// The currently active step index (0-based).
+  /// The currently active step index (0-based)
   final int currentStep;
 
   /// Callback when a step is tapped. If null, steps are not tappable.
@@ -43,47 +42,53 @@ class _StepperHeaderState extends State<StepperHeader> {
 
   @override
   Widget build(BuildContext context) {
-    final dialogProvider = DialogModeProvider.maybeOf(context);
-    final screenWidth = MediaQuery.sizeOf(context).width;
-
-    // Use dialog width if available and finite, otherwise use screen width
-    final dialogWidth = dialogProvider?.width;
-    final availableWidth =
-        (dialogWidth != null && dialogWidth.isFinite) ? dialogWidth : screenWidth;
-
-    // Account for container padding (8 from ShadowContainer, 12 from outer padding on each side)
-    final contentWidth = availableWidth - 40;
-
-    // Calculate sizes based on available width
-    // We need to fit: steps.length circles + (steps.length - 1) lines + margins
-    // Minimum line length: 16px, margin per line: 8px (4 on each side)
-    final minLineTotal = (widget.steps.length - 1) * 24.0; // 16 + 8 margin
-    final availableForCircles = contentWidth - minLineTotal;
-
-    // Calculate circle size to fit, but cap between 36 and 48
-    final maxCircleSize = availableForCircles / widget.steps.length;
-    final circleSize = maxCircleSize.clamp(36.0, 48.0);
-    final iconSize = (circleSize * 0.42).clamp(16.0, 22.0);
-
-    // Calculate line length with remaining space, but cap to avoid excessive stretching
-    final totalCircleWidth = circleSize * widget.steps.length;
-    final remainingWidth = contentWidth - totalCircleWidth;
-    final lineLength = widget.steps.length > 1
-        ? math.min(
-            56.0,
-            math.max(16.0, (remainingWidth / (widget.steps.length - 1)) - 8),
-          )
-        : 0.0;
-
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: ShadowContainer(
         child: Padding(
           padding: const EdgeInsets.symmetric(vertical: 10),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            mainAxisSize: MainAxisSize.min,
-            children: _buildStepRow(context, circleSize, iconSize, lineLength),
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              // LayoutBuilder is already inside ShadowContainer's padding,
+              // so constraints.maxWidth is the true available content width.
+              final contentWidth = constraints.maxWidth;
+
+              // Calculate sizes based on available width
+              // We need to fit: steps.length circles + (steps.length - 1) lines + margins
+              // Minimum line length: 16px, margin per line: 8px (4 on each side)
+              final minLineTotal =
+                  (widget.steps.length - 1) * 24.0; // 16 + 8 margin
+              final availableForCircles = contentWidth - minLineTotal;
+
+              // Calculate circle size to fit, but cap between 36 and 48.
+              // Floor to whole pixels so sizes never accumulate sub-pixel fractions.
+              final maxCircleSize = availableForCircles / widget.steps.length;
+              final circleSize =
+                  maxCircleSize.clamp(36.0, 48.0).floorToDouble();
+              final iconSize =
+                  (circleSize * 0.42).clamp(16.0, 22.0).floorToDouble();
+
+              // Calculate line length with remaining space, but cap to avoid excessive stretching
+              final totalCircleWidth = circleSize * widget.steps.length;
+              final remainingWidth = contentWidth - totalCircleWidth;
+              final lineLength = widget.steps.length > 1
+                  ? math
+                      .min(
+                        56.0,
+                        math.max(
+                          16.0,
+                          (remainingWidth / (widget.steps.length - 1)) - 8,
+                        ),
+                      )
+                      .floorToDouble()
+                  : 0.0;
+
+              return Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children:
+                    _buildStepRow(context, circleSize, iconSize, lineLength),
+              );
+            },
           ),
         ),
       ),
@@ -103,10 +108,8 @@ class _StepperHeaderState extends State<StepperHeader> {
     final List<Widget> widgets = [];
 
     for (int i = 0; i < steps.length; i++) {
-      // Add step circle
       widgets.add(_buildStepCircle(context, i, circleSize, iconSize));
 
-      // Add connecting line after each step except the last
       if (i < steps.length - 1) {
         widgets.add(_buildConnectingLine(context, i, lineLength));
       }
@@ -162,17 +165,21 @@ class _StepperHeaderState extends State<StepperHeader> {
       iconColor = context.colorScheme.primary.withValues(alpha: 0.3);
     }
 
-    final circle = AnimatedContainer(
-      duration: const Duration(milliseconds: 150),
+    // SizedBox controls layout size and snaps immediately on resize.
+    // AnimatedContainer inside handles only decoration (hover color transitions).
+    final circle = SizedBox(
       width: size,
       height: size,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        color: backgroundColor,
-        border: Border.all(color: borderColor, width: 2),
-      ),
-      child: Center(
-        child: Icon(step.icon, color: iconColor, size: iconSize),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 150),
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: backgroundColor,
+          border: Border.all(color: borderColor, width: 2),
+        ),
+        child: Center(
+          child: Icon(step.icon, color: iconColor, size: iconSize),
+        ),
       ),
     );
 

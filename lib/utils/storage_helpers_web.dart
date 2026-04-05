@@ -34,7 +34,7 @@ Future<bool> downloadFilePlatform(String url, String filename) async {
   }
 }
 
-/// Downloads bytes directly to a file on web (creates blob and triggers download).
+/// Downloads bytes directly to a file on web (creates blob and triggers download)
 Future<bool> downloadBytesPlatform(Uint8List bytes, String filename) async {
   try {
     final jsUint8Array = bytes.toJS;

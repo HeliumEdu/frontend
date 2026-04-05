@@ -47,10 +47,10 @@ class ResourceBloc extends Bloc<ResourceEvent, ResourceState> {
     emit(ResourcesLoading(origin: event.origin));
     try {
       final results = await Future.wait([
-        resourceRepository.getResourceGroups(),
-        resourceRepository.getResources(),
-        courseRepository.getCourses(),
-        noteRepository.getNotes(linkedEntityType: 'resource', includeContent: true),
+        resourceRepository.getResourceGroups(forceRefresh: event.forceRefresh),
+        resourceRepository.getResources(forceRefresh: event.forceRefresh),
+        courseRepository.getCourses(forceRefresh: event.forceRefresh),
+        noteRepository.getNotes(linkedEntityType: 'resource', includeContent: true, forceRefresh: event.forceRefresh),
       ]);
       final resourceGroups = results[0] as List<ResourceGroupModel>;
       final resources = results[1] as List<ResourceModel>;

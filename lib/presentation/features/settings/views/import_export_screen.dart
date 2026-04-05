@@ -5,14 +5,16 @@
 //
 // For details regarding the license, please refer to the LICENSE file.
 
-import 'dart:typed_data';
+import 'dart:async';
 
 import 'package:dio/dio.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/config/app_theme.dart';
+import 'package:heliumapp/core/analytics_service.dart';
 import 'package:heliumapp/core/api_url.dart';
 import 'package:heliumapp/core/dio_client.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_bloc.dart';
@@ -87,12 +89,12 @@ class _ImportExportScreenState extends State<ImportExportScreen> {
             Expanded(
               child: Container(
                 padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 12,
+                  horizontal: 12.0,
+                  vertical: 12.0,
                 ),
                 decoration: BoxDecoration(
                   color: context.colorScheme.surfaceContainer,
-                  borderRadius: BorderRadius.circular(10),
+                  borderRadius: BorderRadius.circular(10.0),
                   border: Border.all(
                     color: context.colorScheme.outline.withValues(alpha: 0.2),
                   ),
@@ -198,15 +200,29 @@ class _ImportExportScreenState extends State<ImportExportScreen> {
 
   Future<void> _openFileChooser() async {
     try {
+      // Use FileType.any on mobile to avoid flaky iOS UTI mapping for custom
+      // extensions, then validate the extension manually after selection
+      const bool useCustomType = kIsWeb;
       final result = await FilePicker.platform.pickFiles(
-        type: FileType.custom,
-        allowedExtensions: ['json'],
+        type: useCustomType ? FileType.custom : FileType.any,
+        allowedExtensions: useCustomType ? ['json'] : null,
         allowMultiple: false,
         withData: true,
       );
 
       if (result != null && result.files.isNotEmpty) {
         final file = result.files.first;
+
+        if (!useCustomType && file.extension?.toLowerCase() != 'json') {
+          if (mounted) {
+            SnackBarHelper.show(
+              context,
+              'Please select a JSON file',
+              type: SnackType.error,
+            );
+          }
+          return;
+        }
 
         if (file.bytes == null) {
           if (mounted) {
@@ -277,6 +293,7 @@ class _ImportExportScreenState extends State<ImportExportScreen> {
 
         if (mounted) {
           context.read<AuthBloc>().add(RefreshScheduleDataEvent());
+          unawaited(AnalyticsService().logEvent(name: 'import_completed', parameters: {'category': 'feature_interaction'}));
           SnackBarHelper.show(
             context,
             'Imported: $counts',
@@ -364,6 +381,7 @@ class _ImportExportScreenState extends State<ImportExportScreen> {
       if (!mounted) return;
 
       if (response.statusCode == 200 && response.data != null) {
+        unawaited(AnalyticsService().logEvent(name: 'export_triggered', parameters: {'category': 'feature_interaction'}));
         final contentDisposition = response.headers.value(
           'content-disposition',
         );
@@ -386,7 +404,7 @@ class _ImportExportScreenState extends State<ImportExportScreen> {
           } else {
             SnackBarHelper.show(
               context,
-              'File not exported',
+              'Nothing exported',
               type: SnackType.error,
             );
           }
@@ -423,6 +441,8 @@ class _ImportExportScreenState extends State<ImportExportScreen> {
       if (response.statusCode == 204) {
         await _dioClient.cacheService.invalidateAll();
         if (mounted) {
+          unawaited(AnalyticsService().logEvent(name: 'example_schedule_imported', parameters: {'category': 'onboarding'}));
+          unawaited(AnalyticsService().setUserProperty(name: 'onboarding_complete', value: 'false'));
           context.read<AuthBloc>().add(FetchProfileEvent());
           context.read<AuthBloc>().add(RefreshScheduleDataEvent());
           SnackBarHelper.show(

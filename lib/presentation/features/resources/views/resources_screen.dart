@@ -26,8 +26,8 @@ import 'package:heliumapp/presentation/core/views/deep_link_mixin.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_bloc.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_state.dart';
 import 'package:heliumapp/presentation/features/planner/dialogs/confirm_delete_dialog.dart';
-import 'package:heliumapp/presentation/features/notes/bloc/note_bloc.dart';
-import 'package:heliumapp/presentation/features/notes/bloc/note_state.dart';
+import 'package:heliumapp/presentation/features/notebook/bloc/note_bloc.dart';
+import 'package:heliumapp/presentation/features/notebook/bloc/note_state.dart';
 import 'package:heliumapp/presentation/features/resources/bloc/resource_bloc.dart';
 import 'package:heliumapp/presentation/features/resources/bloc/resource_event.dart';
 import 'package:heliumapp/presentation/features/resources/bloc/resource_state.dart';
@@ -47,7 +47,9 @@ import 'package:heliumapp/presentation/ui/feedback/error_card.dart';
 import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
 import 'package:heliumapp/presentation/ui/layout/mobile_gesture_detector.dart';
 import 'package:heliumapp/presentation/ui/layout/responsive_card_grid.dart';
+import 'package:heliumapp/utils/error_helpers.dart';
 import 'package:heliumapp/utils/app_style.dart';
+import 'package:heliumapp/utils/print_helpers.dart';
 import 'package:heliumapp/utils/quill_helpers.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:heliumapp/utils/sort_helpers.dart';
@@ -104,6 +106,9 @@ class _ResourcesScreenState
   String get screenTitle => 'Resources';
 
   @override
+  bool get enablePrint => true;
+
+  @override
   String get routePath => AppRoute.resourcesScreen;
 
   @override
@@ -138,10 +143,6 @@ class _ResourcesScreenState
     context.read<ResourceBloc>().add(
       FetchResourcesScreenDataEvent(origin: EventOrigin.screen),
     );
-  }
-
-  void _upsertNoteForResource(int resourceId, NoteModel note) {
-    _notesMap[resourceId] = note;
   }
 
   @override
@@ -249,40 +250,44 @@ class _ResourcesScreenState
 
   @override
   Widget buildHeaderArea(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: GroupDropdown(
-        groups: _resourceGroups,
-        initialSelection: _resourceGroups.firstWhereOrNull(
-          (g) => g.id == _selectedGroupId,
-        ),
-        onChanged: (value) {
-          // The "+" button has a null value
-          if (value == null) return;
-          if (value.id == _selectedGroupId) return;
+    return ValueListenableBuilder<bool>(
+      valueListenable: PrintableArea.capturing,
+      builder: (context, isCapturing, _) => Padding(
+        padding: const EdgeInsets.only(bottom: 12),
+        child: GroupDropdown(
+          groups: _resourceGroups,
+          initialSelection: _resourceGroups.firstWhereOrNull(
+            (g) => g.id == _selectedGroupId,
+          ),
+          isReadOnly: isCapturing,
+          onChanged: (value) {
+            // The "+" button has a null value
+            if (value == null) return;
+            if (value.id == _selectedGroupId) return;
 
-          setState(() {
-            _selectedGroupId = value.id;
-          });
-        },
-        onCreate: () {
-          showResourceGroupDialog(parentContext: context, isEdit: false);
-        },
-        onEdit: (group) {
-          showResourceGroupDialog(
-            parentContext: context,
-            isEdit: true,
-            group: group,
-          );
-        },
-        onDelete: (g) {
-          context.read<ResourceBloc>().add(
-            DeleteResourceGroupEvent(
-              origin: EventOrigin.screen,
-              resourceGroupId: g.id,
-            ),
-          );
-        },
+            setState(() {
+              _selectedGroupId = value.id;
+            });
+          },
+          onCreate: () {
+            showResourceGroupDialog(parentContext: context, isEdit: false);
+          },
+          onEdit: (group) {
+            showResourceGroupDialog(
+              parentContext: context,
+              isEdit: true,
+              group: group,
+            );
+          },
+          onDelete: (g) {
+            context.read<ResourceBloc>().add(
+              DeleteResourceGroupEvent(
+                origin: EventOrigin.screen,
+                resourceGroupId: g.id,
+              ),
+            );
+          },
+        ),
       ),
     );
   }
@@ -301,7 +306,7 @@ class _ResourcesScreenState
             source: 'resources_screen',
             onReload: () {
               context.read<ResourceBloc>().add(
-                FetchResourcesScreenDataEvent(origin: EventOrigin.screen),
+                FetchResourcesScreenDataEvent(origin: EventOrigin.screen, forceRefresh: true),
               );
             },
           );
@@ -329,16 +334,76 @@ class _ResourcesScreenState
     );
   }
 
+  @override
+  bool handleRouteEntityParams(Map<String, String> queryParams) {
+    final idParam = queryParams[DeepLinkParam.id];
+    if (idParam == null) return false;
+
+    final parsed = DeepLinkParam.parseId(idParam);
+    final tabValue = int.tryParse(queryParams[DeepLinkParam.tab] ?? '') ?? 1;
+    final initialStep = (tabValue - 1).clamp(0, 2);
+
+    if (parsed.isNew) {
+      if (_selectedGroupId == null) return false;
+      return openFromDeepLink('${DeepLinkParam.id}:new', () {
+        return showResourceAdd(
+          context,
+          resourceGroupId: _selectedGroupId!,
+          isEdit: false,
+          initialStep: initialStep,
+        );
+      });
+    }
+
+    if (parsed.id != null) {
+      ResourceModel? resource;
+      for (final resources in _resourcesMap.values) {
+        resource = resources.firstWhereOrNull((r) => r.id == parsed.id);
+        if (resource != null) break;
+      }
+      if (resource == null) return false;
+      return openFromDeepLink('${DeepLinkParam.id}:${parsed.id}', () {
+        return showResourceAdd(
+          context,
+          resourceGroupId: resource!.resourceGroup,
+          resourceId: resource.id,
+          isEdit: true,
+          initialStep: initialStep,
+        );
+      });
+    }
+
+    return false;
+  }
+
+  void _upsertNoteForResource(int resourceId, NoteModel note) {
+    _notesMap[resourceId] = note;
+  }
+
   Widget _buildResourcesList() {
     if (_selectedGroupId == null) {
       return const SizedBox.shrink();
     }
 
-    return Expanded(
-      child: ResponsiveCardGrid<ResourceModel>(
+    return ValueListenableBuilder<bool>(
+      valueListenable: PrintableArea.capturing,
+      builder: (context, isCapturing, _) => ResponsiveCardGrid<ResourceModel>(
+        shrinkWrap: isCapturing,
+        printPageBreakAfterRow: true,
         items: _resourcesMap[_selectedGroupId]!,
-        itemBuilder: (context, resource) =>
-            _buildResourceCard(context, resource),
+        itemBuilder: (context, resource) {
+          try {
+            return _buildResourceCard(context, resource);
+          } catch (e, st) {
+            ErrorHelpers.logAndReport(
+              'Failed to render resource card ${resource.id}',
+              e,
+              st,
+              hints: {'resource_id': resource.id},
+            );
+            return const SizedBox.shrink();
+          }
+        },
       ),
     );
   }
@@ -396,45 +461,49 @@ class _ResourcesScreenState
                   ),
                   const SizedBox(width: 8),
                   if (resource.website.isNotEmpty) ...[
-                    HeliumIconButton(
-                      onPressed: () {
-                        launchUrl(
-                          Uri.parse(resource.website),
-                        );
-                      },
-                      icon: Icons.launch_outlined,
-                      tooltip: "Launch resource's website",
-                      color: context.semanticColors.success,
+                    PrintHidden(
+                      child: HeliumIconButton(
+                        onPressed: () {
+                          launchUrl(Uri.parse(resource.website));
+                        },
+                        icon: Icons.launch_outlined,
+                        tooltip: "Launch resource's website",
+                        color: context.semanticColors.success,
+                      ),
                     ),
                     const SizedBox(width: 8),
                   ],
                   if (!Responsive.isMobile(context)) ...[
-                    HeliumIconButton(
-                      onPressed: () => _onEdit(resource),
-                      icon: Icons.edit_outlined,
+                    PrintHidden(
+                      child: HeliumIconButton(
+                        onPressed: () => _onEdit(resource),
+                        icon: Icons.edit_outlined,
+                      ),
                     ),
                     const SizedBox(width: 8),
                   ],
-                  HeliumIconButton(
-                    onPressed: () {
-                      showConfirmDeleteDialog(
-                        parentContext: context,
-                        item: resource,
-                        additionalWarning:
-                            'Its associated attachments and note will also be deleted.',
-                        onDelete: (m) {
-                          context.read<ResourceBloc>().add(
-                            DeleteResourceEvent(
-                              origin: EventOrigin.screen,
-                              resourceGroupId: m.resourceGroup,
-                              resourceId: m.id,
-                            ),
-                          );
-                        },
-                      );
-                    },
-                    icon: Icons.delete_outline,
-                    color: context.colorScheme.error,
+                  PrintHidden(
+                    child: HeliumIconButton(
+                      onPressed: () {
+                        showConfirmDeleteDialog(
+                          parentContext: context,
+                          item: resource,
+                          additionalWarning:
+                              'Its associated attachments and note will also be deleted.',
+                          onDelete: (m) {
+                            context.read<ResourceBloc>().add(
+                              DeleteResourceEvent(
+                                origin: EventOrigin.screen,
+                                resourceGroupId: m.resourceGroup,
+                                resourceId: m.id,
+                              ),
+                            );
+                          },
+                        );
+                      },
+                      icon: Icons.delete_outline,
+                      color: context.colorScheme.error,
+                    ),
                   ),
                 ],
               ),
@@ -511,45 +580,4 @@ class _ResourcesScreenState
     );
   }
 
-  @override
-  bool handleRouteEntityParams(Map<String, String> queryParams) {
-    final idParam = queryParams[DeepLinkParam.id];
-    if (idParam == null) return false;
-
-    final parsed = DeepLinkParam.parseId(idParam);
-    final tabValue = int.tryParse(queryParams[DeepLinkParam.tab] ?? '') ?? 1;
-    final initialStep = (tabValue - 1).clamp(0, 2);
-
-    if (parsed.isNew) {
-      if (_selectedGroupId == null) return false;
-      return openFromDeepLink('${DeepLinkParam.id}:new', () {
-        return showResourceAdd(
-          context,
-          resourceGroupId: _selectedGroupId!,
-          isEdit: false,
-          initialStep: initialStep,
-        );
-      });
-    }
-
-    if (parsed.id != null) {
-      ResourceModel? resource;
-      for (final resources in _resourcesMap.values) {
-        resource = resources.firstWhereOrNull((r) => r.id == parsed.id);
-        if (resource != null) break;
-      }
-      if (resource == null) return false;
-      return openFromDeepLink('${DeepLinkParam.id}:${parsed.id}', () {
-        return showResourceAdd(
-          context,
-          resourceGroupId: resource!.resourceGroup,
-          resourceId: resource.id,
-          isEdit: true,
-          initialStep: initialStep,
-        );
-      });
-    }
-
-    return false;
-  }
 }

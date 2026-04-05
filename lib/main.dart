@@ -6,7 +6,6 @@
 // For details regarding the license, please refer to the LICENSE file.
 
 import 'package:firebase_core/firebase_core.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_web_plugins/url_strategy.dart';
@@ -16,6 +15,7 @@ import 'package:heliumapp/config/pref_service.dart';
 import 'package:heliumapp/core/analytics_service.dart';
 import 'package:heliumapp/core/dio_client.dart';
 import 'package:heliumapp/core/fcm_service.dart';
+import 'package:heliumapp/core/feedback_service.dart';
 import 'package:heliumapp/core/log_service.dart';
 import 'package:heliumapp/core/sentry_service.dart';
 import 'package:heliumapp/data/repositories/auth_repository_impl.dart';
@@ -38,12 +38,10 @@ void main() async {
   // Initialize logging (log level can be set via --dart-define=LOG_LEVEL=FINE)
   // In release mode, also initialize Sentry for error reporting
   LogService().init();
-  if (!kDebugMode) {
-    try {
-      await SentryService().init();
-    } catch (e) {
-      _log.severe('Sentry initialization failed', e);
-    }
+  try {
+    await SentryService().init();
+  } catch (e) {
+    _log.severe('Sentry initialization failed', e);
   }
 
   GoogleFonts.config.allowRuntimeFetching = false;
@@ -69,6 +67,12 @@ void main() async {
   }
 
   await PrefService().init();
+
+  try {
+    await FeedbackService().init();
+  } catch (e) {
+    _log.severe('FeedbackService initialization failed', e);
+  }
 
   usePathUrlStrategy();
 

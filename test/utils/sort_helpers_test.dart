@@ -525,6 +525,7 @@ CourseGroupModel _createCourseGroup({
     startDate: startDate,
     endDate: DateTime.parse('2025-12-31'),
     averageGrade: null,
+    exceptions: const [],
   );
 }
 
@@ -596,6 +597,7 @@ CourseScheduleEventModel _createCourseScheduleEvent({
     reminders: [],
     ownerId: '1',
     color: const Color(0xFFFF5722),
+    exceptionDates: const [],
   );
 }
 

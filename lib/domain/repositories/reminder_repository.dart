@@ -12,10 +12,12 @@ abstract class ReminderRepository {
   Future<List<ReminderModel>> getReminders({
     int? homeworkId,
     int? eventId,
+    int? courseId,
     bool? sent,
     bool? dismissed,
     int? type,
     DateTime? startOfRange,
+    bool forceRefresh = false,
   });
 
   Future<ReminderModel> createReminder(ReminderRequestModel request);

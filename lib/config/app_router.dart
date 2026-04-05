@@ -5,6 +5,8 @@
 //
 // For details regarding the license, please refer to the LICENSE file.
 
+import 'dart:async';
+
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -13,6 +15,7 @@ import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/config/pref_service.dart';
 import 'package:heliumapp/core/analytics_service.dart';
 import 'package:heliumapp/core/dio_client.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:heliumapp/presentation/core/views/landing_screen.dart';
 import 'package:heliumapp/presentation/core/views/mobile_web_screen.dart';
 import 'package:heliumapp/presentation/core/views/notification_screen.dart';
@@ -23,7 +26,6 @@ import 'package:heliumapp/presentation/features/auth/views/signup_screen.dart';
 import 'package:heliumapp/presentation/features/auth/views/verify_email_screen.dart';
 import 'package:heliumapp/presentation/features/settings/views/settings_screen.dart';
 import 'package:heliumapp/presentation/navigation/shell/navigation_shell.dart';
-import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:logging/logging.dart';
 
@@ -153,7 +155,7 @@ void initializeRouter() {
   );
 }
 
-/// Auth redirect logic for go_router.
+/// Auth redirect logic for go_router
 Future<String?> _authRedirect(BuildContext context, GoRouterState state) async {
   if (_shouldShowMobileWebPrompt(context, state)) {
     if (state.matchedLocation != AppRoute.mobileWebScreen) {
@@ -210,7 +212,8 @@ Future<String?> _authRedirect(BuildContext context, GoRouterState state) async {
         'Setup completion flag unavailable during auth redirect '
         '(location=$matchedLocation), skipping setup-based redirect',
       );
-      Sentry.metrics.count('router.auth_redirect.setup_state_unavailable', 1);
+      unawaited(AnalyticsService().logEvent(name: 'router_auth_redirect_no_setup_state', parameters: {'category': 'edge_case'}));
+      unawaited(Sentry.captureMessage('Auth redirect skipped setup-based redirect: setup state unavailable at location=$matchedLocation', level: SentryLevel.error));
       return null;
     }
 
@@ -289,7 +292,7 @@ bool _shouldShowMobileWebPrompt(BuildContext context, GoRouterState state) {
   return true;
 }
 
-/// Widget that redirects to a fallback route when arguments are missing.
+/// Widget that redirects to a fallback route when arguments are missing
 class _RouteRedirect extends StatelessWidget {
   final String redirectTo;
 
@@ -297,6 +300,7 @@ class _RouteRedirect extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Defer navigation so context.go is not called during a build phase
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!context.mounted) return;
 

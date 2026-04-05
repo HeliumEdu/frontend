@@ -9,6 +9,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:heliumapp/config/app_theme.dart';
+import 'package:heliumapp/data/models/planner/course_group_model.dart';
 import 'package:heliumapp/data/models/planner/request/course_request_model.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/core/base_event.dart';
 import 'package:heliumapp/presentation/features/courses/bloc/course_bloc.dart';
@@ -16,7 +17,7 @@ import 'package:heliumapp/presentation/features/courses/bloc/course_event.dart';
 import 'package:heliumapp/presentation/features/courses/bloc/course_state.dart';
 import 'package:heliumapp/presentation/features/shared/controllers/basic_form_controller.dart';
 import 'package:heliumapp/presentation/features/courses/controllers/course_form_controller.dart';
-import 'package:heliumapp/presentation/ui/dialogs/color_picker_dialog.dart';
+import 'package:heliumapp/presentation/ui/components/color_selector.dart';
 import 'package:heliumapp/utils/snack_bar_helpers.dart';
 import 'package:heliumapp/presentation/features/shared/widgets/flow/multi_step_container.dart';
 import 'package:heliumapp/presentation/ui/components/helium_icon_button.dart';
@@ -61,6 +62,7 @@ class CourseDetailsState extends State<CourseDetails> {
 
   bool isLoading = true;
   bool _isSubmitting = false;
+  CourseGroupModel? _courseGroup;
 
   @override
   void initState() {
@@ -82,14 +84,6 @@ class CourseDetailsState extends State<CourseDetails> {
     _formController.urlFocusNode.removeListener(_onUrlFocusChange);
     _formController.dispose();
     super.dispose();
-  }
-
-  void _onUrlFocusChange() {
-    if (!_formController.urlFocusNode.hasFocus) {
-      _formController.urlController.text = BasicFormController.cleanUrl(
-        _formController.urlController.text.trim(),
-      );
-    }
   }
 
   @override
@@ -325,40 +319,14 @@ class CourseDetailsState extends State<CourseDetails> {
                             crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
                               const SizedBox(width: 9),
-                              Text(
-                                'Color',
-                                style: AppStyles.formLabel(context),
-                              ),
-                              const SizedBox(width: 9),
-                              MouseRegion(
-                                cursor: SystemMouseCursors.click,
-                                child: GestureDetector(
-                                  onTap: () {
-                                    Feedback.forTap(context);
-                                    showColorPickerDialog(
-                                      parentContext: context,
-                                      initialColor:
-                                          _formController.selectedColor,
-                                      onSelected: (color) {
-                                        setState(() {
-                                          _formController.selectedColor = color;
-                                        });
-                                      },
-                                    );
-                                  },
-                                  child: Container(
-                                    width: 33,
-                                    height: 33,
-                                    decoration: BoxDecoration(
-                                      color: _formController.selectedColor,
-                                      borderRadius: BorderRadius.circular(8),
-                                      border: Border.all(
-                                        color: context.colorScheme.outline
-                                            .withValues(alpha: 0.2),
-                                      ),
-                                    ),
-                                  ),
-                                ),
+                              ColorSelector(
+                                label: 'Color',
+                                selectedColor: _formController.selectedColor,
+                                onColorSelected: (color) {
+                                  setState(() {
+                                    _formController.selectedColor = color;
+                                  });
+                                },
                               ),
                             ],
                           ),
@@ -389,59 +357,6 @@ class CourseDetailsState extends State<CourseDetails> {
         ),
       ],
     );
-  }
-
-  void _populateInitialStateData(CourseScreenDataFetched state) {
-    setState(() {
-      if (widget.isEdit) {
-        _formController.titleController.text = state.course!.title;
-        _formController.roomController.text = state.course!.room;
-        _formController.urlController.text = state.course!.website;
-        _formController.teacherNameController.text = state.course!.teacherName;
-        _formController.teacherEmailController.text =
-            state.course!.teacherEmail;
-        _formController.creditsController.text = state.course!.credits
-            .toString();
-
-        _formController.startDate = state.course!.startDate;
-        _formController.endDate = state.course!.endDate;
-
-        _formController.isOnline = state.course!.isOnline;
-
-        try {
-          _formController.selectedColor = state.course!.color;
-        } catch (e) {
-          _log.info('Error parsing color', e);
-        }
-      } else {
-        _formController.startDate = state.courseGroup.startDate;
-        _formController.endDate = state.courseGroup.endDate;
-      }
-
-      isLoading = false;
-    });
-  }
-
-  Future<void> _selectDate(BuildContext context, bool isStartDate) async {
-    final DateTime? picked = await showDatePicker(
-      context: context,
-      initialDate: isStartDate
-          ? _formController.startDate
-          : _formController.endDate,
-      firstDate: DateTime.now().subtract(const Duration(days: 365 * 10)),
-      lastDate: DateTime.now().add(const Duration(days: 365 * 10)),
-      confirmText: 'Select',
-    );
-
-    if (picked != null) {
-      setState(() {
-        if (isStartDate) {
-          _formController.startDate = picked;
-        } else {
-          _formController.endDate = picked;
-        }
-      });
-    }
   }
 
   void resetSubmitting() {
@@ -510,4 +425,73 @@ class CourseDetailsState extends State<CourseDetails> {
       return false;
     }
   }
+
+  void _onUrlFocusChange() {
+    if (!_formController.urlFocusNode.hasFocus) {
+      _formController.urlController.text = BasicFormController.cleanUrl(
+        _formController.urlController.text.trim(),
+      );
+    }
+  }
+
+  void _populateInitialStateData(CourseScreenDataFetched state) {
+    setState(() {
+      _courseGroup = state.courseGroup;
+
+      if (widget.isEdit) {
+        _formController.titleController.text = state.course!.title;
+        _formController.roomController.text = state.course!.room;
+        _formController.urlController.text = state.course!.website;
+        _formController.teacherNameController.text = state.course!.teacherName;
+        _formController.teacherEmailController.text =
+            state.course!.teacherEmail;
+        _formController.creditsController.text = state.course!.credits
+            .toString();
+
+        _formController.startDate = state.course!.startDate;
+        _formController.endDate = state.course!.endDate;
+
+        _formController.isOnline = state.course!.isOnline;
+
+        try {
+          _formController.selectedColor = state.course!.color;
+        } catch (e) {
+          _log.info('Error parsing color', e);
+        }
+      } else {
+        _formController.startDate = state.courseGroup.startDate;
+        _formController.endDate = state.courseGroup.endDate;
+      }
+
+      isLoading = false;
+    });
+  }
+
+  Future<void> _selectDate(BuildContext context, bool isStartDate) async {
+    final firstDate = _courseGroup?.startDate ?? DateTime.now().subtract(const Duration(days: 365 * 10));
+    final lastDate = _courseGroup?.endDate ?? DateTime.now().add(const Duration(days: 365 * 10));
+    final rawInitial = isStartDate ? _formController.startDate : _formController.endDate;
+    final initialDate = rawInitial == null ? firstDate
+        : (rawInitial.isBefore(firstDate) ? firstDate
+        : (rawInitial.isAfter(lastDate) ? lastDate : rawInitial));
+
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: initialDate,
+      firstDate: firstDate,
+      lastDate: lastDate,
+      confirmText: 'Select',
+    );
+
+    if (picked != null) {
+      setState(() {
+        if (isStartDate) {
+          _formController.startDate = picked;
+        } else {
+          _formController.endDate = picked;
+        }
+      });
+    }
+  }
+
 }

@@ -39,7 +39,7 @@ mixin DeepLinkMixin<T extends StatefulWidget> on BasePageScreenState<T> {
   ///
   /// Uses [router.routerDelegate] directly rather than [GoRouterState.of]
   /// because [GoRouterState] is an [InheritedWidget] that updates on the next
-  /// build — it lags by one frame when [_onRouteChanged] fires immediately
+  /// build; it lags by one frame when [_onRouteChanged] fires immediately
   /// after a [router.go] or [router.replace] call.
   @protected
   Map<String, String> readQueryParams() =>
@@ -96,12 +96,14 @@ mixin DeepLinkMixin<T extends StatefulWidget> on BasePageScreenState<T> {
 
   void _onRouteChanged() {
     if (!mounted) return;
-    // Skip if a dialog is already open — URL changes are from the dialog
-    // itself (e.g., entity type toggle), not from an external source.
+    // Skip if a dialog is already open, URL changes are from the dialog
+    // itself, not from an external source.
     if (openedDeepLinkParam != null) return;
     final uri = router.routerDelegate.currentConfiguration.uri;
     if (uri.path != routePath) return;
     if (uri.queryParameters.isEmpty) return;
+    // Defer until after GoRouter's route-change notification completes so
+    // the new route is fully committed before we attempt to open content
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       openFromQueryParams();
@@ -154,7 +156,7 @@ mixin DeepLinkMixin<T extends StatefulWidget> on BasePageScreenState<T> {
               .getEvent(id: eventId);
         }
       } catch (_) {
-        // Entity doesn't exist (404) — silently skip
+        // Entity doesn't exist, skip silently
         return;
       }
     }
@@ -179,6 +181,8 @@ mixin DeepLinkMixin<T extends StatefulWidget> on BasePageScreenState<T> {
     if (openedDeepLinkParam == key) return;
     openedDeepLinkParam = key;
 
+    // Defer dialog launch until after the current frame so the route is fully
+    // settled before showDialog is called from a deep-link or route change
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       if (dialogParam == DeepLinkParam.dialogSettings) {

@@ -15,6 +15,7 @@ class GenericLabel extends StatelessWidget {
   final Color color;
   final IconData icon;
   final bool compact;
+  final TextDecoration? textDecoration;
 
   const GenericLabel({
     super.key,
@@ -22,6 +23,7 @@ class GenericLabel extends StatelessWidget {
     required this.color,
     required this.icon,
     this.compact = false,
+    this.textDecoration,
   });
 
   @override
@@ -79,6 +81,9 @@ class GenericLabel extends StatelessWidget {
                                   : AppStyles.standardBodyText(context))
                               .copyWith(
                                 color: BadgeColors.foreground(context, color),
+                                decoration: textDecoration,
+                                decorationColor: BadgeColors.foreground(context, color),
+                                decorationThickness: textDecoration != null ? 2.0 : null,
                               ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,

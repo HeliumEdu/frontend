@@ -12,6 +12,10 @@ import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 
 class SpinnerField extends StatelessWidget {
+  static const _fieldBorderRadius = 8.0;
+  static const _contentPaddingHorizontal = 12.0;
+  static const _contentPaddingVertical = 15.0;
+
   final String? label;
   final TextEditingController controller;
   final double minValue;
@@ -49,10 +53,10 @@ class SpinnerField extends StatelessWidget {
                   border: Border.all(
                     color: context.colorScheme.outline.withValues(alpha: 0.2),
                   ),
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(_fieldBorderRadius),
                 ),
                 child: ClipRRect(
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(_fieldBorderRadius),
                   child: TextFormField(
                     controller: controller,
                     keyboardType: const TextInputType.numberWithOptions(
@@ -75,8 +79,8 @@ class SpinnerField extends StatelessWidget {
                     },
                     decoration: InputDecoration(
                       contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 15,
+                        horizontal: _contentPaddingHorizontal,
+                        vertical: _contentPaddingVertical,
                       ),
                       border: InputBorder.none,
                       enabledBorder: InputBorder.none,

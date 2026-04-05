@@ -7,7 +7,6 @@
 
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/foundation.dart';
 import 'package:heliumapp/core/helium_exception.dart';
 import 'package:heliumapp/data/models/notification/notification_model.dart';
 import 'package:heliumapp/data/models/planner/planner_item_base_model.dart';
@@ -17,10 +16,10 @@ import 'package:heliumapp/data/models/planner/course_schedule_event_model.dart';
 import 'package:heliumapp/data/models/planner/event_model.dart';
 import 'package:heliumapp/data/models/planner/homework_model.dart';
 import 'package:heliumapp/data/models/planner/reminder_model.dart';
+import 'package:heliumapp/utils/error_helpers.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:heliumapp/utils/sort_helpers.dart';
 import 'package:logging/logging.dart';
-import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';
 
 final _log = Logger('utils');
@@ -60,14 +59,14 @@ class PlannerHelper {
   ) {
     final msg =
         'Reminder $reminderId has $entityType ID $entityId but entity is null';
-    _log.severe(msg);
-    Sentry.captureException(
+    ErrorHelpers.logAndReport(
+      msg,
       Exception(msg),
-      stackTrace: StackTrace.current,
-      hint: Hint.withMap({
+      StackTrace.current,
+      hints: {
         'reminder_id': reminderId,
         '${entityType.toLowerCase()}_id': entityId,
-      }),
+      },
     );
   }
 
@@ -81,28 +80,24 @@ class PlannerHelper {
     if (reminder.homework != null) {
       if (reminder.homework!.entity == null) {
         _logMissingEntity(reminder.id, 'homework', reminder.homework!.id);
-        startDt = reminder.startOfRange;
+        startDt = reminder.startOfRange ?? DateTime.now();
       } else {
         startDt = reminder.homework!.entity!.start;
       }
     } else if (reminder.event != null) {
       if (reminder.event!.entity == null) {
         _logMissingEntity(reminder.id, 'event', reminder.event!.id);
-        startDt = reminder.startOfRange;
+        startDt = reminder.startOfRange ?? DateTime.now();
       } else {
         startDt = reminder.event!.entity!.start;
       }
+    } else if (reminder.course != null) {
+      startDt = reminder.startOfRange ?? DateTime.now();
     } else {
-      if (!kDebugMode) {
-        throw ArgumentError.notNull(
-          'Both homework and event are null on Reminder ${reminder.id}, which is not allowed',
-        );
-      } else {
-        _log.warning(
-          'Both homework and event are null on Reminder ${reminder.id}, using now as "start"',
-        );
-        startDt = DateTime.now();
-      }
+      _log.warning(
+        'Reminder ${reminder.id} has no linked entity, using now as "start"',
+      );
+      startDt = DateTime.now();
     }
     final String start = startDt.toIso8601String();
 
@@ -344,7 +339,7 @@ class PlannerHelper {
 
   /// Rounds [minute] to the nearest 30-minute boundary (0 or 30).
   /// Used when snapping drag-and-drop and resize times on the calendar.
-  /// A result of 60 is valid — DateTime/TZDateTime constructors overflow it
+  /// A result of 60 is valid; DateTime/TZDateTime constructors overflow it
   /// to minute 0 of the next hour.
   static int roundMinute(int minute) => ((minute + 15) ~/ 30) * 30;
 

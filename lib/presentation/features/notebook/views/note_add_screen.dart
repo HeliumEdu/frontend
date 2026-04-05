@@ -13,15 +13,18 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_quill/flutter_quill.dart';
+import 'package:flutter_quill/quill_delta.dart';
+import 'package:flutter_quill_to_pdf/flutter_quill_to_pdf.dart';
 import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/config/app_router.dart';
 import 'package:heliumapp/config/app_theme.dart';
+import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/data/models/planner/note_model.dart';
 import 'package:heliumapp/data/models/planner/request/note_request_model.dart';
 import 'package:heliumapp/presentation/core/views/base_page_screen_state.dart';
-import 'package:heliumapp/presentation/features/notes/bloc/note_bloc.dart';
-import 'package:heliumapp/presentation/features/notes/bloc/note_event.dart';
-import 'package:heliumapp/presentation/features/notes/bloc/note_state.dart';
+import 'package:heliumapp/presentation/features/notebook/bloc/note_bloc.dart';
+import 'package:heliumapp/presentation/features/notebook/bloc/note_event.dart';
+import 'package:heliumapp/presentation/features/notebook/bloc/note_state.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/core/base_event.dart';
 import 'package:heliumapp/presentation/features/shared/controllers/basic_form_controller.dart';
 import 'package:heliumapp/presentation/ui/components/generic_label.dart';
@@ -33,7 +36,12 @@ import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
 import 'package:heliumapp/presentation/ui/layout/page_header.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/deep_link_helpers.dart';
+import 'package:heliumapp/utils/print_helpers.dart';
+import 'package:heliumapp/utils/print_service.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
+import 'package:pdf/pdf.dart';
+import 'package:pdf/widgets.dart' as pw;
+import 'package:heliumapp/core/analytics_service.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
 enum SaveStatus { unsaved, saving, saved, error }
@@ -104,6 +112,7 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
   late QuillController _quillController;
   final FocusNode _titleFocusNode = FocusNode();
   final FocusNode _editorFocusNode = FocusNode();
+  PrintHandler? _printHandler;
 
   NoteModel? _note;
   String? _linkedEntityType;
@@ -124,12 +133,12 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
   void initState() {
     super.initState();
     _quillController = QuillController.basic();
-    // Set initial save status based on whether this is a new or existing note
     _saveStatus = widget.noteId == null ? SaveStatus.unsaved : SaveStatus.saved;
 
-    // Set up auto-save listeners
     _titleController.addListener(_onContentChanged);
     _editorFocusNode.addListener(_onEditorFocusChanged);
+    _printHandler = _printNote;
+    PrintService().register(_printHandler!);
 
     context.read<NoteBloc>().add(
       FetchNoteScreenDataEvent(
@@ -142,15 +151,9 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
     );
   }
 
-  void _setupDocumentListener() {
-    _documentSubscription?.cancel();
-    _documentSubscription = _quillController.document.changes.listen((_) {
-      _onContentChanged();
-    });
-  }
-
   @override
   void dispose() {
+    PrintService().unregister(_printHandler);
     _debounceTimer?.cancel();
     _documentSubscription?.cancel();
     _titleController.removeListener(_onContentChanged);
@@ -160,6 +163,179 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
     _titleFocusNode.dispose();
     _editorFocusNode.dispose();
     super.dispose();
+  }
+
+  @override
+  String get screenTitle => widget.isNew ? 'Add Note' : 'Edit Note';
+
+  @override
+  IconData get icon => Icons.library_books;
+
+  @override
+  ScreenType get screenType => ScreenType.entityPage;
+
+  @override
+  Function? get saveAction {
+    return () {
+      if (isLoading || isSubmitting) return;
+
+      if (!_formController.validateAndScrollToError()) {
+        showSnackBar(
+          context,
+          'Fix the highlighted fields, then try again.',
+          type: SnackType.error,
+        );
+        return;
+      }
+
+      final title = _titleController.text.trim();
+      final bodyIsEmpty = _quillController.document
+          .toPlainText()
+          .trim()
+          .isEmpty;
+
+      if (_note?.id == null &&
+          (widget.linkEventId != null ||
+          widget.linkHomeworkId != null ||
+          widget.linkResourceId != null) &&
+          bodyIsEmpty) {
+        showSnackBar(
+          context,
+          'Note was empty, so nothing to save',
+          useRootMessenger: true,
+        );
+        cancelAction();
+        return;
+      }
+
+      setState(() {
+        isSubmitting = true;
+        _isAutoSaving = false;
+      });
+
+      final content = _quillController.document.toDelta().toJson();
+
+      if (_note?.id == null) {
+        context.read<NoteBloc>().add(
+          CreateNoteEvent(
+            origin: EventOrigin.subScreen,
+            request: NoteRequestModel(
+              title: title,
+              content: {'ops': content},
+              homeworkId: widget.linkHomeworkId,
+              eventId: widget.linkEventId,
+              resourceId: widget.linkResourceId,
+            ),
+          ),
+        );
+      } else {
+        context.read<NoteBloc>().add(
+          UpdateNoteEvent(
+            origin: EventOrigin.subScreen,
+            noteId: _note!.id,
+            request: NoteRequestModel(title: title, content: {'ops': content}),
+          ),
+        );
+      }
+    };
+  }
+
+  @override
+  List<BlocListener<dynamic, dynamic>> buildListeners(BuildContext context) {
+    return [
+      BlocListener<NoteBloc, NoteState>(
+        listener: (context, state) {
+          if (state is NotesError) {
+            if (_isAutoSaving) {
+              _handleAutoSaveError(state.message ?? 'Auto-save failed');
+              _isAutoSaving = false;
+            } else {
+              setState(() {
+                isSubmitting = false;
+              });
+              showSnackBar(context, state.message!, type: SnackType.error);
+            }
+          } else if (state is NoteScreenDataFetched) {
+            setState(() {
+              _linkedEntityType = state.linkedEntityType;
+              _linkedEntityTitle = state.linkedEntityTitle;
+              _linkedEntityColor = state.linkedEntityColor;
+            });
+            if (state.note != null) {
+              _populateNoteData(state.note!);
+            } else {
+              // New note - set up document listener and clear loading
+              _setupDocumentListener();
+              setState(() => isLoading = false);
+            }
+
+            // Request focus once on mobile for create mode
+            if (!_hasRequestedInitialFocus && !kIsWeb && _note?.id == null) {
+              _hasRequestedInitialFocus = true;
+              // Defer focus request so the text field is attached to the tree
+              // before requestFocus is called; BLoC listeners run during build
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                if (mounted) _titleFocusNode.requestFocus();
+              });
+            }
+          } else if (state is NoteCreated) {
+            if (_isAutoSaving) {
+              // Auto-save created the note - update state but don't close
+              setState(() {
+                _note = state.note;
+                _saveStatus = SaveStatus.saved;
+                _autoSaveErrorCount = 0;
+                _autoSaveDisabled = false;
+              });
+              _isAutoSaving = false;
+              // Update URL from id=new to the actual ID
+              if (!Responsive.isMobile(context)) {
+                context.setQueryParam(
+                  DeepLinkParam.id,
+                  state.note.id.toString(),
+                );
+              }
+              showSnackBar(context, 'Note created');
+            } else {
+              // Manual save - show message and close
+              showSnackBar(context, 'Note created', useRootMessenger: true);
+              cancelAction();
+            }
+          } else if (state is NoteUpdated) {
+            if (_isAutoSaving) {
+              // Auto-save updated the note - update state but don't close
+              setState(() {
+                _note = state.note;
+                _saveStatus = SaveStatus.saved;
+                _autoSaveErrorCount = 0;
+                _autoSaveDisabled = false;
+              });
+              _isAutoSaving = false;
+            } else {
+              // Manual save - close
+              cancelAction();
+            }
+          } else if (state is NoteDeleted) {
+            showSnackBar(context, 'Note deleted', useRootMessenger: true);
+            cancelAction();
+          }
+        },
+      ),
+    ];
+  }
+
+  @override
+  Widget buildMainArea(BuildContext context) {
+    if (isLoading) {
+      return const LoadingIndicator();
+    }
+
+    final isCompact = Responsive.useCompactLayout(context);
+
+    if (isCompact) {
+      return Expanded(child: _buildCompactLayout(context, isCompact));
+    }
+    return Expanded(child: _buildDesktopLayout(context, isCompact));
   }
 
   String _getSavedContentAsJson() {
@@ -272,7 +448,12 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
   void _handleAutoSaveError(String message) {
     _autoSaveErrorCount++;
 
-    Sentry.metrics.count('note.autosave.error', 1);
+    AnalyticsService().logEvent(name: 'note_autosave_error', parameters: {'category': 'edge_case'});
+    Sentry.captureMessage(
+      'Note autosave failed',
+      level: SentryLevel.error,
+      withScope: (scope) => scope.setContexts('autosave_error', {'error': message}),
+    );
 
     if (_autoSaveErrorCount >= _maxAutoSaveErrors) {
       setState(() {
@@ -293,79 +474,11 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
     }
   }
 
-  @override
-  String get screenTitle => widget.isNew ? 'Add Note' : 'Edit Note';
-
-  @override
-  IconData get icon => Icons.library_books;
-
-  @override
-  ScreenType get screenType => ScreenType.entityPage;
-
-  @override
-  Function? get saveAction {
-    return () {
-      if (isLoading || isSubmitting) return;
-
-      if (!_formController.validateAndScrollToError()) {
-        showSnackBar(
-          context,
-          'Fix the highlighted fields, then try again.',
-          type: SnackType.error,
-        );
-        return;
-      }
-
-      final title = _titleController.text.trim();
-      final bodyIsEmpty = _quillController.document
-          .toPlainText()
-          .trim()
-          .isEmpty;
-
-      if (_note?.id == null &&
-          (widget.linkEventId != null ||
-          widget.linkHomeworkId != null ||
-          widget.linkResourceId != null) &&
-          bodyIsEmpty) {
-        showSnackBar(
-          context,
-          'Note was empty, so nothing to save',
-          useRootMessenger: true,
-        );
-        cancelAction();
-        return;
-      }
-
-      setState(() {
-        isSubmitting = true;
-        _isAutoSaving = false;
-      });
-
-      final content = _quillController.document.toDelta().toJson();
-
-      if (_note?.id == null) {
-        context.read<NoteBloc>().add(
-          CreateNoteEvent(
-            origin: EventOrigin.subScreen,
-            request: NoteRequestModel(
-              title: title,
-              content: {'ops': content},
-              homeworkId: widget.linkHomeworkId,
-              eventId: widget.linkEventId,
-              resourceId: widget.linkResourceId,
-            ),
-          ),
-        );
-      } else {
-        context.read<NoteBloc>().add(
-          UpdateNoteEvent(
-            origin: EventOrigin.subScreen,
-            noteId: _note!.id,
-            request: NoteRequestModel(title: title, content: {'ops': content}),
-          ),
-        );
-      }
-    };
+  void _setupDocumentListener() {
+    _documentSubscription?.cancel();
+    _documentSubscription = _quillController.document.changes.listen((_) {
+      _onContentChanged();
+    });
   }
 
   void _populateNoteData(NoteModel note) {
@@ -384,102 +497,6 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) setState(() => isLoading = false);
     });
-  }
-
-  @override
-  List<BlocListener<dynamic, dynamic>> buildListeners(BuildContext context) {
-    return [
-      BlocListener<NoteBloc, NoteState>(
-        listener: (context, state) {
-          if (state is NotesError) {
-            if (_isAutoSaving) {
-              _handleAutoSaveError(state.message ?? 'Auto-save failed');
-              _isAutoSaving = false;
-            } else {
-              setState(() {
-                isSubmitting = false;
-              });
-              showSnackBar(context, state.message!, type: SnackType.error);
-            }
-          } else if (state is NoteScreenDataFetched) {
-            setState(() {
-              _linkedEntityType = state.linkedEntityType;
-              _linkedEntityTitle = state.linkedEntityTitle;
-              _linkedEntityColor = state.linkedEntityColor;
-            });
-            if (state.note != null) {
-              _populateNoteData(state.note!);
-            } else {
-              // New note - set up document listener and clear loading
-              _setupDocumentListener();
-              setState(() => isLoading = false);
-            }
-
-            // Request focus once on mobile for create mode
-            if (!_hasRequestedInitialFocus && !kIsWeb && _note?.id == null) {
-              _hasRequestedInitialFocus = true;
-              WidgetsBinding.instance.addPostFrameCallback((_) {
-                if (mounted) _titleFocusNode.requestFocus();
-              });
-            }
-          } else if (state is NoteCreated) {
-            if (_isAutoSaving) {
-              // Auto-save created the note - update state but don't close
-              setState(() {
-                _note = state.note;
-                _saveStatus = SaveStatus.saved;
-                _autoSaveErrorCount = 0;
-                _autoSaveDisabled = false;
-              });
-              _isAutoSaving = false;
-              // Update URL from id=new to the actual ID
-              if (!Responsive.isMobile(context)) {
-                context.setQueryParam(
-                  DeepLinkParam.id,
-                  state.note.id.toString(),
-                );
-              }
-              showSnackBar(context, 'Note created');
-            } else {
-              // Manual save - show message and close
-              showSnackBar(context, 'Note created', useRootMessenger: true);
-              cancelAction();
-            }
-          } else if (state is NoteUpdated) {
-            if (_isAutoSaving) {
-              // Auto-save updated the note - update state but don't close
-              setState(() {
-                _note = state.note;
-                _saveStatus = SaveStatus.saved;
-                _autoSaveErrorCount = 0;
-                _autoSaveDisabled = false;
-              });
-              _isAutoSaving = false;
-            } else {
-              // Manual save - close
-              cancelAction();
-            }
-          } else if (state is NoteDeleted) {
-            showSnackBar(context, 'Note deleted', useRootMessenger: true);
-            cancelAction();
-          }
-        },
-      ),
-    ];
-  }
-
-  @override
-  Widget buildMainArea(BuildContext context) {
-    if (isLoading) {
-      return const LoadingIndicator();
-    }
-
-    final isCompact = Responsive.useCompactLayout(context);
-
-    if (isCompact) {
-      return Expanded(child: _buildCompactLayout(context, isCompact));
-    }
-    return Expanded(child: _buildDesktopLayout(context, isCompact));
   }
 
   Widget _buildDesktopLayout(BuildContext context, bool isCompact) {
@@ -634,6 +651,13 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
         controller: _quillController,
         config: QuillSimpleToolbarConfig(
           toolbarRunSpacing: 0,
+          customButtons: [
+            QuillToolbarCustomButtonOptions(
+              icon: const Icon(Icons.print_outlined),
+              tooltip: 'Print',
+              onPressed: _printNote,
+            ),
+          ],
           showDividers: !isCompact,
           showFontSize: !isCompact,
           showHeaderStyle: !isCompact,
@@ -649,7 +673,7 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
           showSubscript: !isCompact,
           showSuperscript: !isCompact,
           showBackgroundColorButton: !isCompact,
-          showRedo: !isPhoneLandscape,
+          showRedo: !isCompact,
           showSearchButton: !isPhoneLandscape,
           buttonOptions: QuillSimpleToolbarButtonOptions(
             search: QuillToolbarSearchButtonOptions(
@@ -742,12 +766,95 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
       child: Padding(padding: const EdgeInsets.all(8), child: iconWidget),
     );
 
-    // No tooltip when empty
     if (isEmpty) {
       return button;
     }
 
     return Tooltip(message: tooltip, child: button);
+  }
+
+  Future<void> _printNote() async {
+    final title =
+        _titleController.text.trim().isNotEmpty
+            ? _titleController.text.trim()
+            : (_linkedEntityTitle ?? '');
+    final delta = _quillController.document.toDelta();
+
+    if (!mounted) return;
+
+    await showBuiltPdfPreview(
+      context,
+      pdfBytesFuture: _buildNotePdf(delta),
+      title: title.isNotEmpty ? title : 'Note Preview',
+      filename: title.isNotEmpty ? '$title.pdf' : 'note.pdf',
+    );
+  }
+
+  Future<Uint8List> _buildNotePdf(Delta delta) async {
+    final fontData = await rootBundle.load('assets/fonts/NotoSans-Regular.ttf');
+    final notoSans = pw.Font.ttf(fontData);
+
+    final converter = PDFConverter(
+      pageFormat: PDFPageFormat.a4,
+      document: delta,
+      fallbacks: [notoSans],
+      // ignore: experimental_member_use
+      listLeadingBuilder: _buildPdfCheckbox,
+      themeData: pw.ThemeData.withFont(
+        base: notoSans,
+        bold: notoSans,
+        italic: notoSans,
+        boldItalic: notoSans,
+      ),
+      onRequestFontFamily: (_) => FontFamilyResponse(
+        fontNormalV: notoSans,
+        boldFontV: notoSans,
+        italicFontV: notoSans,
+        boldItalicFontV: notoSans,
+      ),
+    );
+
+    final document = await converter.createDocument();
+    if (document == null) throw Exception('Failed to create PDF');
+    return document.save();
+  }
+
+  static pw.Widget? _buildPdfCheckbox(
+    String type,
+    int indentLevel,
+    Object? extraArgs,
+  ) {
+    final isChecked = type == 'checked';
+    final isUnchecked = type == 'unchecked';
+    if (!isChecked && !isUnchecked) return null;
+
+    const double size = 10;
+    const double stroke = 1.0;
+    return pw.Container(
+      width: size,
+      height: size,
+      margin: const pw.EdgeInsets.only(top: 2),
+      decoration: pw.BoxDecoration(
+        border: pw.Border.all(width: stroke),
+        borderRadius: const pw.BorderRadius.all(pw.Radius.circular(2)),
+      ),
+      child: isChecked
+          ? pw.CustomPaint(
+              size: const PdfPoint(size - stroke * 2, size - stroke * 2),
+              painter: (canvas, size) {
+                final w = size.x;
+                final h = size.y;
+                canvas
+                  ..setLineWidth(1.5)
+                  ..setLineCap(PdfLineCap.round)
+                  ..setLineJoin(PdfLineJoin.round)
+                  ..drawLine(w * 0.15, h * 0.50, w * 0.40, h * 0.20)
+                  ..drawLine(w * 0.40, h * 0.20, w * 0.85, h * 0.80)
+                  ..strokePath();
+              },
+            )
+          : null,
+    );
   }
 
   Widget _buildLinkedEntityBadge() {
@@ -768,17 +875,26 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
       );
     }
 
-    // Homework badge - respect colorByCategory setting
-    final courseColor = _note?.courseColor ?? _linkedEntityColor;
-    final categoryColor = _note?.categoryColor;
-    final badgeColor =
-        (userSettings?.colorByCategory ?? false) && categoryColor != null
-        ? categoryColor
-        : courseColor;
-    return GenericLabel(
-      label: title,
-      color: badgeColor ?? context.colorScheme.primary,
-      icon: AppConstants.assignmentIcon,
+    if (entityType == 'homework') {
+      final courseColor = _note?.courseColor ?? _linkedEntityColor;
+      final categoryColor = _note?.categoryColor;
+      final badgeColor =
+          (userSettings?.colorByCategory ?? false) && categoryColor != null
+          ? categoryColor
+          : courseColor;
+      return GenericLabel(
+        label: title,
+        color: badgeColor ?? context.colorScheme.primary,
+        icon: AppConstants.assignmentIcon,
+      );
+    }
+
+    return Text(
+      title,
+      style: AppStyles.standardBodyText(context).copyWith(
+        color: context.colorScheme.onSurface.withValues(alpha: 0.6),
+      ),
+      overflow: TextOverflow.ellipsis,
     );
   }
 }

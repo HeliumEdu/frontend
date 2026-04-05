@@ -93,7 +93,7 @@ abstract class BaseAttachmentsState<T extends BaseAttachmentsContent>
   bool isSubmitting = false;
 
   @mustBeOverridden
-  FetchAttachmentsEvent createFetchAttachmentsEvent();
+  FetchAttachmentsEvent createFetchAttachmentsEvent({bool forceRefresh = false});
 
   @mustBeOverridden
   CreateAttachmentEvent createCreateAttachmentsEvent();
@@ -176,7 +176,7 @@ abstract class BaseAttachmentsState<T extends BaseAttachmentsContent>
                   source: 'attachments_widget',
                   onReload: () {
                     context.read<AttachmentBloc>().add(
-                      createFetchAttachmentsEvent(),
+                      createFetchAttachmentsEvent(forceRefresh: true),
                     );
                   },
                   expanded: false,
@@ -345,6 +345,8 @@ abstract class BaseAttachmentsState<T extends BaseAttachmentsContent>
             IconButton(
               onPressed: () {
                 if (index < filesToUpload.length) {
+                  // Defer setState so any in-progress frame caused by the tap
+                  // gesture completes before the list is mutated and rebuilt
                   WidgetsBinding.instance.addPostFrameCallback((_) {
                     if (!mounted) return;
 

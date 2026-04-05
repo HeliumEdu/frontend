@@ -18,7 +18,9 @@ class FetchRemindersEvent extends ReminderEvent {
   int? type;
   int? eventId;
   int? homeworkId;
+  int? courseId;
   DateTime? startOfRange;
+  bool forceRefresh;
 
   FetchRemindersEvent({
     required super.origin,
@@ -27,7 +29,9 @@ class FetchRemindersEvent extends ReminderEvent {
     this.type,
     this.eventId,
     this.homeworkId,
+    this.courseId,
     this.startOfRange,
+    this.forceRefresh = false,
   });
 }
 

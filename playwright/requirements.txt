@@ -1,3 +1,5 @@
 playwright==1.58
 pytest
 pytest-playwright
+PyJWT[crypto]
+requests

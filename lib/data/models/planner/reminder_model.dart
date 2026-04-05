@@ -3,17 +3,18 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 //
-// For details regarding the license, please refer to the LICENSE fiimport 'package:heliumapp/utils/app_helpers.dartimport 'package:heliumapp/utils/app_helpers.darimport 'package:heliumapp/utils/app_helpers.dart';
+// For details regarding the license, please refer to the LICENSE file.
 
 import 'package:heliumapp/data/models/base_model.dart';
 import 'package:heliumapp/data/models/id_or_entity.dart';
+import 'package:heliumapp/data/models/planner/course_model.dart';
 import 'package:heliumapp/data/models/planner/event_model.dart';
 import 'package:heliumapp/data/models/planner/homework_model.dart';
 import 'package:heliumapp/utils/conversion_helpers.dart';
 
 class ReminderModel extends BaseTitledModel {
   final String message;
-  final DateTime startOfRange;
+  final DateTime? startOfRange;
   final int offset;
   final int offsetType;
   final int type;
@@ -21,12 +22,13 @@ class ReminderModel extends BaseTitledModel {
   final bool dismissed;
   final IdOrEntity<HomeworkModel>? homework;
   final IdOrEntity<EventModel>? event;
+  final IdOrEntity<CourseModel>? course;
 
   ReminderModel({
     required super.id,
     required super.title,
     required this.message,
-    required this.startOfRange,
+    this.startOfRange,
     required this.offset,
     required this.offsetType,
     required this.type,
@@ -34,6 +36,7 @@ class ReminderModel extends BaseTitledModel {
     required this.dismissed,
     this.homework,
     this.event,
+    this.course,
   });
 
   factory ReminderModel.fromJson(Map<String, dynamic> json) {
@@ -41,7 +44,9 @@ class ReminderModel extends BaseTitledModel {
       id: json['id'],
       title: json['title'],
       message: json['message'],
-      startOfRange: DateTime.parse(json['start_of_range']),
+      startOfRange: json['start_of_range'] != null
+          ? DateTime.parse(json['start_of_range'])
+          : null,
       offset: json['offset'],
       offsetType: json['offset_type'],
       type: json['type'],
@@ -53,6 +58,9 @@ class ReminderModel extends BaseTitledModel {
       event: json['event'] != null
           ? idOrEntityFrom(json['event'], EventModel.fromJson)
           : null,
+      course: json['course'] != null
+          ? idOrEntityFrom(json['course'], CourseModel.fromJson)
+          : null,
     );
   }
 
@@ -61,7 +69,7 @@ class ReminderModel extends BaseTitledModel {
       'id': id,
       'title': title,
       'message': message,
-      'start_of_range': startOfRange.toIso8601String(),
+      'start_of_range': startOfRange?.toIso8601String(),
       'offset': offset,
       'offset_type': offsetType,
       'type': type,
@@ -69,6 +77,7 @@ class ReminderModel extends BaseTitledModel {
       'dismissed': dismissed,
       'homework': homework,
       'event': event,
+      'course': course,
     };
   }
 
@@ -84,6 +93,7 @@ class ReminderModel extends BaseTitledModel {
     bool? dismissed,
     IdOrEntity<HomeworkModel>? homework,
     IdOrEntity<EventModel>? event,
+    IdOrEntity<CourseModel>? course,
   }) {
     return ReminderModel(
       id: id ?? this.id,
@@ -97,6 +107,7 @@ class ReminderModel extends BaseTitledModel {
       dismissed: dismissed ?? this.dismissed,
       homework: homework ?? this.homework,
       event: event ?? this.event,
+      course: course ?? this.course,
     );
   }
 }

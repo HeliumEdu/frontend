@@ -15,8 +15,9 @@ abstract class CategoryEvent extends BaseEvent {
 class FetchCategoriesEvent extends CategoryEvent {
   final int? courseId;
   final String? title;
+  final bool forceRefresh;
 
-  FetchCategoriesEvent({required super.origin, this.courseId, this.title});
+  FetchCategoriesEvent({required super.origin, this.courseId, this.title, this.forceRefresh = false});
 }
 
 class CreateCategoryEvent extends CategoryEvent {

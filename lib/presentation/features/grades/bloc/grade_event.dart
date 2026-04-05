@@ -7,4 +7,8 @@
 
 abstract class GradeEvent {}
 
-class FetchGradeScreenDataEvent extends GradeEvent {}
+class FetchGradeScreenDataEvent extends GradeEvent {
+  final bool forceRefresh;
+
+  FetchGradeScreenDataEvent({this.forceRefresh = false});
+}

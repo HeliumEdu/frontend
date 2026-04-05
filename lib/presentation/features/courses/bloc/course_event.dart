@@ -16,7 +16,9 @@ abstract class CourseEvent extends BaseEvent {
 }
 
 class FetchCoursesScreenDataEvent extends CourseEvent {
-  FetchCoursesScreenDataEvent({required super.origin});
+  final bool forceRefresh;
+
+  FetchCoursesScreenDataEvent({required super.origin, this.forceRefresh = false});
 }
 
 class FetchCourseScreenDataEvent extends CourseEvent {

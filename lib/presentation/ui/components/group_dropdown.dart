@@ -15,6 +15,7 @@ import 'package:heliumapp/presentation/ui/components/helium_icon_button.dart';
 import 'package:heliumapp/presentation/ui/layout/shadow_container.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/date_time_helpers.dart';
+import 'package:heliumapp/utils/print_helpers.dart';
 
 class GroupDropdown<T extends BaseTitledModel> extends StatelessWidget {
   final List<T> groups;
@@ -78,7 +79,12 @@ class GroupDropdown<T extends BaseTitledModel> extends StatelessWidget {
         child: ButtonTheme(
           alignedDropdown: true,
           child: DropdownButton<T>(
-            icon: Icon(Icons.keyboard_arrow_down, color: context.colorScheme.primary),
+            icon: PrintHidden(
+              child: Icon(
+                Icons.keyboard_arrow_down,
+                color: context.colorScheme.primary,
+              ),
+            ),
             dropdownColor: context.colorScheme.surface,
             isExpanded: true,
             underline: const SizedBox(),
@@ -96,6 +102,42 @@ class GroupDropdown<T extends BaseTitledModel> extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  List<Widget> buildEditButtons(BuildContext context, T item) {
+    return isReadOnly
+        ? []
+        : [
+            const SizedBox(width: 12),
+            HeliumIconButton(
+              onPressed: () {
+                if (Navigator.canPop(context)) {
+                  Navigator.pop(context);
+                }
+                onEdit!(item);
+              },
+              icon: Icons.edit_outlined,
+            ),
+            const SizedBox(width: 8),
+            HeliumIconButton(
+              onPressed: () {
+                if (Navigator.canPop(context)) {
+                  Navigator.pop(context);
+                }
+                showConfirmDeleteDialog(
+                  parentContext: context,
+                  item: item,
+                  additionalWarning:
+                      'Anything in this group, including attachments and other data, will also be deleted.',
+                  onDelete: (value) {
+                    onDelete!(value);
+                  },
+                );
+              },
+              icon: Icons.delete_outlined,
+              color: context.colorScheme.error,
+            ),
+          ];
   }
 
   Widget _buildItem(BuildContext context, T item) {
@@ -154,41 +196,5 @@ class GroupDropdown<T extends BaseTitledModel> extends StatelessWidget {
         ...buildEditButtons(context, item),
       ],
     );
-  }
-
-  List<Widget> buildEditButtons(BuildContext context, T item) {
-    return isReadOnly
-        ? []
-        : [
-            const SizedBox(width: 12),
-            HeliumIconButton(
-              onPressed: () {
-                if (Navigator.canPop(context)) {
-                  Navigator.pop(context);
-                }
-                onEdit!(item);
-              },
-              icon: Icons.edit_outlined,
-            ),
-            const SizedBox(width: 8),
-            HeliumIconButton(
-              onPressed: () {
-                if (Navigator.canPop(context)) {
-                  Navigator.pop(context);
-                }
-                showConfirmDeleteDialog(
-                  parentContext: context,
-                  item: item,
-                  additionalWarning:
-                      'Anything in this group, including attachments and other data, will also be deleted.',
-                  onDelete: (value) {
-                    onDelete!(value);
-                  },
-                );
-              },
-              icon: Icons.delete_outlined,
-              color: context.colorScheme.error,
-            ),
-          ];
   }
 }

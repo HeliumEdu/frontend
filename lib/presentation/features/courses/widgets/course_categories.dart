@@ -33,7 +33,7 @@ import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:heliumapp/utils/snack_bar_helpers.dart' show SnackBarHelper;
 import 'package:heliumapp/utils/sort_helpers.dart';
 
-/// Course categories widget for the third step of course add/edit flow.
+/// Course categories widget for the third step of course add/edit flow
 class CourseCategories extends StatelessWidget {
   final DioClient _dioClient = DioClient();
   final int courseGroupId;
@@ -197,6 +197,7 @@ class _CourseCategoriesContentState extends State<_CourseCategoriesContent> {
                       FetchCategoriesEvent(
                         origin: EventOrigin.screen,
                         courseId: widget.courseId,
+                        forceRefresh: true,
                       ),
                     );
                   },

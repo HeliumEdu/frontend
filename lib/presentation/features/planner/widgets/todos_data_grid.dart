@@ -5,6 +5,9 @@
 //
 // For details regarding the license, please refer to the LICENSE file.
 
+import 'dart:convert';
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/data/models/auth/user_model.dart';
@@ -19,8 +22,12 @@ import 'package:heliumapp/presentation/ui/components/helium_icon_button.dart';
 import 'package:heliumapp/presentation/ui/components/helium_pager.dart';
 import 'package:heliumapp/presentation/ui/feedback/empty_card.dart';
 import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
+import 'package:heliumapp/presentation/ui/components/base_data_grid.dart';
+import 'package:heliumapp/utils/error_helpers.dart';
 import 'package:heliumapp/utils/app_globals.dart';
-import 'package:heliumapp/utils/sort_helpers.dart';
+import 'package:heliumapp/utils/print_helpers.dart';
+import 'package:heliumapp/utils/snack_bar_helpers.dart';
+import 'package:heliumapp/utils/storage_helpers.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/color_helpers.dart';
 import 'package:heliumapp/utils/date_time_helpers.dart';
@@ -34,11 +41,11 @@ import 'package:url_launcher/url_launcher.dart';
 
 final _log = Logger('presentation.widgets');
 
-/// Sort column definitions with responsive visibility breakpoints.
-enum TodosSortColumn {
+/// Column definitions with responsive visibility breakpoints
+enum TodosColumn {
   completed(label: '', fixedWidth: 52, isCheckbox: true),
   title(label: 'Title', mobileWidth: 70, desktopWidth: 95),
-  dueDate(label: 'Due Date', mobileWidth: 144, desktopWidth: 154),
+  due(label: 'Due', mobileWidth: 144, desktopWidth: 154),
   className(label: 'Class', minViewportWidth: 625, fixedWidth: 120),
   category(label: 'Category', minViewportWidth: 950, fixedWidth: 129),
   priority(label: 'Priority', minViewportWidth: 1150, fixedWidth: 116),
@@ -53,7 +60,7 @@ enum TodosSortColumn {
   resources(label: '', minViewportWidth: 1050, fixedWidth: 40),
   attachments(label: '', minViewportWidth: 1050, fixedWidth: 40);
 
-  const TodosSortColumn({
+  const TodosColumn({
     required this.label,
     this.fixedWidth,
     this.mobileWidth,
@@ -99,14 +106,13 @@ class TodosDataGrid extends StatefulWidget {
   State<TodosDataGrid> createState() => TodosDataGridState();
 }
 
-class TodosDataGridState extends State<TodosDataGrid> {
+class TodosDataGridState extends BaseDataGridState<TodosDataGrid> {
   static const List<int> _itemsPerPageOptions = [5, 10, 25, 50, 100, -1];
-
-  final DataGridController _gridController = DataGridController();
 
   late TodosDataSource _dataSource;
   bool _isInitialized = false;
   bool _hasInitializedNavigation = false;
+  bool _isExporting = false;
 
   int _currentPage = 1;
   int _itemsPerPage = 10;
@@ -131,68 +137,7 @@ class TodosDataGridState extends State<TodosDataGrid> {
   @override
   void dispose() {
     widget.dataSource.changeNotifier.removeListener(_onDataSourceChanged);
-    _gridController.dispose();
     super.dispose();
-  }
-
-  void resetForViewChange() {
-    setState(() {
-      _isInitialized = false;
-    });
-    _initializeData();
-  }
-
-  void goToToday({bool isInitialLoad = false}) {
-    final homeworks = widget.dataSource.filteredHomeworks;
-    _log.info(
-      "Jump to today's Todos page, calculating with ${homeworks.length} items and $_itemsPerPage items per page",
-    );
-    _hasInitializedNavigation = true;
-
-    _dataSource.sortedColumns.clear();
-    _dataSource.sortedColumns.add(
-      const SortColumnDetails(
-        name: 'dueDate',
-        sortDirection: DataGridSortDirection.ascending,
-      ),
-    );
-
-    final sorted = List<HomeworkModel>.from(homeworks);
-    sorted.sort((a, b) => a.start.compareTo(b.start));
-
-    if (sorted.isEmpty) {
-      _currentPage = 1;
-      _log.fine('No items, setting page to 1');
-      _syncPagerAndRefresh(markInitialized: isInitialLoad);
-      return;
-    }
-
-    final now = DateTime.now();
-    final today = HeliumDateTime.dateOnly(now);
-
-    int targetIndex = -1;
-    for (int i = 0; i < sorted.length; i++) {
-      final dueDateOnly = HeliumDateTime.dateOnly(sorted[i].start);
-      if (dueDateOnly.isAtSameMomentAs(today) || dueDateOnly.isAfter(today)) {
-        targetIndex = i;
-        break;
-      }
-    }
-
-    final effectiveItemsPerPage =
-        _itemsPerPage == -1 ? sorted.length : _itemsPerPage;
-
-    if (targetIndex == -1) {
-      _currentPage = (sorted.length / effectiveItemsPerPage).ceil();
-      _log.fine('No future items, showing last page: $_currentPage');
-    } else {
-      _currentPage = (targetIndex / effectiveItemsPerPage).floor() + 1;
-      _log.fine(
-        'Found item at index $targetIndex, navigating to page $_currentPage',
-      );
-    }
-
-    _syncPagerAndRefresh(markInitialized: isInitialLoad);
   }
 
   @override
@@ -212,6 +157,8 @@ class TodosDataGridState extends State<TodosDataGrid> {
     var effectiveCurrentPage = _currentPage;
     if (_isInitialized && effectiveCurrentPage > totalPages && totalPages > 0) {
       effectiveCurrentPage = 1;
+      // Defer page reset because this runs during build; setState must wait
+      // until the current frame completes to avoid a nested rebuild error
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted && _currentPage != 1) {
           _currentPage = 1;
@@ -233,8 +180,9 @@ class TodosDataGridState extends State<TodosDataGrid> {
     final isMobile = Responsive.isMobile(context);
     final isTablet = Responsive.isTablet(context);
     final isTouchDevice = Responsive.isTouchDevice(context);
-    final isCompact = _isCompactActionsMode();
-    final showActions = !_shouldHideActionsColumn();
+    final isCompact = Responsive.isCompact(context);
+    final isCapturing = PrintableArea.capturing.value;
+    final showActions = !(isTouchDevice || isCapturing);
 
     final headerColor =
         context.colorScheme.surfaceContainerHighest.withValues(alpha: 0.5);
@@ -246,89 +194,9 @@ class TodosDataGridState extends State<TodosDataGrid> {
         Container(
           decoration: BoxDecoration(color: context.colorScheme.surface),
           child: Column(
+            mainAxisSize: isCapturing ? MainAxisSize.min : MainAxisSize.max,
             children: [
-              Expanded(
-                child: Stack(
-                  children: [
-                    SfDataGridTheme(
-                      data: SfDataGridThemeData(
-                        sortIconColor: context.colorScheme.primary,
-                        headerColor: headerColor,
-                      ),
-                      child: SfDataGrid(
-                        key: ValueKey(
-                          'todos_grid_${columns.length}_$isCompact',
-                        ),
-                        source: _dataSource,
-                        controller: _gridController,
-                        columnWidthMode: ColumnWidthMode.fill,
-                        headerRowHeight: 40,
-                        rowHeight: 50,
-                        gridLinesVisibility: GridLinesVisibility.none,
-                        headerGridLinesVisibility: GridLinesVisibility.none,
-                        selectionMode: (isTouchDevice || isCompact)
-                            ? SelectionMode.single
-                            : SelectionMode.none,
-                        horizontalScrollPhysics:
-                            const NeverScrollableScrollPhysics(),
-                        navigationMode: GridNavigationMode.row,
-                        allowSorting: true,
-                        allowMultiColumnSorting: !isTouchDevice,
-                        showSortNumbers: !isTouchDevice,
-                        sortingGestureType: SortingGestureType.tap,
-                        allowSwiping: isTouchDevice,
-                        swipeMaxOffset: 80,
-                        onSwipeStart: (details) {
-                          return details.swipeDirection ==
-                              DataGridRowSwipeDirection.endToStart;
-                        },
-                        endSwipeActionsBuilder: (context, row, rowIndex) {
-                          final homework = _dataSource.getHomeworkFromRow(row);
-                          return GestureDetector(
-                            onTap: () {
-                              if (homework != null &&
-                                  PlannerHelper.shouldShowDeleteButton(
-                                    homework,
-                                  )) {
-                                widget.onDelete(context, homework);
-                              }
-                              _dataSource.notifyListeners();
-                            },
-                            child: Container(
-                              color: context.colorScheme.error,
-                              alignment: Alignment.centerRight,
-                              padding: const EdgeInsets.only(right: 24),
-                              child: Icon(
-                                Icons.delete_outline,
-                                color: context.colorScheme.onError,
-                              ),
-                            ),
-                          );
-                        },
-                        onSelectionChanged: (addedRows, removedRows) {
-                          if (addedRows.isNotEmpty) {
-                            final homework =
-                                _dataSource.getHomeworkFromRow(addedRows.first);
-                            if (homework != null) {
-                              widget.onTap(homework);
-                              _gridController.selectedRow = null;
-                            }
-                          }
-                        },
-                        columns: columns,
-                      ),
-                    ),
-                    if (_isInitialized && totalItems == 0)
-                      Positioned(
-                        top: 40,
-                        left: 0,
-                        right: 0,
-                        bottom: 0,
-                        child: _buildEmptyState(),
-                      ),
-                  ],
-                ),
-              ),
+              _buildGridSection(context, headerColor, columns, isCompact, isTouchDevice, isCapturing, totalItems),
               HeliumPager(
                 startIndex: startIndex,
                 endIndex: endIndex,
@@ -356,6 +224,67 @@ class TodosDataGridState extends State<TodosDataGrid> {
                   );
                   setState(() {});
                 },
+                trailingAction: TextButton.icon(
+                  onPressed: _isExporting
+                      ? null
+                      : () async {
+                          setState(() => _isExporting = true);
+                          try {
+                            final export = buildExportCsv();
+                            final success = await HeliumStorage.downloadBytes(
+                              export.bytes,
+                              export.filename,
+                            );
+                            if (context.mounted) {
+                              SnackBarHelper.show(
+                                context,
+                                success
+                                    ? 'Exported ${export.filename}'
+                                    : 'Nothing exported',
+                                type:
+                                    success ? SnackType.success : SnackType.error,
+                              );
+                            }
+                          } finally {
+                            if (mounted) setState(() => _isExporting = false);
+                          }
+                        },
+                  style: TextButton.styleFrom(
+                    minimumSize: const Size(0, 40),
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  ),
+                  icon: Visibility(
+                    visible: !_isExporting,
+                    maintainSize: true,
+                    maintainAnimation: true,
+                    maintainState: true,
+                    child: const Icon(Icons.download, size: 16),
+                  ),
+                  label: Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      Visibility(
+                        visible: !_isExporting,
+                        maintainSize: true,
+                        maintainAnimation: true,
+                        maintainState: true,
+                        child: Text(
+                          'Export CSV',
+                          style: AppStyles.buttonText(context)
+                              .copyWith(color: context.colorScheme.primary, fontSize: 12),
+                        ),
+                      ),
+                      if (_isExporting)
+                        LoadingIndicator(
+                          size: 16,
+                          strokeWidth: 2,
+                          expanded: false,
+                          color: context.colorScheme.onSurface.withValues(alpha: 0.38),
+                        ),
+                    ],
+                  ),
+                ),
               ),
             ],
           ),
@@ -371,6 +300,138 @@ class TodosDataGridState extends State<TodosDataGrid> {
     );
   }
 
+  void resetForViewChange() {
+    setState(() {
+      _isInitialized = false;
+    });
+    _initializeData();
+  }
+
+  ({Uint8List bytes, String filename}) buildExportCsv() {
+    final homeworks = List<HomeworkModel>.from(
+      widget.dataSource.filteredHomeworks,
+    )..sort((a, b) => a.start.compareTo(b.start));
+    final courses = widget.dataSource.courses ?? [];
+    final categoriesMap = widget.dataSource.categoriesMap ?? {};
+    final userSettings = widget.dataSource.userSettings;
+    final coursesById = <int, CourseModel>{for (final c in courses) c.id: c};
+
+    final resourcesMap = widget.dataSource.resourcesMap ?? {};
+    final hasResources = homeworks.any(
+      (h) => h.resources.any((r) => resourcesMap.containsKey(r.id)),
+    );
+
+    final buffer = StringBuffer();
+    buffer.writeln(_csvRow([
+      'Completed', 'Title', 'Due', 'Class', 'Category', 'Priority', 'Grade',
+      if (hasResources) 'Materials',
+    ]));
+
+    for (final homework in homeworks) {
+      final isCompleted = widget.dataSource.isHomeworkCompleted(homework);
+      final course = coursesById[homework.course.id];
+      final category = categoriesMap[homework.category.id];
+      final localDate = HeliumDateTime.toLocal(
+        homework.start,
+        userSettings.timeZone,
+      );
+      final dateText = homework.allDay
+          ? HeliumDateTime.formatDateForTodos(localDate)
+          : HeliumDateTime.formatDateAndTimeForTodos(localDate);
+      final gradeValue = GradeHelper.parseGrade(homework.currentGrade);
+
+      buffer.writeln(_csvRow([
+        isCompleted ? 'Yes' : 'No',
+        homework.title,
+        dateText,
+        course?.title ?? '',
+        category?.title ?? '',
+        homework.priority > 0 ? (homework.priority / 10).round().toString() : '',
+        isCompleted && gradeValue != null
+            ? gradeValue.toStringAsFixed(2)
+            : '',
+        if (hasResources)
+          homework.resources
+              .map((r) => resourcesMap[r.id]?.title ?? '')
+              .where((t) => t.isNotEmpty)
+              .join('; '),
+      ]));
+    }
+
+    final date = HeliumDateTime.formatDateForApi(DateTime.now());
+
+    return (
+      bytes: Uint8List.fromList(utf8.encode(buffer.toString())),
+      filename: 'Helium_todos_$date.csv',
+    );
+  }
+
+  static String _csvRow(List<String> fields) =>
+      fields.map(_csvField).join(',');
+
+  static String _csvField(String value) {
+    if (value.contains(',') ||
+        value.contains('"') ||
+        value.contains('\n') ||
+        value.contains('\r')) {
+      return '"${value.replaceAll('"', '""')}"';
+    }
+    return value;
+  }
+
+  void goToToday({bool isInitialLoad = false}) {
+    final homeworks = widget.dataSource.filteredHomeworks;
+    _log.info(
+      "Jump to today's Todos page, calculating with ${homeworks.length} items and $_itemsPerPage items per page",
+    );
+    _hasInitializedNavigation = true;
+
+    _dataSource.sortedColumns.clear();
+    _dataSource.sortedColumns.add(
+      const SortColumnDetails(
+        name: 'due',
+        sortDirection: DataGridSortDirection.ascending,
+      ),
+    );
+
+    final sorted = List<HomeworkModel>.from(homeworks);
+    sorted.sort((a, b) => a.start.compareTo(b.start));
+
+    if (sorted.isEmpty) {
+      _currentPage = 1;
+      _log.fine('No items, setting page to 1');
+      _syncPagerAndRefresh(markInitialized: isInitialLoad);
+      return;
+    }
+
+    final now = DateTime.now();
+    final today = HeliumDateTime.dateOnly(now);
+
+    int targetIndex = -1;
+    for (int i = 0; i < sorted.length; i++) {
+      final dueOnly = HeliumDateTime.dateOnly(sorted[i].start);
+      if (dueOnly.isAtSameMomentAs(today) || dueOnly.isAfter(today)) {
+        targetIndex = i;
+        break;
+      }
+    }
+
+    final effectiveItemsPerPage =
+        _itemsPerPage == -1 ? sorted.length : _itemsPerPage;
+
+    if (targetIndex == -1) {
+      _currentPage = (sorted.length / effectiveItemsPerPage).ceil();
+      _log.fine('No future items, showing last page: $_currentPage');
+    } else {
+      _currentPage = (targetIndex / effectiveItemsPerPage).floor() + 1;
+      _log.fine(
+        'Found item at index $targetIndex, navigating to page $_currentPage',
+      );
+    }
+
+    _syncPagerAndRefresh(markInitialized: isInitialLoad);
+  }
+
   List<GridColumn> _buildColumns(
     bool isMobile,
     bool isTablet,
@@ -381,68 +442,68 @@ class TodosDataGridState extends State<TodosDataGrid> {
 
     columns.add(GridColumn(
       columnName: 'completed',
-      label: _buildHeaderCell(TodosSortColumn.completed),
-      width: TodosSortColumn.completed.widthForLayout(isMobile: isMobile, isTablet: isTablet)!,
+      label: _buildHeaderCell(TodosColumn.completed),
+      width: TodosColumn.completed.widthForLayout(isMobile: isMobile, isTablet: isTablet)!,
     ));
 
     columns.add(GridColumn(
       columnName: 'title',
-      label: _buildHeaderCell(TodosSortColumn.title),
-      minimumWidth: TodosSortColumn.title.widthForLayout(isMobile: isMobile, isTablet: isTablet)!,
+      label: _buildHeaderCell(TodosColumn.title),
+      minimumWidth: TodosColumn.title.widthForLayout(isMobile: isMobile, isTablet: isTablet)!,
     ));
 
     columns.add(GridColumn(
-      columnName: 'dueDate',
-      label: _buildHeaderCell(TodosSortColumn.dueDate),
-      width: TodosSortColumn.dueDate.widthForLayout(isMobile: isMobile, isTablet: isTablet)!,
+      columnName: 'due',
+      label: _buildHeaderCell(TodosColumn.due),
+      width: TodosColumn.due.widthForLayout(isMobile: isMobile, isTablet: isTablet)!,
     ));
 
-    if (_shouldShowColumn(TodosSortColumn.className)) {
+    if (_shouldShowColumn(TodosColumn.className)) {
       columns.add(GridColumn(
         columnName: 'className',
-        label: _buildHeaderCell(TodosSortColumn.className),
-        minimumWidth: TodosSortColumn.className.widthForLayout(isMobile: isMobile, isTablet: isTablet)!,
+        label: _buildHeaderCell(TodosColumn.className),
+        minimumWidth: TodosColumn.className.widthForLayout(isMobile: isMobile, isTablet: isTablet)!,
       ));
     }
 
-    if (_shouldShowColumn(TodosSortColumn.category)) {
+    if (_shouldShowColumn(TodosColumn.category)) {
       columns.add(GridColumn(
         columnName: 'category',
-        label: _buildHeaderCell(TodosSortColumn.category),
-        minimumWidth: TodosSortColumn.category.widthForLayout(isMobile: isMobile, isTablet: isTablet)!,
+        label: _buildHeaderCell(TodosColumn.category),
+        minimumWidth: TodosColumn.category.widthForLayout(isMobile: isMobile, isTablet: isTablet)!,
       ));
     }
 
-    if (_shouldShowColumn(TodosSortColumn.priority)) {
+    if (_shouldShowColumn(TodosColumn.priority)) {
       columns.add(GridColumn(
         columnName: 'priority',
-        label: _buildHeaderCell(TodosSortColumn.priority),
-        width: TodosSortColumn.priority.widthForLayout(isMobile: isMobile, isTablet: isTablet)!,
+        label: _buildHeaderCell(TodosColumn.priority),
+        width: TodosColumn.priority.widthForLayout(isMobile: isMobile, isTablet: isTablet)!,
       ));
     }
 
-    if (_shouldShowColumn(TodosSortColumn.grade)) {
+    if (_shouldShowColumn(TodosColumn.grade)) {
       columns.add(GridColumn(
         columnName: 'grade',
-        label: _buildHeaderCell(TodosSortColumn.grade),
-        width: TodosSortColumn.grade.widthForLayout(isMobile: isMobile, isTablet: isTablet)!,
+        label: _buildHeaderCell(TodosColumn.grade),
+        width: TodosColumn.grade.widthForLayout(isMobile: isMobile, isTablet: isTablet)!,
       ));
     }
 
-    if (_shouldShowColumn(TodosSortColumn.resources)) {
+    if (_shouldShowColumn(TodosColumn.resources)) {
       columns.add(GridColumn(
         columnName: 'resources',
         label: const SizedBox.shrink(),
-        width: TodosSortColumn.resources.widthForLayout(isMobile: isMobile, isTablet: isTablet)!,
+        width: TodosColumn.resources.widthForLayout(isMobile: isMobile, isTablet: isTablet)!,
         allowSorting: false,
       ));
     }
 
-    if (_shouldShowColumn(TodosSortColumn.attachments)) {
+    if (_shouldShowColumn(TodosColumn.attachments)) {
       columns.add(GridColumn(
         columnName: 'attachments',
         label: const SizedBox.shrink(),
-        width: TodosSortColumn.attachments.widthForLayout(isMobile: isMobile, isTablet: isTablet)!,
+        width: TodosColumn.attachments.widthForLayout(isMobile: isMobile, isTablet: isTablet)!,
         allowSorting: false,
       ));
     }
@@ -459,7 +520,7 @@ class TodosDataGridState extends State<TodosDataGrid> {
     return columns;
   }
 
-  Widget _buildHeaderCell(TodosSortColumn column) {
+  Widget _buildHeaderCell(TodosColumn column) {
     if (column.isCheckbox) {
       return MouseRegion(
         cursor: SystemMouseCursors.click,
@@ -521,6 +582,107 @@ class TodosDataGridState extends State<TodosDataGrid> {
     );
   }
 
+  Widget _buildGridSection(
+    BuildContext context,
+    Color headerColor,
+    List<GridColumn> columns,
+    bool isCompact,
+    bool isTouchDevice,
+    bool isCapturing,
+    int totalItems,
+  ) {
+    final grid = Container(
+      key: gridKey,
+      child: SfDataGridTheme(
+        data: SfDataGridThemeData(
+          sortIconColor: context.colorScheme.primary,
+          headerColor: headerColor,
+        ),
+        child: SfDataGrid(
+          key: ValueKey(
+            'todos_grid_${columns.length}_${isCompact}_$isCapturing',
+          ),
+        source: _dataSource,
+        controller: gridController,
+        columnWidthMode: ColumnWidthMode.fill,
+        headerRowHeight: 40,
+        rowHeight: 50,
+        shrinkWrapRows: isCapturing,
+        gridLinesVisibility: GridLinesVisibility.none,
+        headerGridLinesVisibility: GridLinesVisibility.none,
+        selectionMode: (isTouchDevice || isCompact)
+            ? SelectionMode.single
+            : SelectionMode.none,
+        horizontalScrollPhysics: const NeverScrollableScrollPhysics(),
+        navigationMode: GridNavigationMode.row,
+        allowSorting: true,
+        allowMultiColumnSorting: !isTouchDevice,
+        showSortNumbers: !isTouchDevice,
+        sortingGestureType: SortingGestureType.tap,
+        allowSwiping: isTouchDevice,
+        swipeMaxOffset: 80,
+        onSwipeStart: (details) =>
+            details.swipeDirection == DataGridRowSwipeDirection.endToStart,
+        endSwipeActionsBuilder: (context, row, rowIndex) {
+          final homework = _dataSource.getHomeworkFromRow(row);
+          return GestureDetector(
+            onTap: () {
+              if (homework != null &&
+                  PlannerHelper.shouldShowDeleteButton(homework)) {
+                widget.onDelete(context, homework);
+              }
+              _dataSource.notifyListeners();
+            },
+            child: Container(
+              color: context.colorScheme.error,
+              alignment: Alignment.centerRight,
+              padding: const EdgeInsets.only(right: 24),
+              child: Icon(Icons.delete_outline, color: context.colorScheme.onError),
+            ),
+          );
+        },
+        onSelectionChanged: (addedRows, removedRows) {
+          if (addedRows.isNotEmpty) {
+            final homework = _dataSource.getHomeworkFromRow(addedRows.first);
+            if (homework != null) {
+              widget.onTap(homework);
+              gridController.selectedRow = null;
+            }
+          }
+        },
+        columns: columns,
+      ),
+      ),
+    );
+
+    if (isCapturing) {
+      return Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          grid,
+          if (_isInitialized && totalItems == 0)
+            SizedBox(height: 200, child: _buildEmptyState()),
+        ],
+      );
+    }
+
+    return Expanded(
+      child: Stack(
+        children: [
+          grid,
+          if (_isInitialized && totalItems == 0)
+            Positioned(
+              top: 40,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              child: _buildEmptyState(),
+            ),
+        ],
+      ),
+    );
+  }
+
   void _onDataSourceChanged() {
     if (!mounted) return;
 
@@ -538,6 +700,9 @@ class TodosDataGridState extends State<TodosDataGrid> {
       itemsPerPage: _itemsPerPage,
     );
 
+    // Defer setState because _onDataSourceChanged is a listener callback that
+    // may fire while the data source is still notifying; calling setState
+    // synchronously would schedule a rebuild inside an ongoing rebuild
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) setState(() {});
     });
@@ -614,20 +779,16 @@ class TodosDataGridState extends State<TodosDataGrid> {
     });
   }
 
-  bool _shouldShowColumn(TodosSortColumn column) {
+  bool _shouldShowColumn(TodosColumn column) {
     if (column.minViewportWidth == null) return true;
     return MediaQuery.of(context).size.width >= column.minViewportWidth! ||
         (column.showOnTouchDevice && Responsive.isTouchDevice(context));
   }
 
-  bool _shouldHideActionsColumn() => Responsive.isTouchDevice(context);
-
-  bool _isCompactActionsMode() => Responsive.isCompact(context);
 }
 
 /// DataGridSource that wraps PlannerItemDataSource for SfDataGrid.
-/// References the same underlying data - no duplication.
-class TodosDataSource extends DataGridSource with SortableDataGridSource {
+class TodosDataSource extends BaseDataGridSource {
   List<HomeworkModel> _homeworks;
   BuildContext _context;
   PlannerItemDataSource _dataSource;
@@ -635,11 +796,7 @@ class TodosDataSource extends DataGridSource with SortableDataGridSource {
   Function(HomeworkModel, bool) _onToggleCompleted;
   Function(BuildContext, HomeworkModel) _onDelete;
 
-  List<DataGridRow> _dataGridRows = [];
   Map<int, HomeworkModel> _homeworksById = {};
-
-  int _currentPage = 1;
-  int _itemsPerPage = 10;
 
   TodosDataSource({
     required List<HomeworkModel> homeworks,
@@ -654,13 +811,72 @@ class TodosDataSource extends DataGridSource with SortableDataGridSource {
         _onTap = onTap,
         _onToggleCompleted = onToggleCompleted,
         _onDelete = onDelete {
-    _rebuildRows();
     sortedColumns.add(
       const SortColumnDetails(
-        name: 'dueDate',
+        name: 'due',
         sortDirection: DataGridSortDirection.ascending,
       ),
     );
+    _rebuildRows();
+  }
+
+  @override
+  DataGridRowAdapter? buildRow(DataGridRow row) {
+    try {
+      final homeworkId = row
+          .getCells()
+          .firstWhere((c) => c.columnName == '_homeworkId')
+          .value as int;
+      final homework = _homeworksById[homeworkId];
+      if (homework == null) return null;
+
+      final courseColor = row
+          .getCells()
+          .firstWhere((c) => c.columnName == '_courseColor')
+          .value as Color;
+      final categoryColor = row
+          .getCells()
+          .firstWhere((c) => c.columnName == '_categoryColor',
+              orElse: () => const DataGridCell<Color?>(
+                  columnName: '_categoryColor', value: null))
+          .value as Color?;
+
+      final userSettings = _dataSource.userSettings;
+      final isCompleted = _dataSource.isHomeworkCompleted(homework);
+
+      final rowColor = userSettings.colorByCategory && categoryColor != null
+          ? categoryColor
+          : courseColor;
+
+      final isTouchDevice = Responsive.isTouchDevice(_context);
+      final isCompact = Responsive.isCompact(_context);
+      final rowCursor =
+          (isTouchDevice || isCompact) ? SystemMouseCursors.click : MouseCursor.defer;
+
+      final displayCells = _getDisplayCells(row);
+
+      return DataGridRowAdapter(
+        color: BadgeColors.background(_context, rowColor),
+        cells: displayCells.map((cell) {
+          return MouseRegion(
+            cursor: rowCursor,
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                border: Border(
+                  bottom: BorderSide(
+                    color: _context.colorScheme.outline.withValues(alpha: 0.1),
+                  ),
+                ),
+              ),
+              child: _buildCell(cell, homework, isCompleted),
+            ),
+          );
+        }).toList(),
+      );
+    } catch (e, st) {
+      ErrorHelpers.logAndReport('Failed to render todo row', e, st);
+      return null;
+    }
   }
 
   void update({
@@ -681,53 +897,72 @@ class TodosDataSource extends DataGridSource with SortableDataGridSource {
     notifyListeners();
   }
 
+  HomeworkModel? getHomeworkFromRow(DataGridRow row) {
+    final homeworkId = row
+        .getCells()
+        .firstWhere((c) => c.columnName == '_homeworkId')
+        .value as int;
+    return _homeworksById[homeworkId];
+  }
+
   void _rebuildRows() {
     _homeworksById = {for (var hw in _homeworks) hw.id: hw};
     final courses = _dataSource.courses ?? [];
     final categoriesMap = _dataSource.categoriesMap ?? {};
 
-    _dataGridRows = _homeworks.map((homework) {
-      final course = courses.firstWhere(
-        (c) => c.id == homework.course.id,
-        orElse: () => courses.isNotEmpty ? courses.first : _fallbackCourse(),
-      );
-      final category = categoriesMap[homework.category.id];
+    final rows = <DataGridRow>[];
+    for (final homework in _homeworks) {
+      try {
+        final course = courses.firstWhere(
+          (c) => c.id == homework.course.id,
+          orElse: () => courses.isNotEmpty ? courses.first : _fallbackCourse(),
+        );
+        final category = categoriesMap[homework.category.id];
 
-      final isCompleted = _dataSource.isHomeworkCompleted(homework);
+        final isCompleted = _dataSource.isHomeworkCompleted(homework);
 
-      final parsedGrade = GradeHelper.parseGrade(homework.currentGrade);
-      final double gradeSortValue;
-      if (!isCompleted) {
-        gradeSortValue = -2.0;
-      } else if (parsedGrade == null) {
-        gradeSortValue = -1.0;
-      } else {
-        gradeSortValue = parsedGrade / 100.0;
+        final parsedGrade = GradeHelper.parseGrade(homework.currentGrade);
+        final double gradeSortValue;
+        if (!isCompleted) {
+          gradeSortValue = -2.0;
+        } else if (parsedGrade == null) {
+          gradeSortValue = -1.0;
+        } else {
+          gradeSortValue = parsedGrade / 100.0;
+        }
+
+        final courseTitle = course.title.toLowerCase();
+        final categoryTitle = category?.title.toLowerCase() ?? '';
+
+        rows.add(DataGridRow(cells: [
+          DataGridCell<int>(columnName: 'completed', value: isCompleted ? 1 : 0),
+          DataGridCell<String>(columnName: 'title', value: homework.title.toLowerCase()),
+          DataGridCell<DateTime>(columnName: 'due', value: homework.start),
+          DataGridCell<String>(columnName: 'className', value: courseTitle),
+          DataGridCell<String>(columnName: 'category', value: categoryTitle),
+          DataGridCell<int>(columnName: 'priority', value: homework.priority),
+          DataGridCell<double>(columnName: 'grade', value: gradeSortValue),
+          DataGridCell<int>(columnName: 'resources', value: homework.resources.length),
+          DataGridCell<int>(columnName: 'attachments', value: homework.attachments.length),
+          DataGridCell<int>(columnName: 'actions', value: homework.id),
+          DataGridCell<int>(columnName: '_homeworkId', value: homework.id),
+          DataGridCell<int>(columnName: '_courseId', value: course.id),
+          DataGridCell<Color>(columnName: '_courseColor', value: course.color),
+          DataGridCell<int?>(columnName: '_categoryId', value: category?.id),
+          DataGridCell<Color?>(columnName: '_categoryColor', value: category?.color),
+        ]));
+      } catch (e, st) {
+        ErrorHelpers.logAndReport(
+          'Failed to build row for homework ${homework.id}',
+          e,
+          st,
+          hints: {'homework_id': homework.id},
+        );
       }
+    }
+    dataGridRows = rows;
 
-      final courseTitle = course.title.toLowerCase();
-      final categoryTitle = category?.title.toLowerCase() ?? '';
-
-      return DataGridRow(cells: [
-        DataGridCell<int>(columnName: 'completed', value: isCompleted ? 1 : 0),
-        DataGridCell<String>(columnName: 'title', value: homework.title.toLowerCase()),
-        DataGridCell<DateTime>(columnName: 'dueDate', value: homework.start),
-        DataGridCell<String>(columnName: 'className', value: courseTitle),
-        DataGridCell<String>(columnName: 'category', value: categoryTitle),
-        DataGridCell<int>(columnName: 'priority', value: homework.priority),
-        DataGridCell<double>(columnName: 'grade', value: gradeSortValue),
-        DataGridCell<int>(columnName: 'resources', value: homework.resources.length),
-        DataGridCell<int>(columnName: 'attachments', value: homework.attachments.length),
-        DataGridCell<int>(columnName: 'actions', value: homework.id),
-        DataGridCell<int>(columnName: '_homeworkId', value: homework.id),
-        DataGridCell<int>(columnName: '_courseId', value: course.id),
-        DataGridCell<Color>(columnName: '_courseColor', value: course.color),
-        DataGridCell<int?>(columnName: '_categoryId', value: category?.id),
-        DataGridCell<Color?>(columnName: '_categoryColor', value: category?.color),
-      ]);
-    }).toList();
-
-    sortDataGridRows(_dataGridRows);
+    sortDataGridRows(dataGridRows);
   }
 
   CourseModel _fallbackCourse() {
@@ -746,90 +981,7 @@ class TodosDataSource extends DataGridSource with SortableDataGridSource {
       courseGroup: 0,
       currentGrade: null,
       schedules: const [],
-    );
-  }
-
-  int get totalRows => _dataGridRows.length;
-
-  void updatePagination({required int currentPage, required int itemsPerPage}) {
-    _currentPage = currentPage;
-    _itemsPerPage = itemsPerPage;
-    notifyListeners();
-  }
-
-  @override
-  List<DataGridRow> get rows {
-    if (_itemsPerPage == -1) return _dataGridRows;
-    final startIndex = (_currentPage - 1) * _itemsPerPage;
-    final endIndex = (startIndex + _itemsPerPage).clamp(0, _dataGridRows.length);
-    if (startIndex >= _dataGridRows.length) return [];
-    return _dataGridRows.sublist(startIndex, endIndex);
-  }
-
-  @override
-  Future<void> performSorting(List<DataGridRow> rows) async {
-    sortDataGridRows(_dataGridRows);
-  }
-
-  HomeworkModel? getHomeworkFromRow(DataGridRow row) {
-    final homeworkId = row
-        .getCells()
-        .firstWhere((c) => c.columnName == '_homeworkId')
-        .value as int;
-    return _homeworksById[homeworkId];
-  }
-
-  @override
-  DataGridRowAdapter? buildRow(DataGridRow row) {
-    final homeworkId = row
-        .getCells()
-        .firstWhere((c) => c.columnName == '_homeworkId')
-        .value as int;
-    final homework = _homeworksById[homeworkId];
-    if (homework == null) return null;
-
-    final courseColor = row
-        .getCells()
-        .firstWhere((c) => c.columnName == '_courseColor')
-        .value as Color;
-    final categoryColor = row
-        .getCells()
-        .firstWhere((c) => c.columnName == '_categoryColor',
-            orElse: () => const DataGridCell<Color?>(
-                columnName: '_categoryColor', value: null))
-        .value as Color?;
-
-    final userSettings = _dataSource.userSettings;
-    final isCompleted = _dataSource.isHomeworkCompleted(homework);
-
-    final rowColor = userSettings.colorByCategory && categoryColor != null
-        ? categoryColor
-        : courseColor;
-
-    final isTouchDevice = Responsive.isTouchDevice(_context);
-    final isCompact = Responsive.isCompact(_context);
-    final rowCursor =
-        (isTouchDevice || isCompact) ? SystemMouseCursors.click : MouseCursor.defer;
-
-    final displayCells = _getDisplayCells(row);
-
-    return DataGridRowAdapter(
-      color: BadgeColors.background(_context, rowColor),
-      cells: displayCells.map((cell) {
-        return MouseRegion(
-          cursor: rowCursor,
-          child: DecoratedBox(
-            decoration: BoxDecoration(
-              border: Border(
-                bottom: BorderSide(
-                  color: _context.colorScheme.outline.withValues(alpha: 0.1),
-                ),
-              ),
-            ),
-            child: _buildCell(cell, homework, isCompleted),
-          ),
-        );
-      }).toList(),
+      exceptions: const [],
     );
   }
 
@@ -842,19 +994,19 @@ class TodosDataSource extends DataGridSource with SortableDataGridSource {
 
       switch (cell.columnName) {
         case 'className':
-          return width >= TodosSortColumn.className.minViewportWidth!;
+          return width >= TodosColumn.className.minViewportWidth!;
         case 'category':
-          return width >= TodosSortColumn.category.minViewportWidth!;
+          return width >= TodosColumn.category.minViewportWidth!;
         case 'priority':
-          return width >= TodosSortColumn.priority.minViewportWidth!;
+          return width >= TodosColumn.priority.minViewportWidth!;
         case 'grade':
-          return width >= TodosSortColumn.grade.minViewportWidth! || isTouchDevice;
+          return width >= TodosColumn.grade.minViewportWidth! || isTouchDevice;
         case 'resources':
-          return width >= TodosSortColumn.resources.minViewportWidth!;
+          return width >= TodosColumn.resources.minViewportWidth!;
         case 'attachments':
-          return width >= TodosSortColumn.attachments.minViewportWidth!;
+          return width >= TodosColumn.attachments.minViewportWidth!;
         case 'actions':
-          return !isTouchDevice;
+          return !isTouchDevice && !PrintableArea.capturing.value;
         default:
           return true;
       }
@@ -880,8 +1032,8 @@ class TodosDataSource extends DataGridSource with SortableDataGridSource {
       case 'title':
         return _buildTitleCell(homework.title, isCompleted, isSelectable);
 
-      case 'dueDate':
-        return _buildDueDateCell(homework, userSettings, isSelectable);
+      case 'due':
+        return _buildDueCell(homework, userSettings, isSelectable);
 
       case 'className':
         final course = courses.firstWhere(
@@ -966,7 +1118,7 @@ class TodosDataSource extends DataGridSource with SortableDataGridSource {
     );
   }
 
-  Widget _buildDueDateCell(
+  Widget _buildDueCell(
     HomeworkModel homework,
     UserSettingsModel userSettings,
     bool isSelectable,

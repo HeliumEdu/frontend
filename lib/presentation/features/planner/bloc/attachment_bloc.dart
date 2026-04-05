@@ -33,6 +33,7 @@ class AttachmentBloc extends Bloc<AttachmentEvent, AttachmentState> {
         eventId: event.eventId,
         homeworkId: event.homeworkId,
         courseId: event.courseId,
+        forceRefresh: event.forceRefresh,
       );
       emit(AttachmentsFetched(attachments: attachments));
     } on HeliumException catch (e) {

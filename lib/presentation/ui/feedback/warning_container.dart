@@ -11,6 +11,10 @@ import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 
 class WarningContainer extends StatelessWidget {
+  static const _containerBorderRadius = 12.0;
+  static const _containerPadding = 14.0;
+  static const _iconTextSpacing = 10.0;
+
   final String text;
   final IconData? icon;
   final VoidCallback? onDismiss;
@@ -27,10 +31,10 @@ class WarningContainer extends StatelessWidget {
     final warningColor = context.semanticColors.warning;
 
     return Container(
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.all(_containerPadding),
       decoration: BoxDecoration(
         color: warningColor.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(_containerBorderRadius),
         border: Border.all(
           color: warningColor.withValues(alpha: 0.2),
         ),
@@ -48,7 +52,7 @@ class WarningContainer extends StatelessWidget {
               desktop: 22,
             ),
           ),
-          const SizedBox(width: 10),
+          const SizedBox(width: _iconTextSpacing),
           Expanded(
             child: SelectableText(
               text,
@@ -57,17 +61,17 @@ class WarningContainer extends StatelessWidget {
           ),
           if (onDismiss != null) ...[
             const SizedBox(width: 8),
-            GestureDetector(
-              onTap: onDismiss,
-              child: Icon(
-                Icons.close,
-                color: warningColor,
-                size: Responsive.getIconSize(
-                  context,
-                  mobile: 16,
-                  tablet: 18,
-                  desktop: 20,
-                ),
+            IconButton(
+              onPressed: onDismiss,
+              icon: Icon(Icons.close, color: warningColor),
+              iconSize: Responsive.getIconSize(
+                context,
+                mobile: 16,
+                tablet: 18,
+                desktop: 20,
+              ),
+              style: IconButton.styleFrom(
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
               ),
             ),
           ],

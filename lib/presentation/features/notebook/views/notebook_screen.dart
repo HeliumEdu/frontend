@@ -23,11 +23,11 @@ import 'package:heliumapp/presentation/core/views/deep_link_mixin.dart';
 import 'package:heliumapp/presentation/ui/layout/page_header.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_bloc.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_state.dart';
-import 'package:heliumapp/presentation/features/notes/bloc/note_bloc.dart';
-import 'package:heliumapp/presentation/features/notes/bloc/note_event.dart';
-import 'package:heliumapp/presentation/features/notes/bloc/note_state.dart';
-import 'package:heliumapp/presentation/features/notes/views/note_add_screen.dart';
-import 'package:heliumapp/presentation/features/notes/widgets/notes_data_grid.dart';
+import 'package:heliumapp/presentation/features/notebook/bloc/note_bloc.dart';
+import 'package:heliumapp/presentation/features/notebook/bloc/note_event.dart';
+import 'package:heliumapp/presentation/features/notebook/bloc/note_state.dart';
+import 'package:heliumapp/presentation/features/notebook/views/note_add_screen.dart';
+import 'package:heliumapp/presentation/features/notebook/widgets/notebook_data_grid.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/core/base_event.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/core/provider_helpers.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/planneritem_bloc.dart';
@@ -37,8 +37,12 @@ import 'package:heliumapp/presentation/ui/feedback/error_card.dart';
 import 'package:heliumapp/presentation/ui/layout/shadow_container.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/app_style.dart';
+import 'package:heliumapp/utils/print_helpers.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:heliumapp/utils/sort_helpers.dart';
+import 'package:logging/logging.dart';
+
+final _log = Logger('presentation.views');
 
 class NotebookScreen extends StatelessWidget {
   const NotebookScreen({super.key});
@@ -66,6 +70,9 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen>
 
   @override
   String get screenTitle => 'Notebook';
+
+  @override
+  bool get enablePrint => true;
 
   @override
   String get routePath => AppRoute.notebookScreen;
@@ -172,106 +179,108 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen>
 
   @override
   Widget buildHeaderArea(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: ShadowContainer(
-        padding: const EdgeInsets.only(left: 8, right: 8, top: 4, bottom: 4),
-        child: SizedBox(
-          height: 48,
-          child: Row(
-            children: [
-              Expanded(
-                child: SizedBox(
-                  height: 40,
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: context.colorScheme.surface,
-                      border: Border.all(
-                        color: context.colorScheme.outline.withValues(alpha: 0.2),
-                      ),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(8),
-                      child: TapRegion(
-                  onTapOutside: Responsive.isMobile(context)
-                      ? (_) => _searchFocusNode.unfocus()
-                      : null,
-                  child: TextField(
-                  focusNode: _searchFocusNode,
-                  controller: _searchController,
-                  style: AppStyles.formText(context),
-                  decoration: InputDecoration(
-                    hintText: 'Search ...',
-                    hintStyle: AppStyles.formHint(context),
-                    prefixIcon: Icon(
-                      Icons.search,
-                      color: context.colorScheme.onSurface.withValues(alpha: 0.4),
-                    ),
-                    border: InputBorder.none,
-                    enabledBorder: InputBorder.none,
-                    focusedBorder: InputBorder.none,
-                    isDense: true,
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 10,
-                    ),
-                    suffixIcon: ValueListenableBuilder<TextEditingValue>(
-                      valueListenable: _searchController,
-                      builder: (context, value, _) {
-                        if (value.text.isEmpty) {
-                          return const SizedBox.shrink();
-                        }
-                        return IconButton(
-                          onPressed: () {
-                            _searchController.clear();
-                            setState(() {
-                              _searchQuery = null;
-                            });
-                          },
-                          icon: Icon(
-                            Icons.close,
-                            size: 20,
-                            color: context.colorScheme.onSurface.withValues(alpha: 0.4),
+    return PrintHidden(
+      child: Padding(
+        padding: const EdgeInsets.only(bottom: 12),
+        child: ShadowContainer(
+          padding: const EdgeInsets.only(left: 8, right: 8, top: 4, bottom: 4),
+          child: SizedBox(
+            height: 48,
+            child: Row(
+              children: [
+                Expanded(
+                  child: SizedBox(
+                    height: 40,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: context.colorScheme.surface,
+                        border: Border.all(
+                          color: context.colorScheme.outline.withValues(alpha: 0.2),
                         ),
-                        tooltip: 'Clear',
-                      );
-                    },
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: TapRegion(
+                          onTapOutside: Responsive.isMobile(context)
+                              ? (_) => _searchFocusNode.unfocus()
+                              : null,
+                          child: TextField(
+                            focusNode: _searchFocusNode,
+                            controller: _searchController,
+                            style: AppStyles.formText(context),
+                            decoration: InputDecoration(
+                              hintText: 'Search ...',
+                              hintStyle: AppStyles.formHint(context),
+                              prefixIcon: Icon(
+                                Icons.search,
+                                color: context.colorScheme.onSurface.withValues(alpha: 0.4),
+                              ),
+                              border: InputBorder.none,
+                              enabledBorder: InputBorder.none,
+                              focusedBorder: InputBorder.none,
+                              isDense: true,
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 10,
+                              ),
+                              suffixIcon: ValueListenableBuilder<TextEditingValue>(
+                                valueListenable: _searchController,
+                                builder: (context, value, _) {
+                                  if (value.text.isEmpty) {
+                                    return const SizedBox.shrink();
+                                  }
+                                  return IconButton(
+                                    onPressed: () {
+                                      _searchController.clear();
+                                      setState(() {
+                                        _searchQuery = null;
+                                      });
+                                    },
+                                    icon: Icon(
+                                      Icons.close,
+                                      size: 20,
+                                      color: context.colorScheme.onSurface.withValues(alpha: 0.4),
+                                    ),
+                                    tooltip: 'Clear',
+                                  );
+                                },
+                              ),
+                            ),
+                            onChanged: (value) {
+                              setState(() {
+                                _searchQuery = value.isEmpty ? null : value;
+                              });
+                            },
+                          ),
+                        ),
+                      ),
+                    ),
                   ),
                 ),
-                onChanged: (value) {
-                  setState(() {
-                    _searchQuery = value.isEmpty ? null : value;
-                  });
-                },
-              ),
-              ),
-              ),
-              ),
-            ),
-          ),
-          const SizedBox(width: 8),
-          Builder(
-            builder: (context) {
-              final hasFilters = _filterEntityTypes.isNotEmpty;
-              return IconButton.outlined(
-                onPressed: () => _openFilterMenu(context),
-                tooltip: 'Filters',
-                icon: const Icon(Icons.filter_alt),
-                style: IconButton.styleFrom(
-                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                  backgroundColor: hasFilters
-                      ? context.colorScheme.primary
-                      : null,
-                  foregroundColor: hasFilters
-                      ? context.colorScheme.onPrimary
-                      : null,
-                  side: BorderSide(color: context.colorScheme.primary),
+                const SizedBox(width: 8),
+                Builder(
+                  builder: (context) {
+                    final hasFilters = _filterEntityTypes.isNotEmpty;
+                    return IconButton.outlined(
+                      onPressed: () => _openFilterMenu(context),
+                      tooltip: 'Filters',
+                      icon: const Icon(Icons.filter_alt),
+                      style: IconButton.styleFrom(
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        backgroundColor: hasFilters
+                            ? context.colorScheme.primary
+                            : null,
+                        foregroundColor: hasFilters
+                            ? context.colorScheme.onPrimary
+                            : null,
+                        side: BorderSide(color: context.colorScheme.primary),
+                      ),
+                    );
+                  },
                 ),
-              );
-            },
-          ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -296,67 +305,24 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen>
             ? <NoteModel>[]
             : _getFilteredNotes();
 
-        return Expanded(
-          child: NotesDataGrid(
-            notes: filteredNotes,
-            isLoading: notesLoading,
-            hasAnyNotes: hasAnyNotes,
-            emptyMessage: 'No notes match the applied filters or search',
-            onNoteTap: _openNote,
-            onDelete: _confirmDeleteNote,
-            userSettings: userSettings,
-            rowsPerPage: _rowsPerPage,
-            onRowsPerPageChanged: (rowsPerPage) {
-              setState(() {
-                _rowsPerPage = rowsPerPage;
-              });
-              _saveFilterStateIfEnabled();
-            },
-          ),
+        return NotebookDataGrid(
+          notes: filteredNotes,
+          isLoading: notesLoading,
+          hasAnyNotes: hasAnyNotes,
+          emptyMessage: 'No notes match the applied filters or search',
+          onNoteTap: _openNote,
+          onDelete: _confirmDeleteNote,
+          userSettings: userSettings,
+          rowsPerPage: _rowsPerPage,
+          onRowsPerPageChanged: (rowsPerPage) {
+            setState(() {
+              _rowsPerPage = rowsPerPage;
+            });
+            _saveFilterStateIfEnabled();
+          },
         );
       },
     );
-  }
-
-  void _fetchNotes() {
-    context.read<NoteBloc>().add(
-      FetchNotesEvent(
-        origin: EventOrigin.screen,
-        forceRefresh: true,
-      ),
-    );
-  }
-
-  List<NoteModel> _getFilteredNotes() {
-    var filtered = _notes;
-
-    if (_searchQuery != null && _searchQuery!.isNotEmpty) {
-      final query = _searchQuery!.toLowerCase();
-      filtered = filtered.where((note) {
-        return note.title.toLowerCase().contains(query) ||
-            (note.linkedEntityTitle?.toLowerCase().contains(query) ?? false);
-      }).toList();
-    }
-
-    if (_filterEntityTypes.isNotEmpty) {
-      filtered = filtered.where((note) {
-        if (_filterEntityTypes.contains('standalone')) {
-          if (note.isStandalone) return true;
-        }
-        if (_filterEntityTypes.contains('homework')) {
-          if (note.linkedEntityType == 'homework') return true;
-        }
-        if (_filterEntityTypes.contains('event')) {
-          if (note.linkedEntityType == 'event') return true;
-        }
-        if (_filterEntityTypes.contains('resource')) {
-          if (note.linkedEntityType == 'resource') return true;
-        }
-        return false;
-      }).toList();
-    }
-
-    return filtered;
   }
 
   @override
@@ -417,6 +383,47 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen>
     });
   }
 
+  void _fetchNotes() {
+    context.read<NoteBloc>().add(
+      FetchNotesEvent(
+        origin: EventOrigin.screen,
+        forceRefresh: true,
+      ),
+    );
+  }
+
+  List<NoteModel> _getFilteredNotes() {
+    var filtered = _notes;
+
+    if (_searchQuery != null && _searchQuery!.isNotEmpty) {
+      final query = _searchQuery!.toLowerCase();
+      filtered = filtered.where((note) {
+        return note.title.toLowerCase().contains(query) ||
+            (note.linkedEntityTitle?.toLowerCase().contains(query) ?? false);
+      }).toList();
+    }
+
+    if (_filterEntityTypes.isNotEmpty) {
+      filtered = filtered.where((note) {
+        if (_filterEntityTypes.contains('standalone')) {
+          if (note.isStandalone) return true;
+        }
+        if (_filterEntityTypes.contains('homework')) {
+          if (note.linkedEntityType == 'homework') return true;
+        }
+        if (_filterEntityTypes.contains('event')) {
+          if (note.linkedEntityType == 'event') return true;
+        }
+        if (_filterEntityTypes.contains('resource')) {
+          if (note.linkedEntityType == 'resource') return true;
+        }
+        return false;
+      }).toList();
+    }
+
+    return filtered;
+  }
+
   Future<void> _resolveResourceAndOpenNote(int resourceId) async {
     try {
       final resources = await ResourceRemoteDataSourceImpl(
@@ -430,7 +437,8 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen>
         linkResourceId: resourceId,
       );
     } catch (_) {
-      // silently fail — bad or stale deep link
+      // silently fail; bad or stale deep link
+      _log.warning('Failed to resolve resource deep link for note (resourceId=$resourceId); link may be stale or invalid');
     }
   }
 
@@ -446,7 +454,8 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen>
         linkHomeworkId: homeworkId,
       );
     } catch (_) {
-      // silently fail — bad or stale deep link (404)
+      // silently fail; bad or stale deep link (404)
+      _log.warning('Failed to resolve homework deep link for note (homeworkId=$homeworkId); link may be stale or invalid');
     }
   }
 
@@ -462,7 +471,8 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen>
         linkEventId: eventId,
       );
     } catch (_) {
-      // silently fail — bad or stale deep link (404)
+      // silently fail; bad or stale deep link (404)
+      _log.warning('Failed to resolve event deep link for note (eventId=$eventId); link may be stale or invalid');
     }
   }
 
@@ -564,6 +574,8 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen>
                     _filterEntityTypes.clear();
                     _saveFilterStateIfEnabled();
                     setMenuState(() {});
+                    // Defer outer setState because setMenuState may still be
+                    // executing its rebuild when this callback runs
                     WidgetsBinding.instance.addPostFrameCallback((_) {
                       if (mounted) setState(() {});
                     });
@@ -599,6 +611,8 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen>
                   }
                   _saveFilterStateIfEnabled();
                   setMenuState(() {});
+                  // Defer outer setState because setMenuState may still be
+                  // executing its rebuild when this callback runs
                   WidgetsBinding.instance.addPostFrameCallback((_) {
                     if (mounted) setState(() {});
                   });

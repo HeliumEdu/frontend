@@ -48,11 +48,11 @@ class _PlannerItemAttachmentsContent extends BaseAttachmentsContent {
 class _PlannerItemAttachmentsWidgetState
     extends BaseAttachmentsState<_PlannerItemAttachmentsContent> {
   @override
-  FetchAttachmentsEvent createFetchAttachmentsEvent() {
+  FetchAttachmentsEvent createFetchAttachmentsEvent({bool forceRefresh = false}) {
     if (widget.isEvent) {
-      return FetchAttachmentsEvent(eventId: widget.entityId);
+      return FetchAttachmentsEvent(eventId: widget.entityId, forceRefresh: forceRefresh);
     } else {
-      return FetchAttachmentsEvent(homeworkId: widget.entityId);
+      return FetchAttachmentsEvent(homeworkId: widget.entityId, forceRefresh: forceRefresh);
     }
   }
 

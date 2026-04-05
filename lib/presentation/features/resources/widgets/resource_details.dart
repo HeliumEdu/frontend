@@ -13,8 +13,8 @@ import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/data/models/planner/course_model.dart';
 import 'package:heliumapp/data/models/planner/request/resource_request_model.dart';
 import 'package:heliumapp/data/models/planner/request/note_request_model.dart';
-import 'package:heliumapp/presentation/features/notes/bloc/note_bloc.dart';
-import 'package:heliumapp/presentation/features/notes/bloc/note_event.dart';
+import 'package:heliumapp/presentation/features/notebook/bloc/note_bloc.dart';
+import 'package:heliumapp/presentation/features/notebook/bloc/note_event.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/core/base_event.dart';
 import 'package:heliumapp/presentation/features/resources/bloc/resource_bloc.dart';
 import 'package:heliumapp/presentation/features/resources/bloc/resource_event.dart';
@@ -88,14 +88,6 @@ class ResourceDetailsState extends State<ResourceDetails> {
     _formController.dispose();
 
     super.dispose();
-  }
-
-  void _onUrlFocusChange() {
-    if (!_formController.urlFocusNode.hasFocus) {
-      _formController.urlController.text = BasicFormController.cleanUrl(
-        _formController.urlController.text.trim(),
-      );
-    }
   }
 
   @override
@@ -218,48 +210,6 @@ class ResourceDetailsState extends State<ResourceDetails> {
     );
   }
 
-  void _populateInitialStateData(ResourceScreenDataFetched state) {
-    _courses = state.courses;
-    Sort.byTitle(_courses);
-
-    if (widget.isEdit) {
-      _formController.titleController.text = state.resource!.title;
-      _formController.urlController.text = state.resource!.website;
-      _formController.priceController.text = state.resource!.price ?? '';
-      _formController.initialNotes = state.resource!.details ?? '';
-      _formController.selectedStatus = state.resource!.status;
-      _formController.selectedCondition = state.resource!.condition;
-      _formController.selectedCourses = List<int>.from(
-        state.resource!.courses,
-      );
-
-      _formController.notesController.dispose();
-      if (state.linkedNote != null) {
-        _formController.linkedNoteId = state.linkedNote!.id;
-        _formController.notesController = state.linkedNote!.content != null
-            ? QuillController(
-                document: Document.fromJson(state.linkedNote!.content!['ops'] as List),
-                selection: const TextSelection.collapsed(offset: 0),
-              )
-            : QuillController.basic();
-      } else {
-        _formController.notesController = QuillController.basic();
-      }
-    }
-
-    setState(() {
-      isLoading = false;
-    });
-
-    // Request focus once on mobile for create mode
-    if (!_hasRequestedInitialFocus && !kIsWeb && !widget.isEdit) {
-      _hasRequestedInitialFocus = true;
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) _titleFocusNode.requestFocus();
-      });
-    }
-  }
-
   Map<String, dynamic>? get noteContent =>
       buildNotesDelta(_formController.notesController);
 
@@ -293,7 +243,7 @@ class ResourceDetailsState extends State<ResourceDetails> {
 
       if (!mounted) return;
       if (widget.isEdit && widget.resourceId != null) {
-        // Dispatch note operations to NoteBloc directly — resource.id is known
+        // Dispatch note operations to NoteBloc directly; resource.id is known
         final content = noteContent;
         final existingNoteId = _formController.linkedNoteId;
         if (existingNoteId != null) {
@@ -341,4 +291,57 @@ class ResourceDetailsState extends State<ResourceDetails> {
       );
     }
   }
+
+  void _populateInitialStateData(ResourceScreenDataFetched state) {
+    _courses = state.courses;
+    Sort.byTitle(_courses);
+
+    if (widget.isEdit) {
+      _formController.titleController.text = state.resource!.title;
+      _formController.urlController.text = state.resource!.website;
+      _formController.priceController.text = state.resource!.price ?? '';
+      _formController.initialNotes = state.resource!.details ?? '';
+      _formController.selectedStatus = state.resource!.status;
+      _formController.selectedCondition = state.resource!.condition;
+      _formController.selectedCourses = List<int>.from(
+        state.resource!.courses,
+      );
+
+      _formController.notesController.dispose();
+      if (state.linkedNote != null) {
+        _formController.linkedNoteId = state.linkedNote!.id;
+        _formController.notesController = state.linkedNote!.content != null
+            ? QuillController(
+                document: Document.fromJson(state.linkedNote!.content!['ops'] as List),
+                selection: const TextSelection.collapsed(offset: 0),
+              )
+            : QuillController.basic();
+      } else {
+        _formController.notesController = QuillController.basic();
+      }
+    }
+
+    setState(() {
+      isLoading = false;
+    });
+
+    // Request focus once on mobile for create mode
+    if (!_hasRequestedInitialFocus && !kIsWeb && !widget.isEdit) {
+      _hasRequestedInitialFocus = true;
+      // Defer focus request so the text field is attached to the tree before
+      // requestFocus is called; BLoC listeners fire during the build pipeline
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _titleFocusNode.requestFocus();
+      });
+    }
+  }
+
+  void _onUrlFocusChange() {
+    if (!_formController.urlFocusNode.hasFocus) {
+      _formController.urlController.text = BasicFormController.cleanUrl(
+        _formController.urlController.text.trim(),
+      );
+    }
+  }
+
 }

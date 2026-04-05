@@ -172,6 +172,11 @@ void main() {
       );
       expect(loggedIn, isTrue, reason: 'Should be logged in');
 
+      // Align the calendar with the user's configured timezone (America/Chicago).
+      // The CI device runs UTC, which can differ at month boundaries, causing items
+      // anchored to Chicago time to land in a month the UTC calendar doesn't show.
+      await navigateCalendarToUserTimezone(tester, 'America/Chicago');
+
       final quizLoaded = await waitForWidget(
         tester,
         findRichTextContaining('Quiz 4'),
@@ -221,6 +226,11 @@ void main() {
         );
         expect(loggedIn, isTrue, reason: 'Should be logged in');
 
+        // Align the calendar with the user's configured timezone (America/Chicago).
+        // The CI device runs UTC, which can differ at month boundaries, causing items
+        // anchored to Chicago time to land in a month the UTC calendar doesn't show.
+        await navigateCalendarToUserTimezone(tester, 'America/Chicago');
+
         // --- PART 1: Desktop/Tablet (wide) - Settings opens as dialog ---
         tester.view.physicalSize = const Size(nonMobileWidth, testHeight);
         tester.view.devicePixelRatio = 1.0;
@@ -236,7 +246,7 @@ void main() {
         );
         await tester.tap(settingsButton);
 
-        // Wait for close button to appear (dialog is open)
+        // Wait for close button to appear (dialog shell is open)
         final closeButton = find.byIcon(Icons.close);
         final dialogOpened = await waitForWidget(
           tester,
@@ -244,6 +254,16 @@ void main() {
           timeout: const Duration(seconds: 5),
         );
         expect(dialogOpened, isTrue, reason: 'Settings dialog should open');
+
+        // Wait for settings body to load (AuthBloc fetches profile async; body
+        // shows LoadingIndicator until AuthProfileFetched, so the close button
+        // may appear before "Keep Helium Free" is in the tree).
+        final bodyLoaded = await waitForWidget(
+          tester,
+          find.text('Change Password'),
+          timeout: const Duration(seconds: 5),
+        );
+        expect(bodyLoaded, isTrue, reason: 'Settings body should finish loading');
 
         // Verify browser title did NOT change (dialog mode)
         expectOnSettingsScreen(isDialog: true);
@@ -262,9 +282,14 @@ void main() {
         expectBrowserTitle('Planner');
 
         // 3. Assert that "Quiz 4" can be seen on desktop calendar
-        expect(
+        final quiz4Visible = await waitForWidget(
+          tester,
           findRichTextContaining('Quiz 4'),
-          findsWidgets,
+          timeout: config.apiTimeout,
+        );
+        expect(
+          quiz4Visible,
+          isTrue,
           reason: 'Quiz 4 should be visible on desktop calendar',
         );
         _log.info('Quiz 4 visible on desktop');
@@ -294,13 +319,25 @@ void main() {
         );
         await tester.tap(settingsButton);
 
-        // Wait for close button to appear (full-screen dialog opened)
+        // Wait for close button to appear (full-screen dialog shell is open)
         final screenOpened = await waitForWidget(
           tester,
           closeButton,
           timeout: const Duration(seconds: 5),
         );
         expect(screenOpened, isTrue, reason: 'Settings screen should open');
+
+        // Wait for settings body to load (same AuthBloc race as desktop path above)
+        final mobileBodyLoaded = await waitForWidget(
+          tester,
+          find.text('Change Password'),
+          timeout: const Duration(seconds: 5),
+        );
+        expect(
+          mobileBodyLoaded,
+          isTrue,
+          reason: 'Settings body should finish loading on mobile',
+        );
 
         // Verify browser title changed to Settings (full-screen dialog mode)
         expectOnSettingsScreen(isDialog: true);
@@ -516,7 +553,7 @@ void main() {
       );
 
       // 6. Assert the row shows "Homework 1" with strikethrough, time, class, and grade
-      // TodosTable uses SelectableText for title and due date
+      // TodosTable uses SelectableText for title and due
       final homework1Finder = find.byWidgetPredicate(
         (w) =>
             w is SelectableText &&
@@ -535,14 +572,14 @@ void main() {
         reason: 'Homework 1 should have strikethrough (completed)',
       );
 
-      // Due date format is "EEE, MMM d • h:mm a" (e.g., "Fri, Oct 10 • 11 AM")
+      // Due format is "EEE, MMM d • h:mm a" (e.g., "Fri, Oct 10 • 11 AM")
       // User timezone is set to America/Chicago during registration
       expect(
         find.byWidgetPredicate(
           (w) => w is SelectableText && (w.data?.contains('11 AM') ?? false),
         ),
         findsOneWidget,
-        reason: 'Row should show due date with 11 AM (Chicago timezone)',
+        reason: 'Row should show due with 11 AM (Chicago timezone)',
       );
 
       // Class uses CourseTitleLabel which contains text
@@ -640,12 +677,21 @@ void main() {
       );
       expect(loggedIn, isTrue, reason: 'Should be logged in');
 
-      // Find "Quiz 4" to edit (calendar uses RichText, not Text)
-      final homeworkItem = findRichTextContaining('Quiz 4');
-      expect(homeworkItem, findsWidgets, reason: 'Quiz 4 should exist');
+      // Align the calendar with the user's configured timezone (America/Chicago).
+      // The CI device runs UTC, which can differ at month boundaries, causing items
+      // anchored to Chicago time to land in a month the UTC calendar doesn't show.
+      await navigateCalendarToUserTimezone(tester, 'America/Chicago');
+
+      // Wait for Quiz 4 to load in the correct month, then tap to edit
+      final quizVisible = await waitForWidget(
+        tester,
+        findRichTextContaining('Quiz 4'),
+        timeout: config.apiTimeout,
+      );
+      expect(quizVisible, isTrue, reason: 'Quiz 4 should be visible after navigating to user timezone month');
 
       // Tap on the homework item to open edit screen
-      await tester.tap(homeworkItem.first);
+      await tester.tap(findRichTextContaining('Quiz 4').first);
       await tester.pumpAndSettle(const Duration(seconds: 3));
 
       // Verify we're on the edit screen and store reference to the dialog

@@ -98,10 +98,10 @@ class _FeedsScreenState extends State<FeedsScreen> {
             Row(
               children: [
                 Container(
-                  padding: const EdgeInsets.all(12),
+                  padding: const EdgeInsets.all(12.0),
                   decoration: BoxDecoration(
                     color: color.withValues(alpha: 0.12),
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(12.0),
                   ),
                   child: Icon(
                     icon,
@@ -134,12 +134,12 @@ class _FeedsScreenState extends State<FeedsScreen> {
                     Expanded(
                       child: Container(
                         padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 12,
+                          horizontal: 12.0,
+                          vertical: 12.0,
                         ),
                         decoration: BoxDecoration(
                           color: context.colorScheme.surfaceContainer,
-                          borderRadius: BorderRadius.circular(10),
+                          borderRadius: BorderRadius.circular(10.0),
                           border: Border.all(
                             color: context.colorScheme.outline.withValues(
                               alpha: 0.2,
@@ -216,11 +216,11 @@ class _FeedsScreenState extends State<FeedsScreen> {
         child: Column(
           children: [
             Container(
-              width: 80,
-              height: 80,
+              width: 80.0,
+              height: 80.0,
               decoration: BoxDecoration(
                 color: context.colorScheme.error.withValues(alpha: 0.08),
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: BorderRadius.circular(16.0),
               ),
               child: Icon(
                 Icons.block_rounded,

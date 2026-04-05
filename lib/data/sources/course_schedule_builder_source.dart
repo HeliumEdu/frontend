@@ -6,9 +6,11 @@
 // For details regarding the license, please refer to the LICENSE file.
 
 import 'package:flutter/material.dart';
+import 'package:heliumapp/data/models/planner/course_group_model.dart';
 import 'package:heliumapp/data/models/planner/course_model.dart';
 import 'package:heliumapp/data/models/planner/course_schedule_event_model.dart';
 import 'package:heliumapp/data/models/planner/course_schedule_model.dart';
+import 'package:heliumapp/utils/course_exception_helpers.dart';
 import 'package:heliumapp/utils/date_time_helpers.dart';
 import 'package:heliumapp/utils/rrule_builder.dart';
 import 'package:logging/logging.dart';
@@ -27,6 +29,7 @@ class CourseScheduleBuilderSource {
     required List<CourseModel> courses,
     required DateTime from,
     required DateTime to,
+    Map<int, CourseGroupModel>? courseGroupsById,
     String? search,
     bool? shownOnCalendar,
   }) {
@@ -35,12 +38,20 @@ class CourseScheduleBuilderSource {
     final List<CourseScheduleEventModel> events = [];
 
     for (final course in courses) {
+      final groupExceptions =
+          courseGroupsById?[course.courseGroup]?.exceptions ?? const [];
+      final mergedExceptions = CourseExceptionHelpers.mergeExceptions(
+        course.exceptions,
+        groupExceptions,
+      );
+
       for (final schedule in course.schedules) {
         final scheduleEvents = _buildEventsForSchedule(
           course: course,
           schedule: schedule,
           from: from,
           to: to,
+          exceptionDates: mergedExceptions,
         );
         events.addAll(scheduleEvents);
       }
@@ -76,6 +87,7 @@ class CourseScheduleBuilderSource {
     required CourseScheduleModel schedule,
     required DateTime from,
     required DateTime to,
+    List<DateTime> exceptionDates = const [],
   }) {
     final List<CourseScheduleEventModel> events = [];
 
@@ -138,6 +150,7 @@ class CourseScheduleBuilderSource {
           color: course.color,
           ownerId: '${course.id}',
           recurrenceRule: rrule,
+          exceptionDates: exceptionDates,
         ),
       );
 

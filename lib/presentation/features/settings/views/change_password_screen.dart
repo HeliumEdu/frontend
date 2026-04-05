@@ -45,25 +45,6 @@ class ChangePasswordScreenState extends State<ChangePasswordScreen> {
     super.dispose();
   }
 
-  void onSubmit() {
-    if (_isSubmitting) return;
-    if (_formController.formKey.currentState?.validate() ?? false) {
-      setState(() => _isSubmitting = true);
-      widget.onActionStarted?.call();
-
-      context.read<AuthBloc>().add(
-        ChangePasswordEvent(
-          oldPassword: _formController.oldPasswordController.text,
-          newPassword: _formController.newPasswordController.text,
-        ),
-      );
-    }
-  }
-
-  void resetSubmitting() {
-    setState(() => _isSubmitting = false);
-  }
-
   @override
   Widget build(BuildContext context) {
     return BlocListener<AuthBloc, AuthState>(
@@ -165,5 +146,24 @@ class ChangePasswordScreenState extends State<ChangePasswordScreen> {
         ),
       ),
     );
+  }
+
+  void onSubmit() {
+    if (_isSubmitting) return;
+    if (_formController.formKey.currentState?.validate() ?? false) {
+      setState(() => _isSubmitting = true);
+      widget.onActionStarted?.call();
+
+      context.read<AuthBloc>().add(
+        ChangePasswordEvent(
+          oldPassword: _formController.oldPasswordController.text,
+          newPassword: _formController.newPasswordController.text,
+        ),
+      );
+    }
+  }
+
+  void resetSubmitting() {
+    setState(() => _isSubmitting = false);
   }
 }

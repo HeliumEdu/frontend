@@ -1577,6 +1577,7 @@ CourseScheduleEventModel _createCourseScheduleEventModel({
     reminders: [],
     ownerId: ownerId,
     color: color,
+    exceptionDates: const [],
   );
 }
 
@@ -1623,6 +1624,7 @@ CourseModel _createCourseModel({
     teacherEmail: '',
     currentGrade: null,
     schedules: [],
+    exceptions: const [],
   );
 }
 

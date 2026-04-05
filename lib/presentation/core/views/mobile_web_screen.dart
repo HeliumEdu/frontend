@@ -48,7 +48,7 @@ class _MobileWebScreenState extends BasePageScreenState<MobileWebScreen> {
   @override
   Widget buildMainArea(BuildContext context) {
     return ResponsiveCenterCard(
-      maxWidth: 350,
+      maxWidth: 350.0,
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -64,7 +64,7 @@ class _MobileWebScreenState extends BasePageScreenState<MobileWebScreen> {
               Icon(
                 Icons.arrow_forward_rounded,
                 color: context.colorScheme.primary.withValues(alpha: 0.8),
-                size: 18,
+                size: 18.0,
               ),
               const SizedBox(width: 8),
               Icon(Icons.download_rounded, color: context.colorScheme.primary),
@@ -109,9 +109,9 @@ class _MobileWebScreenState extends BasePageScreenState<MobileWebScreen> {
             const SizedBox(height: 8),
             const Center(
               child: SizedBox(
-                width: 18,
-                height: 18,
-                child: CircularProgressIndicator(strokeWidth: 2),
+                width: 18.0,
+                height: 18.0,
+                child: CircularProgressIndicator(strokeWidth: 2.0),
               ),
             ),
           ],
@@ -151,7 +151,7 @@ class _MobileWebScreenState extends BasePageScreenState<MobileWebScreen> {
     required VoidCallback onPressed,
   }) {
     return SizedBox(
-      height: 40,
+      height: 40.0,
       child: IgnorePointer(
         ignoring: _isOpeningStore,
         child: Opacity(
@@ -172,14 +172,14 @@ class _MobileWebScreenState extends BasePageScreenState<MobileWebScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Container(
-          padding: const EdgeInsets.all(7),
+          padding: const EdgeInsets.all(7.0),
           decoration: BoxDecoration(
             color: context.colorScheme.primary.withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(8.0),
           ),
-          child: Icon(icon, color: context.colorScheme.primary, size: 18),
+          child: Icon(icon, color: context.colorScheme.primary, size: 18.0),
         ),
-        const SizedBox(width: 10),
+        const SizedBox(width: 10.0),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,

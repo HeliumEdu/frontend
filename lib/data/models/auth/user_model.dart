@@ -74,6 +74,8 @@ class UserSettingsModel {
   final int onTrackTolerance;
   final bool showWeekNumbers;
   final String? privateSlug;
+  final bool promptForReview;
+  final int reviewPromptsShown;
 
   UserSettingsModel({
     required this.timeZone,
@@ -98,13 +100,15 @@ class UserSettingsModel {
     required this.onTrackTolerance,
     required this.showWeekNumbers,
     this.privateSlug,
+    this.promptForReview = false,
+    this.reviewPromptsShown = 0,
   });
 
   factory UserSettingsModel.fromJson(Map<String, dynamic> json) {
     // Do not all default fallbacks here; userSettings must be populated and
     // non-null before base pages will move past isLoading, meaning if tests
     // fail and adding default values here would "fix" them, that is not the
-    // correct solution, that is an incorrect workaround—find the actual
+    // correct solution, that is an incorrect workaround; find the actual
     // regression further up the stack and patch with default values
     // there (if necessary)
     return UserSettingsModel(
@@ -130,6 +134,8 @@ class UserSettingsModel {
       onTrackTolerance: json['on_track_tolerance'] ?? FallbackConstants.defaultOnTrackTolerance,
       showWeekNumbers: json['show_week_numbers'] ?? FallbackConstants.defaultShowWeekNumbers,
       privateSlug: json['private_slug'],
+      promptForReview: json['prompt_for_review'] ?? false,
+      reviewPromptsShown: json['review_prompts_shown'] ?? 0,
     );
   }
 

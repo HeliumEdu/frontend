@@ -64,10 +64,6 @@ class ExternalCalendarsScreenState extends State<ExternalCalendarsScreen> {
     super.dispose();
   }
 
-  void onAddCalendar() {
-    showExternalCalendarDialog(parentContext: context, isEdit: false);
-  }
-
   @override
   Widget build(BuildContext context) {
     return BlocListener<ExternalCalendarBloc, ExternalCalendarState>(
@@ -156,6 +152,10 @@ class ExternalCalendarsScreenState extends State<ExternalCalendarsScreen> {
     );
   }
 
+  void onAddCalendar() {
+    showExternalCalendarDialog(parentContext: context, isEdit: false);
+  }
+
   void _populateInitialStateData(ExternalCalendarsFetched state) {
     setState(() {
       _externalCalendars = state.externalCalendars;
@@ -209,11 +209,11 @@ class ExternalCalendarsScreenState extends State<ExternalCalendarsScreen> {
           child: Row(
             children: [
               Container(
-                width: 12,
-                height: 12,
+                width: 12.0,
+                height: 12.0,
                 decoration: BoxDecoration(
                   color: externalCalendar.color,
-                  borderRadius: BorderRadius.circular(3),
+                  borderRadius: BorderRadius.circular(3.0),
                 ),
               ),
               const SizedBox(width: 12),

@@ -8,6 +8,7 @@
 import 'package:heliumapp/data/models/planner/category_model.dart';
 import 'package:heliumapp/data/models/planner/course_group_model.dart';
 import 'package:heliumapp/data/models/planner/course_model.dart';
+import 'package:heliumapp/data/models/planner/resource_model.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/core/base_state.dart';
 
 abstract class PlannerState extends BaseState {
@@ -30,6 +31,7 @@ class PlannerScreenDataFetched extends PlannerState {
   final List<CourseGroupModel> courseGroups;
   final List<CourseModel> courses;
   final List<CategoryModel> categories;
+  final List<ResourceModel> resources;
 
   PlannerScreenDataFetched({
     required super.origin,
@@ -37,5 +39,12 @@ class PlannerScreenDataFetched extends PlannerState {
     required this.courseGroups,
     required this.courses,
     required this.categories,
+    required this.resources
   });
+}
+
+class CourseOccurrenceSkipped extends PlannerState {
+  final CourseModel updatedCourse;
+
+  CourseOccurrenceSkipped({required super.origin, required this.updatedCourse});
 }

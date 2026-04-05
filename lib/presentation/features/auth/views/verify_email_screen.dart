@@ -41,6 +41,9 @@ class VerifyEmailScreen extends StatefulWidget {
 }
 
 class _VerifyEmailScreenState extends BasePageScreenState<VerifyEmailScreen> {
+  static const _resendSpinnerSize = 16.0;
+  static const _resendSpinnerStrokeWidth = 2.0;
+
   @override
   String get screenTitle => 'Verify Email';
 
@@ -74,6 +77,8 @@ class _VerifyEmailScreenState extends BasePageScreenState<VerifyEmailScreen> {
 
     // Auto-submit if both email and code are provided (e.g., from email link)
     if (widget.email != null && widget.code != null) {
+      // Defer submission until after initState so the form widgets are built
+      // and BLoC events can be dispatched with a valid context
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!mounted) return;
 
@@ -232,10 +237,10 @@ class _VerifyEmailScreenState extends BasePageScreenState<VerifyEmailScreen> {
                 onPressed: _canResend ? _onResend : null,
                 child: _isResending
                     ? SizedBox(
-                        width: 16,
-                        height: 16,
+                        width: _resendSpinnerSize,
+                        height: _resendSpinnerSize,
                         child: CircularProgressIndicator(
-                          strokeWidth: 2,
+                          strokeWidth: _resendSpinnerStrokeWidth,
                           color: context.colorScheme.primary,
                         ),
                       )

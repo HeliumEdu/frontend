@@ -16,6 +16,7 @@ import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/config/app_router.dart';
 import 'package:heliumapp/config/pref_service.dart';
 import 'package:heliumapp/config/theme_notifier.dart';
+import 'package:heliumapp/core/analytics_service.dart';
 import 'package:heliumapp/core/api_url.dart';
 import 'package:heliumapp/core/cache_service.dart';
 import 'package:heliumapp/data/models/auth/request/refresh_token_request_model.dart';
@@ -25,9 +26,10 @@ import 'package:heliumapp/data/models/auth/user_model.dart';
 import 'package:heliumapp/utils/color_helpers.dart';
 import 'package:heliumapp/utils/snack_bar_helpers.dart';
 import 'package:logging/logging.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:pretty_dio_logger/pretty_dio_logger.dart';
 import 'package:sentry_dio/sentry_dio.dart';
-import 'package:sentry_flutter/sentry_flutter.dart';
+import 'package:uuid/uuid.dart';
 
 final _log = Logger('core');
 
@@ -64,6 +66,8 @@ class DioClient {
 
   bool _isRefreshing = false;
   Completer<void>? _refreshCompleter;
+  String? _clientVersion;
+  String? _clientPlatform;
 
   Dio get dio => _dio;
 
@@ -85,6 +89,15 @@ class DioClient {
     _dio.interceptors.add(
       InterceptorsWrapper(
         onRequest: (options, handler) async {
+          _clientVersion ??= await _resolveClientVersion();
+          if (_clientVersion != null) {
+            options.headers['X-Client-Version'] = _clientVersion;
+          }
+
+          _clientPlatform ??= _resolveClientPlatform();
+          options.headers['X-Client-Platform'] = _clientPlatform;
+          options.headers['X-Request-ID'] = const Uuid().v4();
+
           final token = await _prefService.getSecure('access_token');
           if (token?.isNotEmpty ?? false) {
             options.headers['Authorization'] = 'Bearer $token';
@@ -110,7 +123,12 @@ class DioClient {
               _log.info(
                 'Token refresh in progress, waiting for completion ...',
               );
-              Sentry.metrics.count('auth.token_refresh.queued_request', 1);
+              unawaited(
+                AnalyticsService().logEvent(
+                  name: 'auth_token_refresh_queued',
+                  parameters: {'category': 'operational'},
+                ),
+              );
               try {
                 await _refreshCompleter!.future;
                 final newToken = await getAccessToken();
@@ -344,6 +362,8 @@ class DioClient {
 
         await saveSettings(user.settings);
 
+        unawaited(AnalyticsService().setStaffStatus(user.email));
+
         return user.settings;
       } else {
         _log.severe(
@@ -498,6 +518,23 @@ class DioClient {
     }
   }
 
+  Future<String?> _resolveClientVersion() async {
+    try {
+      final info = await PackageInfo.fromPlatform();
+      return '${info.version}+${info.buildNumber}';
+    } catch (e) {
+      _log.warning('Failed to resolve client version', e);
+      return null;
+    }
+  }
+
+  String _resolveClientPlatform() {
+    if (kIsWeb) return 'web';
+    if (Platform.isIOS) return 'ios';
+    if (Platform.isAndroid) return 'android';
+    return 'unknown';
+  }
+
   bool _isInvalidTokenError(dynamic responseData) {
     if (responseData is Map<String, dynamic>) {
       final detail = responseData['detail'];
@@ -511,12 +548,19 @@ class DioClient {
     return false;
   }
 
-  Future<void> _forceLogout([String message = 'Please login to continue.']) async {
+  Future<void> _forceLogout([
+    String message = 'Please login to continue.',
+  ]) async {
     try {
       await clearStorage();
       final context = rootNavigatorKey.currentContext;
       if (context != null && context.mounted) {
-        SnackBarHelper.show(context, message, seconds: 4, type: SnackType.error);
+        SnackBarHelper.show(
+          context,
+          message,
+          seconds: 4,
+          type: SnackType.error,
+        );
 
         router.go(AppRoute.loginScreen);
       }

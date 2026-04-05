@@ -29,6 +29,7 @@ import 'package:heliumapp/presentation/features/planner/bloc/reminder_state.dart
 import 'package:heliumapp/presentation/features/planner/views/planner_item_add_screen.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/core/base_event.dart';
 import 'package:heliumapp/presentation/ui/components/course_title_label.dart';
+import 'package:heliumapp/presentation/ui/components/generic_label.dart';
 import 'package:heliumapp/presentation/ui/components/non_touch_selectable_text.dart';
 import 'package:heliumapp/presentation/ui/feedback/empty_card.dart';
 import 'package:heliumapp/presentation/ui/feedback/error_card.dart';
@@ -40,6 +41,7 @@ import 'package:heliumapp/utils/conversion_helpers.dart';
 import 'package:heliumapp/utils/date_time_helpers.dart';
 import 'package:heliumapp/utils/deep_link_helpers.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
+import 'package:heliumapp/utils/error_helpers.dart';
 import 'package:heliumapp/utils/sort_helpers.dart';
 
 /// Shows notifications screen (responsive: side panel on desktop, full-screen on mobile)
@@ -140,15 +142,7 @@ class _NotificationsScreenState
   Future<UserSettingsModel?> loadSettings() {
     return super.loadSettings().then((settings) {
       if (mounted && settings != null) {
-        context.read<ReminderBloc>().add(
-          FetchRemindersEvent(
-            origin: EventOrigin.subScreen,
-            sent: true,
-            dismissed: false,
-            type: 3,
-            startOfRange: DateTime.now(),
-          ),
-        );
+        _fetchReminders();
       }
       return settings;
     });
@@ -168,7 +162,8 @@ class _NotificationsScreenState
             final shouldRemove =
                 reminder.dismissed ||
                 !reminder.sent ||
-                reminder.startOfRange.isAfter(DateTime.now());
+                reminder.startOfRange == null ||
+                reminder.startOfRange!.isAfter(DateTime.now());
 
             if (shouldRemove) {
               if (reminder.dismissed) {
@@ -232,24 +227,32 @@ class _NotificationsScreenState
           return ErrorCard(
             message: state.message!,
             source: 'notification_screen',
-            onReload: () {
-              context.read<ReminderBloc>().add(
-                FetchRemindersEvent(
-                  origin: EventOrigin.subScreen,
-                  sent: true,
-                  dismissed: false,
-                  type: 3,
-                  startOfRange: DateTime.now(),
-                ),
-              );
-            },
+            onReload: () => _fetchReminders(forceRefresh: true),
           );
         }
 
         if (_notifications.isEmpty) {
-          return EmptyCard(
-            icon: icon,
-            message: 'Reminders will appear here when they are due',
+          return Expanded(
+            child: RefreshIndicator(
+              onRefresh: () async => _fetchReminders(forceRefresh: true),
+              color: context.colorScheme.primary,
+              child: LayoutBuilder(
+                builder: (context, constraints) => SingleChildScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(
+                      minHeight: constraints.maxHeight,
+                    ),
+                    child: EmptyCard(
+                      icon: icon,
+                      message:
+                          'Reminders will appear here when they are due',
+                      expanded: false,
+                    ),
+                  ),
+                ),
+              ),
+            ),
           );
         }
 
@@ -258,27 +261,76 @@ class _NotificationsScreenState
     );
   }
 
+  void _fetchReminders({bool forceRefresh = false}) {
+    context.read<ReminderBloc>().add(
+      FetchRemindersEvent(
+        origin: EventOrigin.subScreen,
+        sent: true,
+        dismissed: false,
+        type: 3,
+        startOfRange: DateTime.now(),
+        forceRefresh: forceRefresh,
+      ),
+    );
+  }
+
   Widget _buildNotificationsList() {
     return Expanded(
-      child: ListView.builder(
-        itemCount: _notifications.length,
-        itemBuilder: (context, index) {
-          final notification = _notifications[index];
-          return _buildNotificationRow(notification);
-        },
+      child: RefreshIndicator(
+        onRefresh: () async => _fetchReminders(forceRefresh: true),
+        color: context.colorScheme.primary,
+        child: ListView.builder(
+          itemCount: _notifications.length,
+          itemBuilder: (context, index) {
+            try {
+              final notification = _notifications[index];
+              return _buildNotificationRow(notification);
+            } catch (e, st) {
+              ErrorHelpers.logAndReport(
+                'Failed to render notification at index $index',
+                e,
+                st,
+              );
+              return const SizedBox.shrink();
+            }
+          },
+        ),
       ),
     );
   }
 
   void _populateInitialStateData(RemindersFetched state) {
     final reminders = state.reminders;
+
+    final unsupported = reminders.where((r) => r.startOfRange == null).toList();
+    for (final r in unsupported) {
+      ErrorHelpers.logAndReport(
+        'Skipping reminder ${r.id} with null startOfRange',
+        Exception('Reminder ${r.id} has null startOfRange'),
+        StackTrace.current,
+        hints: {'reminder_id': r.id},
+      );
+    }
+    reminders.removeWhere((r) => r.startOfRange == null);
+
     Sort.byStartOfRange(reminders, userSettings!.timeZone);
 
-    setState(() {
-      _notifications = reminders
-          .map((r) => _mapReminderToNotification(r))
-          .toList();
+    final notifications = <NotificationModel>[];
+    for (final r in reminders) {
+      try {
+        notifications.add(_mapReminderToNotification(r));
+      } catch (e, st) {
+        ErrorHelpers.logAndReport(
+          'Failed to map reminder ${r.id} to notification',
+          e,
+          st,
+          hints: {'reminder_id': r.id},
+        );
+      }
+    }
 
+    setState(() {
+      _notifications = notifications;
       isLoading = false;
     });
   }
@@ -295,18 +347,74 @@ class _NotificationsScreenState
     });
   }
 
+  Duration _offsetToDuration(ReminderModel reminder) {
+    switch (reminder.offsetType) {
+      case 1:
+        return Duration(hours: reminder.offset);
+      case 2:
+        return Duration(days: reminder.offset);
+      case 3:
+        return Duration(days: reminder.offset * 7);
+      default:
+        return Duration(minutes: reminder.offset);
+    }
+  }
+
+  String _formatCourseScheduleTime(ReminderModel reminder) {
+    final course = reminder.course?.entity;
+
+    // Derive the actual class start by adding the offset back to startOfRange,
+    // matching the backend's class_start = start_of_range + offset logic.
+    final classStartLocal = HeliumDateTime.toLocal(
+      reminder.startOfRange!.add(_offsetToDuration(reminder)),
+      userSettings!.timeZone,
+    );
+
+    if (course == null || course.schedules.isEmpty) {
+      return HeliumDateTime.formatDate(classStartLocal);
+    }
+
+    final dayIndex = HeliumDateTime.getDayIndex(classStartLocal);
+
+    // Search all schedules for one active on this day.
+    final activeSchedule = course.schedules
+        .where((s) => s.isDayActive(dayIndex))
+        .firstOrNull;
+
+    if (activeSchedule == null) {
+      return HeliumDateTime.formatDate(classStartLocal);
+    }
+
+    final startTime = activeSchedule.getStartTimeForDayIndex(dayIndex);
+    final endTime = activeSchedule.getEndTimeForDayIndex(dayIndex);
+    final classStart = DateTime(
+      classStartLocal.year,
+      classStartLocal.month,
+      classStartLocal.day,
+      startTime.hour,
+      startTime.minute,
+    );
+    final classEnd = DateTime(
+      classStartLocal.year,
+      classStartLocal.month,
+      classStartLocal.day,
+      endTime.hour,
+      endTime.minute,
+    );
+    return HeliumDateTime.formatDateTimeRange(classStart, classEnd, true, false);
+  }
+
   NotificationModel _mapReminderToNotification(
     ReminderModel reminder, {
     Color? existingColor,
   }) {
-    final PlannerItemBaseModel? plannerItem;
     final String title;
     final Color? color;
+    final String timestamp;
+
     if (reminder.homework != null) {
-      plannerItem = reminder.homework?.entity;
       final course = reminder.homework?.entity?.course.entity;
       final category = reminder.homework?.entity?.category.entity;
-
       title = reminder.homework?.entity?.title as String;
       color =
           existingColor ??
@@ -314,13 +422,23 @@ class _NotificationsScreenState
               ? category?.color
               : course?.color) ??
           FallbackConstants.fallbackColor;
-    } else {
-      plannerItem = reminder.event?.entity;
+      timestamp = reminder.homework!.entity!.start.toIso8601String();
+    } else if (reminder.event != null) {
       title = reminder.event?.entity?.title as String;
       color =
           existingColor ??
           userSettings?.eventsColor ??
           FallbackConstants.fallbackColor;
+      timestamp = reminder.event!.entity!.start.toIso8601String();
+    } else if (reminder.course != null) {
+      final course = reminder.course?.entity;
+      title = course?.title ?? '';
+      color = existingColor ?? course?.color ?? FallbackConstants.fallbackColor;
+      timestamp = reminder.startOfRange!.toIso8601String();
+    } else {
+      title = reminder.title;
+      color = existingColor ?? FallbackConstants.fallbackColor;
+      timestamp = reminder.startOfRange!.toIso8601String();
     }
 
     return NotificationModel(
@@ -328,19 +446,20 @@ class _NotificationsScreenState
       title: title,
       body: reminder.title,
       color: color,
-      timestamp: plannerItem!.start.toIso8601String(),
+      timestamp: timestamp,
       isRead: _readNotificationIds.contains(reminder.id),
       reminder: reminder,
     );
   }
 
   Widget _buildNotificationRow(NotificationModel notification) {
-    final PlannerItemBaseModel plannerItem;
+    final PlannerItemBaseModel? plannerItem;
     if (notification.reminder.homework != null) {
-      plannerItem =
-          notification.reminder.homework?.entity as PlannerItemBaseModel;
+      plannerItem = notification.reminder.homework?.entity;
+    } else if (notification.reminder.event != null) {
+      plannerItem = notification.reminder.event?.entity;
     } else {
-      plannerItem = notification.reminder.event?.entity as PlannerItemBaseModel;
+      plannerItem = null;
     }
 
     final isTouchDevice = Responsive.isTouchDevice(context);
@@ -350,7 +469,7 @@ class _NotificationsScreenState
       child: InkWell(
         onTap: () => _openNotification(notification),
         child: Container(
-          padding: const EdgeInsets.all(12),
+          padding: const EdgeInsets.all(12.0),
           decoration: BoxDecoration(
             border: Border(
               bottom: BorderSide(
@@ -362,9 +481,9 @@ class _NotificationsScreenState
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Container(
-                width: 8,
-                height: 8,
-                margin: const EdgeInsets.only(top: 6, right: 12),
+                width: 8.0,
+                height: 8.0,
+                margin: const EdgeInsets.only(top: 6, right: 12.0),
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   color: notification.isRead
@@ -374,12 +493,12 @@ class _NotificationsScreenState
               ),
               if (notification.color != null)
                 Container(
-                  width: 4,
-                  height: 48,
-                  margin: const EdgeInsets.only(right: 12),
+                  width: 4.0,
+                  height: 48.0,
+                  margin: const EdgeInsets.only(right: 12.0),
                   decoration: BoxDecoration(
                     color: notification.color,
-                    borderRadius: BorderRadius.circular(2),
+                    borderRadius: BorderRadius.circular(2.0),
                   ),
                 ),
               Expanded(
@@ -388,10 +507,13 @@ class _NotificationsScreenState
                   children: [
                     Row(
                       children: [
-                        // When course label follows, Text hugs content;
+                        // When a badge follows, Text hugs content;
                         // when alone, Flexible allows ellipsis
                         if (plannerItem is HomeworkModel &&
-                            plannerItem.course.entity != null)
+                                plannerItem.course.entity != null ||
+                            notification.reminder.course?.entity != null &&
+                                notification
+                                    .reminder.course!.entity!.room.isNotEmpty)
                           Text(
                             notification.title,
                             style: AppStyles.standardBodyText(context).copyWith(
@@ -428,9 +550,28 @@ class _NotificationsScreenState
                               ),
                             ),
                           ),
+                        ] else if (notification.reminder.course?.entity !=
+                                null &&
+                            notification
+                                .reminder.course!.entity!.room.isNotEmpty) ...[
+                          const SizedBox(width: 4),
+                          Expanded(
+                            child: Align(
+                              alignment: Alignment.centerRight,
+                              child: GenericLabel(
+                                label:
+                                    notification.reminder.course!.entity!.room,
+                                color:
+                                    notification.reminder.course!.entity!.color,
+                                icon: Icons.pin_drop_outlined,
+                                compact: true,
+                              ),
+                            ),
+                          ),
                         ],
                       ],
                     ),
+
                     const SizedBox(height: 4),
                     NonTouchSelectableText(
                       notification.body,
@@ -445,18 +586,22 @@ class _NotificationsScreenState
                     Row(
                       children: [
                         NonTouchSelectableText(
-                          HeliumDateTime.formatDateTimeRange(
-                            HeliumDateTime.toLocal(
-                              plannerItem.start,
-                              userSettings!.timeZone,
-                            ),
-                            HeliumDateTime.toLocal(
-                              plannerItem.end,
-                              userSettings!.timeZone,
-                            ),
-                            plannerItem.showEndTime,
-                            plannerItem.allDay,
-                          ),
+                          plannerItem != null
+                              ? HeliumDateTime.formatDateTimeRange(
+                                  HeliumDateTime.toLocal(
+                                    plannerItem.start,
+                                    userSettings!.timeZone,
+                                  ),
+                                  HeliumDateTime.toLocal(
+                                    plannerItem.end,
+                                    userSettings!.timeZone,
+                                  ),
+                                  plannerItem.showEndTime,
+                                  plannerItem.allDay,
+                                )
+                              : _formatCourseScheduleTime(
+                                  notification.reminder,
+                                ),
                           style: AppStyles.standardBodyTextLight(context)
                               .copyWith(
                                 fontSize: 12,
@@ -546,12 +691,30 @@ class _NotificationsScreenState
 
     if (!mounted) return;
 
+    // Course reminders: navigate to /classes and open the course editor there.
+    final courseId = notification.reminder.course?.id;
+    if (courseId != null) {
+      Navigator.of(context).pop();
+      // Defer navigation so the pop completes and GoRouter processes the stack
+      // change before we push the next route; calling router.go synchronously
+      // after pop can conflict with GoRouter's async redirect handling
+      Future.delayed(Duration.zero, () {
+        router.go(
+          '${AppRoute.coursesScreen}?${DeepLinkParam.id}=$courseId',
+        );
+      });
+      return;
+    }
+
     // Desktop: close dialog, then set entity param so shell opens the editor.
     if (DialogModeProvider.isDialogMode(context)) {
       final homeworkId = notification.reminder.homework?.id;
       final eventId = notification.reminder.event?.id;
       final basePath = router.routerDelegate.currentConfiguration.uri.path;
       Navigator.of(context).pop();
+      // Defer navigation so the pop completes and GoRouter processes the stack
+      // change before we push the next route; calling router.replace
+      // synchronously after pop can conflict with GoRouter's async redirect
       Future.delayed(Duration.zero, () {
         if (homeworkId != null) {
           router.replace(
@@ -587,6 +750,7 @@ class _NotificationsScreenState
       sent: notification.reminder.sent,
       homework: notification.reminder.homework?.id,
       event: notification.reminder.event?.id,
+      course: notification.reminder.course?.id,
     );
 
     context.read<ReminderBloc>().add(

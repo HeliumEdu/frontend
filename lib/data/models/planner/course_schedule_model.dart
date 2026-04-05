@@ -111,7 +111,7 @@ class CourseScheduleModel extends BaseModel {
     return a.hour == b.hour && a.minute == b.minute;
   }
 
-  /// Checks if the given day index (0=Sun, 6=Sat) is active in the schedule.
+  /// Checks if the given day index (0=Sun, 6=Sat) is active in the schedule
   bool isDayActive(int dayIndex) {
     if (dayIndex < 0 || dayIndex >= daysOfWeek.length) {
       return false;
@@ -119,7 +119,7 @@ class CourseScheduleModel extends BaseModel {
     return daysOfWeek[dayIndex] == '1';
   }
 
-  /// Gets the list of active day indices (0=Sun, 6=Sat).
+  /// Gets the list of active day indices (0=Sun, 6=Sat)
   Set<int> getActiveDayIndices() {
     final Set<int> indices = {};
     for (int i = 0; i < daysOfWeek.length; i++) {
@@ -225,7 +225,7 @@ class CourseScheduleModel extends BaseModel {
     return endTime;
   }
 
-  /// Gets the start time for a specific day index (0=Sun, 6=Sat).
+  /// Gets the start time for a specific day index (0=Sun, 6=Sat)
   TimeOfDay getStartTimeForDayIndex(int dayIndex) {
     switch (dayIndex) {
       case 0:
@@ -247,7 +247,7 @@ class CourseScheduleModel extends BaseModel {
     }
   }
 
-  /// Gets the end time for a specific day index (0=Sun, 6=Sat).
+  /// Gets the end time for a specific day index (0=Sun, 6=Sat)
   TimeOfDay getEndTimeForDayIndex(int dayIndex) {
     switch (dayIndex) {
       case 0:

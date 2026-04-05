@@ -5,6 +5,7 @@
 //
 // For details regarding the license, please refer to the LICENSE file.
 
+import 'package:heliumapp/data/models/planner/course_group_model.dart';
 import 'package:heliumapp/data/models/planner/course_model.dart';
 import 'package:heliumapp/data/models/planner/course_schedule_event_model.dart';
 import 'package:heliumapp/data/models/planner/course_schedule_model.dart';
@@ -15,6 +16,7 @@ abstract class CourseScheduleRepository {
     required List<CourseModel> courses,
     required DateTime from,
     required DateTime to,
+    Map<int, CourseGroupModel>? courseGroupsById,
     String? search,
     bool? shownOnCalendar,
     bool forceRefresh = false,

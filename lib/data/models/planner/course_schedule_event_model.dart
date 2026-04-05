@@ -16,6 +16,10 @@ class CourseScheduleEventModel extends PlannerItemBaseModel {
   final String ownerId;
   final String? recurrenceRule;
 
+  /// Exception dates are computed client-side by merging course and
+  /// course-group exceptions. They are never present in API JSON.
+  final List<DateTime> exceptionDates;
+
   CourseScheduleEventModel({
     required super.id,
     required super.title,
@@ -31,6 +35,7 @@ class CourseScheduleEventModel extends PlannerItemBaseModel {
     required super.color,
     required this.ownerId,
     this.recurrenceRule,
+    required this.exceptionDates,
   }) : super(plannerItemType: PlannerItemType.courseSchedule);
 
   factory CourseScheduleEventModel.fromJson(Map<String, dynamic> json) {
@@ -53,6 +58,7 @@ class CourseScheduleEventModel extends PlannerItemBaseModel {
       ownerId: json['owner_id'],
       color: HeliumColors.hexToColor(json['color']),
       recurrenceRule: json['recurrence_rule'],
+      exceptionDates: const [],
     );
   }
 

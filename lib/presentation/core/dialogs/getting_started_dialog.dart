@@ -56,7 +56,7 @@ class _GettingStartedDialogWidget extends StatelessWidget {
                 Icon(
                   Icons.rocket_launch_outlined,
                   color: context.colorScheme.primary,
-                  size: 28,
+                  size: 28.0,
                 ),
                 const SizedBox(width: 12),
                 Text('Welcome to Helium!', style: AppStyles.pageTitle(context)),
@@ -191,12 +191,12 @@ class _GettingStartedDialogWidget extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Container(
-          padding: const EdgeInsets.all(8),
+          padding: const EdgeInsets.all(8.0),
           decoration: BoxDecoration(
             color: context.colorScheme.primary.withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(8.0),
           ),
-          child: Icon(icon, color: context.colorScheme.primary, size: 20),
+          child: Icon(icon, color: context.colorScheme.primary, size: 20.0),
         ),
         const SizedBox(width: 12),
         Expanded(

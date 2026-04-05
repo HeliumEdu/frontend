@@ -14,8 +14,8 @@ import 'package:heliumapp/domain/repositories/event_repository.dart';
 import 'package:heliumapp/domain/repositories/homework_repository.dart';
 import 'package:heliumapp/domain/repositories/note_repository.dart';
 import 'package:heliumapp/domain/repositories/resource_repository.dart';
-import 'package:heliumapp/presentation/features/notes/bloc/note_event.dart';
-import 'package:heliumapp/presentation/features/notes/bloc/note_state.dart';
+import 'package:heliumapp/presentation/features/notebook/bloc/note_event.dart';
+import 'package:heliumapp/presentation/features/notebook/bloc/note_state.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/core/base_event.dart';
 
 class NoteBloc extends Bloc<NoteEvent, NoteState> {

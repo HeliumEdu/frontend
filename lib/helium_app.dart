@@ -5,9 +5,14 @@
 //
 // For details regarding the license, please refer to the LICENSE file.
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:heliumapp/config/app_router.dart';
 import 'package:heliumapp/config/theme_notifier.dart';
+import 'package:heliumapp/utils/print_service.dart';
+import 'package:heliumapp/utils/web_helpers_stub.dart'
+    if (dart.library.js_interop) 'package:heliumapp/utils/web_helpers_web.dart';
 import 'package:heliumapp/utils/quill_helpers.dart';
 import 'package:heliumapp/utils/sf_calendar_helpers.dart';
 import 'package:heliumapp/utils/snack_bar_helpers.dart';
@@ -30,17 +35,40 @@ class _HeliumAppState extends State<HeliumApp> {
   void initState() {
     super.initState();
     _themeNotifier.addListener(_onThemeChanged);
+    if (PrintService.isSupported) HardwareKeyboard.instance.addHandler(_handleKeyEvent);
     _log.info('HeliumApp initialized with theme: ${_themeNotifier.themeMode}');
   }
 
   @override
   void dispose() {
     _themeNotifier.removeListener(_onThemeChanged);
+    if (PrintService.isSupported) HardwareKeyboard.instance.removeHandler(_handleKeyEvent);
     super.dispose();
   }
 
   void _onThemeChanged() {
     setState(() {});
+  }
+
+  bool _handleKeyEvent(KeyEvent event) {
+    if (event is! KeyDownEvent) return false;
+    final isPrint = event.logicalKey == LogicalKeyboardKey.keyP &&
+        (HardwareKeyboard.instance.isMetaPressed ||
+            HardwareKeyboard.instance.isControlPressed);
+    if (!isPrint) return false;
+    if (PrintService().hasHandler) {
+      FocusManager.instance.primaryFocus?.unfocus();
+      _handlePrint();
+    } else if (kIsWeb) {
+      // Call synchronously within the key event to satisfy the browser's
+      // user-activation requirement; async delay would cause it to be blocked.
+      triggerBrowserPrint();
+    }
+    return true;
+  }
+
+  Future<void> _handlePrint() async {
+    await PrintService().printCurrent();
   }
 
   @override

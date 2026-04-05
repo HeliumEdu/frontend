@@ -20,6 +20,7 @@ import 'package:heliumapp/presentation/ui/feedback/success_container.dart';
 import 'package:heliumapp/presentation/ui/feedback/warning_container.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/grade_helpers.dart';
+import 'package:heliumapp/core/analytics_service.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
 class GradeCalculatorDialog extends StatefulWidget {
@@ -168,7 +169,8 @@ class _GradeCalculatorDialogState
     switch (result.state) {
       case NeededGradeState.targetCategoryHasNoWeight:
         // It should be impossible to reach this state
-        Sentry.metrics.count('grades.calculator.impossible_no_weight_state', 1);
+        AnalyticsService().logEvent(name: 'grades_calculator_no_weight_state', parameters: {'category': 'edge_case'});
+        Sentry.captureMessage('Grade calculator reached impossible no-weight state for category: $targetCategoryTitle', level: SentryLevel.error);
         return "Selected category has no weight, so we can't help make accurate predictions";
       case NeededGradeState.invalidTotalWeight:
         return "Category weights do not add up to 100%, so we can't help make accurate predictions";
@@ -255,7 +257,7 @@ class _GradeCalculatorDialogState
         ),
         const SizedBox(height: 12),
 
-        Text('Desired Class Grade', style: AppStyles.formLabel(context)),
+        Text('Desired Class Grade (%)', style: AppStyles.formLabel(context)),
         const SizedBox(height: 9),
         TextFormField(
           controller: _desiredGradeController,
@@ -265,10 +267,6 @@ class _GradeCalculatorDialogState
             FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}')),
           ],
           decoration: InputDecoration(
-            hintText: 'e.g., 90',
-            hintStyle: AppStyles.formHint(context),
-            suffixText: '%',
-            suffixStyle: AppStyles.formText(context),
             filled: true,
             fillColor: context.colorScheme.surface,
             contentPadding: const EdgeInsets.only(left: 12),

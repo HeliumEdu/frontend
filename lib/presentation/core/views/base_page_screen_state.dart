@@ -7,6 +7,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:heliumapp/utils/print_helpers.dart';
 import 'package:heliumapp/config/app_router.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/core/dio_client.dart';
@@ -62,83 +63,6 @@ class DialogModeProvider extends InheritedWidget {
         height != oldWidget.height ||
         isFullScreen != oldWidget.isFullScreen;
   }
-}
-
-/// Shows any widget using [BasePageScreenState] as a dialog.
-///
-/// Returns a [Future] that completes when dismissed — chain
-/// `.then((_) => clearRouteQueryParams(basePath))` to clear URL params.
-Future<void> showScreenAsDialog(
-  BuildContext context, {
-  required Widget child,
-  double width = 500,
-  double? height,
-  AlignmentGeometry alignment = Alignment.center,
-  EdgeInsets insetPadding = const EdgeInsets.all(16),
-  bool? barrierDismissible,
-}) {
-  final dialogMessengerKey = GlobalKey<ScaffoldMessengerState>();
-  final initialLocation = router.routerDelegate.currentConfiguration.uri
-      .toString();
-
-  final isFullScreen = insetPadding == EdgeInsets.zero;
-
-  return showDialog(
-    context: context,
-    useSafeArea: !isFullScreen,
-    barrierDismissible:
-        barrierDismissible ?? !Responsive.isTouchDevice(context),
-    barrierColor: isFullScreen ? Colors.transparent : Colors.black54,
-    builder: (dialogContext) {
-      final mediaQuery = MediaQuery.of(dialogContext);
-      final screenWidth = mediaQuery.size.width;
-      final screenHeight = mediaQuery.size.height;
-      final keyboardHeight = mediaQuery.viewInsets.bottom;
-      // For full-screen dialogs, subtract keyboard height so content remains visible
-      final effectiveHeight = height ??
-          (isFullScreen ? screenHeight - keyboardHeight : screenHeight - 32);
-      // Use screen width when infinity is passed (full-screen mobile dialogs)
-      final effectiveWidth = width.isFinite ? width : screenWidth;
-
-      final Widget dialogContent = DialogModeProvider(
-        width: effectiveWidth,
-        height: effectiveHeight,
-        isFullScreen: isFullScreen,
-        scaffoldMessengerKey: dialogMessengerKey,
-        child: child,
-      );
-
-      return _DialogRouteListener(
-        initialLocation: initialLocation,
-        child: Dialog(
-          alignment: alignment,
-          insetPadding: insetPadding,
-          backgroundColor: isFullScreen
-              ? Theme.of(dialogContext).colorScheme.surface
-              : null,
-          elevation: isFullScreen ? 0 : null,
-          shape: isFullScreen
-              ? const RoundedRectangleBorder(borderRadius: BorderRadius.zero)
-              : null,
-          child: SizedBox(
-            width: effectiveWidth,
-            height: effectiveHeight,
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(isFullScreen ? 0 : 16),
-              // ScaffoldMessenger to ensure SnackBar is shown properly in dialogs
-              child: ScaffoldMessenger(
-                key: dialogMessengerKey,
-                child: Scaffold(
-                  backgroundColor: Colors.transparent,
-                  body: dialogContent,
-                ),
-              ),
-            ),
-          ),
-        ),
-      );
-    },
-  );
 }
 
 /// Listens to router changes and closes the dialog when browser navigation
@@ -235,6 +159,10 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
 
   bool get isAuthenticatedScreen => true;
 
+  bool get enablePrint => false;
+
+  bool get enablePrintFlexColumn => false;
+
   @mustBeOverridden
   String get screenTitle;
 
@@ -291,6 +219,9 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
 
     final notifier = InheritableProvidersScope.of(context);
     if (notifier != null) {
+      // Defer provider registration because didChangeDependencies runs during
+      // the build pipeline; mutating inherited state synchronously here would
+      // cause descendant widgets to rebuild mid-frame
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!mounted) return;
 
@@ -386,11 +317,8 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
             )
           else if (isLoading || (isAuthenticatedScreen && !settingsLoaded))
             const LoadingIndicator()
-          else ...[
-            buildHeaderArea(context),
-
-            buildMainArea(context),
-          ],
+          else
+            ..._buildContent(context),
         ],
       ),
     );
@@ -517,4 +445,97 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
       useRootMessenger: useRootMessenger,
     );
   }
+
+  List<Widget> _buildContent(BuildContext context) {
+    if (!enablePrint) {
+      return [buildHeaderArea(context), buildMainArea(context)];
+    }
+    return [
+      Expanded(
+        child: PrintableArea(
+          title: screenTitle,
+          flexColumn: enablePrintFlexColumn,
+          header: buildHeaderArea,
+          body: buildMainArea,
+        ),
+      ),
+    ];
+  }
+}
+
+/// Shows any widget using [BasePageScreenState] as a dialog.
+///
+/// Returns a [Future] that completes when dismissed; chain
+/// `.then((_) => clearRouteQueryParams(basePath))` to clear URL params.
+Future<void> showScreenAsDialog(
+    BuildContext context, {
+      required Widget child,
+      double width = 500,
+      double? height,
+      AlignmentGeometry alignment = Alignment.center,
+      EdgeInsets insetPadding = const EdgeInsets.all(16),
+      bool? barrierDismissible,
+    }) {
+  final dialogMessengerKey = GlobalKey<ScaffoldMessengerState>();
+  final initialLocation = router.routerDelegate.currentConfiguration.uri
+      .toString();
+
+  final isFullScreen = insetPadding == EdgeInsets.zero;
+
+  return showDialog(
+    context: context,
+    useSafeArea: !isFullScreen,
+    barrierDismissible:
+    barrierDismissible ?? !Responsive.isTouchDevice(context),
+    barrierColor: isFullScreen ? Colors.transparent : Colors.black54,
+    builder: (dialogContext) {
+      final mediaQuery = MediaQuery.of(dialogContext);
+      final screenWidth = mediaQuery.size.width;
+      final screenHeight = mediaQuery.size.height;
+      final keyboardHeight = mediaQuery.viewInsets.bottom;
+      // For full-screen dialogs, subtract keyboard height so content remains visible
+      final effectiveHeight = height ??
+          (isFullScreen ? screenHeight - keyboardHeight : screenHeight - 32);
+      // Use screen width when infinity is passed (full-screen mobile dialogs)
+      final effectiveWidth = width.isFinite ? width : screenWidth;
+
+      final Widget dialogContent = DialogModeProvider(
+        width: effectiveWidth,
+        height: effectiveHeight,
+        isFullScreen: isFullScreen,
+        scaffoldMessengerKey: dialogMessengerKey,
+        child: child,
+      );
+
+      return _DialogRouteListener(
+        initialLocation: initialLocation,
+        child: Dialog(
+          alignment: alignment,
+          insetPadding: insetPadding,
+          backgroundColor: isFullScreen
+              ? Theme.of(dialogContext).colorScheme.surface
+              : null,
+          elevation: isFullScreen ? 0 : null,
+          shape: isFullScreen
+              ? const RoundedRectangleBorder(borderRadius: BorderRadius.zero)
+              : null,
+          child: SizedBox(
+            width: effectiveWidth,
+            height: effectiveHeight,
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(isFullScreen ? 0 : 16),
+              // ScaffoldMessenger to ensure SnackBar is shown properly in dialogs
+              child: ScaffoldMessenger(
+                key: dialogMessengerKey,
+                child: Scaffold(
+                  backgroundColor: Colors.transparent,
+                  body: dialogContent,
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+    },
+  );
 }

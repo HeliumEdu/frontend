@@ -16,6 +16,9 @@ import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:meta/meta.dart';
 
 abstract class BaseDialogState<T extends StatefulWidget> extends State<T> {
+  static const _dialogBorderRadius = 12.0;
+  static const _dialogPadding = 20.0;
+  static const _buttonSpacing = 12.0;
   @mustBeOverridden
   String get dialogTitle;
 
@@ -53,9 +56,9 @@ abstract class BaseDialogState<T extends StatefulWidget> extends State<T> {
         child: SingleChildScrollView(
           child: Material(
             color: context.colorScheme.surface,
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(_dialogBorderRadius),
             child: Padding(
-              padding: const EdgeInsets.all(20),
+              padding: const EdgeInsets.all(_dialogPadding),
               child: Form(
                 key: formController.formKey,
                 child: Column(
@@ -117,7 +120,7 @@ abstract class BaseDialogState<T extends StatefulWidget> extends State<T> {
             onPressed: () => Navigator.pop(context),
           ),
         ),
-        const SizedBox(width: 12),
+        const SizedBox(width: _buttonSpacing),
         Expanded(
           child: HeliumElevatedButton(
             buttonText: 'Save',

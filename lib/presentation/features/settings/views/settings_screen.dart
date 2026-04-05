@@ -57,8 +57,9 @@ enum SettingsSubScreen {
 /// Shows settings screen (responsive: side panel on desktop, full-screen on mobile)
 Future<void> showSettings(BuildContext context, {int? initialTab}) {
   final currentUri = router.routerDelegate.currentConfiguration.uri;
-  final hasDialogParam =
-      currentUri.queryParameters.containsKey(DeepLinkParam.dialog);
+  final hasDialogParam = currentUri.queryParameters.containsKey(
+    DeepLinkParam.dialog,
+  );
   final basePath = hasDialogParam ? currentUri.path : null;
 
   final useCompact = Responsive.useCompactLayout(context);
@@ -181,8 +182,8 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
   @override
   VoidCallback? get actionButtonCallback =>
       _activeSubScreen == SettingsSubScreen.externalCalendars
-          ? () => _externalCalendarsKey.currentState?.onAddCalendar()
-          : null;
+      ? () => _externalCalendarsKey.currentState?.onAddCalendar()
+      : null;
 
   @override
   void initState() {
@@ -348,7 +349,7 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
     if (DialogModeProvider.isDialogMode(context)) {
       Navigator.of(context).pop();
     }
-    if (mounted) context.go(route);
+    context.go(route);
   }
 
   Widget _buildSettingsPage() {
@@ -374,12 +375,32 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
 
             if (_version.isNotEmpty)
               Center(
-                child: Text(
-                  _version,
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: context.colorScheme.onSurface.withValues(alpha: 0.2),
-                  ),
+                child: Column(
+                  children: [
+                    Text(
+                      _version,
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: context.colorScheme.onSurface.withValues(
+                          alpha: 0.3,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    TextButton(
+                      onPressed: () =>
+                          launchUrl(Uri.parse(AppConstants.githubUrl)),
+                      child: Text(
+                        'Open Source on GitHub',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: context.colorScheme.onSurface.withValues(
+                            alpha: 0.3,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
 
@@ -405,7 +426,7 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
                 icon: Icon(
                   Icons.help_center,
                   color: context.colorScheme.primary,
-                  size: 30,
+                  size: 30.0,
                 ),
                 tooltip: 'Get support',
               ),
@@ -533,8 +554,7 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
             icon: Icons.swap_horiz,
             label: 'Import/Export',
             hint: 'Backup and restore your data',
-            onTap: () =>
-                _navigateToSubSettings(SettingsSubScreen.importExport),
+            onTap: () => _navigateToSubSettings(SettingsSubScreen.importExport),
             iconColor: context.colorScheme.primary,
           ),
           const Divider(height: 1, indent: 68),
@@ -559,31 +579,6 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
     setState(() => _activeSubScreen = subScreen);
   }
 
-  void _expandDangerZone() {
-    _dangerZoneTimer?.cancel();
-    setState(() {
-      _dangerZoneExpanded = true;
-    });
-    _dangerZoneTimer = Timer(const Duration(seconds: 5), () {
-      if (mounted) {
-        setState(() {
-          _dangerZoneExpanded = false;
-        });
-      }
-    });
-  }
-
-  void _resetDangerZoneTimer() {
-    _dangerZoneTimer?.cancel();
-    _dangerZoneTimer = Timer(const Duration(seconds: 5), () {
-      if (mounted) {
-        setState(() {
-          _dangerZoneExpanded = false;
-        });
-      }
-    });
-  }
-
   Widget _buildSettingsItem({
     required IconData icon,
     required String label,
@@ -600,21 +595,21 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.only(
-          topLeft: const Radius.circular(16),
-          topRight: isFirst ? const Radius.circular(16) : Radius.zero,
-          bottomLeft: const Radius.circular(16),
-          bottomRight: isLast ? const Radius.circular(16) : Radius.zero,
+          topLeft: const Radius.circular(16.0),
+          topRight: isFirst ? const Radius.circular(16.0) : Radius.zero,
+          bottomLeft: const Radius.circular(16.0),
+          bottomRight: isLast ? const Radius.circular(16.0) : Radius.zero,
         ),
         child: Padding(
-          padding: const EdgeInsets.all(14),
+          padding: const EdgeInsets.all(14.0),
           child: Row(
             children: [
               Container(
-                padding: const EdgeInsets.all(10),
+                padding: const EdgeInsets.all(10.0),
                 decoration: BoxDecoration(
                   color:
                       iconBackgroundColor ?? iconColor.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(12.0),
                 ),
                 child: Icon(
                   icon,
@@ -627,7 +622,7 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
                   ),
                 ),
               ),
-              const SizedBox(width: 16),
+              const SizedBox(width: 16.0),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -640,7 +635,7 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
                             ).copyWith(color: labelColor)
                           : AppStyles.menuItem(context),
                     ),
-                    const SizedBox(height: 2),
+                    const SizedBox(height: 2.0),
                     Text(hint, style: AppStyles.menuItemHint(context)),
                   ],
                 ),
@@ -665,7 +660,7 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
   Widget _buildDangerZoneArea() {
     return Container(
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(16.0),
         border: Border.all(
           color: context.colorScheme.error.withValues(alpha: 0.2),
         ),
@@ -680,17 +675,29 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        onTap: _expandDangerZone,
-        borderRadius: const BorderRadius.all(Radius.circular(16)),
+        onTap: () {
+          _dangerZoneTimer?.cancel();
+          setState(() {
+            _dangerZoneExpanded = true;
+          });
+          _dangerZoneTimer = Timer(const Duration(seconds: 5), () {
+            if (mounted) {
+              setState(() {
+                _dangerZoneExpanded = false;
+              });
+            }
+          });
+        },
+        borderRadius: const BorderRadius.all(Radius.circular(16.0)),
         child: Padding(
-          padding: const EdgeInsets.all(14),
+          padding: const EdgeInsets.all(14.0),
           child: Row(
             children: [
               Container(
-                padding: const EdgeInsets.all(10),
+                padding: const EdgeInsets.all(10.0),
                 decoration: BoxDecoration(
                   color: context.colorScheme.error.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(12.0),
                 ),
                 child: Icon(
                   Icons.warning_amber_rounded,
@@ -703,7 +710,7 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
                   ),
                 ),
               ),
-              const SizedBox(width: 16),
+              const SizedBox(width: 16.0),
               Expanded(
                 child: Text(
                   'Danger Zone',
@@ -715,7 +722,12 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
               Icon(
                 Icons.arrow_forward_ios,
                 color: context.colorScheme.onSurface.withValues(alpha: 0.3),
-                size: 16,
+                size: Responsive.getIconSize(
+                  context,
+                  mobile: 16,
+                  tablet: 18,
+                  desktop: 20,
+                ),
               ),
             ],
           ),
@@ -732,7 +744,14 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
           label: 'Delete All Events',
           hint: 'Permanently delete all Events',
           onTap: () {
-            _resetDangerZoneTimer();
+            _dangerZoneTimer?.cancel();
+            _dangerZoneTimer = Timer(const Duration(seconds: 5), () {
+              if (mounted) {
+                setState(() {
+                  _dangerZoneExpanded = false;
+                });
+              }
+            });
             _showDeleteAllEventsDialog(context);
           },
           isFirst: true,
@@ -743,7 +762,14 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
           label: 'Delete Account',
           hint: 'Permanently delete your account',
           onTap: () {
-            _resetDangerZoneTimer();
+            _dangerZoneTimer?.cancel();
+            _dangerZoneTimer = Timer(const Duration(seconds: 5), () {
+              if (mounted) {
+                setState(() {
+                  _dangerZoneExpanded = false;
+                });
+              }
+            });
             _showDeleteAccountDialog(context);
           },
           isLast: true,
@@ -765,20 +791,20 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.only(
-          topLeft: const Radius.circular(16),
-          topRight: isFirst ? const Radius.circular(16) : Radius.zero,
-          bottomLeft: const Radius.circular(16),
-          bottomRight: isLast ? const Radius.circular(16) : Radius.zero,
+          topLeft: const Radius.circular(16.0),
+          topRight: isFirst ? const Radius.circular(16.0) : Radius.zero,
+          bottomLeft: const Radius.circular(16.0),
+          bottomRight: isLast ? const Radius.circular(16.0) : Radius.zero,
         ),
         child: Padding(
-          padding: const EdgeInsets.all(14),
+          padding: const EdgeInsets.all(14.0),
           child: Row(
             children: [
               Container(
-                padding: const EdgeInsets.all(10),
+                padding: const EdgeInsets.all(10.0),
                 decoration: BoxDecoration(
                   color: context.colorScheme.error.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(12.0),
                 ),
                 child: Icon(
                   icon,
@@ -791,7 +817,7 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
                   ),
                 ),
               ),
-              const SizedBox(width: 16),
+              const SizedBox(width: 16.0),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -802,7 +828,7 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
                         context,
                       ).copyWith(color: context.colorScheme.error),
                     ),
-                    const SizedBox(height: 2),
+                    const SizedBox(height: 2.0),
                     Text(hint, style: AppStyles.menuItemHint(context)),
                   ],
                 ),
@@ -810,7 +836,12 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
               Icon(
                 Icons.arrow_forward_ios,
                 color: context.colorScheme.onSurface.withValues(alpha: 0.3),
-                size: 16,
+                size: Responsive.getIconSize(
+                  context,
+                  mobile: 16,
+                  tablet: 18,
+                  desktop: 20,
+                ),
               ),
             ],
           ),
@@ -1113,8 +1144,8 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
               ),
             ],
           );
-          },
-        ),
+        },
+      ),
     );
   }
 }

@@ -11,6 +11,7 @@ import 'package:heliumapp/data/models/base_model.dart';
 import 'package:heliumapp/data/models/planner/course_schedule_model.dart';
 import 'package:heliumapp/utils/color_helpers.dart';
 import 'package:heliumapp/utils/conversion_helpers.dart';
+import 'package:heliumapp/utils/course_exception_helpers.dart';
 
 class CourseModel extends BaseTitledModel {
   final DateTime startDate;
@@ -25,6 +26,7 @@ class CourseModel extends BaseTitledModel {
   final String teacherEmail;
   final double? currentGrade;
   final List<CourseScheduleModel> schedules;
+  final List<DateTime> exceptions;
   final double? trend;
   final int? numDays;
   final int? numDaysCompleted;
@@ -49,6 +51,7 @@ class CourseModel extends BaseTitledModel {
     required this.teacherEmail,
     required this.currentGrade,
     required this.schedules,
+    required this.exceptions,
     this.trend,
     this.numDays,
     this.numDaysCompleted,
@@ -78,6 +81,9 @@ class CourseModel extends BaseTitledModel {
               ?.map((schedule) => CourseScheduleModel.fromJson(schedule))
               .toList() ??
           [],
+      exceptions: CourseExceptionHelpers.parseCsvExceptions(
+        json['exceptions'] as String,
+      ),
       currentGrade: toDouble(json['current_grade']),
       trend: toDouble(json['trend']),
       numDays: json['num_days'],
@@ -86,6 +92,58 @@ class CourseModel extends BaseTitledModel {
       numHomework: json['num_homework'],
       numHomeworkCompleted: json['num_homework_completed'],
       numHomeworkGraded: json['num_homework_graded'],
+    );
+  }
+
+  CourseModel copyWith({
+    int? id,
+    String? title,
+    bool? shownOnCalendar,
+    DateTime? startDate,
+    DateTime? endDate,
+    String? room,
+    double? credits,
+    Color? color,
+    String? website,
+    bool? isOnline,
+    int? courseGroup,
+    String? teacherName,
+    String? teacherEmail,
+    double? currentGrade,
+    List<CourseScheduleModel>? schedules,
+    List<DateTime>? exceptions,
+    double? trend,
+    int? numDays,
+    int? numDaysCompleted,
+    bool? hasWeightedGrading,
+    int? numHomework,
+    int? numHomeworkCompleted,
+    int? numHomeworkGraded,
+  }) {
+    return CourseModel(
+      id: id ?? this.id,
+      title: title ?? this.title,
+      shownOnCalendar: shownOnCalendar ?? this.shownOnCalendar,
+      startDate: startDate ?? this.startDate,
+      endDate: endDate ?? this.endDate,
+      room: room ?? this.room,
+      credits: credits ?? this.credits,
+      color: color ?? this.color,
+      website: website ?? this.website,
+      isOnline: isOnline ?? this.isOnline,
+      courseGroup: courseGroup ?? this.courseGroup,
+      teacherName: teacherName ?? this.teacherName,
+      teacherEmail: teacherEmail ?? this.teacherEmail,
+      currentGrade: currentGrade ?? this.currentGrade,
+      schedules: schedules ?? this.schedules,
+      exceptions: exceptions ?? this.exceptions,
+      trend: trend ?? this.trend,
+      numDays: numDays ?? this.numDays,
+      numDaysCompleted: numDaysCompleted ?? this.numDaysCompleted,
+      hasWeightedGrading: hasWeightedGrading ?? this.hasWeightedGrading,
+      numHomework: numHomework ?? this.numHomework,
+      numHomeworkCompleted: numHomeworkCompleted ?? this.numHomeworkCompleted,
+      numHomeworkGraded: numHomeworkGraded ?? this.numHomeworkGraded,
     );
   }
 

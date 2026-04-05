@@ -16,6 +16,7 @@ import 'package:heliumapp/presentation/features/shared/widgets/flow/multi_step_c
 import 'package:heliumapp/presentation/features/courses/widgets/course_attachments.dart';
 import 'package:heliumapp/presentation/features/courses/widgets/course_categories.dart';
 import 'package:heliumapp/presentation/features/courses/widgets/course_details.dart';
+import 'package:heliumapp/presentation/features/courses/widgets/course_reminders.dart';
 import 'package:heliumapp/presentation/features/courses/widgets/course_schedule.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
@@ -140,31 +141,6 @@ class _CourseAddScreenState extends MultiStepContainerState<CourseAddScreen> {
     };
   }
 
-  bool _willCloseAfterSave() {
-    if (_targetStep != null) {
-      return _targetStep! >= steps.length;
-    }
-    return !widget.isNew || currentStep + 1 >= steps.length;
-  }
-
-  void _navigateAfterSave() {
-    if (_targetStep != null) {
-      // User explicitly requested a specific step (clicked step icon)
-      final step = _targetStep!;
-      _targetStep = null;
-      if (step < steps.length) {
-        navigateToStep(step);
-      } else {
-        cancelAction();
-      }
-    } else if (widget.isNew && currentStep + 1 < steps.length) {
-      // In create mode, auto-advance to next step
-      navigateToStep(currentStep + 1);
-    } else {
-      cancelAction();
-    }
-  }
-
   @override
   List<BlocListener<dynamic, dynamic>> buildListeners(BuildContext context) {
     return [
@@ -206,6 +182,31 @@ class _CourseAddScreenState extends MultiStepContainerState<CourseAddScreen> {
     ];
   }
 
+  bool _willCloseAfterSave() {
+    if (_targetStep != null) {
+      return _targetStep! >= steps.length;
+    }
+    return !widget.isNew || currentStep + 1 >= steps.length;
+  }
+
+  void _navigateAfterSave() {
+    if (_targetStep != null) {
+      // User explicitly requested a specific step (clicked step icon)
+      final step = _targetStep!;
+      _targetStep = null;
+      if (step < steps.length) {
+        navigateToStep(step);
+      } else {
+        cancelAction();
+      }
+    } else if (widget.isNew && currentStep + 1 < steps.length) {
+      // In create mode, auto-advance to next step
+      navigateToStep(currentStep + 1);
+    } else {
+      cancelAction();
+    }
+  }
+
   late final List<MultiStepDefinition> _steps = [
     MultiStepDefinition(
       icon: Icons.list,
@@ -234,6 +235,17 @@ class _CourseAddScreenState extends MultiStepContainerState<CourseAddScreen> {
         isNew: widget.isNew,
         userSettings: userSettings,
         onActionStarted: () => setState(() => isSubmitting = true),
+      ),
+    ),
+    MultiStepDefinition(
+      icon: Icons.notifications_outlined,
+      tooltip: 'Schedule Reminders',
+      stepScreenType: ScreenType.subPage,
+      builder: (context) => CourseReminders(
+        entityId: _currentCourseId!,
+        isEdit: widget.isEdit || _currentCourseId != null,
+        userSettings: userSettings,
+        headerTitle: 'Schedule Reminders',
       ),
     ),
     MultiStepDefinition(

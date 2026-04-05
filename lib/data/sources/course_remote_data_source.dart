@@ -5,7 +5,10 @@
 //
 // For details regarding the license, please refer to the LICENSE file.
 
+import 'dart:async';
+
 import 'package:dio/dio.dart';
+import 'package:heliumapp/core/analytics_service.dart';
 import 'package:heliumapp/core/api_url.dart';
 import 'package:heliumapp/core/dio_client.dart';
 import 'package:heliumapp/core/helium_exception.dart';
@@ -14,6 +17,7 @@ import 'package:heliumapp/data/models/planner/request/course_group_request_model
 import 'package:heliumapp/data/models/planner/course_model.dart';
 import 'package:heliumapp/data/models/planner/request/course_request_model.dart';
 import 'package:heliumapp/data/sources/base_data_source.dart';
+import 'package:heliumapp/utils/course_exception_helpers.dart';
 import 'package:logging/logging.dart';
 
 final _log = Logger('data.sources');
@@ -52,6 +56,17 @@ abstract class CourseRemoteDataSource extends BaseDataSource {
   );
 
   Future<void> deleteCourse(int groupId, int courseId);
+
+  Future<void> updateCourseExceptions(
+    int groupId,
+    int courseId,
+    List<DateTime> exceptions,
+  );
+
+  Future<void> updateCourseGroupExceptions(
+    int groupId,
+    List<DateTime> exceptions,
+  );
 }
 
 class CourseRemoteDataSourceImpl extends CourseRemoteDataSource {
@@ -157,6 +172,7 @@ class CourseRemoteDataSourceImpl extends CourseRemoteDataSource {
         final course = CourseModel.fromJson(response.data);
         _log.info('... Course ${course.id} created in CourseGroup $groupId');
         await dioClient.cacheService.invalidateAll();
+        unawaited(AnalyticsService().logEvent(name: 'course_created', parameters: {'category': 'feature_interaction'}));
         return course;
       } else {
         throw ServerException(
@@ -318,6 +334,13 @@ class CourseRemoteDataSourceImpl extends CourseRemoteDataSource {
         final group = CourseGroupModel.fromJson(response.data);
         _log.info('... CourseGroup ${group.id} created');
         await dioClient.cacheService.invalidateAll();
+        unawaited(AnalyticsService().logEvent(
+          name: 'course_group_created',
+          parameters: {
+            'category': 'feature_interaction',
+            'semester_status': _semesterStatus(request.startDate, request.endDate),
+          },
+        ));
         return group;
       } else {
         throw ServerException(
@@ -388,4 +411,74 @@ class CourseRemoteDataSourceImpl extends CourseRemoteDataSource {
       throw HeliumException(message: 'An unexpected error occurred.');
     }
   }
+
+  @override
+  Future<void> updateCourseExceptions(
+    int groupId,
+    int courseId,
+    List<DateTime> exceptions,
+  ) async {
+    try {
+      _log.info('Updating exceptions for Course $courseId in CourseGroup $groupId ...');
+
+      final response = await dioClient.dio.patch(
+        ApiUrl.plannerCourseGroupsCoursesDetailsUrl(groupId, courseId),
+        data: {'exceptions': CourseExceptionHelpers.formatExceptionsCsv(exceptions)},
+      );
+
+      if (response.statusCode == 200) {
+        _log.info('... exceptions for Course $courseId updated');
+        await dioClient.cacheService.invalidateAll();
+      } else {
+        throw ServerException(
+          message: 'Failed to update course exceptions',
+          code: response.statusCode.toString(),
+        );
+      }
+    } on DioException catch (e, s) {
+      throw handleDioError(e, s);
+    } catch (e, s) {
+      _log.severe('An unexpected error occurred', e, s);
+      throw HeliumException(message: 'An unexpected error occurred.');
+    }
+  }
+
+  @override
+  Future<void> updateCourseGroupExceptions(
+    int groupId,
+    List<DateTime> exceptions,
+  ) async {
+    try {
+      _log.info('Updating exceptions for CourseGroup $groupId ...');
+
+      final response = await dioClient.dio.patch(
+        ApiUrl.plannerCourseGroupsDetailsUrl(groupId),
+        data: {'exceptions': CourseExceptionHelpers.formatExceptionsCsv(exceptions)},
+      );
+
+      if (response.statusCode == 200) {
+        _log.info('... exceptions for CourseGroup $groupId updated');
+        await dioClient.cacheService.invalidateAll();
+      } else {
+        throw ServerException(
+          message: 'Failed to update course group exceptions',
+          code: response.statusCode.toString(),
+        );
+      }
+    } on DioException catch (e, s) {
+      throw handleDioError(e, s);
+    } catch (e, s) {
+      _log.severe('An unexpected error occurred', e, s);
+      throw HeliumException(message: 'An unexpected error occurred.');
+    }
+  }
+}
+
+String _semesterStatus(String startDate, String endDate) {
+  final now = DateTime.now();
+  final start = DateTime.parse(startDate);
+  final end = DateTime.parse(endDate);
+  if (end.isBefore(now)) return 'past';
+  if (start.isAfter(now)) return 'future';
+  return 'current';
 }

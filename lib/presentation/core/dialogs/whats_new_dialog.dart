@@ -25,7 +25,7 @@ class _WhatsNewDialogWidget extends StatelessWidget {
           Icon(
             Icons.auto_awesome,
             color: context.colorScheme.primary,
-            size: 28,
+            size: 28.0,
           ),
           const SizedBox(width: 12),
           Text(
@@ -41,7 +41,7 @@ class _WhatsNewDialogWidget extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             SelectableText(
-              "We've completely rebuilt Helium from the ground up—sleek, modern, fast, and built to last.",
+              "Your study sidekick just leveled up. Here's what changed.",
               style: AppStyles.standardBodyText(context),
             ),
             const SizedBox(height: 16),
@@ -51,28 +51,31 @@ class _WhatsNewDialogWidget extends StatelessWidget {
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    // What's New rotation: new features are added at the top, pushing each
+                    // existing item down one position. When the list exceeds 4-5 items, drop
+                    // the bottom-most feature (above 'New surprises ahead').
                     _buildFeatureItem(
                       context,
-                      icon: Icons.bolt_outlined,
-                      title: 'Lightning fast',
+                      icon: Icons.print_outlined,
+                      title: 'Print & Export',
                       description:
-                          'Snappier performance and a stable foundation',
+                          'Print anything across the app, including your formatted notes, or export "Todos" to CSV',
                     ),
                     const SizedBox(height: 12),
                     _buildFeatureItem(
                       context,
-                      icon: Icons.phone_iphone_outlined,
-                      title: 'Native mobile apps',
+                      icon: Icons.school,
+                      title: 'Class Reminders',
                       description:
-                          'iOS and Android apps with push notifications',
+                      "Reminders can be added to a class, so you can now receive push notifications when it's time for class",
                     ),
                     const SizedBox(height: 12),
                     _buildFeatureItem(
                       context,
-                      icon: Icons.sync_outlined,
-                      title: 'Seamless sync',
+                      icon: Icons.calendar_month,
+                      title: 'Cancellations & Holidays',
                       description:
-                          'Consistent experience across web and mobile',
+                          'Exclude specific sessions from a recurring class schedule, or set holidays for a term that apply across all classes',
                     ),
                     const SizedBox(height: 12),
                     _buildFeatureItem(
@@ -156,12 +159,12 @@ class _WhatsNewDialogWidget extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Container(
-          padding: const EdgeInsets.all(8),
+          padding: const EdgeInsets.all(8.0),
           decoration: BoxDecoration(
             color: context.colorScheme.primary.withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(8.0),
           ),
-          child: Icon(icon, color: context.colorScheme.primary, size: 20),
+          child: Icon(icon, color: context.colorScheme.primary, size: 20.0),
         ),
         const SizedBox(width: 12),
         Expanded(

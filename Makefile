@@ -48,7 +48,7 @@ else
     RUN_ARGS += --web-port=8080
 endif
 
-DRIVE_ARGS := --driver=test_driver/integration_test.dart -d web-server --web-port=8080 --browser-name=chrome --profile --dart-define=ENVIRONMENT=$(ENVIRONMENT) --dart-define=ANALYTICS_ENABLED=false
+DRIVE_ARGS := --driver=test_driver/integration_test.dart -d web-server --web-port=8080 --browser-name=chrome --profile --dart-define=ENVIRONMENT=$(ENVIRONMENT)
 DRIVE_ARGS += --web-browser-flag="--disable-web-security"
 DRIVE_ARGS += --web-browser-flag="--user-data-dir=/tmp/chrome_test_profile"
 ifeq ($(HEADLESS),true)

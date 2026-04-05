@@ -91,5 +91,5 @@ class ResendVerificationEvent extends AuthEvent {
 
 class DeleteExampleScheduleEvent extends AuthEvent {}
 
-/// Triggers schedule data refresh on listening screens (e.g., after import or delete).
+/// Triggers schedule data refresh on listening screens (e.g., after import or delete)
 class RefreshScheduleDataEvent extends AuthEvent {}

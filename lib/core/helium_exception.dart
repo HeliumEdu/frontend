@@ -13,7 +13,7 @@ class HeliumException implements Exception {
   final int? httpStatusCode;
   final dynamic details;
 
-  /// Parsed error containing field-specific errors and a clean display message.
+  /// Parsed error containing field-specific errors and a clean display message
   final ParsedApiError? parsedError;
 
   HeliumException({
@@ -28,10 +28,10 @@ class HeliumException implements Exception {
   /// Falls back to [message] if no parsed error is available.
   String get displayMessage => parsedError?.displayMessage ?? message;
 
-  /// Returns the error message for a specific field, or null if none.
+  /// Returns the error message for a specific field, or null if none
   String? getFieldError(String fieldName) => parsedError?.getFieldError(fieldName);
 
-  /// Whether this exception has field-specific errors.
+  /// Whether this exception has field-specific errors
   bool get hasFieldErrors => parsedError?.hasFieldErrors ?? false;
 
   @override

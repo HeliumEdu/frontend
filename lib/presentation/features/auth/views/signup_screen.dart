@@ -41,6 +41,9 @@ class SignupScreen extends StatefulWidget {
 }
 
 class _SignupScreenState extends BasePageScreenState<SignupScreen> {
+  static const _oauthButtonWidth = 250.0;
+  static const _oauthButtonHeight = 40.0;
+
   @override
   String get screenTitle => 'Create an Account';
 
@@ -48,7 +51,7 @@ class _SignupScreenState extends BasePageScreenState<SignupScreen> {
   bool get isAuthenticatedScreen => false;
 
   final SignupFormController _formController = SignupFormController();
-  bool isOAuthLoading = false;
+  bool _isOAuthLoading = false;
 
   @override
   void initState() {
@@ -59,11 +62,6 @@ class _SignupScreenState extends BasePageScreenState<SignupScreen> {
     setState(() {
       isLoading = false;
     });
-  }
-
-  Future<void> _initializeForm() async {
-    await _formController.initializeTimeZones();
-    if (mounted) setState(() {});
   }
 
   @override
@@ -79,9 +77,9 @@ class _SignupScreenState extends BasePageScreenState<SignupScreen> {
       BlocListener<AuthBloc, AuthState>(
         listener: (context, state) {
           if (state is AuthLoggedIn) {
-            final wasOAuthFlow = isOAuthLoading;
+            final wasOAuthFlow = _isOAuthLoading;
             setState(() {
-              isOAuthLoading = false;
+              _isOAuthLoading = false;
               isSubmitting = true;
             });
 
@@ -138,7 +136,7 @@ class _SignupScreenState extends BasePageScreenState<SignupScreen> {
           if (state is! AuthLoading && state is! AuthLoggedIn) {
             setState(() {
               isSubmitting = false;
-              isOAuthLoading = false;
+              _isOAuthLoading = false;
             });
           }
         },
@@ -289,7 +287,7 @@ class _SignupScreenState extends BasePageScreenState<SignupScreen> {
                           style: AppStyles.formText(context),
                           children: [
                             WidgetSpan(
-                              child: GestureDetector(
+                              child: InkWell(
                                 onTap: () => launchUrl(
                                   Uri.parse('https://www.heliumedu.com/terms'),
                                 ),
@@ -306,7 +304,7 @@ class _SignupScreenState extends BasePageScreenState<SignupScreen> {
                               style: AppStyles.formText(context),
                             ),
                             WidgetSpan(
-                              child: GestureDetector(
+                              child: InkWell(
                                 onTap: () => launchUrl(
                                   Uri.parse(
                                     'https://www.heliumedu.com/privacy',
@@ -344,7 +342,7 @@ class _SignupScreenState extends BasePageScreenState<SignupScreen> {
                   return HeliumElevatedButton(
                     buttonText: 'Sign Up',
                     isLoading: isSubmitting,
-                    enabled: !isOAuthLoading,
+                    enabled: !_isOAuthLoading,
                     onPressed: _onSubmit,
                   );
                 },
@@ -373,17 +371,17 @@ class _SignupScreenState extends BasePageScreenState<SignupScreen> {
               const SizedBox(height: 25),
 
               SizedBox(
-                width: 250,
-                height: 40,
+                width: _oauthButtonWidth,
+                height: _oauthButtonHeight,
                 child: IgnorePointer(
-                  ignoring: isOAuthLoading || isSubmitting,
+                  ignoring: _isOAuthLoading || isSubmitting,
                   child: Opacity(
-                    opacity: isOAuthLoading || isSubmitting ? 0.5 : 1.0,
+                    opacity: _isOAuthLoading || isSubmitting ? 0.5 : 1.0,
                     child: SignInButton(
                       Buttons.google,
                       onPressed: () {
                         setState(() {
-                          isOAuthLoading = true;
+                          _isOAuthLoading = true;
                         });
                         context.read<AuthBloc>().add(GoogleLoginEvent());
                       },
@@ -397,17 +395,17 @@ class _SignupScreenState extends BasePageScreenState<SignupScreen> {
               if (kIsWeb || !Platform.isAndroid) ...[
                 const SizedBox(height: 12),
                 SizedBox(
-                  width: 250,
-                  height: 40,
+                  width: _oauthButtonWidth,
+                  height: _oauthButtonHeight,
                   child: IgnorePointer(
-                    ignoring: isOAuthLoading || isSubmitting,
+                    ignoring: _isOAuthLoading || isSubmitting,
                     child: Opacity(
-                      opacity: isOAuthLoading || isSubmitting ? 0.5 : 1.0,
+                      opacity: _isOAuthLoading || isSubmitting ? 0.5 : 1.0,
                       child: SignInButton(
                         Buttons.apple,
                         onPressed: () {
                           setState(() {
-                            isOAuthLoading = true;
+                            _isOAuthLoading = true;
                           });
                           context.read<AuthBloc>().add(AppleLoginEvent());
                         },
@@ -459,6 +457,11 @@ class _SignupScreenState extends BasePageScreenState<SignupScreen> {
     );
   }
 
+  Future<void> _initializeForm() async {
+    await _formController.initializeTimeZones();
+    if (mounted) setState(() {});
+  }
+
   void _onSubmit() {
     if (_formController.formKey.currentState!.validate()) {
       if (!_formController.agreeToTerms) {
@@ -475,7 +478,6 @@ class _SignupScreenState extends BasePageScreenState<SignupScreen> {
         isSubmitting = true;
       });
 
-      // Dispatch register event
       context.read<AuthBloc>().add(
         RegisterEvent(
           email: _formController.emailController.text.trim(),

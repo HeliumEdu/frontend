@@ -50,16 +50,18 @@ class _PlannerItemRemindersContent extends BaseRemindersContent {
 class _PlannerItemRemindersState
     extends BaseReminderWidgetState<_PlannerItemRemindersContent> {
   @override
-  FetchRemindersEvent createFetchRemindersEvent() {
+  FetchRemindersEvent createFetchRemindersEvent({bool forceRefresh = false}) {
     if (widget.isEvent) {
       return FetchRemindersEvent(
         origin: EventOrigin.subScreen,
         eventId: widget.entityId,
+        forceRefresh: forceRefresh,
       );
     } else {
       return FetchRemindersEvent(
         origin: EventOrigin.subScreen,
         homeworkId: widget.entityId,
+        forceRefresh: forceRefresh,
       );
     }
   }

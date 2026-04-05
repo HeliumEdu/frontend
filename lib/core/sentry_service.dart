@@ -30,7 +30,11 @@ class SentryService {
     return _instance._shouldFilter(event);
   }
 
+  bool get isEnabled => !kDebugMode && !kProfileMode;
+
   Future<void> init() async {
+    if (!isEnabled) return;
+
     // Skip Sentry entirely on Google Play pre-launch test farm devices.
     // Native crashes bypass Dart-level filters (sent via captureEnvelope),
     // so we must prevent initialization at the source.
@@ -73,7 +77,7 @@ class SentryService {
 
       // Belt-and-suspenders for auth errors with non-null values. In
       // sentry_flutter, ignoreErrors is a Dart-side filter that runs on the
-      // deserialized SentryEvent — same as beforeSend. For onerror events where
+      // deserialized SentryEvent; same as beforeSend. For onerror events where
       // exception.value is null after deserialization, neither filter can match;
       // those cases are prevented at the source (see _authRedirect in
       // app_router.dart).

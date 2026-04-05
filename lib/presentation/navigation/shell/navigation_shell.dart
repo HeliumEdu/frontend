@@ -19,7 +19,7 @@ import 'package:heliumapp/presentation/features/auth/bloc/auth_bloc.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_state.dart';
 import 'package:heliumapp/presentation/features/courses/views/courses_screen.dart';
 import 'package:heliumapp/presentation/features/grades/views/grades_screen.dart';
-import 'package:heliumapp/presentation/features/notes/views/notebook_screen.dart';
+import 'package:heliumapp/presentation/features/notebook/views/notebook_screen.dart';
 import 'package:heliumapp/presentation/features/planner/views/planner_screen.dart';
 import 'package:heliumapp/presentation/features/resources/views/resources_screen.dart';
 // Conditional import for web platform
@@ -36,7 +36,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 final _log = Logger('presentation.navigation');
 
-/// Notifier for screens to share their inheritable providers with NavigationShell.
+/// Notifier for screens to share their inheritable providers with NavigationShell
 class InheritableProvidersNotifier extends ChangeNotifier {
   List<BlocProvider>? _providers;
 
@@ -48,7 +48,7 @@ class InheritableProvidersNotifier extends ChangeNotifier {
   }
 }
 
-/// InheritedWidget to share the InheritableProvidersNotifier with child screens.
+/// InheritedWidget to share the InheritableProvidersNotifier with child screens
 class InheritableProvidersScope extends InheritedWidget {
   final InheritableProvidersNotifier notifier;
 
@@ -69,7 +69,7 @@ class InheritableProvidersScope extends InheritedWidget {
       notifier != oldWidget.notifier;
 }
 
-/// InheritedWidget to tell child screens to hide their header.
+/// InheritedWidget to tell child screens to hide their header
 class NavigationShellProvider extends InheritedWidget {
   const NavigationShellProvider({super.key, required super.child});
 
@@ -120,7 +120,7 @@ enum NavigationPage {
   }
 }
 
-/// Shell widget for main tab navigation using go_router.
+/// Shell widget for main tab navigation using go_router
 class NavigationShell extends StatefulWidget {
   final Widget child;
 
@@ -146,121 +146,17 @@ class _NavigationShellState extends State<NavigationShell> {
       _screenCache[page] = page.buildScreen();
     }
 
-    DioClient().cacheService.addInactivityResumeListener(_onInactivityResume);
+    DioClient().cacheService.addInactivityResumeListener(_checkGettingStartedDialog);
     _checkDialogs();
   }
 
   @override
   void dispose() {
     DioClient().cacheService.removeInactivityResumeListener(
-      _onInactivityResume,
+      _checkGettingStartedDialog,
     );
     _inheritableProvidersNotifier.dispose();
     super.dispose();
-  }
-
-  void _onInactivityResume() {
-    _checkGettingStartedDialog();
-  }
-
-  Future<void> _checkGettingStartedDialog() async {
-    if (_isShowingGettingStarted || !mounted || _isLoggingOut) return;
-
-    try {
-      final settings = await DioClient().getSettings();
-      final showGettingStarted =
-          settings?.showGettingStarted ??
-          FallbackConstants.defaultShowGettingStarted;
-
-      if (!mounted || !showGettingStarted) return;
-      await _showGettingStartedDialogSafely();
-    } catch (e) {
-      _log.warning('Failed to check getting started dialog state: $e');
-    }
-  }
-
-  Future<void> _checkDialogs() async {
-    bool showGettingStarted = FallbackConstants.defaultShowGettingStarted;
-    bool showWhatsNew = false;
-
-    try {
-      final settings = await DioClient().getSettings();
-      showGettingStarted =
-          settings?.showGettingStarted ??
-          FallbackConstants.defaultShowGettingStarted;
-      showWhatsNew = await WhatsNewService().shouldShowWhatsNew();
-    } catch (e) {
-      _log.warning('Failed to prepare startup dialogs: $e');
-    }
-
-    if (!mounted) return;
-
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
-      // Double-check we're still authenticated before showing dialogs
-      if (!mounted || _isLoggingOut || !await DioClient().isAuthenticated()) {
-        return;
-      }
-
-      // Skip startup dialogs when landing on a deep link
-      final params =
-          router.routerDelegate.currentConfiguration.uri.queryParameters;
-      final hasDeepLinkParams =
-          params.containsKey(DeepLinkParam.homeworkId) ||
-          params.containsKey(DeepLinkParam.eventId) ||
-          params.containsKey(DeepLinkParam.id) ||
-          params.containsKey(DeepLinkParam.dialog) ||
-          params.containsKey(DeepLinkParam.linkHomeworkId) ||
-          params.containsKey(DeepLinkParam.linkEventId) ||
-          params.containsKey(DeepLinkParam.linkResourceId);
-      if (hasDeepLinkParams) return;
-
-      if (showGettingStarted) {
-        await _showGettingStartedDialogSafely();
-        if (!mounted || _isLoggingOut) return;
-      }
-
-      if (showWhatsNew) {
-        if (!await DioClient().isAuthenticated() || !mounted) return;
-        try {
-          await showWhatsNewDialog(context);
-        } catch (e) {
-          _log.warning('Failed to show What\'s New dialog: $e');
-        }
-      }
-    });
-  }
-
-  Future<void> _showGettingStartedDialogSafely() async {
-    if (_isShowingGettingStarted || !mounted || _isLoggingOut) return;
-
-    _isShowingGettingStarted = true;
-    try {
-      await showGettingStartedDialog(context);
-    } catch (e) {
-      _log.warning('Failed to show getting started dialog: $e');
-    } finally {
-      _isShowingGettingStarted = false;
-    }
-  }
-
-  NavigationPage _getCurrentPage(BuildContext context) {
-    final location = GoRouterState.of(context).matchedLocation;
-    return NavigationPage.fromRoute(location) ?? NavigationPage.planner;
-  }
-
-  void _onDestinationSelected(BuildContext context, int index) {
-    final newPage = NavigationPage.values[index];
-    final currentPage = _getCurrentPage(context);
-    if (newPage != currentPage) {
-      context.go(newPage.route);
-    }
-  }
-
-  /// Updates the browser title directly via DOM when navigating within the
-  /// shell. This avoids using a Title widget which would compete with pushed
-  /// routes like Settings/Notifications for control of the browser title.
-  void _updateBrowserTitle(NavigationPage page) {
-    title_helper.setTitle('${page.label} | ${AppConstants.appName}');
   }
 
   @override
@@ -423,6 +319,108 @@ class _NavigationShellState extends State<NavigationShell> {
     );
   }
 
+  Future<void> _checkGettingStartedDialog() async {
+    if (_isShowingGettingStarted || !mounted || _isLoggingOut) return;
+
+    try {
+      final settings = await DioClient().getSettings();
+      final showGettingStarted =
+          settings?.showGettingStarted ??
+          FallbackConstants.defaultShowGettingStarted;
+
+      if (!mounted || !showGettingStarted) return;
+      await _showGettingStartedDialogSafely();
+    } catch (e) {
+      _log.warning('Failed to check getting started dialog state: $e');
+    }
+  }
+
+  Future<void> _checkDialogs() async {
+    bool showGettingStarted = FallbackConstants.defaultShowGettingStarted;
+    bool showWhatsNew = false;
+
+    try {
+      final settings = await DioClient().getSettings();
+      showGettingStarted =
+          settings?.showGettingStarted ??
+          FallbackConstants.defaultShowGettingStarted;
+      showWhatsNew = await WhatsNewService().shouldShowWhatsNew();
+    } catch (e) {
+      _log.warning('Failed to prepare startup dialogs: $e');
+    }
+
+    if (!mounted) return;
+
+    // Defer dialog presentation to post-frame so the widget tree is stable
+    // after the async settings fetch; showing a dialog mid-frame would crash
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      // Double-check we're still authenticated before showing dialogs
+      if (!mounted || _isLoggingOut || !await DioClient().isAuthenticated()) {
+        return;
+      }
+
+      // Skip startup dialogs when landing on a deep link
+      final params =
+          router.routerDelegate.currentConfiguration.uri.queryParameters;
+      final hasDeepLinkParams =
+          params.containsKey(DeepLinkParam.homeworkId) ||
+          params.containsKey(DeepLinkParam.eventId) ||
+          params.containsKey(DeepLinkParam.id) ||
+          params.containsKey(DeepLinkParam.dialog) ||
+          params.containsKey(DeepLinkParam.linkHomeworkId) ||
+          params.containsKey(DeepLinkParam.linkEventId) ||
+          params.containsKey(DeepLinkParam.linkResourceId);
+      if (hasDeepLinkParams) return;
+
+      if (showGettingStarted) {
+        await _showGettingStartedDialogSafely();
+        if (!mounted || _isLoggingOut) return;
+      }
+
+      if (showWhatsNew) {
+        if (!await DioClient().isAuthenticated() || !mounted) return;
+        try {
+          await showWhatsNewDialog(context);
+        } catch (e) {
+          _log.warning('Failed to show What\'s New dialog: $e');
+        }
+      }
+    });
+  }
+
+  Future<void> _showGettingStartedDialogSafely() async {
+    if (_isShowingGettingStarted || !mounted || _isLoggingOut) return;
+
+    _isShowingGettingStarted = true;
+    try {
+      await showGettingStartedDialog(context);
+    } catch (e) {
+      _log.warning('Failed to show getting started dialog: $e');
+    } finally {
+      _isShowingGettingStarted = false;
+    }
+  }
+
+  NavigationPage _getCurrentPage(BuildContext context) {
+    final location = GoRouterState.of(context).matchedLocation;
+    return NavigationPage.fromRoute(location) ?? NavigationPage.planner;
+  }
+
+  void _onDestinationSelected(BuildContext context, int index) {
+    final newPage = NavigationPage.values[index];
+    final currentPage = _getCurrentPage(context);
+    if (newPage != currentPage) {
+      context.go(newPage.route);
+    }
+  }
+
+  /// Updates the browser title directly via DOM when navigating within the
+  /// shell. This avoids using a Title widget which would compete with pushed
+  /// routes like Settings/Notifications for control of the browser title.
+  void _updateBrowserTitle(NavigationPage page) {
+    title_helper.setTitle('${page.label} | ${AppConstants.appName}');
+  }
+
   Widget? _buildTrailing(BuildContext context, double availableHeight) {
     final inheritableProviders = _inheritableProvidersNotifier.providers;
     final settingsButton =
@@ -465,11 +463,9 @@ class _NavigationShellState extends State<NavigationShell> {
               url: AppConstants.patreonUrl,
             ),
             if (!PageHeader.showSettingsInHeader(context))
-              const SizedBox(width: 40, child: Divider())
+              const SizedBox(width: 40, child: Divider()),
           ],
-          if (!PageHeader.showSettingsInHeader(context)) ...[
-            settingsButton,
-          ],
+          if (!PageHeader.showSettingsInHeader(context)) ...[settingsButton],
         ],
       ),
     );

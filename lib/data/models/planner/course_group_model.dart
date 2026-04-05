@@ -7,10 +7,12 @@
 
 import 'package:heliumapp/data/models/base_model.dart';
 import 'package:heliumapp/utils/conversion_helpers.dart';
+import 'package:heliumapp/utils/course_exception_helpers.dart';
 
 class CourseGroupModel extends BaseTitledModel {
   final DateTime startDate;
   final DateTime endDate;
+  final List<DateTime> exceptions;
   final double? averageGrade;
   final int? numDays;
   final int? numDaysCompleted;
@@ -21,6 +23,7 @@ class CourseGroupModel extends BaseTitledModel {
     required super.shownOnCalendar,
     required this.startDate,
     required this.endDate,
+    required this.exceptions,
     this.averageGrade,
     this.numDays,
     this.numDaysCompleted,
@@ -33,6 +36,9 @@ class CourseGroupModel extends BaseTitledModel {
       startDate: DateTime.parse(json['start_date']),
       endDate: DateTime.parse(json['end_date']),
       shownOnCalendar: json['shown_on_calendar'],
+      exceptions: CourseExceptionHelpers.parseCsvExceptions(
+        json['exceptions'] as String,
+      ),
       averageGrade: toDouble(json['average_grade']),
       numDays: json['num_days'],
       numDaysCompleted: json['num_days_completed'],

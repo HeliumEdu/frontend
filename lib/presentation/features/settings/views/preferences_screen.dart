@@ -7,7 +7,6 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/config/pref_service.dart';
 import 'package:heliumapp/data/models/auth/request/update_settings_request_model.dart';
 import 'package:heliumapp/data/models/auth/user_model.dart';
@@ -18,7 +17,7 @@ import 'package:heliumapp/presentation/ui/components/drop_down.dart';
 import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
 import 'package:heliumapp/presentation/ui/components/searchable_dropdown.dart';
 import 'package:heliumapp/presentation/ui/components/spinner_field.dart';
-import 'package:heliumapp/presentation/ui/dialogs/color_picker_dialog.dart';
+import 'package:heliumapp/presentation/ui/components/color_selector.dart';
 import 'package:heliumapp/presentation/features/planner/constants/reminder_constants.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/app_style.dart';
@@ -88,76 +87,6 @@ class PreferencesScreenState extends State<PreferencesScreen> {
     _atRiskThresholdController.dispose();
     _onTrackToleranceController.dispose();
     super.dispose();
-  }
-
-  void onSubmit() {
-    if (_isSubmitting) return;
-    setState(() => _isSubmitting = true);
-    widget.onActionStarted?.call();
-
-    final timeZone = _selectedTimeZone;
-    final defaultView = CalendarConstants.defaultViews.indexOf(
-      _selectedDefaultView,
-    );
-    final weekStartsOn = CalendarConstants.dayNames.indexOf(
-      _selectedWeekStartsOn,
-    );
-    String eventsColor = HeliumColors.colorToHex(_selectedEventColor);
-    if (eventsColor.length == 9) {
-      eventsColor = '#${eventsColor.substring(3)}';
-    }
-    eventsColor = eventsColor.toLowerCase();
-    String resourceColor = HeliumColors.colorToHex(_selectedResourceColor);
-    if (resourceColor.length == 9) {
-      resourceColor = '#${resourceColor.substring(3)}';
-    }
-    resourceColor = resourceColor.toLowerCase();
-    String gradeColor = HeliumColors.colorToHex(_selectedGradeColor);
-    if (gradeColor.length == 9) {
-      gradeColor = '#${gradeColor.substring(3)}';
-    }
-    gradeColor = gradeColor.toLowerCase();
-    final reminderType = ReminderConstants.types.indexOf(_selectedReminderType);
-    final reminderOffsetType = ReminderConstants.offsetTypes.indexOf(
-      _selectedReminderOffsetType,
-    );
-    final reminderOffset = int.parse(_reminderOffsetController.text);
-    final showPlannerTooltips = _isShowPlannerTooltips;
-    final dragAndDropOnMobile = _isDragAndDropOnMobile;
-    final colorByCategory = _isSelectedColorByCategory;
-    final rememberFilterState = _isRememberFilterSelection;
-    final collapseBusyDays = _isCollapseBusyDays;
-    final showWeekNumbers = _isShowWeekNumbers;
-    final atRiskThreshold = int.parse(_atRiskThresholdController.text);
-    final onTrackTolerance = int.parse(_onTrackToleranceController.text);
-
-    context.read<AuthBloc>().add(
-      UpdateProfileEvent(
-        request: UpdateSettingsRequestModel(
-          timeZone: timeZone,
-          defaultView: defaultView,
-          weekStartsOn: weekStartsOn,
-          showPlannerTooltips: showPlannerTooltips,
-          dragAndDropOnMobile: dragAndDropOnMobile,
-          colorByCategory: colorByCategory,
-          eventsColor: eventsColor,
-          resourceColor: resourceColor,
-          gradeColor: gradeColor,
-          defaultReminderType: reminderType,
-          defaultReminderOffset: reminderOffset,
-          defaultReminderOffsetType: reminderOffsetType,
-          rememberFilterState: rememberFilterState,
-          collapseBusyDays: collapseBusyDays,
-          showWeekNumbers: showWeekNumbers,
-          atRiskThreshold: atRiskThreshold,
-          onTrackTolerance: onTrackTolerance,
-        ),
-      ),
-    );
-  }
-
-  void resetSubmitting() {
-    setState(() => _isSubmitting = false);
   }
 
   @override
@@ -303,35 +232,13 @@ class PreferencesScreenState extends State<PreferencesScreen> {
             Row(
               children: [
                 SizedBox(width: 160, child: Text('Color for Events', style: AppStyles.formLabel(context))),
-                MouseRegion(
-                  cursor: SystemMouseCursors.click,
-                  child: GestureDetector(
-                    onTap: () {
-                      Feedback.forTap(context);
-                      showColorPickerDialog(
-                        parentContext: context,
-                        initialColor: _selectedEventColor,
-                        onSelected: (color) {
-                          setState(() {
-                            _selectedEventColor = color;
-                          });
-                        },
-                      );
-                    },
-                    child: Container(
-                      width: 33,
-                      height: 33,
-                      decoration: BoxDecoration(
-                        color: _selectedEventColor,
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(
-                          color: context.colorScheme.outline.withValues(
-                            alpha: 0.2,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
+                ColorSelector(
+                  selectedColor: _selectedEventColor,
+                  onColorSelected: (color) {
+                    setState(() {
+                      _selectedEventColor = color;
+                    });
+                  },
                 ),
               ],
             ),
@@ -339,32 +246,13 @@ class PreferencesScreenState extends State<PreferencesScreen> {
             Row(
               children: [
                 SizedBox(width: 160, child: Text('Color for grades', style: AppStyles.formLabel(context))),
-                MouseRegion(
-                  cursor: SystemMouseCursors.click,
-                  child: GestureDetector(
-                    onTap: () => showColorPickerDialog(
-                      parentContext: context,
-                      initialColor: _selectedGradeColor,
-                      onSelected: (color) {
-                        setState(() {
-                          _selectedGradeColor = color;
-                        });
-                      },
-                    ),
-                    child: Container(
-                      width: 33,
-                      height: 33,
-                      decoration: BoxDecoration(
-                        color: _selectedGradeColor,
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(
-                          color: context.colorScheme.outline.withValues(
-                            alpha: 0.2,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
+                ColorSelector(
+                  selectedColor: _selectedGradeColor,
+                  onColorSelected: (color) {
+                    setState(() {
+                      _selectedGradeColor = color;
+                    });
+                  },
                 ),
               ],
             ),
@@ -372,32 +260,13 @@ class PreferencesScreenState extends State<PreferencesScreen> {
             Row(
               children: [
                 SizedBox(width: 160, child: Text('Color for resources', style: AppStyles.formLabel(context))),
-                MouseRegion(
-                  cursor: SystemMouseCursors.click,
-                  child: GestureDetector(
-                    onTap: () => showColorPickerDialog(
-                      parentContext: context,
-                      initialColor: _selectedResourceColor,
-                      onSelected: (color) {
-                        setState(() {
-                          _selectedResourceColor = color;
-                        });
-                      },
-                    ),
-                    child: Container(
-                      width: 33,
-                      height: 33,
-                      decoration: BoxDecoration(
-                        color: _selectedResourceColor,
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(
-                          color: context.colorScheme.outline.withValues(
-                            alpha: 0.2,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
+                ColorSelector(
+                  selectedColor: _selectedResourceColor,
+                  onColorSelected: (color) {
+                    setState(() {
+                      _selectedResourceColor = color;
+                    });
+                  },
                 ),
               ],
             ),
@@ -504,6 +373,76 @@ class PreferencesScreenState extends State<PreferencesScreen> {
         ),
       ),
     );
+  }
+
+  void onSubmit() {
+    if (_isSubmitting) return;
+    setState(() => _isSubmitting = true);
+    widget.onActionStarted?.call();
+
+    final timeZone = _selectedTimeZone;
+    final defaultView = CalendarConstants.defaultViews.indexOf(
+      _selectedDefaultView,
+    );
+    final weekStartsOn = CalendarConstants.dayNames.indexOf(
+      _selectedWeekStartsOn,
+    );
+    String eventsColor = HeliumColors.colorToHex(_selectedEventColor);
+    if (eventsColor.length == 9) {
+      eventsColor = '#${eventsColor.substring(3)}';
+    }
+    eventsColor = eventsColor.toLowerCase();
+    String resourceColor = HeliumColors.colorToHex(_selectedResourceColor);
+    if (resourceColor.length == 9) {
+      resourceColor = '#${resourceColor.substring(3)}';
+    }
+    resourceColor = resourceColor.toLowerCase();
+    String gradeColor = HeliumColors.colorToHex(_selectedGradeColor);
+    if (gradeColor.length == 9) {
+      gradeColor = '#${gradeColor.substring(3)}';
+    }
+    gradeColor = gradeColor.toLowerCase();
+    final reminderType = ReminderConstants.types.indexOf(_selectedReminderType);
+    final reminderOffsetType = ReminderConstants.offsetTypes.indexOf(
+      _selectedReminderOffsetType,
+    );
+    final reminderOffset = int.parse(_reminderOffsetController.text);
+    final showPlannerTooltips = _isShowPlannerTooltips;
+    final dragAndDropOnMobile = _isDragAndDropOnMobile;
+    final colorByCategory = _isSelectedColorByCategory;
+    final rememberFilterState = _isRememberFilterSelection;
+    final collapseBusyDays = _isCollapseBusyDays;
+    final showWeekNumbers = _isShowWeekNumbers;
+    final atRiskThreshold = int.parse(_atRiskThresholdController.text);
+    final onTrackTolerance = int.parse(_onTrackToleranceController.text);
+
+    context.read<AuthBloc>().add(
+      UpdateProfileEvent(
+        request: UpdateSettingsRequestModel(
+          timeZone: timeZone,
+          defaultView: defaultView,
+          weekStartsOn: weekStartsOn,
+          showPlannerTooltips: showPlannerTooltips,
+          dragAndDropOnMobile: dragAndDropOnMobile,
+          colorByCategory: colorByCategory,
+          eventsColor: eventsColor,
+          resourceColor: resourceColor,
+          gradeColor: gradeColor,
+          defaultReminderType: reminderType,
+          defaultReminderOffset: reminderOffset,
+          defaultReminderOffsetType: reminderOffsetType,
+          rememberFilterState: rememberFilterState,
+          collapseBusyDays: collapseBusyDays,
+          showWeekNumbers: showWeekNumbers,
+          atRiskThreshold: atRiskThreshold,
+          onTrackTolerance: onTrackTolerance,
+        ),
+      ),
+    );
+  }
+
+  void resetSubmitting() {
+    setState(() => _isSubmitting = false);
   }
 
   Widget _buildSectionHeader(String title) {

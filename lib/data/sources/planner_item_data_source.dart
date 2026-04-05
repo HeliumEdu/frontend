@@ -15,7 +15,9 @@ import 'package:heliumapp/config/pref_service.dart';
 import 'package:heliumapp/data/models/auth/user_model.dart';
 import 'package:heliumapp/data/models/planner/planner_item_base_model.dart';
 import 'package:heliumapp/data/models/planner/category_model.dart';
+import 'package:heliumapp/data/models/planner/course_group_model.dart';
 import 'package:heliumapp/data/models/planner/course_model.dart';
+import 'package:heliumapp/data/models/planner/resource_model.dart';
 import 'package:heliumapp/data/models/planner/course_schedule_event_model.dart';
 import 'package:heliumapp/data/models/planner/event_model.dart';
 import 'package:heliumapp/data/models/planner/external_calendar_event_model.dart';
@@ -35,7 +37,7 @@ import 'package:syncfusion_flutter_calendar/calendar.dart';
 
 final _log = Logger('data.sources');
 
-/// Optimistic override for planner item start/end times during drag-drop/resize.
+/// Optimistic override for planner item start/end times during drag-drop/resize
 class PlannerItemTimeOverride {
   final String start;
   final String end;
@@ -51,7 +53,9 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
   UserSettingsModel userSettings;
 
   List<CourseModel>? courses;
+  Map<int, CourseGroupModel>? courseGroupsById;
   Map<int, CategoryModel>? categoriesMap;
+  Map<int, ResourceModel>? resourcesMap;
 
   final Map<String, List<PlannerItemBaseModel>> _dateRangeCache = {};
 
@@ -212,7 +216,7 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
   Map<int, bool> get completedOverrides =>
       Map.unmodifiable(_completedOverrides);
 
-  /// Returns all planner items from all cached date ranges, deduplicated by type and id.
+  /// Returns all planner items from all cached date ranges, deduplicated by type and id
   List<PlannerItemBaseModel> get allPlannerItems {
     final seen = <String>{};
     final items = <PlannerItemBaseModel>[];
@@ -258,6 +262,16 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
             continue;
           }
 
+          final isException = appointment.exceptionDates.any(
+            (e) =>
+                e.year == occurrenceStart.year &&
+                e.month == occurrenceStart.month &&
+                e.day == occurrenceStart.day,
+          );
+          if (isException) {
+            continue;
+          }
+
           final duration = appointment.end.difference(appointment.start);
           itemsForDay.add(
             CourseScheduleEventModel(
@@ -275,6 +289,7 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
               color: appointment.color,
               ownerId: appointment.ownerId,
               recurrenceRule: appointment.recurrenceRule,
+              exceptionDates: appointment.exceptionDates,
             ),
           );
         }
@@ -386,6 +401,15 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
     return null;
   }
 
+  @override
+  List<DateTime>? getRecurrenceExceptionDates(int index) {
+    final item = _getData(index);
+    if (item is CourseScheduleEventModel && item.exceptionDates.isNotEmpty) {
+      return item.exceptionDates;
+    }
+    return null;
+  }
+
   Color getColorForItem(PlannerItemBaseModel plannerItem) {
     if (plannerItem is EventModel) {
       return userSettings.eventsColor;
@@ -469,6 +493,7 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
           courses: courses ?? [],
           from: startDate,
           to: endDate,
+          courseGroupsById: courseGroupsById,
           shownOnCalendar: true,
           forceRefresh: forceRefresh,
         ),
@@ -511,6 +536,9 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
     if (!_hasLoadedInitialData) {
       _hasLoadedInitialData = true;
       try {
+        // Defer initial notifyListeners to avoid calling it while SfCalendar
+        // is still performing its first layout; falls back to sync if binding
+        // is unavailable (e.g., during tests)
         WidgetsBinding.instance.addPostFrameCallback((_) {
           _notifyChangeListeners();
         });
@@ -909,7 +937,7 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
     _notifyChangeListeners();
   }
 
-  /// Waits for any pending filter operations to complete.
+  /// Waits for any pending filter operations to complete
   Future<void> waitForFilters() async {
     _filterDebounceTimer?.cancel();
     _filterDebounceTimer = null;

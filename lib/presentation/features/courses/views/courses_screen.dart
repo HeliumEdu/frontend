@@ -5,11 +5,14 @@
 //
 // For details regarding the license, please refer to the LICENSE file.
 
+import 'dart:async';
+
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/config/app_theme.dart';
+import 'package:heliumapp/core/analytics_service.dart';
 import 'package:heliumapp/utils/color_helpers.dart';
 import 'package:heliumapp/core/dio_client.dart';
 import 'package:heliumapp/data/models/base_model.dart';
@@ -43,8 +46,10 @@ import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
 import 'package:heliumapp/presentation/ui/layout/mobile_gesture_detector.dart';
 import 'package:heliumapp/presentation/ui/components/pill_badge.dart';
 import 'package:heliumapp/presentation/ui/layout/responsive_card_grid.dart';
+import 'package:heliumapp/utils/error_helpers.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/date_time_helpers.dart';
+import 'package:heliumapp/utils/print_helpers.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:heliumapp/utils/sort_helpers.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -97,6 +102,9 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen>
     with DeepLinkMixin {
   @override
   String get screenTitle => 'Classes';
+
+  @override
+  bool get enablePrint => true;
 
   @override
   String get routePath => AppRoute.coursesScreen;
@@ -194,6 +202,11 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen>
               _coursesMap[_selectedGroupId]!.add(state.course);
               Sort.byTitle(_coursesMap[_selectedGroupId]!);
             });
+            final totalCourses = _coursesMap.values.fold<int>(0, (sum, c) => sum + c.length);
+            unawaited(AnalyticsService().setUserProperty(
+              name: 'course_load_bucket',
+              value: _courseLoadBucket(totalCourses),
+            ));
           } else if (state is CourseUpdated) {
             if (_selectedGroupId == null) return;
 
@@ -215,6 +228,11 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen>
               );
               Sort.byTitle(_coursesMap[_selectedGroupId]!);
             });
+            final totalCourses = _coursesMap.values.fold<int>(0, (sum, c) => sum + c.length);
+            unawaited(AnalyticsService().setUserProperty(
+              name: 'course_load_bucket',
+              value: _courseLoadBucket(totalCourses),
+            ));
           } else if (state is CourseScheduleUpdated) {
             if (_selectedGroupId == null) return;
 
@@ -234,40 +252,44 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen>
 
   @override
   Widget buildHeaderArea(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: GroupDropdown(
-        groups: _courseGroups,
-        initialSelection: _courseGroups.firstWhereOrNull(
-          (g) => g.id == _selectedGroupId,
-        ),
-        onChanged: (value) {
-          // The "+" button has a null value
-          if (value == null) return;
-          if (value.id == _selectedGroupId) return;
-
-          setState(() {
-            _selectedGroupId = value.id;
-          });
-        },
-        onCreate: () {
-          showCourseGroupDialog(parentContext: context, isEdit: false);
-        },
-        onEdit: (group) {
-          showCourseGroupDialog(
-            parentContext: context,
-            isEdit: true,
-            group: group,
-          );
-        },
-        onDelete: (g) => {
-          context.read<CourseBloc>().add(
-            DeleteCourseGroupEvent(
-              origin: EventOrigin.screen,
-              courseGroupId: (g as BaseModel).id,
-            ),
+    return ValueListenableBuilder<bool>(
+      valueListenable: PrintableArea.capturing,
+      builder: (context, isCapturing, _) => Padding(
+        padding: const EdgeInsets.only(bottom: 12),
+        child: GroupDropdown(
+          groups: _courseGroups,
+          initialSelection: _courseGroups.firstWhereOrNull(
+            (g) => g.id == _selectedGroupId,
           ),
-        },
+          isReadOnly: isCapturing,
+          onChanged: (value) {
+            // The "+" button has a null value
+            if (value == null) return;
+            if (value.id == _selectedGroupId) return;
+
+            setState(() {
+              _selectedGroupId = value.id;
+            });
+          },
+          onCreate: () {
+            showCourseGroupDialog(parentContext: context, isEdit: false);
+          },
+          onEdit: (group) {
+            showCourseGroupDialog(
+              parentContext: context,
+              isEdit: true,
+              group: group,
+            );
+          },
+          onDelete: (g) => {
+            context.read<CourseBloc>().add(
+              DeleteCourseGroupEvent(
+                origin: EventOrigin.screen,
+                courseGroupId: (g as BaseModel).id,
+              ),
+            ),
+          },
+        ),
       ),
     );
   }
@@ -286,7 +308,7 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen>
             source: 'courses_screen',
             onReload: () {
               context.read<CourseBloc>().add(
-                FetchCoursesScreenDataEvent(origin: EventOrigin.screen),
+                FetchCoursesScreenDataEvent(origin: EventOrigin.screen, forceRefresh: true),
               );
             },
           );
@@ -319,10 +341,25 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen>
       return const SizedBox.shrink();
     }
 
-    return Expanded(
-      child: ResponsiveCardGrid<CourseModel>(
+    return ValueListenableBuilder<bool>(
+      valueListenable: PrintableArea.capturing,
+      builder: (context, isCapturing, _) => ResponsiveCardGrid<CourseModel>(
+        shrinkWrap: isCapturing,
+        printPageBreakAfterRow: true,
         items: _coursesMap[_selectedGroupId]!,
-        itemBuilder: (context, course) => _buildCoursesCard(context, course),
+        itemBuilder: (context, course) {
+          try {
+            return _buildCoursesCard(context, course);
+          } catch (e, st) {
+            ErrorHelpers.logAndReport(
+              'Failed to render course card ${course.id}',
+              e,
+              st,
+              hints: {'course_id': course.id},
+            );
+            return const SizedBox.shrink();
+          }
+        },
       ),
     );
   }
@@ -356,7 +393,7 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen>
 
     final parsed = DeepLinkParam.parseId(idParam);
     final tabValue = int.tryParse(queryParams[DeepLinkParam.tab] ?? '') ?? 1;
-    final initialStep = (tabValue - 1).clamp(0, 3);
+    final initialStep = (tabValue - 1).clamp(0, 4);
 
     if (parsed.isNew) {
       if (_selectedGroupId == null) return false;
@@ -378,6 +415,13 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen>
         if (course != null) break;
       }
       if (course == null) return false;
+
+      if (_selectedGroupId != course.courseGroup) {
+        setState(() {
+          _selectedGroupId = course!.courseGroup;
+        });
+      }
+
       return openFromDeepLink('${DeepLinkParam.id}:${parsed.id}', () {
         return showCourseAdd(
           context,
@@ -413,56 +457,62 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen>
                   ),
                   const SizedBox(width: 8),
                   if (course.teacherEmail.isNotEmpty) ...[
-                    HeliumIconButton(
-                      onPressed: () {
-                        launchUrl(Uri.parse('mailto:${course.teacherEmail}'));
-                      },
-                      icon: Icons.email_outlined,
-                      tooltip: 'Email teacher',
-                      color: context.semanticColors.info,
+                    PrintHidden(
+                      child: HeliumIconButton(
+                        onPressed: () {
+                          launchUrl(Uri.parse('mailto:${course.teacherEmail}'));
+                        },
+                        icon: Icons.email_outlined,
+                        tooltip: 'Email teacher',
+                        color: context.semanticColors.info,
+                      ),
                     ),
                     const SizedBox(width: 8),
                   ],
                   if (course.website.isNotEmpty) ...[
-                    HeliumIconButton(
-                      onPressed: () {
-                        launchUrl(
-                          Uri.parse(course.website),
-                        );
-                      },
-                      icon: Icons.launch_outlined,
-                      tooltip: 'Launch class website',
-                      color: context.semanticColors.success,
+                    PrintHidden(
+                      child: HeliumIconButton(
+                        onPressed: () {
+                          launchUrl(Uri.parse(course.website));
+                        },
+                        icon: Icons.launch_outlined,
+                        tooltip: 'Launch class website',
+                        color: context.semanticColors.success,
+                      ),
                     ),
                     const SizedBox(width: 8),
                   ],
                   if (!Responsive.isMobile(context)) ...[
-                    HeliumIconButton(
-                      onPressed: () => _onEdit(course),
-                      icon: Icons.edit_outlined,
+                    PrintHidden(
+                      child: HeliumIconButton(
+                        onPressed: () => _onEdit(course),
+                        icon: Icons.edit_outlined,
+                      ),
                     ),
                     const SizedBox(width: 8),
                   ],
-                  HeliumIconButton(
-                    onPressed: () {
-                      showConfirmDeleteDialog(
-                        parentContext: context,
-                        item: course,
-                        additionalWarning:
-                            'Any assignments associated with this class, including attachments and other data, will also be deleted.',
-                        onDelete: (c) {
-                          context.read<CourseBloc>().add(
-                            DeleteCourseEvent(
-                              origin: EventOrigin.screen,
-                              courseGroupId: c.courseGroup,
-                              courseId: c.id,
-                            ),
-                          );
-                        },
-                      );
-                    },
-                    icon: Icons.delete_outline,
-                    color: context.colorScheme.error,
+                  PrintHidden(
+                    child: HeliumIconButton(
+                      onPressed: () {
+                        showConfirmDeleteDialog(
+                          parentContext: context,
+                          item: course,
+                          additionalWarning:
+                              'Any assignments associated with this class, including attachments and other data, will also be deleted.',
+                          onDelete: (c) {
+                            context.read<CourseBloc>().add(
+                              DeleteCourseEvent(
+                                origin: EventOrigin.screen,
+                                courseGroupId: c.courseGroup,
+                                courseId: c.id,
+                              ),
+                            );
+                          },
+                        );
+                      },
+                      icon: Icons.delete_outline,
+                      color: context.colorScheme.error,
+                    ),
                   ),
                 ],
               ),
@@ -672,5 +722,12 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen>
         isNew: false,
       ),
     );
+  }
+
+  String _courseLoadBucket(int count) {
+    if (count <= 1) return '1';
+    if (count <= 3) return '2_3';
+    if (count <= 5) return '4_5';
+    return '6_plus';
   }
 }

@@ -14,7 +14,9 @@ abstract class ResourceEvent extends BaseEvent {
 }
 
 class FetchResourcesScreenDataEvent extends ResourceEvent {
-  FetchResourcesScreenDataEvent({required super.origin});
+  final bool forceRefresh;
+
+  FetchResourcesScreenDataEvent({required super.origin, this.forceRefresh = false});
 }
 
 class FetchResourceScreenDataEvent extends ResourceEvent {

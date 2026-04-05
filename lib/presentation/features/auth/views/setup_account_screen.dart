@@ -22,7 +22,7 @@ import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/time_zone_constants.dart';
 import 'package:logging/logging.dart';
-import 'package:sentry_flutter/sentry_flutter.dart';
+import 'package:heliumapp/core/analytics_service.dart';
 
 final _log = Logger('presentation.views');
 
@@ -36,6 +36,9 @@ class SetupAccountScreen extends StatefulWidget {
 }
 
 class _SetupAccountScreenState extends BasePageScreenState<SetupAccountScreen> {
+  static const _logoHeight = 120.0;
+  static const _statusFontSize = 18.0;
+
   @override
   String get screenTitle => '';
 
@@ -70,7 +73,7 @@ class _SetupAccountScreenState extends BasePageScreenState<SetupAccountScreen> {
       showCard: false,
       child: Column(
         children: [
-          Image.asset(AppAssets.logoImagePath, height: 120),
+          Image.asset(AppAssets.logoImagePath, height: _logoHeight),
 
           const SizedBox(height: 50),
 
@@ -82,7 +85,7 @@ class _SetupAccountScreenState extends BasePageScreenState<SetupAccountScreen> {
             'Getting things ready ...',
             style: AppStyles.standardBodyText(
               context,
-            ).copyWith(fontSize: 18, fontWeight: FontWeight.w500),
+            ).copyWith(fontSize: _statusFontSize, fontWeight: FontWeight.w500),
             textAlign: TextAlign.center,
           ),
         ],
@@ -177,7 +180,7 @@ class _SetupAccountScreenState extends BasePageScreenState<SetupAccountScreen> {
     // who are already configured are not blocked on /setup.
     if (_consecutiveStatusFailures < 2 || !mounted) return;
 
-    Sentry.metrics.count('setup.status_check.fallback_to_cache', 1);
+    unawaited(AnalyticsService().logEvent(name: 'setup_status_check_cache_fallback', parameters: {'category': 'edge_case'}));
 
     try {
       final cachedSettings = await DioClient().getSettings();

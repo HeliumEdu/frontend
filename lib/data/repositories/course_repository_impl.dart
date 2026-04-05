@@ -92,4 +92,21 @@ class CourseRepositoryImpl implements CourseRepository {
   Future<void> deleteCourse(int groupId, int courseId) async {
     return remoteDataSource.deleteCourse(groupId, courseId);
   }
+
+  @override
+  Future<void> updateCourseExceptions(
+    int groupId,
+    int courseId,
+    List<DateTime> exceptions,
+  ) async {
+    return remoteDataSource.updateCourseExceptions(groupId, courseId, exceptions);
+  }
+
+  @override
+  Future<void> updateCourseGroupExceptions(
+    int groupId,
+    List<DateTime> exceptions,
+  ) async {
+    return remoteDataSource.updateCourseGroupExceptions(groupId, exceptions);
+  }
 }
