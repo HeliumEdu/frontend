@@ -46,6 +46,7 @@ import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
 import 'package:heliumapp/presentation/ui/layout/mobile_gesture_detector.dart';
 import 'package:heliumapp/presentation/ui/components/pill_badge.dart';
 import 'package:heliumapp/presentation/ui/layout/responsive_card_grid.dart';
+import 'package:heliumapp/utils/error_helpers.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/date_time_helpers.dart';
 import 'package:heliumapp/utils/print_helpers.dart';
@@ -346,7 +347,19 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen>
         shrinkWrap: isCapturing,
         printPageBreakAfterRow: true,
         items: _coursesMap[_selectedGroupId]!,
-        itemBuilder: _buildCoursesCard,
+        itemBuilder: (context, course) {
+          try {
+            return _buildCoursesCard(context, course);
+          } catch (e, st) {
+            ErrorHelpers.logAndReport(
+              'Failed to render course card ${course.id}',
+              e,
+              st,
+              hints: {'course_id': course.id},
+            );
+            return const SizedBox.shrink();
+          }
+        },
       ),
     );
   }

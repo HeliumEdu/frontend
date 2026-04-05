@@ -47,6 +47,7 @@ import 'package:heliumapp/presentation/ui/feedback/error_card.dart';
 import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
 import 'package:heliumapp/presentation/ui/layout/mobile_gesture_detector.dart';
 import 'package:heliumapp/presentation/ui/layout/responsive_card_grid.dart';
+import 'package:heliumapp/utils/error_helpers.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/print_helpers.dart';
 import 'package:heliumapp/utils/quill_helpers.dart';
@@ -390,7 +391,19 @@ class _ResourcesScreenState
         shrinkWrap: isCapturing,
         printPageBreakAfterRow: true,
         items: _resourcesMap[_selectedGroupId]!,
-        itemBuilder: _buildResourceCard,
+        itemBuilder: (context, resource) {
+          try {
+            return _buildResourceCard(context, resource);
+          } catch (e, st) {
+            ErrorHelpers.logAndReport(
+              'Failed to render resource card ${resource.id}',
+              e,
+              st,
+              hints: {'resource_id': resource.id},
+            );
+            return const SizedBox.shrink();
+          }
+        },
       ),
     );
   }

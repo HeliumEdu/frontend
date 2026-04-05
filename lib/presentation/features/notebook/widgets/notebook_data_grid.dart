@@ -17,6 +17,7 @@ import 'package:heliumapp/presentation/ui/feedback/empty_card.dart';
 import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
 import 'package:heliumapp/presentation/ui/components/base_data_grid.dart';
 import 'package:heliumapp/utils/app_globals.dart';
+import 'package:heliumapp/utils/error_helpers.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/color_helpers.dart';
 import 'package:heliumapp/utils/date_time_helpers.dart';
@@ -488,109 +489,114 @@ class NotesDataSource extends BaseDataGridSource {
 
   @override
   DataGridRowAdapter? buildRow(DataGridRow row) {
-    final courseColor =
-        row
-                .getCells()
-                .firstWhere(
-                  (c) => c.columnName == '_courseColor',
-                  orElse: () => const DataGridCell<Color?>(
-                    columnName: '_courseColor',
-                    value: null,
-                  ),
-                )
-                .value
-            as Color?;
+    try {
+      final courseColor =
+          row
+                  .getCells()
+                  .firstWhere(
+                    (c) => c.columnName == '_courseColor',
+                    orElse: () => const DataGridCell<Color?>(
+                      columnName: '_courseColor',
+                      value: null,
+                    ),
+                  )
+                  .value
+              as Color?;
 
-    final categoryColor =
-        row
-                .getCells()
-                .firstWhere(
-                  (c) => c.columnName == '_categoryColor',
-                  orElse: () => const DataGridCell<Color?>(
-                    columnName: '_categoryColor',
-                    value: null,
-                  ),
-                )
-                .value
-            as Color?;
+      final categoryColor =
+          row
+                  .getCells()
+                  .firstWhere(
+                    (c) => c.columnName == '_categoryColor',
+                    orElse: () => const DataGridCell<Color?>(
+                      columnName: '_categoryColor',
+                      value: null,
+                    ),
+                  )
+                  .value
+              as Color?;
 
-    final entityType =
-        row
-                .getCells()
-                .firstWhere(
-                  (c) => c.columnName == '_entityType',
-                  orElse: () => const DataGridCell<String>(
-                    columnName: '_entityType',
-                    value: '',
-                  ),
-                )
-                .value
-            as String;
+      final entityType =
+          row
+                  .getCells()
+                  .firstWhere(
+                    (c) => c.columnName == '_entityType',
+                    orElse: () => const DataGridCell<String>(
+                      columnName: '_entityType',
+                      value: '',
+                    ),
+                  )
+                  .value
+              as String;
 
-    Color? rowColor;
-    if (entityType == 'homework') {
-      rowColor = (userSettings?.colorByCategory ?? false) && categoryColor != null
-          ? categoryColor
-          : courseColor;
-    } else if (entityType == 'event') {
-      rowColor = userSettings?.eventsColor;
-    } else if (entityType == 'resource') {
-      rowColor = userSettings?.resourceColor;
-    } else if (entityType.isNotEmpty) {
-      _log.fine('buildRow: unsupported entityType "$entityType"; rowColor will be null');
-    }
+      Color? rowColor;
+      if (entityType == 'homework') {
+        rowColor = (userSettings?.colorByCategory ?? false) && categoryColor != null
+            ? categoryColor
+            : courseColor;
+      } else if (entityType == 'event') {
+        rowColor = userSettings?.eventsColor;
+      } else if (entityType == 'resource') {
+        rowColor = userSettings?.resourceColor;
+      } else if (entityType.isNotEmpty) {
+        _log.fine('buildRow: unsupported entityType "$entityType"; rowColor will be null');
+      }
 
-    final linkedEntityCompleted =
-        row
-                .getCells()
-                .firstWhere(
-                  (c) => c.columnName == '_linkedEntityCompleted',
-                  orElse: () => const DataGridCell<bool?>(
-                    columnName: '_linkedEntityCompleted',
-                    value: null,
-                  ),
-                )
-                .value
-            as bool?;
+      final linkedEntityCompleted =
+          row
+                  .getCells()
+                  .firstWhere(
+                    (c) => c.columnName == '_linkedEntityCompleted',
+                    orElse: () => const DataGridCell<bool?>(
+                      columnName: '_linkedEntityCompleted',
+                      value: null,
+                    ),
+                  )
+                  .value
+              as bool?;
 
-    final displayCells = _getDisplayCells(row);
+      final displayCells = _getDisplayCells(row);
 
-    final isTouchDevice = Responsive.isTouchDevice(context);
-    final isCompact = Responsive.isCompact(context);
-    final rowCursor = (isTouchDevice || isCompact)
-        ? SystemMouseCursors.click
-        : MouseCursor.defer;
+      final isTouchDevice = Responsive.isTouchDevice(context);
+      final isCompact = Responsive.isCompact(context);
+      final rowCursor = (isTouchDevice || isCompact)
+          ? SystemMouseCursors.click
+          : MouseCursor.defer;
 
-    return DataGridRowAdapter(
-      color: rowColor != null
-          ? BadgeColors.background(context, rowColor)
-          : null,
-      cells: displayCells
-          .map(
-            (cell) => MouseRegion(
-              cursor: rowCursor,
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  border: Border(
-                    bottom: BorderSide(
-                      color: context.colorScheme.outline.withValues(alpha: 0.1),
+      return DataGridRowAdapter(
+        color: rowColor != null
+            ? BadgeColors.background(context, rowColor)
+            : null,
+        cells: displayCells
+            .map(
+              (cell) => MouseRegion(
+                cursor: rowCursor,
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    border: Border(
+                      bottom: BorderSide(
+                        color: context.colorScheme.outline.withValues(alpha: 0.1),
+                      ),
                     ),
                   ),
-                ),
-                child: _buildCell(
-                  row,
-                  cell,
-                  rowColor,
-                  entityType,
-                  courseColor,
-                  categoryColor,
-                  linkedEntityCompleted,
+                  child: _buildCell(
+                    row,
+                    cell,
+                    rowColor,
+                    entityType,
+                    courseColor,
+                    categoryColor,
+                    linkedEntityCompleted,
+                  ),
                 ),
               ),
-            ),
-          )
-          .toList(),
-    );
+            )
+            .toList(),
+      );
+    } catch (e, st) {
+      ErrorHelpers.logAndReport('Failed to render notebook row', e, st);
+      return null;
+    }
   }
 
   void update({
@@ -618,44 +624,55 @@ class NotesDataSource extends BaseDataGridSource {
 
   void _rebuildRows() {
     _notesById = {for (var note in notes) note.id: note};
-    _allRows = notes.map((note) {
-      return DataGridRow(
-        cells: [
-          DataGridCell<String>(
-            columnName: 'title',
-            value: note.title.toLowerCase(),
-          ),
-          DataGridCell<DateTime?>(columnName: 'due', value: note.linkedEntityDue),
-          DataGridCell<String>(
-            columnName: 'linkedTo',
-            value: note.linkedEntityTitle?.toLowerCase() ?? '',
-          ),
-          DataGridCell<DateTime>(columnName: 'modified', value: note.updatedAt),
-          DataGridCell<int>(columnName: 'actions', value: note.id),
-          DataGridCell<Color?>(
-            columnName: '_courseColor',
-            value: note.courseColor,
-          ),
-          DataGridCell<Color?>(
-            columnName: '_categoryColor',
-            value: note.categoryColor,
-          ),
-          DataGridCell<String>(
-            columnName: '_entityType',
-            value: note.linkedEntityType,
-          ),
-          DataGridCell<String>(columnName: '_originalTitle', value: note.title),
-          DataGridCell<String>(
-            columnName: '_originalLinkedTo',
-            value: note.linkedEntityTitle ?? '',
-          ),
-          DataGridCell<bool?>(
-            columnName: '_linkedEntityCompleted',
-            value: note.linkedEntityCompleted,
-          ),
-        ],
-      );
-    }).toList();
+    final rows = <DataGridRow>[];
+    for (final note in notes) {
+      try {
+        rows.add(DataGridRow(
+          cells: [
+            DataGridCell<String>(
+              columnName: 'title',
+              value: note.title.toLowerCase(),
+            ),
+            DataGridCell<DateTime?>(columnName: 'due', value: note.linkedEntityDue),
+            DataGridCell<String>(
+              columnName: 'linkedTo',
+              value: note.linkedEntityTitle?.toLowerCase() ?? '',
+            ),
+            DataGridCell<DateTime>(columnName: 'modified', value: note.updatedAt),
+            DataGridCell<int>(columnName: 'actions', value: note.id),
+            DataGridCell<Color?>(
+              columnName: '_courseColor',
+              value: note.courseColor,
+            ),
+            DataGridCell<Color?>(
+              columnName: '_categoryColor',
+              value: note.categoryColor,
+            ),
+            DataGridCell<String>(
+              columnName: '_entityType',
+              value: note.linkedEntityType,
+            ),
+            DataGridCell<String>(columnName: '_originalTitle', value: note.title),
+            DataGridCell<String>(
+              columnName: '_originalLinkedTo',
+              value: note.linkedEntityTitle ?? '',
+            ),
+            DataGridCell<bool?>(
+              columnName: '_linkedEntityCompleted',
+              value: note.linkedEntityCompleted,
+            ),
+          ],
+        ));
+      } catch (e, st) {
+        ErrorHelpers.logAndReport(
+          'Failed to build row for note ${note.id}',
+          e,
+          st,
+          hints: {'note_id': note.id},
+        );
+      }
+    }
+    _allRows = rows;
     dataGridRows = _allRows;
     sortDataGridRows(dataGridRows);
   }

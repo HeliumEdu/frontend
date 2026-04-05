@@ -17,10 +17,10 @@ import 'package:heliumapp/data/models/planner/course_schedule_event_model.dart';
 import 'package:heliumapp/data/models/planner/event_model.dart';
 import 'package:heliumapp/data/models/planner/homework_model.dart';
 import 'package:heliumapp/data/models/planner/reminder_model.dart';
+import 'package:heliumapp/utils/error_helpers.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:heliumapp/utils/sort_helpers.dart';
 import 'package:logging/logging.dart';
-import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';
 
 final _log = Logger('utils');
@@ -60,14 +60,14 @@ class PlannerHelper {
   ) {
     final msg =
         'Reminder $reminderId has $entityType ID $entityId but entity is null';
-    _log.severe(msg);
-    Sentry.captureException(
+    ErrorHelpers.logAndReport(
+      msg,
       Exception(msg),
-      stackTrace: StackTrace.current,
-      hint: Hint.withMap({
+      StackTrace.current,
+      hints: {
         'reminder_id': reminderId,
         '${entityType.toLowerCase()}_id': entityId,
-      }),
+      },
     );
   }
 

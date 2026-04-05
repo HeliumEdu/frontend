@@ -41,6 +41,7 @@ import 'package:heliumapp/utils/conversion_helpers.dart';
 import 'package:heliumapp/utils/date_time_helpers.dart';
 import 'package:heliumapp/utils/deep_link_helpers.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
+import 'package:heliumapp/utils/error_helpers.dart';
 import 'package:heliumapp/utils/sort_helpers.dart';
 
 /// Shows notifications screen (responsive: side panel on desktop, full-screen on mobile)
@@ -280,8 +281,17 @@ class _NotificationsScreenState
         child: ListView.builder(
           itemCount: _notifications.length,
           itemBuilder: (context, index) {
-            final notification = _notifications[index];
-            return _buildNotificationRow(notification);
+            try {
+              final notification = _notifications[index];
+              return _buildNotificationRow(notification);
+            } catch (e, st) {
+              ErrorHelpers.logAndReport(
+                'Failed to render notification at index $index',
+                e,
+                st,
+              );
+              return const SizedBox.shrink();
+            }
           },
         ),
       ),
@@ -292,11 +302,22 @@ class _NotificationsScreenState
     final reminders = state.reminders;
     Sort.byStartOfRange(reminders, userSettings!.timeZone);
 
-    setState(() {
-      _notifications = reminders
-          .map((r) => _mapReminderToNotification(r))
-          .toList();
+    final notifications = <NotificationModel>[];
+    for (final r in reminders) {
+      try {
+        notifications.add(_mapReminderToNotification(r));
+      } catch (e, st) {
+        ErrorHelpers.logAndReport(
+          'Failed to map reminder ${r.id} to notification',
+          e,
+          st,
+          hints: {'reminder_id': r.id},
+        );
+      }
+    }
 
+    setState(() {
+      _notifications = notifications;
       isLoading = false;
     });
   }

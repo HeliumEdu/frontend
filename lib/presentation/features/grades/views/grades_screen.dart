@@ -42,6 +42,7 @@ import 'package:heliumapp/presentation/ui/components/group_dropdown.dart';
 import 'package:heliumapp/presentation/ui/feedback/empty_card.dart';
 import 'package:heliumapp/presentation/ui/feedback/error_card.dart';
 import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
+import 'package:heliumapp/utils/error_helpers.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/color_helpers.dart';
@@ -313,7 +314,28 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
           children: [
             PrintPageBreak(child: _buildTermSummaryArea()),
 
-            PrintPageBreak(child: _buildGraphArea()),
+            PrintPageBreak(child: Builder(
+              builder: (context) {
+                try {
+                  return _buildGraphArea();
+                } catch (e, st) {
+                  ErrorHelpers.logAndReport(
+                    'Failed to render grades graph',
+                    e,
+                    st,
+                  );
+                  return ErrorCard(
+                    message: 'An unknown error occurred loading the graph.',
+                    source: 'grades_screen',
+                    onReload: () {
+                      context.read<GradeBloc>().add(
+                        FetchGradeScreenDataEvent(forceRefresh: true),
+                      );
+                    },
+                  );
+                }
+              },
+            )),
 
             const SizedBox(height: 12),
 
@@ -322,14 +344,23 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
               physics: const NeverScrollableScrollPhysics(),
               itemCount: courses.length,
               itemBuilder: (context, index) {
-                final course = courses[index];
-                return PrintPageBreak(
-                  child: _buildCourseCard(
-                    index,
-                    course,
-                    forceExpanded: isCapturing,
-                  ),
-                );
+                try {
+                  final course = courses[index];
+                  return PrintPageBreak(
+                    child: _buildCourseCard(
+                      index,
+                      course,
+                      forceExpanded: isCapturing,
+                    ),
+                  );
+                } catch (e, st) {
+                  ErrorHelpers.logAndReport(
+                    'Failed to render grade course card at index $index',
+                    e,
+                    st,
+                  );
+                  return const SizedBox.shrink();
+                }
               },
             ),
           ],
@@ -351,12 +382,24 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
       orElse: () => _grades.first,
     );
 
-    final cards = [
-      _buildOverallGradeCard(selectedGroup),
-      _buildProgressVsPaceCard(selectedGroup),
-      _buildAtRiskCoursesCard(selectedGroup),
-      _buildPendingImpactCard(selectedGroup),
+    final cardBuilders = [
+      () => _buildOverallGradeCard(selectedGroup),
+      () => _buildProgressVsPaceCard(selectedGroup),
+      () => _buildAtRiskCoursesCard(selectedGroup),
+      () => _buildPendingImpactCard(selectedGroup),
     ];
+    final cards = cardBuilders.map((build) {
+      try {
+        return build();
+      } catch (e, st) {
+        ErrorHelpers.logAndReport(
+          'Failed to render grades summary card',
+          e,
+          st,
+        );
+        return const SizedBox.shrink();
+      }
+    }).toList();
 
     return LayoutBuilder(
       builder: (context, constraints) {

@@ -23,6 +23,7 @@ import 'package:heliumapp/presentation/ui/components/helium_pager.dart';
 import 'package:heliumapp/presentation/ui/feedback/empty_card.dart';
 import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
 import 'package:heliumapp/presentation/ui/components/base_data_grid.dart';
+import 'package:heliumapp/utils/error_helpers.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/print_helpers.dart';
 import 'package:heliumapp/utils/snack_bar_helpers.dart';
@@ -821,56 +822,61 @@ class TodosDataSource extends BaseDataGridSource {
 
   @override
   DataGridRowAdapter? buildRow(DataGridRow row) {
-    final homeworkId = row
-        .getCells()
-        .firstWhere((c) => c.columnName == '_homeworkId')
-        .value as int;
-    final homework = _homeworksById[homeworkId];
-    if (homework == null) return null;
+    try {
+      final homeworkId = row
+          .getCells()
+          .firstWhere((c) => c.columnName == '_homeworkId')
+          .value as int;
+      final homework = _homeworksById[homeworkId];
+      if (homework == null) return null;
 
-    final courseColor = row
-        .getCells()
-        .firstWhere((c) => c.columnName == '_courseColor')
-        .value as Color;
-    final categoryColor = row
-        .getCells()
-        .firstWhere((c) => c.columnName == '_categoryColor',
-            orElse: () => const DataGridCell<Color?>(
-                columnName: '_categoryColor', value: null))
-        .value as Color?;
+      final courseColor = row
+          .getCells()
+          .firstWhere((c) => c.columnName == '_courseColor')
+          .value as Color;
+      final categoryColor = row
+          .getCells()
+          .firstWhere((c) => c.columnName == '_categoryColor',
+              orElse: () => const DataGridCell<Color?>(
+                  columnName: '_categoryColor', value: null))
+          .value as Color?;
 
-    final userSettings = _dataSource.userSettings;
-    final isCompleted = _dataSource.isHomeworkCompleted(homework);
+      final userSettings = _dataSource.userSettings;
+      final isCompleted = _dataSource.isHomeworkCompleted(homework);
 
-    final rowColor = userSettings.colorByCategory && categoryColor != null
-        ? categoryColor
-        : courseColor;
+      final rowColor = userSettings.colorByCategory && categoryColor != null
+          ? categoryColor
+          : courseColor;
 
-    final isTouchDevice = Responsive.isTouchDevice(_context);
-    final isCompact = Responsive.isCompact(_context);
-    final rowCursor =
-        (isTouchDevice || isCompact) ? SystemMouseCursors.click : MouseCursor.defer;
+      final isTouchDevice = Responsive.isTouchDevice(_context);
+      final isCompact = Responsive.isCompact(_context);
+      final rowCursor =
+          (isTouchDevice || isCompact) ? SystemMouseCursors.click : MouseCursor.defer;
 
-    final displayCells = _getDisplayCells(row);
+      final displayCells = _getDisplayCells(row);
 
-    return DataGridRowAdapter(
-      color: BadgeColors.background(_context, rowColor),
-      cells: displayCells.map((cell) {
-        return MouseRegion(
-          cursor: rowCursor,
-          child: DecoratedBox(
-            decoration: BoxDecoration(
-              border: Border(
-                bottom: BorderSide(
-                  color: _context.colorScheme.outline.withValues(alpha: 0.1),
+      return DataGridRowAdapter(
+        color: BadgeColors.background(_context, rowColor),
+        cells: displayCells.map((cell) {
+          return MouseRegion(
+            cursor: rowCursor,
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                border: Border(
+                  bottom: BorderSide(
+                    color: _context.colorScheme.outline.withValues(alpha: 0.1),
+                  ),
                 ),
               ),
+              child: _buildCell(cell, homework, isCompleted),
             ),
-            child: _buildCell(cell, homework, isCompleted),
-          ),
-        );
-      }).toList(),
-    );
+          );
+        }).toList(),
+      );
+    } catch (e, st) {
+      ErrorHelpers.logAndReport('Failed to render todo row', e, st);
+      return null;
+    }
   }
 
   void update({
@@ -904,46 +910,57 @@ class TodosDataSource extends BaseDataGridSource {
     final courses = _dataSource.courses ?? [];
     final categoriesMap = _dataSource.categoriesMap ?? {};
 
-    dataGridRows = _homeworks.map((homework) {
-      final course = courses.firstWhere(
-        (c) => c.id == homework.course.id,
-        orElse: () => courses.isNotEmpty ? courses.first : _fallbackCourse(),
-      );
-      final category = categoriesMap[homework.category.id];
+    final rows = <DataGridRow>[];
+    for (final homework in _homeworks) {
+      try {
+        final course = courses.firstWhere(
+          (c) => c.id == homework.course.id,
+          orElse: () => courses.isNotEmpty ? courses.first : _fallbackCourse(),
+        );
+        final category = categoriesMap[homework.category.id];
 
-      final isCompleted = _dataSource.isHomeworkCompleted(homework);
+        final isCompleted = _dataSource.isHomeworkCompleted(homework);
 
-      final parsedGrade = GradeHelper.parseGrade(homework.currentGrade);
-      final double gradeSortValue;
-      if (!isCompleted) {
-        gradeSortValue = -2.0;
-      } else if (parsedGrade == null) {
-        gradeSortValue = -1.0;
-      } else {
-        gradeSortValue = parsedGrade / 100.0;
+        final parsedGrade = GradeHelper.parseGrade(homework.currentGrade);
+        final double gradeSortValue;
+        if (!isCompleted) {
+          gradeSortValue = -2.0;
+        } else if (parsedGrade == null) {
+          gradeSortValue = -1.0;
+        } else {
+          gradeSortValue = parsedGrade / 100.0;
+        }
+
+        final courseTitle = course.title.toLowerCase();
+        final categoryTitle = category?.title.toLowerCase() ?? '';
+
+        rows.add(DataGridRow(cells: [
+          DataGridCell<int>(columnName: 'completed', value: isCompleted ? 1 : 0),
+          DataGridCell<String>(columnName: 'title', value: homework.title.toLowerCase()),
+          DataGridCell<DateTime>(columnName: 'due', value: homework.start),
+          DataGridCell<String>(columnName: 'className', value: courseTitle),
+          DataGridCell<String>(columnName: 'category', value: categoryTitle),
+          DataGridCell<int>(columnName: 'priority', value: homework.priority),
+          DataGridCell<double>(columnName: 'grade', value: gradeSortValue),
+          DataGridCell<int>(columnName: 'resources', value: homework.resources.length),
+          DataGridCell<int>(columnName: 'attachments', value: homework.attachments.length),
+          DataGridCell<int>(columnName: 'actions', value: homework.id),
+          DataGridCell<int>(columnName: '_homeworkId', value: homework.id),
+          DataGridCell<int>(columnName: '_courseId', value: course.id),
+          DataGridCell<Color>(columnName: '_courseColor', value: course.color),
+          DataGridCell<int?>(columnName: '_categoryId', value: category?.id),
+          DataGridCell<Color?>(columnName: '_categoryColor', value: category?.color),
+        ]));
+      } catch (e, st) {
+        ErrorHelpers.logAndReport(
+          'Failed to build row for homework ${homework.id}',
+          e,
+          st,
+          hints: {'homework_id': homework.id},
+        );
       }
-
-      final courseTitle = course.title.toLowerCase();
-      final categoryTitle = category?.title.toLowerCase() ?? '';
-
-      return DataGridRow(cells: [
-        DataGridCell<int>(columnName: 'completed', value: isCompleted ? 1 : 0),
-        DataGridCell<String>(columnName: 'title', value: homework.title.toLowerCase()),
-        DataGridCell<DateTime>(columnName: 'due', value: homework.start),
-        DataGridCell<String>(columnName: 'className', value: courseTitle),
-        DataGridCell<String>(columnName: 'category', value: categoryTitle),
-        DataGridCell<int>(columnName: 'priority', value: homework.priority),
-        DataGridCell<double>(columnName: 'grade', value: gradeSortValue),
-        DataGridCell<int>(columnName: 'resources', value: homework.resources.length),
-        DataGridCell<int>(columnName: 'attachments', value: homework.attachments.length),
-        DataGridCell<int>(columnName: 'actions', value: homework.id),
-        DataGridCell<int>(columnName: '_homeworkId', value: homework.id),
-        DataGridCell<int>(columnName: '_courseId', value: course.id),
-        DataGridCell<Color>(columnName: '_courseColor', value: course.color),
-        DataGridCell<int?>(columnName: '_categoryId', value: category?.id),
-        DataGridCell<Color?>(columnName: '_categoryColor', value: category?.color),
-      ]);
-    }).toList();
+    }
+    dataGridRows = rows;
 
     sortDataGridRows(dataGridRows);
   }
