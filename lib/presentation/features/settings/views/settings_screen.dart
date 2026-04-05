@@ -57,8 +57,9 @@ enum SettingsSubScreen {
 /// Shows settings screen (responsive: side panel on desktop, full-screen on mobile)
 Future<void> showSettings(BuildContext context, {int? initialTab}) {
   final currentUri = router.routerDelegate.currentConfiguration.uri;
-  final hasDialogParam =
-      currentUri.queryParameters.containsKey(DeepLinkParam.dialog);
+  final hasDialogParam = currentUri.queryParameters.containsKey(
+    DeepLinkParam.dialog,
+  );
   final basePath = hasDialogParam ? currentUri.path : null;
 
   final useCompact = Responsive.useCompactLayout(context);
@@ -181,8 +182,8 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
   @override
   VoidCallback? get actionButtonCallback =>
       _activeSubScreen == SettingsSubScreen.externalCalendars
-          ? () => _externalCalendarsKey.currentState?.onAddCalendar()
-          : null;
+      ? () => _externalCalendarsKey.currentState?.onAddCalendar()
+      : null;
 
   @override
   void initState() {
@@ -374,12 +375,32 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
 
             if (_version.isNotEmpty)
               Center(
-                child: Text(
-                  _version,
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: context.colorScheme.onSurface.withValues(alpha: 0.2),
-                  ),
+                child: Column(
+                  children: [
+                    Text(
+                      _version,
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: context.colorScheme.onSurface.withValues(
+                          alpha: 0.3,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    TextButton(
+                      onPressed: () =>
+                          launchUrl(Uri.parse(AppConstants.githubUrl)),
+                      child: Text(
+                        'Open Source on GitHub',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: context.colorScheme.onSurface.withValues(
+                            alpha: 0.3,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
 
@@ -533,8 +554,7 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
             icon: Icons.swap_horiz,
             label: 'Import/Export',
             hint: 'Backup and restore your data',
-            onTap: () =>
-                _navigateToSubSettings(SettingsSubScreen.importExport),
+            onTap: () => _navigateToSubSettings(SettingsSubScreen.importExport),
             iconColor: context.colorScheme.primary,
           ),
           const Divider(height: 1, indent: 68),
@@ -702,7 +722,12 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
               Icon(
                 Icons.arrow_forward_ios,
                 color: context.colorScheme.onSurface.withValues(alpha: 0.3),
-                size: Responsive.getIconSize(context, mobile: 16, tablet: 18, desktop: 20),
+                size: Responsive.getIconSize(
+                  context,
+                  mobile: 16,
+                  tablet: 18,
+                  desktop: 20,
+                ),
               ),
             ],
           ),
@@ -811,7 +836,12 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
               Icon(
                 Icons.arrow_forward_ios,
                 color: context.colorScheme.onSurface.withValues(alpha: 0.3),
-                size: Responsive.getIconSize(context, mobile: 16, tablet: 18, desktop: 20),
+                size: Responsive.getIconSize(
+                  context,
+                  mobile: 16,
+                  tablet: 18,
+                  desktop: 20,
+                ),
               ),
             ],
           ),
@@ -1114,8 +1144,8 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
               ),
             ],
           );
-          },
-        ),
+        },
+      ),
     );
   }
 }
