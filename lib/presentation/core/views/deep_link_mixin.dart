@@ -53,12 +53,12 @@ mixin DeepLinkMixin<T extends StatefulWidget> on BasePageScreenState<T> {
   @override
   void initState() {
     super.initState();
-    router.routeInformationProvider.addListener(_onRouteChanged);
+    router.routerDelegate.addListener(_onRouteChanged);
   }
 
   @override
   void dispose() {
-    router.routeInformationProvider.removeListener(_onRouteChanged);
+    router.routerDelegate.removeListener(_onRouteChanged);
     super.dispose();
   }
 
