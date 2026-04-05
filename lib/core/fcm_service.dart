@@ -383,7 +383,14 @@ class FcmService {
   Future<void> _onNotificationTap(RemoteMessage message) async {
     final messageId = message.messageId;
     _log.info('Notification $messageId tapped');
-    await router.push(AppRoute.notificationsScreen);
+    await router.push(
+      Uri(
+        path: AppRoute.plannerScreen,
+        queryParameters: {
+          DeepLinkParam.dialog: DeepLinkParam.dialogNotifications,
+        },
+      ).toString(),
+    );
   }
 
   /// Pending route to navigate to once the router is initialized.
@@ -400,7 +407,12 @@ class FcmService {
       _log.info('App opened from terminated state via notification');
       // Defer navigation - router may not be initialized yet during cold start.
       // The app's main widget should check pendingRoute after router is ready.
-      pendingRoute = AppRoute.notificationsScreen;
+      pendingRoute = Uri(
+        path: AppRoute.plannerScreen,
+        queryParameters: {
+          DeepLinkParam.dialog: DeepLinkParam.dialogNotifications,
+        },
+      ).toString();
     }
   }
 
@@ -419,7 +431,14 @@ class FcmService {
       if (await web_notifications.requestWebNotificationPermission()) {
         web_notifications.showWebNotification(
           notification,
-          (_) => router.push(AppRoute.notificationsScreen),
+          (_) => router.push(
+            Uri(
+              path: AppRoute.plannerScreen,
+              queryParameters: {
+                DeepLinkParam.dialog: DeepLinkParam.dialogNotifications,
+              },
+            ).toString(),
+          ),
         );
       }
       return;
@@ -458,7 +477,14 @@ class FcmService {
 
   void _onNotificationTapped(NotificationResponse response) {
     _log.info('Local notification tapped: ${response.id}');
-    router.push(AppRoute.notificationsScreen);
+    router.push(
+      Uri(
+        path: AppRoute.plannerScreen,
+        queryParameters: {
+          DeepLinkParam.dialog: DeepLinkParam.dialogNotifications,
+        },
+      ).toString(),
+    );
   }
 
   Future<void> registerToken({bool force = false}) async {
