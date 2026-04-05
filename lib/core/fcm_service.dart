@@ -431,7 +431,14 @@ class FcmService {
       if (await web_notifications.requestWebNotificationPermission()) {
         web_notifications.showWebNotification(
           notification,
-          (_) => router.push(AppRoute.notificationsScreen),
+          (_) => router.push(
+            Uri(
+              path: AppRoute.plannerScreen,
+              queryParameters: {
+                DeepLinkParam.dialog: DeepLinkParam.dialogNotifications,
+              },
+            ).toString(),
+          ),
         );
       }
       return;
