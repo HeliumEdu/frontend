@@ -259,22 +259,20 @@ class _GradeCalculatorDialogState
 
         Align(
           alignment: Alignment.centerLeft,
-          child: SizedBox(
-            width: 190,
-            child: SpinnerField(
+          child: SpinnerField(
             label: 'Desired Class Grade (%)',
             controller: _desiredGradeController,
             minValue: 0,
             maxValue: 100,
             step: 0.5,
             allowDecimal: true,
+            maxSpinnerWidth: 120,
             onChanged: (_) {
               setState(() {
                 _result = null;
                 _validationErrorMessage = null;
               });
             },
-            ),
           ),
         ),
 
