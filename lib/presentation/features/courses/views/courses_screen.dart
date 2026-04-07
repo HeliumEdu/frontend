@@ -300,7 +300,7 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen>
     return BlocBuilder<CourseBloc, CourseState>(
       builder: (context, state) {
         if (state is CoursesLoading && state.origin == EventOrigin.screen) {
-          return const LoadingIndicator();
+          return const Center(child: LoadingIndicator(expanded: false));
         }
 
         if (state is CoursesError && state.origin == EventOrigin.screen) {
