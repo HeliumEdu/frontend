@@ -278,6 +278,12 @@ class CourseScheduleState extends State<CourseSchedule> {
                                     if (_selectedDays.isEmpty) {
                                       _selectedDays = {1, 3, 5};
                                     }
+                                  } else {
+                                    final firstDay = _selectedDays.firstOrNull;
+                                    if (firstDay != null) {
+                                      _singleStartTime = _startTimes[firstDay] ?? _singleStartTime;
+                                      _singleEndTime = _endTimes[firstDay] ?? _singleEndTime;
+                                    }
                                   }
                                 });
                               },
@@ -583,8 +589,6 @@ class CourseScheduleState extends State<CourseSchedule> {
     setState(() {
       _scheduleId = schedule.id;
       _selectedDays = activeDays;
-      _singleStartTime = schedule.sunStartTime;
-      _singleEndTime = schedule.sunEndTime;
       _variesByDay = !schedule.allDaysSameTime();
 
       if (_variesByDay) {
@@ -592,6 +596,12 @@ class CourseScheduleState extends State<CourseSchedule> {
           _startTimes[dayIndex] = schedule.getStartTimeForDayIndex(dayIndex);
           _endTimes[dayIndex] = schedule.getEndTimeForDayIndex(dayIndex);
         }
+        final firstDay = activeDays.firstOrNull;
+        _singleStartTime = (firstDay != null ? _startTimes[firstDay] : null) ?? _singleStartTime;
+        _singleEndTime = (firstDay != null ? _endTimes[firstDay] : null) ?? _singleEndTime;
+      } else {
+        _singleStartTime = schedule.sunStartTime;
+        _singleEndTime = schedule.sunEndTime;
       }
 
       isLoading = false;
