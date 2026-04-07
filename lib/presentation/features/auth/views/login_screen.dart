@@ -112,7 +112,9 @@ class _LoginScreenViewState extends BasePageScreenState<LoginScreen> {
               }
             } else {
               // Redirect to intended destination or default to planner
-              final destination = _nextRoute ?? AppRoute.plannerScreen;
+              final destination = _isValidNextRoute(_nextRoute)
+                  ? _nextRoute!
+                  : AppRoute.plannerScreen;
               context.replace(destination);
             }
           } else if (state is AuthAccountInactive) {
@@ -366,6 +368,15 @@ class _LoginScreenViewState extends BasePageScreenState<LoginScreen> {
         },
       ),
     );
+  }
+
+  bool _isValidNextRoute(String? route) {
+    if (route == null) return false;
+    final uri = Uri.tryParse(route);
+    return uri != null &&
+        uri.scheme.isEmpty &&
+        uri.host.isEmpty &&
+        uri.path.startsWith('/');
   }
 
   void _onSubmit() {

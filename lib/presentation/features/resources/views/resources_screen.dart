@@ -53,7 +53,7 @@ import 'package:heliumapp/utils/print_helpers.dart';
 import 'package:heliumapp/utils/quill_helpers.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:heliumapp/utils/sort_helpers.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'package:heliumapp/utils/url_helpers.dart';
 
 class ResourcesScreen extends StatelessWidget {
   final DioClient _dioClient = DioClient();
@@ -464,7 +464,7 @@ class _ResourcesScreenState
                     PrintHidden(
                       child: HeliumIconButton(
                         onPressed: () {
-                          launchUrl(Uri.parse(resource.website));
+                          UrlHelpers.launchWebUrl(resource.website);
                         },
                         icon: Icons.launch_outlined,
                         tooltip: "Launch resource's website",

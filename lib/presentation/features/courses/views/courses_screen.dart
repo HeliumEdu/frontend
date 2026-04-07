@@ -52,6 +52,7 @@ import 'package:heliumapp/utils/date_time_helpers.dart';
 import 'package:heliumapp/utils/print_helpers.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:heliumapp/utils/sort_helpers.dart';
+import 'package:heliumapp/utils/url_helpers.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class CoursesScreen extends StatelessWidget {
@@ -473,7 +474,7 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen>
                     PrintHidden(
                       child: HeliumIconButton(
                         onPressed: () {
-                          launchUrl(Uri.parse(course.website));
+                          UrlHelpers.launchWebUrl(course.website);
                         },
                         icon: Icons.launch_outlined,
                         tooltip: 'Launch class website',

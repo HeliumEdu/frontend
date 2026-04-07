@@ -167,6 +167,11 @@ Future<String?> _authRedirect(BuildContext context, GoRouterState state) async {
 
   final token = await PrefService().getSecure('access_token');
   final isLoggedIn = token?.isNotEmpty ?? false;
+  // Note: setupAccountScreen is intentionally excluded — it requires an
+  // authenticated session. Unauthenticated access is caught by the !isLoggedIn
+  // guard below; authenticated users on public routes are redirected to setup
+  // or planner by the publicRoutes check further down. Adding setup here would
+  // bypass the !isLoggedIn guard and expose the screen to unauthenticated users.
   final publicRoutes = [
     AppRoute.landingScreen,
     AppRoute.loginScreen,

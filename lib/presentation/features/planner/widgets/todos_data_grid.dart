@@ -37,6 +37,7 @@ import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:logging/logging.dart';
 import 'package:syncfusion_flutter_core/theme.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
+import 'package:heliumapp/utils/url_helpers.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 final _log = Logger('presentation.widgets');
@@ -1293,9 +1294,7 @@ class TodosDataSource extends BaseDataGridSource {
         buttons.add(
           HeliumIconButton(
             onPressed: () {
-              launchUrl(
-                Uri.parse(course.website),
-              );
+              UrlHelpers.launchWebUrl(course.website);
             },
             tooltip: 'Launch class website',
             icon: Icons.launch_outlined,
