@@ -36,6 +36,29 @@ def _get_google_access_token(client_email: str, private_key: str, scope: str) ->
     return response.json()["access_token"]
 
 
+def test_platform_status(api_host: str) -> None:
+    """
+    Infrastructure health check: validate that all platform services are operational.
+
+    Hits /status/ which covers the checks not guaranteed by the ALB health check subset:
+    Database, Cache, Storage, TaskProcessing, and CeleryBeat.
+    """
+    response = requests.get(
+        f"{api_host}/status/",
+        headers={"Accept": "application/json"},
+        timeout=10,
+    )
+    assert response.status_code == 200, (
+        f"Platform status endpoint returned {response.status_code}: {response.text}"
+    )
+
+    status = response.json()
+    failing = [name for name, state in status.items() if state != "working"]
+    assert not failing, (
+        f"Platform health checks not working: {', '.join(failing)}"
+    )
+
+
 def test_firebase_push_credentials(firebase_credentials: dict) -> None:
     """
     Credential health check: validate that the Firebase service account can send push notifications.

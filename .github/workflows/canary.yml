@@ -1,6 +1,6 @@
-name: "Playwright Tests"
+name: "Canary Tests"
 
-run-name: "Playwright Tests (on `${{ inputs.environment || 'prod' }}`)"
+run-name: "Canary Tests (on `${{ inputs.environment || 'prod' }}`)"
 
 on:
   schedule:
@@ -20,12 +20,12 @@ permissions:
   contents: read
 
 concurrency:
-  group: "playwright-smoke-${{ inputs.environment || 'prod' }}"
+  group: "canary-${{ inputs.environment || 'prod' }}"
   cancel-in-progress: false
 
 jobs:
-  playwright-smoke:
-    name: Playwright Tests
+  canary:
+    name: Canary Tests
 
     runs-on: ubuntu-latest
 
@@ -52,10 +52,10 @@ jobs:
         with:
           python-version: '3.12'
           cache: 'pip'
-          cache-dependency-path: playwright/requirements.txt
+          cache-dependency-path: canary_test/requirements.txt
 
       - name: Install dependencies
-        run: pip install -r playwright/requirements.txt
+        run: pip install -r canary_test/requirements.txt
 
       - name: Get Playwright version
         id: playwright-version
@@ -75,14 +75,14 @@ jobs:
         if: steps.playwright-cache.outputs.cache-hit != 'true'
         run: python -m playwright install chromium
 
-      - name: Run smoke tests
-        run: cd playwright && python -m pytest -v --screenshot=only-on-failure --output=screenshots
+      - name: Run canary tests
+        run: cd canary_test && python -m pytest -v --screenshot=only-on-failure --output=screenshots
 
       - name: Upload screenshots
         if: always()
         uses: actions/upload-artifact@v7
         with:
-          name: playwright-screenshots
-          path: playwright/screenshots/
+          name: canary-screenshots
+          path: canary_test/screenshots/
           if-no-files-found: ignore
           retention-days: 7
