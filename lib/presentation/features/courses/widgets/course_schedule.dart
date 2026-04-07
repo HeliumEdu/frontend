@@ -14,7 +14,6 @@ import 'package:heliumapp/presentation/features/shared/bloc/core/base_event.dart
 import 'package:heliumapp/presentation/features/courses/bloc/course_bloc.dart';
 import 'package:heliumapp/presentation/features/courses/bloc/course_event.dart';
 import 'package:heliumapp/presentation/features/courses/bloc/course_state.dart';
-import 'package:heliumapp/utils/snack_bar_helpers.dart';
 import 'package:heliumapp/presentation/features/shared/widgets/flow/multi_step_container.dart';
 import 'package:heliumapp/presentation/ui/components/helium_elevated_button.dart';
 import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
@@ -114,24 +113,6 @@ class CourseScheduleState extends State<CourseSchedule> {
     if (isLoading || _isSubmitting) return false;
     if (_scheduleId == null) {
       return false;
-    }
-
-    if (_variesByDay) {
-      if (_selectedDays.isEmpty) {
-        SnackBarHelper.show(context, 'Select at least one day', type: SnackType.error);
-        return false;
-      }
-
-      for (int dayIndex in _selectedDays) {
-        if (_startTimes[dayIndex] == null || _endTimes[dayIndex] == null) {
-          SnackBarHelper.show(
-            context,
-            'Set times for all selected days',
-            type: SnackType.error,
-          );
-          return false;
-        }
-      }
     }
 
     // Notify parent that action is starting (validation passed)
@@ -294,6 +275,9 @@ class CourseScheduleState extends State<CourseSchedule> {
                                       _startTimes[i] = _singleStartTime;
                                       _endTimes[i] = _singleEndTime;
                                     }
+                                    if (_selectedDays.isEmpty) {
+                                      _selectedDays = {1, 3, 5};
+                                    }
                                   }
                                 });
                               },
@@ -352,7 +336,7 @@ class CourseScheduleState extends State<CourseSchedule> {
                         _selectedDays.addAll(newSelection);
                       });
                     },
-                    emptySelectionAllowed: true,
+                    emptySelectionAllowed: !_variesByDay,
                     multiSelectionEnabled: true,
                     showSelectedIcon: false,
                   ),
