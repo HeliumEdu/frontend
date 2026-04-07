@@ -10,6 +10,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_web_plugins/url_strategy.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/config/app_router.dart';
 import 'package:heliumapp/config/pref_service.dart';
 import 'package:heliumapp/core/analytics_service.dart';
@@ -22,6 +23,7 @@ import 'package:heliumapp/data/repositories/auth_repository_impl.dart';
 import 'package:heliumapp/data/sources/auth_remote_data_source.dart';
 import 'package:heliumapp/firebase_environment.dart';
 import 'package:heliumapp/helium_app.dart';
+import 'package:heliumapp/presentation/core/views/notification_screen.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_bloc.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/external_calendar_bloc.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/planneritem_bloc.dart';
@@ -71,6 +73,16 @@ void main() async {
   } catch (e) {
     _log.severe('FCM initialization failed', e);
   }
+
+  FcmService.setForegroundTapCallback((route) {
+    final context = rootNavigatorKey.currentContext;
+    if (context == null) { router.go(route); return; }
+    if (route.contains(DeepLinkParam.dialogNotifications)) {
+      showNotifications(context);
+    } else {
+      router.go(route);
+    }
+  });
 
   await PrefService().init();
 
