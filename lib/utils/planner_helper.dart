@@ -101,10 +101,13 @@ class PlannerHelper {
     }
     final String start = startDt.toIso8601String();
 
+    // On mobile, notification is populated from platform-specific fields (AndroidConfig/APNSConfig)
+    // with a computed subject and formatted time. On web, messages are data-only so we fall back
+    // to the raw reminder fields.
     return NotificationModel(
       id: reminder.id,
-      title: payload['title'] as String,
-      body: payload['message'] as String,
+      title: message.notification?.title ?? payload['title'] as String,
+      body: message.notification?.body ?? payload['message'] as String,
       reminder: reminder,
       timestamp: start,
       isRead: false,
