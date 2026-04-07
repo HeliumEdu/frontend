@@ -59,7 +59,7 @@ dependencies:
   in_app_review: 2.0.9
   url_launcher: 6.3.2
   share_plus: 12.0.2
-  go_router: 17.1.0
+  go_router: 17.2.0
   dio_smart_retry: 7.0.1
   html: 0.15.6
 
