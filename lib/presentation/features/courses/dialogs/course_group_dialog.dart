@@ -237,8 +237,8 @@ class _CourseGroupWidgetState
                     setState(() => _groupExceptions = exceptions);
                   }
                 },
-                firstDate: widget.group!.startDate,
-                lastDate: widget.group!.endDate,
+                firstDate: _formController.startDate!,
+                lastDate: _formController.endDate!,
               );
             },
           ),
