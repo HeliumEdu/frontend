@@ -6,7 +6,6 @@
 // For details regarding the license, please refer to the LICENSE file.
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/data/models/auth/user_model.dart';
 import 'package:heliumapp/data/models/planner/grade_category_model.dart';
@@ -16,6 +15,7 @@ import 'package:heliumapp/presentation/ui/components/course_title_label.dart';
 import 'package:heliumapp/presentation/ui/feedback/error_container.dart';
 import 'package:heliumapp/presentation/ui/components/grade_label.dart';
 import 'package:heliumapp/presentation/ui/components/helium_elevated_button.dart';
+import 'package:heliumapp/presentation/ui/components/spinner_field.dart';
 import 'package:heliumapp/presentation/ui/feedback/success_container.dart';
 import 'package:heliumapp/presentation/ui/feedback/warning_container.dart';
 import 'package:heliumapp/utils/app_style.dart';
@@ -257,40 +257,25 @@ class _GradeCalculatorDialogState
         ),
         const SizedBox(height: 12),
 
-        Text('Desired Class Grade (%)', style: AppStyles.formLabel(context)),
-        const SizedBox(height: 9),
-        TextFormField(
-          controller: _desiredGradeController,
-          keyboardType: const TextInputType.numberWithOptions(decimal: true),
-          textInputAction: TextInputAction.done,
-          inputFormatters: [
-            FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}')),
-          ],
-          decoration: InputDecoration(
-            filled: true,
-            fillColor: context.colorScheme.surface,
-            contentPadding: const EdgeInsets.only(left: 12),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-              borderSide: BorderSide(
-                color: context.colorScheme.outline.withValues(alpha: 0.2),
-              ),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-              borderSide: BorderSide(
-                color: context.colorScheme.outline.withValues(alpha: 0.2),
-              ),
+        Align(
+          alignment: Alignment.centerLeft,
+          child: SizedBox(
+            width: 190,
+            child: SpinnerField(
+            label: 'Desired Class Grade (%)',
+            controller: _desiredGradeController,
+            minValue: 0,
+            maxValue: 100,
+            step: 0.5,
+            allowDecimal: true,
+            onChanged: (_) {
+              setState(() {
+                _result = null;
+                _validationErrorMessage = null;
+              });
+            },
             ),
           ),
-          style: AppStyles.formText(context),
-          onChanged: (_) {
-            setState(() {
-              _result = null;
-              _validationErrorMessage = null;
-            });
-          },
-          onFieldSubmitted: (_) => handleSubmit(),
         ),
 
         if (_validationErrorMessage != null || _result != null)
