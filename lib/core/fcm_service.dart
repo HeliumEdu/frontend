@@ -41,6 +41,8 @@ class FcmService {
   final Map<String, DateTime> _recentMessageIds = {};
   static const Duration _dedupeWindow = Duration(seconds: 30);
 
+  static void Function(String route)? _onForegroundTap;
+
   bool _isInitialized = false;
   bool _isSupported = true;
 
@@ -80,6 +82,10 @@ class FcmService {
   @visibleForTesting
   static void setInstanceForTesting(FcmService instance) {
     _instance = instance;
+  }
+
+  static void setForegroundTapCallback(void Function(String route) callback) {
+    _onForegroundTap = callback;
   }
 
   @visibleForTesting
@@ -388,6 +394,21 @@ class FcmService {
   Future<void> _handleInitialMessage() async {
     if (_firebaseMessaging == null) return;
 
+    // On web, cold-start URL is set by the service worker (openWindow) or
+    // external deep link. Capture it generically — getInitialMessage() is not
+    // reliable on web.
+    if (kIsWeb) {
+      final initialUri = Uri.base;
+      if (initialUri.queryParameters.isNotEmpty) {
+        _log.info('App cold-started at $initialUri');
+        pendingRoute = Uri(
+          path: initialUri.path,
+          queryParameters: initialUri.queryParameters,
+        ).toString();
+      }
+      return;
+    }
+
     final RemoteMessage? initialMessage = await _firebaseMessaging!
         .getInitialMessage();
 
@@ -405,7 +426,14 @@ class FcmService {
     if (pendingRoute != null) {
       final route = pendingRoute!;
       pendingRoute = null;
-      router.push(route);
+      // On web, go() re-establishes the full intended URL after auth may have
+      // cleared query params during initialization. On mobile, push() preserves
+      // the back stack for the cold-start FCM tap case.
+      if (kIsWeb) {
+        router.go(route);
+      } else {
+        router.push(route);
+      }
     }
   }
 
@@ -414,7 +442,13 @@ class FcmService {
       if (await web_notifications.requestWebNotificationPermission()) {
         web_notifications.showWebNotification(
           notification,
-          (_) => router.go(_notificationsRoute),
+          (_) {
+            if (_onForegroundTap != null) {
+              _onForegroundTap!(_notificationsRoute);
+            } else {
+              router.go(_notificationsRoute);
+            }
+          },
         );
       }
       return;
