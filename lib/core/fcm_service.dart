@@ -357,24 +357,19 @@ class FcmService {
       if (await _handleTestMessages(message, messageId)) return;
     }
 
-    final payload = json.decode(message.data['json_payload']);
+    final notification = _messageToNotification(message);
 
     final now = DateTime.now();
     _recentMessageIds.removeWhere(
       (_, ts) => now.difference(ts) > _dedupeWindow,
     );
 
-    if (_recentMessageIds.containsKey(payload['id'].toString())) {
+    if (_recentMessageIds.containsKey(notification.id.toString())) {
       _log.info('Foreground message $messageId within dedupe window, skipping');
       unawaited(AnalyticsService().logEvent(name: 'fcm_message_deduplicated', parameters: {'category': 'operational'}));
       return;
     }
-    _recentMessageIds[payload['id'].toString()] = now;
-
-    final notification = PlannerHelper.mapPayloadToNotification(
-      message,
-      payload,
-    );
+    _recentMessageIds[notification.id.toString()] = now;
 
     await showLocalNotification(notification);
     _log.info('Foreground message $messageId notification displayed');
@@ -383,14 +378,7 @@ class FcmService {
   Future<void> _onNotificationTap(RemoteMessage message) async {
     final messageId = message.messageId;
     _log.info('Notification $messageId tapped');
-    await router.push(
-      Uri(
-        path: AppRoute.plannerScreen,
-        queryParameters: {
-          DeepLinkParam.dialog: DeepLinkParam.dialogNotifications,
-        },
-      ).toString(),
-    );
+    await router.push(_notificationsRoute);
   }
 
   /// Pending route to navigate to once the router is initialized.
@@ -407,12 +395,7 @@ class FcmService {
       _log.info('App opened from terminated state via notification');
       // Defer navigation - router may not be initialized yet during cold start.
       // The app's main widget should check pendingRoute after router is ready.
-      pendingRoute = Uri(
-        path: AppRoute.plannerScreen,
-        queryParameters: {
-          DeepLinkParam.dialog: DeepLinkParam.dialogNotifications,
-        },
-      ).toString();
+      pendingRoute = _notificationsRoute;
     }
   }
 
@@ -431,14 +414,7 @@ class FcmService {
       if (await web_notifications.requestWebNotificationPermission()) {
         web_notifications.showWebNotification(
           notification,
-          (_) => router.push(
-            Uri(
-              path: AppRoute.plannerScreen,
-              queryParameters: {
-                DeepLinkParam.dialog: DeepLinkParam.dialogNotifications,
-              },
-            ).toString(),
-          ),
+          (_) => router.push(_notificationsRoute),
         );
       }
       return;
@@ -477,14 +453,7 @@ class FcmService {
 
   void _onNotificationTapped(NotificationResponse response) {
     _log.info('Local notification tapped: ${response.id}');
-    router.push(
-      Uri(
-        path: AppRoute.plannerScreen,
-        queryParameters: {
-          DeepLinkParam.dialog: DeepLinkParam.dialogNotifications,
-        },
-      ).toString(),
-    );
+    router.push(_notificationsRoute);
   }
 
   Future<void> registerToken({bool force = false}) async {
@@ -523,6 +492,18 @@ class FcmService {
   String? get deviceId => _deviceId;
 
   bool get isInitialized => _isInitialized;
+
+  static String get _notificationsRoute => Uri(
+    path: AppRoute.plannerScreen,
+    queryParameters: {
+      DeepLinkParam.dialog: DeepLinkParam.dialogNotifications,
+    },
+  ).toString();
+
+  static NotificationModel _messageToNotification(RemoteMessage message) {
+    final payload = json.decode(message.data['json_payload']);
+    return PlannerHelper.mapPayloadToNotification(message, payload);
+  }
 
   Future<bool> _handleTestMessages(
     RemoteMessage message,
@@ -595,16 +576,9 @@ Future<void> _onBackgroundMessage(RemoteMessage message) async {
     final messageId = message.messageId ?? 'unknown';
     _log.info('Background message $messageId received from FCM');
 
-    // Parse the reminder data from the message
-    final payload = json.decode(message.data['json_payload']);
+    final notification = FcmService._messageToNotification(message);
 
-    final notification = PlannerHelper.mapPayloadToNotification(
-      message,
-      payload,
-    );
-
-    final fcmService = FcmService();
-    await fcmService.showLocalNotification(notification);
+    await FcmService().showLocalNotification(notification);
     _log.info('Background message $messageId notification displayed');
   } catch (e) {
     _log.severe('Background message processing failed', e);

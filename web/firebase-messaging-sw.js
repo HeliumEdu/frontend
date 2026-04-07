@@ -39,21 +39,28 @@ self.addEventListener('notificationclick', (event) => {
 messaging.onBackgroundMessage((payload) => {
   console.log('[firebase-messaging-sw.js] Received background message:', payload);
 
-  let reminderId = null;
-  try {
-    const jsonPayload = JSON.parse(payload.data?.json_payload || '{}');
-    reminderId = jsonPayload.id?.toString() ?? null;
-  } catch (e) {
-    console.warn('[firebase-messaging-sw.js] Failed to parse json_payload', e);
-  }
+  // If any tab is visible, the Dart foreground handler will show the notification.
+  // Skip here to avoid a duplicate — onBackgroundMessage and onMessage are not
+  // strictly mutually exclusive in Chrome's Firebase web SDK implementation.
+  return clients.matchAll({ type: 'window', includeUncontrolled: true }).then((windowClients) => {
+    if (windowClients.some(client => client.visibilityState === 'visible')) return;
 
-  const notificationTitle = payload.notification?.title || 'Helium Notification';
-  const notificationOptions = {
-    body: payload.notification?.body || '',
-    icon: '/icons/Icon-192.png',
-    badge: '/icons/Icon-192.png',
-    tag: reminderId ?? notificationTitle,
-  };
+    let reminderId = null;
+    try {
+      const jsonPayload = JSON.parse(payload.data?.json_payload || '{}');
+      reminderId = jsonPayload.id?.toString() ?? null;
+    } catch (e) {
+      console.warn('[firebase-messaging-sw.js] Failed to parse json_payload', e);
+    }
 
-  return self.registration.showNotification(notificationTitle, notificationOptions);
+    const notificationTitle = payload.notification?.title || 'Helium Notification';
+    const notificationOptions = {
+      body: payload.notification?.body || '',
+      icon: '/icons/Icon-192.png',
+      badge: '/icons/Icon-192.png',
+      tag: reminderId ?? notificationTitle,
+    };
+
+    return self.registration.showNotification(notificationTitle, notificationOptions);
+  });
 });
