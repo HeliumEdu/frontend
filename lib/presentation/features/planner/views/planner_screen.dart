@@ -84,6 +84,7 @@ import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:logging/logging.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';
 import 'package:timezone/standalone.dart' as tz;
+import 'package:heliumapp/utils/url_helpers.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 final _log = Logger('presentation.views');
@@ -2617,7 +2618,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
       buttons.add(
         HeliumIconButton(
           onPressed: () {
-            launchUrl(Uri.parse(course!.website));
+            UrlHelpers.launchWebUrl(course!.website);
           },
           icon: Icons.launch_outlined,
           tooltip: 'Launch class website',

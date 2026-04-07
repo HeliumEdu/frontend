@@ -33,7 +33,7 @@ import 'package:heliumapp/presentation/features/resources/constants/resource_con
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/quill_helpers.dart';
 import 'package:heliumapp/utils/sort_helpers.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'package:heliumapp/utils/url_helpers.dart';
 
 class ResourceDetails extends StatefulWidget {
   final int resourceGroupId;
@@ -179,8 +179,8 @@ class ResourceDetailsState extends State<ResourceDetails> {
                     focusNode: _formController.urlFocusNode,
                     trailingIconButton: HeliumIconButton(
                       onPressed: () {
-                        launchUrl(
-                          Uri.parse(_formController.urlController.text),
+                        UrlHelpers.launchWebUrl(
+                          _formController.urlController.text,
                         );
                       },
                       icon: Icons.launch_outlined,

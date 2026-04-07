@@ -11,7 +11,7 @@ import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/date_time_helpers.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'package:heliumapp/utils/url_helpers.dart';
 
 /// Options presented when a user taps a course schedule event on the planner
 class CourseScheduleEventActions {
@@ -143,7 +143,7 @@ void showCourseScheduleEventDialog({
                 iconColor: menuContext.semanticColors.success,
                 onTap: () {
                   Navigator.pop(menuContext);
-                  launchUrl(Uri.parse(actions.websiteUrl!));
+                  UrlHelpers.launchWebUrl(actions.websiteUrl!);
                 },
               ),
             if (isMobile) const SizedBox(height: 8),
