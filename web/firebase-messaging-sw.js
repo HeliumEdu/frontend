@@ -44,17 +44,20 @@ messaging.onBackgroundMessage((payload) => {
   return clients.matchAll({ type: 'window', includeUncontrolled: true }).then((windowClients) => {
     if (windowClients.some(client => client.visibilityState === 'visible')) return;
 
+    let notificationTitle = 'Helium Notification';
+    let notificationBody = '';
     let reminderId = null;
     try {
       const jsonPayload = JSON.parse(payload.data?.json_payload || '{}');
       reminderId = jsonPayload.id?.toString() ?? null;
+      notificationTitle = jsonPayload.title || notificationTitle;
+      notificationBody = jsonPayload.message || '';
     } catch (e) {
       console.warn('[firebase-messaging-sw.js] Failed to parse json_payload', e);
     }
 
-    const notificationTitle = payload.notification?.title || 'Helium Notification';
     const notificationOptions = {
-      body: payload.notification?.body || '',
+      body: notificationBody,
       icon: '/icons/Icon-192.png',
       badge: '/icons/Icon-192.png',
       tag: reminderId ?? notificationTitle,

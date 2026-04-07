@@ -103,8 +103,8 @@ class PlannerHelper {
 
     return NotificationModel(
       id: reminder.id,
-      title: message.notification!.title!,
-      body: message.notification!.body!,
+      title: payload['title'] as String,
+      body: payload['message'] as String,
       reminder: reminder,
       timestamp: start,
       isRead: false,
