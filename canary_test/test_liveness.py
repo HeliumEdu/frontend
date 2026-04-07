@@ -36,12 +36,39 @@ def _get_google_access_token(client_email: str, private_key: str, scope: str) ->
     return response.json()["access_token"]
 
 
+def test_platform_status(api_host: str) -> None:
+    """
+    Infrastructure health check: validate that all platform services are operational.
+
+    Hits /status/ which covers the checks not guaranteed by the ALB health check subset:
+    Database, Cache, Storage, TaskProcessing, and CeleryBeat.
+    """
+    response = requests.get(
+        f"{api_host}/status/",
+        headers={"Accept": "application/json"},
+        timeout=10,
+    )
+    assert response.status_code == 200, (
+        f"Platform status endpoint returned {response.status_code}: {response.text}"
+    )
+
+    status = response.json()
+    failing = [name for name, state in status.items() if state != "working"]
+    assert not failing, (
+        f"Platform health checks not working: {', '.join(failing)}"
+    )
+
+
 def test_firebase_push_credentials(firebase_credentials: dict) -> None:
     """
     Credential health check: validate that the Firebase service account can send push notifications.
 
     Sends a validate_only FCM message — no notification is delivered. A 200 response confirms the
     private key, client email, project ID, and FCM send permissions are all intact.
+
+    The message payload mirrors the structure used by pushservice.py: no top-level notification field
+    (which causes web double-notifications via FCM auto-display), platform-specific notification
+    configs for Android and iOS instead.
     """
     access_token = _get_google_access_token(
         firebase_credentials["client_email"],
@@ -58,7 +85,19 @@ def test_firebase_push_credentials(firebase_credentials: dict) -> None:
             "validate_only": True,
             "message": {
                 "topic": "credential-health-check",
-                "notification": {"title": "ping", "body": "pong"},
+                "data": {"json_payload": "{}"},
+                "android": {
+                    "notification": {"title": "ping", "body": "pong"},
+                },
+                "apns": {
+                    "payload": {
+                        "aps": {
+                            "alert": {"title": "ping", "body": "pong"},
+                            "sound": "default",
+                            "content-available": 1,
+                        },
+                    },
+                },
             },
         },
         timeout=10,
