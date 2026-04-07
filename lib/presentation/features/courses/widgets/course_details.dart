@@ -29,6 +29,7 @@ import 'package:heliumapp/utils/color_helpers.dart' show HeliumColors;
 import 'package:heliumapp/utils/date_time_helpers.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:logging/logging.dart';
+import 'package:heliumapp/utils/url_helpers.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 final _log = Logger('presentation.widgets');
@@ -233,8 +234,8 @@ class CourseDetailsState extends State<CourseDetails> {
                     focusNode: _formController.urlFocusNode,
                     trailingIconButton: HeliumIconButton(
                       onPressed: () {
-                        launchUrl(
-                          Uri.parse(_formController.urlController.text),
+                        UrlHelpers.launchWebUrl(
+                          _formController.urlController.text,
                         );
                       },
                       icon: Icons.launch_outlined,

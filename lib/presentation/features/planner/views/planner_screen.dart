@@ -84,6 +84,7 @@ import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:logging/logging.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';
 import 'package:timezone/standalone.dart' as tz;
+import 'package:heliumapp/utils/url_helpers.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 final _log = Logger('presentation.views');
@@ -1636,11 +1637,12 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
     final PlannerItemBaseModel plannerItem =
         tapDetails.appointments![0] as PlannerItemBaseModel;
 
-    // Agenda-style items handle taps internally via column-based tap zones.
-    // This includes pure agenda view and mobile month view (which renders
-    // items as agenda-style in the bottom section).
+    // Agenda-style items handle taps internally via column-based tap zones
+    // (agenda view), or the GestureDetector in _buildCalendarItem handles taps
+    // to bypass an SfCalendar month-view quirk on touch devices.
     if (_currentView == PlannerView.agenda ||
-        (_currentView == PlannerView.month && Responsive.isMobile(context))) {
+        (_currentView == PlannerView.month &&
+            Responsive.isTouchDevice(context))) {
       return;
     }
 
@@ -1997,14 +1999,14 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
       );
     }
 
-    // In month view on touch devices like iPad, SfCalendar incorrectly reports
-    // calendarCell instead of appointment for taps and long-presses on calendar
-    // items. Handle both directly on the widget to bypass this SfCalendar quirk
-    // (drag-and-drop in month view on touch is unsupported by SfCalendar, so
-    // consuming the long-press has no functional cost).
+    // On touch devices, SfCalendar incorrectly reports calendarCell instead of
+    // appointment for taps and long-presses on month-view calendar items. Handle
+    // both directly on the widget to bypass this quirk (drag-and-drop in month
+    // view on touch is unsupported by SfCalendar, so consuming the long-press
+    // has no functional cost).
     // Skip for agenda-style items which handle taps internally via column zones.
     if (_currentView == PlannerView.month &&
-        Responsive.isMobile(context) &&
+        Responsive.isTouchDevice(context) &&
         !isInAgenda) {
       calendarItemWidget = GestureDetector(
         onTap: () =>
@@ -2617,7 +2619,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
       buttons.add(
         HeliumIconButton(
           onPressed: () {
-            launchUrl(Uri.parse(course!.website));
+            UrlHelpers.launchWebUrl(course!.website);
           },
           icon: Icons.launch_outlined,
           tooltip: 'Launch class website',

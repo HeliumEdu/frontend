@@ -16,7 +16,7 @@ class PrefService {
       _secureStorageOverride ??
       const FlutterSecureStorage(
         iOptions: IOSOptions(
-          accessibility: KeychainAccessibility.first_unlock,
+          accessibility: KeychainAccessibility.unlocked,
         ),
       );
 
