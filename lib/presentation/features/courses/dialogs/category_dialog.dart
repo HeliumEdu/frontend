@@ -112,24 +112,29 @@ class _CategoryWidgetState extends BaseDialogState<_CategoryProvidedWidget> {
           onFieldSubmitted: (value) => handleSubmit(),
         ),
         const SizedBox(height: 14),
-        SizedBox(
-          width: 120,
-          child: SpinnerField(
-            label: 'Weight (%)',
-            controller: _formController.weightController,
-            minValue: 0,
-            maxValue: 100,
-          ),
-        ),
-        const SizedBox(height: 14),
-        ColorSelector(
-          label: 'Color',
-          selectedColor: _formController.selectedColor,
-          onColorSelected: (color) {
-            setState(() {
-              _formController.selectedColor = color;
-            });
-          },
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            SizedBox(
+              width: 120,
+              child: SpinnerField(
+                label: 'Weight (%)',
+                controller: _formController.weightController,
+                minValue: 0,
+                maxValue: 100,
+              ),
+            ),
+            const SizedBox(width: 50),
+            ColorSelector(
+              label: 'Color',
+              selectedColor: _formController.selectedColor,
+              onColorSelected: (color) {
+                setState(() {
+                  _formController.selectedColor = color;
+                });
+              },
+            ),
+          ],
         ),
       ],
     );
