@@ -414,7 +414,7 @@ class FcmService {
       if (await web_notifications.requestWebNotificationPermission()) {
         web_notifications.showWebNotification(
           notification,
-          (_) => router.push(_notificationsRoute),
+          (_) => router.go(_notificationsRoute),
         );
       }
       return;
