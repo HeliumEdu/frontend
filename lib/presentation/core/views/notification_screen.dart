@@ -742,8 +742,8 @@ class _NotificationsScreenState
   Future<void> _dismissReminder(NotificationModel notification) async {
     final req = ReminderRequestModel(
       dismissed: true,
-      title: notification.title,
-      message: notification.body,
+      title: notification.reminder.title,
+      message: notification.reminder.message,
       offset: notification.reminder.offset,
       offsetType: notification.reminder.offsetType,
       type: notification.reminder.type,
