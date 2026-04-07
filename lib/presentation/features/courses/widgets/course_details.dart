@@ -368,15 +368,6 @@ class CourseDetailsState extends State<CourseDetails> {
   bool onSubmit() {
     if (isLoading || _isSubmitting) return false;
     if (_formController.validateAndScrollToError()) {
-      if (_formController.endDate!.isBefore(_formController.startDate!)) {
-        SnackBarHelper.show(
-          context,
-          '"To" date must come after "From" date',
-          type: SnackType.error,
-        );
-        return false;
-      }
-
       // Notify parent that action is starting (validation passed)
       setState(() => _isSubmitting = true);
       widget.onActionStarted?.call();
@@ -488,8 +479,16 @@ class CourseDetailsState extends State<CourseDetails> {
       setState(() {
         if (isStartDate) {
           _formController.startDate = picked;
+          _formController.endDate = DateRangeEnforcer.adjustEndDate(
+            picked,
+            _formController.endDate!,
+          );
         } else {
           _formController.endDate = picked;
+          _formController.startDate = DateRangeEnforcer.adjustStartDate(
+            _formController.startDate!,
+            picked,
+          );
         }
       });
     }

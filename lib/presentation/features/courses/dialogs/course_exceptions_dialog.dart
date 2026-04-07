@@ -218,7 +218,6 @@ class _CourseExceptionsDialogState extends State<CourseExceptionsDialog> {
             HeliumIconButton(
               onPressed: _addDate,
               icon: Icons.add,
-              tooltip: 'Add date',
             ),
           ],
         ),

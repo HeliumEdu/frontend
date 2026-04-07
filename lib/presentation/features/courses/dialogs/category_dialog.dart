@@ -58,8 +58,11 @@ class _CategoryWidgetState extends BaseDialogState<_CategoryProvidedWidget> {
       if (widget.category!.weight == 0) {
         _formController.weightController.text = '';
       } else {
-        _formController.weightController.text = widget.category!.weight
-            .toStringAsFixed(0);
+        final weight = widget.category!.weight;
+        _formController.weightController.text =
+            weight == weight.roundToDouble()
+                ? weight.toStringAsFixed(0)
+                : weight.toString();
       }
       _formController.selectedColor = widget.category!.color;
     } else {
@@ -112,24 +115,30 @@ class _CategoryWidgetState extends BaseDialogState<_CategoryProvidedWidget> {
           onFieldSubmitted: (value) => handleSubmit(),
         ),
         const SizedBox(height: 14),
-        SizedBox(
-          width: 120,
-          child: SpinnerField(
-            label: 'Weight (%)',
-            controller: _formController.weightController,
-            minValue: 0,
-            maxValue: 100,
-          ),
-        ),
-        const SizedBox(height: 14),
-        ColorSelector(
-          label: 'Color',
-          selectedColor: _formController.selectedColor,
-          onColorSelected: (color) {
-            setState(() {
-              _formController.selectedColor = color;
-            });
-          },
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            SizedBox(
+              width: 120,
+              child: SpinnerField(
+                label: 'Weight (%)',
+                controller: _formController.weightController,
+                minValue: 0,
+                maxValue: 100,
+                allowDecimal: true,
+              ),
+            ),
+            const SizedBox(width: 50),
+            ColorSelector(
+              label: 'Color',
+              selectedColor: _formController.selectedColor,
+              onColorSelected: (color) {
+                setState(() {
+                  _formController.selectedColor = color;
+                });
+              },
+            ),
+          ],
         ),
       ],
     );

@@ -39,6 +39,61 @@ class HeliumTime {
   }
 }
 
+class DateRangeEnforcer {
+  DateRangeEnforcer._();
+
+  static DateTime adjustEndDate(DateTime start, DateTime end) {
+    return end.isBefore(start) ? start : end;
+  }
+
+  static DateTime adjustStartDate(DateTime start, DateTime end) {
+    return start.isAfter(end) ? end : start;
+  }
+
+  static TimeOfDay adjustEndTime(TimeOfDay start, TimeOfDay end) {
+    return _minuteOfDay(start) > _minuteOfDay(end) ? start : end;
+  }
+
+  static TimeOfDay adjustStartTime(TimeOfDay start, TimeOfDay end) {
+    return _minuteOfDay(start) > _minuteOfDay(end) ? end : start;
+  }
+
+  static ({DateTime date, TimeOfDay? time}) adjustEnd({
+    required DateTime startDate,
+    required TimeOfDay? startTime,
+    required DateTime endDate,
+    required TimeOfDay? endTime,
+  }) {
+    final effectiveStart = _combine(startDate, startTime);
+    final effectiveEnd = _combine(endDate, endTime);
+    if (effectiveEnd.isBefore(effectiveStart)) {
+      return (date: startDate, time: startTime);
+    }
+    return (date: endDate, time: endTime);
+  }
+
+  static ({DateTime date, TimeOfDay? time}) adjustStart({
+    required DateTime startDate,
+    required TimeOfDay? startTime,
+    required DateTime endDate,
+    required TimeOfDay? endTime,
+  }) {
+    final effectiveStart = _combine(startDate, startTime);
+    final effectiveEnd = _combine(endDate, endTime);
+    if (effectiveStart.isAfter(effectiveEnd)) {
+      return (date: endDate, time: endTime);
+    }
+    return (date: startDate, time: startTime);
+  }
+
+  static int _minuteOfDay(TimeOfDay t) => t.hour * 60 + t.minute;
+
+  static DateTime _combine(DateTime date, TimeOfDay? time) {
+    if (time == null) return date;
+    return DateTime(date.year, date.month, date.day, time.hour, time.minute);
+  }
+}
+
 class HeliumDateTime {
   /// Returns a DateTime with only the date part (time set to midnight)
   static DateTime dateOnly(DateTime date) {

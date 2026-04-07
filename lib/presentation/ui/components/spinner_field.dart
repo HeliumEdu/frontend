@@ -24,6 +24,7 @@ class SpinnerField extends StatelessWidget {
   final bool allowDecimal;
   final ValueChanged<String>? onChanged;
   final String? Function(String?)? validator;
+  final double? maxSpinnerWidth;
 
   const SpinnerField({
     super.key,
@@ -35,6 +36,7 @@ class SpinnerField extends StatelessWidget {
     this.allowDecimal = false,
     this.onChanged,
     this.validator,
+    this.maxSpinnerWidth,
   });
 
   @override
@@ -44,7 +46,13 @@ class SpinnerField extends StatelessWidget {
       children: [
         if (label != null) Text(label!, style: AppStyles.formLabel(context)),
         if (label != null) const SizedBox(height: 9),
-        Row(
+        _buildSpinnerRow(context),
+      ],
+    );
+  }
+
+  Widget _buildSpinnerRow(BuildContext context) {
+    final row = Row(
           children: [
             Expanded(
               child: Container(
@@ -136,9 +144,15 @@ class SpinnerField extends StatelessWidget {
               ],
             ),
           ],
-        ),
-      ],
-    );
+        );
+
+    if (maxSpinnerWidth != null) {
+      return ConstrainedBox(
+        constraints: BoxConstraints(maxWidth: maxSpinnerWidth!),
+        child: row,
+      );
+    }
+    return row;
   }
 
   void _increment() {

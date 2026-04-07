@@ -237,8 +237,8 @@ class _CourseGroupWidgetState
                     setState(() => _groupExceptions = exceptions);
                   }
                 },
-                firstDate: widget.group!.startDate,
-                lastDate: widget.group!.endDate,
+                firstDate: _formController.startDate!,
+                lastDate: _formController.endDate!,
               );
             },
           ),
@@ -252,14 +252,6 @@ class _CourseGroupWidgetState
     super.handleSubmit();
 
     if (_formController.formKey.currentState!.validate()) {
-      if (_formController.endDate!.isBefore(_formController.startDate!)) {
-        setState(() {
-          errorMessage = '"To" date must come after "From" date';
-          isSubmitting = false;
-        });
-        return;
-      }
-
       final request = CourseGroupRequestModel(
         title: _formController.titleController.text.trim(),
         startDate: HeliumDateTime.formatDateForApi(_formController.startDate!),
@@ -299,8 +291,16 @@ class _CourseGroupWidgetState
       setState(() {
         if (isStartDate) {
           _formController.startDate = picked;
+          _formController.endDate = DateRangeEnforcer.adjustEndDate(
+            picked,
+            _formController.endDate!,
+          );
         } else {
           _formController.endDate = picked;
+          _formController.startDate = DateRangeEnforcer.adjustStartDate(
+            _formController.startDate!,
+            picked,
+          );
         }
       });
     }
