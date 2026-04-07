@@ -261,11 +261,11 @@ jobs:
             --env "${{ inputs.environment }}" \
             --name "dist-${SENTRY_DIST}"
 
-      - name: Trigger Playwright tests
+      - name: Trigger canary tests
         env:
           GH_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
         run: |
-          gh workflow run playwright.yml \
+          gh workflow run canary.yml \
             --repo HeliumEdu/frontend \
             -f environment=${{ inputs.environment }}
 
