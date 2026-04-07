@@ -39,11 +39,20 @@ self.addEventListener('notificationclick', (event) => {
 messaging.onBackgroundMessage((payload) => {
   console.log('[firebase-messaging-sw.js] Received background message:', payload);
 
+  let reminderId = null;
+  try {
+    const jsonPayload = JSON.parse(payload.data?.json_payload || '{}');
+    reminderId = jsonPayload.id?.toString() ?? null;
+  } catch (e) {
+    console.warn('[firebase-messaging-sw.js] Failed to parse json_payload', e);
+  }
+
   const notificationTitle = payload.notification?.title || 'Helium Notification';
   const notificationOptions = {
     body: payload.notification?.body || '',
     icon: '/icons/Icon-192.png',
     badge: '/icons/Icon-192.png',
+    tag: reminderId ?? notificationTitle,
   };
 
   return self.registration.showNotification(notificationTitle, notificationOptions);
