@@ -529,7 +529,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
     return BlocBuilder<PlannerBloc, PlannerState>(
       builder: (context, state) {
         if (state is PlannerLoading) {
-          return const LoadingIndicator();
+          return const Center(child: LoadingIndicator(expanded: false));
         }
 
         if (state is PlannerError) {

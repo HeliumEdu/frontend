@@ -14,7 +14,6 @@ import 'package:heliumapp/presentation/features/shared/bloc/core/base_event.dart
 import 'package:heliumapp/presentation/features/courses/bloc/course_bloc.dart';
 import 'package:heliumapp/presentation/features/courses/bloc/course_event.dart';
 import 'package:heliumapp/presentation/features/courses/bloc/course_state.dart';
-import 'package:heliumapp/utils/snack_bar_helpers.dart';
 import 'package:heliumapp/presentation/features/shared/widgets/flow/multi_step_container.dart';
 import 'package:heliumapp/presentation/ui/components/helium_elevated_button.dart';
 import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
@@ -114,24 +113,6 @@ class CourseScheduleState extends State<CourseSchedule> {
     if (isLoading || _isSubmitting) return false;
     if (_scheduleId == null) {
       return false;
-    }
-
-    if (_variesByDay) {
-      if (_selectedDays.isEmpty) {
-        SnackBarHelper.show(context, 'Select at least one day', type: SnackType.error);
-        return false;
-      }
-
-      for (int dayIndex in _selectedDays) {
-        if (_startTimes[dayIndex] == null || _endTimes[dayIndex] == null) {
-          SnackBarHelper.show(
-            context,
-            'Set times for all selected days',
-            type: SnackType.error,
-          );
-          return false;
-        }
-      }
     }
 
     // Notify parent that action is starting (validation passed)
@@ -294,6 +275,15 @@ class CourseScheduleState extends State<CourseSchedule> {
                                       _startTimes[i] = _singleStartTime;
                                       _endTimes[i] = _singleEndTime;
                                     }
+                                    if (_selectedDays.isEmpty) {
+                                      _selectedDays = {1, 3, 5};
+                                    }
+                                  } else {
+                                    final firstDay = _selectedDays.firstOrNull;
+                                    if (firstDay != null) {
+                                      _singleStartTime = _startTimes[firstDay] ?? _singleStartTime;
+                                      _singleEndTime = _endTimes[firstDay] ?? _singleEndTime;
+                                    }
                                   }
                                 });
                               },
@@ -352,7 +342,7 @@ class CourseScheduleState extends State<CourseSchedule> {
                         _selectedDays.addAll(newSelection);
                       });
                     },
-                    emptySelectionAllowed: true,
+                    emptySelectionAllowed: !_variesByDay,
                     multiSelectionEnabled: true,
                     showSelectedIcon: false,
                   ),
@@ -599,8 +589,6 @@ class CourseScheduleState extends State<CourseSchedule> {
     setState(() {
       _scheduleId = schedule.id;
       _selectedDays = activeDays;
-      _singleStartTime = schedule.sunStartTime;
-      _singleEndTime = schedule.sunEndTime;
       _variesByDay = !schedule.allDaysSameTime();
 
       if (_variesByDay) {
@@ -608,6 +596,12 @@ class CourseScheduleState extends State<CourseSchedule> {
           _startTimes[dayIndex] = schedule.getStartTimeForDayIndex(dayIndex);
           _endTimes[dayIndex] = schedule.getEndTimeForDayIndex(dayIndex);
         }
+        final firstDay = activeDays.firstOrNull;
+        _singleStartTime = (firstDay != null ? _startTimes[firstDay] : null) ?? _singleStartTime;
+        _singleEndTime = (firstDay != null ? _endTimes[firstDay] : null) ?? _singleEndTime;
+      } else {
+        _singleStartTime = schedule.sunStartTime;
+        _singleEndTime = schedule.sunEndTime;
       }
 
       isLoading = false;

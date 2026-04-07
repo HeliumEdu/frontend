@@ -261,7 +261,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
     return BlocBuilder<GradeBloc, GradeState>(
       builder: (context, state) {
         if (state is GradesLoading) {
-          return const LoadingIndicator();
+          return const Center(child: LoadingIndicator(expanded: false));
         }
 
         if (state is GradesError) {

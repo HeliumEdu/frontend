@@ -297,7 +297,7 @@ class _ResourcesScreenState
     return BlocBuilder<ResourceBloc, ResourceState>(
       builder: (context, state) {
         if (state is ResourcesLoading && state.origin == EventOrigin.screen) {
-          return const LoadingIndicator();
+          return const Center(child: LoadingIndicator(expanded: false));
         }
 
         if (state is ResourcesError && state.origin == EventOrigin.screen) {
