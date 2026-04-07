@@ -1641,7 +1641,8 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
     // This includes pure agenda view and mobile month view (which renders
     // items as agenda-style in the bottom section).
     if (_currentView == PlannerView.agenda ||
-        (_currentView == PlannerView.month && Responsive.isMobile(context))) {
+        (_currentView == PlannerView.month &&
+            Responsive.isTouchDevice(context))) {
       return;
     }
 
@@ -1998,14 +1999,14 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
       );
     }
 
-    // In month view on touch devices like iPad, SfCalendar incorrectly reports
-    // calendarCell instead of appointment for taps and long-presses on calendar
-    // items. Handle both directly on the widget to bypass this SfCalendar quirk
-    // (drag-and-drop in month view on touch is unsupported by SfCalendar, so
-    // consuming the long-press has no functional cost).
+    // On touch devices, SfCalendar incorrectly reports calendarCell instead of
+    // appointment for taps and long-presses on month-view calendar items. Handle
+    // both directly on the widget to bypass this quirk (drag-and-drop in month
+    // view on touch is unsupported by SfCalendar, so consuming the long-press
+    // has no functional cost).
     // Skip for agenda-style items which handle taps internally via column zones.
     if (_currentView == PlannerView.month &&
-        Responsive.isMobile(context) &&
+        Responsive.isTouchDevice(context) &&
         !isInAgenda) {
       calendarItemWidget = GestureDetector(
         onTap: () =>
