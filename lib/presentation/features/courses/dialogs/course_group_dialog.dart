@@ -252,14 +252,6 @@ class _CourseGroupWidgetState
     super.handleSubmit();
 
     if (_formController.formKey.currentState!.validate()) {
-      if (_formController.endDate!.isBefore(_formController.startDate!)) {
-        setState(() {
-          errorMessage = '"To" date must come after "From" date';
-          isSubmitting = false;
-        });
-        return;
-      }
-
       final request = CourseGroupRequestModel(
         title: _formController.titleController.text.trim(),
         startDate: HeliumDateTime.formatDateForApi(_formController.startDate!),

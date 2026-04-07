@@ -627,15 +627,6 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
     if (isLoading || _isSubmitting) return;
     _log.info('Submitting planner item (isEvent=$_isEvent, isEdit=${widget.isEdit}, redirectToNotebook=$redirectToNotebook)');
     if (_formController.validateAndScrollToError()) {
-      if (_formController.endDate.isBefore(_formController.startDate)) {
-        SnackBarHelper.show(
-          context,
-          '"End Date" must come after "Start Date"',
-          type: SnackType.error,
-        );
-        return;
-      }
-
       // Warn if homework dates fall outside the course's date range
       if (!_isEvent && _formController.selectedCourse != null) {
         final selectedCourse = _courses.firstWhere(

@@ -131,24 +131,6 @@ class CourseScheduleState extends State<CourseSchedule> {
           );
           return false;
         }
-
-        if (_startTimes[dayIndex]!.isAfter(_endTimes[dayIndex]!)) {
-          SnackBarHelper.show(
-            context,
-            '"End Time" for "${CalendarConstants.dayNamesAbbrev[dayIndex]}" must come after "Start Time"',
-            type: SnackType.error,
-          );
-          return false;
-        }
-      }
-    } else {
-      if (_singleStartTime.isAfter(_singleEndTime)) {
-        SnackBarHelper.show(
-          context,
-          '"End Time" must come after "Start Time"',
-          type: SnackType.error,
-        );
-        return false;
       }
     }
 
