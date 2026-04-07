@@ -25,7 +25,8 @@ import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/format_helpers.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
-import 'package:heliumapp/utils/snack_bar_helpers.dart' show SnackBarHelper, SnackType;
+import 'package:heliumapp/utils/snack_bar_helpers.dart'
+    show SnackBarHelper, SnackType;
 import 'package:heliumapp/utils/sort_helpers.dart';
 import 'package:heliumapp/utils/storage_helpers.dart';
 import 'package:logging/logging.dart';
@@ -93,7 +94,9 @@ abstract class BaseAttachmentsState<T extends BaseAttachmentsContent>
   bool isSubmitting = false;
 
   @mustBeOverridden
-  FetchAttachmentsEvent createFetchAttachmentsEvent({bool forceRefresh = false});
+  FetchAttachmentsEvent createFetchAttachmentsEvent({
+    bool forceRefresh = false,
+  });
 
   @mustBeOverridden
   CreateAttachmentEvent createCreateAttachmentsEvent();
@@ -133,12 +136,9 @@ abstract class BaseAttachmentsState<T extends BaseAttachmentsContent>
             '${state.attachments.length} ${state.attachments.length.plural('attachment')} uploaded',
           );
 
-          final uploadedTitles =
-              state.attachments.map((a) => a.title).toSet();
+          final uploadedTitles = state.attachments.map((a) => a.title).toSet();
           setState(() {
-            filesToUpload.removeWhere(
-              (f) => uploadedTitles.contains(f.title),
-            );
+            filesToUpload.removeWhere((f) => uploadedTitles.contains(f.title));
             attachments.addAll(state.attachments);
             Sort.byTitle(attachments);
           });
@@ -159,65 +159,67 @@ abstract class BaseAttachmentsState<T extends BaseAttachmentsContent>
       child: isLoading || widget.userSettings == null
           ? const Center(child: LoadingIndicator(expanded: false))
           : Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text('Attachments', style: AppStyles.featureText(context)),
-        const SizedBox(height: 12),
-        Expanded(
-          child: BlocBuilder<AttachmentBloc, AttachmentState>(
-            builder: (context, state) {
-              if (state is AttachmentsLoading) {
-                return const Center(child: LoadingIndicator(expanded: false));
-              }
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Attachments', style: AppStyles.featureText(context)),
+                const SizedBox(height: 12),
+                Expanded(
+                  child: BlocBuilder<AttachmentBloc, AttachmentState>(
+                    builder: (context, state) {
+                      if (state is AttachmentsLoading) {
+                        return const Center(
+                          child: LoadingIndicator(expanded: false),
+                        );
+                      }
 
-              if (state is AttachmentsError) {
-                return ErrorCard(
-                  message: state.message!,
-                  source: 'attachments_widget',
-                  onReload: () {
-                    context.read<AttachmentBloc>().add(
-                      createFetchAttachmentsEvent(forceRefresh: true),
-                    );
-                  },
-                  expanded: false,
-                );
-              }
+                      if (state is AttachmentsError) {
+                        return ErrorCard(
+                          message: state.message!,
+                          source: 'attachments_widget',
+                          onReload: () {
+                            context.read<AttachmentBloc>().add(
+                              createFetchAttachmentsEvent(forceRefresh: true),
+                            );
+                          },
+                          expanded: false,
+                        );
+                      }
 
-              if (attachments.isEmpty) {
-                return const EmptyCard(
-                  icon: Icons.attachment_outlined,
-                  message: 'Click "Choose Files" to add attachments',
-                  expanded: false,
-                );
-              }
+                      if (attachments.isEmpty) {
+                        return const EmptyCard(
+                          icon: Icons.attachment_outlined,
+                          message: 'Click "Choose Files" to add attachments',
+                          expanded: false,
+                        );
+                      }
 
-              return _buildAttachmentsList();
-            },
-          ),
-        ),
-        HeliumElevatedButton(
-          onPressed: _openFileChooserDialog,
-          icon: Icons.cloud_upload_outlined,
-          buttonText: 'Choose Files',
-        ),
-        const SizedBox(height: 12),
-        if (filesToUpload.isNotEmpty)
-          ConstrainedBox(
-            constraints: BoxConstraints(
-              maxHeight: MediaQuery.of(context).size.height * 0.4,
+                      return _buildAttachmentsList();
+                    },
+                  ),
+                ),
+                HeliumElevatedButton(
+                  onPressed: _openFileChooserDialog,
+                  icon: Icons.cloud_upload_outlined,
+                  buttonText: 'Choose Files',
+                ),
+                const SizedBox(height: 12),
+                if (filesToUpload.isNotEmpty)
+                  ConstrainedBox(
+                    constraints: BoxConstraints(
+                      maxHeight: MediaQuery.of(context).size.height * 0.4,
+                    ),
+                    child: _buildFilesToUploadList(),
+                  ),
+                const SizedBox(height: 12),
+                HeliumElevatedButton(
+                  buttonText: 'Upload',
+                  isLoading: isSubmitting,
+                  enabled: filesToUpload.isNotEmpty && !isSubmitting,
+                  onPressed: _saveAttachments,
+                ),
+                const SizedBox(height: 12),
+              ],
             ),
-            child: _buildFilesToUploadList(),
-          ),
-        const SizedBox(height: 12),
-        HeliumElevatedButton(
-          buttonText: 'Upload',
-          isLoading: isSubmitting,
-          enabled: filesToUpload.isNotEmpty && !isSubmitting,
-          onPressed: _saveAttachments,
-        ),
-        const SizedBox(height: 12),
-      ],
-      ),
     );
   }
 
@@ -263,18 +265,30 @@ abstract class BaseAttachmentsState<T extends BaseAttachmentsContent>
         }
 
         if (newFiles.isEmpty && mounted) {
-          SnackBarHelper.show(context, 'Nothing selected for upload');
+          SnackBarHelper.show(
+            context,
+            'Nothing selected for upload',
+            type: SnackType.info,
+          );
         }
 
         setState(() {
           filesToUpload = newFiles;
         });
       } else if (mounted) {
-        SnackBarHelper.show(context, 'Nothing selected for upload');
+        SnackBarHelper.show(
+          context,
+          'Nothing selected for upload',
+          type: SnackType.info,
+        );
       }
     } catch (e) {
       if (!mounted) return;
-      SnackBarHelper.show(context, 'Error picking file: $e', type: SnackType.error);
+      SnackBarHelper.show(
+        context,
+        'Error picking file: $e',
+        type: SnackType.error,
+      );
     }
   }
 

@@ -12,8 +12,8 @@ import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_bloc.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_event.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_state.dart';
-import 'package:heliumapp/presentation/features/shared/controllers/basic_form_controller.dart';
 import 'package:heliumapp/presentation/features/settings/controllers/change_email_form_controller.dart';
+import 'package:heliumapp/presentation/features/shared/controllers/basic_form_controller.dart';
 import 'package:heliumapp/presentation/ui/components/label_and_text_form_field.dart';
 import 'package:heliumapp/presentation/ui/feedback/warning_container.dart';
 import 'package:heliumapp/utils/snack_bar_helpers.dart';
@@ -81,6 +81,7 @@ class ChangeEmailScreenState extends State<ChangeEmailScreen> {
             context,
             'The pending email change was cancelled',
             useRootMessenger: true,
+            type: SnackType.info,
           );
           widget.onCompleted?.call();
         }
@@ -167,7 +168,8 @@ class ChangeEmailScreenState extends State<ChangeEmailScreen> {
     }
 
     // Allow submitting current email only if there's a pending change (to cancel it)
-    final isCurrentEmail = _currentEmail != null &&
+    final isCurrentEmail =
+        _currentEmail != null &&
         value?.toLowerCase().trim() == _currentEmail!.toLowerCase();
     if (isCurrentEmail && (_emailChanging == null || _emailChanging!.isEmpty)) {
       return 'New email must be different from your current email';

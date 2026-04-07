@@ -415,8 +415,20 @@ class CourseScheduleState extends State<CourseSchedule> {
       setState(() {
         if (isStartTime) {
           _startTimes[dayIndex] = pickedTime;
+          if (_endTimes[dayIndex] != null) {
+            _endTimes[dayIndex] = DateRangeEnforcer.adjustEndTime(
+              pickedTime,
+              _endTimes[dayIndex]!,
+            );
+          }
         } else {
           _endTimes[dayIndex] = pickedTime;
+          if (_startTimes[dayIndex] != null) {
+            _startTimes[dayIndex] = DateRangeEnforcer.adjustStartTime(
+              _startTimes[dayIndex]!,
+              pickedTime,
+            );
+          }
         }
       });
     }
@@ -631,8 +643,16 @@ class CourseScheduleState extends State<CourseSchedule> {
       setState(() {
         if (isStartTime) {
           _singleStartTime = pickedTime;
+          _singleEndTime = DateRangeEnforcer.adjustEndTime(
+            pickedTime,
+            _singleEndTime,
+          );
         } else {
           _singleEndTime = pickedTime;
+          _singleStartTime = DateRangeEnforcer.adjustStartTime(
+            _singleStartTime,
+            pickedTime,
+          );
         }
       });
     }

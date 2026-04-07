@@ -976,8 +976,42 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
       setState(() {
         if (isStartDate) {
           _formController.startDate = picked;
+          if (_formController.isAllDay) {
+            _formController.endDate = DateRangeEnforcer.adjustEndDate(
+              picked,
+              _formController.endDate,
+            );
+          } else {
+            final adjusted = DateRangeEnforcer.adjustEnd(
+              startDate: picked,
+              startTime: _formController.startTime,
+              endDate: _formController.endDate,
+              endTime: _formController.endTime,
+            );
+            _formController.endDate = adjusted.date;
+            if (adjusted.time != null) {
+              _formController.endTime = adjusted.time!;
+            }
+          }
         } else {
           _formController.endDate = picked;
+          if (_formController.isAllDay) {
+            _formController.startDate = DateRangeEnforcer.adjustStartDate(
+              _formController.startDate,
+              picked,
+            );
+          } else {
+            final adjusted = DateRangeEnforcer.adjustStart(
+              startDate: _formController.startDate,
+              startTime: _formController.startTime,
+              endDate: picked,
+              endTime: _formController.endTime,
+            );
+            _formController.startDate = adjusted.date;
+            if (adjusted.time != null) {
+              _formController.startTime = adjusted.time!;
+            }
+          }
         }
       });
     }
@@ -997,8 +1031,28 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
       setState(() {
         if (isStartTime) {
           _formController.startTime = picked;
+          final adjusted = DateRangeEnforcer.adjustEnd(
+            startDate: _formController.startDate,
+            startTime: picked,
+            endDate: _formController.endDate,
+            endTime: _formController.endTime,
+          );
+          _formController.endDate = adjusted.date;
+          if (adjusted.time != null) {
+            _formController.endTime = adjusted.time!;
+          }
         } else {
           _formController.endTime = picked;
+          final adjusted = DateRangeEnforcer.adjustStart(
+            startDate: _formController.startDate,
+            startTime: _formController.startTime,
+            endDate: _formController.endDate,
+            endTime: picked,
+          );
+          _formController.startDate = adjusted.date;
+          if (adjusted.time != null) {
+            _formController.startTime = adjusted.time!;
+          }
         }
       });
     }

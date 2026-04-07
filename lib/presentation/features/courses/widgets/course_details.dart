@@ -488,8 +488,16 @@ class CourseDetailsState extends State<CourseDetails> {
       setState(() {
         if (isStartDate) {
           _formController.startDate = picked;
+          _formController.endDate = DateRangeEnforcer.adjustEndDate(
+            picked,
+            _formController.endDate!,
+          );
         } else {
           _formController.endDate = picked;
+          _formController.startDate = DateRangeEnforcer.adjustStartDate(
+            _formController.startDate!,
+            picked,
+          );
         }
       });
     }
