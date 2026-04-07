@@ -1581,58 +1581,58 @@ packages:
     dependency: "direct main"
     description:
       name: syncfusion_flutter_calendar
-      sha256: ff20d16fbfeb1ab324608657eb92accc3b2964e68271d4d5cf83a2918211d3ec
+      sha256: "0ed22aa4dadb8a5da9f84c2fa88d733ebc9f4ce5e700f70c8e53e5f8cb01ee41"
       url: "https://pub.dev"
     source: hosted
-    version: "33.1.45"
+    version: "33.1.46"
   syncfusion_flutter_charts:
     dependency: "direct main"
     description:
       name: syncfusion_flutter_charts
-      sha256: dcd4e579119d6c93bff270c3bb5034d6dfcf48d1ba98085f42917fd5c1a633a4
+      sha256: "95eb44257e08dd769e449cd445a35ff38749337a7a37e47b44c30a45d357edb9"
       url: "https://pub.dev"
     source: hosted
-    version: "33.1.45"
+    version: "33.1.46"
   syncfusion_flutter_core:
     dependency: "direct main"
     description:
       name: syncfusion_flutter_core
-      sha256: cdc9f865a2447b75446c6583e68b2800411687cc1a36df83769b66f96ed70df1
+      sha256: "6d2505a8a8f9fcc6a070e07715d7fab06868725bb15b5eaf9432ece807ccd93b"
       url: "https://pub.dev"
     source: hosted
-    version: "33.1.45"
+    version: "33.1.46"
   syncfusion_flutter_datagrid:
     dependency: "direct main"
     description:
       name: syncfusion_flutter_datagrid
-      sha256: "512c4894edbe8bf1925d68b6d396ca99d4d9e0fc15c93b8e3a1cddc4abe02653"
+      sha256: "764174748a0357b1364fbbd9247d0dad99318cca502b1ba92c4ab9eb8260d654"
       url: "https://pub.dev"
     source: hosted
-    version: "33.1.45"
+    version: "33.1.46"
   syncfusion_flutter_datepicker:
     dependency: transitive
     description:
       name: syncfusion_flutter_datepicker
-      sha256: "0afd0ad196263f045dbae57b4e893d24ec2e3f2d5aeb783548f8a7b3a9c29f9a"
+      sha256: "43f2cfac4704a7e67a32612e012157e970e5c3c66edf4ae82a5978127eeda68c"
       url: "https://pub.dev"
     source: hosted
-    version: "33.1.45"
+    version: "33.1.46"
   syncfusion_flutter_gauges:
     dependency: "direct main"
     description:
       name: syncfusion_flutter_gauges
-      sha256: "68ea4803ec9ec1f108e51598694b563077ed60e7e2b5fe02307b79dd77aca7e9"
+      sha256: e84f558a89f90d0f6a54cd9698f96d46a2a1a20e6610acf8f7185a35d38107b7
       url: "https://pub.dev"
     source: hosted
-    version: "33.1.45"
+    version: "33.1.46"
   syncfusion_localizations:
     dependency: "direct main"
     description:
       name: syncfusion_localizations
-      sha256: "804a0b456e4a58bd7b9ac63005a696e444d7d1646c4344bf9bcba082676606d9"
+      sha256: "5b29cbf9888aec9362665a667243aa2ff1aa428f17926ee23f9d4785d2e84c5d"
       url: "https://pub.dev"
     source: hosted
-    version: "33.1.45"
+    version: "33.1.46"
   term_glyph:
     dependency: transitive
     description:
