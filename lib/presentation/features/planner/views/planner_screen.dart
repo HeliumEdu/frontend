@@ -1637,9 +1637,9 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
     final PlannerItemBaseModel plannerItem =
         tapDetails.appointments![0] as PlannerItemBaseModel;
 
-    // Agenda-style items handle taps internally via column-based tap zones.
-    // This includes pure agenda view and mobile month view (which renders
-    // items as agenda-style in the bottom section).
+    // Agenda-style items handle taps internally via column-based tap zones
+    // (agenda view), or the GestureDetector in _buildCalendarItem handles taps
+    // to bypass an SfCalendar month-view quirk on touch devices.
     if (_currentView == PlannerView.agenda ||
         (_currentView == PlannerView.month &&
             Responsive.isTouchDevice(context))) {
