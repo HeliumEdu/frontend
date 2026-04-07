@@ -42,6 +42,10 @@ def test_firebase_push_credentials(firebase_credentials: dict) -> None:
 
     Sends a validate_only FCM message — no notification is delivered. A 200 response confirms the
     private key, client email, project ID, and FCM send permissions are all intact.
+
+    The message payload mirrors the structure used by pushservice.py: no top-level notification field
+    (which causes web double-notifications via FCM auto-display), platform-specific notification
+    configs for Android and iOS instead.
     """
     access_token = _get_google_access_token(
         firebase_credentials["client_email"],
@@ -58,7 +62,19 @@ def test_firebase_push_credentials(firebase_credentials: dict) -> None:
             "validate_only": True,
             "message": {
                 "topic": "credential-health-check",
-                "notification": {"title": "ping", "body": "pong"},
+                "data": {"json_payload": "{}"},
+                "android": {
+                    "notification": {"title": "ping", "body": "pong"},
+                },
+                "apns": {
+                    "payload": {
+                        "aps": {
+                            "alert": {"title": "ping", "body": "pong"},
+                            "sound": "default",
+                            "content-available": 1,
+                        },
+                    },
+                },
             },
         },
         timeout=10,
