@@ -106,8 +106,8 @@ class PlannerHelper {
     // to the raw reminder fields.
     return NotificationModel(
       id: reminder.id,
-      title: message.notification?.title ?? payload['title'] as String,
-      body: message.notification?.body ?? payload['message'] as String,
+      title: message.notification?.title ?? payload['notification_title'] as String,
+      body: message.notification?.body ?? payload['notification_body'] as String,
       reminder: reminder,
       timestamp: start,
       isRead: false,

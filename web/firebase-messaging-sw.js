@@ -50,8 +50,8 @@ messaging.onBackgroundMessage((payload) => {
     try {
       const jsonPayload = JSON.parse(payload.data?.json_payload || '{}');
       reminderId = jsonPayload.id?.toString() ?? null;
-      notificationTitle = jsonPayload.title || notificationTitle;
-      notificationBody = jsonPayload.message || '';
+      notificationTitle = jsonPayload.notification_title || notificationTitle;
+      notificationBody = jsonPayload.notification_body || '';
     } catch (e) {
       console.warn('[firebase-messaging-sw.js] Failed to parse json_payload', e);
     }
