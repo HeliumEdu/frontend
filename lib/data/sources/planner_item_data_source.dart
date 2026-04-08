@@ -216,14 +216,24 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
   Map<int, bool> get completedOverrides =>
       Map.unmodifiable(_completedOverrides);
 
-  /// Returns all planner items from all cached date ranges, deduplicated by type and id
+  /// Returns all planner items from all cached date ranges, deduplicated by type and id.
+  ///
+  /// [ExternalCalendarEventModel] uses a content-based key (ownerId + start + title)
+  /// instead of the platform-assigned id because the backend synthesizes sequential
+  /// ids per-request, making them unstable across different date-range queries. Once
+  /// the backend is updated to derive stable ids from the ICS event UID, this special
+  /// case can be removed and all types can use the standard type:id key.
   List<PlannerItemBaseModel> get allPlannerItems {
     final seen = <String>{};
     final items = <PlannerItemBaseModel>[];
     for (final rangeItems in _dateRangeCache.values) {
       for (final item in rangeItems) {
-        // Use type + id as key to avoid collisions between different item types
-        final key = '${item.runtimeType}:${item.id}';
+        final String key;
+        if (item is ExternalCalendarEventModel) {
+          key = 'ExternalCalendarEventModel:${item.ownerId}:${item.start.millisecondsSinceEpoch}:${item.title}';
+        } else {
+          key = '${item.runtimeType}:${item.id}';
+        }
         if (seen.add(key)) {
           items.add(item);
         }

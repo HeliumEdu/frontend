@@ -32,12 +32,26 @@ class ExternalCalendarEventModel extends PlannerItemBaseModel {
   }) : super(plannerItemType: PlannerItemType.external);
 
   factory ExternalCalendarEventModel.fromJson(Map<String, dynamic> json) {
+    // The backend assigns sequential ids per-request, making them unstable across
+    // date-range queries. Two events fetched in different queries (e.g. week view
+    // then month view) can share the same integer id, causing SfCalendar to
+    // misplace one event at the other's position. We replace the unstable backend
+    // id with a deterministic hash of the content-based identity fields so ids
+    // are stable and unique within the session.
+    //
+    // TODO: once the backend derives stable ids from ICS event UIDs (and the
+    // legacy frontend is shut down), remove this and use json['id'] directly.
+    final ownerId = json['owner_id'] as String;
+    final start = DateTime.parse(json['start'] as String);
+    final title = json['title'] as String;
+    final stableId = Object.hashAll([ownerId, start.millisecondsSinceEpoch, title]);
+
     return ExternalCalendarEventModel(
-      id: json['id'],
-      title: json['title'],
+      id: stableId,
+      title: title,
       allDay: json['all_day'],
       showEndTime: json['show_end_time'],
-      start: DateTime.parse(json['start']),
+      start: start,
       end: DateTime.parse(json['end']),
       priority: json['priority'],
       url: toUri(json['url']),
@@ -48,7 +62,7 @@ class ExternalCalendarEventModel extends PlannerItemBaseModel {
       reminders: json['reminders'] != null
           ? idOrEntityListFrom(json['reminders'], ReminderModel.fromJson)
           : [],
-      ownerId: json['owner_id'],
+      ownerId: ownerId,
       color: HeliumColors.hexToColor(json['color']),
     );
   }
