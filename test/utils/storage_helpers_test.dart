@@ -23,9 +23,10 @@ import 'dart:typed_data';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 import 'package:heliumapp/utils/storage_helpers.dart';
 
-class _MockFilePicker extends Mock implements FilePicker {}
+class _MockFilePicker extends Mock with MockPlatformInterfaceMixin implements FilePicker {}
 
 /// Builds a [PlatformFile] backed by a single-chunk [readStream] and no path.
 /// On mobile (VM), [readPickedFileBytes] falls back to the stream when path is

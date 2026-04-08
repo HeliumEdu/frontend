@@ -243,7 +243,7 @@ abstract class BaseAttachmentsState<T extends BaseAttachmentsContent>
     }
 
     if (result.files.isEmpty) {
-      if (mounted) {
+      if (result.errors.isEmpty && mounted) {
         SnackBarHelper.show(
           context,
           'Nothing selected for upload',
