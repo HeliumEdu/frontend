@@ -2613,11 +2613,11 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
       );
     }
 
-    if (course?.website.isNotEmpty ?? false) {
+    if (course?.website != null) {
       buttons.add(
         HeliumIconButton(
           onPressed: () {
-            UrlHelpers.launchWebUrl(course!.website);
+            UrlHelpers.launchWebUrl(course!.website.toString());
           },
           icon: Icons.launch_outlined,
           tooltip: 'Launch class website',
@@ -2939,8 +2939,8 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
             ),
           );
         },
-        websiteUrl: (!hideWebsiteLink && course.website.isNotEmpty)
-            ? course.website
+        websiteUrl: (!hideWebsiteLink && course.website != null)
+            ? course.website.toString()
             : null,
         onEditSchedule: () {
           context.go(

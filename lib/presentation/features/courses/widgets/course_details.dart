@@ -433,7 +433,7 @@ class CourseDetailsState extends State<CourseDetails> {
       if (widget.isEdit) {
         _formController.titleController.text = state.course!.title;
         _formController.roomController.text = state.course!.room;
-        _formController.urlController.text = state.course!.website;
+        _formController.urlController.text = state.course!.website?.toString() ?? '';
         _formController.teacherNameController.text = state.course!.teacherName;
         _formController.teacherEmailController.text =
             state.course!.teacherEmail;

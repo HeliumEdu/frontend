@@ -39,7 +39,6 @@ void verifyPushTokenMatchesJson(
   expect(pushToken.deviceId, equals(json['device_id']));
   expect(pushToken.token, equals(json['token']));
   expect(pushToken.user, equals(json['user']));
-  expect(pushToken.createdAt, equals(json['created_at']));
 }
 
 // ============================================================================

@@ -19,7 +19,7 @@ class CourseModel extends BaseTitledModel {
   final String room;
   final double credits;
   final Color color;
-  final String website;
+  final Uri? website;
   final bool isOnline;
   final int courseGroup;
   final String teacherName;
@@ -44,7 +44,7 @@ class CourseModel extends BaseTitledModel {
     required this.room,
     required this.credits,
     required this.color,
-    required this.website,
+    this.website,
     required this.isOnline,
     required this.courseGroup,
     required this.teacherName,
@@ -71,7 +71,7 @@ class CourseModel extends BaseTitledModel {
       room: json['room'],
       credits: toDouble(json['credits'])!,
       color: HeliumColors.hexToColor(json['color']),
-      website: json['website'],
+      website: toUri(json['website']),
       isOnline: json['is_online'],
       courseGroup: json['course_group'],
       teacherName: json['teacher_name'],
@@ -104,7 +104,7 @@ class CourseModel extends BaseTitledModel {
     String? room,
     double? credits,
     Color? color,
-    String? website,
+    Uri? website,
     bool? isOnline,
     int? courseGroup,
     String? teacherName,
@@ -156,7 +156,7 @@ class CourseModel extends BaseTitledModel {
       'room': room,
       'credits': credits,
       'color': color,
-      'website': website,
+      'website': website?.toString() ?? '',
       'is_online': isOnline,
       'course_group': courseGroup,
       'teacher_name': teacherName,

@@ -298,7 +298,7 @@ class ResourceDetailsState extends State<ResourceDetails> {
 
     if (widget.isEdit) {
       _formController.titleController.text = state.resource!.title;
-      _formController.urlController.text = state.resource!.website;
+      _formController.urlController.text = state.resource!.website?.toString() ?? '';
       _formController.priceController.text = state.resource!.price ?? '';
       _formController.initialNotes = state.resource!.details ?? '';
       _formController.selectedStatus = state.resource!.status;

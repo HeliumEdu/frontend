@@ -221,7 +221,7 @@ class ExternalCalendarsScreenState extends State<ExternalCalendarsScreen> {
                     ),
                     const SizedBox(height: 4),
                     SelectableText(
-                      externalCalendar.url,
+                      externalCalendar.url.toString(),
                       style: AppStyles.standardBodyTextLight(context).copyWith(
                         color: context.colorScheme.onSurface.withValues(
                           alpha: 0.6,

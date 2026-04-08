@@ -27,6 +27,7 @@ import 'package:heliumapp/data/models/planner/homework_model.dart';
 import 'package:heliumapp/data/models/planner/reminder_model.dart';
 import 'package:heliumapp/data/models/planner/resource_group_model.dart';
 import 'package:heliumapp/data/models/planner/resource_model.dart';
+import 'package:heliumapp/utils/conversion_helpers.dart';
 import 'package:timezone/data/latest_all.dart' as tz_data;
 import 'package:timezone/standalone.dart' as tz;
 
@@ -215,7 +216,7 @@ class MockModels {
     String room = 'Room 101',
     double credits = 3.0,
     Color color = const Color(0xFF4CAF50),
-    String website = 'https://example.com/course',
+    String? website = 'https://example.com/course',
     bool isOnline = false,
     int courseGroup = 1,
     String teacherName = 'Dr. Smith',
@@ -231,7 +232,7 @@ class MockModels {
       room: room,
       credits: credits,
       color: color,
-      website: website,
+      website: toUri(website),
       isOnline: isOnline,
       courseGroup: courseGroup,
       teacherName: teacherName,
@@ -345,7 +346,7 @@ class MockModels {
     int status = 0,
     int condition = 0,
     String? details,
-    String website = 'https://example.com/material',
+    String? website = 'https://example.com/material',
     String? price,
     int resourceGroup = 1,
     List<int>? courses,
@@ -356,7 +357,7 @@ class MockModels {
       status: status,
       condition: condition,
       details: details,
-      website: website,
+      website: toUri(website),
       price: price,
       resourceGroup: resourceGroup,
       courses: courses ?? [],
@@ -518,7 +519,7 @@ class MockModels {
       start: start ?? DateTime.parse('2025-01-15T10:00:00Z'),
       end: end ?? DateTime.parse('2025-01-15T11:00:00Z'),
       priority: priority,
-      url: url,
+      url: toUri(url),
       comments: comments,
       attachments: [],
       reminders: [],
@@ -591,7 +592,7 @@ class MockModels {
     return ExternalCalendarModel(
       id: id,
       title: title,
-      url: url,
+      url: Uri.parse(url),
       color: color,
       shownOnCalendar: shownOnCalendar,
     );
@@ -631,7 +632,7 @@ class MockModels {
       start: start ?? DateTime.parse('2025-01-15T10:00:00Z'),
       end: end ?? DateTime.parse('2025-01-15T11:00:00Z'),
       priority: priority,
-      url: url,
+      url: toUri(url),
       comments: comments,
       attachments: [],
       reminders: [],

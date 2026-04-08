@@ -6,11 +6,12 @@
 // For details regarding the license, please refer to the LICENSE file.
 
 import 'package:heliumapp/data/models/base_model.dart';
+import 'package:heliumapp/utils/conversion_helpers.dart';
 
 class ResourceModel extends BaseTitledModel {
   final int status;
   final int condition;
-  final String website;
+  final Uri? website;
   final String? price;
   final String? details;
   final int resourceGroup;
@@ -22,7 +23,7 @@ class ResourceModel extends BaseTitledModel {
     super.shownOnCalendar,
     required this.status,
     required this.condition,
-    required this.website,
+    this.website,
     this.price,
     this.details,
     required this.resourceGroup,
@@ -36,7 +37,7 @@ class ResourceModel extends BaseTitledModel {
       shownOnCalendar: json['shown_on_calendar'],
       status: json['status'],
       condition: json['condition'],
-      website: json['website'],
+      website: toUri(json['website']),
       price: json['price'],
       details: json['details']?.toString().isEmpty == true
           ? null
@@ -52,7 +53,7 @@ class ResourceModel extends BaseTitledModel {
       'title': title,
       'status': status,
       'condition': condition,
-      'website': website,
+      'website': website?.toString() ?? '',
       'price': price,
       'details': details,
       'material_group': resourceGroup,

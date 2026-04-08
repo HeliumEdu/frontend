@@ -1617,7 +1617,7 @@ CourseModel _createCourseModel({
     room: room ?? '',
     credits: 3,
     color: color,
-    website: '',
+    website: null,
     isOnline: false,
     courseGroup: 1,
     teacherName: '',

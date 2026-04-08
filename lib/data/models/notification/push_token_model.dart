@@ -11,14 +11,12 @@ class PushTokenModel extends BaseModel {
   final String deviceId;
   final String token;
   final int user;
-  final String createdAt;
 
   PushTokenModel({
     required super.id,
     required this.deviceId,
     required this.token,
     required this.user,
-    required this.createdAt,
   });
 
   factory PushTokenModel.fromJson(Map<String, dynamic> json) {
@@ -27,7 +25,6 @@ class PushTokenModel extends BaseModel {
       deviceId: json['device_id'],
       token: json['token'],
       user: json['user'],
-      createdAt: json['created_at'],
     );
   }
 
@@ -37,7 +34,6 @@ class PushTokenModel extends BaseModel {
       'device_id': deviceId,
       'token': token,
       'user': user,
-      'created_at': createdAt,
     };
   }
 }

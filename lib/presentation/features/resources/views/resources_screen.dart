@@ -460,11 +460,11 @@ class _ResourcesScreenState
                     ),
                   ),
                   const SizedBox(width: 8),
-                  if (resource.website.isNotEmpty) ...[
+                  if (resource.website != null) ...[
                     PrintHidden(
                       child: HeliumIconButton(
                         onPressed: () {
-                          UrlHelpers.launchWebUrl(resource.website);
+                          UrlHelpers.launchWebUrl(resource.website.toString());
                         },
                         icon: Icons.launch_outlined,
                         tooltip: "Launch resource's website",

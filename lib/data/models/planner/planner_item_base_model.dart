@@ -19,7 +19,7 @@ abstract class PlannerItemBaseModel extends BaseTitledModel {
   final DateTime start;
   final DateTime end;
   final int priority;
-  final String? url;
+  final Uri? url;
   final String comments;
   final Color? color;
   final String? location;
@@ -53,7 +53,7 @@ abstract class PlannerItemBaseModel extends BaseTitledModel {
       'start': start.toIso8601String(),
       'end': end.toIso8601String(),
       'priority': priority,
-      'url': url,
+      'url': url?.toString(),
       'comments': comments,
       'attachments': attachments,
       'reminders': reminders,

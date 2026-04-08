@@ -188,7 +188,7 @@ void main() {
           title: 'Updated Calendar',
         );
         when(
-          () => mockDio.put(any(), data: any(named: 'data')),
+          () => mockDio.patch(any(), data: any(named: 'data')),
         ).thenAnswer((_) async => givenSuccessResponse(json));
 
         final request = givenExternalCalendarRequestModel(
