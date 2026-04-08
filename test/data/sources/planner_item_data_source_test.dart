@@ -1459,9 +1459,9 @@ void main() {
       test(
         'allExternalCalendarEvents returns only ExternalCalendarEventModels',
         () {
-          dataSource.addPlannerItem(_createExternalCalendarEventModel(id: 110));
+          dataSource.addPlannerItem(_createExternalCalendarEventModel(title: 'External Event A'));
           dataSource.addPlannerItem(_createEventModel(id: 111));
-          dataSource.addPlannerItem(_createExternalCalendarEventModel(id: 112));
+          dataSource.addPlannerItem(_createExternalCalendarEventModel(title: 'External Event B'));
 
           expect(dataSource.allExternalCalendarEvents, hasLength(2));
         },
