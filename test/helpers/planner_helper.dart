@@ -189,7 +189,7 @@ void verifyCourseMatchesJson(CourseModel course, Map<String, dynamic> json) {
     HeliumColors.colorToHex(course.color).toLowerCase(),
     equals((json['color'] as String).toLowerCase()),
   );
-  expect(course.website, equals(json['website']));
+  expect(course.website?.toString(), equals(json['website']));
   expect(course.isOnline, equals(json['is_online']));
   expect(course.courseGroup, equals(json['course_group']));
   expect(course.teacherName, equals(json['teacher_name']));
@@ -393,7 +393,7 @@ void verifyEventMatchesJson(EventModel event, Map<String, dynamic> json) {
   expect(event.start, equals(DateTime.parse(json['start'] as String)));
   expect(event.end, equals(DateTime.parse(json['end'] as String)));
   expect(event.priority, equals(json['priority']));
-  expect(event.url, equals(json['url']));
+  expect(event.url?.toString(), equals(json['url']));
   expect(event.comments, equals(json['comments']));
   expect(event.ownerId, equals(json['owner_id']));
 
@@ -539,7 +539,7 @@ void verifyResourceMatchesJson(
   expect(resource.status, equals(json['status']));
   expect(resource.condition, equals(json['condition']));
   expect(resource.details, equals(json['details']));
-  expect(resource.website, equals(json['website']));
+  expect(resource.website?.toString(), equals(json['website']));
   expect(resource.price, equals(json['price']));
   expect(resource.resourceGroup, equals(json['material_group']));
   expect(resource.courses, equals(json['courses']));
