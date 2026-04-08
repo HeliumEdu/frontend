@@ -740,18 +740,7 @@ class _NotificationsScreenState
   }
 
   Future<void> _dismissReminder(NotificationModel notification) async {
-    final req = ReminderRequestModel(
-      dismissed: true,
-      title: notification.reminder.title,
-      message: notification.reminder.message,
-      offset: notification.reminder.offset,
-      offsetType: notification.reminder.offsetType,
-      type: notification.reminder.type,
-      sent: notification.reminder.sent,
-      homework: notification.reminder.homework?.id,
-      event: notification.reminder.event?.id,
-      course: notification.reminder.course?.id,
-    );
+    final req = ReminderRequestModel(dismissed: true);
 
     context.read<ReminderBloc>().add(
       UpdateReminderEvent(

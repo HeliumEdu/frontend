@@ -1702,7 +1702,6 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
         final request = HomeworkRequestModel(
           start: start.toIso8601String(),
           end: end.toIso8601String(),
-          course: plannerItem.course.id,
         );
 
         context.read<PlannerItemBloc>().add(
@@ -1790,7 +1789,6 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
           start: start.toIso8601String(),
           end: end.toIso8601String(),
           showEndTime: true,
-          course: plannerItem.course.id,
         );
 
         context.read<PlannerItemBloc>().add(
@@ -3111,10 +3109,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
 
     _plannerItemDataSource!.setCompletedOverride(homework.id, value);
 
-    final request = HomeworkRequestModel(
-      completed: value,
-      course: homework.course.id,
-    );
+    final request = HomeworkRequestModel(completed: value);
 
     final course = _courses.firstWhere((c) => c.id == homework.course.id);
 

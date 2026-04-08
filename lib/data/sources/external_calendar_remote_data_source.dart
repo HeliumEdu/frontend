@@ -190,7 +190,7 @@ class ExternalCalendarRemoteDataSourceImpl
     try {
       _log.info('Updating ExternalCalendar $calendarId ...');
 
-      final response = await dioClient.dio.put(
+      final response = await dioClient.dio.patch(
         ApiUrl.feedExternalCalendarDetailUrl(calendarId),
         data: payload.toJson(),
       );

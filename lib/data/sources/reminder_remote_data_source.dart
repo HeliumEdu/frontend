@@ -137,7 +137,7 @@ class ReminderRemoteDataSourceImpl extends ReminderRemoteDataSource {
   ) async {
     try {
       _log.info('Updating Reminder $id ...');
-      final response = await dioClient.dio.put(
+      final response = await dioClient.dio.patch(
         ApiUrl.plannerRemindersDetailsUrl(id),
         data: request.toJson(),
       );

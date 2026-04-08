@@ -26,7 +26,6 @@ import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
 import 'package:heliumapp/presentation/ui/layout/mobile_gesture_detector.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/app_style.dart';
-import 'package:heliumapp/utils/color_helpers.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:heliumapp/utils/snack_bar_helpers.dart';
 import 'package:heliumapp/utils/sort_helpers.dart';
@@ -184,12 +183,7 @@ class ExternalCalendarsScreenState extends State<ExternalCalendarsScreen> {
       _updatingCalendarIds.add(externalCalendar.id);
     });
 
-    final request = ExternalCalendarRequestModel(
-      title: externalCalendar.title,
-      url: externalCalendar.url,
-      color: HeliumColors.colorToHex(externalCalendar.color),
-      shownOnCalendar: value,
-    );
+    final request = ExternalCalendarRequestModel(shownOnCalendar: value);
 
     context.read<ExternalCalendarBloc>().add(
       UpdateExternalCalendarEvent(

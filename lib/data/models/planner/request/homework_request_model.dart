@@ -6,7 +6,7 @@
 // For details regarding the license, please refer to the LICENSE file.
 
 class HomeworkRequestModel {
-  final int course;
+  final int? course;
   final String? title;
   final bool? allDay;
   final bool? showEndTime;
@@ -20,7 +20,7 @@ class HomeworkRequestModel {
   final List<int>? resources;
 
   HomeworkRequestModel({
-    required this.course,
+    this.course,
     this.title,
     this.allDay,
     this.showEndTime,
@@ -35,8 +35,9 @@ class HomeworkRequestModel {
   });
 
   Map<String, dynamic> toJson() {
-    final json = <String, dynamic>{'course': course};
+    final json = <String, dynamic>{};
 
+    if (course != null) json['course'] = course;
     if (title != null) json['title'] = title;
     if (allDay != null) json['all_day'] = allDay;
     if (showEndTime != null) json['show_end_time'] = showEndTime;
