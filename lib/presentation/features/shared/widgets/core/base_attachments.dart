@@ -5,7 +5,6 @@
 //
 // For details regarding the license, please refer to the LICENSE file.
 
-import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:heliumapp/config/app_theme.dart';
@@ -224,72 +223,41 @@ abstract class BaseAttachmentsState<T extends BaseAttachmentsContent>
   }
 
   Future<void> _openFileChooserDialog() async {
-    try {
-      final FilePickerResult? result = await FilePicker.platform.pickFiles(
-        type: FileType.any,
-        allowMultiple: true,
-        withData: true,
+    final result = await HeliumStorage.pickFiles(allowMultiple: true);
+
+    if (!mounted) return;
+
+    if (result.cancelled) {
+      SnackBarHelper.show(
+        context,
+        'Nothing selected for upload',
+        type: SnackType.info,
       );
+      return;
+    }
 
-      if (result != null) {
-        final newFiles = <AttachmentFile>[];
+    for (final error in result.errors) {
+      if (mounted) {
+        SnackBarHelper.show(context, error.userMessage, type: SnackType.error);
+      }
+    }
 
-        for (var platFile in result.files) {
-          if (platFile.bytes == null) {
-            if (mounted) {
-              SnackBarHelper.show(
-                context,
-                'An error occurred while reading the file: ${platFile.name}',
-                type: SnackType.error,
-              );
-            }
-            continue;
-          }
-
-          final fileSize = platFile.bytes!.length;
-
-          if (fileSize > 10 * 1024 * 1024) {
-            if (mounted) {
-              SnackBarHelper.show(
-                context,
-                'File size cannot exceed 10mb limit',
-                type: SnackType.error,
-              );
-            }
-            continue;
-          }
-
-          newFiles.add(
-            AttachmentFile(bytes: platFile.bytes!, title: platFile.name),
-          );
-        }
-
-        if (newFiles.isEmpty && mounted) {
-          SnackBarHelper.show(
-            context,
-            'Nothing selected for upload',
-            type: SnackType.info,
-          );
-        }
-
-        setState(() {
-          filesToUpload = newFiles;
-        });
-      } else if (mounted) {
+    if (result.files.isEmpty) {
+      if (mounted) {
         SnackBarHelper.show(
           context,
           'Nothing selected for upload',
           type: SnackType.info,
         );
       }
-    } catch (e) {
-      if (!mounted) return;
-      SnackBarHelper.show(
-        context,
-        'Error picking file: $e',
-        type: SnackType.error,
-      );
+      return;
     }
+
+    setState(() {
+      filesToUpload = result.files
+          .map((f) => AttachmentFile(bytes: f.bytes, title: f.name))
+          .toList();
+    });
   }
 
   Future<void> _saveAttachments() async {

@@ -11,12 +11,34 @@ import 'dart:ui';
 
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:dio/dio.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:logging/logging.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:share_plus/share_plus.dart';
 
 final _log = Logger('utils');
+
+/// Reads bytes from a picked file on mobile.
+///
+/// Prefers [PlatformFile.path] (the locally cached file path that file_picker
+/// always provides on iOS/Android) for a direct [File.readAsBytes] call.
+/// Falls back to consuming [PlatformFile.readStream] if path is unexpectedly
+/// absent, which also exercises the same stream path used by the web
+/// implementation for test parity.
+Future<Uint8List?> readPickedFileBytes(PlatformFile platFile) async {
+  if (platFile.path != null) {
+    return await File(platFile.path!).readAsBytes();
+  }
+  if (platFile.readStream != null) {
+    final builder = BytesBuilder(copy: false);
+    await for (final chunk in platFile.readStream!) {
+      builder.add(chunk);
+    }
+    return builder.takeBytes();
+  }
+  return null;
+}
 
 /// Mobile download with platform-specific behavior:
 /// - Android: Saves to Downloads folder (accessible to user)

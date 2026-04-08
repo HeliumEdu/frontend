@@ -8,7 +8,6 @@
 import 'dart:async';
 
 import 'package:dio/dio.dart';
-import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -199,68 +198,24 @@ class _ImportExportScreenState extends State<ImportExportScreen> {
   }
 
   Future<void> _openFileChooser() async {
-    try {
-      // Use FileType.any on mobile to avoid flaky iOS UTI mapping for custom
-      // extensions, then validate the extension manually after selection
-      const bool useCustomType = kIsWeb;
-      final result = await FilePicker.platform.pickFiles(
-        type: useCustomType ? FileType.custom : FileType.any,
-        allowedExtensions: useCustomType ? ['json'] : null,
-        allowMultiple: false,
-        withData: true,
-      );
+    final result = await HeliumStorage.pickFiles(
+      allowMultiple: false,
+      allowedExtension: 'json',
+    );
 
-      if (result != null && result.files.isNotEmpty) {
-        final file = result.files.first;
+    if (!mounted) return;
 
-        if (!useCustomType && file.extension?.toLowerCase() != 'json') {
-          if (mounted) {
-            SnackBarHelper.show(
-              context,
-              'Please select a JSON file',
-              type: SnackType.error,
-            );
-          }
-          return;
-        }
-
-        if (file.bytes == null) {
-          if (mounted) {
-            SnackBarHelper.show(
-              context,
-              'An error occurred while reading the file',
-              type: SnackType.error,
-            );
-          }
-          return;
-        }
-
-        if (file.size > 10 * 1024 * 1024) {
-          if (mounted) {
-            SnackBarHelper.show(
-              context,
-              'File size cannot exceed 10MB',
-              type: SnackType.error,
-            );
-          }
-          return;
-        }
-
-        setState(() {
-          _selectedFileName = file.name;
-          _selectedFileBytes = file.bytes;
-        });
-      }
-    } catch (e) {
-      _log.severe('Error picking file', e);
-      if (mounted) {
-        SnackBarHelper.show(
-          context,
-          'Error selecting file',
-          type: SnackType.error,
-        );
-      }
+    for (final error in result.errors) {
+      SnackBarHelper.show(context, error.userMessage, type: SnackType.error);
     }
+
+    if (result.cancelled || result.files.isEmpty) return;
+
+    final file = result.files.first;
+    setState(() {
+      _selectedFileName = file.name;
+      _selectedFileBytes = file.bytes;
+    });
   }
 
   Future<void> _importData() async {
