@@ -51,6 +51,7 @@ class _ResourceGroupWidgetState
       _formController.titleController.text = widget.group!.title;
       _formController.shownOnCalendar = widget.group!.shownOnCalendar!;
     } else {
+      _formController.markChanged();
       _formController.titleController.clear();
       _formController.shownOnCalendar = true;
     }
@@ -97,6 +98,7 @@ class _ResourceGroupWidgetState
           autofocus: kIsWeb || !widget.isEdit,
           controller: _formController.titleController,
           validator: BasicFormController.validateRequiredField,
+          onChanged: (_) => _formController.markChanged(),
           onFieldSubmitted: (value) => handleSubmit(),
         ),
         const SizedBox(height: 14),
@@ -110,6 +112,7 @@ class _ResourceGroupWidgetState
                 ),
                 value: !_formController.shownOnCalendar,
                 onChanged: (value) {
+                  _formController.markChanged();
                   setState(() {
                     _formController.shownOnCalendar = !value!;
                   });
@@ -126,6 +129,10 @@ class _ResourceGroupWidgetState
 
   @override
   void handleSubmit() {
+    if (!_formController.isChanged) {
+      cancelAction();
+      return;
+    }
     super.handleSubmit();
 
     if (_formController.formKey.currentState!.validate()) {

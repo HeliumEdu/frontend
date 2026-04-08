@@ -63,6 +63,7 @@ class _ReminderWidgetState extends BaseDialogState<_ReminderProvidedWidget> {
       _formController.reminderType = widget.reminder!.type;
       _formController.reminderOffsetType = widget.reminder!.offsetType;
     } else {
+      _formController.markChanged();
       _formController.messageController.clear();
       _formController.offsetController.text = widget
           .userSettings
@@ -115,6 +116,7 @@ class _ReminderWidgetState extends BaseDialogState<_ReminderProvidedWidget> {
           maxLines: Responsive.isCompactDialogHeight(context) ? 1 : 3,
           controller: _formController.messageController,
           validator: BasicFormController.validateRequiredField,
+          onChanged: (_) => _formController.markChanged(),
           onFieldSubmitted: (value) => handleSubmit(),
         ),
         const SizedBox(height: 14),
@@ -130,6 +132,7 @@ class _ReminderWidgetState extends BaseDialogState<_ReminderProvidedWidget> {
               )
               .toList(),
           onChanged: (value) {
+            _formController.markChanged();
             setState(() {
               _formController.reminderType = value!.id;
             });
@@ -142,7 +145,10 @@ class _ReminderWidgetState extends BaseDialogState<_ReminderProvidedWidget> {
           children: [
             SizedBox(
               width: 120,
-              child: SpinnerField(controller: _formController.offsetController),
+              child: SpinnerField(
+                controller: _formController.offsetController,
+                onChanged: (_) => _formController.markChanged(),
+              ),
             ),
             const SizedBox(width: 8),
             Expanded(
@@ -152,6 +158,7 @@ class _ReminderWidgetState extends BaseDialogState<_ReminderProvidedWidget> {
                 ),
                 items: ReminderConstants.offsetTypeItems,
                 onChanged: (value) {
+                  _formController.markChanged();
                   setState(() {
                     _formController.reminderOffsetType = value!.id;
                   });
@@ -166,6 +173,10 @@ class _ReminderWidgetState extends BaseDialogState<_ReminderProvidedWidget> {
 
   @override
   void handleSubmit() {
+    if (!_formController.isChanged) {
+      cancelAction();
+      return;
+    }
     super.handleSubmit();
 
     if (_formController.formKey.currentState!.validate()) {

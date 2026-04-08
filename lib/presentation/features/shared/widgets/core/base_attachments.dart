@@ -5,7 +5,6 @@
 //
 // For details regarding the license, please refer to the LICENSE file.
 
-import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:heliumapp/config/app_theme.dart';
@@ -88,6 +87,8 @@ abstract class BaseAttachmentsContent extends StatefulWidget {
 
 abstract class BaseAttachmentsState<T extends BaseAttachmentsContent>
     extends State<T> {
+  final int maxConcurrentUploads = 4;
+
   List<AttachmentFile> filesToUpload = [];
   List<AttachmentModel> attachments = [];
   bool isLoading = true;
@@ -123,7 +124,7 @@ abstract class BaseAttachmentsState<T extends BaseAttachmentsContent>
     return BlocListener<AttachmentBloc, AttachmentState>(
       listener: (context, state) {
         if (state is AttachmentsError) {
-          SnackBarHelper.show(context, state.message!, type: SnackType.error);
+          SnackBarHelper.show(context, state.message!, type: SnackType.error, seconds: 4);
         } else if (state is AttachmentsFetched) {
           setState(() {
             attachments = state.attachments;
@@ -224,80 +225,50 @@ abstract class BaseAttachmentsState<T extends BaseAttachmentsContent>
   }
 
   Future<void> _openFileChooserDialog() async {
-    try {
-      final FilePickerResult? result = await FilePicker.platform.pickFiles(
-        type: FileType.any,
-        allowMultiple: true,
-        withData: true,
+    final result = await HeliumStorage.pickFiles(allowMultiple: true);
+
+    if (!mounted) return;
+
+    if (result.cancelled) {
+      SnackBarHelper.show(
+        context,
+        'Nothing selected for upload',
+        type: SnackType.info,
       );
+      return;
+    }
 
-      if (result != null) {
-        final newFiles = <AttachmentFile>[];
+    for (final error in result.errors) {
+      if (mounted) {
+        SnackBarHelper.show(context, error.userMessage, type: SnackType.error, seconds: 4);
+      }
+    }
 
-        for (var platFile in result.files) {
-          if (platFile.bytes == null) {
-            if (mounted) {
-              SnackBarHelper.show(
-                context,
-                'An error occurred while reading the file: ${platFile.name}',
-                type: SnackType.error,
-              );
-            }
-            continue;
-          }
-
-          final fileSize = platFile.bytes!.length;
-
-          if (fileSize > 10 * 1024 * 1024) {
-            if (mounted) {
-              SnackBarHelper.show(
-                context,
-                'File size cannot exceed 10mb limit',
-                type: SnackType.error,
-              );
-            }
-            continue;
-          }
-
-          newFiles.add(
-            AttachmentFile(bytes: platFile.bytes!, title: platFile.name),
-          );
-        }
-
-        if (newFiles.isEmpty && mounted) {
-          SnackBarHelper.show(
-            context,
-            'Nothing selected for upload',
-            type: SnackType.info,
-          );
-        }
-
-        setState(() {
-          filesToUpload = newFiles;
-        });
-      } else if (mounted) {
+    if (result.files.isEmpty) {
+      if (result.errors.isEmpty && mounted) {
         SnackBarHelper.show(
           context,
           'Nothing selected for upload',
           type: SnackType.info,
         );
       }
-    } catch (e) {
-      if (!mounted) return;
-      SnackBarHelper.show(
-        context,
-        'Error picking file: $e',
-        type: SnackType.error,
-      );
+      return;
     }
+
+    setState(() {
+      filesToUpload = result.files
+          .map((f) => AttachmentFile(bytes: f.bytes, title: f.name))
+          .toList();
+    });
   }
 
   Future<void> _saveAttachments() async {
-    if (filesToUpload.length > 4) {
+    if (filesToUpload.length > maxConcurrentUploads) {
       SnackBarHelper.show(
         context,
-        'You can only upload a max of 4 files at a time',
+        "You can't upload more than $maxConcurrentUploads files at a time",
         type: SnackType.error,
+        seconds: 4
       );
       return;
     }

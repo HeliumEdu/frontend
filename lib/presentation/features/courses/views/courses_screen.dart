@@ -345,12 +345,13 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen>
     return ValueListenableBuilder<bool>(
       valueListenable: PrintableArea.capturing,
       builder: (context, isCapturing, _) => ResponsiveCardGrid<CourseModel>(
+        maxCardWidth: Responsive.isDesktop(context) ? 430 : 390,
         shrinkWrap: isCapturing,
         printPageBreakAfterRow: true,
         items: _coursesMap[_selectedGroupId]!,
         itemBuilder: (context, course) {
           try {
-            return _buildCoursesCard(context, course);
+            return _buildCourseCard(context, course);
           } catch (e, st) {
             ErrorHelpers.logAndReport(
               'Failed to render course card ${course.id}',
@@ -438,7 +439,7 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen>
     return false;
   }
 
-  Widget _buildCoursesCard(BuildContext context, CourseModel course) {
+  Widget _buildCourseCard(BuildContext context, CourseModel course) {
     return MobileGestureDetector(
       onTap: () => _onEdit(course),
       child: Card(

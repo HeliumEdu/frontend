@@ -22,7 +22,7 @@ class PillBadge extends StatelessWidget {
     final effectiveColor = color ?? context.semanticColors.success;
     return Container(
       padding: EdgeInsets.symmetric(
-        horizontal: Responsive.getResponsiveValue(context, mobile: 8, desktop: 10),
+        horizontal: Responsive.getResponsiveValue(context, mobile: 6, desktop: 8),
         vertical: Responsive.getResponsiveValue(context, mobile: 3, desktop: 4),
       ),
       decoration: BoxDecoration(

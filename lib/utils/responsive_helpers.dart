@@ -99,6 +99,7 @@ class Responsive {
     return isIOSPlatform() || isAndroidPlatform();
   }
 
+
   static DeviceType getDeviceType(BuildContext context) {
     final double width = MediaQuery.of(context).size.width;
     if (width >= ResponsiveBreakpoints.tablet) {

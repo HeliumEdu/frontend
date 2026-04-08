@@ -104,6 +104,10 @@ Delta resolveCheckboxesForPdf(Delta delta) {
   return Delta.fromJson(result);
 }
 
+/// Returns true if [change] was triggered by the user (not programmatic),
+/// indicating the document has been meaningfully edited.
+bool isNoteEdited(DocChange change) => change.source == ChangeSource.local;
+
 /// Builds a Quill Delta JSON map from a QuillController.
 /// Returns null if the content is empty (only whitespace/newline).
 Map<String, dynamic>? buildNotesDelta(QuillController controller) {

@@ -66,6 +66,7 @@ class _CategoryWidgetState extends BaseDialogState<_CategoryProvidedWidget> {
       }
       _formController.selectedColor = widget.category!.color;
     } else {
+      _formController.markChanged();
       _formController.titleController.clear();
       _formController.weightController.clear();
       _formController.selectedColor = HeliumColors.getRandomColor();
@@ -112,6 +113,7 @@ class _CategoryWidgetState extends BaseDialogState<_CategoryProvidedWidget> {
           autofocus: kIsWeb || !widget.isEdit,
           controller: _formController.titleController,
           validator: BasicFormController.validateRequiredField,
+          onChanged: (_) => _formController.markChanged(),
           onFieldSubmitted: (value) => handleSubmit(),
         ),
         const SizedBox(height: 14),
@@ -126,6 +128,7 @@ class _CategoryWidgetState extends BaseDialogState<_CategoryProvidedWidget> {
                 minValue: 0,
                 maxValue: 100,
                 allowDecimal: true,
+                onChanged: (_) => _formController.markChanged(),
               ),
             ),
             const SizedBox(width: 50),
@@ -133,6 +136,7 @@ class _CategoryWidgetState extends BaseDialogState<_CategoryProvidedWidget> {
               label: 'Color',
               selectedColor: _formController.selectedColor,
               onColorSelected: (color) {
+                _formController.markChanged();
                 setState(() {
                   _formController.selectedColor = color;
                 });
@@ -146,6 +150,10 @@ class _CategoryWidgetState extends BaseDialogState<_CategoryProvidedWidget> {
 
   @override
   void handleSubmit() {
+    if (!_formController.isChanged) {
+      cancelAction();
+      return;
+    }
     super.handleSubmit();
 
     if (_formController.formKey.currentState!.validate()) {
