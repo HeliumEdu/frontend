@@ -135,35 +135,45 @@ class _CourseExceptionsDialogState extends State<CourseExceptionsDialog> {
     );
   }
 
+  bool _isExcepted(DateTime date) => _exceptions.any(
+        (d) =>
+            d.year == date.year && d.month == date.month && d.day == date.day,
+      );
+
+  /// Returns the first non-excepted date on or after today, within the allowed
+  /// range. Returns null if no selectable date exists (e.g. all days excepted).
+  DateTime? _selectableInitialDate() {
+    final last =
+        widget.lastDate ?? DateTime.now().add(const Duration(days: 365 * 10));
+    var candidate = DateTime(
+      DateTime.now().year,
+      DateTime.now().month,
+      DateTime.now().day,
+    );
+    while (!candidate.isAfter(last)) {
+      if (!_isExcepted(candidate)) return candidate;
+      candidate = candidate.add(const Duration(days: 1));
+    }
+    return null;
+  }
+
   Future<void> _addDate() async {
     final picked = await showDatePicker(
       context: context,
-      initialDate: DateTime.now(),
+      initialDate: _selectableInitialDate(),
       firstDate: widget.firstDate ??
           DateTime.now().subtract(const Duration(days: 365 * 10)),
       lastDate:
           widget.lastDate ?? DateTime.now().add(const Duration(days: 365 * 10)),
       confirmText: 'Select',
+      selectableDayPredicate: (date) => !_isExcepted(date),
     );
     if (picked == null) return;
 
     final dateOnly = DateTime(picked.year, picked.month, picked.day);
-    final alreadyExists = _exceptions.any(
-      (d) =>
-          d.year == dateOnly.year &&
-          d.month == dateOnly.month &&
-          d.day == dateOnly.day,
-    );
-    if (alreadyExists) {
-      setState(() {
-        _message = 'Already on exception list';
-        _messageType = SnackType.info;
-      });
-    } else {
-      setState(() {
-        _exceptions = [..._exceptions, dateOnly]..sort();
-      });
-    }
+    setState(() {
+      _exceptions = [..._exceptions, dateOnly]..sort();
+    });
   }
 
   void _removeDate(DateTime date) {
