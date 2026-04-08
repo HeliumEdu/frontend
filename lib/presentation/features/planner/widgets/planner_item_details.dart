@@ -1014,7 +1014,9 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
       initialTime: isStartTime
           ? _formController.startTime
           : _formController.endTime,
-      initialEntryMode: TimePickerEntryMode.input,
+      initialEntryMode: Responsive.isTouchDevice(context)
+          ? TimePickerEntryMode.dial
+          : TimePickerEntryMode.input,
       confirmText: 'Select',
     );
 

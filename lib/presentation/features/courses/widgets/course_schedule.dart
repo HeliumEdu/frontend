@@ -380,7 +380,9 @@ class CourseScheduleState extends State<CourseSchedule> {
       initialTime: isStartTime
           ? (_startTimes[dayIndex] ?? _singleStartTime)
           : (_endTimes[dayIndex] ?? _singleEndTime),
-      initialEntryMode: TimePickerEntryMode.input,
+      initialEntryMode: Responsive.isTouchDevice(context)
+          ? TimePickerEntryMode.dial
+          : TimePickerEntryMode.input,
       confirmText: 'Select',
     );
     if (pickedTime != null) {
@@ -612,7 +614,9 @@ class CourseScheduleState extends State<CourseSchedule> {
     final pickedTime = await showTimePicker(
       context: context,
       initialTime: isStartTime ? _singleStartTime : _singleEndTime,
-      initialEntryMode: TimePickerEntryMode.input,
+      initialEntryMode: Responsive.isTouchDevice(context)
+          ? TimePickerEntryMode.dial
+          : TimePickerEntryMode.input,
       confirmText: 'Select',
     );
     if (pickedTime != null) {
