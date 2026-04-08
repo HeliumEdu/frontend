@@ -5,7 +5,6 @@
 //
 // For details regarding the license, please refer to the LICENSE file.
 
-import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:heliumapp/core/helium_exception.dart';
 import 'package:heliumapp/data/models/notification/notification_model.dart';
@@ -70,10 +69,7 @@ class PlannerHelper {
     );
   }
 
-  static NotificationModel mapPayloadToNotification(
-    RemoteMessage message,
-    dynamic payload,
-  ) {
+  static NotificationModel mapPayloadToNotification(dynamic payload) {
     final reminder = ReminderModel.fromJson(payload);
 
     final DateTime startDt;
@@ -101,13 +97,10 @@ class PlannerHelper {
     }
     final String start = startDt.toIso8601String();
 
-    // On mobile, notification is populated from platform-specific fields (AndroidConfig/APNSConfig)
-    // with a computed subject and formatted time. On web, messages are data-only so we fall back
-    // to the raw reminder fields.
     return NotificationModel(
       id: reminder.id,
-      title: message.notification?.title ?? payload['notification_title'] as String,
-      body: message.notification?.body ?? payload['notification_body'] as String,
+      title: payload['notification_title'] as String,
+      body: payload['notification_body'] as String,
       reminder: reminder,
       timestamp: start,
       isRead: false,
