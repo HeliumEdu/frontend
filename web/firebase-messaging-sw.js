@@ -44,17 +44,18 @@ messaging.onBackgroundMessage((payload) => {
   return clients.matchAll({ type: 'window', includeUncontrolled: true }).then((windowClients) => {
     if (windowClients.some(client => client.visibilityState === 'visible')) return;
 
-    let notificationTitle = 'Helium Notification';
-    let notificationBody = '';
-    let reminderId = null;
+    let notificationTitle, notificationBody, reminderId;
     try {
       const jsonPayload = JSON.parse(payload.data?.json_payload || '{}');
-      reminderId = jsonPayload.id?.toString() ?? null;
-      notificationTitle = jsonPayload.notification_title || notificationTitle;
+      notificationTitle = jsonPayload.notification_title;
       notificationBody = jsonPayload.notification_body || '';
+      reminderId = jsonPayload.id?.toString() ?? null;
     } catch (e) {
       console.warn('[firebase-messaging-sw.js] Failed to parse json_payload', e);
+      return;
     }
+
+    if (!notificationTitle) return;
 
     const notificationOptions = {
       body: notificationBody,
