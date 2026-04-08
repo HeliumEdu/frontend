@@ -536,7 +536,7 @@ class FcmService {
 
   static NotificationModel _messageToNotification(RemoteMessage message) {
     final payload = json.decode(message.data['json_payload']);
-    return PlannerHelper.mapPayloadToNotification(message, payload);
+    return PlannerHelper.mapPayloadToNotification(payload);
   }
 
   Future<bool> _handleTestMessages(
@@ -556,22 +556,10 @@ class FcmService {
 
         final body = message.notification?.body ?? '';
 
-        // Log to Sentry if we had to use fallback values
-        if (message.notification?.title == null && message.notification?.body == null) {
-          const msg = 'FCM notification has null title and body in test message handler';
-          _log.severe(msg);
-          unawaited(AnalyticsService().logEvent(name: 'fcm_notification_null_title_body', parameters: {'category': 'operational'}));
-        }
-
-        final messageMap = message.toMap();
-        messageMap['notification']['title'] = title;
-
-        final remoteMessage = RemoteMessage.fromMap(messageMap);
-
         final payload = {
           'id': 1,
-          'title': title,
-          'message': body,
+          'notification_title': title,
+          'notification_body': body,
           'start_of_range': DateTime.now().toString(),
           'offset': 30,
           'offset_type': 0,
@@ -581,7 +569,7 @@ class FcmService {
         };
 
         await showLocalNotification(
-          PlannerHelper.mapPayloadToNotification(remoteMessage, payload),
+          PlannerHelper.mapPayloadToNotification(payload),
         );
       } else {
         _log.warning(
@@ -598,23 +586,15 @@ class FcmService {
 
 @pragma('vm:entry-point')
 Future<void> _onBackgroundMessage(RemoteMessage message) async {
+  // The OS displays the notification natively via AndroidConfig/APNSConfig.
+  // No display logic needed here; this handler exists to satisfy Firebase's
+  // background message registration requirement.
   try {
     await Firebase.initializeApp();
   } catch (e) {
-    _log.severe('Fireback may fail on devices without Google Play Service', e);
-    // Firebase may fail on devices without Google Play Services
+    _log.severe('Firebase initialization failed in background isolate', e);
     return;
   }
 
-  try {
-    final messageId = message.messageId ?? 'unknown';
-    _log.info('Background message $messageId received from FCM');
-
-    final notification = FcmService._messageToNotification(message);
-
-    await FcmService().showLocalNotification(notification);
-    _log.info('Background message $messageId notification displayed');
-  } catch (e) {
-    _log.severe('Background message processing failed', e);
-  }
+  _log.info('Background message ${message.messageId ?? 'unknown'} received from FCM');
 }
