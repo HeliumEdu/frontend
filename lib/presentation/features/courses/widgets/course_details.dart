@@ -447,8 +447,12 @@ class CourseDetailsState extends State<CourseDetails> {
         formController.teacherNameController.text = state.course!.teacherName;
         formController.teacherEmailController.text =
             state.course!.teacherEmail;
-        formController.creditsController.text = state.course!.credits
-            .toString();
+        final credits = state.course!.credits;
+        formController.creditsController.text = credits == 0
+            ? ''
+            : credits == credits.roundToDouble()
+                ? credits.toStringAsFixed(0)
+                : credits.toString();
 
         formController.startDate = state.course!.startDate;
         formController.endDate = state.course!.endDate;
