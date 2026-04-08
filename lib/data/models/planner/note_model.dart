@@ -11,7 +11,6 @@ import 'package:heliumapp/utils/color_helpers.dart';
 
 class NoteModel extends BaseTitledModel {
   final Map<String, dynamic>? content;
-  final DateTime createdAt;
   final DateTime updatedAt;
   final List<int> homework;
   final List<int> events;
@@ -27,7 +26,6 @@ class NoteModel extends BaseTitledModel {
     required super.id,
     required super.title,
     this.content,
-    required this.createdAt,
     required this.updatedAt,
     this.homework = const [],
     this.events = const [],
@@ -52,7 +50,6 @@ class NoteModel extends BaseTitledModel {
       content: json['content'] != null
           ? Map<String, dynamic>.from(json['content'])
           : null,
-      createdAt: DateTime.parse(json['created_at']),
       updatedAt: DateTime.parse(json['updated_at']),
       homework: homework,
       events: events,
@@ -77,7 +74,6 @@ class NoteModel extends BaseTitledModel {
       'id': id,
       'title': title,
       'content': content,
-      'created_at': createdAt.toIso8601String(),
       'updated_at': updatedAt.toIso8601String(),
       'homework': homework,
       'events': events,
