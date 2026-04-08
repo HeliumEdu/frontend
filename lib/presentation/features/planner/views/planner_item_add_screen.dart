@@ -164,7 +164,7 @@ class _PlannerItemAddScreenState
       if (detailsState == null) return;
       if (detailsState.isLoading || isSubmitting) return;
       if (!detailsState.formController.isChanged) {
-        cancelAction();
+        _navigateAfterSave();
         return;
       }
       detailsState.onSubmit();

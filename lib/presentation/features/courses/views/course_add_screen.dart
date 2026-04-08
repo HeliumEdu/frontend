@@ -146,7 +146,7 @@ class _CourseAddScreenState extends MultiStepContainerState<CourseAddScreen> {
       }
       if (widgetLoading) return;
       if (!widgetChanged) {
-        cancelAction();
+        _navigateAfterSave();
         return;
       }
       if (widgetSubmit != null) {
