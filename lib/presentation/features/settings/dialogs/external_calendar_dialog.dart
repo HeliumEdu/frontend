@@ -59,7 +59,7 @@ class _ExternalCalendarWidgetState
 
     if (widget.isEdit) {
       _formController.titleController.text = widget.externalCalendar!.title;
-      _formController.urlController.text = widget.externalCalendar!.url;
+      _formController.urlController.text = widget.externalCalendar!.url.toString();
       _formController.selectedColor = widget.externalCalendar!.color;
       _formController.shownOnCalendar =
           widget.externalCalendar!.shownOnCalendar!;

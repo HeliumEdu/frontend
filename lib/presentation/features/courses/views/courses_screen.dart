@@ -470,11 +470,11 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen>
                     ),
                     const SizedBox(width: 8),
                   ],
-                  if (course.website.isNotEmpty) ...[
+                  if (course.website != null) ...[
                     PrintHidden(
                       child: HeliumIconButton(
                         onPressed: () {
-                          UrlHelpers.launchWebUrl(course.website);
+                          UrlHelpers.launchWebUrl(course.website.toString());
                         },
                         icon: Icons.launch_outlined,
                         tooltip: 'Launch class website',

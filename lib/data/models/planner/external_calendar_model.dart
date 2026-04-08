@@ -11,7 +11,7 @@ import 'package:heliumapp/data/models/base_model.dart';
 import 'package:heliumapp/utils/color_helpers.dart';
 
 class ExternalCalendarModel extends BaseTitledModel {
-  final String url;
+  final Uri url;
   final Color color;
 
   ExternalCalendarModel({
@@ -26,7 +26,7 @@ class ExternalCalendarModel extends BaseTitledModel {
     return ExternalCalendarModel(
       id: json['id'],
       title: json['title'],
-      url: json['url'],
+      url: Uri.parse(json['url']),
       color: HeliumColors.hexToColor(json['color']),
       shownOnCalendar: json['shown_on_calendar'],
     );
@@ -36,7 +36,7 @@ class ExternalCalendarModel extends BaseTitledModel {
     final Map<String, dynamic> data = {
       'id': id,
       'title': title,
-      'url': url,
+      'url': url.toString(),
       'color': color,
       'shown_on_calendar': shownOnCalendar,
     };

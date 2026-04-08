@@ -6,24 +6,26 @@
 // For details regarding the license, please refer to the LICENSE file.
 
 class ExternalCalendarRequestModel {
-  final String title;
-  final String url;
-  final String color;
-  final bool shownOnCalendar;
+  final String? title;
+  final String? url;
+  final String? color;
+  final bool? shownOnCalendar;
 
   const ExternalCalendarRequestModel({
-    required this.title,
-    required this.url,
-    required this.color,
-    required this.shownOnCalendar,
+    this.title,
+    this.url,
+    this.color,
+    this.shownOnCalendar,
   });
 
   Map<String, dynamic> toJson() {
-    return {
-      'title': title,
-      'url': url,
-      'color': color,
-      'shown_on_calendar': shownOnCalendar,
-    };
+    final json = <String, dynamic>{};
+
+    if (title != null) json['title'] = title;
+    if (url != null) json['url'] = url;
+    if (color != null) json['color'] = color;
+    if (shownOnCalendar != null) json['shown_on_calendar'] = shownOnCalendar;
+
+    return json;
   }
 }

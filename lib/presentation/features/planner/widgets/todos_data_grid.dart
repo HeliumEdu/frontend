@@ -972,7 +972,7 @@ class TodosDataSource extends BaseDataGridSource {
       title: 'Unknown',
       color: FallbackConstants.fallbackColor,
       room: '',
-      website: '',
+      website: null,
       isOnline: false,
       startDate: DateTime.now(),
       endDate: DateTime.now(),
@@ -1290,11 +1290,11 @@ class TodosDataSource extends BaseDataGridSource {
         );
       }
 
-      if (course.website.isNotEmpty) {
+      if (course.website != null) {
         buttons.add(
           HeliumIconButton(
             onPressed: () {
-              UrlHelpers.launchWebUrl(course.website);
+              UrlHelpers.launchWebUrl(course.website.toString());
             },
             tooltip: 'Launch class website',
             icon: Icons.launch_outlined,

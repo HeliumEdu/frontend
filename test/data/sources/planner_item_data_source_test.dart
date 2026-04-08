@@ -1459,9 +1459,9 @@ void main() {
       test(
         'allExternalCalendarEvents returns only ExternalCalendarEventModels',
         () {
-          dataSource.addPlannerItem(_createExternalCalendarEventModel(id: 110));
+          dataSource.addPlannerItem(_createExternalCalendarEventModel(id: 110, title: 'External Event A'));
           dataSource.addPlannerItem(_createEventModel(id: 111));
-          dataSource.addPlannerItem(_createExternalCalendarEventModel(id: 112));
+          dataSource.addPlannerItem(_createExternalCalendarEventModel(id: 112, title: 'External Event B'));
 
           expect(dataSource.allExternalCalendarEvents, hasLength(2));
         },
@@ -1617,7 +1617,7 @@ CourseModel _createCourseModel({
     room: room ?? '',
     credits: 3,
     color: color,
-    website: '',
+    website: null,
     isOnline: false,
     courseGroup: 1,
     teacherName: '',

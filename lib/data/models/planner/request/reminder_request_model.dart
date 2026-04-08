@@ -6,41 +6,40 @@
 // For details regarding the license, please refer to the LICENSE file.
 
 class ReminderRequestModel {
-  final String title;
-  final String message;
-  final int offset;
-  final int offsetType;
-  final int type;
-  final bool sent;
-  final bool dismissed;
+  final String? title;
+  final String? message;
+  final int? offset;
+  final int? offsetType;
+  final int? type;
+  final bool? sent;
+  final bool? dismissed;
   final int? homework;
   final int? event;
   final int? course;
 
   ReminderRequestModel({
-    required this.title,
-    required this.message,
-    required this.offset,
-    required this.offsetType,
-    required this.type,
-    required this.sent,
-    required this.dismissed,
+    this.title,
+    this.message,
+    this.offset,
+    this.offsetType,
+    this.type,
+    this.sent,
+    this.dismissed,
     this.homework,
     this.event,
     this.course,
   });
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = {
-      'title': title,
-      'message': message,
-      'offset': offset,
-      'offset_type': offsetType,
-      'type': type,
-      'sent': sent,
-      'dismissed': dismissed,
-    };
+    final data = <String, dynamic>{};
 
+    if (title != null) data['title'] = title;
+    if (message != null) data['message'] = message;
+    if (offset != null) data['offset'] = offset;
+    if (offsetType != null) data['offset_type'] = offsetType;
+    if (type != null) data['type'] = type;
+    if (sent != null) data['sent'] = sent;
+    if (dismissed != null) data['dismissed'] = dismissed;
     if (homework != null) data['homework'] = homework;
     if (event != null) data['event'] = event;
     if (course != null) data['course'] = course;

@@ -8,6 +8,11 @@
 import 'package:heliumapp/data/models/base_model.dart';
 import 'package:heliumapp/data/models/id_or_entity.dart';
 
+Uri? toUri(dynamic value) {
+  if (value is String && value.isNotEmpty) return Uri.tryParse(value);
+  return null;
+}
+
 double? toDouble(dynamic value) {
   if (value == null) return null;
   if (value is num) return value.toDouble();

@@ -42,7 +42,7 @@ class EventModel extends PlannerItemBaseModel {
       start: DateTime.parse(json['start']),
       end: DateTime.parse(json['end']),
       priority: json['priority'],
-      url: json['url'],
+      url: toUri(json['url']),
       comments: json['comments'],
       attachments: json['attachments'] != null
           ? idOrEntityListFrom(json['attachments'], AttachmentModel.fromJson)
@@ -75,7 +75,7 @@ class EventModel extends PlannerItemBaseModel {
     DateTime? start,
     DateTime? end,
     int? priority,
-    String? url,
+    Uri? url,
     String? comments,
     List<IdOrEntity<AttachmentModel>>? attachments,
     List<IdOrEntity<ReminderModel>>? reminders,
