@@ -53,98 +53,114 @@ class SpinnerField extends StatelessWidget {
 
   Widget _buildSpinnerRow(BuildContext context) {
     final row = Row(
-          children: [
-            Expanded(
-              child: Container(
-                decoration: BoxDecoration(
-                  color: context.colorScheme.surface,
-                  border: Border.all(
-                    color: context.colorScheme.outline.withValues(alpha: 0.2),
+      children: [
+        Expanded(
+          child: Container(
+            decoration: BoxDecoration(
+              color: context.colorScheme.surface,
+              border: Border.all(
+                color: context.colorScheme.outline.withValues(alpha: 0.2),
+              ),
+              borderRadius: BorderRadius.circular(_fieldBorderRadius),
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(_fieldBorderRadius),
+              child: Focus(
+                onKeyEvent: (_, event) {
+                  if (event is! KeyDownEvent && event is! KeyRepeatEvent) {
+                    return KeyEventResult.ignored;
+                  }
+                  if (event.logicalKey == LogicalKeyboardKey.arrowUp) {
+                    _increment();
+                    return KeyEventResult.handled;
+                  }
+                  if (event.logicalKey == LogicalKeyboardKey.arrowDown) {
+                    _decrement();
+                    return KeyEventResult.handled;
+                  }
+                  return KeyEventResult.ignored;
+                },
+                child: TextFormField(
+                  controller: controller,
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
                   ),
-                  borderRadius: BorderRadius.circular(_fieldBorderRadius),
-                ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(_fieldBorderRadius),
-                  child: TextFormField(
-                    controller: controller,
-                    keyboardType: const TextInputType.numberWithOptions(
-                      decimal: true,
+                  inputFormatters: allowDecimal
+                      ? [
+                          FilteringTextInputFormatter.allow(
+                            RegExp(r'^\d*\.?\d*'),
+                          ),
+                        ]
+                      : [FilteringTextInputFormatter.digitsOnly],
+                  style: AppStyles.formText(context),
+                  validator: validator,
+                  onChanged: (value) {
+                    if (value.isEmpty) {
+                      controller.text = _formatValue(minValue);
+                    }
+                    onChanged?.call(value);
+                  },
+                  decoration: InputDecoration(
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: _contentPaddingHorizontal,
+                      vertical: _contentPaddingVertical,
                     ),
-                    inputFormatters: allowDecimal
-                        ? [
-                            FilteringTextInputFormatter.allow(
-                              RegExp(r'^\d*\.?\d*'),
-                            ),
-                          ]
-                        : [FilteringTextInputFormatter.digitsOnly],
-                    style: AppStyles.formText(context),
-                    validator: validator,
-                    onChanged: (value) {
-                      if (value.isEmpty) {
-                        controller.text = _formatValue(minValue);
-                      }
-                      onChanged?.call(value);
-                    },
-                    decoration: InputDecoration(
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: _contentPaddingHorizontal,
-                        vertical: _contentPaddingVertical,
-                      ),
-                      border: InputBorder.none,
-                      enabledBorder: InputBorder.none,
-                      focusedBorder: InputBorder.none,
-                      disabledBorder: InputBorder.none,
-                      errorBorder: InputBorder.none,
-                      focusedErrorBorder: InputBorder.none,
-                      errorStyle: AppStyles.formErrorStyle(context),
-                      errorMaxLines: 3,
-                    ),
+                    border: InputBorder.none,
+                    enabledBorder: InputBorder.none,
+                    focusedBorder: InputBorder.none,
+                    disabledBorder: InputBorder.none,
+                    errorBorder: InputBorder.none,
+                    focusedErrorBorder: InputBorder.none,
+                    errorStyle: AppStyles.formErrorStyle(context),
+                    errorMaxLines: 3,
                   ),
                 ),
               ),
             ),
-            const SizedBox(width: 4),
-            Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                IconButton(
-                  onPressed: () => _increment(),
-                  icon: const Icon(Icons.arrow_drop_up),
-                  iconSize: Responsive.getIconSize(
-                    context,
-                    mobile: 24,
-                    tablet: 26,
-                    desktop: 28,
-                  ),
-                  color: context.colorScheme.primary,
-                  padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(),
-                  visualDensity: VisualDensity.compact,
-                  style: IconButton.styleFrom(
-                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                  ),
-                ),
-                IconButton(
-                  onPressed: () => _decrement(),
-                  icon: const Icon(Icons.arrow_drop_down),
-                  iconSize: Responsive.getIconSize(
-                    context,
-                    mobile: 24,
-                    tablet: 26,
-                    desktop: 28,
-                  ),
-                  color: context.colorScheme.primary,
-                  padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(),
-                  visualDensity: VisualDensity.compact,
-                  style: IconButton.styleFrom(
-                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                  ),
-                ),
-              ],
+          ),
+        ),
+        const SizedBox(width: 4),
+        Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            IconButton(
+              onPressed: () => _increment(),
+              icon: const Icon(Icons.arrow_drop_up),
+              iconSize: Responsive.getIconSize(
+                context,
+                mobile: 24,
+                tablet: 26,
+                desktop: 28,
+              ),
+              color: context.colorScheme.primary,
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints(),
+              visualDensity: VisualDensity.compact,
+              style: IconButton.styleFrom(
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              ),
+            ),
+            IconButton(
+              onPressed: () => _decrement(),
+              icon: const Icon(Icons.arrow_drop_down),
+              iconSize: Responsive.getIconSize(
+                context,
+                mobile: 24,
+                tablet: 26,
+                desktop: 28,
+              ),
+              color: context.colorScheme.primary,
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints(),
+              visualDensity: VisualDensity.compact,
+              style: IconButton.styleFrom(
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              ),
             ),
           ],
-        );
+        ),
+      ],
+    );
 
     if (maxSpinnerWidth != null) {
       return ConstrainedBox(
