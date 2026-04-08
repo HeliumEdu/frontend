@@ -14,6 +14,7 @@ import 'package:heliumapp/presentation/features/shared/bloc/core/base_event.dart
 import 'package:heliumapp/presentation/features/courses/bloc/course_bloc.dart';
 import 'package:heliumapp/presentation/features/courses/bloc/course_event.dart';
 import 'package:heliumapp/presentation/features/courses/bloc/course_state.dart';
+import 'package:heliumapp/presentation/features/shared/controllers/basic_form_controller.dart';
 import 'package:heliumapp/presentation/features/shared/widgets/flow/multi_step_container.dart';
 import 'package:heliumapp/presentation/ui/components/helium_elevated_button.dart';
 import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
@@ -45,6 +46,8 @@ class CourseSchedule extends StatefulWidget {
 }
 
 class CourseScheduleState extends State<CourseSchedule> {
+  final BasicFormController formController = BasicFormController();
+
   bool isLoading = true;
   bool _isSubmitting = false;
   int? _scheduleId;
@@ -64,6 +67,8 @@ class CourseScheduleState extends State<CourseSchedule> {
   @override
   void initState() {
     super.initState();
+
+    if (!widget.isEdit) formController.markChanged();
 
     context.read<CourseBloc>().add(
       FetchCourseScheduleEvent(
@@ -268,6 +273,7 @@ class CourseScheduleState extends State<CourseSchedule> {
                               ),
                               value: _variesByDay,
                               onChanged: (value) {
+                                formController.markChanged();
                                 setState(() {
                                   _variesByDay = value!;
                                   if (_variesByDay) {
@@ -337,6 +343,7 @@ class CourseScheduleState extends State<CourseSchedule> {
                     ),
                     selected: _selectedDays,
                     onSelectionChanged: (Set<int> newSelection) {
+                      formController.markChanged();
                       setState(() {
                         _selectedDays.clear();
                         _selectedDays.addAll(newSelection);
@@ -386,6 +393,7 @@ class CourseScheduleState extends State<CourseSchedule> {
       confirmText: 'Select',
     );
     if (pickedTime != null) {
+      formController.markChanged();
       setState(() {
         if (isStartTime) {
           _startTimes[dayIndex] = pickedTime;
@@ -620,6 +628,7 @@ class CourseScheduleState extends State<CourseSchedule> {
       confirmText: 'Select',
     );
     if (pickedTime != null) {
+      formController.markChanged();
       setState(() {
         if (isStartTime) {
           _singleStartTime = pickedTime;

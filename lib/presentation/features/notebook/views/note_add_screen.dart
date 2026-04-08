@@ -38,6 +38,7 @@ import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/deep_link_helpers.dart';
 import 'package:heliumapp/utils/print_helpers.dart';
 import 'package:heliumapp/utils/print_service.dart';
+import 'package:heliumapp/utils/quill_helpers.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
@@ -476,7 +477,8 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
 
   void _setupDocumentListener() {
     _documentSubscription?.cancel();
-    _documentSubscription = _quillController.document.changes.listen((_) {
+    _documentSubscription = _quillController.document.changes.listen((change) {
+      if (!isNoteEdited(change)) return;
       _onContentChanged();
     });
   }

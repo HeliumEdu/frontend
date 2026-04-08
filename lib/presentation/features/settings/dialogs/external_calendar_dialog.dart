@@ -64,6 +64,7 @@ class _ExternalCalendarWidgetState
       _formController.shownOnCalendar =
           widget.externalCalendar!.shownOnCalendar!;
     } else {
+      _formController.markChanged();
       _formController.titleController.text = _defaultTitle;
       _formController.urlController.text = _defaultUrl;
       _formController.selectedColor = HeliumColors.getRandomColor();
@@ -112,6 +113,7 @@ class _ExternalCalendarWidgetState
           autofocus: kIsWeb || !widget.isEdit,
           controller: _formController.titleController,
           validator: BasicFormController.validateRequiredField,
+          onChanged: (_) => _formController.markChanged(),
           onFieldSubmitted: (value) => handleSubmit(),
         ),
         const SizedBox(height: 14),
@@ -120,6 +122,7 @@ class _ExternalCalendarWidgetState
           controller: _formController.urlController,
           validator: BasicFormController.validateRequiredUrl,
           keyboardType: TextInputType.url,
+          onChanged: (_) => _formController.markChanged(),
         ),
         const SizedBox(height: 14),
         Row(
@@ -129,6 +132,7 @@ class _ExternalCalendarWidgetState
               label: 'Color',
               selectedColor: _formController.selectedColor,
               onColorSelected: (color) {
+                _formController.markChanged();
                 setState(() {
                   _formController.selectedColor = color;
                 });
@@ -142,6 +146,7 @@ class _ExternalCalendarWidgetState
                   value: _formController.shownOnCalendar,
                   activeTrackColor: context.colorScheme.primary,
                   onChanged: (value) {
+                    _formController.markChanged();
                     Feedback.forTap(context);
                     setState(() {
                       _formController.shownOnCalendar = value;
@@ -158,6 +163,10 @@ class _ExternalCalendarWidgetState
 
   @override
   void handleSubmit() {
+    if (!_formController.isChanged) {
+      cancelAction();
+      return;
+    }
     super.handleSubmit();
 
     // Clean URL field before validation

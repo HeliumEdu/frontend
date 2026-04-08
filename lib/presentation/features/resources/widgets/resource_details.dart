@@ -5,6 +5,8 @@
 //
 // For details regarding the license, please refer to the LICENSE file.
 
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -56,9 +58,11 @@ class ResourceDetails extends StatefulWidget {
 }
 
 class ResourceDetailsState extends State<ResourceDetails> {
-  final ResourceFormController _formController = ResourceFormController();
+  final ResourceFormController formController = ResourceFormController();
   final FocusNode _titleFocusNode = FocusNode();
   final FocusNode _notesFocusNode = FocusNode();
+
+  StreamSubscription<DocChange>? _notesSubscription;
 
   List<CourseModel> _courses = [];
   bool isLoading = true;
@@ -69,7 +73,9 @@ class ResourceDetailsState extends State<ResourceDetails> {
   void initState() {
     super.initState();
 
-    _formController.urlFocusNode.addListener(_onUrlFocusChange);
+    if (!widget.isEdit) formController.markChanged();
+
+    formController.urlFocusNode.addListener(_onUrlFocusChange);
 
     context.read<ResourceBloc>().add(
       FetchResourceScreenDataEvent(
@@ -82,10 +88,11 @@ class ResourceDetailsState extends State<ResourceDetails> {
 
   @override
   void dispose() {
+    _notesSubscription?.cancel();
     _titleFocusNode.dispose();
     _notesFocusNode.dispose();
-    _formController.urlFocusNode.removeListener(_onUrlFocusChange);
-    _formController.dispose();
+    formController.urlFocusNode.removeListener(_onUrlFocusChange);
+    formController.dispose();
 
     super.dispose();
   }
@@ -112,7 +119,7 @@ class ResourceDetailsState extends State<ResourceDetails> {
         Expanded(
           child: SingleChildScrollView(
             child: Form(
-              key: _formController.formKey,
+              key: formController.formKey,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -120,9 +127,10 @@ class ResourceDetailsState extends State<ResourceDetails> {
                     label: 'Title',
                     autofocus: kIsWeb,
                     focusNode: _titleFocusNode,
-                    controller: _formController.titleController,
+                    controller: formController.titleController,
                     validator: BasicFormController.validateRequiredField,
-                    fieldKey: _formController.getFieldKey('title'),
+                    fieldKey: formController.getFieldKey('title'),
+                    onChanged: (_) => formController.markChanged(),
                     onFieldSubmitted: (value) => (widget.onSubmitRequested ?? onSubmit).call(),
                   ),
                   const SizedBox(height: 14),
@@ -130,10 +138,11 @@ class ResourceDetailsState extends State<ResourceDetails> {
                   const SizedBox(height: 9),
                   SelectField<CourseModel>(
                     items: _courses,
-                    selectedIds: _formController.selectedCourses,
+                    selectedIds: formController.selectedCourses,
                     onChanged: (selected) {
+                      formController.markChanged();
                       setState(() {
-                        _formController.selectedCourses = selected;
+                        formController.selectedCourses = selected;
                       });
                     },
                     enabled: _courses.isNotEmpty,
@@ -148,12 +157,13 @@ class ResourceDetailsState extends State<ResourceDetails> {
                   DropDown(
                     label: 'Status',
                     initialValue: ResourceConstants.statusItems.firstWhere(
-                      (mc) => mc.id == _formController.selectedStatus,
+                      (mc) => mc.id == formController.selectedStatus,
                     ),
                     items: ResourceConstants.statusItems,
                     onChanged: (value) {
+                      formController.markChanged();
                       setState(() {
-                        _formController.selectedStatus = value!.id;
+                        formController.selectedStatus = value!.id;
                       });
                     },
                   ),
@@ -161,26 +171,28 @@ class ResourceDetailsState extends State<ResourceDetails> {
                   DropDown(
                     label: 'Condition',
                     initialValue: ResourceConstants.conditionItems.firstWhere(
-                      (mc) => mc.id == _formController.selectedCondition,
+                      (mc) => mc.id == formController.selectedCondition,
                     ),
                     items: ResourceConstants.conditionItems,
                     onChanged: (value) {
+                      formController.markChanged();
                       setState(() {
-                        _formController.selectedCondition = value!.id;
+                        formController.selectedCondition = value!.id;
                       });
                     },
                   ),
                   const SizedBox(height: 14),
                   LabelAndTextFormField(
                     label: 'Website',
-                    controller: _formController.urlController,
+                    controller: formController.urlController,
                     validator: BasicFormController.validateUrl,
-                    fieldKey: _formController.getFieldKey('url'),
-                    focusNode: _formController.urlFocusNode,
+                    fieldKey: formController.getFieldKey('url'),
+                    focusNode: formController.urlFocusNode,
+                    onChanged: (_) => formController.markChanged(),
                     trailingIconButton: HeliumIconButton(
                       onPressed: () {
                         UrlHelpers.launchWebUrl(
-                          _formController.urlController.text,
+                          formController.urlController.text,
                         );
                       },
                       icon: Icons.launch_outlined,
@@ -191,12 +203,13 @@ class ResourceDetailsState extends State<ResourceDetails> {
                   const SizedBox(height: 14),
                   LabelAndTextFormField(
                     label: 'Price',
-                    controller: _formController.priceController,
+                    controller: formController.priceController,
+                    onChanged: (_) => formController.markChanged(),
                   ),
                   const SizedBox(height: 14),
                   NotesEditor(
-                    key: ObjectKey(_formController.notesController),
-                    controller: _formController.notesController,
+                    key: ObjectKey(formController.notesController),
+                    controller: formController.notesController,
                     focusNode: _notesFocusNode,
                     onOpenInNotes: widget.isEdit ? () => onSubmit(redirectToNotebook: true) : null,
                   ),
@@ -211,9 +224,9 @@ class ResourceDetailsState extends State<ResourceDetails> {
   }
 
   Map<String, dynamic>? get noteContent =>
-      buildNotesDelta(_formController.notesController);
+      buildNotesDelta(formController.notesController);
 
-  int? get linkedNoteId => _formController.linkedNoteId;
+  int? get linkedNoteId => formController.linkedNoteId;
 
   void resetSubmitting() {
     setState(() => _isSubmitting = false);
@@ -221,23 +234,23 @@ class ResourceDetailsState extends State<ResourceDetails> {
 
   Future<void> onSubmit({bool redirectToNotebook = false}) async {
     if (isLoading || _isSubmitting) return;
-    if (_formController.validateAndScrollToError()) {
+    if (formController.validateAndScrollToError()) {
       // Notify parent that action is starting (validation passed)
       setState(() => _isSubmitting = true);
       widget.onActionStarted?.call();
 
       final request = ResourceRequestModel(
-        title: _formController.titleController.text.trim(),
-        status: _formController.selectedStatus,
-        condition: _formController.selectedCondition,
-        website: _formController.urlController.text.trim().isEmpty
+        title: formController.titleController.text.trim(),
+        status: formController.selectedStatus,
+        condition: formController.selectedCondition,
+        website: formController.urlController.text.trim().isEmpty
             ? ''
-            : _formController.urlController.text.trim(),
-        price: _formController.priceController.text.trim().isEmpty
+            : formController.urlController.text.trim(),
+        price: formController.priceController.text.trim().isEmpty
             ? ''
-            : _formController.priceController.text.trim(),
-        details: widget.isEdit ? _formController.initialNotes : '',
-        courses: _formController.selectedCourses,
+            : formController.priceController.text.trim(),
+        details: widget.isEdit ? formController.initialNotes : '',
+        courses: formController.selectedCourses,
         resourceGroup: widget.resourceGroupId,
       );
 
@@ -245,7 +258,7 @@ class ResourceDetailsState extends State<ResourceDetails> {
       if (widget.isEdit && widget.resourceId != null) {
         // Dispatch note operations to NoteBloc directly; resource.id is known
         final content = noteContent;
-        final existingNoteId = _formController.linkedNoteId;
+        final existingNoteId = formController.linkedNoteId;
         if (existingNoteId != null) {
           // Update with current content; empty content triggers deletion on backend
           context.read<NoteBloc>().add(UpdateNoteEvent(
@@ -297,32 +310,37 @@ class ResourceDetailsState extends State<ResourceDetails> {
     Sort.byTitle(_courses);
 
     if (widget.isEdit) {
-      _formController.titleController.text = state.resource!.title;
-      _formController.urlController.text = state.resource!.website?.toString() ?? '';
-      _formController.priceController.text = state.resource!.price ?? '';
-      _formController.initialNotes = state.resource!.details ?? '';
-      _formController.selectedStatus = state.resource!.status;
-      _formController.selectedCondition = state.resource!.condition;
-      _formController.selectedCourses = List<int>.from(
+      formController.titleController.text = state.resource!.title;
+      formController.urlController.text = state.resource!.website?.toString() ?? '';
+      formController.priceController.text = state.resource!.price ?? '';
+      formController.initialNotes = state.resource!.details ?? '';
+      formController.selectedStatus = state.resource!.status;
+      formController.selectedCondition = state.resource!.condition;
+      formController.selectedCourses = List<int>.from(
         state.resource!.courses,
       );
 
-      _formController.notesController.dispose();
+      formController.notesController.dispose();
       if (state.linkedNote != null) {
-        _formController.linkedNoteId = state.linkedNote!.id;
-        _formController.notesController = state.linkedNote!.content != null
+        formController.linkedNoteId = state.linkedNote!.id;
+        formController.notesController = state.linkedNote!.content != null
             ? QuillController(
                 document: Document.fromJson(state.linkedNote!.content!['ops'] as List),
                 selection: const TextSelection.collapsed(offset: 0),
               )
             : QuillController.basic();
       } else {
-        _formController.notesController = QuillController.basic();
+        formController.notesController = QuillController.basic();
       }
     }
 
     setState(() {
       isLoading = false;
+    });
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      _setupNotesListener();
     });
 
     // Request focus once on mobile for create mode
@@ -336,10 +354,17 @@ class ResourceDetailsState extends State<ResourceDetails> {
     }
   }
 
+  void _setupNotesListener() {
+    _notesSubscription?.cancel();
+    _notesSubscription = formController.notesController.document.changes.listen((change) {
+      if (isNoteEdited(change)) formController.markChanged();
+    });
+  }
+
   void _onUrlFocusChange() {
-    if (!_formController.urlFocusNode.hasFocus) {
-      _formController.urlController.text = BasicFormController.cleanUrl(
-        _formController.urlController.text.trim(),
+    if (!formController.urlFocusNode.hasFocus) {
+      formController.urlController.text = BasicFormController.cleanUrl(
+        formController.urlController.text.trim(),
       );
     }
   }

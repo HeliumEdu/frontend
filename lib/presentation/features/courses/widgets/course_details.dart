@@ -59,7 +59,7 @@ class CourseDetails extends StatefulWidget {
 }
 
 class CourseDetailsState extends State<CourseDetails> {
-  final CourseFormController _formController = CourseFormController();
+  final CourseFormController formController = CourseFormController();
 
   bool isLoading = true;
   bool _isSubmitting = false;
@@ -69,7 +69,9 @@ class CourseDetailsState extends State<CourseDetails> {
   void initState() {
     super.initState();
 
-    _formController.urlFocusNode.addListener(_onUrlFocusChange);
+    if (!widget.isEdit) formController.markChanged();
+
+    formController.urlFocusNode.addListener(_onUrlFocusChange);
 
     context.read<CourseBloc>().add(
       FetchCourseScreenDataEvent(
@@ -82,8 +84,8 @@ class CourseDetailsState extends State<CourseDetails> {
 
   @override
   void dispose() {
-    _formController.urlFocusNode.removeListener(_onUrlFocusChange);
-    _formController.dispose();
+    formController.urlFocusNode.removeListener(_onUrlFocusChange);
+    formController.dispose();
     super.dispose();
   }
 
@@ -109,7 +111,7 @@ class CourseDetailsState extends State<CourseDetails> {
         Expanded(
           child: SingleChildScrollView(
             child: Form(
-              key: _formController.formKey,
+              key: formController.formKey,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -118,9 +120,10 @@ class CourseDetailsState extends State<CourseDetails> {
                   LabelAndTextFormField(
                     label: 'Title',
                     autofocus: kIsWeb || !widget.isEdit,
-                    controller: _formController.titleController,
+                    controller: formController.titleController,
                     validator: BasicFormController.validateRequiredField,
-                    fieldKey: _formController.getFieldKey('title'),
+                    fieldKey: formController.getFieldKey('title'),
+                    onChanged: (_) => formController.markChanged(),
                     onFieldSubmitted: (value) => (widget.onSubmitRequested ?? onSubmit).call(),
                   ),
                   const SizedBox(height: 14),
@@ -153,7 +156,7 @@ class CourseDetailsState extends State<CourseDetails> {
                                   children: [
                                     Text(
                                       HeliumDateTime.formatDate(
-                                        _formController.startDate!,
+                                        formController.startDate!,
                                       ),
                                       style: AppStyles.formText(context),
                                     ),
@@ -202,7 +205,7 @@ class CourseDetailsState extends State<CourseDetails> {
                                   children: [
                                     Text(
                                       HeliumDateTime.formatDate(
-                                        _formController.endDate!,
+                                        formController.endDate!,
                                       ),
                                       style: AppStyles.formText(context),
                                     ),
@@ -228,14 +231,15 @@ class CourseDetailsState extends State<CourseDetails> {
                   const SizedBox(height: 14),
                   LabelAndTextFormField(
                     label: 'Website',
-                    controller: _formController.urlController,
+                    controller: formController.urlController,
                     validator: BasicFormController.validateUrl,
-                    fieldKey: _formController.getFieldKey('url'),
-                    focusNode: _formController.urlFocusNode,
+                    fieldKey: formController.getFieldKey('url'),
+                    focusNode: formController.urlFocusNode,
+                    onChanged: (_) => formController.markChanged(),
                     trailingIconButton: HeliumIconButton(
                       onPressed: () {
                         UrlHelpers.launchWebUrl(
-                          _formController.urlController.text,
+                          formController.urlController.text,
                         );
                       },
                       icon: Icons.launch_outlined,
@@ -250,21 +254,23 @@ class CourseDetailsState extends State<CourseDetails> {
                       Expanded(
                         child: LabelAndTextFormField(
                           label: 'Teacher',
-                          controller: _formController.teacherNameController,
+                          controller: formController.teacherNameController,
+                          onChanged: (_) => formController.markChanged(),
                         ),
                       ),
                       const SizedBox(width: 12),
                       Expanded(
                         child: LabelAndTextFormField(
                           label: 'Email',
-                          controller: _formController.teacherEmailController,
+                          controller: formController.teacherEmailController,
+                          onChanged: (_) => formController.markChanged(),
                           validator: BasicFormController.validateEmail,
-                          fieldKey: _formController.getFieldKey('teacherEmail'),
+                          fieldKey: formController.getFieldKey('teacherEmail'),
                           trailingIconButton: HeliumIconButton(
                             onPressed: () {
                               launchUrl(
                                 Uri.parse(
-                                  'mailto:${_formController.teacherEmailController.text}',
+                                  'mailto:${formController.teacherEmailController.text}',
                                 ),
                               );
                             },
@@ -288,22 +294,24 @@ class CourseDetailsState extends State<CourseDetails> {
                               'Online',
                               style: AppStyles.formLabel(context),
                             ),
-                            value: _formController.isOnline,
+                            value: formController.isOnline,
                             onChanged: (value) {
+                              formController.markChanged();
                               setState(() {
-                                _formController.isOnline = value!;
+                                formController.isOnline = value!;
                               });
                             },
                             controlAffinity: ListTileControlAffinity.leading,
                             contentPadding: EdgeInsets.zero,
                           ),
                         ),
-                        if (!_formController.isOnline) ...[
+                        if (!formController.isOnline) ...[
                           const SizedBox(width: 12),
                           Expanded(
                             child: LabelAndTextFormField(
                               label: 'Location',
-                              controller: _formController.roomController,
+                              controller: formController.roomController,
+                              onChanged: (_) => formController.markChanged(),
                             ),
                           ),
                         ],
@@ -322,10 +330,11 @@ class CourseDetailsState extends State<CourseDetails> {
                               const SizedBox(width: 9),
                               ColorSelector(
                                 label: 'Color',
-                                selectedColor: _formController.selectedColor,
+                                selectedColor: formController.selectedColor,
                                 onColorSelected: (color) {
+                                  formController.markChanged();
                                   setState(() {
-                                    _formController.selectedColor = color;
+                                    formController.selectedColor = color;
                                   });
                                 },
                               ),
@@ -340,9 +349,10 @@ class CourseDetailsState extends State<CourseDetails> {
                               width: 120,
                               child: SpinnerField(
                                 label: 'Credits',
-                                controller: _formController.creditsController,
+                                controller: formController.creditsController,
                                 step: 0.5,
                                 allowDecimal: true,
+                                onChanged: (_) => formController.markChanged(),
                               ),
                             ),
                           ),
@@ -367,24 +377,24 @@ class CourseDetailsState extends State<CourseDetails> {
   /// Submit the form. Called by parent screen when header save is pressed.
   bool onSubmit() {
     if (isLoading || _isSubmitting) return false;
-    if (_formController.validateAndScrollToError()) {
+    if (formController.validateAndScrollToError()) {
       // Notify parent that action is starting (validation passed)
       setState(() => _isSubmitting = true);
       widget.onActionStarted?.call();
 
       final request = CourseRequestModel(
-        title: _formController.titleController.text.trim(),
-        room: _formController.roomController.text.trim(),
-        credits: _formController.creditsController.text.trim().isEmpty
+        title: formController.titleController.text.trim(),
+        room: formController.roomController.text.trim(),
+        credits: formController.creditsController.text.trim().isEmpty
             ? '0'
-            : _formController.creditsController.text.trim(),
-        color: HeliumColors.colorToHex(_formController.selectedColor),
-        website: _formController.urlController.text.trim(),
-        isOnline: _formController.isOnline,
-        teacherName: _formController.teacherNameController.text.trim(),
-        teacherEmail: _formController.teacherEmailController.text.trim(),
-        startDate: HeliumDateTime.formatDateForApi(_formController.startDate!),
-        endDate: HeliumDateTime.formatDateForApi(_formController.endDate!),
+            : formController.creditsController.text.trim(),
+        color: HeliumColors.colorToHex(formController.selectedColor),
+        website: formController.urlController.text.trim(),
+        isOnline: formController.isOnline,
+        teacherName: formController.teacherNameController.text.trim(),
+        teacherEmail: formController.teacherEmailController.text.trim(),
+        startDate: HeliumDateTime.formatDateForApi(formController.startDate!),
+        endDate: HeliumDateTime.formatDateForApi(formController.endDate!),
         courseGroup: widget.courseGroupId,
       );
 
@@ -419,9 +429,9 @@ class CourseDetailsState extends State<CourseDetails> {
   }
 
   void _onUrlFocusChange() {
-    if (!_formController.urlFocusNode.hasFocus) {
-      _formController.urlController.text = BasicFormController.cleanUrl(
-        _formController.urlController.text.trim(),
+    if (!formController.urlFocusNode.hasFocus) {
+      formController.urlController.text = BasicFormController.cleanUrl(
+        formController.urlController.text.trim(),
       );
     }
   }
@@ -431,28 +441,28 @@ class CourseDetailsState extends State<CourseDetails> {
       _courseGroup = state.courseGroup;
 
       if (widget.isEdit) {
-        _formController.titleController.text = state.course!.title;
-        _formController.roomController.text = state.course!.room;
-        _formController.urlController.text = state.course!.website?.toString() ?? '';
-        _formController.teacherNameController.text = state.course!.teacherName;
-        _formController.teacherEmailController.text =
+        formController.titleController.text = state.course!.title;
+        formController.roomController.text = state.course!.room;
+        formController.urlController.text = state.course!.website?.toString() ?? '';
+        formController.teacherNameController.text = state.course!.teacherName;
+        formController.teacherEmailController.text =
             state.course!.teacherEmail;
-        _formController.creditsController.text = state.course!.credits
+        formController.creditsController.text = state.course!.credits
             .toString();
 
-        _formController.startDate = state.course!.startDate;
-        _formController.endDate = state.course!.endDate;
+        formController.startDate = state.course!.startDate;
+        formController.endDate = state.course!.endDate;
 
-        _formController.isOnline = state.course!.isOnline;
+        formController.isOnline = state.course!.isOnline;
 
         try {
-          _formController.selectedColor = state.course!.color;
+          formController.selectedColor = state.course!.color;
         } catch (e) {
           _log.info('Error parsing color', e);
         }
       } else {
-        _formController.startDate = state.courseGroup.startDate;
-        _formController.endDate = state.courseGroup.endDate;
+        formController.startDate = state.courseGroup.startDate;
+        formController.endDate = state.courseGroup.endDate;
       }
 
       isLoading = false;
@@ -462,7 +472,7 @@ class CourseDetailsState extends State<CourseDetails> {
   Future<void> _selectDate(BuildContext context, bool isStartDate) async {
     final firstDate = _courseGroup?.startDate ?? DateTime.now().subtract(const Duration(days: 365 * 10));
     final lastDate = _courseGroup?.endDate ?? DateTime.now().add(const Duration(days: 365 * 10));
-    final rawInitial = isStartDate ? _formController.startDate : _formController.endDate;
+    final rawInitial = isStartDate ? formController.startDate : formController.endDate;
     final initialDate = rawInitial == null ? firstDate
         : (rawInitial.isBefore(firstDate) ? firstDate
         : (rawInitial.isAfter(lastDate) ? lastDate : rawInitial));
@@ -476,17 +486,18 @@ class CourseDetailsState extends State<CourseDetails> {
     );
 
     if (picked != null) {
+      formController.markChanged();
       setState(() {
         if (isStartDate) {
-          _formController.startDate = picked;
-          _formController.endDate = DateRangeEnforcer.adjustEndDate(
+          formController.startDate = picked;
+          formController.endDate = DateRangeEnforcer.adjustEndDate(
             picked,
-            _formController.endDate!,
+            formController.endDate!,
           );
         } else {
-          _formController.endDate = picked;
-          _formController.startDate = DateRangeEnforcer.adjustStartDate(
-            _formController.startDate!,
+          formController.endDate = picked;
+          formController.startDate = DateRangeEnforcer.adjustStartDate(
+            formController.startDate!,
             picked,
           );
         }

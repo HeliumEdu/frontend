@@ -96,6 +96,13 @@ class _CourseAddScreenState extends MultiStepContainerState<CourseAddScreen> {
     if (step == currentStep) return;
 
     if (saveAction != null) {
+      final changed = currentStep == 0
+          ? (_detailsKey.currentState?.formController.isChanged ?? true)
+          : (_scheduleKey.currentState?.formController.isChanged ?? true);
+      if (!changed) {
+        navigateToStep(step);
+        return;
+      }
       _targetStep = step;
       saveAction!();
 
@@ -124,17 +131,24 @@ class _CourseAddScreenState extends MultiStepContainerState<CourseAddScreen> {
       if (isSubmitting) return;
       Function? widgetSubmit;
       bool widgetLoading = false;
+      bool widgetChanged = true;
       switch (currentStep) {
         case 0:
           widgetSubmit = _detailsKey.currentState?.onSubmit;
           widgetLoading = _detailsKey.currentState?.isLoading ?? true;
+          widgetChanged = _detailsKey.currentState?.formController.isChanged ?? true;
           break;
         case 1:
           widgetSubmit = _scheduleKey.currentState?.onSubmit;
           widgetLoading = _scheduleKey.currentState?.isLoading ?? true;
+          widgetChanged = _scheduleKey.currentState?.formController.isChanged ?? true;
           break;
       }
       if (widgetLoading) return;
+      if (!widgetChanged) {
+        cancelAction();
+        return;
+      }
       if (widgetSubmit != null) {
         widgetSubmit();
       }

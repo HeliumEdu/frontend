@@ -110,6 +110,8 @@ abstract class BaseDialogState<T extends StatefulWidget> extends State<T> {
     );
   }
 
+  void cancelAction() => Navigator.pop(context);
+
   Widget buildButtonArea() {
     return Row(
       children: [
@@ -117,7 +119,7 @@ abstract class BaseDialogState<T extends StatefulWidget> extends State<T> {
           child: HeliumElevatedButton(
             buttonText: 'Cancel',
             backgroundColor: context.colorScheme.outline,
-            onPressed: () => Navigator.pop(context),
+            onPressed: cancelAction,
           ),
         ),
         const SizedBox(width: _buttonSpacing),

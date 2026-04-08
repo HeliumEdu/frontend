@@ -44,6 +44,8 @@ import 'package:heliumapp/utils/color_helpers.dart';
 import 'package:heliumapp/utils/date_time_helpers.dart';
 import 'package:heliumapp/utils/grade_helpers.dart';
 import 'package:heliumapp/utils/planner_helper.dart';
+import 'dart:async';
+
 import 'package:heliumapp/utils/quill_helpers.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:heliumapp/utils/snack_bar_helpers.dart';
@@ -83,13 +85,15 @@ class PlannerItemDetails extends StatefulWidget {
 }
 
 class PlannerItemDetailsState extends State<PlannerItemDetails> {
-  final PlannerItemFormController _formController = PlannerItemFormController();
+  final PlannerItemFormController formController = PlannerItemFormController();
   final FocusNode _titleFocusNode = FocusNode();
   final FocusNode _notesFocusNode = FocusNode();
 
   // Entity IDs (can be updated for clone)
   int? _eventId;
   int? _homeworkId;
+
+  StreamSubscription<DocChange>? _notesSubscription;
 
   bool isLoading = true;
   bool _isSubmitting = false;
@@ -113,8 +117,10 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
     _eventId = widget.eventId;
     _homeworkId = widget.homeworkId;
 
-    _formController.gradeFocusNode.addListener(() {
-      if (!_formController.gradeFocusNode.hasFocus) {
+    if (!widget.isEdit) formController.markChanged();
+
+    formController.gradeFocusNode.addListener(() {
+      if (!formController.gradeFocusNode.hasFocus) {
         setState(() {});
       }
     });
@@ -130,9 +136,10 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
 
   @override
   void dispose() {
+    _notesSubscription?.cancel();
     _titleFocusNode.dispose();
     _notesFocusNode.dispose();
-    _formController.dispose();
+    formController.dispose();
     super.dispose();
   }
 
@@ -155,6 +162,7 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
       _homeworkId = homeworkId;
       isLoading = true;
       _plannerItem = null;
+      formController.isChanged = false;
     });
 
     context.read<PlannerItemBloc>().add(
@@ -173,7 +181,7 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
 
     final List<ResourceModel> filteredResources = _resources.where((resource) {
       return resource.courses.isNotEmpty &&
-          resource.courses.any((c) => c == _formController.selectedCourse);
+          resource.courses.any((c) => c == formController.selectedCourse);
     }).toList();
 
     return Column(
@@ -181,7 +189,7 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
         Expanded(
           child: SingleChildScrollView(
             child: Form(
-              key: _formController.formKey,
+              key: formController.formKey,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -241,9 +249,10 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
                     label: 'Title',
                     autofocus: kIsWeb,
                     focusNode: _titleFocusNode,
-                    controller: _formController.titleController,
+                    controller: formController.titleController,
                     validator: BasicFormController.validateRequiredField,
-                    fieldKey: _formController.getFieldKey('title'),
+                    fieldKey: formController.getFieldKey('title'),
+                    onChanged: (_) => formController.markChanged(),
                     onFieldSubmitted: (value) =>
                         (widget.onSubmitRequested ?? onSubmit).call(),
                   ),
@@ -252,10 +261,11 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
                     DropDown(
                       label: 'Class',
                       initialValue: _courseItems.firstWhere(
-                        (c) => c.id == _formController.selectedCourse,
+                        (c) => c.id == formController.selectedCourse,
                       ),
                       items: _courseItems,
                       onChanged: (value) {
+                        formController.markChanged();
                         _selectCourse(value!.id);
                       },
                     ),
@@ -270,10 +280,11 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
                             'All Day',
                             style: AppStyles.formLabel(context),
                           ),
-                          value: _formController.isAllDay,
+                          value: formController.isAllDay,
                           onChanged: (value) {
+                            formController.markChanged();
                             setState(() {
-                              _formController.isAllDay = value!;
+                              formController.isAllDay = value!;
                             });
                           },
                           controlAffinity: ListTileControlAffinity.leading,
@@ -290,10 +301,11 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
                             'Show End',
                             style: AppStyles.formLabel(context),
                           ),
-                          value: _formController.showEndDateTime,
+                          value: formController.showEndDateTime,
                           onChanged: (value) {
+                            formController.markChanged();
                             setState(
-                              () => _formController.showEndDateTime =
+                              () => formController.showEndDateTime =
                                   value ?? false,
                             );
                           },
@@ -315,8 +327,8 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
                   if (!_isEvent) ...[_buildCompletionSection(context)],
                   const SizedBox(height: 14),
                   NotesEditor(
-                    key: ObjectKey(_formController.notesController),
-                    controller: _formController.notesController,
+                    key: ObjectKey(formController.notesController),
+                    controller: formController.notesController,
                     focusNode: _notesFocusNode,
                     onOpenInNotes: widget.isEdit ? () => onSubmit(redirectToNotebook: true) : null,
                   ),
@@ -339,24 +351,24 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
               child: _buildDatePicker(
                 context,
                 'Start Date',
-                _formController.startDate,
+                formController.startDate,
                 () => _selectDate(context, true),
               ),
             ),
-            if (_formController.showEndDateTime) ...[
+            if (formController.showEndDateTime) ...[
               const SizedBox(width: 12),
               Expanded(
                 child: _buildDatePicker(
                   context,
                   'End Date',
-                  _formController.endDate,
+                  formController.endDate,
                   () => _selectDate(context, false),
                 ),
               ),
             ],
           ],
         ),
-        if (!_formController.isAllDay) ...[
+        if (!formController.isAllDay) ...[
           const SizedBox(height: 16),
           Row(
             children: [
@@ -364,17 +376,17 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
                 child: _buildTimePicker(
                   context,
                   'Start Time',
-                  _formController.startTime,
+                  formController.startTime,
                   () => _selectTime(context, true),
                 ),
               ),
-              if (_formController.showEndDateTime) ...[
+              if (formController.showEndDateTime) ...[
                 const SizedBox(width: 12),
                 Expanded(
                   child: _buildTimePicker(
                     context,
                     'End Time',
-                    _formController.endTime,
+                    formController.endTime,
                     () => _selectTime(context, false),
                   ),
                 ),
@@ -491,16 +503,17 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
           label: 'Category',
           initialValue: _categoryItems.isNotEmpty
               ? _categoryItems.firstWhere(
-                  (c) => c.id == _formController.selectedCategory,
+                  (c) => c.id == formController.selectedCategory,
                 )
               : null,
           items: _categoryItems
               .where(
                 (category) =>
-                    category.value?.course == _formController.selectedCourse,
+                    category.value?.course == formController.selectedCourse,
               )
               .toList(),
           onChanged: (value) {
+            formController.markChanged();
             _selectCategory(value!.id);
           },
         ),
@@ -509,9 +522,12 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
         const SizedBox(height: 9),
         SelectField<ResourceModel>(
           items: filteredResources,
-          selectedIds: _formController.selectedResources,
-          onChanged: (selected) => _updateSelectedResources(selected),
-          enabled: _formController.selectedCourse != null &&
+          selectedIds: formController.selectedResources,
+          onChanged: (selected) {
+            formController.markChanged();
+            _updateSelectedResources(selected);
+          },
+          enabled: formController.selectedCourse != null &&
               filteredResources.isNotEmpty,
           buttonLabel: 'Select resources',
           labelBuilder: (item, onDelete) => ResourceTitleLabel(
@@ -534,26 +550,27 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
         SliderTheme(
           data: SliderTheme.of(context).copyWith(
             activeTrackColor: HeliumColors.getColorForPriority(
-              _formController.priorityValue,
+              formController.priorityValue,
             ),
             thumbColor: HeliumColors.getColorForPriority(
-              _formController.priorityValue,
+              formController.priorityValue,
             ),
             overlayColor: HeliumColors.getColorForPriority(
-              _formController.priorityValue,
+              formController.priorityValue,
             ).withValues(alpha: 0.2),
             valueIndicatorTextStyle: AppStyles.buttonText(context),
           ),
           child: Slider(
-            value: _formController.priorityValue,
+            value: formController.priorityValue,
             min: 0,
             max: 100,
             divisions: 10,
-            label: '${(_formController.priorityValue / 10).round()}',
+            label: '${(formController.priorityValue / 10).round()}',
             onChanged: (value) {
+              formController.markChanged();
               Feedback.forTap(context);
               setState(() {
-                _formController.priorityValue = value;
+                formController.priorityValue = value;
               });
             },
           ),
@@ -576,27 +593,29 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
                 child: CheckboxListTile(
                   key: const Key(PlannerItemFormController.completeField),
                   title: Text('Complete', style: AppStyles.formLabel(context)),
-                  value: _formController.isCompleted,
+                  value: formController.isCompleted,
                   onChanged: (value) {
+                    formController.markChanged();
                     setState(() {
-                      _formController.isCompleted = value!;
+                      formController.isCompleted = value!;
                     });
                   },
                   controlAffinity: ListTileControlAffinity.leading,
                   contentPadding: EdgeInsets.zero,
                 ),
               ),
-              if (_formController.isCompleted) ...[
+              if (formController.isCompleted) ...[
                 const SizedBox(width: 8),
                 Expanded(
                   child: LabelAndTextFormField(
                     key: const Key(PlannerItemFormController.gradeField),
                     hintText: 'Grade',
-                    controller: _formController.gradeController,
+                    controller: formController.gradeController,
                     inputFormatters: [
                       FilteringTextInputFormatter.allow(RegExp(r'[0-9\./]')),
                     ],
-                    focusNode: _formController.gradeFocusNode,
+                    focusNode: formController.gradeFocusNode,
+                    onChanged: (_) => formController.markChanged(),
                     onFieldSubmitted: _onGradeFieldSubmitted,
                   ),
                 ),
@@ -605,7 +624,7 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
                   width: 98,
                   child: GradeLabel(
                     grade: GradeHelper.gradeForDisplay(
-                      _formController.gradeController.text.trim(),
+                      formController.gradeController.text.trim(),
                     ),
                     userSettings: widget.userSettings!,
                     compact: true,
@@ -626,17 +645,17 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
   Future<void> onSubmit({bool redirectToNotebook = false}) async {
     if (isLoading || _isSubmitting) return;
     _log.info('Submitting planner item (isEvent=$_isEvent, isEdit=${widget.isEdit}, redirectToNotebook=$redirectToNotebook)');
-    if (_formController.validateAndScrollToError()) {
+    if (formController.validateAndScrollToError()) {
       // Warn if homework dates fall outside the course's date range
-      if (!_isEvent && _formController.selectedCourse != null) {
+      if (!_isEvent && formController.selectedCourse != null) {
         final selectedCourse = _courses.firstWhere(
-          (c) => c.id == _formController.selectedCourse,
+          (c) => c.id == formController.selectedCourse,
         );
 
         final courseStart = HeliumDateTime.dateOnly(selectedCourse.startDate);
         final courseEnd = HeliumDateTime.dateOnly(selectedCourse.endDate);
-        final homeworkStart = HeliumDateTime.dateOnly(_formController.startDate);
-        final homeworkEnd = HeliumDateTime.dateOnly(_formController.endDate);
+        final homeworkStart = HeliumDateTime.dateOnly(formController.startDate);
+        final homeworkEnd = HeliumDateTime.dateOnly(formController.endDate);
 
         if (homeworkStart.isBefore(courseStart) ||
             homeworkEnd.isAfter(courseEnd)) {
@@ -655,27 +674,27 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
       widget.onActionStarted?.call();
 
       // Get note content for bloc
-      final noteContent = buildNotesDelta(_formController.notesController);
+      final noteContent = buildNotesDelta(formController.notesController);
 
       final start = HeliumDateTime.formatDateAndTimeForApi(
-        _formController.startDate,
-        _formController.isAllDay ? null : _formController.startTime,
+        formController.startDate,
+        formController.isAllDay ? null : formController.startTime,
         widget.userSettings!.timeZone,
       );
 
       String end;
-      if (_formController.showEndDateTime) {
-        final endDateForApi = _formController.isAllDay
-            ? _formController.endDate.add(const Duration(days: 1))
-            : _formController.endDate;
+      if (formController.showEndDateTime) {
+        final endDateForApi = formController.isAllDay
+            ? formController.endDate.add(const Duration(days: 1))
+            : formController.endDate;
         end = HeliumDateTime.formatDateAndTimeForApi(
           endDateForApi,
-          _formController.isAllDay ? null : _formController.endTime,
+          formController.isAllDay ? null : formController.endTime,
           widget.userSettings!.timeZone,
         );
       } else {
-        if (_formController.isAllDay) {
-          final endDate = _formController.startDate.add(
+        if (formController.isAllDay) {
+          final endDate = formController.startDate.add(
             const Duration(days: 1),
           );
           end = HeliumDateTime.formatDateAndTimeForApi(
@@ -690,9 +709,9 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
 
       if (_isEvent) {
         final request = EventRequestModel(
-          title: _formController.titleController.text.trim(),
-          allDay: _formController.isAllDay,
-          showEndTime: _formController.showEndDateTime,
+          title: formController.titleController.text.trim(),
+          allDay: formController.isAllDay,
+          showEndTime: formController.showEndDateTime,
           start: start,
           end: end,
           priority: _getPriorityValue(),
@@ -706,7 +725,7 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
               origin: EventOrigin.subScreen,
               id: widget.eventId!,
               request: request,
-              linkedNoteId: _formController.linkedNoteId,
+              linkedNoteId: formController.linkedNoteId,
               noteContent: noteContent,
               redirectToNotebook: redirectToNotebook,
             ),
@@ -723,29 +742,29 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
         }
       } else {
         final selectedCourse = _courses.firstWhere(
-          (c) => c.id == _formController.selectedCourse,
+          (c) => c.id == formController.selectedCourse,
         );
 
         String gradeValue;
-        if (!_formController.isCompleted) {
+        if (!formController.isCompleted) {
           gradeValue = '-1/100';
         } else {
-          final gradeText = _formController.gradeController.text.trim();
+          final gradeText = formController.gradeController.text.trim();
           gradeValue = gradeText.isEmpty ? '-1/100' : gradeText;
         }
 
         final request = HomeworkRequestModel(
-          title: _formController.titleController.text.trim(),
-          allDay: _formController.isAllDay,
-          showEndTime: _formController.showEndDateTime,
+          title: formController.titleController.text.trim(),
+          allDay: formController.isAllDay,
+          showEndTime: formController.showEndDateTime,
           start: start,
           end: end,
           priority: _getPriorityValue(),
           currentGrade: gradeValue,
-          completed: _formController.isCompleted,
-          category: _formController.selectedCategory,
-          resources: _formController.selectedResources,
-          course: _formController.selectedCourse!,
+          completed: formController.isCompleted,
+          category: formController.selectedCategory,
+          resources: formController.selectedResources,
+          course: formController.selectedCourse!,
         );
 
         if (!mounted) return;
@@ -762,7 +781,7 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
               courseId: originalCourse.id,
               homeworkId: widget.homeworkId!,
               request: request,
-              linkedNoteId: _formController.linkedNoteId,
+              linkedNoteId: formController.linkedNoteId,
               noteContent: noteContent,
               redirectToNotebook: redirectToNotebook,
             ),
@@ -787,6 +806,13 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
         type: SnackType.error,
       );
     }
+  }
+
+  void _setupNotesListener() {
+    _notesSubscription?.cancel();
+    _notesSubscription = formController.notesController.document.changes.listen((change) {
+      if (isNoteEdited(change)) formController.markChanged();
+    });
   }
 
   Future<void> _populateInitialPlannerItemStateData(
@@ -841,54 +867,54 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
       _plannerItem = plannerItem;
 
       setState(() {
-        _formController.titleController.text = plannerItem.title;
-        _formController.isAllDay = plannerItem.allDay;
-        _formController.showEndDateTime = plannerItem.showEndTime;
-        _formController.priorityValue = plannerItem.priority.toDouble();
+        formController.titleController.text = plannerItem.title;
+        formController.isAllDay = plannerItem.allDay;
+        formController.showEndDateTime = plannerItem.showEndTime;
+        formController.priorityValue = plannerItem.priority.toDouble();
 
         final startDateTime = HeliumDateTime.toLocal(
           plannerItem.start,
           widget.userSettings!.timeZone,
         );
-        _formController.startDate = startDateTime;
-        if (!_formController.isAllDay) {
-          _formController.startTime = TimeOfDay.fromDateTime(startDateTime);
+        formController.startDate = startDateTime;
+        if (!formController.isAllDay) {
+          formController.startTime = TimeOfDay.fromDateTime(startDateTime);
         }
 
         final endDateTime = HeliumDateTime.toLocal(
           plannerItem.end,
           widget.userSettings!.timeZone,
         );
-        if (_formController.isAllDay) {
-          _formController.endDate = endDateTime.subtract(
+        if (formController.isAllDay) {
+          formController.endDate = endDateTime.subtract(
             const Duration(days: 1),
           );
         } else {
-          _formController.endDate = endDateTime;
-          _formController.endTime = TimeOfDay.fromDateTime(endDateTime);
+          formController.endDate = endDateTime;
+          formController.endTime = TimeOfDay.fromDateTime(endDateTime);
         }
 
         if (plannerItem is HomeworkModel) {
-          _formController.selectedCourse = plannerItem.course.id;
-          _formController.isCompleted = plannerItem.completed;
+          formController.selectedCourse = plannerItem.course.id;
+          formController.isCompleted = plannerItem.completed;
           if (plannerItem.currentGrade != null &&
               plannerItem.currentGrade!.isNotEmpty) {
             if (plannerItem.currentGrade == '-1/100') {
-              _formController.gradeController.text = '';
+              formController.gradeController.text = '';
             } else {
-              _formController.gradeController.text = plannerItem.currentGrade!;
+              formController.gradeController.text = plannerItem.currentGrade!;
             }
           }
 
-          _formController.selectedCategory = plannerItem.category.id;
+          formController.selectedCategory = plannerItem.category.id;
 
           if (plannerItem.resources.isNotEmpty) {
-            _formController.selectedResources = plannerItem.resources
+            formController.selectedResources = plannerItem.resources
                 .where((e) => _resources.any((m) => m.id == e.id))
                 .map((e) => e.id)
                 .toList();
           } else {
-            _formController.selectedResources = [];
+            formController.selectedResources = [];
           }
         }
       });
@@ -897,8 +923,8 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
       _isEvent = widget.eventId != null;
     } else {
       if (widget.initialDate != null) {
-        _formController.startDate = widget.initialDate!;
-        _formController.endDate = widget.initialDate!;
+        formController.startDate = widget.initialDate!;
+        formController.endDate = widget.initialDate!;
       }
 
       if (!_isEvent && _courses.isNotEmpty) {
@@ -911,16 +937,16 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
           widget.userSettings!.timeZone,
         );
         setState(() {
-          _formController.startTime = TimeOfDay.fromDateTime(tzDateTime);
-          _formController.endTime = TimeOfDay.fromDateTime(tzDateTime);
+          formController.startTime = TimeOfDay.fromDateTime(tzDateTime);
+          formController.endTime = TimeOfDay.fromDateTime(tzDateTime);
         });
       }
     }
 
     if (widget.isEdit && state.linkedNote != null) {
-      _formController.linkedNoteId = state.linkedNote!.id;
-      _formController.notesController.dispose();
-      _formController.notesController = state.linkedNote!.content != null
+      formController.linkedNoteId = state.linkedNote!.id;
+      formController.notesController.dispose();
+      formController.notesController = state.linkedNote!.content != null
           ? QuillController(
               document: Document.fromJson(state.linkedNote!.content!['ops'] as List),
               selection: const TextSelection.collapsed(offset: 0),
@@ -930,6 +956,11 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
 
     setState(() {
       isLoading = false;
+    });
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      _setupNotesListener();
     });
 
     // Request focus once on mobile for create mode
@@ -945,13 +976,13 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
 
   Future<void> _selectDate(BuildContext context, bool isStartDate) async {
     CourseModel? selectedCourse;
-    if (!_isEvent && _formController.selectedCourse != null) {
-      selectedCourse = _courses.where((c) => c.id == _formController.selectedCourse).firstOrNull;
+    if (!_isEvent && formController.selectedCourse != null) {
+      selectedCourse = _courses.where((c) => c.id == formController.selectedCourse).firstOrNull;
     }
 
     final firstDate = selectedCourse?.startDate ?? DateTime.now().subtract(const Duration(days: 365 * 10));
     final lastDate = selectedCourse?.endDate ?? DateTime.now().add(const Duration(days: 365 * 10));
-    final rawInitial = isStartDate ? _formController.startDate : _formController.endDate;
+    final rawInitial = isStartDate ? formController.startDate : formController.endDate;
     final initialDate = rawInitial.isBefore(firstDate) ? firstDate
         : (rawInitial.isAfter(lastDate) ? lastDate : rawInitial);
 
@@ -964,43 +995,44 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
     );
 
     if (picked != null) {
+      formController.markChanged();
       setState(() {
         if (isStartDate) {
-          _formController.startDate = picked;
-          if (_formController.isAllDay) {
-            _formController.endDate = DateRangeEnforcer.adjustEndDate(
+          formController.startDate = picked;
+          if (formController.isAllDay) {
+            formController.endDate = DateRangeEnforcer.adjustEndDate(
               picked,
-              _formController.endDate,
+              formController.endDate,
             );
           } else {
             final adjusted = DateRangeEnforcer.adjustEnd(
               startDate: picked,
-              startTime: _formController.startTime,
-              endDate: _formController.endDate,
-              endTime: _formController.endTime,
+              startTime: formController.startTime,
+              endDate: formController.endDate,
+              endTime: formController.endTime,
             );
-            _formController.endDate = adjusted.date;
+            formController.endDate = adjusted.date;
             if (adjusted.time != null) {
-              _formController.endTime = adjusted.time!;
+              formController.endTime = adjusted.time!;
             }
           }
         } else {
-          _formController.endDate = picked;
-          if (_formController.isAllDay) {
-            _formController.startDate = DateRangeEnforcer.adjustStartDate(
-              _formController.startDate,
+          formController.endDate = picked;
+          if (formController.isAllDay) {
+            formController.startDate = DateRangeEnforcer.adjustStartDate(
+              formController.startDate,
               picked,
             );
           } else {
             final adjusted = DateRangeEnforcer.adjustStart(
-              startDate: _formController.startDate,
-              startTime: _formController.startTime,
+              startDate: formController.startDate,
+              startTime: formController.startTime,
               endDate: picked,
-              endTime: _formController.endTime,
+              endTime: formController.endTime,
             );
-            _formController.startDate = adjusted.date;
+            formController.startDate = adjusted.date;
             if (adjusted.time != null) {
-              _formController.startTime = adjusted.time!;
+              formController.startTime = adjusted.time!;
             }
           }
         }
@@ -1012,8 +1044,8 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
     final TimeOfDay? picked = await showTimePicker(
       context: context,
       initialTime: isStartTime
-          ? _formController.startTime
-          : _formController.endTime,
+          ? formController.startTime
+          : formController.endTime,
       initialEntryMode: Responsive.isTouchDevice(context)
           ? TimePickerEntryMode.dial
           : TimePickerEntryMode.input,
@@ -1021,30 +1053,31 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
     );
 
     if (picked != null) {
+      formController.markChanged();
       setState(() {
         if (isStartTime) {
-          _formController.startTime = picked;
+          formController.startTime = picked;
           final adjusted = DateRangeEnforcer.adjustEnd(
-            startDate: _formController.startDate,
+            startDate: formController.startDate,
             startTime: picked,
-            endDate: _formController.endDate,
-            endTime: _formController.endTime,
+            endDate: formController.endDate,
+            endTime: formController.endTime,
           );
-          _formController.endDate = adjusted.date;
+          formController.endDate = adjusted.date;
           if (adjusted.time != null) {
-            _formController.endTime = adjusted.time!;
+            formController.endTime = adjusted.time!;
           }
         } else {
-          _formController.endTime = picked;
+          formController.endTime = picked;
           final adjusted = DateRangeEnforcer.adjustStart(
-            startDate: _formController.startDate,
-            startTime: _formController.startTime,
-            endDate: _formController.endDate,
+            startDate: formController.startDate,
+            startTime: formController.startTime,
+            endDate: formController.endDate,
             endTime: picked,
           );
-          _formController.startDate = adjusted.date;
+          formController.startDate = adjusted.date;
           if (adjusted.time != null) {
-            _formController.startTime = adjusted.time!;
+            formController.startTime = adjusted.time!;
           }
         }
       });
@@ -1056,7 +1089,7 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
   }
 
   int _getPriorityValue() {
-    return _formController.priorityValue.round();
+    return formController.priorityValue.round();
   }
 
   void _onGradeFieldSubmitted(String _) {
@@ -1064,8 +1097,8 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
   }
 
   Future<void> _submitAfterGradeBlur() async {
-    if (_formController.gradeFocusNode.hasFocus) {
-      _formController.gradeFocusNode.unfocus();
+    if (formController.gradeFocusNode.hasFocus) {
+      formController.gradeFocusNode.unfocus();
       // Let blur listeners normalize grade input before form validation runs.
       await Future<void>.delayed(Duration.zero);
     }
@@ -1077,25 +1110,25 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
   void _selectCourse(int courseId) {
     setState(() {
       if (_preferredCategoryName == null &&
-          _formController.selectedCategory != null) {
+          formController.selectedCategory != null) {
         _preferredCategoryName = _categories
-            .where((c) => c.id == _formController.selectedCategory)
+            .where((c) => c.id == formController.selectedCategory)
             .firstOrNull
             ?.title;
       }
       if (_preferredResourceNames.isEmpty &&
-          _formController.selectedResources.isNotEmpty) {
-        _preferredResourceNames = _formController.selectedResources
+          formController.selectedResources.isNotEmpty) {
+        _preferredResourceNames = formController.selectedResources
             .map((id) => _resources.where((m) => m.id == id).firstOrNull?.title)
             .whereType<String>()
             .toList();
       }
 
-      _formController.selectedCourse = courseId;
+      formController.selectedCourse = courseId;
 
       if (_categories.isNotEmpty) {
         final categoriesForCourse = _categories
-            .where((c) => c.course == _formController.selectedCourse)
+            .where((c) => c.course == formController.selectedCourse)
             .toList();
 
         final matchingCategory = _preferredCategoryName != null
@@ -1104,35 +1137,35 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
                   .firstOrNull
             : null;
 
-        _formController.selectedCategory =
+        formController.selectedCategory =
             matchingCategory?.id ?? categoriesForCourse.first.id;
       }
 
       final resourcesForCourse = _resources
-          .where((m) => m.courses.contains(_formController.selectedCourse))
+          .where((m) => m.courses.contains(formController.selectedCourse))
           .toList();
 
-      _formController.selectedResources = resourcesForCourse
+      formController.selectedResources = resourcesForCourse
           .where((m) => _preferredResourceNames.contains(m.title))
           .map((m) => m.id)
           .toList();
 
       if (!widget.isEdit) {
         final matchingSchedule = _courseSchedules
-            .where((cs) => cs.course == _formController.selectedCourse)
+            .where((cs) => cs.course == formController.selectedCourse)
             .firstOrNull;
 
         if (matchingSchedule != null) {
-          _formController.startTime = matchingSchedule.getStartTimeForDay(
-            HeliumDateTime.formatDayNameShort(_formController.startDate),
+          formController.startTime = matchingSchedule.getStartTimeForDay(
+            HeliumDateTime.formatDayNameShort(formController.startDate),
           );
-          _formController.endTime = matchingSchedule.getEndTimeForDay(
-            HeliumDateTime.formatDayNameShort(_formController.endDate),
+          formController.endTime = matchingSchedule.getEndTimeForDay(
+            HeliumDateTime.formatDayNameShort(formController.endDate),
           );
         } else {
           const noon = TimeOfDay(hour: 12, minute: 0);
-          _formController.startTime = noon;
-          _formController.endTime = noon;
+          formController.startTime = noon;
+          formController.endTime = noon;
         }
       }
     });
@@ -1140,7 +1173,7 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
 
   void _selectCategory(int categoryId) {
     setState(() {
-      _formController.selectedCategory = categoryId;
+      formController.selectedCategory = categoryId;
       _preferredCategoryName = _categories
           .where((c) => c.id == categoryId)
           .firstOrNull
@@ -1150,7 +1183,7 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
 
   void _updateSelectedResources(List<int> resourceIds) {
     setState(() {
-      _formController.selectedResources = resourceIds;
+      formController.selectedResources = resourceIds;
       _preferredResourceNames = resourceIds
           .map((id) => _resourceTitleById(id))
           .toList();
@@ -1209,24 +1242,24 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
     final clonedTitle = PlannerHelper.generateClonedTitle(_plannerItem!.title);
 
     final start = HeliumDateTime.formatDateAndTimeForApi(
-      _formController.startDate,
-      _formController.isAllDay ? null : _formController.startTime,
+      formController.startDate,
+      formController.isAllDay ? null : formController.startTime,
       widget.userSettings!.timeZone,
     );
 
     String end;
-    if (_formController.showEndDateTime) {
-      final endDateForApi = _formController.isAllDay
-          ? _formController.endDate.add(const Duration(days: 1))
-          : _formController.endDate;
+    if (formController.showEndDateTime) {
+      final endDateForApi = formController.isAllDay
+          ? formController.endDate.add(const Duration(days: 1))
+          : formController.endDate;
       end = HeliumDateTime.formatDateAndTimeForApi(
         endDateForApi,
-        _formController.isAllDay ? null : _formController.endTime,
+        formController.isAllDay ? null : formController.endTime,
         widget.userSettings!.timeZone,
       );
     } else {
-      if (_formController.isAllDay) {
-        final endDate = _formController.startDate.add(const Duration(days: 1));
+      if (formController.isAllDay) {
+        final endDate = formController.startDate.add(const Duration(days: 1));
         end = HeliumDateTime.formatDateAndTimeForApi(
           endDate,
           null,
@@ -1240,8 +1273,8 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
     if (_plannerItem is EventModel) {
       final request = EventRequestModel(
         title: clonedTitle,
-        allDay: _formController.isAllDay,
-        showEndTime: _formController.showEndDateTime,
+        allDay: formController.isAllDay,
+        showEndTime: formController.showEndDateTime,
         start: start,
         end: end,
         priority: _getPriorityValue(),
@@ -1264,16 +1297,16 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
 
       final request = HomeworkRequestModel(
         title: clonedTitle,
-        allDay: _formController.isAllDay,
-        showEndTime: _formController.showEndDateTime,
+        allDay: formController.isAllDay,
+        showEndTime: formController.showEndDateTime,
         start: start,
         end: end,
         priority: _getPriorityValue(),
         comments: widget.isEdit ? null : '',
         currentGrade: '-1/100',
         completed: false,
-        category: _formController.selectedCategory,
-        resources: _formController.selectedResources,
+        category: formController.selectedCategory,
+        resources: formController.selectedResources,
         course: homework.course.id,
       );
 

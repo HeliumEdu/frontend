@@ -10,6 +10,9 @@ import 'package:flutter/material.dart';
 class BasicFormController {
   final GlobalKey<FormState> formKey = GlobalKey<FormState>();
 
+  bool isChanged = false;
+  void markChanged() => isChanged = true;
+
   /// Map of field names to their GlobalKeys for scroll-to-error functionality.
   /// Fields are registered in order, so iteration preserves form field order.
   final Map<String, GlobalKey<FormFieldState<String>>> _fieldKeys =

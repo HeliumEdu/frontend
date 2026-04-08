@@ -126,6 +126,10 @@ class _PlannerItemAddScreenState
     if (step == currentStep) return;
 
     if (saveAction != null) {
+      if (!(_detailsKey.currentState?.formController.isChanged ?? true)) {
+        navigateToStep(step);
+        return;
+      }
       _targetStep = step;
       saveAction!();
 
@@ -159,6 +163,10 @@ class _PlannerItemAddScreenState
       final detailsState = _detailsKey.currentState;
       if (detailsState == null) return;
       if (detailsState.isLoading || isSubmitting) return;
+      if (!detailsState.formController.isChanged) {
+        cancelAction();
+        return;
+      }
       detailsState.onSubmit();
     };
   }

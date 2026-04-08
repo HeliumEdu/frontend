@@ -57,6 +57,7 @@ class _CourseGroupWidgetState
       _formController.shownOnCalendar = widget.group!.shownOnCalendar!;
       _groupExceptions = List<DateTime>.from(widget.group!.exceptions);
     } else {
+      _formController.markChanged();
       _groupExceptions = [];
       _formController.titleController.clear();
       _formController.startDate = DateTime.now();
@@ -106,6 +107,7 @@ class _CourseGroupWidgetState
           autofocus: kIsWeb || !widget.isEdit,
           controller: _formController.titleController,
           validator: BasicFormController.validateRequiredField,
+          onChanged: (_) => _formController.markChanged(),
           onFieldSubmitted: (value) => handleSubmit(),
         ),
         const SizedBox(height: 14),
@@ -209,6 +211,7 @@ class _CourseGroupWidgetState
                 ),
                 value: !_formController.shownOnCalendar,
                 onChanged: (value) {
+                  _formController.markChanged();
                   setState(() {
                     _formController.shownOnCalendar = !value!;
                   });
@@ -249,6 +252,10 @@ class _CourseGroupWidgetState
 
   @override
   void handleSubmit() {
+    if (!_formController.isChanged) {
+      cancelAction();
+      return;
+    }
     super.handleSubmit();
 
     if (_formController.formKey.currentState!.validate()) {
@@ -288,6 +295,7 @@ class _CourseGroupWidgetState
     );
 
     if (picked != null) {
+      _formController.markChanged();
       setState(() {
         if (isStartDate) {
           _formController.startDate = picked;

@@ -106,6 +106,10 @@ class _ResourceAddScreenState
       final detailsState = _detailsKey.currentState;
       if (detailsState == null) return;
       if (detailsState.isLoading || isSubmitting) return;
+      if (!detailsState.formController.isChanged) {
+        cancelAction();
+        return;
+      }
       detailsState.onSubmit();
     };
   }
