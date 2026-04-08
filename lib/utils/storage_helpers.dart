@@ -45,7 +45,7 @@ class PickedFileError {
 
   String get userMessage => switch (reason) {
     PickedFileErrorReason.fileTooLarge =>
-      'File size cannot exceed 10 MB: $name',
+      'File size cannot exceed ${maxUploadFileSizeBytes ~/ (1024 * 1024)} MB: $name',
     PickedFileErrorReason.readError =>
       'An error occurred while reading the file: $name',
     PickedFileErrorReason.wrongFileType => _allowedExtension != null

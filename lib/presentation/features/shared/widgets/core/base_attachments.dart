@@ -87,6 +87,8 @@ abstract class BaseAttachmentsContent extends StatefulWidget {
 
 abstract class BaseAttachmentsState<T extends BaseAttachmentsContent>
     extends State<T> {
+  final int maxConcurrentUploads = 4;
+
   List<AttachmentFile> filesToUpload = [];
   List<AttachmentModel> attachments = [];
   bool isLoading = true;
@@ -122,7 +124,7 @@ abstract class BaseAttachmentsState<T extends BaseAttachmentsContent>
     return BlocListener<AttachmentBloc, AttachmentState>(
       listener: (context, state) {
         if (state is AttachmentsError) {
-          SnackBarHelper.show(context, state.message!, type: SnackType.error);
+          SnackBarHelper.show(context, state.message!, type: SnackType.error, seconds: 4);
         } else if (state is AttachmentsFetched) {
           setState(() {
             attachments = state.attachments;
@@ -238,7 +240,7 @@ abstract class BaseAttachmentsState<T extends BaseAttachmentsContent>
 
     for (final error in result.errors) {
       if (mounted) {
-        SnackBarHelper.show(context, error.userMessage, type: SnackType.error);
+        SnackBarHelper.show(context, error.userMessage, type: SnackType.error, seconds: 4);
       }
     }
 
@@ -261,11 +263,12 @@ abstract class BaseAttachmentsState<T extends BaseAttachmentsContent>
   }
 
   Future<void> _saveAttachments() async {
-    if (filesToUpload.length > 4) {
+    if (filesToUpload.length > maxConcurrentUploads) {
       SnackBarHelper.show(
         context,
-        'You can only upload a max of 4 files at a time',
+        "You can't upload more than $maxConcurrentUploads files at a time",
         type: SnackType.error,
+        seconds: 4
       );
       return;
     }
