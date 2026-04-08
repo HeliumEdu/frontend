@@ -388,6 +388,7 @@ class _ResourcesScreenState
     return ValueListenableBuilder<bool>(
       valueListenable: PrintableArea.capturing,
       builder: (context, isCapturing, _) => ResponsiveCardGrid<ResourceModel>(
+        maxCardWidth: Responsive.isDesktop(context) ? 430 : 390,
         shrinkWrap: isCapturing,
         printPageBreakAfterRow: true,
         items: _resourcesMap[_selectedGroupId]!,

@@ -345,6 +345,7 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen>
     return ValueListenableBuilder<bool>(
       valueListenable: PrintableArea.capturing,
       builder: (context, isCapturing, _) => ResponsiveCardGrid<CourseModel>(
+        maxCardWidth: Responsive.isDesktop(context) ? 430 : 390,
         shrinkWrap: isCapturing,
         printPageBreakAfterRow: true,
         items: _coursesMap[_selectedGroupId]!,

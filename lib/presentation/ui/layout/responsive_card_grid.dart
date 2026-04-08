@@ -23,7 +23,7 @@ class ResponsiveCardGrid<T> extends StatelessWidget {
     super.key,
     required this.items,
     required this.itemBuilder,
-    this.maxCardWidth = 350.0,
+    this.maxCardWidth = 390,
     this.crossAxisSpacing = 12.0,
     this.shrinkWrap = false,
     this.printPageBreakAfterRow = false,
