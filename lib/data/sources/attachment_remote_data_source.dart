@@ -91,6 +91,7 @@ class AttachmentRemoteDataSourceImpl extends AttachmentRemoteDataSource {
         _log.info('... Attachment ${attachment.id} created');
         await dioClient.cacheService.invalidateAll();
         unawaited(AnalyticsService().logEvent(name: AnalyticsEvent.attachmentUpload, parameters: {'category': AnalyticsCategory.featureInteraction.value}));
+        unawaited(AnalyticsService().setUserProperty(name: 'uses_attachments', value: 'true'));
         return attachment;
       } else {
         throw ServerException(
