@@ -5,7 +5,11 @@
 //
 // For details regarding the license, please refer to the LICENSE file.
 
+import 'dart:async';
+
 import 'package:dio/dio.dart';
+import 'package:heliumapp/config/analytics_event.dart';
+import 'package:heliumapp/core/analytics_service.dart';
 import 'package:heliumapp/core/api_url.dart';
 import 'package:heliumapp/core/dio_client.dart';
 import 'package:heliumapp/core/helium_exception.dart';
@@ -140,6 +144,7 @@ class EventRemoteDataSourceImpl extends EventRemoteDataSource {
         final event = EventModel.fromJson(response.data);
         _log.info('... Event ${event.id} created');
         await dioClient.cacheService.invalidateAll();
+        unawaited(AnalyticsService().logEvent(name: AnalyticsEvent.eventCreate, parameters: {'category': 'feature_interaction'}));
         return event;
       } else {
         throw ServerException(

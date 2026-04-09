@@ -420,6 +420,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
                 parameters: {
                   'category': 'feature_interaction',
                   'on_time': (!DateTime.now().isAfter(state.homework.end)).toString(),
+                  'days_since_due': DateTime.now().difference(state.homework.start).inDays,
                 },
               ));
             }

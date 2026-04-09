@@ -403,7 +403,7 @@ class _ImportExportScreenState extends State<ImportExportScreen> {
           context.read<AuthBloc>().add(RefreshScheduleDataEvent());
           SnackBarHelper.show(
             context,
-            'Example schedule imported',
+            'Example schedule re-imported',
             useRootMessenger: true,
           );
           widget.onNavigateRequested?.call(AppRoute.coursesScreen);

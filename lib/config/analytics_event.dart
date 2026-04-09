@@ -21,7 +21,8 @@ class AnalyticsEvent {
   static const String courseCreate = 'helium_course_create';
   static const String courseGroupCreate = 'helium_course_group_create';
   static const String exampleScheduleClear = 'helium_example_schedule_clear';
-  static const String exampleScheduleImport = 'helium_example_schedule_import';
+  static const String exampleScheduleImport = 'helium_example_schedule_reimport';
+  static const String eventCreate = 'helium_event_create';
   static const String exportTrigger = 'helium_export_trigger';
   static const String externalCalendarAdd = 'helium_external_calendar_add';
   static const String feedsDisable = 'helium_feeds_disable';
@@ -38,6 +39,7 @@ class AnalyticsEvent {
   static const String reminderCreate = 'helium_reminder_create';
   static const String resourceCreate = 'helium_resource_create';
   static const String settingsOpen = 'helium_settings_open';
+  static const String themeSelect = 'helium_theme_select';
   static const String todosExportCsv = 'helium_todos_export_csv';
 
   // Debug / diagnostic events

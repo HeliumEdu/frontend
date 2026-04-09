@@ -339,7 +339,7 @@ class CourseRemoteDataSourceImpl extends CourseRemoteDataSource {
           name: AnalyticsEvent.courseGroupCreate,
           parameters: {
             'category': 'feature_interaction',
-            'semester_status': _semesterStatus(request.startDate, request.endDate),
+            'term_status': _semesterStatus(request.startDate, request.endDate),
           },
         ));
         return group;
