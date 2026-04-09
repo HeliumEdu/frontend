@@ -5,6 +5,8 @@
 //
 // For details regarding the license, please refer to the LICENSE file.
 
+import 'dart:async';
+
 import 'package:bloc/bloc.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:heliumapp/core/dio_client.dart';
@@ -19,6 +21,7 @@ import 'package:heliumapp/data/models/auth/request/forgot_password_request_model
 import 'package:heliumapp/data/models/auth/request/refresh_token_request_model.dart';
 import 'package:heliumapp/data/models/auth/request/update_settings_request_model.dart';
 import 'package:heliumapp/data/models/auth/user_model.dart';
+import 'package:heliumapp/core/analytics_service.dart';
 import 'package:heliumapp/domain/repositories/auth_repository.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_event.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_state.dart';
@@ -335,6 +338,10 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     try {
       final user = await authRepository.getUser();
       emit(AuthProfileFetched(user: user));
+      unawaited(AnalyticsService().setUserProperty(
+        name: 'uses_private_feeds',
+        value: user.settings.privateSlug != null ? 'true' : 'false',
+      ));
     } on HeliumException catch (e) {
       emit(AuthError(
         message: e.displayMessage,
