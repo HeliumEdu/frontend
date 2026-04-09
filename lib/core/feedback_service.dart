@@ -110,7 +110,7 @@ class FeedbackService with WidgetsBindingObserver {
 
       await _inAppReview.requestReview();
       _log.info('In-app review requested');
-    } catch (e, st) {
+    } catch (e) {
       _log.warning('Failed to request in-app review: $e');
       return;
     }
