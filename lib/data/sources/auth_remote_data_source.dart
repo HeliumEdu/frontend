@@ -399,7 +399,6 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
 
       if (response.statusCode == 200) {
         unawaited(AnalyticsService().logEvent(name: AnalyticsEvent.feedsEnable, parameters: {'category': AnalyticsCategory.featureInteraction.value}));
-        unawaited(AnalyticsService().setUserProperty(name: 'uses_private_feeds', value: 'true'));
         return PrivateFeedModel.fromJson(response.data);
       } else {
         throw ServerException(
@@ -427,7 +426,6 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
         );
       }
       unawaited(AnalyticsService().logEvent(name: AnalyticsEvent.feedsDisable, parameters: {'category': AnalyticsCategory.featureInteraction.value}));
-      unawaited(AnalyticsService().setUserProperty(name: 'uses_private_feeds', value: 'false'));
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
     } catch (e, s) {
