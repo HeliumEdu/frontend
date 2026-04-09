@@ -218,7 +218,7 @@ Future<String?> _authRedirect(BuildContext context, GoRouterState state) async {
         'Setup completion flag unavailable during auth redirect '
         '(location=$matchedLocation), skipping setup-based redirect',
       );
-      unawaited(AnalyticsService().logEvent(name: AnalyticsEvent.debugAuthNoSetupState, parameters: {'category': 'edge_case'}));
+      unawaited(AnalyticsService().logEvent(name: AnalyticsEvent.debugAuthNoSetupState, parameters: {'category': AnalyticsCategory.edgeCase.value}));
       unawaited(Sentry.captureMessage('Auth redirect skipped setup-based redirect: setup state unavailable at location=$matchedLocation', level: SentryLevel.error));
       return null;
     }

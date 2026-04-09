@@ -154,7 +154,7 @@ class _NotesEditorState extends State<NotesEditor> with WidgetsBindingObserver {
 
   @override
   Widget build(BuildContext context) {
-    final useCompact = Responsive.useCompactLayout(context);
+    final isCompact = Responsive.useCompactLayout(context);
 
     return Column(
       key: _editorKey,
@@ -202,11 +202,12 @@ class _NotesEditorState extends State<NotesEditor> with WidgetsBindingObserver {
                     controller: widget.controller,
                   config: QuillSimpleToolbarConfig(
                     toolbarRunSpacing: 0,
-                    showFontFamily: !useCompact,
-                    showDividers: !useCompact,
-                    showStrikeThrough: !useCompact,
-                    showRedo: !useCompact,
-                    showQuote: !useCompact,
+                    showFontFamily: !isCompact,
+                    showDividers: !isCompact,
+                    showStrikeThrough: !isCompact,
+                    showRedo: !isCompact,
+                    showQuote: !isCompact,
+                    showUnderLineButton: !isCompact,
                     showFontSize: false,
                     showSuperscript: false,
                     showSubscript: false,
@@ -215,16 +216,16 @@ class _NotesEditorState extends State<NotesEditor> with WidgetsBindingObserver {
                     showCodeBlock: false,
                     showDirection: false,
                     showSearchButton: false,
-                    showClearFormat: !useCompact,
+                    showClearFormat: !isCompact,
                     showBackgroundColorButton: false,
-                    showColorButton: !useCompact,
-                    showIndent: !useCompact,
+                    showColorButton: !isCompact,
+                    showIndent: !isCompact,
                     buttonOptions: QuillSimpleToolbarButtonOptions(
                       base: QuillToolbarBaseButtonOptions(
                         iconTheme: QuillIconTheme(
                           iconButtonSelectedData: IconButtonData(
                             style: ButtonStyle(
-                              tapTargetSize: useCompact
+                              tapTargetSize: isCompact
                                   ? MaterialTapTargetSize.shrinkWrap
                                   : null,
                               backgroundColor: WidgetStatePropertyAll(
@@ -242,7 +243,7 @@ class _NotesEditorState extends State<NotesEditor> with WidgetsBindingObserver {
                           ),
                           iconButtonUnselectedData: IconButtonData(
                             color: context.colorScheme.onSurface,
-                            style: useCompact
+                            style: isCompact
                                 ? const ButtonStyle(
                                     tapTargetSize:
                                         MaterialTapTargetSize.shrinkWrap,

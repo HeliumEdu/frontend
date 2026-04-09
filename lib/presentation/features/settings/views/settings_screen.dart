@@ -11,10 +11,12 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:heliumapp/config/analytics_event.dart';
 import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/config/app_router.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/config/theme_notifier.dart';
+import 'package:heliumapp/core/analytics_service.dart';
 import 'package:heliumapp/data/models/auth/request/update_settings_request_model.dart';
 import 'package:heliumapp/presentation/core/views/base_page_screen_state.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_bloc.dart';
@@ -56,6 +58,7 @@ enum SettingsSubScreen {
 
 /// Shows settings screen (responsive: side panel on desktop, full-screen on mobile)
 Future<void> showSettings(BuildContext context, {int? initialTab}) {
+  unawaited(AnalyticsService().logEvent(name: AnalyticsEvent.settingsOpen, parameters: {'category': AnalyticsCategory.featureInteraction.value}));
   final currentUri = router.routerDelegate.currentConfiguration.uri;
   final hasDialogParam = currentUri.queryParameters.containsKey(
     DeepLinkParam.dialog,

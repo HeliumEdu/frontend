@@ -90,7 +90,7 @@ class AttachmentRemoteDataSourceImpl extends AttachmentRemoteDataSource {
         final attachment = AttachmentModel.fromJson(response.data[0]);
         _log.info('... Attachment ${attachment.id} created');
         await dioClient.cacheService.invalidateAll();
-        unawaited(AnalyticsService().logEvent(name: AnalyticsEvent.attachmentUpload, parameters: {'category': 'feature_interaction'}));
+        unawaited(AnalyticsService().logEvent(name: AnalyticsEvent.attachmentUpload, parameters: {'category': AnalyticsCategory.featureInteraction.value}));
         return attachment;
       } else {
         throw ServerException(

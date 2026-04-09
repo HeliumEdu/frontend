@@ -170,7 +170,7 @@ class ExternalCalendarRemoteDataSourceImpl
         final calendar = ExternalCalendarModel.fromJson(response.data);
         _log.info('... ExternalCalendar ${calendar.id} created');
         await dioClient.cacheService.invalidateAll();
-        unawaited(AnalyticsService().logEvent(name: AnalyticsEvent.externalCalendarAdd, parameters: {'category': 'feature_interaction'}));
+        unawaited(AnalyticsService().logEvent(name: AnalyticsEvent.externalCalendarAdd, parameters: {'category': AnalyticsCategory.featureInteraction.value}));
         return calendar;
       } else {
         throw ServerException(message: 'Failed to add external calendar');

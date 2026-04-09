@@ -123,7 +123,7 @@ class CategoryRemoteDataSourceImpl extends CategoryRemoteDataSource {
         unawaited(AnalyticsService().logEvent(
           name: AnalyticsEvent.categoryCreate,
           parameters: {
-            'category': 'feature_interaction',
+            'category': AnalyticsCategory.featureInteraction.value,
             'grade_tracking_depth': weight > 0 ? 'weighted' : 'unweighted',
           },
         ));

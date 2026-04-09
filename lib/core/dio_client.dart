@@ -127,7 +127,7 @@ class DioClient {
               unawaited(
                 AnalyticsService().logEvent(
                   name: AnalyticsEvent.debugAuthTokenRefreshQueue,
-                  parameters: {'category': 'operational'},
+                  parameters: {'category': AnalyticsCategory.operational.value},
                 ),
               );
               try {

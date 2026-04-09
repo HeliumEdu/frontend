@@ -217,18 +217,21 @@ class _SignupScreenState extends BasePageScreenState<SignupScreen> {
                 onFieldSubmitted: (value) => _onSubmit(),
                 obscureText: !_formController.isPasswordVisible,
                 autofillHints: const [AutofillHints.newPassword],
-                suffixIcon: IconButton(
-                  onPressed: () {
-                    setState(() {
-                      _formController.isPasswordVisible =
-                          !_formController.isPasswordVisible;
-                    });
-                  },
-                  icon: Icon(
-                    _formController.isPasswordVisible
-                        ? Icons.visibility_off_outlined
-                        : Icons.visibility_outlined,
-                    color: context.colorScheme.onSurface,
+                suffixIcon: ExcludeFocus(
+                  excluding: true,
+                  child: IconButton(
+                    onPressed: () {
+                      setState(() {
+                        _formController.isPasswordVisible =
+                            !_formController.isPasswordVisible;
+                      });
+                    },
+                    icon: Icon(
+                      _formController.isPasswordVisible
+                          ? Icons.visibility_off_outlined
+                          : Icons.visibility_outlined,
+                      color: context.colorScheme.onSurface,
+                    ),
                   ),
                 ),
               ),
@@ -243,18 +246,21 @@ class _SignupScreenState extends BasePageScreenState<SignupScreen> {
                 onFieldSubmitted: (value) => _onSubmit(),
                 obscureText: !_formController.isConfirmPasswordVisible,
                 autofillHints: const [AutofillHints.newPassword],
-                suffixIcon: IconButton(
-                  onPressed: () {
-                    setState(() {
-                      _formController.isConfirmPasswordVisible =
-                          !_formController.isConfirmPasswordVisible;
-                    });
-                  },
-                  icon: Icon(
-                    _formController.isConfirmPasswordVisible
-                        ? Icons.visibility_off_outlined
-                        : Icons.visibility_outlined,
-                    color: context.colorScheme.onSurface,
+                suffixIcon: ExcludeFocus(
+                  excluding: true,
+                  child: IconButton(
+                    onPressed: () {
+                      setState(() {
+                        _formController.isConfirmPasswordVisible =
+                            !_formController.isConfirmPasswordVisible;
+                      });
+                    },
+                    icon: Icon(
+                      _formController.isConfirmPasswordVisible
+                          ? Icons.visibility_off_outlined
+                          : Icons.visibility_outlined,
+                      color: context.colorScheme.onSurface,
+                    ),
                   ),
                 ),
               ),
@@ -339,11 +345,14 @@ class _SignupScreenState extends BasePageScreenState<SignupScreen> {
 
               BlocBuilder<AuthBloc, AuthState>(
                 builder: (context, state) {
-                  return HeliumElevatedButton(
-                    buttonText: 'Sign Up',
-                    isLoading: isSubmitting,
-                    enabled: !_isOAuthLoading,
-                    onPressed: _onSubmit,
+                  return SizedBox(
+                    width: _oauthButtonWidth,
+                    child: HeliumElevatedButton(
+                      buttonText: 'Sign Up',
+                      isLoading: isSubmitting,
+                      enabled: !_isOAuthLoading,
+                      onPressed: _onSubmit,
+                    ),
                   );
                 },
               ),

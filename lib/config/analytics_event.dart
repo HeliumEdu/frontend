@@ -5,6 +5,20 @@
 //
 // For details regarding the license, please refer to the LICENSE file.
 
+enum AnalyticsCategory {
+  featureInteraction,
+  onboarding,
+  edgeCase,
+  operational;
+
+  String get value => switch (this) {
+    AnalyticsCategory.featureInteraction => 'feature_interaction',
+    AnalyticsCategory.onboarding         => 'onboarding',
+    AnalyticsCategory.edgeCase           => 'edge_case',
+    AnalyticsCategory.operational        => 'operational',
+  };
+}
+
 /// Analytics event name constants.
 ///
 /// Naming convention:
@@ -21,7 +35,8 @@ class AnalyticsEvent {
   static const String courseCreate = 'helium_course_create';
   static const String courseGroupCreate = 'helium_course_group_create';
   static const String exampleScheduleClear = 'helium_example_schedule_clear';
-  static const String exampleScheduleImport = 'helium_example_schedule_import';
+  static const String exampleScheduleImport = 'helium_example_schedule_reimport';
+  static const String eventCreate = 'helium_event_create';
   static const String exportTrigger = 'helium_export_trigger';
   static const String externalCalendarAdd = 'helium_external_calendar_add';
   static const String feedsDisable = 'helium_feeds_disable';
@@ -31,9 +46,15 @@ class AnalyticsEvent {
   static const String homeworkCreate = 'helium_homework_create';
   static const String homeworkGrade = 'helium_homework_grade';
   static const String importComplete = 'helium_import_complete';
+  static const String mobileWebContinue = 'helium_mobile_web_continue';
   static const String noteCreate = 'helium_note_create';
+  static const String notificationsOpen = 'helium_notifications_open';
+  static const String printPreview = 'helium_print_preview';
   static const String reminderCreate = 'helium_reminder_create';
   static const String resourceCreate = 'helium_resource_create';
+  static const String settingsOpen = 'helium_settings_open';
+  static const String themeSelect = 'helium_theme_select';
+  static const String todosExportCsv = 'helium_todos_export_csv';
 
   // Debug / diagnostic events
   static const String debugAuthNoSetupState = 'helium_debug_auth_no_setup_state';

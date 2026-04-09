@@ -192,18 +192,21 @@ class _LoginScreenViewState extends BasePageScreenState<LoginScreen> {
                 onFieldSubmitted: (value) => _onSubmit(),
                 obscureText: !_formController.isPasswordVisible,
                 autofillHints: const [AutofillHints.password],
-                suffixIcon: IconButton(
-                  onPressed: () {
-                    setState(() {
-                      _formController.isPasswordVisible =
-                          !_formController.isPasswordVisible;
-                    });
-                  },
-                  icon: Icon(
-                    _formController.isPasswordVisible
-                        ? Icons.visibility
-                        : Icons.visibility_off,
-                    color: context.colorScheme.onSurface,
+                suffixIcon: ExcludeFocus(
+                  excluding: true,
+                  child: IconButton(
+                    onPressed: () {
+                      setState(() {
+                        _formController.isPasswordVisible =
+                            !_formController.isPasswordVisible;
+                      });
+                    },
+                    icon: Icon(
+                      _formController.isPasswordVisible
+                          ? Icons.visibility
+                          : Icons.visibility_off,
+                      color: context.colorScheme.onSurface,
+                    ),
                   ),
                 ),
               ),
@@ -233,11 +236,14 @@ class _LoginScreenViewState extends BasePageScreenState<LoginScreen> {
                 builder: (context, state) {
                   return Column(
                     children: [
-                      HeliumElevatedButton(
-                        buttonText: 'Sign In',
-                        isLoading: isSubmitting,
-                        enabled: !_isOAuthLoading,
-                        onPressed: _onSubmit,
+                      SizedBox(
+                        width: 250.0,
+                        child: HeliumElevatedButton(
+                          buttonText: 'Sign In',
+                          isLoading: isSubmitting,
+                          enabled: !_isOAuthLoading,
+                          onPressed: _onSubmit,
+                        ),
                       ),
                     ],
                   );

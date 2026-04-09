@@ -297,7 +297,7 @@ class FcmService {
               );
             } catch (e) {
               _log.warning('Failed to delete stale push token ${token.id}', e);
-              unawaited(AnalyticsService().logEvent(name: AnalyticsEvent.debugFcmTokenStaleFail, parameters: {'category': 'operational'}));
+              unawaited(AnalyticsService().logEvent(name: AnalyticsEvent.debugFcmTokenStaleFail, parameters: {'category': AnalyticsCategory.operational.value}));
             }
           }
         } catch (e) {
@@ -373,7 +373,7 @@ class FcmService {
 
     if (_recentMessageIds.containsKey(notification.id.toString())) {
       _log.info('Foreground message $messageId within dedupe window, skipping');
-      unawaited(AnalyticsService().logEvent(name: AnalyticsEvent.debugFcmMessageDeduplicate, parameters: {'category': 'operational'}));
+      unawaited(AnalyticsService().logEvent(name: AnalyticsEvent.debugFcmMessageDeduplicate, parameters: {'category': AnalyticsCategory.operational.value}));
       return;
     }
     _recentMessageIds[notification.id.toString()] = now;

@@ -5,8 +5,12 @@
 //
 // For details regarding the license, please refer to the LICENSE file.
 
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:heliumapp/config/analytics_event.dart';
 import 'package:heliumapp/config/pref_service.dart';
+import 'package:heliumapp/core/analytics_service.dart';
 
 class ThemeNotifier extends ChangeNotifier {
   static final ThemeNotifier _instance = ThemeNotifier._internal();
@@ -52,6 +56,17 @@ class ThemeNotifier extends ChangeNotifier {
       ThemeMode.system => 2,
     };
     await _prefService.setInt('color_scheme_theme', index);
+    unawaited(AnalyticsService().logEvent(
+      name: AnalyticsEvent.themeSelect,
+      parameters: {
+        'category': AnalyticsCategory.featureInteraction.value,
+        'theme': switch (mode) {
+          ThemeMode.light => 'light',
+          ThemeMode.dark => 'dark',
+          ThemeMode.system => 'system',
+        },
+      },
+    ));
     notifyListeners();
   }
 
