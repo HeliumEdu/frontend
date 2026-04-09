@@ -672,6 +672,7 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
           showCenterAlignment: !isCompact,
           showRightAlignment: !isCompact,
           showCodeBlock: !isCompact,
+          showUnderLineButton: !isCompact,
           showIndent: !isCompact,
           showSubscript: !isCompact,
           showSuperscript: !isCompact,

@@ -7,9 +7,11 @@
 
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:heliumapp/config/analytics_event.dart';
 import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/config/pref_service.dart';
+import 'package:heliumapp/core/analytics_service.dart';
 import 'package:heliumapp/presentation/core/views/base_page_screen_state.dart';
 import 'package:heliumapp/presentation/ui/layout/responsive_center_card.dart';
 import 'package:heliumapp/utils/app_globals.dart';
@@ -223,6 +225,7 @@ class _MobileWebScreenState extends BasePageScreenState<MobileWebScreen> {
   }
 
   Future<void> _continueOnWeb() async {
+    unawaited(AnalyticsService().logEvent(name: AnalyticsEvent.mobileWebContinue, parameters: {'category': 'feature_interaction'}));
     await PrefService().setBool('mobile_web_continue', true);
     if (!mounted) return;
 

@@ -5,11 +5,14 @@
 //
 // For details regarding the license, please refer to the LICENSE file.
 
+import 'dart:async';
 import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
+import 'package:heliumapp/config/analytics_event.dart';
 import 'package:heliumapp/config/app_theme.dart';
+import 'package:heliumapp/core/analytics_service.dart';
 import 'package:heliumapp/data/models/auth/user_model.dart';
 import 'package:heliumapp/data/models/planner/category_model.dart';
 import 'package:heliumapp/data/models/planner/course_model.dart';
@@ -236,6 +239,9 @@ class TodosDataGridState extends BaseDataGridState<TodosDataGrid> {
                               export.bytes,
                               export.filename,
                             );
+                            if (success) {
+                              unawaited(AnalyticsService().logEvent(name: AnalyticsEvent.todosExportCsv, parameters: {'category': 'feature_interaction'}));
+                            }
                             if (context.mounted) {
                               SnackBarHelper.show(
                                 context,

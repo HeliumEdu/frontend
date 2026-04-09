@@ -31,9 +31,14 @@ class AnalyticsEvent {
   static const String homeworkCreate = 'helium_homework_create';
   static const String homeworkGrade = 'helium_homework_grade';
   static const String importComplete = 'helium_import_complete';
+  static const String mobileWebContinue = 'helium_mobile_web_continue';
   static const String noteCreate = 'helium_note_create';
+  static const String notificationsOpen = 'helium_notifications_open';
+  static const String printPreview = 'helium_print_preview';
   static const String reminderCreate = 'helium_reminder_create';
   static const String resourceCreate = 'helium_resource_create';
+  static const String settingsOpen = 'helium_settings_open';
+  static const String todosExportCsv = 'helium_todos_export_csv';
 
   // Debug / diagnostic events
   static const String debugAuthNoSetupState = 'helium_debug_auth_no_setup_state';

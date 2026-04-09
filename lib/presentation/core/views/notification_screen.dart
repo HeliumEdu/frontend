@@ -5,12 +5,16 @@
 //
 // For details regarding the license, please refer to the LICENSE file.
 
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:heliumapp/config/analytics_event.dart';
 import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/config/app_router.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/config/pref_service.dart';
+import 'package:heliumapp/core/analytics_service.dart';
 import 'package:heliumapp/core/dio_client.dart';
 import 'package:heliumapp/data/models/auth/user_model.dart';
 import 'package:heliumapp/data/models/notification/notification_model.dart';
@@ -46,6 +50,7 @@ import 'package:heliumapp/utils/sort_helpers.dart';
 
 /// Shows notifications screen (responsive: side panel on desktop, full-screen on mobile)
 Future<void> showNotifications(BuildContext context) {
+  unawaited(AnalyticsService().logEvent(name: AnalyticsEvent.notificationsOpen, parameters: {'category': 'feature_interaction'}));
   final currentUri = router.routerDelegate.currentConfiguration.uri;
   final hasDialogParam =
       currentUri.queryParameters.containsKey(DeepLinkParam.dialog);
