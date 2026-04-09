@@ -53,6 +53,8 @@
 		</array>
 		<key>UIStatusBarHidden</key>
 		<false/>
+		<key>FirebaseAutomaticScreenReportingEnabled</key>
+		<false/>
 		<key>ITSAppUsesNonExemptEncryption</key>
 		<false/>
 		<key>CFBundleURLTypes</key>
