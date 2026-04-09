@@ -11,6 +11,7 @@ import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:heliumapp/config/analytics_event.dart';
 import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/core/analytics_service.dart';
@@ -415,20 +416,21 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
             if (state.homework.completed && previousHomework?.completed == false) {
               FeedbackService().triggerReviewRequest();
               unawaited(AnalyticsService().logEvent(
-                name: 'homework_completed',
+                name: AnalyticsEvent.homeworkComplete,
                 parameters: {
                   'category': 'feature_interaction',
                   'on_time': (!DateTime.now().isAfter(state.homework.end)).toString(),
                 },
               ));
             }
+            final prevGrade = previousHomework?.currentGrade;
+            final prevIsEmpty = prevGrade == null || prevGrade.isEmpty || prevGrade.startsWith('-1/');
             final newGrade = state.homework.currentGrade;
-            if (newGrade != null &&
-                newGrade.isNotEmpty &&
-                newGrade != previousHomework?.currentGrade) {
+            final newIsValid = newGrade != null && newGrade.isNotEmpty && !newGrade.startsWith('-1/');
+            if (prevIsEmpty && newIsValid) {
               final daysSinceDue = DateTime.now().difference(state.homework.start).inDays;
               unawaited(AnalyticsService().logEvent(
-                name: 'grade_entered',
+                name: AnalyticsEvent.homeworkGrade,
                 parameters: {
                   'category': 'feature_interaction',
                   'days_since_due': daysSinceDue,

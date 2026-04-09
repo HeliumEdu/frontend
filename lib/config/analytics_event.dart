@@ -24,10 +24,13 @@ class AnalyticsEvent {
   static const String externalCalendarAdd = 'helium_external_calendar_add';
   static const String feedsDisable = 'helium_feeds_disable';
   static const String feedsEnable = 'helium_feeds_enable';
+  static const String homeworkComplete = 'helium_homework_complete';
   static const String homeworkCreate = 'helium_homework_create';
+  static const String homeworkGrade = 'helium_homework_grade';
   static const String importComplete = 'helium_import_complete';
   static const String noteCreate = 'helium_note_create';
   static const String reminderCreate = 'helium_reminder_create';
+  static const String resourceCreate = 'helium_resource_create';
 
   // Debug / diagnostic events
   static const String debugAuthNoSetupState = 'helium_debug_auth_no_setup_state';
