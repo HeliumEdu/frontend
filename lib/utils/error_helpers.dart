@@ -11,8 +11,6 @@ import 'package:sentry_flutter/sentry_flutter.dart';
 final _log = Logger('utils');
 
 class ErrorHelpers {
-  ErrorHelpers._();
-
   /// Logs [exception] locally at severe level and reports it to Sentry.
   ///
   /// Use at top-level rendering loops so a single bad item doesn't crash the

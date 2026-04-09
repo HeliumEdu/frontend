@@ -10,6 +10,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_timezone/flutter_timezone.dart';
 import 'package:go_router/go_router.dart';
+import 'package:heliumapp/config/analytics_event.dart';
 import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/core/dio_client.dart';
@@ -180,7 +181,7 @@ class _SetupAccountScreenState extends BasePageScreenState<SetupAccountScreen> {
     // who are already configured are not blocked on /setup.
     if (_consecutiveStatusFailures < 2 || !mounted) return;
 
-    unawaited(AnalyticsService().logEvent(name: 'setup_status_check_cache_fallback', parameters: {'category': 'edge_case'}));
+    unawaited(AnalyticsService().logEvent(name: AnalyticsEvent.debugSetupCacheFallback, parameters: {'category': 'edge_case'}));
 
     try {
       final cachedSettings = await DioClient().getSettings();

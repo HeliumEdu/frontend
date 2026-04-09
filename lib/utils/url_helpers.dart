@@ -8,8 +8,6 @@
 import 'package:url_launcher/url_launcher.dart';
 
 class UrlHelpers {
-  UrlHelpers._();
-
   /// Launches [url] only if its scheme is http or https.
   ///
   /// Silently no-ops for any other scheme (e.g. javascript:, file://) to

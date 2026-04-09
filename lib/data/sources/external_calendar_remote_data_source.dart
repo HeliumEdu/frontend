@@ -8,6 +8,7 @@
 import 'dart:async';
 
 import 'package:dio/dio.dart';
+import 'package:heliumapp/config/analytics_event.dart';
 import 'package:heliumapp/core/analytics_service.dart';
 import 'package:heliumapp/core/api_url.dart';
 import 'package:heliumapp/core/dio_client.dart';
@@ -169,7 +170,7 @@ class ExternalCalendarRemoteDataSourceImpl
         final calendar = ExternalCalendarModel.fromJson(response.data);
         _log.info('... ExternalCalendar ${calendar.id} created');
         await dioClient.cacheService.invalidateAll();
-        unawaited(AnalyticsService().logEvent(name: 'external_calendar_added', parameters: {'category': 'feature_interaction'}));
+        unawaited(AnalyticsService().logEvent(name: AnalyticsEvent.externalCalendarAdd, parameters: {'category': 'feature_interaction'}));
         return calendar;
       } else {
         throw ServerException(message: 'Failed to add external calendar');

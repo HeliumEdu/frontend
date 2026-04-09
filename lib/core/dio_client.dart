@@ -12,6 +12,7 @@ import 'package:dio/dio.dart';
 import 'package:dio_smart_retry/dio_smart_retry.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:heliumapp/config/analytics_event.dart';
 import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/config/app_router.dart';
 import 'package:heliumapp/config/pref_service.dart';
@@ -125,7 +126,7 @@ class DioClient {
               );
               unawaited(
                 AnalyticsService().logEvent(
-                  name: 'auth_token_refresh_queued',
+                  name: AnalyticsEvent.debugAuthTokenRefreshQueue,
                   parameters: {'category': 'operational'},
                 ),
               );

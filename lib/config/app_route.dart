@@ -35,8 +35,6 @@ class AppRoute {
 /// - Linked-entity params on /notebook use the `linked` prefix to avoid
 ///   collision with the global planner params.
 class DeepLinkParam {
-  DeepLinkParam._();
-
   // Global params; valid on any shell route and /notifications (mobile)
   static const String homeworkId = 'homeworkId';
   static const String eventId = 'eventId';

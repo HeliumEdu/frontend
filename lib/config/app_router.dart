@@ -11,6 +11,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:heliumapp/config/analytics_event.dart';
 import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/config/pref_service.dart';
 import 'package:heliumapp/core/analytics_service.dart';
@@ -217,7 +218,7 @@ Future<String?> _authRedirect(BuildContext context, GoRouterState state) async {
         'Setup completion flag unavailable during auth redirect '
         '(location=$matchedLocation), skipping setup-based redirect',
       );
-      unawaited(AnalyticsService().logEvent(name: 'router_auth_redirect_no_setup_state', parameters: {'category': 'edge_case'}));
+      unawaited(AnalyticsService().logEvent(name: AnalyticsEvent.debugAuthNoSetupState, parameters: {'category': 'edge_case'}));
       unawaited(Sentry.captureMessage('Auth redirect skipped setup-based redirect: setup state unavailable at location=$matchedLocation', level: SentryLevel.error));
       return null;
     }

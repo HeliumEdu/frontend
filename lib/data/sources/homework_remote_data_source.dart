@@ -8,6 +8,7 @@
 import 'dart:async';
 
 import 'package:dio/dio.dart';
+import 'package:heliumapp/config/analytics_event.dart';
 import 'package:heliumapp/core/analytics_service.dart';
 import 'package:heliumapp/core/api_url.dart';
 import 'package:heliumapp/core/dio_client.dart';
@@ -176,7 +177,7 @@ class HomeworkRemoteDataSourceImpl extends HomeworkRemoteDataSource {
         final homework = HomeworkModel.fromJson(response.data);
         _log.info('... Homework ${homework.id} created for Course $courseId');
         await dioClient.cacheService.invalidateAll();
-        unawaited(AnalyticsService().logEvent(name: 'homework_created', parameters: {'category': 'feature_interaction'}));
+        unawaited(AnalyticsService().logEvent(name: AnalyticsEvent.homeworkCreate, parameters: {'category': 'feature_interaction'}));
         return homework;
       } else {
         throw ServerException(

@@ -104,8 +104,6 @@ class SemanticColors extends ThemeExtension<SemanticColors> {
 }
 
 class AppTheme {
-  AppTheme._();
-
   static ThemeData get light {
     final colorScheme = ColorScheme.fromSeed(
       seedColor: seedColor,
