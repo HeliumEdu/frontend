@@ -12,8 +12,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:heliumapp/config/pref_service.dart';
 import 'package:heliumapp/core/dio_client.dart';
-import 'package:heliumapp/data/models/auth/request/update_settings_request_model.dart';
 import 'package:heliumapp/data/models/auth/user_model.dart';
+import 'package:heliumapp/utils/error_helpers.dart';
 import 'package:in_app_review/in_app_review.dart';
 import 'package:logging/logging.dart';
 
@@ -110,15 +110,15 @@ class FeedbackService with WidgetsBindingObserver {
 
       await _inAppReview.requestReview();
       _log.info('In-app review requested');
-
-      await _dioClient.updateSettings(
-        UpdateSettingsRequestModel(
-          promptForReview: false,
-          reviewPromptsShown: settings.reviewPromptsShown + 1,
-        ),
-      );
-    } catch (e) {
+    } catch (e, st) {
       _log.warning('Failed to request in-app review: $e');
+      return;
+    }
+
+    try {
+      await _dioClient.acknowledgeReviewPrompt();
+    } catch (e, st) {
+      ErrorHelpers.logAndReport('Failed to acknowledge review prompt', e, st);
     }
   }
 

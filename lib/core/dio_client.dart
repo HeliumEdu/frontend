@@ -518,6 +518,15 @@ class DioClient {
     }
   }
 
+  Future<void> acknowledgeReviewPrompt() async {
+    try {
+      await _dio.post(ApiUrl.authUserSettingsReviewPromptAckUrl);
+    } catch (e) {
+      _log.severe('Failed to acknowledge review prompt', e);
+      rethrow;
+    }
+  }
+
   Future<String?> _resolveClientVersion() async {
     try {
       final info = await PackageInfo.fromPlatform();
