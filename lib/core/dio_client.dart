@@ -518,6 +518,10 @@ class DioClient {
     }
   }
 
+  Future<void> acknowledgeReviewPrompt() async {
+    await _dio.post(ApiUrl.authUserSettingsReviewPromptAckUrl);
+  }
+
   Future<String?> _resolveClientVersion() async {
     try {
       final info = await PackageInfo.fromPlatform();

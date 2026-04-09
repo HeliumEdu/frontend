@@ -139,9 +139,13 @@ class _WhatsNewDialogWidget extends StatelessWidget {
           child: HeliumElevatedButton(
             buttonText: 'Dive In!',
             onPressed: () async {
-              await WhatsNewService().markWhatsNewAsSeen();
-              if (!context.mounted) return;
-              Navigator.pop(context);
+              try {
+                await WhatsNewService().markWhatsNewAsSeen();
+                if (!context.mounted) return;
+                if (Navigator.canPop(context)) {
+                  Navigator.pop(context);
+                }
+              } catch (_) {}
             },
           ),
         ),

@@ -75,7 +75,6 @@ class UserSettingsModel {
   final bool showWeekNumbers;
   final String? privateSlug;
   final bool promptForReview;
-  final int reviewPromptsShown;
 
   UserSettingsModel({
     required this.timeZone,
@@ -101,7 +100,6 @@ class UserSettingsModel {
     required this.showWeekNumbers,
     this.privateSlug,
     this.promptForReview = false,
-    this.reviewPromptsShown = 0,
   });
 
   factory UserSettingsModel.fromJson(Map<String, dynamic> json) {
@@ -135,7 +133,6 @@ class UserSettingsModel {
       showWeekNumbers: json['show_week_numbers'] ?? FallbackConstants.defaultShowWeekNumbers,
       privateSlug: json['private_slug'],
       promptForReview: json['prompt_for_review'] ?? false,
-      reviewPromptsShown: json['review_prompts_shown'] ?? 0,
     );
   }
 
