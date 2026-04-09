@@ -17,13 +17,16 @@
 class AnalyticsEvent {
   // User behavior events
   static const String attachmentUpload = 'helium_attachment_upload';
+  static const String categoryCreate = 'helium_category_create';
   static const String courseCreate = 'helium_course_create';
+  static const String courseGroupCreate = 'helium_course_group_create';
   static const String exampleScheduleClear = 'helium_example_schedule_clear';
   static const String exampleScheduleImport = 'helium_example_schedule_import';
   static const String exportTrigger = 'helium_export_trigger';
   static const String externalCalendarAdd = 'helium_external_calendar_add';
   static const String feedsDisable = 'helium_feeds_disable';
   static const String feedsEnable = 'helium_feeds_enable';
+  static const String gradeCalculatorOpen = 'helium_grade_calculator_open';
   static const String homeworkComplete = 'helium_homework_complete';
   static const String homeworkCreate = 'helium_homework_create';
   static const String homeworkGrade = 'helium_homework_grade';
@@ -35,6 +38,7 @@ class AnalyticsEvent {
   // Debug / diagnostic events
   static const String debugAuthNoSetupState = 'helium_debug_auth_no_setup_state';
   static const String debugAuthTokenRefreshQueue = 'helium_debug_auth_token_refresh_queue';
+  static const String debugErrorDisplay = 'helium_debug_error_display';
   static const String debugFcmMessageDeduplicate = 'helium_debug_fcm_message_deduplicate';
   static const String debugFcmTokenStaleFail = 'helium_debug_fcm_token_stale_fail';
   static const String debugGradeCalcNoWeight = 'helium_debug_grade_calc_no_weight';

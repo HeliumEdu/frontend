@@ -6,6 +6,7 @@
 // For details regarding the license, please refer to the LICENSE file.
 
 import 'package:flutter/material.dart';
+import 'package:heliumapp/config/analytics_event.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/core/analytics_service.dart';
 import 'package:heliumapp/presentation/ui/components/helium_elevated_button.dart';
@@ -35,7 +36,7 @@ class _ErrorCardState extends State<ErrorCard> {
   void initState() {
     super.initState();
     AnalyticsService().logEvent(
-      name: 'error_displayed',
+      name: AnalyticsEvent.debugErrorDisplay,
       parameters: {
         'source': widget.source,
         'message': widget.message,

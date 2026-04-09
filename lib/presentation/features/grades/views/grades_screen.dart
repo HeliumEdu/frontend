@@ -11,6 +11,7 @@ import 'dart:convert';
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:heliumapp/config/analytics_event.dart';
 import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/config/pref_service.dart';
@@ -1156,7 +1157,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
 
   void _openGradeCalculator(GradeCourseModel course) {
     unawaited(AnalyticsService().logEvent(
-      name: 'grade_calculator_opened',
+      name: AnalyticsEvent.gradeCalculatorOpen,
       parameters: {'category': 'feature_interaction'},
     ));
     unawaited(AnalyticsService().setUserProperty(name: 'uses_grade_calculator', value: 'true'));

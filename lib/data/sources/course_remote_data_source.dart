@@ -336,7 +336,7 @@ class CourseRemoteDataSourceImpl extends CourseRemoteDataSource {
         _log.info('... CourseGroup ${group.id} created');
         await dioClient.cacheService.invalidateAll();
         unawaited(AnalyticsService().logEvent(
-          name: 'course_group_created',
+          name: AnalyticsEvent.courseGroupCreate,
           parameters: {
             'category': 'feature_interaction',
             'semester_status': _semesterStatus(request.startDate, request.endDate),
