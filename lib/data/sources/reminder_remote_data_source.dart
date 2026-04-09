@@ -115,7 +115,7 @@ class ReminderRemoteDataSourceImpl extends ReminderRemoteDataSource {
         final reminder = ReminderModel.fromJson(response.data);
         _log.info('... Reminder ${reminder.id} created');
         await dioClient.cacheService.invalidateAll();
-        unawaited(AnalyticsService().logEvent(name: AnalyticsEvent.reminderCreate, parameters: {'category': 'feature_interaction'}));
+        unawaited(AnalyticsService().logEvent(name: AnalyticsEvent.reminderCreate, parameters: {'category': AnalyticsCategory.featureInteraction.value}));
         unawaited(AnalyticsService().setUserProperty(name: 'uses_reminders', value: 'true'));
         return reminder;
       } else {

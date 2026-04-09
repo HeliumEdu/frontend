@@ -1158,7 +1158,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
   void _openGradeCalculator(GradeCourseModel course) {
     unawaited(AnalyticsService().logEvent(
       name: AnalyticsEvent.gradeCalculatorOpen,
-      parameters: {'category': 'feature_interaction'},
+      parameters: {'category': AnalyticsCategory.featureInteraction.value},
     ));
     unawaited(AnalyticsService().setUserProperty(name: 'uses_grade_calculator', value: 'true'));
     showDialog(

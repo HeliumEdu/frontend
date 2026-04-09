@@ -398,7 +398,8 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
       final response = await dioClient.dio.put(ApiUrl.feedPrivateEnableUrl);
 
       if (response.statusCode == 200) {
-        unawaited(AnalyticsService().logEvent(name: AnalyticsEvent.feedsEnable, parameters: {'category': 'feature_interaction'}));
+        unawaited(AnalyticsService().logEvent(name: AnalyticsEvent.feedsEnable, parameters: {'category': AnalyticsCategory.featureInteraction.value}));
+        unawaited(AnalyticsService().setUserProperty(name: 'uses_private_feeds', value: 'true'));
         return PrivateFeedModel.fromJson(response.data);
       } else {
         throw ServerException(
@@ -425,7 +426,8 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
           code: response.statusCode.toString(),
         );
       }
-      unawaited(AnalyticsService().logEvent(name: AnalyticsEvent.feedsDisable, parameters: {'category': 'feature_interaction'}));
+      unawaited(AnalyticsService().logEvent(name: AnalyticsEvent.feedsDisable, parameters: {'category': AnalyticsCategory.featureInteraction.value}));
+      unawaited(AnalyticsService().setUserProperty(name: 'uses_private_feeds', value: 'false'));
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
     } catch (e, s) {
@@ -583,7 +585,7 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
 
       // Clear all cached data since the example data is now deleted
       await dioClient.cacheService.clearAll();
-      unawaited(AnalyticsService().logEvent(name: AnalyticsEvent.exampleScheduleClear, parameters: {'category': 'onboarding'}));
+      unawaited(AnalyticsService().logEvent(name: AnalyticsEvent.exampleScheduleClear, parameters: {'category': AnalyticsCategory.onboarding.value}));
       unawaited(AnalyticsService().setUserProperty(name: 'onboarding_complete', value: 'true'));
     } on DioException catch (e, s) {
       throw handleDioError(e, s);

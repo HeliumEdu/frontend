@@ -170,7 +170,7 @@ class _GradeCalculatorDialogState
     switch (result.state) {
       case NeededGradeState.targetCategoryHasNoWeight:
         // It should be impossible to reach this state
-        AnalyticsService().logEvent(name: AnalyticsEvent.debugGradeCalcNoWeight, parameters: {'category': 'edge_case'});
+        AnalyticsService().logEvent(name: AnalyticsEvent.debugGradeCalcNoWeight, parameters: {'category': AnalyticsCategory.edgeCase.value});
         Sentry.captureMessage('Grade calculator reached impossible no-weight state for category: $targetCategoryTitle', level: SentryLevel.error);
         return "Selected category has no weight, so we can't help make accurate predictions";
       case NeededGradeState.invalidTotalWeight:

@@ -77,18 +77,21 @@ class ChangePasswordScreenState extends State<ChangePasswordScreen> {
                 validator: BasicFormController.validatePassword,
                 onFieldSubmitted: (value) => onSubmit(),
                 obscureText: !_formController.isOldPasswordVisible,
-                suffixIcon: IconButton(
-                  onPressed: () {
-                    setState(() {
-                      _formController.isOldPasswordVisible =
-                          !_formController.isOldPasswordVisible;
-                    });
-                  },
-                  icon: Icon(
-                    _formController.isOldPasswordVisible
-                        ? Icons.visibility
-                        : Icons.visibility_off,
-                    color: context.colorScheme.onSurface,
+                suffixIcon: ExcludeFocus(
+                  excluding: true,
+                  child: IconButton(
+                    onPressed: () {
+                      setState(() {
+                        _formController.isOldPasswordVisible =
+                            !_formController.isOldPasswordVisible;
+                      });
+                    },
+                    icon: Icon(
+                      _formController.isOldPasswordVisible
+                          ? Icons.visibility
+                          : Icons.visibility_off,
+                      color: context.colorScheme.onSurface,
+                    ),
                   ),
                 ),
               ),
@@ -100,18 +103,21 @@ class ChangePasswordScreenState extends State<ChangePasswordScreen> {
                 controller: _formController.newPasswordController,
                 validator: BasicFormController.validatePassword,
                 obscureText: !_formController.isNewPasswordVisible,
-                suffixIcon: IconButton(
-                  onPressed: () {
-                    setState(() {
-                      _formController.isNewPasswordVisible =
-                          !_formController.isNewPasswordVisible;
-                    });
-                  },
-                  icon: Icon(
-                    _formController.isNewPasswordVisible
-                        ? Icons.visibility
-                        : Icons.visibility_off,
-                    color: context.colorScheme.onSurface,
+                suffixIcon: ExcludeFocus(
+                  excluding: true,
+                  child: IconButton(
+                    onPressed: () {
+                      setState(() {
+                        _formController.isNewPasswordVisible =
+                            !_formController.isNewPasswordVisible;
+                      });
+                    },
+                    icon: Icon(
+                      _formController.isNewPasswordVisible
+                          ? Icons.visibility
+                          : Icons.visibility_off,
+                      color: context.colorScheme.onSurface,
+                    ),
                   ),
                 ),
               ),
@@ -124,18 +130,21 @@ class ChangePasswordScreenState extends State<ChangePasswordScreen> {
                 validator: _formController.validateConfirmPassword,
                 onFieldSubmitted: (value) => onSubmit(),
                 obscureText: !_formController.isConfirmPasswordVisible,
-                suffixIcon: IconButton(
-                  onPressed: () {
-                    setState(() {
-                      _formController.isConfirmPasswordVisible =
-                          !_formController.isConfirmPasswordVisible;
-                    });
-                  },
-                  icon: Icon(
-                    _formController.isConfirmPasswordVisible
-                        ? Icons.visibility
-                        : Icons.visibility_off,
-                    color: context.colorScheme.onSurface,
+                suffixIcon: ExcludeFocus(
+                  excluding: true,
+                  child: IconButton(
+                    onPressed: () {
+                      setState(() {
+                        _formController.isConfirmPasswordVisible =
+                            !_formController.isConfirmPasswordVisible;
+                      });
+                    },
+                    icon: Icon(
+                      _formController.isConfirmPasswordVisible
+                          ? Icons.visibility
+                          : Icons.visibility_off,
+                      color: context.colorScheme.onSurface,
+                    ),
                   ),
                 ),
               ),

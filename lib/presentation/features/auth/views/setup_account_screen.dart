@@ -181,7 +181,7 @@ class _SetupAccountScreenState extends BasePageScreenState<SetupAccountScreen> {
     // who are already configured are not blocked on /setup.
     if (_consecutiveStatusFailures < 2 || !mounted) return;
 
-    unawaited(AnalyticsService().logEvent(name: AnalyticsEvent.debugSetupCacheFallback, parameters: {'category': 'edge_case'}));
+    unawaited(AnalyticsService().logEvent(name: AnalyticsEvent.debugSetupCacheFallback, parameters: {'category': AnalyticsCategory.edgeCase.value}));
 
     try {
       final cachedSettings = await DioClient().getSettings();

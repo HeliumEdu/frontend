@@ -335,7 +335,7 @@ class ResourceRemoteDataSourceImpl extends ResourceRemoteDataSource {
         final resource = ResourceModel.fromJson(response.data);
         _log.info('... Resource ${resource.id} created in ResourceGroup $groupId');
         await dioClient.cacheService.invalidateAll();
-        unawaited(AnalyticsService().logEvent(name: AnalyticsEvent.resourceCreate, parameters: {'category': 'feature_interaction'}));
+        unawaited(AnalyticsService().logEvent(name: AnalyticsEvent.resourceCreate, parameters: {'category': AnalyticsCategory.featureInteraction.value}));
         return resource;
       } else {
         throw ServerException(

@@ -5,11 +5,15 @@
 //
 // For details regarding the license, please refer to the LICENSE file.
 
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:heliumapp/config/analytics_event.dart';
 import 'package:heliumapp/config/app_router.dart';
 import 'package:heliumapp/config/theme_notifier.dart';
+import 'package:heliumapp/core/analytics_service.dart';
 import 'package:heliumapp/utils/print_service.dart';
 import 'package:heliumapp/utils/web_helpers_stub.dart'
     if (dart.library.js_interop) 'package:heliumapp/utils/web_helpers_web.dart';
@@ -62,13 +66,17 @@ class _HeliumAppState extends State<HeliumApp> {
     } else if (kIsWeb) {
       // Call synchronously within the key event to satisfy the browser's
       // user-activation requirement; async delay would cause it to be blocked.
+      unawaited(AnalyticsService().logEvent(name: AnalyticsEvent.printPreview, parameters: {'category': AnalyticsCategory.featureInteraction.value}));
       triggerBrowserPrint();
     }
     return true;
   }
 
   Future<void> _handlePrint() async {
-    await PrintService().printCurrent();
+    final printed = await PrintService().printCurrent();
+    if (printed) {
+      unawaited(AnalyticsService().logEvent(name: AnalyticsEvent.printPreview, parameters: {'category': AnalyticsCategory.featureInteraction.value}));
+    }
   }
 
   @override

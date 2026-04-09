@@ -155,7 +155,7 @@ class NoteRemoteDataSourceImpl extends NoteRemoteDataSource {
         final note = NoteModel.fromJson(response.data);
         _log.info('... Note ${note.id} created');
         await dioClient.cacheService.invalidateAll();
-        unawaited(AnalyticsService().logEvent(name: AnalyticsEvent.noteCreate, parameters: {'category': 'feature_interaction'}));
+        unawaited(AnalyticsService().logEvent(name: AnalyticsEvent.noteCreate, parameters: {'category': AnalyticsCategory.featureInteraction.value}));
         return note;
       } else {
         throw ServerException(

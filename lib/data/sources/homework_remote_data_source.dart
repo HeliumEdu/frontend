@@ -177,7 +177,7 @@ class HomeworkRemoteDataSourceImpl extends HomeworkRemoteDataSource {
         final homework = HomeworkModel.fromJson(response.data);
         _log.info('... Homework ${homework.id} created for Course $courseId');
         await dioClient.cacheService.invalidateAll();
-        unawaited(AnalyticsService().logEvent(name: AnalyticsEvent.homeworkCreate, parameters: {'category': 'feature_interaction'}));
+        unawaited(AnalyticsService().logEvent(name: AnalyticsEvent.homeworkCreate, parameters: {'category': AnalyticsCategory.featureInteraction.value}));
         return homework;
       } else {
         throw ServerException(
