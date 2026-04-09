@@ -144,7 +144,7 @@ class EventRemoteDataSourceImpl extends EventRemoteDataSource {
         final event = EventModel.fromJson(response.data);
         _log.info('... Event ${event.id} created');
         await dioClient.cacheService.invalidateAll();
-        unawaited(AnalyticsService().logEvent(name: AnalyticsEvent.eventCreate, parameters: {'category': 'feature_interaction'}));
+        unawaited(AnalyticsService().logEvent(name: AnalyticsEvent.eventCreate, parameters: {'category': AnalyticsCategory.featureInteraction.value}));
         return event;
       } else {
         throw ServerException(

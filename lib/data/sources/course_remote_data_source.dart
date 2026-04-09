@@ -173,7 +173,7 @@ class CourseRemoteDataSourceImpl extends CourseRemoteDataSource {
         final course = CourseModel.fromJson(response.data);
         _log.info('... Course ${course.id} created in CourseGroup $groupId');
         await dioClient.cacheService.invalidateAll();
-        unawaited(AnalyticsService().logEvent(name: AnalyticsEvent.courseCreate, parameters: {'category': 'feature_interaction'}));
+        unawaited(AnalyticsService().logEvent(name: AnalyticsEvent.courseCreate, parameters: {'category': AnalyticsCategory.featureInteraction.value}));
         return course;
       } else {
         throw ServerException(
@@ -338,7 +338,7 @@ class CourseRemoteDataSourceImpl extends CourseRemoteDataSource {
         unawaited(AnalyticsService().logEvent(
           name: AnalyticsEvent.courseGroupCreate,
           parameters: {
-            'category': 'feature_interaction',
+            'category': AnalyticsCategory.featureInteraction.value,
             'term_status': _semesterStatus(request.startDate, request.endDate),
           },
         ));

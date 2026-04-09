@@ -227,7 +227,7 @@ class _MobileWebScreenState extends BasePageScreenState<MobileWebScreen> {
   }
 
   Future<void> _continueOnWeb() async {
-    unawaited(AnalyticsService().logEvent(name: AnalyticsEvent.mobileWebContinue, parameters: {'category': 'feature_interaction'}));
+    unawaited(AnalyticsService().logEvent(name: AnalyticsEvent.mobileWebContinue, parameters: {'category': AnalyticsCategory.featureInteraction.value}));
     await PrefService().setBool('mobile_web_continue', true);
     if (!mounted) return;
 

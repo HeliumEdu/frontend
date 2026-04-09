@@ -59,7 +59,7 @@ class ThemeNotifier extends ChangeNotifier {
     unawaited(AnalyticsService().logEvent(
       name: AnalyticsEvent.themeSelect,
       parameters: {
-        'category': 'feature_interaction',
+        'category': AnalyticsCategory.featureInteraction.value,
         'theme': switch (mode) {
           ThemeMode.light => 'light',
           ThemeMode.dark => 'dark',

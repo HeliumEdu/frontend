@@ -450,7 +450,7 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
   void _handleAutoSaveError(String message) {
     _autoSaveErrorCount++;
 
-    AnalyticsService().logEvent(name: AnalyticsEvent.debugNoteAutosaveError, parameters: {'category': 'edge_case'});
+    AnalyticsService().logEvent(name: AnalyticsEvent.debugNoteAutosaveError, parameters: {'category': AnalyticsCategory.edgeCase.value});
     Sentry.captureMessage(
       'Note autosave failed',
       level: SentryLevel.error,

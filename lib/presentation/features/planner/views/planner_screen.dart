@@ -418,7 +418,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
               unawaited(AnalyticsService().logEvent(
                 name: AnalyticsEvent.homeworkComplete,
                 parameters: {
-                  'category': 'feature_interaction',
+                  'category': AnalyticsCategory.featureInteraction.value,
                   'on_time': (!DateTime.now().isAfter(state.homework.end)).toString(),
                   'days_since_due': DateTime.now().difference(state.homework.start).inDays,
                 },
@@ -433,7 +433,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
               unawaited(AnalyticsService().logEvent(
                 name: AnalyticsEvent.homeworkGrade,
                 parameters: {
-                  'category': 'feature_interaction',
+                  'category': AnalyticsCategory.featureInteraction.value,
                   'days_since_due': daysSinceDue,
                 },
               ));

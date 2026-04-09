@@ -58,7 +58,7 @@ enum SettingsSubScreen {
 
 /// Shows settings screen (responsive: side panel on desktop, full-screen on mobile)
 Future<void> showSettings(BuildContext context, {int? initialTab}) {
-  unawaited(AnalyticsService().logEvent(name: AnalyticsEvent.settingsOpen, parameters: {'category': 'feature_interaction'}));
+  unawaited(AnalyticsService().logEvent(name: AnalyticsEvent.settingsOpen, parameters: {'category': AnalyticsCategory.featureInteraction.value}));
   final currentUri = router.routerDelegate.currentConfiguration.uri;
   final hasDialogParam = currentUri.queryParameters.containsKey(
     DeepLinkParam.dialog,

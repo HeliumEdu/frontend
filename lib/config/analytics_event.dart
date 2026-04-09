@@ -5,6 +5,20 @@
 //
 // For details regarding the license, please refer to the LICENSE file.
 
+enum AnalyticsCategory {
+  featureInteraction,
+  onboarding,
+  edgeCase,
+  operational;
+
+  String get value => switch (this) {
+    AnalyticsCategory.featureInteraction => 'feature_interaction',
+    AnalyticsCategory.onboarding         => 'onboarding',
+    AnalyticsCategory.edgeCase           => 'edge_case',
+    AnalyticsCategory.operational        => 'operational',
+  };
+}
+
 /// Analytics event name constants.
 ///
 /// Naming convention:

@@ -38,6 +38,7 @@ class _ErrorCardState extends State<ErrorCard> {
     AnalyticsService().logEvent(
       name: AnalyticsEvent.debugErrorDisplay,
       parameters: {
+        'category': AnalyticsCategory.edgeCase.value,
         'error_source': widget.source,
         'error_message': widget.message,
       },
