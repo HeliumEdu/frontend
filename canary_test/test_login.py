@@ -77,7 +77,6 @@ def test_login(page: Page, app_host: str, test_credentials: dict) -> None:
     # Tab to the Sign In button and press Enter to submit
     page.keyboard.press("Tab")
     page.keyboard.press("Tab")
-    page.keyboard.press("Tab")
     page.keyboard.press("Enter")
 
     # Verify the app navigates to the planner screen
