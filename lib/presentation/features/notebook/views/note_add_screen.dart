@@ -15,6 +15,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_quill/flutter_quill.dart';
 import 'package:flutter_quill/quill_delta.dart';
 import 'package:flutter_quill_to_pdf/flutter_quill_to_pdf.dart';
+import 'package:heliumapp/config/analytics_event.dart';
 import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/config/app_router.dart';
 import 'package:heliumapp/config/app_theme.dart';
@@ -449,7 +450,7 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
   void _handleAutoSaveError(String message) {
     _autoSaveErrorCount++;
 
-    AnalyticsService().logEvent(name: 'note_autosave_error', parameters: {'category': 'edge_case'});
+    AnalyticsService().logEvent(name: AnalyticsEvent.debugNoteAutosaveError, parameters: {'category': 'edge_case'});
     Sentry.captureMessage(
       'Note autosave failed',
       level: SentryLevel.error,

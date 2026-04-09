@@ -11,6 +11,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:heliumapp/config/analytics_event.dart';
 import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/core/analytics_service.dart';
@@ -248,7 +249,7 @@ class _ImportExportScreenState extends State<ImportExportScreen> {
 
         if (mounted) {
           context.read<AuthBloc>().add(RefreshScheduleDataEvent());
-          unawaited(AnalyticsService().logEvent(name: 'import_completed', parameters: {'category': 'feature_interaction'}));
+          unawaited(AnalyticsService().logEvent(name: AnalyticsEvent.importComplete, parameters: {'category': 'feature_interaction'}));
           SnackBarHelper.show(
             context,
             'Imported: $counts',
@@ -336,7 +337,7 @@ class _ImportExportScreenState extends State<ImportExportScreen> {
       if (!mounted) return;
 
       if (response.statusCode == 200 && response.data != null) {
-        unawaited(AnalyticsService().logEvent(name: 'export_triggered', parameters: {'category': 'feature_interaction'}));
+        unawaited(AnalyticsService().logEvent(name: AnalyticsEvent.exportTrigger, parameters: {'category': 'feature_interaction'}));
         final contentDisposition = response.headers.value(
           'content-disposition',
         );
@@ -396,7 +397,7 @@ class _ImportExportScreenState extends State<ImportExportScreen> {
       if (response.statusCode == 204) {
         await _dioClient.cacheService.invalidateAll();
         if (mounted) {
-          unawaited(AnalyticsService().logEvent(name: 'example_schedule_imported', parameters: {'category': 'onboarding'}));
+          unawaited(AnalyticsService().logEvent(name: AnalyticsEvent.exampleScheduleImport, parameters: {'category': 'onboarding'}));
           unawaited(AnalyticsService().setUserProperty(name: 'onboarding_complete', value: 'false'));
           context.read<AuthBloc>().add(FetchProfileEvent());
           context.read<AuthBloc>().add(RefreshScheduleDataEvent());

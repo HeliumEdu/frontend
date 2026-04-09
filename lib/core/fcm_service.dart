@@ -14,6 +14,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:heliumapp/config/analytics_event.dart';
 import 'package:heliumapp/config/app_router.dart';
 import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/config/pref_service.dart';
@@ -296,7 +297,7 @@ class FcmService {
               );
             } catch (e) {
               _log.warning('Failed to delete stale push token ${token.id}', e);
-              unawaited(AnalyticsService().logEvent(name: 'fcm_push_token_stale_delete_failed', parameters: {'category': 'operational'}));
+              unawaited(AnalyticsService().logEvent(name: AnalyticsEvent.debugFcmTokenStaleFail, parameters: {'category': 'operational'}));
             }
           }
         } catch (e) {
@@ -372,7 +373,7 @@ class FcmService {
 
     if (_recentMessageIds.containsKey(notification.id.toString())) {
       _log.info('Foreground message $messageId within dedupe window, skipping');
-      unawaited(AnalyticsService().logEvent(name: 'fcm_message_deduplicated', parameters: {'category': 'operational'}));
+      unawaited(AnalyticsService().logEvent(name: AnalyticsEvent.debugFcmMessageDeduplicate, parameters: {'category': 'operational'}));
       return;
     }
     _recentMessageIds[notification.id.toString()] = now;

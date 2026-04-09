@@ -8,6 +8,7 @@
 import 'dart:async';
 
 import 'package:dio/dio.dart';
+import 'package:heliumapp/config/analytics_event.dart';
 import 'package:heliumapp/core/analytics_service.dart';
 import 'package:heliumapp/core/api_url.dart';
 import 'package:heliumapp/core/dio_client.dart';
@@ -397,7 +398,7 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
       final response = await dioClient.dio.put(ApiUrl.feedPrivateEnableUrl);
 
       if (response.statusCode == 200) {
-        unawaited(AnalyticsService().logEvent(name: 'feeds_enabled', parameters: {'category': 'feature_interaction'}));
+        unawaited(AnalyticsService().logEvent(name: AnalyticsEvent.feedsEnable, parameters: {'category': 'feature_interaction'}));
         return PrivateFeedModel.fromJson(response.data);
       } else {
         throw ServerException(
@@ -424,7 +425,7 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
           code: response.statusCode.toString(),
         );
       }
-      unawaited(AnalyticsService().logEvent(name: 'feeds_disabled', parameters: {'category': 'feature_interaction'}));
+      unawaited(AnalyticsService().logEvent(name: AnalyticsEvent.feedsDisable, parameters: {'category': 'feature_interaction'}));
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
     } catch (e, s) {
@@ -582,7 +583,7 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
 
       // Clear all cached data since the example data is now deleted
       await dioClient.cacheService.clearAll();
-      unawaited(AnalyticsService().logEvent(name: 'example_schedule_cleared', parameters: {'category': 'onboarding'}));
+      unawaited(AnalyticsService().logEvent(name: AnalyticsEvent.exampleScheduleClear, parameters: {'category': 'onboarding'}));
       unawaited(AnalyticsService().setUserProperty(name: 'onboarding_complete', value: 'true'));
     } on DioException catch (e, s) {
       throw handleDioError(e, s);

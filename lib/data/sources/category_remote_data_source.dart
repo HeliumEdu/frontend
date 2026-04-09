@@ -8,6 +8,7 @@
 import 'dart:async';
 
 import 'package:dio/dio.dart';
+import 'package:heliumapp/config/analytics_event.dart';
 import 'package:heliumapp/core/analytics_service.dart';
 import 'package:heliumapp/core/api_url.dart';
 import 'package:heliumapp/core/dio_client.dart';
@@ -120,7 +121,7 @@ class CategoryRemoteDataSourceImpl extends CategoryRemoteDataSource {
         await dioClient.cacheService.invalidateAll();
         final weight = double.tryParse(request.weight) ?? 0.0;
         unawaited(AnalyticsService().logEvent(
-          name: 'category_created',
+          name: AnalyticsEvent.categoryCreate,
           parameters: {
             'category': 'feature_interaction',
             'grade_tracking_depth': weight > 0 ? 'weighted' : 'unweighted',

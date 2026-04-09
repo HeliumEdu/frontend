@@ -40,8 +40,6 @@ class HeliumTime {
 }
 
 class DateRangeEnforcer {
-  DateRangeEnforcer._();
-
   static DateTime adjustEndDate(DateTime start, DateTime end) {
     return end.isBefore(start) ? start : end;
   }
