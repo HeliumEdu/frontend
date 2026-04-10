@@ -5,6 +5,8 @@
 //
 // For details regarding the license, please refer to the LICENSE file.
 
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -23,6 +25,7 @@ class PrefService {
   SharedPreferencesWithCache? _sharedStorage;
 
   bool _isInitialized = false;
+  Completer<void>? _initCompleter;
 
   static PrefService _instance = PrefService._internal();
 
@@ -49,13 +52,28 @@ class PrefService {
   }
 
   Future<void> init() async {
-    if (isInitialized) return;
+    if (_isInitialized) return;
 
-    _sharedStorage = await SharedPreferencesWithCache.create(
-      cacheOptions: const SharedPreferencesWithCacheOptions(),
-    );
+    if (_initCompleter != null) {
+      return _initCompleter!.future;
+    }
 
-    _isInitialized = true;
+    _initCompleter = Completer<void>();
+    try {
+      _sharedStorage = await SharedPreferencesWithCache.create(
+        cacheOptions: const SharedPreferencesWithCacheOptions(),
+      );
+      _isInitialized = true;
+      _initCompleter!.complete();
+    } catch (e) {
+      _initCompleter!.completeError(e);
+      _initCompleter = null;
+      rethrow;
+    } finally {
+      if (_isInitialized) {
+        _initCompleter = null;
+      }
+    }
   }
 
   bool get isInitialized => _isInitialized;
