@@ -108,42 +108,47 @@ jobs:
       - name: Find workflow run with matching artifact
         id: find_run
         if: ${{ inputs.artifact_run_id == '' }}
+        uses: nick-fields/retry@v3
         env:
           GH_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
-        run: |
-          VERSION="${{ steps.version.outputs.version }}"
-          SEMVER="${VERSION}"
+        with:
+          timeout_minutes: 5
+          retry_wait_seconds: 30
+          max_attempts: 5
+          command: |
+            VERSION="${{ steps.version.outputs.version }}"
+            SEMVER="${VERSION}"
 
-          echo "Looking for artifact matching version ${SEMVER} ..."
+            echo "Looking for artifact matching version ${SEMVER} ..."
 
-          # Get recent successful release workflow runs
-          RUNS=$(gh api "repos/HeliumEdu/frontend/actions/workflows/release.yml/runs?status=success&per_page=20" \
-            --jq '.workflow_runs[].id')
+            # Get recent successful release workflow runs
+            RUNS=$(gh api "repos/HeliumEdu/frontend/actions/workflows/release.yml/runs?status=success&per_page=20" \
+              --jq '.workflow_runs[].id')
 
-          if [ -z "$RUNS" ]; then
-            echo "Error: No successful release workflow runs found"
-            exit 1
-          fi
-
-          # Search each run for an artifact matching our version
-          for RUN_ID in $RUNS; do
-            ARTIFACT_NAME=$(gh api "repos/HeliumEdu/frontend/actions/runs/${RUN_ID}/artifacts" \
-              --jq ".artifacts[] | select(.name | startswith(\"helium-${SEMVER}\") and endswith(\"-web\")) | .name" 2>/dev/null)
-
-            if [ -n "$ARTIFACT_NAME" ]; then
-              echo "Found matching artifact '${ARTIFACT_NAME}' in workflow run ${RUN_ID}"
-              echo "run_id=${RUN_ID}" >> $GITHUB_OUTPUT
-              echo "artifact_name=${ARTIFACT_NAME}" >> $GITHUB_OUTPUT
-
-              # Extract full version from artifact name (e.g., helium-1.0.9+42-web -> 1.0.9+42)
-              FULL_VERSION=$(echo "$ARTIFACT_NAME" | sed 's/helium-\(.*\)-web/\1/')
-              echo "full_version=${FULL_VERSION}" >> $GITHUB_OUTPUT
-              exit 0
+            if [ -z "$RUNS" ]; then
+              echo "Error: No successful release workflow runs found"
+              exit 1
             fi
-          done
 
-          echo "Error: No workflow run found with artifact for version ${VERSION}"
-          exit 1
+            # Search each run for an artifact matching our version
+            for RUN_ID in $RUNS; do
+              ARTIFACT_NAME=$(gh api "repos/HeliumEdu/frontend/actions/runs/${RUN_ID}/artifacts" \
+                --jq ".artifacts[] | select(.name | startswith(\"helium-${SEMVER}\") and endswith(\"-web\")) | .name" 2>/dev/null)
+
+              if [ -n "$ARTIFACT_NAME" ]; then
+                echo "Found matching artifact '${ARTIFACT_NAME}' in workflow run ${RUN_ID}"
+                echo "run_id=${RUN_ID}" >> $GITHUB_OUTPUT
+                echo "artifact_name=${ARTIFACT_NAME}" >> $GITHUB_OUTPUT
+
+                # Extract full version from artifact name (e.g., helium-1.0.9+42-web -> 1.0.9+42)
+                FULL_VERSION=$(echo "$ARTIFACT_NAME" | sed 's/helium-\(.*\)-web/\1/')
+                echo "full_version=${FULL_VERSION}" >> $GITHUB_OUTPUT
+                exit 0
+              fi
+            done
+
+            echo "Error: No workflow run found with artifact for version ${VERSION}"
+            exit 1
 
       - name: Download web artifact from current run
         if: ${{ inputs.artifact_run_id != '' }}
@@ -328,42 +333,47 @@ jobs:
       - name: Find workflow run with matching artifact
         id: find_run
         if: ${{ inputs.artifact_run_id == '' }}
+        uses: nick-fields/retry@v3
         env:
           GH_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
-        run: |
-          VERSION="${{ steps.version.outputs.version }}"
-          SEMVER="${VERSION}"
+        with:
+          timeout_minutes: 5
+          retry_wait_seconds: 30
+          max_attempts: 5
+          command: |
+            VERSION="${{ steps.version.outputs.version }}"
+            SEMVER="${VERSION}"
 
-          echo "Looking for artifact matching version ${SEMVER} ..."
+            echo "Looking for artifact matching version ${SEMVER} ..."
 
-          # Get recent successful release workflow runs
-          RUNS=$(gh api "repos/HeliumEdu/frontend/actions/workflows/release.yml/runs?status=success&per_page=20" \
-            --jq '.workflow_runs[].id')
+            # Get recent successful release workflow runs
+            RUNS=$(gh api "repos/HeliumEdu/frontend/actions/workflows/release.yml/runs?status=success&per_page=20" \
+              --jq '.workflow_runs[].id')
 
-          if [ -z "$RUNS" ]; then
-            echo "Error: No successful release workflow runs found"
-            exit 1
-          fi
-
-          # Search each run for an artifact matching our version
-          for RUN_ID in $RUNS; do
-            ARTIFACT_NAME=$(gh api "repos/HeliumEdu/frontend/actions/runs/${RUN_ID}/artifacts" \
-              --jq ".artifacts[] | select(.name | startswith(\"helium-${SEMVER}\") and endswith(\"-android.aab\")) | .name" 2>/dev/null)
-
-            if [ -n "$ARTIFACT_NAME" ]; then
-              echo "Found matching artifact '${ARTIFACT_NAME}' in workflow run ${RUN_ID}"
-              echo "run_id=${RUN_ID}" >> $GITHUB_OUTPUT
-              echo "artifact_name=${ARTIFACT_NAME}" >> $GITHUB_OUTPUT
-
-              # Extract full version from artifact name (e.g., helium-1.0.9+42-android.aab -> 1.0.9+42)
-              FULL_VERSION=$(echo "$ARTIFACT_NAME" | sed 's/helium-\(.*\)-android\.aab/\1/')
-              echo "full_version=${FULL_VERSION}" >> $GITHUB_OUTPUT
-              exit 0
+            if [ -z "$RUNS" ]; then
+              echo "Error: No successful release workflow runs found"
+              exit 1
             fi
-          done
 
-          echo "Error: No workflow run found with artifact for version ${VERSION}"
-          exit 1
+            # Search each run for an artifact matching our version
+            for RUN_ID in $RUNS; do
+              ARTIFACT_NAME=$(gh api "repos/HeliumEdu/frontend/actions/runs/${RUN_ID}/artifacts" \
+                --jq ".artifacts[] | select(.name | startswith(\"helium-${SEMVER}\") and endswith(\"-android.aab\")) | .name" 2>/dev/null)
+
+              if [ -n "$ARTIFACT_NAME" ]; then
+                echo "Found matching artifact '${ARTIFACT_NAME}' in workflow run ${RUN_ID}"
+                echo "run_id=${RUN_ID}" >> $GITHUB_OUTPUT
+                echo "artifact_name=${ARTIFACT_NAME}" >> $GITHUB_OUTPUT
+
+                # Extract full version from artifact name (e.g., helium-1.0.9+42-android.aab -> 1.0.9+42)
+                FULL_VERSION=$(echo "$ARTIFACT_NAME" | sed 's/helium-\(.*\)-android\.aab/\1/')
+                echo "full_version=${FULL_VERSION}" >> $GITHUB_OUTPUT
+                exit 0
+              fi
+            done
+
+            echo "Error: No workflow run found with artifact for version ${VERSION}"
+            exit 1
 
       - name: Download Android artifact from current run
         if: ${{ inputs.artifact_run_id != '' }}
@@ -470,42 +480,47 @@ jobs:
       - name: Find workflow run with matching artifact
         id: find_run
         if: ${{ inputs.artifact_run_id == '' }}
+        uses: nick-fields/retry@v3
         env:
           GH_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
-        run: |
-          VERSION="${{ steps.version.outputs.version }}"
-          SEMVER="${VERSION}"
+        with:
+          timeout_minutes: 5
+          retry_wait_seconds: 30
+          max_attempts: 5
+          command: |
+            VERSION="${{ steps.version.outputs.version }}"
+            SEMVER="${VERSION}"
 
-          echo "Looking for artifact matching version ${SEMVER} ..."
+            echo "Looking for artifact matching version ${SEMVER} ..."
 
-          # Get recent successful release workflow runs
-          RUNS=$(gh api "repos/HeliumEdu/frontend/actions/workflows/release.yml/runs?status=success&per_page=20" \
-            --jq '.workflow_runs[].id')
+            # Get recent successful release workflow runs
+            RUNS=$(gh api "repos/HeliumEdu/frontend/actions/workflows/release.yml/runs?status=success&per_page=20" \
+              --jq '.workflow_runs[].id')
 
-          if [ -z "$RUNS" ]; then
-            echo "Error: No successful release workflow runs found"
-            exit 1
-          fi
-
-          # Search each run for an artifact matching our version
-          for RUN_ID in $RUNS; do
-            ARTIFACT_NAME=$(gh api "repos/HeliumEdu/frontend/actions/runs/${RUN_ID}/artifacts" \
-              --jq ".artifacts[] | select(.name | startswith(\"helium-${SEMVER}\") and endswith(\"-ios.ipa\")) | .name" 2>/dev/null)
-
-            if [ -n "$ARTIFACT_NAME" ]; then
-              echo "Found matching artifact '${ARTIFACT_NAME}' in workflow run ${RUN_ID}"
-              echo "run_id=${RUN_ID}" >> $GITHUB_OUTPUT
-              echo "artifact_name=${ARTIFACT_NAME}" >> $GITHUB_OUTPUT
-
-              # Extract full version from artifact name (e.g., helium-1.0.9+42-ios.ipa -> 1.0.9+42)
-              FULL_VERSION=$(echo "$ARTIFACT_NAME" | sed 's/helium-\(.*\)-ios\.ipa/\1/')
-              echo "full_version=${FULL_VERSION}" >> $GITHUB_OUTPUT
-              exit 0
+            if [ -z "$RUNS" ]; then
+              echo "Error: No successful release workflow runs found"
+              exit 1
             fi
-          done
 
-          echo "Error: No workflow run found with artifact for version ${VERSION}"
-          exit 1
+            # Search each run for an artifact matching our version
+            for RUN_ID in $RUNS; do
+              ARTIFACT_NAME=$(gh api "repos/HeliumEdu/frontend/actions/runs/${RUN_ID}/artifacts" \
+                --jq ".artifacts[] | select(.name | startswith(\"helium-${SEMVER}\") and endswith(\"-ios.ipa\")) | .name" 2>/dev/null)
+
+              if [ -n "$ARTIFACT_NAME" ]; then
+                echo "Found matching artifact '${ARTIFACT_NAME}' in workflow run ${RUN_ID}"
+                echo "run_id=${RUN_ID}" >> $GITHUB_OUTPUT
+                echo "artifact_name=${ARTIFACT_NAME}" >> $GITHUB_OUTPUT
+
+                # Extract full version from artifact name (e.g., helium-1.0.9+42-ios.ipa -> 1.0.9+42)
+                FULL_VERSION=$(echo "$ARTIFACT_NAME" | sed 's/helium-\(.*\)-ios\.ipa/\1/')
+                echo "full_version=${FULL_VERSION}" >> $GITHUB_OUTPUT
+                exit 0
+              fi
+            done
+
+            echo "Error: No workflow run found with artifact for version ${VERSION}"
+            exit 1
 
       - name: Download iOS artifact from current run
         if: ${{ inputs.artifact_run_id != '' }}
