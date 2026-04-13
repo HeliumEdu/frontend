@@ -2526,6 +2526,9 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
       );
       titleRowWidget = Text.rich(
         TextSpan(children: spans),
+        style: AppStyles.calendarItemText(context).copyWith(
+          color: foregroundColor,
+        ),
         maxLines: _currentView == PlannerView.month || plannerItem.allDay
             ? 1
             : null,
