@@ -161,6 +161,7 @@ extension AppStyles on BuildContext {
   static TextStyle menuItemActive(BuildContext context) =>
       menuItem(context).copyWith(color: Theme.of(context).colorScheme.primary);
 
+  // Used for timeline calendar item text size
   static TextStyle calendarItemText(BuildContext context) {
     return poppins(
       fontWeight: FontWeight.w400,
