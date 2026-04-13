@@ -163,6 +163,7 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
       isLoading = true;
       _plannerItem = null;
       formController.isChanged = false;
+      formController.userChangedTime = false;
     });
 
     context.read<PlannerItemBloc>().add(
@@ -894,6 +895,10 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
           formController.endTime = TimeOfDay.fromDateTime(endDateTime);
         }
 
+        // Editing an existing item: it already has a real time. Treat that as
+        // a user-owned preference so later course changes don't clobber it.
+        formController.userChangedTime = true;
+
         if (plannerItem is HomeworkModel) {
           formController.selectedCourse = plannerItem.course.id;
           formController.isCompleted = plannerItem.completed;
@@ -939,6 +944,9 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
         setState(() {
           formController.startTime = TimeOfDay.fromDateTime(tzDateTime);
           formController.endTime = TimeOfDay.fromDateTime(tzDateTime);
+          // The user tapped a specific timeline slot; treat that as a time
+          // preference so later course changes won't overwrite it.
+          formController.userChangedTime = true;
         });
       }
     }
@@ -1054,6 +1062,7 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
 
     if (picked != null) {
       formController.markChanged();
+      formController.userChangedTime = true;
       setState(() {
         if (isStartTime) {
           formController.startTime = picked;
@@ -1173,7 +1182,7 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
           .map((m) => m.id)
           .toList();
 
-      if (!widget.isEdit) {
+      if (!widget.isEdit && !formController.userChangedTime) {
         final matchingSchedule = _courseSchedules
             .where((cs) => cs.course == formController.selectedCourse)
             .firstOrNull;

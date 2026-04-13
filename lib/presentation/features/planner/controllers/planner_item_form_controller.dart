@@ -28,6 +28,13 @@ class PlannerItemFormController extends BasicFormController {
   DateTime endDate = DateTime.now();
   TimeOfDay startTime = const TimeOfDay(hour: 12, minute: 0);
   TimeOfDay endTime = const TimeOfDay(hour: 12, minute: 50);
+
+  /// Tracks whether the user has expressed a time preference for this item
+  /// (either by manually picking a time, or by opening the dialog with a
+  /// pre-set time from a timeline tap / existing item). When true, course
+  /// changes will not overwrite [startTime] / [endTime] with the course
+  /// schedule's class time. Parallels [isChanged] but scoped to time only.
+  bool userChangedTime = false;
   double priorityValue = 50.0;
   QuillController notesController = QuillController.basic();
   int? linkedNoteId;
