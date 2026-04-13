@@ -928,7 +928,7 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
       }
 
       if (!_isEvent && _courses.isNotEmpty) {
-        _selectCourse(_courses.first.id);
+        _selectCourse(_pickInitialCourseId(formController.startDate));
       }
 
       if (widget.initialDate != null && !widget.isFromMonthView) {
@@ -1105,6 +1105,29 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
 
     if (!mounted) return;
     await onSubmit();
+  }
+
+  /// Picks which course to pre-select when creating a new homework item.
+  /// Prefers the first course (in display order) whose schedule actually
+  /// meets on [date]'s weekday, so e.g. tapping Monday picks Sociology (MWF)
+  /// over Programming (TTh) even if Programming sorts first alphabetically.
+  /// Falls back to the first course if no schedule matches.
+  int _pickInitialCourseId(DateTime date) {
+    final sortedCourses = PlannerHelper.sortByGroupStartThenByTitle(
+      _courses,
+      _courseGroups,
+    );
+    // DateTime.weekday is 1=Mon..7=Sun; CourseScheduleModel uses 0=Sun..6=Sat.
+    final dayIndex = date.weekday % 7;
+    for (final course in sortedCourses) {
+      final schedule = _courseSchedules
+          .where((cs) => cs.course == course.id)
+          .firstOrNull;
+      if (schedule != null && schedule.isDayActive(dayIndex)) {
+        return course.id;
+      }
+    }
+    return sortedCourses.first.id;
   }
 
   void _selectCourse(int courseId) {
