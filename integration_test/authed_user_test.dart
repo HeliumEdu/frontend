@@ -531,13 +531,18 @@ void main() {
       await tester.tapAt(const Offset(10, 10));
       await tester.pumpAndSettle();
 
+      // On desktop the search field is always visible inline; on smaller
+      // viewports it's behind a button that must be tapped first.
       _log.info('Opening search field ...');
       final searchButton = find.byKey(
         const Key(PlannerScreen.searchButtonKey),
       );
-      await tester.tap(searchButton);
+      if (searchButton.evaluate().isNotEmpty) {
+        await tester.tap(searchButton);
+      }
 
-      // Wait for search field to appear (animation)
+      // Wait for search field to appear (animation on non-desktop, immediate
+      // on desktop where it's already inline)
       final searchField = find.byType(TextField);
       final searchFieldAppeared = await waitForWidget(
         tester,
