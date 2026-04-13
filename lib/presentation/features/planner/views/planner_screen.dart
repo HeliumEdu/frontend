@@ -879,7 +879,14 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
   }) {
     // Clear any Syncfusion slot selection that may have been triggered by the
     // tap so a calendar item tap never leaves a visible selection highlight.
-    _calendarController.selectedDate = null;
+    // Exception: mobile month view relies on the selected day to render the
+    // day's item list below the grid — clearing it would leave the user
+    // staring at an empty-state after closing the dialog.
+    final isMobileMonthView =
+        _currentView == PlannerView.month && Responsive.isMobile(context);
+    if (!isMobileMonthView) {
+      _calendarController.selectedDate = null;
+    }
 
     if (plannerItem is CourseScheduleEventModel) {
       final shouldHideWebsiteLink =
