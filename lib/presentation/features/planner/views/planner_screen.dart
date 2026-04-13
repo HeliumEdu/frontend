@@ -82,10 +82,10 @@ import 'package:heliumapp/utils/grade_helpers.dart';
 import 'package:heliumapp/utils/planner_helper.dart';
 import 'package:heliumapp/utils/print_helpers.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
+import 'package:heliumapp/utils/url_helpers.dart';
 import 'package:logging/logging.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';
 import 'package:timezone/standalone.dart' as tz;
-import 'package:heliumapp/utils/url_helpers.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 final _log = Logger('presentation.views');
@@ -426,30 +426,47 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
             final previousHomework = _plannerItemDataSource!.allHomeworks
                 .firstWhereOrNull((h) => h.id == state.homework.id);
             _plannerItemDataSource!.updatePlannerItem(state.homework);
-            if (state.homework.completed && previousHomework?.completed == false) {
+            if (state.homework.completed &&
+                previousHomework?.completed == false) {
               FeedbackService().triggerReviewRequest();
-              unawaited(AnalyticsService().logEvent(
-                name: AnalyticsEvent.homeworkComplete,
-                parameters: {
-                  'category': AnalyticsCategory.featureInteraction.value,
-                  'on_time': (!DateTime.now().isAfter(state.homework.end)).toString(),
-                  'days_since_due': DateTime.now().difference(state.homework.start).inDays,
-                },
-              ));
+              unawaited(
+                AnalyticsService().logEvent(
+                  name: AnalyticsEvent.homeworkComplete,
+                  parameters: {
+                    'category': AnalyticsCategory.featureInteraction.value,
+                    'on_time': (!DateTime.now().isAfter(
+                      state.homework.end,
+                    )).toString(),
+                    'days_since_due': DateTime.now()
+                        .difference(state.homework.start)
+                        .inDays,
+                  },
+                ),
+              );
             }
             final prevGrade = previousHomework?.currentGrade;
-            final prevIsEmpty = prevGrade == null || prevGrade.isEmpty || prevGrade.startsWith('-1/');
+            final prevIsEmpty =
+                prevGrade == null ||
+                prevGrade.isEmpty ||
+                prevGrade.startsWith('-1/');
             final newGrade = state.homework.currentGrade;
-            final newIsValid = newGrade != null && newGrade.isNotEmpty && !newGrade.startsWith('-1/');
+            final newIsValid =
+                newGrade != null &&
+                newGrade.isNotEmpty &&
+                !newGrade.startsWith('-1/');
             if (prevIsEmpty && newIsValid) {
-              final daysSinceDue = DateTime.now().difference(state.homework.start).inDays;
-              unawaited(AnalyticsService().logEvent(
-                name: AnalyticsEvent.homeworkGrade,
-                parameters: {
-                  'category': AnalyticsCategory.featureInteraction.value,
-                  'days_since_due': daysSinceDue,
-                },
-              ));
+              final daysSinceDue = DateTime.now()
+                  .difference(state.homework.start)
+                  .inDays;
+              unawaited(
+                AnalyticsService().logEvent(
+                  name: AnalyticsEvent.homeworkGrade,
+                  parameters: {
+                    'category': AnalyticsCategory.featureInteraction.value,
+                    'days_since_due': daysSinceDue,
+                  },
+                ),
+              );
             }
           } else if (state is HomeworkDeleted) {
             showSnackBar(context, 'Assignment deleted');
@@ -597,7 +614,9 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
                   PrintHidden(
                     child: Positioned.fill(
                       child: Container(
-                        color: context.colorScheme.surface.withValues(alpha: 0.7),
+                        color: context.colorScheme.surface.withValues(
+                          alpha: 0.7,
+                        ),
                         child: const Center(
                           child: LoadingIndicator(expanded: false),
                         ),
@@ -841,7 +860,8 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
           const double letterPortraitContentAspect = 720.0 / 540.0;
           const double calendarHeaderHeight = 68.0;
           return SizedBox(
-            height: constraints.maxWidth * letterPortraitContentAspect -
+            height:
+                constraints.maxWidth * letterPortraitContentAspect -
                 calendarHeaderHeight,
             child: calendar,
           );
@@ -2483,7 +2503,10 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
           WidgetSpan(
             alignment: PlaceholderAlignment.middle,
             child: Padding(
-              padding: const EdgeInsets.only(top: 0.5, right: 4),
+              padding: EdgeInsets.only(
+                top: _currentView == PlannerView.month ? 0 : 1,
+                right: 4,
+              ),
               child: inlineIcon,
             ),
           ),
@@ -2492,20 +2515,12 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
 
       if (showTimeBeforeTitle) {
         spans.add(
-          WidgetSpan(
-            alignment: PlaceholderAlignment.middle,
-            child: Padding(
-              padding: EdgeInsets.only(
-                right: Responsive.isMobile(context) ? 2 : 4,
-              ),
-              child: _buildCalendarItemTime(
-                plannerItem,
-                isInAgenda: false,
-                backgroundColor: backgroundColor,
-              ),
-            ),
+          _buildCalendarItemTimeSpan(
+            plannerItem,
+            backgroundColor: backgroundColor,
           ),
         );
+        spans.add(const TextSpan(text: ' '));
       }
 
       final isCompleted =
@@ -2526,9 +2541,9 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
       );
       titleRowWidget = Text.rich(
         TextSpan(children: spans),
-        style: AppStyles.calendarItemText(context).copyWith(
-          color: foregroundColor,
-        ),
+        style: AppStyles.calendarItemText(
+          context,
+        ).copyWith(color: foregroundColor),
         maxLines: _currentView == PlannerView.month || plannerItem.allDay
             ? 1
             : null,
@@ -4001,6 +4016,44 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
         _buildRecurringTimePrefixIcon(backgroundColor: backgroundColor),
         const SizedBox(width: 2),
         timeText,
+      ],
+    );
+  }
+
+  /// Inline-span variant of [_buildCalendarItemTime] for use inside the
+  /// title's [Text.rich]. Returning a [TextSpan] (rather than a [WidgetSpan]
+  /// holding a [Text]) lets the paragraph ellipsizer truncate the time
+  /// character-by-character when space is tight, instead of dropping the
+  /// entire placeholder and collapsing the line to "...".
+  InlineSpan _buildCalendarItemTimeSpan(
+    PlannerItemBaseModel plannerItem, {
+    required Color backgroundColor,
+  }) {
+    final foregroundColor = backgroundColor.contrasting;
+    final timeStyle = AppStyles.calendarItemTextLight(
+      context,
+    ).copyWith(color: foregroundColor.withValues(alpha: 0.7));
+    final timeSpan = TextSpan(
+      text: HeliumDateTime.formatTime(
+        HeliumDateTime.toLocal(plannerItem.start, userSettings!.timeZone),
+      ),
+      style: timeStyle,
+    );
+
+    if (!_shouldShowRecurringIconWithTime(plannerItem, isInAgenda: false)) {
+      return timeSpan;
+    }
+
+    return TextSpan(
+      children: [
+        WidgetSpan(
+          alignment: PlaceholderAlignment.middle,
+          child: _buildRecurringTimePrefixIcon(
+            backgroundColor: backgroundColor,
+          ),
+        ),
+        const TextSpan(text: ' '),
+        timeSpan,
       ],
     );
   }
