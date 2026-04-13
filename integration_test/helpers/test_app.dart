@@ -29,6 +29,7 @@ import 'package:heliumapp/presentation/features/planner/bloc/external_calendar_b
 import 'package:heliumapp/presentation/features/planner/bloc/planneritem_bloc.dart';
 import 'package:heliumapp/presentation/features/planner/views/planner_screen.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/core/provider_helpers.dart';
+import 'package:heliumapp/utils/format_helpers.dart';
 import 'package:http/http.dart' as http;
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
@@ -395,7 +396,8 @@ Future<bool> waitForRoute(
 Finder findRichTextContaining(String text) {
   return find.byWidgetPredicate(
     (widget) =>
-        widget is RichText && widget.text.toPlainText().contains(text),
+        widget is RichText &&
+        widget.text.toPlainText().stripZeroWidthChars().contains(text),
     description: 'RichText containing "$text"',
   );
 }
