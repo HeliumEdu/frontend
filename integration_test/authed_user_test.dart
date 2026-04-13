@@ -13,6 +13,8 @@ import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/data/models/planner/request/homework_request_model.dart';
 import 'package:heliumapp/presentation/features/auth/controllers/credentials_form_controller.dart';
 import 'package:heliumapp/presentation/features/planner/controllers/planner_item_form_controller.dart';
+import 'package:heliumapp/presentation/features/planner/views/planner_screen.dart';
+import 'package:heliumapp/presentation/ui/layout/page_header.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:logging/logging.dart';
@@ -791,11 +793,14 @@ void main() {
 
       // Find and tap the Save button
       _log.info('Saving homework changes ...');
-      final saveIcon = find.byIcon(Icons.check);
-      if (saveIcon.evaluate().isNotEmpty) {
-        await tester.tap(saveIcon);
-        await tester.pumpAndSettle(const Duration(seconds: 3));
-      }
+      final saveButton = find.byKey(const Key(PageHeader.saveButtonKey));
+      expect(
+        saveButton,
+        findsOneWidget,
+        reason: 'Header save button should be present',
+      );
+      await tester.tap(saveButton);
+      await tester.pumpAndSettle(const Duration(seconds: 3));
 
       // Verify the edit dialog has closed
       final dialogClosed = await waitForWidgetToDisappear(
@@ -898,10 +903,16 @@ void main() {
           )
           .first;
 
-      // Find the Checkbox within that specific item container
+      // Find the completion checkbox within that specific item container.
+      // The checkbox is keyed with a ValueKey<String> prefixed by
+      // PlannerScreen.plannerItemCheckboxKeyPrefix + the homework id.
       final checkbox = find.descendant(
         of: itemContainer,
-        matching: find.byType(Checkbox),
+        matching: find.byWidgetPredicate((widget) {
+          final key = widget.key;
+          return key is ValueKey<String> &&
+              key.value.startsWith(PlannerScreen.plannerItemCheckboxKeyPrefix);
+        }),
       );
       expect(
         checkbox,

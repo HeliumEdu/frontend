@@ -18,6 +18,9 @@ import 'package:heliumapp/utils/responsive_helpers.dart';
 enum ScreenType { page, subPage, entityPage }
 
 class PageHeader extends StatelessWidget {
+  // Integration-test finder for the entity save action in the header.
+  static const String saveButtonKey = 'page_header_save_button';
+
   final String title;
   final IconData? icon;
   final ScreenType screenType;
@@ -89,6 +92,7 @@ class PageHeader extends StatelessWidget {
               )
             else if (screenType == ScreenType.entityPage)
               IconButton(
+                key: const Key(saveButtonKey),
                 onPressed: isLoading
                     ? null
                     : () {

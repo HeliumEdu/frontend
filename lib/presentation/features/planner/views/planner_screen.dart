@@ -91,6 +91,11 @@ import 'package:url_launcher/url_launcher.dart';
 final _log = Logger('presentation.views');
 
 class PlannerScreen extends StatelessWidget {
+  // Integration-test finder prefix for the per-item completion checkbox
+  // rendered on calendar tiles. Combine with the homework id to get a
+  // ValueKey, e.g. ValueKey('${plannerItemCheckboxKeyPrefix}42').
+  static const String plannerItemCheckboxKeyPrefix = 'planner_item_checkbox_';
+
   final DioClient _dioClient = DioClient();
   final ProviderHelpers _providerHelpers = ProviderHelpers();
 
@@ -3956,6 +3961,9 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
     }
 
     return MouseRegion(
+      key: ValueKey(
+        '${PlannerScreen.plannerItemCheckboxKeyPrefix}${homework.id}',
+      ),
       cursor: SystemMouseCursors.click,
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
