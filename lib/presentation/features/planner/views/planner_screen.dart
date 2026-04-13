@@ -237,6 +237,14 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
   bool _allowCalendarDragAndDrop = true;
   bool _isCalendarInteractionInProgress = false;
 
+  // Debounces rapid checkbox taps so fast toggling doesn't fire a network
+  // request per tap. We update the optimistic override immediately on each
+  // tap for instant visual feedback, but defer the actual bloc dispatch
+  // until the user stops tapping.
+  final Map<int, Timer> _pendingToggleTimers = {};
+  final Map<int, bool> _pendingToggleValues = {};
+  static const _toggleDebounceDuration = Duration(milliseconds: 400);
+
   PlannerItemDataSource? _plannerItemDataSource;
   final Map<int, ExternalCalendarModel> _externalCalendarsById = {};
 
@@ -291,6 +299,11 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
 
   @override
   void dispose() {
+    for (final timer in _pendingToggleTimers.values) {
+      timer.cancel();
+    }
+    _pendingToggleTimers.clear();
+    _pendingToggleValues.clear();
     _plannerItemDataSource?.dispose();
     _searchController.dispose();
     _searchFocusNode.dispose();
@@ -801,7 +814,6 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
               ? _buildMobileMonthCell
               : null,
           appointmentBuilder: _buildCalendarItem,
-          onTap: _openCalendarItem,
           onDragStart: _onCalendarDragStart,
           onDragEnd: _dropCalendarItem,
           onAppointmentResizeEnd: _resizeCalendarItem,
@@ -845,6 +857,10 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
     DateTime? occurrenceDate,
     bool? hideWebsiteLink,
   }) {
+    // Clear any Syncfusion slot selection that may have been triggered by the
+    // tap so a calendar item tap never leaves a visible selection highlight.
+    _calendarController.selectedDate = null;
+
     if (plannerItem is CourseScheduleEventModel) {
       final shouldHideWebsiteLink =
           hideWebsiteLink ??
@@ -1630,30 +1646,6 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
     _plannerItemDataSource!.setSearchQuery(value);
   }
 
-  void _openCalendarItem(CalendarTapDetails tapDetails) {
-    if (tapDetails.appointments == null ||
-        tapDetails.appointments!.isEmpty ||
-        tapDetails.targetElement != CalendarElement.appointment) {
-      return;
-    }
-
-    final PlannerItemBaseModel plannerItem =
-        tapDetails.appointments![0] as PlannerItemBaseModel;
-
-    // Agenda-style items handle taps internally via column-based tap zones
-    // (agenda view), or the GestureDetector in _buildCalendarItem handles taps
-    // to bypass an SfCalendar month-view quirk on touch devices.
-    if (_currentView == PlannerView.agenda ||
-        (_currentView == PlannerView.month &&
-            Responsive.isTouchDevice(context))) {
-      return;
-    }
-
-    Feedback.forTap(context);
-
-    _openPlannerItem(plannerItem, occurrenceDate: tapDetails.date);
-  }
-
   void _dropCalendarItem(AppointmentDragEndDetails dropDetails) {
     _setCalendarInteractionInProgress(false);
 
@@ -2050,17 +2042,10 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
     if (!_allowCalendarDragAndDrop || !mounted) {
       return;
     }
-    setState(() {
-      _allowCalendarDragAndDrop = false;
-      _isCalendarInteractionInProgress = true;
-    });
-    Tooltip.dismissAllToolTips();
+    _allowCalendarDragAndDrop = false;
     Future.delayed(const Duration(milliseconds: 250), () {
       if (!mounted) return;
-      setState(() {
-        _allowCalendarDragAndDrop = true;
-        _isCalendarInteractionInProgress = false;
-      });
+      _allowCalendarDragAndDrop = true;
     });
   }
 
@@ -2498,7 +2483,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
           WidgetSpan(
             alignment: PlaceholderAlignment.middle,
             child: Padding(
-              padding: const EdgeInsets.only(top: 1, right: 4),
+              padding: const EdgeInsets.only(top: 0.5, right: 4),
               child: inlineIcon,
             ),
           ),
@@ -2529,7 +2514,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
 
       spans.add(
         TextSpan(
-          text: plannerItem.title,
+          text: plannerItem.title.characters.join('\u200B'),
           style: AppStyles.calendarItemText(context).copyWith(
             color: foregroundColor,
             decoration: isCompleted
@@ -2547,6 +2532,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
         overflow: _currentView == PlannerView.month || plannerItem.allDay
             ? TextOverflow.ellipsis
             : null,
+        semanticsLabel: plannerItem.title,
       );
     } else {
       titleRowWidget = _buildCalendarItemTitle(
@@ -2707,6 +2693,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
         width: width,
         height: height,
         completedOverride: completedOverride,
+        occurrenceDate: occurrenceDate,
       );
     }
   }
@@ -2855,6 +2842,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
     required double width,
     double? height,
     bool? completedOverride,
+    DateTime? occurrenceDate,
   }) {
     final color = _plannerItemDataSource!.getColorForItem(plannerItem);
     final location = _plannerItemDataSource!.getLocationForItem(plannerItem);
@@ -2873,28 +2861,33 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
       backgroundColor: color,
     );
 
-    return Container(
-      width: width,
-      height: height,
-      decoration: BoxDecoration(
-        color: color,
-        borderRadius: BorderRadius.circular(4),
-      ),
-      clipBehavior: Clip.hardEdge,
-      child: _buildRecurringIndicatorOverlay(
-        plannerItem: plannerItem,
-        backgroundColor: color,
-        child: UnconstrainedBox(
-          constrainedAxis: Axis.horizontal,
-          alignment: PlannerHelper.getAlignmentForView(
-            context,
-            false,
-            _currentView,
-          ),
-          clipBehavior: Clip.hardEdge,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 4),
-            child: centerWidget,
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: () =>
+          _openPlannerItem(plannerItem, occurrenceDate: occurrenceDate),
+      child: Container(
+        width: width,
+        height: height,
+        decoration: BoxDecoration(
+          color: color,
+          borderRadius: BorderRadius.circular(4),
+        ),
+        clipBehavior: Clip.hardEdge,
+        child: _buildRecurringIndicatorOverlay(
+          plannerItem: plannerItem,
+          backgroundColor: color,
+          child: UnconstrainedBox(
+            constrainedAxis: Axis.horizontal,
+            alignment: PlannerHelper.getAlignmentForView(
+              context,
+              false,
+              _currentView,
+            ),
+            clipBehavior: Clip.hardEdge,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 4),
+              child: centerWidget,
+            ),
           ),
         ),
       ),
@@ -3115,20 +3108,27 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
 
     _plannerItemDataSource!.setCompletedOverride(homework.id, value);
 
-    final request = HomeworkRequestModel(completed: value);
+    _pendingToggleTimers[homework.id]?.cancel();
+    _pendingToggleValues[homework.id] = value;
+    _pendingToggleTimers[homework.id] = Timer(_toggleDebounceDuration, () {
+      if (!mounted) return;
+      final pendingValue = _pendingToggleValues.remove(homework.id);
+      _pendingToggleTimers.remove(homework.id);
+      if (pendingValue == null) return;
 
-    final course = _courses.firstWhere((c) => c.id == homework.course.id);
+      final request = HomeworkRequestModel(completed: pendingValue);
+      final course = _courses.firstWhere((c) => c.id == homework.course.id);
 
-    context.read<PlannerItemBloc>().add(
-      UpdateHomeworkEvent(
-        origin: EventOrigin.screen,
-        courseGroupId: course.courseGroup,
-        courseId: course.id,
-        homeworkId: homework.id,
-        request: request,
-      ),
-    );
-
+      context.read<PlannerItemBloc>().add(
+        UpdateHomeworkEvent(
+          origin: EventOrigin.screen,
+          courseGroupId: course.courseGroup,
+          courseId: course.id,
+          homeworkId: homework.id,
+          request: request,
+        ),
+      );
+    });
   }
 
   void _updatePlannerItemAttachments(
@@ -3806,7 +3806,9 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
     );
 
     return Text(
-      plannerItem.title,
+      isInAgenda
+          ? plannerItem.title
+          : plannerItem.title.characters.join('\u200B'),
       style: titleStyle,
       maxLines:
           _currentView == PlannerView.month ||
@@ -3818,6 +3820,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
               _currentView == PlannerView.agenda
           ? TextOverflow.ellipsis
           : null,
+      semanticsLabel: isInAgenda ? null : plannerItem.title,
     );
   }
 
@@ -3887,29 +3890,66 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
     bool? completedOverride,
     required Color backgroundColor,
   }) {
-    // If UI override exists, use that, to avoid a flicker
-    final isCompleted =
-        _plannerItemDataSource?.isHomeworkCompleted(homework) ??
-        completedOverride ??
-        homework.completed;
-
     final foregroundColor = backgroundColor.contrasting;
-    return SizedBox(
-      width: 16,
-      height: 16,
-      child: Transform.scale(
-        scale: AppStyles.calendarItemPrefixScale(context),
-        child: Checkbox(
-          value: isCompleted,
-          onChanged: (value) {
-            _onToggleCompleted(homework, value!);
-          },
-          activeColor: context.colorScheme.primary,
-          side: BorderSide(
-            color: foregroundColor.withValues(alpha: 0.7),
-            width: 2.5,
+    final primary = context.colorScheme.primary;
+    final onPrimary = context.colorScheme.onPrimary;
+    final dataSource = _plannerItemDataSource;
+
+    Widget buildBox(bool isCompleted) {
+      return SizedBox(
+        width: 17,
+        height: 17,
+        child: Transform.scale(
+          scale: AppStyles.calendarItemPrefixScale(context),
+          child: Container(
+            decoration: BoxDecoration(
+              color: isCompleted ? primary : Colors.transparent,
+              border: Border.all(
+                color: isCompleted
+                    ? primary
+                    : foregroundColor.withValues(alpha: 0.7),
+                width: 2,
+              ),
+              borderRadius: BorderRadius.circular(2),
+            ),
+            child: isCompleted
+                ? Center(
+                    child: Transform.translate(
+                      offset: const Offset(-1.5, -1.5),
+                      child: Icon(
+                        Icons.check,
+                        size: 17,
+                        weight: 700,
+                        color: onPrimary,
+                      ),
+                    ),
+                  )
+                : null,
           ),
         ),
+      );
+    }
+
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: () {
+          final current =
+              dataSource?.isHomeworkCompleted(homework) ??
+              completedOverride ??
+              homework.completed;
+          _onToggleCompleted(homework, !current);
+        },
+        child: dataSource != null
+            ? ListenableBuilder(
+                listenable: dataSource.changeNotifier,
+                builder: (context, _) {
+                  final isCompleted = dataSource.isHomeworkCompleted(homework);
+                  return buildBox(isCompleted);
+                },
+              )
+            : buildBox(completedOverride ?? homework.completed),
       ),
     );
   }
