@@ -20,10 +20,14 @@ import 'package:heliumapp/core/log_service.dart';
 import 'package:heliumapp/data/repositories/auth_repository_impl.dart';
 import 'package:heliumapp/data/sources/auth_remote_data_source.dart';
 import 'package:heliumapp/helium_app.dart';
+import 'package:heliumapp/presentation/core/dialogs/getting_started_dialog.dart';
+import 'package:heliumapp/presentation/core/dialogs/whats_new_dialog.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_bloc.dart';
 import 'package:heliumapp/presentation/features/auth/controllers/credentials_form_controller.dart';
+import 'package:heliumapp/presentation/features/auth/views/login_screen.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/external_calendar_bloc.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/planneritem_bloc.dart';
+import 'package:heliumapp/presentation/features/planner/views/planner_screen.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/core/provider_helpers.dart';
 import 'package:http/http.dart' as http;
 import 'package:logging/logging.dart';
@@ -486,7 +490,8 @@ Future<void> ensureOnLoginScreen(WidgetTester tester) async {
 
   // Check if we're already on login screen using field keys
   final emailFieldFinder = find.byKey(const Key(CredentialsFormController.emailField));
-  if (find.text('Sign In').evaluate().isNotEmpty &&
+  final signInButton = find.byKey(const Key(LoginScreen.signInButtonKey));
+  if (signInButton.evaluate().isNotEmpty &&
       emailFieldFinder.evaluate().isNotEmpty) {
     return;
   }
@@ -495,7 +500,7 @@ Future<void> ensureOnLoginScreen(WidgetTester tester) async {
   _log.info('Waiting for redirect to login screen ...');
   final found = await waitForWidget(
     tester,
-    find.text('Sign In'),
+    signInButton,
     timeout: const Duration(seconds: 10),
   );
 
@@ -522,7 +527,7 @@ Future<bool> dismissGettingStartedDialog(
   }
 
   _log.info('Dismissing Getting Started dialog ...');
-  await tester.tap(find.text("I'll explore first"));
+  await tester.tap(find.byKey(const Key(gettingStartedDismissButtonKey)));
   await tester.pumpAndSettle();
 
   // Wait for dialog to fully close before proceeding
@@ -555,7 +560,7 @@ Future<bool> dismissWhatsNewDialog(
   }
 
   _log.info('Dismissing What\'s New dialog ...');
-  await tester.tap(find.text('Dive In!'));
+  await tester.tap(find.byKey(const Key(whatsNewDismissButtonKey)));
   await tester.pumpAndSettle();
 
   // Wait for dialog to fully close before proceeding
@@ -598,7 +603,7 @@ Future<bool> loginAndNavigateToPlanner(
   );
 
   _log.info('Submitting login ...');
-  await tester.tap(find.text('Sign In'));
+  await tester.tap(find.byKey(const Key(LoginScreen.signInButtonKey)));
 
   // Wait for planner route
   final reachedPlanner = await waitForRoute(
@@ -656,12 +661,16 @@ Future<void> navigateCalendarToUserTimezone(
 
   if (monthDiff < 0) {
     for (var i = 0; i < -monthDiff; i++) {
-      await tester.tap(find.byIcon(Icons.chevron_left).first);
+      await tester.tap(
+        find.byKey(const Key(PlannerScreen.calendarPrevButtonKey)),
+      );
       await tester.pumpAndSettle();
     }
   } else if (monthDiff > 0) {
     for (var i = 0; i < monthDiff; i++) {
-      await tester.tap(find.byIcon(Icons.chevron_right).first);
+      await tester.tap(
+        find.byKey(const Key(PlannerScreen.calendarNextButtonKey)),
+      );
       await tester.pumpAndSettle();
     }
   }

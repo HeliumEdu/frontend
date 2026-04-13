@@ -14,6 +14,8 @@ import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+const String whatsNewDismissButtonKey = 'whats_new_dismiss_button';
+
 class _WhatsNewDialogWidget extends StatelessWidget {
   const _WhatsNewDialogWidget();
 
@@ -137,6 +139,7 @@ class _WhatsNewDialogWidget extends StatelessWidget {
         SizedBox(
           width: Responsive.getDialogWidth(context),
           child: HeliumElevatedButton(
+            key: const Key(whatsNewDismissButtonKey),
             buttonText: 'Dive In!',
             onPressed: () async {
               try {

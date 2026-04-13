@@ -11,6 +11,8 @@ import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/config/app_router.dart';
 import 'package:heliumapp/presentation/features/auth/controllers/credentials_form_controller.dart';
 import 'package:heliumapp/presentation/features/auth/controllers/signup_form_controller.dart';
+import 'package:heliumapp/presentation/features/auth/views/login_screen.dart';
+import 'package:heliumapp/presentation/features/auth/views/signup_screen.dart';
 import 'package:heliumapp/presentation/features/auth/views/verify_email_screen.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:logging/logging.dart';
@@ -56,7 +58,7 @@ void main() {
       await initializeTestApp(tester);
 
       // Navigate to signup screen
-      await tester.tap(find.text('Need an account?'));
+      await tester.tap(find.byKey(const Key(LoginScreen.signupLinkKey)));
       await tester.pumpAndSettle();
 
       // Verify we're on the signup screen
@@ -109,7 +111,7 @@ void main() {
       signupInitiatedAt = DateTime.now().toUtc();
 
       // Submit the form
-      await tester.tap(find.text('Sign Up'));
+      await tester.tap(find.byKey(const Key(SignupScreen.signUpButtonKey)));
       await tester.pumpAndSettle(const Duration(seconds: 5));
 
       // Should navigate to verify email screen

@@ -91,10 +91,13 @@ import 'package:url_launcher/url_launcher.dart';
 final _log = Logger('presentation.views');
 
 class PlannerScreen extends StatelessWidget {
-  // Integration-test finder prefix for the per-item completion checkbox
-  // rendered on calendar tiles. Combine with the homework id to get a
-  // ValueKey, e.g. ValueKey('${plannerItemCheckboxKeyPrefix}42').
   static const String plannerItemCheckboxKeyPrefix = 'planner_item_checkbox_';
+  static const String todayButtonKey = 'planner_today_button';
+  static const String viewSwitcherButtonKey = 'planner_view_switcher_button';
+  static const String filterButtonKey = 'planner_filter_button';
+  static const String searchButtonKey = 'planner_search_button';
+  static const String calendarPrevButtonKey = 'planner_calendar_prev_button';
+  static const String calendarNextButtonKey = 'planner_calendar_next_button';
 
   final DioClient _dioClient = DioClient();
   final ProviderHelpers _providerHelpers = ProviderHelpers();
@@ -953,9 +956,12 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
                         PrintHidden(
-                          child: _buildTodayButton(
-                            showLabel: !isMobile,
-                            key: _todayButtonKey,
+                          child: KeyedSubtree(
+                            key: const Key(PlannerScreen.todayButtonKey),
+                            child: _buildTodayButton(
+                              showLabel: !isMobile,
+                              key: _todayButtonKey,
+                            ),
                           ),
                         ),
                         _buildCalendarDateArea(),
@@ -1062,6 +1068,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
           if (showNavButtons) ...[
             PrintHidden(
               child: IconButton(
+                key: const Key(PlannerScreen.calendarPrevButtonKey),
                 icon: Icon(
                   Icons.chevron_left,
                   color: context.colorScheme.primary,
@@ -1117,6 +1124,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
           if (showNavButtons)
             PrintHidden(
               child: IconButton(
+                key: const Key(PlannerScreen.calendarNextButtonKey),
                 icon: Icon(
                   Icons.chevron_right,
                   color: context.colorScheme.primary,
@@ -1392,6 +1400,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
         Builder(
           builder: (context) {
             return IconButton.outlined(
+              key: const Key(PlannerScreen.viewSwitcherButtonKey),
               onPressed: () => _openViewMenu(context),
               tooltip: 'Change view',
               icon: const Icon(Icons.calendar_month),
@@ -1407,6 +1416,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
           builder: (context) {
             final hasFilters = _hasCoursesFilter() || _hasStatusFilters();
             return IconButton.outlined(
+              key: const Key(PlannerScreen.filterButtonKey),
               onPressed: _courses.isEmpty
                   ? null
                   : () => _openFilterMenu(context),
@@ -1435,6 +1445,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
             builder: (context) {
               final hasSearchQuery = _hasSearchQuery();
               return IconButton.outlined(
+                key: const Key(PlannerScreen.searchButtonKey),
                 onPressed: () {
                   setState(() {
                     _isFilterExpanded = false;

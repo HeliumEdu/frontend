@@ -18,6 +18,8 @@ import 'package:heliumapp/presentation/ui/components/helium_elevated_button.dart
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 
+const String gettingStartedDismissButtonKey = 'getting_started_dismiss_button';
+
 class _GettingStartedDialogWidget extends StatelessWidget {
   const _GettingStartedDialogWidget();
 
@@ -163,6 +165,7 @@ class _GettingStartedDialogWidget extends StatelessWidget {
                   SizedBox(
                     width: Responsive.getDialogWidth(context, fallback: fallbackWidth),
                     child: TextButton(
+                      key: const Key(gettingStartedDismissButtonKey),
                       onPressed: isLoading ? null : () => _handleClose(context),
                       child: Text(
                         "I'll explore first",
