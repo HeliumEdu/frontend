@@ -161,6 +161,25 @@ extension AppStyles on BuildContext {
   static TextStyle menuItemActive(BuildContext context) =>
       menuItem(context).copyWith(color: Theme.of(context).colorScheme.primary);
 
+  static TextStyle calendarItemText(BuildContext context) {
+    return poppins(
+      fontWeight: FontWeight.w400,
+      fontSize: 12,
+      color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.9),
+      fontFeatures: [const FontFeature.tabularFigures()],
+    ).copyWith(decorationThickness: 2.0);
+  }
+
+  // Used for timeline calendar item details text size
+  static TextStyle calendarItemTextLight(BuildContext context) {
+    return poppins(
+      fontWeight: FontWeight.w300,
+      fontSize: 12,
+      color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.9),
+      fontFeatures: [const FontFeature.tabularFigures()],
+    ).copyWith(decorationThickness: 2.0);
+  }
+
   // Used for responsive scaling of planner item prefixes on calendar (checkboxes, icons)
   static double calendarItemPrefixScale(BuildContext context) {
     final deviceType = Responsive.getDeviceType(context);

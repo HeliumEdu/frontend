@@ -2431,6 +2431,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
       children: [
         _buildCalendarItemTitle(
           plannerItem,
+          isInAgenda: true,
           completedOverride: completedOverride,
           backgroundColor: backgroundColor,
         ),
@@ -2455,6 +2456,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
             location.isNotEmpty)
           _buildCalendarItemLocationRow(
             location,
+            isInAgenda: true,
             backgroundColor: backgroundColor,
           ),
       ],
@@ -2496,7 +2498,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
           WidgetSpan(
             alignment: PlaceholderAlignment.middle,
             child: Padding(
-              padding: const EdgeInsets.only(right: 4),
+              padding: const EdgeInsets.only(top: 1, right: 4),
               child: inlineIcon,
             ),
           ),
@@ -2528,13 +2530,12 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
       spans.add(
         TextSpan(
           text: plannerItem.title,
-          style: AppStyles.smallSecondaryTextLight(context).copyWith(
+          style: AppStyles.calendarItemText(context).copyWith(
             color: foregroundColor,
             decoration: isCompleted
                 ? TextDecoration.lineThrough
                 : TextDecoration.none,
             decorationColor: foregroundColor,
-            decorationThickness: 2.0,
           ),
         ),
       );
@@ -2550,6 +2551,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
     } else {
       titleRowWidget = _buildCalendarItemTitle(
         plannerItem,
+        isInAgenda: false,
         completedOverride: completedOverride,
         backgroundColor: backgroundColor,
       );
@@ -2580,6 +2582,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
             location.isNotEmpty)
           _buildCalendarItemLocationRow(
             location,
+            isInAgenda: false,
             backgroundColor: backgroundColor,
           ),
       ],
@@ -3777,6 +3780,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
 
   Widget _buildCalendarItemTitle(
     PlannerItemBaseModel plannerItem, {
+    required bool isInAgenda,
     bool? completedOverride,
     required Color backgroundColor,
   }) {
@@ -3789,7 +3793,10 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
         : false;
 
     final foregroundColor = backgroundColor.contrasting;
-    final titleStyle = AppStyles.smallSecondaryTextLight(context).copyWith(
+    final baseStyle = isInAgenda
+        ? AppStyles.smallSecondaryTextLight(context)
+        : AppStyles.calendarItemText(context);
+    final titleStyle = baseStyle.copyWith(
       color: foregroundColor,
       decoration: isCompleted
           ? TextDecoration.lineThrough
@@ -3933,7 +3940,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
       HeliumDateTime.formatTime(
         HeliumDateTime.toLocal(plannerItem.start, userSettings!.timeZone),
       ),
-      style: AppStyles.smallSecondaryTextLight(
+      style: AppStyles.calendarItemTextLight(
         context,
       ).copyWith(color: foregroundColor.withValues(alpha: 0.7)),
     );
@@ -3977,9 +3984,11 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
               HeliumDateTime.toLocal(plannerItem.end, userSettings!.timeZone),
               plannerItem.showEndTime,
             ),
-            style: AppStyles.smallSecondaryTextLight(
-              context,
-            ).copyWith(color: foregroundColor.withValues(alpha: 0.7)),
+            style:
+                (isInAgenda
+                        ? AppStyles.smallSecondaryTextLight(context)
+                        : AppStyles.calendarItemTextLight(context))
+                    .copyWith(color: foregroundColor.withValues(alpha: 0.7)),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),
@@ -4009,6 +4018,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
 
   Widget _buildCalendarItemLocationRow(
     String location, {
+    required bool isInAgenda,
     required Color backgroundColor,
   }) {
     final foregroundColor = backgroundColor.contrasting;
@@ -4023,9 +4033,11 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
         Expanded(
           child: Text(
             location,
-            style: AppStyles.smallSecondaryTextLight(
-              context,
-            ).copyWith(color: foregroundColor.withValues(alpha: 0.7)),
+            style:
+                (isInAgenda
+                        ? AppStyles.smallSecondaryTextLight(context)
+                        : AppStyles.calendarItemTextLight(context))
+                    .copyWith(color: foregroundColor.withValues(alpha: 0.7)),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),
