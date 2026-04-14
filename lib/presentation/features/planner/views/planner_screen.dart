@@ -4042,39 +4042,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
     );
   }
 
-  Widget _buildCalendarItemTime(
-    PlannerItemBaseModel plannerItem, {
-    bool isInAgenda = false,
-    required Color backgroundColor,
-  }) {
-    final foregroundColor = backgroundColor.contrasting;
-    final timeText = Text(
-      HeliumDateTime.formatTime(
-        HeliumDateTime.toLocal(plannerItem.start, userSettings!.timeZone),
-      ),
-      style: AppStyles.calendarItemTextLight(
-        context,
-      ).copyWith(color: foregroundColor.withValues(alpha: 0.7)),
-    );
-
-    if (!_shouldShowRecurringIconWithTime(
-      plannerItem,
-      isInAgenda: isInAgenda,
-    )) {
-      return timeText;
-    }
-
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        _buildRecurringTimePrefixIcon(backgroundColor: backgroundColor),
-        const SizedBox(width: 2),
-        timeText,
-      ],
-    );
-  }
-
-  /// Inline-span variant of [_buildCalendarItemTime] for use inside the
+  /// Returns an [InlineSpan] for use inside the
   /// title's [Text.rich]. Returning a [TextSpan] (rather than a [WidgetSpan]
   /// holding a [Text]) lets the paragraph ellipsizer truncate the time
   /// character-by-character when space is tight, instead of dropping the
