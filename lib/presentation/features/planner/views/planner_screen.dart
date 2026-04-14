@@ -253,6 +253,12 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
   final Map<int, bool> _pendingToggleValues = {};
   static const _toggleDebounceDuration = Duration(milliseconds: 400);
 
+  // Tracks IDs whose completion update has been dispatched to the BLoC and is
+  // awaiting a server response. On success (HomeworkUpdated) the ID is removed.
+  // On failure (PlannerItemsError) all in-flight overrides are cleared so the
+  // UI reverts to the last known server state rather than staying stuck.
+  final Set<int> _inFlightCompletionIds = {};
+
   PlannerItemDataSource? _plannerItemDataSource;
   final Map<int, ExternalCalendarModel> _externalCalendarsById = {};
 
@@ -312,6 +318,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
     }
     _pendingToggleTimers.clear();
     _pendingToggleValues.clear();
+    _inFlightCompletionIds.clear();
     _plannerItemDataSource?.dispose();
     _searchController.dispose();
     _searchFocusNode.dispose();
@@ -433,7 +440,14 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
             unawaited(_refreshExternalCalendarsMap());
           } else if (state is HomeworkCreated) {
             _plannerItemDataSource!.addPlannerItem(state.homework);
+          } else if (state is PlannerItemsError) {
+            showSnackBar(context, state.message!, type: SnackType.error);
+            for (final id in _inFlightCompletionIds) {
+              _plannerItemDataSource!.clearCompletedOverride(id);
+            }
+            _inFlightCompletionIds.clear();
           } else if (state is HomeworkUpdated) {
+            _inFlightCompletionIds.remove(state.homework.id);
             final previousHomework = _plannerItemDataSource!.allHomeworks
                 .firstWhereOrNull((h) => h.id == state.homework.id);
             _plannerItemDataSource!.updatePlannerItem(state.homework);
@@ -2418,28 +2432,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
     }
   }
 
-  Widget? _buildCalendarItemLeftIconForAgenda({
-    required PlannerItemBaseModel plannerItem,
-    bool? completedOverride,
-    required Color backgroundColor,
-  }) {
-    if (PlannerHelper.shouldShowCheckbox(context, plannerItem, _currentView)) {
-      return _buildCheckboxWidget(
-        homework: plannerItem as HomeworkModel,
-        completedOverride: completedOverride,
-        backgroundColor: backgroundColor,
-      );
-    } else if (PlannerHelper.shouldShowSchoolIcon(
-      context,
-      plannerItem,
-      _currentView,
-    )) {
-      return _buildSchoolIconWidget(backgroundColor: backgroundColor);
-    }
-    return null;
-  }
-
-  Widget? _getInlineIconWidget({
+  Widget? _buildItemIcon({
     required PlannerItemBaseModel plannerItem,
     bool? completedOverride,
     required Color backgroundColor,
@@ -2779,7 +2772,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
     final location = _plannerItemDataSource!.getLocationForItem(plannerItem);
     final course = _getCourseForPlannerItem(plannerItem);
 
-    final leftIcon = _buildCalendarItemLeftIconForAgenda(
+    final leftIcon = _buildItemIcon(
       plannerItem: plannerItem,
       completedOverride: completedOverride,
       backgroundColor: color,
@@ -2918,7 +2911,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
     final color = _plannerItemDataSource!.getColorForItem(plannerItem);
     final location = _plannerItemDataSource!.getLocationForItem(plannerItem);
 
-    final inlineIcon = _getInlineIconWidget(
+    final inlineIcon = _buildItemIcon(
       plannerItem: plannerItem,
       completedOverride: completedOverride,
       backgroundColor: color,
@@ -3190,6 +3183,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
       final request = HomeworkRequestModel(completed: pendingValue);
       final course = _courses.firstWhere((c) => c.id == homework.course.id);
 
+      _inFlightCompletionIds.add(homework.id);
       context.read<PlannerItemBloc>().add(
         UpdateHomeworkEvent(
           origin: EventOrigin.screen,
@@ -3866,7 +3860,6 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
             ? TextDecoration.lineThrough
             : TextDecoration.none,
         decorationColor: foregroundColor,
-        decorationThickness: 2.0,
       );
 
       return Text(

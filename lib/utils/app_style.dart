@@ -83,7 +83,7 @@ extension AppStyles on BuildContext {
     fontSize: Responsive.getFontSize(context, mobile: 12, desktop: 13),
     color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.9),
     fontFeatures: [const FontFeature.tabularFigures()],
-  );
+  ).copyWith(decorationThickness: 2.0);
 
   // Used for secondary text with a lighter weight (like on the calendar)
   static TextStyle smallSecondaryTextLight(BuildContext context) {
@@ -93,7 +93,7 @@ extension AppStyles on BuildContext {
       fontSize: base.fontSize,
       color: base.color,
       fontFeatures: base.fontFeatures,
-    );
+    ).copyWith(decorationThickness: 2.0);
   }
 
   // Used for responsive button text
