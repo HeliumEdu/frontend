@@ -317,6 +317,7 @@ class _ResourcesScreenState
             icon: Icons.book,
             title: "You haven't added any groups yet",
             message: 'Click "+ Group" to get started',
+            expanded: false,
           );
         }
 
@@ -326,6 +327,7 @@ class _ResourcesScreenState
             icon: Icons.book,
             title: "You haven't added any resources yet",
             message: 'Click "+" to get started',
+            expanded: false,
           );
         }
 
