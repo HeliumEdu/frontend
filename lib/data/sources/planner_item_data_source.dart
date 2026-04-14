@@ -931,13 +931,6 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
     });
   }
 
-  void clearTimeOverride(int itemId) {
-    _timeOverrides.remove(itemId);
-  }
-
-  PlannerItemTimeOverride? getTimeOverride(int itemId) =>
-      _timeOverrides[itemId];
-
   /// Forces SfCalendar to re-read from our appointments list on the next frame,
   /// discarding any internal state it accumulated during a drag-drop gesture on
   /// a locked item (e.g., the rogue duplicate copy SfCalendar inserts for a

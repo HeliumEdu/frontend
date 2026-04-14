@@ -908,34 +908,6 @@ void main() {
         dataSource.addPlannerItem(homework);
       });
 
-      test('setTimeOverride stores override', () {
-        dataSource.setTimeOverride(
-          1,
-          '2025-01-16T14:00:00Z',
-          '2025-01-16T15:00:00Z',
-        );
-
-        final override = dataSource.getTimeOverride(1);
-        expect(override, isNotNull);
-        expect(override!.start, '2025-01-16T14:00:00Z');
-        expect(override.end, '2025-01-16T15:00:00Z');
-      });
-
-      test('getTimeOverride returns null when no override', () {
-        expect(dataSource.getTimeOverride(999), isNull);
-      });
-
-      test('clearTimeOverride removes override', () {
-        dataSource.setTimeOverride(
-          1,
-          '2025-01-16T14:00:00Z',
-          '2025-01-16T15:00:00Z',
-        );
-        dataSource.clearTimeOverride(1);
-
-        expect(dataSource.getTimeOverride(1), isNull);
-      });
-
       test('getStartTime uses override when present', () {
         dataSource.setTimeOverride(
           1,
@@ -975,21 +947,32 @@ void main() {
       });
 
       test('updatePlannerItem clears time override', () {
+        // Override to a different date so we can verify it's cleared
         dataSource.setTimeOverride(
           1,
           '2025-01-20T09:00:00Z',
           '2025-01-20T10:00:00Z',
         );
-        expect(dataSource.getTimeOverride(1), isNotNull);
 
         final updated = _createHomeworkModel(
           id: 1,
-          start: DateTime.parse('2025-01-20T09:00:00Z'),
-          end: DateTime.parse('2025-01-20T10:00:00Z'),
+          start: DateTime.parse('2025-01-16T14:00:00Z'),
+          end: DateTime.parse('2025-01-16T15:00:00Z'),
         );
         dataSource.updatePlannerItem(updated);
 
-        expect(dataSource.getTimeOverride(1), isNull);
+        // Override cleared — getStartTime reflects the item's actual start, not the override
+        final expectedBase = tz.TZDateTime.from(
+          DateTime.parse('2025-01-16T14:00:00Z'),
+          userSettings.timeZone,
+        );
+        final index = dataSource.appointments!.indexWhere(
+          (a) => (a as PlannerItemBaseModel).id == 1,
+        );
+        expect(
+          dataSource.getStartTime(index),
+          expectedBase.subtract(const Duration(seconds: 103)),
+        );
       });
 
       test('time override works for EventModel', () {
@@ -1006,9 +989,19 @@ void main() {
           '2025-01-18T17:00:00Z',
         );
 
-        final override = dataSource.getTimeOverride(2);
-        expect(override, isNotNull);
-        expect(override!.start, '2025-01-18T16:00:00Z');
+        // Override applied — getStartTime reflects the override time
+        // EventModel: priority=2, position=0 → adjustment = (3-2) + (100-0) = 101s
+        final index = dataSource.appointments!.indexWhere(
+          (a) => (a as PlannerItemBaseModel).id == 2,
+        );
+        final expectedBase = tz.TZDateTime.from(
+          DateTime.parse('2025-01-18T16:00:00Z'),
+          userSettings.timeZone,
+        );
+        expect(
+          dataSource.getStartTime(index),
+          expectedBase.subtract(const Duration(seconds: 101)),
+        );
       });
     });
 
