@@ -87,6 +87,8 @@ class SentryService {
         '(?i)bad response.*(401|403)',
         '(?i)goexception.*(401|403)',
         '(?i)flutterCanvasKit.*is not a constructor',
+        '(?i)watchdogtermination',
+        '(?i)database deleted by request of the user',
       ];
 
       options.ignoreTransactions = [
@@ -174,6 +176,10 @@ class SentryService {
 
   /// Check SentryException type and value
   bool _shouldFilterSentryException(SentryException exception) {
+    if (_shouldFilterByStackFrames(exception)) {
+      return true;
+    }
+
     final type = exception.type?.toLowerCase() ?? '';
     final value = exception.value?.toLowerCase() ?? '';
     final combined = '$type $value';
@@ -226,6 +232,13 @@ class SentryService {
     }
 
     return false;
+  }
+
+  /// Filter exceptions originating entirely within known third-party packages
+  bool _shouldFilterByStackFrames(SentryException exception) {
+    final frames = exception.stackTrace?.frames ?? [];
+    return frames.any((f) =>
+        (f.absPath ?? f.module ?? '').toLowerCase().contains('syncfusion_flutter'));
   }
 
   /// Text-based filtering as a fallback

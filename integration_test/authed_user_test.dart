@@ -12,7 +12,12 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/data/models/planner/request/homework_request_model.dart';
 import 'package:heliumapp/presentation/features/auth/controllers/credentials_form_controller.dart';
+import 'package:heliumapp/presentation/features/auth/views/login_screen.dart';
 import 'package:heliumapp/presentation/features/planner/controllers/planner_item_form_controller.dart';
+import 'package:heliumapp/presentation/features/planner/views/planner_screen.dart';
+import 'package:heliumapp/presentation/navigation/shell/navigation_shell.dart';
+import 'package:heliumapp/presentation/ui/components/settings_button.dart';
+import 'package:heliumapp/presentation/ui/layout/page_header.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:logging/logging.dart';
@@ -118,7 +123,7 @@ void main() {
       );
       expect(loggedIn, isTrue, reason: 'Should be logged in');
 
-      final classesTab = find.text('Classes');
+      final classesTab = find.byKey(Key(NavigationPage.courses.navKeyName));
       expect(classesTab, findsOneWidget, reason: 'Classes tab should exist');
       await tester.tap(classesTab);
       await tester.pumpAndSettle(const Duration(seconds: 3));
@@ -126,7 +131,9 @@ void main() {
       expectOnClassesScreen();
       _log.info('Successfully navigated to classes');
 
-      final resourcesTab = find.text('Resources');
+      final resourcesTab = find.byKey(
+        Key(NavigationPage.resources.navKeyName),
+      );
       expect(
         resourcesTab,
         findsOneWidget,
@@ -138,7 +145,7 @@ void main() {
       expectOnResourcesScreen();
       _log.info('Successfully navigated to resources');
 
-      final gradesTab = find.text('Grades');
+      final gradesTab = find.byKey(Key(NavigationPage.grades.navKeyName));
       expect(gradesTab, findsOneWidget, reason: 'Grades tab should exist');
       await tester.tap(gradesTab);
       await tester.pumpAndSettle(const Duration(seconds: 3));
@@ -146,7 +153,7 @@ void main() {
       expectOnGradesScreen();
       _log.info('Successfully navigated to grades');
 
-      final plannerTab = find.text('Planner');
+      final plannerTab = find.byKey(Key(NavigationPage.planner.navKeyName));
       expect(plannerTab, findsOneWidget, reason: 'Planner tab should exist');
       await tester.tap(plannerTab);
       await tester.pumpAndSettle(const Duration(seconds: 3));
@@ -238,7 +245,7 @@ void main() {
 
         // 1. Click settings, wait for dialog to be shown
         _log.info('Opening settings dialog on desktop ...');
-        var settingsButton = find.byIcon(Icons.settings_outlined);
+        var settingsButton = find.byKey(const Key(SettingsButton.buttonKey));
         expect(
           settingsButton,
           findsOneWidget,
@@ -311,7 +318,7 @@ void main() {
 
         // 6. Click settings, wait until new screen is shown (browser title should update)
         _log.info('Opening settings screen on mobile ...');
-        settingsButton = find.byIcon(Icons.settings_outlined);
+        settingsButton = find.byKey(const Key(SettingsButton.buttonKey));
         expect(
           settingsButton,
           findsOneWidget,
@@ -388,7 +395,9 @@ void main() {
 
       // 1. Click "Change view" menu and switch to "Todos"
       _log.info('Switching to "Todos" view ...');
-      final viewButton = find.byTooltip('Change view');
+      final viewButton = find.byKey(
+        const Key(PlannerScreen.viewSwitcherButtonKey),
+      );
       expect(
         viewButton,
         findsOneWidget,
@@ -427,7 +436,9 @@ void main() {
 
       // 3. Tap filters, tap checkbox next to "Fundamentals"
       _log.info('Opening filter menu ...');
-      final filterButton = find.byIcon(Icons.filter_alt);
+      final filterButton = find.byKey(
+        const Key(PlannerScreen.filterButtonKey),
+      );
       await tester.tap(filterButton);
 
       // Wait for filter menu to open (look for CheckboxListTile)
@@ -520,11 +531,18 @@ void main() {
       await tester.tapAt(const Offset(10, 10));
       await tester.pumpAndSettle();
 
+      // On desktop the search field is always visible inline; on smaller
+      // viewports it's behind a button that must be tapped first.
       _log.info('Opening search field ...');
-      final searchButton = find.byIcon(Icons.search);
-      await tester.tap(searchButton.first);
+      final searchButton = find.byKey(
+        const Key(PlannerScreen.searchButtonKey),
+      );
+      if (searchButton.evaluate().isNotEmpty) {
+        await tester.tap(searchButton);
+      }
 
-      // Wait for search field to appear (animation)
+      // Wait for search field to appear (animation on non-desktop, immediate
+      // on desktop where it's already inline)
       final searchField = find.byType(TextField);
       final searchFieldAppeared = await waitForWidget(
         tester,
@@ -791,11 +809,14 @@ void main() {
 
       // Find and tap the Save button
       _log.info('Saving homework changes ...');
-      final saveIcon = find.byIcon(Icons.check);
-      if (saveIcon.evaluate().isNotEmpty) {
-        await tester.tap(saveIcon);
-        await tester.pumpAndSettle(const Duration(seconds: 3));
-      }
+      final saveButton = find.byKey(const Key(PageHeader.saveButtonKey));
+      expect(
+        saveButton,
+        findsOneWidget,
+        reason: 'Header save button should be present',
+      );
+      await tester.tap(saveButton);
+      await tester.pumpAndSettle(const Duration(seconds: 3));
 
       // Verify the edit dialog has closed
       final dialogClosed = await waitForWidgetToDisappear(
@@ -898,10 +919,16 @@ void main() {
           )
           .first;
 
-      // Find the Checkbox within that specific item container
+      // Find the completion checkbox within that specific item container.
+      // The checkbox is keyed with a ValueKey<String> prefixed by
+      // PlannerScreen.plannerItemCheckboxKeyPrefix + the homework id.
       final checkbox = find.descendant(
         of: itemContainer,
-        matching: find.byType(Checkbox),
+        matching: find.byWidgetPredicate((widget) {
+          final key = widget.key;
+          return key is ValueKey<String> &&
+              key.value.startsWith(PlannerScreen.plannerItemCheckboxKeyPrefix);
+        }),
       );
       expect(
         checkbox,
@@ -973,7 +1000,7 @@ void main() {
         testPassword,
       );
 
-      await tester.tap(find.text('Sign In'));
+      await tester.tap(find.byKey(const Key(LoginScreen.signInButtonKey)));
 
       // Wait for the welcome dialog to appear
       final welcomeDialogFound = await waitForWidget(
@@ -997,7 +1024,7 @@ void main() {
           testPassword,
         );
 
-        await tester.tap(find.text('Sign In'));
+        await tester.tap(find.byKey(const Key(LoginScreen.signInButtonKey)));
 
         final retryWelcomeFound = await waitForWidget(
           tester,

@@ -9,6 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/presentation/features/settings/views/settings_screen.dart';
+import 'package:heliumapp/presentation/ui/components/settings_button.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:logging/logging.dart';
 
@@ -71,7 +72,7 @@ void main() {
 
       // Open settings (wait for button to be visible after navigation shell loads)
       _log.info('Waiting for settings button ...');
-      final settingsButton = find.byIcon(Icons.settings_outlined);
+      final settingsButton = find.byKey(const Key(SettingsButton.buttonKey));
       final settingsFound = await waitForWidget(
         tester,
         settingsButton,

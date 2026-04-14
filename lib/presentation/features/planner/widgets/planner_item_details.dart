@@ -163,6 +163,7 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
       isLoading = true;
       _plannerItem = null;
       formController.isChanged = false;
+      formController.userChangedTime = false;
     });
 
     context.read<PlannerItemBloc>().add(
@@ -894,6 +895,10 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
           formController.endTime = TimeOfDay.fromDateTime(endDateTime);
         }
 
+        // Editing an existing item: it already has a real time. Treat that as
+        // a user-owned preference so later course changes don't clobber it.
+        formController.userChangedTime = true;
+
         if (plannerItem is HomeworkModel) {
           formController.selectedCourse = plannerItem.course.id;
           formController.isCompleted = plannerItem.completed;
@@ -928,7 +933,7 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
       }
 
       if (!_isEvent && _courses.isNotEmpty) {
-        _selectCourse(_courses.first.id);
+        _selectCourse(_pickInitialCourseId(formController.startDate));
       }
 
       if (widget.initialDate != null && !widget.isFromMonthView) {
@@ -939,6 +944,9 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
         setState(() {
           formController.startTime = TimeOfDay.fromDateTime(tzDateTime);
           formController.endTime = TimeOfDay.fromDateTime(tzDateTime);
+          // The user tapped a specific timeline slot; treat that as a time
+          // preference so later course changes won't overwrite it.
+          formController.userChangedTime = true;
         });
       }
     }
@@ -1054,6 +1062,7 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
 
     if (picked != null) {
       formController.markChanged();
+      formController.userChangedTime = true;
       setState(() {
         if (isStartTime) {
           formController.startTime = picked;
@@ -1107,6 +1116,29 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
     await onSubmit();
   }
 
+  /// Picks which course to pre-select when creating a new homework item.
+  /// Prefers the first course (in display order) whose schedule actually
+  /// meets on [date]'s weekday, so e.g. tapping Monday picks Sociology (MWF)
+  /// over Programming (TTh) even if Programming sorts first alphabetically.
+  /// Falls back to the first course if no schedule matches.
+  int _pickInitialCourseId(DateTime date) {
+    final sortedCourses = PlannerHelper.sortByGroupStartThenByTitle(
+      _courses,
+      _courseGroups,
+    );
+    // DateTime.weekday is 1=Mon..7=Sun; CourseScheduleModel uses 0=Sun..6=Sat.
+    final dayIndex = date.weekday % 7;
+    for (final course in sortedCourses) {
+      final schedule = _courseSchedules
+          .where((cs) => cs.course == course.id)
+          .firstOrNull;
+      if (schedule != null && schedule.isDayActive(dayIndex)) {
+        return course.id;
+      }
+    }
+    return sortedCourses.first.id;
+  }
+
   void _selectCourse(int courseId) {
     setState(() {
       if (_preferredCategoryName == null &&
@@ -1150,7 +1182,7 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
           .map((m) => m.id)
           .toList();
 
-      if (!widget.isEdit) {
+      if (!widget.isEdit && !formController.userChangedTime) {
         final matchingSchedule = _courseSchedules
             .where((cs) => cs.course == formController.selectedCourse)
             .firstOrNull;

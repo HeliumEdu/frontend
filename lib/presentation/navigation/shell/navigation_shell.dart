@@ -96,6 +96,8 @@ enum NavigationPage {
 
   const NavigationPage(this.label, this.icon, this.route);
 
+  String get navKeyName => 'nav_tab_$name';
+
   static NavigationPage? fromRoute(String route) {
     try {
       return NavigationPage.values.firstWhere((page) => page.route == route);
@@ -211,6 +213,7 @@ class _NavigationShellState extends State<NavigationShell> {
                             ),
                             label: Text(
                               page.label,
+                              key: Key(page.navKeyName),
                               style: AppStyles.smallSecondaryText(context),
                             ),
                           ),
@@ -305,6 +308,7 @@ class _NavigationShellState extends State<NavigationShell> {
                             (page) => NavigationDestination(
                               icon: Icon(
                                 page.icon,
+                                key: Key(page.navKeyName),
                                 color: context.colorScheme.primary,
                               ),
                               label: page.label,

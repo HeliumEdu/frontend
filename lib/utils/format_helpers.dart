@@ -8,6 +8,12 @@
 import 'package:heliumapp/data/models/planner/reminder_model.dart';
 import 'package:heliumapp/presentation/features/planner/constants/reminder_constants.dart';
 
+final _zeroWidthPattern = RegExp('[\u200B\u200C\u200D\uFEFF]');
+
+extension StringSanitization on String {
+  String stripZeroWidthChars() => replaceAll(_zeroWidthPattern, '');
+}
+
 extension PluralExtension on int {
   String plural(String singularWord, [String pluralLetters = 's']) {
     return (this == 0 || this > 1)

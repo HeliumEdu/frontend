@@ -34,6 +34,8 @@ import 'package:sign_in_button/sign_in_button.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class SignupScreen extends StatefulWidget {
+  static const String signUpButtonKey = 'signup_sign_up_button';
+
   const SignupScreen({super.key});
 
   @override
@@ -348,6 +350,7 @@ class _SignupScreenState extends BasePageScreenState<SignupScreen> {
                   return SizedBox(
                     width: _oauthButtonWidth,
                     child: HeliumElevatedButton(
+                      key: const Key(SignupScreen.signUpButtonKey),
                       buttonText: 'Sign Up',
                       isLoading: isSubmitting,
                       enabled: !_isOAuthLoading,

@@ -9,6 +9,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:heliumapp/presentation/features/auth/controllers/credentials_form_controller.dart';
 import 'package:heliumapp/presentation/features/auth/controllers/signup_form_controller.dart';
+import 'package:heliumapp/presentation/features/auth/views/login_screen.dart';
+import 'package:heliumapp/presentation/features/auth/views/signup_screen.dart';
 import 'package:integration_test/integration_test.dart';
 
 import 'helpers/test_app.dart';
@@ -37,7 +39,7 @@ void main() {
 
       // Verify the login form elements are displayed
       expect(
-        find.text('Sign In'),
+        find.byKey(const Key(LoginScreen.signInButtonKey)),
         findsOneWidget,
         reason: 'Sign In button should be displayed',
       );
@@ -54,7 +56,7 @@ void main() {
 
       // Verify navigation options are present
       expect(
-        find.text('Need an account?'),
+        find.byKey(const Key(LoginScreen.signupLinkKey)),
         findsOneWidget,
         reason: 'Sign up link should be displayed',
       );
@@ -79,7 +81,7 @@ void main() {
       await initializeTestApp(tester);
 
       // Tap "Need an account?" link
-      await tester.tap(find.text('Need an account?'));
+      await tester.tap(find.byKey(const Key(LoginScreen.signupLinkKey)));
       await tester.pumpAndSettle();
 
       // Verify we're on the signup screen
@@ -107,7 +109,7 @@ void main() {
         reason: 'Confirm password field should be displayed on signup',
       );
       expect(
-        find.text('Sign Up'),
+        find.byKey(const Key(SignupScreen.signUpButtonKey)),
         findsOneWidget,
         reason: 'Sign Up button should be displayed',
       );

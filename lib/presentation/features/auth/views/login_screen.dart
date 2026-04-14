@@ -32,6 +32,9 @@ import 'package:sign_in_button/sign_in_button.dart';
 final _log = Logger('presentation.views');
 
 class LoginScreen extends StatefulWidget {
+  static const String signInButtonKey = 'login_sign_in_button';
+  static const String signupLinkKey = 'login_signup_link';
+
   const LoginScreen({super.key});
 
   @override
@@ -239,6 +242,7 @@ class _LoginScreenViewState extends BasePageScreenState<LoginScreen> {
                       SizedBox(
                         width: 250.0,
                         child: HeliumElevatedButton(
+                          key: const Key(LoginScreen.signInButtonKey),
                           buttonText: 'Sign In',
                           isLoading: isSubmitting,
                           enabled: !_isOAuthLoading,
@@ -322,6 +326,7 @@ class _LoginScreenViewState extends BasePageScreenState<LoginScreen> {
 
               Center(
                 child: TextButton(
+                  key: const Key(LoginScreen.signupLinkKey),
                   onPressed: () {
                     context.go(AppRoute.signupScreen);
                   },

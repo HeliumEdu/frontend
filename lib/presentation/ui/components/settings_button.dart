@@ -10,6 +10,8 @@ import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/presentation/features/settings/views/settings_screen.dart';
 
 class SettingsButton extends StatelessWidget {
+  static const String buttonKey = 'settings_button';
+
   final bool compact;
 
   const SettingsButton({super.key, this.compact = true});
@@ -17,6 +19,7 @@ class SettingsButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return IconButton(
+      key: const Key(buttonKey),
       visualDensity: compact ? VisualDensity.compact : VisualDensity.standard,
       onPressed: () {
         if (!context.mounted) return;
