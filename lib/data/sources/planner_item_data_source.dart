@@ -344,9 +344,15 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
       userSettings.timeZone,
     );
 
-    // All-day events: no adjustment (SfCalendar handles its own all-day sorting)
+    // All-day events: SfCalendar's internal tie-breaker for equal all-day
+    // start times is unstable for mixed-type days (notably HomeworkModel +
+    // ExternalCalendarEventModel), so force a distinct ordering by adding
+    // the item's position within its time group. `_sortPositions` already
+    // reflects the fully-sorted order (type priority, course, title), so
+    // position alone is sufficient.
     if (item.allDay) {
-      return baseTime;
+      final position = _sortPositions[item.id] ?? 0;
+      return baseTime.add(Duration(seconds: position));
     }
 
     // Timed events: subtract seconds to encode sort order
@@ -374,10 +380,17 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
       userSettings.timeZone,
     );
 
-    // All-day events: sort order is encoded in start time, just adjust end for display
+    // All-day events: sort order is encoded in start time (see getStartTime).
+    // Apply the same position offset to end so end >= adjusted start, and
+    // subtract one day to convert SfCalendar's exclusive end-of-day into the
+    // inclusive form the rest of the UI expects.
     if (plannerItem.allDay) {
-      final adjustedEnd = endTime.subtract(const Duration(days: 1));
-      return adjustedEnd.isBefore(startTime) ? startTime : adjustedEnd;
+      final position = _sortPositions[plannerItem.id] ?? 0;
+      final adjustedStart = startTime.add(Duration(seconds: position));
+      final adjustedEnd = endTime
+          .subtract(const Duration(days: 1))
+          .add(Duration(seconds: position));
+      return adjustedEnd.isBefore(adjustedStart) ? adjustedStart : adjustedEnd;
     }
 
     // Timed events: subtract to encode sort order (uses minutes to avoid visible shortening)
@@ -811,17 +824,15 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
     );
 
     if (oldIndex != -1) {
-      final oldItem = appointments![oldIndex];
-      appointments!.removeAt(oldIndex);
-      if (!_isDisposed) {
-        notifyListeners(CalendarDataSourceAction.remove, [oldItem]);
-      }
-
-      appointments!.add(plannerItem);
+      // Replace in place and notify with a full reset. A remove+add pair
+      // appends the updated item to the end of SfCalendar's internal
+      // collection, which visibly flips sort order for mixed-type all-day
+      // days. Reset forces SfCalendar to re-read our sorted list.
+      appointments![oldIndex] = plannerItem;
       Sort.byStartThenTitle(appointments!.cast<PlannerItemBaseModel>());
       _buildSortPositions(appointments!.cast<PlannerItemBaseModel>());
       if (!_isDisposed) {
-        notifyListeners(CalendarDataSourceAction.add, [plannerItem]);
+        notifyListeners(CalendarDataSourceAction.reset, appointments!);
       }
     } else {
       _applyFiltersAndNotify();

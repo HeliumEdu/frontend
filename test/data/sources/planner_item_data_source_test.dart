@@ -16,6 +16,7 @@ import 'package:heliumapp/data/models/planner/course_schedule_event_model.dart';
 import 'package:heliumapp/data/models/planner/event_model.dart';
 import 'package:heliumapp/data/models/planner/external_calendar_event_model.dart';
 import 'package:heliumapp/data/models/planner/homework_model.dart';
+import 'package:heliumapp/data/models/planner/planner_item_base_model.dart';
 import 'package:heliumapp/data/sources/planner_item_data_source.dart';
 import 'package:heliumapp/domain/repositories/course_schedule_event_repository.dart';
 import 'package:heliumapp/domain/repositories/event_repository.dart';
@@ -1175,6 +1176,103 @@ void main() {
           ).subtract(const Duration(seconds: 1));
 
           expect(homeworkAdjustedStart.isBefore(eventAdjustedStart), isTrue);
+        },
+      );
+
+      test(
+        'all-day homework sorts before all-day external calendar event on same day',
+        () {
+          final allDayHomework = _createHomeworkModel(
+            id: 1,
+            title: 'All-Day Assignment',
+            start: DateTime.parse('2025-01-15T00:00:00Z'),
+            end: DateTime.parse('2025-01-16T00:00:00Z'),
+            allDay: true,
+          );
+          final allDayExternal = ExternalCalendarEventModel(
+            id: 2,
+            title: 'Christmas',
+            allDay: true,
+            showEndTime: false,
+            start: DateTime.parse('2025-01-15T00:00:00Z'),
+            end: DateTime.parse('2025-01-16T00:00:00Z'),
+            priority: 50,
+            url: null,
+            comments: '',
+            attachments: [],
+            reminders: [],
+            ownerId: 'holidays',
+            color: const Color(0xFF9C27B0),
+          );
+
+          // Add external first to ensure the initial insertion order would
+          // otherwise tie-break incorrectly (alphabetical "Christmas" <
+          // "All-Day Assignment" is false, so this specifically exercises the
+          // priority-not-title path).
+          dataSource.addPlannerItem(allDayExternal);
+          dataSource.addPlannerItem(allDayHomework);
+
+          final appointments = dataSource.appointments!;
+          final homeworkIndex = appointments.indexWhere(
+            (a) => (a as PlannerItemBaseModel).id == allDayHomework.id,
+          );
+          final externalIndex = appointments.indexWhere(
+            (a) => (a as PlannerItemBaseModel).id == allDayExternal.id,
+          );
+
+          final homeworkStart = dataSource.getStartTime(homeworkIndex);
+          final externalStart = dataSource.getStartTime(externalIndex);
+
+          // Start times must be distinct so SfCalendar's internal tie-breaker
+          // never gets a chance to flip the order.
+          expect(
+            homeworkStart.isBefore(externalStart),
+            isTrue,
+            reason:
+                'all-day homework ($homeworkStart) should sort before '
+                'all-day external event ($externalStart)',
+          );
+
+          // Offsets are seconds-sized so both items stay in the same minute.
+          expect(
+            externalStart.difference(homeworkStart).inMinutes,
+            0,
+          );
+        },
+      );
+
+      test(
+        'all-day homework sorts before all-day event on same day',
+        () {
+          final allDayHomework = _createHomeworkModel(
+            id: 1,
+            start: DateTime.parse('2025-01-15T00:00:00Z'),
+            end: DateTime.parse('2025-01-16T00:00:00Z'),
+            allDay: true,
+          );
+          final allDayEvent = _createEventModel(
+            id: 2,
+            start: DateTime.parse('2025-01-15T00:00:00Z'),
+            end: DateTime.parse('2025-01-16T00:00:00Z'),
+            allDay: true,
+          );
+
+          dataSource.addPlannerItem(allDayEvent);
+          dataSource.addPlannerItem(allDayHomework);
+
+          final appointments = dataSource.appointments!;
+          final homeworkIndex = appointments.indexWhere(
+            (a) => (a as PlannerItemBaseModel).id == allDayHomework.id,
+          );
+          final eventIndex = appointments.indexWhere(
+            (a) => (a as PlannerItemBaseModel).id == allDayEvent.id,
+          );
+
+          final homeworkStart = dataSource.getStartTime(homeworkIndex);
+          final eventStart = dataSource.getStartTime(eventIndex);
+
+          expect(homeworkStart.isBefore(eventStart), isTrue);
+          expect(eventStart.difference(homeworkStart).inMinutes, 0);
         },
       );
     });

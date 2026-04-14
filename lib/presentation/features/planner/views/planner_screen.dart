@@ -2519,62 +2519,79 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
 
     Widget titleRowWidget;
     if (inlineIcon != null || showTimeBeforeTitle) {
-      final spans = <InlineSpan>[];
+      // Build the title row inside a ListenableBuilder so the strikethrough
+      // reacts to the same changeNotifier signal as the checkbox. Otherwise
+      // the strikethrough is frozen at appointmentBuilder call time and lags
+      // the checkbox on rapid toggles.
+      Widget buildTitleRich(bool isCompleted) {
+        final spans = <InlineSpan>[];
 
-      if (inlineIcon != null) {
-        spans.add(
-          WidgetSpan(
-            alignment: PlaceholderAlignment.middle,
-            child: Padding(
-              padding: EdgeInsets.only(
-                top: _currentView == PlannerView.month ? 0 : 1,
-                right: 4,
+        if (inlineIcon != null) {
+          spans.add(
+            WidgetSpan(
+              alignment: PlaceholderAlignment.middle,
+              child: Padding(
+                padding: EdgeInsets.only(
+                  top: _currentView == PlannerView.month ? 0 : 1,
+                  right: 4,
+                ),
+                child: inlineIcon,
               ),
-              child: inlineIcon,
+            ),
+          );
+        }
+
+        if (showTimeBeforeTitle) {
+          spans.add(
+            _buildCalendarItemTimeSpan(
+              plannerItem,
+              backgroundColor: backgroundColor,
+            ),
+          );
+          spans.add(const TextSpan(text: ' '));
+        }
+
+        spans.add(
+          TextSpan(
+            text: plannerItem.title.characters.join('\u200B'),
+            style: AppStyles.calendarItemText(context).copyWith(
+              color: foregroundColor,
+              decoration: isCompleted
+                  ? TextDecoration.lineThrough
+                  : TextDecoration.none,
+              decorationColor: foregroundColor,
             ),
           ),
         );
-      }
 
-      if (showTimeBeforeTitle) {
-        spans.add(
-          _buildCalendarItemTimeSpan(
-            plannerItem,
-            backgroundColor: backgroundColor,
-          ),
+        return Text.rich(
+          TextSpan(children: spans),
+          style: AppStyles.calendarItemText(
+            context,
+          ).copyWith(color: foregroundColor),
+          maxLines: _currentView == PlannerView.month || plannerItem.allDay
+              ? 1
+              : null,
+          overflow: _currentView == PlannerView.month || plannerItem.allDay
+              ? TextOverflow.ellipsis
+              : null,
+          semanticsLabel: plannerItem.title,
         );
-        spans.add(const TextSpan(text: ' '));
       }
 
-      final isCompleted =
-          completedOverride ??
-          (plannerItem is HomeworkModel && plannerItem.completed);
-
-      spans.add(
-        TextSpan(
-          text: plannerItem.title.characters.join('\u200B'),
-          style: AppStyles.calendarItemText(context).copyWith(
-            color: foregroundColor,
-            decoration: isCompleted
-                ? TextDecoration.lineThrough
-                : TextDecoration.none,
-            decorationColor: foregroundColor,
-          ),
-        ),
-      );
-      titleRowWidget = Text.rich(
-        TextSpan(children: spans),
-        style: AppStyles.calendarItemText(
-          context,
-        ).copyWith(color: foregroundColor),
-        maxLines: _currentView == PlannerView.month || plannerItem.allDay
-            ? 1
-            : null,
-        overflow: _currentView == PlannerView.month || plannerItem.allDay
-            ? TextOverflow.ellipsis
-            : null,
-        semanticsLabel: plannerItem.title,
-      );
+      if (plannerItem is HomeworkModel && _plannerItemDataSource != null) {
+        final dataSource = _plannerItemDataSource!;
+        titleRowWidget = ListenableBuilder(
+          listenable: dataSource.changeNotifier,
+          builder: (context, _) =>
+              buildTitleRich(dataSource.isHomeworkCompleted(plannerItem)),
+        );
+      } else {
+        final isCompleted =
+            completedOverride ??
+            (plannerItem is HomeworkModel && plannerItem.completed);
+        titleRowWidget = buildTitleRich(isCompleted);
+      }
     } else {
       titleRowWidget = _buildCalendarItemTitle(
         plannerItem,
