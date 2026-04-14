@@ -157,6 +157,10 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
   static const _uiAnimationDuration = Duration(milliseconds: 300);
   static const _tooltipWaitDuration = Duration(milliseconds: 500);
   static const _tooltipShowDuration = Duration(seconds: 8);
+  // How long to suppress tooltips after any intentional user action (drag,
+  // drop, resize, pointer-down anywhere). Resets on each new action so rapid
+  // interactions don't produce stray tooltips.
+  static const _tooltipSuppressDelay = Duration(seconds: 2);
 
   @override
   String get screenTitle => 'Planner';
@@ -243,6 +247,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
 
   List<DateTime> _visibleDates = [];
   bool _isCalendarInteractionInProgress = false;
+  Timer? _tooltipSuppressTimer;
 
   // Debounces rapid checkbox taps so fast toggling doesn't fire a network
   // request per tap. We update the optimistic override immediately on each
@@ -312,6 +317,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
 
   @override
   void dispose() {
+    _tooltipSuppressTimer?.cancel();
     for (final timer in _pendingToggleTimers.values) {
       timer.cancel();
     }
@@ -583,7 +589,12 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
 
   @override
   Widget buildMainArea(BuildContext context) {
-    return BlocBuilder<PlannerBloc, PlannerState>(
+    return Listener(
+      // Dismiss any visible tooltip before SfCalendar performs its drag
+      // hit-test. Without this, an active tooltip overlay can interfere with
+      // SfCalendar's appointment resolution, causing it to drag the wrong item.
+      onPointerDown: (_) => Tooltip.dismissAllToolTips(),
+      child: BlocBuilder<PlannerBloc, PlannerState>(
       builder: (context, state) {
         if (state is PlannerLoading) {
           return const Center(child: LoadingIndicator(expanded: false));
@@ -609,6 +620,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
         // and remounted when isCapturing changes.
         return _buildTodosContent();
       },
+      ),
     );
   }
 
@@ -2091,18 +2103,39 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
         item is ExternalCalendarEventModel;
   }
 
-  void _setCalendarInteractionInProgress(bool isInProgress) {
-    if (!mounted || _isCalendarInteractionInProgress == isInProgress) {
-      return;
+  /// Suppresses tooltips for [_tooltipSuppressDelay] after any intentional
+  /// user action. Resets the timer on each call so back-to-back actions
+  /// (e.g., a drop followed immediately by a click) keep tooltips hidden for
+  /// the full delay from the most recent action.
+  void _suppressTooltipsTemporarily() {
+    _tooltipSuppressTimer?.cancel();
+    if (!mounted) return;
+    if (!_isCalendarInteractionInProgress) {
+      setState(() {
+        _isCalendarInteractionInProgress = true;
+      });
     }
-
-    if (isInProgress) {
-      Tooltip.dismissAllToolTips();
-    }
-
-    setState(() {
-      _isCalendarInteractionInProgress = isInProgress;
+    _tooltipSuppressTimer = Timer(_tooltipSuppressDelay, () {
+      if (!mounted) return;
+      setState(() {
+        _isCalendarInteractionInProgress = false;
+      });
     });
+  }
+
+  void _setCalendarInteractionInProgress(bool isInProgress) {
+    if (isInProgress) {
+      // Cancel any pending restore so the timer can't clear the flag mid-drag.
+      _tooltipSuppressTimer?.cancel();
+      _tooltipSuppressTimer = null;
+      // Set the flag directly without setState — a rebuild mid-gesture causes
+      // SfCalendar to lose its hit-test result and drag the wrong appointment.
+      // The flag is still read correctly on the next natural rebuild.
+      _isCalendarInteractionInProgress = true;
+      Tooltip.dismissAllToolTips();
+    } else {
+      _suppressTooltipsTemporarily();
+    }
   }
 
   Widget _buildPlannerItemTooltip({

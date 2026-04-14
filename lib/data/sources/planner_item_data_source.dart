@@ -319,12 +319,11 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
         continue;
       }
 
-      final itemStart = appointment.start;
-      final isSameDay =
-          itemStart.year == dayStart.year &&
-          itemStart.month == dayStart.month &&
-          itemStart.day == dayStart.day;
-      if (isSameDay) {
+      // Include any item that overlaps with the target day, not just items that
+      // start on the day. Multi-day events (allDay or timed) span multiple cells
+      // in month view and must be counted for each day they cover.
+      if (appointment.start.isBefore(dayEnd) &&
+          appointment.end.isAfter(dayStart)) {
         itemsForDay.add(appointment);
       }
     }
