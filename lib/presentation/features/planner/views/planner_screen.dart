@@ -1709,12 +1709,33 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
   void _dropCalendarItem(AppointmentDragEndDetails dropDetails) {
     _setCalendarInteractionInProgress(false);
 
-    if (dropDetails.appointment == null || dropDetails.droppingTime == null) {
+    if (dropDetails.appointment == null) {
       return;
     }
 
     final PlannerItemBaseModel plannerItem =
         dropDetails.appointment as PlannerItemBaseModel;
+
+    // Reset SfCalendar's internal list unconditionally for locked items —
+    // including cancelled drags where droppingTime is null. SfCalendar inserts
+    // a rogue copy of the recurring appointment into its internal list on every
+    // drag-end, so the reset must fire regardless of whether the drop landed on
+    // a valid time slot.
+    if (_isLockedCalendarInteractionItem(plannerItem)) {
+      _plannerItemDataSource!.resetAppointments();
+      if (dropDetails.droppingTime != null) {
+        if (plannerItem is CourseScheduleEventModel) {
+          _showCourseScheduleEventDialog(plannerItem, dropDetails.droppingTime!);
+        } else {
+          _showEditExternalCalendarEventSnackBar();
+        }
+      }
+      return;
+    }
+
+    if (dropDetails.droppingTime == null) {
+      return;
+    }
 
     if (plannerItem is HomeworkModel || plannerItem is EventModel) {
       final startDateTime = tz.TZDateTime.from(
@@ -1784,12 +1805,6 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
           ),
         );
       }
-    } else if (plannerItem is CourseScheduleEventModel) {
-      _plannerItemDataSource!.resetAppointments();
-      _showCourseScheduleEventDialog(plannerItem, dropDetails.droppingTime!);
-    } else if (plannerItem is ExternalCalendarEventModel) {
-      _plannerItemDataSource!.resetAppointments();
-      _showEditExternalCalendarEventSnackBar();
     }
   }
 
