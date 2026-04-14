@@ -27,21 +27,25 @@ class Sort {
   /// Calculates seconds to subtract from start time to encode sort order for timed events.
   /// SfCalendar truncates sub-second precision, so seconds are the finest usable unit.
   /// Higher priority items (lower priority value) get more seconds subtracted,
-  /// making them appear earlier. One second per type level keeps the total adjustment
-  /// imperceptibly small (max ~103 seconds) so calendar slot positions are not affected.
+  /// making them appear earlier. Max adjustment is 103 seconds so calendar slot
+  /// positions are not affected.
+  ///
+  /// Priority and position are encoded in non-overlapping ranges using a
+  /// multiplicative scale (26 per priority level, 26 positions each). This
+  /// prevents collisions between different item types: e.g., homework at
+  /// position 1 would otherwise produce the same adjustment as course schedule
+  /// at position 0 under a purely additive scheme.
+  ///
+  /// Ranges: homework 78-103, courseSchedule 52-77, event 26-51, external 0-25.
+  static const int _positionsPerPriority = 26;
+
   static int getTimedEventStartTimeAdjustmentSeconds(
     int priority,
     int position,
   ) {
-    // Type priority: Use 1 second per level (3, 2, 1, 0)
-    // This ensures homework < course schedule < event < external
-    final baseSeconds = 3 - priority;
-
-    // Position: Add 1 second per position slot (position 0 gets most)
-    // This allows up to 100 items at same time to maintain alphabetical order
-    final positionSeconds = 100 - position;
-
-    return baseSeconds + positionSeconds;
+    final safePosition = position.clamp(0, _positionsPerPriority - 1);
+    return (3 - priority) * _positionsPerPriority +
+        (_positionsPerPriority - 1 - safePosition);
   }
 
   /// Calculates the Duration to subtract from end time for timed events.
