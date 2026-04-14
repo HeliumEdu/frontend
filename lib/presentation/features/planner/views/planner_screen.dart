@@ -1775,6 +1775,14 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
   }
 
   void _onCalendarDragStart(AppointmentDragStartDetails dragDetails) {
+    if (dragDetails.appointment is PlannerItemBaseModel &&
+        _isLockedCalendarInteractionItem(
+          dragDetails.appointment as PlannerItemBaseModel,
+        )) {
+      // Locked items are not draggable; triggering a rebuild mid-drag corrupts
+      // SfCalendar's internal gesture state.
+      return;
+    }
     _setCalendarInteractionInProgress(true);
   }
 
