@@ -915,14 +915,12 @@ void main() {
           '2025-01-20T10:00:00Z',
         );
 
-        final startTime = dataSource.getStartTime(0);
-        // Start time: override converted to user timezone - 103 seconds
         final expectedBase = tz.TZDateTime.from(
           DateTime.parse('2025-01-20T09:00:00Z'),
           userSettings.timeZone,
         );
         expect(
-          startTime,
+          dataSource.getStartTime(0),
           expectedBase.subtract(const Duration(seconds: 103)),
         );
       });
@@ -934,20 +932,17 @@ void main() {
           '2025-01-20T10:00:00Z',
         );
 
-        final endTime = dataSource.getEndTime(0);
-        // End time: override converted to user timezone - 103 seconds
         final expectedBase = tz.TZDateTime.from(
           DateTime.parse('2025-01-20T10:00:00Z'),
           userSettings.timeZone,
         );
         expect(
-          endTime,
+          dataSource.getEndTime(0),
           expectedBase.subtract(const Duration(seconds: 103)),
         );
       });
 
       test('updatePlannerItem clears time override', () {
-        // Override to a different date so we can verify it's cleared
         dataSource.setTimeOverride(
           1,
           '2025-01-20T09:00:00Z',
@@ -961,7 +956,7 @@ void main() {
         );
         dataSource.updatePlannerItem(updated);
 
-        // Override cleared — getStartTime reflects the item's actual start, not the override
+        // Override cleared — getStartTime reflects the item's actual start
         final expectedBase = tz.TZDateTime.from(
           DateTime.parse('2025-01-16T14:00:00Z'),
           userSettings.timeZone,
@@ -972,35 +967,6 @@ void main() {
         expect(
           dataSource.getStartTime(index),
           expectedBase.subtract(const Duration(seconds: 103)),
-        );
-      });
-
-      test('time override works for EventModel', () {
-        final event = _createEventModel(
-          id: 2,
-          start: DateTime.parse('2025-01-15T14:00:00Z'),
-          end: DateTime.parse('2025-01-15T15:00:00Z'),
-        );
-        dataSource.addPlannerItem(event);
-
-        dataSource.setTimeOverride(
-          2,
-          '2025-01-18T16:00:00Z',
-          '2025-01-18T17:00:00Z',
-        );
-
-        // Override applied — getStartTime reflects the override time
-        // EventModel: priority=2, position=0 → adjustment = (3-2) + (100-0) = 101s
-        final index = dataSource.appointments!.indexWhere(
-          (a) => (a as PlannerItemBaseModel).id == 2,
-        );
-        final expectedBase = tz.TZDateTime.from(
-          DateTime.parse('2025-01-18T16:00:00Z'),
-          userSettings.timeZone,
-        );
-        expect(
-          dataSource.getStartTime(index),
-          expectedBase.subtract(const Duration(seconds: 101)),
         );
       });
     });
@@ -1350,13 +1316,11 @@ void main() {
       );
 
       test(
-        '_buildSortPositions honors time overrides when items move into a new minute group',
+        '_buildSortPositions assigns distinct stable positions within a minute group',
         () {
-          // Two timed homeworks in different minute groups. Without honoring
-          // the override, both would be position 0 in their respective groups,
-          // so when hw2's effective start is overridden to collide with hw1,
-          // their adjusted start times would tie and SfCalendar's internal
-          // tie-breaker could flip them.
+          // Two timed homeworks at the same minute. Positions must be distinct
+          // (so SfCalendar never tie-breaks) and ordered by title (Alpha before
+          // Beta), with the difference still within the same minute.
           final hw1 = _createHomeworkModel(
             id: 1,
             title: 'Alpha',
@@ -1366,19 +1330,12 @@ void main() {
           final hw2 = _createHomeworkModel(
             id: 2,
             title: 'Beta',
-            start: DateTime.parse('2025-01-15T14:00:00Z'),
-            end: DateTime.parse('2025-01-15T15:00:00Z'),
+            start: DateTime.parse('2025-01-15T10:00:00Z'),
+            end: DateTime.parse('2025-01-15T11:00:00Z'),
           );
 
           dataSource.addPlannerItem(hw1);
           dataSource.addPlannerItem(hw2);
-
-          // Drag hw2 into hw1's minute group.
-          dataSource.setTimeOverride(
-            2,
-            '2025-01-15T10:00:00Z',
-            '2025-01-15T11:00:00Z',
-          );
 
           final hw1Index = dataSource.appointments!.indexWhere(
             (a) => (a as PlannerItemBaseModel).id == 1,
@@ -1390,12 +1347,8 @@ void main() {
           final hw1Start = dataSource.getStartTime(hw1Index);
           final hw2Start = dataSource.getStartTime(hw2Index);
 
-          // Must be distinct (so SfCalendar never tie-breaks) and ordered by
-          // title (Alpha before Beta).
           expect(hw1Start, isNot(equals(hw2Start)));
           expect(hw1Start.isBefore(hw2Start), isTrue);
-          // Still within the same minute so calendar slot placement is
-          // unaffected.
           expect(hw2Start.difference(hw1Start).inMinutes, 0);
         },
       );

@@ -349,8 +349,6 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
   @override
   DateTime getStartTime(int index) {
     final item = _getData(index);
-
-    // Check for optimistic override first (drag-drop/resize - still strings)
     final override = _timeOverrides[item.id];
     final baseTime = tz.TZDateTime.from(
       override != null ? DateTime.parse(override.start) : item.start,
@@ -359,9 +357,8 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
 
     // All-day events: SfCalendar ignores sub-minute precision in start
     // times for all-day items, so seconds-level offsets are invisible to its
-    // internal sort. Use the item's type priority directly (not
-    // _sortPositions) to avoid any dependency on list iteration order, which
-    // can alternate across successive resets.
+    // internal sort. Use type priority encoded as minutes to guarantee a stable
+    // ordering that SfCalendar cannot override.
     if (item.allDay) {
       final priority = Sort.typeSortPriority[item.plannerItemType] ?? 0;
       return baseTime.add(Duration(minutes: priority));
@@ -380,8 +377,6 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
   @override
   DateTime getEndTime(int index) {
     final plannerItem = _getData(index);
-
-    // Check for optimistic override first (drag-drop/resize - still strings)
     final override = _timeOverrides[plannerItem.id];
     final startTime = tz.TZDateTime.from(
       override != null ? DateTime.parse(override.start) : plannerItem.start,
@@ -912,40 +907,38 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
     _notifyChangeListeners();
   }
 
-  // Optimistic UI for drag-drop/resize
+  /// Optimistic override for drag-drop/resize. Updates getStartTime/getEndTime
+  /// immediately so the item visually snaps to the new position before the API
+  /// responds. Rebuilds appointments! synchronously from source-of-truth so the
+  /// current frame renders at the new position. Safe to call synchronously
+  /// because it is only ever called from event callbacks (onDragEnd,
+  /// onAppointmentResizeEnd), not during build or paint.
   void setTimeOverride(int itemId, String start, String end) {
     _timeOverrides[itemId] = PlannerItemTimeOverride(start: start, end: end);
-
-    // Defer to next frame to avoid triggering a rebuild during a repaint.
-    // Rebuild appointments! from source-of-truth to discard any rogue copies
-    // SfCalendar appended during the drag gesture, then rebuild positions so
-    // getStartTime/getEndTime are correct for any intermediate renders.
-    // No reset notification — SfCalendar manages its own visual drag state,
-    // and updatePlannerItem fires the single authoritative reset when the API
-    // responds. Emitting a second reset here causes a transient ordering flip.
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (_isDisposed || appointments == null) return;
-      appointments!.clear();
-      appointments!.addAll(_filteredPlannerItems);
-      _buildSortPositions(appointments!.cast<PlannerItemBaseModel>());
-    });
+    if (_isDisposed || appointments == null) return;
+    appointments!.clear();
+    appointments!.addAll(_filteredPlannerItems);
+    _buildSortPositions(appointments!.cast<PlannerItemBaseModel>());
+    notifyListeners(CalendarDataSourceAction.reset, appointments!);
+    _notifyChangeListeners();
   }
 
-  /// Forces SfCalendar to re-read from our appointments list on the next frame,
-  /// discarding any internal state it accumulated during a drag-drop gesture on
-  /// a locked item (e.g., the rogue duplicate copy SfCalendar inserts for a
-  /// recurring CourseScheduleEvent after a completed drag).
+  /// Discards any rogue copies SfCalendar appended to appointments! during a
+  /// drag-drop gesture on a locked item (e.g., a recurring CourseScheduleEvent).
+  ///
+  /// Both the list cleanup and notifyListeners(reset) are synchronous. SfCalendar
+  /// sets _visibleAppointments synchronously when it fires its own add
+  /// notifications (before calling onDragEnd), so we must also reset it
+  /// synchronously — before the current frame renders — or a one-frame duplicate
+  /// flicker appears. This is safe because resetAppointments() is only ever
+  /// called from event callbacks (onDragEnd, onAppointmentResizeEnd), not during
+  /// build or paint.
   void resetAppointments() {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (_isDisposed || appointments == null) return;
-      // Rebuild from _dateRangeCache (via _filteredPlannerItems) to discard any
-      // rogue copies SfCalendar may have appended to appointments! during the
-      // drag-drop gesture (e.g., duplicate recurring CourseScheduleEvents).
-      appointments!.clear();
-      appointments!.addAll(_filteredPlannerItems);
-      _buildSortPositions(appointments!.cast<PlannerItemBaseModel>());
-      notifyListeners(CalendarDataSourceAction.reset, appointments!);
-    });
+    if (_isDisposed || appointments == null) return;
+    appointments!.clear();
+    appointments!.addAll(_filteredPlannerItems);
+    _buildSortPositions(appointments!.cast<PlannerItemBaseModel>());
+    notifyListeners(CalendarDataSourceAction.reset, appointments!);
   }
 
   bool isHomeworkCompleted(HomeworkModel homework) {
@@ -1138,19 +1131,13 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
     final itemsByBaseTime = <String, List<PlannerItemBaseModel>>{};
 
     for (final item in items) {
-      // Honor any optimistic drag/drop override so positions reflect the
-      // item's effective minute-group, not its stale pre-drag position.
-      final override = _timeOverrides[item.id];
-      final effectiveStart = override != null
-          ? DateTime.parse(override.start)
-          : item.start;
       // Group by date + hour + minute only (seconds/ms are our own encoding)
       final key = DateTime(
-        effectiveStart.year,
-        effectiveStart.month,
-        effectiveStart.day,
-        effectiveStart.hour,
-        effectiveStart.minute,
+        item.start.year,
+        item.start.month,
+        item.start.day,
+        item.start.hour,
+        item.start.minute,
       ).toIso8601String();
       itemsByBaseTime.putIfAbsent(key, () => []).add(item);
     }

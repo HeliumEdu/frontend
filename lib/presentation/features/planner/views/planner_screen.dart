@@ -1765,7 +1765,6 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
       );
       final DateTime end = start.add(duration);
 
-      // Set optimistic override immediately for instant visual feedback
       _plannerItemDataSource!.setTimeOverride(
         plannerItem.id,
         start.toIso8601String(),
@@ -1857,7 +1856,6 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
         _warnIfHomeworkOutsideDateRange(plannerItem, start, end);
       }
 
-      // Set optimistic override immediately for instant visual feedback
       _plannerItemDataSource!.setTimeOverride(
         plannerItem.id,
         start.toIso8601String(),
