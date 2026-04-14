@@ -916,18 +916,18 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
   void setTimeOverride(int itemId, String start, String end) {
     _timeOverrides[itemId] = PlannerItemTimeOverride(start: start, end: end);
 
-    // Rebuild positions so getStartTime/getEndTime return override-aware
-    // values, but do NOT re-sort the appointments list. SfCalendar holds a
-    // direct reference to it; mutating list order without an immediate
-    // notification causes SfCalendar's cached index --> time mapping to disagree
-    // with the new list order, flipping all-day items that share a day.
-    _buildSortPositions(appointments!.cast<PlannerItemBaseModel>());
-
     // Defer notification so we don't trigger a rebuild during a repaint
     // (Syncfusion's _SelectionPainter crashes on null check if notifyListeners
-    // is called while a repaint is in progress).
+    // is called while a repaint is in progress). Rebuild appointments! from
+    // source-of-truth so the list order matches what updatePlannerItem will
+    // produce when the API responds — preventing a transient flip between the
+    // two resets. _buildSortPositions then assigns stable positions via its
+    // intra-group sort (type → title), independent of list order.
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (_isDisposed) return;
+      if (_isDisposed || appointments == null) return;
+      appointments!.clear();
+      appointments!.addAll(_filteredPlannerItems);
+      _buildSortPositions(appointments!.cast<PlannerItemBaseModel>());
       notifyListeners(CalendarDataSourceAction.reset, appointments!);
       _notifyChangeListeners();
     });
@@ -1134,35 +1134,48 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
   }
 
   /// Builds a map of item IDs to their position within items at the same time.
-  /// This position is used to apply seconds-based adjustments that encode the full
-  /// sort order (type --> course --> title) into the times seen by SfCalendar.
-  void _buildSortPositions(List<PlannerItemBaseModel> sortedItems) {
+  /// Positions are used to apply seconds-based adjustments in getStartTime/
+  /// getEndTime that encode the full sort order into times seen by SfCalendar.
+  ///
+  /// Positions are assigned via a stable intra-group sort (type priority →
+  /// title), independent of the input list order. This ensures consistent
+  /// positions across all call sites regardless of the current order of
+  /// appointments!, including during optimistic drag-drop overrides.
+  void _buildSortPositions(List<PlannerItemBaseModel> items) {
     _sortPositions.clear();
 
-    // Group items by their base time (without any adjustments)
     final itemsByBaseTime = <String, List<PlannerItemBaseModel>>{};
 
-    for (final item in sortedItems) {
+    for (final item in items) {
       // Honor any optimistic drag/drop override so positions reflect the
-      // item's *effective* neighbors, not its stale pre-drag minute-group.
+      // item's effective minute-group, not its stale pre-drag position.
       final override = _timeOverrides[item.id];
       final effectiveStart = override != null
           ? DateTime.parse(override.start)
           : item.start;
-      // Use only date + hour + minute for grouping (ignore seconds/milliseconds)
-      final baseTime = DateTime(
+      // Group by date + hour + minute only (seconds/ms are our own encoding)
+      final key = DateTime(
         effectiveStart.year,
         effectiveStart.month,
         effectiveStart.day,
         effectiveStart.hour,
         effectiveStart.minute,
-      );
-      final key = baseTime.toIso8601String();
+      ).toIso8601String();
       itemsByBaseTime.putIfAbsent(key, () => []).add(item);
     }
 
-    // Assign positions within each time group
     for (final timeGroup in itemsByBaseTime.values) {
+      // Sort within group by type priority then title so positions are stable
+      // regardless of input list order. Without this, position assignments vary
+      // between setTimeOverride (unsorted list) and updatePlannerItem (sorted
+      // list), causing a transient flip between the two reset notifications.
+      timeGroup.sort((a, b) {
+        final aPriority = Sort.typeSortPriority[a.plannerItemType] ?? 0;
+        final bPriority = Sort.typeSortPriority[b.plannerItemType] ?? 0;
+        final priorityCompare = aPriority.compareTo(bPriority);
+        if (priorityCompare != 0) return priorityCompare;
+        return a.title.compareTo(b.title);
+      });
       for (int i = 0; i < timeGroup.length; i++) {
         _sortPositions[timeGroup[i].id] = i;
       }
