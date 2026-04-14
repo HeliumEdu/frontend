@@ -947,6 +947,12 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
   void resetAppointments() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (_isDisposed || appointments == null) return;
+      // Rebuild from _dateRangeCache (via _filteredPlannerItems) to discard any
+      // rogue copies SfCalendar may have appended to appointments! during the
+      // drag-drop gesture (e.g., duplicate recurring CourseScheduleEvents).
+      appointments!.clear();
+      appointments!.addAll(_filteredPlannerItems);
+      _buildSortPositions(appointments!.cast<PlannerItemBaseModel>());
       notifyListeners(CalendarDataSourceAction.reset, appointments!);
     });
   }
