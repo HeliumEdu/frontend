@@ -993,12 +993,12 @@ void main() {
         );
       });
 
-      test('course schedule gets 102 seconds subtracted from start time', () {
+      test('course schedule gets 77 seconds subtracted from start time', () {
         final schedule = _createCourseScheduleEventModel(id: 1);
         dataSource.addPlannerItem(schedule);
 
         final startTime = dataSource.getStartTime(0);
-        // CourseSchedule: (3-1) + (100-0) = 102 seconds
+        // CourseSchedule: (3-1)*26 + (25-0) = 77 seconds
         // Time is converted to user's timezone before adjustment
         final expectedBase = tz.TZDateTime.from(
           DateTime.parse('2025-01-15T10:00:00Z'),
@@ -1006,11 +1006,11 @@ void main() {
         );
         expect(
           startTime,
-          expectedBase.subtract(const Duration(seconds: 102)),
+          expectedBase.subtract(const Duration(seconds: 77)),
         );
       });
 
-      test('event gets 101 seconds subtracted from start time', () {
+      test('event gets 51 seconds subtracted from start time', () {
         final event = _createEventModel(
           id: 1,
           start: DateTime.parse('2025-01-15T10:00:00Z'),
@@ -1019,7 +1019,7 @@ void main() {
         dataSource.addPlannerItem(event);
 
         final startTime = dataSource.getStartTime(0);
-        // Event: (3-2) + (100-0) = 101 seconds
+        // Event: (3-2)*26 + (25-0) = 51 seconds
         // Time is converted to user's timezone before adjustment
         final expectedBase = tz.TZDateTime.from(
           DateTime.parse('2025-01-15T10:00:00Z'),
@@ -1027,16 +1027,16 @@ void main() {
         );
         expect(
           startTime,
-          expectedBase.subtract(const Duration(seconds: 101)),
+          expectedBase.subtract(const Duration(seconds: 51)),
         );
       });
 
-      test('external event gets 100 seconds subtracted from start time', () {
+      test('external event gets 25 seconds subtracted from start time', () {
         final external = _createExternalCalendarEventModel(id: 1);
         dataSource.addPlannerItem(external);
 
         final startTime = dataSource.getStartTime(0);
-        // External: (3-3) + (100-0) = 100 seconds
+        // External: (3-3)*26 + (25-0) = 25 seconds
         // Time is converted to user's timezone before adjustment
         final expectedBase = tz.TZDateTime.from(
           DateTime.parse('2025-01-15T10:00:00Z'),
@@ -1044,7 +1044,7 @@ void main() {
         );
         expect(
           startTime,
-          expectedBase.subtract(const Duration(seconds: 100)),
+          expectedBase.subtract(const Duration(seconds: 25)),
         );
       });
 
@@ -1088,7 +1088,7 @@ void main() {
         );
       });
 
-      test('event gets 101 seconds subtracted from end time', () {
+      test('event gets 51 seconds subtracted from end time', () {
         final event = _createEventModel(
           id: 1,
           start: DateTime.parse('2025-01-15T10:00:00Z'),
@@ -1097,7 +1097,7 @@ void main() {
         dataSource.addPlannerItem(event);
 
         final endTime = dataSource.getEndTime(0);
-        // Event: (3-2) + (100-0) = 101 seconds
+        // Event: (3-2)*26 + (25-0) = 51 seconds
         // Time is converted to user's timezone before adjustment
         final expectedBase = tz.TZDateTime.from(
           DateTime.parse('2025-01-15T11:00:00Z'),
@@ -1105,7 +1105,7 @@ void main() {
         );
         expect(
           endTime,
-          expectedBase.subtract(const Duration(seconds: 101)),
+          expectedBase.subtract(const Duration(seconds: 51)),
         );
       });
 
