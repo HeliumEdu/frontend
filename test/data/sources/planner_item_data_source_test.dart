@@ -1275,6 +1275,137 @@ void main() {
           expect(eventStart.difference(homeworkStart).inMinutes, 0);
         },
       );
+
+      test(
+        'all four types on same all-day day produce distinct ordered start times',
+        () {
+          final allDayHomework = _createHomeworkModel(
+            id: 1,
+            title: 'HW',
+            start: DateTime.parse('2025-01-15T00:00:00Z'),
+            end: DateTime.parse('2025-01-16T00:00:00Z'),
+            allDay: true,
+          );
+          final allDaySchedule = CourseScheduleEventModel(
+            id: 2,
+            title: 'Exam Day',
+            allDay: true,
+            showEndTime: false,
+            start: DateTime.parse('2025-01-15T00:00:00Z'),
+            end: DateTime.parse('2025-01-16T00:00:00Z'),
+            priority: 50,
+            url: null,
+            comments: '',
+            attachments: [],
+            reminders: [],
+            ownerId: '1',
+            color: const Color(0xFFFF5722),
+            exceptionDates: const [],
+          );
+          final allDayEvent = _createEventModel(
+            id: 3,
+            title: 'Trip',
+            start: DateTime.parse('2025-01-15T00:00:00Z'),
+            end: DateTime.parse('2025-01-16T00:00:00Z'),
+            allDay: true,
+          );
+          final allDayExternal = ExternalCalendarEventModel(
+            id: 4,
+            title: 'Holiday',
+            allDay: true,
+            showEndTime: false,
+            start: DateTime.parse('2025-01-15T00:00:00Z'),
+            end: DateTime.parse('2025-01-16T00:00:00Z'),
+            priority: 50,
+            url: null,
+            comments: '',
+            attachments: [],
+            reminders: [],
+            ownerId: 'holidays',
+            color: const Color(0xFF9C27B0),
+          );
+
+          // Add in reverse priority order to exercise the sort path.
+          dataSource.addPlannerItem(allDayExternal);
+          dataSource.addPlannerItem(allDayEvent);
+          dataSource.addPlannerItem(allDaySchedule);
+          dataSource.addPlannerItem(allDayHomework);
+
+          DateTime startFor(int id) {
+            final index = dataSource.appointments!.indexWhere(
+              (a) => (a as PlannerItemBaseModel).id == id,
+            );
+            return dataSource.getStartTime(index);
+          }
+
+          final hwStart = startFor(1);
+          final scheduleStart = startFor(2);
+          final eventStart = startFor(3);
+          final externalStart = startFor(4);
+
+          // Strict ordering per Sort.typeSortPriority.
+          expect(hwStart.isBefore(scheduleStart), isTrue);
+          expect(scheduleStart.isBefore(eventStart), isTrue);
+          expect(eventStart.isBefore(externalStart), isTrue);
+
+          // All four distinct, and still within the same minute so calendar
+          // slot placement is unaffected.
+          final all = {hwStart, scheduleStart, eventStart, externalStart};
+          expect(all.length, 4);
+          expect(externalStart.difference(hwStart).inMinutes, 0);
+        },
+      );
+
+      test(
+        '_buildSortPositions honors time overrides when items move into a new minute group',
+        () {
+          // Two timed homeworks in different minute groups. Without honoring
+          // the override, both would be position 0 in their respective groups,
+          // so when hw2's effective start is overridden to collide with hw1,
+          // their adjusted start times would tie and SfCalendar's internal
+          // tie-breaker could flip them.
+          final hw1 = _createHomeworkModel(
+            id: 1,
+            title: 'Alpha',
+            start: DateTime.parse('2025-01-15T10:00:00Z'),
+            end: DateTime.parse('2025-01-15T11:00:00Z'),
+          );
+          final hw2 = _createHomeworkModel(
+            id: 2,
+            title: 'Beta',
+            start: DateTime.parse('2025-01-15T14:00:00Z'),
+            end: DateTime.parse('2025-01-15T15:00:00Z'),
+          );
+
+          dataSource.addPlannerItem(hw1);
+          dataSource.addPlannerItem(hw2);
+
+          // Drag hw2 into hw1's minute group.
+          dataSource.setTimeOverride(
+            2,
+            '2025-01-15T10:00:00Z',
+            '2025-01-15T11:00:00Z',
+          );
+
+          final hw1Index = dataSource.appointments!.indexWhere(
+            (a) => (a as PlannerItemBaseModel).id == 1,
+          );
+          final hw2Index = dataSource.appointments!.indexWhere(
+            (a) => (a as PlannerItemBaseModel).id == 2,
+          );
+
+          final hw1Start = dataSource.getStartTime(hw1Index);
+          final hw2Start = dataSource.getStartTime(hw2Index);
+
+          // Must be distinct (so SfCalendar never tie-breaks) and ordered by
+          // title (Alpha before Beta).
+          expect(hw1Start, isNot(equals(hw2Start)));
+          expect(hw1Start.isBefore(hw2Start), isTrue);
+          // Still within the same minute so calendar slot placement is
+          // unaffected.
+          expect(hw2Start.difference(hw1Start).inMinutes, 0);
+        },
+      );
     });
 
     group('clearFilters', () {

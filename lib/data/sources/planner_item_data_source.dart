@@ -780,7 +780,10 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
       }
     }
 
-    // Add immediately for instant visibility, then async refilter for sorting
+    // Add immediately for instant visibility, then async refilter for sorting.
+    // Use `reset` (not `add`) so SfCalendar re-reads our sorted list; `add`
+    // appends to SfCalendar's internal collection, which visibly flips sort
+    // order on mixed-type all-day days.
     if (!appointments!.any(
       (item) => (item as PlannerItemBaseModel).id == plannerItem.id,
     )) {
@@ -788,7 +791,7 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
       Sort.byStartThenTitle(appointments!.cast<PlannerItemBaseModel>());
       _buildSortPositions(appointments!.cast<PlannerItemBaseModel>());
       if (!_isDisposed) {
-        notifyListeners(CalendarDataSourceAction.add, [plannerItem]);
+        notifyListeners(CalendarDataSourceAction.reset, appointments!);
       }
     }
 
@@ -1091,13 +1094,19 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
     final itemsByBaseTime = <String, List<PlannerItemBaseModel>>{};
 
     for (final item in sortedItems) {
+      // Honor any optimistic drag/drop override so positions reflect the
+      // item's *effective* neighbors, not its stale pre-drag minute-group.
+      final override = _timeOverrides[item.id];
+      final effectiveStart = override != null
+          ? DateTime.parse(override.start)
+          : item.start;
       // Use only date + hour + minute for grouping (ignore seconds/milliseconds)
       final baseTime = DateTime(
-        item.start.year,
-        item.start.month,
-        item.start.day,
-        item.start.hour,
-        item.start.minute,
+        effectiveStart.year,
+        effectiveStart.month,
+        effectiveStart.day,
+        effectiveStart.hour,
+        effectiveStart.minute,
       );
       final key = baseTime.toIso8601String();
       itemsByBaseTime.putIfAbsent(key, () => []).add(item);

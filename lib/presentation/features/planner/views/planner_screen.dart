@@ -3842,43 +3842,54 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
     bool? completedOverride,
     required Color backgroundColor,
   }) {
-    // Use data source's isHomeworkCompleted() directly to get the latest
-    // override value, matching how TodosDataGrid and the checkbox work
-    final isCompleted = plannerItem is HomeworkModel
-        ? (_plannerItemDataSource?.isHomeworkCompleted(plannerItem) ??
-              completedOverride ??
-              plannerItem.completed)
-        : false;
+    Widget buildTitle(bool isCompleted) {
+      final foregroundColor = backgroundColor.contrasting;
+      final baseStyle = isInAgenda
+          ? AppStyles.smallSecondaryTextLight(context)
+          : AppStyles.calendarItemText(context);
+      final titleStyle = baseStyle.copyWith(
+        color: foregroundColor,
+        decoration: isCompleted
+            ? TextDecoration.lineThrough
+            : TextDecoration.none,
+        decorationColor: foregroundColor,
+        decorationThickness: 2.0,
+      );
 
-    final foregroundColor = backgroundColor.contrasting;
-    final baseStyle = isInAgenda
-        ? AppStyles.smallSecondaryTextLight(context)
-        : AppStyles.calendarItemText(context);
-    final titleStyle = baseStyle.copyWith(
-      color: foregroundColor,
-      decoration: isCompleted
-          ? TextDecoration.lineThrough
-          : TextDecoration.none,
-      decorationColor: foregroundColor,
-      decorationThickness: 2.0,
-    );
+      return Text(
+        isInAgenda
+            ? plannerItem.title
+            : plannerItem.title.characters.join('\u200B'),
+        style: titleStyle,
+        maxLines:
+            _currentView == PlannerView.month ||
+                _currentView == PlannerView.agenda
+            ? 1
+            : null,
+        overflow:
+            _currentView == PlannerView.month ||
+                _currentView == PlannerView.agenda
+            ? TextOverflow.ellipsis
+            : null,
+        semanticsLabel: isInAgenda ? null : plannerItem.title,
+      );
+    }
 
-    return Text(
-      isInAgenda
-          ? plannerItem.title
-          : plannerItem.title.characters.join('\u200B'),
-      style: titleStyle,
-      maxLines:
-          _currentView == PlannerView.month ||
-              _currentView == PlannerView.agenda
-          ? 1
-          : null,
-      overflow:
-          _currentView == PlannerView.month ||
-              _currentView == PlannerView.agenda
-          ? TextOverflow.ellipsis
-          : null,
-      semanticsLabel: isInAgenda ? null : plannerItem.title,
+    // For homework, rebuild on data source change so strikethrough stays in
+    // sync with the checkbox under rapid completion toggles.
+    if (plannerItem is HomeworkModel && _plannerItemDataSource != null) {
+      final dataSource = _plannerItemDataSource!;
+      return ListenableBuilder(
+        listenable: dataSource.changeNotifier,
+        builder: (context, _) =>
+            buildTitle(dataSource.isHomeworkCompleted(plannerItem)),
+      );
+    }
+
+    return buildTitle(
+      plannerItem is HomeworkModel
+          ? (completedOverride ?? plannerItem.completed)
+          : false,
     );
   }
 
