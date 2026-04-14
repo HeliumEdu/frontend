@@ -916,20 +916,18 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
   void setTimeOverride(int itemId, String start, String end) {
     _timeOverrides[itemId] = PlannerItemTimeOverride(start: start, end: end);
 
-    // Defer notification so we don't trigger a rebuild during a repaint
-    // (Syncfusion's _SelectionPainter crashes on null check if notifyListeners
-    // is called while a repaint is in progress). Rebuild appointments! from
-    // source-of-truth so the list order matches what updatePlannerItem will
-    // produce when the API responds — preventing a transient flip between the
-    // two resets. _buildSortPositions then assigns stable positions via its
-    // intra-group sort (type → title), independent of list order.
+    // Defer to next frame to avoid triggering a rebuild during a repaint.
+    // Rebuild appointments! from source-of-truth to discard any rogue copies
+    // SfCalendar appended during the drag gesture, then rebuild positions so
+    // getStartTime/getEndTime are correct for any intermediate renders.
+    // No reset notification — SfCalendar manages its own visual drag state,
+    // and updatePlannerItem fires the single authoritative reset when the API
+    // responds. Emitting a second reset here causes a transient ordering flip.
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (_isDisposed || appointments == null) return;
       appointments!.clear();
       appointments!.addAll(_filteredPlannerItems);
       _buildSortPositions(appointments!.cast<PlannerItemBaseModel>());
-      notifyListeners(CalendarDataSourceAction.reset, appointments!);
-      _notifyChangeListeners();
     });
   }
 
