@@ -938,6 +938,17 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
     appointments!.addAll(_filteredPlannerItems);
     _buildSortPositions(appointments!.cast<PlannerItemBaseModel>());
     notifyListeners(CalendarDataSourceAction.reset, appointments!);
+    // SfCalendar may fire a remove notification after onDragEnd returns (e.g.,
+    // same-day RRULE drop in month view treats the occurrence as an exception
+    // and removes the master from its internal list). The post-frame reset
+    // catches that and restores the full series.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_isDisposed || appointments == null) return;
+      appointments!.clear();
+      appointments!.addAll(_filteredPlannerItems);
+      _buildSortPositions(appointments!.cast<PlannerItemBaseModel>());
+      notifyListeners(CalendarDataSourceAction.reset, appointments!);
+    });
   }
 
   bool isHomeworkCompleted(HomeworkModel homework) {
