@@ -940,6 +940,17 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
   PlannerItemTimeOverride? getTimeOverride(int itemId) =>
       _timeOverrides[itemId];
 
+  /// Forces SfCalendar to re-read from our appointments list on the next frame,
+  /// discarding any internal state it accumulated during a drag-drop gesture on
+  /// a locked item (e.g., the rogue duplicate copy SfCalendar inserts for a
+  /// recurring CourseScheduleEvent after a completed drag).
+  void resetAppointments() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_isDisposed || appointments == null) return;
+      notifyListeners(CalendarDataSourceAction.reset, appointments!);
+    });
+  }
+
   bool isHomeworkCompleted(HomeworkModel homework) {
     // Check override first
     if (_completedOverrides.containsKey(homework.id)) {

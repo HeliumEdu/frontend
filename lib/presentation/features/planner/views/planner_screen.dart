@@ -242,7 +242,6 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
   bool _mobileMonthAutoSelectApplied = false;
 
   List<DateTime> _visibleDates = [];
-  bool _allowCalendarDragAndDrop = true;
   bool _isCalendarInteractionInProgress = false;
 
   // Debounces rapid checkbox taps so fast toggling doesn't fire a network
@@ -768,9 +767,8 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
           showCurrentTimeIndicator: true,
           showWeekNumber: userSettings?.showWeekNumbers ?? false,
           allowDragAndDrop:
-              _allowCalendarDragAndDrop &&
-              (!Responsive.isTouchDevice(context) ||
-                  (userSettings?.dragAndDropOnMobile ?? true)),
+              !Responsive.isTouchDevice(context) ||
+              (userSettings?.dragAndDropOnMobile ?? true),
           dragAndDropSettings: DragAndDropSettings(
             timeIndicatorStyle: AppStyles.smallSecondaryText(
               context,
@@ -1787,8 +1785,10 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
         );
       }
     } else if (plannerItem is CourseScheduleEventModel) {
+      _plannerItemDataSource!.resetAppointments();
       _showCourseScheduleEventDialog(plannerItem, dropDetails.droppingTime!);
     } else if (plannerItem is ExternalCalendarEventModel) {
+      _plannerItemDataSource!.resetAppointments();
       _showEditExternalCalendarEventSnackBar();
     }
   }
@@ -1883,8 +1883,10 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
         );
       }
     } else if (plannerItem is CourseScheduleEventModel) {
+      _plannerItemDataSource!.resetAppointments();
       _showCourseScheduleEventDialog(plannerItem, resizeDetails.startTime!);
     } else if (plannerItem is ExternalCalendarEventModel) {
+      _plannerItemDataSource!.resetAppointments();
       _showEditExternalCalendarEventSnackBar();
     }
   }
@@ -2044,24 +2046,6 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
           : null,
       occurrenceDate: details.date,
     );
-    // Agenda views don't support drag and drop, so no Listener needed there.
-    // In timeline views, locked items (course schedules, external calendar
-    // events) still need the Listener to prevent SfCalendar from initiating
-    // a drag. Defer the setState so it fires after the current gesture phase;
-    // drag initiation requires a sustained hold (~300-500ms), so a one-frame
-    // delay still reliably prevents accidental drags without interfering with
-    // quick taps.
-    if (_isLockedCalendarInteractionItem(plannerItem) && !isInAgenda) {
-      calendarItemWidget = Listener(
-        onPointerDown: (_) {
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            _temporarilyDisableCalendarDragAndDrop();
-          });
-        },
-        child: calendarItemWidget,
-      );
-    }
-
     // On touch devices, SfCalendar incorrectly reports calendarCell instead of
     // appointment for taps and long-presses on month-view calendar items. Handle
     // both directly on the widget to bypass this quirk (drag-and-drop in month
@@ -2105,17 +2089,6 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
 
     setState(() {
       _isCalendarInteractionInProgress = isInProgress;
-    });
-  }
-
-  void _temporarilyDisableCalendarDragAndDrop() {
-    if (!_allowCalendarDragAndDrop || !mounted) {
-      return;
-    }
-    _allowCalendarDragAndDrop = false;
-    Future.delayed(const Duration(milliseconds: 250), () {
-      if (!mounted) return;
-      _allowCalendarDragAndDrop = true;
     });
   }
 
