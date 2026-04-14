@@ -352,6 +352,9 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
             userSettings: settings,
           );
 
+          _plannerItemDataSource!.isMonthView =
+              _currentView == PlannerView.month;
+
           if (_courses.isNotEmpty) {
             _plannerItemDataSource!.courses = _courses;
             _plannerItemDataSource!.courseGroupsById = _courseGroupsById;
@@ -1617,6 +1620,8 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
 
     _previousView = _currentView;
     _currentView = newView;
+
+    _plannerItemDataSource?.isMonthView = newView == PlannerView.month;
 
     // Todos is a custom view, not an SfCalendar view
     if (newView != PlannerView.todos) {

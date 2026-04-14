@@ -68,6 +68,7 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
   int _todosItemsPerPage = 10;
   final Map<int, bool> _completedOverrides = {};
   final Map<int, PlannerItemTimeOverride> _timeOverrides = {};
+  bool _isMonthView = false;
 
   /// Maps calendar item ID to its position in the sorted list for items at the
   /// same base time. Used to apply seconds-based adjustments that encode the full
@@ -102,6 +103,18 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
   /// filters). UI can check this when changeNotifier fires to show a loading
   /// overlay.
   bool get isRefreshing => _isRefreshing;
+
+  /// Tell the data source which calendar view is active. In month view,
+  /// `isAllDay` returns false so SfCalendar uses `getStartTime` for ordering
+  /// (working around a Syncfusion bug where `reset` alternates all-day item
+  /// sort order).
+  set isMonthView(bool value) {
+    if (_isMonthView == value) return;
+    _isMonthView = value;
+    if (appointments != null && appointments!.isNotEmpty && !_isDisposed) {
+      notifyListeners(CalendarDataSourceAction.reset, appointments!);
+    }
+  }
 
   void _notifyChangeListeners() {
     if (_isDisposed) return;
@@ -344,15 +357,14 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
       userSettings.timeZone,
     );
 
-    // All-day events: SfCalendar's internal tie-breaker for equal all-day
-    // start times is unstable for mixed-type days (notably HomeworkModel +
-    // ExternalCalendarEventModel), so force a distinct ordering by adding
-    // the item's position within its time group. `_sortPositions` already
-    // reflects the fully-sorted order (type priority, course, title), so
-    // position alone is sufficient.
+    // All-day events: SfCalendar ignores sub-minute precision in start
+    // times for all-day items, so seconds-level offsets are invisible to its
+    // internal sort. Use the item's type priority directly (not
+    // _sortPositions) to avoid any dependency on list iteration order, which
+    // can alternate across successive resets.
     if (item.allDay) {
-      final position = _sortPositions[item.id] ?? 0;
-      return baseTime.add(Duration(seconds: position));
+      final priority = Sort.typeSortPriority[item.plannerItemType] ?? 0;
+      return baseTime.add(Duration(minutes: priority));
     }
 
     // Timed events: subtract seconds to encode sort order
@@ -380,16 +392,26 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
       userSettings.timeZone,
     );
 
-    // All-day events: sort order is encoded in start time (see getStartTime).
-    // Apply the same position offset to end so end >= adjusted start, and
-    // subtract one day to convert SfCalendar's exclusive end-of-day into the
-    // inclusive form the rest of the UI expects.
     if (plannerItem.allDay) {
-      final position = _sortPositions[plannerItem.id] ?? 0;
-      final adjustedStart = startTime.add(Duration(seconds: position));
+      final priority =
+          Sort.typeSortPriority[plannerItem.plannerItemType] ?? 0;
+      if (_isMonthView) {
+        // Month view: isAllDay returns false, so SfCalendar treats these as
+        // timed events. Subtract 1 second to convert the API's exclusive end
+        // (next day 00:00) into an inclusive end (23:59:59) so the event stays
+        // within the correct day cells.
+        final adjustedEnd = endTime.subtract(const Duration(seconds: 1));
+        final adjustedStart = startTime.add(Duration(minutes: priority));
+        return adjustedEnd.isBefore(adjustedStart)
+            ? adjustedStart
+            : adjustedEnd;
+      }
+      // Week/day view: isAllDay returns true, subtract 1 day for SfCalendar's
+      // exclusive end-of-day convention for all-day items.
+      final adjustedStart = startTime.add(Duration(minutes: priority));
       final adjustedEnd = endTime
           .subtract(const Duration(days: 1))
-          .add(Duration(seconds: position));
+          .add(Duration(minutes: priority));
       return adjustedEnd.isBefore(adjustedStart) ? adjustedStart : adjustedEnd;
     }
 
@@ -402,7 +424,13 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
 
   @override
   bool isAllDay(int index) {
-    return _getData(index).allDay;
+    // In month view, report all-day items as timed so SfCalendar respects
+    // getStartTime for ordering. SfCalendar has a bug where its internal sort
+    // for isAllDay==true items on `reset` ignores getStartTime values and
+    // alternates order on each successive notification.
+    final item = _getData(index);
+    if (_isMonthView && item.allDay) return false;
+    return item.allDay;
   }
 
   @override
@@ -888,12 +916,16 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
   void setTimeOverride(int itemId, String start, String end) {
     _timeOverrides[itemId] = PlannerItemTimeOverride(start: start, end: end);
 
-    Sort.byStartThenTitle(appointments!.cast<PlannerItemBaseModel>());
+    // Rebuild positions so getStartTime/getEndTime return override-aware
+    // values, but do NOT re-sort the appointments list. SfCalendar holds a
+    // direct reference to it; mutating list order without an immediate
+    // notification causes SfCalendar's cached index --> time mapping to disagree
+    // with the new list order, flipping all-day items that share a day.
     _buildSortPositions(appointments!.cast<PlannerItemBaseModel>());
 
-    // Defer notification to avoid triggering rebuild during paint phase.
-    // Syncfusion's _SelectionPainter crashes (NoSuchMethodError on null check)
-    // if notifyListeners is called while a repaint is already in progress.
+    // Defer notification so we don't trigger a rebuild during a repaint
+    // (Syncfusion's _SelectionPainter crashes on null check if notifyListeners
+    // is called while a repaint is in progress).
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (_isDisposed) return;
       notifyListeners(CalendarDataSourceAction.reset, appointments!);

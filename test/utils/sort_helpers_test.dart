@@ -342,7 +342,7 @@ void main() {
         expect(items[1].id, 1); // External second (priority 3)
       });
 
-      test('full priority order: homework → schedule → event → external', () {
+      test('full priority order: homework  -->  schedule  -->  event  -->  external', () {
         final items = [
           _createExternalEvent(id: 1, start: DateTime.parse('2025-01-15T10:00:00Z')),
           _createEvent(id: 2, start: DateTime.parse('2025-01-15T10:00:00Z')),

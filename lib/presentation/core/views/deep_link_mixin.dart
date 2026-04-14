@@ -20,7 +20,7 @@ import 'package:heliumapp/presentation/features/settings/views/settings_screen.d
 ///
 /// Provides shared infrastructure for:
 /// - `openedDeepLinkParam` rebuild guard
-/// - Global entity params (`homeworkId`/`eventId`) → planner item editor
+/// - Global entity params (`homeworkId`/`eventId`)  -->  planner item editor
 /// - Dialog params (`dialog=settings|notifications`)
 /// - Route-specific entity params via [handleRouteEntityParams] override
 /// - Router listener for entity params set externally (e.g., from notifications)
@@ -39,7 +39,7 @@ mixin DeepLinkMixin<T extends StatefulWidget> on BasePageScreenState<T> {
   ///
   /// Uses [router.routeInformationProvider] rather than [router.routerDelegate]
   /// because [routeInformationProvider] fires (and updates) for same-shell-path
-  /// URL changes (e.g., `/planner` → `/planner?dialog=notifications`) that
+  /// URL changes (e.g., `/planner`  -->  `/planner?dialog=notifications`) that
   /// [routerDelegate] may skip when the navigator stack doesn't change.
   /// Reading from the same source we listen to keeps the check and the read
   /// in sync, preventing stale-param feedback loops on dialog close.
@@ -65,7 +65,7 @@ mixin DeepLinkMixin<T extends StatefulWidget> on BasePageScreenState<T> {
   }
 
   /// Opens deep-linked content based on current query params.
-  /// Priority: global entity params → route-specific → dialog params.
+  /// Priority: global entity params  -->  route-specific  -->  dialog params.
   @protected
   void openFromQueryParams() {
     final queryParams = readQueryParams();

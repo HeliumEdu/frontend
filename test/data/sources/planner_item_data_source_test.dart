@@ -1233,9 +1233,9 @@ void main() {
                 'all-day external event ($externalStart)',
           );
 
-          // Offsets are seconds-sized so both items stay in the same minute.
+          // Offsets are minute-sized so items stay within the same hour.
           expect(
-            externalStart.difference(homeworkStart).inMinutes,
+            externalStart.difference(homeworkStart).inHours,
             0,
           );
         },
@@ -1272,7 +1272,7 @@ void main() {
           final eventStart = dataSource.getStartTime(eventIndex);
 
           expect(homeworkStart.isBefore(eventStart), isTrue);
-          expect(eventStart.difference(homeworkStart).inMinutes, 0);
+          expect(eventStart.difference(homeworkStart).inHours, 0);
         },
       );
 
@@ -1352,7 +1352,7 @@ void main() {
           // slot placement is unaffected.
           final all = {hwStart, scheduleStart, eventStart, externalStart};
           expect(all.length, 4);
-          expect(externalStart.difference(hwStart).inMinutes, 0);
+          expect(externalStart.difference(hwStart).inHours, 0);
         },
       );
 

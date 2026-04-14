@@ -126,7 +126,7 @@ class _DialogRouteListenerState extends State<_DialogRouteListener> {
     }
 
     // Close when query params are cleared (e.g., browser back from ?id=123 to /)
-    // but not on param updates within the dialog (e.g., id=new → id=123)
+    // but not on param updates within the dialog (e.g., id=new  -->  id=123)
     if (_initialUri.queryParameters.isNotEmpty &&
         currentUri.queryParameters.isEmpty &&
         mounted) {
