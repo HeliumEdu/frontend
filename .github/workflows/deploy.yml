@@ -243,7 +243,7 @@ jobs:
           DOMAIN="app.${ENVIRONMENT_PREFIX}heliumedu.com"
 
           DISTRIBUTION_ID=$(aws cloudfront list-distributions \
-            --query "DistributionList.Items[?contains(Aliases.Items, '${DOMAIN}')].Id" \
+            --query "DistributionList.Items[?contains(not_null(Aliases.Items, \`[]\`), '${DOMAIN}')].Id" \
             --output text)
 
           if [ -n "$DISTRIBUTION_ID" ] && [ "$DISTRIBUTION_ID" != "None" ]; then
