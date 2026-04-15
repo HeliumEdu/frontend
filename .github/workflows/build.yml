@@ -188,36 +188,36 @@ jobs:
       - name: Build web
         run: make build-web
 
-      - name: Upload web artifact
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        uses: actions/upload-artifact@v7
-        with:
-          name: web-build-ci
-          path: build/web
-          include-hidden-files: true
-          retention-days: 1
-
   deploy-web-ci:
     name: Deploy web (CI preview)
-    needs: [build-web]
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
 
     runs-on: ubuntu-latest
 
     steps:
-      - name: Download web artifact
-        uses: nick-fields/retry@v4
-        env:
-          GH_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+      - uses: actions/checkout@v6
+
+      - name: Read Flutter version
+        id: flutter-version
+        run: echo "version=$(tr -d '[:space:]' < .flutter-version)" >> $GITHUB_OUTPUT
+
+      - name: Setup Flutter SDK
+        uses: flutter-actions/setup-flutter@v4
         with:
-          timeout_minutes: 5
-          retry_wait_seconds: 30
-          max_attempts: 5
-          command: |
-            gh run download ${{ github.run_id }} \
-              --repo ${{ github.repository }} \
-              --name web-build-ci \
-              --dir ./build/web
+          channel: stable
+          version: ${{ steps.flutter-version.outputs.version }}
+          cache: true
+
+      - name: Cache pub dependencies
+        uses: actions/cache@v5
+        with:
+          path: ~/.pub-cache
+          key: ${{ runner.os }}-pub-${{ hashFiles('**/pubspec.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-pub-
+
+      - name: Build web
+        run: make build-web ENVIRONMENT=prod
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v6
