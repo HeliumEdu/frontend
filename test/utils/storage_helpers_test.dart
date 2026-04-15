@@ -212,7 +212,7 @@ void main() {
 
       test('returns readError when path is null and readStream is null', () async {
         stubPickFiles(FilePickerResult([
-          // No path, no readStream → readPickedFileBytes returns null on mobile
+          // No path, no readStream  -->  readPickedFileBytes returns null on mobile
           PlatformFile(name: 'unreadable.bin', size: 100),
         ]));
 

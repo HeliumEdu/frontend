@@ -197,7 +197,7 @@ Future<String?> _authRedirect(BuildContext context, GoRouterState state) async {
     try {
       await DioClient().fetchSettings();
     } on DioException catch (e) {
-      // On web, a 401→refresh→403 path can escape fetchSettings()'s own
+      // On web, a 401 --> refresh --> 403 path can escape fetchSettings()'s own
       // try-catch due to async zone isolation. Treat auth failures here as
       // "session gone" and redirect to login rather than letting the exception
       // propagate into GoRouter (which wraps it as a GoException).

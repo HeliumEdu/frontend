@@ -92,9 +92,9 @@ class Responsive {
     }
   }
 
-  /// - Native iOS/Android → true
-  /// - Web on mobile/tablet browser → true (Flutter detects the platform)
-  /// - Desktop (native or web) → false
+  /// - Native iOS/Android  -->  true
+  /// - Web on mobile/tablet browser  -->  true (Flutter detects the platform)
+  /// - Desktop (native or web)  -->  false
   static bool isTouchDevice(BuildContext context) {
     return isIOSPlatform() || isAndroidPlatform();
   }

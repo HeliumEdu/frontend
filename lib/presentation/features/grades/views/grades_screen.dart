@@ -286,6 +286,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
             icon: Icons.bar_chart,
             title: "You haven't added any classes yet",
             message: "Head over to 'Classes' to get started",
+            expanded: false,
           );
         }
 

@@ -157,6 +157,10 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
   static const _uiAnimationDuration = Duration(milliseconds: 300);
   static const _tooltipWaitDuration = Duration(milliseconds: 500);
   static const _tooltipShowDuration = Duration(seconds: 8);
+  // How long to suppress tooltips after any intentional user action (drag,
+  // drop, resize, pointer-down anywhere). Resets on each new action so rapid
+  // interactions don't produce stray tooltips.
+  static const _tooltipSuppressDelay = Duration(seconds: 2);
 
   @override
   String get screenTitle => 'Planner';
@@ -242,8 +246,15 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
   bool _mobileMonthAutoSelectApplied = false;
 
   List<DateTime> _visibleDates = [];
-  bool _allowCalendarDragAndDrop = true;
   bool _isCalendarInteractionInProgress = false;
+  Timer? _tooltipSuppressTimer;
+
+  // DEBUG: tracks the last appointment the pointer entered, so we can compare
+  // against what SfCalendar reports in onDragStart. SfCalendar's internal
+  // hit-test can pick up the wrong appointment ~10% of the time on desktop.
+  // See: syncfusion/flutter-widgets#2523
+  PlannerItemBaseModel? _debugLastHoveredItem;
+  Offset? _debugLastHoverPosition;
 
   // Debounces rapid checkbox taps so fast toggling doesn't fire a network
   // request per tap. We update the optimistic override immediately on each
@@ -252,6 +263,12 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
   final Map<int, Timer> _pendingToggleTimers = {};
   final Map<int, bool> _pendingToggleValues = {};
   static const _toggleDebounceDuration = Duration(milliseconds: 400);
+
+  // Tracks IDs whose completion update has been dispatched to the BLoC and is
+  // awaiting a server response. On success (HomeworkUpdated) the ID is removed.
+  // On failure (PlannerItemsError) all in-flight overrides are cleared so the
+  // UI reverts to the last known server state rather than staying stuck.
+  final Set<int> _inFlightCompletionIds = {};
 
   PlannerItemDataSource? _plannerItemDataSource;
   final Map<int, ExternalCalendarModel> _externalCalendarsById = {};
@@ -307,11 +324,13 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
 
   @override
   void dispose() {
+    _tooltipSuppressTimer?.cancel();
     for (final timer in _pendingToggleTimers.values) {
       timer.cancel();
     }
     _pendingToggleTimers.clear();
     _pendingToggleValues.clear();
+    _inFlightCompletionIds.clear();
     _plannerItemDataSource?.dispose();
     _searchController.dispose();
     _searchFocusNode.dispose();
@@ -351,6 +370,9 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
             ),
             userSettings: settings,
           );
+
+          _plannerItemDataSource!.isMonthView =
+              _currentView == PlannerView.month;
 
           if (_courses.isNotEmpty) {
             _plannerItemDataSource!.courses = _courses;
@@ -430,7 +452,14 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
             unawaited(_refreshExternalCalendarsMap());
           } else if (state is HomeworkCreated) {
             _plannerItemDataSource!.addPlannerItem(state.homework);
+          } else if (state is PlannerItemsError) {
+            showSnackBar(context, state.message!, type: SnackType.error);
+            for (final id in _inFlightCompletionIds) {
+              _plannerItemDataSource!.clearCompletedOverride(id);
+            }
+            _inFlightCompletionIds.clear();
           } else if (state is HomeworkUpdated) {
+            _inFlightCompletionIds.remove(state.homework.id);
             final previousHomework = _plannerItemDataSource!.allHomeworks
                 .firstWhereOrNull((h) => h.id == state.homework.id);
             _plannerItemDataSource!.updatePlannerItem(state.homework);
@@ -567,7 +596,9 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
 
   @override
   Widget buildMainArea(BuildContext context) {
-    return BlocBuilder<PlannerBloc, PlannerState>(
+    return Listener(
+      onPointerDown: (_) => Tooltip.dismissAllToolTips(),
+      child: BlocBuilder<PlannerBloc, PlannerState>(
       builder: (context, state) {
         if (state is PlannerLoading) {
           return const Center(child: LoadingIndicator(expanded: false));
@@ -593,6 +624,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
         // and remounted when isCapturing changes.
         return _buildTodosContent();
       },
+      ),
     );
   }
 
@@ -751,9 +783,8 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
           showCurrentTimeIndicator: true,
           showWeekNumber: userSettings?.showWeekNumbers ?? false,
           allowDragAndDrop:
-              _allowCalendarDragAndDrop &&
-              (!Responsive.isTouchDevice(context) ||
-                  (userSettings?.dragAndDropOnMobile ?? true)),
+              !Responsive.isTouchDevice(context) ||
+              (userSettings?.dragAndDropOnMobile ?? true),
           dragAndDropSettings: DragAndDropSettings(
             timeIndicatorStyle: AppStyles.smallSecondaryText(
               context,
@@ -1618,6 +1649,8 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
     _previousView = _currentView;
     _currentView = newView;
 
+    _plannerItemDataSource?.isMonthView = newView == PlannerView.month;
+
     // Todos is a custom view, not an SfCalendar view
     if (newView != PlannerView.todos) {
       _calendarController.view = PlannerHelper.mapHeliumViewToSfCalendarView(
@@ -1692,12 +1725,33 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
   void _dropCalendarItem(AppointmentDragEndDetails dropDetails) {
     _setCalendarInteractionInProgress(false);
 
-    if (dropDetails.appointment == null || dropDetails.droppingTime == null) {
+    if (dropDetails.appointment == null) {
       return;
     }
 
     final PlannerItemBaseModel plannerItem =
         dropDetails.appointment as PlannerItemBaseModel;
+
+    // Reset SfCalendar's internal list unconditionally for locked items —
+    // including cancelled drags where droppingTime is null. SfCalendar inserts
+    // a rogue copy of the recurring appointment into its internal list on every
+    // drag-end, so the reset must fire regardless of whether the drop landed on
+    // a valid time slot.
+    if (_isLockedCalendarInteractionItem(plannerItem)) {
+      _plannerItemDataSource!.resetAppointments();
+      if (dropDetails.droppingTime != null) {
+        if (plannerItem is CourseScheduleEventModel) {
+          _showCourseScheduleEventDialog(plannerItem, dropDetails.droppingTime!);
+        } else {
+          _showEditExternalCalendarEventSnackBar();
+        }
+      }
+      return;
+    }
+
+    if (dropDetails.droppingTime == null) {
+      return;
+    }
 
     if (plannerItem is HomeworkModel || plannerItem is EventModel) {
       final startDateTime = tz.TZDateTime.from(
@@ -1727,7 +1781,6 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
       );
       final DateTime end = start.add(duration);
 
-      // Set optimistic override immediately for instant visual feedback
       _plannerItemDataSource!.setTimeOverride(
         plannerItem.id,
         start.toIso8601String(),
@@ -1767,14 +1820,50 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
           ),
         );
       }
-    } else if (plannerItem is CourseScheduleEventModel) {
-      _showCourseScheduleEventDialog(plannerItem, dropDetails.droppingTime!);
-    } else if (plannerItem is ExternalCalendarEventModel) {
-      _showEditExternalCalendarEventSnackBar();
     }
   }
 
   void _onCalendarDragStart(AppointmentDragStartDetails dragDetails) {
+    if (dragDetails.appointment is PlannerItemBaseModel) {
+      final item = dragDetails.appointment as PlannerItemBaseModel;
+      final hovered = _debugLastHoveredItem;
+      final isMismatch = hovered != null && hovered.id != item.id;
+      final isNone = hovered == null;
+      if (isMismatch) {
+        _log.warning(
+          'drag_start MISMATCH: sf=id=${item.id} title="${item.title}" '
+          'hover=id=${hovered.id} title="${hovered.title}" '
+          'hover_position=$_debugLastHoverPosition',
+        );
+        unawaited(
+          AnalyticsService().logEvent(
+            name: AnalyticsEvent.debugCalendarDragWrongItem,
+            parameters: {
+              'category': AnalyticsCategory.edgeCase.value,
+              'reason': 'mismatch',
+            },
+          ),
+        );
+      } else if (isNone) {
+        _log.warning(
+          'drag_start NO_HOVER: sf=id=${item.id} title="${item.title}"',
+        );
+        unawaited(
+          AnalyticsService().logEvent(
+            name: AnalyticsEvent.debugCalendarDragWrongItem,
+            parameters: {
+              'category': AnalyticsCategory.edgeCase.value,
+              'reason': 'no_hover',
+            },
+          ),
+        );
+      }
+      if (_isLockedCalendarInteractionItem(item)) {
+        // Locked items are not draggable; triggering a rebuild mid-drag corrupts
+        // SfCalendar's internal gesture state.
+        return;
+      }
+    }
     _setCalendarInteractionInProgress(true);
   }
 
@@ -1815,7 +1904,6 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
         _warnIfHomeworkOutsideDateRange(plannerItem, start, end);
       }
 
-      // Set optimistic override immediately for instant visual feedback
       _plannerItemDataSource!.setTimeOverride(
         plannerItem.id,
         start.toIso8601String(),
@@ -1856,8 +1944,10 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
         );
       }
     } else if (plannerItem is CourseScheduleEventModel) {
+      _plannerItemDataSource!.resetAppointments();
       _showCourseScheduleEventDialog(plannerItem, resizeDetails.startTime!);
     } else if (plannerItem is ExternalCalendarEventModel) {
+      _plannerItemDataSource!.resetAppointments();
       _showEditExternalCalendarEventSnackBar();
     }
   }
@@ -2017,29 +2107,11 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
           : null,
       occurrenceDate: details.date,
     );
-    // Agenda views don't support drag and drop, so no Listener needed there.
-    // In timeline views, locked items (course schedules, external calendar
-    // events) still need the Listener to prevent SfCalendar from initiating
-    // a drag. Defer the setState so it fires after the current gesture phase;
-    // drag initiation requires a sustained hold (~300-500ms), so a one-frame
-    // delay still reliably prevents accidental drags without interfering with
-    // quick taps.
-    if (_isLockedCalendarInteractionItem(plannerItem) && !isInAgenda) {
-      calendarItemWidget = Listener(
-        onPointerDown: (_) {
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            _temporarilyDisableCalendarDragAndDrop();
-          });
-        },
-        child: calendarItemWidget,
-      );
-    }
-
     // On touch devices, SfCalendar incorrectly reports calendarCell instead of
     // appointment for taps and long-presses on month-view calendar items. Handle
     // both directly on the widget to bypass this quirk (drag-and-drop in month
     // view on touch is unsupported by SfCalendar, so consuming the long-press
-    // has no functional cost).
+    // has no functional cost). See: syncfusion/flutter-widgets#2519
     // Skip for agenda-style items which handle taps internally via column zones.
     if (_currentView == PlannerView.month &&
         Responsive.isTouchDevice(context) &&
@@ -2051,6 +2123,25 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
         child: calendarItemWidget,
       );
     }
+
+    // DEBUG: track which appointment the pointer is currently over so we can
+    // compare against SfCalendar's onDragStart report. See: syncfusion/flutter-widgets#2523
+    calendarItemWidget = MouseRegion(
+      onEnter: (event) {
+        _debugLastHoveredItem = plannerItem;
+        _debugLastHoverPosition = event.position;
+      },
+      onHover: (event) {
+        _debugLastHoverPosition = event.position;
+      },
+      onExit: (_) {
+        if (_debugLastHoveredItem?.id == plannerItem.id) {
+          _debugLastHoveredItem = null;
+          _debugLastHoverPosition = null;
+        }
+      },
+      child: calendarItemWidget,
+    );
 
     return KeyedSubtree(
       key: ValueKey('planner_item_${plannerItem.id}'),
@@ -2067,29 +2158,40 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
         item is ExternalCalendarEventModel;
   }
 
-  void _setCalendarInteractionInProgress(bool isInProgress) {
-    if (!mounted || _isCalendarInteractionInProgress == isInProgress) {
-      return;
+  /// Suppresses tooltips for [_tooltipSuppressDelay] after any intentional
+  /// user action. Resets the timer on each call so back-to-back actions
+  /// (e.g., a drop followed immediately by a click) keep tooltips hidden for
+  /// the full delay from the most recent action.
+  void _suppressTooltipsTemporarily() {
+    _tooltipSuppressTimer?.cancel();
+    if (!mounted) return;
+    if (!_isCalendarInteractionInProgress) {
+      setState(() {
+        _isCalendarInteractionInProgress = true;
+      });
     }
-
-    if (isInProgress) {
-      Tooltip.dismissAllToolTips();
-    }
-
-    setState(() {
-      _isCalendarInteractionInProgress = isInProgress;
+    _tooltipSuppressTimer = Timer(_tooltipSuppressDelay, () {
+      if (!mounted) return;
+      setState(() {
+        _isCalendarInteractionInProgress = false;
+      });
     });
   }
 
-  void _temporarilyDisableCalendarDragAndDrop() {
-    if (!_allowCalendarDragAndDrop || !mounted) {
-      return;
+  void _setCalendarInteractionInProgress(bool isInProgress) {
+    if (isInProgress) {
+      // Cancel any pending restore so the timer can't clear the flag mid-drag.
+      _tooltipSuppressTimer?.cancel();
+      _tooltipSuppressTimer = null;
+      // setState here is safe — onDragStart fires after SfCalendar has already
+      // resolved which appointment to drag, so a rebuild at this point won't
+      // corrupt the hit-test result (syncfusion/flutter-widgets#2523). The
+      // rebuild causes _buildPlannerItemTooltip to return a bare child,
+      // unmounting any visible Tooltip without needing an imperative dismissal.
+      setState(() => _isCalendarInteractionInProgress = true);
+    } else {
+      _suppressTooltipsTemporarily();
     }
-    _allowCalendarDragAndDrop = false;
-    Future.delayed(const Duration(milliseconds: 250), () {
-      if (!mounted) return;
-      _allowCalendarDragAndDrop = true;
-    });
   }
 
   Widget _buildPlannerItemTooltip({
@@ -2405,28 +2507,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
     }
   }
 
-  Widget? _buildCalendarItemLeftIconForAgenda({
-    required PlannerItemBaseModel plannerItem,
-    bool? completedOverride,
-    required Color backgroundColor,
-  }) {
-    if (PlannerHelper.shouldShowCheckbox(context, plannerItem, _currentView)) {
-      return _buildCheckboxWidget(
-        homework: plannerItem as HomeworkModel,
-        completedOverride: completedOverride,
-        backgroundColor: backgroundColor,
-      );
-    } else if (PlannerHelper.shouldShowSchoolIcon(
-      context,
-      plannerItem,
-      _currentView,
-    )) {
-      return _buildSchoolIconWidget(backgroundColor: backgroundColor);
-    }
-    return null;
-  }
-
-  Widget? _getInlineIconWidget({
+  Widget? _buildItemIcon({
     required PlannerItemBaseModel plannerItem,
     bool? completedOverride,
     required Color backgroundColor,
@@ -2519,62 +2600,79 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
 
     Widget titleRowWidget;
     if (inlineIcon != null || showTimeBeforeTitle) {
-      final spans = <InlineSpan>[];
+      // Build the title row inside a ListenableBuilder so the strikethrough
+      // reacts to the same changeNotifier signal as the checkbox. Otherwise
+      // the strikethrough is frozen at appointmentBuilder call time and lags
+      // the checkbox on rapid toggles.
+      Widget buildTitleRich(bool isCompleted) {
+        final spans = <InlineSpan>[];
 
-      if (inlineIcon != null) {
-        spans.add(
-          WidgetSpan(
-            alignment: PlaceholderAlignment.middle,
-            child: Padding(
-              padding: EdgeInsets.only(
-                top: _currentView == PlannerView.month ? 0 : 1,
-                right: 4,
+        if (inlineIcon != null) {
+          spans.add(
+            WidgetSpan(
+              alignment: PlaceholderAlignment.middle,
+              child: Padding(
+                padding: EdgeInsets.only(
+                  top: _currentView == PlannerView.month ? 0 : 1,
+                  right: 4,
+                ),
+                child: inlineIcon,
               ),
-              child: inlineIcon,
+            ),
+          );
+        }
+
+        if (showTimeBeforeTitle) {
+          spans.add(
+            _buildCalendarItemTimeSpan(
+              plannerItem,
+              backgroundColor: backgroundColor,
+            ),
+          );
+          spans.add(const TextSpan(text: ' '));
+        }
+
+        spans.add(
+          TextSpan(
+            text: plannerItem.title.characters.join('\u200B'),
+            style: AppStyles.calendarItemText(context).copyWith(
+              color: foregroundColor,
+              decoration: isCompleted
+                  ? TextDecoration.lineThrough
+                  : TextDecoration.none,
+              decorationColor: foregroundColor,
             ),
           ),
         );
-      }
 
-      if (showTimeBeforeTitle) {
-        spans.add(
-          _buildCalendarItemTimeSpan(
-            plannerItem,
-            backgroundColor: backgroundColor,
-          ),
+        return Text.rich(
+          TextSpan(children: spans),
+          style: AppStyles.calendarItemText(
+            context,
+          ).copyWith(color: foregroundColor),
+          maxLines: _currentView == PlannerView.month || plannerItem.allDay
+              ? 1
+              : null,
+          overflow: _currentView == PlannerView.month || plannerItem.allDay
+              ? TextOverflow.ellipsis
+              : null,
+          semanticsLabel: plannerItem.title,
         );
-        spans.add(const TextSpan(text: ' '));
       }
 
-      final isCompleted =
-          completedOverride ??
-          (plannerItem is HomeworkModel && plannerItem.completed);
-
-      spans.add(
-        TextSpan(
-          text: plannerItem.title.characters.join('\u200B'),
-          style: AppStyles.calendarItemText(context).copyWith(
-            color: foregroundColor,
-            decoration: isCompleted
-                ? TextDecoration.lineThrough
-                : TextDecoration.none,
-            decorationColor: foregroundColor,
-          ),
-        ),
-      );
-      titleRowWidget = Text.rich(
-        TextSpan(children: spans),
-        style: AppStyles.calendarItemText(
-          context,
-        ).copyWith(color: foregroundColor),
-        maxLines: _currentView == PlannerView.month || plannerItem.allDay
-            ? 1
-            : null,
-        overflow: _currentView == PlannerView.month || plannerItem.allDay
-            ? TextOverflow.ellipsis
-            : null,
-        semanticsLabel: plannerItem.title,
-      );
+      if (plannerItem is HomeworkModel && _plannerItemDataSource != null) {
+        final dataSource = _plannerItemDataSource!;
+        titleRowWidget = ListenableBuilder(
+          listenable: dataSource.changeNotifier,
+          builder: (context, _) =>
+              buildTitleRich(dataSource.isHomeworkCompleted(plannerItem)),
+        );
+      } else {
+        final isCompleted =
+            completedOverride ??
+            (plannerItem is HomeworkModel && plannerItem.completed);
+        titleRowWidget = buildTitleRich(isCompleted);
+      }
     } else {
       titleRowWidget = _buildCalendarItemTitle(
         plannerItem,
@@ -2749,7 +2847,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
     final location = _plannerItemDataSource!.getLocationForItem(plannerItem);
     final course = _getCourseForPlannerItem(plannerItem);
 
-    final leftIcon = _buildCalendarItemLeftIconForAgenda(
+    final leftIcon = _buildItemIcon(
       plannerItem: plannerItem,
       completedOverride: completedOverride,
       backgroundColor: color,
@@ -2888,7 +2986,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
     final color = _plannerItemDataSource!.getColorForItem(plannerItem);
     final location = _plannerItemDataSource!.getLocationForItem(plannerItem);
 
-    final inlineIcon = _getInlineIconWidget(
+    final inlineIcon = _buildItemIcon(
       plannerItem: plannerItem,
       completedOverride: completedOverride,
       backgroundColor: color,
@@ -3160,6 +3258,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
       final request = HomeworkRequestModel(completed: pendingValue);
       final course = _courses.firstWhere((c) => c.id == homework.course.id);
 
+      _inFlightCompletionIds.add(homework.id);
       context.read<PlannerItemBloc>().add(
         UpdateHomeworkEvent(
           origin: EventOrigin.screen,
@@ -3825,43 +3924,53 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
     bool? completedOverride,
     required Color backgroundColor,
   }) {
-    // Use data source's isHomeworkCompleted() directly to get the latest
-    // override value, matching how TodosDataGrid and the checkbox work
-    final isCompleted = plannerItem is HomeworkModel
-        ? (_plannerItemDataSource?.isHomeworkCompleted(plannerItem) ??
-              completedOverride ??
-              plannerItem.completed)
-        : false;
+    Widget buildTitle(bool isCompleted) {
+      final foregroundColor = backgroundColor.contrasting;
+      final baseStyle = isInAgenda
+          ? AppStyles.smallSecondaryTextLight(context)
+          : AppStyles.calendarItemText(context);
+      final titleStyle = baseStyle.copyWith(
+        color: foregroundColor,
+        decoration: isCompleted
+            ? TextDecoration.lineThrough
+            : TextDecoration.none,
+        decorationColor: foregroundColor,
+      );
 
-    final foregroundColor = backgroundColor.contrasting;
-    final baseStyle = isInAgenda
-        ? AppStyles.smallSecondaryTextLight(context)
-        : AppStyles.calendarItemText(context);
-    final titleStyle = baseStyle.copyWith(
-      color: foregroundColor,
-      decoration: isCompleted
-          ? TextDecoration.lineThrough
-          : TextDecoration.none,
-      decorationColor: foregroundColor,
-      decorationThickness: 2.0,
-    );
+      return Text(
+        isInAgenda
+            ? plannerItem.title
+            : plannerItem.title.characters.join('\u200B'),
+        style: titleStyle,
+        maxLines:
+            _currentView == PlannerView.month ||
+                _currentView == PlannerView.agenda
+            ? 1
+            : null,
+        overflow:
+            _currentView == PlannerView.month ||
+                _currentView == PlannerView.agenda
+            ? TextOverflow.ellipsis
+            : null,
+        semanticsLabel: isInAgenda ? null : plannerItem.title,
+      );
+    }
 
-    return Text(
-      isInAgenda
-          ? plannerItem.title
-          : plannerItem.title.characters.join('\u200B'),
-      style: titleStyle,
-      maxLines:
-          _currentView == PlannerView.month ||
-              _currentView == PlannerView.agenda
-          ? 1
-          : null,
-      overflow:
-          _currentView == PlannerView.month ||
-              _currentView == PlannerView.agenda
-          ? TextOverflow.ellipsis
-          : null,
-      semanticsLabel: isInAgenda ? null : plannerItem.title,
+    // For homework, rebuild on data source change so strikethrough stays in
+    // sync with the checkbox under rapid completion toggles.
+    if (plannerItem is HomeworkModel && _plannerItemDataSource != null) {
+      final dataSource = _plannerItemDataSource!;
+      return ListenableBuilder(
+        listenable: dataSource.changeNotifier,
+        builder: (context, _) =>
+            buildTitle(dataSource.isHomeworkCompleted(plannerItem)),
+      );
+    }
+
+    return buildTitle(
+      plannerItem is HomeworkModel
+          ? (completedOverride ?? plannerItem.completed)
+          : false,
     );
   }
 
@@ -4014,39 +4123,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
     );
   }
 
-  Widget _buildCalendarItemTime(
-    PlannerItemBaseModel plannerItem, {
-    bool isInAgenda = false,
-    required Color backgroundColor,
-  }) {
-    final foregroundColor = backgroundColor.contrasting;
-    final timeText = Text(
-      HeliumDateTime.formatTime(
-        HeliumDateTime.toLocal(plannerItem.start, userSettings!.timeZone),
-      ),
-      style: AppStyles.calendarItemTextLight(
-        context,
-      ).copyWith(color: foregroundColor.withValues(alpha: 0.7)),
-    );
-
-    if (!_shouldShowRecurringIconWithTime(
-      plannerItem,
-      isInAgenda: isInAgenda,
-    )) {
-      return timeText;
-    }
-
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        _buildRecurringTimePrefixIcon(backgroundColor: backgroundColor),
-        const SizedBox(width: 2),
-        timeText,
-      ],
-    );
-  }
-
-  /// Inline-span variant of [_buildCalendarItemTime] for use inside the
+  /// Returns an [InlineSpan] for use inside the
   /// title's [Text.rich]. Returning a [TextSpan] (rather than a [WidgetSpan]
   /// holding a [Text]) lets the paragraph ellipsizer truncate the time
   /// character-by-character when space is tight, instead of dropping the

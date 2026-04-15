@@ -1108,7 +1108,6 @@ class TodosDataSource extends BaseDataGridSource {
     final titleStyle = AppStyles.smallSecondaryText(_context).copyWith(
       decoration: isCompleted ? TextDecoration.lineThrough : TextDecoration.none,
       decorationColor: _context.colorScheme.onSurface,
-      decorationThickness: 2.0,
     );
 
     return Container(

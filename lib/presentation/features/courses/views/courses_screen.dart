@@ -320,6 +320,7 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen>
             icon: Icons.school,
             title: "You haven't added any groups yet",
             message: 'Click "+ Group" to get started',
+            expanded: false,
           );
         }
 
@@ -329,6 +330,7 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen>
             icon: Icons.school,
             title: "You haven't added any classes yet",
             message: 'Click "+" to get started',
+            expanded: false,
           );
         }
 

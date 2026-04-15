@@ -16,6 +16,7 @@ import 'package:heliumapp/data/models/planner/course_schedule_event_model.dart';
 import 'package:heliumapp/data/models/planner/event_model.dart';
 import 'package:heliumapp/data/models/planner/external_calendar_event_model.dart';
 import 'package:heliumapp/data/models/planner/homework_model.dart';
+import 'package:heliumapp/data/models/planner/planner_item_base_model.dart';
 import 'package:heliumapp/data/sources/planner_item_data_source.dart';
 import 'package:heliumapp/domain/repositories/course_schedule_event_repository.dart';
 import 'package:heliumapp/domain/repositories/event_repository.dart';
@@ -907,34 +908,6 @@ void main() {
         dataSource.addPlannerItem(homework);
       });
 
-      test('setTimeOverride stores override', () {
-        dataSource.setTimeOverride(
-          1,
-          '2025-01-16T14:00:00Z',
-          '2025-01-16T15:00:00Z',
-        );
-
-        final override = dataSource.getTimeOverride(1);
-        expect(override, isNotNull);
-        expect(override!.start, '2025-01-16T14:00:00Z');
-        expect(override.end, '2025-01-16T15:00:00Z');
-      });
-
-      test('getTimeOverride returns null when no override', () {
-        expect(dataSource.getTimeOverride(999), isNull);
-      });
-
-      test('clearTimeOverride removes override', () {
-        dataSource.setTimeOverride(
-          1,
-          '2025-01-16T14:00:00Z',
-          '2025-01-16T15:00:00Z',
-        );
-        dataSource.clearTimeOverride(1);
-
-        expect(dataSource.getTimeOverride(1), isNull);
-      });
-
       test('getStartTime uses override when present', () {
         dataSource.setTimeOverride(
           1,
@@ -942,14 +915,12 @@ void main() {
           '2025-01-20T10:00:00Z',
         );
 
-        final startTime = dataSource.getStartTime(0);
-        // Start time: override converted to user timezone - 103 seconds
         final expectedBase = tz.TZDateTime.from(
           DateTime.parse('2025-01-20T09:00:00Z'),
           userSettings.timeZone,
         );
         expect(
-          startTime,
+          dataSource.getStartTime(0),
           expectedBase.subtract(const Duration(seconds: 103)),
         );
       });
@@ -961,14 +932,12 @@ void main() {
           '2025-01-20T10:00:00Z',
         );
 
-        final endTime = dataSource.getEndTime(0);
-        // End time: override converted to user timezone - 103 seconds
         final expectedBase = tz.TZDateTime.from(
           DateTime.parse('2025-01-20T10:00:00Z'),
           userSettings.timeZone,
         );
         expect(
-          endTime,
+          dataSource.getEndTime(0),
           expectedBase.subtract(const Duration(seconds: 103)),
         );
       });
@@ -979,35 +948,26 @@ void main() {
           '2025-01-20T09:00:00Z',
           '2025-01-20T10:00:00Z',
         );
-        expect(dataSource.getTimeOverride(1), isNotNull);
 
         final updated = _createHomeworkModel(
           id: 1,
-          start: DateTime.parse('2025-01-20T09:00:00Z'),
-          end: DateTime.parse('2025-01-20T10:00:00Z'),
+          start: DateTime.parse('2025-01-16T14:00:00Z'),
+          end: DateTime.parse('2025-01-16T15:00:00Z'),
         );
         dataSource.updatePlannerItem(updated);
 
-        expect(dataSource.getTimeOverride(1), isNull);
-      });
-
-      test('time override works for EventModel', () {
-        final event = _createEventModel(
-          id: 2,
-          start: DateTime.parse('2025-01-15T14:00:00Z'),
-          end: DateTime.parse('2025-01-15T15:00:00Z'),
+        // Override cleared — getStartTime reflects the item's actual start
+        final expectedBase = tz.TZDateTime.from(
+          DateTime.parse('2025-01-16T14:00:00Z'),
+          userSettings.timeZone,
         );
-        dataSource.addPlannerItem(event);
-
-        dataSource.setTimeOverride(
-          2,
-          '2025-01-18T16:00:00Z',
-          '2025-01-18T17:00:00Z',
+        final index = dataSource.appointments!.indexWhere(
+          (a) => (a as PlannerItemBaseModel).id == 1,
         );
-
-        final override = dataSource.getTimeOverride(2);
-        expect(override, isNotNull);
-        expect(override!.start, '2025-01-18T16:00:00Z');
+        expect(
+          dataSource.getStartTime(index),
+          expectedBase.subtract(const Duration(seconds: 103)),
+        );
       });
     });
 
@@ -1033,12 +993,12 @@ void main() {
         );
       });
 
-      test('course schedule gets 102 seconds subtracted from start time', () {
+      test('course schedule gets 77 seconds subtracted from start time', () {
         final schedule = _createCourseScheduleEventModel(id: 1);
         dataSource.addPlannerItem(schedule);
 
         final startTime = dataSource.getStartTime(0);
-        // CourseSchedule: (3-1) + (100-0) = 102 seconds
+        // CourseSchedule: (3-1)*26 + (25-0) = 77 seconds
         // Time is converted to user's timezone before adjustment
         final expectedBase = tz.TZDateTime.from(
           DateTime.parse('2025-01-15T10:00:00Z'),
@@ -1046,11 +1006,11 @@ void main() {
         );
         expect(
           startTime,
-          expectedBase.subtract(const Duration(seconds: 102)),
+          expectedBase.subtract(const Duration(seconds: 77)),
         );
       });
 
-      test('event gets 101 seconds subtracted from start time', () {
+      test('event gets 51 seconds subtracted from start time', () {
         final event = _createEventModel(
           id: 1,
           start: DateTime.parse('2025-01-15T10:00:00Z'),
@@ -1059,7 +1019,7 @@ void main() {
         dataSource.addPlannerItem(event);
 
         final startTime = dataSource.getStartTime(0);
-        // Event: (3-2) + (100-0) = 101 seconds
+        // Event: (3-2)*26 + (25-0) = 51 seconds
         // Time is converted to user's timezone before adjustment
         final expectedBase = tz.TZDateTime.from(
           DateTime.parse('2025-01-15T10:00:00Z'),
@@ -1067,16 +1027,16 @@ void main() {
         );
         expect(
           startTime,
-          expectedBase.subtract(const Duration(seconds: 101)),
+          expectedBase.subtract(const Duration(seconds: 51)),
         );
       });
 
-      test('external event gets 100 seconds subtracted from start time', () {
+      test('external event gets 25 seconds subtracted from start time', () {
         final external = _createExternalCalendarEventModel(id: 1);
         dataSource.addPlannerItem(external);
 
         final startTime = dataSource.getStartTime(0);
-        // External: (3-3) + (100-0) = 100 seconds
+        // External: (3-3)*26 + (25-0) = 25 seconds
         // Time is converted to user's timezone before adjustment
         final expectedBase = tz.TZDateTime.from(
           DateTime.parse('2025-01-15T10:00:00Z'),
@@ -1084,7 +1044,7 @@ void main() {
         );
         expect(
           startTime,
-          expectedBase.subtract(const Duration(seconds: 100)),
+          expectedBase.subtract(const Duration(seconds: 25)),
         );
       });
 
@@ -1128,7 +1088,7 @@ void main() {
         );
       });
 
-      test('event gets 101 seconds subtracted from end time', () {
+      test('event gets 51 seconds subtracted from end time', () {
         final event = _createEventModel(
           id: 1,
           start: DateTime.parse('2025-01-15T10:00:00Z'),
@@ -1137,7 +1097,7 @@ void main() {
         dataSource.addPlannerItem(event);
 
         final endTime = dataSource.getEndTime(0);
-        // Event: (3-2) + (100-0) = 101 seconds
+        // Event: (3-2)*26 + (25-0) = 51 seconds
         // Time is converted to user's timezone before adjustment
         final expectedBase = tz.TZDateTime.from(
           DateTime.parse('2025-01-15T11:00:00Z'),
@@ -1145,7 +1105,7 @@ void main() {
         );
         expect(
           endTime,
-          expectedBase.subtract(const Duration(seconds: 101)),
+          expectedBase.subtract(const Duration(seconds: 51)),
         );
       });
 
@@ -1175,6 +1135,221 @@ void main() {
           ).subtract(const Duration(seconds: 1));
 
           expect(homeworkAdjustedStart.isBefore(eventAdjustedStart), isTrue);
+        },
+      );
+
+      test(
+        'all-day homework sorts before all-day external calendar event on same day',
+        () {
+          final allDayHomework = _createHomeworkModel(
+            id: 1,
+            title: 'All-Day Assignment',
+            start: DateTime.parse('2025-01-15T00:00:00Z'),
+            end: DateTime.parse('2025-01-16T00:00:00Z'),
+            allDay: true,
+          );
+          final allDayExternal = ExternalCalendarEventModel(
+            id: 2,
+            title: 'Christmas',
+            allDay: true,
+            showEndTime: false,
+            start: DateTime.parse('2025-01-15T00:00:00Z'),
+            end: DateTime.parse('2025-01-16T00:00:00Z'),
+            priority: 50,
+            url: null,
+            comments: '',
+            attachments: [],
+            reminders: [],
+            ownerId: 'holidays',
+            color: const Color(0xFF9C27B0),
+          );
+
+          // Add external first to ensure the initial insertion order would
+          // otherwise tie-break incorrectly (alphabetical "Christmas" <
+          // "All-Day Assignment" is false, so this specifically exercises the
+          // priority-not-title path).
+          dataSource.addPlannerItem(allDayExternal);
+          dataSource.addPlannerItem(allDayHomework);
+
+          final appointments = dataSource.appointments!;
+          final homeworkIndex = appointments.indexWhere(
+            (a) => (a as PlannerItemBaseModel).id == allDayHomework.id,
+          );
+          final externalIndex = appointments.indexWhere(
+            (a) => (a as PlannerItemBaseModel).id == allDayExternal.id,
+          );
+
+          final homeworkStart = dataSource.getStartTime(homeworkIndex);
+          final externalStart = dataSource.getStartTime(externalIndex);
+
+          // Start times must be distinct so SfCalendar's internal tie-breaker
+          // never gets a chance to flip the order.
+          expect(
+            homeworkStart.isBefore(externalStart),
+            isTrue,
+            reason:
+                'all-day homework ($homeworkStart) should sort before '
+                'all-day external event ($externalStart)',
+          );
+
+          // Offsets are minute-sized so items stay within the same hour.
+          expect(
+            externalStart.difference(homeworkStart).inHours,
+            0,
+          );
+        },
+      );
+
+      test(
+        'all-day homework sorts before all-day event on same day',
+        () {
+          final allDayHomework = _createHomeworkModel(
+            id: 1,
+            start: DateTime.parse('2025-01-15T00:00:00Z'),
+            end: DateTime.parse('2025-01-16T00:00:00Z'),
+            allDay: true,
+          );
+          final allDayEvent = _createEventModel(
+            id: 2,
+            start: DateTime.parse('2025-01-15T00:00:00Z'),
+            end: DateTime.parse('2025-01-16T00:00:00Z'),
+            allDay: true,
+          );
+
+          dataSource.addPlannerItem(allDayEvent);
+          dataSource.addPlannerItem(allDayHomework);
+
+          final appointments = dataSource.appointments!;
+          final homeworkIndex = appointments.indexWhere(
+            (a) => (a as PlannerItemBaseModel).id == allDayHomework.id,
+          );
+          final eventIndex = appointments.indexWhere(
+            (a) => (a as PlannerItemBaseModel).id == allDayEvent.id,
+          );
+
+          final homeworkStart = dataSource.getStartTime(homeworkIndex);
+          final eventStart = dataSource.getStartTime(eventIndex);
+
+          expect(homeworkStart.isBefore(eventStart), isTrue);
+          expect(eventStart.difference(homeworkStart).inHours, 0);
+        },
+      );
+
+      test(
+        'all four types on same all-day day produce distinct ordered start times',
+        () {
+          final allDayHomework = _createHomeworkModel(
+            id: 1,
+            title: 'HW',
+            start: DateTime.parse('2025-01-15T00:00:00Z'),
+            end: DateTime.parse('2025-01-16T00:00:00Z'),
+            allDay: true,
+          );
+          final allDaySchedule = CourseScheduleEventModel(
+            id: 2,
+            title: 'Exam Day',
+            allDay: true,
+            showEndTime: false,
+            start: DateTime.parse('2025-01-15T00:00:00Z'),
+            end: DateTime.parse('2025-01-16T00:00:00Z'),
+            priority: 50,
+            url: null,
+            comments: '',
+            attachments: [],
+            reminders: [],
+            ownerId: '1',
+            color: const Color(0xFFFF5722),
+            exceptionDates: const [],
+          );
+          final allDayEvent = _createEventModel(
+            id: 3,
+            title: 'Trip',
+            start: DateTime.parse('2025-01-15T00:00:00Z'),
+            end: DateTime.parse('2025-01-16T00:00:00Z'),
+            allDay: true,
+          );
+          final allDayExternal = ExternalCalendarEventModel(
+            id: 4,
+            title: 'Holiday',
+            allDay: true,
+            showEndTime: false,
+            start: DateTime.parse('2025-01-15T00:00:00Z'),
+            end: DateTime.parse('2025-01-16T00:00:00Z'),
+            priority: 50,
+            url: null,
+            comments: '',
+            attachments: [],
+            reminders: [],
+            ownerId: 'holidays',
+            color: const Color(0xFF9C27B0),
+          );
+
+          // Add in reverse priority order to exercise the sort path.
+          dataSource.addPlannerItem(allDayExternal);
+          dataSource.addPlannerItem(allDayEvent);
+          dataSource.addPlannerItem(allDaySchedule);
+          dataSource.addPlannerItem(allDayHomework);
+
+          DateTime startFor(int id) {
+            final index = dataSource.appointments!.indexWhere(
+              (a) => (a as PlannerItemBaseModel).id == id,
+            );
+            return dataSource.getStartTime(index);
+          }
+
+          final hwStart = startFor(1);
+          final scheduleStart = startFor(2);
+          final eventStart = startFor(3);
+          final externalStart = startFor(4);
+
+          // Strict ordering per Sort.typeSortPriority.
+          expect(hwStart.isBefore(scheduleStart), isTrue);
+          expect(scheduleStart.isBefore(eventStart), isTrue);
+          expect(eventStart.isBefore(externalStart), isTrue);
+
+          // All four distinct, and still within the same minute so calendar
+          // slot placement is unaffected.
+          final all = {hwStart, scheduleStart, eventStart, externalStart};
+          expect(all.length, 4);
+          expect(externalStart.difference(hwStart).inHours, 0);
+        },
+      );
+
+      test(
+        '_buildSortPositions assigns distinct stable positions within a minute group',
+        () {
+          // Two timed homeworks at the same minute. Positions must be distinct
+          // (so SfCalendar never tie-breaks) and ordered by title (Alpha before
+          // Beta), with the difference still within the same minute.
+          final hw1 = _createHomeworkModel(
+            id: 1,
+            title: 'Alpha',
+            start: DateTime.parse('2025-01-15T10:00:00Z'),
+            end: DateTime.parse('2025-01-15T11:00:00Z'),
+          );
+          final hw2 = _createHomeworkModel(
+            id: 2,
+            title: 'Beta',
+            start: DateTime.parse('2025-01-15T10:00:00Z'),
+            end: DateTime.parse('2025-01-15T11:00:00Z'),
+          );
+
+          dataSource.addPlannerItem(hw1);
+          dataSource.addPlannerItem(hw2);
+
+          final hw1Index = dataSource.appointments!.indexWhere(
+            (a) => (a as PlannerItemBaseModel).id == 1,
+          );
+          final hw2Index = dataSource.appointments!.indexWhere(
+            (a) => (a as PlannerItemBaseModel).id == 2,
+          );
+
+          final hw1Start = dataSource.getStartTime(hw1Index);
+          final hw2Start = dataSource.getStartTime(hw2Index);
+
+          expect(hw1Start, isNot(equals(hw2Start)));
+          expect(hw1Start.isBefore(hw2Start), isTrue);
+          expect(hw2Start.difference(hw1Start).inMinutes, 0);
         },
       );
     });
