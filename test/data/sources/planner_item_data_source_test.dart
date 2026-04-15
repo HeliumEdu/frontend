@@ -18,6 +18,7 @@ import 'package:heliumapp/data/models/planner/external_calendar_event_model.dart
 import 'package:heliumapp/data/models/planner/homework_model.dart';
 import 'package:heliumapp/data/models/planner/planner_item_base_model.dart';
 import 'package:heliumapp/data/sources/planner_item_data_source.dart';
+import 'package:heliumapp/utils/sort_helpers.dart';
 import 'package:heliumapp/domain/repositories/course_schedule_event_repository.dart';
 import 'package:heliumapp/domain/repositories/event_repository.dart';
 import 'package:heliumapp/domain/repositories/external_calendar_repository.dart';
@@ -915,10 +916,13 @@ void main() {
           '2025-01-20T10:00:00Z',
         );
 
+        // getStartTime subtracts a sort-order adjustment (priority 0, position 0
+        // → 103 s) so SfCalendar sees distinct times that encode our sort order.
+        final adjustment = Sort.getTimedEventStartTimeAdjustmentSeconds(0, 0);
         final expected = tz.TZDateTime.from(
           DateTime.parse('2025-01-20T09:00:00Z'),
           userSettings.timeZone,
-        );
+        ).subtract(Duration(seconds: adjustment));
         expect(dataSource.getStartTime(0), expected);
       });
 
@@ -929,10 +933,13 @@ void main() {
           '2025-01-20T10:00:00Z',
         );
 
+        // getEndTime applies the same adjustment as getStartTime so the visual
+        // duration is preserved.
+        final adjustment = Sort.getTimedEventStartTimeAdjustmentSeconds(0, 0);
         final expected = tz.TZDateTime.from(
           DateTime.parse('2025-01-20T10:00:00Z'),
           userSettings.timeZone,
-        );
+        ).subtract(Duration(seconds: adjustment));
         expect(dataSource.getEndTime(0), expected);
       });
 
@@ -950,10 +957,13 @@ void main() {
         );
         dataSource.updatePlannerItem(updated);
 
+        // After the override is cleared, getStartTime returns the model's real
+        // start minus the sort-order adjustment (priority 0, position 0 → 103 s).
+        final adjustment = Sort.getTimedEventStartTimeAdjustmentSeconds(0, 0);
         final expected = tz.TZDateTime.from(
           DateTime.parse('2025-01-16T14:00:00Z'),
           userSettings.timeZone,
-        );
+        ).subtract(Duration(seconds: adjustment));
         final index = dataSource.appointments!.indexWhere(
           (a) => (a as PlannerItemBaseModel).id == 1,
         );

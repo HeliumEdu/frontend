@@ -343,6 +343,16 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
     return _getData(index).id;
   }
 
+  DateTime _effectiveStart(PlannerItemBaseModel item) {
+    final override = _timeOverrides[item.id];
+    return override != null ? DateTime.parse(override.start) : item.start;
+  }
+
+  DateTime _effectiveEnd(PlannerItemBaseModel item) {
+    final override = _timeOverrides[item.id];
+    return override != null ? DateTime.parse(override.end) : item.end;
+  }
+
   /// Returns the position of a timed item at [index] within its minute-level
   /// group — how many preceding timed items share the same date + hour + minute.
   /// Used to assign distinct seconds offsets so SfCalendar preserves our sort
@@ -680,8 +690,22 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
       items.addAll(_applySearchFilterToItems(allExternalCalendarEvents));
     }
 
-    // Sort using centralized logic from sort_helpers.dart
-    Sort.byStartThenTitle(items);
+    // Sort using effective (override-aware) times so drag-drop optimistic
+    // positioning matches the list order SfCalendar reads from getStartTime.
+    items.sort((a, b) => Sort.comparePlannerItems(
+      aType: a.plannerItemType,
+      bType: b.plannerItemType,
+      aAllDay: a.allDay,
+      bAllDay: b.allDay,
+      aStart: _effectiveStart(a),
+      bStart: _effectiveStart(b),
+      aEnd: _effectiveEnd(a),
+      bEnd: _effectiveEnd(b),
+      aTitle: a.title,
+      bTitle: b.title,
+      aCourseId: a is HomeworkModel ? a.course.id : null,
+      bCourseId: b is HomeworkModel ? b.course.id : null,
+    ));
     return items;
   }
 
