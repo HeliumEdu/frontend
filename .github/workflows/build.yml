@@ -278,6 +278,14 @@ jobs:
             echo "domain=${DOMAIN_NAME}" >> $GITHUB_OUTPUT
           fi
 
+      - name: Trigger canary tests
+        env:
+          GH_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+        run: |
+          gh workflow run canary.yml \
+            --repo ${{ github.repository }} \
+            -f environment=ci
+
       - name: Deployment summary
         run: |
           echo "### CI Preview Deployment Complete" >> $GITHUB_STEP_SUMMARY
