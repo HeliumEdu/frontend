@@ -262,13 +262,27 @@ jobs:
           fi
 
       - name: Invalidate CloudFront cache
+        id: cloudfront
         run: |
-          DISTRIBUTION_ID=$(aws cloudfront list-distributions \
-            --query "DistributionList.Items[?Comment=='heliumedu-ci-frontend-app'].Id" \
-            --output text)
+          DISTRIBUTION=$(aws cloudfront list-distributions \
+            --query "DistributionList.Items[?Comment=='heliumedu-ci-frontend-app'] | [0].{Id: Id, Domain: DomainName}" \
+            --output json)
 
-          if [ -n "$DISTRIBUTION_ID" ] && [ "$DISTRIBUTION_ID" != "None" ]; then
+          DISTRIBUTION_ID=$(echo "$DISTRIBUTION" | jq -r '.Id // empty')
+          DOMAIN_NAME=$(echo "$DISTRIBUTION" | jq -r '.Domain // empty')
+
+          if [ -n "$DISTRIBUTION_ID" ]; then
             aws cloudfront create-invalidation \
               --distribution-id "$DISTRIBUTION_ID" \
               --paths "/*"
+            echo "domain=${DOMAIN_NAME}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Deployment summary
+        run: |
+          echo "### CI Preview Deployment Complete" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **Commit**: ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+          if [ -n "${{ steps.cloudfront.outputs.domain }}" ]; then
+            echo "- **URL**: https://${{ steps.cloudfront.outputs.domain }}" >> $GITHUB_STEP_SUMMARY
           fi
