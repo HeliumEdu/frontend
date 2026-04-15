@@ -108,7 +108,7 @@ jobs:
       - name: Find workflow run with matching artifact
         id: find_run
         if: ${{ inputs.artifact_run_id == '' }}
-        uses: nick-fields/retry@v3
+        uses: nick-fields/retry@v4
         env:
           GH_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
         with:
@@ -333,7 +333,7 @@ jobs:
       - name: Find workflow run with matching artifact
         id: find_run
         if: ${{ inputs.artifact_run_id == '' }}
-        uses: nick-fields/retry@v3
+        uses: nick-fields/retry@v4
         env:
           GH_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
         with:
@@ -480,7 +480,7 @@ jobs:
       - name: Find workflow run with matching artifact
         id: find_run
         if: ${{ inputs.artifact_run_id == '' }}
-        uses: nick-fields/retry@v3
+        uses: nick-fields/retry@v4
         env:
           GH_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
         with:
