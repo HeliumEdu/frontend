@@ -154,6 +154,15 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
     with DeepLinkMixin {
   static const _agendaHeightMobile = 53.0;
   static const _agendaHeightDesktop = 57.0;
+  static const _monthCalendarItemHeight = 21.0;
+  // SfCalendar adds ~2px between adjacent appointments in month view cells.
+  // Both the display-count and expanded-height calculations must account for
+  // this gap so the allocated slot height matches _monthCalendarItemHeight.
+  static const _monthCalendarItemGap = 2.0;
+  // SfCalendar reserves bottom padding inside each month cell (below the last
+  // appointment). Include this in height calculations to prevent clipping.
+  static const _monthCellBottomPadding = 8.0;
+  static const _monthMinItemDisplayCount = 4;
   static const _uiAnimationDuration = Duration(milliseconds: 300);
   static const _tooltipWaitDuration = Duration(milliseconds: 500);
   static const _tooltipShowDuration = Duration(seconds: 8);
@@ -725,21 +734,22 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
   int _calculateCalendarItemDisplayCount(double availableHeight) {
     const double dayHeaderHeight = 45;
     const double dayNumberHeight = 30;
-    const double calendarItemHeight = 21;
     const int monthRows = 6;
-    const int minCount = 3;
 
-    if (availableHeight.isInfinite) return minCount;
+    if (availableHeight.isInfinite) return _monthMinItemDisplayCount;
 
     final cellHeight = (availableHeight - dayHeaderHeight) / monthRows;
     final availableForCalendarItems = cellHeight - dayNumberHeight;
-    final count = (availableForCalendarItems / calendarItemHeight).floor();
+    // Each item occupies its height plus the inter-item gap SfCalendar inserts.
+    final count = (availableForCalendarItems / (_monthCalendarItemHeight + _monthCalendarItemGap)).floor();
 
-    return count.clamp(minCount, 10);
+    return count.clamp(_monthMinItemDisplayCount, 10);
   }
 
   double _calculateCalendarHeight(double maxHeight) {
-    final double minCalendarHeight = Responsive.isMobile(context) ? 480 : 600;
+    // Derive minimum from item-height math so at least _monthMinItemDisplayCount
+    // items always fit cleanly at _monthCalendarItemHeight with no clipping.
+    final double minCalendarHeight = _calculateExpandedCalendarHeight(_monthMinItemDisplayCount);
     if (maxHeight.isInfinite) return minCalendarHeight;
     return maxHeight < minCalendarHeight ? minCalendarHeight : maxHeight;
   }
@@ -754,9 +764,11 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
   double _calculateExpandedCalendarHeight(int maxItems) {
     const double dayHeaderHeight = 45;
     const double dayNumberHeight = 30;
-    const double calendarItemHeight = 21;
     const int monthRows = 6;
-    final cellHeight = dayNumberHeight + (maxItems * calendarItemHeight);
+    // n items require n slots of (height + gap), minus the trailing gap,
+    // plus cell bottom padding SfCalendar reserves below the last item.
+    final itemsHeight = maxItems * (_monthCalendarItemHeight + _monthCalendarItemGap) - _monthCalendarItemGap;
+    final cellHeight = dayNumberHeight + itemsHeight + _monthCellBottomPadding;
     return dayHeaderHeight + (monthRows * cellHeight);
   }
 
@@ -2100,13 +2112,32 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
     Widget calendarItemWidget = _buildCalendarItemWidget(
       plannerItem: plannerItem,
       width: details.bounds.width,
-      height: details.bounds.height,
+      // In month view (non-agenda), pass null so the timeline Container has no
+      // fixed height — the outer SizedBox below enforces the correct height.
+      height: (_currentView == PlannerView.month && !isInAgenda)
+          ? null
+          : details.bounds.height,
       isInAgenda: isInAgenda,
       completedOverride: homeworkId != null
           ? _plannerItemDataSource!.completedOverrides[homeworkId]
           : null,
       occurrenceDate: details.date,
     );
+    // In month view (non-agenda), force a fixed item height. SfCalendar
+    // stretches bounds to fill the cell when few items are present (too tall)
+    // and may also compress bounds when many items are stacked (too short).
+    // ClipRect + UnconstrainedBox lets the SizedBox win in both directions.
+    if (_currentView == PlannerView.month && !isInAgenda) {
+      calendarItemWidget = UnconstrainedBox(
+        alignment: Alignment.topLeft,
+        constrainedAxis: Axis.horizontal,
+        clipBehavior: Clip.hardEdge,
+        child: SizedBox(
+          height: _monthCalendarItemHeight,
+          child: calendarItemWidget,
+        ),
+      );
+    }
     // On touch devices, SfCalendar incorrectly reports calendarCell instead of
     // appointment for taps and long-presses on month-view calendar items. Handle
     // both directly on the widget to bypass this quirk (drag-and-drop in month
@@ -3119,19 +3150,24 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
       onTap: () {
         _openDayPopOutDialog(details.date);
       },
-      child: Container(
-        width: details.bounds.width,
-        height: details.bounds.height,
-        alignment: Alignment.center,
-        decoration: BoxDecoration(
-          color: context.colorScheme.primaryContainer,
-          borderRadius: BorderRadius.circular(4),
-        ),
-        child: Text(
-          '...',
-          style: AppStyles.standardBodyTextLight(context).copyWith(
-            color: context.colorScheme.onPrimaryContainer.withValues(
-              alpha: 0.9,
+      child: UnconstrainedBox(
+        alignment: Alignment.topLeft,
+        constrainedAxis: Axis.horizontal,
+        clipBehavior: Clip.hardEdge,
+        child: Container(
+          width: details.bounds.width,
+          height: _monthCalendarItemHeight,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color: context.colorScheme.primaryContainer,
+            borderRadius: BorderRadius.circular(4),
+          ),
+          child: Text(
+            '...',
+            style: AppStyles.standardBodyTextLight(context).copyWith(
+              color: context.colorScheme.onPrimaryContainer.withValues(
+                alpha: 0.9,
+              ),
             ),
           ),
         ),
