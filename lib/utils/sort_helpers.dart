@@ -77,24 +77,8 @@ class Sort {
     final aPriority = typeSortPriority[aType] ?? 0;
     final bPriority = typeSortPriority[bType] ?? 0;
 
-    // Apply priority-based time adjustments for sorting (timed events only)
-    final aSecondsToSubtract = aAllDay ? 0 : 3 - aPriority;
-    final bSecondsToSubtract = bAllDay ? 0 : 3 - bPriority;
-    final aStartAdjusted = aStart.subtract(
-      Duration(seconds: aSecondsToSubtract),
-    );
-    final bStartAdjusted = bStart.subtract(
-      Duration(seconds: bSecondsToSubtract),
-    );
-    final aEndAdjusted = aEnd.subtract(
-      Duration(minutes: aAllDay ? 0 : 3 - aPriority),
-    );
-    final bEndAdjusted = bEnd.subtract(
-      Duration(minutes: bAllDay ? 0 : 3 - bPriority),
-    );
-
     // 1. Sort by start date
-    final startDateCompare = compareDatesOnly(aStartAdjusted, bStartAdjusted);
+    final startDateCompare = compareDatesOnly(aStart, bStart);
     if (startDateCompare != 0) return startDateCompare;
 
     // 2. All-day events always shown before timed events
@@ -104,15 +88,15 @@ class Sort {
 
     // 3. For timed events with different end dates: sort by duration ascending (shorter first)
     if (!aAllDay && !bAllDay) {
-      final sameEndDate = isSameDate(aEndAdjusted, bEndAdjusted);
+      final sameEndDate = isSameDate(aEnd, bEnd);
       if (!sameEndDate) {
-        final aDuration = aEndAdjusted.difference(aStartAdjusted).inMinutes;
-        final bDuration = bEndAdjusted.difference(bStartAdjusted).inMinutes;
+        final aDuration = aEnd.difference(aStart).inMinutes;
+        final bDuration = bEnd.difference(bStart).inMinutes;
         final durationCompare = aDuration.compareTo(bDuration); // Ascending
         if (durationCompare != 0) return durationCompare;
       }
       // Sort by start time
-      final startTimeCompare = aStartAdjusted.compareTo(bStartAdjusted);
+      final startTimeCompare = aStart.compareTo(bStart);
       if (startTimeCompare != 0) return startTimeCompare;
     }
 
