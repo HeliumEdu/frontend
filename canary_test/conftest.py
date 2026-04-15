@@ -16,9 +16,9 @@ def _app_host() -> str:
     if _ENVIRONMENT == "prod":
         return "https://app.heliumedu.com"
     if _ENVIRONMENT == "ci":
-        host = os.environ.get("CI_APP_HOST")
+        host = os.environ.get("PROJECT_CI_APP_HOST")
         if not host:
-            pytest.skip("CI_APP_HOST secret is not defined; skipping ci canary tests")
+            pytest.skip("PROJECT_CI_APP_HOST secret is not defined; skipping ci canary tests")
         return host
     return f"https://app.{_ENVIRONMENT}.heliumedu.com"
 
