@@ -190,7 +190,6 @@ jobs:
 
   deploy-web-ci:
     name: Deploy web (CI preview)
-    needs: [build-web]
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
 
     runs-on: ubuntu-latest
