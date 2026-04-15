@@ -24,34 +24,26 @@ class Sort {
     PlannerItemType.external: 3,
   };
 
-  /// Calculates seconds to subtract from start time to encode sort order for timed events.
-  /// SfCalendar truncates sub-second precision, so seconds are the finest usable unit.
-  /// Higher priority items (lower priority value) get more seconds subtracted,
-  /// making them appear earlier. Max adjustment is 103 seconds so calendar slot
-  /// positions are not affected.
+  /// Calculates seconds to subtract from start time to encode sort order for
+  /// timed events. Higher priority items (lower priority value) get more seconds
+  /// subtracted, making them appear earlier. Max adjustment is 103 seconds so
+  /// calendar slot positions are not visibly affected.
   ///
-  /// Priority and position are encoded in non-overlapping ranges using a
-  /// multiplicative scale (26 per priority level, 26 positions each). This
-  /// prevents collisions between different item types: e.g., homework at
-  /// position 1 would otherwise produce the same adjustment as course schedule
-  /// at position 0 under a purely additive scheme.
-  ///
+  /// Priority and position use non-overlapping ranges (26 per priority level)
+  /// to prevent collisions between types.
   /// Ranges: homework 78-103, courseSchedule 52-77, event 26-51, external 0-25.
   static const int _positionsPerPriority = 26;
 
-  static int getTimedEventStartTimeAdjustmentSeconds(
-    int priority,
-    int position,
-  ) {
+  static int getTimedEventStartTimeAdjustmentSeconds(int priority, int position) {
     final safePosition = position.clamp(0, _positionsPerPriority - 1);
     return (3 - priority) * _positionsPerPriority +
         (_positionsPerPriority - 1 - safePosition);
   }
 
-  /// Calculates the Duration to subtract from end time for timed events.
-  /// Uses the same 1-second-per-level scale as the start time adjustment.
   static Duration getTimedEventEndTimeAdjustment(int priority, int position) {
-    return Duration(seconds: getTimedEventStartTimeAdjustmentSeconds(priority, position));
+    return Duration(
+      seconds: getTimedEventStartTimeAdjustmentSeconds(priority, position),
+    );
   }
 
   /// Compares dates only (ignoring time components)

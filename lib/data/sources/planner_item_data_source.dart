@@ -69,11 +69,6 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
   final Map<int, bool> _completedOverrides = {};
   final Map<int, PlannerItemTimeOverride> _timeOverrides = {};
   bool _isMonthView = false;
-
-  /// Maps calendar item ID to its position in the sorted list for items at the
-  /// same base time. Used to apply seconds-based adjustments that encode the full
-  /// sort order (type --> course --> title) into times seen by SfCalendar.
-  final Map<int, int> _sortPositions = {};
   Timer? _filterDebounceTimer;
   bool _isFilteringInProgress = false;
   Completer<void>? _filterCompleter;
@@ -104,10 +99,13 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
   /// overlay.
   bool get isRefreshing => _isRefreshing;
 
-  /// Tell the data source which calendar view is active. In month view,
-  /// `isAllDay` returns false so SfCalendar uses `getStartTime` for ordering
-  /// (working around a Syncfusion bug where `reset` alternates all-day item
-  /// sort order).
+  /// Tell the data source which calendar view is active.
+  /// In month view, all-day items are reported as timed (isAllDay = false) so
+  /// SfCalendar uses getStartTime for ordering. SfCalendar's internal sort for
+  /// isAllDay == true items ignores list order and uses only start time — when
+  /// start times are identical it falls back to an internal tiebreaker we can't
+  /// control. Reporting as timed forces it to use our getStartTime values, which
+  /// encode type priority as a minute offset to guarantee stable ordering.
   set isMonthView(bool value) {
     if (_isMonthView == value) return;
     _isMonthView = value;
@@ -345,6 +343,51 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
     return _getData(index).id;
   }
 
+  /// Returns the position of a timed item at [index] within its minute-level
+  /// group — how many preceding timed items share the same date + hour + minute.
+  /// Used to assign distinct seconds offsets so SfCalendar preserves our sort
+  /// order for timed items with identical start times.
+  int _timedPositionInGroup(int index, PlannerItemBaseModel item) {
+    final baseMinute = DateTime(
+      item.start.year, item.start.month, item.start.day,
+      item.start.hour, item.start.minute,
+    );
+    int position = 0;
+    for (int i = 0; i < index; i++) {
+      final other = _getData(i);
+      if (!other.allDay) {
+        final otherMinute = DateTime(
+          other.start.year, other.start.month, other.start.day,
+          other.start.hour, other.start.minute,
+        );
+        if (otherMinute == baseMinute) position++;
+      }
+    }
+    return position;
+  }
+
+  /// Returns the position of an all-day item at [index] within its day group —
+  /// how many preceding all-day items share the same date. Used to assign
+  /// distinct seconds offsets in month view (where all-day items are reported
+  /// as timed) so SfCalendar preserves our sort order for same-type all-day
+  /// items that would otherwise have identical start times.
+  int _allDayPositionInGroup(int index, PlannerItemBaseModel item) {
+    final baseDate = DateTime(
+      item.start.year, item.start.month, item.start.day,
+    );
+    int position = 0;
+    for (int i = 0; i < index; i++) {
+      final other = _getData(i);
+      if (other.allDay) {
+        final otherDate = DateTime(
+          other.start.year, other.start.month, other.start.day,
+        );
+        if (otherDate == baseDate) position++;
+      }
+    }
+    return position;
+  }
+
   @override
   DateTime getStartTime(int index) {
     final item = _getData(index);
@@ -353,22 +396,17 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
       override != null ? DateTime.parse(override.start) : item.start,
       userSettings.timeZone,
     );
-
-    // All-day events: SfCalendar ignores sub-minute precision in start
-    // times for all-day items, so seconds-level offsets are invisible to its
-    // internal sort. Use type priority encoded as minutes to guarantee a stable
-    // ordering that SfCalendar cannot override.
-    if (item.allDay) {
-      final priority = Sort.typeSortPriority[item.plannerItemType] ?? 0;
-      return baseTime.add(Duration(minutes: priority));
-    }
-
-    // Timed events: subtract seconds to encode sort order
     final priority = Sort.typeSortPriority[item.plannerItemType] ?? 0;
-    final position = _sortPositions[item.id] ?? 0;
+    if (item.allDay) {
+      // In month view, all-day items are reported as timed (see isAllDay).
+      // Encode type priority as minutes and intra-type position as seconds so
+      // SfCalendar has fully distinct start times to sort by within a day.
+      final position = _allDayPositionInGroup(index, item);
+      return baseTime.add(Duration(minutes: priority, seconds: position));
+    }
     final adjustment = Sort.getTimedEventStartTimeAdjustmentSeconds(
       priority,
-      position,
+      _timedPositionInGroup(index, item),
     );
     return baseTime.subtract(Duration(seconds: adjustment));
   }
@@ -385,43 +423,37 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
       override != null ? DateTime.parse(override.end) : plannerItem.end,
       userSettings.timeZone,
     );
-
     if (plannerItem.allDay) {
-      final priority =
-          Sort.typeSortPriority[plannerItem.plannerItemType] ?? 0;
+      final priority = Sort.typeSortPriority[plannerItem.plannerItemType] ?? 0;
+      final position = _allDayPositionInGroup(index, plannerItem);
+      final offset = Duration(minutes: priority, seconds: position);
       if (_isMonthView) {
-        // Month view: isAllDay returns false, so SfCalendar treats these as
-        // timed events. Subtract 1 second to convert the API's exclusive end
-        // (next day 00:00) into an inclusive end (23:59:59) so the event stays
-        // within the correct day cells.
+        // Month view: isAllDay returns false so SfCalendar treats these as timed.
+        // Subtract 1 second to convert exclusive end (next day 00:00) to
+        // inclusive end (23:59:59) so the event stays within the correct day cell.
+        final adjustedStart = startTime.add(offset);
         final adjustedEnd = endTime.subtract(const Duration(seconds: 1));
-        final adjustedStart = startTime.add(Duration(minutes: priority));
-        return adjustedEnd.isBefore(adjustedStart)
-            ? adjustedStart
-            : adjustedEnd;
+        return adjustedEnd.isBefore(adjustedStart) ? adjustedStart : adjustedEnd;
       }
-      // Week/day view: isAllDay returns true, subtract 1 day for SfCalendar's
-      // exclusive end-of-day convention for all-day items.
-      final adjustedStart = startTime.add(Duration(minutes: priority));
-      final adjustedEnd = endTime
-          .subtract(const Duration(days: 1))
-          .add(Duration(minutes: priority));
+      // Week/day view: isAllDay returns true; subtract 1 day for SfCalendar's
+      // exclusive end convention for all-day items.
+      final adjustedStart = startTime.add(offset);
+      final adjustedEnd = endTime.subtract(const Duration(days: 1)).add(offset);
       return adjustedEnd.isBefore(adjustedStart) ? adjustedStart : adjustedEnd;
     }
-
-    // Timed events: subtract to encode sort order (uses minutes to avoid visible shortening)
+    // Timed: apply same adjustment as getStartTime so visual duration is preserved.
     final priority = Sort.typeSortPriority[plannerItem.plannerItemType] ?? 0;
-    final position = _sortPositions[plannerItem.id] ?? 0;
-    final adjustment = Sort.getTimedEventEndTimeAdjustment(priority, position);
+    final adjustment = Sort.getTimedEventEndTimeAdjustment(
+      priority,
+      _timedPositionInGroup(index, plannerItem),
+    );
     return endTime.subtract(adjustment);
   }
 
   @override
   bool isAllDay(int index) {
-    // In month view, report all-day items as timed so SfCalendar respects
-    // getStartTime for ordering. SfCalendar has a bug where its internal sort
-    // for isAllDay==true items on `reset` ignores getStartTime values and
-    // alternates order on each successive notification.
+    // In month view, report all-day items as timed so SfCalendar uses
+    // getStartTime for ordering (see isMonthView setter for full explanation).
     final item = _getData(index);
     if (_isMonthView && item.allDay) return false;
     return item.allDay;
@@ -802,16 +834,11 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
       }
     }
 
-    // Add immediately for instant visibility, then async refilter for sorting.
-    // Use `reset` (not `add`) so SfCalendar re-reads our sorted list; `add`
-    // appends to SfCalendar's internal collection, which visibly flips sort
-    // order on mixed-type all-day days.
     if (!appointments!.any(
       (item) => (item as PlannerItemBaseModel).id == plannerItem.id,
     )) {
       appointments!.add(plannerItem);
       Sort.byStartThenTitle(appointments!.cast<PlannerItemBaseModel>());
-      _buildSortPositions(appointments!.cast<PlannerItemBaseModel>());
       if (!_isDisposed) {
         notifyListeners(CalendarDataSourceAction.reset, appointments!);
       }
@@ -849,13 +876,8 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
     );
 
     if (oldIndex != -1) {
-      // Replace in place and notify with a full reset. A remove+add pair
-      // appends the updated item to the end of SfCalendar's internal
-      // collection, which visibly flips sort order for mixed-type all-day
-      // days. Reset forces SfCalendar to re-read our sorted list.
       appointments![oldIndex] = plannerItem;
       Sort.byStartThenTitle(appointments!.cast<PlannerItemBaseModel>());
-      _buildSortPositions(appointments!.cast<PlannerItemBaseModel>());
       if (!_isDisposed) {
         notifyListeners(CalendarDataSourceAction.reset, appointments!);
       }
@@ -885,8 +907,6 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
       );
       appointments!.remove(removedItem);
       _completedOverrides.remove(plannerItemId);
-      _sortPositions.remove(plannerItemId);
-      _buildSortPositions(appointments!.cast<PlannerItemBaseModel>());
       if (!_isDisposed) {
         notifyListeners(CalendarDataSourceAction.remove, [removedItem]);
       }
@@ -917,8 +937,20 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
     if (_isDisposed || appointments == null) return;
     appointments!.clear();
     appointments!.addAll(_filteredPlannerItems);
-    _buildSortPositions(appointments!.cast<PlannerItemBaseModel>());
     notifyListeners(CalendarDataSourceAction.reset, appointments!);
+    // SfCalendar caches the formatted time label on its internal appointment
+    // object and doesn't refresh it from getStartTime on a reset notification.
+    // A post-frame remove+add forces it to fully reconstruct the appointment,
+    // including the displayed time label.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_isDisposed || appointments == null) return;
+      final item = appointments!.firstWhereOrNull(
+        (a) => (a as PlannerItemBaseModel).id == itemId,
+      );
+      if (item == null) return;
+      notifyListeners(CalendarDataSourceAction.remove, [item]);
+      notifyListeners(CalendarDataSourceAction.add, [item]);
+    });
     _notifyChangeListeners();
   }
 
@@ -936,7 +968,6 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
     if (_isDisposed || appointments == null) return;
     appointments!.clear();
     appointments!.addAll(_filteredPlannerItems);
-    _buildSortPositions(appointments!.cast<PlannerItemBaseModel>());
     notifyListeners(CalendarDataSourceAction.reset, appointments!);
     // SfCalendar may fire a remove notification after onDragEnd returns (e.g.,
     // same-day RRULE drop in month view treats the occurrence as an exception
@@ -946,7 +977,6 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
       if (_isDisposed || appointments == null) return;
       appointments!.clear();
       appointments!.addAll(_filteredPlannerItems);
-      _buildSortPositions(appointments!.cast<PlannerItemBaseModel>());
       notifyListeners(CalendarDataSourceAction.reset, appointments!);
     });
   }
@@ -991,9 +1021,6 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
   void _applyFiltersSynchronously() {
     appointments!.clear();
     appointments!.addAll(_filteredPlannerItems);
-
-    // Build sort position map to encode full sort order in time adjustments
-    _buildSortPositions(_filteredPlannerItems);
 
     _log.fine(
       'Filters applied (sync): ${appointments!.length} of ${allPlannerItems.length} items visible',
@@ -1052,9 +1079,6 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
 
       appointments!.clear();
       appointments!.addAll(filteredItems);
-
-      // Build sort position map to encode full sort order in time adjustments
-      _buildSortPositions(filteredItems);
 
       _log.fine(
         'Filters applied: ${appointments!.length} of ${items.length} items visible',
@@ -1125,49 +1149,6 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
   Map<int, String> _buildCategoryIdToTitleMap() {
     if (categoriesMap == null) return {};
     return categoriesMap!.map((id, category) => MapEntry(id, category.title));
-  }
-
-  /// Builds a map of item IDs to their position within items at the same time.
-  /// Positions are used to apply seconds-based adjustments in getStartTime/
-  /// getEndTime that encode the full sort order into times seen by SfCalendar.
-  ///
-  /// Positions are assigned via a stable intra-group sort (type priority →
-  /// title), independent of the input list order. This ensures consistent
-  /// positions across all call sites regardless of the current order of
-  /// appointments!, including during optimistic drag-drop overrides.
-  void _buildSortPositions(List<PlannerItemBaseModel> items) {
-    _sortPositions.clear();
-
-    final itemsByBaseTime = <String, List<PlannerItemBaseModel>>{};
-
-    for (final item in items) {
-      // Group by date + hour + minute only (seconds/ms are our own encoding)
-      final key = DateTime(
-        item.start.year,
-        item.start.month,
-        item.start.day,
-        item.start.hour,
-        item.start.minute,
-      ).toIso8601String();
-      itemsByBaseTime.putIfAbsent(key, () => []).add(item);
-    }
-
-    for (final timeGroup in itemsByBaseTime.values) {
-      // Sort within group by type priority then title so positions are stable
-      // regardless of input list order. Without this, position assignments vary
-      // between setTimeOverride (unsorted list) and updatePlannerItem (sorted
-      // list), causing a transient flip between the two reset notifications.
-      timeGroup.sort((a, b) {
-        final aPriority = Sort.typeSortPriority[a.plannerItemType] ?? 0;
-        final bPriority = Sort.typeSortPriority[b.plannerItemType] ?? 0;
-        final priorityCompare = aPriority.compareTo(bPriority);
-        if (priorityCompare != 0) return priorityCompare;
-        return a.title.compareTo(b.title);
-      });
-      for (int i = 0; i < timeGroup.length; i++) {
-        _sortPositions[timeGroup[i].id] = i;
-      }
-    }
   }
 
   bool _hasSelectedCourses() {
