@@ -27,6 +27,7 @@ concurrency:
 jobs:
   canary:
     name: Canary Tests
+    if: inputs.environment != 'ci' || secrets.CI_APP_HOST != ''
 
     runs-on: ubuntu-latest
 
