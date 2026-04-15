@@ -32,7 +32,7 @@ jobs:
       should_run: ${{ steps.check.outputs.should_run }}
 
     steps:
-      - name: Check CI_APP_HOST for ci environment
+      - name: Check PROJECT_CI_APP_HOST for ci environment
         id: check
         env:
           PROJECT_CI_APP_HOST: ${{ secrets.PROJECT_CI_APP_HOST }}
