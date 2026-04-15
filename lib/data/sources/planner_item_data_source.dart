@@ -972,8 +972,13 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
         (a) => (a as PlannerItemBaseModel).id == itemId,
       );
       if (item == null) return;
+      // remove+add refreshes SfCalendar's cached time label for this item.
+      // The follow-up reset restores correct list order — add always appends
+      // to the end of SfCalendar's internal list, causing a one-frame flash
+      // where the item appears last before the reset re-sorts it.
       notifyListeners(CalendarDataSourceAction.remove, [item]);
       notifyListeners(CalendarDataSourceAction.add, [item]);
+      notifyListeners(CalendarDataSourceAction.reset, appointments!);
     });
     _notifyChangeListeners();
   }
