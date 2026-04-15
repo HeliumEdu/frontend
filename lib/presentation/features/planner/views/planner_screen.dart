@@ -250,7 +250,9 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
   Timer? _tooltipSuppressTimer;
 
   // DEBUG: tracks the last appointment the pointer entered, so we can compare
-  // against what SfCalendar reports in onDragStart.
+  // against what SfCalendar reports in onDragStart. SfCalendar's internal
+  // hit-test can pick up the wrong appointment ~10% of the time on desktop.
+  // See: syncfusion/flutter-widgets#2523
   PlannerItemBaseModel? _debugLastHoveredItem;
   Offset? _debugLastHoverPosition;
 
@@ -2109,7 +2111,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
     // appointment for taps and long-presses on month-view calendar items. Handle
     // both directly on the widget to bypass this quirk (drag-and-drop in month
     // view on touch is unsupported by SfCalendar, so consuming the long-press
-    // has no functional cost).
+    // has no functional cost). See: syncfusion/flutter-widgets#2519
     // Skip for agenda-style items which handle taps internally via column zones.
     if (_currentView == PlannerView.month &&
         Responsive.isTouchDevice(context) &&
@@ -2123,7 +2125,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
     }
 
     // DEBUG: track which appointment the pointer is currently over so we can
-    // compare against SfCalendar's onDragStart report.
+    // compare against SfCalendar's onDragStart report. See: syncfusion/flutter-widgets#2523
     calendarItemWidget = MouseRegion(
       onEnter: (event) {
         _debugLastHoveredItem = plannerItem;
@@ -2183,9 +2185,9 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
       _tooltipSuppressTimer = null;
       // setState here is safe — onDragStart fires after SfCalendar has already
       // resolved which appointment to drag, so a rebuild at this point won't
-      // corrupt the hit-test result. The rebuild causes _buildPlannerItemTooltip
-      // to return a bare child, unmounting any visible Tooltip without needing
-      // an imperative dismissal.
+      // corrupt the hit-test result (syncfusion/flutter-widgets#2523). The
+      // rebuild causes _buildPlannerItemTooltip to return a bare child,
+      // unmounting any visible Tooltip without needing an imperative dismissal.
       setState(() => _isCalendarInteractionInProgress = true);
     } else {
       _suppressTooltipsTemporarily();
