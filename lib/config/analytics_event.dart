@@ -64,5 +64,6 @@ class AnalyticsEvent {
   static const String debugFcmTokenStaleFail = 'helium_debug_fcm_token_stale_fail';
   static const String debugGradeCalcNoWeight = 'helium_debug_grade_calc_no_weight';
   static const String debugNoteAutosaveError = 'helium_debug_note_autosave_error';
+  static const String debugCalendarDragWrongItem = 'helium_debug_calendar_drag_wrong_item';
   static const String debugSetupCacheFallback = 'helium_debug_setup_cache_fallback';
 }

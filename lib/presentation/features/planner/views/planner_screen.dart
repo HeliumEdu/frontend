@@ -249,6 +249,11 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
   bool _isCalendarInteractionInProgress = false;
   Timer? _tooltipSuppressTimer;
 
+  // DEBUG: tracks the last appointment the pointer entered, so we can compare
+  // against what SfCalendar reports in onDragStart.
+  PlannerItemBaseModel? _debugLastHoveredItem;
+  Offset? _debugLastHoverPosition;
+
   // Debounces rapid checkbox taps so fast toggling doesn't fire a network
   // request per tap. We update the optimistic override immediately on each
   // tap for instant visual feedback, but defer the actual bloc dispatch
@@ -1817,13 +1822,45 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
   }
 
   void _onCalendarDragStart(AppointmentDragStartDetails dragDetails) {
-    if (dragDetails.appointment is PlannerItemBaseModel &&
-        _isLockedCalendarInteractionItem(
-          dragDetails.appointment as PlannerItemBaseModel,
-        )) {
-      // Locked items are not draggable; triggering a rebuild mid-drag corrupts
-      // SfCalendar's internal gesture state.
-      return;
+    if (dragDetails.appointment is PlannerItemBaseModel) {
+      final item = dragDetails.appointment as PlannerItemBaseModel;
+      final hovered = _debugLastHoveredItem;
+      final isMismatch = hovered != null && hovered.id != item.id;
+      final isNone = hovered == null;
+      if (isMismatch) {
+        _log.warning(
+          'drag_start MISMATCH: sf=id=${item.id} title="${item.title}" '
+          'hover=id=${hovered.id} title="${hovered.title}" '
+          'hover_position=$_debugLastHoverPosition',
+        );
+        unawaited(
+          AnalyticsService().logEvent(
+            name: AnalyticsEvent.debugCalendarDragWrongItem,
+            parameters: {
+              'category': AnalyticsCategory.edgeCase.value,
+              'reason': 'mismatch',
+            },
+          ),
+        );
+      } else if (isNone) {
+        _log.warning(
+          'drag_start NO_HOVER: sf=id=${item.id} title="${item.title}"',
+        );
+        unawaited(
+          AnalyticsService().logEvent(
+            name: AnalyticsEvent.debugCalendarDragWrongItem,
+            parameters: {
+              'category': AnalyticsCategory.edgeCase.value,
+              'reason': 'no_hover',
+            },
+          ),
+        );
+      }
+      if (_isLockedCalendarInteractionItem(item)) {
+        // Locked items are not draggable; triggering a rebuild mid-drag corrupts
+        // SfCalendar's internal gesture state.
+        return;
+      }
     }
     _setCalendarInteractionInProgress(true);
   }
@@ -2084,6 +2121,25 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
         child: calendarItemWidget,
       );
     }
+
+    // DEBUG: track which appointment the pointer is currently over so we can
+    // compare against SfCalendar's onDragStart report.
+    calendarItemWidget = MouseRegion(
+      onEnter: (event) {
+        _debugLastHoveredItem = plannerItem;
+        _debugLastHoverPosition = event.position;
+      },
+      onHover: (event) {
+        _debugLastHoverPosition = event.position;
+      },
+      onExit: (_) {
+        if (_debugLastHoveredItem?.id == plannerItem.id) {
+          _debugLastHoveredItem = null;
+          _debugLastHoverPosition = null;
+        }
+      },
+      child: calendarItemWidget,
+    );
 
     return KeyedSubtree(
       key: ValueKey('planner_item_${plannerItem.id}'),
