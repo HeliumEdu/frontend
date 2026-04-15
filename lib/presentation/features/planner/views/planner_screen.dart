@@ -590,9 +590,6 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
   @override
   Widget buildMainArea(BuildContext context) {
     return Listener(
-      // Dismiss any visible tooltip before SfCalendar performs its drag
-      // hit-test. Without this, an active tooltip overlay can interfere with
-      // SfCalendar's appointment resolution, causing it to drag the wrong item.
       onPointerDown: (_) => Tooltip.dismissAllToolTips(),
       child: BlocBuilder<PlannerBloc, PlannerState>(
       builder: (context, state) {
@@ -2128,11 +2125,12 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
       // Cancel any pending restore so the timer can't clear the flag mid-drag.
       _tooltipSuppressTimer?.cancel();
       _tooltipSuppressTimer = null;
-      // Set the flag directly without setState — a rebuild mid-gesture causes
-      // SfCalendar to lose its hit-test result and drag the wrong appointment.
-      // The flag is still read correctly on the next natural rebuild.
-      _isCalendarInteractionInProgress = true;
-      Tooltip.dismissAllToolTips();
+      // setState here is safe — onDragStart fires after SfCalendar has already
+      // resolved which appointment to drag, so a rebuild at this point won't
+      // corrupt the hit-test result. The rebuild causes _buildPlannerItemTooltip
+      // to return a bare child, unmounting any visible Tooltip without needing
+      // an imperative dismissal.
+      setState(() => _isCalendarInteractionInProgress = true);
     } else {
       _suppressTooltipsTemporarily();
     }
