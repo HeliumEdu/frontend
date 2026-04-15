@@ -187,3 +187,89 @@ jobs:
 
       - name: Build web
         run: make build-web
+
+  deploy-web-ci:
+    name: Deploy web (CI preview)
+    needs: [build-web]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Read Flutter version
+        id: flutter-version
+        run: echo "version=$(tr -d '[:space:]' < .flutter-version)" >> $GITHUB_OUTPUT
+
+      - name: Setup Flutter SDK
+        uses: flutter-actions/setup-flutter@v4
+        with:
+          channel: stable
+          version: ${{ steps.flutter-version.outputs.version }}
+          cache: true
+
+      - name: Cache pub dependencies
+        uses: actions/cache@v5
+        with:
+          path: ~/.pub-cache
+          key: ${{ runner.os }}-pub-${{ hashFiles('**/pubspec.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-pub-
+
+      - name: Build web
+        run: flutter clean && make build-web
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v6
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - name: Deploy to S3
+        run: |
+          BUCKET_NAME="heliumedu.ci.frontend-app.static"
+
+          aws s3 sync ./build/web "s3://${BUCKET_NAME}" \
+            --delete \
+            --cache-control "public, max-age=2592000" \
+            --exclude "index.html" \
+            --exclude "*.json" \
+            --exclude "main.dart.js" \
+            --exclude "flutter.js" \
+            --exclude "flutter_bootstrap.js" \
+            --exclude "canvaskit/*"
+
+          aws s3 cp ./build/web/index.html "s3://${BUCKET_NAME}/index.html" \
+            --cache-control "no-cache, no-store, must-revalidate"
+
+          for FILE in main.dart.js flutter.js flutter_bootstrap.js; do
+            if [ -f "./build/web/${FILE}" ]; then
+              aws s3 cp "./build/web/${FILE}" "s3://${BUCKET_NAME}/${FILE}" \
+                --cache-control "no-cache, no-store, must-revalidate" \
+                --content-type "application/javascript"
+            fi
+          done
+
+          find ./build/web -name "*.json" ! -path "./build/web/.well-known/*" -exec sh -c 'RELPATH="${1#./build/web/}"; aws s3 cp "$1" "s3://'"${BUCKET_NAME}"'/${RELPATH}" --cache-control "no-cache, no-store, must-revalidate" --content-type "application/json"' _ {} \;
+
+          if [ -d ./build/web/canvaskit ]; then
+            find ./build/web/canvaskit -type f -exec sh -c 'RELPATH="${1#./build/web/}"; aws s3 cp "$1" "s3://'"${BUCKET_NAME}"'/${RELPATH}" --cache-control "no-cache, no-store, must-revalidate"' _ {} \;
+          fi
+
+          if [ -d ./build/web/.well-known ]; then
+            find ./build/web/.well-known -type f -exec sh -c 'RELPATH="${1#./build/web/}"; aws s3 cp "$1" "s3://'"${BUCKET_NAME}"'/${RELPATH}" --content-type "application/json" --cache-control "public, max-age=86400"' _ {} \;
+          fi
+
+      - name: Invalidate CloudFront cache
+        run: |
+          DISTRIBUTION_ID=$(aws cloudfront list-distributions \
+            --query "DistributionList.Items[?Comment=='heliumedu-ci-frontend-app'].Id" \
+            --output text)
+
+          if [ -n "$DISTRIBUTION_ID" ] && [ "$DISTRIBUTION_ID" != "None" ]; then
+            aws cloudfront create-invalidation \
+              --distribution-id "$DISTRIBUTION_ID" \
+              --paths "/*"
+          fi
