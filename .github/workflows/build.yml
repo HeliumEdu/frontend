@@ -206,10 +206,18 @@ jobs:
 
     steps:
       - name: Download web artifact
-        uses: actions/download-artifact@v8
+        uses: nick-fields/retry@v3
+        env:
+          GH_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
         with:
-          name: web-build-ci
-          path: ./build/web
+          timeout_minutes: 5
+          retry_wait_seconds: 30
+          max_attempts: 5
+          command: |
+            gh run download ${{ github.run_id }} \
+              --repo ${{ github.repository }} \
+              --name web-build-ci \
+              --dir ./build/web
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v6
