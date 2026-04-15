@@ -15,13 +15,17 @@ def _app_host() -> str:
         return "http://localhost:8080"
     if _ENVIRONMENT == "prod":
         return "https://app.heliumedu.com"
+    if _ENVIRONMENT == "ci":
+        host = os.environ.get("PROJECT_CI_APP_HOST")
+        assert host, "PROJECT_CI_APP_HOST secret is not defined"
+        return host
     return f"https://app.{_ENVIRONMENT}.heliumedu.com"
 
 
 def _api_host() -> str:
     if _ENVIRONMENT == "dev-local":
         return "http://localhost:8000"
-    if _ENVIRONMENT == "prod":
+    if _ENVIRONMENT in ("prod", "ci"):
         return "https://api.heliumedu.com"
     return f"https://api.{_ENVIRONMENT}.heliumedu.com"
 

@@ -190,7 +190,6 @@ jobs:
 
   deploy-web-ci:
     name: Deploy web (CI preview)
-    needs: [build-web]
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
 
     runs-on: ubuntu-latest
@@ -218,7 +217,7 @@ jobs:
             ${{ runner.os }}-pub-
 
       - name: Build web
-        run: flutter clean && make build-web
+        run: make build-web ENVIRONMENT=prod
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v6
@@ -263,13 +262,35 @@ jobs:
           fi
 
       - name: Invalidate CloudFront cache
+        id: cloudfront
         run: |
-          DISTRIBUTION_ID=$(aws cloudfront list-distributions \
-            --query "DistributionList.Items[?Comment=='heliumedu-ci-frontend-app'].Id" \
-            --output text)
+          DISTRIBUTION=$(aws cloudfront list-distributions \
+            --query "DistributionList.Items[?Comment=='heliumedu-ci-frontend-app'] | [0].{Id: Id, Domain: DomainName}" \
+            --output json)
 
-          if [ -n "$DISTRIBUTION_ID" ] && [ "$DISTRIBUTION_ID" != "None" ]; then
+          DISTRIBUTION_ID=$(echo "$DISTRIBUTION" | jq -r '.Id // empty')
+          DOMAIN_NAME=$(echo "$DISTRIBUTION" | jq -r '.Domain // empty')
+
+          if [ -n "$DISTRIBUTION_ID" ]; then
             aws cloudfront create-invalidation \
               --distribution-id "$DISTRIBUTION_ID" \
               --paths "/*"
+            echo "domain=${DOMAIN_NAME}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Trigger canary tests
+        env:
+          GH_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+        run: |
+          gh workflow run canary.yml \
+            --repo ${{ github.repository }} \
+            -f environment=ci
+
+      - name: Deployment summary
+        run: |
+          echo "### CI Preview Deployment Complete" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **Commit**: ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+          if [ -n "${{ steps.cloudfront.outputs.domain }}" ]; then
+            echo "- **URL**: https://${{ steps.cloudfront.outputs.domain }}" >> $GITHUB_STEP_SUMMARY
           fi

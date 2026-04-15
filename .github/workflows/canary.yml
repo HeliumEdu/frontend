@@ -13,6 +13,7 @@ on:
         type: choice
         default: prod
         options:
+          - ci
           - dev
           - prod
 
@@ -24,8 +25,28 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  check:
+    name: Check Prerequisites
+    runs-on: ubuntu-latest
+    outputs:
+      should_run: ${{ steps.check.outputs.should_run }}
+
+    steps:
+      - name: Check PROJECT_CI_APP_HOST for ci environment
+        id: check
+        env:
+          PROJECT_CI_APP_HOST: ${{ secrets.PROJECT_CI_APP_HOST }}
+        run: |
+          if [ "${{ inputs.environment || 'prod' }}" = "ci" ] && [ -z "$PROJECT_CI_APP_HOST" ]; then
+            echo "should_run=false" >> $GITHUB_OUTPUT
+          else
+            echo "should_run=true" >> $GITHUB_OUTPUT
+          fi
+
   canary:
     name: Canary Tests
+    needs: [check]
+    if: needs.check.outputs.should_run == 'true'
 
     runs-on: ubuntu-latest
 
@@ -34,6 +55,7 @@ jobs:
       PYTHONUNBUFFERED: 1
       PYTHONDONTWRITEBYTECODE: 1
       ENVIRONMENT: ${{ inputs.environment || 'prod' }}
+      PROJECT_CI_APP_HOST: ${{ secrets.PROJECT_CI_APP_HOST }}
       PLAYWRIGHT_SMOKE_TEST_EMAIL: ${{ secrets.PLAYWRIGHT_SMOKE_TEST_EMAIL }}
       PLAYWRIGHT_SMOKE_TEST_PASSWORD: ${{ secrets.PLAYWRIGHT_SMOKE_TEST_PASSWORD }}
       PLATFORM_FIREBASE_PROJECT_ID: ${{ secrets.PLATFORM_FIREBASE_PROJECT_ID }}
