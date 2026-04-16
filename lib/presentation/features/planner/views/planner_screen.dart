@@ -747,9 +747,11 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
   }
 
   double _calculateCalendarHeight(double maxHeight) {
-    // Derive minimum from item-height math so at least _monthMinItemDisplayCount
-    // items always fit cleanly at _monthCalendarItemHeight with no clipping.
-    final double minCalendarHeight = _calculateExpandedCalendarHeight(_monthMinItemDisplayCount);
+    // On mobile, the month view uses a compact layout that doesn't need the
+    // derived item-height math — use the previous fixed minimum.
+    final double minCalendarHeight = Responsive.isMobile(context)
+        ? 480
+        : _calculateExpandedCalendarHeight(_monthMinItemDisplayCount);
     if (maxHeight.isInfinite) return minCalendarHeight;
     return maxHeight < minCalendarHeight ? minCalendarHeight : maxHeight;
   }
