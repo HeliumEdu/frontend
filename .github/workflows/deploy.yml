@@ -587,4 +587,4 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "- **Version**: ${FULL_VERSION}" >> $GITHUB_STEP_SUMMARY
           echo "- **Destination**: TestFlight" >> $GITHUB_STEP_SUMMARY
-          echo "- **Console**: [App Store Connect](https://appstoreconnect.apple.com/apps/6742372051/testflight)" >> $GITHUB_STEP_SUMMARY
+          echo "- **Console**: [App Store Connect](https://appstoreconnect.apple.com/apps/6758323154/distribution/ios/version/deliverable)" >> $GITHUB_STEP_SUMMARY
