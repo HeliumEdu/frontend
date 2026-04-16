@@ -492,7 +492,7 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
   List<DateTime>? getRecurrenceExceptionDates(int index) {
     final item = _getData(index);
     if (item is CourseScheduleEventModel && item.exceptionDates.isNotEmpty) {
-      return item.exceptionDates;
+      return List<DateTime>.of(item.exceptionDates);
     }
     return null;
   }
