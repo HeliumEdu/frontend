@@ -256,14 +256,16 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
 
   List<DateTime> _visibleDates = [];
   bool _isCalendarInteractionInProgress = false;
+  bool _dragRejected = false;
   Timer? _tooltipSuppressTimer;
 
-  // DEBUG: tracks the last appointment the pointer entered, so we can compare
-  // against what SfCalendar reports in onDragStart. SfCalendar's internal
-  // hit-test can pick up the wrong appointment ~10% of the time on desktop.
-  // See: syncfusion/flutter-widgets#2523
-  PlannerItemBaseModel? _debugLastHoveredItem;
-  Offset? _debugLastHoverPosition;
+  // Workaround for SfCalendar reporting the wrong appointment in onDragStart.
+  // _lastHoveredItem tracks hover via MouseRegion; _pointerDownHoveredItem
+  // snapshots it at pointer-down (before SfCalendar's rebuild clears hover).
+  // If onDragStart disagrees, the drag is rejected.
+  // https://github.com/syncfusion/flutter-widgets/issues/2523
+  PlannerItemBaseModel? _lastHoveredItem;
+  PlannerItemBaseModel? _pointerDownHoveredItem;
 
   // Debounces rapid checkbox taps so fast toggling doesn't fire a network
   // request per tap. We update the optimistic override immediately on each
@@ -606,7 +608,19 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
   @override
   Widget buildMainArea(BuildContext context) {
     return Listener(
-      onPointerDown: (_) => Tooltip.dismissAllToolTips(),
+      onPointerDown: (event) {
+        _pointerDownHoveredItem = _lastHoveredItem;
+        if (_currentView == PlannerView.month) {
+          // Freeze at pointer-down (not drag-start) because SfCalendar's
+          // internal hit-test runs between these two events. A mid-flight
+          // reset between pointer-down and drag-start invalidates its Rect
+          // cache and causes it to pick up the wrong appointment.
+          _plannerItemDataSource?.freezeChangeNotifications();
+        }
+        Tooltip.dismissAllToolTips();
+      },
+      onPointerUp: (_) => _plannerItemDataSource?.thawChangeNotifications(),
+      onPointerCancel: (_) => _plannerItemDataSource?.thawChangeNotifications(),
       child: BlocBuilder<PlannerBloc, PlannerState>(
       builder: (context, state) {
         if (state is PlannerLoading) {
@@ -681,7 +695,15 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
   }
 
   Widget _buildCalendarView(BuildContext context) {
-    // For month view, wrap to make it scrollable if the view height is too small
+    // For month view, wrap in SingleChildScrollView so the calendar can expand
+    // beyond the viewport when items don't fit.
+    //
+    // Known SfCalendar bug (debug-mode only): after a resize of this scroll
+    // container, SfCalendar's hit-test may use a stale globalToLocal offset,
+    // picking up an appointment from the wrong row. The mismatch detection in
+    // _onCalendarDragStart rejects these drags harmlessly. The stale-offset
+    // window is negligible in release mode — only exploitable under debug lag.
+    // https://github.com/syncfusion/flutter-widgets/issues/2523
     if (_calendarController.view == CalendarView.month) {
       return LayoutBuilder(
         builder: (context, constraints) {
@@ -1739,6 +1761,12 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
   void _dropCalendarItem(AppointmentDragEndDetails dropDetails) {
     _setCalendarInteractionInProgress(false);
 
+    if (_dragRejected) {
+      _dragRejected = false;
+      _plannerItemDataSource!.resetAppointments();
+      return;
+    }
+
     if (dropDetails.appointment == null) {
       return;
     }
@@ -1838,38 +1866,26 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
   }
 
   void _onCalendarDragStart(AppointmentDragStartDetails dragDetails) {
+    _plannerItemDataSource?.thawChangeNotifications();
+    _dragRejected = false;
     if (dragDetails.appointment is PlannerItemBaseModel) {
       final item = dragDetails.appointment as PlannerItemBaseModel;
-      final hovered = _debugLastHoveredItem;
+      final hovered = _pointerDownHoveredItem;
       final isMismatch = hovered != null && hovered.id != item.id;
-      final isNone = hovered == null;
+
       if (isMismatch) {
         _log.warning(
-          'drag_start MISMATCH: sf=id=${item.id} title="${item.title}" '
-          'hover=id=${hovered.id} title="${hovered.title}" '
-          'hover_position=$_debugLastHoverPosition',
+          'Calendar drag mismatch — rejecting: '
+          'sf=${item.id} "${item.title}" '
+          'hover=${hovered.id} "${hovered.title}"',
         );
-        unawaited(
-          AnalyticsService().logEvent(
-            name: AnalyticsEvent.debugCalendarDragWrongItem,
-            parameters: {
-              'category': AnalyticsCategory.edgeCase.value,
-              'reason': 'mismatch',
-            },
-          ),
-        );
-      } else if (isNone) {
+        _dragRejected = true;
+        _plannerItemDataSource!.resetAppointments();
+        return;
+      } else if (hovered == null) {
         _log.warning(
-          'drag_start NO_HOVER: sf=id=${item.id} title="${item.title}"',
-        );
-        unawaited(
-          AnalyticsService().logEvent(
-            name: AnalyticsEvent.debugCalendarDragWrongItem,
-            parameters: {
-              'category': AnalyticsCategory.edgeCase.value,
-              'reason': 'no_hover',
-            },
-          ),
+          'Calendar drag no hover — '
+          'sf=${item.id} "${item.title}"',
         );
       }
       if (_isLockedCalendarInteractionItem(item)) {
@@ -2144,7 +2160,8 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
     // appointment for taps and long-presses on month-view calendar items. Handle
     // both directly on the widget to bypass this quirk (drag-and-drop in month
     // view on touch is unsupported by SfCalendar, so consuming the long-press
-    // has no functional cost). See: syncfusion/flutter-widgets#2519
+    // has no functional cost).
+    // https://github.com/syncfusion/flutter-widgets/issues/2519
     // Skip for agenda-style items which handle taps internally via column zones.
     if (_currentView == PlannerView.month &&
         Responsive.isTouchDevice(context) &&
@@ -2157,20 +2174,13 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
       );
     }
 
-    // DEBUG: track which appointment the pointer is currently over so we can
-    // compare against SfCalendar's onDragStart report. See: syncfusion/flutter-widgets#2523
+    // Hover tracking for drag mismatch detection — see _onCalendarDragStart.
+    // https://github.com/syncfusion/flutter-widgets/issues/2523
     calendarItemWidget = MouseRegion(
-      onEnter: (event) {
-        _debugLastHoveredItem = plannerItem;
-        _debugLastHoverPosition = event.position;
-      },
-      onHover: (event) {
-        _debugLastHoverPosition = event.position;
-      },
+      onEnter: (_) => _lastHoveredItem = plannerItem,
       onExit: (_) {
-        if (_debugLastHoveredItem?.id == plannerItem.id) {
-          _debugLastHoveredItem = null;
-          _debugLastHoverPosition = null;
+        if (_lastHoveredItem?.id == plannerItem.id) {
+          _lastHoveredItem = null;
         }
       },
       child: calendarItemWidget,
@@ -2218,7 +2228,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
       _tooltipSuppressTimer = null;
       // setState here is safe — onDragStart fires after SfCalendar has already
       // resolved which appointment to drag, so a rebuild at this point won't
-      // corrupt the hit-test result (syncfusion/flutter-widgets#2523). The
+      // corrupt the hit-test result. The
       // rebuild causes _buildPlannerItemTooltip to return a bare child,
       // unmounting any visible Tooltip without needing an imperative dismissal.
       setState(() => _isCalendarInteractionInProgress = true);

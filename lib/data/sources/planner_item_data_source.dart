@@ -73,6 +73,16 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
   bool _isFilteringInProgress = false;
   Completer<void>? _filterCompleter;
   bool _isRefreshing = false;
+  // SfCalendar has two independent notification channels that must both be
+  // gated during the pointer-down → drag-start hit-test window:
+  //   (1) our Flutter ChangeNotifier (_changeNotifier) — triggers widget-tree
+  //       rebuilds via ListenableBuilder
+  //   (2) the SfCalendar base-class notifyListeners(reset, ...) — rebuilds
+  //       SfCalendar's internal Rect/hit-test cache
+  // _pendingChangeNotification covers (1); _pendingCalendarReset covers (2).
+  bool _changeNotificationsFrozen = false;
+  bool _pendingChangeNotification = false;
+  bool _pendingCalendarReset = false;
 
   /// Duration for filter debouncing. Set to Duration.zero in tests for
   /// synchronous behavior.
@@ -116,8 +126,51 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
 
   void _notifyChangeListeners() {
     if (_isDisposed) return;
+    if (_changeNotificationsFrozen) {
+      _pendingChangeNotification = true;
+      return;
+    }
     // ignore: invalid_use_of_visible_for_testing_member, invalid_use_of_protected_member
     _changeNotifier.notifyListeners();
+  }
+
+  /// Prevents [_notifyChangeListeners] from firing until [thawChangeNotifications]
+  /// is called. Any notification that arrives while frozen is coalesced into one
+  /// flush on thaw. Used to protect SfCalendar's hit-test window between
+  /// pointer-down and drag-start from mid-flight rebuilds.
+  void freezeChangeNotifications() {
+    _changeNotificationsFrozen = true;
+    _pendingChangeNotification = false;
+  }
+
+  /// Re-enables notifications and flushes any that arrived while frozen.
+  /// Flush order matters: calendar reset (channel 2) before widget-tree
+  /// notification (channel 1), so SfCalendar's Rect cache is current before
+  /// the widget tree rebuilds and triggers a new layout pass.
+  void thawChangeNotifications() {
+    _changeNotificationsFrozen = false;
+    if (_pendingCalendarReset && !_isDisposed && appointments != null) {
+      _pendingCalendarReset = false;
+      notifyListeners(CalendarDataSourceAction.reset, appointments!);
+    }
+    if (_pendingChangeNotification) {
+      _pendingChangeNotification = false;
+      _notifyChangeListeners();
+    }
+  }
+
+  /// Fires the SfCalendar base-class notification (channel 2 — rebuilds
+  /// SfCalendar's internal Rect/hit-test cache), distinct from
+  /// [_notifyChangeListeners] which fires channel 1 (our Flutter ChangeNotifier
+  /// → widget-tree rebuild). Both channels must be gated during drags; calling
+  /// notifyListeners(reset, ...) directly would bypass the freeze gate.
+  void _notifyCalendarReset() {
+    if (_isDisposed || appointments == null) return;
+    if (_changeNotificationsFrozen) {
+      _pendingCalendarReset = true;
+      return;
+    }
+    notifyListeners(CalendarDataSourceAction.reset, appointments!);
   }
 
   /// Clears all cached calendar data and triggers a refresh.
@@ -863,9 +916,7 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
     )) {
       appointments!.add(plannerItem);
       Sort.byStartThenTitle(appointments!.cast<PlannerItemBaseModel>());
-      if (!_isDisposed) {
-        notifyListeners(CalendarDataSourceAction.reset, appointments!);
-      }
+      _notifyCalendarReset();
     }
 
     _applyFiltersAndNotify();
@@ -902,9 +953,7 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
     if (oldIndex != -1) {
       appointments![oldIndex] = plannerItem;
       Sort.byStartThenTitle(appointments!.cast<PlannerItemBaseModel>());
-      if (!_isDisposed) {
-        notifyListeners(CalendarDataSourceAction.reset, appointments!);
-      }
+      _notifyCalendarReset();
     } else {
       _applyFiltersAndNotify();
     }
@@ -965,21 +1014,26 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
     // SfCalendar caches the formatted time label on its internal appointment
     // object and doesn't refresh it from getStartTime on a reset notification.
     // A post-frame remove+add forces it to fully reconstruct the appointment,
-    // including the displayed time label.
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (_isDisposed || appointments == null) return;
-      final item = appointments!.firstWhereOrNull(
-        (a) => (a as PlannerItemBaseModel).id == itemId,
-      );
-      if (item == null) return;
-      // remove+add refreshes SfCalendar's cached time label for this item.
-      // The follow-up reset restores correct list order — add always appends
-      // to the end of SfCalendar's internal list, causing a one-frame flash
-      // where the item appears last before the reset re-sorts it.
-      notifyListeners(CalendarDataSourceAction.remove, [item]);
-      notifyListeners(CalendarDataSourceAction.add, [item]);
-      notifyListeners(CalendarDataSourceAction.reset, appointments!);
-    });
+    // including the displayed time label. Month view items show no time label,
+    // so skip this in month view — the deferred reset is what races the next
+    // drag's hit-test resolution.
+    // https://github.com/syncfusion/flutter-widgets/issues/2523
+    if (!_isMonthView) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (_isDisposed || appointments == null) return;
+        final item = appointments!.firstWhereOrNull(
+          (a) => (a as PlannerItemBaseModel).id == itemId,
+        );
+        if (item == null) return;
+        // remove+add refreshes SfCalendar's cached time label for this item.
+        // The follow-up reset restores correct list order — add always appends
+        // to the end of SfCalendar's internal list, causing a one-frame flash
+        // where the item appears last before the reset re-sorts it.
+        notifyListeners(CalendarDataSourceAction.remove, [item]);
+        notifyListeners(CalendarDataSourceAction.add, [item]);
+        notifyListeners(CalendarDataSourceAction.reset, appointments!);
+      });
+    }
     _notifyChangeListeners();
   }
 
@@ -1054,9 +1108,7 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
     _log.fine(
       'Filters applied (sync): ${appointments!.length} of ${allPlannerItems.length} items visible',
     );
-    if (!_isDisposed) {
-      notifyListeners(CalendarDataSourceAction.reset, appointments!);
-    }
+    _notifyCalendarReset();
     _notifyChangeListeners();
   }
 
@@ -1112,9 +1164,7 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
       _log.fine(
         'Filters applied: ${appointments!.length} of ${items.length} items visible',
       );
-      if (!_isDisposed) {
-        notifyListeners(CalendarDataSourceAction.reset, appointments!);
-      }
+      _notifyCalendarReset();
       _notifyChangeListeners();
       completer?.complete();
     } catch (e) {

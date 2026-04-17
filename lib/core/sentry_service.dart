@@ -180,6 +180,13 @@ class SentryService {
       return true;
     }
 
+    // Native signal crashes (SIGABRT, SIGSEGV, etc.) with no app code in the
+    // stacktrace are OS/driver-level kills we can't act on (OOM, GPU driver,
+    // ANR). Filter them to reduce noise from low-end devices.
+    if (_isBarNativeSignalCrash(exception)) {
+      return true;
+    }
+
     final type = exception.type?.toLowerCase() ?? '';
     final value = exception.value?.toLowerCase() ?? '';
     final combined = '$type $value';
@@ -239,6 +246,33 @@ class SentryService {
     final frames = exception.stackTrace?.frames ?? [];
     return frames.any((f) =>
         (f.absPath ?? f.module ?? '').toLowerCase().contains('syncfusion_flutter'));
+  }
+
+  /// Native signal crashes (e.g. SIGABRT, SIGSEGV) with only system-level
+  /// frames and no app code are not actionable.
+  bool _isBarNativeSignalCrash(SentryException exception) {
+    final type = exception.type?.toUpperCase() ?? '';
+    if (!type.startsWith('SIG')) {
+      return false;
+    }
+
+    final frames = exception.stackTrace?.frames ?? [];
+    if (frames.isEmpty) {
+      return true;
+    }
+
+    return frames.every((f) {
+      final path = (f.absPath ?? f.module ?? f.fileName ?? '').toLowerCase();
+      return path.isEmpty ||
+          path == '<unknown>' ||
+          path.startsWith('libc.') ||
+          path.startsWith('libc++') ||
+          path.startsWith('libsystem_') ||
+          path.startsWith('/system/') ||
+          path.startsWith('/apex/') ||
+          path.startsWith('/usr/lib/') ||
+          path.startsWith('/system/library/');
+    });
   }
 
   /// Text-based filtering as a fallback
