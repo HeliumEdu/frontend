@@ -281,6 +281,9 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
   // UI reverts to the last known server state rather than staying stuck.
   final Set<int> _inFlightCompletionIds = {};
 
+  int? _deferredOpenItemId;
+  VoidCallback? _deferredOpenAction;
+
   PlannerItemDataSource? _plannerItemDataSource;
   final Map<int, ExternalCalendarModel> _externalCalendarsById = {};
 
@@ -342,6 +345,8 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
     _pendingToggleTimers.clear();
     _pendingToggleValues.clear();
     _inFlightCompletionIds.clear();
+    _deferredOpenItemId = null;
+    _deferredOpenAction = null;
     _plannerItemDataSource?.dispose();
     _searchController.dispose();
     _searchFocusNode.dispose();
@@ -443,6 +448,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
             _plannerItemDataSource!.addPlannerItem(state.event);
           } else if (state is EventUpdated) {
             _plannerItemDataSource!.updatePlannerItem(state.event);
+            _executeDeferredOpen(state.event.id);
           } else if (state is EventDeleted) {
             showSnackBar(context, 'Event deleted');
             _plannerItemDataSource!.removePlannerItem(state.id);
@@ -469,11 +475,14 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
               _plannerItemDataSource!.clearCompletedOverride(id);
             }
             _inFlightCompletionIds.clear();
+            _deferredOpenItemId = null;
+            _deferredOpenAction = null;
           } else if (state is HomeworkUpdated) {
             _inFlightCompletionIds.remove(state.homework.id);
             final previousHomework = _plannerItemDataSource!.allHomeworks
                 .firstWhereOrNull((h) => h.id == state.homework.id);
             _plannerItemDataSource!.updatePlannerItem(state.homework);
+            _executeDeferredOpen(state.homework.id);
             if (state.homework.completed &&
                 previousHomework?.completed == false) {
               FeedbackService().triggerReviewRequest();
@@ -984,6 +993,35 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
     final int? homeworkId = plannerItem is HomeworkModel
         ? plannerItem.id
         : null;
+
+    _deferredOpenItemId = null;
+    _deferredOpenAction = null;
+
+    final hasPendingWrite = (homeworkId != null &&
+            (_pendingToggleTimers.containsKey(homeworkId) ||
+                _inFlightCompletionIds.contains(homeworkId))) ||
+        _plannerItemDataSource!.hasTimeOverride(plannerItem.id);
+
+    if (hasPendingWrite) {
+      _deferredOpenItemId = plannerItem.id;
+      _deferredOpenAction = () {
+        if (!mounted) return;
+        final paramKey = homeworkId != null
+            ? '${DeepLinkParam.homeworkId}:$homeworkId'
+            : '${DeepLinkParam.eventId}:$eventId';
+        openWithGuard(
+          paramKey,
+          () => showPlannerItemAdd(
+            context,
+            eventId: eventId,
+            homeworkId: homeworkId,
+            isEdit: true,
+            isNew: false,
+          ),
+        );
+      };
+      return false;
+    }
 
     final paramKey = homeworkId != null
         ? '${DeepLinkParam.homeworkId}:$homeworkId'
@@ -3317,6 +3355,15 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
         ),
       );
     });
+  }
+
+  void _executeDeferredOpen(int itemId) {
+    if (_deferredOpenItemId != itemId) return;
+    final action = _deferredOpenAction;
+    _deferredOpenItemId = null;
+    _deferredOpenAction = null;
+    if (action == null) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) => action());
   }
 
   void _updatePlannerItemAttachments(
