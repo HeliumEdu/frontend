@@ -1016,7 +1016,8 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
     // A post-frame remove+add forces it to fully reconstruct the appointment,
     // including the displayed time label. Month view items show no time label,
     // so skip this in month view — the deferred reset is what races the next
-    // drag's hit-test resolution. See: syncfusion/flutter-widgets#2523
+    // drag's hit-test resolution.
+    // https://github.com/syncfusion/flutter-widgets/issues/2523
     if (!_isMonthView) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (_isDisposed || appointments == null) return;

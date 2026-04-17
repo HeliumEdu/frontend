@@ -259,23 +259,13 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
   bool _dragRejected = false;
   Timer? _tooltipSuppressTimer;
 
-  // Tracks the last appointment the pointer entered via MouseRegion.onEnter.
-  // Used to snapshot the hovered item at pointer-down for MISMATCH detection.
-  // See: syncfusion/flutter-widgets#2523
+  // Workaround for SfCalendar reporting the wrong appointment in onDragStart.
+  // _lastHoveredItem tracks hover via MouseRegion; _pointerDownHoveredItem
+  // snapshots it at pointer-down (before SfCalendar's rebuild clears hover).
+  // If onDragStart disagrees, the drag is rejected.
+  // https://github.com/syncfusion/flutter-widgets/issues/2523
   PlannerItemBaseModel? _lastHoveredItem;
-  // Snapshot of _lastHoveredItem captured at pointer-down, immune to onExit
-  // clearing _lastHoveredItem during SfCalendar's drag-start widget rebuild.
-  // Compared against SfCalendar's onDragStart report — if they disagree, the
-  // drag is rejected to prevent picking up the wrong appointment.
   PlannerItemBaseModel? _pointerDownHoveredItem;
-  // [DBG_DRAG] diagnostic fields — can be stripped once bug is fully resolved
-  Offset? _debugLastHoverPosition;
-  Offset? _debugPointerDownPosition;
-  final Map<int, Rect> _debugAppointmentBounds = {};
-  double? _debugLastCalendarHeight;
-  int? _debugLastDisplayCount;
-  int _debugDsNotifyCount = 0;
-  int _debugLastBuildDsVersion = 0;
 
   // Debounces rapid checkbox taps so fast toggling doesn't fire a network
   // request per tap. We update the optimistic override immediately on each
@@ -620,12 +610,6 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
     return Listener(
       onPointerDown: (event) {
         _pointerDownHoveredItem = _lastHoveredItem;
-        _debugPointerDownPosition = event.position;
-        _log.info(
-          '[DBG_DRAG] pointer_down: pos=${event.position} '
-          'hover_item=${_lastHoveredItem?.id} '
-          'ds_notify_count=$_debugDsNotifyCount',
-        );
         if (_currentView == PlannerView.month) {
           // Freeze at pointer-down (not drag-start) because SfCalendar's
           // internal hit-test runs between these two events. A mid-flight
@@ -684,8 +668,6 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
         child: ListenableBuilder(
           listenable: _plannerItemDataSource!.changeNotifier,
           builder: (context, _) {
-            _debugDsNotifyCount++;
-            _log.info('[DBG_DRAG] ds_notify: count=$_debugDsNotifyCount');
             return Stack(
               children: [
                 _currentView == PlannerView.todos
@@ -713,17 +695,15 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
   }
 
   Widget _buildCalendarView(BuildContext context) {
-    // For month view, wrap to make it scrollable if the view height is too small.
+    // For month view, wrap in SingleChildScrollView so the calendar can expand
+    // beyond the viewport when items don't fit.
     //
-    // Known failure mode (debug-mode only, see #2523): after a layout_change
-    // event (calendar height shrinks/grows), SfCalendar's hit-test may convert
-    // cursor screen coordinates using a stale global offset from before the
-    // resize. Under debug-mode lag (~1.5 s between layout_change and
-    // pointer_down) this manifests as a drag MISMATCH where sf_bounds are near
-    // the top of the calendar (e.g. T39-T61, first row) while the cursor is at
-    // the bottom of the viewport (screen y ≈ 696-768) and ds_staleness=0 (so
-    // it is NOT a race condition). The stale-offset window is negligible in
-    // release mode. If this resurfaces, look here first before chasing races.
+    // Known SfCalendar bug (debug-mode only): after a resize of this scroll
+    // container, SfCalendar's hit-test may use a stale globalToLocal offset,
+    // picking up an appointment from the wrong row. The mismatch detection in
+    // _onCalendarDragStart rejects these drags harmlessly. The stale-offset
+    // window is negligible in release mode — only exploitable under debug lag.
+    // https://github.com/syncfusion/flutter-widgets/issues/2523
     if (_calendarController.view == CalendarView.month) {
       return LayoutBuilder(
         builder: (context, constraints) {
@@ -759,18 +739,6 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
             calendarHeight = _calculateCalendarHeight(constraints.maxHeight);
           }
 
-          if (calendarHeight != _debugLastCalendarHeight ||
-              noCollapseCount != _debugLastDisplayCount) {
-            _log.info(
-              '[DBG_DRAG] layout_change: '
-              'height=${_debugLastCalendarHeight?.toStringAsFixed(1)}→${calendarHeight.toStringAsFixed(1)} '
-              'displayCount=$_debugLastDisplayCount→$noCollapseCount '
-              'noCollapse=$noCollapse '
-              'maxHeight=${constraints.maxHeight.toStringAsFixed(1)}',
-            );
-            _debugLastCalendarHeight = calendarHeight;
-            _debugLastDisplayCount = noCollapseCount;
-          }
           return SingleChildScrollView(
             controller: _monthViewScrollController,
             child: SizedBox(
@@ -946,18 +914,12 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
           onSelectionChanged: _onCalendarSelectionChanged,
           onViewChanged: (ViewChangedDetails details) {
             _visibleDates = details.visibleDates;
-            _log.info(
-              '[DBG_DRAG] view_changed: visibleDates=${details.visibleDates.length} '
-              'first=${details.visibleDates.isNotEmpty ? details.visibleDates.first.toIso8601String().substring(0, 10) : "none"} '
-              'scheduling_rebuild',
-            );
             if (!mounted) return;
 
             // Defer setState because onViewChanged fires during SfCalendar's
             // internal rendering; calling setState mid-paint would crash
             WidgetsBinding.instance.addPostFrameCallback((_) {
               if (!mounted) return;
-              _log.info('[DBG_DRAG] view_changed: deferred_setState firing');
               setState(() {});
             });
           },
@@ -1909,80 +1871,21 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
     if (dragDetails.appointment is PlannerItemBaseModel) {
       final item = dragDetails.appointment as PlannerItemBaseModel;
       final hovered = _pointerDownHoveredItem;
-      final cursorPos = _debugPointerDownPosition;
       final isMismatch = hovered != null && hovered.id != item.id;
-      final isNone = hovered == null;
-
-      final sfBounds = _debugAppointmentBounds[item.id];
-      final sfVisualRect = sfBounds != null
-          ? Rect.fromLTWH(sfBounds.left, sfBounds.top, sfBounds.width, _monthCalendarItemHeight)
-          : null;
-      final hovBounds = hovered != null ? _debugAppointmentBounds[hovered.id] : null;
-      final hovVisualRect = hovBounds != null
-          ? Rect.fromLTWH(hovBounds.left, hovBounds.top, hovBounds.width, _monthCalendarItemHeight)
-          : null;
-
-      final cursorInSfBounds = (sfBounds != null && cursorPos != null) ? sfBounds.contains(cursorPos) : null;
-      final cursorInSfVisual = (sfVisualRect != null && cursorPos != null) ? sfVisualRect.contains(cursorPos) : null;
-      final cursorInHovBounds = (hovBounds != null && cursorPos != null) ? hovBounds.contains(cursorPos) : null;
-      final cursorInHovVisual = (hovVisualRect != null && cursorPos != null) ? hovVisualRect.contains(cursorPos) : null;
-
-      final dsStaleness = _debugDsNotifyCount - _debugLastBuildDsVersion;
 
       if (isMismatch) {
         _log.warning(
-          '[DBG_DRAG] drag_start MISMATCH — rejecting drag: '
-          'sf=id=${item.id} title="${item.title}" '
-          'sf_bounds=${sfBounds != null ? "T${sfBounds.top.toStringAsFixed(1)}/B${sfBounds.bottom.toStringAsFixed(1)}/H${sfBounds.height.toStringAsFixed(1)}" : "MISSING"} '
-          'sf_visual=${sfVisualRect != null ? "T${sfVisualRect.top.toStringAsFixed(1)}/B${sfVisualRect.bottom.toStringAsFixed(1)}" : "MISSING"} '
-          'hover=id=${hovered.id} title="${hovered.title}" '
-          'hov_bounds=${hovBounds != null ? "T${hovBounds.top.toStringAsFixed(1)}/B${hovBounds.bottom.toStringAsFixed(1)}/H${hovBounds.height.toStringAsFixed(1)}" : "MISSING"} '
-          'hov_visual=${hovVisualRect != null ? "T${hovVisualRect.top.toStringAsFixed(1)}/B${hovVisualRect.bottom.toStringAsFixed(1)}" : "MISSING"} '
-          'cursor=$cursorPos '
-          'cursor_in_sf_bounds=$cursorInSfBounds cursor_in_sf_visual=$cursorInSfVisual '
-          'cursor_in_hov_bounds=$cursorInHovBounds cursor_in_hov_visual=$cursorInHovVisual '
-          'ds_notify=$_debugDsNotifyCount build_ds_v=$_debugLastBuildDsVersion ds_staleness=$dsStaleness '
-          'layout_h=${_debugLastCalendarHeight?.toStringAsFixed(1)} displayCount=$_debugLastDisplayCount',
-        );
-        unawaited(
-          AnalyticsService().logEvent(
-            name: AnalyticsEvent.debugCalendarDragWrongItem,
-            parameters: {
-              'category': AnalyticsCategory.edgeCase.value,
-              'reason': 'mismatch',
-            },
-          ),
+          'Calendar drag mismatch — rejecting: '
+          'sf=${item.id} "${item.title}" '
+          'hover=${hovered.id} "${hovered.title}"',
         );
         _dragRejected = true;
         _plannerItemDataSource!.resetAppointments();
         return;
-      } else if (isNone) {
+      } else if (hovered == null) {
         _log.warning(
-          '[DBG_DRAG] drag_start NO_HOVER: '
-          'sf=id=${item.id} title="${item.title}" '
-          'sf_bounds=${sfBounds != null ? "T${sfBounds.top.toStringAsFixed(1)}/B${sfBounds.bottom.toStringAsFixed(1)}/H${sfBounds.height.toStringAsFixed(1)}" : "MISSING"} '
-          'cursor=$cursorPos '
-          'ds_notify=$_debugDsNotifyCount build_ds_v=$_debugLastBuildDsVersion ds_staleness=$dsStaleness '
-          'layout_h=${_debugLastCalendarHeight?.toStringAsFixed(1)} displayCount=$_debugLastDisplayCount',
-        );
-        unawaited(
-          AnalyticsService().logEvent(
-            name: AnalyticsEvent.debugCalendarDragWrongItem,
-            parameters: {
-              'category': AnalyticsCategory.edgeCase.value,
-              'reason': 'no_hover',
-            },
-          ),
-        );
-      } else {
-        _log.info(
-          '[DBG_DRAG] drag_start OK: '
-          'id=${item.id} title="${item.title}" '
-          'sf_bounds=${sfBounds != null ? "T${sfBounds.top.toStringAsFixed(1)}/B${sfBounds.bottom.toStringAsFixed(1)}/H${sfBounds.height.toStringAsFixed(1)}" : "MISSING"} '
-          'cursor=$cursorPos '
-          'cursor_in_sf_bounds=$cursorInSfBounds cursor_in_sf_visual=$cursorInSfVisual '
-          'ds_notify=$_debugDsNotifyCount build_ds_v=$_debugLastBuildDsVersion ds_staleness=$dsStaleness '
-          'layout_h=${_debugLastCalendarHeight?.toStringAsFixed(1)} displayCount=$_debugLastDisplayCount',
+          'Calendar drag no hover — '
+          'sf=${item.id} "${item.title}"',
         );
       }
       if (_isLockedCalendarInteractionItem(item)) {
@@ -2238,23 +2141,6 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
           : null,
       occurrenceDate: details.date,
     );
-    // [DBG_DRAG] record bounds and log per-item build info
-    if (_currentView == PlannerView.month && !isInAgenda) {
-      _debugAppointmentBounds[plannerItem.id] = details.bounds;
-      _debugLastBuildDsVersion = _debugDsNotifyCount;
-      _log.fine(
-        '[DBG_DRAG] item_build: id=${plannerItem.id} '
-        'title="${plannerItem.title}" '
-        'bounds=T${details.bounds.top.toStringAsFixed(1)}'
-        '/B${details.bounds.bottom.toStringAsFixed(1)}'
-        '/H${details.bounds.height.toStringAsFixed(1)}'
-        '/W${details.bounds.width.toStringAsFixed(1)} '
-        'visual_h=$_monthCalendarItemHeight '
-        'gap=${details.bounds.height - _monthCalendarItemHeight > 0.5 ? "STRETCHED+${(details.bounds.height - _monthCalendarItemHeight).toStringAsFixed(1)}" : details.bounds.height < _monthCalendarItemHeight - 0.5 ? "COMPRESSED${(details.bounds.height - _monthCalendarItemHeight).toStringAsFixed(1)}" : "ok"} '
-        'isInAgenda=$isInAgenda '
-        'ds_v=$_debugDsNotifyCount',
-      );
-    }
     // In month view (non-agenda), force a fixed item height. SfCalendar
     // stretches bounds to fill the cell when few items are present (too tall)
     // and may also compress bounds when many items are stacked (too short).
@@ -2274,7 +2160,8 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
     // appointment for taps and long-presses on month-view calendar items. Handle
     // both directly on the widget to bypass this quirk (drag-and-drop in month
     // view on touch is unsupported by SfCalendar, so consuming the long-press
-    // has no functional cost). See: syncfusion/flutter-widgets#2519
+    // has no functional cost).
+    // https://github.com/syncfusion/flutter-widgets/issues/2519
     // Skip for agenda-style items which handle taps internally via column zones.
     if (_currentView == PlannerView.month &&
         Responsive.isTouchDevice(context) &&
@@ -2287,36 +2174,13 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
       );
     }
 
-    // Track which appointment the pointer is over so we can snapshot it at
-    // pointer-down and compare against SfCalendar's onDragStart report.
-    // On mismatch, the drag is rejected. See: syncfusion/flutter-widgets#2523
+    // Hover tracking for drag mismatch detection — see _onCalendarDragStart.
+    // https://github.com/syncfusion/flutter-widgets/issues/2523
     calendarItemWidget = MouseRegion(
-      onEnter: (event) {
-        _lastHoveredItem = plannerItem;
-        _debugLastHoverPosition = event.position;
-        final b = _debugAppointmentBounds[plannerItem.id];
-        _log.fine(
-          '[DBG_DRAG] hover_enter: id=${plannerItem.id} '
-          'title="${plannerItem.title}" '
-          'global=${event.position} local=${event.localPosition} '
-          'bounds=${b != null ? "T${b.top.toStringAsFixed(1)}/B${b.bottom.toStringAsFixed(1)}/H${b.height.toStringAsFixed(1)}" : "unregistered"} '
-          'cursor_in_bounds=${b != null ? b.contains(event.position) : "?"} '
-          'cursor_in_visual=${b != null ? Rect.fromLTWH(b.left, b.top, b.width, _monthCalendarItemHeight).contains(event.position) : "?"} '
-          'ds_v=$_debugDsNotifyCount',
-        );
-      },
-      onHover: (event) {
-        _debugLastHoverPosition = event.position;
-      },
-      onExit: (event) {
+      onEnter: (_) => _lastHoveredItem = plannerItem,
+      onExit: (_) {
         if (_lastHoveredItem?.id == plannerItem.id) {
-          _log.fine(
-            '[DBG_DRAG] hover_exit: id=${plannerItem.id} '
-            'title="${plannerItem.title}" '
-            'global=${event.position}',
-          );
           _lastHoveredItem = null;
-          _debugLastHoverPosition = null;
         }
       },
       child: calendarItemWidget,
@@ -2364,7 +2228,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
       _tooltipSuppressTimer = null;
       // setState here is safe — onDragStart fires after SfCalendar has already
       // resolved which appointment to drag, so a rebuild at this point won't
-      // corrupt the hit-test result (syncfusion/flutter-widgets#2523). The
+      // corrupt the hit-test result. The
       // rebuild causes _buildPlannerItemTooltip to return a bare child,
       // unmounting any visible Tooltip without needing an imperative dismissal.
       setState(() => _isCalendarInteractionInProgress = true);
