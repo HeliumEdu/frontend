@@ -999,6 +999,8 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
     _notifyChangeListeners();
   }
 
+  bool hasTimeOverride(int itemId) => _timeOverrides.containsKey(itemId);
+
   /// Optimistic override for drag-drop/resize. Updates getStartTime/getEndTime
   /// immediately so the item visually snaps to the new position before the API
   /// responds. Rebuilds appointments! synchronously from source-of-truth so the
