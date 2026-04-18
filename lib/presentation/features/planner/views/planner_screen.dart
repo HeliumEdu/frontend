@@ -552,17 +552,6 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
               visibleEnd: visibleEnd,
             );
             await _refreshExternalCalendarsMap();
-
-            // Refresh the external calendars list in case the events endpoint
-            // disabled any calendars (external_calendars_screen will update if open)
-            if (context.mounted) {
-              context.read<ExternalCalendarBloc>().add(
-                FetchExternalCalendarsEvent(
-                  origin: EventOrigin.screen,
-                  forceRefresh: true,
-                ),
-              );
-            }
           }
         },
       ),
