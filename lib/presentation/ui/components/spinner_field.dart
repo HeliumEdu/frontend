@@ -191,7 +191,7 @@ class SpinnerField extends StatelessWidget {
 
   String _formatValue(double value) {
     if (allowDecimal) {
-      return value.toString().replaceAll(RegExp(r'([.]*0+)(?!.*\d)'), '');
+      return value.toString().replaceAll(RegExp(r'\.0+$'), '');
     } else {
       return value.toInt().toString();
     }
