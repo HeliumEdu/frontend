@@ -16,8 +16,8 @@ dependencies:
     sdk: flutter
   web: 1.1.1
   logging: 1.3.0
-  sentry_flutter: 9.16.1
-  sentry_dio: 9.16.1
+  sentry_flutter: 9.18.0
+  sentry_dio: 9.18.0
   meta: 1.17.0
   collection: 1.19.1
   google_fonts: 8.0.2
