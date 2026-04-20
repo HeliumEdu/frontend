@@ -10,7 +10,6 @@
   "enabledManagers": ["pub"],
   "labels": ["renovate"],
   "platformAutomerge": true,
-  "gitAuthor": "heliumedu-bot[bot] <272566303+heliumedu-bot[bot]@users.noreply.github.com>",
   "gitIgnoredAuthors": ["272566303+heliumedu-bot[bot]@users.noreply.github.com"],
   "packageRules": [
     {

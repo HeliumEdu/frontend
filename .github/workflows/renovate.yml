@@ -17,3 +17,4 @@ jobs:
         env:
           RENOVATE_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
           RENOVATE_REPOSITORIES: HeliumEdu/frontend
+          RENOVATE_GIT_AUTHOR: "heliumedu-bot[bot] <272566303+heliumedu-bot[bot]@users.noreply.github.com>"
