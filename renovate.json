@@ -9,6 +9,7 @@
   "schedule": ["before 6am on monday"],
   "enabledManagers": ["pub"],
   "labels": ["renovate"],
+  "rebaseWhen": "behind-base-branch",
   "platformAutomerge": true,
   "gitIgnoredAuthors": ["272566303+heliumedu-bot[bot]@users.noreply.github.com"],
   "packageRules": [
