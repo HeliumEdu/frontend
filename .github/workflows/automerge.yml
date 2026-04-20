@@ -10,7 +10,7 @@ permissions:
 jobs:
   refresh-lockfiles:
     name: Refresh Lockfiles
-    if: github.event.pull_request.user.login == 'renovate[bot]'
+    if: contains(github.event.pull_request.labels.*.name, 'renovate')
     uses: ./.github/workflows/refresh-lockfiles.yml
     with:
       ref: ${{ github.head_ref }}
@@ -21,7 +21,7 @@ jobs:
     name: Auto-Merge Renovate PRs
     runs-on: ubuntu-latest
     needs: refresh-lockfiles
-    if: github.event.pull_request.user.login == 'renovate[bot]'
+    if: contains(github.event.pull_request.labels.*.name, 'renovate')
     steps:
       - name: Approve and enable auto-merge
         run: |
