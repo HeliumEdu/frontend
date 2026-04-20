@@ -55,7 +55,6 @@ import 'package:heliumapp/presentation/features/courses/bloc/category_bloc.dart'
 import 'package:heliumapp/presentation/features/planner/bloc/attachment_bloc.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/attachment_state.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/external_calendar_bloc.dart';
-import 'package:heliumapp/presentation/features/planner/bloc/external_calendar_event.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/external_calendar_state.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/planner_bloc.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/planner_event.dart';
