@@ -255,110 +255,48 @@ void main() {
     });
 
     group('shouldShowCheckbox', () {
-      testWidgets('returns false for non-HomeworkModel', (tester) async {
+      test('returns false for non-HomeworkModel regardless of width', () {
         final eventItem = _createEventModel();
 
-        await tester.pumpWidget(
-          MediaQuery(
-            data: const MediaQueryData(size: Size(400, 800)),
-            child: Builder(
-              builder: (context) {
-                expect(
-                  PlannerHelper.shouldShowCheckbox(
-                    context,
-                    eventItem,
-                    PlannerView.month,
-                  ),
-                  isFalse,
-                );
-                return const SizedBox();
-              },
-            ),
-          ),
-        );
+        expect(PlannerHelper.shouldShowCheckbox(eventItem, 1000), isFalse);
       });
 
-      testWidgets('returns true for HomeworkModel on non-mobile', (
-        tester,
-      ) async {
+      test(
+        'returns true for HomeworkModel when appointment width is at least '
+        '2x the checkbox width',
+        () {
+          final homeworkItem = _createHomeworkModel();
+
+          expect(
+            PlannerHelper.shouldShowCheckbox(
+              homeworkItem,
+              PlannerHelper.checkboxWidth * 2,
+            ),
+            isTrue,
+          );
+        },
+      );
+
+      test(
+        'returns false for HomeworkModel when appointment width is under '
+        '2x the checkbox width',
+        () {
+          final homeworkItem = _createHomeworkModel();
+
+          expect(
+            PlannerHelper.shouldShowCheckbox(
+              homeworkItem,
+              PlannerHelper.checkboxWidth * 2 - 0.1,
+            ),
+            isFalse,
+          );
+        },
+      );
+
+      test('returns true for HomeworkModel on wide appointments', () {
         final homeworkItem = _createHomeworkModel();
 
-        await tester.pumpWidget(
-          MediaQuery(
-            data: const MediaQueryData(size: Size(1024, 768)),
-            child: Builder(
-              builder: (context) {
-                expect(
-                  PlannerHelper.shouldShowCheckbox(
-                    context,
-                    homeworkItem,
-                    PlannerView.week,
-                  ),
-                  isTrue,
-                );
-                return const SizedBox();
-              },
-            ),
-          ),
-        );
-      });
-
-      testWidgets('returns false for HomeworkModel on mobile week/day view', (
-        tester,
-      ) async {
-        final homeworkItem = _createHomeworkModel();
-
-        await tester.pumpWidget(
-          MediaQuery(
-            data: const MediaQueryData(size: Size(400, 800)),
-            child: Builder(
-              builder: (context) {
-                expect(
-                  PlannerHelper.shouldShowCheckbox(
-                    context,
-                    homeworkItem,
-                    PlannerView.week,
-                  ),
-                  isFalse,
-                );
-                expect(
-                  PlannerHelper.shouldShowCheckbox(
-                    context,
-                    homeworkItem,
-                    PlannerView.day,
-                  ),
-                  isFalse,
-                );
-                return const SizedBox();
-              },
-            ),
-          ),
-        );
-      });
-
-      testWidgets('returns true for HomeworkModel on mobile month view', (
-        tester,
-      ) async {
-        final homeworkItem = _createHomeworkModel();
-
-        await tester.pumpWidget(
-          MediaQuery(
-            data: const MediaQueryData(size: Size(400, 800)),
-            child: Builder(
-              builder: (context) {
-                expect(
-                  PlannerHelper.shouldShowCheckbox(
-                    context,
-                    homeworkItem,
-                    PlannerView.month,
-                  ),
-                  isTrue,
-                );
-                return const SizedBox();
-              },
-            ),
-          ),
-        );
+        expect(PlannerHelper.shouldShowCheckbox(homeworkItem, 1000), isTrue);
       });
     });
   });

@@ -2579,10 +2579,11 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
 
   Widget? _buildItemIcon({
     required PlannerItemBaseModel plannerItem,
+    required double appointmentWidth,
     bool? completedOverride,
     required Color backgroundColor,
   }) {
-    if (PlannerHelper.shouldShowCheckbox(context, plannerItem, _currentView)) {
+    if (PlannerHelper.shouldShowCheckbox(plannerItem, appointmentWidth)) {
       return _buildCheckboxWidget(
         homework: plannerItem as HomeworkModel,
         completedOverride: completedOverride,
@@ -2919,6 +2920,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
 
     final leftIcon = _buildItemIcon(
       plannerItem: plannerItem,
+      appointmentWidth: width,
       completedOverride: completedOverride,
       backgroundColor: color,
     );
@@ -2945,7 +2947,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
 
     final isCheckbox =
         plannerItem is HomeworkModel &&
-        PlannerHelper.shouldShowCheckbox(context, plannerItem, _currentView);
+        PlannerHelper.shouldShowCheckbox(plannerItem, width);
     final isTouchDevice = Responsive.isTouchDevice(context);
     final isMobileLayout = Responsive.isMobile(context);
 
@@ -3058,6 +3060,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
 
     final inlineIcon = _buildItemIcon(
       plannerItem: plannerItem,
+      appointmentWidth: width,
       completedOverride: completedOverride,
       backgroundColor: color,
     );
@@ -4131,8 +4134,8 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
 
     Widget buildBox(bool isCompleted) {
       return SizedBox(
-        width: 17,
-        height: 17,
+        width: PlannerHelper.checkboxWidth,
+        height: PlannerHelper.checkboxWidth,
         child: Transform.scale(
           scale: AppStyles.calendarItemPrefixScale(context),
           child: Container(
