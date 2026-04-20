@@ -51,6 +51,10 @@ enum PlannerFilterStatus {
 class PlannerHelper {
   static final List<int> weekStartsOnRemap = [7, 1, 2, 3, 4, 5, 6];
 
+  /// Layout width of the completion checkbox on a planner calendar item.
+  /// Kept in sync with the [SizedBox] in `_buildCheckboxWidget`.
+  static const double checkboxWidth = 17;
+
   static void _logMissingEntity(
     int reminderId,
     String entityType,
@@ -189,21 +193,24 @@ class PlannerHelper {
   }
 
   static bool shouldShowCheckbox(
-    BuildContext context,
     PlannerItemBaseModel plannerItem,
-    PlannerView view,
+    double appointmentWidth,
   ) {
     if (plannerItem is! HomeworkModel) {
       return false;
     }
 
-    if (Responsive.isMobile(context)) {
-      if (view == PlannerView.week || view == PlannerView.day) {
-        return false;
-      }
+    if (!_hasRoomForCheckbox(appointmentWidth)) {
+      return false;
     }
 
     return true;
+  }
+
+  /// True when an appointment is wide enough to render the checkbox and still
+  /// leave at least an equal-sized tap zone for opening the item.
+  static bool _hasRoomForCheckbox(double appointmentWidth) {
+    return appointmentWidth >= checkboxWidth * 2;
   }
 
   static bool shouldShowSchoolIcon(
