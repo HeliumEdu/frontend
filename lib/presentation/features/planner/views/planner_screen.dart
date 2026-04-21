@@ -714,13 +714,20 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
           double calendarHeight;
 
           if (noCollapse) {
-            // Collapse disabled: show all items at natural height.
+            // Collapse disabled: show all items at natural height, but fill
+            // the viewport on tall screens rather than leaving empty space.
             final maxItems = _calculateMaxItemsForVisibleDates();
             final int displayCount = maxItems > _monthMinItemDisplayCount
                 ? maxItems
                 : _monthMinItemDisplayCount;
-            noCollapseCount = displayCount;
-            calendarHeight = _calculateExpandedCalendarHeight(displayCount);
+            final expandedHeight = _calculateExpandedCalendarHeight(displayCount);
+            final fillHeight = _calculateCalendarHeight(constraints.maxHeight);
+            calendarHeight = expandedHeight > fillHeight ? expandedHeight : fillHeight;
+            // Set display count to the number of fixed-height slots that fit
+            // so items stack at their natural height (empty space at cell
+            // bottom) instead of stretching to fill the cell.
+            final slotsAtFixedHeight = _calculateCalendarItemDisplayCount(calendarHeight);
+            noCollapseCount = maxItems > slotsAtFixedHeight ? maxItems : slotsAtFixedHeight;
           } else {
             // Collapse enabled: fill viewport dynamically, down to minimum.
             calendarHeight = _calculateCalendarHeight(constraints.maxHeight);
@@ -2172,9 +2179,9 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
     }
     // On touch devices, SfCalendar incorrectly reports calendarCell instead of
     // appointment for taps and long-presses on month-view calendar items. Handle
-    // both directly on the widget to bypass this quirk (drag-and-drop in month
-    // view on touch is unsupported by SfCalendar, so consuming the long-press
-    // has no functional cost).
+    // both directly on the widget to bypass this quirk (the same hit-test bug
+    // also prevents SfCalendar from initiating drag-and-drop in month view on
+    // touch, so consuming the long-press has no functional cost).
     // https://github.com/syncfusion/flutter-widgets/issues/2519
     // Skip for agenda-style items which handle taps internally via column zones.
     if (_currentView == PlannerView.month &&
