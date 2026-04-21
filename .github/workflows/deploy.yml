@@ -74,13 +74,20 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Generate GitHub App token
+        id: app-token
+        uses: actions/create-github-app-token@v3
+        with:
+          app-id: ${{ secrets.HELIUM_BOT_APP_ID }}
+          private-key: ${{ secrets.HELIUM_BOT_PRIVATE_KEY }}
+
       - uses: actions/checkout@v6
 
       - name: Determine version to deploy
         id: version
         if: ${{ inputs.artifact_run_id == '' }}
         env:
-          GH_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
         run: |
           if [ "${{ inputs.version_type }}" = "latest" ]; then
             # Get the latest semver tag (v*.*.*)
@@ -110,7 +117,7 @@ jobs:
         if: ${{ inputs.artifact_run_id == '' }}
         uses: nick-fields/retry@v4
         env:
-          GH_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
         with:
           timeout_minutes: 5
           retry_wait_seconds: 30
@@ -160,7 +167,7 @@ jobs:
       - name: Download web artifact
         if: ${{ inputs.artifact_run_id == '' }}
         env:
-          GH_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
         run: |
           RUN_ID="${{ steps.find_run.outputs.run_id }}"
           ARTIFACT_NAME="${{ steps.find_run.outputs.artifact_name }}"
@@ -268,7 +275,7 @@ jobs:
 
       - name: Trigger canary tests
         env:
-          GH_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
         run: |
           gh workflow run canary.yml \
             --repo HeliumEdu/frontend \
@@ -299,13 +306,20 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Generate GitHub App token
+        id: app-token
+        uses: actions/create-github-app-token@v3
+        with:
+          app-id: ${{ secrets.HELIUM_BOT_APP_ID }}
+          private-key: ${{ secrets.HELIUM_BOT_PRIVATE_KEY }}
+
       - uses: actions/checkout@v6
 
       - name: Determine version to deploy
         id: version
         if: ${{ inputs.artifact_run_id == '' }}
         env:
-          GH_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
         run: |
           if [ "${{ inputs.version_type }}" = "latest" ]; then
             # Get the latest semver tag (v*.*.*)
@@ -335,7 +349,7 @@ jobs:
         if: ${{ inputs.artifact_run_id == '' }}
         uses: nick-fields/retry@v4
         env:
-          GH_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
         with:
           timeout_minutes: 5
           retry_wait_seconds: 30
@@ -385,7 +399,7 @@ jobs:
       - name: Download Android artifact
         if: ${{ inputs.artifact_run_id == '' }}
         env:
-          GH_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
         run: |
           RUN_ID="${{ steps.find_run.outputs.run_id }}"
           ARTIFACT_NAME="${{ steps.find_run.outputs.artifact_name }}"
@@ -446,13 +460,20 @@ jobs:
     runs-on: macos-latest
 
     steps:
+      - name: Generate GitHub App token
+        id: app-token
+        uses: actions/create-github-app-token@v3
+        with:
+          app-id: ${{ secrets.HELIUM_BOT_APP_ID }}
+          private-key: ${{ secrets.HELIUM_BOT_PRIVATE_KEY }}
+
       - uses: actions/checkout@v6
 
       - name: Determine version to deploy
         id: version
         if: ${{ inputs.artifact_run_id == '' }}
         env:
-          GH_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
         run: |
           if [ "${{ inputs.version_type }}" = "latest" ]; then
             # Get the latest semver tag (v*.*.*)
@@ -482,7 +503,7 @@ jobs:
         if: ${{ inputs.artifact_run_id == '' }}
         uses: nick-fields/retry@v4
         env:
-          GH_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
         with:
           timeout_minutes: 5
           retry_wait_seconds: 30
@@ -532,7 +553,7 @@ jobs:
       - name: Download iOS artifact
         if: ${{ inputs.artifact_run_id == '' }}
         env:
-          GH_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
         run: |
           RUN_ID="${{ steps.find_run.outputs.run_id }}"
           ARTIFACT_NAME="${{ steps.find_run.outputs.artifact_name }}"
