@@ -194,7 +194,7 @@ class _FeedsScreenState extends State<FeedsScreen> {
                                 );
                               } on PlatformException {
                                 final context = rootScaffoldMessengerKey.currentContext;
-                                if (context != null) {
+                                if (context != null && context.mounted) {
                                   SnackBarHelper.show(context, 'Failed to share link.', type: SnackType.error);
                                 }
                               }
