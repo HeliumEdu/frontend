@@ -5,6 +5,8 @@
 //
 // For details regarding the license, please refer to the LICENSE file.
 
+import 'package:flutter/services.dart';
+import 'package:heliumapp/utils/snack_bar_helpers.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class UrlHelpers {
@@ -16,6 +18,13 @@ class UrlHelpers {
   static Future<void> launchWebUrl(String url) async {
     final uri = Uri.tryParse(url);
     if (uri == null || (uri.scheme != 'http' && uri.scheme != 'https')) return;
-    await launchUrl(uri);
+    try {
+      await launchUrl(uri);
+    } on PlatformException {
+      final context = rootScaffoldMessengerKey.currentContext;
+      if (context != null) {
+        SnackBarHelper.show(context, 'Unable to open link.', type: SnackType.error);
+      }
+    }
   }
 }
