@@ -91,8 +91,9 @@ jobs:
         id: app-token
         uses: actions/create-github-app-token@v3
         with:
-          app-id: ${{ secrets.HELIUM_BOT_APP_ID }}
+          client-id: ${{ secrets.HELIUM_BOT_APP_ID }}
           private-key: ${{ secrets.HELIUM_BOT_PRIVATE_KEY }}
+          skip-token-revoke: true
 
       - uses: actions/checkout@v6
         with:
@@ -185,8 +186,9 @@ jobs:
         id: app-token
         uses: actions/create-github-app-token@v3
         with:
-          app-id: ${{ secrets.HELIUM_BOT_APP_ID }}
+          client-id: ${{ secrets.HELIUM_BOT_APP_ID }}
           private-key: ${{ secrets.HELIUM_BOT_PRIVATE_KEY }}
+          skip-token-revoke: true
 
       - uses: actions/checkout@v6
         with:
@@ -265,8 +267,9 @@ jobs:
         id: app-token
         uses: actions/create-github-app-token@v3
         with:
-          app-id: ${{ secrets.HELIUM_BOT_APP_ID }}
+          client-id: ${{ secrets.HELIUM_BOT_APP_ID }}
           private-key: ${{ secrets.HELIUM_BOT_PRIVATE_KEY }}
+          skip-token-revoke: true
 
       - uses: actions/checkout@v6
         with:
@@ -606,8 +609,9 @@ jobs:
         id: app-token
         uses: actions/create-github-app-token@v3
         with:
-          app-id: ${{ secrets.HELIUM_BOT_APP_ID }}
+          client-id: ${{ secrets.HELIUM_BOT_APP_ID }}
           private-key: ${{ secrets.HELIUM_BOT_PRIVATE_KEY }}
+          skip-token-revoke: true
 
       - uses: actions/checkout@v6
         with:
@@ -659,8 +663,9 @@ jobs:
         id: app-token
         uses: actions/create-github-app-token@v3
         with:
-          app-id: ${{ secrets.HELIUM_BOT_APP_ID }}
+          client-id: ${{ secrets.HELIUM_BOT_APP_ID }}
           private-key: ${{ secrets.HELIUM_BOT_PRIVATE_KEY }}
+          skip-token-revoke: true
 
       - name: Trigger deploy workflow
         env:

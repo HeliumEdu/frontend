@@ -16,8 +16,9 @@ jobs:
         id: app-token
         uses: actions/create-github-app-token@v3
         with:
-          app-id: ${{ secrets.HELIUM_BOT_APP_ID }}
+          client-id: ${{ secrets.HELIUM_BOT_APP_ID }}
           private-key: ${{ secrets.HELIUM_BOT_PRIVATE_KEY }}
+          skip-token-revoke: true
 
       - name: Run Renovate
         uses: renovatebot/github-action@v46.1.10
