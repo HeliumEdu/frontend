@@ -23,7 +23,7 @@ class UrlHelpers {
     } on PlatformException {
       final context = rootScaffoldMessengerKey.currentContext;
       if (context != null) {
-        SnackBarHelper.show(context, 'Unable to open link.', type: SnackType.error);
+        SnackBarHelper.show(context, 'Failed to open link.', type: SnackType.error);
       }
     }
   }
@@ -35,7 +35,7 @@ class UrlHelpers {
     } on PlatformException {
       final context = rootScaffoldMessengerKey.currentContext;
       if (context != null) {
-        SnackBarHelper.show(context, 'Unable to open email client.', type: SnackType.error);
+        SnackBarHelper.show(context, 'Failed to open email client.', type: SnackType.error);
       }
     }
   }

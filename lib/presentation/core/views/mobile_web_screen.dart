@@ -216,7 +216,7 @@ class _MobileWebScreenState extends BasePageScreenState<MobileWebScreen> {
     if (!opened && mounted) {
       showSnackBar(
         context,
-        'Unable to open the app store link.',
+        'Failed to open the app store link',
         type: SnackType.error,
       );
     }

@@ -178,19 +178,26 @@ class _FeedsScreenState extends State<FeedsScreen> {
                         builder: (buttonContext) => AspectRatio(
                           aspectRatio: 1,
                           child: IconButton(
-                            onPressed: () {
+                            onPressed: () async {
                               final box =
                                   buttonContext.findRenderObject() as RenderBox?;
                               final sharePositionOrigin = box != null
                                   ? box.localToGlobal(Offset.zero) & box.size
                                   : null;
 
-                              SharePlus.instance.share(
-                                ShareParams(
-                                  text: url,
-                                  sharePositionOrigin: sharePositionOrigin,
-                                ),
-                              );
+                              try {
+                                await SharePlus.instance.share(
+                                  ShareParams(
+                                    text: url,
+                                    sharePositionOrigin: sharePositionOrigin,
+                                  ),
+                                );
+                              } on PlatformException {
+                                final context = rootScaffoldMessengerKey.currentContext;
+                                if (context != null) {
+                                  SnackBarHelper.show(context, 'Failed to share link.', type: SnackType.error);
+                                }
+                              }
                             },
                             icon: Icon(Icons.share_outlined, color: color),
                             style: IconButton.styleFrom(
