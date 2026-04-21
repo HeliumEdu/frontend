@@ -85,7 +85,6 @@ import 'package:heliumapp/utils/url_helpers.dart';
 import 'package:logging/logging.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';
 import 'package:timezone/standalone.dart' as tz;
-import 'package:url_launcher/url_launcher.dart';
 
 final _log = Logger('presentation.views');
 
@@ -161,7 +160,9 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
   // SfCalendar reserves bottom padding inside each month cell (below the last
   // appointment). Include this in height calculations to prevent clipping.
   static const _monthCellBottomPadding = 8.0;
-  static const _monthMinItemDisplayCount = 4;
+  static const _monthMinItemDisplayCount = 3;
+  static const _minCalendarHeightMobile = 480.0;
+  static const _minCalendarHeightDesktop = 675.0;
   static const _uiAnimationDuration = Duration(milliseconds: 300);
   static const _tooltipWaitDuration = Duration(milliseconds: 500);
   static const _tooltipShowDuration = Duration(seconds: 8);
@@ -713,26 +714,15 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
           double calendarHeight;
 
           if (noCollapse) {
+            // Collapse disabled: show all items at natural height.
             final maxItems = _calculateMaxItemsForVisibleDates();
-            final minHeight = _calculateCalendarHeight(constraints.maxHeight);
-            if (maxItems > 0) {
-              final expandedHeight = _calculateExpandedCalendarHeight(maxItems);
-              // Expand beyond screen if needed, otherwise fill screen.
-              calendarHeight = expandedHeight > minHeight
-                  ? expandedHeight
-                  : minHeight;
-            } else {
-              calendarHeight = minHeight;
-            }
-            // Use the larger of actual items or calculated fit to ensure all
-            // items show while keeping them at fixed height.
-            final fitsAtFixedHeight = _calculateCalendarItemDisplayCount(
-              calendarHeight,
-            );
-            noCollapseCount = maxItems > fitsAtFixedHeight
+            final int displayCount = maxItems > _monthMinItemDisplayCount
                 ? maxItems
-                : fitsAtFixedHeight;
+                : _monthMinItemDisplayCount;
+            noCollapseCount = displayCount;
+            calendarHeight = _calculateExpandedCalendarHeight(displayCount);
           } else {
+            // Collapse enabled: fill viewport dynamically, down to minimum.
             calendarHeight = _calculateCalendarHeight(constraints.maxHeight);
           }
 
@@ -766,11 +756,9 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
   }
 
   double _calculateCalendarHeight(double maxHeight) {
-    // On mobile, the month view uses a compact layout that doesn't need the
-    // derived item-height math — use the previous fixed minimum.
     final double minCalendarHeight = Responsive.isMobile(context)
-        ? 480
-        : _calculateExpandedCalendarHeight(_monthMinItemDisplayCount);
+        ? _minCalendarHeightMobile
+        : _minCalendarHeightDesktop;
     if (maxHeight.isInfinite) return minCalendarHeight;
     return maxHeight < minCalendarHeight ? minCalendarHeight : maxHeight;
   }
@@ -2805,7 +2793,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
       buttons.add(
         HeliumIconButton(
           onPressed: () {
-            launchUrl(Uri.parse('mailto:${course!.teacherEmail}'));
+            UrlHelpers.launchMailUrl(course!.teacherEmail);
           },
           icon: Icons.email_outlined,
           tooltip: 'Email teacher',
