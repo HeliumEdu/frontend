@@ -714,13 +714,20 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
           double calendarHeight;
 
           if (noCollapse) {
-            // Collapse disabled: show all items at natural height.
+            // Collapse disabled: show all items at natural height, but fill
+            // the viewport on tall screens rather than leaving empty space.
             final maxItems = _calculateMaxItemsForVisibleDates();
             final int displayCount = maxItems > _monthMinItemDisplayCount
                 ? maxItems
                 : _monthMinItemDisplayCount;
-            noCollapseCount = displayCount;
-            calendarHeight = _calculateExpandedCalendarHeight(displayCount);
+            final expandedHeight = _calculateExpandedCalendarHeight(displayCount);
+            final fillHeight = _calculateCalendarHeight(constraints.maxHeight);
+            calendarHeight = expandedHeight > fillHeight ? expandedHeight : fillHeight;
+            // Set display count to the number of fixed-height slots that fit
+            // so items stack at their natural height (empty space at cell
+            // bottom) instead of stretching to fill the cell.
+            final slotsAtFixedHeight = _calculateCalendarItemDisplayCount(calendarHeight);
+            noCollapseCount = maxItems > slotsAtFixedHeight ? maxItems : slotsAtFixedHeight;
           } else {
             // Collapse enabled: fill viewport dynamically, down to minimum.
             calendarHeight = _calculateCalendarHeight(constraints.maxHeight);
