@@ -2179,18 +2179,18 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
     }
     // On touch devices, SfCalendar incorrectly reports calendarCell instead of
     // appointment for taps and long-presses on month-view calendar items. Handle
-    // both directly on the widget to bypass this quirk (drag-and-drop in month
-    // view on touch is unsupported by SfCalendar, so consuming the long-press
-    // has no functional cost).
+    // taps directly on the widget to bypass this quirk.
     // https://github.com/syncfusion/flutter-widgets/issues/2519
     // Skip for agenda-style items which handle taps internally via column zones.
     if (_currentView == PlannerView.month &&
         Responsive.isTouchDevice(context) &&
         !isInAgenda) {
+      final isDragEnabled = !Responsive.isMobile(context) &&
+          (userSettings?.dragAndDropOnMobile ?? true);
       calendarItemWidget = GestureDetector(
         onTap: () =>
             _openPlannerItem(plannerItem, occurrenceDate: details.date),
-        onLongPress: () {},
+        onLongPress: isDragEnabled ? null : () {},
         child: calendarItemWidget,
       );
     }
