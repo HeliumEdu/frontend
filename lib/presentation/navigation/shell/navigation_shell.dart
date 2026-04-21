@@ -32,7 +32,7 @@ import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:logging/logging.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'package:heliumapp/utils/url_helpers.dart';
 
 final _log = Logger('presentation.navigation');
 
@@ -482,9 +482,7 @@ class _NavigationShellState extends State<NavigationShell> {
     required String url,
   }) {
     return IconButton(
-      onPressed: () {
-        launchUrl(Uri.parse(url));
-      },
+      onPressed: () => UrlHelpers.launchWebUrl(url),
       icon: Icon(icon, color: context.colorScheme.primary),
       tooltip: tooltip,
     );

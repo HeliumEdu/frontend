@@ -53,7 +53,6 @@ import 'package:heliumapp/utils/print_helpers.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:heliumapp/utils/sort_helpers.dart';
 import 'package:heliumapp/utils/url_helpers.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 class CoursesScreen extends StatelessWidget {
   final DioClient _dioClient = DioClient();
@@ -464,7 +463,7 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen>
                     PrintHidden(
                       child: HeliumIconButton(
                         onPressed: () {
-                          launchUrl(Uri.parse('mailto:${course.teacherEmail}'));
+                          UrlHelpers.launchMailUrl(course.teacherEmail);
                         },
                         icon: Icons.email_outlined,
                         tooltip: 'Email teacher',

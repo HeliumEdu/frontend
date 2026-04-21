@@ -31,7 +31,7 @@ import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:heliumapp/utils/time_zone_constants.dart';
 import 'package:sign_in_button/sign_in_button.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'package:heliumapp/utils/url_helpers.dart';
 
 class SignupScreen extends StatefulWidget {
   static const String signUpButtonKey = 'signup_sign_up_button';
@@ -296,9 +296,7 @@ class _SignupScreenState extends BasePageScreenState<SignupScreen> {
                           children: [
                             WidgetSpan(
                               child: InkWell(
-                                onTap: () => launchUrl(
-                                  Uri.parse('https://www.heliumedu.com/terms'),
-                                ),
+                                onTap: () => UrlHelpers.launchWebUrl('https://www.heliumedu.com/terms'),
                                 child: Text(
                                   'Terms of Service',
                                   style: AppStyles.formText(context).copyWith(
@@ -313,11 +311,7 @@ class _SignupScreenState extends BasePageScreenState<SignupScreen> {
                             ),
                             WidgetSpan(
                               child: InkWell(
-                                onTap: () => launchUrl(
-                                  Uri.parse(
-                                    'https://www.heliumedu.com/privacy',
-                                  ),
-                                ),
+                                onTap: () => UrlHelpers.launchWebUrl('https://www.heliumedu.com/privacy'),
                                 child: Text(
                                   'Privacy Policy',
                                   style: AppStyles.formText(context).copyWith(

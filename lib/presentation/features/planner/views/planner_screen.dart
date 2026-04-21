@@ -85,7 +85,6 @@ import 'package:heliumapp/utils/url_helpers.dart';
 import 'package:logging/logging.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';
 import 'package:timezone/standalone.dart' as tz;
-import 'package:url_launcher/url_launcher.dart';
 
 final _log = Logger('presentation.views');
 
@@ -2805,7 +2804,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
       buttons.add(
         HeliumIconButton(
           onPressed: () {
-            launchUrl(Uri.parse('mailto:${course!.teacherEmail}'));
+            UrlHelpers.launchMailUrl(course!.teacherEmail);
           },
           icon: Icons.email_outlined,
           tooltip: 'Email teacher',

@@ -41,7 +41,6 @@ import 'package:logging/logging.dart';
 import 'package:syncfusion_flutter_core/theme.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 import 'package:heliumapp/utils/url_helpers.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 final _log = Logger('presentation.widgets');
 
@@ -1286,7 +1285,7 @@ class TodosDataSource extends BaseDataGridSource {
         buttons.add(
           HeliumIconButton(
             onPressed: () {
-              launchUrl(Uri.parse('mailto:${course.teacherEmail}'));
+              UrlHelpers.launchMailUrl(course.teacherEmail);
             },
             tooltip: 'Email teacher',
             icon: Icons.email_outlined,

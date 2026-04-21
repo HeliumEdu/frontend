@@ -9,7 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/app_style.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'package:heliumapp/utils/url_helpers.dart';
 
 class SupportHeliumCard extends StatelessWidget {
   static const _cardBorderRadius = 16.0;
@@ -41,7 +41,7 @@ class SupportHeliumCard extends StatelessWidget {
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          onTap: () => launchUrl(Uri.parse(AppConstants.patreonUrl)),
+          onTap: () => UrlHelpers.launchWebUrl(AppConstants.patreonUrl),
           borderRadius: BorderRadius.circular(_cardBorderRadius),
           child: Padding(
             padding: const EdgeInsets.all(_cardPadding),

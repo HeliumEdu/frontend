@@ -30,7 +30,6 @@ import 'package:heliumapp/utils/date_time_helpers.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:logging/logging.dart';
 import 'package:heliumapp/utils/url_helpers.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 final _log = Logger('presentation.widgets');
 
@@ -268,11 +267,7 @@ class CourseDetailsState extends State<CourseDetails> {
                           fieldKey: formController.getFieldKey('teacherEmail'),
                           trailingIconButton: HeliumIconButton(
                             onPressed: () {
-                              launchUrl(
-                                Uri.parse(
-                                  'mailto:${formController.teacherEmailController.text}',
-                                ),
-                              );
+                              UrlHelpers.launchMailUrl(formController.teacherEmailController.text);
                             },
                             icon: Icons.email_outlined,
                             tooltip: 'Email teacher',

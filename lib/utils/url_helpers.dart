@@ -27,4 +27,16 @@ class UrlHelpers {
       }
     }
   }
+
+  static Future<void> launchMailUrl(String email) async {
+    final uri = Uri(scheme: 'mailto', path: email);
+    try {
+      await launchUrl(uri);
+    } on PlatformException {
+      final context = rootScaffoldMessengerKey.currentContext;
+      if (context != null) {
+        SnackBarHelper.show(context, 'Unable to open email client.', type: SnackType.error);
+      }
+    }
+  }
 }
