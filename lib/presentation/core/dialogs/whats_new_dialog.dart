@@ -87,41 +87,6 @@ class _WhatsNewDialogWidget extends StatelessWidget {
                       description:
                           'Rich notes help you link all your work together',
                     ),
-                    const SizedBox(height: 12),
-                    _buildFeatureItem(
-                      context,
-                      icon: Icons.rocket_launch_outlined,
-                      title: 'New surprises ahead',
-                      description: 'Exciting new features on the horizon',
-                    ),
-                    const SizedBox(height: 8),
-                    TextButton(
-                      onPressed: () => UrlHelpers.launchWebUrl(
-                        'https://heliumedu.freshdesk.com/support/solutions/articles/159000427014',
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            'Learn more',
-                            style: AppStyles.buttonText(context).copyWith(
-                              color: context.colorScheme.primary,
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Icon(
-                            Icons.arrow_forward,
-                            size: Responsive.getIconSize(
-                              context,
-                              mobile: 18,
-                              tablet: 20,
-                              desktop: 22,
-                            ),
-                            color: context.colorScheme.primary,
-                          ),
-                        ],
-                      ),
-                    ),
                     const SizedBox(height: 8),
                     const Divider(),
                     const SizedBox(height: 8),
