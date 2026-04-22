@@ -383,37 +383,30 @@ class DioClient {
     await _prefService.init();
 
     try {
+      final p = _prefService;
       final cachedJson = <String, dynamic>{
-        'time_zone': _prefService.getString('time_zone'),
-        'color_by_category': _prefService.getBool('color_by_category'),
-        'default_view': _prefService.getInt('default_view'),
-        'color_scheme_theme': _prefService.getInt('color_scheme_theme'),
-        'week_starts_on': _prefService.getInt('week_starts_on'),
-        'whats_new_version_seen': _prefService.getInt('whats_new_version_seen'),
-        'show_getting_started': _prefService.getBool('show_getting_started'),
-        'events_color': _prefService.getString('events_color'),
-        'material_color': _prefService.getString('resource_color'),
-        'grade_color': _prefService.getString('grade_color'),
-        'default_reminder_type': _prefService.getInt('default_reminder_type'),
-        'default_reminder_offset': _prefService.getInt(
-          'default_reminder_offset',
-        ),
-        'default_reminder_offset_type': _prefService.getInt(
-          'default_reminder_offset_type',
-        ),
-        'calendar_use_category_colors': _prefService.getBool(
-          'calendar_use_category_colors',
-        ),
-        'show_planner_tooltips': _prefService.getBool('show_planner_tooltips'),
-        'remember_filter_state': _prefService.getBool('remember_filter_state'),
-        'drag_and_drop_on_mobile': _prefService.getBool(
-          'drag_and_drop_on_mobile',
-        ),
-        'is_setup_complete': _prefService.getBool('is_setup_complete'),
-        'calendar_event_limit': _prefService.getBool('calendar_event_limit'),
-        'at_risk_threshold': _prefService.getInt('at_risk_threshold'),
-        'on_track_tolerance': _prefService.getInt('on_track_tolerance'),
-        'show_week_numbers': _prefService.getBool('show_week_numbers'),
+        SettingsPrefKey.timeZone.key: p.getString(SettingsPrefKey.timeZone.key),
+        SettingsPrefKey.colorByCategory.key: p.getBool(SettingsPrefKey.colorByCategory.key),
+        SettingsPrefKey.defaultView.key: p.getInt(SettingsPrefKey.defaultView.key),
+        SettingsPrefKey.colorSchemeTheme.key: p.getInt(SettingsPrefKey.colorSchemeTheme.key),
+        SettingsPrefKey.weekStartsOn.key: p.getInt(SettingsPrefKey.weekStartsOn.key),
+        SettingsPrefKey.whatsNewVersionSeen.key: p.getInt(SettingsPrefKey.whatsNewVersionSeen.key),
+        SettingsPrefKey.showGettingStarted.key: p.getBool(SettingsPrefKey.showGettingStarted.key),
+        SettingsPrefKey.eventsColor.key: p.getString(SettingsPrefKey.eventsColor.key),
+        SettingsPrefKey.resourceColor.key: p.getString(SettingsPrefKey.resourceColor.key),
+        SettingsPrefKey.gradeColor.key: p.getString(SettingsPrefKey.gradeColor.key),
+        SettingsPrefKey.defaultReminderType.key: p.getInt(SettingsPrefKey.defaultReminderType.key),
+        SettingsPrefKey.defaultReminderOffset.key: p.getInt(SettingsPrefKey.defaultReminderOffset.key),
+        SettingsPrefKey.defaultReminderOffsetType.key: p.getInt(SettingsPrefKey.defaultReminderOffsetType.key),
+        SettingsPrefKey.calendarUseCategoryColors.key: p.getBool(SettingsPrefKey.calendarUseCategoryColors.key),
+        SettingsPrefKey.showPlannerTooltips.key: p.getBool(SettingsPrefKey.showPlannerTooltips.key),
+        SettingsPrefKey.rememberFilterState.key: p.getBool(SettingsPrefKey.rememberFilterState.key),
+        SettingsPrefKey.dragAndDropOnMobile.key: p.getBool(SettingsPrefKey.dragAndDropOnMobile.key),
+        SettingsPrefKey.isSetupComplete.key: p.getBool(SettingsPrefKey.isSetupComplete.key),
+        SettingsPrefKey.calendarEventLimit.key: p.getBool(SettingsPrefKey.calendarEventLimit.key),
+        SettingsPrefKey.atRiskThreshold.key: p.getInt(SettingsPrefKey.atRiskThreshold.key),
+        SettingsPrefKey.onTrackTolerance.key: p.getInt(SettingsPrefKey.onTrackTolerance.key),
+        SettingsPrefKey.showWeekNumbers.key: p.getBool(SettingsPrefKey.showWeekNumbers.key),
       };
 
       if (cachedJson.values.any((v) => v == null)) {
@@ -433,6 +426,9 @@ class DioClient {
     }
   }
 
+  Future<void> clearSettings() =>
+      _prefService.removeKeys(SettingsPrefKey.allKeys);
+
   Future<List<void>> saveSettings(UserSettingsModel settings) async {
     final themeMode = switch (settings.colorSchemeTheme) {
       0 => ThemeMode.light,
@@ -441,64 +437,29 @@ class DioClient {
     };
     await ThemeNotifier().setThemeMode(themeMode);
 
+    final p = _prefService;
     return Future.wait([
-      ?_prefService.setString('time_zone', settings.timeZone.toString()),
-      ?_prefService.setBool('color_by_category', settings.colorByCategory),
-      ?_prefService.setInt('default_view', settings.defaultView),
-      ?_prefService.setInt('color_scheme_theme', settings.colorSchemeTheme),
-      ?_prefService.setInt('week_starts_on', settings.weekStartsOn),
-      ?_prefService.setString(
-        'events_color',
-        HeliumColors.colorToHex(settings.eventsColor),
-      ),
-      ?_prefService.setString(
-        'resource_color',
-        HeliumColors.colorToHex(settings.resourceColor),
-      ),
-      ?_prefService.setString(
-        'grade_color',
-        HeliumColors.colorToHex(settings.gradeColor),
-      ),
-      ?_prefService.setInt(
-        'default_reminder_type',
-        settings.defaultReminderType,
-      ),
-      ?_prefService.setInt(
-        'default_reminder_offset',
-        settings.defaultReminderOffset,
-      ),
-      ?_prefService.setInt(
-        'default_reminder_offset_type',
-        settings.defaultReminderOffsetType,
-      ),
-      ?_prefService.setBool(
-        'calendar_use_category_colors',
-        settings.colorByCategory,
-      ),
-      ?_prefService.setBool(
-        'show_planner_tooltips',
-        settings.showPlannerTooltips,
-      ),
-      ?_prefService.setInt(
-        'whats_new_version_seen',
-        settings.whatsNewVersionSeen,
-      ),
-      ?_prefService.setBool(
-        'show_getting_started',
-        settings.showGettingStarted,
-      ),
-      ?_prefService.setBool(
-        'remember_filter_state',
-        settings.rememberFilterState,
-      ),
-      ?_prefService.setBool(
-        'drag_and_drop_on_mobile',
-        settings.dragAndDropOnMobile,
-      ),
-      ?_prefService.setBool('is_setup_complete', settings.isSetupComplete),
-      ?_prefService.setInt('at_risk_threshold', settings.atRiskThreshold),
-      ?_prefService.setInt('on_track_tolerance', settings.onTrackTolerance),
-      ?_prefService.setBool('show_week_numbers', settings.showWeekNumbers),
+      ?p.setString(SettingsPrefKey.timeZone.key, settings.timeZone.toString()),
+      ?p.setBool(SettingsPrefKey.colorByCategory.key, settings.colorByCategory),
+      ?p.setInt(SettingsPrefKey.defaultView.key, settings.defaultView),
+      ?p.setInt(SettingsPrefKey.colorSchemeTheme.key, settings.colorSchemeTheme),
+      ?p.setInt(SettingsPrefKey.weekStartsOn.key, settings.weekStartsOn),
+      ?p.setString(SettingsPrefKey.eventsColor.key, HeliumColors.colorToHex(settings.eventsColor)),
+      ?p.setString(SettingsPrefKey.resourceColor.key, HeliumColors.colorToHex(settings.resourceColor)),
+      ?p.setString(SettingsPrefKey.gradeColor.key, HeliumColors.colorToHex(settings.gradeColor)),
+      ?p.setInt(SettingsPrefKey.defaultReminderType.key, settings.defaultReminderType),
+      ?p.setInt(SettingsPrefKey.defaultReminderOffset.key, settings.defaultReminderOffset),
+      ?p.setInt(SettingsPrefKey.defaultReminderOffsetType.key, settings.defaultReminderOffsetType),
+      ?p.setBool(SettingsPrefKey.calendarUseCategoryColors.key, settings.colorByCategory),
+      ?p.setBool(SettingsPrefKey.showPlannerTooltips.key, settings.showPlannerTooltips),
+      ?p.setInt(SettingsPrefKey.whatsNewVersionSeen.key, settings.whatsNewVersionSeen),
+      ?p.setBool(SettingsPrefKey.showGettingStarted.key, settings.showGettingStarted),
+      ?p.setBool(SettingsPrefKey.rememberFilterState.key, settings.rememberFilterState),
+      ?p.setBool(SettingsPrefKey.dragAndDropOnMobile.key, settings.dragAndDropOnMobile),
+      ?p.setBool(SettingsPrefKey.isSetupComplete.key, settings.isSetupComplete),
+      ?p.setInt(SettingsPrefKey.atRiskThreshold.key, settings.atRiskThreshold),
+      ?p.setInt(SettingsPrefKey.onTrackTolerance.key, settings.onTrackTolerance),
+      ?p.setBool(SettingsPrefKey.showWeekNumbers.key, settings.showWeekNumbers),
     ]);
   }
 

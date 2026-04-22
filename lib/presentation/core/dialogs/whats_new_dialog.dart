@@ -12,7 +12,6 @@ import 'package:heliumapp/presentation/ui/components/helium_elevated_button.dart
 import 'package:heliumapp/presentation/ui/components/support_helium_card.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
-import 'package:heliumapp/utils/url_helpers.dart';
 
 const String whatsNewDismissButtonKey = 'whats_new_dismiss_button';
 

@@ -15,6 +15,38 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 final _log = Logger('config');
 
+/// SharedPreferences keys for cached user settings.
+enum SettingsPrefKey {
+  timeZone('time_zone'),
+  colorByCategory('color_by_category'),
+  defaultView('default_view'),
+  colorSchemeTheme('color_scheme_theme'),
+  weekStartsOn('week_starts_on'),
+  whatsNewVersionSeen('whats_new_version_seen'),
+  showGettingStarted('show_getting_started'),
+  eventsColor('events_color'),
+  resourceColor('material_color'),
+  gradeColor('grade_color'),
+  defaultReminderType('default_reminder_type'),
+  defaultReminderOffset('default_reminder_offset'),
+  defaultReminderOffsetType('default_reminder_offset_type'),
+  calendarUseCategoryColors('calendar_use_category_colors'),
+  showPlannerTooltips('show_planner_tooltips'),
+  rememberFilterState('remember_filter_state'),
+  dragAndDropOnMobile('drag_and_drop_on_mobile'),
+  isSetupComplete('is_setup_complete'),
+  calendarEventLimit('calendar_event_limit'),
+  atRiskThreshold('at_risk_threshold'),
+  onTrackTolerance('on_track_tolerance'),
+  showWeekNumbers('show_week_numbers');
+
+  const SettingsPrefKey(this.key);
+
+  final String key;
+
+  static Iterable<String> get allKeys => values.map((v) => v.key);
+}
+
 class PrefService {
   FlutterSecureStorage? _secureStorageOverride;
   FlutterSecureStorage get _secureStorage =>
@@ -144,8 +176,9 @@ class PrefService {
     return _secureStorage.delete(key: key);
   }
 
-  Future<void> clearSettings() async {
-    await _sharedStorage?.clear();
+  Future<void> removeKeys(Iterable<String> keys) async {
+    if (_sharedStorage == null) return;
+    await Future.wait([for (final key in keys) _sharedStorage!.remove(key)]);
   }
 
   Future<List<void>>? clear() async {

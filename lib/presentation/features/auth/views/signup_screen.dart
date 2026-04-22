@@ -93,9 +93,12 @@ class _SignupScreenState extends BasePageScreenState<SignupScreen> {
               seconds: 3,
             );
 
-            // Check if account setup is complete
+            // Check if account setup is complete. Default to false for OAuth
+            // (new users won't have the pref yet, and the setup screen handles
+            // the already-complete case by redirecting immediately).
             final isSetupComplete =
-                PrefService().getBool('is_setup_complete') ?? true;
+                PrefService().getBool(SettingsPrefKey.isSetupComplete.key)
+                    ?? !wasOAuthFlow;
 
             if (!isSetupComplete) {
               if (wasOAuthFlow) {
