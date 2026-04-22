@@ -139,11 +139,11 @@ class DioClient {
                   final retryResponse = await _dio.fetch(error.requestOptions);
                   return handler.resolve(retryResponse);
                 } else {
-                  await _forceLogout();
+                  await forceLogout();
                   return handler.next(error);
                 }
               } catch (e) {
-                await _forceLogout();
+                await forceLogout();
                 return handler.next(error);
               }
             }
@@ -163,7 +163,7 @@ class DioClient {
                 // Waiting requests check for null token after completion.
                 _refreshCompleter!.complete();
                 _refreshCompleter = null;
-                await _forceLogout();
+                await forceLogout();
                 return handler.next(error);
               }
 
@@ -193,7 +193,7 @@ class DioClient {
                 _isRefreshing = false;
                 _refreshCompleter!.complete();
                 _refreshCompleter = null;
-                await _forceLogout();
+                await forceLogout();
                 return handler.next(error);
               }
 
@@ -228,7 +228,7 @@ class DioClient {
                   _log.info(
                     'Refresh token is invalid/expired, clearing tokens',
                   );
-                  await _forceLogout();
+                  await forceLogout();
                   return handler.next(error);
                 }
 
@@ -261,7 +261,7 @@ class DioClient {
 
               // Don't logout on network errors, only on invalid/expired token
               if (shouldLogout) {
-                await _forceLogout();
+                await forceLogout();
               } else {
                 _log.severe('Unexpected error during token refresh', e);
               }
@@ -553,7 +553,7 @@ class DioClient {
     return false;
   }
 
-  Future<void> _forceLogout([
+  Future<void> forceLogout([
     String message = 'Please login to continue.',
   ]) async {
     try {
