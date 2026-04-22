@@ -209,7 +209,7 @@ Future<String?> _authRedirect(BuildContext context, GoRouterState state) async {
       rethrow;
     }
 
-    final isSetupComplete = PrefService().getBool('is_setup_complete');
+    final isSetupComplete = PrefService().getBool(SettingsPrefKey.isSetupComplete.key);
 
     // Defensive fallback: if setup state is temporarily unavailable
     // (e.g. first load during API blip), avoid forcing a redirect.

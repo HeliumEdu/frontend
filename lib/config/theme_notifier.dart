@@ -40,7 +40,7 @@ class ThemeNotifier extends ChangeNotifier {
   }
 
   void _loadFromPrefs() {
-    final themeIndex = _prefService.getInt('color_scheme_theme') ?? 2;
+    final themeIndex = _prefService.getInt(SettingsPrefKey.colorSchemeTheme.key) ?? 2;
     _themeMode = switch (themeIndex) {
       0 => ThemeMode.light,
       1 => ThemeMode.dark,
@@ -55,7 +55,7 @@ class ThemeNotifier extends ChangeNotifier {
       ThemeMode.dark => 1,
       ThemeMode.system => 2,
     };
-    await _prefService.setInt('color_scheme_theme', index);
+    await _prefService.setInt(SettingsPrefKey.colorSchemeTheme.key, index);
     unawaited(AnalyticsService().logEvent(
       name: AnalyticsEvent.themeSelect,
       parameters: {

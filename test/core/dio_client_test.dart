@@ -199,7 +199,7 @@ void main() {
           () => mockPrefService.getString('events_color'),
         ).thenReturn('#FF0000');
         when(
-          () => mockPrefService.getString('resource_color'),
+          () => mockPrefService.getString('material_color'),
         ).thenReturn('#00FF00');
         when(
           () => mockPrefService.getString('grade_color'),

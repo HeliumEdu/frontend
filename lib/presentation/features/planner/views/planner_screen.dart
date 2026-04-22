@@ -284,6 +284,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
   int? _deferredOpenItemId;
   VoidCallback? _deferredOpenAction;
 
+  int _calendarItemsDisplayCount = _monthMinItemDisplayCount;
   PlannerItemDataSource? _plannerItemDataSource;
   final Map<int, ExternalCalendarModel> _externalCalendarsById = {};
 
@@ -791,7 +792,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
   Widget _buildCalendar({int? noCollapseCount}) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        final calendarItemsDisplayCount =
+        _calendarItemsDisplayCount =
             noCollapseCount ??
             _calculateCalendarItemDisplayCount(constraints.maxHeight);
 
@@ -859,7 +860,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
             ),
           ),
           monthViewSettings: MonthViewSettings(
-            appointmentDisplayCount: calendarItemsDisplayCount,
+            appointmentDisplayCount: _calendarItemsDisplayCount,
             showAgenda: Responsive.isMobile(context),
             agendaItemHeight: agendaHeight,
             monthCellStyle: MonthCellStyle(
@@ -3199,12 +3200,13 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
             borderRadius: BorderRadius.circular(4),
           ),
           child: Text(
-            '...',
-            style: AppStyles.standardBodyTextLight(context).copyWith(
+            '+${details.appointments.length - (_calendarItemsDisplayCount - 1)} more',
+            style: AppStyles.calendarItemTextLight(context).copyWith(
               color: context.colorScheme.onPrimaryContainer.withValues(
                 alpha: 0.9,
               ),
             ),
+            overflow: TextOverflow.ellipsis,
           ),
         ),
       ),

@@ -12,7 +12,6 @@ import 'package:flutter_timezone/flutter_timezone.dart';
 import 'package:go_router/go_router.dart';
 import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/config/app_theme.dart';
-import 'package:heliumapp/config/pref_service.dart';
 import 'package:heliumapp/core/dio_client.dart';
 import 'package:heliumapp/data/models/auth/request/update_settings_request_model.dart';
 import 'package:heliumapp/presentation/core/views/base_page_screen_state.dart';
@@ -105,7 +104,7 @@ class _SetupAccountScreenState extends BasePageScreenState<SetupAccountScreen> {
   }
 
   Future<void> _initializeSetupFlow() async {
-    await PrefService().clearSettings();
+    await DioClient().clearSettings();
     await DioClient().cacheService.clearAll();
 
     try {

@@ -451,22 +451,23 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
     return position;
   }
 
+  tz.TZDateTime _midnightOnUtcDate(DateTime utcTime) {
+    final d = utcTime.toUtc();
+    return tz.TZDateTime(userSettings.timeZone, d.year, d.month, d.day);
+  }
+
   @override
   DateTime getStartTime(int index) {
     final item = _getData(index);
     final override = _timeOverrides[item.id];
-    final baseTime = tz.TZDateTime.from(
-      override != null ? DateTime.parse(override.start) : item.start,
-      userSettings.timeZone,
-    );
+    final rawStart = override != null ? DateTime.parse(override.start) : item.start;
     final priority = Sort.typeSortPriority[item.plannerItemType] ?? 0;
     if (item.allDay) {
-      // In month view, all-day items are reported as timed (see isAllDay).
-      // Encode type priority as minutes and intra-type position as seconds so
-      // SfCalendar has fully distinct start times to sort by within a day.
+      final midnight = _midnightOnUtcDate(rawStart);
       final position = _allDayPositionInGroup(index, item);
-      return baseTime.add(Duration(minutes: priority, seconds: position));
+      return midnight.add(Duration(minutes: priority, seconds: position));
     }
+    final baseTime = tz.TZDateTime.from(rawStart, userSettings.timeZone);
     final adjustment = Sort.getTimedEventStartTimeAdjustmentSeconds(
       priority,
       _timedPositionInGroup(index, item),
@@ -478,33 +479,30 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
   DateTime getEndTime(int index) {
     final plannerItem = _getData(index);
     final override = _timeOverrides[plannerItem.id];
-    final startTime = tz.TZDateTime.from(
-      override != null ? DateTime.parse(override.start) : plannerItem.start,
-      userSettings.timeZone,
-    );
-    final endTime = tz.TZDateTime.from(
-      override != null ? DateTime.parse(override.end) : plannerItem.end,
-      userSettings.timeZone,
-    );
+    final rawStart = override != null ? DateTime.parse(override.start) : plannerItem.start;
+    final rawEnd = override != null ? DateTime.parse(override.end) : plannerItem.end;
     if (plannerItem.allDay) {
       final priority = Sort.typeSortPriority[plannerItem.plannerItemType] ?? 0;
       final position = _allDayPositionInGroup(index, plannerItem);
       final offset = Duration(minutes: priority, seconds: position);
+      final startMidnight = _midnightOnUtcDate(rawStart);
+      final endMidnight = _midnightOnUtcDate(rawEnd);
       if (_isMonthView) {
         // Month view: isAllDay returns false so SfCalendar treats these as timed.
         // Subtract 1 second to convert exclusive end (next day 00:00) to
         // inclusive end (23:59:59) so the event stays within the correct day cell.
-        final adjustedStart = startTime.add(offset);
-        final adjustedEnd = endTime.subtract(const Duration(seconds: 1));
+        final adjustedStart = startMidnight.add(offset);
+        final adjustedEnd = endMidnight.subtract(const Duration(seconds: 1));
         return adjustedEnd.isBefore(adjustedStart) ? adjustedStart : adjustedEnd;
       }
       // Week/day view: isAllDay returns true; subtract 1 day for SfCalendar's
       // exclusive end convention for all-day items.
-      final adjustedStart = startTime.add(offset);
-      final adjustedEnd = endTime.subtract(const Duration(days: 1)).add(offset);
+      final adjustedStart = startMidnight.add(offset);
+      final adjustedEnd = endMidnight.subtract(const Duration(days: 1)).add(offset);
       return adjustedEnd.isBefore(adjustedStart) ? adjustedStart : adjustedEnd;
     }
     // Timed: apply same adjustment as getStartTime so visual duration is preserved.
+    final endTime = tz.TZDateTime.from(rawEnd, userSettings.timeZone);
     final priority = Sort.typeSortPriority[plannerItem.plannerItemType] ?? 0;
     final adjustment = Sort.getTimedEventEndTimeAdjustment(
       priority,
