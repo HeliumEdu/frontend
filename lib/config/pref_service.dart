@@ -144,6 +144,10 @@ class PrefService {
     return _secureStorage.delete(key: key);
   }
 
+  Future<void> clearSettings() async {
+    await _sharedStorage?.clear();
+  }
+
   Future<List<void>>? clear() async {
     return Future.wait([_sharedStorage!.clear(), _secureStorage.deleteAll()]);
   }

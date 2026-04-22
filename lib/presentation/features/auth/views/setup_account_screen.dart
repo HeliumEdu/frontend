@@ -10,9 +10,9 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_timezone/flutter_timezone.dart';
 import 'package:go_router/go_router.dart';
-import 'package:heliumapp/config/analytics_event.dart';
 import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/config/app_theme.dart';
+import 'package:heliumapp/config/pref_service.dart';
 import 'package:heliumapp/core/dio_client.dart';
 import 'package:heliumapp/data/models/auth/request/update_settings_request_model.dart';
 import 'package:heliumapp/presentation/core/views/base_page_screen_state.dart';
@@ -23,7 +23,6 @@ import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/time_zone_constants.dart';
 import 'package:logging/logging.dart';
-import 'package:heliumapp/core/analytics_service.dart';
 
 final _log = Logger('presentation.views');
 
@@ -42,7 +41,6 @@ class _SetupAccountScreenState extends BasePageScreenState<SetupAccountScreen> {
 
   Timer? _pollTimer;
   bool _isPolling = false;
-  int _consecutiveStatusFailures = 0;
   final Stopwatch _setupStopwatch = Stopwatch();
 
   @override
@@ -107,6 +105,9 @@ class _SetupAccountScreenState extends BasePageScreenState<SetupAccountScreen> {
   }
 
   Future<void> _initializeSetupFlow() async {
+    await PrefService().clearSettings();
+    await DioClient().cacheService.clearAll();
+
     try {
       if (widget.autoDetectTimeZone) {
         await _updateDetectedTimeZone();
@@ -157,48 +158,19 @@ class _SetupAccountScreenState extends BasePageScreenState<SetupAccountScreen> {
       final settings = await DioClient().fetchSettings(forceRefresh: true);
 
       if (settings != null && settings.isSetupComplete) {
-        _consecutiveStatusFailures = 0;
         _log.info('... setup complete, navigating to planner');
         _pollTimer?.cancel();
 
         if (mounted) {
           context.replace(AppRoute.plannerScreen);
         }
-      } else if (settings == null) {
-        await _handleTransientStatusFailure('Settings response was null');
       } else {
-        _consecutiveStatusFailures = 0;
         _log.info('--> Setup not yet complete, continuing to poll');
       }
     } catch (e) {
-      await _handleTransientStatusFailure(e.toString());
+      _log.warning('Error checking setup status: $e');
     } finally {
       _isPolling = false;
-    }
-  }
-
-  Future<void> _handleTransientStatusFailure(String errorMessage) async {
-    _consecutiveStatusFailures++;
-    _log.warning(
-      'Error checking setup status ($errorMessage), '
-      'failure count=$_consecutiveStatusFailures',
-    );
-
-    // After transient failures, fall back to any cached setup state so users
-    // who are already configured are not blocked on /setup.
-    if (_consecutiveStatusFailures < 2 || !mounted) return;
-
-    unawaited(AnalyticsService().logEvent(name: AnalyticsEvent.debugSetupCacheFallback, parameters: {'category': AnalyticsCategory.edgeCase.value}));
-
-    try {
-      final cachedSettings = await DioClient().getSettings();
-      if (cachedSettings?.isSetupComplete == true && mounted) {
-        _log.info('Cached setup indicates complete, routing to planner');
-        _pollTimer?.cancel();
-        context.replace(AppRoute.plannerScreen);
-      }
-    } catch (e) {
-      _log.warning('Failed cached setup fallback check: $e');
     }
   }
 }
