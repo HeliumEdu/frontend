@@ -10,7 +10,10 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:logging/logging.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+final _log = Logger('config');
 
 class PrefService {
   FlutterSecureStorage? _secureStorageOverride;
@@ -110,8 +113,16 @@ class PrefService {
     return _sharedStorage?.setBool(key, value);
   }
 
-  Future<String?> getSecure(String key) {
-    return _secureStorage.read(key: key);
+  Future<String?> getSecure(String key) async {
+    try {
+      return await _secureStorage.read(key: key);
+    } on PlatformException catch (e) {
+      if (e.message?.contains('-25308') == true) {
+        _log.warning('Keychain unavailable for key=$key (${e.message})');
+        return null;
+      }
+      rethrow;
+    }
   }
 
   Future<void> setSecure(String key, String value) async {

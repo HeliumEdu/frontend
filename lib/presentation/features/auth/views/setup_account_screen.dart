@@ -37,15 +37,13 @@ class SetupAccountScreen extends StatefulWidget {
 }
 
 class _SetupAccountScreenState extends BasePageScreenState<SetupAccountScreen> {
-  static const _logoHeight = 120.0;
-  static const _statusFontSize = 18.0;
-
   @override
   String get screenTitle => '';
 
   Timer? _pollTimer;
   bool _isPolling = false;
   int _consecutiveStatusFailures = 0;
+  final Stopwatch _setupStopwatch = Stopwatch();
 
   @override
   void initState() {
@@ -74,7 +72,7 @@ class _SetupAccountScreenState extends BasePageScreenState<SetupAccountScreen> {
       showCard: false,
       child: Column(
         children: [
-          Image.asset(AppAssets.logoImagePath, height: _logoHeight),
+          Image.asset(AppAssets.logoImagePath, height: 120.0),
 
           const SizedBox(height: 50),
 
@@ -86,7 +84,7 @@ class _SetupAccountScreenState extends BasePageScreenState<SetupAccountScreen> {
             'Getting things ready ...',
             style: AppStyles.standardBodyText(
               context,
-            ).copyWith(fontSize: _statusFontSize, fontWeight: FontWeight.w500),
+            ).copyWith(fontSize: 18.0, fontWeight: FontWeight.w500),
             textAlign: TextAlign.center,
           ),
         ],
@@ -96,9 +94,10 @@ class _SetupAccountScreenState extends BasePageScreenState<SetupAccountScreen> {
 
   void _startPolling() {
     _log.info('Starting setup status polling');
+    _setupStopwatch.start();
     _checkSetupStatus();
 
-    _pollTimer = Timer.periodic(const Duration(milliseconds: 1500), (_) {
+    _pollTimer = Timer.periodic(const Duration(seconds: 1), (_) {
       if (!mounted) {
         _pollTimer?.cancel();
         return;
@@ -143,6 +142,14 @@ class _SetupAccountScreenState extends BasePageScreenState<SetupAccountScreen> {
   Future<void> _checkSetupStatus() async {
     if (_isPolling) return;
     _isPolling = true;
+
+    if (_setupStopwatch.elapsed > const Duration(seconds: 30)) {
+      _pollTimer?.cancel();
+      _setupStopwatch.stop();
+      _log.warning('Setup polling timed out after 30 seconds');
+      await DioClient().forceLogout('Please login again to continue.');
+      return;
+    }
 
     try {
       _log.info('Checking setup status ...');
