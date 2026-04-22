@@ -237,12 +237,10 @@ void main() {
         dataSource.appointments!.insert(0, allDayHomework);
 
         final endTime = dataSource.getEndTime(0);
-        // Time is converted to user's timezone, then 1 day subtracted
-        final expectedBase = tz.TZDateTime.from(
-          DateTime.parse('2025-01-15T00:00:00Z'),
-          userSettings.timeZone,
-        );
-        expect(endTime, expectedBase);
+        // All-day uses UTC date anchored to midnight in user's timezone,
+        // then subtracts 1 day for SfCalendar's exclusive end convention.
+        final expected = tz.TZDateTime(userSettings.timeZone, 2025, 1, 15);
+        expect(endTime, expected);
       });
 
       test('isAllDay returns correct value', () {
@@ -1074,12 +1072,9 @@ void main() {
         dataSource.addPlannerItem(allDayHomework);
 
         final startTime = dataSource.getStartTime(0);
-        final expectedBase = tz.TZDateTime.from(
-          DateTime.parse('2025-01-15T00:00:00Z'),
-          userSettings.timeZone,
-        );
-        // homework priority = 0, position = 0 — no offset applied
-        expect(startTime, expectedBase);
+        // All-day uses UTC date anchored to midnight in user's timezone
+        final expected = tz.TZDateTime(userSettings.timeZone, 2025, 1, 15);
+        expect(startTime, expected);
       });
 
       test('two same-type all-day items get distinct start times preserving sort order', () {
