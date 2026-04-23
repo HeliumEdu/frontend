@@ -5,6 +5,8 @@
 //
 // For details regarding the license, please refer to the LICENSE file.
 
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -229,27 +231,38 @@ class _GettingStartedDialogWidgetState
   Widget _buildCard(BuildContext context, _OnboardingCard card) {
     Widget imageWidget = const SizedBox.shrink();
     if (card.imagePaths.isNotEmpty) {
-      final showMultiple =
-          card.imagePaths.length > 1 && !Responsive.isMobile(context);
-      imageWidget = Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 8.0),
-        child: !showMultiple
-            ? Image.asset(card.imagePaths.first, fit: BoxFit.contain)
-            : Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  for (int i = 0; i < card.imagePaths.length; i++) ...[
-                    if (i > 0) const SizedBox(width: 12),
-                    Expanded(
-                      child: Image.asset(
-                        card.imagePaths[i],
-                        fit: BoxFit.contain,
-                      ),
-                    ),
-                  ],
-                ],
-              ),
-      );
+      final isMobile = Responsive.isMobile(context);
+      if (card.imagePaths.length > 1 && isMobile) {
+        imageWidget = Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 8.0),
+          child: _CyclingImage(imagePaths: card.imagePaths),
+        );
+      } else if (card.imagePaths.length > 1) {
+        imageWidget = Padding(
+          padding:
+              const EdgeInsets.symmetric(horizontal: 24.0, vertical: 8.0),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              for (int i = 0; i < card.imagePaths.length; i++) ...[
+                if (i > 0) const SizedBox(width: 12),
+                Expanded(
+                  child: Image.asset(
+                    card.imagePaths[i],
+                    fit: BoxFit.contain,
+                  ),
+                ),
+              ],
+            ],
+          ),
+        );
+      } else {
+        imageWidget = Padding(
+          padding:
+              const EdgeInsets.symmetric(horizontal: 24.0, vertical: 8.0),
+          child: Image.asset(card.imagePaths.first, fit: BoxFit.contain),
+        );
+      }
     }
 
     return CustomScrollView(
@@ -303,26 +316,22 @@ class _GettingStartedDialogWidgetState
   Widget _buildNavigation(BuildContext context) {
     final isFirst = _currentPage == 0;
     final isLast = _currentPage == _cards.length - 1;
-
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
       child: Row(
         children: [
           SizedBox(
-            width: 80,
+            width: 40,
             child: isFirst
                 ? const SizedBox.shrink()
-                : TextButton(
+                : IconButton(
                     onPressed: () => _pageController.previousPage(
                       duration: const Duration(milliseconds: 300),
                       curve: Curves.easeInOut,
                     ),
-                    child: Text(
-                      'Back',
-                      style: AppStyles.standardBodyText(
-                        context,
-                      ).copyWith(color: context.colorScheme.primary),
-                    ),
+                    icon: const Icon(Icons.chevron_left),
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
                   ),
           ),
           Expanded(
@@ -358,20 +367,17 @@ class _GettingStartedDialogWidgetState
             ),
           ),
           SizedBox(
-            width: 80,
+            width: 40,
             child: isLast
                 ? const SizedBox.shrink()
-                : TextButton(
+                : IconButton(
                     onPressed: () => _pageController.nextPage(
                       duration: const Duration(milliseconds: 300),
                       curve: Curves.easeInOut,
                     ),
-                    child: Text(
-                      'Next',
-                      style: AppStyles.standardBodyText(
-                        context,
-                      ).copyWith(color: context.colorScheme.primary),
-                    ),
+                    icon: const Icon(Icons.chevron_right),
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
                   ),
           ),
         ],
@@ -419,6 +425,51 @@ class _GettingStartedDialogWidgetState
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _CyclingImage extends StatefulWidget {
+  final List<String> imagePaths;
+
+  const _CyclingImage({required this.imagePaths});
+
+  @override
+  State<_CyclingImage> createState() => _CyclingImageState();
+}
+
+class _CyclingImageState extends State<_CyclingImage> {
+  static const _cycleDuration = Duration(milliseconds: 2500);
+  static const _fadeDuration = Duration(milliseconds: 600);
+
+  int _currentIndex = 0;
+  Timer? _timer;
+
+  @override
+  void initState() {
+    super.initState();
+    _timer = Timer.periodic(_cycleDuration, (_) {
+      setState(() {
+        _currentIndex = (_currentIndex + 1) % widget.imagePaths.length;
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedSwitcher(
+      duration: _fadeDuration,
+      child: Image.asset(
+        widget.imagePaths[_currentIndex],
+        key: ValueKey(_currentIndex),
+        fit: BoxFit.contain,
       ),
     );
   }
