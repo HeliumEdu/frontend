@@ -229,6 +229,8 @@ class _GettingStartedDialogWidgetState
   }
 
   Widget _buildCard(BuildContext context, _OnboardingCard card) {
+    // Images render blurry on web due to poor CanvasKit downscaling.
+    // https://github.com/flutter/flutter/issues/135655
     Widget imageWidget = const SizedBox.shrink();
     if (card.imagePaths.isNotEmpty) {
       imageWidget = Padding(
