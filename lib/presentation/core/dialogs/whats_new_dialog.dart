@@ -20,7 +20,17 @@ class _WhatsNewDialogWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isMobile = Responsive.isMobile(context);
+
     return AlertDialog(
+      insetPadding: isMobile
+          ? const EdgeInsets.only(
+              left: 40.0,
+              right: 40.0,
+              top: 15,
+              bottom: 15,
+            )
+          : const EdgeInsets.symmetric(horizontal: 40.0, vertical: 24.0),
       title: Row(
         children: [
           Icon(
