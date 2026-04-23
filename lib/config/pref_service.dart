@@ -38,7 +38,8 @@ enum SettingsPrefKey {
   calendarEventLimit('calendar_event_limit'),
   atRiskThreshold('at_risk_threshold'),
   onTrackTolerance('on_track_tolerance'),
-  showWeekNumbers('show_week_numbers');
+  showWeekNumbers('show_week_numbers'),
+  gettingStartedLastPage('getting_started_last_page');
 
   const SettingsPrefKey(this.key);
 
