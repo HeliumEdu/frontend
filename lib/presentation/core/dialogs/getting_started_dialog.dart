@@ -235,7 +235,11 @@ class _GettingStartedDialogWidgetState
         padding: const EdgeInsets.symmetric(horizontal: 24.0),
         child: card.imagePaths.length > 1
             ? _CyclingImage(imagePaths: card.imagePaths)
-            : Image.asset(card.imagePaths.first, fit: BoxFit.contain),
+            : Image.asset(
+                card.imagePaths.first,
+                fit: BoxFit.contain,
+                filterQuality: FilterQuality.high,
+              ),
       );
     }
 
@@ -294,7 +298,7 @@ class _GettingStartedDialogWidgetState
     final isFirst = _currentPage == 0;
     final isLast = _currentPage == _cards.length - 1;
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24.0),
+      padding: const EdgeInsets.only(left: 24.0, right: 24.0, bottom: 4.0),
       child: Row(
         children: [
           SizedBox(
@@ -447,6 +451,7 @@ class _CyclingImageState extends State<_CyclingImage> {
         widget.imagePaths[_currentIndex],
         key: ValueKey(_currentIndex),
         fit: BoxFit.contain,
+        filterQuality: FilterQuality.high,
       ),
     );
   }
