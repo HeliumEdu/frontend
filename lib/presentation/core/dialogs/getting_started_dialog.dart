@@ -125,8 +125,8 @@ class _GettingStartedDialogWidget extends StatefulWidget {
 
 class _GettingStartedDialogWidgetState
     extends State<_GettingStartedDialogWidget> {
-  static const double _desktopWidth = 700.0;
-  static const double _pageViewHeight = 420.0;
+  static const double _desktopWidth = 600.0;
+  static const double _pageViewHeight = 465.0;
   static const double _pageViewHeightMobile = 390.0;
   static const double _dotSize = 8.0;
   static const double _activeDotSize = 10.0;
@@ -231,38 +231,12 @@ class _GettingStartedDialogWidgetState
   Widget _buildCard(BuildContext context, _OnboardingCard card) {
     Widget imageWidget = const SizedBox.shrink();
     if (card.imagePaths.isNotEmpty) {
-      final isMobile = Responsive.isMobile(context);
-      if (card.imagePaths.length > 1 && isMobile) {
-        imageWidget = Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 8.0),
-          child: _CyclingImage(imagePaths: card.imagePaths),
-        );
-      } else if (card.imagePaths.length > 1) {
-        imageWidget = Padding(
-          padding:
-              const EdgeInsets.symmetric(horizontal: 24.0, vertical: 8.0),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              for (int i = 0; i < card.imagePaths.length; i++) ...[
-                if (i > 0) const SizedBox(width: 12),
-                Expanded(
-                  child: Image.asset(
-                    card.imagePaths[i],
-                    fit: BoxFit.contain,
-                  ),
-                ),
-              ],
-            ],
-          ),
-        );
-      } else {
-        imageWidget = Padding(
-          padding:
-              const EdgeInsets.symmetric(horizontal: 24.0, vertical: 8.0),
-          child: Image.asset(card.imagePaths.first, fit: BoxFit.contain),
-        );
-      }
+      imageWidget = Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 24.0),
+        child: card.imagePaths.length > 1
+            ? _CyclingImage(imagePaths: card.imagePaths)
+            : Image.asset(card.imagePaths.first, fit: BoxFit.contain),
+      );
     }
 
     return CustomScrollView(
@@ -308,7 +282,10 @@ class _GettingStartedDialogWidgetState
             ),
           ),
         ),
-        SliverFillRemaining(hasScrollBody: false, child: imageWidget),
+        SliverFillRemaining(
+          hasScrollBody: false,
+          child: Align(alignment: Alignment.topCenter, child: imageWidget),
+        ),
       ],
     );
   }
@@ -317,7 +294,7 @@ class _GettingStartedDialogWidgetState
     final isFirst = _currentPage == 0;
     final isLast = _currentPage == _cards.length - 1;
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+      padding: const EdgeInsets.symmetric(horizontal: 24.0),
       child: Row(
         children: [
           SizedBox(
