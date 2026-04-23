@@ -25,13 +25,13 @@ class _OnboardingCard {
   final String title;
   final String description;
   final IconData icon;
-  final String? imagePath;
+  final List<String> imagePaths;
 
   const _OnboardingCard({
     required this.title,
     required this.description,
     required this.icon,
-    this.imagePath,
+    this.imagePaths = const [],
   });
 }
 
@@ -42,7 +42,7 @@ const _cards = [
         "We've preloaded your account with an example schedule so you can "
         'see Helium in action. Take your time exploring!',
     icon: Icons.rocket_launch_outlined,
-    imagePath: 'assets/img/onboarding_welcome.png',
+    imagePaths: ['assets/img/onboarding_welcome.png'],
   ),
   _OnboardingCard(
     title: 'Your Planner, your way',
@@ -51,7 +51,10 @@ const _cards = [
         'drag to reschedule, filter and search across everything, and '
         'stay in control of your time.',
     icon: Icons.calendar_month_outlined,
-    imagePath: 'assets/img/onboarding_planner.png',
+    imagePaths: [
+      'assets/img/onboarding_planner.png',
+      'assets/img/onboarding_todos.png',
+    ],
   ),
   _OnboardingCard(
     title: 'Organized by class',
@@ -59,7 +62,7 @@ const _cards = [
         'View Classes to see how schedules, categories, and assignments '
         'connect—so you can track weeks, deadlines, and grades in one place.',
     icon: Icons.school_outlined,
-    imagePath: 'assets/img/onboarding_classes.png',
+    imagePaths: ['assets/img/onboarding_classes.png'],
   ),
   _OnboardingCard(
     title: 'Track your grades',
@@ -68,7 +71,7 @@ const _cards = [
         'class—great for seeing your progress and helping you decide '
         'where to focus next.',
     icon: Icons.bar_chart_outlined,
-    imagePath: 'assets/img/onboarding_grades.png',
+    imagePaths: ['assets/img/onboarding_grades.png'],
   ),
   _OnboardingCard(
     title: 'Keep a Notebook',
@@ -76,7 +79,7 @@ const _cards = [
         'Write rich notes, linked directly to items in your planner, so '
         'your context is always right where you need it.',
     icon: Icons.library_books,
-    imagePath: 'assets/img/onboarding_notebook.png',
+    imagePaths: ['assets/img/onboarding_notebook.png'],
   ),
   _OnboardingCard(
     title: 'Sync with other calendars',
@@ -85,7 +88,7 @@ const _cards = [
         'Apple Calendar, or Outlook. Enable Feeds to share your Helium '
         'schedule back to those other apps.',
     icon: Icons.sync_outlined,
-    imagePath: 'assets/img/onboarding_sync.png',
+    imagePaths: ['assets/img/onboarding_sync.png'],
   ),
   _OnboardingCard(
     title: 'Available everywhere',
@@ -93,15 +96,15 @@ const _cards = [
         'Helium works seamlessly across web, iOS, and Android. Your '
         'schedule stays in sync no matter which device you use.',
     icon: Icons.devices_outlined,
-    imagePath: 'assets/img/onboarding_everywhere.png',
+    imagePaths: ['assets/img/onboarding_everywhere.png'],
   ),
   _OnboardingCard(
     title: 'Ready when you are',
     description:
         "You'll see this dialog each time you open Helium or return "
-        "after a break, until you're ready to clear the example data.",
+        "after a break. Once you clear the example data, it'll stop showing.",
     icon: Icons.auto_delete_outlined,
-    imagePath: 'assets/img/onboarding_ready.png',
+    imagePaths: ['assets/img/onboarding_ready.png'],
   ),
 ];
 
@@ -255,12 +258,27 @@ class _GettingStartedDialogWidgetState
             ],
           ),
         ),
-        if (card.imagePath != null)
+        if (card.imagePaths.isNotEmpty)
           Expanded(
             child: Padding(
               padding:
                   const EdgeInsets.symmetric(horizontal: 24.0, vertical: 8.0),
-              child: Image.asset(card.imagePath!, fit: BoxFit.contain),
+              child: card.imagePaths.length == 1
+                  ? Image.asset(card.imagePaths.first, fit: BoxFit.contain)
+                  : Row(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        for (int i = 0; i < card.imagePaths.length; i++) ...[
+                          if (i > 0) const SizedBox(width: 12),
+                          Expanded(
+                            child: Image.asset(
+                              card.imagePaths[i],
+                              fit: BoxFit.contain,
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
             ),
           ),
       ],
