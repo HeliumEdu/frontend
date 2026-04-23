@@ -151,7 +151,7 @@ class _GettingStartedDialogWidgetState
   Widget build(BuildContext context) {
     final isMobile = Responsive.isMobile(context);
     final dialogWidth =
-        isMobile ? MediaQuery.of(context).size.width * 0.9 : _desktopWidth;
+        isMobile ? MediaQuery.of(context).size.width * 0.95 : _desktopWidth;
 
     return BlocListener<AuthBloc, AuthState>(
       listener: (context, state) {
@@ -179,6 +179,9 @@ class _GettingStartedDialogWidgetState
           final isLoading = state is AuthLoading;
 
           return Dialog(
+            insetPadding: isMobile
+                ? const EdgeInsets.symmetric(horizontal: 8.0, vertical: 24.0)
+                : const EdgeInsets.symmetric(horizontal: 40.0, vertical: 24.0),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12),
             ),
@@ -218,69 +221,77 @@ class _GettingStartedDialogWidgetState
   }
 
   Widget _buildCard(BuildContext context, _OnboardingCard card) {
-    return Column(
-      children: [
-        Padding(
-          padding: const EdgeInsets.all(24.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Row(
+    Widget imageWidget = const SizedBox.shrink();
+    if (card.imagePaths.isNotEmpty) {
+      final showMultiple =
+          card.imagePaths.length > 1 && !Responsive.isMobile(context);
+      imageWidget = Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 8.0),
+        child: !showMultiple
+            ? Image.asset(card.imagePaths.first, fit: BoxFit.contain)
+            : Row(
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Container(
-                    padding: const EdgeInsets.all(8.0),
-                    decoration: BoxDecoration(
-                      color:
-                          context.colorScheme.primary.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(8.0),
+                  for (int i = 0; i < card.imagePaths.length; i++) ...[
+                    if (i > 0) const SizedBox(width: 12),
+                    Expanded(
+                      child: Image.asset(
+                        card.imagePaths[i],
+                        fit: BoxFit.contain,
+                      ),
                     ),
-                    child: Icon(
-                      card.icon,
-                      color: context.colorScheme.primary,
-                      size: 24.0,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      card.title,
-                      style: AppStyles.pageTitle(context),
-                    ),
-                  ),
+                  ],
                 ],
               ),
-              const SizedBox(height: 12),
-              Text(
-                card.description,
-                style: AppStyles.standardBodyText(context),
-              ),
-            ],
-          ),
-        ),
-        if (card.imagePaths.isNotEmpty)
-          Expanded(
-            child: Padding(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 24.0, vertical: 8.0),
-              child: card.imagePaths.length == 1
-                  ? Image.asset(card.imagePaths.first, fit: BoxFit.contain)
-                  : Row(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        for (int i = 0; i < card.imagePaths.length; i++) ...[
-                          if (i > 0) const SizedBox(width: 12),
-                          Expanded(
-                            child: Image.asset(
-                              card.imagePaths[i],
-                              fit: BoxFit.contain,
-                            ),
-                          ),
-                        ],
-                      ],
+      );
+    }
+
+    return CustomScrollView(
+      slivers: [
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8.0),
+                      decoration: BoxDecoration(
+                        color:
+                            context.colorScheme.primary.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(8.0),
+                      ),
+                      child: Icon(
+                        card.icon,
+                        color: context.colorScheme.primary,
+                        size: 24.0,
+                      ),
                     ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        card.title,
+                        style: AppStyles.pageTitle(context),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  card.description,
+                  style: AppStyles.standardBodyText(context),
+                ),
+              ],
             ),
           ),
+        ),
+        SliverFillRemaining(
+          hasScrollBody: false,
+          child: imageWidget,
+        ),
       ],
     );
   }
