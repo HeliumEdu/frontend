@@ -61,7 +61,7 @@ const _cards = [
     title: 'Organized by class',
     description:
         'View Classes to see how your schedules, categories, and '
-        'assignments connect. Track deadlines, meeting times, locations, '
+        'assignments connect. Track deadlines, class times, locations, '
         'and resources—all in one place.',
     icon: Icons.school_outlined,
     imagePaths: ['assets/img/onboarding_classes.png'],
@@ -69,26 +69,26 @@ const _cards = [
   _OnboardingCard(
     title: 'Track your grades',
     description:
-        'Check out Grades to see how your scores break down by weighted '
-        'category and class. Great for spotting trends and helping you '
-        'decide where to focus next.',
+        'Check out Grades to see how your scores break down by class. '
+        'Great for spotting trends giving you the clarity you need to '
+        'know where to focus next and stay ahead.',
     icon: Icons.bar_chart_outlined,
     imagePaths: ['assets/img/onboarding_grades.png'],
   ),
   _OnboardingCard(
     title: 'Keep a Notebook',
     description:
-        'Write rich notes linked directly to items in your planner. Add '
-        'links to resources, highlight key concepts, and keep your '
-        'context right where you need it.',
+        'Write rich notes linked directly to items in your planner. Or '
+        'keep standalone notes for anything else. Lecture summaries, '
+          'paper drafts, everything organized in one place.',
     icon: Icons.library_books,
     imagePaths: ['assets/img/onboarding_notebook.png'],
   ),
   _OnboardingCard(
     title: 'Sync with other calendars',
     description:
-        'Use External Calendars to pull in events from Google Calendar, '
-        'Apple Calendar, or Outlook. Enable Feeds to share your Helium '
+        'Use External Calendars to pull in events from Google, '
+        'Apple, or other calendars. Enable Feeds to share your Helium '
         'schedule back to those other apps.',
     icon: Icons.sync_outlined,
     imagePaths: ['assets/img/onboarding_sync.png'],
@@ -97,8 +97,8 @@ const _cards = [
     title: 'Available everywhere',
     description:
         'Helium works seamlessly across web, iOS, and Android. Your '
-        'schedule stays in sync no matter which device you use—start '
-        'on one, pick up right where you left off.',
+        'schedule stays in sync no matter which device you use, so your '
+        'entire planner is always just one tap away.',
     icon: Icons.devices_outlined,
     imagePaths: ['assets/img/onboarding_everywhere.png'],
   ),
@@ -107,7 +107,7 @@ const _cards = [
     description:
         "You'll see this dialog each time you open Helium or return "
         'after a break, so you can keep exploring. Once you clear the '
-        'example data, it goes away.',
+        'example data, it will go away.',
     icon: Icons.auto_delete_outlined,
     imagePaths: ['assets/img/onboarding_ready.png'],
   ),
@@ -155,8 +155,9 @@ class _GettingStartedDialogWidgetState
   @override
   Widget build(BuildContext context) {
     final isMobile = Responsive.isMobile(context);
-    final dialogWidth =
-        isMobile ? MediaQuery.of(context).size.width * 0.95 : _desktopWidth;
+    final dialogWidth = isMobile
+        ? MediaQuery.of(context).size.width * 0.95
+        : _desktopWidth;
 
     return BlocListener<AuthBloc, AuthState>(
       listener: (context, state) {
@@ -265,8 +266,9 @@ class _GettingStartedDialogWidgetState
                     Container(
                       padding: const EdgeInsets.all(8.0),
                       decoration: BoxDecoration(
-                        color:
-                            context.colorScheme.primary.withValues(alpha: 0.1),
+                        color: context.colorScheme.primary.withValues(
+                          alpha: 0.1,
+                        ),
                         borderRadius: BorderRadius.circular(8.0),
                       ),
                       child: Icon(
@@ -293,10 +295,7 @@ class _GettingStartedDialogWidgetState
             ),
           ),
         ),
-        SliverFillRemaining(
-          hasScrollBody: false,
-          child: imageWidget,
-        ),
+        SliverFillRemaining(hasScrollBody: false, child: imageWidget),
       ],
     );
   }
@@ -320,9 +319,9 @@ class _GettingStartedDialogWidgetState
                     ),
                     child: Text(
                       'Back',
-                      style: AppStyles.standardBodyText(context).copyWith(
-                        color: context.colorScheme.primary,
-                      ),
+                      style: AppStyles.standardBodyText(
+                        context,
+                      ).copyWith(color: context.colorScheme.primary),
                     ),
                   ),
           ),
@@ -340,19 +339,19 @@ class _GettingStartedDialogWidgetState
                       curve: Curves.easeInOut,
                     ),
                     child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 200),
-                    margin: const EdgeInsets.symmetric(horizontal: 4.0),
-                    width: isActive ? _activeDotSize : _dotSize,
-                    height: isActive ? _activeDotSize : _dotSize,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: isActive
-                          ? context.colorScheme.primary
-                          : context.colorScheme.onSurface.withValues(
-                              alpha: 0.25,
-                            ),
+                      duration: const Duration(milliseconds: 200),
+                      margin: const EdgeInsets.symmetric(horizontal: 4.0),
+                      width: isActive ? _activeDotSize : _dotSize,
+                      height: isActive ? _activeDotSize : _dotSize,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: isActive
+                            ? context.colorScheme.primary
+                            : context.colorScheme.onSurface.withValues(
+                                alpha: 0.25,
+                              ),
+                      ),
                     ),
-                  ),
                   ),
                 );
               }),
@@ -369,9 +368,9 @@ class _GettingStartedDialogWidgetState
                     ),
                     child: Text(
                       'Next',
-                      style: AppStyles.standardBodyText(context).copyWith(
-                        color: context.colorScheme.primary,
-                      ),
+                      style: AppStyles.standardBodyText(
+                        context,
+                      ).copyWith(color: context.colorScheme.primary),
                     ),
                   ),
           ),
@@ -413,9 +412,9 @@ class _GettingStartedDialogWidgetState
               onPressed: isLoading ? null : () => Navigator.pop(context),
               child: Text(
                 "I'll explore first",
-                style: AppStyles.standardBodyText(context).copyWith(
-                  color: context.colorScheme.primary,
-                ),
+                style: AppStyles.standardBodyText(
+                  context,
+                ).copyWith(color: context.colorScheme.primary),
               ),
             ),
           ),
