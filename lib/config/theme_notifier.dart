@@ -48,7 +48,7 @@ class ThemeNotifier extends ChangeNotifier {
     };
   }
 
-  Future<void> setThemeMode(ThemeMode mode) async {
+  Future<void> setThemeMode(ThemeMode mode, {bool logAnalytics = false}) async {
     _themeMode = mode;
     final index = switch (mode) {
       ThemeMode.light => 0,
@@ -56,17 +56,19 @@ class ThemeNotifier extends ChangeNotifier {
       ThemeMode.system => 2,
     };
     await _prefService.setInt(SettingsPrefKey.colorSchemeTheme.key, index);
-    unawaited(AnalyticsService().logEvent(
-      name: AnalyticsEvent.themeSelect,
-      parameters: {
-        'category': AnalyticsCategory.featureInteraction.value,
-        'theme': switch (mode) {
-          ThemeMode.light => 'light',
-          ThemeMode.dark => 'dark',
-          ThemeMode.system => 'system',
+    if (logAnalytics) {
+      unawaited(AnalyticsService().logEvent(
+        name: AnalyticsEvent.themeSelect,
+        parameters: {
+          'category': AnalyticsCategory.featureInteraction.value,
+          'theme': switch (mode) {
+            ThemeMode.light => 'light',
+            ThemeMode.dark => 'dark',
+            ThemeMode.system => 'system',
+          },
         },
-      },
-    ));
+      ));
+    }
     notifyListeners();
   }
 
