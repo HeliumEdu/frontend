@@ -451,7 +451,7 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
                 ],
                 selected: {themeNotifier.themeMode},
                 onSelectionChanged: (Set<ThemeMode> selected) {
-                  themeNotifier.setThemeMode(selected.first);
+                  themeNotifier.setThemeMode(selected.first, logAnalytics: true);
 
                   final colorSchemeTheme = switch (selected.first) {
                     ThemeMode.light => 0,
