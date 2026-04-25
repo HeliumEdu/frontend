@@ -7,6 +7,9 @@ permissions:
   contents: write
   pull-requests: write
 
+concurrency:
+  group: helium-frontend-automerge-${{ github.event.pull_request.number }}
+
 jobs:
   refresh-lockfiles:
     name: Refresh Lockfiles
