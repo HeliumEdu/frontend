@@ -559,6 +559,54 @@ void main() {
       });
     });
 
+    group('Firebase Messaging unsupported-browser filtering', () {
+      test('Filters FirebaseError with messaging/unsupported-browser code', () {
+        // Real-world FRONTEND-13: browser lacks IndexedDB / Push APIs
+        final event = SentryEvent(
+          exceptions: [
+            SentryException(
+              type: 'FirebaseError',
+              value:
+                  "Messaging: This browser doesn't support the API's required to use the Firebase SDK. (messaging/unsupported-browser).",
+            ),
+          ],
+        );
+
+        expect(SentryService.shouldFilterEvent(event), isTrue,
+            reason:
+                'messaging/unsupported-browser is a client capability gap, not actionable');
+      });
+
+      test('Filters when error code appears in any exception value', () {
+        // Defense in depth: even if type is something generic
+        final event = SentryEvent(
+          exceptions: [
+            SentryException(
+              type: 'Error',
+              value: 'wrapped: messaging/unsupported-browser',
+            ),
+          ],
+        );
+
+        expect(SentryService.shouldFilterEvent(event), isTrue);
+      });
+
+      test('Does NOT filter unrelated Firebase errors', () {
+        final event = SentryEvent(
+          exceptions: [
+            SentryException(
+              type: 'FirebaseError',
+              value:
+                  'Messaging: A problem occurred while subscribing to the topic. (messaging/token-subscribe-failed).',
+            ),
+          ],
+        );
+
+        expect(SentryService.shouldFilterEvent(event), isFalse,
+            reason: 'Other Firebase Messaging errors may be actionable');
+      });
+    });
+
     group('Apple development device filtering', () {
       test('Filters events from Apple DEVELOPMENT kernel', () {
         final event = SentryEvent(
