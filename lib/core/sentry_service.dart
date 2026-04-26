@@ -87,6 +87,7 @@ class SentryService {
         '(?i)bad response.*(401|403)',
         '(?i)goexception.*(401|403)',
         '(?i)flutterCanvasKit.*is not a constructor',
+        '(?i)messaging/unsupported-browser',
         '(?i)watchdogtermination',
         '(?i)database deleted by request of the user',
       ];
@@ -194,6 +195,12 @@ class SentryService {
     // CanvasKit failures are Flutter runtime issues we can't fix
     if (value.contains('fluttercanvaskit') &&
         value.contains('is not a constructor')) {
+      return true;
+    }
+
+    // Firebase Messaging on browsers missing IndexedDB / Push APIs (private
+    // mode, older browsers) — user-side capability gap, not actionable.
+    if (value.contains('messaging/unsupported-browser')) {
       return true;
     }
 
