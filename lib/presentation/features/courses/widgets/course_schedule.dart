@@ -562,7 +562,7 @@ class CourseScheduleState extends State<CourseSchedule> {
 
     return HeliumElevatedButton(
       buttonText: 'Class Cancellations',
-      backgroundColor: context.colorScheme.outline,
+      backgroundColor: context.colorScheme.onSurfaceVariant,
       onPressed: () async {
         await showCourseExceptionsDialog(
           context: context,

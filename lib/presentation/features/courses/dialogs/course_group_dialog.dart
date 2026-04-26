@@ -226,7 +226,7 @@ class _CourseGroupWidgetState
           const SizedBox(height: 14),
           HeliumElevatedButton(
             buttonText: 'Holidays & Breaks',
-            backgroundColor: context.colorScheme.outline,
+            backgroundColor: context.colorScheme.onSurfaceVariant,
             onPressed: () async {
               await showCourseGroupExceptionsDialog(
                 context: context,
