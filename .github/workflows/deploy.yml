@@ -88,31 +88,12 @@ jobs:
       - name: Determine version to deploy
         id: version
         if: ${{ inputs.artifact_run_id == '' }}
-        env:
-          GH_TOKEN: ${{ steps.app-token.outputs.token }}
-        run: |
-          if [ "${{ inputs.version_type }}" = "latest" ]; then
-            # Get the latest semver tag (v*.*.*)
-            VERSION=$(gh api repos/HeliumEdu/frontend/tags --jq '[.[] | select(.name | test("^[0-9]+\\.[0-9]+\\.[0-9]+\\+[0-9]+$"))][0].name')
-
-            if [ -z "$VERSION" ] || [ "$VERSION" = "null" ]; then
-              echo "Error: No version tags found in HeliumEdu/frontend"
-              exit 1
-            fi
-
-            echo "Using latest version: ${VERSION}"
-          else
-            VERSION="${{ inputs.specific_version }}"
-
-            if [ -z "$VERSION" ]; then
-              echo "Error: specific_version is required when version_type is 'specific'"
-              exit 1
-            fi
-
-            echo "Using specific version: ${VERSION}"
-          fi
-
-          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+        uses: HeliumEdu/.github/actions/determine-version@main
+        with:
+          token: ${{ steps.app-token.outputs.token }}
+          repo: frontend
+          specific-version: ${{ inputs.version_type != 'latest' && inputs.specific_version || '' }}
+          version-regex: '^[0-9]+\.[0-9]+\.[0-9]+\+[0-9]+$'
 
       - name: Find workflow run with matching artifact
         id: find_run
@@ -322,31 +303,12 @@ jobs:
       - name: Determine version to deploy
         id: version
         if: ${{ inputs.artifact_run_id == '' }}
-        env:
-          GH_TOKEN: ${{ steps.app-token.outputs.token }}
-        run: |
-          if [ "${{ inputs.version_type }}" = "latest" ]; then
-            # Get the latest semver tag (v*.*.*)
-            VERSION=$(gh api repos/HeliumEdu/frontend/tags --jq '[.[] | select(.name | test("^[0-9]+\\.[0-9]+\\.[0-9]+\\+[0-9]+$"))][0].name')
-
-            if [ -z "$VERSION" ] || [ "$VERSION" = "null" ]; then
-              echo "Error: No version tags found in HeliumEdu/frontend"
-              exit 1
-            fi
-
-            echo "Using latest version: ${VERSION}"
-          else
-            VERSION="${{ inputs.specific_version }}"
-
-            if [ -z "$VERSION" ]; then
-              echo "Error: specific_version is required when version_type is 'specific'"
-              exit 1
-            fi
-
-            echo "Using specific version: ${VERSION}"
-          fi
-
-          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+        uses: HeliumEdu/.github/actions/determine-version@main
+        with:
+          token: ${{ steps.app-token.outputs.token }}
+          repo: frontend
+          specific-version: ${{ inputs.version_type != 'latest' && inputs.specific_version || '' }}
+          version-regex: '^[0-9]+\.[0-9]+\.[0-9]+\+[0-9]+$'
 
       - name: Find workflow run with matching artifact
         id: find_run
@@ -478,31 +440,12 @@ jobs:
       - name: Determine version to deploy
         id: version
         if: ${{ inputs.artifact_run_id == '' }}
-        env:
-          GH_TOKEN: ${{ steps.app-token.outputs.token }}
-        run: |
-          if [ "${{ inputs.version_type }}" = "latest" ]; then
-            # Get the latest semver tag (v*.*.*)
-            VERSION=$(gh api repos/HeliumEdu/frontend/tags --jq '[.[] | select(.name | test("^[0-9]+\\.[0-9]+\\.[0-9]+\\+[0-9]+$"))][0].name')
-
-            if [ -z "$VERSION" ] || [ "$VERSION" = "null" ]; then
-              echo "Error: No version tags found in HeliumEdu/frontend"
-              exit 1
-            fi
-
-            echo "Using latest version: ${VERSION}"
-          else
-            VERSION="${{ inputs.specific_version }}"
-
-            if [ -z "$VERSION" ]; then
-              echo "Error: specific_version is required when version_type is 'specific'"
-              exit 1
-            fi
-
-            echo "Using specific version: ${VERSION}"
-          fi
-
-          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+        uses: HeliumEdu/.github/actions/determine-version@main
+        with:
+          token: ${{ steps.app-token.outputs.token }}
+          repo: frontend
+          specific-version: ${{ inputs.version_type != 'latest' && inputs.specific_version || '' }}
+          version-regex: '^[0-9]+\.[0-9]+\.[0-9]+\+[0-9]+$'
 
       - name: Find workflow run with matching artifact
         id: find_run
