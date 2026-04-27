@@ -137,6 +137,7 @@ class _NavigationShellState extends State<NavigationShell> {
   final Map<NavigationPage, Widget> _screenCache = {};
   final InheritableProvidersNotifier _inheritableProvidersNotifier =
       InheritableProvidersNotifier();
+  bool _isCheckingGettingStarted = false;
   bool _isShowingGettingStarted = false;
   bool _isLoggingOut = false;
 
@@ -324,10 +325,16 @@ class _NavigationShellState extends State<NavigationShell> {
   }
 
   Future<void> _checkGettingStartedDialog() async {
-    if (_isShowingGettingStarted || !mounted || _isLoggingOut) return;
+    if (_isCheckingGettingStarted ||
+        _isShowingGettingStarted ||
+        !mounted ||
+        _isLoggingOut) {
+      return;
+    }
 
+    _isCheckingGettingStarted = true;
     try {
-      final settings = await DioClient().getSettings();
+      final settings = await DioClient().fetchSettings();
       final showGettingStarted =
           settings?.showGettingStarted ??
           FallbackConstants.defaultShowGettingStarted;
@@ -336,6 +343,8 @@ class _NavigationShellState extends State<NavigationShell> {
       await _showGettingStartedDialogSafely();
     } catch (e) {
       _log.warning('Failed to check getting started dialog state: $e');
+    } finally {
+      _isCheckingGettingStarted = false;
     }
   }
 
@@ -377,7 +386,9 @@ class _NavigationShellState extends State<NavigationShell> {
       if (hasDeepLinkParams) return;
 
       if (showGettingStarted) {
-        await _showGettingStartedDialogSafely();
+        // Re-check from the server: the value captured above may be stale if
+        // the app was backgrounded between the initial fetch and this callback.
+        await _checkGettingStartedDialog();
         if (!mounted || _isLoggingOut) return;
       }
 
