@@ -731,10 +731,10 @@ packages:
     dependency: "direct main"
     description:
       name: go_router
-      sha256: "5540e4a3f416dd4a93458257b908eb88353cbd0fb5b0a3d1bd7d849ba1e88735"
+      sha256: "08b742eef4f71c9df5af543751cd0b7f1c679c4088488f4223ecaddc1a813b79"
       url: "https://pub.dev"
     source: hosted
-    version: "17.2.1"
+    version: "17.2.2"
   google_fonts:
     dependency: "direct main"
     description:
@@ -1384,26 +1384,26 @@ packages:
     dependency: transitive
     description:
       name: sentry
-      sha256: "8c07a413ce5691db5b299024498f1ad6376e015f61b6d8fc8819b042f65df6c7"
+      sha256: "1f78300740739ff4b4920802687879231554350eab73eb229778f463aabda440"
       url: "https://pub.dev"
     source: hosted
-    version: "9.18.0"
+    version: "9.19.0"
   sentry_dio:
     dependency: "direct main"
     description:
       name: sentry_dio
-      sha256: "7b98b8edc250d48c21ec6670d442ca94ff37a21575aa87941e45f15f52967a0d"
+      sha256: eb7260258f18c099f096923d86453d37b9677514953b0b75e163394dd072a4a3
       url: "https://pub.dev"
     source: hosted
-    version: "9.18.0"
+    version: "9.19.0"
   sentry_flutter:
     dependency: "direct main"
     description:
       name: sentry_flutter
-      sha256: "0c98ca79261325806c4eccc47274910306e2d914dfefc598650819677ce2b484"
+      sha256: "168bbb120f7684dee6c0e100817f56ee1925bc2eb7fa55a71253337640c7e241"
       url: "https://pub.dev"
     source: hosted
-    version: "9.18.0"
+    version: "9.19.0"
   share_plus:
     dependency: "direct main"
     description:
@@ -1581,58 +1581,58 @@ packages:
     dependency: "direct main"
     description:
       name: syncfusion_flutter_calendar
-      sha256: "777a5f1b749166b0009a9e1d29a1e980d832d85da246800bc2cee0696af0376c"
+      sha256: "4df7e36b1a325b953b32d4cc638ac3e3a71de897210674ad317771cb279907f1"
       url: "https://pub.dev"
     source: hosted
-    version: "33.1.49"
+    version: "33.2.3"
   syncfusion_flutter_charts:
     dependency: "direct main"
     description:
       name: syncfusion_flutter_charts
-      sha256: "45040046af3511608176f93fab462b0d42fcd457b7eda3fb72260fe4ac763d25"
+      sha256: ed491bd31ef2ab3549982920c24d54b1e3aa8f83f5e70c9e565f31318f650e26
       url: "https://pub.dev"
     source: hosted
-    version: "33.1.49"
+    version: "33.2.3"
   syncfusion_flutter_core:
     dependency: "direct main"
     description:
       name: syncfusion_flutter_core
-      sha256: "06ca4169ed9fc3fc881a984772ac4c6ab4626a69770c073ed76b25defb2ac55c"
+      sha256: "799dd6683b0902491b4b194cfaa5b5a100f87205db083923dbb5f77ff6f509e4"
       url: "https://pub.dev"
     source: hosted
-    version: "33.1.49"
+    version: "33.2.3"
   syncfusion_flutter_datagrid:
     dependency: "direct main"
     description:
       name: syncfusion_flutter_datagrid
-      sha256: "678aaf5ae16e9534e2e1001a0c6b19f166fc31c7d0e517eb2591a072cd9c79b5"
+      sha256: "3f0842fe7c62833f847b5c7f2c66954efc97fb3c5439f15885c20808a87ccccd"
       url: "https://pub.dev"
     source: hosted
-    version: "33.1.49"
+    version: "33.2.3"
   syncfusion_flutter_datepicker:
     dependency: transitive
     description:
       name: syncfusion_flutter_datepicker
-      sha256: eb817707209a39657fd70669fb374344f06060ef4fd86b87026b600859c803d6
+      sha256: a37f5c16453ab8a4ef76fbe937de81724c52c8319e0fa9e2e5e5f257a6cf0599
       url: "https://pub.dev"
     source: hosted
-    version: "33.1.49"
+    version: "33.2.3"
   syncfusion_flutter_gauges:
     dependency: "direct main"
     description:
       name: syncfusion_flutter_gauges
-      sha256: "4441a128689ce887f41b996a96f21f0757e9198d0cdd030909a8d1664df287ed"
+      sha256: a53b0346f42c122760162237880555d9c19a81a8d7b09e90451378653b4912ac
       url: "https://pub.dev"
     source: hosted
-    version: "33.1.49"
+    version: "33.2.3"
   syncfusion_localizations:
     dependency: "direct main"
     description:
       name: syncfusion_localizations
-      sha256: c6f26847106dccf5cad978b4d5cee598628aac0acd6b8db2d9ae1cc2e70c9c3f
+      sha256: bfb4cd150a03c23d913a75a6e7cccd2dadcc61cfa71529bc10a3b90b6d23c28d
       url: "https://pub.dev"
     source: hosted
-    version: "33.1.49"
+    version: "33.2.3"
   term_glyph:
     dependency: transitive
     description:

@@ -16,8 +16,8 @@ dependencies:
     sdk: flutter
   web: 1.1.1
   logging: 1.3.0
-  sentry_flutter: 9.18.0
-  sentry_dio: 9.18.0
+  sentry_flutter: 9.19.0
+  sentry_dio: 9.19.0
   meta: 1.17.0
   collection: 1.19.1
   google_fonts: 8.0.2
@@ -42,12 +42,12 @@ dependencies:
   flutter_timezone: 5.0.2
   intl: 0.20.2
   flutter_local_notifications: 21.0.0
-  syncfusion_flutter_core: 33.1.49
-  syncfusion_flutter_calendar: 33.1.49
-  syncfusion_flutter_charts: 33.1.49
-  syncfusion_flutter_gauges: 33.1.49
-  syncfusion_flutter_datagrid: 33.1.49
-  syncfusion_localizations: 33.1.49
+  syncfusion_flutter_core: 33.2.3
+  syncfusion_flutter_calendar: 33.2.3
+  syncfusion_flutter_charts: 33.2.3
+  syncfusion_flutter_gauges: 33.2.3
+  syncfusion_flutter_datagrid: 33.2.3
+  syncfusion_localizations: 33.2.3
   flutter_quill: 11.5.0
   flutter_quill_to_pdf: ^2.3.9
   pdf: ^3.12.0
@@ -59,7 +59,7 @@ dependencies:
   in_app_review: 2.0.11
   url_launcher: 6.3.2
   share_plus: 12.0.2
-  go_router: 17.2.1
+  go_router: 17.2.2
   dio_smart_retry: 7.0.1
   html: 0.15.6
 
