@@ -28,6 +28,7 @@ import 'package:heliumapp/presentation/navigation/shell/navigation_shell_title_s
     as title_helper;
 import 'package:heliumapp/presentation/ui/components/settings_button.dart';
 import 'package:heliumapp/presentation/ui/layout/page_header.dart';
+import 'package:heliumapp/utils/app_assets.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
@@ -204,6 +205,7 @@ class _NavigationShellState extends State<NavigationShell> {
                     onDestinationSelected: (index) =>
                         _onDestinationSelected(context, index),
                     labelType: NavigationRailLabelType.all,
+                    leading: _buildLeading(context),
                     destinations: NavigationPage.values
                         .map(
                           (page) => NavigationRailDestination(
@@ -425,6 +427,16 @@ class _NavigationShellState extends State<NavigationShell> {
   /// routes like Settings/Notifications for control of the browser title.
   void _updateBrowserTitle(NavigationPage page) {
     title_helper.setTitle('${page.label} | ${AppConstants.appName}');
+  }
+
+  Widget _buildLeading(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 8, bottom: 8),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(7),
+        child: Image.asset(AppAssets.iconImagePath, width: 32, height: 32),
+      ),
+    );
   }
 
   Widget? _buildTrailing(BuildContext context, double availableHeight) {
