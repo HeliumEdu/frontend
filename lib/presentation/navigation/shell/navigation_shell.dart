@@ -236,6 +236,7 @@ class _NavigationShellState extends State<NavigationShell> {
                             listenable: _inheritableProvidersNotifier,
                             builder: (context, _) => PageHeader(
                               title: currentPage.label,
+                              icon: currentPage.icon,
                               screenType: ScreenType.page,
                               inheritableProviders:
                                   _inheritableProvidersNotifier.providers,
