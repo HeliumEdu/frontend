@@ -31,6 +31,7 @@ class CacheService with WidgetsBindingObserver {
   static const inactivityThreshold = Duration(minutes: 10);
 
   DateTime? _pausedAt;
+  Future<void> Function()? onInactivityResume;
   final List<VoidCallback> _onInactivityResumeCallbacks = [];
 
   CacheService() {
@@ -115,7 +116,12 @@ class CacheService with WidgetsBindingObserver {
           'App resumed after ${inactiveDuration.inMinutes} minutes, invalidating cache',
         );
         invalidateAll();
-        _notifyInactivityResume();
+        final resume = onInactivityResume;
+        if (resume != null) {
+          resume().whenComplete(_notifyInactivityResume);
+        } else {
+          _notifyInactivityResume();
+        }
       }
       _pausedAt = null;
     }

@@ -296,6 +296,7 @@ class DioClient {
     );
 
     _cacheService = CacheService();
+    _cacheService.onInactivityResume = () => fetchSettings();
     _dio.interceptors.add(_cacheService.interceptor);
     _dio.interceptors.add(_cacheService.loggingInterceptor);
 
