@@ -73,7 +73,7 @@ on:
     outputs:
       version:
         description: "Released version"
-        value: ${{ jobs.bump-version.outputs.version }}
+        value: ${{ jobs.prereq.outputs.version }}
 
 permissions:
   contents: write
@@ -82,47 +82,32 @@ concurrency:
   group: helium-frontend-release
 
 jobs:
-  create-release-branch:
-    name: Create Release Branch
-    runs-on: ubuntu-latest
-    outputs:
-      branch_name: ${{ steps.create_branch.outputs.branch_name }}
-      base_sha: ${{ steps.create_branch.outputs.base_sha }}
-
-    steps:
-      - name: Generate GitHub App token
-        id: app-token
-        uses: actions/create-github-app-token@v3
-        with:
-          client-id: ${{ secrets.HELIUM_BOT_APP_ID }}
-          private-key: ${{ secrets.HELIUM_BOT_PRIVATE_KEY }}
-          skip-token-revoke: true
-
-      - uses: actions/checkout@v6
-        with:
-          token: ${{ steps.app-token.outputs.token }}
-          ref: ${{ github.sha }}
-
-      - name: Create and push release branch
-        id: create_branch
-        run: |
-          BRANCH_NAME="release/${{ github.run_id }}-${{ github.run_attempt }}"
-          BASE_SHA="$(git rev-parse HEAD)"
-
-          git push origin "HEAD:refs/heads/${BRANCH_NAME}"
-
-          echo "branch_name=${BRANCH_NAME}" >> "$GITHUB_OUTPUT"
-          echo "base_sha=${BASE_SHA}" >> "$GITHUB_OUTPUT"
+  prereq:
+    uses: HeliumEdu/.github/.github/workflows/release-prereq.yml@main
+    with:
+      bump_type: ${{ inputs.bump_type }}
+      bump_command: |
+        CURRENT_VERSION=$(grep '^version:' pubspec.yaml | sed 's/version: //; s/[[:space:]]//g')
+        CURRENT_BUILD="${CURRENT_VERSION##*+}"
+        NEW_BUILD=$((CURRENT_BUILD + 1))
+        NEW_VERSION="${SEED_VERSION}+${NEW_BUILD}"
+        sed -i "s/^version: .*/version: ${NEW_VERSION}/" pubspec.yaml
+      read_version_command: |
+        grep '^version:' pubspec.yaml | sed 's/version: //; s/[[:space:]]//g'
+      repo_slug: HeliumEdu/frontend
+    secrets:
+      bot_app_id: ${{ secrets.HELIUM_BOT_APP_ID }}
+      bot_private_key: ${{ secrets.HELIUM_BOT_PRIVATE_KEY }}
 
   test:
     name: Test
-    needs: [create-release-branch]
+    needs: [prereq]
     runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v6
         with:
-          ref: ${{ needs['create-release-branch'].outputs.base_sha }}
+          ref: ${{ needs.prereq.outputs.squash_commit_sha }}
 
       - name: Setup Java 17
         uses: actions/setup-java@v5
@@ -156,7 +141,7 @@ jobs:
 
   integration-test:
     name: Integration Test
-    needs: [create-release-branch]
+    needs: [prereq]
     if: ${{ inputs.run_integration_tests == true || inputs.run_integration_tests == 'true' }}
     uses: ./.github/workflows/integration.yml
     with:
@@ -164,181 +149,16 @@ jobs:
       caller: release
     secrets: inherit
 
-  refresh-lockfiles:
-    name: Refresh Lockfiles
-    needs: [create-release-branch]
-    uses: ./.github/workflows/refresh-lockfiles.yml
-    with:
-      ref: ${{ needs['create-release-branch'].outputs.branch_name }}
-      skip_ci: true
-    secrets: inherit
-
-  bump-version:
-    name: Bump Version
-    needs: [create-release-branch, test, integration-test, refresh-lockfiles]
-    if: "!cancelled() && needs.test.result == 'success' && needs['refresh-lockfiles'].result == 'success' && (needs['integration-test'].result == 'success' || needs['integration-test'].result == 'skipped')"
-    runs-on: ubuntu-latest
-    outputs:
-      version: ${{ steps.get_version.outputs.version }}
-      semver: ${{ steps.get_version.outputs.semver }}
-      build_number: ${{ steps.get_version.outputs.build_number }}
-      commit_sha: ${{ steps.get_commit.outputs.commit_sha }}
-
-    steps:
-      - name: Generate GitHub App token
-        id: app-token
-        uses: actions/create-github-app-token@v3
-        with:
-          client-id: ${{ secrets.HELIUM_BOT_APP_ID }}
-          private-key: ${{ secrets.HELIUM_BOT_PRIVATE_KEY }}
-          skip-token-revoke: true
-
-      - uses: actions/checkout@v6
-        with:
-          token: ${{ steps.app-token.outputs.token }}
-          ref: ${{ needs['refresh-lockfiles'].outputs.commit_sha }}
-
-      - name: Read Flutter version
-        id: flutter-version
-        run: echo "version=$(tr -d '[:space:]' < .flutter-version)" >> $GITHUB_OUTPUT
-
-      - name: Setup Flutter SDK
-        uses: flutter-actions/setup-flutter@v4
-        with:
-          channel: stable
-          version: ${{ steps.flutter-version.outputs.version }}
-          cache: true
-
-      - name: Cache pub dependencies
-        uses: actions/cache@v5
-        with:
-          path: ~/.pub-cache
-          key: ${{ runner.os }}-pub-${{ hashFiles('**/pubspec.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-pub-
-
-      - name: Install dependencies
-        run: make install
-
-      - name: Bump version
-        run: |
-          dart run cider bump build
-          if [ "${{ inputs.bump_type }}" != "build" ]; then
-            dart run cider bump ${{ inputs.bump_type }} --keep-build
-          fi
-
-      - name: Get GitHub App bot user ID
-        id: get-bot-user-id
-        env:
-          GH_TOKEN: ${{ steps.app-token.outputs.token }}
-        run: |
-          echo "user-id=$(gh api "/users/${{ steps.app-token.outputs.app-slug }}[bot]" --jq .id)" >> "$GITHUB_OUTPUT"
-
-      - name: Commit version bump
-        run: |
-          git config --global user.name "${{ steps.app-token.outputs.app-slug }}[bot]"
-          git config --global user.email "${{ steps.get-bot-user-id.outputs.user-id }}+${{ steps.app-token.outputs.app-slug }}[bot]@users.noreply.github.com"
-
-          git add pubspec.yaml
-
-          git commit -m "[skip build] Bump version to $(grep '^version:' pubspec.yaml | sed 's/version: //' | tr -d ' \r\n')"
-
-          git push origin "HEAD:refs/heads/${{ needs['create-release-branch'].outputs.branch_name }}"
-
-      - name: Get version from pubspec.yaml
-        id: get_version
-        run: |
-          VERSION=$(grep '^version:' pubspec.yaml | sed 's/version: //' | tr -d ' \r\n')
-          SEMVER="${VERSION%%+*}"
-          BUILD_NUMBER="${VERSION##*+}"
-
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
-          echo "semver=$SEMVER" >> $GITHUB_OUTPUT
-          echo "build_number=$BUILD_NUMBER" >> $GITHUB_OUTPUT
-          echo "Version: $VERSION"
-
-      - name: Get commit SHA
-        id: get_commit
-        run: |
-          COMMIT_SHA=$(git rev-parse HEAD)
-          echo "commit_sha=$COMMIT_SHA" >> $GITHUB_OUTPUT
-          echo "Commit SHA: $COMMIT_SHA"
-
-  merge-release-branch:
-    name: Merge Release Branch to Main
-    needs: [create-release-branch, bump-version]
-    if: "!cancelled() && needs['create-release-branch'].result == 'success' && needs['bump-version'].result == 'success'"
-    runs-on: ubuntu-latest
-    outputs:
-      merged_commit_sha: ${{ steps.merge.outputs.merged_commit_sha }}
-
-    steps:
-      - name: Generate GitHub App token
-        id: app-token
-        uses: actions/create-github-app-token@v3
-        with:
-          client-id: ${{ secrets.HELIUM_BOT_APP_ID }}
-          private-key: ${{ secrets.HELIUM_BOT_PRIVATE_KEY }}
-          skip-token-revoke: true
-
-      - uses: actions/checkout@v6
-        with:
-          token: ${{ steps.app-token.outputs.token }}
-          ref: main
-          fetch-depth: 0
-
-      - name: Get GitHub App bot user ID
-        id: get-bot-user-id
-        env:
-          GH_TOKEN: ${{ steps.app-token.outputs.token }}
-        run: |
-          echo "user-id=$(gh api "/users/${{ steps.app-token.outputs.app-slug }}[bot]" --jq .id)" >> "$GITHUB_OUTPUT"
-
-      - name: Merge release branch
-        id: merge
-        env:
-          RELEASE_BRANCH: ${{ needs['create-release-branch'].outputs.branch_name }}
-        run: |
-          git config --global user.name "${{ steps.app-token.outputs.app-slug }}[bot]"
-          git config --global user.email "${{ steps.get-bot-user-id.outputs.user-id }}+${{ steps.app-token.outputs.app-slug }}[bot]@users.noreply.github.com"
-
-          git fetch origin "$RELEASE_BRANCH" main
-          git checkout -B main origin/main
-          git merge --no-ff -m "[skip build] Merge release branch ${RELEASE_BRANCH} into main" "origin/$RELEASE_BRANCH"
-          git push origin main
-
-          echo "merged_commit_sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
-
-      - name: Cleanup release branch
-        if: success()
-        env:
-          RELEASE_BRANCH: ${{ needs['create-release-branch'].outputs.branch_name }}
-        run: |
-          git push origin --delete "$RELEASE_BRANCH" || true
-
-      - name: Merge main to develop
-        if: success()
-        run: |
-          git fetch origin develop
-          git checkout -B develop origin/develop
-          if git merge --no-ff -m "[skip build] Merge main into develop" origin/main; then
-            git push origin develop
-            echo "Successfully merged main to develop"
-          else
-            echo "::warning::Merge conflict detected when merging main to develop. Manual merge required."
-            git merge --abort
-          fi
-
   build-android-release:
     name: Build Android Release AAB
-    needs: [merge-release-branch, bump-version]
-    if: "!cancelled() && needs['merge-release-branch'].result == 'success' && needs['bump-version'].result == 'success'"
+    needs: [prereq, test, integration-test]
+    if: "!cancelled() && needs.prereq.result == 'success' && needs.test.result == 'success' && (needs['integration-test'].result == 'success' || needs['integration-test'].result == 'skipped')"
     runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v6
         with:
-          ref: ${{ needs['merge-release-branch'].outputs.merged_commit_sha }}
+          ref: ${{ needs.prereq.outputs.squash_commit_sha }}
 
       - name: Setup Java 17
         uses: actions/setup-java@v5
@@ -380,7 +200,7 @@ jobs:
           SIGNING_KEY_PASSWORD: ${{ secrets.ANDROID_SIGNING_KEY_PASSWORD }}
           SIGNING_STORE_FILE: ${{ github.workspace }}/android/helium-release-key.jks
           SIGNING_STORE_PASSWORD: ${{ secrets.ANDROID_SIGNING_STORE_PASSWORD }}
-          RELEASE_VERSION: ${{ needs['bump-version'].outputs.version }}
+          RELEASE_VERSION: ${{ needs.prereq.outputs.version }}
         run: |
           SENTRY_DIST="${RELEASE_VERSION##*+}"
           make build-android-release RELEASE_VERSION="$RELEASE_VERSION" SENTRY_DIST="$SENTRY_DIST"
@@ -395,7 +215,7 @@ jobs:
       - name: Upload AAB artifact
         uses: actions/upload-artifact@v7
         with:
-          name: helium-${{ needs['bump-version'].outputs.version }}-android.aab
+          name: helium-${{ needs.prereq.outputs.version }}-android.aab
           path: build/app/outputs/bundle/release/app-release.aab
           retention-days: 30
 
@@ -405,14 +225,14 @@ jobs:
 
   build-ios-release:
     name: Build iOS Release IPA
-    needs: [merge-release-branch, bump-version]
-    if: "!cancelled() && needs['merge-release-branch'].result == 'success' && needs['bump-version'].result == 'success'"
+    needs: [prereq, test, integration-test]
+    if: "!cancelled() && needs.prereq.result == 'success' && needs.test.result == 'success' && (needs['integration-test'].result == 'success' || needs['integration-test'].result == 'skipped')"
     runs-on: macos-latest
 
     steps:
       - uses: actions/checkout@v6
         with:
-          ref: ${{ needs['merge-release-branch'].outputs.merged_commit_sha }}
+          ref: ${{ needs.prereq.outputs.squash_commit_sha }}
 
       - name: Select latest stable Xcode
         run: |
@@ -445,19 +265,15 @@ jobs:
           P12_PASSWORD: ${{ secrets.IOS_P12_PASSWORD }}
           KEYCHAIN_PASSWORD: ${{ secrets.IOS_KEYCHAIN_PASSWORD }}
         run: |
-          # Create variables
           CERTIFICATE_PATH=$RUNNER_TEMP/build_certificate.p12
           KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
 
-          # Import certificate from secrets
           echo -n "$BUILD_CERTIFICATE_BASE64" | base64 --decode -o $CERTIFICATE_PATH
 
-          # Create temporary keychain
           security create-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
           security set-keychain-settings -lut 21600 $KEYCHAIN_PATH
           security unlock-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
 
-          # Import certificate to keychain
           security import $CERTIFICATE_PATH -P "$P12_PASSWORD" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
           security list-keychain -d user -s $KEYCHAIN_PATH
 
@@ -465,26 +281,19 @@ jobs:
         env:
           PROVISIONING_PROFILE_BASE64: ${{ secrets.IOS_PROVISIONING_PROFILE_BASE64 }}
         run: |
-          # Create variables
           PP_PATH=$RUNNER_TEMP/build_pp.mobileprovision
 
-          # Import provisioning profile from secrets
           echo -n "$PROVISIONING_PROFILE_BASE64" | base64 --decode -o $PP_PATH
 
-          # Extract UUID from provisioning profile
           PP_UUID=$(/usr/libexec/PlistBuddy -c "Print UUID" /dev/stdin <<< $(/usr/bin/security cms -D -i $PP_PATH))
           echo "Provisioning Profile UUID: $PP_UUID"
 
-          # Copy to the correct location with UUID as filename (required by Xcode)
           mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
           cp $PP_PATH ~/Library/MobileDevice/Provisioning\ Profiles/$PP_UUID.mobileprovision
 
       - name: Configure manual signing
         run: |
-          # Update Xcode project to use manual signing for Release
           sed -i '' 's/"iPhone Developer"/"iPhone Distribution"/g' ios/Runner.xcodeproj/project.pbxproj
-
-          # Inject manual signing settings alongside DEVELOPMENT_TEAM
           sed -i '' 's/DEVELOPMENT_TEAM = SHY4MCK827;/CODE_SIGN_STYLE = Manual; DEVELOPMENT_TEAM = SHY4MCK827; PROVISIONING_PROFILE_SPECIFIER = "Helium";/g' ios/Runner.xcodeproj/project.pbxproj
 
       - name: Clean build artifacts
@@ -493,7 +302,7 @@ jobs:
       - name: Build iOS release IPA
         env:
           COCOAPODS_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          RELEASE_VERSION: ${{ needs['bump-version'].outputs.version }}
+          RELEASE_VERSION: ${{ needs.prereq.outputs.version }}
         run: |
           SENTRY_DIST="${RELEASE_VERSION##*+}"
           make build-ios-release RELEASE_VERSION="$RELEASE_VERSION" SENTRY_DIST="$SENTRY_DIST"
@@ -508,7 +317,7 @@ jobs:
       - name: Upload IPA artifact
         uses: actions/upload-artifact@v7
         with:
-          name: helium-${{ needs['bump-version'].outputs.version }}-ios.ipa
+          name: helium-${{ needs.prereq.outputs.version }}-ios.ipa
           path: build/ios/ipa/Helium.ipa
           retention-days: 30
 
@@ -520,14 +329,14 @@ jobs:
 
   build-web-release:
     name: Build Web Release Bundle
-    needs: [merge-release-branch, bump-version]
-    if: "!cancelled() && needs['merge-release-branch'].result == 'success' && needs['bump-version'].result == 'success'"
+    needs: [prereq, test, integration-test]
+    if: "!cancelled() && needs.prereq.result == 'success' && needs.test.result == 'success' && (needs['integration-test'].result == 'success' || needs['integration-test'].result == 'skipped')"
     runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v6
         with:
-          ref: ${{ needs['merge-release-branch'].outputs.merged_commit_sha }}
+          ref: ${{ needs.prereq.outputs.squash_commit_sha }}
 
       - name: Read Flutter version
         id: flutter-version
@@ -553,7 +362,7 @@ jobs:
 
       - name: Build web release bundle
         env:
-          RELEASE_VERSION: ${{ needs['bump-version'].outputs.version }}
+          RELEASE_VERSION: ${{ needs.prereq.outputs.version }}
         run: |
           SENTRY_DIST="${RELEASE_VERSION##*+}"
           make build-web RELEASE_VERSION="$RELEASE_VERSION" SENTRY_DIST="$SENTRY_DIST"
@@ -561,7 +370,7 @@ jobs:
       - name: Upload source maps to Sentry
         env:
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
-          RELEASE_VERSION: ${{ needs['bump-version'].outputs.version }}
+          RELEASE_VERSION: ${{ needs.prereq.outputs.version }}
         run: |
           npm install -g @sentry/cli
           SENTRY_DIST="${RELEASE_VERSION##*+}"
@@ -578,28 +387,28 @@ jobs:
       - name: Upload web artifact
         uses: actions/upload-artifact@v7
         with:
-          name: helium-${{ needs['bump-version'].outputs.version }}-web
+          name: helium-${{ needs.prereq.outputs.version }}-web
           path: build/web
           include-hidden-files: true
           retention-days: 30
 
   build-and-publish-web:
     name: Build and Publish Web Containers
-    needs: [merge-release-branch, bump-version]
-    if: "!cancelled() && needs['merge-release-branch'].result == 'success' && needs['bump-version'].result == 'success'"
+    needs: [prereq, test, integration-test]
+    if: "!cancelled() && needs.prereq.result == 'success' && needs.test.result == 'success' && (needs['integration-test'].result == 'success' || needs['integration-test'].result == 'skipped')"
     runs-on: ubuntu-latest
 
     env:
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       PLATFORM: amd64
-      TAG_VERSION: ${{ needs['bump-version'].outputs.version }}
+      TAG_VERSION: ${{ needs.prereq.outputs.version }}
       ENVIRONMENT: prod
 
     steps:
       - uses: actions/checkout@v6
         with:
-          ref: ${{ needs['merge-release-branch'].outputs.merged_commit_sha }}
+          ref: ${{ needs.prereq.outputs.squash_commit_sha }}
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v4
@@ -610,15 +419,15 @@ jobs:
 
       - name: Build and publish web containers
         env:
-          RELEASE_VERSION: ${{ needs['bump-version'].outputs.version }}
+          RELEASE_VERSION: ${{ needs.prereq.outputs.version }}
         run: |
           SENTRY_DIST="${RELEASE_VERSION##*+}"
           make publish RELEASE_VERSION="$RELEASE_VERSION" SENTRY_DIST="$SENTRY_DIST"
 
   create-release-tag:
     name: Create Release Tag
-    needs: [merge-release-branch, bump-version, build-android-release, build-ios-release, build-web-release, build-and-publish-web]
-    if: "!cancelled() && needs['merge-release-branch'].result == 'success' && needs['bump-version'].result == 'success' && (needs['build-android-release'].result == 'success' || needs['build-android-release'].result == 'skipped') && (needs['build-ios-release'].result == 'success' || needs['build-ios-release'].result == 'skipped') && (needs['build-web-release'].result == 'success' || needs['build-web-release'].result == 'skipped') && (needs['build-and-publish-web'].result == 'success' || needs['build-and-publish-web'].result == 'skipped')"
+    needs: [prereq, build-android-release, build-ios-release, build-web-release, build-and-publish-web]
+    if: "!cancelled() && needs.prereq.result == 'success' && needs['build-android-release'].result == 'success' && needs['build-ios-release'].result == 'success' && needs['build-web-release'].result == 'success' && needs['build-and-publish-web'].result == 'success'"
     runs-on: ubuntu-latest
 
     steps:
@@ -633,11 +442,8 @@ jobs:
       - uses: actions/checkout@v6
         with:
           token: ${{ steps.app-token.outputs.token }}
+          ref: ${{ needs.prereq.outputs.squash_commit_sha }}
           fetch-depth: 0
-
-      - name: Display release info
-        run: |
-          echo "### Release ${{ needs['bump-version'].outputs.version }}" >> $GITHUB_STEP_SUMMARY
 
       - name: Get GitHub App bot user ID
         id: get-bot-user-id
@@ -648,29 +454,24 @@ jobs:
 
       - name: Create and push tag
         env:
-          FULL_VERSION: ${{ needs['bump-version'].outputs.version }}
-          COMMIT_SHA: ${{ needs['merge-release-branch'].outputs.merged_commit_sha }}
+          FULL_VERSION: ${{ needs.prereq.outputs.version }}
+          COMMIT_SHA: ${{ needs.prereq.outputs.squash_commit_sha }}
         run: |
           git config --global user.name "${{ steps.app-token.outputs.app-slug }}[bot]"
           git config --global user.email "${{ steps.get-bot-user-id.outputs.user-id }}+${{ steps.app-token.outputs.app-slug }}[bot]@users.noreply.github.com"
 
-          # Fetch latest changes to ensure we have the merge commit
-          git fetch origin main
-
-          # Create full version tag (1.0.29+29) on the specific commit
           if git rev-parse "$FULL_VERSION" >/dev/null 2>&1; then
             echo "Tag $FULL_VERSION already exists, skipping"
           else
             echo "Creating tag $FULL_VERSION on commit $COMMIT_SHA"
             git tag -a "$FULL_VERSION" -m "Release $FULL_VERSION" "$COMMIT_SHA"
+            git push origin "$FULL_VERSION"
           fi
-
-          git push origin "$FULL_VERSION"
 
       - name: Create Sentry release
         env:
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
-          VERSION: ${{ needs['bump-version'].outputs.version }}
+          VERSION: ${{ needs.prereq.outputs.version }}
         run: |
           npm install -g @sentry/cli
           SENTRY_PROPERTIES=sentry.properties sentry-cli releases new "$VERSION"
@@ -679,8 +480,8 @@ jobs:
 
   deploy:
     name: Trigger Deploy Workflow
-    needs: [create-release-tag, bump-version]
-    if: "!cancelled() && (inputs.trigger_deploy_after_release == true || inputs.trigger_deploy_after_release == 'true') && needs['create-release-tag'].result == 'success' && needs['bump-version'].result == 'success'"
+    needs: [prereq, create-release-tag]
+    if: "!cancelled() && (inputs.trigger_deploy_after_release == true || inputs.trigger_deploy_after_release == 'true') && needs.prereq.result == 'success' && needs['create-release-tag'].result == 'success'"
     runs-on: ubuntu-latest
     steps:
       - name: Generate GitHub App token
@@ -694,7 +495,7 @@ jobs:
       - name: Trigger deploy workflow
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
-          VERSION: ${{ needs['bump-version'].outputs.version }}
+          VERSION: ${{ needs.prereq.outputs.version }}
           ENVIRONMENT: ${{ inputs.environment }}
           PLATFORMS: ${{ inputs.platforms }}
         run: |
@@ -707,7 +508,7 @@ jobs:
 
       - name: Deployment trigger summary
         env:
-          VERSION: ${{ needs['bump-version'].outputs.version }}
+          VERSION: ${{ needs.prereq.outputs.version }}
           ENVIRONMENT: ${{ inputs.environment }}
           PLATFORMS: ${{ inputs.platforms }}
         run: |
@@ -716,3 +517,11 @@ jobs:
           echo "- **Version**: $VERSION" >> $GITHUB_STEP_SUMMARY
           echo "- **Environment**: $ENVIRONMENT" >> $GITHUB_STEP_SUMMARY
           echo "- **Platforms**: $PLATFORMS" >> $GITHUB_STEP_SUMMARY
+
+  cleanup:
+    needs: [prereq, deploy]
+    if: always() && needs.prereq.result == 'success'
+    uses: HeliumEdu/.github/.github/workflows/release-cleanup.yml@main
+    secrets:
+      bot_app_id: ${{ secrets.HELIUM_BOT_APP_ID }}
+      bot_private_key: ${{ secrets.HELIUM_BOT_PRIVATE_KEY }}
