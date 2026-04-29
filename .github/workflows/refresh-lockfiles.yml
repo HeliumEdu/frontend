@@ -1,15 +1,17 @@
 name: "Refresh Lockfiles"
 
-run-name: "Refresh Lockfiles"
+run-name: "Refresh Lockfiles (${{ inputs.ref || github.ref_name }})"
 
 on:
+  push:
+    branches: [ develop ]
   workflow_call:
     inputs:
       ref:
         description: 'Branch to check out and push lockfile updates to'
         required: false
         type: string
-        default: 'main'
+        default: ''
       pod_update:
         description: 'Run pod update instead of pod install (use for dependency bumps)'
         required: false
@@ -28,9 +30,14 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: refresh-lockfiles-${{ inputs.ref || github.ref_name }}
+  cancel-in-progress: false
+
 jobs:
   refresh-lockfiles:
     name: Refresh Lockfiles
+    if: github.event_name != 'push' || !contains(github.event.head_commit.message, 'Refresh lockfiles')
 
     runs-on: macos-latest
 
@@ -49,7 +56,7 @@ jobs:
       - uses: actions/checkout@v6
         with:
           token: ${{ steps.app-token.outputs.token }}
-          ref: ${{ inputs.ref || 'main' }}
+          ref: ${{ inputs.ref || github.ref_name }}
 
       - name: Read Flutter version
         id: flutter-version
@@ -108,5 +115,5 @@ jobs:
 
           COMMIT_MSG="${{ inputs.skip_ci && '[skip ci] ' || '' }}Refresh lockfiles"
           git commit -m "$COMMIT_MSG"
-          git push origin "HEAD:refs/heads/${{ inputs.ref || 'main' }}"
+          git push origin "HEAD:refs/heads/${{ inputs.ref || github.ref_name }}"
           echo "commit_sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
