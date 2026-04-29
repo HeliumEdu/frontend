@@ -1,6 +1,6 @@
 name: "Refresh Lockfiles"
 
-run-name: "Refresh Lockfiles (${{ inputs.ref || github.ref_name }})"
+run-name: "Refresh Lockfiles"
 
 on:
   push:
