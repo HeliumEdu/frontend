@@ -86,14 +86,8 @@ jobs:
     uses: HeliumEdu/.github/.github/workflows/release-prereq.yml@main
     with:
       bump_type: ${{ inputs.bump_type }}
-      bump_command: |
-        CURRENT_VERSION=$(grep '^version:' pubspec.yaml | sed 's/version: //; s/[[:space:]]//g')
-        CURRENT_BUILD="${CURRENT_VERSION##*+}"
-        NEW_BUILD=$((CURRENT_BUILD + 1))
-        NEW_VERSION="${SEED_VERSION}+${NEW_BUILD}"
-        sed -i "s/^version: .*/version: ${NEW_VERSION}/" pubspec.yaml
-      read_version_command: |
-        grep '^version:' pubspec.yaml | sed 's/version: //; s/[[:space:]]//g'
+      version_format: pubspec
+      version_file: pubspec.yaml
       repo_slug: HeliumEdu/frontend
     secrets:
       bot_app_id: ${{ secrets.HELIUM_BOT_APP_ID }}
