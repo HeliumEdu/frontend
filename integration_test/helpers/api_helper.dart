@@ -8,7 +8,10 @@
 import 'dart:convert';
 
 import 'package:heliumapp/core/api_url.dart';
+import 'package:heliumapp/data/models/planner/category_model.dart';
 import 'package:heliumapp/data/models/planner/course_model.dart';
+import 'package:heliumapp/data/models/planner/course_schedule_model.dart';
+import 'package:heliumapp/data/models/planner/event_model.dart';
 import 'package:heliumapp/data/models/planner/homework_model.dart';
 import 'package:heliumapp/data/models/planner/request/homework_request_model.dart';
 import 'package:http/http.dart' as http;
@@ -235,6 +238,116 @@ class ApiHelper {
         (item) => item.title.contains(titleContains),
       );
     } catch (e) {
+      return null;
+    }
+  }
+
+  /// Fetches all categories for the test user across every course.
+  Future<List<CategoryModel>?> getCategories() async {
+    final apiHost = _config.projectApiHost;
+    final accessToken = await getAccessToken();
+
+    if (accessToken == null) {
+      _log.warning('Could not get access token to fetch categories');
+      return null;
+    }
+
+    try {
+      final response = await http.get(
+        Uri.parse('$apiHost${ApiUrl.plannerCategoriesListUrl}'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $accessToken',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> items = jsonDecode(response.body);
+        return items.map((item) => CategoryModel.fromJson(item)).toList();
+      }
+      _log.warning('Failed to fetch categories: ${response.statusCode}');
+      return null;
+    } catch (e) {
+      _log.warning('Error fetching categories: $e');
+      return null;
+    }
+  }
+
+  /// Fetches all events for the test user.
+  /// If [from] and [to] are provided, filters by date range.
+  Future<List<EventModel>?> getEvents({String? from, String? to}) async {
+    final apiHost = _config.projectApiHost;
+    final accessToken = await getAccessToken();
+
+    if (accessToken == null) {
+      _log.warning('Could not get access token to fetch events');
+      return null;
+    }
+
+    try {
+      final queryParams = <String, String>{};
+      if (from != null) queryParams['from'] = from;
+      if (to != null) queryParams['to'] = to;
+
+      final uri = Uri.parse('$apiHost${ApiUrl.plannerEventsListUrl}')
+          .replace(queryParameters: queryParams.isEmpty ? null : queryParams);
+
+      final response = await http.get(
+        uri,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $accessToken',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> items = jsonDecode(response.body);
+        return items.map((item) => EventModel.fromJson(item)).toList();
+      }
+      _log.warning('Failed to fetch events: ${response.statusCode}');
+      return null;
+    } catch (e) {
+      _log.warning('Error fetching events: $e');
+      return null;
+    }
+  }
+
+  /// Fetches all course schedules for the test user.
+  ///
+  /// Note: the new frontend uses these only as recurrence definitions and
+  /// expands occurrences client-side via SfCalendar. The flat
+  /// `/planner/courseschedules/` endpoint is deprecated on the platform but
+  /// still serves the snapshot we need for deterministic test counts.
+  Future<List<CourseScheduleModel>?> getCourseSchedules() async {
+    final apiHost = _config.projectApiHost;
+    final accessToken = await getAccessToken();
+
+    if (accessToken == null) {
+      _log.warning('Could not get access token to fetch course schedules');
+      return null;
+    }
+
+    try {
+      final response = await http.get(
+        Uri.parse('$apiHost${ApiUrl.plannerCourseSchedulesUrl}'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $accessToken',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> items = jsonDecode(response.body);
+        return items
+            .map((item) => CourseScheduleModel.fromJson(item))
+            .toList();
+      }
+      _log.warning(
+        'Failed to fetch course schedules: ${response.statusCode}',
+      );
+      return null;
+    } catch (e) {
+      _log.warning('Error fetching course schedules: $e');
       return null;
     }
   }

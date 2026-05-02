@@ -18,12 +18,14 @@ import 'package:heliumapp/presentation/features/planner/views/planner_screen.dar
 import 'package:heliumapp/presentation/navigation/shell/navigation_shell.dart';
 import 'package:heliumapp/presentation/ui/components/settings_button.dart';
 import 'package:heliumapp/presentation/ui/layout/page_header.dart';
+import 'package:heliumapp/utils/planner_helper.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:logging/logging.dart';
 import 'package:timezone/standalone.dart' as tz;
 
 import 'helpers/api_helper.dart';
+import 'helpers/planner_count_helper.dart';
 import 'helpers/test_app.dart';
 import 'helpers/test_config.dart';
 
@@ -393,6 +395,20 @@ void main() {
       );
       expect(loggedIn, isTrue, reason: 'Should be logged in');
 
+      // Snapshot the user's planner state once; every "of N" assertion below
+      // is computed from this snapshot via PlannerCountHelper, so the totals
+      // stay correct if example_schedule.json ever changes.
+      final counts = PlannerCountHelper(apiHelper);
+      final snap = await counts.snapshot();
+      final fundamentals = snap.courses.firstWhere(
+        (c) => c.title.contains('Fundamentals'),
+        orElse: () => throw StateError(
+          'Fundamentals course not found in snapshot — example schedule may have changed',
+        ),
+      );
+      const homeworkCategoryTitle = 'Homework 👨🏽‍💻';
+      const todosPageSize = 10;
+
       // 1. Click "Change view" menu and switch to "Todos"
       _log.info('Switching to "Todos" view ...');
       final viewButton = find.byKey(
@@ -417,11 +433,16 @@ void main() {
       await tester.pumpAndSettle();
       await takeScreenshot('todos_view_initial_state');
 
-      // 2. Wait for Todos view to initialize and assert "Showing X to Y of 53"
-      // (X and Y may vary, 53 is fixed). TodosTable._initializeData expands the
-      // data window via a network call; on CI this may take several seconds.
+      // 2. Wait for Todos view to initialize and assert "Showing X to Y of N"
+      // (X and Y may vary mid-load, N is the helper-computed total).
+      // TodosTable._initializeData expands the data window via a network call;
+      // on CI this may take several seconds.
+      final totalExpected = counts.expectedCount(
+        snapshot: snap,
+        view: PlannerView.todos,
+      );
       final showingTextFinder = find.textContaining(
-        RegExp(r'Showing \d+ to \d+ of 53'),
+        RegExp(r'Showing \d+ to \d+ of ' + totalExpected.toString() + r'\b'),
       );
       final todosInitialized = await waitForWidget(
         tester,
@@ -431,7 +452,8 @@ void main() {
       expect(
         todosInitialized,
         isTrue,
-        reason: 'Should show "Showing X to Y of 53" after Todos view initializes',
+        reason:
+            'Should show "Showing X to Y of $totalExpected" after Todos view initializes',
       );
 
       // 3. Tap filters, tap checkbox next to "Fundamentals"
@@ -497,12 +519,18 @@ void main() {
       await tester.tap(fundamentalsCheckbox);
       await tester.pumpAndSettle();
 
-      // 3.1 Assert footer shows "Showing 1 to 10 of 20"
+      // 3.1 Assert footer shows "Showing 1 to {pageSize} of N" for Fundamentals
+      final fundExpected = counts.expectedCount(
+        snapshot: snap,
+        view: PlannerView.todos,
+        selectedCourseIds: {fundamentals.id},
+      );
+      final fundUpper = fundExpected < todosPageSize ? fundExpected : todosPageSize;
       expect(
-        find.text('Showing 1 to 10 of 20'),
+        find.text('Showing 1 to $fundUpper of $fundExpected'),
         findsOneWidget,
         reason:
-            'After Fundamentals filter: should show "Showing 1 to 10 of 20"',
+            'After Fundamentals filter: should show "Showing 1 to $fundUpper of $fundExpected"',
       );
 
       // 4. Still in filters, tap CheckboxListTile next to "Homework" category
@@ -518,11 +546,21 @@ void main() {
       await tester.tap(homeworkCheckbox);
       await tester.pumpAndSettle();
 
-      // 4.1 Assert footer shows "Showing 1 to 7 of 7"
+      // 4.1 Assert footer shows "Showing 1 to N of N" for Fundamentals+Homework
+      final funHwExpected = counts.expectedCount(
+        snapshot: snap,
+        view: PlannerView.todos,
+        selectedCourseIds: {fundamentals.id},
+        filterCategories: const [homeworkCategoryTitle],
+      );
+      final funHwUpper = funHwExpected < todosPageSize
+          ? funHwExpected
+          : todosPageSize;
       expect(
-        find.text('Showing 1 to 7 of 7'),
+        find.text('Showing 1 to $funHwUpper of $funHwExpected'),
         findsOneWidget,
-        reason: 'After Homework filter: should show "Showing 1 to 7 of 7"',
+        reason:
+            'After Homework filter: should show "Showing 1 to $funHwUpper of $funHwExpected"',
       );
 
       // 5. Close filters menu (tap outside), then tap search icon and enter "1"
@@ -557,8 +595,21 @@ void main() {
       await tester.testTextInput.receiveAction(TextInputAction.done);
       await tester.pumpAndSettle(const Duration(seconds: 2));
 
-      // 5.1 Assert footer shows "Showing 1 to 1 of 1"
-      final showingText = find.text('Showing 1 to 1 of 1');
+      // 5.1 Assert footer shows "Showing 1 to N of N" for search "1" combined
+      // with the still-active Fundamentals + Homework filters above.
+      final searchExpected = counts.expectedCount(
+        snapshot: snap,
+        view: PlannerView.todos,
+        selectedCourseIds: {fundamentals.id},
+        filterCategories: const [homeworkCategoryTitle],
+        searchQuery: '1',
+      );
+      final searchUpper = searchExpected < todosPageSize
+          ? searchExpected
+          : todosPageSize;
+      final showingText = find.text(
+        'Showing 1 to $searchUpper of $searchExpected',
+      );
       final searchResultsShown = await waitForWidget(
         tester,
         showingText,
@@ -567,7 +618,8 @@ void main() {
       expect(
         searchResultsShown,
         isTrue,
-        reason: 'After search "1": should show "Showing 1 to 1 of 1"',
+        reason:
+            'After search "1": should show "Showing 1 to $searchUpper of $searchExpected"',
       );
 
       // 6. Assert the row shows "Homework 1" with strikethrough, time, class, and grade
