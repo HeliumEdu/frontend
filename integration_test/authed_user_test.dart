@@ -144,7 +144,7 @@ void main() {
       await tester.tap(resourcesTab);
       await tester.pumpAndSettle(const Duration(seconds: 3));
 
-      expectOnResourcesScreen();
+      await expectOnResourcesScreen(tester);
       _log.info('Successfully navigated to resources');
 
       final gradesTab = find.byKey(Key(NavigationPage.grades.navKeyName));

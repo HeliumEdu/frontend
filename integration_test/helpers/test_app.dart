@@ -17,6 +17,7 @@ import 'package:heliumapp/config/pref_service.dart';
 import 'package:heliumapp/core/dio_client.dart';
 import 'package:heliumapp/core/log_formatter.dart';
 import 'package:heliumapp/core/log_service.dart';
+import 'package:heliumapp/data/models/planner/resource_group_model.dart';
 import 'package:heliumapp/data/repositories/auth_repository_impl.dart';
 import 'package:heliumapp/data/sources/auth_remote_data_source.dart';
 import 'package:heliumapp/helium_app.dart';
@@ -815,6 +816,21 @@ void expectOnClassesScreen() {
     reason: 'Classes: Intro to Psychology 🧠 course should be shown',
   );
   expect(
+    find.text('ARTS 302'),
+    findsOneWidget,
+    reason: 'Classes: Creative Writing course should show room "ARTS 302"',
+  );
+  expect(
+    find.text('ENG 202'),
+    findsOneWidget,
+    reason: 'Classes: Programming course should show room "ENG 202"',
+  );
+  expect(
+    find.text('SOC 110'),
+    findsOneWidget,
+    reason: 'Classes: Psychology course should show room "SOC 110"',
+  );
+  expect(
     find.text('Classes'),
     findsNWidgets(2),
     reason: 'Classes: Title or menu button not found',
@@ -822,9 +838,10 @@ void expectOnClassesScreen() {
   expectBrowserTitle('Classes');
 }
 
-/// Assert we're on the Resources screen.
-/// Verifies: FAB is shown, 1 resource card with expected title.
-void expectOnResourcesScreen() {
+/// Assert we're on the Resources screen and verify the full group/material
+/// structure. Resources are organized by [GroupDropdown]; only one group's
+/// resources are visible at a time, so this helper cycles through groups.
+Future<void> expectOnResourcesScreen(WidgetTester tester) async {
   expect(
     find.byType(FloatingActionButton),
     findsOneWidget,
@@ -833,12 +850,12 @@ void expectOnResourcesScreen() {
   expect(
     find.byType(Card),
     findsOneWidget,
-    reason: 'Resources: Should show 1 resource card',
+    reason: 'Resources: initially-selected group should show 1 resource card',
   );
   expect(
     find.text('Digital Tools'),
     findsOneWidget,
-    reason: 'Resources: Digital Tools group should be shown',
+    reason: 'Resources: Digital Tools group should be selected initially',
   );
   expect(
     find.text('Google Workspace (Docs, Drive)'),
@@ -851,6 +868,58 @@ void expectOnResourcesScreen() {
     reason: 'Resources: Title or menu button not found',
   );
   expectBrowserTitle('Resources');
+
+  final dropdown = find.byType(DropdownButton<ResourceGroupModel>);
+  expect(
+    dropdown,
+    findsOneWidget,
+    reason: 'Resources: group dropdown should be present',
+  );
+  await tester.tap(dropdown);
+  await tester.pumpAndSettle();
+  // Open dropdown shows each group twice (selectedItemBuilder behind the
+  // overlay + the overlay item itself), so guard with findsWidgets.
+  for (final groupTitle in ['Digital Tools', 'Supplies', 'Textbooks']) {
+    expect(
+      find.text(groupTitle),
+      findsWidgets,
+      reason: 'Resources: dropdown should list "$groupTitle" group',
+    );
+  }
+
+  await tester.tap(find.text('Supplies').last);
+  await tester.pumpAndSettle();
+  expect(
+    find.byType(Card),
+    findsOneWidget,
+    reason: 'Resources: Supplies group should show 1 resource card',
+  );
+  expect(
+    find.text('Notebook 📓'),
+    findsOneWidget,
+    reason: 'Resources: Supplies should contain "Notebook 📓"',
+  );
+
+  await tester.tap(dropdown);
+  await tester.pumpAndSettle();
+  await tester.tap(find.text('Textbooks').last);
+  await tester.pumpAndSettle();
+  expect(
+    find.byType(Card),
+    findsNWidgets(3),
+    reason: 'Resources: Textbooks group should show 3 resource cards',
+  );
+  for (final textbook in [
+    'Automate the Boring Stuff with Python',
+    'Bird by Bird: Some Instructions on Writing and Life',
+    'Psychology, 14th Edition',
+  ]) {
+    expect(
+      find.text(textbook),
+      findsOneWidget,
+      reason: 'Resources: Textbooks should contain "$textbook"',
+    );
+  }
 }
 
 /// Assert we're on the Grades screen.
@@ -934,6 +1003,26 @@ void expectOnGradesScreen() {
     find.text('Intro to Psychology 🧠'),
     findsNWidgets(2),
     reason: 'Grades: Intro to Psychology 🧠 grade card should be shown, and time series filter',
+  );
+  expect(
+    find.text('87.79%'),
+    findsWidgets,
+    reason: 'Grades: Fall Semester overall grade should render as 87.79%',
+  );
+  expect(
+    find.text('89.33%'),
+    findsWidgets,
+    reason: 'Grades: Creative Writing ✍️ grade should render as 89.33%',
+  );
+  expect(
+    find.text('89.08%'),
+    findsWidgets,
+    reason: 'Grades: Fundamentals of Programming 💻 grade should render as 89.08%',
+  );
+  expect(
+    find.text('84.97%'),
+    findsWidgets,
+    reason: 'Grades: Intro to Psychology 🧠 grade should render as 84.97%',
   );
   expect(
     find.text('Grades'),
