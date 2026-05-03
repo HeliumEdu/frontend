@@ -1030,7 +1030,69 @@ void main() {
       );
     });
 
-    namedTestWidgets('6. User can clear example schedule', (tester) async {
+    namedTestWidgets(
+      '6. Calendar month view filter shows all courses and unique categories',
+      (tester) async {
+        if (!canProceed) {
+          _log.warning('Skipping: user does not exist');
+          skipTest('user does not exist (run signup_user_test first)');
+          return;
+        }
+
+        await initializeTestApp(tester);
+        final loggedIn = await loginAndNavigateToPlanner(
+          tester,
+          testEmail,
+          testPassword,
+        );
+        expect(loggedIn, isTrue, reason: 'Should be logged in');
+        await navigateCalendarToUserTimezone(tester, 'America/Chicago');
+
+        final counts = PlannerCountHelper(apiHelper);
+        final snap = await counts.snapshot();
+        final courseTitles = snap.courses.map((c) => c.title).toList();
+        final uniqueCategoryTitles = snap.categoriesById.values
+            .map((c) => c.title)
+            .toSet();
+
+        _log.info('Opening filter menu ...');
+        final filterButton = find.byKey(
+          const Key(PlannerScreen.filterButtonKey),
+        );
+        await tester.tap(filterButton);
+        final filterMenuOpened = await waitForWidget(
+          tester,
+          find.byType(CheckboxListTile),
+          timeout: const Duration(seconds: 5),
+        );
+        expect(filterMenuOpened, isTrue, reason: 'Filter menu should open');
+
+        for (final title in courseTitles) {
+          expect(
+            find.ancestor(
+              of: find.text(title),
+              matching: find.byType(CheckboxListTile),
+            ),
+            findsOneWidget,
+            reason: 'Filter menu CLASSES section should list course "$title"',
+          );
+        }
+
+        for (final title in uniqueCategoryTitles) {
+          expect(
+            find.ancestor(
+              of: find.text(title),
+              matching: find.byType(CheckboxListTile),
+            ),
+            findsOneWidget,
+            reason:
+                'Filter menu CATEGORIES section should list category "$title"',
+          );
+        }
+      },
+    );
+
+    namedTestWidgets('7. User can clear example schedule', (tester) async {
       if (!canProceed) {
         _log.warning('Skipping: user does not exist');
         skipTest('user does not exist (run signup_user_test first)');
