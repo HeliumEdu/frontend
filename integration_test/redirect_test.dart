@@ -31,9 +31,6 @@ void main() {
     });
 
     tearDownAll(() async {
-      // Strip leftover ?next= so subsequent suites don't get redirected
-      // through a stale destination on their first login.
-      router.go(AppRoute.loginScreen);
       await endSuite();
     });
 
@@ -81,6 +78,12 @@ void main() {
             equals(path),
             reason: '/login should carry next=$path to preserve intended route',
           );
+
+          // Strip leftover ?next= so subsequent suites don't honor it on
+          // their first login. tearDownAll has no tester to pump, so the
+          // navigation must happen inside the test body.
+          router.go(AppRoute.loginScreen);
+          await tester.pumpAndSettle();
         },
       );
     }

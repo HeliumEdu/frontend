@@ -1093,7 +1093,7 @@ void main() {
     );
 
     namedTestWidgets(
-      '7. Todos view filter coverage (legacy port)',
+      '7. Todos view filter coverage',
       (tester) async {
         if (!canProceed) {
           _log.warning('Skipping: user does not exist');
@@ -1120,7 +1120,6 @@ void main() {
         const projectCategory = 'Project 🔨';
         const quizCategory = 'Quiz 💡';
         const completeStatus = 'Complete';
-        const todosPageSize = 10;
 
         // Switch to Todos view
         _log.info('Switching to Todos view ...');
@@ -1146,13 +1145,36 @@ void main() {
         );
         expect(todosReady, isTrue, reason: 'Todos view should initialize');
 
+        // Pagination footer rendered by HeliumPager:
+        // "[Showing ]<start> to <end> of <total>" — the "Showing " prefix is
+        // desktop-only (helium_pager.dart::_buildItemsCountText).
+        final paginationRegex = RegExp(r'^(?:Showing )?\d+ to \d+ of \d+$');
         Future<void> expectPaginationOf(int expected, String reason) async {
-          await tester.pumpAndSettle();
-          final upper = expected < todosPageSize ? expected : todosPageSize;
+          // Filters debounce + dispatch through compute(); give the data
+          // source a few extra cycles to settle the appointment list before
+          // asserting against the rendered footer.
+          await tester.pumpAndSettle(const Duration(milliseconds: 500));
+
+          final paginationFinder = find.byWidgetPredicate(
+            (w) =>
+                w is Text &&
+                w.data != null &&
+                paginationRegex.hasMatch(w.data!),
+          );
           expect(
-            find.text('Showing 1 to $upper of $expected'),
-            findsOneWidget,
-            reason: reason,
+            paginationFinder,
+            findsWidgets,
+            reason: '$reason — no pagination text found',
+          );
+          final actualText =
+              (paginationFinder.evaluate().first.widget as Text).data ?? '';
+          final match = RegExp(r'of (\d+)$').firstMatch(actualText);
+          final actual = match != null ? int.parse(match.group(1)!) : -1;
+          expect(
+            actual,
+            equals(expected),
+            reason:
+                '$reason — UI shows "$actualText" (total=$actual) but helper computed total=$expected',
           );
         }
 
@@ -1164,26 +1186,49 @@ void main() {
         final filterButton = find.byKey(
           const Key(PlannerScreen.filterButtonKey),
         );
+        // "Clear All" is unique to the open filter sheet — its presence is a
+        // reliable proxy for "menu is currently open".
         final clearAllButton = find.text('Clear All');
 
-        Future<void> openFilterMenu() async {
+        Future<void> ensureFilterMenuOpen() async {
+          if (clearAllButton.evaluate().isNotEmpty) return;
           await tester.tap(filterButton);
           await waitForWidget(
             tester,
-            find.byType(CheckboxListTile),
+            clearAllButton,
             timeout: const Duration(seconds: 5),
           );
         }
 
-        Future<void> clearFiltersInMenu() async {
+        Future<void> closeFilterMenu() async {
+          if (clearAllButton.evaluate().isEmpty) return;
+          await tester.tapAt(const Offset(10, 10));
+          await tester.pumpAndSettle();
+        }
+
+        // Apply a clean filter combination: open menu, clear, tap each filter
+        // tile in turn. The filter sheet's contents live in a
+        // SingleChildScrollView, so tiles in lower sections (e.g. CATEGORIES)
+        // can be off-screen — ensureVisible scrolls them in before tapping
+        // so the tap doesn't pass through to the underlying todos table.
+        Future<void> applyFilters({
+          Set<String> tileLabels = const {},
+        }) async {
+          await ensureFilterMenuOpen();
           await tester.tap(clearAllButton);
           await tester.pumpAndSettle();
+          for (final label in tileLabels) {
+            final tile = filterTileFor(label);
+            await tester.ensureVisible(tile);
+            await tester.pumpAndSettle();
+            await tester.tap(tile);
+            await tester.pumpAndSettle();
+          }
         }
 
         // 7a — Complete status only
         _log.info('Filter: Complete only ...');
-        await openFilterMenu();
-        await tester.tap(filterTileFor(completeStatus));
+        await applyFilters(tileLabels: {completeStatus});
         await expectPaginationOf(
           counts.expectedCount(
             snapshot: snap,
@@ -1195,8 +1240,7 @@ void main() {
 
         // 7b — Project category only
         _log.info('Filter: Project only ...');
-        await clearFiltersInMenu();
-        await tester.tap(filterTileFor(projectCategory));
+        await applyFilters(tileLabels: {projectCategory});
         await expectPaginationOf(
           counts.expectedCount(
             snapshot: snap,
@@ -1208,8 +1252,7 @@ void main() {
 
         // 7c — Quiz category only
         _log.info('Filter: Quiz only ...');
-        await clearFiltersInMenu();
-        await tester.tap(filterTileFor(quizCategory));
+        await applyFilters(tileLabels: {quizCategory});
         await expectPaginationOf(
           counts.expectedCount(
             snapshot: snap,
@@ -1219,11 +1262,10 @@ void main() {
           'Quiz category filter only',
         );
 
-        // 7d — Search "study" (filters cleared, menu closed first)
+        // 7d — Search "study" (no menu interaction)
         _log.info('Filter: search "study" ...');
-        await clearFiltersInMenu();
-        await tester.tapAt(const Offset(10, 10));
-        await tester.pumpAndSettle();
+        await applyFilters();
+        await closeFilterMenu();
 
         final searchButton = find.byKey(
           const Key(PlannerScreen.searchButtonKey),
@@ -1254,8 +1296,7 @@ void main() {
 
         // 7e — Single course (Creative Writing) only
         _log.info('Filter: Creative Writing course only ...');
-        await openFilterMenu();
-        await tester.tap(filterTileFor(creativeWriting.title));
+        await applyFilters(tileLabels: {creativeWriting.title});
         await expectPaginationOf(
           counts.expectedCount(
             snapshot: snap,
@@ -1267,7 +1308,9 @@ void main() {
 
         // 7f — Creative Writing + Complete
         _log.info('Filter: Creative Writing + Complete ...');
-        await tester.tap(filterTileFor(completeStatus));
+        await applyFilters(
+          tileLabels: {creativeWriting.title, completeStatus},
+        );
         await expectPaginationOf(
           counts.expectedCount(
             snapshot: snap,

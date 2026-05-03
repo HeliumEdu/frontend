@@ -42,13 +42,13 @@ class PlannerSnapshot {
   });
 }
 
-/// Computes deterministic UI counts for the new Flutter planner by replaying
-/// the production filter logic ([computeFilteredItems]) against a snapshot of
-/// the user's real backend state.
+/// Computes deterministic UI counts for the planner by replaying the
+/// production filter logic ([computeFilteredItems]) against a snapshot of the
+/// user's real backend state.
 ///
-/// Tests use this to retire the legacy ranged assertions (`>=72`, `15-18`,
-/// `9-10`, `2-3`): instead of pinning a brittle range, they assert that the
-/// rendered count equals what the helper computes for the same filter.
+/// Tests assert that the rendered count equals what the helper computes for
+/// the same filter combination, so counts stay correct as upstream data
+/// changes without hard-coding brittle numbers.
 class PlannerCountHelper {
   PlannerCountHelper(this._api);
 
@@ -143,8 +143,7 @@ class PlannerCountHelper {
   }
 
   /// Standalone class-meeting count for [start, end) across [selectedCourseIds]
-  /// (or all courses when empty). Used for the legacy "8 classes/week"
-  /// assertion without needing a full filter sweep.
+  /// (or all courses when empty), without needing a full filter sweep.
   int expectedClassMeetingsInRange({
     required PlannerSnapshot snapshot,
     required DateTime start,
