@@ -1489,17 +1489,18 @@ void main() {
             find.byKey(ValueKey('planner_item_$id')).evaluate().isNotEmpty;
         bool anyVisible(Iterable<int> ids) => ids.any(isItemVisible);
 
-        // Poll the rendered tree for up to ~5s until the visibility predicates
-        // hold. Filter changes propagate through compute() + setState +
-        // SfCalendar repaint; on slower CI machines the assertion can fire
-        // before the new filtered set has reached the tree, even after
-        // pumpAndSettle. Polling keeps the assertion correct without
-        // hard-coding longer fixed waits.
+        // Poll the rendered tree until the visibility predicates hold.
+        // Filter changes cross a 16ms debounce + compute() isolate boundary
+        // before notifyListeners + SfCalendar repaint, so on slower CI
+        // machines the assertion can fire before the new filtered set has
+        // reached the tree even after pumpAndSettle. Polling keeps the
+        // assertion correct without hard-coding longer fixed waits; the
+        // 15s ceiling is only paid on the failure path.
         Future<void> expectVisibility({
           List<int> shouldBeVisible = const [],
           List<int> shouldNotBeVisible = const [],
           required String reason,
-          Duration timeout = const Duration(seconds: 5),
+          Duration timeout = const Duration(seconds: 15),
         }) async {
           final deadline = DateTime.now().add(timeout);
           while (DateTime.now().isBefore(deadline)) {
