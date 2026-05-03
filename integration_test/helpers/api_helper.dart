@@ -85,6 +85,11 @@ class ApiHelper {
       await deleteInactiveRequest.send();
     }
 
+    // Any cached access token is now stale — drop it so the polling
+    // userExists check actually round-trips back to /auth/token/ instead
+    // of returning a cached "still valid" answer for a deleted user.
+    invalidateAccessToken();
+
     // Poll until user is confirmed deleted (auth stops working)
     // Use same timeout as delete_user_test (3 minutes) to handle slow deletions
     const maxRetries = 36;
@@ -92,7 +97,10 @@ class ApiHelper {
 
     for (var i = 0; i < maxRetries; i++) {
       await Future.delayed(retryDelay);
-
+      // userExists for the test email goes through getAccessToken (cached);
+      // re-invalidate each iteration so we don't latch onto a transiently-
+      // valid token while the deletion is being finalised.
+      invalidateAccessToken();
       final exists = await userExists(email);
       if (!exists) {
         _log.info('No user from previous runs, ready for testing');
@@ -113,7 +121,18 @@ class ApiHelper {
   ///
   /// Attempts to log in with the test password. Returns true if login succeeds
   /// (user exists), false otherwise.
+  ///
+  /// When [email] is the configured test email, this routes through
+  /// [getAccessToken] so the resulting token is cached for subsequent helper
+  /// calls — saves a roundtrip to /auth/token/ and avoids tripping anonymous
+  /// throttles. Caller is expected to invoke [invalidateAccessToken] if the
+  /// user is later deleted or logged out so a stale cached token isn't reused.
   Future<bool> userExists(String email) async {
+    if (email == _config.testEmail) {
+      final token = await getAccessToken();
+      return token != null;
+    }
+
     final password = _config.testPassword;
     final apiHost = _config.projectApiHost;
 

@@ -1326,7 +1326,320 @@ void main() {
       },
     );
 
-    namedTestWidgets('8. User can clear example schedule', (tester) async {
+    namedTestWidgets(
+      '8. Agenda view filters affect visible items',
+      (tester) async {
+        if (!canProceed) {
+          _log.warning('Skipping: user does not exist');
+          skipTest('user does not exist (run signup_user_test first)');
+          return;
+        }
+
+        await initializeTestApp(tester);
+        final loggedIn = await loginAndNavigateToPlanner(
+          tester,
+          testEmail,
+          testPassword,
+        );
+        expect(loggedIn, isTrue, reason: 'Should be logged in');
+        await navigateCalendarToUserTimezone(tester, 'America/Chicago');
+
+        final counts = PlannerCountHelper(apiHelper);
+        final snap = await counts.snapshot();
+
+        final creativeWriting = snap.courses.firstWhere(
+          (c) => c.title.contains('Creative Writing'),
+          orElse: () =>
+              throw StateError('Creative Writing course missing from snapshot'),
+        );
+        const quizCategory = 'Quiz 💡';
+        const completeStatus = 'Complete';
+        // The category filter matches by title — multiple courses can share
+        // a category title (e.g., Programming and Psychology both have
+        // "Quiz 💡"). Match the same way here so the expected sets align.
+        final quizCategoryIds = snap.categoriesById.values
+            .where((c) => c.title == quizCategory)
+            .map((c) => c.id)
+            .toSet();
+        final assignmentsType = PlannerFilterType.assignments.value;
+        final eventsType = PlannerFilterType.events.value;
+        final classSchedulesType = PlannerFilterType.classSchedules.value;
+
+        // Snapshot-derived id sets used for presence/absence assertions.
+        // Class-schedule appointments use generated event ids of
+        // `schedule.id * 100 + slotIndex` (course_schedule_builder_source
+        // .dart::_generateEventId). Our example schedules have a single
+        // time-slot group per schedule, so slotIndex=0.
+        final allHomeworkIds = snap.homework.map((h) => h.id).toList();
+        final completedHomeworkIds = snap.homework
+            .where((h) => h.completed)
+            .map((h) => h.id)
+            .toList();
+        final incompleteHomeworkIds = snap.homework
+            .where((h) => !h.completed)
+            .map((h) => h.id)
+            .toList();
+        final quizHomeworkIds = snap.homework
+            .where((h) => quizCategoryIds.contains(h.category.id))
+            .map((h) => h.id)
+            .toList();
+        final nonQuizHomeworkIds = snap.homework
+            .where((h) => !quizCategoryIds.contains(h.category.id))
+            .map((h) => h.id)
+            .toList();
+        final cwHomeworkIds = snap.homework
+            .where((h) => h.course.id == creativeWriting.id)
+            .map((h) => h.id)
+            .toList();
+        final nonCwHomeworkIds = snap.homework
+            .where((h) => h.course.id != creativeWriting.id)
+            .map((h) => h.id)
+            .toList();
+        final allEventIds = snap.events.map((e) => e.id).toList();
+        final allClassEventIds = snap.schedules
+            .map((s) => s.id * 100)
+            .toList();
+        final cwClassEventIds = snap.schedules
+            .where((s) => s.course == creativeWriting.id)
+            .map((s) => s.id * 100)
+            .toList();
+        final nonCwClassEventIds = snap.schedules
+            .where((s) => s.course != creativeWriting.id)
+            .map((s) => s.id * 100)
+            .toList();
+        bool searchMatch(String s, String q) =>
+            s.toLowerCase().contains(q.toLowerCase());
+        const searchQuery = 'Workshop';
+        final searchMatchIds = [
+          ...snap.homework
+              .where((h) => searchMatch(h.title, searchQuery))
+              .map((h) => h.id),
+          ...snap.events
+              .where((e) => searchMatch(e.title, searchQuery))
+              .map((e) => e.id),
+        ];
+
+        _log.info('Switching to Agenda view ...');
+        await tester.tap(
+          find.byKey(const Key(PlannerScreen.viewSwitcherButtonKey)),
+        );
+        final agendaOption = find.text('Agenda');
+        final agendaMenuOpened = await waitForWidget(
+          tester,
+          agendaOption,
+          timeout: const Duration(seconds: 5),
+        );
+        expect(
+          agendaMenuOpened,
+          isTrue,
+          reason: 'Agenda option should appear in view menu',
+        );
+        await tester.tap(agendaOption);
+        await tester.pumpAndSettle();
+
+        // Filter primitives (mirror Test 7's mechanic).
+        Finder filterTileFor(String text) => find.ancestor(
+          of: find.text(text),
+          matching: find.byType(CheckboxListTile),
+        );
+        final filterButton = find.byKey(
+          const Key(PlannerScreen.filterButtonKey),
+        );
+        final clearAllButton = find.text('Clear All');
+
+        Future<void> ensureFilterMenuOpen() async {
+          if (clearAllButton.evaluate().isNotEmpty) return;
+          await tester.tap(filterButton);
+          await waitForWidget(
+            tester,
+            clearAllButton,
+            timeout: const Duration(seconds: 5),
+          );
+        }
+
+        Future<void> closeFilterMenu() async {
+          if (clearAllButton.evaluate().isEmpty) return;
+          await tester.tapAt(const Offset(10, 10));
+          await tester.pumpAndSettle();
+        }
+
+        // Force-close + reopen so the popup's StatefulBuilder remounts
+        // (same hygiene as Test 7).
+        Future<void> applyFilters({
+          Set<String> tileLabels = const {},
+        }) async {
+          await closeFilterMenu();
+          await ensureFilterMenuOpen();
+          await tester.tap(clearAllButton);
+          await tester.pumpAndSettle();
+          for (final label in tileLabels) {
+            final tile = filterTileFor(label);
+            await tester.ensureVisible(tile);
+            await tester.pumpAndSettle();
+            await tester.tap(tile);
+            await tester.pumpAndSettle();
+          }
+          await closeFilterMenu();
+          await tester.pumpAndSettle(const Duration(milliseconds: 500));
+        }
+
+        // Each rendered calendar item is a KeyedSubtree keyed
+        // `planner_item_<id>` (planner_screen.dart:2211).
+        bool isItemVisible(int id) =>
+            find.byKey(ValueKey('planner_item_$id')).evaluate().isNotEmpty;
+        bool anyVisible(Iterable<int> ids) => ids.any(isItemVisible);
+
+        void expectVisibility({
+          List<int> shouldBeVisible = const [],
+          List<int> shouldNotBeVisible = const [],
+          required String reason,
+        }) {
+          if (shouldBeVisible.isNotEmpty) {
+            expect(
+              anyVisible(shouldBeVisible),
+              isTrue,
+              reason: '$reason — expected at least one of these to render',
+            );
+          }
+          if (shouldNotBeVisible.isNotEmpty) {
+            expect(
+              anyVisible(shouldNotBeVisible),
+              isFalse,
+              reason: '$reason — expected none of these to render',
+            );
+          }
+        }
+
+        // 5a — No filter: at least one item of each type is rendered.
+        _log.info('Filter: none ...');
+        await applyFilters();
+        expectVisibility(
+          shouldBeVisible: [
+            ...allHomeworkIds,
+            ...allEventIds,
+            ...allClassEventIds,
+          ],
+          reason: 'No filter',
+        );
+
+        // 5b — Events only: events visible, homework + classes hidden.
+        _log.info('Filter: Events only ...');
+        await applyFilters(tileLabels: {eventsType});
+        expectVisibility(
+          shouldBeVisible: allEventIds,
+          shouldNotBeVisible: [...allHomeworkIds, ...allClassEventIds],
+          reason: 'Events type only',
+        );
+
+        // 5c — Assignments only: homework visible, events + classes hidden.
+        _log.info('Filter: Assignments only ...');
+        await applyFilters(tileLabels: {assignmentsType});
+        expectVisibility(
+          shouldBeVisible: allHomeworkIds,
+          shouldNotBeVisible: [...allEventIds, ...allClassEventIds],
+          reason: 'Assignments type only',
+        );
+
+        // 5d — Class Schedules only: classes visible, homework + events hidden.
+        _log.info('Filter: Class Schedules only ...');
+        await applyFilters(tileLabels: {classSchedulesType});
+        expectVisibility(
+          shouldBeVisible: allClassEventIds,
+          shouldNotBeVisible: [...allHomeworkIds, ...allEventIds],
+          reason: 'Class Schedules type only',
+        );
+
+        // 5e — Assignments + Complete: completed homework visible,
+        // incomplete homework hidden.
+        _log.info('Filter: Assignments + Complete ...');
+        await applyFilters(tileLabels: {assignmentsType, completeStatus});
+        expectVisibility(
+          shouldBeVisible: completedHomeworkIds,
+          shouldNotBeVisible: incompleteHomeworkIds,
+          reason: 'Assignments + Complete',
+        );
+
+        // 5f — Assignments + Quiz category: only Quiz-category homework.
+        _log.info('Filter: Assignments + Quiz category ...');
+        await applyFilters(tileLabels: {assignmentsType, quizCategory});
+        expectVisibility(
+          shouldBeVisible: quizHomeworkIds,
+          shouldNotBeVisible: nonQuizHomeworkIds,
+          reason: 'Assignments + Quiz category',
+        );
+
+        // 5g — Search "Workshop": only items whose title contains the term.
+        _log.info('Filter: search "$searchQuery" ...');
+        await applyFilters();
+        final searchButton = find.byKey(
+          const Key(PlannerScreen.searchButtonKey),
+        );
+        if (searchButton.evaluate().isNotEmpty) {
+          await tester.tap(searchButton);
+        }
+        final searchField = find.byType(TextField);
+        await waitForWidget(
+          tester,
+          searchField,
+          timeout: const Duration(seconds: 5),
+        );
+        await enterTextInField(tester, searchField.last, searchQuery);
+        await tester.testTextInput.receiveAction(TextInputAction.done);
+        await tester.pumpAndSettle(const Duration(milliseconds: 500));
+        expectVisibility(
+          shouldBeVisible: searchMatchIds,
+          // Items not matching the search shouldn't render. Quiz 4 is a safe
+          // canary — its title doesn't contain the search query.
+          shouldNotBeVisible: snap.homework
+              .where((h) => !searchMatch(h.title, searchQuery))
+              .map((h) => h.id)
+              .toList(),
+          reason: 'Search "$searchQuery"',
+        );
+        // Clear search before remaining scenarios.
+        await enterTextInField(tester, searchField.last, '');
+        await tester.testTextInput.receiveAction(TextInputAction.done);
+        await tester.pumpAndSettle();
+
+        // 5h — Course excluded (Creative Writing): tap the OTHER courses so
+        // the filter restricts to "all but Creative Writing".
+        _log.info('Filter: exclude Creative Writing ...');
+        await applyFilters(
+          tileLabels: snap.courses
+              .where((c) => c.id != creativeWriting.id)
+              .map((c) => c.title)
+              .toSet(),
+        );
+        expectVisibility(
+          shouldBeVisible: nonCwHomeworkIds,
+          shouldNotBeVisible: cwHomeworkIds,
+          reason: 'Exclude Creative Writing course',
+        );
+
+        // 5i — Exclude CW + Type=Class Schedules: only Programming/Psych
+        // class schedules render.
+        _log.info('Filter: exclude Creative Writing + Class Schedules ...');
+        await applyFilters(
+          tileLabels: {
+            ...snap.courses
+                .where((c) => c.id != creativeWriting.id)
+                .map((c) => c.title),
+            classSchedulesType,
+          },
+        );
+        expectVisibility(
+          shouldBeVisible: nonCwClassEventIds,
+          shouldNotBeVisible: [
+            ...cwClassEventIds,
+            ...allHomeworkIds,
+            ...allEventIds,
+          ],
+          reason: 'Exclude Creative Writing + Class Schedules',
+        );
+      },
+    );
+
+    namedTestWidgets('9. User can clear example schedule', (tester) async {
       if (!canProceed) {
         _log.warning('Skipping: user does not exist');
         skipTest('user does not exist (run signup_user_test first)');
