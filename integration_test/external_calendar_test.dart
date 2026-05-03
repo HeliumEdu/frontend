@@ -10,7 +10,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/config/app_router.dart';
 import 'package:heliumapp/presentation/features/planner/views/planner_screen.dart';
-import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/planner_helper.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:logging/logging.dart';
@@ -21,8 +20,9 @@ import 'helpers/test_config.dart';
 
 final _log = Logger('external_calendar_test');
 
-// Hard-coded Helium Test Calendar — same URL the legacy cluster-tests used.
-// Hosted by the team so its contents are stable across runs.
+// Hard-coded Helium Test Calendar — hosted by the team so its contents are
+// stable across runs (e.g. an Oct 15 2023 timed event used to anchor the
+// agenda assertion).
 const _testCalendarTitle = 'Helium Test Calendar';
 const _testCalendarUrl =
     'https://calendar.google.com/calendar/ical/86c55b7d91f8d4c22ca722fe22ee19779774863c6e31b6b23346e475c44a23ad%40group.calendar.google.com/public/basic.ics';
@@ -100,33 +100,30 @@ void main() {
         );
         await tester.pumpAndSettle();
 
-        // External calendar events render with the hub icon (per
-        // AppConstants.externalCalendarIcon). On the planner page, the hub
-        // icon is unique to calendar-item rendering — neither the nav shell
-        // nor the default toolbar uses it — so a count of hub icons is a
-        // reliable proxy for "external events visible". The filter sheet
-        // also uses the hub icon, but only while the sheet is open.
-        final hubIcon = find.byIcon(AppConstants.externalCalendarIcon);
+        // The Helium Test Calendar has a known event on Oct 15 2023 with
+        // this exact title. Match by title rather than icon — external
+        // calendar items on the calendar render their title in the parent
+        // calendar's color but don't show the hub icon inline (it's only in
+        // the tooltip overlay).
+        const knownEventTitle = 'Some Timed Event at 9am CT Inside DST';
+        final externalEvent = findRichTextContaining(knownEventTitle);
 
-        _log.info('Waiting for external calendar events to render ...');
-        final eventsAppeared = await waitForWidget(
+        _log.info('Waiting for external calendar event to render ...');
+        final eventAppeared = await waitForWidget(
           tester,
-          hubIcon,
+          externalEvent,
           timeout: config.apiTimeout,
         );
         expect(
-          eventsAppeared,
+          eventAppeared,
           isTrue,
           reason:
-              'At least one external calendar event should render after the '
-              'calendar is added',
-        );
-        _log.info(
-          'External events visible: ${hubIcon.evaluate().length} hub icons',
+              'External calendar event "$knownEventTitle" should render after '
+              'the calendar is added',
         );
 
-        // Apply Assignments-only Type filter — mirrors the legacy assertion
-        // of "filter to homework, external item disappears".
+        // Apply Assignments-only Type filter — external calendar event
+        // should drop out of the rendered list.
         _log.info('Filtering to Assignments only ...');
         final filterButton = find.byKey(
           const Key(PlannerScreen.filterButtonKey),
@@ -147,19 +144,16 @@ void main() {
         await tester.tap(assignmentsTile);
         await tester.pumpAndSettle();
 
-        // Close filter menu so its own hub icon (External Calendars filter
-        // tile) is no longer in the tree, and so we're observing the
-        // calendar-item count.
+        // Close filter menu and let the data source re-render.
         await tester.tapAt(const Offset(10, 10));
         await tester.pumpAndSettle();
 
-        final hubsAfterFilter = hubIcon.evaluate().length;
         expect(
-          hubsAfterFilter,
-          equals(0),
+          externalEvent,
+          findsNothing,
           reason:
-              'No external calendar events should render after filtering to '
-              'Assignments only — found $hubsAfterFilter',
+              'External calendar event should disappear after filtering to '
+              'Assignments only',
         );
       },
     );
