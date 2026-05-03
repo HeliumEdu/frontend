@@ -1366,57 +1366,67 @@ void main() {
         final classSchedulesType = PlannerFilterType.classSchedules.value;
 
         // Snapshot-derived id sets used for presence/absence assertions.
+        // Each appointment renders with a key of `planner_item_<type>_<id>`
+        // (planner_screen.dart) — the type prefix is required because each
+        // model (homework / event / schedule) has its own backend PK
+        // sequence, so a homework with id=5 and an event with id=5 would
+        // otherwise share the same key and confuse visibility checks.
+        //
         // Class-schedule appointments use generated event ids of
         // `schedule.id * 100 + slotIndex` (course_schedule_builder_source
         // .dart::_generateEventId). Our example schedules have a single
         // time-slot group per schedule, so slotIndex=0.
-        final allHomeworkIds = snap.homework.map((h) => h.id).toList();
-        final completedHomeworkIds = snap.homework
+        String hwKey(int id) => 'homework_$id';
+        String eventKey(int id) => 'event_$id';
+        String classKey(int scheduleId) => 'courseSchedule_${scheduleId * 100}';
+
+        final allHomeworkKeys = snap.homework.map((h) => hwKey(h.id)).toList();
+        final completedHomeworkKeys = snap.homework
             .where((h) => h.completed)
-            .map((h) => h.id)
+            .map((h) => hwKey(h.id))
             .toList();
-        final incompleteHomeworkIds = snap.homework
+        final incompleteHomeworkKeys = snap.homework
             .where((h) => !h.completed)
-            .map((h) => h.id)
+            .map((h) => hwKey(h.id))
             .toList();
-        final quizHomeworkIds = snap.homework
+        final quizHomeworkKeys = snap.homework
             .where((h) => quizCategoryIds.contains(h.category.id))
-            .map((h) => h.id)
+            .map((h) => hwKey(h.id))
             .toList();
-        final nonQuizHomeworkIds = snap.homework
+        final nonQuizHomeworkKeys = snap.homework
             .where((h) => !quizCategoryIds.contains(h.category.id))
-            .map((h) => h.id)
+            .map((h) => hwKey(h.id))
             .toList();
-        final cwHomeworkIds = snap.homework
+        final cwHomeworkKeys = snap.homework
             .where((h) => h.course.id == creativeWriting.id)
-            .map((h) => h.id)
+            .map((h) => hwKey(h.id))
             .toList();
-        final nonCwHomeworkIds = snap.homework
+        final nonCwHomeworkKeys = snap.homework
             .where((h) => h.course.id != creativeWriting.id)
-            .map((h) => h.id)
+            .map((h) => hwKey(h.id))
             .toList();
-        final allEventIds = snap.events.map((e) => e.id).toList();
-        final allClassEventIds = snap.schedules
-            .map((s) => s.id * 100)
+        final allEventKeys = snap.events.map((e) => eventKey(e.id)).toList();
+        final allClassEventKeys = snap.schedules
+            .map((s) => classKey(s.id))
             .toList();
-        final cwClassEventIds = snap.schedules
+        final cwClassEventKeys = snap.schedules
             .where((s) => s.course == creativeWriting.id)
-            .map((s) => s.id * 100)
+            .map((s) => classKey(s.id))
             .toList();
-        final nonCwClassEventIds = snap.schedules
+        final nonCwClassEventKeys = snap.schedules
             .where((s) => s.course != creativeWriting.id)
-            .map((s) => s.id * 100)
+            .map((s) => classKey(s.id))
             .toList();
         bool searchMatch(String s, String q) =>
             s.toLowerCase().contains(q.toLowerCase());
         const searchQuery = 'Workshop';
-        final searchMatchIds = [
+        final searchMatchKeys = [
           ...snap.homework
               .where((h) => searchMatch(h.title, searchQuery))
-              .map((h) => h.id),
+              .map((h) => hwKey(h.id)),
           ...snap.events
               .where((e) => searchMatch(e.title, searchQuery))
-              .map((e) => e.id),
+              .map((e) => eventKey(e.id)),
         ];
 
         _log.info('Switching to Agenda view ...');
@@ -1484,12 +1494,13 @@ void main() {
         }
 
         // Each rendered calendar item is a KeyedSubtree keyed
-        // `planner_item_<id>` (planner_screen.dart:2211).
-        bool isItemVisible(int id) =>
-            find.byKey(ValueKey('planner_item_$id')).evaluate().isNotEmpty;
-        bool anyVisible(Iterable<int> ids) => ids.any(isItemVisible);
-        List<int> visibleSubset(Iterable<int> ids) =>
-            ids.where(isItemVisible).toList();
+        // `planner_item_<type>_<id>` (planner_screen.dart). Callers pass the
+        // `<type>_<id>` suffix; this helper combines it with the prefix.
+        bool isItemVisible(String suffix) =>
+            find.byKey(ValueKey('planner_item_$suffix')).evaluate().isNotEmpty;
+        bool anyVisible(Iterable<String> keys) => keys.any(isItemVisible);
+        List<String> visibleSubset(Iterable<String> keys) =>
+            keys.where(isItemVisible).toList();
 
         // Poll the rendered tree until the visibility predicates hold.
         // Filter changes cross a 16ms debounce + compute() isolate boundary
@@ -1499,8 +1510,8 @@ void main() {
         // assertion correct without hard-coding longer fixed waits; the
         // 15s ceiling is only paid on the failure path.
         Future<void> expectVisibility({
-          List<int> shouldBeVisible = const [],
-          List<int> shouldNotBeVisible = const [],
+          List<String> shouldBeVisible = const [],
+          List<String> shouldNotBeVisible = const [],
           required String reason,
           Duration timeout = const Duration(seconds: 15),
         }) async {
@@ -1526,7 +1537,7 @@ void main() {
           if (shouldBeVisible.isNotEmpty &&
               !anyVisible(shouldBeVisible)) {
             await takeScreenshot('expectVisibility_missing_$slug');
-            final missing = shouldBeVisible.where((id) => !isItemVisible(id));
+            final missing = shouldBeVisible.where((k) => !isItemVisible(k));
             expect(
               anyVisible(shouldBeVisible),
               isTrue,
@@ -1556,9 +1567,9 @@ void main() {
         await applyFilters();
         await expectVisibility(
           shouldBeVisible: [
-            ...allHomeworkIds,
-            ...allEventIds,
-            ...allClassEventIds,
+            ...allHomeworkKeys,
+            ...allEventKeys,
+            ...allClassEventKeys,
           ],
           reason: 'No filter',
         );
@@ -1567,8 +1578,8 @@ void main() {
         _log.info('Filter: Events only ...');
         await applyFilters(tileLabels: {eventsType});
         await expectVisibility(
-          shouldBeVisible: allEventIds,
-          shouldNotBeVisible: [...allHomeworkIds, ...allClassEventIds],
+          shouldBeVisible: allEventKeys,
+          shouldNotBeVisible: [...allHomeworkKeys, ...allClassEventKeys],
           reason: 'Events type only',
         );
 
@@ -1576,8 +1587,8 @@ void main() {
         _log.info('Filter: Assignments only ...');
         await applyFilters(tileLabels: {assignmentsType});
         await expectVisibility(
-          shouldBeVisible: allHomeworkIds,
-          shouldNotBeVisible: [...allEventIds, ...allClassEventIds],
+          shouldBeVisible: allHomeworkKeys,
+          shouldNotBeVisible: [...allEventKeys, ...allClassEventKeys],
           reason: 'Assignments type only',
         );
 
@@ -1585,8 +1596,8 @@ void main() {
         _log.info('Filter: Class Schedules only ...');
         await applyFilters(tileLabels: {classSchedulesType});
         await expectVisibility(
-          shouldBeVisible: allClassEventIds,
-          shouldNotBeVisible: [...allHomeworkIds, ...allEventIds],
+          shouldBeVisible: allClassEventKeys,
+          shouldNotBeVisible: [...allHomeworkKeys, ...allEventKeys],
           reason: 'Class Schedules type only',
         );
 
@@ -1595,8 +1606,8 @@ void main() {
         _log.info('Filter: Assignments + Complete ...');
         await applyFilters(tileLabels: {assignmentsType, completeStatus});
         await expectVisibility(
-          shouldBeVisible: completedHomeworkIds,
-          shouldNotBeVisible: incompleteHomeworkIds,
+          shouldBeVisible: completedHomeworkKeys,
+          shouldNotBeVisible: incompleteHomeworkKeys,
           reason: 'Assignments + Complete',
         );
 
@@ -1604,8 +1615,8 @@ void main() {
         _log.info('Filter: Assignments + Quiz category ...');
         await applyFilters(tileLabels: {assignmentsType, quizCategory});
         await expectVisibility(
-          shouldBeVisible: quizHomeworkIds,
-          shouldNotBeVisible: nonQuizHomeworkIds,
+          shouldBeVisible: quizHomeworkKeys,
+          shouldNotBeVisible: nonQuizHomeworkKeys,
           reason: 'Assignments + Quiz category',
         );
 
@@ -1628,12 +1639,12 @@ void main() {
         await tester.testTextInput.receiveAction(TextInputAction.done);
         await tester.pumpAndSettle(const Duration(milliseconds: 500));
         await expectVisibility(
-          shouldBeVisible: searchMatchIds,
+          shouldBeVisible: searchMatchKeys,
           // Items not matching the search shouldn't render. Quiz 4 is a safe
           // canary — its title doesn't contain the search query.
           shouldNotBeVisible: snap.homework
               .where((h) => !searchMatch(h.title, searchQuery))
-              .map((h) => h.id)
+              .map((h) => hwKey(h.id))
               .toList(),
           reason: 'Search "$searchQuery"',
         );
@@ -1652,8 +1663,8 @@ void main() {
               .toSet(),
         );
         await expectVisibility(
-          shouldBeVisible: nonCwHomeworkIds,
-          shouldNotBeVisible: cwHomeworkIds,
+          shouldBeVisible: nonCwHomeworkKeys,
+          shouldNotBeVisible: cwHomeworkKeys,
           reason: 'Exclude Creative Writing course',
         );
 
@@ -1669,11 +1680,11 @@ void main() {
           },
         );
         await expectVisibility(
-          shouldBeVisible: nonCwClassEventIds,
+          shouldBeVisible: nonCwClassEventKeys,
           shouldNotBeVisible: [
-            ...cwClassEventIds,
-            ...allHomeworkIds,
-            ...allEventIds,
+            ...cwClassEventKeys,
+            ...allHomeworkKeys,
+            ...allEventKeys,
           ],
           reason: 'Exclude Creative Writing + Class Schedules',
         );

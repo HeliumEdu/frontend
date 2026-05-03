@@ -2237,7 +2237,9 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
     );
 
     return KeyedSubtree(
-      key: ValueKey('planner_item_${plannerItem.id}'),
+      key: ValueKey(
+        'planner_item_${plannerItem.plannerItemType.name}_${plannerItem.id}',
+      ),
       child: _buildPlannerItemTooltip(
         plannerItem: plannerItem,
         isInAgendaStyle: isInAgenda,
