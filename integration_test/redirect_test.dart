@@ -12,6 +12,7 @@ import 'package:heliumapp/config/pref_service.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:logging/logging.dart';
 
+import 'helpers/api_helper.dart';
 import 'helpers/test_app.dart';
 import 'helpers/test_config.dart';
 
@@ -26,8 +27,12 @@ void main() {
   );
 
   group('Redirect Preservation Tests', () {
+    final apiHelper = ApiHelper();
+    bool canProceed = false;
+
     setUpAll(() async {
       await startSuite('Redirect Preservation Tests');
+      canProceed = await apiHelper.userExists(config.testEmail);
     });
 
     tearDownAll(() async {
@@ -87,5 +92,39 @@ void main() {
         },
       );
     }
+
+    namedTestWidgets(
+      '${protectedPaths.length + 1}. Authenticated /login redirects to /planner',
+      (tester) async {
+        if (!canProceed) {
+          _log.warning('Skipping: user does not exist');
+          skipTest('user does not exist (run signup_user_test first)');
+          return;
+        }
+
+        await initializeTestApp(tester);
+        final loggedIn = await loginAndNavigateToPlanner(
+          tester,
+          config.testEmail,
+          config.testPassword,
+        );
+        expect(loggedIn, isTrue, reason: 'Should be logged in');
+
+        _log.info('Navigating to /login while authenticated ...');
+        router.go(AppRoute.loginScreen);
+        final reachedPlanner = await waitForRoute(
+          tester,
+          AppRoute.plannerScreen,
+          browserTitle: 'Planner',
+          timeout: config.apiTimeout,
+        );
+        expect(
+          reachedPlanner,
+          isTrue,
+          reason:
+              '/login should bounce an authenticated user to /planner',
+        );
+      },
+    );
   });
 }
