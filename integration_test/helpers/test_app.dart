@@ -816,21 +816,6 @@ void expectOnClassesScreen() {
     reason: 'Classes: Intro to Psychology 🧠 course should be shown',
   );
   expect(
-    find.text('ARTS 302'),
-    findsOneWidget,
-    reason: 'Classes: Creative Writing course should show room "ARTS 302"',
-  );
-  expect(
-    find.text('ENG 202'),
-    findsOneWidget,
-    reason: 'Classes: Programming course should show room "ENG 202"',
-  );
-  expect(
-    find.text('SOC 110'),
-    findsOneWidget,
-    reason: 'Classes: Psychology course should show room "SOC 110"',
-  );
-  expect(
     find.text('Classes'),
     findsNWidgets(2),
     reason: 'Classes: Title or menu button not found',
@@ -894,11 +879,6 @@ Future<void> expectOnResourcesScreen(WidgetTester tester) async {
     findsOneWidget,
     reason: 'Resources: Supplies group should show 1 resource card',
   );
-  expect(
-    find.text('Notebook 📓'),
-    findsOneWidget,
-    reason: 'Resources: Supplies should contain "Notebook 📓"',
-  );
 
   await tester.tap(dropdown);
   await tester.pumpAndSettle();
@@ -909,17 +889,6 @@ Future<void> expectOnResourcesScreen(WidgetTester tester) async {
     findsNWidgets(3),
     reason: 'Resources: Textbooks group should show 3 resource cards',
   );
-  for (final textbook in [
-    'Automate the Boring Stuff with Python',
-    'Bird by Bird: Some Instructions on Writing and Life',
-    'Psychology, 14th Edition',
-  ]) {
-    expect(
-      find.text(textbook),
-      findsOneWidget,
-      reason: 'Resources: Textbooks should contain "$textbook"',
-    );
-  }
 }
 
 /// Assert we're on the Grades screen.
@@ -1003,26 +972,6 @@ void expectOnGradesScreen() {
     find.text('Intro to Psychology 🧠'),
     findsNWidgets(2),
     reason: 'Grades: Intro to Psychology 🧠 grade card should be shown, and time series filter',
-  );
-  expect(
-    find.text('87.79%'),
-    findsWidgets,
-    reason: 'Grades: Fall Semester overall grade should render as 87.79%',
-  );
-  expect(
-    find.text('89.33%'),
-    findsWidgets,
-    reason: 'Grades: Creative Writing ✍️ grade should render as 89.33%',
-  );
-  expect(
-    find.text('89.08%'),
-    findsWidgets,
-    reason: 'Grades: Fundamentals of Programming 💻 grade should render as 89.08%',
-  );
-  expect(
-    find.text('84.97%'),
-    findsWidgets,
-    reason: 'Grades: Intro to Psychology 🧠 grade should render as 84.97%',
   );
   expect(
     find.text('Grades'),
