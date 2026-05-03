@@ -1531,7 +1531,7 @@ void main() {
         // 5a — No filter: at least one item of each type is rendered.
         _log.info('Filter: none ...');
         await applyFilters();
-        expectVisibility(
+        await expectVisibility(
           shouldBeVisible: [
             ...allHomeworkIds,
             ...allEventIds,
@@ -1543,7 +1543,7 @@ void main() {
         // 5b — Events only: events visible, homework + classes hidden.
         _log.info('Filter: Events only ...');
         await applyFilters(tileLabels: {eventsType});
-        expectVisibility(
+        await expectVisibility(
           shouldBeVisible: allEventIds,
           shouldNotBeVisible: [...allHomeworkIds, ...allClassEventIds],
           reason: 'Events type only',
@@ -1552,7 +1552,7 @@ void main() {
         // 5c — Assignments only: homework visible, events + classes hidden.
         _log.info('Filter: Assignments only ...');
         await applyFilters(tileLabels: {assignmentsType});
-        expectVisibility(
+        await expectVisibility(
           shouldBeVisible: allHomeworkIds,
           shouldNotBeVisible: [...allEventIds, ...allClassEventIds],
           reason: 'Assignments type only',
@@ -1561,7 +1561,7 @@ void main() {
         // 5d — Class Schedules only: classes visible, homework + events hidden.
         _log.info('Filter: Class Schedules only ...');
         await applyFilters(tileLabels: {classSchedulesType});
-        expectVisibility(
+        await expectVisibility(
           shouldBeVisible: allClassEventIds,
           shouldNotBeVisible: [...allHomeworkIds, ...allEventIds],
           reason: 'Class Schedules type only',
@@ -1571,7 +1571,7 @@ void main() {
         // incomplete homework hidden.
         _log.info('Filter: Assignments + Complete ...');
         await applyFilters(tileLabels: {assignmentsType, completeStatus});
-        expectVisibility(
+        await expectVisibility(
           shouldBeVisible: completedHomeworkIds,
           shouldNotBeVisible: incompleteHomeworkIds,
           reason: 'Assignments + Complete',
@@ -1580,7 +1580,7 @@ void main() {
         // 5f — Assignments + Quiz category: only Quiz-category homework.
         _log.info('Filter: Assignments + Quiz category ...');
         await applyFilters(tileLabels: {assignmentsType, quizCategory});
-        expectVisibility(
+        await expectVisibility(
           shouldBeVisible: quizHomeworkIds,
           shouldNotBeVisible: nonQuizHomeworkIds,
           reason: 'Assignments + Quiz category',
@@ -1604,7 +1604,7 @@ void main() {
         await enterTextInField(tester, searchField.last, searchQuery);
         await tester.testTextInput.receiveAction(TextInputAction.done);
         await tester.pumpAndSettle(const Duration(milliseconds: 500));
-        expectVisibility(
+        await expectVisibility(
           shouldBeVisible: searchMatchIds,
           // Items not matching the search shouldn't render. Quiz 4 is a safe
           // canary — its title doesn't contain the search query.
@@ -1628,7 +1628,7 @@ void main() {
               .map((c) => c.title)
               .toSet(),
         );
-        expectVisibility(
+        await expectVisibility(
           shouldBeVisible: nonCwHomeworkIds,
           shouldNotBeVisible: cwHomeworkIds,
           reason: 'Exclude Creative Writing course',
@@ -1645,7 +1645,7 @@ void main() {
             classSchedulesType,
           },
         );
-        expectVisibility(
+        await expectVisibility(
           shouldBeVisible: nonCwClassEventIds,
           shouldNotBeVisible: [
             ...cwClassEventIds,
