@@ -605,10 +605,8 @@ Future<bool> loginAndNavigateToPlanner(
     password,
   );
 
-  // Two attempts handle the post-signup /auth/token/ throttle race, where
-  // the first login can time out under CI load while the IP-based limit
-  // window is still open. The credentials form retains its values across
-  // an error response, so a retry re-submits the same input.
+  // Retry once: post-signup /auth/token/ throttling can swallow the first
+  // submit on CI; the form retains the entered credentials across the error.
   final signInButton = find.byKey(const Key(LoginScreen.signInButtonKey));
   bool reachedPlanner = false;
   for (var attempt = 1; attempt <= 2 && !reachedPlanner; attempt++) {

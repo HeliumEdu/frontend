@@ -150,10 +150,6 @@ void main() {
         reason: 'Should be redirected to login after account deletion',
       );
 
-      // Verify account is actually deleted via API (with polling). Drop any
-      // cached access token first — userExists for the test email reuses
-      // getAccessToken's cache, which would otherwise keep returning the
-      // pre-deletion token and report "still exists" forever.
       _log.info('Verifying account deletion via API ...');
       apiHelper.invalidateAccessToken();
       var accountDeleted = false;

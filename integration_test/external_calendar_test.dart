@@ -20,9 +20,8 @@ import 'helpers/test_config.dart';
 
 final _log = Logger('external_calendar_test');
 
-// Hard-coded Helium Test Calendar — hosted by the team so its contents are
-// stable across runs (e.g. an Oct 15 2023 timed event used to anchor the
-// agenda assertion).
+// Team-hosted ICS feed; contents are stable across runs and anchor the
+// Oct 15 2023 timed-event assertion below.
 const _testCalendarTitle = 'Helium Test Calendar';
 const _testCalendarUrl =
     'https://calendar.google.com/calendar/ical/86c55b7d91f8d4c22ca722fe22ee19779774863c6e31b6b23346e475c44a23ad%40group.calendar.google.com/public/basic.ics';
@@ -92,19 +91,15 @@ void main() {
         );
         expect(loggedIn, isTrue, reason: 'Should be logged in');
 
-        // The Helium Test Calendar's events live in October 2023. Land on
-        // that month via the new ?date= deep link.
         _log.info('Navigating to test calendar month (2023-10-15) ...');
         router.go(
           '${AppRoute.plannerScreen}?${DeepLinkParam.date}=2023-10-15',
         );
         await tester.pumpAndSettle();
 
-        // The Helium Test Calendar has a known event on Oct 15 2023 with
-        // this exact title. Match by title rather than icon — external
-        // calendar items on the calendar render their title in the parent
-        // calendar's color but don't show the hub icon inline (it's only in
-        // the tooltip overlay).
+        // External-calendar items render in the parent calendar's color
+        // without the hub icon (icon only appears in the tooltip), so match
+        // by title.
         const knownEventTitle = 'Some Timed Event at 9am CT Inside DST';
         final externalEvent = findRichTextContaining(knownEventTitle);
 
@@ -122,8 +117,6 @@ void main() {
               'the calendar is added',
         );
 
-        // Apply Assignments-only Type filter — external calendar event
-        // should drop out of the rendered list.
         _log.info('Filtering to Assignments only ...');
         final filterButton = find.byKey(
           const Key(PlannerScreen.filterButtonKey),
@@ -144,7 +137,6 @@ void main() {
         await tester.tap(assignmentsTile);
         await tester.pumpAndSettle();
 
-        // Close filter menu and let the data source re-render.
         await tester.tapAt(const Offset(10, 10));
         await tester.pumpAndSettle();
 

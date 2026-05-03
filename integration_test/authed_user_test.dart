@@ -18,6 +18,7 @@ import 'package:heliumapp/presentation/features/planner/views/planner_screen.dar
 import 'package:heliumapp/presentation/navigation/shell/navigation_shell.dart';
 import 'package:heliumapp/presentation/ui/components/settings_button.dart';
 import 'package:heliumapp/presentation/ui/layout/page_header.dart';
+import 'package:heliumapp/utils/grade_helpers.dart';
 import 'package:heliumapp/utils/planner_helper.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:integration_test/integration_test.dart';
@@ -409,7 +410,6 @@ void main() {
       const homeworkCategoryTitle = 'Homework 👨🏽‍💻';
       const todosPageSize = 10;
 
-      // 1. Click "Change view" menu and switch to "Todos"
       _log.info('Switching to "Todos" view ...');
       final viewButton = find.byKey(
         const Key(PlannerScreen.viewSwitcherButtonKey),
@@ -433,10 +433,8 @@ void main() {
       await tester.pumpAndSettle();
       await takeScreenshot('todos_view_initial_state');
 
-      // 2. Wait for Todos view to initialize and assert "Showing X to Y of N"
-      // (X and Y may vary mid-load, N is the helper-computed total).
-      // TodosTable._initializeData expands the data window via a network call;
-      // on CI this may take several seconds.
+      // X and Y vary mid-load (TodosTable expands the window via a network
+      // call); only N is stable, so match on the helper-computed total.
       final totalExpected = counts.expectedCount(
         snapshot: snap,
         view: PlannerView.todos,
@@ -456,7 +454,6 @@ void main() {
             'Should show "Showing X to Y of $totalExpected" after Todos view initializes',
       );
 
-      // 3. Tap filters, tap checkbox next to "Fundamentals"
       _log.info('Opening filter menu ...');
       final filterButton = find.byKey(
         const Key(PlannerScreen.filterButtonKey),
@@ -472,7 +469,6 @@ void main() {
       );
       expect(filterMenuOpened, isTrue, reason: 'Filter menu should open');
 
-      // In Todos view, the TYPES section should be hidden
       expect(
         find.ancestor(
           of: find.text('Assignments'),
@@ -506,7 +502,6 @@ void main() {
         reason: 'External Calendars filter should be hidden in Todos view',
       );
 
-      // Find the CheckboxListTile containing "Fundamentals"
       final fundamentalsCheckbox = find.ancestor(
         of: find.textContaining('Fundamentals'),
         matching: find.byType(CheckboxListTile),
@@ -519,7 +514,6 @@ void main() {
       await tester.tap(fundamentalsCheckbox);
       await tester.pumpAndSettle();
 
-      // 3.1 Assert footer shows "Showing 1 to {pageSize} of N" for Fundamentals
       final fundExpected = counts.expectedCount(
         snapshot: snap,
         view: PlannerView.todos,
@@ -533,7 +527,6 @@ void main() {
             'After Fundamentals filter: should show "Showing 1 to $fundUpper of $fundExpected"',
       );
 
-      // 4. Still in filters, tap CheckboxListTile next to "Homework" category
       final homeworkCheckbox = find.ancestor(
         of: find.textContaining('Homework'),
         matching: find.byType(CheckboxListTile),
@@ -546,7 +539,6 @@ void main() {
       await tester.tap(homeworkCheckbox);
       await tester.pumpAndSettle();
 
-      // 4.1 Assert footer shows "Showing 1 to N of N" for Fundamentals+Homework
       final funHwExpected = counts.expectedCount(
         snapshot: snap,
         view: PlannerView.todos,
@@ -563,8 +555,6 @@ void main() {
             'After Homework filter: should show "Showing 1 to $funHwUpper of $funHwExpected"',
       );
 
-      // 5. Close filters menu (tap outside), then tap search icon and enter "1"
-      // Tap outside the filter menu to close it
       _log.info('Closing filter menu ...');
       await tester.tapAt(const Offset(10, 10));
       await tester.pumpAndSettle();
@@ -579,8 +569,6 @@ void main() {
         await tester.tap(searchButton);
       }
 
-      // Wait for search field to appear (animation on non-desktop, immediate
-      // on desktop where it's already inline)
       final searchField = find.byType(TextField);
       final searchFieldAppeared = await waitForWidget(
         tester,
@@ -591,12 +579,10 @@ void main() {
 
       _log.info('Entering search term "1" ...');
       await enterTextInField(tester, searchField.last, '1');
-      // Unfocus field to trigger search (search applies on focus loss or timer)
+      // Unfocus to trigger search (applies on focus loss or timer).
       await tester.testTextInput.receiveAction(TextInputAction.done);
       await tester.pumpAndSettle(const Duration(seconds: 2));
 
-      // 5.1 Assert footer shows "Showing 1 to N of N" for search "1" combined
-      // with the still-active Fundamentals + Homework filters above.
       final searchExpected = counts.expectedCount(
         snapshot: snap,
         view: PlannerView.todos,
@@ -622,15 +608,14 @@ void main() {
             'After search "1": should show "Showing 1 to $searchUpper of $searchExpected"',
       );
 
-      // 6. Assert the row shows "Homework 1" with strikethrough, time, class, and grade
-      // TodosTable uses SelectableText for title and due
+      // Strikethrough title, due time, class, and grade — TodosTable renders
+      // the title and due cells as SelectableText.
       final homework1Finder = find.byWidgetPredicate(
         (w) =>
             w is SelectableText &&
             w.data == 'Homework 1' &&
             w.style?.decoration == TextDecoration.lineThrough,
       );
-      // Wait for the row to render with strikethrough styling
       final homework1Appeared = await waitForWidget(
         tester,
         homework1Finder,
@@ -642,8 +627,7 @@ void main() {
         reason: 'Homework 1 should have strikethrough (completed)',
       );
 
-      // Due format is "EEE, MMM d • h:mm a" (e.g., "Fri, Oct 10 • 11 AM")
-      // User timezone is set to America/Chicago during registration
+      // Due format "EEE, MMM d • h:mm a" against America/Chicago user tz.
       expect(
         find.byWidgetPredicate(
           (w) => w is SelectableText && (w.data?.contains('11 AM') ?? false),
@@ -652,28 +636,23 @@ void main() {
         reason: 'Row should show due with 11 AM (Chicago timezone)',
       );
 
-      // Class uses CourseTitleLabel which contains text
       expect(
         find.textContaining('Fundamentals'),
         findsWidgets,
         reason: 'Row should show "Fundamentals" class',
       );
 
-      // Grade uses GradeLabel widget
       expect(
         find.text('80.00%'),
         findsOneWidget,
         reason: 'Row should show grade "80.00%"',
       );
 
-      // 7. Tap the checkbox at the start of the row to uncheck it
       final checkbox = find.byType(Checkbox);
       expect(checkbox, findsOneWidget, reason: 'Row should have a checkbox');
       await tester.tap(checkbox);
       await tester.pumpAndSettle(const Duration(seconds: 2));
 
-      // 7.1 Assert checkbox is unchecked, "Homework 1" no longer has strikethrough, grade disappears
-      // Find the non-strikethrough text (uncompleted item) - TodosTable uses SelectableText
       final homework1NoStrikethrough = find.byWidgetPredicate(
         (w) =>
             w is SelectableText &&
@@ -688,15 +667,12 @@ void main() {
             'Homework 1 should no longer have strikethrough after unchecking',
       );
 
-      // Grade should disappear when uncompleted
       expect(
         find.text('80.00%'),
         findsNothing,
         reason: 'Grade should disappear after unchecking',
       );
 
-      // Verify the edit dialog did NOT open (we should still be on Todos view)
-      // Wait to ensure it doesn't open after a delay
       final editDialogOpened = await waitForWidget(
         tester,
         find.text('Edit Assignment'),
@@ -708,7 +684,6 @@ void main() {
         reason: 'Edit dialog should NOT open when clicking checkbox',
       );
 
-      // Verify the completed state change was persisted to the backend API
       _log.info('Verifying homework completion state via API ...');
       final homework = await apiHelper.findHomeworkByTitle('Homework 1');
       expect(
@@ -722,7 +697,6 @@ void main() {
         reason:
             'Homework 1 should be marked incomplete in API after unchecking',
       );
-      // Grade should still be present even though completed is now false
       expect(
         homework.currentGrade,
         equals('40/50'),
@@ -760,11 +734,9 @@ void main() {
       );
       expect(quizVisible, isTrue, reason: 'Quiz 4 should be visible after navigating to user timezone month');
 
-      // Tap on the homework item to open edit screen
       await tester.tap(findRichTextContaining('Quiz 4').first);
       await tester.pumpAndSettle(const Duration(seconds: 3));
 
-      // Verify we're on the edit screen and store reference to the dialog
       final editDialogTitle = find.text('Edit Assignment');
       final editScreenFound = await waitForWidget(
         tester,
@@ -777,7 +749,7 @@ void main() {
         findsOneWidget,
         reason: 'Edit screen: "Edit Assignment" title should be shown',
       );
-      // Browser title updates asynchronously once the screen resolves its type
+      // Browser title resolves asynchronously after the screen's type lands.
       final titleUpdated = await waitForBrowserTitle(
         tester,
         'Edit Assignment',
@@ -790,9 +762,7 @@ void main() {
       );
       _log.info('Edit Assignment dialog opened ...');
 
-      // 1. Change title to "Quiz 4 (Edited)"
       final titleField = find.byKey(const Key(PlannerItemFormController.titleField));
-      // Wait for the title field to load
       final titleFieldFound = await waitForWidget(
         tester,
         titleField,
@@ -805,7 +775,6 @@ void main() {
       );
       await enterTextInField(tester, titleField, 'Quiz 4 (Edited)');
 
-      // 2. Change time to 2pm - tap on the time field to open time picker
       _log.info('Change time to 2pm ...');
       final timeFields = find.byIcon(Icons.access_time);
       expect(
@@ -817,14 +786,12 @@ void main() {
       await tester.tap(timeFields.first);
       await tester.pumpAndSettle();
 
-      // Switch to dial mode to tap on clock face
       final switchToDial = find.byTooltip('Switch to dial picker mode');
       if (switchToDial.evaluate().isNotEmpty) {
         await tester.tap(switchToDial);
         await tester.pumpAndSettle();
       }
 
-      // Find the dial and tap at 2 o'clock position
       final dialFinder = find.byWidgetPredicate(
         (Widget w) => '${w.runtimeType}' == '_Dial',
       );
@@ -832,8 +799,9 @@ void main() {
       final topRight = tester.getTopRight(dialFinder);
       final radius = topRight.dx - center.dx;
 
-      // 2 o'clock = 60 degrees from 12 (top), in radians: (60 - 90) * pi / 180
-      const hour2Angle = (60 - 90) * 3.14159 / 180;
+      // 2 o'clock sits 60° clockwise from 12; in math coords (0 = right,
+      // CCW positive) that's -π/3.
+      const hour2Angle = -pi / 3;
       final tapAt = Offset(
         center.dx + radius * 0.7 * cos(hour2Angle),
         center.dy + radius * 0.7 * sin(hour2Angle),
@@ -844,14 +812,13 @@ void main() {
       await tester.tap(find.text('Select'));
       await tester.pumpAndSettle();
 
-      // 3. Scroll to and tap the Complete checkbox
       final completeCheckbox = find.byKey(const Key(PlannerItemFormController.completeField));
       await scrollUntilVisible(tester, completeCheckbox);
       await tester.tap(completeCheckbox);
       await tester.pumpAndSettle();
       _log.info('Tapped complete checkbox');
 
-      // 5. Set a grade (grade field appears when completed is checked)
+      // Grade field only appears after Complete is checked.
       final gradeField = find.byKey(const Key(PlannerItemFormController.gradeField));
       if (gradeField.evaluate().isNotEmpty) {
         await enterTextInField(tester, gradeField, '95/100');
@@ -859,7 +826,6 @@ void main() {
         _log.info('Entered grade: 95/100');
       }
 
-      // Find and tap the Save button
       _log.info('Saving homework changes ...');
       final saveButton = find.byKey(const Key(PageHeader.saveButtonKey));
       expect(
@@ -870,7 +836,6 @@ void main() {
       await tester.tap(saveButton);
       await tester.pumpAndSettle(const Duration(seconds: 3));
 
-      // Verify the edit dialog has closed
       final dialogClosed = await waitForWidgetToDisappear(
         tester,
         editDialogTitle,
@@ -888,7 +853,6 @@ void main() {
       );
       expectOnPlannerScreen();
 
-      // Wait for updated item to appear in calendar
       final updatedItem = findRichTextContaining('Quiz 4 (Edited)');
       final itemAppeared = await waitForWidget(
         tester,
@@ -902,7 +866,6 @@ void main() {
       );
       _log.info('UI shows updated homework title');
 
-      // Verify changes were persisted to the backend API
       _log.info('Verifying homework update via API ...');
       final editedHomework = await apiHelper.findHomeworkByTitle('(Edited)');
       expect(
@@ -913,14 +876,11 @@ void main() {
 
       _log.info('Edited homework: ${editedHomework!.title}');
 
-      // Verify all our changes
       expect(
         editedHomework.title,
         equals('Quiz 4 (Edited)'),
         reason: 'Title should be "Quiz 4 (Edited)"',
       );
-      // Verify time was changed to 2pm Chicago time
-      // Convert expected 2pm Chicago to UTC using the homework's actual date
       final chicago = tz.getLocation('America/Chicago');
       final expected2pmChicago = tz.TZDateTime(
         chicago,
@@ -952,10 +912,7 @@ void main() {
         reason: 'Grade should be "95/100"',
       );
 
-      // 6. Tap the checkbox on the calendar item to uncheck it
       _log.info('Tapping checkbox in month view ...');
-
-      // Find the edited homework item
       final editedItemOnCalendar = findRichTextContaining('Quiz 4 (Edited)');
       expect(
         editedItemOnCalendar,
@@ -963,9 +920,6 @@ void main() {
         reason: 'Should find edited item',
       );
 
-      // Find the KeyedSubtree ancestor (each calendar item is keyed
-      // ValueKey('planner_item_<type>_<id>'); we only need the ancestor
-      // here, not the key itself, so the format is irrelevant)
       final itemContainer = find
           .ancestor(
             of: editedItemOnCalendar.first,
@@ -973,9 +927,6 @@ void main() {
           )
           .first;
 
-      // Find the completion checkbox within that specific item container.
-      // The checkbox is keyed with a ValueKey<String> prefixed by
-      // PlannerScreen.plannerItemCheckboxKeyPrefix + the homework id.
       final checkbox = find.descendant(
         of: itemContainer,
         matching: find.byWidgetPredicate((widget) {
@@ -1005,11 +956,7 @@ void main() {
         reason: 'Edit dialog should NOT open when clicking checkbox',
       );
 
-      // 7. Wait for UI to update after checkbox toggle
       await tester.pumpAndSettle(const Duration(seconds: 2));
-      _log.info('Checkbox toggled, verifying state via API ...');
-
-      // 8. Verify via API that completed is now false
       _log.info('Verifying unchecked state via API ...');
       final uncheckedHomework = await apiHelper.findHomeworkByTitle(
         'Quiz 4 (Edited)',
@@ -1024,7 +971,6 @@ void main() {
         isFalse,
         reason: 'Homework should be marked incomplete after unchecking',
       );
-      // Grade should still be present
       expect(
         uncheckedHomework.currentGrade,
         equals('95/100'),
@@ -1367,17 +1313,9 @@ void main() {
         final eventsType = PlannerFilterType.events.value;
         final classSchedulesType = PlannerFilterType.classSchedules.value;
 
-        // Snapshot-derived id sets used for presence/absence assertions.
-        // Each appointment renders with a key of `planner_item_<type>_<id>`
-        // (planner_screen.dart) — the type prefix is required because each
-        // model (homework / event / schedule) has its own backend PK
-        // sequence, so a homework with id=5 and an event with id=5 would
-        // otherwise share the same key and confuse visibility checks.
-        //
-        // Class-schedule appointments use generated event ids of
-        // `schedule.id * 100 + slotIndex` (course_schedule_builder_source
-        // .dart::_generateEventId). Our example schedules have a single
-        // time-slot group per schedule, so slotIndex=0.
+        // Each backend model has its own PK sequence, so the calendar key
+        // includes the type prefix to disambiguate. Class schedules render
+        // with `schedule.id * 100 + slotIndex` (single-slot in our data, so 0).
         String hwKey(int id) => 'homework_$id';
         String eventKey(int id) => 'event_$id';
         String classKey(int scheduleId) => 'courseSchedule_${scheduleId * 100}';
@@ -1495,20 +1433,14 @@ void main() {
           await tester.pumpAndSettle(const Duration(milliseconds: 500));
         }
 
-        // Each rendered calendar item is a KeyedSubtree keyed
-        // `planner_item_<type>_<id>` (planner_screen.dart). Callers pass the
-        // `<type>_<id>` suffix; this helper combines it with the prefix.
         bool isItemVisible(String suffix) =>
             find.byKey(ValueKey('planner_item_$suffix')).evaluate().isNotEmpty;
         bool anyVisible(Iterable<String> keys) => keys.any(isItemVisible);
         List<String> visibleSubset(Iterable<String> keys) =>
             keys.where(isItemVisible).toList();
 
-        // Poll the rendered tree until the visibility predicates hold.
-        // Filter changes cross a 16ms debounce + compute() isolate boundary
-        // before notifyListeners + SfCalendar repaint, so on slower CI
-        // machines the assertion can fire before the new filtered set has
-        // reached the tree even after pumpAndSettle.
+        // Filter changes cross a 16ms debounce + compute() boundary before
+        // SfCalendar repaints, so pumpAndSettle alone can race the result.
         Future<void> expectVisibility({
           List<String> shouldBeVisible = const [],
           List<String> shouldNotBeVisible = const [],
@@ -1524,12 +1456,6 @@ void main() {
             if (!missingExpected && !extraStillVisible) return;
             await tester.pump(const Duration(milliseconds: 100));
           }
-          // Re-run the same checks one last time so a failure produces the
-          // matcher's standard error output. Include the offending IDs so CI
-          // logs reveal whether the filter never landed, only partially
-          // landed, or some other category leaked through. Capture a
-          // screenshot so the actual rendered state at the moment of failure
-          // is preserved in the integration-screenshots artifact.
           final slug = reason
               .toLowerCase()
               .replaceAll(RegExp(r'[^a-z0-9]+'), '_')
@@ -1562,7 +1488,7 @@ void main() {
           }
         }
 
-        // 5a — No filter: at least one item of each type is rendered.
+        // 8a — No filter: at least one item of each type is rendered.
         _log.info('Filter: none ...');
         await applyFilters();
         await expectVisibility(
@@ -1574,7 +1500,7 @@ void main() {
           reason: 'No filter',
         );
 
-        // 5b — Events only: events visible, homework + classes hidden.
+        // 8b — Events only: events visible, homework + classes hidden.
         _log.info('Filter: Events only ...');
         await applyFilters(tileLabels: {eventsType});
         await expectVisibility(
@@ -1583,7 +1509,7 @@ void main() {
           reason: 'Events type only',
         );
 
-        // 5c — Assignments only: homework visible, events + classes hidden.
+        // 8c — Assignments only: homework visible, events + classes hidden.
         _log.info('Filter: Assignments only ...');
         await applyFilters(tileLabels: {assignmentsType});
         await expectVisibility(
@@ -1592,7 +1518,7 @@ void main() {
           reason: 'Assignments type only',
         );
 
-        // 5d — Class Schedules only: classes visible, homework + events hidden.
+        // 8d — Class Schedules only: classes visible, homework + events hidden.
         _log.info('Filter: Class Schedules only ...');
         await applyFilters(tileLabels: {classSchedulesType});
         await expectVisibility(
@@ -1601,7 +1527,7 @@ void main() {
           reason: 'Class Schedules type only',
         );
 
-        // 5e — Assignments + Complete: completed homework visible,
+        // 8e — Assignments + Complete: completed homework visible,
         // incomplete homework hidden.
         _log.info('Filter: Assignments + Complete ...');
         await applyFilters(tileLabels: {assignmentsType, completeStatus});
@@ -1611,7 +1537,7 @@ void main() {
           reason: 'Assignments + Complete',
         );
 
-        // 5f — Assignments + Quiz category: only Quiz-category homework.
+        // 8f — Assignments + Quiz category: only Quiz-category homework.
         _log.info('Filter: Assignments + Quiz category ...');
         await applyFilters(tileLabels: {assignmentsType, quizCategory});
         await expectVisibility(
@@ -1620,7 +1546,7 @@ void main() {
           reason: 'Assignments + Quiz category',
         );
 
-        // 5g — Search "Workshop": only items whose title contains the term.
+        // 8g — Search "Workshop": only items whose title contains the term.
         _log.info('Filter: search "$searchQuery" ...');
         await applyFilters();
         final searchButton = find.byKey(
@@ -1653,7 +1579,7 @@ void main() {
         await tester.testTextInput.receiveAction(TextInputAction.done);
         await tester.pumpAndSettle();
 
-        // 5h — Course excluded (Creative Writing): tap the OTHER courses so
+        // 8h — Course excluded (Creative Writing): tap the OTHER courses so
         // the filter restricts to "all but Creative Writing".
         _log.info('Filter: exclude Creative Writing ...');
         await applyFilters(
@@ -1668,7 +1594,7 @@ void main() {
           reason: 'Exclude Creative Writing course',
         );
 
-        // 5i — Exclude CW + Type=Class Schedules: only Programming/Psych
+        // 8i — Exclude CW + Type=Class Schedules: only Programming/Psych
         // class schedules render.
         _log.info('Filter: exclude Creative Writing + Class Schedules ...');
         await applyFilters(
@@ -1691,7 +1617,127 @@ void main() {
       },
     );
 
-    namedTestWidgets('9. User can clear example schedule', (tester) async {
+    namedTestWidgets('9. Calendar item tooltips show correct content', (
+      tester,
+    ) async {
+      if (!canProceed) {
+        _log.warning('Skipping: user does not exist');
+        skipTest('user does not exist (run signup_user_test first)');
+        return;
+      }
+
+      await initializeTestApp(tester);
+      final loggedIn = await loginAndNavigateToPlanner(
+        tester,
+        testEmail,
+        testPassword,
+      );
+      expect(loggedIn, isTrue, reason: 'Should be logged in');
+      await navigateCalendarToUserTimezone(tester, 'America/Chicago');
+
+      final counts = PlannerCountHelper(apiHelper);
+      final snap = await counts.snapshot();
+
+      // Inspect Tooltip.richMessage directly to skip hover-gesture timing.
+      Tooltip tooltipFor(Finder itemFinder) {
+        final wrappers = find
+            .ancestor(of: itemFinder, matching: find.byType(Tooltip))
+            .evaluate();
+        expect(
+          wrappers,
+          isNotEmpty,
+          reason: 'Calendar item should be wrapped in a Tooltip',
+        );
+        return wrappers.first.widget as Tooltip;
+      }
+
+      _log.info('Verifying assignment tooltip ...');
+      final quiz3Finder = findRichTextContaining('Quiz 3');
+      final quiz3Visible = await waitForWidget(
+        tester,
+        quiz3Finder,
+        timeout: config.apiTimeout,
+      );
+      expect(quiz3Visible, isTrue, reason: 'Quiz 3 should be visible');
+
+      final quiz3Text =
+          (tooltipFor(quiz3Finder.first).richMessage as TextSpan).toPlainText();
+      expect(quiz3Text, contains('Quiz 3'));
+
+      // Both Programming and Psychology have a Quiz 3; identify which course
+      // this one is from the tooltip, then validate against snapshot data.
+      final quiz3Course = snap.courses.firstWhere(
+        (c) => quiz3Text.contains(c.title),
+        orElse: () => throw StateError(
+          'Quiz 3 tooltip should mention a course title from snapshot',
+        ),
+      );
+      final quiz3Homework = snap.homework.firstWhere(
+        (h) => h.title == 'Quiz 3' && h.course.id == quiz3Course.id,
+      );
+      final quiz3Category = snap.categoriesById[quiz3Homework.category.id]!;
+      expect(
+        quiz3Text,
+        contains(quiz3Category.title),
+        reason: 'Assignment tooltip should include the category title',
+      );
+      if (GradeHelper.parseGrade(quiz3Homework.currentGrade) != null) {
+        expect(
+          quiz3Text,
+          contains(GradeHelper.gradeForDisplay(quiz3Homework.currentGrade)),
+          reason: 'Assignment tooltip should include the formatted grade',
+        );
+      }
+
+      _log.info('Verifying event tooltip ...');
+      const eventTitle = 'Final Portfolio Writing Workshop';
+      final eventFinder = findRichTextContaining(eventTitle);
+      final eventVisible = await waitForWidget(
+        tester,
+        eventFinder,
+        timeout: config.apiTimeout,
+      );
+      expect(eventVisible, isTrue, reason: 'Event "$eventTitle" should be visible');
+
+      final eventText =
+          (tooltipFor(eventFinder.first).richMessage as TextSpan).toPlainText();
+      expect(eventText, contains(eventTitle));
+      expect(
+        eventText,
+        contains('Source: Events'),
+        reason: 'Event tooltip should include the Events source label',
+      );
+      for (final c in snap.courses) {
+        expect(
+          eventText,
+          isNot(contains(c.title)),
+          reason: 'Event tooltip should not mention course "${c.title}"',
+        );
+      }
+
+      _log.info('Verifying class tooltip ...');
+      const psychTitle = 'Intro to Psychology 🧠';
+      final psychFinder = findRichTextContaining(psychTitle);
+      final psychVisible = await waitForWidget(
+        tester,
+        psychFinder,
+        timeout: config.apiTimeout,
+      );
+      expect(psychVisible, isTrue, reason: 'Class "$psychTitle" should be visible');
+
+      final psychText =
+          (tooltipFor(psychFinder.first).richMessage as TextSpan).toPlainText();
+      expect(psychText, contains(psychTitle));
+      for (final cat in snap.categoriesById.values) {
+        expect(
+          psychText,
+          isNot(contains(cat.title)),
+          reason: 'Class tooltip should not mention category "${cat.title}"',
+        );
+      }
+    });
+
+    namedTestWidgets('10. User can clear example schedule', (tester) async {
       if (!canProceed) {
         _log.warning('Skipping: user does not exist');
         skipTest('user does not exist (run signup_user_test first)');
