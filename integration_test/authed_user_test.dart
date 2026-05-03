@@ -963,7 +963,9 @@ void main() {
         reason: 'Should find edited item',
       );
 
-      // Find the KeyedSubtree ancestor (each calendar item has ValueKey('planner_item_$id'))
+      // Find the KeyedSubtree ancestor (each calendar item is keyed
+      // ValueKey('planner_item_<type>_<id>'); we only need the ancestor
+      // here, not the key itself, so the format is irrelevant)
       final itemContainer = find
           .ancestor(
             of: editedItemOnCalendar.first,
