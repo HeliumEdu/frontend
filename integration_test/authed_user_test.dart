@@ -1516,8 +1516,16 @@ void main() {
           // Re-run the same checks one last time so a failure produces the
           // matcher's standard error output. Include the offending IDs so CI
           // logs reveal whether the filter never landed, only partially
-          // landed, or some other category leaked through.
-          if (shouldBeVisible.isNotEmpty) {
+          // landed, or some other category leaked through. Capture a
+          // screenshot so the actual rendered state at the moment of failure
+          // is preserved in the integration-screenshots artifact.
+          final slug = reason
+              .toLowerCase()
+              .replaceAll(RegExp(r'[^a-z0-9]+'), '_')
+              .replaceAll(RegExp(r'^_|_$'), '');
+          if (shouldBeVisible.isNotEmpty &&
+              !anyVisible(shouldBeVisible)) {
+            await takeScreenshot('expectVisibility_missing_$slug');
             final missing = shouldBeVisible.where((id) => !isItemVisible(id));
             expect(
               anyVisible(shouldBeVisible),
@@ -1530,6 +1538,9 @@ void main() {
           }
           if (shouldNotBeVisible.isNotEmpty) {
             final stillVisible = visibleSubset(shouldNotBeVisible);
+            if (stillVisible.isNotEmpty) {
+              await takeScreenshot('expectVisibility_leak_$slug');
+            }
             expect(
               stillVisible,
               isEmpty,
