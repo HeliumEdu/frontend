@@ -1508,14 +1508,12 @@ void main() {
         // Filter changes cross a 16ms debounce + compute() isolate boundary
         // before notifyListeners + SfCalendar repaint, so on slower CI
         // machines the assertion can fire before the new filtered set has
-        // reached the tree even after pumpAndSettle. Polling keeps the
-        // assertion correct without hard-coding longer fixed waits; the
-        // 15s ceiling is only paid on the failure path.
+        // reached the tree even after pumpAndSettle.
         Future<void> expectVisibility({
           List<String> shouldBeVisible = const [],
           List<String> shouldNotBeVisible = const [],
           required String reason,
-          Duration timeout = const Duration(seconds: 15),
+          Duration timeout = const Duration(seconds: 5),
         }) async {
           final deadline = DateTime.now().add(timeout);
           while (DateTime.now().isBefore(deadline)) {
