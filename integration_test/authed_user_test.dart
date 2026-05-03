@@ -1488,6 +1488,8 @@ void main() {
         bool isItemVisible(int id) =>
             find.byKey(ValueKey('planner_item_$id')).evaluate().isNotEmpty;
         bool anyVisible(Iterable<int> ids) => ids.any(isItemVisible);
+        List<int> visibleSubset(Iterable<int> ids) =>
+            ids.where(isItemVisible).toList();
 
         // Poll the rendered tree until the visibility predicates hold.
         // Filter changes cross a 16ms debounce + compute() isolate boundary
@@ -1512,19 +1514,28 @@ void main() {
             await tester.pump(const Duration(milliseconds: 100));
           }
           // Re-run the same checks one last time so a failure produces the
-          // matcher's standard error output.
+          // matcher's standard error output. Include the offending IDs so CI
+          // logs reveal whether the filter never landed, only partially
+          // landed, or some other category leaked through.
           if (shouldBeVisible.isNotEmpty) {
+            final missing = shouldBeVisible.where((id) => !isItemVisible(id));
             expect(
               anyVisible(shouldBeVisible),
               isTrue,
-              reason: '$reason — expected at least one of these to render',
+              reason:
+                  '$reason — expected at least one to render; '
+                  'missing all of $shouldBeVisible (none visible). '
+                  'Sample missing: ${missing.take(5).toList()}',
             );
           }
           if (shouldNotBeVisible.isNotEmpty) {
+            final stillVisible = visibleSubset(shouldNotBeVisible);
             expect(
-              anyVisible(shouldNotBeVisible),
-              isFalse,
-              reason: '$reason — expected none of these to render',
+              stillVisible,
+              isEmpty,
+              reason:
+                  '$reason — expected none to render, but these are '
+                  'still visible: $stillVisible',
             );
           }
         }
