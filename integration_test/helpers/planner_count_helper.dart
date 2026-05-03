@@ -55,11 +55,15 @@ class PlannerCountHelper {
   final ApiHelper _api;
 
   /// Fetches the full planner snapshot in parallel.
+  ///
+  /// Homework is fetched with `shownOnCalendar: true` to mirror the
+  /// production data source (planner_item_data_source.dart) — the helper's
+  /// computed counts must match what the UI actually has in scope.
   Future<PlannerSnapshot> snapshot() async {
     final results = await Future.wait([
       _api.getCourses(),
       _api.getCategories(),
-      _api.getHomeworkItems(),
+      _api.getHomeworkItems(shownOnCalendar: true),
       _api.getEvents(),
       _api.getCourseSchedules(),
     ]);
