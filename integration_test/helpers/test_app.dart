@@ -605,16 +605,30 @@ Future<bool> loginAndNavigateToPlanner(
     password,
   );
 
-  _log.info('Submitting login ...');
-  await tester.tap(find.byKey(const Key(LoginScreen.signInButtonKey)));
+  // Two attempts handle the post-signup /auth/token/ throttle race, where
+  // the first login can time out under CI load while the IP-based limit
+  // window is still open. The credentials form retains its values across
+  // an error response, so a retry re-submits the same input.
+  final signInButton = find.byKey(const Key(LoginScreen.signInButtonKey));
+  bool reachedPlanner = false;
+  for (var attempt = 1; attempt <= 2 && !reachedPlanner; attempt++) {
+    if (attempt > 1) {
+      _log.info('First login attempt did not reach planner; retrying ...');
+      await Future.delayed(const Duration(seconds: 5));
+      if (signInButton.evaluate().isEmpty) {
+        break;
+      }
+    }
+    _log.info('Submitting login (attempt $attempt) ...');
+    await tester.tap(signInButton);
 
-  // Wait for planner route
-  final reachedPlanner = await waitForRoute(
-    tester,
-    AppRoute.plannerScreen,
-    browserTitle: 'Planner',
-    timeout: TestConfig().apiTimeout,
-  );
+    reachedPlanner = await waitForRoute(
+      tester,
+      AppRoute.plannerScreen,
+      browserTitle: 'Planner',
+      timeout: TestConfig().apiTimeout,
+    );
+  }
 
   if (!reachedPlanner) {
     _log.warning('Failed to reach planner after login');
