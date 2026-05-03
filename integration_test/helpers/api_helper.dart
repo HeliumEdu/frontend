@@ -369,6 +369,73 @@ class ApiHelper {
     }
   }
 
+  /// Creates an external calendar via the platform API. Returns the new
+  /// calendar's id, or `null` on failure.
+  Future<int?> createExternalCalendar({
+    required String title,
+    required String url,
+    String color = '#3498db',
+    bool shownOnCalendar = true,
+  }) async {
+    final apiHost = _config.projectApiHost;
+    final accessToken = await getAccessToken();
+
+    if (accessToken == null) {
+      _log.warning('Could not get access token to create external calendar');
+      return null;
+    }
+
+    try {
+      final response = await http.post(
+        Uri.parse('$apiHost${ApiUrl.feedExternalCalendarsListUrl}'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $accessToken',
+        },
+        body: jsonEncode({
+          'title': title,
+          'url': url,
+          'color': color,
+          'shown_on_calendar': shownOnCalendar,
+        }),
+      );
+
+      if (response.statusCode == 201) {
+        final body = jsonDecode(response.body) as Map<String, dynamic>;
+        return body['id'] as int;
+      }
+      _log.warning(
+        'Failed to create external calendar: ${response.statusCode} ${response.body}',
+      );
+      return null;
+    } catch (e) {
+      _log.warning('Error creating external calendar: $e');
+      return null;
+    }
+  }
+
+  /// Deletes an external calendar by id. Returns true on success.
+  Future<bool> deleteExternalCalendar(int id) async {
+    final apiHost = _config.projectApiHost;
+    final accessToken = await getAccessToken();
+
+    if (accessToken == null) {
+      _log.warning('Could not get access token to delete external calendar');
+      return false;
+    }
+
+    try {
+      final response = await http.delete(
+        Uri.parse('$apiHost${ApiUrl.feedExternalCalendarDetailUrl(id)}'),
+        headers: {'Authorization': 'Bearer $accessToken'},
+      );
+      return response.statusCode == 204;
+    } catch (e) {
+      _log.warning('Error deleting external calendar: $e');
+      return false;
+    }
+  }
+
   /// Updates a homework item.
   /// Follows the same signature pattern as HomeworkRemoteDataSource.
   Future<bool> updateHomework({
