@@ -13,6 +13,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:heliumapp/config/analytics_event.dart';
 import 'package:heliumapp/config/app_route.dart';
+import 'package:heliumapp/config/app_router.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/core/analytics_service.dart';
 import 'package:heliumapp/core/dio_client.dart';
@@ -315,7 +316,33 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
       }
     });
 
-    _goToToday();
+    // An optional ?date=YYYY-MM-DD deep link. NavigationShell caches
+    // screens, so PlannerScreen mounts once and re-uses the same instance on
+    // every revisit — initState alone wouldn't catch later navigations to
+    // /planner?date=X. Listening to the routerDelegate handles both the
+    // first mount and subsequent in-shell navigations.
+    router.routerDelegate.addListener(_onRouterChanged);
+    if (!_applyDateDeepLink()) {
+      _goToToday();
+    }
+  }
+
+  /// Reads the `?date=` query param when the current location is /planner
+  /// and jumps the calendar to that date. Returns true when a jump happened.
+  bool _applyDateDeepLink() {
+    final uri = router.routerDelegate.currentConfiguration.uri;
+    if (uri.path != AppRoute.plannerScreen) return false;
+    final dateParam = uri.queryParameters[DeepLinkParam.date];
+    if (dateParam == null) return false;
+    final parsed = DateTime.tryParse('${dateParam}T00:00:00');
+    if (parsed == null) return false;
+    _jumpToDate(parsed, offsetForVisibility: true);
+    return true;
+  }
+
+  void _onRouterChanged() {
+    if (!mounted) return;
+    _applyDateDeepLink();
   }
 
   @override
@@ -339,6 +366,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
 
   @override
   void dispose() {
+    router.routerDelegate.removeListener(_onRouterChanged);
     _tooltipSuppressTimer?.cancel();
     for (final timer in _pendingToggleTimers.values) {
       timer.cancel();

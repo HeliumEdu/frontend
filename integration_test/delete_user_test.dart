@@ -150,12 +150,17 @@ void main() {
         reason: 'Should be redirected to login after account deletion',
       );
 
-      // Verify account is actually deleted via API (with polling)
+      // Verify account is actually deleted via API (with polling). Drop any
+      // cached access token first — userExists for the test email reuses
+      // getAccessToken's cache, which would otherwise keep returning the
+      // pre-deletion token and report "still exists" forever.
       _log.info('Verifying account deletion via API ...');
+      apiHelper.invalidateAccessToken();
       var accountDeleted = false;
       const maxAttempts = 36; // 3 minutes with 5-second intervals
       for (var i = 0; i < maxAttempts && !accountDeleted; i++) {
         await Future.delayed(const Duration(seconds: 5));
+        apiHelper.invalidateAccessToken();
         accountDeleted = !(await apiHelper.userExists(testEmail));
         if (!accountDeleted) {
           _log.info('Account still exists, waiting... (${i + 1}/$maxAttempts)');

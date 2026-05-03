@@ -7,6 +7,8 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:heliumapp/config/app_route.dart';
+import 'package:heliumapp/config/app_router.dart';
 import 'package:heliumapp/presentation/features/planner/views/planner_screen.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/planner_helper.dart';
@@ -82,18 +84,6 @@ void main() {
           return;
         }
 
-        // Skipped pending lib/ feature: a URL query param on /planner that
-        // sets the calendar's initial display date. The Helium Test Calendar
-        // has events fixed at past dates (2023-10, 2023-11, 2025-08), so the
-        // test needs to navigate the calendar to one of those months on load
-        // — without scripting many prev-button clicks. See PLAN-cluster-tests
-        // -port.md "Follow-ups".
-        skipTest(
-          'requires /planner ?date= query param (PLAN follow-up)',
-        );
-        return;
-
-        // ignore: dead_code
         await initializeTestApp(tester);
         final loggedIn = await loginAndNavigateToPlanner(
           tester,
@@ -101,6 +91,14 @@ void main() {
           testPassword,
         );
         expect(loggedIn, isTrue, reason: 'Should be logged in');
+
+        // The Helium Test Calendar's events live in October 2023. Land on
+        // that month via the new ?date= deep link.
+        _log.info('Navigating to test calendar month (2023-10-15) ...');
+        router.go(
+          '${AppRoute.plannerScreen}?${DeepLinkParam.date}=2023-10-15',
+        );
+        await tester.pumpAndSettle();
 
         // External calendar events render with the hub icon (per
         // AppConstants.externalCalendarIcon). On the planner page, the hub
