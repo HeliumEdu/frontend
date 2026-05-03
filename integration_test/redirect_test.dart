@@ -31,6 +31,9 @@ void main() {
     });
 
     tearDownAll(() async {
+      // Strip leftover ?next= so subsequent suites don't get redirected
+      // through a stale destination on their first login.
+      router.go(AppRoute.loginScreen);
       await endSuite();
     });
 

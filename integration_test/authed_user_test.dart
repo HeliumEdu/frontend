@@ -1092,7 +1092,195 @@ void main() {
       },
     );
 
-    namedTestWidgets('7. User can clear example schedule', (tester) async {
+    namedTestWidgets(
+      '7. Todos view filter coverage (legacy port)',
+      (tester) async {
+        if (!canProceed) {
+          _log.warning('Skipping: user does not exist');
+          skipTest('user does not exist (run signup_user_test first)');
+          return;
+        }
+
+        await initializeTestApp(tester);
+        final loggedIn = await loginAndNavigateToPlanner(
+          tester,
+          testEmail,
+          testPassword,
+        );
+        expect(loggedIn, isTrue, reason: 'Should be logged in');
+
+        final counts = PlannerCountHelper(apiHelper);
+        final snap = await counts.snapshot();
+        final creativeWriting = snap.courses.firstWhere(
+          (c) => c.title.contains('Creative Writing'),
+          orElse: () => throw StateError(
+            'Creative Writing course missing from snapshot',
+          ),
+        );
+        const projectCategory = 'Project 🔨';
+        const quizCategory = 'Quiz 💡';
+        const completeStatus = 'Complete';
+        const todosPageSize = 10;
+
+        // Switch to Todos view
+        _log.info('Switching to Todos view ...');
+        await tester.tap(find.byKey(const Key(PlannerScreen.viewSwitcherButtonKey)));
+        final todosOption = find.text('Todos');
+        final menuOpened = await waitForWidget(
+          tester,
+          todosOption,
+          timeout: const Duration(seconds: 5),
+        );
+        expect(menuOpened, isTrue, reason: 'Todos option should appear');
+        await tester.tap(todosOption);
+        await tester.pumpAndSettle();
+
+        // Wait for initial Todos render before applying filters
+        final initialPagination = find.textContaining(
+          RegExp(r'Showing \d+ to \d+ of \d+'),
+        );
+        final todosReady = await waitForWidget(
+          tester,
+          initialPagination,
+          timeout: config.apiTimeout,
+        );
+        expect(todosReady, isTrue, reason: 'Todos view should initialize');
+
+        Future<void> expectPaginationOf(int expected, String reason) async {
+          await tester.pumpAndSettle();
+          final upper = expected < todosPageSize ? expected : todosPageSize;
+          expect(
+            find.text('Showing 1 to $upper of $expected'),
+            findsOneWidget,
+            reason: reason,
+          );
+        }
+
+        Finder filterTileFor(String text) => find.ancestor(
+          of: find.text(text),
+          matching: find.byType(CheckboxListTile),
+        );
+
+        final filterButton = find.byKey(
+          const Key(PlannerScreen.filterButtonKey),
+        );
+        final clearAllButton = find.text('Clear All');
+
+        Future<void> openFilterMenu() async {
+          await tester.tap(filterButton);
+          await waitForWidget(
+            tester,
+            find.byType(CheckboxListTile),
+            timeout: const Duration(seconds: 5),
+          );
+        }
+
+        Future<void> clearFiltersInMenu() async {
+          await tester.tap(clearAllButton);
+          await tester.pumpAndSettle();
+        }
+
+        // 7a — Complete status only
+        _log.info('Filter: Complete only ...');
+        await openFilterMenu();
+        await tester.tap(filterTileFor(completeStatus));
+        await expectPaginationOf(
+          counts.expectedCount(
+            snapshot: snap,
+            view: PlannerView.todos,
+            filterStatuses: const {completeStatus},
+          ),
+          'Complete filter only',
+        );
+
+        // 7b — Project category only
+        _log.info('Filter: Project only ...');
+        await clearFiltersInMenu();
+        await tester.tap(filterTileFor(projectCategory));
+        await expectPaginationOf(
+          counts.expectedCount(
+            snapshot: snap,
+            view: PlannerView.todos,
+            filterCategories: const [projectCategory],
+          ),
+          'Project category filter only',
+        );
+
+        // 7c — Quiz category only
+        _log.info('Filter: Quiz only ...');
+        await clearFiltersInMenu();
+        await tester.tap(filterTileFor(quizCategory));
+        await expectPaginationOf(
+          counts.expectedCount(
+            snapshot: snap,
+            view: PlannerView.todos,
+            filterCategories: const [quizCategory],
+          ),
+          'Quiz category filter only',
+        );
+
+        // 7d — Search "study" (filters cleared, menu closed first)
+        _log.info('Filter: search "study" ...');
+        await clearFiltersInMenu();
+        await tester.tapAt(const Offset(10, 10));
+        await tester.pumpAndSettle();
+
+        final searchButton = find.byKey(
+          const Key(PlannerScreen.searchButtonKey),
+        );
+        if (searchButton.evaluate().isNotEmpty) {
+          await tester.tap(searchButton);
+        }
+        final searchField = find.byType(TextField);
+        await waitForWidget(
+          tester,
+          searchField,
+          timeout: const Duration(seconds: 5),
+        );
+        await enterTextInField(tester, searchField.last, 'study');
+        await tester.testTextInput.receiveAction(TextInputAction.done);
+        await expectPaginationOf(
+          counts.expectedCount(
+            snapshot: snap,
+            view: PlannerView.todos,
+            searchQuery: 'study',
+          ),
+          'Search "study"',
+        );
+        // Clear search before next scenario
+        await enterTextInField(tester, searchField.last, '');
+        await tester.testTextInput.receiveAction(TextInputAction.done);
+        await tester.pumpAndSettle();
+
+        // 7e — Single course (Creative Writing) only
+        _log.info('Filter: Creative Writing course only ...');
+        await openFilterMenu();
+        await tester.tap(filterTileFor(creativeWriting.title));
+        await expectPaginationOf(
+          counts.expectedCount(
+            snapshot: snap,
+            view: PlannerView.todos,
+            selectedCourseIds: {creativeWriting.id},
+          ),
+          'Creative Writing course filter only',
+        );
+
+        // 7f — Creative Writing + Complete
+        _log.info('Filter: Creative Writing + Complete ...');
+        await tester.tap(filterTileFor(completeStatus));
+        await expectPaginationOf(
+          counts.expectedCount(
+            snapshot: snap,
+            view: PlannerView.todos,
+            selectedCourseIds: {creativeWriting.id},
+            filterStatuses: const {completeStatus},
+          ),
+          'Creative Writing + Complete',
+        );
+      },
+    );
+
+    namedTestWidgets('8. User can clear example schedule', (tester) async {
       if (!canProceed) {
         _log.warning('Skipping: user does not exist');
         skipTest('user does not exist (run signup_user_test first)');
