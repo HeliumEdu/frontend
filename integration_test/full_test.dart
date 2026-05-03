@@ -7,10 +7,11 @@
 
 // This file runs all integration test suites in the correct order:
 // 1. signup_user_test - Creates and verifies a new user
-// 2. authed_user_test - Tests authenticated user features
-// 3. logout_test - Verifies logout clears session and tokens
-// 4. redirect_test - Verifies unauthenticated route redirects preserve next
-// 5. delete_user_test - Deletes the test user
+// 2. tooltip_test - Verifies calendar item tooltips (needs pristine data)
+// 3. authed_user_test - Tests authenticated user features
+// 4. logout_test - Verifies logout clears session and tokens
+// 5. redirect_test - Verifies unauthenticated route redirects preserve next
+// 6. delete_user_test - Deletes the test user
 //
 // Each suite can also be run independently, but some suites depend on
 // the test user existing (created by suite 1).
@@ -20,9 +21,11 @@ import 'delete_user_test.dart' as delete_user_test;
 import 'logout_test.dart' as logout_test;
 import 'redirect_test.dart' as redirect_test;
 import 'signup_user_test.dart' as signup_user_test;
+import 'tooltip_test.dart' as tooltip_test;
 
 void main() {
   signup_user_test.main();
+  tooltip_test.main();
   authed_user_test.main();
   logout_test.main();
   redirect_test.main();

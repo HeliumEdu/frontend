@@ -1206,14 +1206,17 @@ void main() {
           await tester.pumpAndSettle();
         }
 
-        // Apply a clean filter combination: open menu, clear, tap each filter
-        // tile in turn. The filter sheet's contents live in a
+        // Apply a clean filter combination. Force-close the menu first so the
+        // popup's StatefulBuilder fully remounts on reopen — guards against
+        // any stale checkbox state surviving Clear All. Then clear filters,
+        // then tap each requested tile. The filter sheet's contents live in a
         // SingleChildScrollView, so tiles in lower sections (e.g. CATEGORIES)
         // can be off-screen — ensureVisible scrolls them in before tapping
         // so the tap doesn't pass through to the underlying todos table.
         Future<void> applyFilters({
           Set<String> tileLabels = const {},
         }) async {
+          await closeFilterMenu();
           await ensureFilterMenuOpen();
           await tester.tap(clearAllButton);
           await tester.pumpAndSettle();

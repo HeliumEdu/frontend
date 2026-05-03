@@ -25,6 +25,12 @@ final _log = Logger('api_helper');
 class ApiHelper {
   final TestConfig _config = TestConfig();
 
+  /// Cached access token, populated on first successful login. Subsequent
+  /// API calls reuse it to avoid hammering /auth/token/, which the platform
+  /// rate-limits and which can starve the UI's own login attempts later in
+  /// the test run.
+  String? _cachedAccessToken;
+
   /// Cleans up the test user if they exist from a previous run.
   ///
   /// This attempts to log in with the test credentials and delete the user.
@@ -127,8 +133,12 @@ class ApiHelper {
     }
   }
 
-  /// Gets an access token for the test user.
+  /// Gets an access token for the test user. Cached after the first
+  /// successful call; clear via [invalidateAccessToken] if a 401 indicates
+  /// the cached token has expired.
   Future<String?> getAccessToken() async {
+    if (_cachedAccessToken != null) return _cachedAccessToken;
+
     final email = _config.testEmail;
     final password = _config.testPassword;
     final apiHost = _config.projectApiHost;
@@ -142,13 +152,20 @@ class ApiHelper {
 
       if (loginResponse.statusCode == 200) {
         final tokens = jsonDecode(loginResponse.body) as Map<String, dynamic>;
-        return tokens['access'] as String;
+        _cachedAccessToken = tokens['access'] as String;
+        return _cachedAccessToken;
       }
       return null;
     } catch (e) {
       _log.warning('Error getting access token: $e');
       return null;
     }
+  }
+
+  /// Drop the cached token. Call after operations that invalidate the user's
+  /// session (logout, account deletion) or on a 401 from a downstream call.
+  void invalidateAccessToken() {
+    _cachedAccessToken = null;
   }
 
   /// Fetches all courses for the test user.
