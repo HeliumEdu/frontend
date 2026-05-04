@@ -73,12 +73,17 @@ class _SearchableDropdownState<T> extends State<SearchableDropdown<T>> {
   }
 
   void _onFocusChange() {
-    if (_focusNode != null && !_focusNode!.hasFocus) {
-      final text = _fieldController!.text;
-      final exactMatch = widget.items.where((item) => item.label == text);
-      if (exactMatch.isEmpty) {
-        _commitSingleMatchOrRevert();
+    if (_focusNode == null || _focusNode!.hasFocus) return;
+    final text = _fieldController!.text;
+    final exactMatches = widget.items.where((item) => item.label == text);
+    if (exactMatches.isNotEmpty) {
+      final match = exactMatches.first;
+      if (match != _selectedItem) {
+        _selectedItem = match;
+        widget.onChanged?.call(match);
       }
+    } else {
+      _commitSingleMatchOrRevert();
     }
   }
 
