@@ -6,7 +6,6 @@
 // For details regarding the license, please refer to the LICENSE file.
 
 import 'package:heliumapp/data/models/drop_down_item.dart';
-import 'package:heliumapp/utils/dropdown_extensions.dart';
 
 class TimeZoneConstants {
   static final List<String> all = [
@@ -457,5 +456,11 @@ class TimeZoneConstants {
     'Pacific/Wake',
     'Pacific/Wallis',
   ];
-  static final List<DropDownItem<String>> items = all.toDropDownItems();
+  static String _humanize(String tz) =>
+      tz.replaceAll('_', ' ').replaceAll('/', ' / ');
+
+  static final List<DropDownItem<String>> items = List.generate(
+    all.length,
+    (i) => DropDownItem(id: i, value: all[i], label: _humanize(all[i])),
+  );
 }

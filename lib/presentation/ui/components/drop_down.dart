@@ -91,7 +91,7 @@ class DropDown<T> extends StatelessWidget {
                       const SizedBox(width: _iconTextSpacing),
                     ],
                     Text(
-                      item.value.toString(),
+                      item.label,
                       style: AppStyles.formText(context),
                     ),
                   ],
