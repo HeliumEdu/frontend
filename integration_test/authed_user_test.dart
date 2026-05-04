@@ -799,9 +799,8 @@ void main() {
       final topRight = tester.getTopRight(dialFinder);
       final radius = topRight.dx - center.dx;
 
-      // 2 o'clock sits 60° clockwise from 12; in math coords (0 = right,
-      // CCW positive) that's -π/3.
-      const hour2Angle = -pi / 3;
+      // 2 o'clock = 30 degrees above the +x axis; flip sign for screen y.
+      const hour2Angle = -pi / 6;
       final tapAt = Offset(
         center.dx + radius * 0.7 * cos(hour2Angle),
         center.dy + radius * 0.7 * sin(hour2Angle),
