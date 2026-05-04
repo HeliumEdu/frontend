@@ -1,6 +1,7 @@
 <p align="center"><img src="https://www.heliumedu.com/assets/img/logo_full_blue.png" /></p>
 
 [![Build](https://img.shields.io/github/actions/workflow/status/HeliumEdu/frontend/build.yml)](https://github.com/HeliumEdu/frontend/actions/workflows/build.yml)
+[![Code Quality](https://app.codacy.com/project/badge/Grade/89c62152871f424e8d619be7a4d9ab50)](https://app.codacy.com/gh/HeliumEdu/frontend/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_grade)
 ![GitHub License](https://img.shields.io/github/license/heliumedu/frontend)
 
 # Helium Frontend
