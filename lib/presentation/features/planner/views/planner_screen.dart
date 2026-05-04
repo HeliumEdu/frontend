@@ -589,11 +589,22 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
           if (state is AuthProfileUpdated) {
             _log.info('User settings changed, repainting calendar');
 
+            final oldTimeZone = userSettings?.timeZone;
+
             _plannerItemDataSource?.userSettings = state.user.settings;
 
             setState(() {
               userSettings = state.user.settings;
             });
+
+            if (oldTimeZone != state.user.settings.timeZone) {
+              context.read<PlannerBloc>().add(
+                FetchPlannerScreenDataEvent(
+                  origin: EventOrigin.screen,
+                  forceRefresh: true,
+                ),
+              );
+            }
           }
         },
       ),
