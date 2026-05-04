@@ -8,7 +8,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:heliumapp/config/app_route.dart';
-import 'package:heliumapp/presentation/features/settings/views/settings_screen.dart';
+import 'package:heliumapp/config/pref_service.dart';
 import 'package:heliumapp/presentation/ui/components/settings_button.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:logging/logging.dart';
@@ -17,7 +17,7 @@ import 'helpers/api_helper.dart';
 import 'helpers/test_app.dart';
 import 'helpers/test_config.dart';
 
-final _log = Logger('delete_user_test');
+final _log = Logger('logout_test');
 
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
@@ -27,19 +27,17 @@ void main() {
     apiHost: config.projectApiHost,
   );
 
-  group('Delete User Test', () {
+  group('Logout Test', () {
     final testEmail = config.testEmail;
     final testPassword = config.testPassword;
     final apiHelper = ApiHelper();
 
-    // Track if preconditions are met
     bool canProceed = false;
 
     setUpAll(() async {
-      await startSuite('Delete User Test');
+      await startSuite('Logout Test');
       _log.info('Test email: $testEmail');
 
-      // Check if user can login (requires signup_user_test to have run first)
       final userExists = await apiHelper.userExists(testEmail);
       if (!userExists) {
         _log.warning('Test user does not exist. Run signup_user_test first.');
@@ -54,7 +52,9 @@ void main() {
       await endSuite();
     });
 
-    namedTestWidgets('1. User can delete their account', (tester) async {
+    namedTestWidgets('1. User can logout and tokens are cleared', (
+      tester,
+    ) async {
       if (!canProceed) {
         _log.warning('Skipping: user does not exist');
         skipTest('user does not exist (run signup_user_test first)');
@@ -70,7 +70,6 @@ void main() {
       expect(loggedIn, isTrue, reason: 'Should be logged in');
       expectBrowserTitle('Planner');
 
-      // Open settings (wait for button to be visible after navigation shell loads)
       _log.info('Waiting for settings button ...');
       final settingsButton = find.byKey(const Key(SettingsButton.buttonKey));
       final settingsFound = await waitForWidget(
@@ -87,53 +86,34 @@ void main() {
       await tester.tap(settingsButton);
       await tester.pumpAndSettle(const Duration(seconds: 2));
 
-      // Find and tap "Danger Zone"
-      _log.info('Scrolling to Danger Zone ...');
-      final dangerZone = find.text('Danger Zone');
-      await scrollUntilVisible(tester, dangerZone);
-      expect(dangerZone, findsOneWidget, reason: 'Danger Zone should exist');
-      await tester.tap(dangerZone);
+      _log.info('Scrolling to Logout ...');
+      final logoutItem = find.text('Logout');
+      await scrollUntilVisible(tester, logoutItem);
+      expect(logoutItem, findsWidgets, reason: 'Logout item should exist');
+      await tester.tap(logoutItem.first);
       await tester.pumpAndSettle(const Duration(seconds: 2));
 
-      // Find and tap "Delete Account"
-      _log.info('Tapping Delete Account ...');
-      final deleteAccount = find.text('Delete Account');
-      expect(
-        deleteAccount,
-        findsOneWidget,
-        reason: 'Delete Account should exist',
-      );
-      await tester.tap(deleteAccount);
-      await tester.pumpAndSettle(const Duration(seconds: 2));
-
-      // Enter password in the confirmation dialog
-      _log.info('Entering password in confirmation dialog ...');
+      _log.info('Waiting for logout confirmation dialog ...');
       final dialog = find.byType(AlertDialog);
       expect(
         dialog,
         findsOneWidget,
-        reason: 'Delete confirmation dialog should be open',
+        reason: 'Logout confirmation dialog should be open',
       );
-      final passwordField = find.byKey(const Key(SettingsScreen.deleteAccountPasswordField));
-      expect(
-        passwordField,
-        findsOneWidget,
-        reason: 'Password field should be in dialog',
-      );
-      await enterTextInField(tester, passwordField, testPassword);
 
-      // Confirm deletion
-      _log.info('Confirming account deletion ...');
-      final deleteButton = find.descendant(
+      // The row label, dialog title, and confirm button all read "Logout".
+      // Scope to the dialog so we tap the confirm button, not the title text.
+      final confirmButton = find.descendant(
         of: dialog,
-        matching: find.text('Delete'),
+        matching: find.text('Logout'),
       );
       expect(
-        deleteButton,
-        findsOneWidget,
-        reason: 'Delete button should be in dialog',
+        confirmButton,
+        findsWidgets,
+        reason: 'Logout confirm button should be in dialog',
       );
-      await tester.tap(deleteButton);
+      _log.info('Confirming logout ...');
+      await tester.tap(confirmButton.last);
 
       _log.info(
         'Waiting for redirect to login (timeout: ${config.apiTimeout.inSeconds}s) ...',
@@ -147,28 +127,26 @@ void main() {
       expect(
         loginScreenFound,
         isTrue,
-        reason: 'Should be redirected to login after account deletion',
+        reason: 'Should be redirected to login after logout',
       );
 
-      _log.info('Verifying account deletion via API ...');
-      apiHelper.invalidateAccessToken();
-      var accountDeleted = false;
-      const maxAttempts = 36; // 3 minutes with 5-second intervals
-      for (var i = 0; i < maxAttempts && !accountDeleted; i++) {
-        await Future.delayed(const Duration(seconds: 5));
-        apiHelper.invalidateAccessToken();
-        accountDeleted = !(await apiHelper.userExists(testEmail));
-        if (!accountDeleted) {
-          _log.info('Account still exists, waiting... (${i + 1}/$maxAttempts)');
-        }
-      }
-
+      // PrefService is a singleton; the test process reads the same secure
+      // storage the production logout path writes. If anyone removes
+      // dioClient.clearStorage() from the logout flow, these fail loudly.
+      _log.info('Verifying tokens were cleared from secure storage ...');
+      final accessToken = await PrefService().getSecure('access_token');
+      final refreshToken = await PrefService().getSecure('refresh_token');
       expect(
-        accountDeleted,
-        isTrue,
-        reason: 'Account should be deleted from backend',
+        accessToken,
+        isNull,
+        reason: 'access_token should be cleared after logout',
       );
-      _log.info('Account successfully deleted');
+      expect(
+        refreshToken,
+        isNull,
+        reason: 'refresh_token should be cleared after logout',
+      );
+      _log.info('Logout cleared tokens from secure storage');
     });
   });
 }

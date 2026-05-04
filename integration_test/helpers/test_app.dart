@@ -17,6 +17,8 @@ import 'package:heliumapp/config/pref_service.dart';
 import 'package:heliumapp/core/dio_client.dart';
 import 'package:heliumapp/core/log_formatter.dart';
 import 'package:heliumapp/core/log_service.dart';
+import 'package:heliumapp/data/models/planner/course_group_model.dart';
+import 'package:heliumapp/data/models/planner/resource_group_model.dart';
 import 'package:heliumapp/data/repositories/auth_repository_impl.dart';
 import 'package:heliumapp/data/sources/auth_remote_data_source.dart';
 import 'package:heliumapp/helium_app.dart';
@@ -604,16 +606,28 @@ Future<bool> loginAndNavigateToPlanner(
     password,
   );
 
-  _log.info('Submitting login ...');
-  await tester.tap(find.byKey(const Key(LoginScreen.signInButtonKey)));
+  // Retry once: post-signup /auth/token/ throttling can swallow the first
+  // submit on CI; the form retains the entered credentials across the error.
+  final signInButton = find.byKey(const Key(LoginScreen.signInButtonKey));
+  bool reachedPlanner = false;
+  for (var attempt = 1; attempt <= 2 && !reachedPlanner; attempt++) {
+    if (attempt > 1) {
+      _log.info('First login attempt did not reach planner; retrying ...');
+      await Future.delayed(const Duration(seconds: 5));
+      if (signInButton.evaluate().isEmpty) {
+        break;
+      }
+    }
+    _log.info('Submitting login (attempt $attempt) ...');
+    await tester.tap(signInButton);
 
-  // Wait for planner route
-  final reachedPlanner = await waitForRoute(
-    tester,
-    AppRoute.plannerScreen,
-    browserTitle: 'Planner',
-    timeout: TestConfig().apiTimeout,
-  );
+    reachedPlanner = await waitForRoute(
+      tester,
+      AppRoute.plannerScreen,
+      browserTitle: 'Planner',
+      timeout: TestConfig().apiTimeout,
+    );
+  }
 
   if (!reachedPlanner) {
     _log.warning('Failed to reach planner after login');
@@ -781,9 +795,9 @@ void expectOnPlannerScreen({bool isMobile = false}) {
   expectBrowserTitle('Planner');
 }
 
-/// Assert we're on the Classes screen.
-/// Verifies: FAB is shown, 3 course cards with expected titles (titles end with emojis).
-void expectOnClassesScreen() {
+/// Assert we're on the Classes screen and verify the group dropdown lists
+/// the expected number of course groups.
+Future<void> expectOnClassesScreen(WidgetTester tester) async {
   expect(
     find.byType(FloatingActionButton),
     findsOneWidget,
@@ -820,11 +834,20 @@ void expectOnClassesScreen() {
     reason: 'Classes: Title or menu button not found',
   );
   expectBrowserTitle('Classes');
+
+  await expectGroupDropdownGroups(
+    tester,
+    expectedGroupTitles: const ['Fall Semester'],
+    // The editable Classes dropdown adds a "+ Group" create row.
+    extraItems: 1,
+    screen: 'Classes',
+  );
 }
 
-/// Assert we're on the Resources screen.
-/// Verifies: FAB is shown, 1 resource card with expected title.
-void expectOnResourcesScreen() {
+/// Assert we're on the Resources screen and verify the full group/material
+/// structure. Resources are organized by [GroupDropdown]; only one group's
+/// resources are visible at a time, so this helper cycles through groups.
+Future<void> expectOnResourcesScreen(WidgetTester tester) async {
   expect(
     find.byType(FloatingActionButton),
     findsOneWidget,
@@ -833,12 +856,12 @@ void expectOnResourcesScreen() {
   expect(
     find.byType(Card),
     findsOneWidget,
-    reason: 'Resources: Should show 1 resource card',
+    reason: 'Resources: initially-selected group should show 1 resource card',
   );
   expect(
     find.text('Digital Tools'),
     findsOneWidget,
-    reason: 'Resources: Digital Tools group should be shown',
+    reason: 'Resources: Digital Tools group should be selected initially',
   );
   expect(
     find.text('Google Workspace (Docs, Drive)'),
@@ -851,12 +874,48 @@ void expectOnResourcesScreen() {
     reason: 'Resources: Title or menu button not found',
   );
   expectBrowserTitle('Resources');
+
+  final dropdown = find.byType(DropdownButton<ResourceGroupModel>);
+  expect(
+    dropdown,
+    findsOneWidget,
+    reason: 'Resources: group dropdown should be present',
+  );
+  await tester.tap(dropdown);
+  await tester.pumpAndSettle();
+  // Open dropdown shows each group twice (selectedItemBuilder behind the
+  // overlay + the overlay item itself), so guard with findsWidgets.
+  for (final groupTitle in ['Digital Tools', 'Supplies', 'Textbooks']) {
+    expect(
+      find.text(groupTitle),
+      findsWidgets,
+      reason: 'Resources: dropdown should list "$groupTitle" group',
+    );
+  }
+
+  await tester.tap(find.text('Supplies').last);
+  await tester.pumpAndSettle();
+  expect(
+    find.byType(Card),
+    findsOneWidget,
+    reason: 'Resources: Supplies group should show 1 resource card',
+  );
+
+  await tester.tap(dropdown);
+  await tester.pumpAndSettle();
+  await tester.tap(find.text('Textbooks').last);
+  await tester.pumpAndSettle();
+  expect(
+    find.byType(Card),
+    findsNWidgets(3),
+    reason: 'Resources: Textbooks group should show 3 resource cards',
+  );
 }
 
 /// Assert we're on the Grades screen.
 /// Verifies: "Grade Trend" text shown, FAB NOT shown, 4 summary widgets at top,
 /// "28" below "Pending Impact", 3 course grade cards.
-void expectOnGradesScreen() {
+Future<void> expectOnGradesScreen(WidgetTester tester) async {
   expect(
     find.byType(FloatingActionButton),
     findsNothing,
@@ -941,6 +1000,53 @@ void expectOnGradesScreen() {
     reason: 'Grades: Title or menu button not found',
   );
   expectBrowserTitle('Grades');
+
+  await expectGroupDropdownGroups(
+    tester,
+    expectedGroupTitles: const ['Fall Semester'],
+    // Read-only dropdown — no "+ Group" create row.
+    extraItems: 0,
+    screen: 'Grades',
+  );
+}
+
+/// Open the page's [GroupDropdown<CourseGroupModel>], assert it lists each
+/// of [expectedGroupTitles], and verify the total dropdown item count
+/// equals `expectedGroupTitles.length + extraItems` ([extraItems] is `1`
+/// for editable dropdowns that append a "+ Group" create row, `0` otherwise).
+Future<void> expectGroupDropdownGroups(
+  WidgetTester tester, {
+  required List<String> expectedGroupTitles,
+  required int extraItems,
+  required String screen,
+}) async {
+  final dropdown = find.byType(DropdownButton<CourseGroupModel>);
+  expect(
+    dropdown,
+    findsOneWidget,
+    reason: '$screen: course group dropdown should be present',
+  );
+  await tester.tap(dropdown);
+  await tester.pumpAndSettle();
+
+  expect(
+    find.byType(DropdownMenuItem<CourseGroupModel>),
+    findsNWidgets(expectedGroupTitles.length + extraItems),
+    reason:
+        '$screen: dropdown should list ${expectedGroupTitles.length} '
+        'group(s)${extraItems > 0 ? ' plus a create row' : ''}',
+  );
+  for (final title in expectedGroupTitles) {
+    expect(
+      find.text(title),
+      findsWidgets,
+      reason: '$screen: dropdown should list "$title" group',
+    );
+  }
+
+  // Close the menu so subsequent assertions aren't run against the overlay.
+  await tester.tapAt(const Offset(10, 10));
+  await tester.pumpAndSettle();
 }
 
 /// Assert we're on the Settings screen/dialog.
