@@ -42,12 +42,12 @@ dependencies:
   flutter_timezone: 5.0.2
   intl: 0.20.2
   flutter_local_notifications: 21.0.0
-  syncfusion_flutter_core: 33.2.3
-  syncfusion_flutter_calendar: 33.2.3
-  syncfusion_flutter_charts: 33.2.3
-  syncfusion_flutter_gauges: 33.2.3
-  syncfusion_flutter_datagrid: 33.2.3
-  syncfusion_localizations: 33.2.3
+  syncfusion_flutter_core: 33.2.4
+  syncfusion_flutter_calendar: 33.2.4
+  syncfusion_flutter_charts: 33.2.4
+  syncfusion_flutter_gauges: 33.2.4
+  syncfusion_flutter_datagrid: 33.2.4
+  syncfusion_localizations: 33.2.4
   flutter_quill: 11.5.0
   flutter_quill_to_pdf: ^2.3.9
   pdf: ^3.12.0
