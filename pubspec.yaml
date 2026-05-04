@@ -20,7 +20,7 @@ dependencies:
   sentry_dio: 9.19.0
   meta: 1.17.0
   collection: 1.19.1
-  google_fonts: 8.0.2
+  google_fonts: 8.1.0
   dio: 5.9.2
   pretty_dio_logger: 1.4.0
   dio_cache_interceptor: 4.0.6
