@@ -36,7 +36,7 @@ class FallbackConstants {
 
   static const defaultViewIndex = 2;
   static const defaultWeekStartsOn = 0;
-  static const defaultTimeZone = 'Etc/UTC';
+  static const defaultTimeZone = 'UTC';
   static const defaultReminderType = 3;
   static const defaultReminderOffset = 30;
   static const defaultReminderOffsetType = 0;
