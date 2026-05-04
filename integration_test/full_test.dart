@@ -18,8 +18,8 @@ import 'signup_user_test.dart' as signup_user_test;
 
 void main() {
   signup_user_test.main();
-  authed_user_test.main();
   external_calendar_test.main();
+  authed_user_test.main();
   logout_test.main();
   redirect_test.main();
   delete_user_test.main();
