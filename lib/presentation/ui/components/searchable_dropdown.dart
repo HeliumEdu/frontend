@@ -29,6 +29,10 @@ class SearchableDropdown<T> extends StatefulWidget {
 }
 
 class _SearchableDropdownState<T> extends State<SearchableDropdown<T>> {
+  // ASCII-only: stripping non-[a-z0-9] also removes diacritics. Fine for the
+  // current timezone labels; revisit if reused for non-ASCII content.
+  static final _nonAlphanumeric = RegExp(r'[^a-z0-9]');
+
   TextEditingController? _fieldController;
   FocusNode? _focusNode;
 
@@ -48,21 +52,38 @@ class _SearchableDropdownState<T> extends State<SearchableDropdown<T>> {
     super.dispose();
   }
 
+  String _normalize(String s) =>
+      s.toLowerCase().replaceAll(_nonAlphanumeric, '');
+
   void _revertToSelected() {
     if (_fieldController != null && _selectedItem != null) {
-      _fieldController!.text = _selectedItem!.value.toString();
+      _fieldController!.text = _selectedItem!.label;
+    }
+  }
+
+  void _commitSingleMatchOrRevert() {
+    if (_filteredOptions.length == 1) {
+      final item = _filteredOptions.first;
+      _selectedItem = item;
+      _fieldController?.text = item.label;
+      widget.onChanged?.call(item);
+    } else {
+      _revertToSelected();
     }
   }
 
   void _onFocusChange() {
-    if (_focusNode != null && !_focusNode!.hasFocus) {
-      final text = _fieldController!.text;
-      final exactMatch = widget.items.where(
-        (item) => item.value.toString() == text,
-      );
-      if (exactMatch.isEmpty) {
-        _revertToSelected();
+    if (_focusNode == null || _focusNode!.hasFocus) return;
+    final text = _fieldController!.text;
+    final exactMatches = widget.items.where((item) => item.label == text);
+    if (exactMatches.isNotEmpty) {
+      final match = exactMatches.first;
+      if (match != _selectedItem) {
+        _selectedItem = match;
+        widget.onChanged?.call(match);
       }
+    } else {
+      _commitSingleMatchOrRevert();
     }
   }
 
@@ -89,23 +110,20 @@ class _SearchableDropdownState<T> extends State<SearchableDropdown<T>> {
         Autocomplete<DropDownItem<T>>(
           key: ValueKey(widget.initialValue.value),
           initialValue: TextEditingValue(
-            text: widget.initialValue.value.toString(),
+            text: widget.initialValue.label,
           ),
           optionsBuilder: (textEditingValue) {
-            if (textEditingValue.text.isEmpty) {
+            final query = _normalize(textEditingValue.text);
+            if (query.isEmpty) {
               _filteredOptions = widget.items;
             } else {
-              final query = textEditingValue.text.toLowerCase();
               _filteredOptions = widget.items
-                  .where(
-                    (item) =>
-                        item.value.toString().toLowerCase().contains(query),
-                  )
+                  .where((item) => _normalize(item.label).contains(query))
                   .toList();
             }
             return _filteredOptions;
           },
-          displayStringForOption: (item) => item.value.toString(),
+          displayStringForOption: (item) => item.label,
           onSelected: (item) {
             _selectedItem = item;
             widget.onChanged?.call(item);
@@ -126,16 +144,7 @@ class _SearchableDropdownState<T> extends State<SearchableDropdown<T>> {
                     focusNode: focusNode,
                     enabled: !isDisabled,
                     style: AppStyles.formText(context),
-                    onFieldSubmitted: (_) {
-                      if (_filteredOptions.length == 1) {
-                        final item = _filteredOptions.first;
-                        _selectedItem = item;
-                        textEditingController.text = item.value.toString();
-                        widget.onChanged?.call(item);
-                      } else {
-                        _revertToSelected();
-                      }
-                    },
+                    onFieldSubmitted: (_) => _commitSingleMatchOrRevert(),
                     decoration: InputDecoration(
                       suffixIcon: Icon(
                         Icons.keyboard_arrow_down,
@@ -206,7 +215,7 @@ class _SearchableDropdownState<T> extends State<SearchableDropdown<T>> {
                                 )
                               : null,
                           title: Text(
-                            item.value.toString(),
+                            item.label,
                             style: AppStyles.formText(context),
                           ),
                           onTap: () => onSelected(item),
