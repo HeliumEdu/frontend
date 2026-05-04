@@ -119,7 +119,7 @@ class PreferencesScreenState extends State<PreferencesScreen> {
               initialValue: TimeZoneConstants.items.firstWhere(
                 (tz) => tz.value == _selectedTimeZone,
                 orElse: () => TimeZoneConstants.items.firstWhere(
-                  (tz) => tz.value == 'Etc/UTC',
+                  (tz) => tz.value == 'UTC',
                 ),
               ),
               items: TimeZoneConstants.items,

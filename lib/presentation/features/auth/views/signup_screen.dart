@@ -276,7 +276,7 @@ class _SignupScreenState extends BasePageScreenState<SignupScreen> {
                 initialValue: TimeZoneConstants.items.firstWhere(
                   (tz) => tz.value == _formController.selectedTimeZone,
                   orElse: () => TimeZoneConstants.items.firstWhere(
-                    (tz) => tz.value == 'Etc/UTC',
+                    (tz) => tz.value == 'UTC',
                   ),
                 ),
                 items: TimeZoneConstants.items,

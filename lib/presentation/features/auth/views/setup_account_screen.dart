@@ -128,7 +128,7 @@ class _SetupAccountScreenState extends BasePageScreenState<SetupAccountScreen> {
     try {
       final tz = (await FlutterTimezone.getLocalTimezone()).identifier;
       final detectedTimeZone =
-          TimeZoneConstants.all.contains(tz) ? tz : 'Etc/UTC';
+          TimeZoneConstants.all.contains(tz) ? tz : 'UTC';
 
       await DioClient().updateSettings(
         UpdateSettingsRequestModel(timeZone: detectedTimeZone),

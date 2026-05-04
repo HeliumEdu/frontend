@@ -94,7 +94,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Clear existing text and type "Chicago" to filter
-      await enterTextInField(tester, timezoneField, 'Chicago');
+      await enterTextInField(tester, timezoneField, 'chicago');
       await tester.pumpAndSettle();
 
       // Wait for dropdown options to appear and select America/Chicago
