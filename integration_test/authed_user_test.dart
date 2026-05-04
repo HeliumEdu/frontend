@@ -131,7 +131,7 @@ void main() {
       await tester.tap(classesTab);
       await tester.pumpAndSettle(const Duration(seconds: 3));
 
-      expectOnClassesScreen();
+      await expectOnClassesScreen(tester);
       _log.info('Successfully navigated to classes');
 
       final resourcesTab = find.byKey(
@@ -153,7 +153,7 @@ void main() {
       await tester.tap(gradesTab);
       await tester.pumpAndSettle(const Duration(seconds: 3));
 
-      expectOnGradesScreen();
+      await expectOnGradesScreen(tester);
       _log.info('Successfully navigated to grades');
 
       final plannerTab = find.byKey(Key(NavigationPage.planner.navKeyName));

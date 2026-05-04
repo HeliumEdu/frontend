@@ -17,6 +17,7 @@ import 'package:heliumapp/config/pref_service.dart';
 import 'package:heliumapp/core/dio_client.dart';
 import 'package:heliumapp/core/log_formatter.dart';
 import 'package:heliumapp/core/log_service.dart';
+import 'package:heliumapp/data/models/planner/course_group_model.dart';
 import 'package:heliumapp/data/models/planner/resource_group_model.dart';
 import 'package:heliumapp/data/repositories/auth_repository_impl.dart';
 import 'package:heliumapp/data/sources/auth_remote_data_source.dart';
@@ -794,9 +795,9 @@ void expectOnPlannerScreen({bool isMobile = false}) {
   expectBrowserTitle('Planner');
 }
 
-/// Assert we're on the Classes screen.
-/// Verifies: FAB is shown, 3 course cards with expected titles (titles end with emojis).
-void expectOnClassesScreen() {
+/// Assert we're on the Classes screen and verify the group dropdown lists
+/// the expected number of course groups.
+Future<void> expectOnClassesScreen(WidgetTester tester) async {
   expect(
     find.byType(FloatingActionButton),
     findsOneWidget,
@@ -833,6 +834,14 @@ void expectOnClassesScreen() {
     reason: 'Classes: Title or menu button not found',
   );
   expectBrowserTitle('Classes');
+
+  await expectGroupDropdownGroups(
+    tester,
+    expectedGroupTitles: const ['Fall Semester'],
+    // The editable Classes dropdown adds a "+ Group" create row.
+    extraItems: 1,
+    screen: 'Classes',
+  );
 }
 
 /// Assert we're on the Resources screen and verify the full group/material
@@ -906,7 +915,7 @@ Future<void> expectOnResourcesScreen(WidgetTester tester) async {
 /// Assert we're on the Grades screen.
 /// Verifies: "Grade Trend" text shown, FAB NOT shown, 4 summary widgets at top,
 /// "28" below "Pending Impact", 3 course grade cards.
-void expectOnGradesScreen() {
+Future<void> expectOnGradesScreen(WidgetTester tester) async {
   expect(
     find.byType(FloatingActionButton),
     findsNothing,
@@ -991,6 +1000,53 @@ void expectOnGradesScreen() {
     reason: 'Grades: Title or menu button not found',
   );
   expectBrowserTitle('Grades');
+
+  await expectGroupDropdownGroups(
+    tester,
+    expectedGroupTitles: const ['Fall Semester'],
+    // Read-only dropdown — no "+ Group" create row.
+    extraItems: 0,
+    screen: 'Grades',
+  );
+}
+
+/// Open the page's [GroupDropdown<CourseGroupModel>], assert it lists each
+/// of [expectedGroupTitles], and verify the total dropdown item count
+/// equals `expectedGroupTitles.length + extraItems` ([extraItems] is `1`
+/// for editable dropdowns that append a "+ Group" create row, `0` otherwise).
+Future<void> expectGroupDropdownGroups(
+  WidgetTester tester, {
+  required List<String> expectedGroupTitles,
+  required int extraItems,
+  required String screen,
+}) async {
+  final dropdown = find.byType(DropdownButton<CourseGroupModel>);
+  expect(
+    dropdown,
+    findsOneWidget,
+    reason: '$screen: course group dropdown should be present',
+  );
+  await tester.tap(dropdown);
+  await tester.pumpAndSettle();
+
+  expect(
+    find.byType(DropdownMenuItem<CourseGroupModel>),
+    findsNWidgets(expectedGroupTitles.length + extraItems),
+    reason:
+        '$screen: dropdown should list ${expectedGroupTitles.length} '
+        'group(s)${extraItems > 0 ? ' plus a create row' : ''}',
+  );
+  for (final title in expectedGroupTitles) {
+    expect(
+      find.text(title),
+      findsWidgets,
+      reason: '$screen: dropdown should list "$title" group',
+    );
+  }
+
+  // Close the menu so subsequent assertions aren't run against the overlay.
+  await tester.tapAt(const Offset(10, 10));
+  await tester.pumpAndSettle();
 }
 
 /// Assert we're on the Settings screen/dialog.
