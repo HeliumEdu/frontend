@@ -51,6 +51,9 @@ class DeepLinkParam {
   static const String tab = 'tab';
   static const String dialog = 'dialog';
 
+  // /planner: anchor the calendar's initial display date (YYYY-MM-DD)
+  static const String date = 'date';
+
   // dialog= values
   static const String dialogSettings = 'settings';
   static const String dialogNotifications = 'notifications';
