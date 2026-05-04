@@ -5,8 +5,11 @@
 //
 // For details regarding the license, please refer to the LICENSE file.
 
+// AUTO-GENERATED — DO NOT EDIT.
+// Refreshed periodically from IANA tzdata via:
+//   platform/bin/refresh-timezones.py
+
 import 'package:heliumapp/data/models/drop_down_item.dart';
-import 'package:heliumapp/utils/dropdown_extensions.dart';
 
 class TimeZoneConstants {
   static final List<String> all = [
@@ -102,7 +105,9 @@ class TimeZoneConstants {
     'America/Cayman',
     'America/Chicago',
     'America/Chihuahua',
+    'America/Ciudad_Juarez',
     'America/Costa_Rica',
+    'America/Coyhaique',
     'America/Creston',
     'America/Cuiaba',
     'America/Curacao',
@@ -115,6 +120,7 @@ class TimeZoneConstants {
     'America/Edmonton',
     'America/Eirunepe',
     'America/El_Salvador',
+    'America/Fort_Nelson',
     'America/Fortaleza',
     'America/Glace_Bay',
     'America/Godthab',
@@ -172,6 +178,7 @@ class TimeZoneConstants {
     'America/North_Dakota/Beulah',
     'America/North_Dakota/Center',
     'America/North_Dakota/New_Salem',
+    'America/Nuuk',
     'America/Ojinaga',
     'America/Panama',
     'America/Pangnirtung',
@@ -181,6 +188,7 @@ class TimeZoneConstants {
     'America/Port_of_Spain',
     'America/Porto_Velho',
     'America/Puerto_Rico',
+    'America/Punta_Arenas',
     'America/Rainy_River',
     'America/Rankin_Inlet',
     'America/Recife',
@@ -223,6 +231,7 @@ class TimeZoneConstants {
     'Antarctica/Palmer',
     'Antarctica/Rothera',
     'Antarctica/Syowa',
+    'Antarctica/Troll',
     'Antarctica/Vostok',
 
     // Arctic
@@ -236,13 +245,16 @@ class TimeZoneConstants {
     'Asia/Aqtau',
     'Asia/Aqtobe',
     'Asia/Ashgabat',
+    'Asia/Atyrau',
     'Asia/Baghdad',
     'Asia/Bahrain',
     'Asia/Baku',
     'Asia/Bangkok',
+    'Asia/Barnaul',
     'Asia/Beirut',
     'Asia/Bishkek',
     'Asia/Brunei',
+    'Asia/Chita',
     'Asia/Choibalsan',
     'Asia/Chongqing',
     'Asia/Colombo',
@@ -251,6 +263,7 @@ class TimeZoneConstants {
     'Asia/Dili',
     'Asia/Dubai',
     'Asia/Dushanbe',
+    'Asia/Famagusta',
     'Asia/Gaza',
     'Asia/Harbin',
     'Asia/Hebron',
@@ -286,6 +299,7 @@ class TimeZoneConstants {
     'Asia/Pontianak',
     'Asia/Pyongyang',
     'Asia/Qatar',
+    'Asia/Qostanay',
     'Asia/Qyzylorda',
     'Asia/Rangoon',
     'Asia/Riyadh',
@@ -294,18 +308,21 @@ class TimeZoneConstants {
     'Asia/Seoul',
     'Asia/Shanghai',
     'Asia/Singapore',
+    'Asia/Srednekolymsk',
     'Asia/Taipei',
     'Asia/Tashkent',
     'Asia/Tbilisi',
     'Asia/Tehran',
     'Asia/Thimphu',
     'Asia/Tokyo',
+    'Asia/Tomsk',
     'Asia/Ulaanbaatar',
     'Asia/Urumqi',
     'Asia/Ust-Nera',
     'Asia/Vientiane',
     'Asia/Vladivostok',
     'Asia/Yakutsk',
+    'Asia/Yangon',
     'Asia/Yekaterinburg',
     'Asia/Yerevan',
 
@@ -349,6 +366,7 @@ class TimeZoneConstants {
     // Europe
     'Europe/Amsterdam',
     'Europe/Andorra',
+    'Europe/Astrakhan',
     'Europe/Athens',
     'Europe/Belgrade',
     'Europe/Berlin',
@@ -368,6 +386,8 @@ class TimeZoneConstants {
     'Europe/Jersey',
     'Europe/Kaliningrad',
     'Europe/Kiev',
+    'Europe/Kirov',
+    'Europe/Kyiv',
     'Europe/Lisbon',
     'Europe/Ljubljana',
     'Europe/London',
@@ -387,12 +407,14 @@ class TimeZoneConstants {
     'Europe/Samara',
     'Europe/San_Marino',
     'Europe/Sarajevo',
+    'Europe/Saratov',
     'Europe/Simferopol',
     'Europe/Skopje',
     'Europe/Sofia',
     'Europe/Stockholm',
     'Europe/Tallinn',
     'Europe/Tirane',
+    'Europe/Ulyanovsk',
     'Europe/Uzhgorod',
     'Europe/Vaduz',
     'Europe/Vatican',
@@ -403,6 +425,9 @@ class TimeZoneConstants {
     'Europe/Zagreb',
     'Europe/Zaporozhye',
     'Europe/Zurich',
+
+    // GMT
+    'GMT',
 
     // Indian
     'Indian/Antananarivo',
@@ -420,6 +445,7 @@ class TimeZoneConstants {
     // Pacific
     'Pacific/Apia',
     'Pacific/Auckland',
+    'Pacific/Bougainville',
     'Pacific/Chatham',
     'Pacific/Chuuk',
     'Pacific/Easter',
@@ -434,6 +460,7 @@ class TimeZoneConstants {
     'Pacific/Guam',
     'Pacific/Honolulu',
     'Pacific/Johnston',
+    'Pacific/Kanton',
     'Pacific/Kiritimati',
     'Pacific/Kosrae',
     'Pacific/Kwajalein',
@@ -456,6 +483,25 @@ class TimeZoneConstants {
     'Pacific/Tongatapu',
     'Pacific/Wake',
     'Pacific/Wallis',
+
+    // US
+    'US/Alaska',
+    'US/Arizona',
+    'US/Central',
+    'US/Eastern',
+    'US/Hawaii',
+    'US/Mountain',
+    'US/Pacific',
+
+    // UTC
+    'UTC',
   ];
-  static final List<DropDownItem<String>> items = all.toDropDownItems();
+
+  static String _humanize(String tz) =>
+      tz.replaceAll('_', ' ').replaceAll('/', ' / ');
+
+  static final List<DropDownItem<String>> items = List.generate(
+    all.length,
+    (i) => DropDownItem(id: i, value: all[i], label: _humanize(all[i])),
+  );
 }

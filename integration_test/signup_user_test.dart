@@ -98,8 +98,8 @@ void main() {
       await tester.pumpAndSettle();
 
       // Wait for dropdown options to appear and select America/Chicago
-      await waitForWidget(tester, find.text('America/Chicago'));
-      await tester.tap(find.text('America/Chicago'));
+      await waitForWidget(tester, find.text('America / Chicago'));
+      await tester.tap(find.text('America / Chicago'));
       await tester.pumpAndSettle();
 
       // Agree to terms - find and tap the checkbox
