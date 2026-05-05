@@ -52,7 +52,7 @@ Note that to reach `localhost` from within an Android emulator, use `10.0.2.2` i
 
 ## Local Docker (Web)
 
-The web app can be built and served locally in Docker as a static SPA on port `8080`.
+The web app can be built and served locally in Docker as a static SPA on port `--web-port=8080`.
 
 ```sh
 make
