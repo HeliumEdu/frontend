@@ -152,7 +152,7 @@ void main() {
     );
 
     namedTestWidgets(
-      '2. Seeded U.S. Holidays calendar appears in settings list',
+      '2. U.S. Holidays calendar from example schedule appears in settings list',
       (tester) async {
         if (!canProceed) {
           _log.warning('Skipping: user does not exist');
