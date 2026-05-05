@@ -180,7 +180,7 @@ class _GradeCalculatorDialogState
       case NeededGradeState.unachievable:
         return 'You would need to score ${result.neededGrade.toStringAsFixed(1)}% to reach your target.';
       case NeededGradeState.achievable:
-        return 'You need to score ${result.neededGrade.toStringAsFixed(1)}% or higher on "$targetCategoryTitle" to achieve ${desiredGrade.toStringAsFixed(1)}% in this class.';
+        return 'You need to score ${result.neededGrade.toStringAsFixed(1)}% on "$targetCategoryTitle" to achieve ${desiredGrade.toStringAsFixed(1)}% in this class.';
     }
   }
 

@@ -112,7 +112,7 @@ class _ExternalCalendarWidgetState
         ),
         const SizedBox(height: 14),
         LabelAndTextFormField(
-          label: 'URL',
+          label: 'URL (iCal)',
           controller: _formController.urlController,
           validator: BasicFormController.validateRequiredUrl,
           keyboardType: TextInputType.url,
