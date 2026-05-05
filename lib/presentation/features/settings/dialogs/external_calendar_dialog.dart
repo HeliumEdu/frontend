@@ -46,10 +46,6 @@ class _ExternalCalendarWidgetState
   @override
   String get dialogTitle => 'External Calendar';
 
-  static const String _defaultTitle = 'U.S. Holidays';
-  static const String _defaultUrl =
-      'https://calendar.google.com/calendar/ical/en.usa%23holiday%40group.v.calendar.google.com/public/basic.ics';
-
   @override
   BasicFormController get formController => _formController;
 
@@ -65,8 +61,6 @@ class _ExternalCalendarWidgetState
           widget.externalCalendar!.shownOnCalendar!;
     } else {
       _formController.markChanged();
-      _formController.titleController.text = _defaultTitle;
-      _formController.urlController.text = _defaultUrl;
       _formController.selectedColor = HeliumColors.getRandomColor();
       _formController.shownOnCalendar = true;
     }
