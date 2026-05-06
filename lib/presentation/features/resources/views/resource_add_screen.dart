@@ -45,7 +45,6 @@ Future<void> showResourceAdd(
 
   return showScreenAsDialog(
     context,
-    barrierDismissible: false,
     child: MultiBlocProvider(
       providers: [
         BlocProvider<ResourceBloc>.value(value: resourceBloc),
@@ -93,6 +92,10 @@ class _ResourceAddScreenState
 
   @override
   IconData? get icon => Icons.book;
+
+  @override
+  bool get isDirty =>
+      _detailsKey.currentState?.formController.isChanged ?? false;
 
   @override
   Function? get saveAction {
@@ -162,7 +165,7 @@ class _ResourceAddScreenState
                 );
               }
               showSnackBar(context, 'Resource created', useRootMessenger: true);
-              cancelAction();
+              closeWithoutPrompt();
             }
           } else if (state is ResourceUpdated) {
             if (state.redirectToNotebook) {
@@ -184,7 +187,7 @@ class _ResourceAddScreenState
                 navigateAndClearStack(context, '${AppRoute.notebookScreen}?${DeepLinkParam.linkResourceId}=${state.resource.id}');
               }
             } else {
-              cancelAction();
+              closeWithoutPrompt();
             }
           }
         },

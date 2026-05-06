@@ -58,7 +58,6 @@ Future<void> showPlannerItemAdd(
 
   return showScreenAsDialog(
     context,
-    barrierDismissible: false,
     child: MultiBlocProvider(
       providers: [
         BlocProvider<AttachmentBloc>.value(value: attachmentBloc),
@@ -151,6 +150,12 @@ class _PlannerItemAddScreenState
   IconData? get icon => _currentIsEvent == null ? null : Icons.calendar_month;
 
   @override
+  bool get isDirty {
+    if (currentStep != 0) return false;
+    return _detailsKey.currentState?.formController.isChanged ?? false;
+  }
+
+  @override
   Function? get saveAction {
     if (steps[currentStep].stepScreenType != ScreenType.entityPage) {
       return null;
@@ -187,7 +192,7 @@ class _PlannerItemAddScreenState
               '${state is EventDeleted ? 'Event' : 'Assignment'} deleted',
               useRootMessenger: true,
             );
-            cancelAction();
+            closeWithoutPrompt();
           } else if (state is HomeworkCreated ||
               state is HomeworkUpdated ||
               state is EventCreated ||
@@ -299,13 +304,13 @@ class _PlannerItemAddScreenState
       if (step < steps.length) {
         navigateToStep(step);
       } else {
-        cancelAction();
+        closeWithoutPrompt();
       }
     } else if (widget.isNew && currentStep + 1 < steps.length) {
       // In create mode, auto-advance to next step
       navigateToStep(currentStep + 1);
     } else {
-      cancelAction();
+      closeWithoutPrompt();
     }
   }
 

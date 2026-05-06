@@ -41,7 +41,6 @@ Future<void> showCourseAdd(
 
   return showScreenAsDialog(
     context,
-    barrierDismissible: false,
     child: BlocProvider<CourseBloc>.value(
       value: courseBloc,
       child: CourseAddScreen(
@@ -118,6 +117,18 @@ class _CourseAddScreenState extends MultiStepContainerState<CourseAddScreen> {
 
   @override
   IconData? get icon => Icons.school;
+
+  @override
+  bool get isDirty {
+    switch (currentStep) {
+      case 0:
+        return _detailsKey.currentState?.formController.isChanged ?? false;
+      case 1:
+        return _scheduleKey.currentState?.formController.isChanged ?? false;
+      default:
+        return false;
+    }
+  }
 
   @override
   Function? get saveAction {
@@ -211,13 +222,13 @@ class _CourseAddScreenState extends MultiStepContainerState<CourseAddScreen> {
       if (step < steps.length) {
         navigateToStep(step);
       } else {
-        cancelAction();
+        closeWithoutPrompt();
       }
     } else if (widget.isNew && currentStep + 1 < steps.length) {
       // In create mode, auto-advance to next step
       navigateToStep(currentStep + 1);
     } else {
-      cancelAction();
+      closeWithoutPrompt();
     }
   }
 
