@@ -786,7 +786,10 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
       cursor: atRiskCount > 0
           ? SystemMouseCursors.click
           : SystemMouseCursors.basic,
-      child: GestureDetector(
+      child: Semantics(
+        label: 'Show at-risk classes',
+        button: atRiskCount > 0,
+        child: GestureDetector(
         onTap: atRiskCount > 0
             ? () {
                 final atRiskCourseIds = atRiskCourses.map((c) => c.id).toSet();
@@ -868,6 +871,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
               ],
             ],
           ),
+        ),
         ),
       ),
     );
@@ -962,7 +966,10 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
               cursor: sortedCourses.length > 1
                   ? SystemMouseCursors.click
                   : MouseCursor.defer,
-              child: GestureDetector(
+              child: Semantics(
+                label: 'Switch class',
+                button: sortedCourses.length > 1,
+                child: GestureDetector(
                 onTap: sortedCourses.length > 1
                     ? () => _cyclePendingImpactCourse(sortedCourses)
                     : null,
@@ -1005,6 +1012,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
                     ],
                   ),
                 ),
+              ),
               ),
             ),
           ],
@@ -1318,9 +1326,13 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
             // Gear icon for settings
             PrintHidden(
               child: Builder(
-                builder: (buttonContext) => IconButton(
-                  icon: const Icon(Icons.settings),
-                  onPressed: () => _showGraphSettings(buttonContext),
+                builder: (buttonContext) => Semantics(
+                  label: 'Graph settings',
+                  button: true,
+                  child: IconButton(
+                    icon: const Icon(Icons.settings),
+                    onPressed: () => _showGraphSettings(buttonContext),
+                  ),
                 ),
               ),
             ),
