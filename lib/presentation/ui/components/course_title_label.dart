@@ -96,22 +96,26 @@ class CourseTitleLabel extends StatelessWidget {
                   ),
                   if (onDelete != null) ...[
                     const SizedBox(width: 2),
-                    IconButton(
-                      onPressed: onDelete,
-                      icon: const Icon(Icons.close),
-                      iconSize: Responsive.getIconSize(
-                        context,
-                        mobile: 16,
-                        tablet: 18,
-                        desktop: 20,
-                      ),
-                      color: BadgeColors.foreground(context, color),
-                      hoverColor: BadgeColors.border(context, color),
-                      padding: EdgeInsets.zero,
-                      constraints: const BoxConstraints(),
-                      visualDensity: VisualDensity.compact,
-                      style: IconButton.styleFrom(
-                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    Semantics(
+                      label: 'Remove',
+                      button: true,
+                      child: IconButton(
+                        onPressed: onDelete,
+                        icon: const Icon(Icons.close),
+                        iconSize: Responsive.getIconSize(
+                          context,
+                          mobile: 16,
+                          tablet: 18,
+                          desktop: 20,
+                        ),
+                        color: BadgeColors.foreground(context, color),
+                        hoverColor: BadgeColors.border(context, color),
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(),
+                        visualDensity: VisualDensity.compact,
+                        style: IconButton.styleFrom(
+                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        ),
                       ),
                     ),
                   ],

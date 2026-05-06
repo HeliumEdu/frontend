@@ -33,6 +33,7 @@ import 'package:heliumapp/presentation/features/shared/controllers/basic_form_co
 import 'package:heliumapp/presentation/features/shared/widgets/flow/multi_step_container.dart';
 import 'package:heliumapp/presentation/ui/components/drop_down.dart';
 import 'package:heliumapp/presentation/ui/components/grade_label.dart';
+import 'package:heliumapp/presentation/ui/components/helium_checkbox_list_tile.dart';
 import 'package:heliumapp/presentation/ui/components/helium_icon_button.dart';
 import 'package:heliumapp/presentation/ui/components/label_and_text_form_field.dart';
 import 'package:heliumapp/presentation/ui/components/notes_editor.dart';
@@ -117,7 +118,7 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
     _eventId = widget.eventId;
     _homeworkId = widget.homeworkId;
 
-    if (!widget.isEdit) formController.markChanged();
+    if (!widget.isEdit) formController.markChanged(userInitiated: false);
 
     formController.gradeFocusNode.addListener(() {
       if (!formController.gradeFocusNode.hasFocus) {
@@ -163,6 +164,7 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
       isLoading = true;
       _plannerItem = null;
       formController.isChanged = false;
+      formController.isUserDirty = false;
       formController.userChangedTime = false;
     });
 
@@ -276,7 +278,7 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
                   Row(
                     children: [
                       Expanded(
-                        child: CheckboxListTile(
+                        child: HeliumCheckboxListTile(
                           title: Text(
                             'All Day',
                             style: AppStyles.formLabel(context),
@@ -297,7 +299,7 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
                   Row(
                     children: [
                       Expanded(
-                        child: CheckboxListTile(
+                        child: HeliumCheckboxListTile(
                           title: Text(
                             'Show End',
                             style: AppStyles.formLabel(context),
@@ -410,35 +412,42 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
       children: [
         Text(label, style: AppStyles.formLabel(context)),
         const SizedBox(height: 9),
-        GestureDetector(
-          onTap: onTap,
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(6),
-              border: Border.all(
-                color: context.colorScheme.outline.withValues(alpha: 0.2),
+        Semantics(
+          label: 'Pick $label date',
+          button: true,
+          child: GestureDetector(
+            onTap: () {
+              Feedback.forTap(context);
+              onTap();
+            },
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(6),
+                border: Border.all(
+                  color: context.colorScheme.outline.withValues(alpha: 0.2),
+                ),
+                color: context.colorScheme.surface,
               ),
-              color: context.colorScheme.surface,
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  HeliumDateTime.formatDate(date),
-                  style: AppStyles.formText(context),
-                ),
-                Icon(
-                  Icons.calendar_today,
-                  color: context.colorScheme.primary,
-                  size: Responsive.getIconSize(
-                    context,
-                    mobile: 18,
-                    tablet: 20,
-                    desktop: 22,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    HeliumDateTime.formatDate(date),
+                    style: AppStyles.formText(context),
                   ),
-                ),
-              ],
+                  Icon(
+                    Icons.calendar_today,
+                    color: context.colorScheme.primary,
+                    size: Responsive.getIconSize(
+                      context,
+                      mobile: 18,
+                      tablet: 20,
+                      desktop: 22,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),
@@ -457,35 +466,42 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
       children: [
         Text(label, style: AppStyles.formLabel(context)),
         const SizedBox(height: 9),
-        GestureDetector(
-          onTap: onTap,
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(6),
-              border: Border.all(
-                color: context.colorScheme.outline.withValues(alpha: 0.2),
+        Semantics(
+          label: 'Pick $label time',
+          button: true,
+          child: GestureDetector(
+            onTap: () {
+              Feedback.forTap(context);
+              onTap();
+            },
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(6),
+                border: Border.all(
+                  color: context.colorScheme.outline.withValues(alpha: 0.2),
+                ),
+                color: context.colorScheme.surface,
               ),
-              color: context.colorScheme.surface,
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  HeliumTime.format(time),
-                  style: AppStyles.formText(context),
-                ),
-                Icon(
-                  Icons.access_time,
-                  color: context.colorScheme.primary,
-                  size: Responsive.getIconSize(
-                    context,
-                    mobile: 18,
-                    tablet: 20,
-                    desktop: 22,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    HeliumTime.format(time),
+                    style: AppStyles.formText(context),
                   ),
-                ),
-              ],
+                  Icon(
+                    Icons.access_time,
+                    color: context.colorScheme.primary,
+                    size: Responsive.getIconSize(
+                      context,
+                      mobile: 18,
+                      tablet: 20,
+                      desktop: 22,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),
@@ -591,7 +607,7 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
             children: [
               SizedBox(
                 width: 140,
-                child: CheckboxListTile(
+                child: HeliumCheckboxListTile(
                   key: const Key(PlannerItemFormController.completeField),
                   title: Text('Complete', style: AppStyles.formLabel(context)),
                   value: formController.isCompleted,

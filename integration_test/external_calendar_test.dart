@@ -10,6 +10,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/config/app_router.dart';
 import 'package:heliumapp/presentation/features/planner/views/planner_screen.dart';
+import 'package:heliumapp/presentation/ui/components/settings_button.dart';
 import 'package:heliumapp/utils/planner_helper.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:logging/logging.dart';
@@ -146,6 +147,66 @@ void main() {
           reason:
               'External calendar event should disappear after filtering to '
               'Assignments only',
+        );
+      },
+    );
+
+    namedTestWidgets(
+      '2. U.S. Holidays calendar from example schedule appears in settings list',
+      (tester) async {
+        if (!canProceed) {
+          _log.warning('Skipping: user does not exist');
+          skipTest('user does not exist (run signup_user_test first)');
+          return;
+        }
+
+        await initializeTestApp(tester);
+        final loggedIn = await loginAndNavigateToPlanner(
+          tester,
+          testEmail,
+          testPassword,
+        );
+        expect(loggedIn, isTrue, reason: 'Should be logged in');
+
+        _log.info('Opening settings ...');
+        final settingsButton = find.byKey(const Key(SettingsButton.buttonKey));
+        final settingsFound = await waitForWidget(
+          tester,
+          settingsButton,
+          timeout: config.apiTimeout,
+        );
+        expect(
+          settingsFound,
+          isTrue,
+          reason: 'Settings button should be visible',
+        );
+        await tester.tap(settingsButton);
+        await tester.pumpAndSettle(const Duration(seconds: 2));
+
+        _log.info('Navigating to External Calendars ...');
+        final externalCalendarsItem = find.text('External Calendars');
+        await scrollUntilVisible(tester, externalCalendarsItem);
+        expect(
+          externalCalendarsItem,
+          findsOneWidget,
+          reason: 'External Calendars settings entry should exist',
+        );
+        await tester.tap(externalCalendarsItem);
+        await tester.pumpAndSettle(const Duration(seconds: 2));
+
+        _log.info('Verifying U.S. Holidays is listed ...');
+        final usHolidays = find.text('U.S. Holidays');
+        final usHolidaysFound = await waitForWidget(
+          tester,
+          usHolidays,
+          timeout: config.apiTimeout,
+        );
+        expect(
+          usHolidaysFound,
+          isTrue,
+          reason:
+              'U.S. Holidays should be seeded as part of the example schedule '
+              'on signup',
         );
       },
     );

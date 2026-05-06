@@ -166,16 +166,20 @@ class _CourseCategoriesContentState extends State<_CourseCategoriesContent> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text('Categories', style: AppStyles.featureText(context)),
-            HeliumIconButton(
-              onPressed: () {
-                showCategoryDialog(
-                  parentContext: context,
-                  courseGroupId: widget.courseGroupId,
-                  courseId: widget.courseId,
-                  isEdit: false,
-                );
-              },
-              icon: Icons.add,
+            Semantics(
+              label: 'Add category',
+              button: true,
+              child: HeliumIconButton(
+                onPressed: () {
+                  showCategoryDialog(
+                    parentContext: context,
+                    courseGroupId: widget.courseGroupId,
+                    courseId: widget.courseId,
+                    isEdit: false,
+                  );
+                },
+                icon: Icons.add,
+              ),
             ),
           ],
         ),
@@ -295,34 +299,42 @@ class _CourseCategoriesContentState extends State<_CourseCategoriesContent> {
               ),
               const SizedBox(width: 8),
               if (PlannerHelper.shouldShowEditButton(context)) ...[
-                HeliumIconButton(
-                  onPressed: () => _onEdit(category),
-                  icon: Icons.edit_outlined,
+                Semantics(
+                  label: 'Edit',
+                  button: true,
+                  child: HeliumIconButton(
+                    onPressed: () => _onEdit(category),
+                    icon: Icons.edit_outlined,
+                  ),
                 ),
                 const SizedBox(width: 8),
               ],
-              HeliumIconButton(
-                onPressed: () {
-                  showConfirmDeleteDialog(
-                    parentContext: context,
-                    item: category,
-                    additionalWarning:
-                        'Any assignments associated with this category will be moved to "Uncategorized".',
-                    onDelete: (c) {
-                      context.read<CategoryBloc>().add(
-                        DeleteCategoryEvent(
-                          origin: EventOrigin.screen,
-                          courseGroupId: widget.courseGroupId,
-                          courseId: widget.courseId,
-                          categoryId: c.id,
-                          isLastCategory: _categories.length == 1,
-                        ),
-                      );
-                    },
-                  );
-                },
-                icon: Icons.delete_outline,
-                color: context.colorScheme.error,
+              Semantics(
+                label: 'Delete',
+                button: true,
+                child: HeliumIconButton(
+                  onPressed: () {
+                    showConfirmDeleteDialog(
+                      parentContext: context,
+                      item: category,
+                      additionalWarning:
+                          'Any assignments associated with this category will be moved to "Uncategorized".',
+                      onDelete: (c) {
+                        context.read<CategoryBloc>().add(
+                          DeleteCategoryEvent(
+                            origin: EventOrigin.screen,
+                            courseGroupId: widget.courseGroupId,
+                            courseId: widget.courseId,
+                            categoryId: c.id,
+                            isLastCategory: _categories.length == 1,
+                          ),
+                        );
+                      },
+                    );
+                  },
+                  icon: Icons.delete_outline,
+                  color: context.colorScheme.error,
+                ),
               ),
             ],
           ),

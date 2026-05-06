@@ -40,6 +40,7 @@ import 'package:heliumapp/presentation/ui/components/category_title_label.dart';
 import 'package:heliumapp/presentation/ui/components/course_title_label.dart';
 import 'package:heliumapp/presentation/ui/components/grade_label.dart';
 import 'package:heliumapp/presentation/ui/components/group_dropdown.dart';
+import 'package:heliumapp/presentation/ui/components/helium_checkbox_list_tile.dart';
 import 'package:heliumapp/presentation/ui/feedback/empty_card.dart';
 import 'package:heliumapp/presentation/ui/feedback/error_card.dart';
 import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
@@ -786,9 +787,13 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
       cursor: atRiskCount > 0
           ? SystemMouseCursors.click
           : SystemMouseCursors.basic,
-      child: GestureDetector(
+      child: Semantics(
+        label: 'Show at-risk classes',
+        button: atRiskCount > 0,
+        child: GestureDetector(
         onTap: atRiskCount > 0
             ? () {
+                Feedback.forTap(context);
                 final atRiskCourseIds = atRiskCourses.map((c) => c.id).toSet();
 
                 setState(() {
@@ -868,6 +873,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
               ],
             ],
           ),
+        ),
         ),
       ),
     );
@@ -962,9 +968,15 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
               cursor: sortedCourses.length > 1
                   ? SystemMouseCursors.click
                   : MouseCursor.defer,
-              child: GestureDetector(
+              child: Semantics(
+                label: 'Switch class',
+                button: sortedCourses.length > 1,
+                child: GestureDetector(
                 onTap: sortedCourses.length > 1
-                    ? () => _cyclePendingImpactCourse(sortedCourses)
+                    ? () {
+                        Feedback.forTap(context);
+                        _cyclePendingImpactCourse(sortedCourses);
+                      }
                     : null,
                 child: Container(
                   padding: const EdgeInsets.symmetric(
@@ -1005,6 +1017,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
                     ],
                   ),
                 ),
+              ),
               ),
             ),
           ],
@@ -1271,6 +1284,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
         onTap: () {
+          Feedback.forTap(context);
           setState(() {
             _graphExpanded = !_graphExpanded;
           });
@@ -1318,26 +1332,33 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
             // Gear icon for settings
             PrintHidden(
               child: Builder(
-                builder: (buttonContext) => IconButton(
-                  tooltip: 'Graph settings',
-                  icon: const Icon(Icons.settings),
-                  onPressed: () => _showGraphSettings(buttonContext),
+                builder: (buttonContext) => Semantics(
+                  label: 'Graph settings',
+                  button: true,
+                  child: IconButton(
+                    icon: const Icon(Icons.settings),
+                    onPressed: () => _showGraphSettings(buttonContext),
+                  ),
                 ),
               ),
             ),
             // Expand/collapse chevron
             PrintHidden(
-              child: IconButton(
-                icon: AnimatedRotation(
-                  turns: _graphExpanded ? 0.5 : 0,
-                  duration: const Duration(milliseconds: 300),
-                  child: const Icon(Icons.keyboard_arrow_down),
+              child: Semantics(
+                label: _graphExpanded ? 'Collapse' : 'Expand',
+                button: true,
+                child: IconButton(
+                  icon: AnimatedRotation(
+                    turns: _graphExpanded ? 0.5 : 0,
+                    duration: const Duration(milliseconds: 300),
+                    child: const Icon(Icons.keyboard_arrow_down),
+                  ),
+                  onPressed: () {
+                    setState(() {
+                      _graphExpanded = !_graphExpanded;
+                    });
+                  },
                 ),
-                onPressed: () {
-                  setState(() {
-                    _graphExpanded = !_graphExpanded;
-                  });
-                },
               ),
             ),
           ],
@@ -1673,7 +1694,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
         final isVisible = _visibleSeries[s.name] ?? true;
         return Material(
           color: Colors.transparent,
-          child: CheckboxListTile(
+          child: HeliumCheckboxListTile(
             dense: true,
             contentPadding: EdgeInsets.zero,
             visualDensity: VisualDensity.compact,
@@ -2109,7 +2130,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
                 ),
               ),
               const Divider(height: 20),
-              CheckboxListTile(
+              HeliumCheckboxListTile(
                 controlAffinity: ListTileControlAffinity.leading,
                 title: Text(
                   'Auto-adjust to graded range',
@@ -2123,7 +2144,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
                 dense: true,
                 contentPadding: EdgeInsets.zero,
               ),
-              CheckboxListTile(
+              HeliumCheckboxListTile(
                 controlAffinity: ListTileControlAffinity.leading,
                 title: Text('Hide legend', style: AppStyles.formText(context)),
                 value: _hideLegend == true,
@@ -2218,7 +2239,10 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
       cursor: SystemMouseCursors.click,
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
-        onTap: () => _toggleExpandedCourse(course.id),
+        onTap: () {
+          Feedback.forTap(context);
+          _toggleExpandedCourse(course.id);
+        },
         child: Row(
           children: [
             Expanded(
@@ -2302,22 +2326,26 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
               ),
             ),
             PrintHidden(
-              child: IconButton(
-                icon: AnimatedRotation(
-                  turns: isExpanded ? 0.5 : 0,
-                  duration: const Duration(milliseconds: 300),
-                  child: Icon(
-                    Icons.keyboard_arrow_down,
-                    color: context.colorScheme.primary,
-                    size: Responsive.getIconSize(
-                      context,
-                      mobile: 20,
-                      tablet: 22,
-                      desktop: 24,
+              child: Semantics(
+                label: isExpanded ? 'Collapse' : 'Expand',
+                button: true,
+                child: IconButton(
+                  icon: AnimatedRotation(
+                    turns: isExpanded ? 0.5 : 0,
+                    duration: const Duration(milliseconds: 300),
+                    child: Icon(
+                      Icons.keyboard_arrow_down,
+                      color: context.colorScheme.primary,
+                      size: Responsive.getIconSize(
+                        context,
+                        mobile: 20,
+                        tablet: 22,
+                        desktop: 24,
+                      ),
                     ),
                   ),
+                  onPressed: () => _toggleExpandedCourse(course.id),
                 ),
-                onPressed: () => _toggleExpandedCourse(course.id),
               ),
             ),
           ],

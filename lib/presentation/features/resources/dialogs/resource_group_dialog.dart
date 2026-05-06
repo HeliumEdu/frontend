@@ -18,6 +18,7 @@ import 'package:heliumapp/presentation/features/resources/bloc/resource_state.da
 import 'package:heliumapp/presentation/ui/dialogs/base_dialog_state.dart';
 import 'package:heliumapp/presentation/features/shared/controllers/basic_form_controller.dart';
 import 'package:heliumapp/presentation/features/resources/controllers/resource_group_form_controller.dart';
+import 'package:heliumapp/presentation/ui/components/helium_checkbox_list_tile.dart';
 import 'package:heliumapp/presentation/ui/components/label_and_text_form_field.dart';
 import 'package:heliumapp/utils/app_style.dart';
 
@@ -105,7 +106,7 @@ class _ResourceGroupWidgetState
         Row(
           children: [
             Expanded(
-              child: CheckboxListTile(
+              child: HeliumCheckboxListTile(
                 title: Text(
                   "Hide this group's resources from Planner",
                   style: AppStyles.formLabel(context),

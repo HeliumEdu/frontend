@@ -14,6 +14,8 @@ import 'package:heliumapp/presentation/features/auth/bloc/auth_bloc.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_event.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_state.dart';
 import 'package:heliumapp/presentation/ui/components/drop_down.dart';
+import 'package:heliumapp/presentation/ui/components/helium_checkbox_list_tile.dart';
+import 'package:heliumapp/presentation/ui/feedback/discard_changes_scope.dart';
 import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
 import 'package:heliumapp/presentation/ui/components/searchable_dropdown.dart';
 import 'package:heliumapp/presentation/ui/components/spinner_field.dart';
@@ -53,6 +55,15 @@ class PreferencesScreenState extends State<PreferencesScreen> {
 
   bool _isLoading = true;
   bool _isSubmitting = false;
+  bool _isChanged = false;
+  bool _changeTrackingActive = false;
+
+  bool get isChanged => _isChanged;
+
+  void _markChanged() {
+    if (_isChanged || !_changeTrackingActive) return;
+    setState(() => _isChanged = true);
+  }
 
   Color _selectedEventColor = FallbackConstants.defaultEventsColor;
   Color _selectedResourceColor = FallbackConstants.defaultResourceColor;
@@ -83,6 +94,9 @@ class PreferencesScreenState extends State<PreferencesScreen> {
 
   @override
   void dispose() {
+    _reminderOffsetController.removeListener(_markChanged);
+    _atRiskThresholdController.removeListener(_markChanged);
+    _onTrackToleranceController.removeListener(_markChanged);
     _reminderOffsetController.dispose();
     _atRiskThresholdController.dispose();
     _onTrackToleranceController.dispose();
@@ -104,12 +118,15 @@ class PreferencesScreenState extends State<PreferencesScreen> {
           if (!_isRememberFilterSelection) {
             PrefService().setString('saved_filter_state', '');
           }
+          setState(() => _isChanged = false);
           widget.onCompleted?.call();
         }
       },
       child: _isLoading
           ? const Center(child: LoadingIndicator(expanded: false))
-          : SingleChildScrollView(
+          : DiscardChangesScope(
+        isDirty: _isChanged,
+        child: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -126,6 +143,7 @@ class PreferencesScreenState extends State<PreferencesScreen> {
               onChanged: (value) {
                 setState(() {
                   _selectedTimeZone = value!.value!;
+                  _isChanged = true;
                 });
               },
             ),
@@ -140,10 +158,11 @@ class PreferencesScreenState extends State<PreferencesScreen> {
               onChanged: (value) {
                 setState(() {
                   _selectedDefaultView = value!.value!;
+                  _isChanged = true;
                 });
               },
             ),
-            CheckboxListTile(
+            HeliumCheckboxListTile(
               title: Text(
                 'Remember filter selections',
                 style: AppStyles.formLabel(context),
@@ -152,12 +171,13 @@ class PreferencesScreenState extends State<PreferencesScreen> {
               onChanged: (value) {
                 setState(() {
                   _isRememberFilterSelection = value!;
+                  _isChanged = true;
                 });
               },
               controlAffinity: ListTileControlAffinity.leading,
               contentPadding: EdgeInsets.zero,
             ),
-            CheckboxListTile(
+            HeliumCheckboxListTile(
               title: Text(
                 'Drag-and-drop on touch devices',
                 style: AppStyles.formLabel(context),
@@ -166,12 +186,13 @@ class PreferencesScreenState extends State<PreferencesScreen> {
               onChanged: (value) {
                 setState(() {
                   _isDragAndDropOnMobile = value!;
+                  _isChanged = true;
                 });
               },
               controlAffinity: ListTileControlAffinity.leading,
               contentPadding: EdgeInsets.zero,
             ),
-            CheckboxListTile(
+            HeliumCheckboxListTile(
               title: Text(
                 'Show tooltips',
                 style: AppStyles.formLabel(context),
@@ -180,6 +201,7 @@ class PreferencesScreenState extends State<PreferencesScreen> {
               onChanged: (value) {
                 setState(() {
                   _isShowPlannerTooltips = value!;
+                  _isChanged = true;
                 });
               },
               controlAffinity: ListTileControlAffinity.leading,
@@ -196,10 +218,11 @@ class PreferencesScreenState extends State<PreferencesScreen> {
               onChanged: (value) {
                 setState(() {
                   _selectedWeekStartsOn = value!.value!;
+                  _isChanged = true;
                 });
               },
             ),
-            CheckboxListTile(
+            HeliumCheckboxListTile(
               title: Text(
                 'Collapse busy days',
                 style: AppStyles.formLabel(context),
@@ -208,12 +231,13 @@ class PreferencesScreenState extends State<PreferencesScreen> {
               onChanged: (value) {
                 setState(() {
                   _isCollapseBusyDays = value!;
+                  _isChanged = true;
                 });
               },
               controlAffinity: ListTileControlAffinity.leading,
               contentPadding: EdgeInsets.zero,
             ),
-            CheckboxListTile(
+            HeliumCheckboxListTile(
               title: Text(
                 'Show week numbers',
                 style: AppStyles.formLabel(context),
@@ -222,6 +246,7 @@ class PreferencesScreenState extends State<PreferencesScreen> {
               onChanged: (value) {
                 setState(() {
                   _isShowWeekNumbers = value!;
+                  _isChanged = true;
                 });
               },
               controlAffinity: ListTileControlAffinity.leading,
@@ -233,10 +258,12 @@ class PreferencesScreenState extends State<PreferencesScreen> {
               children: [
                 SizedBox(width: 160, child: Text('Color for Events', style: AppStyles.formLabel(context))),
                 ColorSelector(
+                  semanticLabel: 'Pick color for Events',
                   selectedColor: _selectedEventColor,
                   onColorSelected: (color) {
                     setState(() {
                       _selectedEventColor = color;
+                      _isChanged = true;
                     });
                   },
                 ),
@@ -247,10 +274,12 @@ class PreferencesScreenState extends State<PreferencesScreen> {
               children: [
                 SizedBox(width: 160, child: Text('Color for grades', style: AppStyles.formLabel(context))),
                 ColorSelector(
+                  semanticLabel: 'Pick color for grades',
                   selectedColor: _selectedGradeColor,
                   onColorSelected: (color) {
                     setState(() {
                       _selectedGradeColor = color;
+                      _isChanged = true;
                     });
                   },
                 ),
@@ -261,17 +290,19 @@ class PreferencesScreenState extends State<PreferencesScreen> {
               children: [
                 SizedBox(width: 160, child: Text('Color for resources', style: AppStyles.formLabel(context))),
                 ColorSelector(
+                  semanticLabel: 'Pick color for resources',
                   selectedColor: _selectedResourceColor,
                   onColorSelected: (color) {
                     setState(() {
                       _selectedResourceColor = color;
+                      _isChanged = true;
                     });
                   },
                 ),
               ],
             ),
             const SizedBox(height: 4),
-            CheckboxListTile(
+            HeliumCheckboxListTile(
               title: Text(
                 'Color by assignment category',
                 style: AppStyles.formLabel(context),
@@ -280,6 +311,7 @@ class PreferencesScreenState extends State<PreferencesScreen> {
               onChanged: (value) {
                 setState(() {
                   _isSelectedColorByCategory = value!;
+                  _isChanged = true;
                 });
               },
               controlAffinity: ListTileControlAffinity.leading,
@@ -335,6 +367,7 @@ class PreferencesScreenState extends State<PreferencesScreen> {
 
                   setState(() {
                     _selectedReminderType = value!.value!;
+                    _isChanged = true;
                   });
                 });
               },
@@ -361,6 +394,7 @@ class PreferencesScreenState extends State<PreferencesScreen> {
                     onChanged: (value) {
                       setState(() {
                         _selectedReminderOffsetType = value!.value!;
+                        _isChanged = true;
                       });
                     },
                   ),
@@ -371,6 +405,7 @@ class PreferencesScreenState extends State<PreferencesScreen> {
             const SizedBox(height: 12),
           ],
         ),
+      ),
       ),
     );
   }
@@ -497,5 +532,12 @@ class PreferencesScreenState extends State<PreferencesScreen> {
             state.user.settings.atRiskThreshold.toString();
       }
     });
+
+    if (!_changeTrackingActive) {
+      _changeTrackingActive = true;
+      _reminderOffsetController.addListener(_markChanged);
+      _atRiskThresholdController.addListener(_markChanged);
+      _onTrackToleranceController.addListener(_markChanged);
+    }
   }
 }

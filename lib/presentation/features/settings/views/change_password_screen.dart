@@ -7,14 +7,15 @@
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_bloc.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_event.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_state.dart';
 import 'package:heliumapp/presentation/features/shared/controllers/basic_form_controller.dart';
 import 'package:heliumapp/presentation/features/settings/controllers/change_password_form_controller.dart';
-import 'package:heliumapp/presentation/ui/components/label_and_text_form_field.dart';
+import 'package:heliumapp/presentation/ui/components/helium_password_field.dart';
+import 'package:heliumapp/presentation/ui/feedback/discard_changes_scope.dart';
 import 'package:heliumapp/utils/snack_bar_helpers.dart';
 
 class ChangePasswordScreen extends StatefulWidget {
@@ -39,10 +40,48 @@ class ChangePasswordScreenState extends State<ChangePasswordScreen> {
 
   bool _isSubmitting = false;
 
+  bool get isChanged => _formController.isChanged;
+
+  String _initialOld = '';
+  String _initialNew = '';
+  String _initialConfirm = '';
+  bool _changeTrackingActive = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _formController.oldPasswordController.addListener(_recomputeChanged);
+    _formController.newPasswordController.addListener(_recomputeChanged);
+    _formController.confirmPasswordController.addListener(_recomputeChanged);
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Future.delayed(const Duration(milliseconds: 500), () {
+        if (!mounted) return;
+        _initialOld = _formController.oldPasswordController.text;
+        _initialNew = _formController.newPasswordController.text;
+        _initialConfirm = _formController.confirmPasswordController.text;
+        _changeTrackingActive = true;
+      });
+    });
+  }
+
   @override
   void dispose() {
+    _formController.oldPasswordController.removeListener(_recomputeChanged);
+    _formController.newPasswordController.removeListener(_recomputeChanged);
+    _formController.confirmPasswordController.removeListener(_recomputeChanged);
     _formController.dispose();
     super.dispose();
+  }
+
+  void _recomputeChanged() {
+    if (!_changeTrackingActive) return;
+    final dirty =
+        _formController.oldPasswordController.text != _initialOld ||
+        _formController.newPasswordController.text != _initialNew ||
+        _formController.confirmPasswordController.text != _initialConfirm;
+    if (dirty == _formController.isChanged) return;
+    setState(() => _formController.isChanged = dirty);
   }
 
   @override
@@ -54,7 +93,14 @@ class ChangePasswordScreenState extends State<ChangePasswordScreen> {
           setState(() => _isSubmitting = false);
           widget.onFailed?.call();
         } else if (state is AuthPasswordChanged) {
+          TextInput.finishAutofillContext();
           _formController.clearForm();
+          setState(() {
+            _initialOld = _formController.oldPasswordController.text;
+            _initialNew = _formController.newPasswordController.text;
+            _initialConfirm = _formController.confirmPasswordController.text;
+            _formController.isChanged = false;
+          });
           SnackBarHelper.show(
             context,
             'Password changed',
@@ -63,96 +109,48 @@ class ChangePasswordScreenState extends State<ChangePasswordScreen> {
           widget.onCompleted?.call();
         }
       },
-      child: SingleChildScrollView(
-        child: Form(
-          key: _formController.formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              LabelAndTextFormField(
-                label: 'Current password',
-                autofocus: kIsWeb,
-                prefixIcon: Icons.lock,
-                controller: _formController.oldPasswordController,
-                validator: BasicFormController.validatePassword,
-                onFieldSubmitted: (value) => onSubmit(),
-                obscureText: !_formController.isOldPasswordVisible,
-                suffixIcon: ExcludeFocus(
-                  excluding: true,
-                  child: IconButton(
-                    onPressed: () {
-                      setState(() {
-                        _formController.isOldPasswordVisible =
-                            !_formController.isOldPasswordVisible;
-                      });
-                    },
-                    icon: Icon(
-                      _formController.isOldPasswordVisible
-                          ? Icons.visibility
-                          : Icons.visibility_off,
-                      color: context.colorScheme.onSurface,
-                    ),
-                  ),
+      child: DiscardChangesScope(
+        isDirty: _formController.isChanged,
+        child: SingleChildScrollView(
+        child: AutofillGroup(
+          child: Form(
+            key: _formController.formKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                HeliumPasswordField(
+                  label: 'Current password',
+                  autofocus: kIsWeb,
+                  controller: _formController.oldPasswordController,
+                  validator: BasicFormController.validatePassword,
+                  onFieldSubmitted: (value) => onSubmit(),
+                  autofillHints: const [AutofillHints.password],
                 ),
-              ),
-              const SizedBox(height: 14),
+                const SizedBox(height: 14),
 
-              LabelAndTextFormField(
-                label: 'New password',
-                prefixIcon: Icons.lock,
-                controller: _formController.newPasswordController,
-                validator: BasicFormController.validatePassword,
-                obscureText: !_formController.isNewPasswordVisible,
-                suffixIcon: ExcludeFocus(
-                  excluding: true,
-                  child: IconButton(
-                    onPressed: () {
-                      setState(() {
-                        _formController.isNewPasswordVisible =
-                            !_formController.isNewPasswordVisible;
-                      });
-                    },
-                    icon: Icon(
-                      _formController.isNewPasswordVisible
-                          ? Icons.visibility
-                          : Icons.visibility_off,
-                      color: context.colorScheme.onSurface,
-                    ),
-                  ),
+                HeliumPasswordField(
+                  label: 'New password',
+                  controller: _formController.newPasswordController,
+                  validator: BasicFormController.validatePassword,
+                  autofillHints: const [AutofillHints.newPassword],
                 ),
-              ),
-              const SizedBox(height: 14),
+                const SizedBox(height: 14),
 
-              LabelAndTextFormField(
-                label: 'Confirm password',
-                prefixIcon: Icons.repeat,
-                controller: _formController.confirmPasswordController,
-                validator: _formController.validateConfirmPassword,
-                onFieldSubmitted: (value) => onSubmit(),
-                obscureText: !_formController.isConfirmPasswordVisible,
-                suffixIcon: ExcludeFocus(
-                  excluding: true,
-                  child: IconButton(
-                    onPressed: () {
-                      setState(() {
-                        _formController.isConfirmPasswordVisible =
-                            !_formController.isConfirmPasswordVisible;
-                      });
-                    },
-                    icon: Icon(
-                      _formController.isConfirmPasswordVisible
-                          ? Icons.visibility
-                          : Icons.visibility_off,
-                      color: context.colorScheme.onSurface,
-                    ),
-                  ),
+                HeliumPasswordField(
+                  label: 'Confirm password',
+                  prefixIcon: Icons.repeat,
+                  controller: _formController.confirmPasswordController,
+                  validator: _formController.validateConfirmPassword,
+                  onFieldSubmitted: (value) => onSubmit(),
+                  autofillHints: const [AutofillHints.newPassword],
                 ),
-              ),
 
-              const SizedBox(height: 12),
-            ],
+                const SizedBox(height: 12),
+              ],
+            ),
           ),
         ),
+      ),
       ),
     );
   }

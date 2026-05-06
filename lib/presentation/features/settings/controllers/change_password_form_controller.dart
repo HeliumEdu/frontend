@@ -13,9 +13,6 @@ class ChangePasswordFormController extends BasicFormController {
   final TextEditingController newPasswordController = TextEditingController();
   final TextEditingController confirmPasswordController =
       TextEditingController();
-  bool isOldPasswordVisible = false;
-  bool isNewPasswordVisible = false;
-  bool isConfirmPasswordVisible = false;
 
   void dispose() {
     oldPasswordController.dispose();

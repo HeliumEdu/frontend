@@ -123,38 +123,46 @@ class SpinnerField extends StatelessWidget {
         Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            IconButton(
-              onPressed: () => _increment(),
-              icon: const Icon(Icons.arrow_drop_up),
-              iconSize: Responsive.getIconSize(
-                context,
-                mobile: 24,
-                tablet: 26,
-                desktop: 28,
-              ),
-              color: context.colorScheme.primary,
-              padding: EdgeInsets.zero,
-              constraints: const BoxConstraints(),
-              visualDensity: VisualDensity.compact,
-              style: IconButton.styleFrom(
-                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            Semantics(
+              label: 'Increase value',
+              button: true,
+              child: IconButton(
+                onPressed: () => _increment(),
+                icon: const Icon(Icons.arrow_drop_up),
+                iconSize: Responsive.getIconSize(
+                  context,
+                  mobile: 24,
+                  tablet: 26,
+                  desktop: 28,
+                ),
+                color: context.colorScheme.primary,
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(),
+                visualDensity: VisualDensity.compact,
+                style: IconButton.styleFrom(
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                ),
               ),
             ),
-            IconButton(
-              onPressed: () => _decrement(),
-              icon: const Icon(Icons.arrow_drop_down),
-              iconSize: Responsive.getIconSize(
-                context,
-                mobile: 24,
-                tablet: 26,
-                desktop: 28,
-              ),
-              color: context.colorScheme.primary,
-              padding: EdgeInsets.zero,
-              constraints: const BoxConstraints(),
-              visualDensity: VisualDensity.compact,
-              style: IconButton.styleFrom(
-                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            Semantics(
+              label: 'Decrease value',
+              button: true,
+              child: IconButton(
+                onPressed: () => _decrement(),
+                icon: const Icon(Icons.arrow_drop_down),
+                iconSize: Responsive.getIconSize(
+                  context,
+                  mobile: 24,
+                  tablet: 26,
+                  desktop: 28,
+                ),
+                color: context.colorScheme.primary,
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(),
+                visualDensity: VisualDensity.compact,
+                style: IconButton.styleFrom(
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                ),
               ),
             ),
           ],

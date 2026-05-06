@@ -26,6 +26,7 @@ class PageHeader extends StatelessWidget {
   final bool isLoading;
   final Function? cancelAction;
   final Function? saveAction;
+  final IconData cancelIcon;
   final List<BlocProvider>? inheritableProviders;
 
   const PageHeader({
@@ -36,6 +37,7 @@ class PageHeader extends StatelessWidget {
     this.isLoading = false,
     this.cancelAction,
     this.saveAction,
+    this.cancelIcon = Icons.close,
     this.inheritableProviders,
   });
 
@@ -55,11 +57,18 @@ class PageHeader extends StatelessWidget {
       children: [
         if (screenType == ScreenType.entityPage ||
             screenType == ScreenType.subPage)
-          IconButton(
-            onPressed: () {
-              cancelAction?.call();
-            },
-            icon: Icon(Icons.close, color: context.colorScheme.secondary),
+          ExcludeFocus(
+            excluding: true,
+            child: Semantics(
+              label: cancelIcon == Icons.close ? 'Close' : 'Back',
+              button: true,
+              child: IconButton(
+                onPressed: () {
+                  cancelAction?.call();
+                },
+                icon: Icon(cancelIcon, color: context.colorScheme.secondary),
+              ),
+            ),
           )
         else if (showSettingsInHeader(context))
           const SettingsButton()
@@ -80,33 +89,41 @@ class PageHeader extends StatelessWidget {
         Row(
           children: [
             if (screenType == ScreenType.page)
-              IconButton(
-                onPressed: () {
-                  showNotifications(context);
-                },
-                icon: Icon(
-                  Icons.notifications,
-                  color: context.colorScheme.primary,
+              Semantics(
+                label: 'Notifications',
+                button: true,
+                child: IconButton(
+                  onPressed: () {
+                    showNotifications(context);
+                  },
+                  icon: Icon(
+                    Icons.notifications,
+                    color: context.colorScheme.primary,
+                  ),
                 ),
               )
             else if (screenType == ScreenType.entityPage)
-              IconButton(
-                key: const Key(saveButtonKey),
-                onPressed: isLoading
-                    ? null
-                    : () {
-                        saveAction?.call();
-                      },
-                icon: isLoading
-                    ? const LoadingIndicator(
-                        size: 20,
-                        expanded: false,
-                        strokeWidth: 2.5,
-                      )
-                    : Icon(
-                        Icons.check,
-                        color: context.colorScheme.primary,
-                      ),
+              Semantics(
+                label: 'Save',
+                button: true,
+                child: IconButton(
+                  key: const Key(saveButtonKey),
+                  onPressed: isLoading
+                      ? null
+                      : () {
+                          saveAction?.call();
+                        },
+                  icon: isLoading
+                      ? const LoadingIndicator(
+                          size: 20,
+                          expanded: false,
+                          strokeWidth: 2.5,
+                        )
+                      : Icon(
+                          Icons.check,
+                          color: context.colorScheme.primary,
+                        ),
+                ),
               ),
 
             // Help keep things centered when no right button

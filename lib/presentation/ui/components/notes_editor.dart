@@ -6,6 +6,7 @@
 // For details regarding the license, please refer to the LICENSE file.
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_quill/flutter_quill.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/presentation/ui/dialogs/color_picker_dialog.dart';
@@ -273,6 +274,12 @@ class _NotesEditorState extends State<NotesEditor> with WidgetsBindingObserver {
                       padding: const EdgeInsets.all(12.0),
                       autoFocus: false,
                       customStyles: NotesEditor.buildDefaultStyles(context),
+                      customShortcuts: const <ShortcutActivator, Intent>{
+                        SingleActivator(LogicalKeyboardKey.keyF, control: true):
+                            DoNothingIntent(),
+                        SingleActivator(LogicalKeyboardKey.keyF, meta: true):
+                            DoNothingIntent(),
+                      },
                     ),
                   ),
                 ),

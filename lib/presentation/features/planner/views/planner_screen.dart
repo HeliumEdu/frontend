@@ -70,6 +70,7 @@ import 'package:heliumapp/presentation/features/planner/widgets/day_popout_dialo
 import 'package:heliumapp/presentation/features/planner/widgets/todos_data_grid.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/core/base_event.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/core/provider_helpers.dart';
+import 'package:heliumapp/presentation/ui/components/helium_checkbox_list_tile.dart';
 import 'package:heliumapp/presentation/ui/components/helium_icon_button.dart';
 import 'package:heliumapp/presentation/ui/feedback/error_card.dart';
 import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
@@ -1149,13 +1150,17 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
         ),
       );
     } else {
-      return IconButton.outlined(
-        key: key,
-        onPressed: _goToToday,
-        icon: icon,
-        style: IconButton.styleFrom(
-          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-          side: BorderSide(color: context.colorScheme.primary),
+      return Semantics(
+        label: 'Today',
+        button: true,
+        child: IconButton.outlined(
+          key: key,
+          onPressed: _goToToday,
+          icon: icon,
+          style: IconButton.styleFrom(
+            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            side: BorderSide(color: context.colorScheme.primary),
+          ),
         ),
       );
     }
@@ -1195,73 +1200,70 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
           const SizedBox(width: 4),
           if (showNavButtons) ...[
             PrintHidden(
-              child: IconButton(
-                key: const Key(PlannerScreen.calendarPrevButtonKey),
-                icon: Icon(
-                  Icons.chevron_left,
-                  color: context.colorScheme.primary,
-                ),
-                onPressed: _calendarController.backward,
-                padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(),
-                style: IconButton.styleFrom(
-                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              child: Semantics(
+                label: 'Previous',
+                button: true,
+                child: IconButton(
+                  key: const Key(PlannerScreen.calendarPrevButtonKey),
+                  icon: Icon(
+                    Icons.chevron_left,
+                    color: context.colorScheme.primary,
+                  ),
+                  onPressed: _calendarController.backward,
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(),
+                  style: IconButton.styleFrom(
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  ),
                 ),
               ),
             ),
             const SizedBox(width: 4),
           ],
-          Material(
-            color: Colors.transparent,
-            child: InkWell(
-              onTap: () {
-                _openDatePicker();
-              },
-              borderRadius: BorderRadius.circular(16),
-              child: Padding(
-                padding: EdgeInsets.only(
-                  left: Responsive.isMobile(context) ? 4 : 8,
-                  top: 8,
-                  bottom: 8,
+          Stack(
+            alignment: Alignment.center,
+            children: [
+              for (final sample in _calendarHeaderSamples())
+                Visibility(
+                  visible: false,
+                  maintainSize: true,
+                  maintainAnimation: true,
+                  maintainState: true,
+                  child: _buildHeaderLabelRow(sample),
                 ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Text(
-                      headerText,
-                      style: AppStyles.headingText(
-                        context,
-                      ).copyWith(color: context.colorScheme.onSurface),
-                    ),
-                    const SizedBox(width: 2),
-                    PrintHidden(
-                      child: Icon(
-                        Icons.arrow_drop_down,
-                        color: context.colorScheme.primary,
-                        size: 24,
-                      ),
-                    ),
-                  ],
+              Material(
+                color: Colors.transparent,
+                child: Semantics(
+                  label: 'Pick date',
+                  button: true,
+                  child: InkWell(
+                    onTap: _openDatePicker,
+                    borderRadius: BorderRadius.circular(16),
+                    child: _buildHeaderLabelRow(headerText),
+                  ),
                 ),
               ),
-            ),
+            ],
           ),
           if (showNavButtons)
             SizedBox(width: Responsive.isMobile(context) ? 2 : 4),
           if (showNavButtons)
             PrintHidden(
-              child: IconButton(
-                key: const Key(PlannerScreen.calendarNextButtonKey),
-                icon: Icon(
-                  Icons.chevron_right,
-                  color: context.colorScheme.primary,
-                ),
-                onPressed: _calendarController.forward,
-                padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(),
-                style: IconButton.styleFrom(
-                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              child: Semantics(
+                label: 'Next',
+                button: true,
+                child: IconButton(
+                  key: const Key(PlannerScreen.calendarNextButtonKey),
+                  icon: Icon(
+                    Icons.chevron_right,
+                    color: context.colorScheme.primary,
+                  ),
+                  onPressed: _calendarController.forward,
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(),
+                  style: IconButton.styleFrom(
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  ),
                 ),
               ),
             ),
@@ -1572,27 +1574,31 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
           Builder(
             builder: (context) {
               final hasSearchQuery = _hasSearchQuery();
-              return IconButton.outlined(
-                key: const Key(PlannerScreen.searchButtonKey),
-                onPressed: () {
-                  setState(() {
-                    _isFilterExpanded = false;
-                    _isSearchExpanded = true;
-                    _searchFocusNode.requestFocus();
-                  });
-                },
-                icon: const Icon(Icons.search),
-                style: IconButton.styleFrom(
-                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                  backgroundColor: hasSearchQuery
-                      ? context.colorScheme.primary
-                      : null,
-                  foregroundColor: hasSearchQuery
-                      ? context.colorScheme.onPrimary
-                      : null,
-                  side: _isSearchExpanded
-                      ? BorderSide.none
-                      : BorderSide(color: context.colorScheme.primary),
+              return Semantics(
+                label: 'Search',
+                button: true,
+                child: IconButton.outlined(
+                  key: const Key(PlannerScreen.searchButtonKey),
+                  onPressed: () {
+                    setState(() {
+                      _isFilterExpanded = false;
+                      _isSearchExpanded = true;
+                      _searchFocusNode.requestFocus();
+                    });
+                  },
+                  icon: const Icon(Icons.search),
+                  style: IconButton.styleFrom(
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    backgroundColor: hasSearchQuery
+                        ? context.colorScheme.primary
+                        : null,
+                    foregroundColor: hasSearchQuery
+                        ? context.colorScheme.onPrimary
+                        : null,
+                    side: _isSearchExpanded
+                        ? BorderSide.none
+                        : BorderSide(color: context.colorScheme.primary),
+                  ),
                 ),
               );
             },
@@ -1604,14 +1610,14 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
 
   String _buildHeaderDate() {
     final displayDate = _calendarController.displayDate!;
-    final abbreviateMonth = Responsive.isMobile(context);
+    final isCompact = Responsive.isCompact(context);
 
     switch (_calendarController.view) {
       case CalendarView.day:
         return HeliumDateTime.formatDate(
           displayDate,
-          abbreviateMonth: abbreviateMonth,
-          showYear: !Responsive.isMobile(context),
+          abbreviateMonth: isCompact,
+          showYear: !isCompact,
         );
       case CalendarView.month:
       case CalendarView.week:
@@ -1619,9 +1625,67 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
       default:
         return HeliumDateTime.formatMonthAndYear(
           displayDate,
-          abbreviateMonth: abbreviateMonth,
+          abbreviateMonth: isCompact,
         );
     }
+  }
+
+  /// Sample labels for every month in the current view's format. Used to
+  /// reserve a fixed-width slot for the header label so the chevrons don't
+  /// shift as the user pages between months. Sampled rather than measured
+  /// via TextPainter so the size honors the real font (GoogleFonts loads
+  /// asynchronously, so TextPainter can disagree with the paint pass).
+  List<String> _calendarHeaderSamples() {
+    final isCompact = Responsive.isCompact(context);
+    return List.generate(12, (i) {
+      final probe = DateTime(2025, i + 1, 25);
+      switch (_calendarController.view) {
+        case CalendarView.day:
+          return HeliumDateTime.formatDate(
+            probe,
+            abbreviateMonth: isCompact,
+            showYear: !isCompact,
+          );
+        case CalendarView.month:
+        case CalendarView.week:
+        case CalendarView.schedule:
+        default:
+          return HeliumDateTime.formatMonthAndYear(
+            probe,
+            abbreviateMonth: isCompact,
+          );
+      }
+    });
+  }
+
+  Widget _buildHeaderLabelRow(String text) {
+    return Padding(
+      padding: EdgeInsets.only(
+        left: Responsive.isMobile(context) ? 4 : 8,
+        top: 8,
+        bottom: 8,
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Text(
+            text,
+            style: AppStyles.headingText(
+              context,
+            ).copyWith(color: context.colorScheme.onSurface),
+          ),
+          const SizedBox(width: 2),
+          PrintHidden(
+            child: Icon(
+              Icons.arrow_drop_down,
+              color: context.colorScheme.primary,
+              size: 24,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   bool _hasCoursesFilter() {
@@ -2228,8 +2292,10 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
         Responsive.isTouchDevice(context) &&
         !isInAgenda) {
       calendarItemWidget = GestureDetector(
-        onTap: () =>
-            _openPlannerItem(plannerItem, occurrenceDate: details.date),
+        onTap: () {
+          Feedback.forTap(context);
+          _openPlannerItem(plannerItem, occurrenceDate: details.date);
+        },
         onLongPress: () {},
         child: calendarItemWidget,
       );
@@ -2867,14 +2933,18 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
     if (plannerItem is CourseScheduleEventModel &&
         !Responsive.isMobile(context)) {
       buttons.add(
-        HeliumIconButton(
-          onPressed: () => _openPlannerItem(
-            plannerItem,
-            occurrenceDate: occurrenceDate,
-            hideWebsiteLink: true,
+        Semantics(
+          label: 'More',
+          button: true,
+          child: HeliumIconButton(
+            onPressed: () => _openPlannerItem(
+              plannerItem,
+              occurrenceDate: occurrenceDate,
+              hideWebsiteLink: true,
+            ),
+            icon: Icons.more_vert,
+            color: foregroundColor,
           ),
-          icon: Icons.more_vert,
-          color: foregroundColor,
         ),
       );
     }
@@ -2884,20 +2954,28 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
       plannerItem,
     )) {
       buttons.add(
-        HeliumIconButton(
-          onPressed: () => _openPlannerItem(plannerItem),
-          icon: Icons.edit_outlined,
-          color: foregroundColor,
+        Semantics(
+          label: 'Edit',
+          button: true,
+          child: HeliumIconButton(
+            onPressed: () => _openPlannerItem(plannerItem),
+            icon: Icons.edit_outlined,
+            color: foregroundColor,
+          ),
         ),
       );
     }
 
     if (PlannerHelper.shouldShowDeleteButton(plannerItem)) {
       buttons.add(
-        HeliumIconButton(
-          onPressed: () => _deletePlannerItem(context, plannerItem),
-          icon: Icons.delete_outline,
-          color: foregroundColor,
+        Semantics(
+          label: 'Delete',
+          button: true,
+          child: HeliumIconButton(
+            onPressed: () => _deletePlannerItem(context, plannerItem),
+            icon: Icons.delete_outline,
+            color: foregroundColor,
+          ),
         ),
       );
     }
@@ -3052,8 +3130,10 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
       centerColumn = Expanded(
         child: GestureDetector(
           behavior: HitTestBehavior.opaque,
-          onTap: () =>
-              _openPlannerItem(plannerItem, occurrenceDate: occurrenceDate),
+          onTap: () {
+            Feedback.forTap(context);
+            _openPlannerItem(plannerItem, occurrenceDate: occurrenceDate);
+          },
           child: SizedBox(
             height: agendaHeight,
             child: Align(alignment: Alignment.centerLeft, child: centerContent),
@@ -3111,8 +3191,10 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
 
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
-      onTap: () =>
-          _openPlannerItem(plannerItem, occurrenceDate: occurrenceDate),
+      onTap: () {
+        Feedback.forTap(context);
+        _openPlannerItem(plannerItem, occurrenceDate: occurrenceDate);
+      },
       child: Container(
         width: width,
         height: height,
@@ -3226,6 +3308,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
   ) {
     return GestureDetector(
       onTap: () {
+        Feedback.forTap(context);
         _openDayPopOutDialog(details.date);
       },
       child: UnconstrainedBox(
@@ -3501,7 +3584,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
         final isChecked = _plannerItemDataSource!.filterStatuses.contains(
           label,
         );
-        return CheckboxListTile(
+        return HeliumCheckboxListTile(
           title: Text(label, style: AppStyles.formText(context)),
           value: isChecked,
           onChanged: (value) {
@@ -3566,7 +3649,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
                     final isSelected =
                         _plannerItemDataSource!.filteredCourses[course.id] ??
                         false;
-                    return CheckboxListTile(
+                    return HeliumCheckboxListTile(
                       title: Row(
                         children: [
                           Container(
@@ -3613,7 +3696,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
 
               if (_currentView != PlannerView.todos) ...[
                 _buildSheetSectionHeader(context, 'TYPES'),
-                CheckboxListTile(
+                HeliumCheckboxListTile(
                   title: Row(
                     children: [
                       _currentView == PlannerView.month &&
@@ -3656,7 +3739,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
                   dense: true,
                   contentPadding: EdgeInsets.zero,
                 ),
-                CheckboxListTile(
+                HeliumCheckboxListTile(
                   title: Row(
                     children: [
                       Icon(
@@ -3696,7 +3779,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
                   dense: true,
                   contentPadding: EdgeInsets.zero,
                 ),
-                CheckboxListTile(
+                HeliumCheckboxListTile(
                   title: Row(
                     children: [
                       _currentView == PlannerView.month &&
@@ -3743,7 +3826,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
                   dense: true,
                   contentPadding: EdgeInsets.zero,
                 ),
-                CheckboxListTile(
+                HeliumCheckboxListTile(
                   title: Row(
                     children: [
                       _currentView == PlannerView.month &&
@@ -3846,7 +3929,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
               if (visibleCategories.isNotEmpty) ...[
                 _buildSheetSectionHeader(context, 'CATEGORIES'),
                 ...visibleCategories.map((category) {
-                  return CheckboxListTile(
+                  return HeliumCheckboxListTile(
                     title: Text(
                       category.title,
                       style: AppStyles.formText(context),
@@ -4415,7 +4498,7 @@ class _CheckboxToggle extends StatelessWidget {
         ? (isToggleOn ? toggleOnLabel : toggleOffLabel)
         : baseLabel;
 
-    return CheckboxListTile(
+    return HeliumCheckboxListTile(
       title: Text(label, style: AppStyles.formText(context)),
       value: isChecked,
       onChanged: onCheckedChanged,
@@ -4434,10 +4517,16 @@ class _CheckboxToggle extends StatelessWidget {
           const SizedBox(width: 6),
           GestureDetector(
             behavior: HitTestBehavior.opaque,
-            onTap: !isChecked ? onToggleTapWhenDisabled : null,
+            onTap: !isChecked
+                ? () {
+                    Feedback.forTap(context);
+                    onToggleTapWhenDisabled();
+                  }
+                : null,
             child: Switch(
               value: isToggleOn,
               onChanged: isChecked ? onToggleChanged : null,
+              mouseCursor: SystemMouseCursors.click,
             ),
           ),
         ],

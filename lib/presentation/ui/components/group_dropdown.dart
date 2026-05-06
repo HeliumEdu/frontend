@@ -46,7 +46,7 @@ class GroupDropdown<T extends BaseTitledModel> extends StatelessWidget {
         borderColor: context.colorScheme.outline.withValues(alpha: 0.2),
         child: HeliumElevatedButton(
           onPressed: onCreate!,
-          buttonText: 'Group',
+          buttonText: 'Add Group',
           icon: Icons.add,
         ),
       );
@@ -65,7 +65,7 @@ class GroupDropdown<T extends BaseTitledModel> extends StatelessWidget {
               Navigator.pop(context);
               onCreate!();
             },
-            buttonText: 'Group',
+            buttonText: 'Add Group',
             icon: Icons.add,
           ),
         ),
@@ -75,29 +75,33 @@ class GroupDropdown<T extends BaseTitledModel> extends StatelessWidget {
     return ShadowContainer(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
       borderColor: context.colorScheme.outline.withValues(alpha: 0.2),
-      child: DropdownButtonHideUnderline(
-        child: ButtonTheme(
-          alignedDropdown: true,
-          child: DropdownButton<T>(
-            icon: PrintHidden(
-              child: Icon(
-                Icons.keyboard_arrow_down,
-                color: context.colorScheme.primary,
+      child: Semantics(
+        label: 'Pick group',
+        button: true,
+        child: DropdownButtonHideUnderline(
+          child: ButtonTheme(
+            alignedDropdown: true,
+            child: DropdownButton<T>(
+              icon: PrintHidden(
+                child: Icon(
+                  Icons.keyboard_arrow_down,
+                  color: context.colorScheme.primary,
+                ),
               ),
+              dropdownColor: context.colorScheme.surface,
+              isExpanded: true,
+              underline: const SizedBox(),
+              value: initialSelection,
+              items: items,
+              selectedItemBuilder: (BuildContext context) {
+                return groups.map<Widget>((T item) {
+                  return _buildItem(context, item);
+                }).toList();
+              },
+              onChanged: onChanged,
+              alignment: AlignmentDirectional.centerStart,
+              menuMaxHeight: 400,
             ),
-            dropdownColor: context.colorScheme.surface,
-            isExpanded: true,
-            underline: const SizedBox(),
-            value: initialSelection,
-            items: items,
-            selectedItemBuilder: (BuildContext context) {
-              return groups.map<Widget>((T item) {
-                return _buildItem(context, item);
-              }).toList();
-            },
-            onChanged: onChanged,
-            alignment: AlignmentDirectional.centerStart,
-            menuMaxHeight: 400,
           ),
         ),
       ),
@@ -109,33 +113,41 @@ class GroupDropdown<T extends BaseTitledModel> extends StatelessWidget {
         ? []
         : [
             const SizedBox(width: 12),
-            HeliumIconButton(
-              onPressed: () {
-                if (Navigator.canPop(context)) {
-                  Navigator.pop(context);
-                }
-                onEdit!(item);
-              },
-              icon: Icons.edit_outlined,
+            Semantics(
+              label: 'Edit',
+              button: true,
+              child: HeliumIconButton(
+                onPressed: () {
+                  if (Navigator.canPop(context)) {
+                    Navigator.pop(context);
+                  }
+                  onEdit!(item);
+                },
+                icon: Icons.edit_outlined,
+              ),
             ),
             const SizedBox(width: 8),
-            HeliumIconButton(
-              onPressed: () {
-                if (Navigator.canPop(context)) {
-                  Navigator.pop(context);
-                }
-                showConfirmDeleteDialog(
-                  parentContext: context,
-                  item: item,
-                  additionalWarning:
-                      'Anything in this group, including attachments and other data, will also be deleted.',
-                  onDelete: (value) {
-                    onDelete!(value);
-                  },
-                );
-              },
-              icon: Icons.delete_outlined,
-              color: context.colorScheme.error,
+            Semantics(
+              label: 'Delete',
+              button: true,
+              child: HeliumIconButton(
+                onPressed: () {
+                  if (Navigator.canPop(context)) {
+                    Navigator.pop(context);
+                  }
+                  showConfirmDeleteDialog(
+                    parentContext: context,
+                    item: item,
+                    additionalWarning:
+                        'Anything in this group, including attachments and other data, will also be deleted.',
+                    onDelete: (value) {
+                      onDelete!(value);
+                    },
+                  );
+                },
+                icon: Icons.delete_outlined,
+                color: context.colorScheme.error,
+              ),
             ),
           ];
   }

@@ -15,7 +15,6 @@ class CredentialsFormController extends BasicFormController {
 
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
-  bool isPasswordVisible = false;
 
   @mustCallSuper
   void dispose() {

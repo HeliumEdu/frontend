@@ -9,6 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/data/models/base_model.dart';
 import 'package:heliumapp/data/models/planner/course_model.dart';
+import 'package:heliumapp/presentation/ui/components/helium_checkbox_list_tile.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 
@@ -117,7 +118,7 @@ class SelectField<T extends BaseTitledModel> extends StatelessWidget {
                   itemColor = item.color;
                 }
 
-                return CheckboxListTile(
+                return HeliumCheckboxListTile(
                   title: Row(
                     children: [
                       if (itemColor != null) ...[

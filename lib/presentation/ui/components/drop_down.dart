@@ -42,14 +42,17 @@ class DropDown<T> extends StatelessWidget {
       children: [
         if (label != null) Text(label!, style: AppStyles.formLabel(context)),
         if (label != null) const SizedBox(height: 9),
-        Container(
-          decoration: BoxDecoration(
-            color: isDisabled
-                ? context.theme.scaffoldBackgroundColor
-                : context.colorScheme.surface,
-            borderRadius: BorderRadius.circular(_fieldBorderRadius),
-          ),
-          child: DropdownButtonFormField<DropDownItem<T>>(
+        Semantics(
+          label: label,
+          button: true,
+          child: Container(
+            decoration: BoxDecoration(
+              color: isDisabled
+                  ? context.theme.scaffoldBackgroundColor
+                  : context.colorScheme.surface,
+              borderRadius: BorderRadius.circular(_fieldBorderRadius),
+            ),
+            child: DropdownButtonFormField<DropDownItem<T>>(
             initialValue: initialValue,
             decoration: InputDecoration(
               prefixIcon: prefixIcon != null
@@ -99,6 +102,7 @@ class DropDown<T> extends StatelessWidget {
               );
             }).toList(),
             onChanged: onChanged,
+          ),
           ),
         ),
       ],

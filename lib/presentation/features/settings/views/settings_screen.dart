@@ -36,6 +36,7 @@ import 'package:heliumapp/presentation/features/shared/controllers/basic_form_co
 import 'package:heliumapp/presentation/ui/components/helium_elevated_button.dart';
 import 'package:heliumapp/presentation/ui/components/label_and_text_form_field.dart';
 import 'package:heliumapp/presentation/ui/components/support_helium_card.dart';
+import 'package:heliumapp/presentation/ui/feedback/discard_changes_scope.dart';
 import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
 import 'package:heliumapp/presentation/ui/feedback/warning_container.dart';
 import 'package:heliumapp/presentation/ui/layout/page_header.dart';
@@ -167,16 +168,38 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
   };
 
   @override
-  Function get cancelAction => () {
+  IconData get cancelIcon =>
+      _activeSubScreen != null ? Icons.chevron_left : Icons.close;
+
+  @override
+  Function get cancelAction => () async {
     if (!mounted) return;
     if (_activeSubScreen != null) {
-      setState(() => _activeSubScreen = null);
+      if (await _confirmDiscardActiveSubScreen()) {
+        if (!mounted) return;
+        setState(() => _activeSubScreen = null);
+      }
     } else if (DialogModeProvider.isDialogMode(context)) {
       Navigator.of(context).pop();
     } else {
       context.pop();
     }
   };
+
+  Future<bool> _confirmDiscardActiveSubScreen() async {
+    final isDirty = switch (_activeSubScreen) {
+      SettingsSubScreen.preferences =>
+        _preferencesKey.currentState?.isChanged ?? false,
+      SettingsSubScreen.changeEmail =>
+        _changeEmailKey.currentState?.isChanged ?? false,
+      SettingsSubScreen.changePassword =>
+        _changePasswordKey.currentState?.isChanged ?? false,
+      _ => false,
+    };
+    if (!isDirty) return true;
+    if (!mounted) return false;
+    return confirmDiscardChanges(context);
+  }
 
   @override
   bool get showActionButton =>
@@ -293,56 +316,70 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
 
   @override
   Widget buildMainArea(BuildContext context) {
-    if (_activeSubScreen == null) {
-      return BlocBuilder<AuthBloc, AuthState>(
-        builder: (context, state) {
-          if (state is AuthLoading) {
-            return const LoadingIndicator();
-          }
+    final content = _activeSubScreen == null
+        ? BlocBuilder<AuthBloc, AuthState>(
+            builder: (context, state) {
+              if (state is AuthLoading) {
+                return const LoadingIndicator();
+              }
 
-          return _buildSettingsPage();
-        },
-      );
-    }
+              return _buildSettingsPage();
+            },
+          )
+        : Expanded(
+            child: switch (_activeSubScreen!) {
+              SettingsSubScreen.preferences => PreferencesScreen(
+                key: _preferencesKey,
+                userSettings: userSettings,
+                onActionStarted: () => setState(() => isSubmitting = true),
+                onCompleted: () => setState(() {
+                  isSubmitting = false;
+                  _activeSubScreen = null;
+                }),
+                onFailed: () => setState(() => isSubmitting = false),
+              ),
+              SettingsSubScreen.changeEmail => ChangeEmailScreen(
+                key: _changeEmailKey,
+                onActionStarted: () => setState(() => isSubmitting = true),
+                onCompleted: () => setState(() {
+                  isSubmitting = false;
+                  _activeSubScreen = null;
+                }),
+                onFailed: () => setState(() => isSubmitting = false),
+              ),
+              SettingsSubScreen.changePassword => ChangePasswordScreen(
+                key: _changePasswordKey,
+                onActionStarted: () => setState(() => isSubmitting = true),
+                onCompleted: () => setState(() {
+                  isSubmitting = false;
+                  _activeSubScreen = null;
+                }),
+                onFailed: () => setState(() => isSubmitting = false),
+              ),
+              SettingsSubScreen.externalCalendars => ExternalCalendarsScreen(
+                key: _externalCalendarsKey,
+              ),
+              SettingsSubScreen.feeds => FeedsScreen(userSettings: userSettings),
+              SettingsSubScreen.importExport => ImportExportScreen(
+                onNavigateRequested: _onNavigateRequested,
+              ),
+            },
+          );
 
-    return Expanded(
-      child: switch (_activeSubScreen!) {
-        SettingsSubScreen.preferences => PreferencesScreen(
-          key: _preferencesKey,
-          userSettings: userSettings,
-          onActionStarted: () => setState(() => isSubmitting = true),
-          onCompleted: () => setState(() {
-            isSubmitting = false;
-            _activeSubScreen = null;
-          }),
-          onFailed: () => setState(() => isSubmitting = false),
-        ),
-        SettingsSubScreen.changeEmail => ChangeEmailScreen(
-          key: _changeEmailKey,
-          onActionStarted: () => setState(() => isSubmitting = true),
-          onCompleted: () => setState(() {
-            isSubmitting = false;
-            _activeSubScreen = null;
-          }),
-          onFailed: () => setState(() => isSubmitting = false),
-        ),
-        SettingsSubScreen.changePassword => ChangePasswordScreen(
-          key: _changePasswordKey,
-          onActionStarted: () => setState(() => isSubmitting = true),
-          onCompleted: () => setState(() {
-            isSubmitting = false;
-            _activeSubScreen = null;
-          }),
-          onFailed: () => setState(() => isSubmitting = false),
-        ),
-        SettingsSubScreen.externalCalendars => ExternalCalendarsScreen(
-          key: _externalCalendarsKey,
-        ),
-        SettingsSubScreen.feeds => FeedsScreen(userSettings: userSettings),
-        SettingsSubScreen.importExport => ImportExportScreen(
-          onNavigateRequested: _onNavigateRequested,
-        ),
+    // PopScope intercepts Material's route-level pop (triggered by ESC via
+    // barrierDismissible, system back, or programmatic pop). When a sub-screen
+    // is active, we suppress the dialog dismissal and treat it as "back".
+    return PopScope(
+      canPop: _activeSubScreen == null,
+      onPopInvokedWithResult: (didPop, _) async {
+        if (didPop) return;
+        if (!mounted) return;
+        if (await _confirmDiscardActiveSubScreen()) {
+          if (!mounted) return;
+          setState(() => _activeSubScreen = null);
+        }
       },
+      child: content,
     );
   }
 

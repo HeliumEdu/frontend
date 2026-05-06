@@ -227,8 +227,10 @@ class TodosDataGridState extends BaseDataGridState<TodosDataGrid> {
                   );
                   setState(() {});
                 },
-                trailingAction: TextButton.icon(
-                  onPressed: _isExporting
+                trailingAction: Builder(builder: (context) {
+                  final isDisabled = _isExporting || totalItems == 0;
+                  return TextButton.icon(
+                  onPressed: isDisabled
                       ? null
                       : () async {
                           setState(() => _isExporting = true);
@@ -277,8 +279,13 @@ class TodosDataGridState extends BaseDataGridState<TodosDataGrid> {
                         maintainState: true,
                         child: Text(
                           'Export CSV',
-                          style: AppStyles.buttonText(context)
-                              .copyWith(color: context.colorScheme.primary, fontSize: 12),
+                          style: AppStyles.buttonText(context).copyWith(
+                            color: isDisabled
+                                ? context.colorScheme.onSurface
+                                    .withValues(alpha: 0.38)
+                                : context.colorScheme.primary,
+                            fontSize: 12,
+                          ),
                         ),
                       ),
                       if (_isExporting)
@@ -290,7 +297,8 @@ class TodosDataGridState extends BaseDataGridState<TodosDataGrid> {
                         ),
                     ],
                   ),
-                ),
+                );
+                }),
               ),
             ],
           ),
@@ -631,19 +639,24 @@ class TodosDataGridState extends BaseDataGridState<TodosDataGrid> {
             details.swipeDirection == DataGridRowSwipeDirection.endToStart,
         endSwipeActionsBuilder: (context, row, rowIndex) {
           final homework = _dataSource.getHomeworkFromRow(row);
-          return GestureDetector(
-            onTap: () {
-              if (homework != null &&
-                  PlannerHelper.shouldShowDeleteButton(homework)) {
-                widget.onDelete(context, homework);
-              }
-              _dataSource.notifyListeners();
-            },
-            child: Container(
-              color: context.colorScheme.error,
-              alignment: Alignment.centerRight,
-              padding: const EdgeInsets.only(right: 24),
-              child: Icon(Icons.delete_outline, color: context.colorScheme.onError),
+          return Semantics(
+            label: 'Delete',
+            button: true,
+            child: GestureDetector(
+              onTap: () {
+                Feedback.forTap(context);
+                if (homework != null &&
+                    PlannerHelper.shouldShowDeleteButton(homework)) {
+                  widget.onDelete(context, homework);
+                }
+                _dataSource.notifyListeners();
+              },
+              child: Container(
+                color: context.colorScheme.error,
+                alignment: Alignment.centerRight,
+                padding: const EdgeInsets.only(right: 24),
+                child: Icon(Icons.delete_outline, color: context.colorScheme.onError),
+              ),
             ),
           );
         },
@@ -1309,10 +1322,14 @@ class TodosDataSource extends BaseDataGridSource {
 
       if (PlannerHelper.shouldShowEditButtonForPlannerItem(_context, homework)) {
         buttons.add(
-          HeliumIconButton(
-            onPressed: () => _onTap(homework),
-            icon: Icons.edit_outlined,
-            color: _context.colorScheme.onSurface,
+          Semantics(
+            label: 'Edit',
+            button: true,
+            child: HeliumIconButton(
+              onPressed: () => _onTap(homework),
+              icon: Icons.edit_outlined,
+              color: _context.colorScheme.onSurface,
+            ),
           ),
         );
       }
@@ -1320,10 +1337,14 @@ class TodosDataSource extends BaseDataGridSource {
 
     if (PlannerHelper.shouldShowDeleteButton(homework)) {
       buttons.add(
-        HeliumIconButton(
-          onPressed: () => _onDelete(_context, homework),
-          icon: Icons.delete_outlined,
-          color: _context.colorScheme.onSurface,
+        Semantics(
+          label: 'Delete',
+          button: true,
+          child: HeliumIconButton(
+            onPressed: () => _onDelete(_context, homework),
+            icon: Icons.delete_outlined,
+            color: _context.colorScheme.onSurface,
+          ),
         ),
       );
     }
