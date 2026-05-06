@@ -18,7 +18,6 @@ class SignupFormController extends CredentialsFormController {
 
   final TextEditingController confirmPasswordController =
       TextEditingController();
-  bool isConfirmPasswordVisible = false;
   bool agreeToTerms = false;
   String selectedTimeZone = 'UTC';
 

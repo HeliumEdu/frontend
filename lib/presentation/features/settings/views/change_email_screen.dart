@@ -8,12 +8,12 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_bloc.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_event.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_state.dart';
 import 'package:heliumapp/presentation/features/settings/controllers/change_email_form_controller.dart';
 import 'package:heliumapp/presentation/features/shared/controllers/basic_form_controller.dart';
+import 'package:heliumapp/presentation/ui/components/helium_password_field.dart';
 import 'package:heliumapp/presentation/ui/components/label_and_text_form_field.dart';
 import 'package:heliumapp/presentation/ui/feedback/warning_container.dart';
 import 'package:heliumapp/utils/snack_bar_helpers.dart';
@@ -112,34 +112,12 @@ class ChangeEmailScreenState extends State<ChangeEmailScreen> {
                 ),
                 const SizedBox(height: 14),
 
-                LabelAndTextFormField(
+                HeliumPasswordField(
                   label: 'Current password',
-                  prefixIcon: Icons.lock,
                   controller: _formController.oldPasswordController,
                   validator: BasicFormController.validatePassword,
                   onFieldSubmitted: (value) => onSubmit(),
-                  obscureText: !_formController.isPasswordVisible,
                   autofillHints: const [AutofillHints.password],
-                  suffixIcon: ExcludeFocus(
-                    excluding: true,
-                    child: Padding(
-                      padding: const EdgeInsets.only(right: 4.0),
-                      child: IconButton(
-                        onPressed: () {
-                          setState(() {
-                            _formController.isPasswordVisible =
-                                !_formController.isPasswordVisible;
-                          });
-                        },
-                        icon: Icon(
-                          _formController.isPasswordVisible
-                              ? Icons.visibility
-                              : Icons.visibility_off,
-                          color: context.colorScheme.onSurface,
-                        ),
-                      ),
-                    ),
-                  ),
                 ),
 
                 const SizedBox(height: 12),

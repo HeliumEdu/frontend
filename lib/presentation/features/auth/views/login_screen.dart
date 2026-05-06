@@ -21,6 +21,7 @@ import 'package:heliumapp/presentation/features/auth/bloc/auth_state.dart';
 import 'package:heliumapp/presentation/features/auth/controllers/credentials_form_controller.dart';
 import 'package:heliumapp/presentation/features/shared/controllers/basic_form_controller.dart';
 import 'package:heliumapp/presentation/ui/components/helium_elevated_button.dart';
+import 'package:heliumapp/presentation/ui/components/helium_password_field.dart';
 import 'package:heliumapp/presentation/ui/components/label_and_text_form_field.dart';
 import 'package:heliumapp/presentation/ui/layout/responsive_center_card.dart';
 import 'package:heliumapp/utils/app_assets.dart';
@@ -189,35 +190,13 @@ class _LoginScreenViewState extends BasePageScreenState<LoginScreen> {
               ),
               const SizedBox(height: 32),
 
-              LabelAndTextFormField(
+              HeliumPasswordField(
                 key: const Key(CredentialsFormController.passwordField),
                 hintText: 'Password',
-                prefixIcon: Icons.lock,
                 controller: _formController.passwordController,
                 validator: BasicFormController.validateRequiredField,
                 onFieldSubmitted: (value) => _onSubmit(),
-                obscureText: !_formController.isPasswordVisible,
                 autofillHints: const [AutofillHints.password],
-                suffixIcon: ExcludeFocus(
-                  excluding: true,
-                  child: Padding(
-                    padding: const EdgeInsets.only(right: 4.0),
-                    child: IconButton(
-                      onPressed: () {
-                        setState(() {
-                          _formController.isPasswordVisible =
-                              !_formController.isPasswordVisible;
-                        });
-                      },
-                      icon: Icon(
-                        _formController.isPasswordVisible
-                            ? Icons.visibility
-                            : Icons.visibility_off,
-                        color: context.colorScheme.onSurface,
-                      ),
-                    ),
-                  ),
-                ),
               ),
 
               const SizedBox(height: 12),

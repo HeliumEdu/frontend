@@ -24,6 +24,7 @@ import 'package:heliumapp/presentation/features/auth/controllers/signup_form_con
 import 'package:heliumapp/presentation/features/shared/controllers/basic_form_controller.dart';
 import 'package:heliumapp/presentation/core/views/base_page_screen_state.dart';
 import 'package:heliumapp/presentation/ui/components/helium_elevated_button.dart';
+import 'package:heliumapp/presentation/ui/components/helium_password_field.dart';
 import 'package:heliumapp/presentation/ui/components/label_and_text_form_field.dart';
 import 'package:heliumapp/presentation/ui/layout/responsive_center_card.dart';
 import 'package:heliumapp/presentation/ui/components/searchable_dropdown.dart';
@@ -224,67 +225,24 @@ class _SignupScreenState extends BasePageScreenState<SignupScreen> {
               ),
               const SizedBox(height: 12),
 
-              LabelAndTextFormField(
+              HeliumPasswordField(
                 key: const Key(CredentialsFormController.passwordField),
                 hintText: 'Password',
-                prefixIcon: Icons.lock_outline,
                 controller: _formController.passwordController,
                 validator: BasicFormController.validatePassword,
                 onFieldSubmitted: (value) => _onSubmit(),
-                obscureText: !_formController.isPasswordVisible,
                 autofillHints: const [AutofillHints.newPassword],
-                suffixIcon: ExcludeFocus(
-                  excluding: true,
-                  child: Padding(
-                    padding: const EdgeInsets.only(right: 4.0),
-                    child: IconButton(
-                      onPressed: () {
-                        setState(() {
-                          _formController.isPasswordVisible =
-                              !_formController.isPasswordVisible;
-                        });
-                      },
-                      icon: Icon(
-                        _formController.isPasswordVisible
-                            ? Icons.visibility_off_outlined
-                            : Icons.visibility_outlined,
-                        color: context.colorScheme.onSurface,
-                      ),
-                    ),
-                  ),
-                ),
               ),
               const SizedBox(height: 12),
 
-              LabelAndTextFormField(
+              HeliumPasswordField(
                 key: const Key(SignupFormController.confirmPasswordField),
                 hintText: 'Confirm password',
                 prefixIcon: Icons.repeat,
                 controller: _formController.confirmPasswordController,
                 validator: _formController.validateConfirmPassword,
                 onFieldSubmitted: (value) => _onSubmit(),
-                obscureText: !_formController.isConfirmPasswordVisible,
                 autofillHints: const [AutofillHints.newPassword],
-                suffixIcon: ExcludeFocus(
-                  excluding: true,
-                  child: Padding(
-                    padding: const EdgeInsets.only(right: 4.0),
-                    child: IconButton(
-                      onPressed: () {
-                        setState(() {
-                          _formController.isConfirmPasswordVisible =
-                              !_formController.isConfirmPasswordVisible;
-                        });
-                      },
-                      icon: Icon(
-                        _formController.isConfirmPasswordVisible
-                            ? Icons.visibility_off_outlined
-                            : Icons.visibility_outlined,
-                        color: context.colorScheme.onSurface,
-                      ),
-                    ),
-                  ),
-                ),
               ),
               const SizedBox(height: 12),
 
