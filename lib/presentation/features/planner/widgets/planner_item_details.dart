@@ -34,7 +34,6 @@ import 'package:heliumapp/presentation/features/shared/widgets/flow/multi_step_c
 import 'package:heliumapp/presentation/ui/components/drop_down.dart';
 import 'package:heliumapp/presentation/ui/components/grade_label.dart';
 import 'package:heliumapp/presentation/ui/components/helium_checkbox_list_tile.dart';
-import 'package:heliumapp/presentation/ui/components/helium_icon_button.dart';
 import 'package:heliumapp/presentation/ui/components/label_and_text_form_field.dart';
 import 'package:heliumapp/presentation/ui/components/notes_editor.dart';
 import 'package:heliumapp/presentation/ui/components/resource_title_label.dart';
@@ -200,49 +199,28 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text('Details', style: AppStyles.featureText(context)),
-                      if (widget.isEdit && _plannerItem != null)
-                          Row(
-                            children: [
-                              HeliumIconButton(
-                                onPressed: _onClone,
-                                icon: Icons.copy_outlined,
-                                tooltip: 'Clone',
-                              ),
-                              const SizedBox(width: 8),
-                              HeliumIconButton(
-                                onPressed: _onDelete,
-                                icon: Icons.delete_outline,
-                                tooltip: 'Delete',
-                                color: context.colorScheme.error,
-                              ),
-                            ],
-                          ),
                       if (!widget.isEdit && _courses.isNotEmpty)
-                        Row(
-                          children: [
-                            SegmentedButton<bool>(
-                              showSelectedIcon: false,
-                              segments: const [
-                                ButtonSegment<bool>(
-                                  value: false,
-                                  tooltip: 'Assignment',
-                                  icon: Icon(AppConstants.assignmentIcon),
-                                ),
-                                ButtonSegment<bool>(
-                                  value: true,
-                                  tooltip: 'Event',
-                                  icon: Icon(AppConstants.eventIcon),
-                                ),
-                              ],
-                              selected: {_isEvent},
-                              onSelectionChanged: (Set<bool> selected) {
-                                setState(() {
-                                  _isEvent = selected.first;
-                                });
-                                widget.onIsEventChanged?.call(_isEvent);
-                              },
+                        SegmentedButton<bool>(
+                          showSelectedIcon: false,
+                          segments: const [
+                            ButtonSegment<bool>(
+                              value: false,
+                              tooltip: 'Assignment',
+                              icon: Icon(AppConstants.assignmentIcon),
+                            ),
+                            ButtonSegment<bool>(
+                              value: true,
+                              tooltip: 'Event',
+                              icon: Icon(AppConstants.eventIcon),
                             ),
                           ],
+                          selected: {_isEvent},
+                          onSelectionChanged: (Set<bool> selected) {
+                            setState(() {
+                              _isEvent = selected.first;
+                            });
+                            widget.onIsEventChanged?.call(_isEvent);
+                          },
                         ),
                     ],
                   ),
@@ -1238,7 +1216,7 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
     });
   }
 
-  void _onDelete() {
+  void onDelete() {
     if (_plannerItem == null) return;
 
     final CourseModel? course;
@@ -1282,7 +1260,7 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
     );
   }
 
-  Future<void> _onClone() async {
+  Future<void> onClone() async {
     if (_plannerItem == null) return;
 
     widget.onActionStarted?.call();

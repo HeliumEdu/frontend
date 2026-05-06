@@ -28,6 +28,7 @@ class PageHeader extends StatelessWidget {
   final Function? saveAction;
   final IconData cancelIcon;
   final List<BlocProvider>? inheritableProviders;
+  final List<Widget> additionalButtons;
 
   const PageHeader({
     super.key,
@@ -39,6 +40,7 @@ class PageHeader extends StatelessWidget {
     this.saveAction,
     this.cancelIcon = Icons.close,
     this.inheritableProviders,
+    this.additionalButtons = const [],
   });
 
   /// Returns true if the settings button should appear in the page header
@@ -57,18 +59,28 @@ class PageHeader extends StatelessWidget {
       children: [
         if (screenType == ScreenType.entityPage ||
             screenType == ScreenType.subPage)
-          ExcludeFocus(
-            excluding: true,
-            child: Semantics(
-              label: cancelIcon == Icons.close ? 'Close' : 'Back',
-              button: true,
-              child: IconButton(
-                onPressed: () {
-                  cancelAction?.call();
-                },
-                icon: Icon(cancelIcon, color: context.colorScheme.secondary),
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ExcludeFocus(
+                excluding: true,
+                child: Semantics(
+                  label: cancelIcon == Icons.close ? 'Close' : 'Back',
+                  button: true,
+                  child: IconButton(
+                    onPressed: () {
+                      cancelAction?.call();
+                    },
+                    icon: Icon(
+                      cancelIcon,
+                      color: context.colorScheme.secondary,
+                    ),
+                  ),
+                ),
               ),
-            ),
+              if (additionalButtons.isNotEmpty) const SizedBox(width: 8),
+              ...additionalButtons,
+            ],
           )
         else if (showSettingsInHeader(context))
           const SettingsButton()
