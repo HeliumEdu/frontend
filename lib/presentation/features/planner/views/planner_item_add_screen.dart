@@ -9,6 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/config/app_router.dart';
+import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/attachment_bloc.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/planneritem_bloc.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/planneritem_state.dart';
@@ -18,6 +19,7 @@ import 'package:heliumapp/presentation/features/shared/widgets/core/base_attachm
 import 'package:heliumapp/presentation/features/planner/widgets/planner_item_details.dart';
 import 'package:heliumapp/presentation/features/planner/widgets/planner_item_reminders.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/core/provider_helpers.dart';
+import 'package:heliumapp/presentation/ui/components/helium_icon_button.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/deep_link_helpers.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
@@ -161,6 +163,26 @@ class _PlannerItemAddScreenState
       default:
         return false;
     }
+  }
+
+  @override
+  List<Widget> get additionalHeaderButtons {
+    if (currentStep != 0) return const [];
+    if (_currentEntityId == null) return const [];
+    return [
+      HeliumIconButton(
+        onPressed: () => _detailsKey.currentState?.onClone(),
+        icon: Icons.copy_outlined,
+        tooltip: 'Clone',
+      ),
+      const SizedBox(width: 8),
+      HeliumIconButton(
+        onPressed: () => _detailsKey.currentState?.onDelete(),
+        icon: Icons.delete_outline,
+        tooltip: 'Delete',
+        color: context.colorScheme.error,
+      ),
+    ];
   }
 
   @override
