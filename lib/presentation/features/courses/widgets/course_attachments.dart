@@ -17,11 +17,13 @@ class CourseAttachments extends BaseAttachments {
     required super.entityId,
     required super.isEdit,
     super.userSettings,
+    super.contentKey,
   });
 
   @override
   BaseAttachmentsContent buildContent() {
     return _CourseAttachmentsContent(
+      key: contentKey,
       courseGroupId: courseGroupId,
       entityId: entityId,
       isEdit: isEdit,
@@ -34,6 +36,7 @@ class _CourseAttachmentsContent extends BaseAttachmentsContent {
   final int courseGroupId;
 
   const _CourseAttachmentsContent({
+    super.key,
     required this.courseGroupId,
     required super.entityId,
     required super.isEdit,
@@ -41,12 +44,10 @@ class _CourseAttachmentsContent extends BaseAttachmentsContent {
   });
 
   @override
-  BaseAttachmentsState<_CourseAttachmentsContent> createState() =>
-      _CourseAttachmentsWidgetState();
+  BaseAttachmentsState createState() => _CourseAttachmentsWidgetState();
 }
 
-class _CourseAttachmentsWidgetState
-    extends BaseAttachmentsState<_CourseAttachmentsContent> {
+class _CourseAttachmentsWidgetState extends BaseAttachmentsState {
   @override
   FetchAttachmentsEvent createFetchAttachmentsEvent({bool forceRefresh = false}) {
     return FetchAttachmentsEvent(courseId: widget.entityId, forceRefresh: forceRefresh);

@@ -39,11 +39,16 @@ abstract class BaseAttachments extends StatelessWidget {
   final bool isEdit;
   final UserSettingsModel? userSettings;
 
+  /// Optional key forwarded to the inner [BaseAttachmentsContent] so a parent
+  /// can query the live [BaseAttachmentsState] (e.g. for `hasUnsavedFiles`).
+  final GlobalKey<BaseAttachmentsState>? contentKey;
+
   BaseAttachments({
     super.key,
     required this.entityId,
     required this.isEdit,
     this.userSettings,
+    this.contentKey,
   });
 
   BaseAttachmentsContent buildContent();
@@ -85,8 +90,7 @@ abstract class BaseAttachmentsContent extends StatefulWidget {
   BaseAttachmentsState createState();
 }
 
-abstract class BaseAttachmentsState<T extends BaseAttachmentsContent>
-    extends State<T> {
+abstract class BaseAttachmentsState extends State<BaseAttachmentsContent> {
   final int maxConcurrentUploads = 4;
 
   List<AttachmentFile> filesToUpload = [];
@@ -101,6 +105,10 @@ abstract class BaseAttachmentsState<T extends BaseAttachmentsContent>
 
   @mustBeOverridden
   CreateAttachmentEvent createCreateAttachmentsEvent();
+
+  /// True when the user has staged files for upload but not yet uploaded.
+  /// Used by multi-step parents to drive the unsaved-changes prompt.
+  bool get hasUnsavedFiles => filesToUpload.isNotEmpty;
 
   @override
   void initState() {

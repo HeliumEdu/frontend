@@ -14,6 +14,7 @@ import 'package:heliumapp/presentation/features/courses/bloc/course_bloc.dart';
 import 'package:heliumapp/presentation/features/courses/bloc/course_state.dart';
 import 'package:heliumapp/presentation/features/shared/widgets/flow/multi_step_container.dart';
 import 'package:heliumapp/presentation/features/courses/widgets/course_attachments.dart';
+import 'package:heliumapp/presentation/features/shared/widgets/core/base_attachments.dart';
 import 'package:heliumapp/presentation/features/courses/widgets/course_categories.dart';
 import 'package:heliumapp/presentation/features/courses/widgets/course_details.dart';
 import 'package:heliumapp/presentation/features/courses/widgets/course_reminders.dart';
@@ -77,6 +78,7 @@ class CourseAddScreen extends MultiStepContainer {
 class _CourseAddScreenState extends MultiStepContainerState<CourseAddScreen> {
   final _detailsKey = GlobalKey<CourseDetailsState>();
   final _scheduleKey = GlobalKey<CourseScheduleState>();
+  final _attachmentsKey = GlobalKey<BaseAttachmentsState>();
 
   int? _currentCourseId;
   int? _targetStep;
@@ -125,6 +127,8 @@ class _CourseAddScreenState extends MultiStepContainerState<CourseAddScreen> {
         return _detailsKey.currentState?.formController.isChanged ?? false;
       case 1:
         return _scheduleKey.currentState?.formController.isChanged ?? false;
+      case 4:
+        return _attachmentsKey.currentState?.hasUnsavedFiles ?? false;
       default:
         return false;
     }
@@ -290,6 +294,7 @@ class _CourseAddScreenState extends MultiStepContainerState<CourseAddScreen> {
       tooltip: 'Attachments',
       stepScreenType: ScreenType.subPage,
       builder: (context) => CourseAttachments(
+        contentKey: _attachmentsKey,
         courseGroupId: widget.courseGroupId,
         entityId: _currentCourseId!,
         isEdit: widget.isEdit || _currentCourseId != null,

@@ -14,6 +14,7 @@ import 'package:heliumapp/presentation/features/planner/bloc/planneritem_bloc.da
 import 'package:heliumapp/presentation/features/planner/bloc/planneritem_state.dart';
 import 'package:heliumapp/presentation/features/shared/widgets/flow/multi_step_container.dart';
 import 'package:heliumapp/presentation/features/planner/widgets/planner_item_attachments.dart';
+import 'package:heliumapp/presentation/features/shared/widgets/core/base_attachments.dart';
 import 'package:heliumapp/presentation/features/planner/widgets/planner_item_details.dart';
 import 'package:heliumapp/presentation/features/planner/widgets/planner_item_reminders.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/core/provider_helpers.dart';
@@ -103,6 +104,7 @@ class PlannerItemAddScreen extends MultiStepContainer {
 class _PlannerItemAddScreenState
     extends MultiStepContainerState<PlannerItemAddScreen> {
   final _detailsKey = GlobalKey<PlannerItemDetailsState>();
+  final _attachmentsKey = GlobalKey<BaseAttachmentsState>();
 
   int? _currentEntityId;
   bool? _currentIsEvent;
@@ -151,8 +153,14 @@ class _PlannerItemAddScreenState
 
   @override
   bool get isDirty {
-    if (currentStep != 0) return false;
-    return _detailsKey.currentState?.formController.isChanged ?? false;
+    switch (currentStep) {
+      case 0:
+        return _detailsKey.currentState?.formController.isChanged ?? false;
+      case 2:
+        return _attachmentsKey.currentState?.hasUnsavedFiles ?? false;
+      default:
+        return false;
+    }
   }
 
   @override
@@ -368,6 +376,7 @@ class _PlannerItemAddScreenState
       tooltip: 'Attachments',
       stepScreenType: ScreenType.subPage,
       builder: (context) => PlannerItemAttachments(
+        contentKey: _attachmentsKey,
         isEvent: _currentIsEvent ?? false,
         entityId: _currentEntityId!,
         isEdit: widget.isEdit || _currentEntityId != null,
