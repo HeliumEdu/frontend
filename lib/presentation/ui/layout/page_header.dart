@@ -26,6 +26,7 @@ class PageHeader extends StatelessWidget {
   final bool isLoading;
   final Function? cancelAction;
   final Function? saveAction;
+  final IconData cancelIcon;
   final List<BlocProvider>? inheritableProviders;
 
   const PageHeader({
@@ -36,6 +37,7 @@ class PageHeader extends StatelessWidget {
     this.isLoading = false,
     this.cancelAction,
     this.saveAction,
+    this.cancelIcon = Icons.close,
     this.inheritableProviders,
   });
 
@@ -55,11 +57,14 @@ class PageHeader extends StatelessWidget {
       children: [
         if (screenType == ScreenType.entityPage ||
             screenType == ScreenType.subPage)
-          IconButton(
-            onPressed: () {
-              cancelAction?.call();
-            },
-            icon: Icon(Icons.close, color: context.colorScheme.secondary),
+          ExcludeFocus(
+            excluding: true,
+            child: IconButton(
+              onPressed: () {
+                cancelAction?.call();
+              },
+              icon: Icon(cancelIcon, color: context.colorScheme.secondary),
+            ),
           )
         else if (showSettingsInHeader(context))
           const SettingsButton()

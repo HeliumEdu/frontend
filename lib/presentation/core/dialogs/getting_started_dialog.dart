@@ -462,7 +462,6 @@ class _CyclingImageState extends State<_CyclingImage> {
 Future<void> showGettingStartedDialog(BuildContext parentContext) {
   return showDialog(
     context: parentContext,
-    barrierDismissible: false,
     builder: (BuildContext dialogContext) {
       return const _GettingStartedDialogWidget();
     },

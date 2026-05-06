@@ -15,6 +15,7 @@ import 'package:heliumapp/presentation/features/settings/controllers/change_emai
 import 'package:heliumapp/presentation/features/shared/controllers/basic_form_controller.dart';
 import 'package:heliumapp/presentation/ui/components/helium_password_field.dart';
 import 'package:heliumapp/presentation/ui/components/label_and_text_form_field.dart';
+import 'package:heliumapp/presentation/ui/feedback/discard_changes_scope.dart';
 import 'package:heliumapp/presentation/ui/feedback/warning_container.dart';
 import 'package:heliumapp/utils/snack_bar_helpers.dart';
 
@@ -41,17 +42,46 @@ class ChangeEmailScreenState extends State<ChangeEmailScreen> {
   String? _currentEmail;
   String? _emailChanging;
 
+  bool get isChanged => _formController.isChanged;
+
+  String _initialNewEmail = '';
+  String _initialOldPassword = '';
+  bool _changeTrackingActive = false;
+
   @override
   void initState() {
     super.initState();
+
+    _formController.newEmailController.addListener(_recomputeChanged);
+    _formController.oldPasswordController.addListener(_recomputeChanged);
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Future.delayed(const Duration(milliseconds: 500), () {
+        if (!mounted) return;
+        _initialNewEmail = _formController.newEmailController.text;
+        _initialOldPassword = _formController.oldPasswordController.text;
+        _changeTrackingActive = true;
+      });
+    });
 
     context.read<AuthBloc>().add(FetchProfileEvent());
   }
 
   @override
   void dispose() {
+    _formController.newEmailController.removeListener(_recomputeChanged);
+    _formController.oldPasswordController.removeListener(_recomputeChanged);
     _formController.dispose();
     super.dispose();
+  }
+
+  void _recomputeChanged() {
+    if (!_changeTrackingActive) return;
+    final dirty =
+        _formController.newEmailController.text != _initialNewEmail ||
+        _formController.oldPasswordController.text != _initialOldPassword;
+    if (dirty == _formController.isChanged) return;
+    setState(() => _formController.isChanged = dirty);
   }
 
   @override
@@ -69,6 +99,11 @@ class ChangeEmailScreenState extends State<ChangeEmailScreen> {
           });
         } else if (state is AuthEmailChangeRequested) {
           _formController.clearForm();
+          setState(() {
+            _initialNewEmail = _formController.newEmailController.text;
+            _initialOldPassword = _formController.oldPasswordController.text;
+            _formController.isChanged = false;
+          });
           SnackBarHelper.show(
             context,
             'Verification email sent to ${state.newEmail}',
@@ -77,6 +112,11 @@ class ChangeEmailScreenState extends State<ChangeEmailScreen> {
           widget.onCompleted?.call();
         } else if (state is AuthEmailChangeCancelled) {
           _formController.clearForm();
+          setState(() {
+            _initialNewEmail = _formController.newEmailController.text;
+            _initialOldPassword = _formController.oldPasswordController.text;
+            _formController.isChanged = false;
+          });
           SnackBarHelper.show(
             context,
             'The pending email change was cancelled',
@@ -86,7 +126,9 @@ class ChangeEmailScreenState extends State<ChangeEmailScreen> {
           widget.onCompleted?.call();
         }
       },
-      child: SingleChildScrollView(
+      child: DiscardChangesScope(
+        isDirty: _formController.isChanged,
+        child: SingleChildScrollView(
         child: AutofillGroup(
           child: Form(
             key: _formController.formKey,
@@ -125,6 +167,7 @@ class ChangeEmailScreenState extends State<ChangeEmailScreen> {
             ),
           ),
         ),
+      ),
       ),
     );
   }

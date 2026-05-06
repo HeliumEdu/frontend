@@ -175,6 +175,8 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
     Navigator.of(context).pop();
   };
 
+  IconData get cancelIcon => Icons.close;
+
   Function? get saveAction => null;
 
   VoidCallback? get actionButtonCallback => null;
@@ -384,6 +386,7 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
       isLoading: isSubmitting,
       cancelAction: cancelAction,
       saveAction: saveAction,
+      cancelIcon: cancelIcon,
       inheritableProviders: inheritableProviders,
     );
   }

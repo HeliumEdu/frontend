@@ -15,6 +15,7 @@ import 'package:heliumapp/presentation/features/auth/bloc/auth_state.dart';
 import 'package:heliumapp/presentation/features/shared/controllers/basic_form_controller.dart';
 import 'package:heliumapp/presentation/features/settings/controllers/change_password_form_controller.dart';
 import 'package:heliumapp/presentation/ui/components/helium_password_field.dart';
+import 'package:heliumapp/presentation/ui/feedback/discard_changes_scope.dart';
 import 'package:heliumapp/utils/snack_bar_helpers.dart';
 
 class ChangePasswordScreen extends StatefulWidget {
@@ -39,10 +40,48 @@ class ChangePasswordScreenState extends State<ChangePasswordScreen> {
 
   bool _isSubmitting = false;
 
+  bool get isChanged => _formController.isChanged;
+
+  String _initialOld = '';
+  String _initialNew = '';
+  String _initialConfirm = '';
+  bool _changeTrackingActive = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _formController.oldPasswordController.addListener(_recomputeChanged);
+    _formController.newPasswordController.addListener(_recomputeChanged);
+    _formController.confirmPasswordController.addListener(_recomputeChanged);
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Future.delayed(const Duration(milliseconds: 500), () {
+        if (!mounted) return;
+        _initialOld = _formController.oldPasswordController.text;
+        _initialNew = _formController.newPasswordController.text;
+        _initialConfirm = _formController.confirmPasswordController.text;
+        _changeTrackingActive = true;
+      });
+    });
+  }
+
   @override
   void dispose() {
+    _formController.oldPasswordController.removeListener(_recomputeChanged);
+    _formController.newPasswordController.removeListener(_recomputeChanged);
+    _formController.confirmPasswordController.removeListener(_recomputeChanged);
     _formController.dispose();
     super.dispose();
+  }
+
+  void _recomputeChanged() {
+    if (!_changeTrackingActive) return;
+    final dirty =
+        _formController.oldPasswordController.text != _initialOld ||
+        _formController.newPasswordController.text != _initialNew ||
+        _formController.confirmPasswordController.text != _initialConfirm;
+    if (dirty == _formController.isChanged) return;
+    setState(() => _formController.isChanged = dirty);
   }
 
   @override
@@ -56,6 +95,12 @@ class ChangePasswordScreenState extends State<ChangePasswordScreen> {
         } else if (state is AuthPasswordChanged) {
           TextInput.finishAutofillContext();
           _formController.clearForm();
+          setState(() {
+            _initialOld = _formController.oldPasswordController.text;
+            _initialNew = _formController.newPasswordController.text;
+            _initialConfirm = _formController.confirmPasswordController.text;
+            _formController.isChanged = false;
+          });
           SnackBarHelper.show(
             context,
             'Password changed',
@@ -64,7 +109,9 @@ class ChangePasswordScreenState extends State<ChangePasswordScreen> {
           widget.onCompleted?.call();
         }
       },
-      child: SingleChildScrollView(
+      child: DiscardChangesScope(
+        isDirty: _formController.isChanged,
+        child: SingleChildScrollView(
         child: AutofillGroup(
           child: Form(
             key: _formController.formKey,
@@ -103,6 +150,7 @@ class ChangePasswordScreenState extends State<ChangePasswordScreen> {
             ),
           ),
         ),
+      ),
       ),
     );
   }
