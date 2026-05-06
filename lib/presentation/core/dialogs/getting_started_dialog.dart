@@ -307,14 +307,18 @@ class _GettingStartedDialogWidgetState
             width: 40,
             child: isFirst
                 ? const SizedBox.shrink()
-                : IconButton(
-                    onPressed: () => _pageController.previousPage(
-                      duration: const Duration(milliseconds: 300),
-                      curve: Curves.easeInOut,
+                : Semantics(
+                    label: 'Previous',
+                    button: true,
+                    child: IconButton(
+                      onPressed: () => _pageController.previousPage(
+                        duration: const Duration(milliseconds: 300),
+                        curve: Curves.easeInOut,
+                      ),
+                      icon: const Icon(Icons.chevron_left),
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(),
                     ),
-                    icon: const Icon(Icons.chevron_left),
-                    padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(),
                   ),
           ),
           Expanded(
@@ -325,11 +329,14 @@ class _GettingStartedDialogWidgetState
                 return MouseRegion(
                   cursor: SystemMouseCursors.click,
                   child: GestureDetector(
-                    onTap: () => _pageController.animateToPage(
-                      index,
-                      duration: const Duration(milliseconds: 300),
-                      curve: Curves.easeInOut,
-                    ),
+                    onTap: () {
+                      Feedback.forTap(context);
+                      _pageController.animateToPage(
+                        index,
+                        duration: const Duration(milliseconds: 300),
+                        curve: Curves.easeInOut,
+                      );
+                    },
                     child: AnimatedContainer(
                       duration: const Duration(milliseconds: 200),
                       margin: const EdgeInsets.symmetric(horizontal: 4.0),
@@ -353,14 +360,18 @@ class _GettingStartedDialogWidgetState
             width: 40,
             child: isLast
                 ? const SizedBox.shrink()
-                : IconButton(
-                    onPressed: () => _pageController.nextPage(
-                      duration: const Duration(milliseconds: 300),
-                      curve: Curves.easeInOut,
+                : Semantics(
+                    label: 'Next',
+                    button: true,
+                    child: IconButton(
+                      onPressed: () => _pageController.nextPage(
+                        duration: const Duration(milliseconds: 300),
+                        curve: Curves.easeInOut,
+                      ),
+                      icon: const Icon(Icons.chevron_right),
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(),
                     ),
-                    icon: const Icon(Icons.chevron_right),
-                    padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(),
                   ),
           ),
         ],
@@ -462,7 +473,6 @@ class _CyclingImageState extends State<_CyclingImage> {
 Future<void> showGettingStartedDialog(BuildContext parentContext) {
   return showDialog(
     context: parentContext,
-    barrierDismissible: false,
     builder: (BuildContext dialogContext) {
       return const _GettingStartedDialogWidget();
     },

@@ -6,6 +6,7 @@
 // For details regarding the license, please refer to the LICENSE file.
 
 import 'package:heliumapp/utils/planner_helper.dart';
+import 'package:heliumapp/utils/search_helpers.dart';
 import 'package:heliumapp/utils/sort_helpers.dart';
 
 /// Lightweight representation of a calendar item for filtering/sorting in isolate.
@@ -182,8 +183,7 @@ bool _passesFilters(FilterableItem item, FilterParams params) {
 
   // Search filter (applies to all types)
   if (params.searchQuery.isNotEmpty) {
-    final query = params.searchQuery.toLowerCase();
-    if (!item.title.toLowerCase().contains(query)) {
+    if (!SearchHelper.matches(item.title, params.searchQuery)) {
       return false;
     }
   }

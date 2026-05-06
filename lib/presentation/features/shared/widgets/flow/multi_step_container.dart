@@ -9,6 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:heliumapp/data/models/auth/user_model.dart';
 import 'package:heliumapp/presentation/core/views/base_page_screen_state.dart';
+import 'package:heliumapp/presentation/ui/feedback/discard_changes_scope.dart';
 import 'package:heliumapp/presentation/ui/layout/page_header.dart';
 import 'package:heliumapp/presentation/features/shared/widgets/flow/stepper_header.dart';
 
@@ -104,27 +105,62 @@ abstract class MultiStepContainerState<T extends MultiStepContainer>
     final isForward = _currentStep > _previousStep;
 
     return Expanded(
-      child: AnimatedSwitcher(
-        duration: const Duration(milliseconds: 300),
-        transitionBuilder: (child, animation) {
-          return SlideTransition(
-            position:
-                Tween<Offset>(
-                  begin: Offset(isForward ? 1.0 : -1.0, 0.0),
-                  end: Offset.zero,
-                ).animate(
-                  CurvedAnimation(parent: animation, curve: Curves.easeInOut),
-                ),
-            child: child,
-          );
+      child: PopScope(
+        canPop: false,
+        onPopInvokedWithResult: (didPop, _) {
+          if (didPop) return;
+          _attemptDismiss();
         },
-        child: KeyedSubtree(
-          key: ValueKey(_currentStep),
-          child: steps[_currentStep].builder(context),
+        child: AnimatedSwitcher(
+          duration: const Duration(milliseconds: 300),
+          transitionBuilder: (child, animation) {
+            return SlideTransition(
+              position:
+                  Tween<Offset>(
+                    begin: Offset(isForward ? 1.0 : -1.0, 0.0),
+                    end: Offset.zero,
+                  ).animate(
+                    CurvedAnimation(parent: animation, curve: Curves.easeInOut),
+                  ),
+              child: child,
+            );
+          },
+          child: KeyedSubtree(
+            key: ValueKey(_currentStep),
+            child: steps[_currentStep].builder(context),
+          ),
         ),
       ),
     );
   }
+
+  /// Whether the active step has unsaved changes. Subclasses override to
+  /// query the active step's form controller; default is false (no prompt).
+  bool get isDirty => false;
+
+  /// Pops without consulting [isDirty]. Use from bloc listeners after a
+  /// successful save where the form is logically clean even if isChanged
+  /// hasn't been reset.
+  @protected
+  void closeWithoutPrompt() {
+    if (!mounted) return;
+    Navigator.of(context).pop();
+  }
+
+  Future<void> _attemptDismiss() async {
+    if (!mounted) return;
+    if (!isDirty) {
+      closeWithoutPrompt();
+      return;
+    }
+    final shouldDiscard = await confirmDiscardChanges(context);
+    if (shouldDiscard && mounted) {
+      closeWithoutPrompt();
+    }
+  }
+
+  @override
+  Function get cancelAction => _attemptDismiss;
 
   int get currentStep => _currentStep;
 

@@ -11,7 +11,6 @@ import 'package:heliumapp/presentation/features/shared/controllers/basic_form_co
 class ChangeEmailFormController extends BasicFormController {
   final TextEditingController newEmailController = TextEditingController();
   final TextEditingController oldPasswordController = TextEditingController();
-  bool isPasswordVisible = false;
 
   void dispose() {
     newEmailController.dispose();

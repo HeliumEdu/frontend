@@ -33,12 +33,14 @@ import 'package:heliumapp/presentation/features/shared/bloc/core/provider_helper
 import 'package:heliumapp/presentation/features/planner/bloc/planneritem_bloc.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/planneritem_state.dart';
 import 'package:heliumapp/presentation/features/planner/dialogs/confirm_delete_dialog.dart';
+import 'package:heliumapp/presentation/ui/components/helium_checkbox_list_tile.dart';
 import 'package:heliumapp/presentation/ui/feedback/error_card.dart';
 import 'package:heliumapp/presentation/ui/layout/shadow_container.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/print_helpers.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
+import 'package:heliumapp/utils/search_helpers.dart';
 import 'package:heliumapp/utils/sort_helpers.dart';
 import 'package:logging/logging.dart';
 
@@ -396,10 +398,11 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen>
     var filtered = _notes;
 
     if (_searchQuery != null && _searchQuery!.isNotEmpty) {
-      final query = _searchQuery!.toLowerCase();
       filtered = filtered.where((note) {
-        return note.title.toLowerCase().contains(query) ||
-            (note.linkedEntityTitle?.toLowerCase().contains(query) ?? false);
+        return SearchHelper.matchesAny(
+          [note.title, note.linkedEntityTitle],
+          _searchQuery!,
+        );
       }).toList();
     }
 
@@ -587,7 +590,7 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen>
             const SizedBox(height: 8),
             ...filterOptions.map((option) {
               final isChecked = _filterEntityTypes.contains(option.value);
-              return CheckboxListTile(
+              return HeliumCheckboxListTile(
                 title: Row(
                   children: [
                     option.iconWidget,

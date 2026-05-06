@@ -58,7 +58,7 @@ class _QuillSearchBarState extends State<QuillSearchBar> {
   }
 
   void _onTextChanged(String text) {
-    _searchText = text;
+    _searchText = text.trim();
     _searchTimer?.cancel();
     _searchTimer = Timer(const Duration(milliseconds: 300), _findText);
   }
@@ -182,57 +182,58 @@ class _QuillSearchBarState extends State<QuillSearchBar> {
         ),
         child: Row(
           children: [
-            IconButton(
-              icon: Icon(
-                Icons.close,
-                size: 20,
-                color: context.colorScheme.onSurface.withValues(alpha: 0.4),
+            Semantics(
+              label: 'Close search',
+              button: true,
+              child: IconButton(
+                icon: Icon(
+                  Icons.close,
+                  size: 20,
+                  color: context.colorScheme.onSurface.withValues(alpha: 0.4),
+                ),
+                visualDensity: VisualDensity.compact,
+                onPressed: () {
+                  _clearSelection();
+                  widget.onClose();
+                },
               ),
-              visualDensity: VisualDensity.compact,
-              onPressed: () {
-                _clearSelection();
-                widget.onClose();
-              },
             ),
             const SizedBox(width: 4),
             Expanded(
-              child: SizedBox(
-                height: 40,
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: context.colorScheme.surface,
-                    border: Border.all(
-                      color: context.colorScheme.outline.withValues(alpha: 0.2),
-                    ),
-                    borderRadius: BorderRadius.circular(8),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: context.colorScheme.surface,
+                  border: Border.all(
+                    color: context.colorScheme.outline.withValues(alpha: 0.2),
                   ),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(8),
-                    child: TextField(
-                      controller: _textController,
-                      focusNode: _searchFocusNode,
-                      autofocus: true,
-                      style: AppStyles.formText(context),
-                      decoration: InputDecoration(
-                        hintText: 'Search ...',
-                        hintStyle: AppStyles.formHint(context),
-                        border: InputBorder.none,
-                        enabledBorder: InputBorder.none,
-                        focusedBorder: InputBorder.none,
-                        isDense: true,
-                        contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 10,
-                        ),
-                        suffixText: _matchText,
-                        suffixStyle: AppStyles.formHint(
-                          context,
-                        ).copyWith(fontSize: 12),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: TextField(
+                    controller: _textController,
+                    focusNode: _searchFocusNode,
+                    autofocus: true,
+                    style: AppStyles.formText(context),
+                    decoration: InputDecoration(
+                      hintText: 'Search ...',
+                      hintStyle: AppStyles.formHint(context),
+                      border: InputBorder.none,
+                      enabledBorder: InputBorder.none,
+                      focusedBorder: InputBorder.none,
+                      isDense: true,
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 10,
                       ),
-                      onChanged: _onTextChanged,
-                      textInputAction: TextInputAction.search,
-                      onSubmitted: (_) => _moveToNext(),
+                      suffixText: _matchText,
+                      suffixStyle: AppStyles.formHint(
+                        context,
+                      ).copyWith(fontSize: 12),
                     ),
+                    onChanged: _onTextChanged,
+                    textInputAction: TextInputAction.search,
+                    onSubmitted: (_) => _moveToNext(),
                   ),
                 ),
               ),

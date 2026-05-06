@@ -39,11 +39,16 @@ abstract class BaseAttachments extends StatelessWidget {
   final bool isEdit;
   final UserSettingsModel? userSettings;
 
+  /// Optional key forwarded to the inner [BaseAttachmentsContent] so a parent
+  /// can query the live [BaseAttachmentsState] (e.g. for `hasUnsavedFiles`).
+  final GlobalKey<BaseAttachmentsState>? contentKey;
+
   BaseAttachments({
     super.key,
     required this.entityId,
     required this.isEdit,
     this.userSettings,
+    this.contentKey,
   });
 
   BaseAttachmentsContent buildContent();
@@ -85,8 +90,7 @@ abstract class BaseAttachmentsContent extends StatefulWidget {
   BaseAttachmentsState createState();
 }
 
-abstract class BaseAttachmentsState<T extends BaseAttachmentsContent>
-    extends State<T> {
+abstract class BaseAttachmentsState extends State<BaseAttachmentsContent> {
   final int maxConcurrentUploads = 4;
 
   List<AttachmentFile> filesToUpload = [];
@@ -101,6 +105,10 @@ abstract class BaseAttachmentsState<T extends BaseAttachmentsContent>
 
   @mustBeOverridden
   CreateAttachmentEvent createCreateAttachmentsEvent();
+
+  /// True when the user has staged files for upload but not yet uploaded.
+  /// Used by multi-step parents to drive the unsaved-changes prompt.
+  bool get hasUnsavedFiles => filesToUpload.isNotEmpty;
 
   @override
   void initState() {
@@ -327,28 +335,32 @@ abstract class BaseAttachmentsState<T extends BaseAttachmentsContent>
                 ],
               ),
             ),
-            IconButton(
-              onPressed: () {
-                if (index < filesToUpload.length) {
-                  // Defer setState so any in-progress frame caused by the tap
-                  // gesture completes before the list is mutated and rebuilt
-                  WidgetsBinding.instance.addPostFrameCallback((_) {
-                    if (!mounted) return;
+            Semantics(
+              label: 'Remove from upload',
+              button: true,
+              child: IconButton(
+                onPressed: () {
+                  if (index < filesToUpload.length) {
+                    // Defer setState so any in-progress frame caused by the tap
+                    // gesture completes before the list is mutated and rebuilt
+                    WidgetsBinding.instance.addPostFrameCallback((_) {
+                      if (!mounted) return;
 
-                    setState(() {
-                      filesToUpload.removeAt(index);
+                      setState(() {
+                        filesToUpload.removeAt(index);
+                      });
                     });
-                  });
-                }
-              },
-              icon: Icon(
-                Icons.close,
-                color: context.colorScheme.error,
-                size: Responsive.getIconSize(
-                  context,
-                  mobile: 20,
-                  tablet: 22,
-                  desktop: 24,
+                  }
+                },
+                icon: Icon(
+                  Icons.close,
+                  color: context.colorScheme.error,
+                  size: Responsive.getIconSize(
+                    context,
+                    mobile: 20,
+                    tablet: 22,
+                    desktop: 24,
+                  ),
                 ),
               ),
             ),
@@ -394,31 +406,39 @@ abstract class BaseAttachmentsState<T extends BaseAttachmentsContent>
                 maxLines: 1,
               ),
             ),
-            HeliumIconButton(
-              onPressed: () => _downloadAttachment(attachment),
-              icon: Icons.download_outlined,
-              color: context.semanticColors.success,
+            Semantics(
+              label: 'Download',
+              button: true,
+              child: HeliumIconButton(
+                onPressed: () => _downloadAttachment(attachment),
+                icon: Icons.download_outlined,
+                color: context.semanticColors.success,
+              ),
             ),
             const SizedBox(width: 8),
-            HeliumIconButton(
-              onPressed: () {
-                showConfirmDeleteDialog(
-                  parentContext: context,
-                  item: attachment,
-                  onDelete: (a) {
-                    context.read<AttachmentBloc>().add(
-                      DeleteAttachmentEvent(
-                        id: a.id,
-                        courseId: a.course,
-                        eventId: a.event,
-                        homeworkId: a.homework,
-                      ),
-                    );
-                  },
-                );
-              },
-              icon: Icons.delete_outline,
-              color: context.colorScheme.error,
+            Semantics(
+              label: 'Delete',
+              button: true,
+              child: HeliumIconButton(
+                onPressed: () {
+                  showConfirmDeleteDialog(
+                    parentContext: context,
+                    item: attachment,
+                    onDelete: (a) {
+                      context.read<AttachmentBloc>().add(
+                        DeleteAttachmentEvent(
+                          id: a.id,
+                          courseId: a.course,
+                          eventId: a.event,
+                          homeworkId: a.homework,
+                        ),
+                      );
+                    },
+                  );
+                },
+                icon: Icons.delete_outline,
+                color: context.colorScheme.error,
+              ),
             ),
           ],
         ),

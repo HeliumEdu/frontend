@@ -14,6 +14,7 @@ import 'package:heliumapp/presentation/features/planner/bloc/planneritem_bloc.da
 import 'package:heliumapp/presentation/features/planner/bloc/planneritem_state.dart';
 import 'package:heliumapp/presentation/features/shared/widgets/flow/multi_step_container.dart';
 import 'package:heliumapp/presentation/features/planner/widgets/planner_item_attachments.dart';
+import 'package:heliumapp/presentation/features/shared/widgets/core/base_attachments.dart';
 import 'package:heliumapp/presentation/features/planner/widgets/planner_item_details.dart';
 import 'package:heliumapp/presentation/features/planner/widgets/planner_item_reminders.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/core/provider_helpers.dart';
@@ -58,7 +59,6 @@ Future<void> showPlannerItemAdd(
 
   return showScreenAsDialog(
     context,
-    barrierDismissible: false,
     child: MultiBlocProvider(
       providers: [
         BlocProvider<AttachmentBloc>.value(value: attachmentBloc),
@@ -104,6 +104,7 @@ class PlannerItemAddScreen extends MultiStepContainer {
 class _PlannerItemAddScreenState
     extends MultiStepContainerState<PlannerItemAddScreen> {
   final _detailsKey = GlobalKey<PlannerItemDetailsState>();
+  final _attachmentsKey = GlobalKey<BaseAttachmentsState>();
 
   int? _currentEntityId;
   bool? _currentIsEvent;
@@ -151,6 +152,18 @@ class _PlannerItemAddScreenState
   IconData? get icon => _currentIsEvent == null ? null : Icons.calendar_month;
 
   @override
+  bool get isDirty {
+    switch (currentStep) {
+      case 0:
+        return _detailsKey.currentState?.formController.isUserDirty ?? false;
+      case 2:
+        return _attachmentsKey.currentState?.hasUnsavedFiles ?? false;
+      default:
+        return false;
+    }
+  }
+
+  @override
   Function? get saveAction {
     if (steps[currentStep].stepScreenType != ScreenType.entityPage) {
       return null;
@@ -187,7 +200,7 @@ class _PlannerItemAddScreenState
               '${state is EventDeleted ? 'Event' : 'Assignment'} deleted',
               useRootMessenger: true,
             );
-            cancelAction();
+            closeWithoutPrompt();
           } else if (state is HomeworkCreated ||
               state is HomeworkUpdated ||
               state is EventCreated ||
@@ -299,13 +312,13 @@ class _PlannerItemAddScreenState
       if (step < steps.length) {
         navigateToStep(step);
       } else {
-        cancelAction();
+        closeWithoutPrompt();
       }
     } else if (widget.isNew && currentStep + 1 < steps.length) {
       // In create mode, auto-advance to next step
       navigateToStep(currentStep + 1);
     } else {
-      cancelAction();
+      closeWithoutPrompt();
     }
   }
 
@@ -363,6 +376,7 @@ class _PlannerItemAddScreenState
       tooltip: 'Attachments',
       stepScreenType: ScreenType.subPage,
       builder: (context) => PlannerItemAttachments(
+        contentKey: _attachmentsKey,
         isEvent: _currentIsEvent ?? false,
         entityId: _currentEntityId!,
         isEdit: widget.isEdit || _currentEntityId != null,

@@ -8,13 +8,14 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_bloc.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_event.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_state.dart';
 import 'package:heliumapp/presentation/features/settings/controllers/change_email_form_controller.dart';
 import 'package:heliumapp/presentation/features/shared/controllers/basic_form_controller.dart';
+import 'package:heliumapp/presentation/ui/components/helium_password_field.dart';
 import 'package:heliumapp/presentation/ui/components/label_and_text_form_field.dart';
+import 'package:heliumapp/presentation/ui/feedback/discard_changes_scope.dart';
 import 'package:heliumapp/presentation/ui/feedback/warning_container.dart';
 import 'package:heliumapp/utils/snack_bar_helpers.dart';
 
@@ -41,17 +42,46 @@ class ChangeEmailScreenState extends State<ChangeEmailScreen> {
   String? _currentEmail;
   String? _emailChanging;
 
+  bool get isChanged => _formController.isChanged;
+
+  String _initialNewEmail = '';
+  String _initialOldPassword = '';
+  bool _changeTrackingActive = false;
+
   @override
   void initState() {
     super.initState();
+
+    _formController.newEmailController.addListener(_recomputeChanged);
+    _formController.oldPasswordController.addListener(_recomputeChanged);
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Future.delayed(const Duration(milliseconds: 500), () {
+        if (!mounted) return;
+        _initialNewEmail = _formController.newEmailController.text;
+        _initialOldPassword = _formController.oldPasswordController.text;
+        _changeTrackingActive = true;
+      });
+    });
 
     context.read<AuthBloc>().add(FetchProfileEvent());
   }
 
   @override
   void dispose() {
+    _formController.newEmailController.removeListener(_recomputeChanged);
+    _formController.oldPasswordController.removeListener(_recomputeChanged);
     _formController.dispose();
     super.dispose();
+  }
+
+  void _recomputeChanged() {
+    if (!_changeTrackingActive) return;
+    final dirty =
+        _formController.newEmailController.text != _initialNewEmail ||
+        _formController.oldPasswordController.text != _initialOldPassword;
+    if (dirty == _formController.isChanged) return;
+    setState(() => _formController.isChanged = dirty);
   }
 
   @override
@@ -69,6 +99,11 @@ class ChangeEmailScreenState extends State<ChangeEmailScreen> {
           });
         } else if (state is AuthEmailChangeRequested) {
           _formController.clearForm();
+          setState(() {
+            _initialNewEmail = _formController.newEmailController.text;
+            _initialOldPassword = _formController.oldPasswordController.text;
+            _formController.isChanged = false;
+          });
           SnackBarHelper.show(
             context,
             'Verification email sent to ${state.newEmail}',
@@ -77,6 +112,11 @@ class ChangeEmailScreenState extends State<ChangeEmailScreen> {
           widget.onCompleted?.call();
         } else if (state is AuthEmailChangeCancelled) {
           _formController.clearForm();
+          setState(() {
+            _initialNewEmail = _formController.newEmailController.text;
+            _initialOldPassword = _formController.oldPasswordController.text;
+            _formController.isChanged = false;
+          });
           SnackBarHelper.show(
             context,
             'The pending email change was cancelled',
@@ -86,58 +126,48 @@ class ChangeEmailScreenState extends State<ChangeEmailScreen> {
           widget.onCompleted?.call();
         }
       },
-      child: SingleChildScrollView(
-        child: Form(
-          key: _formController.formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              if (_emailChanging != null && _emailChanging!.isNotEmpty) ...[
-                WarningContainer(
-                  text:
-                      'Change pending, click the link sent to $_emailChanging to verify',
-                  icon: Icons.schedule,
-                ),
-                const SizedBox(height: 16),
-              ],
-              LabelAndTextFormField(
-                label: 'New email',
-                autofocus: kIsWeb,
-                prefixIcon: Icons.email_outlined,
-                keyboardType: TextInputType.emailAddress,
-                controller: _formController.newEmailController,
-                validator: _validateNewEmail,
-                onFieldSubmitted: (value) => onSubmit(),
-              ),
-              const SizedBox(height: 14),
-
-              LabelAndTextFormField(
-                label: 'Current password',
-                prefixIcon: Icons.lock,
-                controller: _formController.oldPasswordController,
-                validator: BasicFormController.validatePassword,
-                onFieldSubmitted: (value) => onSubmit(),
-                obscureText: !_formController.isPasswordVisible,
-                suffixIcon: IconButton(
-                  onPressed: () {
-                    setState(() {
-                      _formController.isPasswordVisible =
-                          !_formController.isPasswordVisible;
-                    });
-                  },
-                  icon: Icon(
-                    _formController.isPasswordVisible
-                        ? Icons.visibility
-                        : Icons.visibility_off,
-                    color: context.colorScheme.onSurface,
+      child: DiscardChangesScope(
+        isDirty: _formController.isChanged,
+        child: SingleChildScrollView(
+        child: AutofillGroup(
+          child: Form(
+            key: _formController.formKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (_emailChanging != null && _emailChanging!.isNotEmpty) ...[
+                  WarningContainer(
+                    text:
+                        'Change pending, click the link sent to $_emailChanging to verify',
+                    icon: Icons.schedule,
                   ),
+                  const SizedBox(height: 16),
+                ],
+                LabelAndTextFormField(
+                  label: 'New email',
+                  autofocus: kIsWeb,
+                  prefixIcon: Icons.email_outlined,
+                  keyboardType: TextInputType.emailAddress,
+                  controller: _formController.newEmailController,
+                  validator: _validateNewEmail,
+                  onFieldSubmitted: (value) => onSubmit(),
                 ),
-              ),
+                const SizedBox(height: 14),
 
-              const SizedBox(height: 12),
-            ],
+                HeliumPasswordField(
+                  label: 'Current password',
+                  controller: _formController.oldPasswordController,
+                  validator: BasicFormController.validatePassword,
+                  onFieldSubmitted: (value) => onSubmit(),
+                  autofillHints: const [AutofillHints.password],
+                ),
+
+                const SizedBox(height: 12),
+              ],
+            ),
           ),
         ),
+      ),
       ),
     );
   }

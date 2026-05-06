@@ -73,7 +73,7 @@ class ResourceDetailsState extends State<ResourceDetails> {
   void initState() {
     super.initState();
 
-    if (!widget.isEdit) formController.markChanged();
+    if (!widget.isEdit) formController.markChanged(userInitiated: false);
 
     formController.urlFocusNode.addListener(_onUrlFocusChange);
 

@@ -14,6 +14,7 @@ import 'package:heliumapp/presentation/features/courses/bloc/course_bloc.dart';
 import 'package:heliumapp/presentation/features/courses/bloc/course_state.dart';
 import 'package:heliumapp/presentation/features/shared/widgets/flow/multi_step_container.dart';
 import 'package:heliumapp/presentation/features/courses/widgets/course_attachments.dart';
+import 'package:heliumapp/presentation/features/shared/widgets/core/base_attachments.dart';
 import 'package:heliumapp/presentation/features/courses/widgets/course_categories.dart';
 import 'package:heliumapp/presentation/features/courses/widgets/course_details.dart';
 import 'package:heliumapp/presentation/features/courses/widgets/course_reminders.dart';
@@ -41,7 +42,6 @@ Future<void> showCourseAdd(
 
   return showScreenAsDialog(
     context,
-    barrierDismissible: false,
     child: BlocProvider<CourseBloc>.value(
       value: courseBloc,
       child: CourseAddScreen(
@@ -78,6 +78,7 @@ class CourseAddScreen extends MultiStepContainer {
 class _CourseAddScreenState extends MultiStepContainerState<CourseAddScreen> {
   final _detailsKey = GlobalKey<CourseDetailsState>();
   final _scheduleKey = GlobalKey<CourseScheduleState>();
+  final _attachmentsKey = GlobalKey<BaseAttachmentsState>();
 
   int? _currentCourseId;
   int? _targetStep;
@@ -118,6 +119,20 @@ class _CourseAddScreenState extends MultiStepContainerState<CourseAddScreen> {
 
   @override
   IconData? get icon => Icons.school;
+
+  @override
+  bool get isDirty {
+    switch (currentStep) {
+      case 0:
+        return _detailsKey.currentState?.formController.isUserDirty ?? false;
+      case 1:
+        return _scheduleKey.currentState?.formController.isUserDirty ?? false;
+      case 4:
+        return _attachmentsKey.currentState?.hasUnsavedFiles ?? false;
+      default:
+        return false;
+    }
+  }
 
   @override
   Function? get saveAction {
@@ -211,13 +226,13 @@ class _CourseAddScreenState extends MultiStepContainerState<CourseAddScreen> {
       if (step < steps.length) {
         navigateToStep(step);
       } else {
-        cancelAction();
+        closeWithoutPrompt();
       }
     } else if (widget.isNew && currentStep + 1 < steps.length) {
       // In create mode, auto-advance to next step
       navigateToStep(currentStep + 1);
     } else {
-      cancelAction();
+      closeWithoutPrompt();
     }
   }
 
@@ -279,6 +294,7 @@ class _CourseAddScreenState extends MultiStepContainerState<CourseAddScreen> {
       tooltip: 'Attachments',
       stepScreenType: ScreenType.subPage,
       builder: (context) => CourseAttachments(
+        contentKey: _attachmentsKey,
         courseGroupId: widget.courseGroupId,
         entityId: _currentCourseId!,
         isEdit: widget.isEdit || _currentCourseId != null,

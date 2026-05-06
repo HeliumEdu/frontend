@@ -30,6 +30,7 @@ import 'package:heliumapp/domain/repositories/homework_repository.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/grade_helpers.dart';
 import 'package:heliumapp/utils/planner_helper.dart';
+import 'package:heliumapp/utils/search_helpers.dart';
 import 'package:timezone/standalone.dart' as tz;
 import 'package:heliumapp/utils/sort_helpers.dart';
 import 'package:logging/logging.dart';
@@ -765,8 +766,9 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
   ) {
     if (_searchQuery.isEmpty) return items;
 
-    final query = _searchQuery.toLowerCase();
-    return items.where((item) => _matchesSearch(item, query)).toList();
+    return items
+        .where((item) => SearchHelper.matches(item.title, _searchQuery))
+        .toList();
   }
 
   void setFilteredCourses(Map<int, bool> courses) {
@@ -1320,13 +1322,8 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
   List<HomeworkModel> _applySearchFilter(List<HomeworkModel> homeworks) {
     if (_searchQuery.isEmpty) return homeworks;
 
-    final query = _searchQuery.toLowerCase();
-    return homeworks.where((homework) {
-      return _matchesSearch(homework, query);
-    }).toList();
-  }
-
-  bool _matchesSearch(PlannerItemBaseModel item, String query) {
-    return item.title.toLowerCase().contains(query);
+    return homeworks
+        .where((homework) => SearchHelper.matches(homework.title, _searchQuery))
+        .toList();
   }
 }

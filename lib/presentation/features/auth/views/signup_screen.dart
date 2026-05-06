@@ -8,6 +8,7 @@
 import 'dart:io' show Platform;
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -22,7 +23,9 @@ import 'package:heliumapp/presentation/features/auth/controllers/credentials_for
 import 'package:heliumapp/presentation/features/auth/controllers/signup_form_controller.dart';
 import 'package:heliumapp/presentation/features/shared/controllers/basic_form_controller.dart';
 import 'package:heliumapp/presentation/core/views/base_page_screen_state.dart';
+import 'package:heliumapp/presentation/ui/components/helium_checkbox_list_tile.dart';
 import 'package:heliumapp/presentation/ui/components/helium_elevated_button.dart';
+import 'package:heliumapp/presentation/ui/components/helium_password_field.dart';
 import 'package:heliumapp/presentation/ui/components/label_and_text_form_field.dart';
 import 'package:heliumapp/presentation/ui/layout/responsive_center_card.dart';
 import 'package:heliumapp/presentation/ui/components/searchable_dropdown.dart';
@@ -55,9 +58,17 @@ class _SignupScreenState extends BasePageScreenState<SignupScreen> {
   final SignupFormController _formController = SignupFormController();
   bool _isOAuthLoading = false;
 
+  late final TapGestureRecognizer _termsRecognizer;
+  late final TapGestureRecognizer _privacyRecognizer;
+
   @override
   void initState() {
     super.initState();
+
+    _termsRecognizer = TapGestureRecognizer()
+      ..onTap = () => UrlHelpers.launchWebUrl('https://www.heliumedu.com/terms');
+    _privacyRecognizer = TapGestureRecognizer()
+      ..onTap = () => UrlHelpers.launchWebUrl('https://www.heliumedu.com/privacy');
 
     _initializeForm();
 
@@ -68,6 +79,8 @@ class _SignupScreenState extends BasePageScreenState<SignupScreen> {
 
   @override
   void dispose() {
+    _termsRecognizer.dispose();
+    _privacyRecognizer.dispose();
     _formController.dispose();
 
     super.dispose();
@@ -213,61 +226,24 @@ class _SignupScreenState extends BasePageScreenState<SignupScreen> {
               ),
               const SizedBox(height: 12),
 
-              LabelAndTextFormField(
+              HeliumPasswordField(
                 key: const Key(CredentialsFormController.passwordField),
                 hintText: 'Password',
-                prefixIcon: Icons.lock_outline,
                 controller: _formController.passwordController,
                 validator: BasicFormController.validatePassword,
                 onFieldSubmitted: (value) => _onSubmit(),
-                obscureText: !_formController.isPasswordVisible,
                 autofillHints: const [AutofillHints.newPassword],
-                suffixIcon: ExcludeFocus(
-                  excluding: true,
-                  child: IconButton(
-                    onPressed: () {
-                      setState(() {
-                        _formController.isPasswordVisible =
-                            !_formController.isPasswordVisible;
-                      });
-                    },
-                    icon: Icon(
-                      _formController.isPasswordVisible
-                          ? Icons.visibility_off_outlined
-                          : Icons.visibility_outlined,
-                      color: context.colorScheme.onSurface,
-                    ),
-                  ),
-                ),
               ),
               const SizedBox(height: 12),
 
-              LabelAndTextFormField(
+              HeliumPasswordField(
                 key: const Key(SignupFormController.confirmPasswordField),
                 hintText: 'Confirm password',
                 prefixIcon: Icons.repeat,
                 controller: _formController.confirmPasswordController,
                 validator: _formController.validateConfirmPassword,
                 onFieldSubmitted: (value) => _onSubmit(),
-                obscureText: !_formController.isConfirmPasswordVisible,
                 autofillHints: const [AutofillHints.newPassword],
-                suffixIcon: ExcludeFocus(
-                  excluding: true,
-                  child: IconButton(
-                    onPressed: () {
-                      setState(() {
-                        _formController.isConfirmPasswordVisible =
-                            !_formController.isConfirmPasswordVisible;
-                      });
-                    },
-                    icon: Icon(
-                      _formController.isConfirmPasswordVisible
-                          ? Icons.visibility_off_outlined
-                          : Icons.visibility_outlined,
-                      color: context.colorScheme.onSurface,
-                    ),
-                  ),
-                ),
               ),
               const SizedBox(height: 12),
 
@@ -291,37 +267,29 @@ class _SignupScreenState extends BasePageScreenState<SignupScreen> {
               Row(
                 children: [
                   Expanded(
-                    child: CheckboxListTile(
+                    child: HeliumCheckboxListTile(
                       title: RichText(
                         text: TextSpan(
                           text: "I agree to Helium's ",
                           style: AppStyles.formText(context),
                           children: [
-                            WidgetSpan(
-                              child: InkWell(
-                                onTap: () => UrlHelpers.launchWebUrl('https://www.heliumedu.com/terms'),
-                                child: Text(
-                                  'Terms of Service',
-                                  style: AppStyles.formText(context).copyWith(
-                                    color: context.colorScheme.primary,
-                                  ),
-                                ),
+                            TextSpan(
+                              text: 'Terms of Service',
+                              style: AppStyles.formText(context).copyWith(
+                                color: context.colorScheme.primary,
                               ),
+                              recognizer: _termsRecognizer,
                             ),
                             TextSpan(
                               text: ' and ',
                               style: AppStyles.formText(context),
                             ),
-                            WidgetSpan(
-                              child: InkWell(
-                                onTap: () => UrlHelpers.launchWebUrl('https://www.heliumedu.com/privacy'),
-                                child: Text(
-                                  'Privacy Policy',
-                                  style: AppStyles.formText(context).copyWith(
-                                    color: context.colorScheme.primary,
-                                  ),
-                                ),
+                            TextSpan(
+                              text: 'Privacy Policy',
+                              style: AppStyles.formText(context).copyWith(
+                                color: context.colorScheme.primary,
                               ),
+                              recognizer: _privacyRecognizer,
                             ),
                           ],
                         ),

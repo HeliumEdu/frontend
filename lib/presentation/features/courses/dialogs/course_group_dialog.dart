@@ -19,6 +19,7 @@ import 'package:heliumapp/presentation/features/courses/dialogs/course_exception
 import 'package:heliumapp/presentation/ui/dialogs/base_dialog_state.dart';
 import 'package:heliumapp/presentation/features/shared/controllers/basic_form_controller.dart';
 import 'package:heliumapp/presentation/features/courses/controllers/course_group_form_controller.dart';
+import 'package:heliumapp/presentation/ui/components/helium_checkbox_list_tile.dart';
 import 'package:heliumapp/presentation/ui/components/helium_elevated_button.dart';
 import 'package:heliumapp/presentation/ui/components/label_and_text_form_field.dart';
 import 'package:heliumapp/utils/app_style.dart';
@@ -119,36 +120,43 @@ class _CourseGroupWidgetState
                 children: [
                   Text('From', style: AppStyles.formLabel(context)),
                   const SizedBox(height: 9),
-                  GestureDetector(
-                    onTap: () => _selectDate(context, true),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 12,
-                      ),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(6),
-                        border: Border.all(
-                          color: context.colorScheme.outline
-                              .withValues(alpha: 0.2),
+                  Semantics(
+                    label: 'Pick start date',
+                    button: true,
+                    child: GestureDetector(
+                      onTap: () {
+                        Feedback.forTap(context);
+                        _selectDate(context, true);
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 12,
                         ),
-                        color: context.colorScheme.surface,
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            HeliumDateTime.formatDate(
-                              _formController.startDate!,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(6),
+                          border: Border.all(
+                            color: context.colorScheme.outline
+                                .withValues(alpha: 0.2),
+                          ),
+                          color: context.colorScheme.surface,
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              HeliumDateTime.formatDate(
+                                _formController.startDate!,
+                              ),
+                              style: AppStyles.formText(context),
                             ),
-                            style: AppStyles.formText(context),
-                          ),
-                          Icon(
-                            Icons.calendar_today,
-                            color: context.colorScheme.primary,
-                            size: 18,
-                          ),
-                        ],
+                            Icon(
+                              Icons.calendar_today,
+                              color: context.colorScheme.primary,
+                              size: 18,
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ),
@@ -162,36 +170,43 @@ class _CourseGroupWidgetState
                 children: [
                   Text('To', style: AppStyles.formLabel(context)),
                   const SizedBox(height: 9),
-                  GestureDetector(
-                    onTap: () => _selectDate(context, false),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 12,
-                      ),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(6),
-                        border: Border.all(
-                          color: context.colorScheme.outline
-                              .withValues(alpha: 0.2),
+                  Semantics(
+                    label: 'Pick end date',
+                    button: true,
+                    child: GestureDetector(
+                      onTap: () {
+                        Feedback.forTap(context);
+                        _selectDate(context, false);
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 12,
                         ),
-                        color: context.colorScheme.surface,
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            HeliumDateTime.formatDate(
-                              _formController.endDate!,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(6),
+                          border: Border.all(
+                            color: context.colorScheme.outline
+                                .withValues(alpha: 0.2),
+                          ),
+                          color: context.colorScheme.surface,
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              HeliumDateTime.formatDate(
+                                _formController.endDate!,
+                              ),
+                              style: AppStyles.formText(context),
                             ),
-                            style: AppStyles.formText(context),
-                          ),
-                          Icon(
-                            Icons.calendar_today,
-                            color: context.colorScheme.primary,
-                            size: 18,
-                          ),
-                        ],
+                            Icon(
+                              Icons.calendar_today,
+                              color: context.colorScheme.primary,
+                              size: 18,
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ),
@@ -204,7 +219,7 @@ class _CourseGroupWidgetState
         Row(
           children: [
             Expanded(
-              child: CheckboxListTile(
+              child: HeliumCheckboxListTile(
                 title: Text(
                   "Hide this group's classes and assignments from the Planner",
                   style: AppStyles.formLabel(context),
