@@ -16,36 +16,42 @@ import 'package:heliumapp/utils/app_style.dart';
 /// and the swatch on the right. If omitted, renders only the swatch.
 class ColorSelector extends StatelessWidget {
   final String? label;
+  final String? semanticLabel;
   final Color selectedColor;
   final Function(Color) onColorSelected;
 
   const ColorSelector({
     super.key,
     this.label,
+    this.semanticLabel,
     required this.selectedColor,
     required this.onColorSelected,
   });
 
   @override
   Widget build(BuildContext context) {
-    final swatch = InkWell(
-      onTap: () {
-        Feedback.forTap(context);
-        showColorPickerDialog(
-          parentContext: context,
-          initialColor: selectedColor,
-          onSelected: onColorSelected,
-        );
-      },
-      borderRadius: BorderRadius.circular(8),
-      child: Container(
-        width: 33,
-        height: 33,
-        decoration: BoxDecoration(
-          color: selectedColor,
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(
-            color: context.colorScheme.outline.withValues(alpha: 0.2),
+    final swatch = Semantics(
+      label: semanticLabel ?? (label != null ? 'Pick $label' : 'Pick color'),
+      button: true,
+      child: InkWell(
+        onTap: () {
+          Feedback.forTap(context);
+          showColorPickerDialog(
+            parentContext: context,
+            initialColor: selectedColor,
+            onSelected: onColorSelected,
+          );
+        },
+        borderRadius: BorderRadius.circular(8),
+        child: Container(
+          width: 33,
+          height: 33,
+          decoration: BoxDecoration(
+            color: selectedColor,
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(
+              color: context.colorScheme.outline.withValues(alpha: 0.2),
+            ),
           ),
         ),
       ),

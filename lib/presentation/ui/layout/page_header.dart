@@ -59,11 +59,15 @@ class PageHeader extends StatelessWidget {
             screenType == ScreenType.subPage)
           ExcludeFocus(
             excluding: true,
-            child: IconButton(
-              onPressed: () {
-                cancelAction?.call();
-              },
-              icon: Icon(cancelIcon, color: context.colorScheme.secondary),
+            child: Semantics(
+              label: cancelIcon == Icons.close ? 'Close' : 'Back',
+              button: true,
+              child: IconButton(
+                onPressed: () {
+                  cancelAction?.call();
+                },
+                icon: Icon(cancelIcon, color: context.colorScheme.secondary),
+              ),
             ),
           )
         else if (showSettingsInHeader(context))
@@ -85,33 +89,41 @@ class PageHeader extends StatelessWidget {
         Row(
           children: [
             if (screenType == ScreenType.page)
-              IconButton(
-                onPressed: () {
-                  showNotifications(context);
-                },
-                icon: Icon(
-                  Icons.notifications,
-                  color: context.colorScheme.primary,
+              Semantics(
+                label: 'Notifications',
+                button: true,
+                child: IconButton(
+                  onPressed: () {
+                    showNotifications(context);
+                  },
+                  icon: Icon(
+                    Icons.notifications,
+                    color: context.colorScheme.primary,
+                  ),
                 ),
               )
             else if (screenType == ScreenType.entityPage)
-              IconButton(
-                key: const Key(saveButtonKey),
-                onPressed: isLoading
-                    ? null
-                    : () {
-                        saveAction?.call();
-                      },
-                icon: isLoading
-                    ? const LoadingIndicator(
-                        size: 20,
-                        expanded: false,
-                        strokeWidth: 2.5,
-                      )
-                    : Icon(
-                        Icons.check,
-                        color: context.colorScheme.primary,
-                      ),
+              Semantics(
+                label: 'Save',
+                button: true,
+                child: IconButton(
+                  key: const Key(saveButtonKey),
+                  onPressed: isLoading
+                      ? null
+                      : () {
+                          saveAction?.call();
+                        },
+                  icon: isLoading
+                      ? const LoadingIndicator(
+                          size: 20,
+                          expanded: false,
+                          strokeWidth: 2.5,
+                        )
+                      : Icon(
+                          Icons.check,
+                          color: context.colorScheme.primary,
+                        ),
+                ),
               ),
 
             // Help keep things centered when no right button

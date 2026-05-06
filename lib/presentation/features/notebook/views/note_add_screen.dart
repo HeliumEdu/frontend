@@ -814,7 +814,7 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
     );
 
     if (isEmpty) {
-      return button;
+      return Semantics(label: tooltip, button: true, child: button);
     }
 
     return Tooltip(message: tooltip, child: button);

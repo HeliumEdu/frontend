@@ -91,28 +91,36 @@ class HeliumPager extends StatelessWidget {
 
     return Row(
       children: [
-        IconButton(
-          onPressed: currentPage > 1 ? () => onPageChanged(1) : null,
-          icon: const Icon(Icons.first_page),
-          iconSize: 20,
-          padding: EdgeInsets.zero,
-          constraints: const BoxConstraints(),
-          style: IconButton.styleFrom(
-            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-          ),
-        ),
-        if (!isMobile) ...[
-          const SizedBox(width: 8),
-          IconButton(
-            onPressed: currentPage > 1
-                ? () => onPageChanged(currentPage - 1)
-                : null,
-            icon: const Icon(Icons.chevron_left),
+        Semantics(
+          label: 'First page',
+          button: true,
+          child: IconButton(
+            onPressed: currentPage > 1 ? () => onPageChanged(1) : null,
+            icon: const Icon(Icons.first_page),
             iconSize: 20,
             padding: EdgeInsets.zero,
             constraints: const BoxConstraints(),
             style: IconButton.styleFrom(
               tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            ),
+          ),
+        ),
+        if (!isMobile) ...[
+          const SizedBox(width: 8),
+          Semantics(
+            label: 'Previous page',
+            button: true,
+            child: IconButton(
+              onPressed: currentPage > 1
+                  ? () => onPageChanged(currentPage - 1)
+                  : null,
+              icon: const Icon(Icons.chevron_left),
+              iconSize: 20,
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints(),
+              style: IconButton.styleFrom(
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              ),
             ),
           ),
         ],
@@ -120,30 +128,38 @@ class HeliumPager extends StatelessWidget {
         ..._buildPageNumbers(context, isMobile),
         const SizedBox(width: 8),
         if (!isMobile) ...[
-          IconButton(
+          Semantics(
+            label: 'Next page',
+            button: true,
+            child: IconButton(
+              onPressed: currentPage < totalPages
+                  ? () => onPageChanged(currentPage + 1)
+                  : null,
+              icon: const Icon(Icons.chevron_right),
+              iconSize: 20,
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints(),
+              style: IconButton.styleFrom(
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              ),
+            ),
+          ),
+          const SizedBox(width: 8),
+        ],
+        Semantics(
+          label: 'Last page',
+          button: true,
+          child: IconButton(
             onPressed: currentPage < totalPages
-                ? () => onPageChanged(currentPage + 1)
+                ? () => onPageChanged(totalPages)
                 : null,
-            icon: const Icon(Icons.chevron_right),
+            icon: const Icon(Icons.last_page),
             iconSize: 20,
             padding: EdgeInsets.zero,
             constraints: const BoxConstraints(),
             style: IconButton.styleFrom(
               tapTargetSize: MaterialTapTargetSize.shrinkWrap,
             ),
-          ),
-          const SizedBox(width: 8),
-        ],
-        IconButton(
-          onPressed: currentPage < totalPages
-              ? () => onPageChanged(totalPages)
-              : null,
-          icon: const Icon(Icons.last_page),
-          iconSize: 20,
-          padding: EdgeInsets.zero,
-          constraints: const BoxConstraints(),
-          style: IconButton.styleFrom(
-            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
           ),
         ),
       ],

@@ -410,35 +410,39 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
       children: [
         Text(label, style: AppStyles.formLabel(context)),
         const SizedBox(height: 9),
-        GestureDetector(
-          onTap: onTap,
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(6),
-              border: Border.all(
-                color: context.colorScheme.outline.withValues(alpha: 0.2),
+        Semantics(
+          label: 'Pick $label date',
+          button: true,
+          child: GestureDetector(
+            onTap: onTap,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(6),
+                border: Border.all(
+                  color: context.colorScheme.outline.withValues(alpha: 0.2),
+                ),
+                color: context.colorScheme.surface,
               ),
-              color: context.colorScheme.surface,
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  HeliumDateTime.formatDate(date),
-                  style: AppStyles.formText(context),
-                ),
-                Icon(
-                  Icons.calendar_today,
-                  color: context.colorScheme.primary,
-                  size: Responsive.getIconSize(
-                    context,
-                    mobile: 18,
-                    tablet: 20,
-                    desktop: 22,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    HeliumDateTime.formatDate(date),
+                    style: AppStyles.formText(context),
                   ),
-                ),
-              ],
+                  Icon(
+                    Icons.calendar_today,
+                    color: context.colorScheme.primary,
+                    size: Responsive.getIconSize(
+                      context,
+                      mobile: 18,
+                      tablet: 20,
+                      desktop: 22,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),
@@ -457,35 +461,39 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
       children: [
         Text(label, style: AppStyles.formLabel(context)),
         const SizedBox(height: 9),
-        GestureDetector(
-          onTap: onTap,
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(6),
-              border: Border.all(
-                color: context.colorScheme.outline.withValues(alpha: 0.2),
+        Semantics(
+          label: 'Pick $label time',
+          button: true,
+          child: GestureDetector(
+            onTap: onTap,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(6),
+                border: Border.all(
+                  color: context.colorScheme.outline.withValues(alpha: 0.2),
+                ),
+                color: context.colorScheme.surface,
               ),
-              color: context.colorScheme.surface,
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  HeliumTime.format(time),
-                  style: AppStyles.formText(context),
-                ),
-                Icon(
-                  Icons.access_time,
-                  color: context.colorScheme.primary,
-                  size: Responsive.getIconSize(
-                    context,
-                    mobile: 18,
-                    tablet: 20,
-                    desktop: 22,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    HeliumTime.format(time),
+                    style: AppStyles.formText(context),
                   ),
-                ),
-              ],
+                  Icon(
+                    Icons.access_time,
+                    color: context.colorScheme.primary,
+                    size: Responsive.getIconSize(
+                      context,
+                      mobile: 18,
+                      tablet: 20,
+                      desktop: 22,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),

@@ -134,42 +134,46 @@ class CourseDetailsState extends State<CourseDetails> {
                           children: [
                             Text('From', style: AppStyles.formLabel(context)),
                             const SizedBox(height: 9),
-                            GestureDetector(
-                              onTap: () => _selectDate(context, true),
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 12,
-                                  vertical: 12,
-                                ),
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(6),
-                                  border: Border.all(
-                                    color: context.colorScheme.outline
-                                        .withValues(alpha: 0.2),
+                            Semantics(
+                              label: 'Pick start date',
+                              button: true,
+                              child: GestureDetector(
+                                onTap: () => _selectDate(context, true),
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 12,
+                                    vertical: 12,
                                   ),
-                                  color: context.colorScheme.surface,
-                                ),
-                                child: Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Text(
-                                      HeliumDateTime.formatDate(
-                                        formController.startDate!,
-                                      ),
-                                      style: AppStyles.formText(context),
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(6),
+                                    border: Border.all(
+                                      color: context.colorScheme.outline
+                                          .withValues(alpha: 0.2),
                                     ),
-                                    Icon(
-                                      Icons.calendar_today,
-                                      color: context.colorScheme.primary,
-                                      size: Responsive.getIconSize(
-                                        context,
-                                        mobile: 18,
-                                        tablet: 20,
-                                        desktop: 22,
+                                    color: context.colorScheme.surface,
+                                  ),
+                                  child: Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Text(
+                                        HeliumDateTime.formatDate(
+                                          formController.startDate!,
+                                        ),
+                                        style: AppStyles.formText(context),
                                       ),
-                                    ),
-                                  ],
+                                      Icon(
+                                        Icons.calendar_today,
+                                        color: context.colorScheme.primary,
+                                        size: Responsive.getIconSize(
+                                          context,
+                                          mobile: 18,
+                                          tablet: 20,
+                                          desktop: 22,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
                                 ),
                               ),
                             ),
@@ -183,42 +187,46 @@ class CourseDetailsState extends State<CourseDetails> {
                           children: [
                             Text('To', style: AppStyles.formLabel(context)),
                             const SizedBox(height: 9),
-                            GestureDetector(
-                              onTap: () => _selectDate(context, false),
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 12,
-                                  vertical: 12,
-                                ),
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(6),
-                                  border: Border.all(
-                                    color: context.colorScheme.outline
-                                        .withValues(alpha: 0.2),
+                            Semantics(
+                              label: 'Pick end date',
+                              button: true,
+                              child: GestureDetector(
+                                onTap: () => _selectDate(context, false),
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 12,
+                                    vertical: 12,
                                   ),
-                                  color: context.colorScheme.surface,
-                                ),
-                                child: Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Text(
-                                      HeliumDateTime.formatDate(
-                                        formController.endDate!,
-                                      ),
-                                      style: AppStyles.formText(context),
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(6),
+                                    border: Border.all(
+                                      color: context.colorScheme.outline
+                                          .withValues(alpha: 0.2),
                                     ),
-                                    Icon(
-                                      Icons.calendar_today,
-                                      color: context.colorScheme.primary,
-                                      size: Responsive.getIconSize(
-                                        context,
-                                        mobile: 18,
-                                        tablet: 20,
-                                        desktop: 22,
+                                    color: context.colorScheme.surface,
+                                  ),
+                                  child: Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Text(
+                                        HeliumDateTime.formatDate(
+                                          formController.endDate!,
+                                        ),
+                                        style: AppStyles.formText(context),
                                       ),
-                                    ),
-                                  ],
+                                      Icon(
+                                        Icons.calendar_today,
+                                        color: context.colorScheme.primary,
+                                        size: Responsive.getIconSize(
+                                          context,
+                                          mobile: 18,
+                                          tablet: 20,
+                                          desktop: 22,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
                                 ),
                               ),
                             ),

@@ -1149,13 +1149,17 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
         ),
       );
     } else {
-      return IconButton.outlined(
-        key: key,
-        onPressed: _goToToday,
-        icon: icon,
-        style: IconButton.styleFrom(
-          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-          side: BorderSide(color: context.colorScheme.primary),
+      return Semantics(
+        label: 'Today',
+        button: true,
+        child: IconButton.outlined(
+          key: key,
+          onPressed: _goToToday,
+          icon: icon,
+          style: IconButton.styleFrom(
+            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            side: BorderSide(color: context.colorScheme.primary),
+          ),
         ),
       );
     }
@@ -1195,17 +1199,21 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
           const SizedBox(width: 4),
           if (showNavButtons) ...[
             PrintHidden(
-              child: IconButton(
-                key: const Key(PlannerScreen.calendarPrevButtonKey),
-                icon: Icon(
-                  Icons.chevron_left,
-                  color: context.colorScheme.primary,
-                ),
-                onPressed: _calendarController.backward,
-                padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(),
-                style: IconButton.styleFrom(
-                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              child: Semantics(
+                label: 'Previous',
+                button: true,
+                child: IconButton(
+                  key: const Key(PlannerScreen.calendarPrevButtonKey),
+                  icon: Icon(
+                    Icons.chevron_left,
+                    color: context.colorScheme.primary,
+                  ),
+                  onPressed: _calendarController.backward,
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(),
+                  style: IconButton.styleFrom(
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  ),
                 ),
               ),
             ),
@@ -1224,10 +1232,14 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
                 ),
               Material(
                 color: Colors.transparent,
-                child: InkWell(
-                  onTap: _openDatePicker,
-                  borderRadius: BorderRadius.circular(16),
-                  child: _buildHeaderLabelRow(headerText),
+                child: Semantics(
+                  label: 'Pick date',
+                  button: true,
+                  child: InkWell(
+                    onTap: _openDatePicker,
+                    borderRadius: BorderRadius.circular(16),
+                    child: _buildHeaderLabelRow(headerText),
+                  ),
                 ),
               ),
             ],
@@ -1236,17 +1248,21 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
             SizedBox(width: Responsive.isMobile(context) ? 2 : 4),
           if (showNavButtons)
             PrintHidden(
-              child: IconButton(
-                key: const Key(PlannerScreen.calendarNextButtonKey),
-                icon: Icon(
-                  Icons.chevron_right,
-                  color: context.colorScheme.primary,
-                ),
-                onPressed: _calendarController.forward,
-                padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(),
-                style: IconButton.styleFrom(
-                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              child: Semantics(
+                label: 'Next',
+                button: true,
+                child: IconButton(
+                  key: const Key(PlannerScreen.calendarNextButtonKey),
+                  icon: Icon(
+                    Icons.chevron_right,
+                    color: context.colorScheme.primary,
+                  ),
+                  onPressed: _calendarController.forward,
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(),
+                  style: IconButton.styleFrom(
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  ),
                 ),
               ),
             ),
@@ -1557,27 +1573,31 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
           Builder(
             builder: (context) {
               final hasSearchQuery = _hasSearchQuery();
-              return IconButton.outlined(
-                key: const Key(PlannerScreen.searchButtonKey),
-                onPressed: () {
-                  setState(() {
-                    _isFilterExpanded = false;
-                    _isSearchExpanded = true;
-                    _searchFocusNode.requestFocus();
-                  });
-                },
-                icon: const Icon(Icons.search),
-                style: IconButton.styleFrom(
-                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                  backgroundColor: hasSearchQuery
-                      ? context.colorScheme.primary
-                      : null,
-                  foregroundColor: hasSearchQuery
-                      ? context.colorScheme.onPrimary
-                      : null,
-                  side: _isSearchExpanded
-                      ? BorderSide.none
-                      : BorderSide(color: context.colorScheme.primary),
+              return Semantics(
+                label: 'Search',
+                button: true,
+                child: IconButton.outlined(
+                  key: const Key(PlannerScreen.searchButtonKey),
+                  onPressed: () {
+                    setState(() {
+                      _isFilterExpanded = false;
+                      _isSearchExpanded = true;
+                      _searchFocusNode.requestFocus();
+                    });
+                  },
+                  icon: const Icon(Icons.search),
+                  style: IconButton.styleFrom(
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    backgroundColor: hasSearchQuery
+                        ? context.colorScheme.primary
+                        : null,
+                    foregroundColor: hasSearchQuery
+                        ? context.colorScheme.onPrimary
+                        : null,
+                    side: _isSearchExpanded
+                        ? BorderSide.none
+                        : BorderSide(color: context.colorScheme.primary),
+                  ),
                 ),
               );
             },
@@ -2910,14 +2930,18 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
     if (plannerItem is CourseScheduleEventModel &&
         !Responsive.isMobile(context)) {
       buttons.add(
-        HeliumIconButton(
-          onPressed: () => _openPlannerItem(
-            plannerItem,
-            occurrenceDate: occurrenceDate,
-            hideWebsiteLink: true,
+        Semantics(
+          label: 'More',
+          button: true,
+          child: HeliumIconButton(
+            onPressed: () => _openPlannerItem(
+              plannerItem,
+              occurrenceDate: occurrenceDate,
+              hideWebsiteLink: true,
+            ),
+            icon: Icons.more_vert,
+            color: foregroundColor,
           ),
-          icon: Icons.more_vert,
-          color: foregroundColor,
         ),
       );
     }
@@ -2927,20 +2951,28 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
       plannerItem,
     )) {
       buttons.add(
-        HeliumIconButton(
-          onPressed: () => _openPlannerItem(plannerItem),
-          icon: Icons.edit_outlined,
-          color: foregroundColor,
+        Semantics(
+          label: 'Edit',
+          button: true,
+          child: HeliumIconButton(
+            onPressed: () => _openPlannerItem(plannerItem),
+            icon: Icons.edit_outlined,
+            color: foregroundColor,
+          ),
         ),
       );
     }
 
     if (PlannerHelper.shouldShowDeleteButton(plannerItem)) {
       buttons.add(
-        HeliumIconButton(
-          onPressed: () => _deletePlannerItem(context, plannerItem),
-          icon: Icons.delete_outline,
-          color: foregroundColor,
+        Semantics(
+          label: 'Delete',
+          button: true,
+          child: HeliumIconButton(
+            onPressed: () => _deletePlannerItem(context, plannerItem),
+            icon: Icons.delete_outline,
+            color: foregroundColor,
+          ),
         ),
       );
     }

@@ -119,36 +119,40 @@ class _CourseGroupWidgetState
                 children: [
                   Text('From', style: AppStyles.formLabel(context)),
                   const SizedBox(height: 9),
-                  GestureDetector(
-                    onTap: () => _selectDate(context, true),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 12,
-                      ),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(6),
-                        border: Border.all(
-                          color: context.colorScheme.outline
-                              .withValues(alpha: 0.2),
+                  Semantics(
+                    label: 'Pick start date',
+                    button: true,
+                    child: GestureDetector(
+                      onTap: () => _selectDate(context, true),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 12,
                         ),
-                        color: context.colorScheme.surface,
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            HeliumDateTime.formatDate(
-                              _formController.startDate!,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(6),
+                          border: Border.all(
+                            color: context.colorScheme.outline
+                                .withValues(alpha: 0.2),
+                          ),
+                          color: context.colorScheme.surface,
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              HeliumDateTime.formatDate(
+                                _formController.startDate!,
+                              ),
+                              style: AppStyles.formText(context),
                             ),
-                            style: AppStyles.formText(context),
-                          ),
-                          Icon(
-                            Icons.calendar_today,
-                            color: context.colorScheme.primary,
-                            size: 18,
-                          ),
-                        ],
+                            Icon(
+                              Icons.calendar_today,
+                              color: context.colorScheme.primary,
+                              size: 18,
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ),
@@ -162,36 +166,40 @@ class _CourseGroupWidgetState
                 children: [
                   Text('To', style: AppStyles.formLabel(context)),
                   const SizedBox(height: 9),
-                  GestureDetector(
-                    onTap: () => _selectDate(context, false),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 12,
-                      ),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(6),
-                        border: Border.all(
-                          color: context.colorScheme.outline
-                              .withValues(alpha: 0.2),
+                  Semantics(
+                    label: 'Pick end date',
+                    button: true,
+                    child: GestureDetector(
+                      onTap: () => _selectDate(context, false),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 12,
                         ),
-                        color: context.colorScheme.surface,
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            HeliumDateTime.formatDate(
-                              _formController.endDate!,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(6),
+                          border: Border.all(
+                            color: context.colorScheme.outline
+                                .withValues(alpha: 0.2),
+                          ),
+                          color: context.colorScheme.surface,
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              HeliumDateTime.formatDate(
+                                _formController.endDate!,
+                              ),
+                              style: AppStyles.formText(context),
                             ),
-                            style: AppStyles.formText(context),
-                          ),
-                          Icon(
-                            Icons.calendar_today,
-                            color: context.colorScheme.primary,
-                            size: 18,
-                          ),
-                        ],
+                            Icon(
+                              Icons.calendar_today,
+                              color: context.colorScheme.primary,
+                              size: 18,
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ),

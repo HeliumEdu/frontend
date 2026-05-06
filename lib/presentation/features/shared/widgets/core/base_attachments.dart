@@ -327,28 +327,32 @@ abstract class BaseAttachmentsState<T extends BaseAttachmentsContent>
                 ],
               ),
             ),
-            IconButton(
-              onPressed: () {
-                if (index < filesToUpload.length) {
-                  // Defer setState so any in-progress frame caused by the tap
-                  // gesture completes before the list is mutated and rebuilt
-                  WidgetsBinding.instance.addPostFrameCallback((_) {
-                    if (!mounted) return;
+            Semantics(
+              label: 'Remove from upload',
+              button: true,
+              child: IconButton(
+                onPressed: () {
+                  if (index < filesToUpload.length) {
+                    // Defer setState so any in-progress frame caused by the tap
+                    // gesture completes before the list is mutated and rebuilt
+                    WidgetsBinding.instance.addPostFrameCallback((_) {
+                      if (!mounted) return;
 
-                    setState(() {
-                      filesToUpload.removeAt(index);
+                      setState(() {
+                        filesToUpload.removeAt(index);
+                      });
                     });
-                  });
-                }
-              },
-              icon: Icon(
-                Icons.close,
-                color: context.colorScheme.error,
-                size: Responsive.getIconSize(
-                  context,
-                  mobile: 20,
-                  tablet: 22,
-                  desktop: 24,
+                  }
+                },
+                icon: Icon(
+                  Icons.close,
+                  color: context.colorScheme.error,
+                  size: Responsive.getIconSize(
+                    context,
+                    mobile: 20,
+                    tablet: 22,
+                    desktop: 24,
+                  ),
                 ),
               ),
             ),
@@ -394,31 +398,39 @@ abstract class BaseAttachmentsState<T extends BaseAttachmentsContent>
                 maxLines: 1,
               ),
             ),
-            HeliumIconButton(
-              onPressed: () => _downloadAttachment(attachment),
-              icon: Icons.download_outlined,
-              color: context.semanticColors.success,
+            Semantics(
+              label: 'Download',
+              button: true,
+              child: HeliumIconButton(
+                onPressed: () => _downloadAttachment(attachment),
+                icon: Icons.download_outlined,
+                color: context.semanticColors.success,
+              ),
             ),
             const SizedBox(width: 8),
-            HeliumIconButton(
-              onPressed: () {
-                showConfirmDeleteDialog(
-                  parentContext: context,
-                  item: attachment,
-                  onDelete: (a) {
-                    context.read<AttachmentBloc>().add(
-                      DeleteAttachmentEvent(
-                        id: a.id,
-                        courseId: a.course,
-                        eventId: a.event,
-                        homeworkId: a.homework,
-                      ),
-                    );
-                  },
-                );
-              },
-              icon: Icons.delete_outline,
-              color: context.colorScheme.error,
+            Semantics(
+              label: 'Delete',
+              button: true,
+              child: HeliumIconButton(
+                onPressed: () {
+                  showConfirmDeleteDialog(
+                    parentContext: context,
+                    item: attachment,
+                    onDelete: (a) {
+                      context.read<AttachmentBloc>().add(
+                        DeleteAttachmentEvent(
+                          id: a.id,
+                          courseId: a.course,
+                          eventId: a.event,
+                          homeworkId: a.homework,
+                        ),
+                      );
+                    },
+                  );
+                },
+                icon: Icons.delete_outline,
+                color: context.colorScheme.error,
+              ),
             ),
           ],
         ),

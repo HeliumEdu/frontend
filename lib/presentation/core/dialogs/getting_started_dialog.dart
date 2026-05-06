@@ -307,14 +307,18 @@ class _GettingStartedDialogWidgetState
             width: 40,
             child: isFirst
                 ? const SizedBox.shrink()
-                : IconButton(
-                    onPressed: () => _pageController.previousPage(
-                      duration: const Duration(milliseconds: 300),
-                      curve: Curves.easeInOut,
+                : Semantics(
+                    label: 'Previous',
+                    button: true,
+                    child: IconButton(
+                      onPressed: () => _pageController.previousPage(
+                        duration: const Duration(milliseconds: 300),
+                        curve: Curves.easeInOut,
+                      ),
+                      icon: const Icon(Icons.chevron_left),
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(),
                     ),
-                    icon: const Icon(Icons.chevron_left),
-                    padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(),
                   ),
           ),
           Expanded(
@@ -353,14 +357,18 @@ class _GettingStartedDialogWidgetState
             width: 40,
             child: isLast
                 ? const SizedBox.shrink()
-                : IconButton(
-                    onPressed: () => _pageController.nextPage(
-                      duration: const Duration(milliseconds: 300),
-                      curve: Curves.easeInOut,
+                : Semantics(
+                    label: 'Next',
+                    button: true,
+                    child: IconButton(
+                      onPressed: () => _pageController.nextPage(
+                        duration: const Duration(milliseconds: 300),
+                        curve: Curves.easeInOut,
+                      ),
+                      icon: const Icon(Icons.chevron_right),
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(),
                     ),
-                    icon: const Icon(Icons.chevron_right),
-                    padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(),
                   ),
           ),
         ],

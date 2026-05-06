@@ -1327,17 +1327,21 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
             ),
             // Expand/collapse chevron
             PrintHidden(
-              child: IconButton(
-                icon: AnimatedRotation(
-                  turns: _graphExpanded ? 0.5 : 0,
-                  duration: const Duration(milliseconds: 300),
-                  child: const Icon(Icons.keyboard_arrow_down),
+              child: Semantics(
+                label: _graphExpanded ? 'Collapse' : 'Expand',
+                button: true,
+                child: IconButton(
+                  icon: AnimatedRotation(
+                    turns: _graphExpanded ? 0.5 : 0,
+                    duration: const Duration(milliseconds: 300),
+                    child: const Icon(Icons.keyboard_arrow_down),
+                  ),
+                  onPressed: () {
+                    setState(() {
+                      _graphExpanded = !_graphExpanded;
+                    });
+                  },
                 ),
-                onPressed: () {
-                  setState(() {
-                    _graphExpanded = !_graphExpanded;
-                  });
-                },
               ),
             ),
           ],
@@ -2302,22 +2306,26 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
               ),
             ),
             PrintHidden(
-              child: IconButton(
-                icon: AnimatedRotation(
-                  turns: isExpanded ? 0.5 : 0,
-                  duration: const Duration(milliseconds: 300),
-                  child: Icon(
-                    Icons.keyboard_arrow_down,
-                    color: context.colorScheme.primary,
-                    size: Responsive.getIconSize(
-                      context,
-                      mobile: 20,
-                      tablet: 22,
-                      desktop: 24,
+              child: Semantics(
+                label: isExpanded ? 'Collapse' : 'Expand',
+                button: true,
+                child: IconButton(
+                  icon: AnimatedRotation(
+                    turns: isExpanded ? 0.5 : 0,
+                    duration: const Duration(milliseconds: 300),
+                    child: Icon(
+                      Icons.keyboard_arrow_down,
+                      color: context.colorScheme.primary,
+                      size: Responsive.getIconSize(
+                        context,
+                        mobile: 20,
+                        tablet: 22,
+                        desktop: 24,
+                      ),
                     ),
                   ),
+                  onPressed: () => _toggleExpandedCourse(course.id),
                 ),
-                onPressed: () => _toggleExpandedCourse(course.id),
               ),
             ),
           ],

@@ -293,20 +293,24 @@ class _NotebookDataGridState extends BaseDataGridState<NotebookDataGrid> {
           },
           endSwipeActionsBuilder: (context, row, rowIndex) {
             final note = _dataSource.getNoteFromRow(row);
-            return GestureDetector(
-              onTap: () {
-                if (note != null) {
-                  widget.onDelete(context, note);
-                }
-                _dataSource.notifyListeners();
-              },
-              child: Container(
-                color: context.colorScheme.error,
-                alignment: Alignment.centerRight,
-                padding: const EdgeInsets.only(right: 24),
-                child: Icon(
-                  Icons.delete_outline,
-                  color: context.colorScheme.onError,
+            return Semantics(
+              label: 'Delete',
+              button: true,
+              child: GestureDetector(
+                onTap: () {
+                  if (note != null) {
+                    widget.onDelete(context, note);
+                  }
+                  _dataSource.notifyListeners();
+                },
+                child: Container(
+                  color: context.colorScheme.error,
+                  alignment: Alignment.centerRight,
+                  padding: const EdgeInsets.only(right: 24),
+                  child: Icon(
+                    Icons.delete_outline,
+                    color: context.colorScheme.onError,
+                  ),
                 ),
               ),
             );
@@ -900,17 +904,25 @@ class NotesDataSource extends BaseDataGridSource {
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
               if (!isCompact) ...[
-                HeliumIconButton(
-                  onPressed: () => onEdit(note),
-                  icon: Icons.edit_outlined,
-                  color: context.colorScheme.onSurface,
+                Semantics(
+                  label: 'Edit',
+                  button: true,
+                  child: HeliumIconButton(
+                    onPressed: () => onEdit(note),
+                    icon: Icons.edit_outlined,
+                    color: context.colorScheme.onSurface,
+                  ),
                 ),
                 const SizedBox(width: 4),
               ],
-              HeliumIconButton(
-                onPressed: () => onDelete(context, note),
-                icon: Icons.delete_outline,
-                color: context.colorScheme.onSurface,
+              Semantics(
+                label: 'Delete',
+                button: true,
+                child: HeliumIconButton(
+                  onPressed: () => onDelete(context, note),
+                  icon: Icons.delete_outline,
+                  color: context.colorScheme.onSurface,
+                ),
               ),
             ],
           ),

@@ -61,19 +61,23 @@ class ErrorContainer extends StatelessWidget {
           ),
           if (onDismiss != null) ...[
             const SizedBox(width: 8),
-            IconButton(
-              onPressed: onDismiss,
-              icon: Icon(Icons.close, color: errorColor),
-              iconSize: Responsive.getIconSize(
-                context,
-                mobile: 16,
-                tablet: 18,
-                desktop: 20,
-              ),
-              style: IconButton.styleFrom(
-                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                minimumSize: Size.zero,
-                padding: EdgeInsets.zero,
+            Semantics(
+              label: 'Dismiss',
+              button: true,
+              child: IconButton(
+                onPressed: onDismiss,
+                icon: Icon(Icons.close, color: errorColor),
+                iconSize: Responsive.getIconSize(
+                  context,
+                  mobile: 16,
+                  tablet: 18,
+                  desktop: 20,
+                ),
+                style: IconButton.styleFrom(
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  minimumSize: Size.zero,
+                  padding: EdgeInsets.zero,
+                ),
               ),
             ),
           ],

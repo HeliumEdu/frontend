@@ -257,6 +257,7 @@ class PreferencesScreenState extends State<PreferencesScreen> {
               children: [
                 SizedBox(width: 160, child: Text('Color for Events', style: AppStyles.formLabel(context))),
                 ColorSelector(
+                  semanticLabel: 'Pick color for Events',
                   selectedColor: _selectedEventColor,
                   onColorSelected: (color) {
                     setState(() {
@@ -272,6 +273,7 @@ class PreferencesScreenState extends State<PreferencesScreen> {
               children: [
                 SizedBox(width: 160, child: Text('Color for grades', style: AppStyles.formLabel(context))),
                 ColorSelector(
+                  semanticLabel: 'Pick color for grades',
                   selectedColor: _selectedGradeColor,
                   onColorSelected: (color) {
                     setState(() {
@@ -287,6 +289,7 @@ class PreferencesScreenState extends State<PreferencesScreen> {
               children: [
                 SizedBox(width: 160, child: Text('Color for resources', style: AppStyles.formLabel(context))),
                 ColorSelector(
+                  semanticLabel: 'Pick color for resources',
                   selectedColor: _selectedResourceColor,
                   onColorSelected: (color) {
                     setState(() {
