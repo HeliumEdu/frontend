@@ -87,55 +87,58 @@ class ChangeEmailScreenState extends State<ChangeEmailScreen> {
         }
       },
       child: SingleChildScrollView(
-        child: Form(
-          key: _formController.formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              if (_emailChanging != null && _emailChanging!.isNotEmpty) ...[
-                WarningContainer(
-                  text:
-                      'Change pending, click the link sent to $_emailChanging to verify',
-                  icon: Icons.schedule,
+        child: AutofillGroup(
+          child: Form(
+            key: _formController.formKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (_emailChanging != null && _emailChanging!.isNotEmpty) ...[
+                  WarningContainer(
+                    text:
+                        'Change pending, click the link sent to $_emailChanging to verify',
+                    icon: Icons.schedule,
+                  ),
+                  const SizedBox(height: 16),
+                ],
+                LabelAndTextFormField(
+                  label: 'New email',
+                  autofocus: kIsWeb,
+                  prefixIcon: Icons.email_outlined,
+                  keyboardType: TextInputType.emailAddress,
+                  controller: _formController.newEmailController,
+                  validator: _validateNewEmail,
+                  onFieldSubmitted: (value) => onSubmit(),
                 ),
-                const SizedBox(height: 16),
-              ],
-              LabelAndTextFormField(
-                label: 'New email',
-                autofocus: kIsWeb,
-                prefixIcon: Icons.email_outlined,
-                keyboardType: TextInputType.emailAddress,
-                controller: _formController.newEmailController,
-                validator: _validateNewEmail,
-                onFieldSubmitted: (value) => onSubmit(),
-              ),
-              const SizedBox(height: 14),
+                const SizedBox(height: 14),
 
-              LabelAndTextFormField(
-                label: 'Current password',
-                prefixIcon: Icons.lock,
-                controller: _formController.oldPasswordController,
-                validator: BasicFormController.validatePassword,
-                onFieldSubmitted: (value) => onSubmit(),
-                obscureText: !_formController.isPasswordVisible,
-                suffixIcon: IconButton(
-                  onPressed: () {
-                    setState(() {
-                      _formController.isPasswordVisible =
-                          !_formController.isPasswordVisible;
-                    });
-                  },
-                  icon: Icon(
-                    _formController.isPasswordVisible
-                        ? Icons.visibility
-                        : Icons.visibility_off,
-                    color: context.colorScheme.onSurface,
+                LabelAndTextFormField(
+                  label: 'Current password',
+                  prefixIcon: Icons.lock,
+                  controller: _formController.oldPasswordController,
+                  validator: BasicFormController.validatePassword,
+                  onFieldSubmitted: (value) => onSubmit(),
+                  obscureText: !_formController.isPasswordVisible,
+                  autofillHints: const [AutofillHints.password],
+                  suffixIcon: IconButton(
+                    onPressed: () {
+                      setState(() {
+                        _formController.isPasswordVisible =
+                            !_formController.isPasswordVisible;
+                      });
+                    },
+                    icon: Icon(
+                      _formController.isPasswordVisible
+                          ? Icons.visibility
+                          : Icons.visibility_off,
+                      color: context.colorScheme.onSurface,
+                    ),
                   ),
                 ),
-              ),
 
-              const SizedBox(height: 12),
-            ],
+                const SizedBox(height: 12),
+              ],
+            ),
           ),
         ),
       ),
