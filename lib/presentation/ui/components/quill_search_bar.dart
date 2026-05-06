@@ -58,7 +58,7 @@ class _QuillSearchBarState extends State<QuillSearchBar> {
   }
 
   void _onTextChanged(String text) {
-    _searchText = text;
+    _searchText = text.trim();
     _searchTimer?.cancel();
     _searchTimer = Timer(const Duration(milliseconds: 300), _findText);
   }

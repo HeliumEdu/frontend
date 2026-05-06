@@ -39,6 +39,7 @@ import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/print_helpers.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
+import 'package:heliumapp/utils/search_helpers.dart';
 import 'package:heliumapp/utils/sort_helpers.dart';
 import 'package:logging/logging.dart';
 
@@ -396,10 +397,11 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen>
     var filtered = _notes;
 
     if (_searchQuery != null && _searchQuery!.isNotEmpty) {
-      final query = _searchQuery!.toLowerCase();
       filtered = filtered.where((note) {
-        return note.title.toLowerCase().contains(query) ||
-            (note.linkedEntityTitle?.toLowerCase().contains(query) ?? false);
+        return SearchHelper.matchesAny(
+          [note.title, note.linkedEntityTitle],
+          _searchQuery!,
+        );
       }).toList();
     }
 

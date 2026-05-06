@@ -9,6 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/data/models/drop_down_item.dart';
 import 'package:heliumapp/utils/app_style.dart';
+import 'package:heliumapp/utils/search_helpers.dart';
 
 class SearchableDropdown<T> extends StatefulWidget {
   final String? label;
@@ -29,8 +30,9 @@ class SearchableDropdown<T> extends StatefulWidget {
 }
 
 class _SearchableDropdownState<T> extends State<SearchableDropdown<T>> {
-  // ASCII-only: stripping non-[a-z0-9] also removes diacritics. Fine for the
-  // current timezone labels; revisit if reused for non-ASCII content.
+  // Drops separators in ID-like labels (e.g. "America/Los_Angeles") so the
+  // user can type "losangeles". Diacritic folding happens upstream in
+  // SearchHelper.normalize.
   static final _nonAlphanumeric = RegExp(r'[^a-z0-9]');
 
   static const double _optionItemExtent = 56.0;
@@ -67,7 +69,7 @@ class _SearchableDropdownState<T> extends State<SearchableDropdown<T>> {
   }
 
   String _normalize(String s) =>
-      s.toLowerCase().replaceAll(_nonAlphanumeric, '');
+      SearchHelper.normalize(s).replaceAll(_nonAlphanumeric, '');
 
   void _revertToSelected() {
     if (_fieldController != null && _selectedItem != null) {

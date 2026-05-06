@@ -62,6 +62,7 @@ dependencies:
   go_router: 17.2.3
   dio_smart_retry: 7.0.1
   html: 0.15.6
+  diacritic: 0.1.6
 
 dev_dependencies:
   flutter_test:
