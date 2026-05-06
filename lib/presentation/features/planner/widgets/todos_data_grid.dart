@@ -227,8 +227,10 @@ class TodosDataGridState extends BaseDataGridState<TodosDataGrid> {
                   );
                   setState(() {});
                 },
-                trailingAction: TextButton.icon(
-                  onPressed: _isExporting
+                trailingAction: Builder(builder: (context) {
+                  final isDisabled = _isExporting || totalItems == 0;
+                  return TextButton.icon(
+                  onPressed: isDisabled
                       ? null
                       : () async {
                           setState(() => _isExporting = true);
