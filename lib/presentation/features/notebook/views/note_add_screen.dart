@@ -68,7 +68,6 @@ Future<void> showNoteAdd(
 
   return showScreenAsDialog(
     context,
-    barrierDismissible: false,
     child: BlocProvider<NoteBloc>.value(
       value: noteBloc,
       child: NoteAddScreen(
@@ -177,69 +176,105 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
   ScreenType get screenType => ScreenType.entityPage;
 
   @override
-  Function? get saveAction {
-    return () {
-      if (isLoading || isSubmitting) return;
+  Function get cancelAction => _saveAndClose;
 
-      if (!_formController.validateAndScrollToError()) {
-        showSnackBar(
-          context,
-          'Fix the highlighted fields, then try again.',
-          type: SnackType.error,
-        );
-        return;
-      }
+  @override
+  Function? get saveAction => _saveAndClose;
 
-      final title = _titleController.text.trim();
-      final bodyIsEmpty = _quillController.document
-          .toPlainText()
-          .trim()
-          .isEmpty;
+  void _closeImmediately() {
+    if (!mounted) return;
+    Navigator.of(context).pop();
+  }
 
-      if (_note?.id == null &&
-          (widget.linkEventId != null ||
-          widget.linkHomeworkId != null ||
-          widget.linkResourceId != null) &&
-          bodyIsEmpty) {
-        showSnackBar(
-          context,
-          'Note was empty, so nothing to save',
-          useRootMessenger: true,
-        );
-        cancelAction();
-        return;
-      }
+  void _saveAndClose() {
+    if (!mounted) return;
 
+    // Initial fetch still in flight; nothing to save
+    if (isLoading) {
+      _closeImmediately();
+      return;
+    }
+
+    // Manual save already in flight; bloc listener will close on completion
+    if (_saveStatus == SaveStatus.saving && !_isAutoSaving) return;
+
+    if (_isNoteEmpty) {
+      _closeImmediately();
+      return;
+    }
+
+    if (_saveStatus == SaveStatus.saved) {
+      _closeImmediately();
+      return;
+    }
+
+    if (!_formController.validateAndScrollToError()) {
+      showSnackBar(
+        context,
+        'Fix the highlighted fields, then try again.',
+        type: SnackType.error,
+      );
+      return;
+    }
+
+    // New linked note with empty body: skip stub creation
+    final bodyIsEmpty =
+        _quillController.document.toPlainText().trim().isEmpty;
+    if (_note?.id == null &&
+        (widget.linkEventId != null ||
+            widget.linkHomeworkId != null ||
+            widget.linkResourceId != null) &&
+        bodyIsEmpty) {
+      showSnackBar(
+        context,
+        'Note was empty, so nothing to save',
+        useRootMessenger: true,
+      );
+      _closeImmediately();
+      return;
+    }
+
+    // Auto-save in flight: upgrade to manual so bloc listener closes
+    if (_saveStatus == SaveStatus.saving && _isAutoSaving) {
       setState(() {
-        isSubmitting = true;
         _isAutoSaving = false;
+        isSubmitting = true;
       });
+      return;
+    }
 
-      final content = _quillController.document.toDelta().toJson();
+    _debounceTimer?.cancel();
+    setState(() {
+      isSubmitting = true;
+      _isAutoSaving = false;
+      _saveStatus = SaveStatus.saving;
+    });
 
-      if (_note?.id == null) {
-        context.read<NoteBloc>().add(
-          CreateNoteEvent(
-            origin: EventOrigin.subScreen,
-            request: NoteRequestModel(
-              title: title,
-              content: {'ops': content},
-              homeworkId: widget.linkHomeworkId,
-              eventId: widget.linkEventId,
-              resourceId: widget.linkResourceId,
-            ),
+    final title = _titleController.text.trim();
+    final content = _quillController.document.toDelta().toJson();
+
+    if (_note?.id == null) {
+      context.read<NoteBloc>().add(
+        CreateNoteEvent(
+          origin: EventOrigin.subScreen,
+          request: NoteRequestModel(
+            title: title,
+            content: {'ops': content},
+            homeworkId: widget.linkHomeworkId,
+            eventId: widget.linkEventId,
+            resourceId: widget.linkResourceId,
           ),
-        );
-      } else {
-        context.read<NoteBloc>().add(
-          UpdateNoteEvent(
-            origin: EventOrigin.subScreen,
-            noteId: _note!.id,
-            request: NoteRequestModel(title: title, content: {'ops': content}),
-          ),
-        );
-      }
-    };
+        ),
+      );
+    } else {
+      context.read<NoteBloc>().add(
+        UpdateNoteEvent(
+          origin: EventOrigin.subScreen,
+          noteId: _note!.id,
+          request: NoteRequestModel(title: title, content: {'ops': content}),
+        ),
+      );
+    }
   }
 
   @override
@@ -301,7 +336,7 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
             } else {
               // Manual save - show message and close
               showSnackBar(context, 'Note created', useRootMessenger: true);
-              cancelAction();
+              _closeImmediately();
             }
           } else if (state is NoteUpdated) {
             if (_isAutoSaving) {
@@ -315,11 +350,11 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
               _isAutoSaving = false;
             } else {
               // Manual save - close
-              cancelAction();
+              _closeImmediately();
             }
           } else if (state is NoteDeleted) {
             showSnackBar(context, 'Note deleted', useRootMessenger: true);
-            cancelAction();
+            _closeImmediately();
           }
         },
       ),
@@ -334,10 +369,18 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
 
     final isCompact = Responsive.useCompactLayout(context);
 
-    if (isCompact) {
-      return Expanded(child: _buildCompactLayout(context, isCompact));
-    }
-    return Expanded(child: _buildDesktopLayout(context, isCompact));
+    return Expanded(
+      child: PopScope(
+        canPop: false,
+        onPopInvokedWithResult: (didPop, _) {
+          if (didPop) return;
+          _saveAndClose();
+        },
+        child: isCompact
+            ? _buildCompactLayout(context, isCompact)
+            : _buildDesktopLayout(context, isCompact),
+      ),
+    );
   }
 
   String _getSavedContentAsJson() {
