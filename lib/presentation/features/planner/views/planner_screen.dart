@@ -1211,41 +1211,26 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
             ),
             const SizedBox(width: 4),
           ],
-          Material(
-            color: Colors.transparent,
-            child: InkWell(
-              onTap: () {
-                _openDatePicker();
-              },
-              borderRadius: BorderRadius.circular(16),
-              child: Padding(
-                padding: EdgeInsets.only(
-                  left: Responsive.isMobile(context) ? 4 : 8,
-                  top: 8,
-                  bottom: 8,
+          Stack(
+            alignment: Alignment.center,
+            children: [
+              for (final sample in _calendarHeaderSamples())
+                Visibility(
+                  visible: false,
+                  maintainSize: true,
+                  maintainAnimation: true,
+                  maintainState: true,
+                  child: _buildHeaderLabelRow(sample),
                 ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Text(
-                      headerText,
-                      style: AppStyles.headingText(
-                        context,
-                      ).copyWith(color: context.colorScheme.onSurface),
-                    ),
-                    const SizedBox(width: 2),
-                    PrintHidden(
-                      child: Icon(
-                        Icons.arrow_drop_down,
-                        color: context.colorScheme.primary,
-                        size: 24,
-                      ),
-                    ),
-                  ],
+              Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  onTap: _openDatePicker,
+                  borderRadius: BorderRadius.circular(16),
+                  child: _buildHeaderLabelRow(headerText),
                 ),
               ),
-            ),
+            ],
           ),
           if (showNavButtons)
             SizedBox(width: Responsive.isMobile(context) ? 2 : 4),
@@ -1604,14 +1589,14 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
 
   String _buildHeaderDate() {
     final displayDate = _calendarController.displayDate!;
-    final abbreviateMonth = Responsive.isMobile(context);
+    final isCompact = Responsive.isCompact(context);
 
     switch (_calendarController.view) {
       case CalendarView.day:
         return HeliumDateTime.formatDate(
           displayDate,
-          abbreviateMonth: abbreviateMonth,
-          showYear: !Responsive.isMobile(context),
+          abbreviateMonth: isCompact,
+          showYear: !isCompact,
         );
       case CalendarView.month:
       case CalendarView.week:
@@ -1619,9 +1604,67 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
       default:
         return HeliumDateTime.formatMonthAndYear(
           displayDate,
-          abbreviateMonth: abbreviateMonth,
+          abbreviateMonth: isCompact,
         );
     }
+  }
+
+  /// Sample labels for every month in the current view's format. Used to
+  /// reserve a fixed-width slot for the header label so the chevrons don't
+  /// shift as the user pages between months. Sampled rather than measured
+  /// via TextPainter so the size honors the real font (GoogleFonts loads
+  /// asynchronously, so TextPainter can disagree with the paint pass).
+  List<String> _calendarHeaderSamples() {
+    final isCompact = Responsive.isCompact(context);
+    return List.generate(12, (i) {
+      final probe = DateTime(2025, i + 1, 25);
+      switch (_calendarController.view) {
+        case CalendarView.day:
+          return HeliumDateTime.formatDate(
+            probe,
+            abbreviateMonth: isCompact,
+            showYear: !isCompact,
+          );
+        case CalendarView.month:
+        case CalendarView.week:
+        case CalendarView.schedule:
+        default:
+          return HeliumDateTime.formatMonthAndYear(
+            probe,
+            abbreviateMonth: isCompact,
+          );
+      }
+    });
+  }
+
+  Widget _buildHeaderLabelRow(String text) {
+    return Padding(
+      padding: EdgeInsets.only(
+        left: Responsive.isMobile(context) ? 4 : 8,
+        top: 8,
+        bottom: 8,
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Text(
+            text,
+            style: AppStyles.headingText(
+              context,
+            ).copyWith(color: context.colorScheme.onSurface),
+          ),
+          const SizedBox(width: 2),
+          PrintHidden(
+            child: Icon(
+              Icons.arrow_drop_down,
+              color: context.colorScheme.primary,
+              size: 24,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   bool _hasCoursesFilter() {
