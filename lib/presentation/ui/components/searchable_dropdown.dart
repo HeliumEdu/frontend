@@ -212,12 +212,37 @@ class _SearchableDropdownState<T> extends State<SearchableDropdown<T>> {
                     controller: textEditingController,
                     focusNode: focusNode,
                     enabled: !isDisabled,
+                    mouseCursor: isDisabled
+                        ? SystemMouseCursors.basic
+                        : SystemMouseCursors.click,
                     style: AppStyles.formText(context),
                     onFieldSubmitted: (_) => _commitSingleMatchOrRevert(),
+                    onTapOutside: (_) => focusNode.unfocus(),
                     decoration: InputDecoration(
-                      suffixIcon: Icon(
-                        Icons.keyboard_arrow_down,
-                        color: iconColor,
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          Icons.keyboard_arrow_down,
+                          color: iconColor,
+                        ),
+                        mouseCursor: SystemMouseCursors.basic,
+                        hoverColor: Colors.transparent,
+                        splashColor: Colors.transparent,
+                        highlightColor: Colors.transparent,
+                        focusColor: Colors.transparent,
+                        style: const ButtonStyle(
+                          overlayColor: WidgetStatePropertyAll(
+                            Colors.transparent,
+                          ),
+                        ),
+                        onPressed: isDisabled
+                            ? null
+                            : () {
+                                if (focusNode.hasFocus) {
+                                  focusNode.unfocus();
+                                } else {
+                                  focusNode.requestFocus();
+                                }
+                              },
                       ),
                       contentPadding: const EdgeInsets.only(top: 0, left: 12),
                       enabledBorder: OutlineInputBorder(
@@ -303,7 +328,17 @@ class _SearchableDropdownState<T> extends State<SearchableDropdown<T>> {
                                     size: 20,
                                   )
                                 : null,
-                            onTap: () => onSelected(item),
+                            onTap: () {
+                              if (isSelected) {
+                                // Autocomplete._select bails out when the new
+                                // selection equals the current one, so the
+                                // overlay would stay open. Drive the close
+                                // via focus loss instead.
+                                _focusNode?.unfocus();
+                              } else {
+                                onSelected(item);
+                              }
+                            },
                           );
                         },
                       ),
