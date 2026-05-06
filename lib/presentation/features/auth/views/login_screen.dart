@@ -222,15 +222,18 @@ class _LoginScreenViewState extends BasePageScreenState<LoginScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
-                  TextButton(
-                    onPressed: () {
-                      context.go(AppRoute.forgotPasswordScreen);
-                    },
-                    child: Text(
-                      'Forgot your password?',
-                      style: AppStyles.standardBodyText(
-                        context,
-                      ).copyWith(color: context.colorScheme.primary),
+                  ExcludeFocus(
+                    excluding: true,
+                    child: TextButton(
+                      onPressed: () {
+                        context.go(AppRoute.forgotPasswordScreen);
+                      },
+                      child: Text(
+                        'Forgot your password?',
+                        style: AppStyles.standardBodyText(
+                          context,
+                        ).copyWith(color: context.colorScheme.primary),
+                      ),
                     ),
                   ),
                 ],
