@@ -4438,6 +4438,7 @@ class _CheckboxToggle extends StatelessWidget {
             child: Switch(
               value: isToggleOn,
               onChanged: isChecked ? onToggleChanged : null,
+              mouseCursor: SystemMouseCursors.click,
             ),
           ),
         ],
