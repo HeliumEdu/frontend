@@ -83,18 +83,21 @@ class ChangePasswordScreenState extends State<ChangePasswordScreen> {
                   autofillHints: const [AutofillHints.password],
                   suffixIcon: ExcludeFocus(
                     excluding: true,
-                    child: IconButton(
-                      onPressed: () {
-                        setState(() {
-                          _formController.isOldPasswordVisible =
-                              !_formController.isOldPasswordVisible;
-                        });
-                      },
-                      icon: Icon(
-                        _formController.isOldPasswordVisible
-                            ? Icons.visibility
-                            : Icons.visibility_off,
-                        color: context.colorScheme.onSurface,
+                    child: Padding(
+                      padding: const EdgeInsets.only(right: 4.0),
+                      child: IconButton(
+                        onPressed: () {
+                          setState(() {
+                            _formController.isOldPasswordVisible =
+                                !_formController.isOldPasswordVisible;
+                          });
+                        },
+                        icon: Icon(
+                          _formController.isOldPasswordVisible
+                              ? Icons.visibility
+                              : Icons.visibility_off,
+                          color: context.colorScheme.onSurface,
+                        ),
                       ),
                     ),
                   ),
@@ -110,18 +113,21 @@ class ChangePasswordScreenState extends State<ChangePasswordScreen> {
                   autofillHints: const [AutofillHints.newPassword],
                   suffixIcon: ExcludeFocus(
                     excluding: true,
-                    child: IconButton(
-                      onPressed: () {
-                        setState(() {
-                          _formController.isNewPasswordVisible =
-                              !_formController.isNewPasswordVisible;
-                        });
-                      },
-                      icon: Icon(
-                        _formController.isNewPasswordVisible
-                            ? Icons.visibility
-                            : Icons.visibility_off,
-                        color: context.colorScheme.onSurface,
+                    child: Padding(
+                      padding: const EdgeInsets.only(right: 4.0),
+                      child: IconButton(
+                        onPressed: () {
+                          setState(() {
+                            _formController.isNewPasswordVisible =
+                                !_formController.isNewPasswordVisible;
+                          });
+                        },
+                        icon: Icon(
+                          _formController.isNewPasswordVisible
+                              ? Icons.visibility
+                              : Icons.visibility_off,
+                          color: context.colorScheme.onSurface,
+                        ),
                       ),
                     ),
                   ),
@@ -138,18 +144,21 @@ class ChangePasswordScreenState extends State<ChangePasswordScreen> {
                   autofillHints: const [AutofillHints.newPassword],
                   suffixIcon: ExcludeFocus(
                     excluding: true,
-                    child: IconButton(
-                      onPressed: () {
-                        setState(() {
-                          _formController.isConfirmPasswordVisible =
-                              !_formController.isConfirmPasswordVisible;
-                        });
-                      },
-                      icon: Icon(
-                        _formController.isConfirmPasswordVisible
-                            ? Icons.visibility
-                            : Icons.visibility_off,
-                        color: context.colorScheme.onSurface,
+                    child: Padding(
+                      padding: const EdgeInsets.only(right: 4.0),
+                      child: IconButton(
+                        onPressed: () {
+                          setState(() {
+                            _formController.isConfirmPasswordVisible =
+                                !_formController.isConfirmPasswordVisible;
+                          });
+                        },
+                        icon: Icon(
+                          _formController.isConfirmPasswordVisible
+                              ? Icons.visibility
+                              : Icons.visibility_off,
+                          color: context.colorScheme.onSurface,
+                        ),
                       ),
                     ),
                   ),

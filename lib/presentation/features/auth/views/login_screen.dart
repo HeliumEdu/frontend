@@ -200,18 +200,21 @@ class _LoginScreenViewState extends BasePageScreenState<LoginScreen> {
                 autofillHints: const [AutofillHints.password],
                 suffixIcon: ExcludeFocus(
                   excluding: true,
-                  child: IconButton(
-                    onPressed: () {
-                      setState(() {
-                        _formController.isPasswordVisible =
-                            !_formController.isPasswordVisible;
-                      });
-                    },
-                    icon: Icon(
-                      _formController.isPasswordVisible
-                          ? Icons.visibility
-                          : Icons.visibility_off,
-                      color: context.colorScheme.onSurface,
+                  child: Padding(
+                    padding: const EdgeInsets.only(right: 4.0),
+                    child: IconButton(
+                      onPressed: () {
+                        setState(() {
+                          _formController.isPasswordVisible =
+                              !_formController.isPasswordVisible;
+                        });
+                      },
+                      icon: Icon(
+                        _formController.isPasswordVisible
+                            ? Icons.visibility
+                            : Icons.visibility_off,
+                        color: context.colorScheme.onSurface,
+                      ),
                     ),
                   ),
                 ),

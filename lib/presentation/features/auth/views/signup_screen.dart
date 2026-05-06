@@ -235,18 +235,21 @@ class _SignupScreenState extends BasePageScreenState<SignupScreen> {
                 autofillHints: const [AutofillHints.newPassword],
                 suffixIcon: ExcludeFocus(
                   excluding: true,
-                  child: IconButton(
-                    onPressed: () {
-                      setState(() {
-                        _formController.isPasswordVisible =
-                            !_formController.isPasswordVisible;
-                      });
-                    },
-                    icon: Icon(
-                      _formController.isPasswordVisible
-                          ? Icons.visibility_off_outlined
-                          : Icons.visibility_outlined,
-                      color: context.colorScheme.onSurface,
+                  child: Padding(
+                    padding: const EdgeInsets.only(right: 4.0),
+                    child: IconButton(
+                      onPressed: () {
+                        setState(() {
+                          _formController.isPasswordVisible =
+                              !_formController.isPasswordVisible;
+                        });
+                      },
+                      icon: Icon(
+                        _formController.isPasswordVisible
+                            ? Icons.visibility_off_outlined
+                            : Icons.visibility_outlined,
+                        color: context.colorScheme.onSurface,
+                      ),
                     ),
                   ),
                 ),
@@ -264,18 +267,21 @@ class _SignupScreenState extends BasePageScreenState<SignupScreen> {
                 autofillHints: const [AutofillHints.newPassword],
                 suffixIcon: ExcludeFocus(
                   excluding: true,
-                  child: IconButton(
-                    onPressed: () {
-                      setState(() {
-                        _formController.isConfirmPasswordVisible =
-                            !_formController.isConfirmPasswordVisible;
-                      });
-                    },
-                    icon: Icon(
-                      _formController.isConfirmPasswordVisible
-                          ? Icons.visibility_off_outlined
-                          : Icons.visibility_outlined,
-                      color: context.colorScheme.onSurface,
+                  child: Padding(
+                    padding: const EdgeInsets.only(right: 4.0),
+                    child: IconButton(
+                      onPressed: () {
+                        setState(() {
+                          _formController.isConfirmPasswordVisible =
+                              !_formController.isConfirmPasswordVisible;
+                        });
+                      },
+                      icon: Icon(
+                        _formController.isConfirmPasswordVisible
+                            ? Icons.visibility_off_outlined
+                            : Icons.visibility_outlined,
+                        color: context.colorScheme.onSurface,
+                      ),
                     ),
                   ),
                 ),
