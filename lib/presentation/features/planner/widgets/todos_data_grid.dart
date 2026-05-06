@@ -644,6 +644,7 @@ class TodosDataGridState extends BaseDataGridState<TodosDataGrid> {
             button: true,
             child: GestureDetector(
               onTap: () {
+                Feedback.forTap(context);
                 if (homework != null &&
                     PlannerHelper.shouldShowDeleteButton(homework)) {
                   widget.onDelete(context, homework);

@@ -33,6 +33,7 @@ import 'package:heliumapp/presentation/features/shared/bloc/core/provider_helper
 import 'package:heliumapp/presentation/features/planner/bloc/planneritem_bloc.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/planneritem_state.dart';
 import 'package:heliumapp/presentation/features/planner/dialogs/confirm_delete_dialog.dart';
+import 'package:heliumapp/presentation/ui/components/helium_checkbox_list_tile.dart';
 import 'package:heliumapp/presentation/ui/feedback/error_card.dart';
 import 'package:heliumapp/presentation/ui/layout/shadow_container.dart';
 import 'package:heliumapp/utils/app_globals.dart';
@@ -589,7 +590,7 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen>
             const SizedBox(height: 8),
             ...filterOptions.map((option) {
               final isChecked = _filterEntityTypes.contains(option.value);
-              return CheckboxListTile(
+              return HeliumCheckboxListTile(
                 title: Row(
                   children: [
                     option.iconWidget,

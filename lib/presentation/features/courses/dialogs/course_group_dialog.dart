@@ -19,6 +19,7 @@ import 'package:heliumapp/presentation/features/courses/dialogs/course_exception
 import 'package:heliumapp/presentation/ui/dialogs/base_dialog_state.dart';
 import 'package:heliumapp/presentation/features/shared/controllers/basic_form_controller.dart';
 import 'package:heliumapp/presentation/features/courses/controllers/course_group_form_controller.dart';
+import 'package:heliumapp/presentation/ui/components/helium_checkbox_list_tile.dart';
 import 'package:heliumapp/presentation/ui/components/helium_elevated_button.dart';
 import 'package:heliumapp/presentation/ui/components/label_and_text_form_field.dart';
 import 'package:heliumapp/utils/app_style.dart';
@@ -123,7 +124,10 @@ class _CourseGroupWidgetState
                     label: 'Pick start date',
                     button: true,
                     child: GestureDetector(
-                      onTap: () => _selectDate(context, true),
+                      onTap: () {
+                        Feedback.forTap(context);
+                        _selectDate(context, true);
+                      },
                       child: Container(
                         padding: const EdgeInsets.symmetric(
                           horizontal: 12,
@@ -170,7 +174,10 @@ class _CourseGroupWidgetState
                     label: 'Pick end date',
                     button: true,
                     child: GestureDetector(
-                      onTap: () => _selectDate(context, false),
+                      onTap: () {
+                        Feedback.forTap(context);
+                        _selectDate(context, false);
+                      },
                       child: Container(
                         padding: const EdgeInsets.symmetric(
                           horizontal: 12,
@@ -212,7 +219,7 @@ class _CourseGroupWidgetState
         Row(
           children: [
             Expanded(
-              child: CheckboxListTile(
+              child: HeliumCheckboxListTile(
                 title: Text(
                   "Hide this group's classes and assignments from the Planner",
                   style: AppStyles.formLabel(context),

@@ -298,6 +298,7 @@ class _NotebookDataGridState extends BaseDataGridState<NotebookDataGrid> {
               button: true,
               child: GestureDetector(
                 onTap: () {
+                  Feedback.forTap(context);
                   if (note != null) {
                     widget.onDelete(context, note);
                   }

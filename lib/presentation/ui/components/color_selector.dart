@@ -35,7 +35,6 @@ class ColorSelector extends StatelessWidget {
       button: true,
       child: InkWell(
         onTap: () {
-          Feedback.forTap(context);
           showColorPickerDialog(
             parentContext: context,
             initialColor: selectedColor,

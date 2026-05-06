@@ -88,10 +88,7 @@ class _ColorPickerWidgetState extends State<_ColorPickerWidget> {
             availableColors: HeliumColors.preferredColors,
             itemBuilder: (color, isCurrentColor, changeColor) {
               return InkWell(
-                onTap: () {
-                  Feedback.forTap(context);
-                  changeColor();
-                },
+                onTap: changeColor,
                 borderRadius: BorderRadius.circular(4),
                 child: Container(
                     margin: const EdgeInsets.all(4),

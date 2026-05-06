@@ -40,6 +40,7 @@ import 'package:heliumapp/presentation/ui/components/category_title_label.dart';
 import 'package:heliumapp/presentation/ui/components/course_title_label.dart';
 import 'package:heliumapp/presentation/ui/components/grade_label.dart';
 import 'package:heliumapp/presentation/ui/components/group_dropdown.dart';
+import 'package:heliumapp/presentation/ui/components/helium_checkbox_list_tile.dart';
 import 'package:heliumapp/presentation/ui/feedback/empty_card.dart';
 import 'package:heliumapp/presentation/ui/feedback/error_card.dart';
 import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
@@ -792,6 +793,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
         child: GestureDetector(
         onTap: atRiskCount > 0
             ? () {
+                Feedback.forTap(context);
                 final atRiskCourseIds = atRiskCourses.map((c) => c.id).toSet();
 
                 setState(() {
@@ -971,7 +973,10 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
                 button: sortedCourses.length > 1,
                 child: GestureDetector(
                 onTap: sortedCourses.length > 1
-                    ? () => _cyclePendingImpactCourse(sortedCourses)
+                    ? () {
+                        Feedback.forTap(context);
+                        _cyclePendingImpactCourse(sortedCourses);
+                      }
                     : null,
                 child: Container(
                   padding: const EdgeInsets.symmetric(
@@ -1279,6 +1284,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
         onTap: () {
+          Feedback.forTap(context);
           setState(() {
             _graphExpanded = !_graphExpanded;
           });
@@ -1688,7 +1694,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
         final isVisible = _visibleSeries[s.name] ?? true;
         return Material(
           color: Colors.transparent,
-          child: CheckboxListTile(
+          child: HeliumCheckboxListTile(
             dense: true,
             contentPadding: EdgeInsets.zero,
             visualDensity: VisualDensity.compact,
@@ -2124,7 +2130,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
                 ),
               ),
               const Divider(height: 20),
-              CheckboxListTile(
+              HeliumCheckboxListTile(
                 controlAffinity: ListTileControlAffinity.leading,
                 title: Text(
                   'Auto-adjust to graded range',
@@ -2138,7 +2144,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
                 dense: true,
                 contentPadding: EdgeInsets.zero,
               ),
-              CheckboxListTile(
+              HeliumCheckboxListTile(
                 controlAffinity: ListTileControlAffinity.leading,
                 title: Text('Hide legend', style: AppStyles.formText(context)),
                 value: _hideLegend == true,
@@ -2233,7 +2239,10 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
       cursor: SystemMouseCursors.click,
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
-        onTap: () => _toggleExpandedCourse(course.id),
+        onTap: () {
+          Feedback.forTap(context);
+          _toggleExpandedCourse(course.id);
+        },
         child: Row(
           children: [
             Expanded(

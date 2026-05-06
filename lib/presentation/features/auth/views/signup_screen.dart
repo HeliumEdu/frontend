@@ -23,6 +23,7 @@ import 'package:heliumapp/presentation/features/auth/controllers/credentials_for
 import 'package:heliumapp/presentation/features/auth/controllers/signup_form_controller.dart';
 import 'package:heliumapp/presentation/features/shared/controllers/basic_form_controller.dart';
 import 'package:heliumapp/presentation/core/views/base_page_screen_state.dart';
+import 'package:heliumapp/presentation/ui/components/helium_checkbox_list_tile.dart';
 import 'package:heliumapp/presentation/ui/components/helium_elevated_button.dart';
 import 'package:heliumapp/presentation/ui/components/helium_password_field.dart';
 import 'package:heliumapp/presentation/ui/components/label_and_text_form_field.dart';
@@ -266,7 +267,7 @@ class _SignupScreenState extends BasePageScreenState<SignupScreen> {
               Row(
                 children: [
                   Expanded(
-                    child: CheckboxListTile(
+                    child: HeliumCheckboxListTile(
                       title: RichText(
                         text: TextSpan(
                           text: "I agree to Helium's ",

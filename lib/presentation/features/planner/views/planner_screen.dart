@@ -70,6 +70,7 @@ import 'package:heliumapp/presentation/features/planner/widgets/day_popout_dialo
 import 'package:heliumapp/presentation/features/planner/widgets/todos_data_grid.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/core/base_event.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/core/provider_helpers.dart';
+import 'package:heliumapp/presentation/ui/components/helium_checkbox_list_tile.dart';
 import 'package:heliumapp/presentation/ui/components/helium_icon_button.dart';
 import 'package:heliumapp/presentation/ui/feedback/error_card.dart';
 import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
@@ -2291,8 +2292,10 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
         Responsive.isTouchDevice(context) &&
         !isInAgenda) {
       calendarItemWidget = GestureDetector(
-        onTap: () =>
-            _openPlannerItem(plannerItem, occurrenceDate: details.date),
+        onTap: () {
+          Feedback.forTap(context);
+          _openPlannerItem(plannerItem, occurrenceDate: details.date);
+        },
         onLongPress: () {},
         child: calendarItemWidget,
       );
@@ -3127,8 +3130,10 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
       centerColumn = Expanded(
         child: GestureDetector(
           behavior: HitTestBehavior.opaque,
-          onTap: () =>
-              _openPlannerItem(plannerItem, occurrenceDate: occurrenceDate),
+          onTap: () {
+            Feedback.forTap(context);
+            _openPlannerItem(plannerItem, occurrenceDate: occurrenceDate);
+          },
           child: SizedBox(
             height: agendaHeight,
             child: Align(alignment: Alignment.centerLeft, child: centerContent),
@@ -3186,8 +3191,10 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
 
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
-      onTap: () =>
-          _openPlannerItem(plannerItem, occurrenceDate: occurrenceDate),
+      onTap: () {
+        Feedback.forTap(context);
+        _openPlannerItem(plannerItem, occurrenceDate: occurrenceDate);
+      },
       child: Container(
         width: width,
         height: height,
@@ -3301,6 +3308,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
   ) {
     return GestureDetector(
       onTap: () {
+        Feedback.forTap(context);
         _openDayPopOutDialog(details.date);
       },
       child: UnconstrainedBox(
@@ -3576,7 +3584,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
         final isChecked = _plannerItemDataSource!.filterStatuses.contains(
           label,
         );
-        return CheckboxListTile(
+        return HeliumCheckboxListTile(
           title: Text(label, style: AppStyles.formText(context)),
           value: isChecked,
           onChanged: (value) {
@@ -3641,7 +3649,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
                     final isSelected =
                         _plannerItemDataSource!.filteredCourses[course.id] ??
                         false;
-                    return CheckboxListTile(
+                    return HeliumCheckboxListTile(
                       title: Row(
                         children: [
                           Container(
@@ -3688,7 +3696,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
 
               if (_currentView != PlannerView.todos) ...[
                 _buildSheetSectionHeader(context, 'TYPES'),
-                CheckboxListTile(
+                HeliumCheckboxListTile(
                   title: Row(
                     children: [
                       _currentView == PlannerView.month &&
@@ -3731,7 +3739,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
                   dense: true,
                   contentPadding: EdgeInsets.zero,
                 ),
-                CheckboxListTile(
+                HeliumCheckboxListTile(
                   title: Row(
                     children: [
                       Icon(
@@ -3771,7 +3779,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
                   dense: true,
                   contentPadding: EdgeInsets.zero,
                 ),
-                CheckboxListTile(
+                HeliumCheckboxListTile(
                   title: Row(
                     children: [
                       _currentView == PlannerView.month &&
@@ -3818,7 +3826,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
                   dense: true,
                   contentPadding: EdgeInsets.zero,
                 ),
-                CheckboxListTile(
+                HeliumCheckboxListTile(
                   title: Row(
                     children: [
                       _currentView == PlannerView.month &&
@@ -3921,7 +3929,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
               if (visibleCategories.isNotEmpty) ...[
                 _buildSheetSectionHeader(context, 'CATEGORIES'),
                 ...visibleCategories.map((category) {
-                  return CheckboxListTile(
+                  return HeliumCheckboxListTile(
                     title: Text(
                       category.title,
                       style: AppStyles.formText(context),
@@ -4490,7 +4498,7 @@ class _CheckboxToggle extends StatelessWidget {
         ? (isToggleOn ? toggleOnLabel : toggleOffLabel)
         : baseLabel;
 
-    return CheckboxListTile(
+    return HeliumCheckboxListTile(
       title: Text(label, style: AppStyles.formText(context)),
       value: isChecked,
       onChanged: onCheckedChanged,
@@ -4509,7 +4517,12 @@ class _CheckboxToggle extends StatelessWidget {
           const SizedBox(width: 6),
           GestureDetector(
             behavior: HitTestBehavior.opaque,
-            onTap: !isChecked ? onToggleTapWhenDisabled : null,
+            onTap: !isChecked
+                ? () {
+                    Feedback.forTap(context);
+                    onToggleTapWhenDisabled();
+                  }
+                : null,
             child: Switch(
               value: isToggleOn,
               onChanged: isChecked ? onToggleChanged : null,

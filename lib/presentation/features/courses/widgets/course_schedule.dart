@@ -16,6 +16,7 @@ import 'package:heliumapp/presentation/features/courses/bloc/course_event.dart';
 import 'package:heliumapp/presentation/features/courses/bloc/course_state.dart';
 import 'package:heliumapp/presentation/features/shared/controllers/basic_form_controller.dart';
 import 'package:heliumapp/presentation/features/shared/widgets/flow/multi_step_container.dart';
+import 'package:heliumapp/presentation/ui/components/helium_checkbox_list_tile.dart';
 import 'package:heliumapp/presentation/ui/components/helium_elevated_button.dart';
 import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
 import 'package:heliumapp/utils/app_globals.dart';
@@ -266,7 +267,7 @@ class CourseScheduleState extends State<CourseSchedule> {
                       child: Row(
                         children: [
                           Expanded(
-                            child: CheckboxListTile(
+                            child: HeliumCheckboxListTile(
                               title: Text(
                                 'Varies by day',
                                 style: AppStyles.formLabel(context),
@@ -455,7 +456,10 @@ class CourseScheduleState extends State<CourseSchedule> {
                   label: 'Pick start time',
                   button: true,
                   child: GestureDetector(
-                    onTap: () => _selectTime(dayIndex, true),
+                    onTap: () {
+                      Feedback.forTap(context);
+                      _selectTime(dayIndex, true);
+                    },
                     child: _buildTimeField(
                       context,
                       bgColor,
@@ -472,7 +476,10 @@ class CourseScheduleState extends State<CourseSchedule> {
                   label: 'Pick end time',
                   button: true,
                   child: GestureDetector(
-                    onTap: () => _selectTime(dayIndex, false),
+                    onTap: () {
+                      Feedback.forTap(context);
+                      _selectTime(dayIndex, false);
+                    },
                     child: _buildTimeField(
                       context,
                       bgColor,
@@ -515,7 +522,10 @@ class CourseScheduleState extends State<CourseSchedule> {
               label: 'Pick start time',
               button: true,
               child: GestureDetector(
-                onTap: () => _selectSingleTime(true),
+                onTap: () {
+                  Feedback.forTap(context);
+                  _selectSingleTime(true);
+                },
                 child: _buildTimeField(
                   context,
                   bgColor,
@@ -530,7 +540,10 @@ class CourseScheduleState extends State<CourseSchedule> {
               label: 'Pick end time',
               button: true,
               child: GestureDetector(
-                onTap: () => _selectSingleTime(false),
+                onTap: () {
+                  Feedback.forTap(context);
+                  _selectSingleTime(false);
+                },
                 child: _buildTimeField(
                   context,
                   bgColor,

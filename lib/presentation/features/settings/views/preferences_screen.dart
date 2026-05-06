@@ -14,6 +14,7 @@ import 'package:heliumapp/presentation/features/auth/bloc/auth_bloc.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_event.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_state.dart';
 import 'package:heliumapp/presentation/ui/components/drop_down.dart';
+import 'package:heliumapp/presentation/ui/components/helium_checkbox_list_tile.dart';
 import 'package:heliumapp/presentation/ui/feedback/discard_changes_scope.dart';
 import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
 import 'package:heliumapp/presentation/ui/components/searchable_dropdown.dart';
@@ -161,7 +162,7 @@ class PreferencesScreenState extends State<PreferencesScreen> {
                 });
               },
             ),
-            CheckboxListTile(
+            HeliumCheckboxListTile(
               title: Text(
                 'Remember filter selections',
                 style: AppStyles.formLabel(context),
@@ -176,7 +177,7 @@ class PreferencesScreenState extends State<PreferencesScreen> {
               controlAffinity: ListTileControlAffinity.leading,
               contentPadding: EdgeInsets.zero,
             ),
-            CheckboxListTile(
+            HeliumCheckboxListTile(
               title: Text(
                 'Drag-and-drop on touch devices',
                 style: AppStyles.formLabel(context),
@@ -191,7 +192,7 @@ class PreferencesScreenState extends State<PreferencesScreen> {
               controlAffinity: ListTileControlAffinity.leading,
               contentPadding: EdgeInsets.zero,
             ),
-            CheckboxListTile(
+            HeliumCheckboxListTile(
               title: Text(
                 'Show tooltips',
                 style: AppStyles.formLabel(context),
@@ -221,7 +222,7 @@ class PreferencesScreenState extends State<PreferencesScreen> {
                 });
               },
             ),
-            CheckboxListTile(
+            HeliumCheckboxListTile(
               title: Text(
                 'Collapse busy days',
                 style: AppStyles.formLabel(context),
@@ -236,7 +237,7 @@ class PreferencesScreenState extends State<PreferencesScreen> {
               controlAffinity: ListTileControlAffinity.leading,
               contentPadding: EdgeInsets.zero,
             ),
-            CheckboxListTile(
+            HeliumCheckboxListTile(
               title: Text(
                 'Show week numbers',
                 style: AppStyles.formLabel(context),
@@ -301,7 +302,7 @@ class PreferencesScreenState extends State<PreferencesScreen> {
               ],
             ),
             const SizedBox(height: 4),
-            CheckboxListTile(
+            HeliumCheckboxListTile(
               title: Text(
                 'Color by assignment category',
                 style: AppStyles.formLabel(context),

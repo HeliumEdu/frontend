@@ -18,6 +18,7 @@ import 'package:heliumapp/presentation/features/courses/bloc/course_state.dart';
 import 'package:heliumapp/presentation/features/shared/controllers/basic_form_controller.dart';
 import 'package:heliumapp/presentation/features/courses/controllers/course_form_controller.dart';
 import 'package:heliumapp/presentation/ui/components/color_selector.dart';
+import 'package:heliumapp/presentation/ui/components/helium_checkbox_list_tile.dart';
 import 'package:heliumapp/utils/snack_bar_helpers.dart';
 import 'package:heliumapp/presentation/features/shared/widgets/flow/multi_step_container.dart';
 import 'package:heliumapp/presentation/ui/components/helium_icon_button.dart';
@@ -138,7 +139,10 @@ class CourseDetailsState extends State<CourseDetails> {
                               label: 'Pick start date',
                               button: true,
                               child: GestureDetector(
-                                onTap: () => _selectDate(context, true),
+                                onTap: () {
+                                  Feedback.forTap(context);
+                                  _selectDate(context, true);
+                                },
                                 child: Container(
                                   padding: const EdgeInsets.symmetric(
                                     horizontal: 12,
@@ -191,7 +195,10 @@ class CourseDetailsState extends State<CourseDetails> {
                               label: 'Pick end date',
                               button: true,
                               child: GestureDetector(
-                                onTap: () => _selectDate(context, false),
+                                onTap: () {
+                                  Feedback.forTap(context);
+                                  _selectDate(context, false);
+                                },
                                 child: Container(
                                   padding: const EdgeInsets.symmetric(
                                     horizontal: 12,
@@ -292,7 +299,7 @@ class CourseDetailsState extends State<CourseDetails> {
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
                         Expanded(
-                          child: CheckboxListTile(
+                          child: HeliumCheckboxListTile(
                             title: Text(
                               'Online',
                               style: AppStyles.formLabel(context),

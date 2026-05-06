@@ -196,7 +196,10 @@ class _StepperHeaderState extends State<StepperHeader> {
         onEnter: (_) => setState(() => _hoveredIndex = index),
         onExit: (_) => setState(() => _hoveredIndex = null),
         child: GestureDetector(
-          onTap: () => onStepTapped!(index),
+          onTap: () {
+            Feedback.forTap(context);
+            onStepTapped!(index);
+          },
           child: result,
         ),
       );

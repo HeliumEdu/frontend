@@ -33,6 +33,7 @@ import 'package:heliumapp/presentation/features/shared/controllers/basic_form_co
 import 'package:heliumapp/presentation/features/shared/widgets/flow/multi_step_container.dart';
 import 'package:heliumapp/presentation/ui/components/drop_down.dart';
 import 'package:heliumapp/presentation/ui/components/grade_label.dart';
+import 'package:heliumapp/presentation/ui/components/helium_checkbox_list_tile.dart';
 import 'package:heliumapp/presentation/ui/components/helium_icon_button.dart';
 import 'package:heliumapp/presentation/ui/components/label_and_text_form_field.dart';
 import 'package:heliumapp/presentation/ui/components/notes_editor.dart';
@@ -277,7 +278,7 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
                   Row(
                     children: [
                       Expanded(
-                        child: CheckboxListTile(
+                        child: HeliumCheckboxListTile(
                           title: Text(
                             'All Day',
                             style: AppStyles.formLabel(context),
@@ -298,7 +299,7 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
                   Row(
                     children: [
                       Expanded(
-                        child: CheckboxListTile(
+                        child: HeliumCheckboxListTile(
                           title: Text(
                             'Show End',
                             style: AppStyles.formLabel(context),
@@ -415,7 +416,10 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
           label: 'Pick $label date',
           button: true,
           child: GestureDetector(
-            onTap: onTap,
+            onTap: () {
+              Feedback.forTap(context);
+              onTap();
+            },
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
               decoration: BoxDecoration(
@@ -466,7 +470,10 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
           label: 'Pick $label time',
           button: true,
           child: GestureDetector(
-            onTap: onTap,
+            onTap: () {
+              Feedback.forTap(context);
+              onTap();
+            },
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
               decoration: BoxDecoration(
@@ -600,7 +607,7 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
             children: [
               SizedBox(
                 width: 140,
-                child: CheckboxListTile(
+                child: HeliumCheckboxListTile(
                   key: const Key(PlannerItemFormController.completeField),
                   title: Text('Complete', style: AppStyles.formLabel(context)),
                   value: formController.isCompleted,
