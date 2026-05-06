@@ -33,11 +33,15 @@ class _SearchableDropdownState<T> extends State<SearchableDropdown<T>> {
   // current timezone labels; revisit if reused for non-ASCII content.
   static final _nonAlphanumeric = RegExp(r'[^a-z0-9]');
 
+  static const double _optionItemExtent = 56.0;
+
   TextEditingController? _fieldController;
   FocusNode? _focusNode;
+  final ScrollController _optionsScrollController = ScrollController();
 
   List<DropDownItem<T>> _filteredOptions = [];
   DropDownItem<T>? _selectedItem;
+  bool _scrollToSelectedPending = false;
 
   @override
   void initState() {
@@ -47,8 +51,18 @@ class _SearchableDropdownState<T> extends State<SearchableDropdown<T>> {
   }
 
   @override
+  void didUpdateWidget(covariant SearchableDropdown<T> oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    if (oldWidget.initialValue.value != widget.initialValue.value) {
+      _selectedItem = widget.initialValue;
+    }
+  }
+
+  @override
   void dispose() {
     _focusNode?.removeListener(_onFocusChange);
+    _optionsScrollController.dispose();
     super.dispose();
   }
 
@@ -73,7 +87,25 @@ class _SearchableDropdownState<T> extends State<SearchableDropdown<T>> {
   }
 
   void _onFocusChange() {
-    if (_focusNode == null || _focusNode!.hasFocus) return;
+    if (_focusNode == null) return;
+    if (_focusNode!.hasFocus) {
+      _onFocusGained();
+    } else {
+      _onFocusLost();
+    }
+  }
+
+  void _onFocusGained() {
+    final text = _fieldController?.text;
+    if (text == null || text.isEmpty) return;
+    _fieldController!.selection = TextSelection(
+      baseOffset: 0,
+      extentOffset: text.length,
+    );
+    _scrollToSelectedPending = true;
+  }
+
+  void _onFocusLost() {
     final text = _fieldController!.text;
     final exactMatches = widget.items.where((item) => item.label == text);
     if (exactMatches.isNotEmpty) {
@@ -82,9 +114,17 @@ class _SearchableDropdownState<T> extends State<SearchableDropdown<T>> {
         _selectedItem = match;
         widget.onChanged?.call(match);
       }
-    } else {
-      _commitSingleMatchOrRevert();
+      return;
     }
+
+    // Setting controller text synchronously inside a focus-change event
+    // triggers RawAutocomplete to rebuild mid-traversal, which pulls focus back
+    // to this field. Defer until the focus event has fully settled.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      if (_focusNode?.hasFocus ?? false) return;
+      _commitSingleMatchOrRevert();
+    });
   }
 
   void _setupFocusListener(FocusNode focusNode) {
@@ -93,6 +133,24 @@ class _SearchableDropdownState<T> extends State<SearchableDropdown<T>> {
       _focusNode = focusNode;
       _focusNode!.addListener(_onFocusChange);
     }
+  }
+
+  void _maybeScrollToSelected() {
+    if (!_scrollToSelectedPending) return;
+    _scrollToSelectedPending = false;
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final selectedValue = _selectedItem?.value;
+      if (selectedValue == null) return;
+      final index = _filteredOptions
+          .indexWhere((item) => item.value == selectedValue);
+      if (index < 0) return;
+      if (!_optionsScrollController.hasClients) return;
+
+      final maxOffset = _optionsScrollController.position.maxScrollExtent;
+      final target = (index * _optionItemExtent).clamp(0.0, maxOffset);
+      _optionsScrollController.jumpTo(target);
+    });
   }
 
   @override
@@ -113,6 +171,15 @@ class _SearchableDropdownState<T> extends State<SearchableDropdown<T>> {
             text: widget.initialValue.label,
           ),
           optionsBuilder: (textEditingValue) {
+            // After fresh focus, text equals the current selection (it was just
+            // select-all'd, not modified). Return the full list so the user can
+            // browse, not just the single matching item.
+            final selectedLabel = _selectedItem?.label;
+            if (selectedLabel != null &&
+                textEditingValue.text == selectedLabel) {
+              _filteredOptions = widget.items;
+              return _filteredOptions;
+            }
             final query = _normalize(textEditingValue.text);
             if (query.isEmpty) {
               _filteredOptions = widget.items;
@@ -170,57 +237,74 @@ class _SearchableDropdownState<T> extends State<SearchableDropdown<T>> {
                 );
               },
           optionsViewBuilder: (context, onSelected, options) {
-            return Align(
-              alignment: Alignment.topLeft,
-              child: Transform.translate(
-                offset: const Offset(0, -1),
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: context.colorScheme.surface,
-                    borderRadius: const BorderRadius.only(
-                      bottomLeft: Radius.circular(8),
-                      bottomRight: Radius.circular(8),
-                    ),
-                    border: Border(
-                      left: BorderSide(
-                        color: context.colorScheme.outline.withValues(
-                          alpha: 0.2,
-                        ),
+            _maybeScrollToSelected();
+            return ExcludeFocus(
+              child: Align(
+                alignment: Alignment.topLeft,
+                child: Transform.translate(
+                  offset: const Offset(0, -1),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: context.colorScheme.surface,
+                      borderRadius: const BorderRadius.only(
+                        bottomLeft: Radius.circular(8),
+                        bottomRight: Radius.circular(8),
                       ),
-                      right: BorderSide(
-                        color: context.colorScheme.outline.withValues(
-                          alpha: 0.2,
-                        ),
-                      ),
-                      bottom: BorderSide(
-                        color: context.colorScheme.outline.withValues(
-                          alpha: 0.2,
-                        ),
-                      ),
-                    ),
-                  ),
-                  child: ConstrainedBox(
-                    constraints: const BoxConstraints(maxHeight: 300),
-                    child: ListView.builder(
-                      padding: EdgeInsets.zero,
-                      shrinkWrap: true,
-                      itemCount: options.length,
-                      itemBuilder: (context, index) {
-                        final item = options.elementAt(index);
-                        return ListTile(
-                          leading: item.iconData != null
-                              ? Icon(
-                                  item.iconData,
-                                  color: item.iconColor ?? iconColor,
-                                )
-                              : null,
-                          title: Text(
-                            item.label,
-                            style: AppStyles.formText(context),
+                      border: Border(
+                        left: BorderSide(
+                          color: context.colorScheme.outline.withValues(
+                            alpha: 0.2,
                           ),
-                          onTap: () => onSelected(item),
-                        );
-                      },
+                        ),
+                        right: BorderSide(
+                          color: context.colorScheme.outline.withValues(
+                            alpha: 0.2,
+                          ),
+                        ),
+                        bottom: BorderSide(
+                          color: context.colorScheme.outline.withValues(
+                            alpha: 0.2,
+                          ),
+                        ),
+                      ),
+                    ),
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxHeight: 300),
+                      child: ListView.builder(
+                        controller: _optionsScrollController,
+                        padding: EdgeInsets.zero,
+                        shrinkWrap: true,
+                        itemExtent: _optionItemExtent,
+                        itemCount: options.length,
+                        itemBuilder: (context, index) {
+                          final item = options.elementAt(index);
+                          final isSelected =
+                              item.value == _selectedItem?.value;
+                          return ListTile(
+                            leading: item.iconData != null
+                                ? Icon(
+                                    item.iconData,
+                                    color: item.iconColor ?? iconColor,
+                                  )
+                                : null,
+                            title: Text(
+                              item.label,
+                              style: AppStyles.formText(context).copyWith(
+                                fontWeight:
+                                    isSelected ? FontWeight.bold : null,
+                              ),
+                            ),
+                            trailing: isSelected
+                                ? Icon(
+                                    Icons.check,
+                                    color: context.colorScheme.primary,
+                                    size: 20,
+                                  )
+                                : null,
+                            onTap: () => onSelected(item),
+                          );
+                        },
+                      ),
                     ),
                   ),
                 ),

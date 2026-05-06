@@ -8,6 +8,7 @@
 import 'dart:io' show Platform;
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -55,9 +56,17 @@ class _SignupScreenState extends BasePageScreenState<SignupScreen> {
   final SignupFormController _formController = SignupFormController();
   bool _isOAuthLoading = false;
 
+  late final TapGestureRecognizer _termsRecognizer;
+  late final TapGestureRecognizer _privacyRecognizer;
+
   @override
   void initState() {
     super.initState();
+
+    _termsRecognizer = TapGestureRecognizer()
+      ..onTap = () => UrlHelpers.launchWebUrl('https://www.heliumedu.com/terms');
+    _privacyRecognizer = TapGestureRecognizer()
+      ..onTap = () => UrlHelpers.launchWebUrl('https://www.heliumedu.com/privacy');
 
     _initializeForm();
 
@@ -68,6 +77,8 @@ class _SignupScreenState extends BasePageScreenState<SignupScreen> {
 
   @override
   void dispose() {
+    _termsRecognizer.dispose();
+    _privacyRecognizer.dispose();
     _formController.dispose();
 
     super.dispose();
@@ -297,31 +308,23 @@ class _SignupScreenState extends BasePageScreenState<SignupScreen> {
                           text: "I agree to Helium's ",
                           style: AppStyles.formText(context),
                           children: [
-                            WidgetSpan(
-                              child: InkWell(
-                                onTap: () => UrlHelpers.launchWebUrl('https://www.heliumedu.com/terms'),
-                                child: Text(
-                                  'Terms of Service',
-                                  style: AppStyles.formText(context).copyWith(
-                                    color: context.colorScheme.primary,
-                                  ),
-                                ),
+                            TextSpan(
+                              text: 'Terms of Service',
+                              style: AppStyles.formText(context).copyWith(
+                                color: context.colorScheme.primary,
                               ),
+                              recognizer: _termsRecognizer,
                             ),
                             TextSpan(
                               text: ' and ',
                               style: AppStyles.formText(context),
                             ),
-                            WidgetSpan(
-                              child: InkWell(
-                                onTap: () => UrlHelpers.launchWebUrl('https://www.heliumedu.com/privacy'),
-                                child: Text(
-                                  'Privacy Policy',
-                                  style: AppStyles.formText(context).copyWith(
-                                    color: context.colorScheme.primary,
-                                  ),
-                                ),
+                            TextSpan(
+                              text: 'Privacy Policy',
+                              style: AppStyles.formText(context).copyWith(
+                                color: context.colorScheme.primary,
                               ),
+                              recognizer: _privacyRecognizer,
                             ),
                           ],
                         ),
