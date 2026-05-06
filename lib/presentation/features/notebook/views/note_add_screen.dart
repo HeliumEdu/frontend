@@ -26,9 +26,11 @@ import 'package:heliumapp/presentation/core/views/base_page_screen_state.dart';
 import 'package:heliumapp/presentation/features/notebook/bloc/note_bloc.dart';
 import 'package:heliumapp/presentation/features/notebook/bloc/note_event.dart';
 import 'package:heliumapp/presentation/features/notebook/bloc/note_state.dart';
+import 'package:heliumapp/presentation/features/planner/dialogs/confirm_delete_dialog.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/core/base_event.dart';
 import 'package:heliumapp/presentation/features/shared/controllers/basic_form_controller.dart';
 import 'package:heliumapp/presentation/ui/components/generic_label.dart';
+import 'package:heliumapp/presentation/ui/components/helium_icon_button.dart';
 import 'package:heliumapp/presentation/ui/components/label_and_text_form_field.dart';
 import 'package:heliumapp/presentation/ui/components/notes_editor.dart';
 import 'package:heliumapp/presentation/ui/components/quill_search_bar.dart';
@@ -181,9 +183,41 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
   @override
   Function? get saveAction => _saveAndClose;
 
+  @override
+  List<Widget> get additionalHeaderButtons {
+    if (_note == null) return const [];
+    return [
+      HeliumIconButton(
+        onPressed: _onDelete,
+        icon: Icons.delete_outline,
+        tooltip: 'Delete',
+        color: context.colorScheme.error,
+      ),
+    ];
+  }
+
   void _closeImmediately() {
     if (!mounted) return;
     Navigator.of(context).pop();
+  }
+
+  void _onDelete() {
+    if (_note == null) return;
+    showConfirmDeleteDialog<NoteModel>(
+      parentContext: context,
+      item: _note!,
+      onDelete: (note) {
+        setState(() {
+          isSubmitting = true;
+        });
+        context.read<NoteBloc>().add(
+          DeleteNoteEvent(
+            origin: EventOrigin.subScreen,
+            noteId: note.id,
+          ),
+        );
+      },
+    );
   }
 
   void _saveAndClose() {

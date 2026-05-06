@@ -185,6 +185,11 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
 
   List<BlocProvider>? get inheritableProviders => null;
 
+  /// Optional buttons to render in the page header next to the cancel/back
+  /// button. Override to add entity-level actions like Delete or
+  /// Clone. Default is no additional buttons.
+  List<Widget> get additionalHeaderButtons => const [];
+
   EdgeInsets get scaffoldInsets => const EdgeInsets.only(
     left: 12,
     right: 12,
@@ -388,6 +393,7 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
       saveAction: saveAction,
       cancelIcon: cancelIcon,
       inheritableProviders: inheritableProviders,
+      additionalButtons: additionalHeaderButtons,
     );
   }
 
