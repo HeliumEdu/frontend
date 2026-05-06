@@ -279,8 +279,13 @@ class TodosDataGridState extends BaseDataGridState<TodosDataGrid> {
                         maintainState: true,
                         child: Text(
                           'Export CSV',
-                          style: AppStyles.buttonText(context)
-                              .copyWith(color: context.colorScheme.primary, fontSize: 12),
+                          style: AppStyles.buttonText(context).copyWith(
+                            color: isDisabled
+                                ? context.colorScheme.onSurface
+                                    .withValues(alpha: 0.38)
+                                : context.colorScheme.primary,
+                            fontSize: 12,
+                          ),
                         ),
                       ),
                       if (_isExporting)
@@ -292,7 +297,8 @@ class TodosDataGridState extends BaseDataGridState<TodosDataGrid> {
                         ),
                     ],
                   ),
-                ),
+                );
+                }),
               ),
             ],
           ),
