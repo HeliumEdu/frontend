@@ -155,7 +155,7 @@ class _PlannerItemAddScreenState
   bool get isDirty {
     switch (currentStep) {
       case 0:
-        return _detailsKey.currentState?.formController.isChanged ?? false;
+        return _detailsKey.currentState?.formController.isUserDirty ?? false;
       case 2:
         return _attachmentsKey.currentState?.hasUnsavedFiles ?? false;
       default:

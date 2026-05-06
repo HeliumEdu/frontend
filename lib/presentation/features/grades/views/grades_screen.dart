@@ -1319,7 +1319,6 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
             PrintHidden(
               child: Builder(
                 builder: (buttonContext) => IconButton(
-                  tooltip: 'Graph settings',
                   icon: const Icon(Icons.settings),
                   onPressed: () => _showGraphSettings(buttonContext),
                 ),

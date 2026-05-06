@@ -124,9 +124,9 @@ class _CourseAddScreenState extends MultiStepContainerState<CourseAddScreen> {
   bool get isDirty {
     switch (currentStep) {
       case 0:
-        return _detailsKey.currentState?.formController.isChanged ?? false;
+        return _detailsKey.currentState?.formController.isUserDirty ?? false;
       case 1:
-        return _scheduleKey.currentState?.formController.isChanged ?? false;
+        return _scheduleKey.currentState?.formController.isUserDirty ?? false;
       case 4:
         return _attachmentsKey.currentState?.hasUnsavedFiles ?? false;
       default:

@@ -68,7 +68,7 @@ class CourseScheduleState extends State<CourseSchedule> {
   void initState() {
     super.initState();
 
-    if (!widget.isEdit) formController.markChanged();
+    if (!widget.isEdit) formController.markChanged(userInitiated: false);
 
     context.read<CourseBloc>().add(
       FetchCourseScheduleEvent(

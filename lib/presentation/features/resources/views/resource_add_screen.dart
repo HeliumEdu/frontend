@@ -95,7 +95,7 @@ class _ResourceAddScreenState
 
   @override
   bool get isDirty =>
-      _detailsKey.currentState?.formController.isChanged ?? false;
+      _detailsKey.currentState?.formController.isUserDirty ?? false;
 
   @override
   Function? get saveAction {

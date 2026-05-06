@@ -11,7 +11,17 @@ class BasicFormController {
   final GlobalKey<FormState> formKey = GlobalKey<FormState>();
 
   bool isChanged = false;
-  void markChanged() => isChanged = true;
+
+  /// True only when an actual user input fired markChanged. Distinct from
+  /// [isChanged], which is also set during init (so save flows know to
+  /// commit fresh entities). Use [isUserDirty] to drive UX like the
+  /// unsaved-changes prompt that should fire only on real user edits.
+  bool isUserDirty = false;
+
+  void markChanged({bool userInitiated = true}) {
+    isChanged = true;
+    if (userInitiated) isUserDirty = true;
+  }
 
   /// Map of field names to their GlobalKeys for scroll-to-error functionality.
   /// Fields are registered in order, so iteration preserves form field order.

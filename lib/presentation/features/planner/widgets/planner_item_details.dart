@@ -117,7 +117,7 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
     _eventId = widget.eventId;
     _homeworkId = widget.homeworkId;
 
-    if (!widget.isEdit) formController.markChanged();
+    if (!widget.isEdit) formController.markChanged(userInitiated: false);
 
     formController.gradeFocusNode.addListener(() {
       if (!formController.gradeFocusNode.hasFocus) {
@@ -163,6 +163,7 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
       isLoading = true;
       _plannerItem = null;
       formController.isChanged = false;
+      formController.isUserDirty = false;
       formController.userChangedTime = false;
     });
 
