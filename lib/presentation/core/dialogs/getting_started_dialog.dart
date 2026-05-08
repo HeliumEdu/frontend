@@ -48,7 +48,7 @@ const _cards = [
     imagePaths: ['assets/img/onboarding_welcome.png'],
   ),
   _OnboardingCard(
-    title: 'Your Planner, your way',
+    title: 'One Planner, every view',
     description:
         'Switch between Month, Week, Day, Agenda, and Todos views. '
         'Open for details, drag to reschedule, filter, search, sort '
@@ -70,7 +70,7 @@ const _cards = [
     imagePaths: ['assets/img/onboarding_classes.png'],
   ),
   _OnboardingCard(
-    title: 'Track your grades',
+    title: 'Know your grades',
     description:
         'Visit Grades to see your scores by class, category, '
         'and term in real time. Know where to focus, what could '
@@ -79,7 +79,7 @@ const _cards = [
     imagePaths: ['assets/img/onboarding_grades.png'],
   ),
   _OnboardingCard(
-    title: 'Keep a Notebook',
+    title: 'Notes for anything',
     description:
         'Write notes linked to anything in your planner — lecture summaries,'
         'paper drafts, whatever else. Format like a doc, search everything, '
@@ -273,7 +273,7 @@ class _GettingStartedDialogWidgetState
                     ),
                     const SizedBox(width: 12),
                     Expanded(
-                      child: Text(
+                      child: SelectableText(
                         card.title,
                         style: AppStyles.pageTitle(context),
                       ),
@@ -281,7 +281,7 @@ class _GettingStartedDialogWidgetState
                   ],
                 ),
                 const SizedBox(height: 12),
-                Text(
+                SelectableText(
                   card.description,
                   style: AppStyles.standardBodyText(context),
                 ),
