@@ -46,6 +46,11 @@ class EventRepositoryImpl implements EventRepository {
   }
 
   @override
+  Future<EventModel> cloneEvent({required int eventId}) async {
+    return remoteDataSource.cloneEvent(eventId: eventId);
+  }
+
+  @override
   Future<EventModel> updateEvent({
     required int eventId,
     required EventRequestModel request,

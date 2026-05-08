@@ -30,6 +30,12 @@ abstract class HomeworkRepository {
     required HomeworkRequestModel request,
   });
 
+  Future<HomeworkModel> cloneHomework({
+    required int groupId,
+    required int courseId,
+    required int homeworkId,
+  });
+
   Future<HomeworkModel> updateHomework({
     required int groupId,
     required int courseId,

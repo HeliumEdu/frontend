@@ -345,24 +345,4 @@ class PlannerHelper {
   /// A result of 60 is valid; DateTime/TZDateTime constructors overflow it
   /// to minute 0 of the next hour.
   static int roundMinute(int minute) => ((minute + 15) ~/ 30) * 30;
-
-  /// Generates a cloned title by incrementing a trailing number or appending
-  /// " 1" if no trailing number exists.
-  ///
-  /// Examples:
-  /// - "My Assignment" --> "My Assignment 1"
-  /// - "My Assignment 1" --> "My Assignment 2"
-  /// - "My Assignment 10" --> "My Assignment 11"
-  static String generateClonedTitle(String originalTitle) {
-    final trailingNumberPattern = RegExp(r'^(.*?)(\d+)$');
-    final match = trailingNumberPattern.firstMatch(originalTitle);
-
-    if (match != null) {
-      final prefix = match.group(1)!;
-      final number = int.parse(match.group(2)!);
-      return '$prefix${number + 1}';
-    } else {
-      return '$originalTitle 1';
-    }
-  }
 }

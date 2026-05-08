@@ -39,7 +39,7 @@ class _WhatsNewDialogWidget extends StatelessWidget {
             size: 28.0,
           ),
           const SizedBox(width: 12),
-          Text(
+          SelectableText(
             "What's New?",
             style: AppStyles.pageTitle(context),
           ),

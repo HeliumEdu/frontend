@@ -171,16 +171,16 @@ class _PlannerItemAddScreenState
     if (_currentEntityId == null) return const [];
     return [
       HeliumIconButton(
-        onPressed: () => _detailsKey.currentState?.onClone(),
-        icon: Icons.copy_outlined,
-        tooltip: 'Clone',
-      ),
-      const SizedBox(width: 8),
-      HeliumIconButton(
         onPressed: () => _detailsKey.currentState?.onDelete(),
         icon: Icons.delete_outline,
         tooltip: 'Delete',
         color: context.colorScheme.error,
+      ),
+      const SizedBox(width: 8),
+      HeliumIconButton(
+        onPressed: () => _detailsKey.currentState?.onClone(),
+        icon: Icons.copy_outlined,
+        tooltip: 'Clone',
       ),
     ];
   }

@@ -33,6 +33,8 @@ abstract class EventRemoteDataSource extends BaseDataSource {
 
   Future<EventModel> createEvent({required EventRequestModel request});
 
+  Future<EventModel> cloneEvent({required int eventId});
+
   Future<EventModel> updateEvent({
     required int eventId,
     required EventRequestModel request,
@@ -149,6 +151,33 @@ class EventRemoteDataSourceImpl extends EventRemoteDataSource {
       } else {
         throw ServerException(
           message: 'Failed to create event: ${response.statusCode}',
+        );
+      }
+    } on DioException catch (e, s) {
+      throw handleDioError(e, s);
+    } catch (e, s) {
+      _log.severe('An unexpected error occurred', e, s);
+      throw HeliumException(message: 'An unexpected error occurred.');
+    }
+  }
+
+  @override
+  Future<EventModel> cloneEvent({required int eventId}) async {
+    try {
+      _log.info('Cloning Event $eventId ...');
+      final response = await dioClient.dio.post(
+        ApiUrl.plannerEventsCloneUrl(eventId),
+      );
+
+      if (response.statusCode == 201) {
+        final event = EventModel.fromJson(response.data);
+        _log.info('... Event $eventId cloned to ${event.id}');
+        await dioClient.cacheService.invalidateAll();
+        unawaited(AnalyticsService().logEvent(name: AnalyticsEvent.eventCreate, parameters: {'category': AnalyticsCategory.featureInteraction.value}));
+        return event;
+      } else {
+        throw ServerException(
+          message: 'Failed to clone event: ${response.statusCode}',
         );
       }
     } on DioException catch (e, s) {

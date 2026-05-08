@@ -51,11 +51,13 @@ class PlannerItemBloc extends Bloc<PlannerItemEvent, PlannerItemState> {
     on<FetchPlannerItemScreenDataEvent>(_onFetchPlannerItemScreenDataEvent);
     on<FetchEventEvent>(_onFetchEvent);
     on<CreateEventEvent>(_onCreateEvent);
+    on<CloneEventEvent>(_onCloneEvent);
     on<UpdateEventEvent>(_onUpdateEvent);
     on<DeleteEventEvent>(_onDeleteEvent);
     on<DeleteAllEventsEvent>(_onDeleteAllEvents);
     on<FetchHomeworkEvent>(_onFetchHomework);
     on<CreateHomeworkEvent>(_onCreateHomework);
+    on<CloneHomeworkEvent>(_onCloneHomework);
     on<UpdateHomeworkEvent>(_onUpdateHomework);
     on<DeleteHomeworkEvent>(_onDeleteHomework);
   }
@@ -189,9 +191,38 @@ class PlannerItemBloc extends Bloc<PlannerItemEvent, PlannerItemState> {
           entityId: entity.id,
           isEvent: true,
           advanceNavOnSuccess: event.advanceNavOnSuccess,
-          isClone: event.isClone,
           redirectToNotebook: event.redirectToNotebook,
           linkedNoteId: linkedNoteId,
+        ),
+      );
+    } on HeliumException catch (e) {
+      emit(PlannerItemsError(origin: event.origin, message: e.message));
+    } catch (e) {
+      emit(
+        PlannerItemsError(
+          origin: event.origin,
+          message: 'An unexpected error occurred.',
+        ),
+      );
+    }
+  }
+
+  Future<void> _onCloneEvent(
+    CloneEventEvent event,
+    Emitter<PlannerItemState> emit,
+  ) async {
+    emit(PlannerItemsLoading(origin: event.origin));
+    try {
+      final entity = await eventRepository.cloneEvent(eventId: event.eventId);
+
+      emit(
+        EventCreated(
+          origin: event.origin,
+          event: entity,
+          entityId: entity.id,
+          isEvent: true,
+          advanceNavOnSuccess: true,
+          isClone: true,
         ),
       );
     } on HeliumException catch (e) {
@@ -360,9 +391,42 @@ class PlannerItemBloc extends Bloc<PlannerItemEvent, PlannerItemState> {
           entityId: homework.id,
           isEvent: false,
           advanceNavOnSuccess: event.advanceNavOnSuccess,
-          isClone: event.isClone,
           redirectToNotebook: event.redirectToNotebook,
           linkedNoteId: linkedNoteId,
+        ),
+      );
+    } on HeliumException catch (e) {
+      emit(PlannerItemsError(origin: event.origin, message: e.message));
+    } catch (e) {
+      emit(
+        PlannerItemsError(
+          origin: event.origin,
+          message: 'An unexpected error occurred.',
+        ),
+      );
+    }
+  }
+
+  Future<void> _onCloneHomework(
+    CloneHomeworkEvent event,
+    Emitter<PlannerItemState> emit,
+  ) async {
+    emit(PlannerItemsLoading(origin: event.origin));
+    try {
+      final homework = await homeworkRepository.cloneHomework(
+        groupId: event.courseGroupId,
+        courseId: event.courseId,
+        homeworkId: event.homeworkId,
+      );
+
+      emit(
+        HomeworkCreated(
+          origin: event.origin,
+          homework: homework,
+          entityId: homework.id,
+          isEvent: false,
+          advanceNavOnSuccess: true,
+          isClone: true,
         ),
       );
     } on HeliumException catch (e) {

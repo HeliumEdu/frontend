@@ -33,7 +33,6 @@ class FetchEventEvent extends PlannerItemEvent {
 class CreateEventEvent extends PlannerItemEvent {
   final EventRequestModel request;
   final bool advanceNavOnSuccess;
-  final bool isClone;
   final Map<String, dynamic>? noteContent;
   final bool redirectToNotebook;
 
@@ -41,10 +40,15 @@ class CreateEventEvent extends PlannerItemEvent {
     required super.origin,
     required this.request,
     this.advanceNavOnSuccess = true,
-    this.isClone = false,
     this.noteContent,
     this.redirectToNotebook = false,
   });
+}
+
+class CloneEventEvent extends PlannerItemEvent {
+  final int eventId;
+
+  CloneEventEvent({required super.origin, required this.eventId});
 }
 
 class UpdateEventEvent extends PlannerItemEvent {
@@ -87,7 +91,6 @@ class CreateHomeworkEvent extends PlannerItemEvent {
   final int courseId;
   final HomeworkRequestModel request;
   final bool advanceNavOnSuccess;
-  final bool isClone;
   final Map<String, dynamic>? noteContent;
   final bool redirectToNotebook;
 
@@ -97,9 +100,21 @@ class CreateHomeworkEvent extends PlannerItemEvent {
     required this.courseId,
     required this.request,
     this.advanceNavOnSuccess = true,
-    this.isClone = false,
     this.noteContent,
     this.redirectToNotebook = false,
+  });
+}
+
+class CloneHomeworkEvent extends PlannerItemEvent {
+  final int courseGroupId;
+  final int courseId;
+  final int homeworkId;
+
+  CloneHomeworkEvent({
+    required super.origin,
+    required this.courseGroupId,
+    required this.courseId,
+    required this.homeworkId,
   });
 }
 
