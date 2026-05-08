@@ -42,7 +42,7 @@ const _cards = [
     title: 'Welcome to Helium!',
     description:
         "We've preloaded your account with an example schedule so you can "
-        'see Helium in action. Take your time exploring—click through '
+        'see Helium in action. Take your time exploring — click through '
         'to see what you can do.',
     icon: Icons.rocket_launch_outlined,
     imagePaths: ['assets/img/onboarding_welcome.png'],
@@ -50,9 +50,10 @@ const _cards = [
   _OnboardingCard(
     title: 'Your Planner, your way',
     description:
-        'Switch between time-based views and Todos. Click for details, '
-        'drag to reschedule, filter, search, sort by priority—everything '
-        'you need to stay on top of your schedule.',
+        'Switch between Month, Week, Day, Agenda, and Todos views. '
+        'Open for details, drag to reschedule, filter, search, sort '
+        'by priority — everything you need to stay on top of your '
+        'schedule.',
     icon: Icons.calendar_month_outlined,
     imagePaths: [
       'assets/img/onboarding_planner.png',
@@ -64,25 +65,25 @@ const _cards = [
     description:
         'View Classes to see how your schedules, categories, and '
         'assignments connect. Track deadlines, class times, locations, '
-        'and resources—all in one place.',
+        'and Resources — all in one place.',
     icon: Icons.school_outlined,
     imagePaths: ['assets/img/onboarding_classes.png'],
   ),
   _OnboardingCard(
     title: 'Track your grades',
     description:
-        'Check out Grades to see how your scores break down by class. '
-        'Great for spotting trends giving you the clarity you need to '
-        'know where to focus next and stay ahead.',
+        'Visit Grades to see your scores by class, category, '
+        'and term in real time. Know where to focus, what could '
+        'move the needle, and calculate what you need to score on the final.',
     icon: Icons.bar_chart_outlined,
     imagePaths: ['assets/img/onboarding_grades.png'],
   ),
   _OnboardingCard(
     title: 'Keep a Notebook',
     description:
-        'Write rich notes linked directly to items in your planner. Or '
-        'keep standalone notes for anything else. Lecture summaries, '
-          'paper drafts, everything organized in one place.',
+        'Write notes linked to anything in your planner — lecture summaries,'
+        'paper drafts, whatever else. Format like a doc, search everything, '
+        'and print when you need a hard copy.',
     icon: Icons.library_books,
     imagePaths: ['assets/img/onboarding_notebook.png'],
   ),
@@ -98,18 +99,18 @@ const _cards = [
   _OnboardingCard(
     title: 'Available everywhere',
     description:
-        'Helium works seamlessly across web, iOS, and Android. Your '
-        'schedule stays in sync no matter which device you use, so your '
-        'entire planner is always just one tap away.',
+        'Native apps for iOS and Android, plus web in any modern '
+        'browser. Your schedule and notes stays in sync no matter which '
+        'device you use — always right there.',
     icon: Icons.devices_outlined,
     imagePaths: ['assets/img/onboarding_everywhere.png'],
   ),
   _OnboardingCard(
     title: 'Ready when you are',
     description:
-        "You'll see this dialog each time you open Helium or return "
-        'after a break, so you can keep exploring. Once you clear the '
-        'example data, it will go away.',
+        "You'll see this welcome screen each time you open Helium or "
+        'return after a break, so you can keep exploring. Once you '
+        'clear the example data, it will go away.',
     icon: Icons.auto_delete_outlined,
     imagePaths: ['assets/img/onboarding_ready.png'],
   ),
