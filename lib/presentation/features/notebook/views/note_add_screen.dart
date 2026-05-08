@@ -19,7 +19,7 @@ import 'package:heliumapp/config/analytics_event.dart';
 import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/config/app_router.dart';
 import 'package:heliumapp/config/app_theme.dart';
-import 'package:heliumapp/utils/app_style.dart';
+import 'package:heliumapp/core/analytics_service.dart';
 import 'package:heliumapp/data/models/planner/note_model.dart';
 import 'package:heliumapp/data/models/planner/request/note_request_model.dart';
 import 'package:heliumapp/presentation/core/views/base_page_screen_state.dart';
@@ -38,6 +38,7 @@ import 'package:heliumapp/presentation/ui/components/resource_title_label.dart';
 import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
 import 'package:heliumapp/presentation/ui/layout/page_header.dart';
 import 'package:heliumapp/utils/app_globals.dart';
+import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/deep_link_helpers.dart';
 import 'package:heliumapp/utils/print_helpers.dart';
 import 'package:heliumapp/utils/print_service.dart';
@@ -45,7 +46,6 @@ import 'package:heliumapp/utils/quill_helpers.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
-import 'package:heliumapp/core/analytics_service.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
 enum SaveStatus { unsaved, saving, saved, error }
@@ -187,11 +187,14 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
   List<Widget> get additionalHeaderButtons {
     if (_note == null) return const [];
     return [
-      HeliumIconButton(
-        onPressed: _onDelete,
-        icon: Icons.delete_outline,
-        tooltip: 'Delete',
-        color: context.colorScheme.error,
+      Semantics(
+        label: 'Delete',
+        button: true,
+        child: HeliumIconButton(
+          onPressed: _onDelete,
+          icon: Icons.delete_outline,
+          color: context.colorScheme.error,
+        ),
       ),
     ];
   }
@@ -211,10 +214,7 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
           isSubmitting = true;
         });
         context.read<NoteBloc>().add(
-          DeleteNoteEvent(
-            origin: EventOrigin.subScreen,
-            noteId: note.id,
-          ),
+          DeleteNoteEvent(origin: EventOrigin.subScreen, noteId: note.id),
         );
       },
     );
@@ -252,8 +252,7 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
     }
 
     // New linked note with empty body: skip stub creation
-    final bodyIsEmpty =
-        _quillController.document.toPlainText().trim().isEmpty;
+    final bodyIsEmpty = _quillController.document.toPlainText().trim().isEmpty;
     if (_note?.id == null &&
         (widget.linkEventId != null ||
             widget.linkHomeworkId != null ||
@@ -527,11 +526,15 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
   void _handleAutoSaveError(String message) {
     _autoSaveErrorCount++;
 
-    AnalyticsService().logEvent(name: AnalyticsEvent.debugNoteAutosaveError, parameters: {'category': AnalyticsCategory.edgeCase.value});
+    AnalyticsService().logEvent(
+      name: AnalyticsEvent.debugNoteAutosaveError,
+      parameters: {'category': AnalyticsCategory.edgeCase.value},
+    );
     Sentry.captureMessage(
       'Note autosave failed',
       level: SentryLevel.error,
-      withScope: (scope) => scope.setContexts('autosave_error', {'error': message}),
+      withScope: (scope) =>
+          scope.setContexts('autosave_error', {'error': message}),
     );
 
     if (_autoSaveErrorCount >= _maxAutoSaveErrors) {
@@ -597,11 +600,8 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        final editorContainerHeight =
-            (constraints.maxHeight - titleRowHeight).clamp(
-          minEditorContainerHeight,
-          double.infinity,
-        );
+        final editorContainerHeight = (constraints.maxHeight - titleRowHeight)
+            .clamp(minEditorContainerHeight, double.infinity);
 
         return SingleChildScrollView(
           child: Form(
@@ -653,8 +653,8 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
                     onKeyPressed: (event, node) {
                       final isFindShortcut =
                           event.logicalKey == LogicalKeyboardKey.keyF &&
-                              (HardwareKeyboard.instance.isMetaPressed ||
-                                  HardwareKeyboard.instance.isControlPressed);
+                          (HardwareKeyboard.instance.isMetaPressed ||
+                              HardwareKeyboard.instance.isControlPressed);
                       if (isFindShortcut) {
                         setState(() => _showSearch = !_showSearch);
                         return KeyEventResult.handled;
@@ -690,8 +690,10 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
           const double gap = 4;
           final hasBadge = _linkedEntityType != null;
           final effectiveBadgeMax = hasBadge
-              ? (constraints.maxWidth - titleMinWidth - gap * 2)
-                  .clamp(0.0, badgeMaxWidth)
+              ? (constraints.maxWidth - titleMinWidth - gap * 2).clamp(
+                  0.0,
+                  badgeMaxWidth,
+                )
               : 0.0;
           return Row(
             crossAxisAlignment: CrossAxisAlignment.center,
@@ -855,10 +857,9 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
   }
 
   Future<void> _printNote() async {
-    final title =
-        _titleController.text.trim().isNotEmpty
-            ? _titleController.text.trim()
-            : (_linkedEntityTitle ?? '');
+    final title = _titleController.text.trim().isNotEmpty
+        ? _titleController.text.trim()
+        : (_linkedEntityTitle ?? '');
     final delta = _quillController.document.toDelta();
 
     if (!mounted) return;
@@ -972,9 +973,9 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
 
     return Text(
       title,
-      style: AppStyles.standardBodyText(context).copyWith(
-        color: context.colorScheme.onSurface.withValues(alpha: 0.6),
-      ),
+      style: AppStyles.standardBodyText(
+        context,
+      ).copyWith(color: context.colorScheme.onSurface.withValues(alpha: 0.6)),
       overflow: TextOverflow.ellipsis,
     );
   }
