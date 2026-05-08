@@ -24,6 +24,8 @@ abstract class EventRepository {
 
   Future<EventModel> createEvent({required EventRequestModel request});
 
+  Future<EventModel> cloneEvent({required int eventId});
+
   Future<EventModel> updateEvent({
     required int eventId,
     required EventRequestModel request,

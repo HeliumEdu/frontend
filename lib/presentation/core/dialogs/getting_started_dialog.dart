@@ -28,12 +28,14 @@ class _OnboardingCard {
   final String description;
   final IconData icon;
   final List<String> imagePaths;
+  final bool stackedDevices;
 
   const _OnboardingCard({
     required this.title,
     required this.description,
     required this.icon,
     this.imagePaths = const [],
+    this.stackedDevices = false,
   });
 }
 
@@ -103,7 +105,7 @@ const _cards = [
         'browser. Your schedule and notes stays in sync no matter which '
         'device you use — always right there.',
     icon: Icons.devices_outlined,
-    imagePaths: ['assets/img/onboarding_everywhere.png'],
+    stackedDevices: true,
   ),
   _OnboardingCard(
     title: 'Ready when you are',
@@ -233,7 +235,12 @@ class _GettingStartedDialogWidgetState
     // Images render blurry on web due to poor CanvasKit downscaling.
     // https://github.com/flutter/flutter/issues/135655
     Widget imageWidget = const SizedBox.shrink();
-    if (card.imagePaths.isNotEmpty) {
+    if (card.stackedDevices) {
+      imageWidget = const Padding(
+        padding: EdgeInsets.symmetric(horizontal: 24.0),
+        child: _StackedDevices(),
+      );
+    } else if (card.imagePaths.isNotEmpty) {
       imageWidget = Padding(
         padding: const EdgeInsets.symmetric(horizontal: 24.0),
         child: card.imagePaths.length > 1
@@ -466,6 +473,57 @@ class _CyclingImageState extends State<_CyclingImage> {
         key: ValueKey(_currentIndex),
         fit: BoxFit.contain,
         filterQuality: FilterQuality.high,
+      ),
+    );
+  }
+}
+
+class _StackedDevices extends StatelessWidget {
+  const _StackedDevices();
+
+  @override
+  Widget build(BuildContext context) {
+    return AspectRatio(
+      aspectRatio: 1880 / 1000,
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final h = constraints.maxHeight;
+          final dpr = MediaQuery.of(context).devicePixelRatio;
+          int cache(double v) => (v * dpr * 2).round();
+          return FittedBox(
+            fit: BoxFit.contain,
+            alignment: Alignment.bottomCenter,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Image.asset(
+                  'assets/img/frame_phone.png',
+                  height: h,
+                  cacheHeight: cache(h),
+                  fit: BoxFit.fitHeight,
+                  filterQuality: FilterQuality.high,
+                ),
+                const SizedBox(width: 8),
+                Image.asset(
+                  'assets/img/frame_tablet.png',
+                  height: h * 0.72,
+                  cacheHeight: cache(h * 0.72),
+                  fit: BoxFit.fitHeight,
+                  filterQuality: FilterQuality.high,
+                ),
+                const SizedBox(width: 8),
+                Image.asset(
+                  'assets/img/frame_laptop.png',
+                  height: h * 0.56,
+                  cacheHeight: cache(h * 0.56),
+                  fit: BoxFit.fitHeight,
+                  filterQuality: FilterQuality.high,
+                ),
+              ],
+            ),
+          );
+        },
       ),
     );
   }

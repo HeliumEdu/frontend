@@ -42,6 +42,12 @@ abstract class HomeworkRemoteDataSource extends BaseDataSource {
     required HomeworkRequestModel request,
   });
 
+  Future<HomeworkModel> cloneHomework({
+    required int groupId,
+    required int courseId,
+    required int homeworkId,
+  });
+
   Future<HomeworkModel> updateHomework({
     required int groupId,
     required int courseId,
@@ -182,6 +188,37 @@ class HomeworkRemoteDataSourceImpl extends HomeworkRemoteDataSource {
       } else {
         throw ServerException(
           message: 'Failed to create homework: ${response.statusCode}',
+        );
+      }
+    } on DioException catch (e, s) {
+      throw handleDioError(e, s);
+    } catch (e, s) {
+      _log.severe('An unexpected error occurred', e, s);
+      throw HeliumException(message: 'An unexpected error occurred.');
+    }
+  }
+
+  @override
+  Future<HomeworkModel> cloneHomework({
+    required int groupId,
+    required int courseId,
+    required int homeworkId,
+  }) async {
+    try {
+      _log.info('Cloning Homework $homeworkId in Course $courseId ...');
+      final response = await dioClient.dio.post(
+        ApiUrl.plannerCourseGroupsCoursesHomeworkCloneUrl(groupId, courseId, homeworkId),
+      );
+
+      if (response.statusCode == 201) {
+        final homework = HomeworkModel.fromJson(response.data);
+        _log.info('... Homework $homeworkId cloned to ${homework.id}');
+        await dioClient.cacheService.invalidateAll();
+        unawaited(AnalyticsService().logEvent(name: AnalyticsEvent.homeworkCreate, parameters: {'category': AnalyticsCategory.featureInteraction.value}));
+        return homework;
+      } else {
+        throw ServerException(
+          message: 'Failed to clone homework: ${response.statusCode}',
         );
       }
     } on DioException catch (e, s) {
