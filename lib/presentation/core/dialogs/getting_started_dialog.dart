@@ -112,7 +112,7 @@ const _cards = [
         'return after a break, so you can keep exploring. Once you '
         'clear the example data, it will go away.',
     icon: Icons.auto_delete_outlined,
-    imagePaths: ['assets/img/onboarding_ready.png'],
+    imagePaths: ['assets/img/onboarding_reminders.png'],
   ),
 ];
 
