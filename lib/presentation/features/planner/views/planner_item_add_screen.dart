@@ -13,12 +13,12 @@ import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/attachment_bloc.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/planneritem_bloc.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/planneritem_state.dart';
-import 'package:heliumapp/presentation/features/shared/widgets/flow/multi_step_container.dart';
 import 'package:heliumapp/presentation/features/planner/widgets/planner_item_attachments.dart';
-import 'package:heliumapp/presentation/features/shared/widgets/core/base_attachments.dart';
 import 'package:heliumapp/presentation/features/planner/widgets/planner_item_details.dart';
 import 'package:heliumapp/presentation/features/planner/widgets/planner_item_reminders.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/core/provider_helpers.dart';
+import 'package:heliumapp/presentation/features/shared/widgets/core/base_attachments.dart';
+import 'package:heliumapp/presentation/features/shared/widgets/flow/multi_step_container.dart';
 import 'package:heliumapp/presentation/ui/components/helium_icon_button.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/deep_link_helpers.dart';
@@ -62,9 +62,7 @@ Future<void> showPlannerItemAdd(
   return showScreenAsDialog(
     context,
     child: MultiBlocProvider(
-      providers: [
-        BlocProvider<AttachmentBloc>.value(value: attachmentBloc),
-      ],
+      providers: [BlocProvider<AttachmentBloc>.value(value: attachmentBloc)],
       child: PlannerItemAddScreen(
         eventId: eventId,
         homeworkId: homeworkId,
@@ -80,7 +78,6 @@ Future<void> showPlannerItemAdd(
     alignment: Alignment.center,
   ).then((_) => clearRouteQueryParams(basePath));
 }
-
 
 class PlannerItemAddScreen extends MultiStepContainer {
   final int? eventId;
@@ -170,11 +167,14 @@ class _PlannerItemAddScreenState
     if (currentStep != 0) return const [];
     if (_currentEntityId == null) return const [];
     return [
-      HeliumIconButton(
-        onPressed: () => _detailsKey.currentState?.onDelete(),
-        icon: Icons.delete_outline,
-        tooltip: 'Delete',
-        color: context.colorScheme.error,
+      Semantics(
+        label: 'Delete',
+        button: true,
+        child: HeliumIconButton(
+          onPressed: () => _detailsKey.currentState?.onDelete(),
+          icon: Icons.delete_outline,
+          color: context.colorScheme.error,
+        ),
       ),
       const SizedBox(width: 8),
       HeliumIconButton(
@@ -241,7 +241,9 @@ class _PlannerItemAddScreenState
                 (state is HomeworkUpdated && state.redirectToNotebook);
 
             if (isClone) {
-              _log.info('Planner item cloned (entityId=${state.entityId}, isEvent=${state.isEvent})');
+              _log.info(
+                'Planner item cloned (entityId=${state.entityId}, isEvent=${state.isEvent})',
+              );
               showSnackBar(
                 context,
                 '${state.isEvent ? 'Event' : 'Assignment'} cloned',
@@ -259,7 +261,9 @@ class _PlannerItemAddScreenState
                 homeworkId: !state.isEvent ? state.entityId : null,
               );
             } else if (redirectToNotebook) {
-              _log.info('Planner item saved with notebook redirect (entityId=${state.entityId}, isEvent=${state.isEvent})');
+              _log.info(
+                'Planner item saved with notebook redirect (entityId=${state.entityId}, isEvent=${state.isEvent})',
+              );
               final linkedNoteId = switch (state) {
                 EventCreated(:final linkedNoteId) => linkedNoteId,
                 EventUpdated(:final linkedNoteId) => linkedNoteId,
@@ -272,14 +276,25 @@ class _PlannerItemAddScreenState
               setState(() => isSubmitting = false);
 
               if (linkedNoteId != null) {
-                navigateAndClearStack(context, '${AppRoute.notebookScreen}?id=$linkedNoteId');
+                navigateAndClearStack(
+                  context,
+                  '${AppRoute.notebookScreen}?id=$linkedNoteId',
+                );
               } else if (state.isEvent) {
-                navigateAndClearStack(context, '${AppRoute.notebookScreen}?${DeepLinkParam.linkEventId}=${state.entityId}');
+                navigateAndClearStack(
+                  context,
+                  '${AppRoute.notebookScreen}?${DeepLinkParam.linkEventId}=${state.entityId}',
+                );
               } else {
-                navigateAndClearStack(context, '${AppRoute.notebookScreen}?${DeepLinkParam.linkHomeworkId}=${state.entityId}');
+                navigateAndClearStack(
+                  context,
+                  '${AppRoute.notebookScreen}?${DeepLinkParam.linkHomeworkId}=${state.entityId}',
+                );
               }
             } else {
-              _log.info('Planner item saved normally (entityId=${state.entityId}, isEvent=${state.isEvent}, isNew=${state is HomeworkCreated || state is EventCreated})');
+              _log.info(
+                'Planner item saved normally (entityId=${state.entityId}, isEvent=${state.isEvent}, isNew=${state is HomeworkCreated || state is EventCreated})',
+              );
               if (state is HomeworkCreated || state is EventCreated) {
                 final willClose = _willCloseAfterSave();
                 showSnackBar(
