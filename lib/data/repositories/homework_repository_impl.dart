@@ -58,6 +58,19 @@ class HomeworkRepositoryImpl implements HomeworkRepository {
   }
 
   @override
+  Future<HomeworkModel> cloneHomework({
+    required int groupId,
+    required int courseId,
+    required int homeworkId,
+  }) async {
+    return remoteDataSource.cloneHomework(
+      groupId: groupId,
+      courseId: courseId,
+      homeworkId: homeworkId,
+    );
+  }
+
+  @override
   Future<HomeworkModel> updateHomework({
     required int groupId,
     required int courseId,

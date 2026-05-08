@@ -77,8 +77,17 @@ class ApiUrl {
     int homeworkId,
   ) => '/planner/coursegroups/$groupId/courses/$courseId/homework/$homeworkId/';
 
+  static String plannerCourseGroupsCoursesHomeworkCloneUrl(
+    int groupId,
+    int courseId,
+    int homeworkId,
+  ) => '/planner/coursegroups/$groupId/courses/$courseId/homework/$homeworkId/clone/';
+
   static String plannerEventsDetailsUrl(int eventId) =>
       '/planner/events/$eventId/';
+
+  static String plannerEventsCloneUrl(int eventId) =>
+      '/planner/events/$eventId/clone/';
 
   static String plannerNotesDetailsUrl(int noteId) =>
       '/planner/notes/$noteId/';

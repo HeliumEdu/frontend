@@ -1265,54 +1265,11 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
 
     widget.onActionStarted?.call();
 
-    final clonedTitle = PlannerHelper.generateClonedTitle(_plannerItem!.title);
-
-    final start = HeliumDateTime.formatDateAndTimeForApi(
-      formController.startDate,
-      formController.isAllDay ? null : formController.startTime,
-      widget.userSettings!.timeZone,
-    );
-
-    String end;
-    if (formController.showEndDateTime) {
-      final endDateForApi = formController.isAllDay
-          ? formController.endDate.add(const Duration(days: 1))
-          : formController.endDate;
-      end = HeliumDateTime.formatDateAndTimeForApi(
-        endDateForApi,
-        formController.isAllDay ? null : formController.endTime,
-        widget.userSettings!.timeZone,
-      );
-    } else {
-      if (formController.isAllDay) {
-        final endDate = formController.startDate.add(const Duration(days: 1));
-        end = HeliumDateTime.formatDateAndTimeForApi(
-          endDate,
-          null,
-          widget.userSettings!.timeZone,
-        );
-      } else {
-        end = start;
-      }
-    }
-
     if (_plannerItem is EventModel) {
-      final request = EventRequestModel(
-        title: clonedTitle,
-        allDay: formController.isAllDay,
-        showEndTime: formController.showEndDateTime,
-        start: start,
-        end: end,
-        priority: _getPriorityValue(),
-        comments: widget.isEdit ? null : '',
-      );
-
-      if (!mounted) return;
       context.read<PlannerItemBloc>().add(
-        CreateEventEvent(
+        CloneEventEvent(
           origin: EventOrigin.subScreen,
-          request: request,
-          isClone: true,
+          eventId: _plannerItem!.id,
         ),
       );
     } else if (_plannerItem is HomeworkModel) {
@@ -1321,29 +1278,12 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
         (c) => c.id == homework.course.id,
       );
 
-      final request = HomeworkRequestModel(
-        title: clonedTitle,
-        allDay: formController.isAllDay,
-        showEndTime: formController.showEndDateTime,
-        start: start,
-        end: end,
-        priority: _getPriorityValue(),
-        comments: widget.isEdit ? null : '',
-        currentGrade: '-1/100',
-        completed: false,
-        category: formController.selectedCategory,
-        resources: formController.selectedResources,
-        course: homework.course.id,
-      );
-
-      if (!mounted) return;
       context.read<PlannerItemBloc>().add(
-        CreateHomeworkEvent(
+        CloneHomeworkEvent(
           origin: EventOrigin.subScreen,
           courseGroupId: selectedCourse.courseGroup,
           courseId: selectedCourse.id,
-          request: request,
-          isClone: true,
+          homeworkId: homework.id,
         ),
       );
     }
