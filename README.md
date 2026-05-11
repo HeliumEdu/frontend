@@ -42,9 +42,9 @@ When running a local `web` version of the project but hitting `prod` APIs, CORS 
 by passing a flag like `--web-browser-flag=--disable-web-security` to Flutter so it starts the browser with this
 disabled.
 
-### Platform
+### Platform API
 
-The backend `platform` is served from a separate repository and can be found [here](https://github.com/HeliumEdu/platform#readme).
+The backend `platform` API is served from a separate repository and can be found [here](https://github.com/HeliumEdu/platform#readme).
 If `platform` has been provisioned and is running locally, and you would like to run the frontend against the local
 backend instead of production, run with `--dart-define PROJECT_API_HOST=http://localhost:8000`, or use `PROJECT_API_HOST=http://localhost:8000 make run-devserver`.
 
