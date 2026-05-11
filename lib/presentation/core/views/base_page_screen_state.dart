@@ -245,6 +245,20 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
     }
   }
 
+  void _reloadSettings() {
+    setState(() {
+      settingsError = false;
+      isLoading = true;
+    });
+    loadSettings().whenComplete(() {
+      if (mounted) {
+        setState(() {
+          isLoading = false;
+        });
+      }
+    });
+  }
+
   @mustCallSuper
   Future<UserSettingsModel?> loadSettings() {
     return dioClient
