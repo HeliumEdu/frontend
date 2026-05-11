@@ -3,7 +3,7 @@ description: "Helium is a smart student planner that lets organizes your classes
 
 publish_to: 'none'
 
-version: 3.5.19+251
+version: 3.5.20+252
 
 environment:
   sdk: ^3.11.0

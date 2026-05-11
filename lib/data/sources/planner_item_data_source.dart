@@ -204,23 +204,37 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
   /// Refreshes only external calendar events without clearing other cached data.
   /// Use this when external calendar settings change (enable/disable) to avoid
   /// losing homework/event data needed by the Todos table.
-  Future<void> refreshExternalCalendarEvents({
-    DateTime? visibleStart,
-    DateTime? visibleEnd,
-  }) async {
+  ///
+  /// Refetches over the union of all cached date ranges rather than a single
+  /// visible range, since [handleLoadMore] lazily caches ranges beyond the
+  /// current viewport that still need their external events kept in sync.
+  Future<void> refreshExternalCalendarEvents() async {
     _isRefreshing = true;
     _notifyChangeListeners();
 
     try {
       _log.info('Refreshing external calendar events only');
 
-      if (visibleStart != null && visibleEnd != null) {
-        final newEvents = await externalCalendarRepository.getExternalCalendarEvents(
-          from: visibleStart,
-          to: visibleEnd,
-          shownOnCalendar: true,
-          forceRefresh: true,
-        );
+      if (_dateRangeCache.isNotEmpty) {
+        final cachedRanges = _dateRangeCache.keys.map((key) {
+          final parts = key.split('_');
+          return (DateTime.parse(parts[0]), DateTime.parse(parts[1]));
+        }).toList();
+
+        final unionStart = cachedRanges
+            .map((r) => r.$1)
+            .reduce((a, b) => a.isBefore(b) ? a : b);
+        final unionEnd = cachedRanges
+            .map((r) => r.$2)
+            .reduce((a, b) => a.isAfter(b) ? a : b);
+
+        final newEvents = await externalCalendarRepository
+            .getExternalCalendarEvents(
+              from: unionStart,
+              to: unionEnd,
+              shownOnCalendar: true,
+              forceRefresh: true,
+            );
 
         for (final entry in _dateRangeCache.entries) {
           final items = entry.value;
