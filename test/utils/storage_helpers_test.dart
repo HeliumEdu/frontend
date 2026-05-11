@@ -28,6 +28,11 @@ import 'package:heliumapp/utils/storage_helpers.dart';
 
 class _MockFilePicker extends Mock with MockPlatformInterfaceMixin implements FilePicker {}
 
+/// Test stand-in for the value `/info/` would supply at runtime — chosen to
+/// match the previous hardcoded cap so the messages and edge cases below stay
+/// stable.
+const int _testMaxUploadSize = 10 * 1024 * 1024;
+
 /// Builds a [PlatformFile] backed by a single-chunk [readStream] and no path.
 /// On mobile (VM), [readPickedFileBytes] falls back to the stream when path is
 /// null, so this exercises the [BytesBuilder] assembly path used on web.
@@ -79,7 +84,7 @@ void main() {
       test('returns cancelled=true when picker returns null', () async {
         stubPickFiles(null);
 
-        final result = await HeliumStorage.pickFiles();
+        final result = await HeliumStorage.pickFiles(maxUploadSize: _testMaxUploadSize);
 
         expect(result.cancelled, isTrue);
         expect(result.files, isEmpty);
@@ -89,7 +94,7 @@ void main() {
       test('cancelled=false and no errors when picker returns empty list', () async {
         stubPickFiles(const FilePickerResult([]));
 
-        final result = await HeliumStorage.pickFiles();
+        final result = await HeliumStorage.pickFiles(maxUploadSize: _testMaxUploadSize);
 
         expect(result.cancelled, isFalse);
         expect(result.files, isEmpty);
@@ -99,12 +104,12 @@ void main() {
 
     group('size validation', () {
       test('accepts file exactly at the 10 MB limit', () async {
-        final bytes = List.filled(maxUploadFileSizeBytes, 0);
+        final bytes = List.filled(_testMaxUploadSize, 0);
         stubPickFiles(FilePickerResult([
-          _streamFile(name: 'exact.bin', size: maxUploadFileSizeBytes, bytes: bytes),
+          _streamFile(name: 'exact.bin', size: _testMaxUploadSize, bytes: bytes),
         ]));
 
-        final result = await HeliumStorage.pickFiles();
+        final result = await HeliumStorage.pickFiles(maxUploadSize: _testMaxUploadSize);
 
         expect(result.files, hasLength(1));
         expect(result.files.first.name, 'exact.bin');
@@ -112,12 +117,12 @@ void main() {
       });
 
       test('accepts file 1 byte under the limit', () async {
-        const size = maxUploadFileSizeBytes - 1;
+        const size = _testMaxUploadSize - 1;
         stubPickFiles(FilePickerResult([
           _streamFile(name: 'small.bin', size: size, bytes: List.filled(size, 0)),
         ]));
 
-        final result = await HeliumStorage.pickFiles();
+        final result = await HeliumStorage.pickFiles(maxUploadSize: _testMaxUploadSize);
 
         expect(result.files, hasLength(1));
         expect(result.errors, isEmpty);
@@ -129,12 +134,12 @@ void main() {
         stubPickFiles(FilePickerResult([
           PlatformFile(
             name: 'huge.bin',
-            size: maxUploadFileSizeBytes + 1,
+            size: _testMaxUploadSize + 1,
             readStream: Stream<List<int>>.fromIterable([]),
           ),
         ]));
 
-        final result = await HeliumStorage.pickFiles();
+        final result = await HeliumStorage.pickFiles(maxUploadSize: _testMaxUploadSize);
 
         expect(result.files, isEmpty);
         expect(result.errors, hasLength(1));
@@ -144,13 +149,13 @@ void main() {
       });
 
       test('produces one fileTooLarge error per oversized file', () async {
-        const overSize = maxUploadFileSizeBytes + 1;
+        const overSize = _testMaxUploadSize + 1;
         stubPickFiles(FilePickerResult([
           PlatformFile(name: 'a.bin', size: overSize),
           PlatformFile(name: 'b.bin', size: overSize),
         ]));
 
-        final result = await HeliumStorage.pickFiles(allowMultiple: true);
+        final result = await HeliumStorage.pickFiles(maxUploadSize: _testMaxUploadSize, allowMultiple: true);
 
         expect(result.files, isEmpty);
         expect(result.errors, hasLength(2));
@@ -165,10 +170,10 @@ void main() {
       test('separates accepted files from oversized files', () async {
         stubPickFiles(FilePickerResult([
           _streamFile(name: 'valid.txt', size: 3, bytes: [1, 2, 3]),
-          PlatformFile(name: 'too_big.bin', size: maxUploadFileSizeBytes + 1),
+          PlatformFile(name: 'too_big.bin', size: _testMaxUploadSize + 1),
         ]));
 
-        final result = await HeliumStorage.pickFiles(allowMultiple: true);
+        final result = await HeliumStorage.pickFiles(maxUploadSize: _testMaxUploadSize, allowMultiple: true);
 
         expect(result.cancelled, isFalse);
         expect(result.files, hasLength(1));
@@ -185,7 +190,7 @@ void main() {
           _streamFile(name: 'file.bin', size: bytes.length, bytes: bytes),
         ]));
 
-        final result = await HeliumStorage.pickFiles();
+        final result = await HeliumStorage.pickFiles(maxUploadSize: _testMaxUploadSize);
 
         expect(result.files, hasLength(1));
         expect(result.files.first.bytes, equals(Uint8List.fromList(bytes)));
@@ -205,7 +210,7 @@ void main() {
           ),
         ]));
 
-        final result = await HeliumStorage.pickFiles();
+        final result = await HeliumStorage.pickFiles(maxUploadSize: _testMaxUploadSize);
 
         expect(result.files.first.bytes, equals(expected));
       });
@@ -216,7 +221,7 @@ void main() {
           PlatformFile(name: 'unreadable.bin', size: 100),
         ]));
 
-        final result = await HeliumStorage.pickFiles();
+        final result = await HeliumStorage.pickFiles(maxUploadSize: _testMaxUploadSize);
 
         expect(result.files, isEmpty);
         expect(result.errors, hasLength(1));
@@ -242,7 +247,7 @@ void main() {
           ),
         ]));
 
-        final result = await HeliumStorage.pickFiles();
+        final result = await HeliumStorage.pickFiles(maxUploadSize: _testMaxUploadSize);
 
         expect(result.files, hasLength(1));
         expect(result.files.first.bytes, equals(expectedBytes));
@@ -266,7 +271,7 @@ void main() {
           ),
         ]));
 
-        final result = await HeliumStorage.pickFiles();
+        final result = await HeliumStorage.pickFiles(maxUploadSize: _testMaxUploadSize);
 
         expect(result.files.first.bytes, equals(fileBytes));
       });
@@ -278,7 +283,7 @@ void main() {
           _streamFile(name: 'backup.csv', size: 3, bytes: [1, 2, 3]),
         ]));
 
-        final result = await HeliumStorage.pickFiles(allowedExtension: 'json');
+        final result = await HeliumStorage.pickFiles(maxUploadSize: _testMaxUploadSize, allowedExtension: 'json');
 
         expect(result.files, isEmpty);
         expect(result.errors, hasLength(1));
@@ -291,7 +296,7 @@ void main() {
           _streamFile(name: 'backup.json', size: 4, bytes: [1, 2, 3, 4]),
         ]));
 
-        final result = await HeliumStorage.pickFiles(allowedExtension: 'json');
+        final result = await HeliumStorage.pickFiles(maxUploadSize: _testMaxUploadSize, allowedExtension: 'json');
 
         expect(result.files, hasLength(1));
         expect(result.errors, isEmpty);
@@ -304,7 +309,7 @@ void main() {
           _streamFile(name: 'backup.JSON', size: 2, bytes: [1, 2]),
         ]));
 
-        final result = await HeliumStorage.pickFiles(allowedExtension: 'json');
+        final result = await HeliumStorage.pickFiles(maxUploadSize: _testMaxUploadSize, allowedExtension: 'json');
 
         expect(result.files, hasLength(1));
         expect(result.errors, isEmpty);
@@ -315,7 +320,7 @@ void main() {
           _streamFile(name: 'anything.xyz', size: 3, bytes: [1, 2, 3]),
         ]));
 
-        final result = await HeliumStorage.pickFiles();
+        final result = await HeliumStorage.pickFiles(maxUploadSize: _testMaxUploadSize);
 
         expect(result.files, hasLength(1));
         expect(result.errors, isEmpty);
@@ -326,23 +331,35 @@ void main() {
         stubPickFiles(FilePickerResult([
           PlatformFile(
             name: 'wrong.csv',
-            size: maxUploadFileSizeBytes + 1,
+            size: _testMaxUploadSize + 1,
           ),
         ]));
 
-        final result = await HeliumStorage.pickFiles(allowedExtension: 'json');
+        final result = await HeliumStorage.pickFiles(maxUploadSize: _testMaxUploadSize, allowedExtension: 'json');
 
         expect(result.errors.first.reason, PickedFileErrorReason.wrongFileType);
       });
     });
 
     group('PickedFileError.userMessage', () {
-      test('fileTooLarge includes file name and "10 MB"', () {
+      test('fileTooLarge with maxUploadSize includes file name and MB cap', () {
+        const error = PickedFileError(
+          name: 'big.bin',
+          reason: PickedFileErrorReason.fileTooLarge,
+          maxUploadSize: _testMaxUploadSize,
+        );
+        expect(error.userMessage, 'File size cannot exceed 10 MB: big.bin');
+      });
+
+      test('fileTooLarge without maxUploadSize falls back to generic message', () {
         const error = PickedFileError(
           name: 'big.bin',
           reason: PickedFileErrorReason.fileTooLarge,
         );
-        expect(error.userMessage, 'File size cannot exceed 10 MB: big.bin');
+        expect(
+          error.userMessage,
+          'File size exceeded the allowed limit: big.bin',
+        );
       });
 
       test('readError includes file name', () {
@@ -374,10 +391,5 @@ void main() {
       });
     });
 
-    group('maxUploadFileSizeBytes', () {
-      test('is exactly 10 MB', () {
-        expect(maxUploadFileSizeBytes, equals(10 * 1024 * 1024));
-      });
-    });
   });
 }

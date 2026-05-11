@@ -19,6 +19,8 @@ import 'package:heliumapp/core/api_url.dart';
 import 'package:heliumapp/core/dio_client.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_bloc.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_event.dart';
+import 'package:heliumapp/presentation/features/shared/bloc/info/info_bloc.dart';
+import 'package:heliumapp/presentation/features/shared/bloc/info/info_state.dart';
 import 'package:heliumapp/presentation/ui/components/helium_elevated_button.dart';
 import 'package:heliumapp/presentation/ui/feedback/info_container.dart';
 import 'package:heliumapp/utils/app_style.dart';
@@ -199,9 +201,12 @@ class _ImportExportScreenState extends State<ImportExportScreen> {
   }
 
   Future<void> _openFileChooser() async {
+    // BasePageScreenState gates render on InfoLoaded, so this read is safe.
+    final info = (context.read<InfoBloc>().state as InfoLoaded).info;
     final result = await HeliumStorage.pickFiles(
+      maxUploadSize: info.maxUploadSize,
       allowMultiple: false,
-      allowedExtension: 'json',
+      allowedExtension: info.importFileTypes.first,
     );
 
     if (!mounted) return;

@@ -27,8 +27,12 @@ import 'package:heliumapp/presentation/core/dialogs/whats_new_dialog.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_bloc.dart';
 import 'package:heliumapp/presentation/features/auth/controllers/credentials_form_controller.dart';
 import 'package:heliumapp/presentation/features/auth/views/login_screen.dart';
+import 'package:heliumapp/data/repositories/info_repository_impl.dart';
+import 'package:heliumapp/data/sources/info_remote_data_source.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/external_calendar_bloc.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/planneritem_bloc.dart';
+import 'package:heliumapp/presentation/features/shared/bloc/info/info_bloc.dart';
+import 'package:heliumapp/presentation/features/shared/bloc/info/info_event.dart';
 import 'package:heliumapp/presentation/features/planner/views/planner_screen.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/core/provider_helpers.dart';
 import 'package:heliumapp/utils/format_helpers.dart';
@@ -280,6 +284,13 @@ Future<void> initializeTestApp(WidgetTester tester) async {
             ),
             dioClient: dioClient,
           ),
+        ),
+        BlocProvider<InfoBloc>(
+          create: (context) => InfoBloc(
+            infoRepository: InfoRepositoryImpl(
+              remoteDataSource: InfoRemoteDataSourceImpl(dioClient: dioClient),
+            ),
+          )..add(LoadInfoEvent()),
         ),
         BlocProvider<ExternalCalendarBloc>(
           create: providerHelpers.createExternalCalendarBloc(),

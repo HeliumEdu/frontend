@@ -24,6 +24,7 @@ class ApiUrl {
   }
 
   // Unauthenticated URLs
+  static const infoUrl = '/info/';
   static const authUserRegisterUrl = '/auth/user/register/';
   static const authUserVerifyUrl = '/auth/user/verify/';
   static const authUserVerifyResendUrl = '/auth/user/verify/resend/';
