@@ -75,8 +75,8 @@ const _cards = [
     title: 'Know your grades',
     description:
         'Visit Grades to see your scores by class, category, '
-        'and term in real time. Know where to focus, what could '
-        'move the needle, and calculate what you need to score on the final.',
+        'and term in real time. Know where to focus, what is '
+        'piling up, and calculate what you need to score on the final.',
     icon: Icons.bar_chart_outlined,
     imagePaths: ['assets/img/onboarding_grades.png'],
   ),
