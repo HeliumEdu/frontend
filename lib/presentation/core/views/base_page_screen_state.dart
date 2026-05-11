@@ -12,6 +12,9 @@ import 'package:heliumapp/config/app_router.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/core/dio_client.dart';
 import 'package:heliumapp/data/models/auth/user_model.dart';
+import 'package:heliumapp/presentation/features/shared/bloc/info/info_bloc.dart';
+import 'package:heliumapp/presentation/features/shared/bloc/info/info_event.dart';
+import 'package:heliumapp/presentation/features/shared/bloc/info/info_state.dart';
 import 'package:heliumapp/presentation/navigation/shell/navigation_shell.dart';
 import 'package:heliumapp/presentation/navigation/shell/navigation_shell_title_stub.dart'
     if (dart.library.js_interop) 'package:heliumapp/presentation/navigation/shell/navigation_shell_title_web.dart'
@@ -302,31 +305,45 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
 
     final Widget content = Padding(
       padding: scaffoldInsets,
-      child: Column(
-        children: [
-          if (settingsError)
-            ErrorCard(
-              message: 'An unknown error occurred',
-              source: 'settings',
-              onReload: () {
-                setState(() {
-                  settingsError = false;
-                  isLoading = true;
-                });
-                loadSettings().whenComplete(() {
-                  if (mounted) {
+      child: BlocBuilder<InfoBloc, InfoState>(
+        builder: (context, infoState) {
+          final infoReady = infoState is InfoLoaded;
+          final infoFailed = infoState is InfoLoadFailed;
+          return Column(
+            children: [
+              if (settingsError)
+                ErrorCard(
+                  message: 'An unknown error occurred',
+                  source: 'settings',
+                  onReload: () {
                     setState(() {
-                      isLoading = false;
+                      settingsError = false;
+                      isLoading = true;
                     });
-                  }
-                });
-              },
-            )
-          else if (isLoading || (isAuthenticatedScreen && !settingsLoaded))
-            const LoadingIndicator()
-          else
-            ..._buildContent(context),
-        ],
+                    loadSettings().whenComplete(() {
+                      if (mounted) {
+                        setState(() {
+                          isLoading = false;
+                        });
+                      }
+                    });
+                  },
+                )
+              else if (isAuthenticatedScreen && infoFailed)
+                ErrorCard(
+                  message: 'An unknown error occurred',
+                  source: '/info/',
+                  onReload: () =>
+                      context.read<InfoBloc>().add(LoadInfoEvent()),
+                )
+              else if (isLoading ||
+                  (isAuthenticatedScreen && (!settingsLoaded || !infoReady)))
+                const LoadingIndicator()
+              else
+                ..._buildContent(context),
+            ],
+          );
+        },
       ),
     );
 

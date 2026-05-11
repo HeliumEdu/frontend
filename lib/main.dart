@@ -20,7 +20,9 @@ import 'package:heliumapp/core/feedback_service.dart';
 import 'package:heliumapp/core/log_service.dart';
 import 'package:heliumapp/core/sentry_service.dart';
 import 'package:heliumapp/data/repositories/auth_repository_impl.dart';
+import 'package:heliumapp/data/repositories/info_repository_impl.dart';
 import 'package:heliumapp/data/sources/auth_remote_data_source.dart';
+import 'package:heliumapp/data/sources/info_remote_data_source.dart';
 import 'package:heliumapp/firebase_environment.dart';
 import 'package:heliumapp/helium_app.dart';
 import 'package:heliumapp/presentation/core/views/notification_screen.dart';
@@ -28,6 +30,8 @@ import 'package:heliumapp/presentation/features/auth/bloc/auth_bloc.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/external_calendar_bloc.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/planneritem_bloc.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/core/provider_helpers.dart';
+import 'package:heliumapp/presentation/features/shared/bloc/info/info_bloc.dart';
+import 'package:heliumapp/presentation/features/shared/bloc/info/info_event.dart';
 import 'package:logging/logging.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
 
@@ -110,6 +114,13 @@ void main() async {
             ),
             dioClient: dioClient,
           ),
+        ),
+        BlocProvider<InfoBloc>(
+          create: (context) => InfoBloc(
+            infoRepository: InfoRepositoryImpl(
+              remoteDataSource: InfoRemoteDataSourceImpl(dioClient: dioClient),
+            ),
+          )..add(LoadInfoEvent()),
         ),
         BlocProvider<ExternalCalendarBloc>(
           create: providerHelpers.createExternalCalendarBloc(),

@@ -15,6 +15,8 @@ import 'package:heliumapp/presentation/features/planner/bloc/attachment_event.da
 import 'package:heliumapp/presentation/features/planner/bloc/attachment_state.dart';
 import 'package:heliumapp/presentation/features/planner/dialogs/confirm_delete_dialog.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/core/provider_helpers.dart';
+import 'package:heliumapp/presentation/features/shared/bloc/info/info_bloc.dart';
+import 'package:heliumapp/presentation/features/shared/bloc/info/info_state.dart';
 import 'package:heliumapp/presentation/features/shared/widgets/flow/multi_step_container.dart';
 import 'package:heliumapp/presentation/ui/components/helium_elevated_button.dart';
 import 'package:heliumapp/presentation/ui/components/helium_icon_button.dart';
@@ -233,7 +235,12 @@ abstract class BaseAttachmentsState extends State<BaseAttachmentsContent> {
   }
 
   Future<void> _openFileChooserDialog() async {
-    final result = await HeliumStorage.pickFiles(allowMultiple: true);
+    // BasePageScreenState gates render on InfoLoaded, so this read is safe.
+    final info = (context.read<InfoBloc>().state as InfoLoaded).info;
+    final result = await HeliumStorage.pickFiles(
+      maxUploadSize: info.maxUploadSize,
+      allowMultiple: true,
+    );
 
     if (!mounted) return;
 
