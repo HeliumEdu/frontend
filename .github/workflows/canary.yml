@@ -22,7 +22,6 @@ permissions:
 
 concurrency:
   group: "canary-${{ inputs.environment || 'prod' }}"
-  cancel-in-progress: false
 
 jobs:
   check:
