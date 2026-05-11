@@ -12,6 +12,9 @@ import 'package:heliumapp/config/app_router.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/core/dio_client.dart';
 import 'package:heliumapp/data/models/auth/user_model.dart';
+import 'package:heliumapp/presentation/features/shared/bloc/info/info_bloc.dart';
+import 'package:heliumapp/presentation/features/shared/bloc/info/info_event.dart';
+import 'package:heliumapp/presentation/features/shared/bloc/info/info_state.dart';
 import 'package:heliumapp/presentation/navigation/shell/navigation_shell.dart';
 import 'package:heliumapp/presentation/navigation/shell/navigation_shell_title_stub.dart'
     if (dart.library.js_interop) 'package:heliumapp/presentation/navigation/shell/navigation_shell_title_web.dart'
@@ -242,6 +245,20 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
     }
   }
 
+  void _reloadSettings() {
+    setState(() {
+      settingsError = false;
+      isLoading = true;
+    });
+    loadSettings().whenComplete(() {
+      if (mounted) {
+        setState(() {
+          isLoading = false;
+        });
+      }
+    });
+  }
+
   @mustCallSuper
   Future<UserSettingsModel?> loadSettings() {
     return dioClient
@@ -300,34 +317,52 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
     final bool hasNavigationShell = NavigationShellProvider.of(context);
     final bool isDialogMode = DialogModeProvider.isDialogMode(context);
 
+    final Widget unauthenticatedColumn = Column(
+      children: [
+        if (settingsError)
+          ErrorCard(
+            message: 'An unknown error occurred',
+            source: 'settings',
+            onReload: _reloadSettings,
+          )
+        else if (isLoading)
+          const LoadingIndicator()
+        else
+          ..._buildContent(context),
+      ],
+    );
+
     final Widget content = Padding(
       padding: scaffoldInsets,
-      child: Column(
-        children: [
-          if (settingsError)
-            ErrorCard(
-              message: 'An unknown error occurred',
-              source: 'settings',
-              onReload: () {
-                setState(() {
-                  settingsError = false;
-                  isLoading = true;
-                });
-                loadSettings().whenComplete(() {
-                  if (mounted) {
-                    setState(() {
-                      isLoading = false;
-                    });
-                  }
-                });
+      child: isAuthenticatedScreen
+          ? BlocBuilder<InfoBloc, InfoState>(
+              builder: (context, infoState) {
+                final infoReady = infoState is InfoLoaded;
+                final infoFailed = infoState is InfoLoadFailed;
+                return Column(
+                  children: [
+                    if (settingsError)
+                      ErrorCard(
+                        message: 'An unknown error occurred',
+                        source: 'settings',
+                        onReload: _reloadSettings,
+                      )
+                    else if (infoFailed)
+                      ErrorCard(
+                        message: 'An unknown error occurred',
+                        source: '/info/',
+                        onReload: () =>
+                            context.read<InfoBloc>().add(LoadInfoEvent()),
+                      )
+                    else if (isLoading || !settingsLoaded || !infoReady)
+                      const LoadingIndicator()
+                    else
+                      ..._buildContent(context),
+                  ],
+                );
               },
             )
-          else if (isLoading || (isAuthenticatedScreen && !settingsLoaded))
-            const LoadingIndicator()
-          else
-            ..._buildContent(context),
-        ],
-      ),
+          : unauthenticatedColumn,
     );
 
     if (isDialogMode) {

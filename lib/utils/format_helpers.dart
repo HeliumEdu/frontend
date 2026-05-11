@@ -22,6 +22,10 @@ extension PluralExtension on int {
   }
 }
 
+extension BytesFormatting on int {
+  int get inMegabytes => this ~/ (1024 * 1024);
+}
+
 String reminderOffset(ReminderModel reminder) {
   String units = ReminderConstants.offsetTypes[reminder.offsetType]
       .toLowerCase();

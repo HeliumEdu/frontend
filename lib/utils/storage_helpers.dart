@@ -7,15 +7,13 @@
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
+import 'package:heliumapp/utils/format_helpers.dart';
 import 'package:logging/logging.dart';
 // Conditional import - uses web implementation on web, mobile on native platforms
 import 'package:heliumapp/utils/storage_helpers_mobile.dart'
     if (dart.library.js_interop) 'package:heliumapp/utils/storage_helpers_web.dart';
 
 final _log = Logger('utils');
-
-/// Maximum allowed file size for uploads.
-const int maxUploadFileSizeBytes = 10 * 1024 * 1024;
 
 /// A file that was successfully picked and validated by [HeliumStorage.pickFiles].
 class PickedFile {
@@ -32,16 +30,20 @@ class PickedFileError {
   final String name;
   final PickedFileErrorReason reason;
   final String? _allowedExtension;
+  final int? _maxUploadSize;
 
   const PickedFileError({
     required this.name,
     required this.reason,
     String? allowedExtension,
-  }) : _allowedExtension = allowedExtension;
+    int? maxUploadSize,
+  }) : _allowedExtension = allowedExtension,
+       _maxUploadSize = maxUploadSize;
 
   String get userMessage => switch (reason) {
-    PickedFileErrorReason.fileTooLarge =>
-      'File size cannot exceed ${maxUploadFileSizeBytes ~/ (1024 * 1024)} MB: $name',
+    PickedFileErrorReason.fileTooLarge => _maxUploadSize != null
+        ? 'File size cannot exceed ${_maxUploadSize.inMegabytes} MB: $name'
+        : 'File size exceeded the allowed limit: $name',
     PickedFileErrorReason.readError =>
       'An error occurred while reading the file: $name',
     PickedFileErrorReason.wrongFileType => _allowedExtension != null
@@ -68,6 +70,9 @@ class PickFilesResult {
 class HeliumStorage {
   /// Presents the OS file picker and returns validated files.
   ///
+  /// [maxUploadSize] is required (in bytes) and sourced from `GET /info/` via
+  /// [InfoBloc] — never hardcoded — so the cap stays in sync with the backend.
+  ///
   /// Size is checked via OS/browser metadata ([PlatformFile.size]) before any
   /// bytes are read, so oversized files are rejected without loading them into
   /// memory. Bytes are read lazily after the size check passes.
@@ -81,6 +86,7 @@ class HeliumStorage {
   /// - [PickFilesResult.errors] — per-file validation/read failures
   /// - [PickFilesResult.files] — successfully validated files with bytes
   static Future<PickFilesResult> pickFiles({
+    required int maxUploadSize,
     bool allowMultiple = true,
     String? allowedExtension,
   }) async {
@@ -124,10 +130,11 @@ class HeliumStorage {
       }
 
       // Size check via OS/browser metadata — no bytes loaded at this point
-      if (platFile.size > maxUploadFileSizeBytes) {
+      if (platFile.size > maxUploadSize) {
         errors.add(PickedFileError(
           name: platFile.name,
           reason: PickedFileErrorReason.fileTooLarge,
+          maxUploadSize: maxUploadSize,
         ));
         continue;
       }
