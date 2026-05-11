@@ -102,7 +102,7 @@ const _cards = [
     title: 'Available everywhere',
     description:
         'Native apps for iOS and Android, plus web in any modern '
-        'browser. Your schedule and notes stays in sync no matter which '
+        'browser. Your schedule and notes stay in sync no matter which '
         'device you use — always right there.',
     icon: Icons.devices_outlined,
     stackedDevices: true,
