@@ -303,48 +303,52 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
     final bool hasNavigationShell = NavigationShellProvider.of(context);
     final bool isDialogMode = DialogModeProvider.isDialogMode(context);
 
+    final Widget unauthenticatedColumn = Column(
+      children: [
+        if (settingsError)
+          ErrorCard(
+            message: 'An unknown error occurred',
+            source: 'settings',
+            onReload: _reloadSettings,
+          )
+        else if (isLoading)
+          const LoadingIndicator()
+        else
+          ..._buildContent(context),
+      ],
+    );
+
     final Widget content = Padding(
       padding: scaffoldInsets,
-      child: BlocBuilder<InfoBloc, InfoState>(
-        builder: (context, infoState) {
-          final infoReady = infoState is InfoLoaded;
-          final infoFailed = infoState is InfoLoadFailed;
-          return Column(
-            children: [
-              if (settingsError)
-                ErrorCard(
-                  message: 'An unknown error occurred',
-                  source: 'settings',
-                  onReload: () {
-                    setState(() {
-                      settingsError = false;
-                      isLoading = true;
-                    });
-                    loadSettings().whenComplete(() {
-                      if (mounted) {
-                        setState(() {
-                          isLoading = false;
-                        });
-                      }
-                    });
-                  },
-                )
-              else if (isAuthenticatedScreen && infoFailed)
-                ErrorCard(
-                  message: 'An unknown error occurred',
-                  source: '/info/',
-                  onReload: () =>
-                      context.read<InfoBloc>().add(LoadInfoEvent()),
-                )
-              else if (isLoading ||
-                  (isAuthenticatedScreen && (!settingsLoaded || !infoReady)))
-                const LoadingIndicator()
-              else
-                ..._buildContent(context),
-            ],
-          );
-        },
-      ),
+      child: isAuthenticatedScreen
+          ? BlocBuilder<InfoBloc, InfoState>(
+              builder: (context, infoState) {
+                final infoReady = infoState is InfoLoaded;
+                final infoFailed = infoState is InfoLoadFailed;
+                return Column(
+                  children: [
+                    if (settingsError)
+                      ErrorCard(
+                        message: 'An unknown error occurred',
+                        source: 'settings',
+                        onReload: _reloadSettings,
+                      )
+                    else if (infoFailed)
+                      ErrorCard(
+                        message: 'An unknown error occurred',
+                        source: '/info/',
+                        onReload: () =>
+                            context.read<InfoBloc>().add(LoadInfoEvent()),
+                      )
+                    else if (isLoading || !settingsLoaded || !infoReady)
+                      const LoadingIndicator()
+                    else
+                      ..._buildContent(context),
+                  ],
+                );
+              },
+            )
+          : unauthenticatedColumn,
     );
 
     if (isDialogMode) {
