@@ -75,8 +75,8 @@ const _cards = [
     title: 'Know your grades',
     description:
         'Visit Grades to see your scores by class, category, '
-        'and term in real time. Know where to focus, what could '
-        'move the needle, and calculate what you need to score on the final.',
+        'and term in real time. Know where to focus, what is '
+        'piling up, and calculate what you need to score on the final.',
     icon: Icons.bar_chart_outlined,
     imagePaths: ['assets/img/onboarding_grades.png'],
   ),
@@ -102,7 +102,7 @@ const _cards = [
     title: 'Available everywhere',
     description:
         'Native apps for iOS and Android, plus web in any modern '
-        'browser. Your schedule and notes stays in sync no matter which '
+        'browser. Your schedule and notes stay in sync no matter which '
         'device you use — always right there.',
     icon: Icons.devices_outlined,
     stackedDevices: true,

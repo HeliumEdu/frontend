@@ -338,7 +338,7 @@ class TodosDataGridState extends BaseDataGridState<TodosDataGrid> {
     final buffer = StringBuffer();
     buffer.writeln(_csvRow([
       'Completed', 'Title', 'Due', 'Class', 'Category', 'Priority', 'Grade',
-      if (hasResources) 'Materials',
+      if (hasResources) 'Resources',
     ]));
 
     for (final homework in homeworks) {

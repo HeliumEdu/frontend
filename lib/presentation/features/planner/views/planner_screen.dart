@@ -570,17 +570,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
               state is ExternalCalendarDeleted) {
             _log.info('External calendar changed, refreshing external events');
 
-            final visibleStart = _visibleDates.isNotEmpty
-                ? _visibleDates.first
-                : null;
-            final visibleEnd = _visibleDates.isNotEmpty
-                ? _visibleDates.last
-                : null;
-
-            await _plannerItemDataSource!.refreshExternalCalendarEvents(
-              visibleStart: visibleStart,
-              visibleEnd: visibleEnd,
-            );
+            await _plannerItemDataSource!.refreshExternalCalendarEvents();
             await _refreshExternalCalendarsMap();
           }
         },
