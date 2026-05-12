@@ -1,7 +1,7 @@
 <p align="center">
   <img src="https://raw.githubusercontent.com/HeliumEdu/www/main/src/assets/img/helium-logo.png" alt="Helium" width="300" />
   <br />
-  <img src="https://raw.githubusercontent.com/HeliumEdu/www/main/public/img/og-default.png" alt="Helium - Student Planner" width="800" />
+  <img src="https://raw.githubusercontent.com/HeliumEdu/www/main/src/assets/img/og-default.png" alt="Helium - Student Planner" width="800" />
 </p>
 
 [![Build](https://img.shields.io/github/actions/workflow/status/HeliumEdu/frontend/build.yml)](https://github.com/HeliumEdu/frontend/actions/workflows/build.yml)
