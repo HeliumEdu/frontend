@@ -1,4 +1,8 @@
-<p align="center"><img src="https://www.heliumedu.com/assets/img/logo_full_blue.png" /></p>
+<p align="center">
+  <img src="https://raw.githubusercontent.com/HeliumEdu/www/main/src/assets/images/helium-logo.png" alt="Helium" width="300" />
+  <br />
+  <img src="https://raw.githubusercontent.com/HeliumEdu/www/main/public/og-default.png" alt="Helium - Student Planner" width="800" />
+</p>
 
 [![Build](https://img.shields.io/github/actions/workflow/status/HeliumEdu/frontend/build.yml)](https://github.com/HeliumEdu/frontend/actions/workflows/build.yml)
 [![Code Quality](https://app.codacy.com/project/badge/Grade/89c62152871f424e8d619be7a4d9ab50)](https://app.codacy.com/gh/HeliumEdu/frontend/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_grade)
