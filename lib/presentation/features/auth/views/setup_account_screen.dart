@@ -69,7 +69,7 @@ class _SetupAccountScreenState extends BasePageScreenState<SetupAccountScreen> {
       showCard: false,
       child: Column(
         children: [
-          Image.asset(AppAssets.logoImagePath, height: 120.0),
+          Image.asset(AppAssets.logoImagePath, height: 90.0),
 
           const SizedBox(height: 50),
 
