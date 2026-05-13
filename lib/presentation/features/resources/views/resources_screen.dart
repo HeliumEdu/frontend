@@ -316,7 +316,7 @@ class _ResourcesScreenState
           return const EmptyCard(
             icon: Icons.book,
             title: "You haven't added any groups yet",
-            message: 'Click "+ Group" to get started',
+            message: 'Click "+ Add Group" to get started',
             expanded: false,
           );
         }
