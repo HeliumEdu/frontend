@@ -112,8 +112,7 @@ Document? tryParseNotesDocument(Map<String, dynamic>? notes) {
 Document buildUnrenderableNotePlaceholder() {
   return Document.fromJson([
     {
-      'insert': "This note's content couldn't be loaded and has been cleared. "
-          'Type new content here and save to replace it.',
+      'insert': 'This note is not in a valid format and cannot not be loaded.',
       'attributes': {'italic': true},
     },
     {'insert': '\n'},
