@@ -315,6 +315,53 @@ void main() {
           ),
         ],
       );
+
+      blocTest<CourseBloc, CourseState>(
+        'self-heals by creating an empty schedule when the fetched course has none',
+        build: () {
+          when(
+            () => mockCourseRepository.getCourse(courseGroupId, courseId),
+          ).thenAnswer(
+            (_) async => MockModels.createCourse(id: courseId, schedules: []),
+          );
+          when(
+            () => mockCourseScheduleRepository.createCourseSchedule(
+              courseGroupId,
+              courseId,
+              any(),
+            ),
+          ).thenAnswer(
+            (_) async => MockModels.createCourseSchedule(daysOfWeek: '0000000'),
+          );
+          return courseBloc;
+        },
+        act: (bloc) => bloc.add(
+          FetchCourseEvent(
+            origin: EventOrigin.screen,
+            courseGroupId: courseGroupId,
+            courseId: courseId,
+          ),
+        ),
+        expect: () => [
+          isA<CoursesLoading>(),
+          isA<CourseFetched>()
+              .having((s) => s.course.schedules.length, 'schedules length', 1)
+              .having(
+                (s) => s.course.schedules.first.daysOfWeek,
+                'daysOfWeek',
+                '0000000',
+              ),
+        ],
+        verify: (_) {
+          verify(
+            () => mockCourseScheduleRepository.createCourseSchedule(
+              courseGroupId,
+              courseId,
+              any(),
+            ),
+          ).called(1);
+        },
+      );
     });
 
     group('DeleteCourseGroupEvent', () {
@@ -460,14 +507,67 @@ void main() {
       );
 
       blocTest<CourseBloc, CourseState>(
-        'emits [CoursesLoading, CoursesError] when schedule not found',
+        'self-heals by creating an empty schedule when none exists',
         build: () {
           when(
             () => mockCourseScheduleRepository.getCourseScheduleForCourse(
               courseGroupId,
               courseId,
             ),
-          ).thenThrow(NotFoundException(message: 'Schedule not found'));
+          ).thenThrow(NotFoundException(message: 'No Schedule found for Course'));
+          when(
+            () => mockCourseScheduleRepository.createCourseSchedule(
+              courseGroupId,
+              courseId,
+              any(),
+            ),
+          ).thenAnswer(
+            (_) async => MockModels.createCourseSchedule(daysOfWeek: '0000000'),
+          );
+          return courseBloc;
+        },
+        act: (bloc) => bloc.add(
+          FetchCourseScheduleEvent(
+            origin: EventOrigin.screen,
+            courseGroupId: courseGroupId,
+            courseId: courseId,
+          ),
+        ),
+        expect: () => [
+          isA<CoursesLoading>(),
+          isA<CourseScheduleFetched>().having(
+            (s) => s.schedule.daysOfWeek,
+            'daysOfWeek',
+            '0000000',
+          ),
+        ],
+        verify: (_) {
+          verify(
+            () => mockCourseScheduleRepository.createCourseSchedule(
+              courseGroupId,
+              courseId,
+              any(),
+            ),
+          ).called(1);
+        },
+      );
+
+      blocTest<CourseBloc, CourseState>(
+        'emits [CoursesLoading, CoursesError] when self-heal create fails',
+        build: () {
+          when(
+            () => mockCourseScheduleRepository.getCourseScheduleForCourse(
+              courseGroupId,
+              courseId,
+            ),
+          ).thenThrow(NotFoundException(message: 'No Schedule found for Course'));
+          when(
+            () => mockCourseScheduleRepository.createCourseSchedule(
+              courseGroupId,
+              courseId,
+              any(),
+            ),
+          ).thenThrow(ServerException(message: 'Could not create schedule'));
           return courseBloc;
         },
         act: (bloc) => bloc.add(
@@ -482,7 +582,7 @@ void main() {
           isA<CoursesError>().having(
             (e) => e.message,
             'message',
-            'Schedule not found',
+            'Could not create schedule',
           ),
         ],
       );
