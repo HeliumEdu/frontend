@@ -289,7 +289,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
           return const EmptyCard(
             icon: Icons.bar_chart,
             title: "You haven't added any classes yet",
-            message: ''Head over to "Classes" to get started',
+            message: 'Head over to "Classes" to get started',
             expanded: false,
           );
         }
