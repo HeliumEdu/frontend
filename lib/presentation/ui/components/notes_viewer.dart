@@ -8,6 +8,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_quill/flutter_quill.dart';
 import 'package:heliumapp/presentation/ui/components/notes_editor.dart';
+import 'package:heliumapp/utils/quill_helpers.dart';
 
 class NotesViewer extends StatefulWidget {
   final Map<String, dynamic>? notes;
@@ -20,20 +21,12 @@ class NotesViewer extends StatefulWidget {
 
 class _NotesViewerState extends State<NotesViewer> {
   late QuillController _controller;
+  bool _renderable = false;
 
   @override
   void initState() {
     super.initState();
-    if (widget.notes != null) {
-      _controller = QuillController(
-        document: Document.fromJson(widget.notes!['ops'] as List),
-        selection: const TextSelection.collapsed(offset: 0),
-        readOnly: true,
-      );
-    } else {
-      _controller = QuillController.basic();
-      _controller.readOnly = true;
-    }
+    _initController();
   }
 
   @override
@@ -41,17 +34,23 @@ class _NotesViewerState extends State<NotesViewer> {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.notes != widget.notes) {
       _controller.dispose();
-      if (widget.notes != null) {
-        _controller = QuillController(
-          document: Document.fromJson(widget.notes!['ops'] as List),
-          selection: const TextSelection.collapsed(offset: 0),
-          readOnly: true,
-        );
-      } else {
-        _controller = QuillController.basic();
-        _controller.readOnly = true;
-      }
+      _initController();
     }
+  }
+
+  void _initController() {
+    final document = tryParseNotesDocument(widget.notes);
+    if (document == null) {
+      _controller = QuillController.basic()..readOnly = true;
+      _renderable = false;
+      return;
+    }
+    _controller = QuillController(
+      document: document,
+      selection: const TextSelection.collapsed(offset: 0),
+      readOnly: true,
+    );
+    _renderable = true;
   }
 
   @override
@@ -62,7 +61,7 @@ class _NotesViewerState extends State<NotesViewer> {
 
   @override
   Widget build(BuildContext context) {
-    if (widget.notes == null) {
+    if (!_renderable) {
       return const SizedBox.shrink();
     }
 
