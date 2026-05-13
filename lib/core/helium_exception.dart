@@ -16,12 +16,16 @@ class HeliumException implements Exception {
   /// Parsed error containing field-specific errors and a clean display message
   final ParsedApiError? parsedError;
 
+  /// The original exception this one wraps, if any.
+  final Object? cause;
+
   HeliumException({
     required this.message,
     this.code,
     this.httpStatusCode,
     this.details,
     this.parsedError,
+    this.cause,
   });
 
   /// Returns the user-friendly display message (without field prefixes).
@@ -45,6 +49,7 @@ class NetworkException extends HeliumException {
     super.httpStatusCode,
     super.details,
     super.parsedError,
+    super.cause,
   });
 }
 
@@ -55,6 +60,7 @@ class ServerException extends HeliumException {
     super.httpStatusCode,
     super.details,
     super.parsedError,
+    super.cause,
   });
 }
 
@@ -65,6 +71,7 @@ class ValidationException extends HeliumException {
     super.httpStatusCode,
     super.details,
     super.parsedError,
+    super.cause,
   });
 }
 
@@ -75,6 +82,7 @@ class NotFoundException extends HeliumException {
     super.httpStatusCode = 404,
     super.details,
     super.parsedError,
+    super.cause,
   });
 }
 
@@ -85,5 +93,6 @@ class UnauthorizedException extends HeliumException {
     super.httpStatusCode,
     super.details,
     super.parsedError,
+    super.cause,
   });
 }

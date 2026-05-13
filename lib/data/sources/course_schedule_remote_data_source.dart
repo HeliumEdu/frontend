@@ -89,7 +89,7 @@ class CourseScheduleRemoteDataSourceImpl
       throw handleDioError(e, s);
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
-      throw HeliumException(message: 'An unexpected error occurred.');
+      throw HeliumException(message: 'An unexpected error occurred.', cause: e);
     }
   }
 
@@ -136,7 +136,7 @@ class CourseScheduleRemoteDataSourceImpl
       throw handleDioError(e, s);
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
-      throw HeliumException(message: 'An unexpected error occurred.');
+      throw HeliumException(message: 'An unexpected error occurred.', cause: e);
     }
   }
 
@@ -170,7 +170,7 @@ class CourseScheduleRemoteDataSourceImpl
       throw handleDioError(e, s);
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
-      throw HeliumException(message: 'An unexpected error occurred.');
+      throw HeliumException(message: 'An unexpected error occurred.', cause: e);
     }
   }
 
@@ -207,7 +207,7 @@ class CourseScheduleRemoteDataSourceImpl
       throw handleDioError(e, s);
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
-      throw HeliumException(message: 'An unexpected error occurred.');
+      throw HeliumException(message: 'An unexpected error occurred.', cause: e);
     }
   }
 }

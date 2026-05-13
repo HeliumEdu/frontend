@@ -509,12 +509,18 @@ void main() {
       blocTest<CourseBloc, CourseState>(
         'self-heals by creating an empty schedule when none exists',
         build: () {
+          // Mirrors what the data source actually produces: wraps the typed
+          // NotFoundException inside a generic HeliumException so the public
+          // `message` stays generic while `cause` preserves the original type.
           when(
             () => mockCourseScheduleRepository.getCourseScheduleForCourse(
               courseGroupId,
               courseId,
             ),
-          ).thenThrow(NotFoundException(message: 'No Schedule found for Course'));
+          ).thenThrow(HeliumException(
+            message: 'An unexpected error occurred.',
+            cause: NotFoundException(message: 'No Schedule found for Course'),
+          ));
           when(
             () => mockCourseScheduleRepository.createCourseSchedule(
               courseGroupId,
@@ -560,7 +566,10 @@ void main() {
               courseGroupId,
               courseId,
             ),
-          ).thenThrow(NotFoundException(message: 'No Schedule found for Course'));
+          ).thenThrow(HeliumException(
+            message: 'An unexpected error occurred.',
+            cause: NotFoundException(message: 'No Schedule found for Course'),
+          ));
           when(
             () => mockCourseScheduleRepository.createCourseSchedule(
               courseGroupId,
