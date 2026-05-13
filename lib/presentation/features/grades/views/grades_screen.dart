@@ -69,18 +69,19 @@ class GradesScreen extends StatelessWidget {
       providers: [
         BlocProvider(create: _providerHelpers.createAttachmentBloc()),
         BlocProvider(
-          create: (context) => GradeBloc(
-            gradeRepository: GradeRepositoryImpl(
-              remoteDataSource: GradeRemoteDataSourceImpl(
-                dioClient: _dioClient,
+          create: (context) =>
+              GradeBloc(
+                gradeRepository: GradeRepositoryImpl(
+                  remoteDataSource: GradeRemoteDataSourceImpl(
+                    dioClient: _dioClient,
+                  ),
+                ),
+                courseRepository: CourseRepositoryImpl(
+                  remoteDataSource: CourseRemoteDataSourceImpl(
+                    dioClient: _dioClient,
+                  ),
+                ),
               ),
-            ),
-            courseRepository: CourseRepositoryImpl(
-              remoteDataSource: CourseRemoteDataSourceImpl(
-                dioClient: _dioClient,
-              ),
-            ),
-          ),
         ),
       ],
       child: const _GradesProvidedScreen(),
@@ -162,18 +163,17 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
   static const double _averageColMobile = 90;
   static const double _averageColDesktop = 105;
 
-  // Decision variables - adjust these to tune the grade insights
   double get _atRiskThreshold =>
       (userSettings?.atRiskThreshold ??
-              FallbackConstants.defaultAtRiskThreshold)
+          FallbackConstants.defaultAtRiskThreshold)
           .toDouble();
 
   double get _onTrackTolerance =>
       (userSettings?.onTrackTolerance ??
-              FallbackConstants.defaultOnTrackTolerance)
+          FallbackConstants.defaultOnTrackTolerance)
           .toDouble();
   static const double _defaultDesiredGradeBoost =
-      5.0; // Default boost above current grade for calculator
+  5.0;
   static const double _chartAnimationDurationMs = 250;
 
   List<CourseGroupModel> _courseGroups = [];
@@ -184,7 +184,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
   final Map<int, GlobalKey> _courseCardKeys = {};
 
   _GraphViewMode _graphViewMode = const _GraphViewMode.term();
-  final Map<String, bool> _visibleSeries = {}; // series ID -> visibility
+  final Map<String, bool> _visibleSeries = {};
   bool _autoAdjustToGradedRange = false;
   bool _hideLegend = false;
   bool _graphExpanded = true;
@@ -241,7 +241,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
       child: GroupDropdown(
         groups: _courseGroups,
         initialSelection: _courseGroups.firstWhereOrNull(
-          (g) => g.id == _selectedGroupId,
+              (g) => g.id == _selectedGroupId,
         ),
         isReadOnly: true,
         onChanged: (value) {
@@ -279,14 +279,16 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
         }
 
         final List<GradeCourseModel> courses = _grades.isNotEmpty
-            ? _grades.firstWhere((g) => g.id == _selectedGroupId).courses
+            ? _grades
+            .firstWhere((g) => g.id == _selectedGroupId)
+            .courses
             : [];
 
         if (_grades.isEmpty || courses.isEmpty) {
           return const EmptyCard(
             icon: Icons.bar_chart,
             title: "You haven't added any classes yet",
-            message: "Head over to 'Classes' to get started",
+            message: 'Head over to "Classes" to get started',
             expanded: false,
           );
         }
@@ -381,15 +383,15 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
     }
 
     final selectedGroup = _grades.firstWhere(
-      (g) => g.id == _selectedGroupId,
+          (g) => g.id == _selectedGroupId,
       orElse: () => _grades.first,
     );
 
     final cardBuilders = [
-      () => _buildOverallGradeCard(selectedGroup),
-      () => _buildProgressVsPaceCard(selectedGroup),
-      () => _buildAtRiskCoursesCard(selectedGroup),
-      () => _buildPendingImpactCard(selectedGroup),
+          () => _buildOverallGradeCard(selectedGroup),
+          () => _buildProgressVsPaceCard(selectedGroup),
+          () => _buildAtRiskCoursesCard(selectedGroup),
+          () => _buildPendingImpactCard(selectedGroup),
     ];
     final cards = cardBuilders.map((build) {
       try {
@@ -428,33 +430,37 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
     );
   }
 
-  double get _summaryCardHeight => Responsive.getResponsiveValue(
-    context,
-    mobile: 200,
-    tablet: 190,
-    desktop: 260,
-  );
+  double get _summaryCardHeight =>
+      Responsive.getResponsiveValue(
+        context,
+        mobile: 200,
+        tablet: 190,
+        desktop: 260,
+      );
 
-  double get _summaryCardPadding => Responsive.getResponsiveValue(
-    context,
-    mobile: 12,
-    tablet: 12,
-    desktop: 16,
-  );
+  double get _summaryCardPadding =>
+      Responsive.getResponsiveValue(
+        context,
+        mobile: 12,
+        tablet: 12,
+        desktop: 16,
+      );
 
-  double get _summaryCircleSize => Responsive.getResponsiveValue(
-    context,
-    mobile: 60,
-    tablet: 50,
-    desktop: 80,
-  );
+  double get _summaryCircleSize =>
+      Responsive.getResponsiveValue(
+        context,
+        mobile: 60,
+        tablet: 50,
+        desktop: 80,
+      );
 
-  double get _summaryGaugeHeight => Responsive.getResponsiveValue(
-    context,
-    mobile: 100,
-    tablet: 110,
-    desktop: 140,
-  );
+  double get _summaryGaugeHeight =>
+      Responsive.getResponsiveValue(
+        context,
+        mobile: 100,
+        tablet: 110,
+        desktop: 140,
+      );
 
   Widget _buildSummaryCard({required Widget child}) {
     return Card(
@@ -501,7 +507,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
           GradeHelper.parseGrade(
             selectedGroup.gradePoints[selectedGroup.gradePoints.length - 2][1],
           ) ??
-          0.0;
+              0.0;
       trend = recent - previous;
     }
 
@@ -572,8 +578,8 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
                                   : trend < 0
                                   ? HeliumColors.urgencyColor(context, 3)
                                   : context.colorScheme.onSurface.withValues(
-                                      alpha: 0.5,
-                                    ),
+                                alpha: 0.5,
+                              ),
                             ),
                           ],
                         ],
@@ -593,13 +599,13 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
 
   Widget _buildProgressVsPaceCard(GradeCourseGroupModel selectedGroup) {
     final courseGroup = _courseGroups.firstWhere(
-      (g) => g.id == _selectedGroupId,
+          (g) => g.id == _selectedGroupId,
     );
 
     // Calculate completion percentage
     final completionPercent = selectedGroup.numHomework > 0
         ? (selectedGroup.numHomeworkCompleted / selectedGroup.numHomework * 100)
-              .round()
+        .round()
         : 0;
 
     // Calculate time passed percentage
@@ -719,8 +725,8 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
                         style: AppStyles.smallSecondaryText(context).copyWith(
                           color: timePercent > 50
                               ? HeliumColors.contrastingTextColor(
-                                  context.colorScheme.outline,
-                                )
+                            context.colorScheme.outline,
+                          )
                               : context.colorScheme.onSurface,
                           fontWeight: FontWeight.w600,
                         ),
@@ -773,14 +779,14 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
     final atRiskCourses = selectedGroup.courses
         .where(
           (course) =>
-              course.numHomeworkGraded > 0 &&
-              course.overallGrade < _atRiskThreshold,
-        )
+      course.numHomeworkGraded > 0 &&
+          course.overallGrade < _atRiskThreshold,
+    )
         .toList();
     final atRiskCount = atRiskCourses.length;
     final totalGraded = selectedGroup.courses.fold(
       0,
-      (sum, course) => sum + course.numHomeworkGraded,
+          (sum, course) => sum + course.numHomeworkGraded,
     );
 
     return MouseRegion(
@@ -791,89 +797,90 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
         label: 'Show at-risk classes',
         button: atRiskCount > 0,
         child: GestureDetector(
-        onTap: atRiskCount > 0
-            ? () {
-                Feedback.forTap(context);
-                final atRiskCourseIds = atRiskCourses.map((c) => c.id).toSet();
+          onTap: atRiskCount > 0
+              ? () {
+            Feedback.forTap(context);
+            final atRiskCourseIds = atRiskCourses.map((c) => c.id).toSet();
 
-                setState(() {
-                  _expandedCourseIds
-                    ..clear()
-                    ..addAll(atRiskCourseIds);
-                });
+            setState(() {
+              _expandedCourseIds
+                ..clear()
+                ..addAll(atRiskCourseIds);
+            });
 
-                final firstAtRiskId = atRiskCourses.first.id;
-                Future.delayed(const Duration(milliseconds: 350), () {
-                  if (!mounted) return;
-                  final firstAtRiskContext =
-                      _courseCardKeys[firstAtRiskId]?.currentContext;
-                  if (firstAtRiskContext == null) return;
-                  if (!firstAtRiskContext.mounted) return;
-                  Scrollable.ensureVisible(
-                    firstAtRiskContext,
-                    duration: const Duration(milliseconds: 300),
-                    curve: Curves.easeInOut,
-                    alignment: 0.1,
-                  );
-                });
-              }
-            : null,
-        child: _buildSummaryCard(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              _buildSummaryTitle('At-Risk Classes'),
-              const SizedBox(height: 12),
-              Container(
-                width: _summaryCircleSize,
-                height: _summaryCircleSize,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: atRiskCount > 0
-                      ? context.colorScheme.error.withValues(alpha: 0.15)
-                      : context.semanticColors.success.withValues(alpha: 0.15),
-                  border: Border.all(
+            final firstAtRiskId = atRiskCourses.first.id;
+            Future.delayed(const Duration(milliseconds: 350), () {
+              if (!mounted) return;
+              final firstAtRiskContext =
+                  _courseCardKeys[firstAtRiskId]?.currentContext;
+              if (firstAtRiskContext == null) return;
+              if (!firstAtRiskContext.mounted) return;
+              Scrollable.ensureVisible(
+                firstAtRiskContext,
+                duration: const Duration(milliseconds: 300),
+                curve: Curves.easeInOut,
+                alignment: 0.1,
+              );
+            });
+          }
+              : null,
+          child: _buildSummaryCard(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                _buildSummaryTitle('At-Risk Classes'),
+                const SizedBox(height: 12),
+                Container(
+                  width: _summaryCircleSize,
+                  height: _summaryCircleSize,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
                     color: atRiskCount > 0
-                        ? context.colorScheme.error
-                        : context.semanticColors.success,
-                    width: 3,
-                  ),
-                ),
-                child: Center(
-                  child: Text(
-                    atRiskCount.toString(),
-                    style: AppStyles.headingText(context).copyWith(
-                      fontSize: Responsive.getFontSize(
-                        context,
-                        mobile: 32,
-                        tablet: 26,
-                        desktop: 40,
-                      ),
+                        ? context.colorScheme.error.withValues(alpha: 0.15)
+                        : context.semanticColors.success.withValues(
+                        alpha: 0.15),
+                    border: Border.all(
                       color: atRiskCount > 0
                           ? context.colorScheme.error
                           : context.semanticColors.success,
-                      fontWeight: FontWeight.bold,
+                      width: 3,
+                    ),
+                  ),
+                  child: Center(
+                    child: Text(
+                      atRiskCount.toString(),
+                      style: AppStyles.headingText(context).copyWith(
+                        fontSize: Responsive.getFontSize(
+                          context,
+                          mobile: 32,
+                          tablet: 26,
+                          desktop: 40,
+                        ),
+                        color: atRiskCount > 0
+                            ? context.colorScheme.error
+                            : context.semanticColors.success,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
                 ),
-              ),
-              if (atRiskCount > 0 || totalGraded > 0) ...[
-                const SizedBox(height: 12),
-                Text(
-                  atRiskCount == 0
-                      ? 'All classes passing!'
-                      : 'below ${_atRiskThreshold.toInt()}%',
-                  style: AppStyles.smallSecondaryText(context).copyWith(
-                    color: atRiskCount > 0
-                        ? context.colorScheme.error
-                        : context.semanticColors.success,
+                if (atRiskCount > 0 || totalGraded > 0) ...[
+                  const SizedBox(height: 12),
+                  Text(
+                    atRiskCount == 0
+                        ? 'All classes passing!'
+                        : 'below ${_atRiskThreshold.toInt()}%',
+                    style: AppStyles.smallSecondaryText(context).copyWith(
+                      color: atRiskCount > 0
+                          ? context.colorScheme.error
+                          : context.semanticColors.success,
+                    ),
+                    textAlign: TextAlign.center,
                   ),
-                  textAlign: TextAlign.center,
-                ),
+                ],
               ],
-            ],
+            ),
           ),
-        ),
         ),
       ),
     );
@@ -893,18 +900,18 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
       });
 
     final topCourse =
-        sortedCourses.isNotEmpty &&
-            (sortedCourses.first.numHomework -
-                    sortedCourses.first.numHomeworkGraded) >
-                0
+    sortedCourses.isNotEmpty &&
+        (sortedCourses.first.numHomework -
+            sortedCourses.first.numHomeworkGraded) >
+            0
         ? sortedCourses.first
         : null;
 
     final displayCourse = _pendingImpactCourseId != null
         ? selectedGroup.courses.firstWhereOrNull(
-                (c) => c.id == _pendingImpactCourseId,
-              ) ??
-              topCourse
+          (c) => c.id == _pendingImpactCourseId,
+    ) ??
+        topCourse
         : topCourse;
 
     final displayUngraded = displayCourse != null
@@ -972,52 +979,52 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
                 label: 'Switch class',
                 button: sortedCourses.length > 1,
                 child: GestureDetector(
-                onTap: sortedCourses.length > 1
-                    ? () {
-                        Feedback.forTap(context);
-                        _cyclePendingImpactCourse(sortedCourses);
-                      }
-                    : null,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 4,
-                  ),
-                  decoration: BoxDecoration(
-                    color: displayCourse.color.withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(12.0),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Container(
-                        width: 8,
-                        height: 8,
-                        decoration: BoxDecoration(
-                          color: displayCourse.color,
-                          shape: BoxShape.circle,
+                  onTap: sortedCourses.length > 1
+                      ? () {
+                    Feedback.forTap(context);
+                    _cyclePendingImpactCourse(sortedCourses);
+                  }
+                      : null,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: displayCourse.color.withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(12.0),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Container(
+                          width: 8,
+                          height: 8,
+                          decoration: BoxDecoration(
+                            color: displayCourse.color,
+                            shape: BoxShape.circle,
+                          ),
                         ),
-                      ),
-                      const SizedBox(width: 6),
-                      Flexible(
-                        child: Text(
-                          '$displayUngraded in ${displayCourse.title}',
-                          style: AppStyles.smallSecondaryText(context),
-                          overflow: TextOverflow.ellipsis,
+                        const SizedBox(width: 6),
+                        Flexible(
+                          child: Text(
+                            '$displayUngraded in ${displayCourse.title}',
+                            style: AppStyles.smallSecondaryText(context),
+                            overflow: TextOverflow.ellipsis,
+                          ),
                         ),
-                      ),
-                      if (sortedCourses.length > 1) ...[
-                        const SizedBox(width: 4),
-                        Icon(
-                          Icons.swap_horiz,
-                          size: 12,
-                          color: displayCourse.color,
-                        ),
+                        if (sortedCourses.length > 1) ...[
+                          const SizedBox(width: 4),
+                          Icon(
+                            Icons.swap_horiz,
+                            size: 12,
+                            color: displayCourse.color,
+                          ),
+                        ],
                       ],
-                    ],
+                    ),
                   ),
                 ),
-              ),
               ),
             ),
           ],
@@ -1033,11 +1040,9 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
     setState(() => _pendingImpactCourseId = sortedCourses[nextIndex].id);
   }
 
-  void _showGradeCalculatorOptions(
-    BuildContext buttonContext,
-    GradeCourseGroupModel selectedGroup,
-    List<GradeCourseModel> courses,
-  ) {
+  void _showGradeCalculatorOptions(BuildContext buttonContext,
+      GradeCourseGroupModel selectedGroup,
+      List<GradeCourseModel> courses,) {
     final eligibleCourses = courses
         .where(_courseHasEligibleGradeCalculatorCategory)
         .toList();
@@ -1065,15 +1070,20 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
         shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
         ),
-        builder: (ctx) => StatefulBuilder(
-          builder: (menuContext, _) =>
-              _buildGradeCalculatorPickerContent(menuContext, eligibleCourses),
-        ),
+        builder: (ctx) =>
+            StatefulBuilder(
+              builder: (menuContext, _) =>
+                  _buildGradeCalculatorPickerContent(
+                      menuContext, eligibleCourses),
+            ),
       );
     } else {
       final RenderBox button = buttonContext.findRenderObject() as RenderBox;
       final RenderBox overlay =
-          Overlay.of(context).context.findRenderObject() as RenderBox;
+      Overlay
+          .of(context)
+          .context
+          .findRenderObject() as RenderBox;
       final RelativeRect position = RelativeRect.fromRect(
         Rect.fromPoints(
           button.localToGlobal(Offset.zero, ancestor: overlay),
@@ -1095,10 +1105,11 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
             enabled: false,
             padding: EdgeInsets.zero,
             child: StatefulBuilder(
-              builder: (menuContext, _) => _buildGradeCalculatorPickerContent(
-                menuContext,
-                eligibleCourses,
-              ),
+              builder: (menuContext, _) =>
+                  _buildGradeCalculatorPickerContent(
+                    menuContext,
+                    eligibleCourses,
+                  ),
             ),
           ),
         ],
@@ -1106,10 +1117,8 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
     }
   }
 
-  Widget _buildGradeCalculatorPickerContent(
-    BuildContext menuContext,
-    List<GradeCourseModel> eligibleCourses,
-  ) {
+  Widget _buildGradeCalculatorPickerContent(BuildContext menuContext,
+      List<GradeCourseModel> eligibleCourses,) {
     return Material(
       color: context.colorScheme.surface,
       child: Padding(
@@ -1174,17 +1183,19 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
       name: AnalyticsEvent.gradeCalculatorOpen,
       parameters: {'category': AnalyticsCategory.featureInteraction.value},
     ));
-    unawaited(AnalyticsService().setUserProperty(name: 'uses_grade_calculator', value: 'true'));
+    unawaited(AnalyticsService().setUserProperty(
+        name: 'uses_grade_calculator', value: 'true'));
     showDialog(
       context: context,
-      builder: (context) => GradeCalculatorDialog(
-        categories: course.categories,
-        currentOverallGrade: course.overallGrade,
-        courseTitle: course.title,
-        courseColor: course.color,
-        userSettings: userSettings!,
-        defaultDesiredGradeBoost: _defaultDesiredGradeBoost,
-      ),
+      builder: (context) =>
+          GradeCalculatorDialog(
+            categories: course.categories,
+            currentOverallGrade: course.overallGrade,
+            courseTitle: course.title,
+            courseColor: course.color,
+            userSettings: userSettings!,
+            defaultDesiredGradeBoost: _defaultDesiredGradeBoost,
+          ),
     );
   }
 
@@ -1194,7 +1205,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
     }
 
     final selectedGroup = _grades.firstWhere(
-      (g) => g.id == _selectedGroupId,
+          (g) => g.id == _selectedGroupId,
       orElse: () => _grades.first,
     );
 
@@ -1216,8 +1227,8 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
       final course = selectedCourseId == null
           ? null
           : selectedGroup.courses.firstWhereOrNull(
-              (c) => c.id == selectedCourseId,
-            );
+            (c) => c.id == selectedCourseId,
+      );
       if (course != null) {
         if (course.gradePoints.isNotEmpty) {
           series.add(_buildOverallSeries(course.gradePoints));
@@ -1236,7 +1247,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
       return const EmptyCard(
         icon: Icons.bar_chart,
         title: 'Nothing to visualize yet',
-        message: "Come back here after you've entered some grades on 'Planner'",
+        message: "Come back here after you've entered some grades on \"Planner\"",
         expanded: false,
       );
     }
@@ -1261,11 +1272,11 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
             curve: Curves.easeInOut,
             child: _graphExpanded
                 ? Column(
-                    children: [
-                      const SizedBox(height: 16),
-                      _buildChart(series, selectedGroup.id),
-                    ],
-                  )
+              children: [
+                const SizedBox(height: 16),
+                _buildChart(series, selectedGroup.id),
+              ],
+            )
                 : const SizedBox.shrink(),
           ),
         ],
@@ -1316,30 +1327,33 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
             if (coursesWithCategories.isNotEmpty)
               PrintHidden(
                 child: Builder(
-                  builder: (buttonContext) => Tooltip(
-                    message: 'What Grade Do I Need?',
-                    child: IconButton(
-                      icon: const Icon(Icons.calculate_outlined),
-                      onPressed: () => _showGradeCalculatorOptions(
-                        buttonContext,
-                        gradeGroup,
-                        coursesWithCategories,
+                  builder: (buttonContext) =>
+                      Tooltip(
+                        message: 'What Grade Do I Need?',
+                        child: IconButton(
+                          icon: const Icon(Icons.calculate_outlined),
+                          onPressed: () =>
+                              _showGradeCalculatorOptions(
+                                buttonContext,
+                                gradeGroup,
+                                coursesWithCategories,
+                              ),
+                        ),
                       ),
-                    ),
-                  ),
                 ),
               ),
             // Gear icon for settings
             PrintHidden(
               child: Builder(
-                builder: (buttonContext) => Semantics(
-                  label: 'Graph settings',
-                  button: true,
-                  child: IconButton(
-                    icon: const Icon(Icons.settings),
-                    onPressed: () => _showGraphSettings(buttonContext),
-                  ),
-                ),
+                builder: (buttonContext) =>
+                    Semantics(
+                      label: 'Graph settings',
+                      button: true,
+                      child: IconButton(
+                        icon: const Icon(Icons.settings),
+                        onPressed: () => _showGraphSettings(buttonContext),
+                      ),
+                    ),
               ),
             ),
             // Expand/collapse chevron
@@ -1368,9 +1382,8 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
   }
 
   Widget _buildChart(
-    List<charts.CartesianSeries<_ChartDataPoint, DateTime>> series,
-    int groupId,
-  ) {
+      List<charts.CartesianSeries<_ChartDataPoint, DateTime>> series,
+      int groupId,) {
     final courseGroup = _getCourseGroupForId(groupId);
 
     // Filter to visible series only
@@ -1408,24 +1421,22 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
                 elevation: 0,
                 shadowColor: Colors.transparent,
                 builder:
-                    (
-                      dynamic data,
-                      dynamic point,
-                      dynamic series,
-                      int pointIndex,
-                      int seriesIndex,
-                    ) {
-                      final seriesName =
-                          (seriesIndex >= 0 &&
-                              seriesIndex < visibleSeries.length)
-                          ? (visibleSeries[seriesIndex].name ?? '')
-                          : '';
-                      return _buildGradeTrendTooltip(
-                        chartPoint: data as _ChartDataPoint,
-                        seriesName: seriesName,
-                        isTermView: isTermView,
-                      );
-                    },
+                    (dynamic data,
+                    dynamic point,
+                    dynamic series,
+                    int pointIndex,
+                    int seriesIndex,) {
+                  final seriesName =
+                  (seriesIndex >= 0 &&
+                      seriesIndex < visibleSeries.length)
+                      ? (visibleSeries[seriesIndex].name ?? '')
+                      : '';
+                  return _buildGradeTrendTooltip(
+                    chartPoint: data as _ChartDataPoint,
+                    seriesName: seriesName,
+                    isTermView: isTermView,
+                  );
+                },
               ),
               trackballBehavior: charts.TrackballBehavior(
                 enable: true,
@@ -1472,17 +1483,17 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
                 majorTickLines: const charts.MajorTickLines(size: 0),
                 plotBands: showTodayMarker
                     ? [
-                        charts.PlotBand(
-                          isVisible: true,
-                          start: now,
-                          end: now,
-                          borderWidth: 1.5,
-                          borderColor: context.colorScheme.error.withValues(
-                            alpha: 0.7,
-                          ),
-                          dashArray: const [6, 4],
-                        ),
-                      ]
+                  charts.PlotBand(
+                    isVisible: true,
+                    start: now,
+                    end: now,
+                    borderWidth: 1.5,
+                    borderColor: context.colorScheme.error.withValues(
+                      alpha: 0.7,
+                    ),
+                    dashArray: const [6, 4],
+                  ),
+                ]
                     : const [],
               ),
               primaryYAxis: charts.NumericAxis(
@@ -1540,11 +1551,9 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
     );
   }
 
-  Widget _buildTrackballTooltip(
-    charts.TrackballDetails trackballDetails,
-    List<charts.CartesianSeries<_ChartDataPoint, DateTime>> visibleSeries,
-    bool isTermView,
-  ) {
+  Widget _buildTrackballTooltip(charts.TrackballDetails trackballDetails,
+      List<charts.CartesianSeries<_ChartDataPoint, DateTime>> visibleSeries,
+      bool isTermView,) {
     final pointIndex = trackballDetails.pointIndex;
     final seriesIndex = trackballDetails.seriesIndex;
     if (pointIndex == null || seriesIndex == null) {
@@ -1576,7 +1585,9 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
     required String seriesName,
     required bool isTermView,
   }) {
-    final homeworkTitle = chartPoint.homeworkTitle?.trim().isNotEmpty == true
+    final homeworkTitle = chartPoint.homeworkTitle
+        ?.trim()
+        .isNotEmpty == true
         ? chartPoint.homeworkTitle!
         : 'No assignment title';
     final homeworkGradeText = GradeHelper.gradeForDisplay(
@@ -1686,8 +1697,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
   }
 
   Widget _buildLegend(
-    List<charts.CartesianSeries<_ChartDataPoint, DateTime>> series,
-  ) {
+      List<charts.CartesianSeries<_ChartDataPoint, DateTime>> series,) {
     return ListView(
       padding: EdgeInsets.zero,
       children: series.map((s) {
@@ -1734,15 +1744,13 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
   }
 
   charts.SplineSeries<_ChartDataPoint, DateTime> _buildOverallSeries(
-    List<List<dynamic>> gradePoints,
-  ) {
+      List<List<dynamic>> gradePoints,) {
     final dataSource = _parseGradePoints(gradePoints);
     return _buildOverallLikeSeries(dataSource);
   }
 
   charts.SplineSeries<_ChartDataPoint, DateTime> _buildOverallLikeSeries(
-    List<_ChartDataPoint> dataSource,
-  ) {
+      List<_ChartDataPoint> dataSource,) {
     return charts.SplineSeries<_ChartDataPoint, DateTime>(
       name: _overallSeriesName,
       dataSource: dataSource,
@@ -1765,8 +1773,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
   }
 
   charts.SplineSeries<_ChartDataPoint, DateTime> _buildCourseSeries(
-    GradeCourseModel course,
-  ) {
+      GradeCourseModel course,) {
     final dataSource = _parseGradePoints(course.gradePoints);
     return charts.SplineSeries<_ChartDataPoint, DateTime>(
       name: course.title,
@@ -1790,8 +1797,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
   }
 
   charts.SplineSeries<_ChartDataPoint, DateTime> _buildCategorySeries(
-    GradeCategoryModel category,
-  ) {
+      GradeCategoryModel category,) {
     final dataSource = _parseGradePoints(category.gradePoints);
     return charts.SplineSeries<_ChartDataPoint, DateTime>(
       name: category.title,
@@ -1850,7 +1856,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
     }
 
     final selectedGroup = _grades.firstWhere(
-      (g) => g.id == _selectedGroupId,
+          (g) => g.id == _selectedGroupId,
       orElse: () => _grades.first,
     );
 
@@ -1865,11 +1871,9 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
     return null;
   }
 
-  void _handlePointTap(
-    BuildContext context,
-    List<_ChartDataPoint> dataSource,
-    charts.ChartPointDetails pointDetails,
-  ) {
+  void _handlePointTap(BuildContext context,
+      List<_ChartDataPoint> dataSource,
+      charts.ChartPointDetails pointDetails,) {
     final pointIndex = pointDetails.pointIndex;
 
     if (pointIndex == null || pointIndex >= dataSource.length) return;
@@ -1884,18 +1888,18 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
     // Open the calendar item (assignment)
     openWithGuard(
       '${DeepLinkParam.homeworkId}:$homeworkId',
-      () => showPlannerItemAdd(
-        context,
-        homeworkId: homeworkId,
-        isEdit: true,
-        isNew: false,
-      ),
+          () =>
+          showPlannerItemAdd(
+            context,
+            homeworkId: homeworkId,
+            isEdit: true,
+            isNew: false,
+          ),
     );
   }
 
   _NumericRange _calculateYAxisRange(
-    List<charts.CartesianSeries<_ChartDataPoint, DateTime>> visibleSeries,
-  ) {
+      List<charts.CartesianSeries<_ChartDataPoint, DateTime>> visibleSeries,) {
     if (visibleSeries.isEmpty) {
       return const _NumericRange(min: 0.0, max: 100.0);
     }
@@ -1928,9 +1932,8 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
   }
 
   _DateTimeRange _calculateXAxisRange(
-    List<charts.CartesianSeries<_ChartDataPoint, DateTime>> visibleSeries,
-    CourseGroupModel courseGroup,
-  ) {
+      List<charts.CartesianSeries<_ChartDataPoint, DateTime>> visibleSeries,
+      CourseGroupModel courseGroup,) {
     // If auto-adjust is disabled, use the full course group date range
     if (!_autoAdjustToGradedRange || visibleSeries.isEmpty) {
       return _DateTimeRange(
@@ -1972,14 +1975,14 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
     if (_graphViewMode.isTerm || _selectedGroupId == null) return null;
 
     final selectedGroup = _grades.firstWhere(
-      (g) => g.id == _selectedGroupId,
+          (g) => g.id == _selectedGroupId,
       orElse: () => _grades.first,
     );
 
     final selectedCourseId = _graphViewMode.courseId;
     if (selectedCourseId == null) return null;
     return selectedGroup.courses.firstWhereOrNull(
-      (c) => c.id == selectedCourseId,
+          (c) => c.id == selectedCourseId,
     );
   }
 
@@ -1987,19 +1990,19 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
     if (name == null || name.isEmpty) return Icons.circle;
 
     final selectedGroup = _grades.firstWhere(
-      (g) => g.id == _selectedGroupId,
+          (g) => g.id == _selectedGroupId,
       orElse: () => _grades.first,
     );
 
     final isCourse = selectedGroup.courses.any(
-      (course) => course.title == name,
+          (course) => course.title == name,
     );
     if (isCourse) return Icons.school;
 
     final selectedCourse = _getSelectedCourse();
     final isCategory =
         selectedCourse?.categories.any((category) => category.title == name) ??
-        false;
+            false;
     if (isCategory) return Icons.category_outlined;
 
     return Icons.circle;
@@ -2010,18 +2013,18 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
     if (name == _overallSeriesName) return context.colorScheme.onSurface;
 
     final selectedGroup = _grades.firstWhere(
-      (g) => g.id == _selectedGroupId,
+          (g) => g.id == _selectedGroupId,
       orElse: () => _grades.first,
     );
 
     final matchedCourse = selectedGroup.courses.firstWhereOrNull(
-      (course) => course.title == name,
+          (course) => course.title == name,
     );
     if (matchedCourse != null) return matchedCourse.color;
 
     final selectedCourse = _getSelectedCourse();
     final matchedCategory = selectedCourse?.categories.firstWhereOrNull(
-      (category) => category.title == name,
+          (category) => category.title == name,
     );
     if (matchedCategory != null) return matchedCategory.color;
 
@@ -2031,7 +2034,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
   void _showGraphSettings(BuildContext buttonContext) {
     final isMobile = Responsive.isMobile(context);
     final selectedGroup = _grades.firstWhere(
-      (g) => g.id == _selectedGroupId,
+          (g) => g.id == _selectedGroupId,
       orElse: () => _grades.first,
     );
 
@@ -2089,42 +2092,47 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
                     const Divider(height: 20),
                     // Individual courses
                     ...selectedGroup.courses.map(
-                      (course) => InkWell(
-                        onTap: () {
-                          setState(
-                            () => _graphViewMode = _GraphViewMode.course(
-                              course.id,
-                            ),
-                          );
-                          Navigator.pop(menuContext);
-                        },
-                        child: Padding(
-                          padding: const EdgeInsets.only(
-                            left: 4,
-                            top: 8,
-                            bottom: 8,
-                          ),
-                          child: Row(
-                            children: [
-                              Radio<String>(
-                                value: _GraphViewMode.course(
+                          (course) =>
+                          InkWell(
+                            onTap: () {
+                              setState(
+                                    () =>
+                                _graphViewMode = _GraphViewMode.course(
                                   course.id,
-                                ).radioValue,
-                              ),
-                              const SizedBox(width: 8),
-                              Icon(Icons.school, size: 16, color: course.color),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                child: Text(
-                                  course.title,
-                                  style: AppStyles.formText(context),
-                                  overflow: TextOverflow.ellipsis,
                                 ),
+                              );
+                              Navigator.pop(menuContext);
+                            },
+                            child: Padding(
+                              padding: const EdgeInsets.only(
+                                left: 4,
+                                top: 8,
+                                bottom: 8,
                               ),
-                            ],
+                              child: Row(
+                                children: [
+                                  Radio<String>(
+                                    value: _GraphViewMode
+                                        .course(
+                                      course.id,
+                                    )
+                                        .radioValue,
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Icon(Icons.school, size: 16,
+                                      color: course.color),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: Text(
+                                      course.title,
+                                      style: AppStyles.formText(context),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
                           ),
-                        ),
-                      ),
                     ),
                   ],
                 ),
@@ -2174,7 +2182,10 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
     } else {
       final RenderBox button = buttonContext.findRenderObject() as RenderBox;
       final RenderBox overlay =
-          Overlay.of(context).context.findRenderObject() as RenderBox;
+      Overlay
+          .of(context)
+          .context
+          .findRenderObject() as RenderBox;
       final RelativeRect position = RelativeRect.fromRect(
         Rect.fromPoints(
           button.localToGlobal(Offset.zero, ancestor: overlay),
@@ -2202,11 +2213,10 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
     }
   }
 
-  Widget _buildCourseCard(
-    int index,
-    GradeCourseModel course, {
-    bool forceExpanded = false,
-  }) {
+  Widget _buildCourseCard(int index,
+      GradeCourseModel course, {
+        bool forceExpanded = false,
+      }) {
     final isExpanded = forceExpanded || _expandedCourseIds.contains(course.id);
 
     return Card(
@@ -2230,11 +2240,9 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
     );
   }
 
-  Widget _buildCourseSummaryArea(
-    int index,
-    bool isExpanded,
-    GradeCourseModel course,
-  ) {
+  Widget _buildCourseSummaryArea(int index,
+      bool isExpanded,
+      GradeCourseModel course,) {
     return MouseRegion(
       cursor: SystemMouseCursors.click,
       child: GestureDetector(
@@ -2294,8 +2302,8 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
                               : course.trend! < 0
                               ? context.colorScheme.error
                               : context.colorScheme.onSurface.withValues(
-                                  alpha: 0.5,
-                                ),
+                            alpha: 0.5,
+                          ),
                         ),
                       ],
                       const SizedBox(width: 8),
@@ -2431,10 +2439,8 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
     );
   }
 
-  Map<int, int> _largestRemainder(
-    List<GradeCategoryModel> categories,
-    double total,
-  ) {
+  Map<int, int> _largestRemainder(List<GradeCategoryModel> categories,
+      double total,) {
     final gradedCats = categories
         .where((c) => c.gradeByWeight != null && c.gradeByWeight! > 0)
         .toList();
@@ -2445,7 +2451,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
     final remainder = 100 - floors.reduce((a, b) => a + b);
     final indices = List.generate(gradedCats.length, (i) => i)
       ..sort(
-        (a, b) =>
+            (a, b) =>
             (rawValues[b] - floors[b]).compareTo(rawValues[a] - floors[a]),
       );
     for (int i = 0; i < remainder; i++) {
@@ -2461,8 +2467,8 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
       ..sort((a, b) => a.title.compareTo(b.title));
     final totalBreakdown = course.categories.fold<double>(
       0,
-      (sum, cat) =>
-          sum +
+          (sum, cat) =>
+      sum +
           (cat.gradeByWeight != null && cat.gradeByWeight! > 0
               ? cat.gradeByWeight!
               : 0),
@@ -2553,12 +2559,10 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
     );
   }
 
-  Widget _buildCategoryRow(
-    GradeCategoryModel category,
-    bool hasWeightedGrading,
-    double totalBreakdown,
-    Map<int, int> roundedPercentages,
-  ) {
+  Widget _buildCategoryRow(GradeCategoryModel category,
+      bool hasWeightedGrading,
+      double totalBreakdown,
+      Map<int, int> roundedPercentages,) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       child: Row(
@@ -2591,14 +2595,14 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 8),
                 child:
-                    (category.gradeByWeight != null &&
-                        category.gradeByWeight! > 0 &&
-                        totalBreakdown > 0)
+                (category.gradeByWeight != null &&
+                    category.gradeByWeight! > 0 &&
+                    totalBreakdown > 0)
                     ? _buildBreakdownBar(
-                        category,
-                        totalBreakdown,
-                        roundedPercentages[category.id]!,
-                      )
+                  category,
+                  totalBreakdown,
+                  roundedPercentages[category.id]!,
+                )
                     : const SizedBox.shrink(),
               ),
             ),
@@ -2633,11 +2637,9 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
     );
   }
 
-  Widget _buildBreakdownBar(
-    GradeCategoryModel category,
-    double totalBreakdown,
-    int roundedPercent,
-  ) {
+  Widget _buildBreakdownBar(GradeCategoryModel category,
+      double totalBreakdown,
+      int roundedPercent,) {
     final normalizedFraction = category.gradeByWeight! / totalBreakdown;
     final percentText = '$roundedPercent%';
     final textColor = normalizedFraction > 0.5
