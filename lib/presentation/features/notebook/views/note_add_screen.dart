@@ -568,9 +568,9 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
     _note = note;
     _titleController.text = note.title;
 
-    if (note.content != null && note.content!['ops'] != null) {
-      final ops = note.content!['ops'] as List;
-      _quillController.document = Document.fromJson(ops);
+    if (note.content != null) {
+      _quillController.document =
+          tryParseNotesDocument(note.content) ?? buildUnrenderableNotePlaceholder();
     }
 
     _setupDocumentListener();

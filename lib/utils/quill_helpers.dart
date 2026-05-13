@@ -11,6 +11,7 @@ import 'package:flutter_quill/flutter_quill.dart';
 import 'package:flutter_quill/quill_delta.dart';
 // ignore: implementation_imports
 import 'package:flutter_quill/src/l10n/generated/quill_localizations_en.dart';
+import 'package:heliumapp/utils/error_helpers.dart';
 
 class HeliumQuillLocalizations extends FlutterQuillLocalizationsEn {
   HeliumQuillLocalizations([super.locale = 'en']);
@@ -91,6 +92,32 @@ Delta resolveCheckboxesForPdf(Delta delta) {
 /// Returns true if [change] was triggered by the user (not programmatic),
 /// indicating the document has been meaningfully edited.
 bool isNoteEdited(DocChange change) => change.source == ChangeSource.local;
+
+/// Attempts to parse a Quill Document from a Note's `content` map. Returns
+/// null if [notes] is null or the content is malformed. Parse failures are
+/// logged and reported to Sentry.
+Document? tryParseNotesDocument(Map<String, dynamic>? notes) {
+  if (notes == null) return null;
+  try {
+    return Document.fromJson(notes['ops'] as List);
+  } catch (e, stack) {
+    ErrorHelpers.logAndReport('Quill note content failed to parse', e, stack);
+    return null;
+  }
+}
+
+/// A placeholder Document shown in editors when the source Note's content
+/// is malformed. Saving the entity overwrites the bad content with whatever
+/// the user types over this placeholder.
+Document buildUnrenderableNotePlaceholder() {
+  return Document.fromJson([
+    {
+      'insert': 'This note is not in a valid format and cannot not be loaded.',
+      'attributes': {'italic': true},
+    },
+    {'insert': '\n'},
+  ]);
+}
 
 /// Builds a Quill Delta JSON map from a QuillController.
 /// Returns null if the content is empty (only whitespace/newline).
