@@ -346,8 +346,15 @@ class CourseScheduleState extends State<CourseSchedule> {
                     onSelectionChanged: (Set<int> newSelection) {
                       formController.markChanged();
                       setState(() {
-                        _selectedDays.clear();
-                        _selectedDays.addAll(newSelection);
+                        for (final dayIndex in newSelection) {
+                          if (!_selectedDays.contains(dayIndex)) {
+                            _startTimes[dayIndex] ??= _singleStartTime;
+                            _endTimes[dayIndex] ??= _singleEndTime;
+                          }
+                        }
+                        _selectedDays
+                          ..clear()
+                          ..addAll(newSelection);
                       });
                     },
                     emptySelectionAllowed: !_variesByDay,
@@ -359,7 +366,7 @@ class CourseScheduleState extends State<CourseSchedule> {
                 if (_variesByDay) ...[
                   Text('Class Times', style: AppStyles.featureText(context)),
                   const SizedBox(height: 16),
-                  ..._selectedDays.map((dayIndex) {
+                  ...(_selectedDays.toList()..sort()).map((dayIndex) {
                     return _buildDayTimeContainer(
                       context,
                       dayIndex,
