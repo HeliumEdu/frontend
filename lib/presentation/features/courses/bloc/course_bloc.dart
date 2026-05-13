@@ -11,6 +11,7 @@ import 'package:heliumapp/core/helium_exception.dart';
 import 'package:heliumapp/data/models/planner/request/category_request_model.dart';
 import 'package:heliumapp/data/models/planner/course_group_model.dart';
 import 'package:heliumapp/data/models/planner/course_model.dart';
+import 'package:heliumapp/data/models/planner/course_schedule_model.dart';
 import 'package:heliumapp/data/models/planner/request/course_schedule_request_model.dart';
 import 'package:heliumapp/domain/repositories/category_repository.dart';
 import 'package:heliumapp/domain/repositories/course_repository.dart';
@@ -143,6 +144,13 @@ class CourseBloc extends Bloc<CourseEvent, CourseState> {
         event.courseGroupId,
         event.courseId,
       );
+      if (course.schedules.isEmpty) {
+        final schedule = await _createEmptyCourseSchedule(
+          event.courseGroupId,
+          course.id,
+        );
+        course.schedules.add(schedule);
+      }
       emit(CourseFetched(origin: event.origin, course: course));
     } on HeliumException catch (e) {
       emit(CoursesError(origin: event.origin, message: e.message));
@@ -166,6 +174,23 @@ class CourseBloc extends Bloc<CourseEvent, CourseState> {
       final schedule = await courseScheduleRepository
           .getCourseScheduleForCourse(event.courseGroupId, event.courseId);
       emit(CourseScheduleFetched(origin: event.origin, schedule: schedule));
+    } on NotFoundException {
+      try {
+        final schedule = await _createEmptyCourseSchedule(
+          event.courseGroupId,
+          event.courseId,
+        );
+        emit(CourseScheduleFetched(origin: event.origin, schedule: schedule));
+      } on HeliumException catch (e) {
+        emit(CoursesError(origin: event.origin, message: e.message));
+      } catch (e) {
+        emit(
+          CoursesError(
+            origin: event.origin,
+            message: 'An unexpected error occurred.',
+          ),
+        );
+      }
     } on HeliumException catch (e) {
       emit(CoursesError(origin: event.origin, message: e.message));
     } catch (e) {
@@ -176,6 +201,36 @@ class CourseBloc extends Bloc<CourseEvent, CourseState> {
         ),
       );
     }
+  }
+
+  Future<CourseScheduleModel> _createEmptyCourseSchedule(
+    int courseGroupId,
+    int courseId,
+  ) {
+    const defaultStart = TimeOfDay(hour: 12, minute: 0);
+    const defaultEnd = TimeOfDay(hour: 12, minute: 50);
+    final request = CourseScheduleRequestModel(
+      daysOfWeek: '0000000',
+      sunStartTime: defaultStart,
+      sunEndTime: defaultEnd,
+      monStartTime: defaultStart,
+      monEndTime: defaultEnd,
+      tueStartTime: defaultStart,
+      tueEndTime: defaultEnd,
+      wedStartTime: defaultStart,
+      wedEndTime: defaultEnd,
+      thuStartTime: defaultStart,
+      thuEndTime: defaultEnd,
+      friStartTime: defaultStart,
+      friEndTime: defaultEnd,
+      satStartTime: defaultStart,
+      satEndTime: defaultEnd,
+    );
+    return courseScheduleRepository.createCourseSchedule(
+      courseGroupId,
+      courseId,
+      request,
+    );
   }
 
   Future<void> _onFetchAllCourseScheduleEvents(
@@ -283,30 +338,9 @@ class CourseBloc extends Bloc<CourseEvent, CourseState> {
         event.request,
       );
 
-      const defaultStart = TimeOfDay(hour: 12, minute: 0);
-      const defaultEnd = TimeOfDay(hour: 12, minute: 50);
-      final createEmptyCourseScheduleRequest = CourseScheduleRequestModel(
-        daysOfWeek: '0000000',
-        sunStartTime: defaultStart,
-        sunEndTime: defaultEnd,
-        monStartTime: defaultStart,
-        monEndTime: defaultEnd,
-        tueStartTime: defaultStart,
-        tueEndTime: defaultEnd,
-        wedStartTime: defaultStart,
-        wedEndTime: defaultEnd,
-        thuStartTime: defaultStart,
-        thuEndTime: defaultEnd,
-        friStartTime: defaultStart,
-        friEndTime: defaultEnd,
-        satStartTime: defaultStart,
-        satEndTime: defaultEnd,
-      );
-
-      final schedule = await courseScheduleRepository.createCourseSchedule(
+      final schedule = await _createEmptyCourseSchedule(
         course.courseGroup,
         course.id,
-        createEmptyCourseScheduleRequest,
       );
       course.schedules.add(schedule);
 

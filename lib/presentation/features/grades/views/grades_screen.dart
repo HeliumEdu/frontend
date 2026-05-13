@@ -163,7 +163,6 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
   static const double _averageColMobile = 90;
   static const double _averageColDesktop = 105;
 
-  // Decision variables - adjust these to tune the grade insights
   double get _atRiskThreshold =>
       (userSettings?.atRiskThreshold ??
           FallbackConstants.defaultAtRiskThreshold)
@@ -174,7 +173,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
           FallbackConstants.defaultOnTrackTolerance)
           .toDouble();
   static const double _defaultDesiredGradeBoost =
-  5.0; // Default boost above current grade for calculator
+  5.0;
   static const double _chartAnimationDurationMs = 250;
 
   List<CourseGroupModel> _courseGroups = [];
@@ -185,7 +184,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
   final Map<int, GlobalKey> _courseCardKeys = {};
 
   _GraphViewMode _graphViewMode = const _GraphViewMode.term();
-  final Map<String, bool> _visibleSeries = {}; // series ID -> visibility
+  final Map<String, bool> _visibleSeries = {};
   bool _autoAdjustToGradedRange = false;
   bool _hideLegend = false;
   bool _graphExpanded = true;
