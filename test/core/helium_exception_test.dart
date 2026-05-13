@@ -41,5 +41,32 @@ void main() {
         }
       }
     });
+
+    test('cause preserves the original typed exception when wrapping', () {
+      // Simulates a data source's generic catch wrapping a typed exception:
+      // the public message stays generic, but `cause` lets callers introspect
+      // what was actually thrown (e.g. self-heal logic in the bloc layer).
+      final original = NotFoundException(message: 'No Schedule found for Course');
+
+      try {
+        try {
+          throw original;
+        } catch (e) {
+          throw HeliumException(
+            message: 'An unexpected error occurred.',
+            cause: e,
+          );
+        }
+      } on HeliumException catch (e) {
+        expect(e.message, equals('An unexpected error occurred.'));
+        expect(e.cause, isA<NotFoundException>());
+        expect(e.cause, same(original));
+      }
+    });
+
+    test('cause is null when not provided', () {
+      final exception = HeliumException(message: 'Plain');
+      expect(exception.cause, isNull);
+    });
   });
 }
