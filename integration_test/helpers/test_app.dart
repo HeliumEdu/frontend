@@ -849,7 +849,7 @@ Future<void> expectOnClassesScreen(WidgetTester tester) async {
   await expectGroupDropdownGroups(
     tester,
     expectedGroupTitles: const ['Fall Semester'],
-    // The editable Classes dropdown adds a "+ Group" create row.
+    // The editable Classes dropdown adds a "+ Add Group" create row.
     extraItems: 1,
     screen: 'Classes',
   );
@@ -1015,7 +1015,7 @@ Future<void> expectOnGradesScreen(WidgetTester tester) async {
   await expectGroupDropdownGroups(
     tester,
     expectedGroupTitles: const ['Fall Semester'],
-    // Read-only dropdown — no "+ Group" create row.
+    // Read-only dropdown — no "+ Add Group" create row.
     extraItems: 0,
     screen: 'Grades',
   );
@@ -1024,7 +1024,7 @@ Future<void> expectOnGradesScreen(WidgetTester tester) async {
 /// Open the page's [GroupDropdown<CourseGroupModel>], assert it lists each
 /// of [expectedGroupTitles], and verify the total dropdown item count
 /// equals `expectedGroupTitles.length + extraItems` ([extraItems] is `1`
-/// for editable dropdowns that append a "+ Group" create row, `0` otherwise).
+/// for editable dropdowns that append a "+ Add Group" create row, `0` otherwise).
 Future<void> expectGroupDropdownGroups(
   WidgetTester tester, {
   required List<String> expectedGroupTitles,
