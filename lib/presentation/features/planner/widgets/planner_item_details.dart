@@ -950,7 +950,8 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
       formController.notesController.dispose();
       formController.notesController = state.linkedNote!.content != null
           ? QuillController(
-              document: Document.fromJson(state.linkedNote!.content!['ops'] as List),
+              document: tryParseNotesDocument(state.linkedNote!.content) ??
+                  buildUnrenderableNotePlaceholder(),
               selection: const TextSelection.collapsed(offset: 0),
             )
           : QuillController.basic();
