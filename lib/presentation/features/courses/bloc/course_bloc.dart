@@ -174,25 +174,27 @@ class CourseBloc extends Bloc<CourseEvent, CourseState> {
       final schedule = await courseScheduleRepository
           .getCourseScheduleForCourse(event.courseGroupId, event.courseId);
       emit(CourseScheduleFetched(origin: event.origin, schedule: schedule));
-    } on NotFoundException {
-      try {
-        final schedule = await _createEmptyCourseSchedule(
-          event.courseGroupId,
-          event.courseId,
-        );
-        emit(CourseScheduleFetched(origin: event.origin, schedule: schedule));
-      } on HeliumException catch (e) {
-        emit(CoursesError(origin: event.origin, message: e.message));
-      } catch (e) {
-        emit(
-          CoursesError(
-            origin: event.origin,
-            message: 'An unexpected error occurred.',
-          ),
-        );
-      }
     } on HeliumException catch (e) {
-      emit(CoursesError(origin: event.origin, message: e.message));
+      if (e is NotFoundException || e.cause is NotFoundException) {
+        try {
+          final schedule = await _createEmptyCourseSchedule(
+            event.courseGroupId,
+            event.courseId,
+          );
+          emit(CourseScheduleFetched(origin: event.origin, schedule: schedule));
+        } on HeliumException catch (e2) {
+          emit(CoursesError(origin: event.origin, message: e2.message));
+        } catch (_) {
+          emit(
+            CoursesError(
+              origin: event.origin,
+              message: 'An unexpected error occurred.',
+            ),
+          );
+        }
+      } else {
+        emit(CoursesError(origin: event.origin, message: e.message));
+      }
     } catch (e) {
       emit(
         CoursesError(
