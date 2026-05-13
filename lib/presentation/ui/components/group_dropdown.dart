@@ -39,7 +39,7 @@ class GroupDropdown<T extends BaseTitledModel> extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // When empty and not read-only, show the "+ Group" button directly
+    // When empty and not read-only, show the "+ Add Group" button directly
     if (groups.isEmpty && !isReadOnly) {
       return ShadowContainer(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
