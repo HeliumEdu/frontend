@@ -282,9 +282,6 @@ class CourseScheduleState extends State<CourseSchedule> {
                                       _startTimes[i] = _singleStartTime;
                                       _endTimes[i] = _singleEndTime;
                                     }
-                                    if (_selectedDays.isEmpty) {
-                                      _selectedDays = {1, 3, 5};
-                                    }
                                   } else {
                                     final firstDay = _selectedDays.firstOrNull;
                                     if (firstDay != null) {
@@ -357,28 +354,30 @@ class CourseScheduleState extends State<CourseSchedule> {
                           ..addAll(newSelection);
                       });
                     },
-                    emptySelectionAllowed: !_variesByDay,
+                    emptySelectionAllowed: true,
                     multiSelectionEnabled: true,
                     showSelectedIcon: false,
                   ),
                 ),
                 const SizedBox(height: 25),
-                if (_variesByDay) ...[
-                  Text('Class Times', style: AppStyles.featureText(context)),
-                  const SizedBox(height: 16),
-                  ...(_selectedDays.toList()..sort()).map((dayIndex) {
-                    return _buildDayTimeContainer(
-                      context,
-                      dayIndex,
-                      scaffoldBgColor,
-                    );
-                  }),
-                ] else ...[
-                  Text('Class Time', style: AppStyles.featureText(context)),
-                  const SizedBox(height: 16),
-                  _buildSingleTimeContainer(context, scaffoldBgColor),
+                if (_selectedDays.isNotEmpty) ...[
+                  if (_variesByDay) ...[
+                    Text('Class Times', style: AppStyles.featureText(context)),
+                    const SizedBox(height: 16),
+                    ...(_selectedDays.toList()..sort()).map((dayIndex) {
+                      return _buildDayTimeContainer(
+                        context,
+                        dayIndex,
+                        scaffoldBgColor,
+                      );
+                    }),
+                  ] else ...[
+                    Text('Class Time', style: AppStyles.featureText(context)),
+                    const SizedBox(height: 16),
+                    _buildSingleTimeContainer(context, scaffoldBgColor),
+                  ],
+                  const SizedBox(height: 25),
                 ],
-                const SizedBox(height: 25),
                 _buildCancellationsButton(context),
                 const SizedBox(height: 12),
               ],
