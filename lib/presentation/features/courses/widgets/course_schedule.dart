@@ -262,40 +262,34 @@ class CourseScheduleState extends State<CourseSchedule> {
                   child: Material(
                     color: context.colorScheme.surface,
                     borderRadius: BorderRadius.circular(12),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 9),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: HeliumCheckboxListTile(
-                              title: Text(
-                                'Varies by day',
-                                style: AppStyles.formLabel(context),
-                              ),
-                              value: _variesByDay,
-                              onChanged: (value) {
-                                formController.markChanged();
-                                setState(() {
-                                  _variesByDay = value!;
-                                  if (_variesByDay) {
-                                    for (int i = 0; i < 7; i++) {
-                                      _startTimes[i] = _singleStartTime;
-                                      _endTimes[i] = _singleEndTime;
-                                    }
-                                  } else {
-                                    final firstDay = _selectedDays.firstOrNull;
-                                    if (firstDay != null) {
-                                      _singleStartTime = _startTimes[firstDay] ?? _singleStartTime;
-                                      _singleEndTime = _endTimes[firstDay] ?? _singleEndTime;
-                                    }
-                                  }
-                                });
-                              },
-                              controlAffinity: ListTileControlAffinity.leading,
-                              contentPadding: EdgeInsets.zero,
-                            ),
-                          ),
-                        ],
+                    child: HeliumCheckboxListTile(
+                      title: Text(
+                        'Varies by day',
+                        style: AppStyles.formLabel(context),
+                      ),
+                      value: _variesByDay,
+                      onChanged: (value) {
+                        formController.markChanged();
+                        setState(() {
+                          _variesByDay = value!;
+                          if (_variesByDay) {
+                            for (int i = 0; i < 7; i++) {
+                              _startTimes[i] = _singleStartTime;
+                              _endTimes[i] = _singleEndTime;
+                            }
+                          } else {
+                            final firstDay = _selectedDays.firstOrNull;
+                            if (firstDay != null) {
+                              _singleStartTime = _startTimes[firstDay] ?? _singleStartTime;
+                              _singleEndTime = _endTimes[firstDay] ?? _singleEndTime;
+                            }
+                          }
+                        });
+                      },
+                      controlAffinity: ListTileControlAffinity.leading,
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
                       ),
                     ),
                   ),
