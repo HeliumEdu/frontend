@@ -181,7 +181,7 @@ class _GettingStartedDialogWidgetState
           if (!context.mounted) return;
           SnackBarHelper.show(
             context,
-            'Failed to delete example schedule: ${state.message}',
+            'Failed to delete example schedule: ${state.message}.',
             type: SnackType.error,
           );
         }

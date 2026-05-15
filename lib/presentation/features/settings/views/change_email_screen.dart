@@ -106,7 +106,7 @@ class ChangeEmailScreenState extends State<ChangeEmailScreen> {
           });
           SnackBarHelper.show(
             context,
-            'Verification email sent to ${state.newEmail}',
+            'Verification email sent to ${state.newEmail}.',
             useRootMessenger: true,
           );
           widget.onCompleted?.call();
@@ -119,7 +119,7 @@ class ChangeEmailScreenState extends State<ChangeEmailScreen> {
           });
           SnackBarHelper.show(
             context,
-            'The pending email change was cancelled',
+            'The pending email change was cancelled.',
             useRootMessenger: true,
             type: SnackType.info,
           );

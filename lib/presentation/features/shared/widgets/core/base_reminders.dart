@@ -127,14 +127,14 @@ abstract class BaseReminderWidgetState<T extends BaseRemindersContent>
             isLoading = false;
           });
         } else if (state is ReminderCreated) {
-          SnackBarHelper.show(context, 'Reminder saved');
+          SnackBarHelper.show(context, 'Reminder saved.');
 
           setState(() {
             reminders.add(state.reminder);
             Sort.byTitle(reminders);
           });
         } else if (state is ReminderUpdated) {
-          SnackBarHelper.show(context, 'Reminder saved');
+          SnackBarHelper.show(context, 'Reminder saved.');
 
           setState(() {
             reminders[reminders.indexWhere((c) => c.id == state.reminder.id)] =
@@ -142,7 +142,7 @@ abstract class BaseReminderWidgetState<T extends BaseRemindersContent>
             Sort.byTitle(reminders);
           });
         } else if (state is ReminderDeleted) {
-          SnackBarHelper.show(context, 'Reminder deleted');
+          SnackBarHelper.show(context, 'Reminder deleted.');
 
           setState(() {
             reminders.removeWhere((c) => c.id == state.id);

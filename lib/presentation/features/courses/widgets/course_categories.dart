@@ -129,7 +129,7 @@ class _CourseCategoriesContentState extends State<_CourseCategoriesContent> {
             isLoading = false;
           });
         } else if (state is CategoryCreated) {
-          SnackBarHelper.show(context, 'Category saved');
+          SnackBarHelper.show(context, 'Category saved.');
           setState(() {
             _categories.add(state.category);
             Sort.byTitle(_categories);
@@ -145,7 +145,7 @@ class _CourseCategoriesContentState extends State<_CourseCategoriesContent> {
             Sort.byTitle(_categories);
           });
         } else if (state is CategoryDeleted) {
-          SnackBarHelper.show(context, 'Category deleted');
+          SnackBarHelper.show(context, 'Category deleted.');
           setState(() {
             _categories.removeWhere((c) => c.id == state.id);
           });

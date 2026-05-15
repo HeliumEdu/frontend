@@ -103,7 +103,7 @@ class ChangePasswordScreenState extends State<ChangePasswordScreen> {
           });
           SnackBarHelper.show(
             context,
-            'Password changed',
+            'Password changed.',
             useRootMessenger: true,
           );
           widget.onCompleted?.call();

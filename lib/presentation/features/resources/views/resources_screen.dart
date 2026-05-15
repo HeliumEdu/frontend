@@ -123,7 +123,7 @@ class _ResourcesScreenState
         ),
       );
     } else {
-      showSnackBar(context, 'Create a group first', type: SnackType.info);
+      showSnackBar(context, 'Create a group first.', type: SnackType.info);
     }
   };
 
@@ -181,7 +181,7 @@ class _ResourcesScreenState
           if (state is ResourcesScreenDataFetched) {
             _populateInitialStateData(state);
           } else if (state is ResourceGroupCreated) {
-            showSnackBar(context, 'Group created');
+            showSnackBar(context, 'Group created.');
 
             setState(() {
               _resourceGroups.add(state.resourceGroup);
@@ -200,7 +200,7 @@ class _ResourcesScreenState
               Sort.byTitle(_resourceGroups);
             });
           } else if (state is ResourceGroupDeleted) {
-            showSnackBar(context, 'Resource group deleted');
+            showSnackBar(context, 'Resource group deleted.');
 
             setState(() {
               _resourceGroups.removeWhere((g) => g.id == state.id);
@@ -233,7 +233,7 @@ class _ResourcesScreenState
           } else if (state is ResourceDeleted) {
             if (_selectedGroupId == null) return;
 
-            showSnackBar(context, 'Resource deleted');
+            showSnackBar(context, 'Resource deleted.');
 
             setState(() {
               _resourcesMap[_selectedGroupId]!.removeWhere(

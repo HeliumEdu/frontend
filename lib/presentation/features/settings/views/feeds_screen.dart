@@ -165,7 +165,7 @@ class _FeedsScreenState extends State<FeedsScreen> {
                             Clipboard.setData(ClipboardData(text: url));
                             SnackBarHelper.show(
                               context,
-                              '$label feed URL copied',
+                              '$label feed URL copied.',
                             );
                           },
                           icon: Icons.copy,

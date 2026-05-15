@@ -136,7 +136,7 @@ class _ForgotPasswordScreenState
 
                 Text(
                   _emailSent
-                      ? "You've been emailed a temporary password. Log in to your account using the temporary password, then change it immediately."
+                      ? "You've been emailed a temporary password. Sign in to your account using the temporary password, then change it immediately."
                       : 'Enter the email associated with your account. We\'ll reset your password and send a temporary one to you.',
                   style: AppStyles.headingText(context),
                 ),
@@ -185,7 +185,7 @@ class _ForgotPasswordScreenState
                         ),
                         const SizedBox(width: 8),
                         Text(
-                          'Back to login',
+                          'Back to sign in',
                           style: AppStyles.buttonText(
                             context,
                           ).copyWith(color: context.colorScheme.primary),

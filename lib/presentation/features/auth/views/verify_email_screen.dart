@@ -223,7 +223,7 @@ class _VerifyEmailScreenState extends BasePageScreenState<VerifyEmailScreen> {
             BlocBuilder<AuthBloc, AuthState>(
               builder: (context, state) {
                 return HeliumElevatedButton(
-                  buttonText: 'Verify & Login',
+                  buttonText: 'Verify & Sign In',
                   isLoading: isSubmitting,
                   onPressed: _onSubmit,
                 );

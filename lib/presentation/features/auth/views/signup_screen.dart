@@ -136,7 +136,7 @@ class _SignupScreenState extends BasePageScreenState<SignupScreen> {
             if (email == null || email.isEmpty) {
               showSnackBar(
                 context,
-                'Registration succeeded, but we could not load your email. Please log in to continue.',
+                'Registration succeeded, but we could not load your email. Please sign in to continue.',
                 type: SnackType.error,
                 seconds: 6,
               );
@@ -417,7 +417,7 @@ class _SignupScreenState extends BasePageScreenState<SignupScreen> {
                         ),
                         const SizedBox(width: 8),
                         Text(
-                          'Back to login',
+                          'Back to sign in',
                           style: AppStyles.buttonText(
                             context,
                           ).copyWith(color: context.colorScheme.primary),
@@ -444,7 +444,7 @@ class _SignupScreenState extends BasePageScreenState<SignupScreen> {
       if (!_formController.agreeToTerms) {
         showSnackBar(
           context,
-          'You must agree to the Terms of Service and Privacy Policy',
+          'You must agree to the Terms of Service and Privacy Policy.',
           type: SnackType.error,
           seconds: 4,
         );

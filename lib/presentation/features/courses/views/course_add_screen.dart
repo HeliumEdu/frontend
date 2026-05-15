@@ -185,7 +185,7 @@ class _CourseAddScreenState extends MultiStepContainerState<CourseAddScreen> {
 
             if (state is CourseCreated) {
               final willClose = _willCloseAfterSave();
-              showSnackBar(context, 'Class created', useRootMessenger: willClose);
+              showSnackBar(context, 'Class created.', useRootMessenger: willClose);
             }
 
             setState(() {

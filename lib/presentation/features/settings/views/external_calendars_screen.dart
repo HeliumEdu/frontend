@@ -70,7 +70,7 @@ class ExternalCalendarsScreenState extends State<ExternalCalendarsScreen> {
         if (state is ExternalCalendarsFetched) {
           _populateInitialStateData(state);
         } else if (state is ExternalCalendarCreated) {
-          SnackBarHelper.show(context, 'External calendar created');
+          SnackBarHelper.show(context, 'External calendar created.');
           setState(() {
             _externalCalendars.add(state.externalCalendar);
             Sort.byTitle(_externalCalendars);
@@ -85,7 +85,7 @@ class ExternalCalendarsScreenState extends State<ExternalCalendarsScreen> {
             _updatingCalendarIds.remove(state.externalCalendar.id);
           });
         } else if (state is ExternalCalendarDeleted) {
-          SnackBarHelper.show(context, 'External calendar deleted');
+          SnackBarHelper.show(context, 'External calendar deleted.');
           setState(() {
             _externalCalendars.removeWhere((g) => g.id == state.id);
           });
