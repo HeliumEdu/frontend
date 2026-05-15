@@ -297,7 +297,7 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
       throw handleDioError(e, s);
     } catch (e, s) {
       _log.severe('An unexpected error occurred during $provider login', e, s);
-      throw HeliumException(message: 'OAuth login failed: $e.');
+      throw HeliumException(message: 'Sign-in failed.');
     }
   }
 
@@ -364,10 +364,11 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
           _log.warning('Failed to blacklist token on server', e);
         }
       }
-    } catch (e) {
+    } catch (e, s) {
+      _log.severe('An unexpected error occurred during sign-out', e, s);
       // Even if something fails, always clear storage
       await dioClient.clearStorage();
-      throw HeliumException(message: 'Logout error: $e.');
+      throw HeliumException(message: 'Failed to sign out.');
     }
   }
 
