@@ -116,13 +116,13 @@ class HomeworkRemoteDataSourceImpl extends HomeworkRemoteDataSource {
           return homeworks;
         } else {
           throw ServerException(
-            message: 'Invalid response format',
+            message: 'Invalid response format.',
             code: '200',
           );
         }
       } else {
         throw ServerException(
-          message: 'Failed to fetch homework: ${response.statusCode}',
+          message: 'Failed to fetch homework: ${response.statusCode}.',
           code: response.statusCode.toString(),
         );
       }
@@ -149,13 +149,13 @@ class HomeworkRemoteDataSourceImpl extends HomeworkRemoteDataSource {
 
       if (response.statusCode == 200) {
         if (response.data.isEmpty) {
-          throw NotFoundException(message: 'Homework not found');
+          throw NotFoundException(message: 'Homework not found.');
         }
         _log.info('... Homework $id fetched');
         return HomeworkModel.fromJson(response.data[0]);
       } else {
         throw ServerException(
-          message: 'Failed to fetch homework: ${response.statusCode}',
+          message: 'Failed to fetch homework: ${response.statusCode}.',
         );
       }
     } on DioException catch (e, s) {
@@ -187,7 +187,7 @@ class HomeworkRemoteDataSourceImpl extends HomeworkRemoteDataSource {
         return homework;
       } else {
         throw ServerException(
-          message: 'Failed to create homework: ${response.statusCode}',
+          message: 'Failed to create homework: ${response.statusCode}.',
         );
       }
     } on DioException catch (e, s) {
@@ -218,7 +218,7 @@ class HomeworkRemoteDataSourceImpl extends HomeworkRemoteDataSource {
         return homework;
       } else {
         throw ServerException(
-          message: 'Failed to clone homework: ${response.statusCode}',
+          message: 'Failed to clone homework: ${response.statusCode}.',
         );
       }
     } on DioException catch (e, s) {
@@ -253,7 +253,7 @@ class HomeworkRemoteDataSourceImpl extends HomeworkRemoteDataSource {
         return HomeworkModel.fromJson(response.data);
       } else {
         throw ServerException(
-          message: 'Failed to update homework: ${response.statusCode}',
+          message: 'Failed to update homework: ${response.statusCode}.',
         );
       }
     } on DioException catch (e, s) {
@@ -285,7 +285,7 @@ class HomeworkRemoteDataSourceImpl extends HomeworkRemoteDataSource {
         await dioClient.cacheService.invalidateAll();
       } else {
         throw ServerException(
-          message: 'Failed to delete homework: ${response.statusCode}',
+          message: 'Failed to delete homework: ${response.statusCode}.',
         );
       }
     } on DioException catch (e, s) {

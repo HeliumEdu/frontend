@@ -87,7 +87,7 @@ Future<void> _sliceImageToPdf(
         .toImage(image.width, sliceHeightPx);
     final sliceData =
         await sliceImage.toByteData(format: ui.ImageByteFormat.png);
-    if (sliceData == null) throw Exception('Failed to encode page $pageIndex');
+    if (sliceData == null) throw Exception('Failed to encode page $pageIndex.');
 
     // Yield between pages so the loading spinner can animate.
     await WidgetsBinding.instance.endOfFrame;
@@ -639,7 +639,7 @@ class _PrintableAreaState extends State<PrintableArea> {
     final boundary =
         _repaintKey.currentContext?.findRenderObject()
             as RenderRepaintBoundary?;
-    if (boundary == null) throw Exception('RepaintBoundary not available');
+    if (boundary == null) throw Exception('RepaintBoundary not available.');
 
     // Yield a frame for PrintHidden/layout re-renders and the dialog spinner.
     await WidgetsBinding.instance.endOfFrame;

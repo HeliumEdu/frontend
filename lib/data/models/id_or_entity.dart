@@ -36,7 +36,7 @@ class IdOrEntity<T extends BaseModel> {
 
     throw HeliumException(
       message:
-          'Unknown data format, or given clazz does not implement fromJson',
+          'Unknown data format, or given clazz does not implement fromJson.',
     );
   }
 

@@ -897,7 +897,7 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
     );
 
     final document = await converter.createDocument();
-    if (document == null) throw Exception('Failed to create PDF');
+    if (document == null) throw Exception('Failed to create PDF.');
     return document.save();
   }
 

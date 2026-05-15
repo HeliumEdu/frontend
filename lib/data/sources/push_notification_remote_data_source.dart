@@ -49,7 +49,7 @@ class PushTokenRemoteDataSourceImpl extends PushNotificationRemoteDataSource {
         return pushToken;
       } else {
         throw ServerException(
-          message: 'Failed to register push token',
+          message: 'Failed to register push token.',
           code: response.statusCode.toString(),
         );
       }
@@ -159,7 +159,7 @@ class PushTokenRemoteDataSourceImpl extends PushNotificationRemoteDataSource {
         return tokens;
       } else {
         throw ServerException(
-          message: 'Failed to retrieve push tokens',
+          message: 'Failed to retrieve push tokens.',
           code: response.statusCode.toString(),
         );
       }

@@ -52,19 +52,19 @@ class GradeRemoteDataSourceImpl extends GradeRemoteDataSource {
             return grades;
           } else {
             throw ServerException(
-              message: 'Invalid response format: missing course_groups',
+              message: 'Invalid response format: missing course_groups.',
               code: '200',
             );
           }
         } else {
           throw ServerException(
-            message: 'Invalid response format: expected Map',
+            message: 'Invalid response format: expected Map.',
             code: '200',
           );
         }
       } else {
         throw ServerException(
-          message: 'Failed to fetch grades',
+          message: 'Failed to fetch grades.',
           code: response.statusCode.toString(),
         );
       }

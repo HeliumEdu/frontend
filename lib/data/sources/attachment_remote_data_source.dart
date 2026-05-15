@@ -84,7 +84,7 @@ class AttachmentRemoteDataSourceImpl extends AttachmentRemoteDataSource {
 
       if (response.statusCode == 201) {
         if (response.data.isEmpty) {
-          throw ValidationException(message: 'Attachment not found in response');
+          throw ValidationException(message: 'Attachment not found in response.');
         }
 
         final attachment = AttachmentModel.fromJson(response.data[0]);
@@ -95,7 +95,7 @@ class AttachmentRemoteDataSourceImpl extends AttachmentRemoteDataSource {
         return attachment;
       } else {
         throw ServerException(
-          message: 'Failed to create attachment: ${response.statusCode}',
+          message: 'Failed to create attachment: ${response.statusCode}.',
         );
       }
     } on DioException catch (e, s) {
@@ -142,7 +142,7 @@ class AttachmentRemoteDataSourceImpl extends AttachmentRemoteDataSource {
         return attachments;
       } else {
         throw ServerException(
-          message: 'Failed to fetch attachments: ${response.statusCode}',
+          message: 'Failed to fetch attachments: ${response.statusCode}.',
         );
       }
     } on DioException catch (e, s) {
@@ -166,7 +166,7 @@ class AttachmentRemoteDataSourceImpl extends AttachmentRemoteDataSource {
         await dioClient.cacheService.invalidateAll();
       } else {
         throw ServerException(
-          message: 'Failed to delete attachment: ${response.statusCode}',
+          message: 'Failed to delete attachment: ${response.statusCode}.',
         );
       }
     } on DioException catch (e, s) {

@@ -75,13 +75,13 @@ class CourseScheduleRemoteDataSourceImpl
           return schedules;
         } else {
           throw ServerException(
-            message: 'Invalid response format',
+            message: 'Invalid response format.',
             code: '200',
           );
         }
       } else {
         throw ServerException(
-          message: 'Failed to fetch courses',
+          message: 'Failed to fetch courses.',
           code: response.statusCode.toString(),
         );
       }
@@ -108,7 +108,7 @@ class CourseScheduleRemoteDataSourceImpl
       );
 
       if (schedulesResponse.data.length == 0) {
-        throw NotFoundException(message: 'No Schedule found for Course');
+        throw NotFoundException(message: 'No Schedule found for Course.');
       }
 
       final scheduleId = schedulesResponse.data[0]['id'];
@@ -128,7 +128,7 @@ class CourseScheduleRemoteDataSourceImpl
         return CourseScheduleModel.fromJson(response.data);
       } else {
         throw ServerException(
-          message: 'Failed to fetch schedule details',
+          message: 'Failed to fetch schedule details.',
           code: response.statusCode.toString(),
         );
       }
@@ -162,7 +162,7 @@ class CourseScheduleRemoteDataSourceImpl
         return schedule;
       } else {
         throw ServerException(
-          message: 'Failed to create course schedule',
+          message: 'Failed to create course schedule.',
           code: response.statusCode.toString(),
         );
       }
@@ -199,7 +199,7 @@ class CourseScheduleRemoteDataSourceImpl
         return CourseScheduleModel.fromJson(response.data);
       } else {
         throw ServerException(
-          message: 'Failed to update course schedule',
+          message: 'Failed to update course schedule.',
           code: response.statusCode.toString(),
         );
       }
