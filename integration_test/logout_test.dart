@@ -86,26 +86,26 @@ void main() {
       await tester.tap(settingsButton);
       await tester.pumpAndSettle(const Duration(seconds: 2));
 
-      _log.info('Scrolling to Logout ...');
-      final logoutItem = find.text('Logout');
+      _log.info('Scrolling to Sign Out ...');
+      final logoutItem = find.text('Sign Out');
       await scrollUntilVisible(tester, logoutItem);
-      expect(logoutItem, findsWidgets, reason: 'Logout item should exist');
+      expect(logoutItem, findsWidgets, reason: 'Sign Out item should exist');
       await tester.tap(logoutItem.first);
       await tester.pumpAndSettle(const Duration(seconds: 2));
 
-      _log.info('Waiting for logout confirmation dialog ...');
+      _log.info('Waiting for sign-out confirmation dialog ...');
       final dialog = find.byType(AlertDialog);
       expect(
         dialog,
         findsOneWidget,
-        reason: 'Logout confirmation dialog should be open',
+        reason: 'Sign-out confirmation dialog should be open',
       );
 
-      // The row label, dialog title, and confirm button all read "Logout".
+      // The row label, dialog title, and confirm button all read "Sign Out".
       // Scope to the dialog so we tap the confirm button, not the title text.
       final confirmButton = find.descendant(
         of: dialog,
-        matching: find.text('Logout'),
+        matching: find.text('Sign Out'),
       );
       expect(
         confirmButton,
@@ -121,7 +121,7 @@ void main() {
       final loginScreenFound = await waitForRoute(
         tester,
         AppRoute.loginScreen,
-        browserTitle: 'Login',
+        browserTitle: 'Sign In',
         timeout: config.apiTimeout,
       );
       expect(

@@ -108,7 +108,7 @@ class _ResourceGroupWidgetState
             Expanded(
               child: HeliumCheckboxListTile(
                 title: Text(
-                  "Hide this group's resources from Planner",
+                  "Hide this group's resources from the Planner",
                   style: AppStyles.formLabel(context),
                 ),
                 value: !_formController.shownOnCalendar,

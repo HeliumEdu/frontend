@@ -38,7 +38,7 @@ class InfoRemoteDataSourceImpl extends InfoRemoteDataSource {
         return InfoModel.fromJson(response.data);
       } else {
         throw ServerException(
-          message: 'Failed to fetch /info/',
+          message: 'Failed to fetch /info/.',
           code: response.statusCode.toString(),
         );
       }

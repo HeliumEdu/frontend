@@ -112,13 +112,13 @@ class CourseRemoteDataSourceImpl extends CourseRemoteDataSource {
           return courses;
         } else {
           throw ServerException(
-            message: 'Invalid response format',
+            message: 'Invalid response format.',
             code: '200',
           );
         }
       } else {
         throw ServerException(
-          message: 'Failed to fetch courses',
+          message: 'Failed to fetch courses.',
           code: response.statusCode.toString(),
         );
       }
@@ -145,7 +145,7 @@ class CourseRemoteDataSourceImpl extends CourseRemoteDataSource {
         return CourseModel.fromJson(response.data);
       } else {
         throw ServerException(
-          message: 'Failed to fetch course details',
+          message: 'Failed to fetch course details.',
           code: response.statusCode.toString(),
         );
       }
@@ -177,7 +177,7 @@ class CourseRemoteDataSourceImpl extends CourseRemoteDataSource {
         return course;
       } else {
         throw ServerException(
-          message: 'Failed to create course',
+          message: 'Failed to create course.',
           code: response.statusCode.toString(),
         );
       }
@@ -209,7 +209,7 @@ class CourseRemoteDataSourceImpl extends CourseRemoteDataSource {
         return CourseModel.fromJson(response.data);
       } else {
         throw ServerException(
-          message: 'Failed to update course',
+          message: 'Failed to update course.',
           code: response.statusCode.toString(),
         );
       }
@@ -235,7 +235,7 @@ class CourseRemoteDataSourceImpl extends CourseRemoteDataSource {
         return;
       } else {
         throw ServerException(
-          message: 'Failed to delete course',
+          message: 'Failed to delete course.',
           code: response.statusCode.toString(),
         );
       }
@@ -276,13 +276,13 @@ class CourseRemoteDataSourceImpl extends CourseRemoteDataSource {
           return groups;
         } else {
           throw ServerException(
-            message: 'Invalid response format',
+            message: 'Invalid response format.',
             code: '200',
           );
         }
       } else {
         throw ServerException(
-          message: 'Failed to fetch course groups',
+          message: 'Failed to fetch course groups.',
           code: response.statusCode.toString(),
         );
       }
@@ -308,7 +308,7 @@ class CourseRemoteDataSourceImpl extends CourseRemoteDataSource {
         return CourseGroupModel.fromJson(response.data);
       } else {
         throw ServerException(
-          message: 'Failed to fetch course group',
+          message: 'Failed to fetch course group.',
           code: response.statusCode.toString(),
         );
       }
@@ -345,7 +345,7 @@ class CourseRemoteDataSourceImpl extends CourseRemoteDataSource {
         return group;
       } else {
         throw ServerException(
-          message: 'Failed to create course group',
+          message: 'Failed to create course group.',
           code: response.statusCode.toString(),
         );
       }
@@ -375,7 +375,7 @@ class CourseRemoteDataSourceImpl extends CourseRemoteDataSource {
         return CourseGroupModel.fromJson(response.data);
       } else {
         throw ServerException(
-          message: 'Failed to update course group',
+          message: 'Failed to update course group.',
           code: response.statusCode.toString(),
         );
       }
@@ -401,7 +401,7 @@ class CourseRemoteDataSourceImpl extends CourseRemoteDataSource {
         return;
       } else {
         throw ServerException(
-          message: 'Failed to delete course group',
+          message: 'Failed to delete course group.',
           code: response.statusCode.toString(),
         );
       }
@@ -432,7 +432,7 @@ class CourseRemoteDataSourceImpl extends CourseRemoteDataSource {
         await dioClient.cacheService.invalidateAll();
       } else {
         throw ServerException(
-          message: 'Failed to update course exceptions',
+          message: 'Failed to update course exceptions.',
           code: response.statusCode.toString(),
         );
       }
@@ -462,7 +462,7 @@ class CourseRemoteDataSourceImpl extends CourseRemoteDataSource {
         await dioClient.cacheService.invalidateAll();
       } else {
         throw ServerException(
-          message: 'Failed to update course group exceptions',
+          message: 'Failed to update course group exceptions.',
           code: response.statusCode.toString(),
         );
       }

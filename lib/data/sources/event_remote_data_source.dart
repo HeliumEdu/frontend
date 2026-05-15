@@ -85,13 +85,13 @@ class EventRemoteDataSourceImpl extends EventRemoteDataSource {
           return events;
         } else {
           throw ServerException(
-            message: 'Invalid response format',
+            message: 'Invalid response format.',
             code: '200',
           );
         }
       } else {
         throw ServerException(
-          message: 'Failed to fetch events: ${response.statusCode}',
+          message: 'Failed to fetch events: ${response.statusCode}.',
           code: response.statusCode.toString(),
         );
       }
@@ -122,7 +122,7 @@ class EventRemoteDataSourceImpl extends EventRemoteDataSource {
         return EventModel.fromJson(response.data);
       } else {
         throw ServerException(
-          message: 'Failed to fetch event: ${response.statusCode}',
+          message: 'Failed to fetch event: ${response.statusCode}.',
         );
       }
     } on DioException catch (e, s) {
@@ -150,7 +150,7 @@ class EventRemoteDataSourceImpl extends EventRemoteDataSource {
         return event;
       } else {
         throw ServerException(
-          message: 'Failed to create event: ${response.statusCode}',
+          message: 'Failed to create event: ${response.statusCode}.',
         );
       }
     } on DioException catch (e, s) {
@@ -177,7 +177,7 @@ class EventRemoteDataSourceImpl extends EventRemoteDataSource {
         return event;
       } else {
         throw ServerException(
-          message: 'Failed to clone event: ${response.statusCode}',
+          message: 'Failed to clone event: ${response.statusCode}.',
         );
       }
     } on DioException catch (e, s) {
@@ -206,7 +206,7 @@ class EventRemoteDataSourceImpl extends EventRemoteDataSource {
         return EventModel.fromJson(response.data);
       } else {
         throw ServerException(
-          message: 'Failed to update event: ${response.statusCode}',
+          message: 'Failed to update event: ${response.statusCode}.',
         );
       }
     } on DioException catch (e, s) {
@@ -230,7 +230,7 @@ class EventRemoteDataSourceImpl extends EventRemoteDataSource {
         await dioClient.cacheService.invalidateAll();
       } else {
         throw ServerException(
-          message: 'Failed to delete event: ${response.statusCode}',
+          message: 'Failed to delete event: ${response.statusCode}.',
         );
       }
     } on DioException catch (e, s) {
@@ -254,7 +254,7 @@ class EventRemoteDataSourceImpl extends EventRemoteDataSource {
         await dioClient.cacheService.invalidateAll();
       } else {
         throw ServerException(
-          message: 'Failed to delete all events: ${response.statusCode}',
+          message: 'Failed to delete all events: ${response.statusCode}.',
         );
       }
     } on DioException catch (e, s) {

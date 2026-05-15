@@ -407,7 +407,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       emit(AuthTokenRefreshed());
     } on UnauthorizedException {
       await dioClient.clearStorage();
-      emit(AuthUnauthenticated(message: 'Please login to continue.'));
+      emit(AuthUnauthenticated(message: 'Please sign in to continue.'));
     } on HeliumException catch (e) {
       await dioClient.clearStorage();
       emit(AuthError(

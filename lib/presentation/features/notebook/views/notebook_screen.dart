@@ -156,7 +156,7 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen>
             setState(() {
               _notes = _notes.where((n) => n.id != state.noteId).toList();
             });
-            showSnackBar(context, 'Note deleted');
+            showSnackBar(context, 'Note deleted.');
           }
         },
       ),

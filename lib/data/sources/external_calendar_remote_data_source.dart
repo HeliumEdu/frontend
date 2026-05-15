@@ -88,7 +88,7 @@ class ExternalCalendarRemoteDataSourceImpl
         _log.info('... fetched ${calendars.length} ExternalCalendar(s)');
         return calendars;
       } else {
-        throw ServerException(message: 'Failed to fetch external calendars');
+        throw ServerException(message: 'Failed to fetch external calendars.');
       }
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
@@ -137,13 +137,13 @@ class ExternalCalendarRemoteDataSourceImpl
           return events;
         } else {
           throw ServerException(
-            message: 'Invalid response format',
+            message: 'Invalid response format.',
             code: '200',
           );
         }
       } else {
         throw ServerException(
-          message: 'Failed to fetch external calendar events',
+          message: 'Failed to fetch external calendar events.',
         );
       }
     } on DioException catch (e, s) {
@@ -173,7 +173,7 @@ class ExternalCalendarRemoteDataSourceImpl
         unawaited(AnalyticsService().logEvent(name: AnalyticsEvent.externalCalendarAdd, parameters: {'category': AnalyticsCategory.featureInteraction.value}));
         return calendar;
       } else {
-        throw ServerException(message: 'Failed to add external calendar');
+        throw ServerException(message: 'Failed to add external calendar.');
       }
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
@@ -201,7 +201,7 @@ class ExternalCalendarRemoteDataSourceImpl
         await dioClient.cacheService.invalidateAll();
         return ExternalCalendarModel.fromJson(response.data);
       } else {
-        throw ServerException(message: 'Failed to update external calendar');
+        throw ServerException(message: 'Failed to update external calendar.');
       }
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
@@ -225,7 +225,7 @@ class ExternalCalendarRemoteDataSourceImpl
         await dioClient.cacheService.invalidateAll();
         return;
       } else {
-        throw ServerException(message: 'Failed to delete external calendar');
+        throw ServerException(message: 'Failed to delete external calendar.');
       }
     } on DioException catch (e, s) {
       throw handleDioError(e, s);

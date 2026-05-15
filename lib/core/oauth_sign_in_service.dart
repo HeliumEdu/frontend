@@ -81,7 +81,7 @@ class OAuthSignInService {
       if (firebaseIdToken == null) {
         _log.severe('Firebase did not provide an ID token');
         throw HeliumException(
-          message: '$providerName Sign-In failed: No ID token received',
+          message: 'Sign-in with $providerName failed.',
         );
       }
 
@@ -99,7 +99,7 @@ class OAuthSignInService {
       }
       _log.warning('Firebase Auth exception: ${e.code} - ${e.message}');
       throw HeliumException(
-        message: '$providerName Sign-In failed: ${e.message ?? e.code}',
+        message: 'Sign-in with $providerName failed.',
       );
     } on GoogleSignInException catch (e) {
       _log.warning(
@@ -112,7 +112,7 @@ class OAuthSignInService {
       }
       _log.warning('Google Sign-In exception: ${e.code} - ${e.description}');
       throw HeliumException(
-        message: '$providerName Sign-In failed: ${e.description ?? e.code.name}',
+        message: 'Sign-in with $providerName failed.',
       );
     } catch (e, s) {
       _log.severe(
@@ -125,7 +125,7 @@ class OAuthSignInService {
         rethrow;
       }
 
-      throw HeliumException(message: '$providerName Sign-In failed: ${e.toString()}');
+      throw HeliumException(message: 'Sign-in with $providerName failed.');
     }
   }
 
@@ -149,7 +149,7 @@ class OAuthSignInService {
     if (googleAuth.idToken == null) {
       _log.severe('Google Sign-In did not provide an ID token');
       throw HeliumException(
-        message: 'Google Sign-In failed: No ID token received',
+        message: 'Sign-in with Google failed.',
       );
     }
 

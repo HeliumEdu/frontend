@@ -63,7 +63,7 @@ void main() {
           final reachedLogin = await waitForRoute(
             tester,
             AppRoute.loginScreen,
-            browserTitle: 'Login',
+            browserTitle: 'Sign In',
             timeout: config.apiTimeout,
           );
           expect(

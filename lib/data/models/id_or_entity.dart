@@ -34,9 +34,12 @@ class IdOrEntity<T extends BaseModel> {
       _log.severe('An unknown error occurred', e, s);
     }
 
+    _log.severe(
+      'Unknown data format, or given class does not implement fromJson '
+      '(data type: ${data.runtimeType})',
+    );
     throw HeliumException(
-      message:
-          'Unknown data format, or given clazz does not implement fromJson',
+      message: 'An unexpected error occurred while processing data.',
     );
   }
 

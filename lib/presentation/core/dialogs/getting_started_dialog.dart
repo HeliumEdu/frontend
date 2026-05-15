@@ -83,8 +83,9 @@ const _cards = [
   _OnboardingCard(
     title: 'Notes for anything',
     description:
-        'Write notes linked to anything in your planner — lecture summaries,'
-        'paper drafts, whatever else. Format like a doc, search everything, '
+        'Write notes linked to anything in your Planner — lecture '
+        'summaries, paper drafts, whatever else. Format like a doc, search '
+        'everything, '
         'and print when you need a hard copy.',
     icon: Icons.library_books,
     imagePaths: ['assets/img/onboarding_notebook.png'],

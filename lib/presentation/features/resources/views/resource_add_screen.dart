@@ -164,7 +164,7 @@ class _ResourceAddScreenState
                   state.resource.id.toString(),
                 );
               }
-              showSnackBar(context, 'Resource created', useRootMessenger: true);
+              showSnackBar(context, 'Resource created.', useRootMessenger: true);
               closeWithoutPrompt();
             }
           } else if (state is ResourceUpdated) {

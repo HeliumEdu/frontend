@@ -147,7 +147,7 @@ class _SetupAccountScreenState extends BasePageScreenState<SetupAccountScreen> {
       _pollTimer?.cancel();
       _setupStopwatch.stop();
       _log.warning('Setup polling timed out after 30 seconds');
-      await DioClient().forceLogout('Please login again to continue.');
+      await DioClient().forceLogout('Please sign in again to continue.');
       return;
     }
 

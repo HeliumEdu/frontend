@@ -260,7 +260,7 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
         bodyIsEmpty) {
       showSnackBar(
         context,
-        'Note was empty, so nothing to save',
+        'Note was empty, so nothing to save.',
         useRootMessenger: true,
       );
       _closeImmediately();
@@ -365,10 +365,10 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
                   state.note.id.toString(),
                 );
               }
-              showSnackBar(context, 'Note created');
+              showSnackBar(context, 'Note created.');
             } else {
               // Manual save - show message and close
-              showSnackBar(context, 'Note created', useRootMessenger: true);
+              showSnackBar(context, 'Note created.', useRootMessenger: true);
               _closeImmediately();
             }
           } else if (state is NoteUpdated) {
@@ -386,7 +386,7 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
               _closeImmediately();
             }
           } else if (state is NoteDeleted) {
-            showSnackBar(context, 'Note deleted', useRootMessenger: true);
+            showSnackBar(context, 'Note deleted.', useRootMessenger: true);
             _closeImmediately();
           }
         },
@@ -897,7 +897,7 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
     );
 
     final document = await converter.createDocument();
-    if (document == null) throw Exception('Failed to create PDF');
+    if (document == null) throw Exception('Failed to create PDF.');
     return document.save();
   }
 

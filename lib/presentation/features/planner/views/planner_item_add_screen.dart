@@ -219,7 +219,7 @@ class _PlannerItemAddScreenState
             // Always closes after delete, show on root
             showSnackBar(
               context,
-              '${state is EventDeleted ? 'Event' : 'Assignment'} deleted',
+              '${state is EventDeleted ? 'Event' : 'Assignment'} deleted.',
               useRootMessenger: true,
             );
             closeWithoutPrompt();
@@ -246,7 +246,7 @@ class _PlannerItemAddScreenState
               );
               showSnackBar(
                 context,
-                '${state.isEvent ? 'Event' : 'Assignment'} cloned',
+                '${state.isEvent ? 'Event' : 'Assignment'} cloned.',
               );
               // Update state and load the cloned item
               _detailsKey.currentState?.resetSubmitting();
@@ -299,7 +299,7 @@ class _PlannerItemAddScreenState
                 final willClose = _willCloseAfterSave();
                 showSnackBar(
                   context,
-                  '${state.isEvent ? 'Event' : 'Assignment'} created',
+                  '${state.isEvent ? 'Event' : 'Assignment'} created.',
                   useRootMessenger: willClose,
                 );
               }
