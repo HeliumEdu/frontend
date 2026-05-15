@@ -444,7 +444,7 @@ class _SignupScreenState extends BasePageScreenState<SignupScreen> {
       if (!_formController.agreeToTerms) {
         showSnackBar(
           context,
-          'You must agree to Terms of Service and Privacy Policy',
+          'You must agree to the Terms of Service and Privacy Policy',
           type: SnackType.error,
           seconds: 4,
         );

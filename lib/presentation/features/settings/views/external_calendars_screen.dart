@@ -98,7 +98,7 @@ class ExternalCalendarsScreenState extends State<ExternalCalendarsScreen> {
             padding: EdgeInsets.only(bottom: 12),
             child: InfoContainer(
               text:
-                  'External calendars allow you to bring other calendars in to Helium',
+                  'External Calendars allow you to bring other calendars into Helium',
             ),
           ),
           if (DialogModeProvider.isDialogMode(context))

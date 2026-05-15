@@ -138,7 +138,7 @@ class ChangeEmailScreenState extends State<ChangeEmailScreen> {
                 if (_emailChanging != null && _emailChanging!.isNotEmpty) ...[
                   WarningContainer(
                     text:
-                        'Change pending, click the link sent to $_emailChanging to verify',
+                        'Change pending — click the link sent to $_emailChanging to verify.',
                     icon: Icons.schedule,
                   ),
                   const SizedBox(height: 16),

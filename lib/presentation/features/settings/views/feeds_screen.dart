@@ -281,7 +281,7 @@ class _FeedsScreenState extends State<FeedsScreen> {
             content: SizedBox(
               width: Responsive.getDialogWidth(context),
               child: Text(
-                'Disabling feeds will break any existing integrations. Enabling again later will generated new URLs, and will not re-establish these connections. This action cannot be undone.',
+                'Disabling Feeds will break any existing integrations. Enabling again later will generate new URLs, and will not re-establish these connections. This action cannot be undone.',
                 style: AppStyles.standardBodyText(context),
               ),
             ),

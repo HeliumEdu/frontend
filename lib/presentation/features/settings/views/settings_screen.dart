@@ -528,7 +528,7 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
                 const SizedBox(height: 8),
                 WarningContainer(
                   text:
-                      'Change pending, click the link sent to $_emailChanging to verify',
+                      'Change pending — click the link sent to $_emailChanging to verify.',
                   icon: Icons.schedule,
                 ),
               ],
@@ -556,7 +556,7 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
           _buildSettingsItem(
             icon: AppConstants.externalCalendarIcon,
             label: 'External Calendars',
-            hint: 'Bring other calendars in to Helium',
+            hint: 'Bring other calendars into Helium',
             onTap: () =>
                 _navigateToSubSettings(SettingsSubScreen.externalCalendars),
             iconColor: context.colorScheme.primary,
