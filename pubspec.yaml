@@ -3,7 +3,7 @@ description: "A free, color-coded online student planner for classes, homework, 
 
 publish_to: 'none'
 
-version: 3.5.24+264
+version: 3.5.25+265
 
 environment:
   sdk: ^3.11.0
