@@ -1132,5 +1132,5 @@ void expectOnLoginScreen() {
     findsOneWidget,
     reason: 'Login: Password field should be shown',
   );
-  expectBrowserTitle('Login');
+  expectBrowserTitle('Sign In');
 }

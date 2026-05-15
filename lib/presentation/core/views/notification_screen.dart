@@ -172,7 +172,7 @@ class _NotificationsScreenState
 
             if (shouldRemove) {
               if (reminder.dismissed) {
-                showSnackBar(context, 'Reminder dismissed');
+                showSnackBar(context, 'Reminder dismissed.');
               }
               setState(() {
                 _notifications.removeWhere((n) => n.reminder.id == reminder.id);

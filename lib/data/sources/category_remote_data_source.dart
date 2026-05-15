@@ -90,7 +90,7 @@ class CategoryRemoteDataSourceImpl extends CategoryRemoteDataSource {
         return categories;
       } else {
         throw ServerException(
-          message: 'Failed to fetch categories',
+          message: 'Failed to fetch categories.',
           code: response.statusCode.toString(),
         );
       }
@@ -130,7 +130,7 @@ class CategoryRemoteDataSourceImpl extends CategoryRemoteDataSource {
         return category;
       } else {
         throw ServerException(
-          message: 'Failed to create category',
+          message: 'Failed to create category.',
           code: response.statusCode.toString(),
         );
       }
@@ -167,7 +167,7 @@ class CategoryRemoteDataSourceImpl extends CategoryRemoteDataSource {
         return CategoryModel.fromJson(response.data);
       } else {
         throw ServerException(
-          message: 'Failed to update category',
+          message: 'Failed to update category.',
           code: response.statusCode.toString(),
         );
       }
@@ -197,7 +197,7 @@ class CategoryRemoteDataSourceImpl extends CategoryRemoteDataSource {
         return;
       } else {
         throw ServerException(
-          message: 'Failed to delete category',
+          message: 'Failed to delete category.',
           code: response.statusCode.toString(),
         );
       }

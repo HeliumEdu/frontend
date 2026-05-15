@@ -141,7 +141,7 @@ void main() {
       final loginScreenFound = await waitForRoute(
         tester,
         AppRoute.loginScreen,
-        browserTitle: 'Login',
+        browserTitle: 'Sign In',
         timeout: config.apiTimeout,
       );
       expect(

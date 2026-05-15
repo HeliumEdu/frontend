@@ -122,7 +122,7 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen>
         ),
       );
     } else {
-      showSnackBar(context, 'Create a group first', type: SnackType.info);
+      showSnackBar(context, 'Create a group first.', type: SnackType.info);
     }
   };
 
@@ -163,7 +163,7 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen>
           if (state is CoursesScreenDataFetched) {
             _populateInitialStateData(state);
           } else if (state is CourseGroupCreated) {
-            showSnackBar(context, 'Class group created');
+            showSnackBar(context, 'Class group created.');
 
             setState(() {
               _courseGroups.add(state.courseGroup);
@@ -182,7 +182,7 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen>
               Sort.byStartDate(_courseGroups);
             });
           } else if (state is CourseGroupDeleted) {
-            showSnackBar(context, 'Class group deleted');
+            showSnackBar(context, 'Class group deleted.');
 
             setState(() {
               _courseGroups.removeWhere((g) => g.id == state.id);
@@ -220,7 +220,7 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen>
           } else if (state is CourseDeleted) {
             if (_selectedGroupId == null) return;
 
-            showSnackBar(context, 'Class deleted');
+            showSnackBar(context, 'Class deleted.');
 
             setState(() {
               _coursesMap[_selectedGroupId]!.removeWhere(

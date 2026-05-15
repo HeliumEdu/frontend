@@ -25,7 +25,7 @@ class PushTokenRepositoryImpl implements PushNotificationRepository {
     } on HeliumException {
       rethrow;
     } catch (e) {
-      throw HeliumException(message: 'Failed to register push token: $e');
+      throw HeliumException(message: 'Failed to register push token: $e.');
     }
   }
 
@@ -36,7 +36,7 @@ class PushTokenRepositoryImpl implements PushNotificationRepository {
     } on HeliumException {
       rethrow;
     } catch (e) {
-      throw HeliumException(message: 'Failed to delete push token: $e');
+      throw HeliumException(message: 'Failed to delete push token: $e.');
     }
   }
 
@@ -47,7 +47,7 @@ class PushTokenRepositoryImpl implements PushNotificationRepository {
     } on HeliumException {
       rethrow;
     } catch (e) {
-      throw HeliumException(message: 'Failed to delete push token: $e');
+      throw HeliumException(message: 'Failed to delete push token: $e.');
     }
   }
 
@@ -58,7 +58,7 @@ class PushTokenRepositoryImpl implements PushNotificationRepository {
     } on HeliumException {
       rethrow;
     } catch (e) {
-      throw HeliumException(message: 'Failed to retrieve push tokens: $e');
+      throw HeliumException(message: 'Failed to retrieve push tokens: $e.');
     }
   }
 }

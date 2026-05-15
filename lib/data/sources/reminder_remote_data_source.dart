@@ -91,7 +91,7 @@ class ReminderRemoteDataSourceImpl extends ReminderRemoteDataSource {
         return reminders;
       } else {
         throw ServerException(
-          message: 'Failed to fetch reminders: ${response.statusCode}',
+          message: 'Failed to fetch reminders: ${response.statusCode}.',
         );
       }
     } on DioException catch (e, s) {
@@ -120,7 +120,7 @@ class ReminderRemoteDataSourceImpl extends ReminderRemoteDataSource {
         return reminder;
       } else {
         throw ServerException(
-          message: 'Failed to create reminder: ${response.statusCode}',
+          message: 'Failed to create reminder: ${response.statusCode}.',
         );
       }
     } on DioException catch (e, s) {
@@ -149,7 +149,7 @@ class ReminderRemoteDataSourceImpl extends ReminderRemoteDataSource {
         return ReminderModel.fromJson(response.data);
       } else {
         throw ServerException(
-          message: 'Failed to update reminder: ${response.statusCode}',
+          message: 'Failed to update reminder: ${response.statusCode}.',
         );
       }
     } on DioException catch (e, s) {
@@ -173,7 +173,7 @@ class ReminderRemoteDataSourceImpl extends ReminderRemoteDataSource {
         await dioClient.cacheService.invalidateAll();
       } else {
         throw ServerException(
-          message: 'Failed to delete reminder: ${response.statusCode}',
+          message: 'Failed to delete reminder: ${response.statusCode}.',
         );
       }
     } on DioException catch (e, s) {

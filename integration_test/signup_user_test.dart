@@ -185,7 +185,7 @@ void main() {
       );
 
       // Submit verification
-      await tester.tap(find.text('Verify & Login'));
+      await tester.tap(find.text('Verify & Sign In'));
       await tester.pumpAndSettle(const Duration(seconds: 10));
 
       final stillOnVerify =

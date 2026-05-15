@@ -41,7 +41,7 @@ abstract class BaseDataSource {
           );
         } else if (statusCode == 403) {
           return UnauthorizedException(
-            message: 'Access denied. Please login again.',
+            message: 'Access denied. Please sign in again.',
             code: '403',
             httpStatusCode: 403,
           );
@@ -67,7 +67,8 @@ abstract class BaseDataSource {
             httpStatusCode: 500,
           );
         } else {
-          String errorMessage = e.response?.statusMessage ?? 'Unknown error';
+          String errorMessage =
+              e.response?.statusMessage ?? 'An unexpected error occurred.';
           String? errorCode = statusCode.toString();
 
           if (responseData != null) {
@@ -90,9 +91,12 @@ abstract class BaseDataSource {
               } else if (responseData is String) {
                 errorMessage = responseData;
               }
-            } catch (_) {
-              errorMessage =
-                  'Server error: ${e.response?.statusMessage ?? "Unknown error"}';
+            } catch (parseError) {
+              _log.warning(
+                'Failed to parse error response: ${e.response?.statusMessage}',
+                parseError,
+              );
+              errorMessage = 'An unexpected error occurred.';
             }
           }
 
@@ -108,7 +112,7 @@ abstract class BaseDataSource {
         _log.severe('DioException occurred, cancelled', e, s);
 
         return NetworkException(
-          message: 'Request was cancelled',
+          message: 'Request was cancelled.',
           code: 'CANCELLED',
         );
 

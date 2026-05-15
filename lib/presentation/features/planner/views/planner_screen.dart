@@ -480,7 +480,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
             _plannerItemDataSource!.updatePlannerItem(state.event);
             _executeDeferredOpen(state.event.id);
           } else if (state is EventDeleted) {
-            showSnackBar(context, 'Event deleted');
+            showSnackBar(context, 'Event deleted.');
             _plannerItemDataSource!.removePlannerItem(state.id);
           } else if (state is AllEventsDeleted) {
             _log.info('All Events deleted, refreshing calendar sources');
@@ -556,7 +556,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
               );
             }
           } else if (state is HomeworkDeleted) {
-            showSnackBar(context, 'Assignment deleted');
+            showSnackBar(context, 'Assignment deleted.');
             _plannerItemDataSource!.removePlannerItem(state.id);
           }
         },
@@ -3226,7 +3226,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
   void _showEditExternalCalendarEventSnackBar() {
     showSnackBar(
       context,
-      "You can't edit External Calendars in Helium",
+      "You can't edit External Calendars in Helium.",
       seconds: 4,
       type: SnackType.info,
     );
@@ -3285,7 +3285,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
     if (homeworkStart.isBefore(courseStart) || homeworkEnd.isAfter(courseEnd)) {
       showSnackBar(
         context,
-        "This assignment won't appear in the Todos view, since it is now outside the class's date range",
+        "This assignment won't appear in the Todos view, since it is now outside the class's date range.",
         seconds: 5,
         type: SnackType.info,
       );

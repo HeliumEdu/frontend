@@ -67,7 +67,7 @@ void main() {
       );
 
       // Verify browser title is set correctly
-      expectBrowserTitle('Login');
+      expectBrowserTitle('Sign In');
 
       // Verify OAuth options are present
       expect(
@@ -121,11 +121,11 @@ void main() {
         reason: 'Terms checkbox should be displayed',
       );
 
-      // Verify back to login link
+      // Verify back to sign in link
       expect(
-        find.text('Back to login'),
+        find.text('Back to sign in'),
         findsOneWidget,
-        reason: 'Back to login link should be displayed',
+        reason: 'Back to sign in link should be displayed',
       );
     });
   });

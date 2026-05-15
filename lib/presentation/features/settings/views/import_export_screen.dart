@@ -257,19 +257,19 @@ class _ImportExportScreenState extends State<ImportExportScreen> {
           unawaited(AnalyticsService().logEvent(name: AnalyticsEvent.importComplete, parameters: {'category': AnalyticsCategory.featureInteraction.value}));
           SnackBarHelper.show(
             context,
-            'Imported: $counts',
+            'Imported: $counts.',
             seconds: counts == 'nothing' ? 2 : 7,
             useRootMessenger: true,
           );
           widget.onNavigateRequested?.call(AppRoute.coursesScreen);
         }
       } else {
-        SnackBarHelper.show(context, 'Import failed', type: SnackType.error);
+        SnackBarHelper.show(context, 'Import failed.', type: SnackType.error);
       }
     } on DioException catch (e) {
-      _log.severe('Import failed', e);
+      _log.severe('Import failed.', e);
       if (mounted) {
-        final message = _extractErrorMessage(e) ?? 'Import failed';
+        final message = _extractErrorMessage(e) ?? 'Import failed.';
         SnackBarHelper.show(context, message, type: SnackType.error);
       }
     } finally {
@@ -361,22 +361,22 @@ class _ImportExportScreenState extends State<ImportExportScreen> {
 
         if (mounted) {
           if (success) {
-            SnackBarHelper.show(context, '"$filename" downloaded');
+            SnackBarHelper.show(context, '"$filename" downloaded.');
           } else {
             SnackBarHelper.show(
               context,
-              'Nothing exported',
+              'Nothing exported.',
               type: SnackType.error,
             );
           }
         }
       } else {
-        SnackBarHelper.show(context, 'Export failed', type: SnackType.error);
+        SnackBarHelper.show(context, 'Export failed.', type: SnackType.error);
       }
     } on DioException catch (e) {
-      _log.severe('Export failed', e);
+      _log.severe('Export failed.', e);
       if (mounted) {
-        SnackBarHelper.show(context, 'Export failed', type: SnackType.error);
+        SnackBarHelper.show(context, 'Export failed.', type: SnackType.error);
       }
     } finally {
       if (mounted) {
@@ -408,7 +408,7 @@ class _ImportExportScreenState extends State<ImportExportScreen> {
           context.read<AuthBloc>().add(RefreshScheduleDataEvent());
           SnackBarHelper.show(
             context,
-            'Example schedule re-imported',
+            'Example schedule re-imported.',
             useRootMessenger: true,
           );
           widget.onNavigateRequested?.call(AppRoute.coursesScreen);
@@ -416,7 +416,7 @@ class _ImportExportScreenState extends State<ImportExportScreen> {
       } else {
         SnackBarHelper.show(
           context,
-          'Failed to import example schedule',
+          'Failed to import example schedule.',
           type: SnackType.error,
         );
       }
@@ -425,7 +425,7 @@ class _ImportExportScreenState extends State<ImportExportScreen> {
       if (mounted) {
         SnackBarHelper.show(
           context,
-          'Failed to import example schedule',
+          'Failed to import example schedule.',
           type: SnackType.error,
         );
       }

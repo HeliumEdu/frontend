@@ -94,13 +94,13 @@ class NoteRemoteDataSourceImpl extends NoteRemoteDataSource {
           return notes;
         } else {
           throw ServerException(
-            message: 'Invalid response format',
+            message: 'Invalid response format.',
             code: '200',
           );
         }
       } else {
         throw ServerException(
-          message: 'Failed to fetch notes: ${response.statusCode}',
+          message: 'Failed to fetch notes: ${response.statusCode}.',
           code: response.statusCode.toString(),
         );
       }
@@ -131,7 +131,7 @@ class NoteRemoteDataSourceImpl extends NoteRemoteDataSource {
         return NoteModel.fromJson(response.data);
       } else {
         throw ServerException(
-          message: 'Failed to fetch note: ${response.statusCode}',
+          message: 'Failed to fetch note: ${response.statusCode}.',
         );
       }
     } on DioException catch (e, s) {
@@ -159,7 +159,7 @@ class NoteRemoteDataSourceImpl extends NoteRemoteDataSource {
         return note;
       } else {
         throw ServerException(
-          message: 'Failed to create note: ${response.statusCode}',
+          message: 'Failed to create note: ${response.statusCode}.',
         );
       }
     } on DioException catch (e, s) {
@@ -193,7 +193,7 @@ class NoteRemoteDataSourceImpl extends NoteRemoteDataSource {
         return null;
       } else {
         throw ServerException(
-          message: 'Failed to update note: ${response.statusCode}',
+          message: 'Failed to update note: ${response.statusCode}.',
         );
       }
     } on DioException catch (e, s) {
@@ -217,7 +217,7 @@ class NoteRemoteDataSourceImpl extends NoteRemoteDataSource {
         await dioClient.cacheService.invalidateAll();
       } else {
         throw ServerException(
-          message: 'Failed to delete note: ${response.statusCode}',
+          message: 'Failed to delete note: ${response.statusCode}.',
         );
       }
     } on DioException catch (e, s) {

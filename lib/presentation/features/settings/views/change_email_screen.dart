@@ -106,7 +106,7 @@ class ChangeEmailScreenState extends State<ChangeEmailScreen> {
           });
           SnackBarHelper.show(
             context,
-            'Verification email sent to ${state.newEmail}',
+            'Verification email sent to ${state.newEmail}.',
             useRootMessenger: true,
           );
           widget.onCompleted?.call();
@@ -119,7 +119,7 @@ class ChangeEmailScreenState extends State<ChangeEmailScreen> {
           });
           SnackBarHelper.show(
             context,
-            'The pending email change was cancelled',
+            'The pending email change was cancelled.',
             useRootMessenger: true,
             type: SnackType.info,
           );
@@ -138,7 +138,7 @@ class ChangeEmailScreenState extends State<ChangeEmailScreen> {
                 if (_emailChanging != null && _emailChanging!.isNotEmpty) ...[
                   WarningContainer(
                     text:
-                        'Change pending, click the link sent to $_emailChanging to verify',
+                        'Change pending — click the link sent to $_emailChanging to verify.',
                     icon: Icons.schedule,
                   ),
                   const SizedBox(height: 16),

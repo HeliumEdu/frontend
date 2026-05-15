@@ -657,7 +657,7 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
           _log.info('Assignment dates fall outside course date range (courseId=${selectedCourse.id}, courseStart=$courseStart, courseEnd=$courseEnd, homeworkStart=$homeworkStart, homeworkEnd=$homeworkEnd)');
           SnackBarHelper.show(
             context,
-            "This assignment won't appear in the Todos view, since it is now outside the class's date range",
+            "This assignment won't appear in the Todos view, since it is now outside the class's date range.",
             seconds: 5,
             type: SnackType.info,
           );

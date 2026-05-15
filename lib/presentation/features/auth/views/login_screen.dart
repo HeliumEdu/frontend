@@ -44,7 +44,7 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenViewState extends BasePageScreenState<LoginScreen> {
   @override
-  String get screenTitle => 'Login';
+  String get screenTitle => 'Sign In';
 
   @override
   bool get isAuthenticatedScreen => false;
@@ -67,7 +67,7 @@ class _LoginScreenViewState extends BasePageScreenState<LoginScreen> {
         _nextRoute = Uri.decodeComponent(next!);
         showSnackBar(
           context,
-          'Please login to continue.',
+          'Please sign in to continue.',
           type: SnackType.info,
           seconds: 4,
         );

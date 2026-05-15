@@ -94,13 +94,13 @@ class ResourceRemoteDataSourceImpl extends ResourceRemoteDataSource {
           return groups;
         } else {
           throw ServerException(
-            message: 'Invalid response format',
+            message: 'Invalid response format.',
             code: '200',
           );
         }
       } else {
         throw ServerException(
-          message: 'Failed to fetch resource groups',
+          message: 'Failed to fetch resource groups.',
           code: response.statusCode.toString(),
         );
       }
@@ -129,7 +129,7 @@ class ResourceRemoteDataSourceImpl extends ResourceRemoteDataSource {
         return ResourceGroupModel.fromJson(response.data);
       } else {
         throw ServerException(
-          message: 'Failed to fetch resource group',
+          message: 'Failed to fetch resource group.',
           code: response.statusCode.toString(),
         );
       }
@@ -160,7 +160,7 @@ class ResourceRemoteDataSourceImpl extends ResourceRemoteDataSource {
         return group;
       } else {
         throw ServerException(
-          message: 'Failed to create resource group',
+          message: 'Failed to create resource group.',
           code: response.statusCode.toString(),
         );
       }
@@ -191,7 +191,7 @@ class ResourceRemoteDataSourceImpl extends ResourceRemoteDataSource {
         return ResourceGroupModel.fromJson(response.data);
       } else {
         throw ServerException(
-          message: 'Failed to update resource group',
+          message: 'Failed to update resource group.',
           code: response.statusCode.toString(),
         );
       }
@@ -217,7 +217,7 @@ class ResourceRemoteDataSourceImpl extends ResourceRemoteDataSource {
         return;
       } else {
         throw ServerException(
-          message: 'Failed to delete resource group',
+          message: 'Failed to delete resource group.',
           code: response.statusCode.toString(),
         );
       }
@@ -270,13 +270,13 @@ class ResourceRemoteDataSourceImpl extends ResourceRemoteDataSource {
           return resources;
         } else {
           throw ServerException(
-            message: 'Invalid response format',
+            message: 'Invalid response format.',
             code: '200',
           );
         }
       } else {
         throw ServerException(
-          message: 'Failed to fetch resources',
+          message: 'Failed to fetch resources.',
           code: response.statusCode.toString(),
         );
       }
@@ -306,7 +306,7 @@ class ResourceRemoteDataSourceImpl extends ResourceRemoteDataSource {
         return ResourceModel.fromJson(response.data);
       } else {
         throw ServerException(
-          message: 'Failed to fetch resource',
+          message: 'Failed to fetch resource.',
           code: response.statusCode.toString(),
         );
       }
@@ -339,7 +339,7 @@ class ResourceRemoteDataSourceImpl extends ResourceRemoteDataSource {
         return resource;
       } else {
         throw ServerException(
-          message: 'Failed to create resource',
+          message: 'Failed to create resource.',
           code: response.statusCode.toString(),
         );
       }
@@ -370,7 +370,7 @@ class ResourceRemoteDataSourceImpl extends ResourceRemoteDataSource {
         return ResourceModel.fromJson(response.data);
       } else {
         throw ServerException(
-          message: 'Failed to update resource',
+          message: 'Failed to update resource.',
           code: response.statusCode.toString(),
         );
       }
@@ -399,7 +399,7 @@ class ResourceRemoteDataSourceImpl extends ResourceRemoteDataSource {
         return;
       } else {
         throw ServerException(
-          message: 'Failed to delete resource',
+          message: 'Failed to delete resource.',
           code: response.statusCode.toString(),
         );
       }

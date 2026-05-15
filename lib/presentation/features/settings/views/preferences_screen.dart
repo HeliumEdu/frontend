@@ -288,9 +288,9 @@ class PreferencesScreenState extends State<PreferencesScreen> {
             const SizedBox(height: 14),
             Row(
               children: [
-                SizedBox(width: 160, child: Text('Color for resources', style: AppStyles.formLabel(context))),
+                SizedBox(width: 160, child: Text('Color for Resources', style: AppStyles.formLabel(context))),
                 ColorSelector(
-                  semanticLabel: 'Pick color for resources',
+                  semanticLabel: 'Pick color for Resources',
                   selectedColor: _selectedResourceColor,
                   onColorSelected: (color) {
                     setState(() {

@@ -94,7 +94,7 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
         );
       } else {
         throw ServerException(
-          message: 'Registration failed',
+          message: 'Registration failed.',
           code: response.statusCode.toString(),
         );
       }
@@ -147,7 +147,7 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
         return tokenResponse;
       } else {
         throw ServerException(
-          message: 'Email verification failed',
+          message: 'Email verification failed.',
           code: response.statusCode.toString(),
         );
       }
@@ -174,7 +174,7 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
         return NoContentResponseModel(message: 'Verification email sent');
       } else {
         throw ServerException(
-          message: 'Failed to resend verification email',
+          message: 'Failed to resend verification email.',
           code: response.statusCode.toString(),
         );
       }
@@ -227,7 +227,7 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
         return loginResponse;
       } else {
         throw ServerException(
-          message: 'Login failed',
+          message: 'Login failed.',
           code: response.statusCode.toString(),
         );
       }
@@ -289,7 +289,7 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
         return loginResponse;
       } else {
         throw ServerException(
-          message: 'OAuth login failed',
+          message: 'OAuth login failed.',
           code: response.statusCode.toString(),
         );
       }
@@ -297,7 +297,7 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
       throw handleDioError(e, s);
     } catch (e, s) {
       _log.severe('An unexpected error occurred during $provider login', e, s);
-      throw HeliumException(message: 'OAuth login failed: $e');
+      throw HeliumException(message: 'Sign-in failed.');
     }
   }
 
@@ -328,7 +328,7 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
         return refreshResponse;
       } else {
         throw ServerException(
-          message: 'Token refresh failed',
+          message: 'Token refresh failed.',
           code: response.statusCode.toString(),
         );
       }
@@ -364,10 +364,11 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
           _log.warning('Failed to blacklist token on server', e);
         }
       }
-    } catch (e) {
+    } catch (e, s) {
+      _log.severe('An unexpected error occurred during sign-out', e, s);
       // Even if something fails, always clear storage
       await dioClient.clearStorage();
-      throw HeliumException(message: 'Logout error: $e');
+      throw HeliumException(message: 'Failed to sign out.');
     }
   }
 
@@ -380,7 +381,7 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
         return UserModel.fromJson(response.data);
       } else {
         throw ServerException(
-          message: 'Failed to fetch profile',
+          message: 'Failed to fetch profile.',
           code: response.statusCode.toString(),
         );
       }
@@ -402,7 +403,7 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
         return PrivateFeedModel.fromJson(response.data);
       } else {
         throw ServerException(
-          message: 'Failed to enable feeds',
+          message: 'Failed to enable feeds.',
           code: response.statusCode.toString(),
         );
       }
@@ -421,7 +422,7 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
 
       if (response.statusCode != 204) {
         throw ServerException(
-          message: 'Failed to enable feeds',
+          message: 'Failed to enable feeds.',
           code: response.statusCode.toString(),
         );
       }
@@ -451,7 +452,7 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
         return NoContentResponseModel(message: 'Account deleted');
       } else {
         throw ServerException(
-          message: 'Failed to delete account',
+          message: 'Failed to delete account.',
           code: response.statusCode.toString(),
         );
       }
@@ -475,7 +476,7 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
         return UserModel.fromJson(response.data);
       } else {
         throw ServerException(
-          message: 'Failed to change password',
+          message: 'Failed to change password.',
           code: response.statusCode.toString(),
         );
       }
@@ -499,7 +500,7 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
         return UserModel.fromJson(response.data);
       } else {
         throw ServerException(
-          message: 'Failed to change email',
+          message: 'Failed to change email.',
           code: response.statusCode.toString(),
         );
       }
@@ -529,7 +530,7 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
         return responseModel;
       } else {
         throw ServerException(
-          message: 'Failed to update user settings',
+          message: 'Failed to update user settings.',
           code: response.statusCode.toString(),
         );
       }
@@ -555,7 +556,7 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
         return NoContentResponseModel(message: 'Password reset email sent');
       } else {
         throw ServerException(
-          message: 'Failed to send reset email',
+          message: 'Failed to send reset email.',
           code: response.statusCode.toString(),
         );
       }
@@ -576,7 +577,7 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
 
       if (response.statusCode != 204) {
         throw ServerException(
-          message: 'Failed to delete example schedule',
+          message: 'Failed to delete example schedule.',
           code: response.statusCode.toString(),
         );
       }
@@ -604,7 +605,7 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
         _log.info('Token blacklisted successfully');
       } else {
         throw ServerException(
-          message: 'Failed to blacklist token',
+          message: 'Failed to blacklist token.',
           code: response.statusCode.toString(),
         );
       }

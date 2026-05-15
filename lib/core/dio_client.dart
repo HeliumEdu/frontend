@@ -516,7 +516,7 @@ class DioClient {
   }
 
   Future<void> forceLogout([
-    String message = 'Please login to continue.',
+    String message = 'Please sign in to continue.',
   ]) async {
     try {
       await clearStorage();

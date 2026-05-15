@@ -255,7 +255,7 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
             setState(() {
               isLoading = false;
             });
-            showSnackBar(context, 'All Events deleted');
+            showSnackBar(context, 'All Events deleted.');
           } else if (state is PlannerItemsError) {
             setState(() {
               isLoading = false;
@@ -528,7 +528,7 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
                 const SizedBox(height: 8),
                 WarningContainer(
                   text:
-                      'Change pending, click the link sent to $_emailChanging to verify',
+                      'Change pending — click the link sent to $_emailChanging to verify.',
                   icon: Icons.schedule,
                 ),
               ],
@@ -556,7 +556,7 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
           _buildSettingsItem(
             icon: AppConstants.externalCalendarIcon,
             label: 'External Calendars',
-            hint: 'Bring other calendars in to Helium',
+            hint: 'Bring other calendars into Helium',
             onTap: () =>
                 _navigateToSubSettings(SettingsSubScreen.externalCalendars),
             iconColor: context.colorScheme.primary,
@@ -600,7 +600,7 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
           const Divider(height: 1, indent: 68),
           _buildSettingsItem(
             icon: Icons.logout_outlined,
-            label: 'Logout',
+            label: 'Sign Out',
             hint: 'Sign out of your account',
             onTap: () => _showLogoutDialog(context),
             iconColor: context.semanticColors.warning,
@@ -992,13 +992,13 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
                   size: 24,
                 ),
                 const SizedBox(width: 12),
-                Text('Logout', style: AppStyles.pageTitle(context)),
+                Text('Sign Out', style: AppStyles.pageTitle(context)),
               ],
             ),
             content: SizedBox(
               width: Responsive.getDialogWidth(context),
               child: Text(
-                'Are you sure you want to logout?',
+                'Are you sure you want to sign out?',
                 style: AppStyles.standardBodyText(context),
               ),
             ),
@@ -1019,7 +1019,7 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
                     const SizedBox(width: 12),
                     Expanded(
                       child: HeliumElevatedButton(
-                        buttonText: 'Logout',
+                        buttonText: 'Sign Out',
                         backgroundColor: context.colorScheme.error,
                         isLoading: isSubmitting,
                         onPressed: () {

@@ -144,7 +144,7 @@ abstract class BaseAttachmentsState extends State<BaseAttachmentsContent> {
         } else if (state is AttachmentsCreated) {
           SnackBarHelper.show(
             context,
-            '${state.attachments.length} ${state.attachments.length.plural('attachment')} uploaded',
+            '${state.attachments.length} ${state.attachments.length.plural('attachment')} uploaded.',
           );
 
           final uploadedTitles = state.attachments.map((a) => a.title).toSet();
@@ -154,7 +154,7 @@ abstract class BaseAttachmentsState extends State<BaseAttachmentsContent> {
             Sort.byTitle(attachments);
           });
         } else if (state is AttachmentDeleted) {
-          SnackBarHelper.show(context, 'Attachment deleted');
+          SnackBarHelper.show(context, 'Attachment deleted.');
 
           setState(() {
             attachments.removeWhere((a) => a.id == state.id);
@@ -247,7 +247,7 @@ abstract class BaseAttachmentsState extends State<BaseAttachmentsContent> {
     if (result.cancelled) {
       SnackBarHelper.show(
         context,
-        'Nothing selected for upload',
+        'Nothing selected for upload.',
         type: SnackType.info,
       );
       return;
@@ -263,7 +263,7 @@ abstract class BaseAttachmentsState extends State<BaseAttachmentsContent> {
       if (result.errors.isEmpty && mounted) {
         SnackBarHelper.show(
           context,
-          'Nothing selected for upload',
+          'Nothing selected for upload.',
           type: SnackType.info,
         );
       }
@@ -281,7 +281,7 @@ abstract class BaseAttachmentsState extends State<BaseAttachmentsContent> {
     if (filesToUpload.length > maxConcurrentUploads) {
       SnackBarHelper.show(
         context,
-        "You can't upload more than $maxConcurrentUploads files at a time",
+        "You can't upload more than $maxConcurrentUploads files at a time.",
         type: SnackType.error,
         seconds: 4
       );
@@ -469,11 +469,11 @@ abstract class BaseAttachmentsState extends State<BaseAttachmentsContent> {
       isLoading = false;
     });
     if (success) {
-      SnackBarHelper.show(context, '"${attachment.title}" downloaded');
+      SnackBarHelper.show(context, '"${attachment.title}" downloaded.');
     } else {
       SnackBarHelper.show(
         context,
-        'Failed to download "${attachment.title}"',
+        'Failed to download "${attachment.title}".',
         type: SnackType.error,
       );
     }

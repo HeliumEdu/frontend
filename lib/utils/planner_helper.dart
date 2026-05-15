@@ -157,7 +157,7 @@ class PlannerHelper {
       case 4:
         return PlannerView.agenda;
       default:
-        throw HeliumException(message: '$view is not a valid API view');
+        throw HeliumException(message: '$view is not a valid API view.');
     }
   }
 
