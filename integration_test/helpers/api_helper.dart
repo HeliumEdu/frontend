@@ -50,7 +50,7 @@ class ApiHelper {
     final loginResponse = await http.post(
       Uri.parse('$apiHost${ApiUrl.authTokenUrl}'),
       headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({'username': email, 'password': password}),
+      body: jsonEncode({'email': email, 'password': password}),
     );
 
     if (loginResponse.statusCode == 200) {
@@ -77,7 +77,7 @@ class ApiHelper {
       );
       deleteInactiveRequest.headers['Content-Type'] = 'application/json';
       deleteInactiveRequest.body = jsonEncode({
-        'username': email,
+        'email': email,
         'password': password,
       });
 
@@ -126,7 +126,7 @@ class ApiHelper {
       final loginResponse = await http.post(
         Uri.parse('$apiHost${ApiUrl.authTokenUrl}'),
         headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'username': email, 'password': password}),
+        body: jsonEncode({'email': email, 'password': password}),
       );
       return loginResponse.statusCode == 200;
     } catch (e) {
@@ -159,7 +159,7 @@ class ApiHelper {
         Uri.parse('$apiHost${ApiUrl.authTokenUrl}'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
-          'username': _config.testEmail,
+          'email': _config.testEmail,
           'password': _config.testPassword,
         }),
       );

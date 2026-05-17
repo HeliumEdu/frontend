@@ -112,7 +112,7 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
       final response = await dioClient.dio.get(
         ApiUrl.authUserVerifyUrl,
         queryParameters: {
-          'username': email,
+          'email': email,
           'code': code,
         },
       );
@@ -165,7 +165,7 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
       final response = await dioClient.dio.get(
         ApiUrl.authUserVerifyResendUrl,
         queryParameters: {
-          'username': email,
+          'email': email,
         },
       );
 
@@ -192,7 +192,7 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
       final response = await dioClient.dio.post(
         ApiUrl.authTokenUrl,
         data: {
-          'username': request.email,
+          'email': request.email,
           'password': request.password,
         },
       );
