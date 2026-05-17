@@ -144,7 +144,7 @@ void main() {
         emailValue,
         equals(testEmail),
         reason:
-            'Email field should be pre-populated with username from query params',
+            'Email field should be pre-populated with email from query params',
       );
     });
 
