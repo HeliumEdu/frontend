@@ -48,7 +48,7 @@ def test_login(page: Page, app_host: str, test_credentials: dict) -> None:
 
     # Wait for Flutter to initialize and position the email input
     page.wait_for_selector('flt-text-editing-host input[name="email"]', timeout=30_000)
-    expect(page).to_have_title(re.compile(r"Login"), timeout=10_000)
+    expect(page).to_have_title(re.compile(r"Sign In"), timeout=10_000)
 
     # Read the email field's canvas coordinates from Flutter's IME transform
     email_coords = page.evaluate("""() => {

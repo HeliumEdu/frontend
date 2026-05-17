@@ -98,14 +98,6 @@ Map<String, dynamic> givenPrivateFeedJson({
   };
 }
 
-/// Creates JSON data representing a login request.
-Map<String, dynamic> givenLoginRequestJson({
-  String username = 'test_user',
-  String password = 'test_pass_1!',
-}) {
-  return {'username': username, 'password': password};
-}
-
 /// Creates JSON data representing a register request.
 Map<String, dynamic> givenRegisterRequestJson({
   String email = 'newuser@test.com',
