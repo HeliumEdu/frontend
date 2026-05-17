@@ -44,7 +44,7 @@ class EmailHelper {
 
   /// Polls S3 for a verification email and extracts the verification code.
   ///
-  /// [username] is the email address used during signup (URL-encoded in the verification link).
+  /// [email] is the email address used during signup (URL-encoded in the verification link).
   /// [sentAfter] is the timestamp before the email-triggering action was initiated.
   ///   Emails must have S3 timestamp >= sentAfter to be considered.
   /// Returns the verification code.
@@ -52,7 +52,7 @@ class EmailHelper {
   /// Timeout defaults to 5 minutes for local runs. Set EMAIL_POLL_TIMEOUT_MINUTES
   /// env var to override (max 30 minutes) for CI with high concurrency.
   Future<String> getVerificationCode(
-    String username, {
+    String email, {
     required DateTime sentAfter,
     DateTime? startedAt,
     int attempt = 0,
@@ -66,7 +66,7 @@ class EmailHelper {
         '(timeout: $_timeoutMinutes min). Checked $attempt attempts.',
       );
     }
-    _log.info('Polling for verification email for $username (attempt ${attempt + 1})');
+    _log.info('Polling for verification email for $email (attempt ${attempt + 1})');
     try {
       // List objects in the inbound email prefix (environment-specific)
       final results = await _minio.listObjects(
@@ -81,7 +81,7 @@ class EmailHelper {
       }
 
       if (allObjects.isEmpty) {
-        return _retry(username, sentAfter, startedAt, attempt, 'No emails found in bucket');
+        return _retry(email, sentAfter, startedAt, attempt, 'No emails found in bucket');
       }
 
       _log.info('Found ${allObjects.length} email(s) in bucket');
@@ -93,12 +93,12 @@ class EmailHelper {
         ..sort((a, b) => b.lastModified!.compareTo(a.lastModified!));
 
       if (validObjects.isEmpty) {
-        return _retry(username, sentAfter, startedAt, attempt, 'No valid emails found');
+        return _retry(email, sentAfter, startedAt, attempt, 'No valid emails found');
       }
 
-      // URL-encode the username since the email template uses urlencode filter
-      final encodedUsername = Uri.encodeComponent(username);
-      final verifyPattern = 'verify?email=$encodedUsername&code=';
+      // URL-encode the email since the email template uses urlencode filter
+      final encodedEmail = Uri.encodeComponent(email);
+      final verifyPattern = 'verify?email=$encodedEmail&code=';
 
       // Check each email (newest first) looking for one that matches our user
       for (final obj in validObjects) {
@@ -142,15 +142,15 @@ class EmailHelper {
       }
 
       // No matching email found in this pass
-      return _retry(username, sentAfter, startedAt, attempt, 'No email found for our user');
+      return _retry(email, sentAfter, startedAt, attempt, 'No email found for our user');
     } catch (e) {
       _log.warning('Error during email fetch: $e');
-      return _retry(username, sentAfter, startedAt, attempt, 'Error: $e');
+      return _retry(email, sentAfter, startedAt, attempt, 'Error: $e');
     }
   }
 
   Future<String> _retry(
-    String username,
+    String email,
     DateTime sentAfter,
     DateTime startedAt,
     int attempt,
@@ -159,7 +159,7 @@ class EmailHelper {
     _log.info('$reason. Retrying in ${_retryDelay.inSeconds}s ...');
     await Future.delayed(_retryDelay);
     return getVerificationCode(
-      username,
+      email,
       sentAfter: sentAfter,
       startedAt: startedAt,
       attempt: attempt + 1,
