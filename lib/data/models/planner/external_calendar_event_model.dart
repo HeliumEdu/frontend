@@ -6,13 +6,13 @@
 // For details regarding the license, please refer to the LICENSE file.
 
 import 'package:heliumapp/data/models/planner/attachment_model.dart';
-import 'package:heliumapp/data/models/planner/planner_item_base_model.dart';
+import 'package:heliumapp/data/models/planner/event_base_model.dart';
 import 'package:heliumapp/data/models/planner/reminder_model.dart';
 import 'package:heliumapp/utils/color_helpers.dart';
 import 'package:heliumapp/utils/conversion_helpers.dart';
 import 'package:heliumapp/utils/planner_helper.dart';
 
-class ExternalCalendarEventModel extends PlannerItemBaseModel {
+class ExternalCalendarEventModel extends EventBaseModel {
   final String ownerId;
 
   ExternalCalendarEventModel({
@@ -29,6 +29,8 @@ class ExternalCalendarEventModel extends PlannerItemBaseModel {
     required super.reminders,
     required super.color,
     required this.ownerId,
+    super.recurrenceRule,
+    super.exceptionDates,
   }) : super(plannerItemType: PlannerItemType.external);
 
   factory ExternalCalendarEventModel.fromJson(Map<String, dynamic> json) {
@@ -64,6 +66,31 @@ class ExternalCalendarEventModel extends PlannerItemBaseModel {
           : [],
       ownerId: ownerId,
       color: HeliumColors.hexToColor(json['color']),
+      recurrenceRule: json['recurrence_rule'] as String?,
+      exceptionDates: EventBaseModel.parseExceptionDatesJson(
+        json['exception_dates'],
+      ),
+    );
+  }
+
+  @override
+  ExternalCalendarEventModel copyAtOccurrence(DateTime start, DateTime end) {
+    return ExternalCalendarEventModel(
+      id: id,
+      title: title,
+      allDay: allDay,
+      showEndTime: showEndTime,
+      start: start,
+      end: end,
+      priority: priority,
+      url: url,
+      comments: comments,
+      attachments: attachments,
+      reminders: reminders,
+      color: color,
+      ownerId: ownerId,
+      recurrenceRule: recurrenceRule,
+      exceptionDates: exceptionDates,
     );
   }
 
