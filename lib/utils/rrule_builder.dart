@@ -5,12 +5,12 @@
 //
 // For details regarding the license, please refer to the LICENSE file.
 
-/// Utility class for building iCalendar RRULE strings.
+/// Utility class for building iCal RRULE strings.
 ///
-/// SfCalendar uses the iCalendar RRULE format for recurring events.
+/// SfCalendar uses the iCal RRULE format for recurring events.
 /// This builder helps construct valid RRULE strings for course schedules.
 class RRuleBuilder {
-  /// Maps day index (0=Sunday, 6=Saturday) to iCalendar day code.
+  /// Maps day index (0=Sunday, 6=Saturday) to iCal day code.
   static const dayIndexToCode = {
     0: 'SU',
     1: 'MO',
@@ -36,7 +36,7 @@ class RRuleBuilder {
       throw ArgumentError('dayIndices must not be empty');
     }
 
-    // Convert day indices to iCalendar day codes
+    // Convert day indices to iCal day codes
     final dayCodes = dayIndices
         .map((index) => dayIndexToCode[index])
         .where((code) => code != null)
@@ -46,7 +46,7 @@ class RRuleBuilder {
       throw ArgumentError('No valid day indices provided');
     }
 
-    // Format the UNTIL date in iCalendar format (UTC)
+    // Format the UNTIL date in iCal format (UTC)
     // Add one day to make it inclusive, then set to end of day
     final untilDate = DateTime.utc(
       until.year,
@@ -61,7 +61,7 @@ class RRuleBuilder {
     return 'FREQ=WEEKLY;BYDAY=${dayCodes.join(',')};UNTIL=$untilString';
   }
 
-  /// Formats a DateTime to iCalendar format: YYYYMMDDTHHMMSSZ
+  /// Formats a DateTime to iCal format: YYYYMMDDTHHMMSSZ
   static String _formatDateTime(DateTime dt) {
     final year = dt.year.toString().padLeft(4, '0');
     final month = dt.month.toString().padLeft(2, '0');

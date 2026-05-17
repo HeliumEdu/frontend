@@ -19,6 +19,7 @@ import 'package:heliumapp/data/models/planner/course_group_model.dart';
 import 'package:heliumapp/data/models/planner/course_model.dart';
 import 'package:heliumapp/data/models/planner/resource_model.dart';
 import 'package:heliumapp/data/models/planner/course_schedule_event_model.dart';
+import 'package:heliumapp/data/models/planner/event_base_model.dart';
 import 'package:heliumapp/data/models/planner/event_model.dart';
 import 'package:heliumapp/data/models/planner/external_calendar_event_model.dart';
 import 'package:heliumapp/data/models/planner/homework_model.dart';
@@ -385,6 +386,46 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
         continue;
       }
 
+      // Handle RRULEs from the backend
+      if (appointment is EventBaseModel &&
+          (appointment.recurrenceRule?.isNotEmpty ?? false)) {
+        final occurrences = SfCalendar.getRecurrenceDateTimeCollection(
+          appointment.recurrenceRule!,
+          appointment.start,
+          specificStartDate: dayStart,
+          specificEndDate: dayEnd,
+        );
+
+        for (final occurrenceStart in occurrences) {
+          final isSameDay =
+              occurrenceStart.year == dayStart.year &&
+              occurrenceStart.month == dayStart.month &&
+              occurrenceStart.day == dayStart.day;
+          if (!isSameDay) {
+            continue;
+          }
+
+          final isException = appointment.exceptionDates.any(
+            (e) =>
+                e.year == occurrenceStart.year &&
+                e.month == occurrenceStart.month &&
+                e.day == occurrenceStart.day,
+          );
+          if (isException) {
+            continue;
+          }
+
+          final duration = appointment.end.difference(appointment.start);
+          itemsForDay.add(
+            appointment.copyAtOccurrence(
+              occurrenceStart,
+              occurrenceStart.add(duration),
+            ),
+          );
+        }
+        continue;
+      }
+
       // Include any item that overlaps with the target day, not just items that
       // start on the day. Multi-day events (allDay or timed) span multiple cells
       // in month view and must be counted for each day they cover.
@@ -551,6 +592,9 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
     if (item is CourseScheduleEventModel) {
       return item.recurrenceRule;
     }
+    if (item is EventBaseModel) {
+      return item.recurrenceRule;
+    }
     return null;
   }
 
@@ -558,6 +602,9 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
   List<DateTime>? getRecurrenceExceptionDates(int index) {
     final item = _getData(index);
     if (item is CourseScheduleEventModel && item.exceptionDates.isNotEmpty) {
+      return List<DateTime>.of(item.exceptionDates);
+    }
+    if (item is EventBaseModel && item.exceptionDates.isNotEmpty) {
       return List<DateTime>.of(item.exceptionDates);
     }
     return null;
