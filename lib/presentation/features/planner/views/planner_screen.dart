@@ -1001,6 +1001,10 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
     } else if (plannerItem is ExternalCalendarEventModel) {
       _showEditExternalCalendarEventSnackBar();
       return false;
+      // HE-184: drop this branch when recurring Events become editable.
+    } else if (_isReadOnlyRecurringEvent(plannerItem)) {
+      _showRecurringEventReadOnlySnackBar();
+      return false;
     }
 
     final int? eventId = plannerItem is EventModel ? plannerItem.id : null;
@@ -1899,6 +1903,9 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
       if (dropDetails.droppingTime != null) {
         if (plannerItem is CourseScheduleEventModel) {
           _showCourseScheduleEventDialog(plannerItem, dropDetails.droppingTime!);
+          // HE-184: drop this branch when recurring Events become editable.
+        } else if (_isReadOnlyRecurringEvent(plannerItem)) {
+          _showRecurringEventReadOnlySnackBar();
         } else {
           _showEditExternalCalendarEventSnackBar();
         }
@@ -2022,7 +2029,10 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
     final PlannerItemBaseModel plannerItem =
         resizeDetails.appointment as PlannerItemBaseModel;
 
-    if (plannerItem is HomeworkModel || plannerItem is EventModel) {
+    // HE-184: drop the `&& !_isReadOnlyRecurringEvent(...)` guard when
+    // recurring Events become resizable.
+    if (plannerItem is HomeworkModel ||
+        (plannerItem is EventModel && !_isReadOnlyRecurringEvent(plannerItem))) {
       final DateTime start = tz.TZDateTime(
         userSettings!.timeZone,
         resizeDetails.startTime!.year,
@@ -2094,6 +2104,10 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
     } else if (plannerItem is ExternalCalendarEventModel) {
       _plannerItemDataSource!.resetAppointments();
       _showEditExternalCalendarEventSnackBar();
+      // HE-184: drop this branch when recurring Events become resizable.
+    } else if (_isReadOnlyRecurringEvent(plannerItem)) {
+      _plannerItemDataSource!.resetAppointments();
+      _showRecurringEventReadOnlySnackBar();
     }
   }
 
@@ -2317,7 +2331,15 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
 
   bool _isLockedCalendarInteractionItem(PlannerItemBaseModel item) {
     return item is CourseScheduleEventModel ||
-        item is ExternalCalendarEventModel;
+        item is ExternalCalendarEventModel ||
+        // HE-184: drop once recurring Events become editable in the UI.
+        _isReadOnlyRecurringEvent(item);
+  }
+
+  // HE-184: Recurring Events are rendered read-only until the full add/edit UI
+  // lands. Remove this helper and all its callsites once HE-184 ships.
+  bool _isReadOnlyRecurringEvent(PlannerItemBaseModel item) {
+    return item is EventModel && (item.recurrenceRule?.isNotEmpty ?? false);
   }
 
   /// Suppresses tooltips for [_tooltipSuppressDelay] after any intentional
@@ -3227,6 +3249,18 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
     showSnackBar(
       context,
       "You can't edit External Calendars in Helium.",
+      seconds: 4,
+      type: SnackType.info,
+    );
+  }
+
+  // HE-184: Stop-gap snackbar shown when a user taps a recurring Event. Remove
+  // this method (and its callsites) when the full add/edit UI for recurring
+  // Events lands.
+  void _showRecurringEventReadOnlySnackBar() {
+    showSnackBar(
+      context,
+      'Editing recurring Events in Helium is not yet supported.',
       seconds: 4,
       type: SnackType.info,
     );
@@ -4172,8 +4206,11 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
   }
 
   bool _isRecurringPlannerItem(PlannerItemBaseModel plannerItem) {
-    return plannerItem is CourseScheduleEventModel &&
-        (plannerItem.recurrenceRule?.isNotEmpty ?? false);
+    return (plannerItem is CourseScheduleEventModel &&
+            (plannerItem.recurrenceRule?.isNotEmpty ?? false)) ||
+        // HE-184: keep this branch once edit UI lands so the recurring indicator
+        // still appears on RRULE Events; only the read-only gating goes away.
+        _isReadOnlyRecurringEvent(plannerItem);
   }
 
   Widget _buildRecurringIndicatorIcon({required Color backgroundColor}) {
