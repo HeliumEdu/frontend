@@ -8,13 +8,13 @@
 import 'package:flutter/material.dart';
 import 'package:heliumapp/data/models/id_or_entity.dart';
 import 'package:heliumapp/data/models/planner/attachment_model.dart';
-import 'package:heliumapp/data/models/planner/planner_item_base_model.dart';
+import 'package:heliumapp/data/models/planner/event_base_model.dart';
 import 'package:heliumapp/data/models/planner/reminder_model.dart';
 import 'package:heliumapp/utils/color_helpers.dart';
 import 'package:heliumapp/utils/conversion_helpers.dart';
 import 'package:heliumapp/utils/planner_helper.dart';
 
-class EventModel extends PlannerItemBaseModel {
+class EventModel extends EventBaseModel {
   final String? ownerId;
 
   EventModel({
@@ -30,6 +30,8 @@ class EventModel extends PlannerItemBaseModel {
     required super.attachments,
     required super.reminders,
     required super.color,
+    super.recurrenceRule,
+    super.exceptionDates,
     this.ownerId,
   }) : super(plannerItemType: PlannerItemType.event);
 
@@ -54,6 +56,10 @@ class EventModel extends PlannerItemBaseModel {
       color: json['color'] != null
           ? HeliumColors.hexToColor(json['color'])
           : null,
+      recurrenceRule: json['recurrence_rule'] as String?,
+      exceptionDates: EventBaseModel.parseExceptionDatesJson(
+        json['exception_dates'],
+      ),
     );
   }
 
@@ -66,6 +72,10 @@ class EventModel extends PlannerItemBaseModel {
 
     return data;
   }
+
+  @override
+  EventModel copyAtOccurrence(DateTime start, DateTime end) =>
+      copyWith(start: start, end: end);
 
   EventModel copyWith({
     int? id,
@@ -81,6 +91,8 @@ class EventModel extends PlannerItemBaseModel {
     List<IdOrEntity<ReminderModel>>? reminders,
     Color? color,
     String? ownerId,
+    String? recurrenceRule,
+    List<DateTime>? exceptionDates,
   }) {
     return EventModel(
       id: id ?? this.id,
@@ -96,6 +108,8 @@ class EventModel extends PlannerItemBaseModel {
       reminders: reminders ?? this.reminders,
       color: color ?? this.color,
       ownerId: ownerId ?? this.ownerId,
+      recurrenceRule: recurrenceRule ?? this.recurrenceRule,
+      exceptionDates: exceptionDates ?? this.exceptionDates,
     );
   }
 }
