@@ -755,8 +755,22 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
   List<HomeworkModel> get allHomeworks =>
       allPlannerItems.whereType<HomeworkModel>().toList();
 
-  List<EventModel> get allEvents =>
-      allPlannerItems.whereType<EventModel>().toList();
+  /// Recurring Helium [EventModel]s are hidden from the planner until HE-184
+  /// ships the recurrence picker UI. The data layer (model fields, SfCalendar
+  /// wiring, backend API) already supports them — this filter only prevents
+  /// rendering, where editing/dragging/deleting an occurrence would silently
+  /// mutate the entire series (no per-occurrence affordances yet).
+  /// External-calendar and course-schedule recurring events are unaffected.
+  List<EventModel> get allEvents {
+    final all = allPlannerItems.whereType<EventModel>().toList();
+    final hidden = all.where((e) => e.recurrenceRule != null).length;
+    if (hidden > 0) {
+      _log.warning(
+        'Hiding $hidden recurring EventModel(s) — no per-occurrence edit UI yet (HE-184)',
+      );
+    }
+    return all.where((e) => e.recurrenceRule == null).toList();
+  }
 
   List<CourseScheduleEventModel> get allCourseScheduleEvents =>
       allPlannerItems.whereType<CourseScheduleEventModel>().toList();
