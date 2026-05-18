@@ -1,1 +1,1 @@
-syllabus,assignment,exam,study,academic,schedule,calendar,college,homeschool,school,class,notebook
+syllabus,assignment,exam,academic,schedule,calendar,college,homeschool,class,notebook,gpa,reminders
