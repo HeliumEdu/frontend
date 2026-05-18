@@ -71,9 +71,6 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen>
   static const _savedRowsPerPageKey = 'saved_rows_per_page';
 
   @override
-  String get screenTitle => 'Notebook';
-
-  @override
   bool get enablePrint => true;
 
   @override
