@@ -45,6 +45,10 @@ app.*.map.json
 # Playwright
 /playwright/screenshots/
 
+# Fastlane
+android/service-account-key.json
+*.p8
+
 # Android Studio will place build artifacts here
 /android/app/debug
 /android/app/profile

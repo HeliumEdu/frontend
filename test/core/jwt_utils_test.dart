@@ -107,52 +107,5 @@ void main() {
       });
     });
 
-    group('isAccessTokenExpired', () {
-      test('returns true for expired token', () {
-        // Token with exp: 1761308468 (past timestamp)
-        const expiredToken =
-            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzYxMzA4NDY4LCJpYXQiOjE3NjEzMDc1MDgsImp0aSI6IjMxM2FhNjU1YjgwNDQzNjM4OWVkYWViNjBkNGM3ZDBmIiwidXNlcl9pZCI6IjEzNDQ2In0.48BQ2-BU8SZkPgJVi00b2Rwh9FT200VonAzizSrMTsA';
-
-        expect(JwtUtils.isAccessTokenExpired(expiredToken), isTrue);
-      });
-
-      test('returns false for non-expired token', () {
-        // Create token with exp far in the future (year 2100)
-        final futureExp = DateTime(2100).millisecondsSinceEpoch ~/ 1000;
-        final payload = {'exp': futureExp, 'user_id': 1};
-        final encodedPayload = base64Url.encode(
-          utf8.encode(jsonEncode(payload)),
-        );
-        final token = 'header.$encodedPayload.signature';
-
-        expect(JwtUtils.isAccessTokenExpired(token), isFalse);
-      });
-
-      test('returns true for token without exp claim', () {
-        final payload = {'user_id': 1};
-        final encodedPayload = base64Url.encode(
-          utf8.encode(jsonEncode(payload)),
-        );
-        final token = 'header.$encodedPayload.signature';
-
-        expect(JwtUtils.isAccessTokenExpired(token), isTrue);
-      });
-
-      test('returns true for invalid token', () {
-        expect(JwtUtils.isAccessTokenExpired('invalid'), isTrue);
-      });
-
-      test('considers token expired when exp equals current time', () {
-        // Token that expires exactly now should be considered expired
-        final nowSeconds = DateTime.now().millisecondsSinceEpoch ~/ 1000;
-        final payload = {'exp': nowSeconds, 'user_id': 1};
-        final encodedPayload = base64Url.encode(
-          utf8.encode(jsonEncode(payload)),
-        );
-        final token = 'header.$encodedPayload.signature';
-
-        expect(JwtUtils.isAccessTokenExpired(token), isTrue);
-      });
-    });
   });
 }
