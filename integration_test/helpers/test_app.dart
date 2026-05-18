@@ -35,7 +35,6 @@ import 'package:heliumapp/presentation/features/shared/bloc/info/info_bloc.dart'
 import 'package:heliumapp/presentation/features/shared/bloc/info/info_event.dart';
 import 'package:heliumapp/presentation/features/planner/views/planner_screen.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/core/provider_helpers.dart';
-import 'package:heliumapp/utils/format_helpers.dart';
 import 'package:http/http.dart' as http;
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
@@ -402,6 +401,12 @@ Future<bool> waitForRoute(
   }
   await takeScreenshot('waitForRoute_timeout_${ms}ms');
   return false;
+}
+
+final _zeroWidthPattern = RegExp('[​‌‍﻿]');
+
+extension _StringSanitization on String {
+  String stripZeroWidthChars() => replaceAll(_zeroWidthPattern, '');
 }
 
 /// Finder for RichText widgets containing the given text.
