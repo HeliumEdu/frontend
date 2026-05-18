@@ -39,6 +39,32 @@ platform :ios do
       key_filepath: File.expand_path("~/.appstoreconnect/private_keys/AuthKey_#{ENV['APP_STORE_CONNECT_API_KEY_ID']}.p8")
     )
 
+    # If the target App Store version is already past the editable stage
+    # (submitted, in review, live, etc.), bail out cleanly. The TestFlight
+    # upload above still succeeded; this only prevents stomping on or
+    # erroring over an in-flight submission. Resolve the existing
+    # submission in App Store Connect first, then re-run if needed.
+    locked_states = %w[
+      WAITING_FOR_REVIEW
+      IN_REVIEW
+      PROCESSING_FOR_APP_STORE
+      PENDING_APPLE_RELEASE
+      PENDING_DEVELOPER_RELEASE
+      READY_FOR_SALE
+      REPLACED_WITH_NEW_VERSION
+    ]
+    app_identifier = CredentialsManager::AppfileConfig.try_fetch_value(:app_identifier)
+    spaceship_app = Spaceship::ConnectAPI::App.find(app_identifier)
+    existing = spaceship_app.get_app_store_versions(filter: { versionString: version }).first
+    if existing && locked_states.include?(existing.app_store_state)
+      msg = "App Store version #{version} is in state `#{existing.app_store_state}` — skipping App Store stage. TestFlight upload succeeded; resolve the in-flight submission before re-running."
+      UI.important("⚠ #{msg}")
+      if ENV["GITHUB_STEP_SUMMARY"]
+        File.open(ENV["GITHUB_STEP_SUMMARY"], "a") { |f| f.puts("⚠ #{msg}") }
+      end
+      next
+    end
+
     upload_to_app_store(
       api_key: api_key,
       app_version: version,
