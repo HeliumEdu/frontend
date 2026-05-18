@@ -5,6 +5,15 @@
 //
 // For details regarding the license, please refer to the LICENSE file.
 
+// Grading math is also implemented in the backend at
+// projects/platform/helium/planner/services/gradingservice.py (the source of
+// truth for actual grades). This file operates on category aggregates the
+// backend produces — it does NOT recompute course grades from raw homework.
+// The "What Grade Do I Need?" inverse calculation below is frontend-only.
+// If you change the weighted-grade math here, audit gradingservice.py for
+// consistency. Both sides have their own test suites covering the math at
+// their respective layers.
+
 import 'package:heliumapp/data/models/planner/grade_category_model.dart';
 
 /// Result of a "what grade do I need" calculation
@@ -139,46 +148,6 @@ class GradeHelper {
         state: NeededGradeState.achievable,
       );
     }
-  }
-
-  /// Calculates the maximum possible overall grade if student scores 100%
-  /// in all remaining categories
-  static double calculateMaxPossibleGrade(List<GradeCategoryModel> categories) {
-    double totalWeightedGrade = 0;
-
-    for (final category in categories) {
-      if (category.weight > 0) {
-        if (category.overallGrade >= 0) {
-          // Category has a grade, use it
-          totalWeightedGrade +=
-              category.weight * _normalizedCategoryGrade(category.overallGrade);
-        } else {
-          // No grade yet, assume perfect 100%
-          totalWeightedGrade += category.weight * 100;
-        }
-      }
-    }
-
-    return totalWeightedGrade / 100;
-  }
-
-  /// Calculates the minimum possible overall grade if student scores 0%
-  /// in all remaining categories
-  static double calculateMinPossibleGrade(List<GradeCategoryModel> categories) {
-    double totalWeightedGrade = 0;
-
-    for (final category in categories) {
-      if (category.weight > 0) {
-        if (category.overallGrade >= 0) {
-          // Category has a grade, use it
-          totalWeightedGrade +=
-              category.weight * _normalizedCategoryGrade(category.overallGrade);
-        }
-        // No grade yet, assume 0% (don't add anything)
-      }
-    }
-
-    return totalWeightedGrade / 100;
   }
 
   /// Parses a grade value from various formats (strings like "X/Y", numbers, etc.)
