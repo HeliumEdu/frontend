@@ -145,9 +145,6 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
   static const _overallSeriesName = 'Overall Grade';
 
   @override
-  String get screenTitle => 'Grades';
-
-  @override
   bool get enablePrint => true;
 
   @override

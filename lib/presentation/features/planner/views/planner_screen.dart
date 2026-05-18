@@ -179,9 +179,6 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
   static const _tooltipSuppressDelay = Duration(seconds: 2);
 
   @override
-  String get screenTitle => 'Planner';
-
-  @override
   bool get enablePrint => true;
 
   @override

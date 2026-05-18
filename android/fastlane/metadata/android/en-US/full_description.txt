@@ -1,0 +1,25 @@
+A free, color-coded online student planner for classes, homework, grades, and notes — the academic calendar built for the way you actually study.
+
+📅 SMART CALENDARS
+Color-code classes, assignments, and personal events — and toggle between Light and Dark mode. Pull in Google, Apple, or any iCal calendar, or push Helium back out.
+
+📊 LIVE GRADE TRACKER & CALCULATOR
+Helium recalculates your grades in real time — by class, by category, and across the term. The dashboard surfaces At-Risk Classes, Progress vs. Pace, and Pending Impact at a glance. Use the "What Grade Do I Need?" calculator to see what you need on the Final.
+
+📘 RICH NOTEBOOK
+Write rich notes, linked directly to items in your Planner, so the context you need is always right where you need it. Or keep standalone notes for anything else, from lecture summaries to paper drafts. Format like a doc, search across everything, and print any note when you need a hard copy.
+
+🗓️ AT-A-GLANCE SCHEDULES
+Classes time-blocked hour by hour. Drag to reschedule, check assignments off right from the calendar, and tap any class for details — room, teacher email, grading scale.
+
+✅ TODOS VIEW
+A focused, checkable list of your assignments. Sort and filter by class, priority, due date, or resources — organize your study time the way you want.
+
+📝 DETAILED ASSIGNMENT PLANNER
+Class, category, priority, Reminders, Attachments like rubrics, formatted Notes, and linked Resources — every detail in one place. For a weekly assignment, create it once, then clone the template for the rest of the term.
+
+🔔 REMINDERS
+Reminders before assignments, classes, exams, or events — native push notifications on iOS, Android, and web, or email if that's your style.
+
+🎓 BUILT FOR STUDENTS
+Middle school, high school, college, university, grad school, homeschool — Helium helps every kind of student stay organized and succeed academically. Create your free online account today, and take control of your student life.

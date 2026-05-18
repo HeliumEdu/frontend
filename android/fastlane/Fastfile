@@ -20,20 +20,33 @@ platform :android do
     )
   end
 
-  desc "Deploy AAB to Google Play Production"
-  lane :deploy_production do |options|
-    aab_path = options[:aab_path] || "../build/app/outputs/bundle/release/app-release.aab"
+  desc "Promote internal-track AAB to a draft Production release, pushing metadata + screenshots"
+  lane :promote_to_production_draft do |options|
     version = options[:version]
+    version_code = options[:version_code]
+
+    UI.user_error!("version is required") unless version
+    UI.user_error!("version_code is required") unless version_code
+
+    # Play requires changelogs/<versionCode>.txt for every release. Generate
+    # it from the canonical template — release notes rarely vary per build,
+    # so we keep one source of truth and stamp each versionCode at deploy time.
+    template = "fastlane/metadata/android/en-US/default_release_notes.txt"
+    changelog = "fastlane/metadata/android/en-US/changelogs/#{version_code}.txt"
+    UI.user_error!("Missing #{template}") unless File.exist?(template)
+    FileUtils.mkdir_p(File.dirname(changelog))
+    FileUtils.cp(template, changelog)
 
     upload_to_play_store(
-      aab: aab_path,
-      track: 'production',
+      track: 'internal',
+      track_promote_to: 'production',
+      track_promote_release_status: 'draft',
       version_name: version,
+      skip_upload_aab: true,
       skip_upload_apk: true,
-      skip_upload_metadata: true,
-      skip_upload_images: true,
-      skip_upload_screenshots: true,
-      release_status: 'completed'
+      skip_upload_metadata: false,
+      skip_upload_images: false,
+      skip_upload_screenshots: false
     )
   end
 end
