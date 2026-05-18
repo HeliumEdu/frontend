@@ -40,17 +40,12 @@ jobs:
           APP_STORE_CONNECT_API_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
           APP_STORE_CONNECT_API_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_ISSUER_ID }}
         run: |
-          mkdir -p ~/.appstoreconnect/private_keys
-          echo "$APP_STORE_CONNECT_API_KEY" > ~/.appstoreconnect/private_keys/AuthKey_${APP_STORE_CONNECT_API_KEY_ID}.p8
-          cat > ~/app_store_connect_api_key.json <<EOF
-          {
-            "key_id": "${APP_STORE_CONNECT_API_KEY_ID}",
-            "issuer_id": "${APP_STORE_CONNECT_API_ISSUER_ID}",
-            "key_filepath": "${HOME}/.appstoreconnect/private_keys/AuthKey_${APP_STORE_CONNECT_API_KEY_ID}.p8",
-            "duration": 1200,
-            "in_house": false
-          }
-          EOF
+          jq -n \
+            --arg key_id "$APP_STORE_CONNECT_API_KEY_ID" \
+            --arg issuer_id "$APP_STORE_CONNECT_API_ISSUER_ID" \
+            --arg key "$APP_STORE_CONNECT_API_KEY" \
+            '{key_id: $key_id, issuer_id: $issuer_id, key: $key, duration: 1200, in_house: false}' \
+            > ~/app_store_connect_api_key.json
 
       - name: Write Google Play service account key
         env:
@@ -71,7 +66,6 @@ jobs:
       - name: Clean up credentials
         if: always()
         run: |
-          rm -rf ~/.appstoreconnect/private_keys
           rm -f ~/app_store_connect_api_key.json
           rm -f android/service-account-key.json
 
