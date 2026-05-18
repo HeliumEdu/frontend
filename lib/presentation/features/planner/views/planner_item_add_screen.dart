@@ -13,6 +13,7 @@ import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/attachment_bloc.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/planneritem_bloc.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/planneritem_state.dart';
+import 'package:heliumapp/presentation/features/planner/bloc/reminder_bloc.dart';
 import 'package:heliumapp/presentation/features/planner/widgets/planner_item_attachments.dart';
 import 'package:heliumapp/presentation/features/planner/widgets/planner_item_details.dart';
 import 'package:heliumapp/presentation/features/planner/widgets/planner_item_reminders.dart';
@@ -39,12 +40,20 @@ Future<void> showPlannerItemAdd(
   required bool isNew,
   int initialStep = 0,
 }) {
-  AttachmentBloc? existingBloc;
+  AttachmentBloc? existingAttachmentBloc;
   try {
-    existingBloc = context.read<AttachmentBloc>();
+    existingAttachmentBloc = context.read<AttachmentBloc>();
   } catch (_) {}
   final attachmentBloc =
-      existingBloc ?? ProviderHelpers().createAttachmentBloc()(context);
+      existingAttachmentBloc ??
+      ProviderHelpers().createAttachmentBloc()(context);
+
+  ReminderBloc? existingReminderBloc;
+  try {
+    existingReminderBloc = context.read<ReminderBloc>();
+  } catch (_) {}
+  final reminderBloc =
+      existingReminderBloc ?? ProviderHelpers().createReminderBloc()(context);
 
   final basePath = router.routerDelegate.currentConfiguration.uri.path;
 
@@ -62,7 +71,10 @@ Future<void> showPlannerItemAdd(
   return showScreenAsDialog(
     context,
     child: MultiBlocProvider(
-      providers: [BlocProvider<AttachmentBloc>.value(value: attachmentBloc)],
+      providers: [
+        BlocProvider<AttachmentBloc>.value(value: attachmentBloc),
+        BlocProvider<ReminderBloc>.value(value: reminderBloc),
+      ],
       child: PlannerItemAddScreen(
         eventId: eventId,
         homeworkId: homeworkId,

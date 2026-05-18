@@ -523,6 +523,7 @@ class MockModels {
       comments: comments,
       attachments: [],
       reminders: [],
+      notes: [],
       color: color,
     );
   }
@@ -563,6 +564,7 @@ class MockModels {
       comments: comments,
       attachments: [],
       reminders: [],
+      notes: [],
       completed: completed,
       currentGrade: currentGrade,
       course: IdOrEntity<CourseModel>(id: courseId),

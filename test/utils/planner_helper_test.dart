@@ -315,6 +315,7 @@ EventModel _createEventModel({bool allDay = false}) {
     comments: '',
     attachments: [],
     reminders: [],
+    notes: [],
     color: const Color(0xFF4CAF50),
   );
 }
@@ -331,6 +332,7 @@ HomeworkModel _createHomeworkModel({bool allDay = false}) {
     comments: '',
     attachments: [],
     reminders: [],
+    notes: [],
     completed: false,
     currentGrade: '-1/100',
     course: IdOrEntity<CourseModel>(id: 1),

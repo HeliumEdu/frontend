@@ -26,10 +26,13 @@ import 'package:heliumapp/data/sources/external_calendar_remote_data_source.dart
 import 'package:heliumapp/data/sources/homework_remote_data_source.dart';
 import 'package:heliumapp/data/sources/note_remote_data_source.dart';
 import 'package:heliumapp/data/sources/resource_remote_data_source.dart';
+import 'package:heliumapp/data/repositories/reminder_repository_impl.dart';
+import 'package:heliumapp/data/sources/reminder_remote_data_source.dart';
 import 'package:heliumapp/presentation/features/notebook/bloc/note_bloc.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/attachment_bloc.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/planneritem_bloc.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/external_calendar_bloc.dart';
+import 'package:heliumapp/presentation/features/planner/bloc/reminder_bloc.dart';
 
 
 class ProviderHelpers {
@@ -88,6 +91,14 @@ class ProviderHelpers {
     return (context) => AttachmentBloc(
       attachmentRepository: AttachmentRepositoryImpl(
         remoteDataSource: AttachmentRemoteDataSourceImpl(dioClient: _dioClient),
+      ),
+    );
+  }
+
+  ReminderBloc Function(BuildContext context) createReminderBloc() {
+    return (context) => ReminderBloc(
+      reminderRepository: ReminderRepositoryImpl(
+        remoteDataSource: ReminderRemoteDataSourceImpl(dioClient: _dioClient),
       ),
     );
   }
