@@ -101,9 +101,6 @@ class _CoursesProvidedScreen extends StatefulWidget {
 class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen>
     with DeepLinkMixin {
   @override
-  String get screenTitle => 'Classes';
-
-  @override
   bool get enablePrint => true;
 
   @override

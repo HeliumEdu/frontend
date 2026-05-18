@@ -72,7 +72,13 @@ class InheritableProvidersScope extends InheritedWidget {
 
 /// InheritedWidget to tell child screens to hide their header
 class NavigationShellProvider extends InheritedWidget {
-  const NavigationShellProvider({super.key, required super.child});
+  const NavigationShellProvider({
+    super.key,
+    required this.label,
+    required super.child,
+  });
+
+  final String label;
 
   static bool of(BuildContext context) {
     return context
@@ -80,8 +86,15 @@ class NavigationShellProvider extends InheritedWidget {
         null;
   }
 
+  static String? currentLabel(BuildContext context) {
+    return context
+        .dependOnInheritedWidgetOfExactType<NavigationShellProvider>()
+        ?.label;
+  }
+
   @override
-  bool updateShouldNotify(NavigationShellProvider oldWidget) => false;
+  bool updateShouldNotify(NavigationShellProvider oldWidget) =>
+      label != oldWidget.label;
 }
 
 enum NavigationPage {
@@ -278,6 +291,7 @@ class _NavigationShellState extends State<NavigationShell> {
                               child: KeyedSubtree(
                                 key: ValueKey(currentPage),
                                 child: NavigationShellProvider(
+                                  label: currentPage.label,
                                   child:
                                       _screenCache[currentPage] ??
                                       currentPage.buildScreen(),

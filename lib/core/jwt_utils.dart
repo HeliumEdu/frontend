@@ -47,16 +47,4 @@ class JwtUtils {
     }
     return null;
   }
-
-  static bool isAccessTokenExpired(String accessToken) {
-    final payload = decodePayload(accessToken);
-    if (payload != null) {
-      final exp = payload['exp'];
-      if (exp is int) {
-        final now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
-        return now >= exp;
-      }
-    }
-    return true;
-  }
 }

@@ -103,9 +103,6 @@ class _ResourcesScreenState
     extends BasePageScreenState<_ResourcesProvidedScreen>
     with DeepLinkMixin {
   @override
-  String get screenTitle => 'Resources';
-
-  @override
   bool get enablePrint => true;
 
   @override

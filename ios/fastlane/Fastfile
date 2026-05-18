@@ -3,7 +3,7 @@
 default_platform(:ios)
 
 platform :ios do
-  desc "Upload IPA to TestFlight"
+  desc "Upload IPA to TestFlight and wait for App-Store-side processing"
   lane :deploy_testflight do |options|
     ipa_path = options[:ipa_path] || "../build/ios/ipa/heliumedu.ipa"
 
@@ -13,18 +13,25 @@ platform :ios do
       key_filepath: File.expand_path("~/.appstoreconnect/private_keys/AuthKey_#{ENV['APP_STORE_CONNECT_API_KEY_ID']}.p8")
     )
 
+    # Wait for processing so deploy_appstore can attach the build immediately
+    # in the same pipeline run.
     upload_to_testflight(
       api_key: api_key,
       ipa: ipa_path,
       skip_submission: true,
-      skip_waiting_for_build_processing: true,
+      skip_waiting_for_build_processing: false,
+      wait_processing_timeout_duration: 1800,
       distribute_external: false
     )
   end
 
-  desc "Upload IPA to App Store and submit for review"
+  desc "Stage an App Store version with the latest TestFlight build, push metadata + screenshots, stop short of Submit for Review"
   lane :deploy_appstore do |options|
-    ipa_path = options[:ipa_path] || "../build/ios/ipa/heliumedu.ipa"
+    version = options[:version]
+    build_number = options[:build_number]
+
+    UI.user_error!("version is required") unless version
+    UI.user_error!("build_number is required") unless build_number
 
     api_key = app_store_connect_api_key(
       key_id: ENV["APP_STORE_CONNECT_API_KEY_ID"],
@@ -32,15 +39,43 @@ platform :ios do
       key_filepath: File.expand_path("~/.appstoreconnect/private_keys/AuthKey_#{ENV['APP_STORE_CONNECT_API_KEY_ID']}.p8")
     )
 
+    # If the target App Store version is already past the editable stage
+    # (submitted, in review, live, etc.), bail out cleanly. The TestFlight
+    # upload above still succeeded; this only prevents stomping on or
+    # erroring over an in-flight submission. Resolve the existing
+    # submission in App Store Connect first, then re-run if needed.
+    locked_states = %w[
+      WAITING_FOR_REVIEW
+      IN_REVIEW
+      PROCESSING_FOR_APP_STORE
+      PENDING_APPLE_RELEASE
+      PENDING_DEVELOPER_RELEASE
+      READY_FOR_SALE
+      REPLACED_WITH_NEW_VERSION
+    ]
+    app_identifier = CredentialsManager::AppfileConfig.try_fetch_value(:app_identifier)
+    spaceship_app = Spaceship::ConnectAPI::App.find(app_identifier)
+    existing = spaceship_app.get_app_store_versions(filter: { versionString: version }).first
+    if existing && locked_states.include?(existing.app_store_state)
+      msg = "App Store version #{version} is in state `#{existing.app_store_state}` — skipping App Store stage. TestFlight upload succeeded; resolve the in-flight submission before re-running."
+      UI.important("⚠ #{msg}")
+      if ENV["GITHUB_STEP_SUMMARY"]
+        File.open(ENV["GITHUB_STEP_SUMMARY"], "a") { |f| f.puts("⚠ #{msg}") }
+      end
+      next
+    end
+
     upload_to_app_store(
       api_key: api_key,
-      ipa: ipa_path,
-      skip_metadata: true,
-      skip_screenshots: true,
-      precheck_include_in_app_purchases: false,
-      submission_information: {
-        add_id_info_uses_idfa: false
-      }
+      app_version: version,
+      build_number: build_number,
+      skip_binary_upload: true,
+      skip_metadata: false,
+      skip_screenshots: false,
+      submit_for_review: false,
+      automatic_release: false,
+      force: true,
+      precheck_include_in_app_purchases: false
     )
   end
 end

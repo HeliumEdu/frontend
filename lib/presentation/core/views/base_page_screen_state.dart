@@ -26,7 +26,6 @@ import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:heliumapp/utils/snack_bar_helpers.dart';
 import 'package:logging/logging.dart';
-import 'package:meta/meta.dart';
 
 export 'package:heliumapp/utils/snack_bar_helpers.dart' show SnackType;
 
@@ -166,8 +165,7 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
 
   bool get enablePrintFlexColumn => false;
 
-  @mustBeOverridden
-  String get screenTitle;
+  String get screenTitle => '';
 
   IconData? get icon => null;
 
@@ -498,10 +496,13 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
     if (!enablePrint) {
       return [buildHeaderArea(context), buildMainArea(context)];
     }
+    final printTitle = screenTitle.isNotEmpty
+        ? screenTitle
+        : (NavigationShellProvider.currentLabel(context) ?? '');
     return [
       Expanded(
         child: PrintableArea(
-          title: screenTitle,
+          title: printTitle,
           flexColumn: enablePrintFlexColumn,
           header: buildHeaderArea,
           body: buildMainArea,
