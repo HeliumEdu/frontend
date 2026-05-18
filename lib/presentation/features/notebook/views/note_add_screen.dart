@@ -951,16 +951,24 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
   Widget _buildLinkedEntityBadge() {
     final entityType = _linkedEntityType ?? '';
     final title = _linkedEntityTitle ?? '';
+    final strikethrough = _note?.linkedEntityCompleted == true
+        ? TextDecoration.lineThrough
+        : null;
 
     final Widget badge;
     if (entityType == 'resource') {
       if (userSettings == null) return const SizedBox.shrink();
-      badge = ResourceTitleLabel(title: title, userSettings: userSettings!);
+      badge = ResourceTitleLabel(
+        title: title,
+        userSettings: userSettings!,
+        textDecoration: strikethrough,
+      );
     } else if (entityType == 'event') {
       badge = GenericLabel(
         label: title,
         color: userSettings?.eventsColor ?? context.colorScheme.tertiary,
         icon: AppConstants.eventIcon,
+        textDecoration: strikethrough,
       );
     } else if (entityType == 'homework') {
       final courseColor = _note?.courseColor ?? _linkedEntityColor;
@@ -973,6 +981,7 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
         label: title,
         color: badgeColor ?? context.colorScheme.primary,
         icon: AppConstants.assignmentIcon,
+        textDecoration: strikethrough,
       );
     } else {
       return Text(

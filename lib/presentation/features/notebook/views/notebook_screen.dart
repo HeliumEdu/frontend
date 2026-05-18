@@ -172,7 +172,70 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen>
       BlocListener<PlannerItemBloc, PlannerItemState>(
         listener: (context, state) {
           if (state is AllEventsDeleted) {
-            _fetchNotes();
+            setState(() {
+              _notes = _notes.map((note) {
+                if (note.events.isEmpty) return note;
+                return note.copyWith(events: [], linkedEntityType: '');
+              }).toList();
+            });
+          } else if (state is HomeworkUpdated) {
+            setState(() {
+              final updated = List<NoteModel>.from(_notes);
+              final index = updated.indexWhere(
+                (n) => n.homework.contains(state.homework.id),
+              );
+              if (index != -1) {
+                updated[index] = updated[index].copyWith(
+                  linkedEntityTitle: state.homework.title,
+                );
+                _notes = updated;
+              }
+            });
+          } else if (state is EventUpdated) {
+            setState(() {
+              final updated = List<NoteModel>.from(_notes);
+              final index = updated.indexWhere(
+                (n) => n.events.contains(state.event.id),
+              );
+              if (index != -1) {
+                updated[index] = updated[index].copyWith(
+                  linkedEntityTitle: state.event.title,
+                );
+                _notes = updated;
+              }
+            });
+          } else if (state is HomeworkDeleted) {
+            setState(() {
+              final updated = List<NoteModel>.from(_notes);
+              final index = updated.indexWhere(
+                (n) => n.homework.contains(state.id),
+              );
+              if (index != -1) {
+                updated[index] = updated[index].copyWith(
+                  homework: updated[index].homework
+                      .where((id) => id != state.id)
+                      .toList(),
+                  linkedEntityType: '',
+                );
+                _notes = updated;
+              }
+            });
+          } else if (state is EventDeleted) {
+            setState(() {
+              final updated = List<NoteModel>.from(_notes);
+              final index = updated.indexWhere(
+                (n) => n.events.contains(state.id),
+              );
+              if (index != -1) {
+                updated[index] = updated[index].copyWith(
+                  events: updated[index].events
+                      .where((id) => id != state.id)
+                      .toList(),
+                  linkedEntityType: '',
+                );
+                _notes = updated;
+              }
+            });
           }
         },
       ),
