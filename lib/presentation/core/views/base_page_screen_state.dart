@@ -496,10 +496,13 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
     if (!enablePrint) {
       return [buildHeaderArea(context), buildMainArea(context)];
     }
+    final printTitle = screenTitle.isNotEmpty
+        ? screenTitle
+        : (NavigationShellProvider.currentLabel(context) ?? '');
     return [
       Expanded(
         child: PrintableArea(
-          title: screenTitle,
+          title: printTitle,
           flexColumn: enablePrintFlexColumn,
           header: buildHeaderArea,
           body: buildMainArea,
