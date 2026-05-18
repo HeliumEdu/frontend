@@ -1029,6 +1029,17 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
       appointments![oldIndex] = plannerItem;
       Sort.byStartThenTitle(appointments!.cast<PlannerItemBaseModel>());
       _notifyCalendarReset();
+      // Force SfCalendar's per-appointment cache to rebuild.
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (_isDisposed || appointments == null) return;
+        final item = appointments!.firstWhereOrNull(
+          (a) => (a as PlannerItemBaseModel).id == plannerItem.id,
+        );
+        if (item == null) return;
+        notifyListeners(CalendarDataSourceAction.remove, [item]);
+        notifyListeners(CalendarDataSourceAction.add, [item]);
+        notifyListeners(CalendarDataSourceAction.reset, appointments!);
+      });
     } else {
       _applyFiltersAndNotify();
     }

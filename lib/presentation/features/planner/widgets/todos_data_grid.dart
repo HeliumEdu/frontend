@@ -18,6 +18,7 @@ import 'package:heliumapp/data/models/planner/category_model.dart';
 import 'package:heliumapp/data/models/planner/course_model.dart';
 import 'package:heliumapp/data/models/planner/homework_model.dart';
 import 'package:heliumapp/data/sources/planner_item_data_source.dart';
+import 'package:heliumapp/presentation/features/planner/widgets/planner_item_meta_row.dart';
 import 'package:heliumapp/presentation/ui/components/category_title_label.dart';
 import 'package:heliumapp/presentation/ui/components/course_title_label.dart';
 import 'package:heliumapp/presentation/ui/components/grade_label.dart';
@@ -34,6 +35,8 @@ import 'package:heliumapp/utils/storage_helpers.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/color_helpers.dart';
 import 'package:heliumapp/utils/date_time_helpers.dart';
+import 'package:heliumapp/config/app_route.dart';
+import 'package:heliumapp/utils/deep_link_helpers.dart';
 import 'package:heliumapp/utils/grade_helpers.dart';
 import 'package:heliumapp/utils/planner_helper.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
@@ -60,8 +63,7 @@ enum TodosColumn {
     minViewportWidth: 850,
     showOnTouchDevice: true,
   ),
-  resources(label: '', minViewportWidth: 1050, fixedWidth: 40),
-  attachments(label: '', minViewportWidth: 1050, fixedWidth: 40);
+  meta(label: '', minViewportWidth: 1050, fixedWidth: 100);
 
   const TodosColumn({
     required this.label,
@@ -504,20 +506,11 @@ class TodosDataGridState extends BaseDataGridState<TodosDataGrid> {
       ));
     }
 
-    if (_shouldShowColumn(TodosColumn.resources)) {
+    if (_shouldShowColumn(TodosColumn.meta)) {
       columns.add(GridColumn(
-        columnName: 'resources',
+        columnName: 'meta',
         label: const SizedBox.shrink(),
-        width: TodosColumn.resources.widthForLayout(isMobile: isMobile, isTablet: isTablet)!,
-        allowSorting: false,
-      ));
-    }
-
-    if (_shouldShowColumn(TodosColumn.attachments)) {
-      columns.add(GridColumn(
-        columnName: 'attachments',
-        label: const SizedBox.shrink(),
-        width: TodosColumn.attachments.widthForLayout(isMobile: isMobile, isTablet: isTablet)!,
+        width: TodosColumn.meta.widthForLayout(isMobile: isMobile, isTablet: isTablet)!,
         allowSorting: false,
       ));
     }
@@ -961,8 +954,13 @@ class TodosDataSource extends BaseDataGridSource {
           DataGridCell<String>(columnName: 'category', value: categoryTitle),
           DataGridCell<int>(columnName: 'priority', value: homework.priority),
           DataGridCell<double>(columnName: 'grade', value: gradeSortValue),
-          DataGridCell<int>(columnName: 'resources', value: homework.resources.length),
-          DataGridCell<int>(columnName: 'attachments', value: homework.attachments.length),
+          DataGridCell<int>(
+            columnName: 'meta',
+            value: homework.resources.length +
+                homework.attachments.length +
+                homework.reminders.length +
+                (homework.notes.isNotEmpty ? 1 : 0),
+          ),
           DataGridCell<int>(columnName: 'actions', value: homework.id),
           DataGridCell<int>(columnName: '_homeworkId', value: homework.id),
           DataGridCell<int>(columnName: '_courseId', value: course.id),
@@ -1020,10 +1018,8 @@ class TodosDataSource extends BaseDataGridSource {
           return width >= TodosColumn.priority.minViewportWidth!;
         case 'grade':
           return width >= TodosColumn.grade.minViewportWidth! || isTouchDevice;
-        case 'resources':
-          return width >= TodosColumn.resources.minViewportWidth!;
-        case 'attachments':
-          return width >= TodosColumn.attachments.minViewportWidth!;
+        case 'meta':
+          return width >= TodosColumn.meta.minViewportWidth!;
         case 'actions':
           return !isTouchDevice && !PrintableArea.capturing.value;
         default:
@@ -1071,11 +1067,8 @@ class TodosDataSource extends BaseDataGridSource {
       case 'grade':
         return _buildGradeCell(homework, userSettings, isCompleted);
 
-      case 'resources':
-        return _buildResourcesCell(homework, userSettings);
-
-      case 'attachments':
-        return _buildAttachmentsCell(homework);
+      case 'meta':
+        return _buildMetaCell(homework, userSettings);
 
       case 'actions':
         final course = courses.firstWhere(
@@ -1233,55 +1226,27 @@ class TodosDataSource extends BaseDataGridSource {
     );
   }
 
-  Widget _buildResourcesCell(
+  Widget _buildMetaCell(
     HomeworkModel homework,
     UserSettingsModel userSettings,
   ) {
-    if (homework.resources.isEmpty) return const SizedBox.shrink();
+    if (!PlannerItemMetaRow.hasAny(homework)) return const SizedBox.shrink();
+    final linkedNoteId = homework.notes.isNotEmpty
+        ? homework.notes.first.id
+        : null;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 4),
       alignment: Alignment.centerLeft,
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            Icons.book_outlined,
-            size: 14,
-            color: userSettings.resourceColor.withValues(alpha: 0.9),
-          ),
-          const SizedBox(width: 4),
-          Text(
-            homework.resources.length.toString(),
-            style: AppStyles.smallSecondaryTextLight(_context).copyWith(
-              color: userSettings.resourceColor.withValues(alpha: 0.9),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildAttachmentsCell(HomeworkModel homework) {
-    if (homework.attachments.isEmpty) return const SizedBox.shrink();
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 4),
-      alignment: Alignment.centerLeft,
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            Icons.attachment,
-            size: 14,
-            color: _context.semanticColors.success.withValues(alpha: 0.9),
-          ),
-          const SizedBox(width: 4),
-          Text(
-            homework.attachments.length.toString(),
-            style: AppStyles.smallSecondaryTextLight(_context).copyWith(
-              color: _context.semanticColors.success.withValues(alpha: 0.9),
-            ),
-          ),
-        ],
+      child: PlannerItemMetaRow(
+        plannerItem: homework,
+        userSettings: userSettings,
+        countTextStyle: AppStyles.smallSecondaryTextLight(_context),
+        onOpenInNotebook: linkedNoteId == null
+            ? null
+            : () => navigateAndClearStack(
+                _context,
+                '${AppRoute.notebookScreen}?id=$linkedNoteId',
+              ),
       ),
     );
   }

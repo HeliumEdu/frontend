@@ -18,10 +18,10 @@ PLATFORM="${PLATFORM:-arm64}"
 if [[ -z "${REGISTRY_PREFIX:-}" ]]; then
     LOCAL_IMAGE="helium/frontend-web:${PLATFORM}-latest"
     if docker image inspect "$LOCAL_IMAGE" &>/dev/null; then
-        echo "Using local image..."
+        echo "Using local image ..."
         REGISTRY_PREFIX=""
     else
-        echo "Local image not found, will pull from ECR Public..."
+        echo "Local image not found, will pull from ECR Public ..."
         REGISTRY_PREFIX="public.ecr.aws/heliumedu/"
     fi
 else
