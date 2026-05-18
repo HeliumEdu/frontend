@@ -81,6 +81,38 @@ class NoteModel extends BaseTitledModel {
     };
   }
 
+  NoteModel copyWith({
+    int? id,
+    String? title,
+    Map<String, dynamic>? content,
+    DateTime? updatedAt,
+    List<int>? homework,
+    List<int>? events,
+    List<int>? resources,
+    String? linkedEntityType,
+    String? linkedEntityTitle,
+    DateTime? linkedEntityDue,
+    bool? linkedEntityCompleted,
+    Color? courseColor,
+    Color? categoryColor,
+  }) {
+    return NoteModel(
+      id: id ?? this.id,
+      title: title ?? this.title,
+      content: content ?? this.content,
+      updatedAt: updatedAt ?? this.updatedAt,
+      homework: homework ?? this.homework,
+      events: events ?? this.events,
+      resources: resources ?? this.resources,
+      linkedEntityType: linkedEntityType ?? this.linkedEntityType,
+      linkedEntityTitle: linkedEntityTitle ?? this.linkedEntityTitle,
+      linkedEntityDue: linkedEntityDue ?? this.linkedEntityDue,
+      linkedEntityCompleted: linkedEntityCompleted ?? this.linkedEntityCompleted,
+      courseColor: courseColor ?? this.courseColor,
+      categoryColor: categoryColor ?? this.categoryColor,
+    );
+  }
+
   bool get isStandalone => linkedEntityType.isEmpty;
 
   bool get isLinkedToHomework => homework.isNotEmpty;

@@ -1489,6 +1489,7 @@ HomeworkModel _createHomeworkModel({
     comments: '',
     attachments: [],
     reminders: [],
+    notes: [],
     completed: completed,
     currentGrade: '-1/100',
     course: IdOrEntity<CourseModel>(id: courseId),
@@ -1519,6 +1520,7 @@ EventModel _createEventModel({
     comments: '',
     attachments: [],
     reminders: [],
+    notes: [],
     color: const Color(0xFF4CAF50),
   );
 }

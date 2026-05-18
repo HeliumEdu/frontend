@@ -7,11 +7,12 @@
 
 import 'package:heliumapp/data/models/id_or_entity.dart';
 import 'package:heliumapp/data/models/planner/attachment_model.dart';
-import 'package:heliumapp/data/models/planner/planner_item_base_model.dart';
 import 'package:heliumapp/data/models/planner/category_model.dart';
 import 'package:heliumapp/data/models/planner/course_model.dart';
-import 'package:heliumapp/data/models/planner/resource_model.dart';
+import 'package:heliumapp/data/models/planner/note_model.dart';
+import 'package:heliumapp/data/models/planner/planner_item_base_model.dart';
 import 'package:heliumapp/data/models/planner/reminder_model.dart';
+import 'package:heliumapp/data/models/planner/resource_model.dart';
 import 'package:heliumapp/utils/conversion_helpers.dart';
 import 'package:heliumapp/utils/planner_helper.dart';
 
@@ -20,6 +21,7 @@ class HomeworkModel extends PlannerItemBaseModel {
   final IdOrEntity<CourseModel> course;
   final IdOrEntity<CategoryModel> category;
   final List<IdOrEntity<ResourceModel>> resources;
+  final List<IdOrEntity<NoteModel>> notes;
   final String? currentGrade;
 
   HomeworkModel({
@@ -37,6 +39,7 @@ class HomeworkModel extends PlannerItemBaseModel {
     required this.course,
     required this.resources,
     required this.category,
+    required this.notes,
     this.currentGrade,
   }) : super(plannerItemType: PlannerItemType.homework);
 
@@ -62,6 +65,9 @@ class HomeworkModel extends PlannerItemBaseModel {
       resources: json['materials'] != null
           ? idOrEntityListFrom(json['materials'], ResourceModel.fromJson)
           : [],
+      notes: json['notes'] != null
+          ? idOrEntityListFrom(json['notes'], NoteModel.fromJson)
+          : [],
       course: idOrEntityFrom(json['course'], CourseModel.fromJson),
     );
   }
@@ -74,6 +80,7 @@ class HomeworkModel extends PlannerItemBaseModel {
     data['course'] = course;
     data['category'] = category;
     data['materials'] = resources;
+    data['notes'] = notes;
     data['current_grade'] = currentGrade;
 
     return data;
@@ -94,6 +101,7 @@ class HomeworkModel extends PlannerItemBaseModel {
     IdOrEntity<CourseModel>? course,
     IdOrEntity<CategoryModel>? category,
     List<IdOrEntity<ResourceModel>>? resources,
+    List<IdOrEntity<NoteModel>>? notes,
     String? currentGrade,
   }) {
     return HomeworkModel(
@@ -111,6 +119,7 @@ class HomeworkModel extends PlannerItemBaseModel {
       course: course ?? this.course,
       category: category ?? this.category,
       resources: resources ?? this.resources,
+      notes: notes ?? this.notes,
       currentGrade: currentGrade ?? this.currentGrade,
     );
   }

@@ -33,6 +33,8 @@ import 'package:heliumapp/presentation/features/auth/bloc/auth_state.dart';
 import 'package:heliumapp/presentation/features/grades/bloc/grade_bloc.dart';
 import 'package:heliumapp/presentation/features/grades/bloc/grade_event.dart';
 import 'package:heliumapp/presentation/features/grades/bloc/grade_state.dart';
+import 'package:heliumapp/presentation/features/planner/bloc/planneritem_bloc.dart';
+import 'package:heliumapp/presentation/features/planner/bloc/planneritem_state.dart';
 import 'package:heliumapp/presentation/features/grades/dialogs/grade_calculator_dialog.dart';
 import 'package:heliumapp/presentation/features/planner/views/planner_item_add_screen.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/core/provider_helpers.dart';
@@ -224,6 +226,83 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
           } else if (state is GradeScreenDataFetched) {
             _populateInitiateStateData(state);
             openFromQueryParams();
+          }
+        },
+      ),
+      BlocListener<PlannerItemBloc, PlannerItemState>(
+        listener: (context, state) {
+          if (state is HomeworkDeleted) {
+            context.read<GradeBloc>().add(
+              FetchGradeScreenDataEvent(forceRefresh: true),
+            );
+          } else if (state is HomeworkUpdated) {
+            final homework = state.homework;
+
+            List<dynamic>? matched;
+            outer:
+            for (final group in _grades) {
+              for (final point in group.gradePoints) {
+                if (point.length > 2 && point[2] == homework.id) {
+                  matched = point;
+                  break outer;
+                }
+              }
+            }
+
+            if (matched == null) {
+              context.read<GradeBloc>().add(
+                FetchGradeScreenDataEvent(forceRefresh: true),
+              );
+              return;
+            }
+
+            final prevTitle = matched.length > 3
+                ? matched[3] as String?
+                : null;
+            final prevGradePercent = GradeHelper.parseGrade(
+              matched.length > 4 ? matched[4] : null,
+            );
+            final prevCategoryId = matched.length > 5
+                ? matched[5] as int?
+                : null;
+            final prevCourseId = matched.length > 6
+                ? matched[6] as int?
+                : null;
+
+            final newGradePercent = GradeHelper.parseGrade(
+              homework.currentGrade,
+            );
+
+            if (prevGradePercent != newGradePercent ||
+                prevCategoryId != homework.category.id ||
+                prevCourseId != homework.course.id) {
+              context.read<GradeBloc>().add(
+                FetchGradeScreenDataEvent(forceRefresh: true),
+              );
+              return;
+            }
+
+            if (prevTitle != homework.title) {
+              setState(() {
+                for (final group in _grades) {
+                  for (final pointList in [
+                    group.gradePoints,
+                    ...group.courses.expand(
+                      (c) => [
+                        c.gradePoints,
+                        ...c.categories.map((cat) => cat.gradePoints),
+                      ],
+                    ),
+                  ]) {
+                    for (final point in pointList) {
+                      if (point.length > 3 && point[2] == homework.id) {
+                        point[3] = homework.title;
+                      }
+                    }
+                  }
+                }
+              });
+            }
           }
         },
       ),

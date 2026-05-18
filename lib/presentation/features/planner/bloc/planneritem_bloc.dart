@@ -9,6 +9,7 @@ import 'dart:async';
 
 import 'package:bloc/bloc.dart';
 import 'package:heliumapp/core/helium_exception.dart';
+import 'package:heliumapp/data/models/id_or_entity.dart';
 import 'package:heliumapp/data/models/planner/planner_item_base_model.dart';
 import 'package:heliumapp/data/models/planner/category_model.dart';
 import 'package:heliumapp/data/models/planner/course_group_model.dart';
@@ -264,11 +265,19 @@ class PlannerItemBloc extends Bloc<PlannerItemEvent, PlannerItemState> {
       }
 
       final results = await Future.wait(futures);
-      final entity = results[0] as EventModel;
+      final rawEntity = results[0] as EventModel;
 
       if (event.linkedNoteId == null && results.length > 1) {
         linkedNoteId = (results[1] as NoteModel).id;
       }
+
+      final entity = rawEntity.copyWith(
+        notes: _reconcileNotes(
+          rawEntity.notes,
+          previousId: event.linkedNoteId,
+          currentId: linkedNoteId,
+        ),
+      );
 
       emit(
         EventUpdated(
@@ -473,11 +482,19 @@ class PlannerItemBloc extends Bloc<PlannerItemEvent, PlannerItemState> {
       }
 
       final results = await Future.wait(futures);
-      final homework = results[0] as HomeworkModel;
+      final rawHomework = results[0] as HomeworkModel;
 
       if (event.linkedNoteId == null && results.length > 1) {
         linkedNoteId = (results[1] as NoteModel).id;
       }
+
+      final homework = rawHomework.copyWith(
+        notes: _reconcileNotes(
+          rawHomework.notes,
+          previousId: event.linkedNoteId,
+          currentId: linkedNoteId,
+        ),
+      );
 
       emit(
         HomeworkUpdated(
@@ -524,5 +541,22 @@ class PlannerItemBloc extends Bloc<PlannerItemEvent, PlannerItemState> {
         ),
       );
     }
+  }
+
+  /// Reconciles an entity's `notes` against the actual linked-note state after
+  /// a parallel `Future.wait` — the entity PATCH may still list a just-deleted
+  /// note or miss a just-created one.
+  static List<IdOrEntity<NoteModel>> _reconcileNotes(
+    List<IdOrEntity<NoteModel>> existing, {
+    required int? previousId,
+    required int? currentId,
+  }) {
+    final filtered = existing
+        .where((n) => n.id != previousId && n.id != currentId)
+        .toList();
+    if (currentId != null) {
+      filtered.add(IdOrEntity<NoteModel>(id: currentId));
+    }
+    return filtered;
   }
 }

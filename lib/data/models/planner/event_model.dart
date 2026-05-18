@@ -9,6 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:heliumapp/data/models/id_or_entity.dart';
 import 'package:heliumapp/data/models/planner/attachment_model.dart';
 import 'package:heliumapp/data/models/planner/event_base_model.dart';
+import 'package:heliumapp/data/models/planner/note_model.dart';
 import 'package:heliumapp/data/models/planner/reminder_model.dart';
 import 'package:heliumapp/utils/color_helpers.dart';
 import 'package:heliumapp/utils/conversion_helpers.dart';
@@ -16,6 +17,7 @@ import 'package:heliumapp/utils/planner_helper.dart';
 
 class EventModel extends EventBaseModel {
   final String? ownerId;
+  final List<IdOrEntity<NoteModel>> notes;
 
   EventModel({
     required super.id,
@@ -33,6 +35,7 @@ class EventModel extends EventBaseModel {
     super.recurrenceRule,
     super.exceptionDates,
     this.ownerId,
+    required this.notes,
   }) : super(plannerItemType: PlannerItemType.event);
 
   factory EventModel.fromJson(Map<String, dynamic> json) {
@@ -53,6 +56,9 @@ class EventModel extends EventBaseModel {
           ? idOrEntityListFrom(json['reminders'], ReminderModel.fromJson)
           : [],
       ownerId: json['owner_id'],
+      notes: json['notes'] != null
+          ? idOrEntityListFrom(json['notes'], NoteModel.fromJson)
+          : [],
       color: json['color'] != null
           ? HeliumColors.hexToColor(json['color'])
           : null,
@@ -68,6 +74,7 @@ class EventModel extends EventBaseModel {
     final Map<String, dynamic> data = super.toJson();
 
     data['ownerId'] = ownerId;
+    data['notes'] = notes;
     data['color'] = color != null ? HeliumColors.colorToHex(color!) : null;
 
     return data;
@@ -91,6 +98,7 @@ class EventModel extends EventBaseModel {
     List<IdOrEntity<ReminderModel>>? reminders,
     Color? color,
     String? ownerId,
+    List<IdOrEntity<NoteModel>>? notes,
     String? recurrenceRule,
     List<DateTime>? exceptionDates,
   }) {
@@ -108,6 +116,7 @@ class EventModel extends EventBaseModel {
       reminders: reminders ?? this.reminders,
       color: color ?? this.color,
       ownerId: ownerId ?? this.ownerId,
+      notes: notes ?? this.notes,
       recurrenceRule: recurrenceRule ?? this.recurrenceRule,
       exceptionDates: exceptionDates ?? this.exceptionDates,
     );

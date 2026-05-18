@@ -8,12 +8,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:heliumapp/config/app_theme.dart';
-import 'package:heliumapp/core/dio_client.dart';
 import 'package:heliumapp/data/models/planner/reminder_model.dart';
 import 'package:heliumapp/data/models/planner/request/reminder_request_model.dart';
-import 'package:heliumapp/data/repositories/reminder_repository_impl.dart';
-import 'package:heliumapp/data/sources/reminder_remote_data_source.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/core/base_event.dart';
+import 'package:heliumapp/presentation/features/shared/bloc/core/provider_helpers.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/reminder_bloc.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/reminder_event.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/reminder_state.dart';
@@ -31,16 +29,18 @@ import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/format_helpers.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:heliumapp/utils/sort_helpers.dart';
+import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
 
+final _log = Logger('presentation.widgets');
+
 abstract class BaseReminders extends StatelessWidget {
-  final DioClient _dioClient = DioClient();
   final int entityId;
   final bool isEdit;
   final UserSettingsModel? userSettings;
   final String headerTitle;
 
-  BaseReminders({
+  const BaseReminders({
     super.key,
     required this.entityId,
     required this.isEdit,
@@ -52,17 +52,19 @@ abstract class BaseReminders extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    ReminderBloc? existingBloc;
+    try {
+      final found = context.read<ReminderBloc>();
+      existingBloc = found.isClosed ? null : found;
+    } catch (_) {
+      _log.info('ReminderBloc not passed, will create a new one');
+    }
+
     return MultiBlocProvider(
       providers: [
-        BlocProvider(
-          create: (context) => ReminderBloc(
-            reminderRepository: ReminderRepositoryImpl(
-              remoteDataSource: ReminderRemoteDataSourceImpl(
-                dioClient: _dioClient,
-              ),
-            ),
-          ),
-        ),
+        existingBloc != null
+            ? BlocProvider<ReminderBloc>.value(value: existingBloc)
+            : BlocProvider(create: ProviderHelpers().createReminderBloc()),
       ],
       child: buildContent(),
     );

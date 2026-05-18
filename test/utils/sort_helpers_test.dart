@@ -417,6 +417,7 @@ void main() {
           comments: '',
           attachments: [],
           reminders: [],
+          notes: [],
           color: const Color(0xFF4CAF50),
         );
         items[1] = EventModel(
@@ -431,6 +432,7 @@ void main() {
           comments: '',
           attachments: [],
           reminders: [],
+          notes: [],
           color: const Color(0xFF4CAF50),
         );
 
@@ -516,6 +518,7 @@ HomeworkModel _createHomework({
     comments: '',
     attachments: [],
     reminders: [],
+    notes: [],
     completed: false,
     currentGrade: '-1/100',
     course: IdOrEntity<CourseModel>(id: courseId),
@@ -542,6 +545,7 @@ EventModel _createEvent({
     comments: '',
     attachments: [],
     reminders: [],
+    notes: [],
     color: const Color(0xFF4CAF50),
   );
 }

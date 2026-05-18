@@ -55,6 +55,9 @@ import 'package:heliumapp/presentation/features/auth/bloc/auth_state.dart';
 import 'package:heliumapp/presentation/features/courses/bloc/category_bloc.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/attachment_bloc.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/attachment_state.dart';
+import 'package:heliumapp/data/models/planner/reminder_model.dart';
+import 'package:heliumapp/presentation/features/planner/bloc/reminder_bloc.dart';
+import 'package:heliumapp/presentation/features/planner/bloc/reminder_state.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/external_calendar_bloc.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/external_calendar_state.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/planner_bloc.dart';
@@ -67,6 +70,7 @@ import 'package:heliumapp/presentation/features/planner/dialogs/confirm_delete_d
 import 'package:heliumapp/presentation/features/planner/dialogs/course_schedule_event_dialog.dart';
 import 'package:heliumapp/presentation/features/planner/views/planner_item_add_screen.dart';
 import 'package:heliumapp/presentation/features/planner/widgets/day_popout_dialog.dart';
+import 'package:heliumapp/presentation/features/planner/widgets/planner_item_meta_row.dart';
 import 'package:heliumapp/presentation/features/planner/widgets/todos_data_grid.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/core/base_event.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/core/provider_helpers.dart';
@@ -109,6 +113,7 @@ class PlannerScreen extends StatelessWidget {
     return MultiBlocProvider(
       providers: [
         BlocProvider(create: _providerHelpers.createAttachmentBloc()),
+        BlocProvider(create: _providerHelpers.createReminderBloc()),
         BlocProvider(
           create: (context) => PlannerBloc(
             courseRepository: CourseRepositoryImpl(
@@ -191,6 +196,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
   @override
   List<BlocProvider>? get inheritableProviders => [
     BlocProvider<AttachmentBloc>.value(value: context.read<AttachmentBloc>()),
+    BlocProvider<ReminderBloc>.value(value: context.read<ReminderBloc>()),
   ];
 
   @override
@@ -627,6 +633,40 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
               state.id,
               isAdd: false,
               isHomework: isHomework,
+            );
+          }
+        },
+      ),
+      BlocListener<ReminderBloc, ReminderState>(
+        listener: (context, state) {
+          if (_plannerItemDataSource == null) return;
+
+          if (state is ReminderCreated || state is ReminderUpdated) {
+            final reminder = state is ReminderCreated
+                ? state.reminder
+                : (state as ReminderUpdated).reminder;
+            final homeworkId = reminder.homework?.id;
+            final eventId = reminder.event?.id;
+            if (homeworkId == null && eventId == null) return;
+
+            final isHomework = homeworkId != null;
+            final itemId = isHomework ? homeworkId : eventId!;
+
+            _updatePlannerItemReminders(
+              itemId,
+              reminder,
+              isAdd: true,
+              isHomework: isHomework,
+            );
+          } else if (state is ReminderDeleted) {
+            final owner = _findReminderOwner(state.id);
+            if (owner == null) return;
+
+            _updatePlannerItemReminders(
+              owner.id,
+              state.id,
+              isAdd: false,
+              isHomework: owner is HomeworkModel,
             );
           }
         },
@@ -2497,11 +2537,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
       );
     }
 
-    final hasResources =
-        plannerItem is HomeworkModel && plannerItem.resources.isNotEmpty;
-    final hasAttachments = plannerItem.attachments.isNotEmpty;
-    final hasReminders = plannerItem.reminders.isNotEmpty;
-    if (hasResources || hasAttachments || hasReminders) {
+    if (PlannerItemMetaRow.hasAny(plannerItem)) {
       rows.add(
         _PlannerTooltipRow.widget(
           widget: Container(
@@ -2617,52 +2653,14 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
   }
 
   Widget _buildTooltipMetaCountsRow(PlannerItemBaseModel plannerItem) {
-    final rowTextStyle = AppStyles.formText(
-      context,
-    ).copyWith(color: context.colorScheme.onSurface);
-    final statWidgets = <Widget>[];
-
-    void addStat({
-      required IconData icon,
-      required int count,
-      required Color color,
-    }) {
-      statWidgets.addAll([
-        Icon(icon, size: 14, color: color),
-        const SizedBox(width: 4),
-        Text('$count', style: rowTextStyle.copyWith(color: color)),
-      ]);
-    }
-
-    if (plannerItem is HomeworkModel && plannerItem.resources.isNotEmpty) {
-      addStat(
-        icon: Icons.book_outlined,
-        count: plannerItem.resources.length,
-        color: userSettings!.resourceColor.withValues(alpha: 0.9),
-      );
-    }
-    if (plannerItem.attachments.isNotEmpty) {
-      if (statWidgets.isNotEmpty) {
-        statWidgets.add(const SizedBox(width: 12));
-      }
-      addStat(
-        icon: Icons.attachment,
-        count: plannerItem.attachments.length,
-        color: context.semanticColors.success.withValues(alpha: 0.9),
-      );
-    }
-    if (plannerItem.reminders.isNotEmpty) {
-      if (statWidgets.isNotEmpty) {
-        statWidgets.add(const SizedBox(width: 12));
-      }
-      addStat(
-        icon: Icons.notifications_outlined,
-        count: plannerItem.reminders.length,
-        color: context.colorScheme.primary.withValues(alpha: 0.9),
-      );
-    }
-
-    return Row(mainAxisSize: MainAxisSize.min, children: statWidgets);
+    return PlannerItemMetaRow(
+      plannerItem: plannerItem,
+      userSettings: userSettings!,
+      countTextStyle: AppStyles.formText(
+        context,
+      ).copyWith(color: context.colorScheme.onSurface),
+      maxEntries: null,
+    );
   }
 
   Future<void> _refreshExternalCalendarsMap() async {
@@ -3541,6 +3539,61 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
         : (plannerItem as EventModel).copyWith(attachments: updatedAttachments);
 
     _plannerItemDataSource!.updatePlannerItem(updatedItem);
+  }
+
+  void _updatePlannerItemReminders(
+    int itemId,
+    dynamic reminderData, {
+    required bool isAdd,
+    required bool isHomework,
+  }) {
+    final PlannerItemBaseModel? plannerItem = isHomework
+        ? _plannerItemDataSource!.allHomeworks.firstWhereOrNull(
+            (h) => h.id == itemId,
+          )
+        : _plannerItemDataSource!.allEvents.firstWhereOrNull(
+            (e) => e.id == itemId,
+          );
+
+    if (plannerItem == null) return;
+
+    final updatedReminders = List<IdOrEntity<ReminderModel>>.from(
+      plannerItem.reminders,
+    );
+
+    if (isAdd) {
+      final reminder = reminderData as ReminderModel;
+      final entry = IdOrEntity<ReminderModel>(
+        id: reminder.id,
+        entity: reminder,
+      );
+      final existingIdx = updatedReminders.indexWhere(
+        (r) => r.id == reminder.id,
+      );
+      if (existingIdx >= 0) {
+        updatedReminders[existingIdx] = entry;
+      } else {
+        updatedReminders.add(entry);
+      }
+    } else {
+      final reminderId = reminderData as int;
+      updatedReminders.removeWhere((r) => r.id == reminderId);
+    }
+
+    final PlannerItemBaseModel updatedItem = isHomework
+        ? (plannerItem as HomeworkModel).copyWith(reminders: updatedReminders)
+        : (plannerItem as EventModel).copyWith(reminders: updatedReminders);
+
+    _plannerItemDataSource!.updatePlannerItem(updatedItem);
+  }
+
+  PlannerItemBaseModel? _findReminderOwner(int reminderId) {
+    return _plannerItemDataSource!.allHomeworks.firstWhereOrNull(
+          (h) => h.reminders.any((r) => r.id == reminderId),
+        ) ??
+        _plannerItemDataSource!.allEvents.firstWhereOrNull(
+          (e) => e.reminders.any((r) => r.id == reminderId),
+        );
   }
 
   void _openFilterMenu(BuildContext context) {

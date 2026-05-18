@@ -13,7 +13,7 @@ import 'package:heliumapp/presentation/features/shared/widgets/core/base_reminde
 class PlannerItemReminders extends BaseReminders {
   final bool isEvent;
 
-  PlannerItemReminders({
+  const PlannerItemReminders({
     super.key,
     required this.isEvent,
     required super.entityId,

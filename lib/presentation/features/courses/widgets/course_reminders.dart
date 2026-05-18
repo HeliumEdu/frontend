@@ -11,7 +11,7 @@ import 'package:heliumapp/presentation/features/planner/bloc/reminder_event.dart
 import 'package:heliumapp/presentation/features/shared/widgets/core/base_reminders.dart';
 
 class CourseReminders extends BaseReminders {
-  CourseReminders({
+  const CourseReminders({
     super.key,
     required super.entityId,
     required super.isEdit,
