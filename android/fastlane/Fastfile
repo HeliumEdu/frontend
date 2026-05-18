@@ -31,13 +31,19 @@ platform :android do
     # Play requires changelogs/<versionCode>.txt for every release. Generate
     # it from the canonical template — release notes rarely vary per build,
     # so we keep one source of truth and stamp each versionCode at deploy time.
-    template = "fastlane/metadata/android/en-US/default_release_notes.txt"
-    changelog = "fastlane/metadata/android/en-US/changelogs/#{version_code}.txt"
+    # Paths anchored to __dir__ (the Fastfile's own directory) because fastlane
+    # chdirs into fastlane/ before lane execution, making CWD-relative paths
+    # ambiguous.
+    metadata_dir = File.join(__dir__, "metadata/android")
+    template = File.join(metadata_dir, "en-US/default_release_notes.txt")
+    changelog_dir = File.join(metadata_dir, "en-US/changelogs")
+    changelog = File.join(changelog_dir, "#{version_code}.txt")
     UI.user_error!("Missing #{template}") unless File.exist?(template)
-    FileUtils.mkdir_p(File.dirname(changelog))
+    FileUtils.mkdir_p(changelog_dir)
     FileUtils.cp(template, changelog)
 
     upload_to_play_store(
+      metadata_path: metadata_dir,
       track: 'internal',
       track_promote_to: 'production',
       track_promote_release_status: 'draft',
