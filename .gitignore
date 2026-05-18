@@ -50,6 +50,10 @@ android/service-account-key.json
 ios/fastlane/metadata/review_information/
 ios/fastlane/metadata/en-US/apple_tv_privacy_policy.txt
 
+# Per-versionCode changelogs are generated at deploy time from
+# default_release_notes.txt; only the template is tracked.
+android/fastlane/metadata/android/en-US/changelogs/
+
 # Android Studio will place build artifacts here
 /android/app/debug
 /android/app/profile
