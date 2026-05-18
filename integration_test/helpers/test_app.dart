@@ -403,7 +403,7 @@ Future<bool> waitForRoute(
   return false;
 }
 
-final _zeroWidthPattern = RegExp('[​‌‍﻿]');
+final _zeroWidthPattern = RegExp('[\u200B\u200C\u200D\uFEFF]');
 
 extension _StringSanitization on String {
   String stripZeroWidthChars() => replaceAll(_zeroWidthPattern, '');
