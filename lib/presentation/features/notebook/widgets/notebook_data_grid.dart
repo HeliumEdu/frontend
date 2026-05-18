@@ -5,7 +5,9 @@
 //
 // For details regarding the license, please refer to the LICENSE file.
 
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
+import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/data/models/auth/user_model.dart';
 import 'package:heliumapp/data/models/planner/note_model.dart';
@@ -17,6 +19,7 @@ import 'package:heliumapp/presentation/ui/feedback/empty_card.dart';
 import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
 import 'package:heliumapp/presentation/ui/components/base_data_grid.dart';
 import 'package:heliumapp/utils/app_globals.dart';
+import 'package:heliumapp/utils/deep_link_helpers.dart';
 import 'package:heliumapp/utils/error_helpers.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/color_helpers.dart';
@@ -657,6 +660,10 @@ class NotesDataSource extends BaseDataGridSource {
               columnName: '_entityType',
               value: note.linkedEntityType,
             ),
+            DataGridCell<int?>(
+              columnName: '_linkedEntityId',
+              value: _linkedEntityIdFor(note),
+            ),
             DataGridCell<String>(columnName: '_originalTitle', value: note.title),
             DataGridCell<String>(
               columnName: '_originalLinkedTo',
@@ -680,6 +687,52 @@ class NotesDataSource extends BaseDataGridSource {
     _allRows = rows;
     dataGridRows = _allRows;
     sortDataGridRows(dataGridRows);
+  }
+
+  static int? _linkedEntityIdFor(NoteModel note) {
+    return switch (note.linkedEntityType) {
+      'homework' => note.homework.firstOrNull,
+      'event' => note.events.firstOrNull,
+      'resource' => note.resources.firstOrNull,
+      _ => null,
+    };
+  }
+
+  static String? _linkedEntityRoute(String entityType, int entityId) {
+    return switch (entityType) {
+      'homework' =>
+        '${AppRoute.plannerScreen}?${DeepLinkParam.homeworkId}=$entityId',
+      'event' => '${AppRoute.plannerScreen}?${DeepLinkParam.eventId}=$entityId',
+      'resource' =>
+        '${AppRoute.resourcesScreen}?${DeepLinkParam.id}=$entityId',
+      _ => null,
+    };
+  }
+
+  static String _linkedEntityTooltip(String entityType) {
+    return entityType == 'resource' ? 'Open in Resources' : 'Open in Planner';
+  }
+
+  Widget _wrapLinkedBadge({
+    required Widget badge,
+    required BuildContext context,
+    required String entityType,
+    required int? entityId,
+  }) {
+    if (entityId == null) return badge;
+    final route = _linkedEntityRoute(entityType, entityId);
+    if (route == null) return badge;
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      child: Tooltip(
+        message: _linkedEntityTooltip(entityType),
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: () => navigateAndClearStack(context, route),
+          child: badge,
+        ),
+      ),
+    );
   }
 
   List<DataGridCell> _getDisplayCells(DataGridRow row) {
@@ -785,6 +838,19 @@ class NotesDataSource extends BaseDataGridSource {
           ? TextDecoration.lineThrough
           : null;
 
+      final linkedEntityId =
+          row
+                  .getCells()
+                  .firstWhere(
+                    (c) => c.columnName == '_linkedEntityId',
+                    orElse: () => const DataGridCell<int?>(
+                      columnName: '_linkedEntityId',
+                      value: null,
+                    ),
+                  )
+                  .value
+              as int?;
+
       final Widget badge;
       if (entityType == 'resource' && userSettings != null) {
         badge = ResourceTitleLabel(
@@ -827,7 +893,12 @@ class NotesDataSource extends BaseDataGridSource {
       return Container(
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
         alignment: Alignment.centerLeft,
-        child: badge,
+        child: _wrapLinkedBadge(
+          badge: badge,
+          context: context,
+          entityType: entityType,
+          entityId: linkedEntityId,
+        ),
       );
     }
 

@@ -132,6 +132,8 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
   bool _autoSaveDisabled = false;
   StreamSubscription<DocChange>? _documentSubscription;
 
+  String? _pendingRedirectRoute;
+
   @override
   void initState() {
     super.initState();
@@ -201,6 +203,12 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
 
   void _closeImmediately() {
     if (!mounted) return;
+    final redirect = _pendingRedirectRoute;
+    if (redirect != null) {
+      _pendingRedirectRoute = null;
+      navigateAndClearStack(context, redirect);
+      return;
+    }
     Navigator.of(context).pop();
   }
 
@@ -243,6 +251,7 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
     }
 
     if (!_formController.validateAndScrollToError()) {
+      _pendingRedirectRoute = null;
       showSnackBar(
         context,
         'Fix the highlighted fields, then try again.',
@@ -941,42 +950,74 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
 
   Widget _buildLinkedEntityBadge() {
     final entityType = _linkedEntityType ?? '';
-    final entityTitle = _linkedEntityTitle;
-    final title = entityTitle ?? 'Linked $entityType';
+    final title = _linkedEntityTitle ?? '';
 
+    final Widget badge;
     if (entityType == 'resource') {
       if (userSettings == null) return const SizedBox.shrink();
-      return ResourceTitleLabel(title: title, userSettings: userSettings!);
-    }
-
-    if (entityType == 'event') {
-      return GenericLabel(
+      badge = ResourceTitleLabel(title: title, userSettings: userSettings!);
+    } else if (entityType == 'event') {
+      badge = GenericLabel(
         label: title,
         color: userSettings?.eventsColor ?? context.colorScheme.tertiary,
         icon: AppConstants.eventIcon,
       );
-    }
-
-    if (entityType == 'homework') {
+    } else if (entityType == 'homework') {
       final courseColor = _note?.courseColor ?? _linkedEntityColor;
       final categoryColor = _note?.categoryColor;
       final badgeColor =
           (userSettings?.colorByCategory ?? false) && categoryColor != null
           ? categoryColor
           : courseColor;
-      return GenericLabel(
+      badge = GenericLabel(
         label: title,
         color: badgeColor ?? context.colorScheme.primary,
         icon: AppConstants.assignmentIcon,
       );
+    } else {
+      return Text(
+        title,
+        style: AppStyles.standardBodyText(
+          context,
+        ).copyWith(color: context.colorScheme.onSurface.withValues(alpha: 0.6)),
+        overflow: TextOverflow.ellipsis,
+      );
     }
 
-    return Text(
-      title,
-      style: AppStyles.standardBodyText(
-        context,
-      ).copyWith(color: context.colorScheme.onSurface.withValues(alpha: 0.6)),
-      overflow: TextOverflow.ellipsis,
+    final entityId = switch (entityType) {
+      'homework' => _note?.homework.firstOrNull,
+      'event' => _note?.events.firstOrNull,
+      'resource' => _note?.resources.firstOrNull,
+      _ => null,
+    };
+    if (entityId == null) return badge;
+
+    final route = switch (entityType) {
+      'homework' =>
+        '${AppRoute.plannerScreen}?${DeepLinkParam.homeworkId}=$entityId',
+      'event' => '${AppRoute.plannerScreen}?${DeepLinkParam.eventId}=$entityId',
+      'resource' =>
+        '${AppRoute.resourcesScreen}?${DeepLinkParam.id}=$entityId',
+      _ => null,
+    };
+    if (route == null) return badge;
+
+    final tooltip = entityType == 'resource'
+        ? 'Open in Resources'
+        : 'Open in Planner';
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      child: Tooltip(
+        message: tooltip,
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: () {
+            _pendingRedirectRoute = route;
+            _saveAndClose();
+          },
+          child: badge,
+        ),
+      ),
     );
   }
 }
