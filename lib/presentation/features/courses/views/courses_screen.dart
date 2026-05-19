@@ -46,6 +46,7 @@ import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
 import 'package:heliumapp/presentation/ui/layout/mobile_gesture_detector.dart';
 import 'package:heliumapp/presentation/ui/components/pill_badge.dart';
 import 'package:heliumapp/presentation/ui/layout/responsive_card_grid.dart';
+import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/error_helpers.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/date_time_helpers.dart';
@@ -312,21 +313,43 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen>
         }
 
         if (_courseGroups.isEmpty) {
-          return const EmptyCard(
+          return EmptyCard(
             icon: Icons.school,
             title: "You haven't added any groups yet",
             message: 'Click "+ Add Group" to get started',
             expanded: false,
+            action: OutlinedButton(
+              onPressed: () => UrlHelpers.launchWebUrl(AppConstants.whereToStartUrl),
+              child: const Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.menu_book_outlined, size: 18),
+                  SizedBox(width: 8),
+                  Text('Where to Start'),
+                ],
+              ),
+            ),
           );
         }
 
         if (_selectedGroupId == null ||
             (_coursesMap[_selectedGroupId]?.isEmpty ?? true)) {
-          return const EmptyCard(
+          return EmptyCard(
             icon: Icons.school,
             title: "You haven't added any classes yet",
             message: 'Click "+" to get started',
             expanded: false,
+            action: OutlinedButton(
+              onPressed: () => UrlHelpers.launchWebUrl(AppConstants.whereToStartUrl),
+              child: const Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.menu_book_outlined, size: 18),
+                  SizedBox(width: 8),
+                  Text('Where to Start'),
+                ],
+              ),
+            ),
           );
         }
 
