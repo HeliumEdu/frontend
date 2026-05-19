@@ -31,10 +31,10 @@ platform :android do
     # Play requires changelogs/<versionCode>.txt for every release. Generate
     # it from the canonical template — release notes rarely vary per build,
     # so we keep one source of truth and stamp each versionCode at deploy time.
-    # Paths anchored to __dir__ (the Fastfile's own directory) because fastlane
-    # chdirs into fastlane/ before lane execution, making CWD-relative paths
-    # ambiguous.
-    metadata_dir = File.join(__dir__, "metadata/android")
+    # Lane CWD is the android/ gradle root (workflow does `cd android` before
+    # `bundle exec fastlane`); resolve absolute so supply isn't sensitive to
+    # any subsequent chdir.
+    metadata_dir = File.expand_path("fastlane/metadata/android")
     template = File.join(metadata_dir, "en-US/default_release_notes.txt")
     changelog_dir = File.join(metadata_dir, "en-US/changelogs")
     changelog = File.join(changelog_dir, "#{version_code}.txt")
