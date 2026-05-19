@@ -15,6 +15,7 @@ class EmptyCard extends StatelessWidget {
   final String message;
   final String title;
   final bool expanded;
+  final Widget? action;
 
   const EmptyCard({
     super.key,
@@ -22,6 +23,7 @@ class EmptyCard extends StatelessWidget {
     required this.message,
     this.title = 'Nothing to see here',
     this.expanded = true,
+    this.action,
   });
 
   @override
@@ -54,6 +56,10 @@ class EmptyCard extends StatelessWidget {
             message,
             style: AppStyles.standardBodyTextLight(context).copyWith(color: onSurface),
           ),
+          if (action != null) ...[
+            const SizedBox(height: 20),
+            action!,
+          ],
             ],
           ),
         ),
