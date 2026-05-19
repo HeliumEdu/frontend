@@ -18,6 +18,7 @@ class AppConstants {
   static const androidUrl = 'https://play.google.com/store/apps/details?id=com.heliumedu.heliumapp';
   static const patreonUrl = 'https://www.patreon.com/alexdlaird/membership';
   static const githubUrl = 'https://github.com/HeliumEdu';
+  static const whereToStartUrl = 'https://www.heliumedu.com/support/getting-started/where-to-start-with-helium';
 
   static const assignmentIcon = Icons.assignment_outlined;
   static const eventIcon = Icons.event_outlined;
