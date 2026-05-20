@@ -324,7 +324,7 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen>
               icon: Icons.menu_book_outlined,
               backgroundColor: context.colorScheme.onSurfaceVariant,
               fullWidth: false,
-              onPressed: () => UrlHelpers.launchWebUrl(AppConstants.whereToStartUrl),
+              onPressed: () => UrlHelpers.launchWebUrl(AppConstants.supportWhereToStartUrl),
             ),
           );
         }
@@ -341,7 +341,7 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen>
               icon: Icons.menu_book_outlined,
               backgroundColor: context.colorScheme.onSurfaceVariant,
               fullWidth: false,
-              onPressed: () => UrlHelpers.launchWebUrl(AppConstants.whereToStartUrl),
+              onPressed: () => UrlHelpers.launchWebUrl(AppConstants.supportWhereToStartUrl),
             ),
           );
         }

@@ -29,6 +29,7 @@ import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:heliumapp/utils/snack_bar_helpers.dart';
 import 'package:heliumapp/utils/sort_helpers.dart';
+import 'package:heliumapp/utils/url_helpers.dart';
 
 class ExternalCalendarsScreen extends StatefulWidget {
   const ExternalCalendarsScreen({super.key});
@@ -94,11 +95,19 @@ class ExternalCalendarsScreenState extends State<ExternalCalendarsScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Padding(
-            padding: EdgeInsets.only(bottom: 12),
+          Padding(
+            padding: const EdgeInsets.only(bottom: 12),
             child: InfoContainer(
               text:
-                  'External Calendars allow you to bring other calendars into Helium',
+                  'External Calendars allow you to bring other calendars into Helium.',
+              trailing: HeliumIconButton(
+                icon: Icons.menu_book_outlined,
+                backgroundColor: context.colorScheme.onSurfaceVariant,
+                tooltip: 'Learn more',
+                onPressed: () => UrlHelpers.launchWebUrl(
+                  AppConstants.supportExternalCalendarsUrl,
+                ),
+              ),
             ),
           ),
           if (DialogModeProvider.isDialogMode(context))

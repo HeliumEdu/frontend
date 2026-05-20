@@ -34,6 +34,7 @@ import 'package:heliumapp/presentation/features/settings/views/preferences_scree
 import 'package:heliumapp/presentation/features/shared/bloc/core/base_event.dart';
 import 'package:heliumapp/presentation/features/shared/controllers/basic_form_controller.dart';
 import 'package:heliumapp/presentation/ui/components/helium_elevated_button.dart';
+import 'package:heliumapp/presentation/ui/components/helium_icon_button.dart';
 import 'package:heliumapp/presentation/ui/components/label_and_text_form_field.dart';
 import 'package:heliumapp/presentation/ui/components/support_helium_card.dart';
 import 'package:heliumapp/presentation/ui/feedback/discard_changes_scope.dart';
@@ -458,19 +459,8 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
-            mainAxisAlignment: MainAxisAlignment.end,
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              IconButton(
-                onPressed: () =>
-                    launchUrl(Uri.parse('https://www.heliumedu.com/support')),
-                icon: Icon(
-                  Icons.menu_book_outlined,
-                  color: context.colorScheme.onSurfaceVariant,
-                  size: 30.0,
-                ),
-                tooltip: 'Support Portal',
-              ),
-              const SizedBox(width: 8),
               SegmentedButton<ThemeMode>(
                 segments: const [
                   ButtonSegment<ThemeMode>(
@@ -505,6 +495,13 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
                   );
                 },
                 showSelectedIcon: false,
+              ),
+              HeliumIconButton(
+                onPressed: () =>
+                    launchUrl(Uri.parse(AppConstants.supportPortalUrl)),
+                icon: Icons.menu_book_outlined,
+                backgroundColor: context.colorScheme.onSurfaceVariant,
+                tooltip: 'Support Portal',
               ),
             ],
           ),
@@ -593,7 +590,7 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
           _buildSettingsItem(
             icon: Icons.swap_horiz,
             label: 'Import/Export',
-            hint: 'Backup and restore your data',
+            hint: 'Backup, restore, or import a schedule',
             onTap: () => _navigateToSubSettings(SettingsSubScreen.importExport),
             iconColor: context.colorScheme.primary,
           ),

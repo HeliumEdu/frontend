@@ -16,6 +16,7 @@ import 'package:heliumapp/presentation/features/auth/bloc/auth_bloc.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_event.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_state.dart';
 import 'package:heliumapp/presentation/ui/components/helium_elevated_button.dart';
+import 'package:heliumapp/presentation/ui/components/helium_icon_button.dart';
 import 'package:heliumapp/presentation/ui/feedback/info_container.dart';
 import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
 import 'package:heliumapp/presentation/ui/feedback/warning_container.dart';
@@ -23,6 +24,7 @@ import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:heliumapp/utils/snack_bar_helpers.dart';
+import 'package:heliumapp/utils/url_helpers.dart';
 import 'package:share_plus/share_plus.dart';
 
 class FeedsScreen extends StatefulWidget {
@@ -42,10 +44,17 @@ class _FeedsScreenState extends State<FeedsScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Padding(
-          padding: EdgeInsets.only(bottom: 12),
+        Padding(
+          padding: const EdgeInsets.only(bottom: 12),
           child: InfoContainer(
-            text: "Feeds allow you to take Helium's calendars elsewhere",
+            text: "Feeds allow you to take Helium's calendars elsewhere.",
+            trailing: HeliumIconButton(
+              icon: Icons.menu_book_outlined,
+              backgroundColor: context.colorScheme.onSurfaceVariant,
+              tooltip: 'Learn more',
+              onPressed: () =>
+                  UrlHelpers.launchWebUrl(AppConstants.supportFeedsUrl),
+            ),
           ),
         ),
         BlocBuilder<AuthBloc, AuthState>(
@@ -337,15 +346,6 @@ class _FeedsScreenState extends State<FeedsScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          HeliumElevatedButton(
-            icon: Icons.link_off,
-            buttonText: 'Disable All',
-            onPressed: () => _showDisableFeedsDialog(context),
-            backgroundColor: context.colorScheme.error,
-          ),
-
-          const SizedBox(height: 12),
-
           const WarningContainer(
             text:
                 'Keep private feed URLs secret. Disabling and re-enabling a feed will regenerate its URL.',
@@ -377,6 +377,17 @@ class _FeedsScreenState extends State<FeedsScreen> {
             url: eventsUrl,
             label: 'Events',
           ),
+
+          const Divider(height: 24),
+
+          HeliumElevatedButton(
+            icon: Icons.link_off,
+            buttonText: 'Disable All',
+            onPressed: () => _showDisableFeedsDialog(context),
+            backgroundColor: context.colorScheme.error,
+          ),
+
+          const SizedBox(height: 12),
         ],
       ),
     );
