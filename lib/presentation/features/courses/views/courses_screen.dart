@@ -41,6 +41,7 @@ import 'package:heliumapp/presentation/ui/components/course_title_label.dart';
 import 'package:heliumapp/presentation/ui/feedback/empty_card.dart';
 import 'package:heliumapp/presentation/ui/feedback/error_card.dart';
 import 'package:heliumapp/presentation/ui/components/group_dropdown.dart';
+import 'package:heliumapp/presentation/ui/components/helium_elevated_button.dart';
 import 'package:heliumapp/presentation/ui/components/helium_icon_button.dart';
 import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
 import 'package:heliumapp/presentation/ui/layout/mobile_gesture_detector.dart';
@@ -318,16 +319,12 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen>
             title: "You haven't added any groups yet",
             message: 'Click "+ Add Group" to get started',
             expanded: false,
-            action: OutlinedButton(
+            action: HeliumElevatedButton(
+              buttonText: 'Where to Start',
+              icon: Icons.menu_book_outlined,
+              backgroundColor: context.colorScheme.onSurfaceVariant,
+              fullWidth: false,
               onPressed: () => UrlHelpers.launchWebUrl(AppConstants.whereToStartUrl),
-              child: const Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(Icons.menu_book_outlined, size: 18),
-                  SizedBox(width: 8),
-                  Text('Where to Start'),
-                ],
-              ),
             ),
           );
         }
@@ -339,16 +336,12 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen>
             title: "You haven't added any classes yet",
             message: 'Click "+" to get started',
             expanded: false,
-            action: OutlinedButton(
+            action: HeliumElevatedButton(
+              buttonText: 'Where to Start',
+              icon: Icons.menu_book_outlined,
+              backgroundColor: context.colorScheme.onSurfaceVariant,
+              fullWidth: false,
               onPressed: () => UrlHelpers.launchWebUrl(AppConstants.whereToStartUrl),
-              child: const Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(Icons.menu_book_outlined, size: 18),
-                  SizedBox(width: 8),
-                  Text('Where to Start'),
-                ],
-              ),
             ),
           );
         }

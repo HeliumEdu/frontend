@@ -465,7 +465,7 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
                     launchUrl(Uri.parse('https://www.heliumedu.com/support')),
                 icon: Icon(
                   Icons.menu_book_outlined,
-                  color: context.colorScheme.primary,
+                  color: context.colorScheme.onSurfaceVariant,
                   size: 30.0,
                 ),
                 tooltip: 'Support Portal',
