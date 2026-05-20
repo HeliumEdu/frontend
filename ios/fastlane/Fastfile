@@ -78,5 +78,24 @@ platform :ios do
       force: true,
       precheck_include_in_app_purchases: false
     )
+
+    # `upload_to_app_store` only auto-selects a TestFlight build when
+    # `submit_for_review: true`. We deliberately stop short of submit, so
+    # deliver leaves the App Store version unattached. Select the build
+    # explicitly so the version lands fully staged — operator only has to
+    # click Submit for Review.
+    edit_version = spaceship_app.get_edit_app_store_version(platform: "IOS")
+    UI.user_error!("No editable App Store version found for #{version} after upload_to_app_store") unless edit_version
+
+    build = Spaceship::ConnectAPI::Build.all(
+      app_id: spaceship_app.id,
+      filter: { "preReleaseVersion.version" => version, version: build_number },
+      includes: "preReleaseVersion",
+      limit: 1
+    ).first
+    UI.user_error!("TestFlight build #{version} (#{build_number}) not found in App Store Connect — TestFlight processing may not have completed.") unless build
+
+    edit_version.select_build(build_id: build.id)
+    UI.success("Attached build #{version} (#{build_number}) to App Store version #{version}")
   end
 end
