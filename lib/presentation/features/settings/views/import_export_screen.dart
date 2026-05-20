@@ -22,12 +22,15 @@ import 'package:heliumapp/presentation/features/auth/bloc/auth_event.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/info/info_bloc.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/info/info_state.dart';
 import 'package:heliumapp/presentation/ui/components/helium_elevated_button.dart';
+import 'package:heliumapp/presentation/ui/components/helium_icon_button.dart';
 import 'package:heliumapp/presentation/ui/feedback/info_container.dart';
+import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/format_helpers.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:heliumapp/utils/snack_bar_helpers.dart';
 import 'package:heliumapp/utils/storage_helpers.dart';
+import 'package:heliumapp/utils/url_helpers.dart';
 import 'package:logging/logging.dart';
 
 final _log = Logger('presentation.settings');
@@ -56,9 +59,19 @@ class _ImportExportScreenState extends State<ImportExportScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Padding(
-            padding: EdgeInsets.only(bottom: 12),
-            child: InfoContainer(text: 'Backup and restore your Helium data'),
+          Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: InfoContainer(
+              text: 'Backup, restore, or import data from an automated tool or shared schedule.',
+              trailing: HeliumIconButton(
+                icon: Icons.menu_book_outlined,
+                backgroundColor: context.colorScheme.onSurfaceVariant,
+                tooltip: 'Learn more',
+                onPressed: () => UrlHelpers.launchWebUrl(
+                  AppConstants.supportImportExportUrl,
+                ),
+              ),
+            ),
           ),
           _buildImportSection(context),
           const SizedBox(height: 24),
@@ -82,7 +95,7 @@ class _ImportExportScreenState extends State<ImportExportScreen> {
         Text('Import', style: AppStyles.featureText(context)),
         const SizedBox(height: 8),
         Text(
-          'Import a Helium backup from a JSON file',
+          'Import a Helium file',
           style: AppStyles.standardBodyTextLight(context),
         ),
         const SizedBox(height: 16),
@@ -163,7 +176,7 @@ class _ImportExportScreenState extends State<ImportExportScreen> {
         Text('Export', style: AppStyles.featureText(context)),
         const SizedBox(height: 8),
         Text(
-          'Export all data (excluding attachments) to a JSON file',
+          'Export your data to a Helium file (no attachments)',
           style: AppStyles.standardBodyTextLight(context),
         ),
         const SizedBox(height: 16),

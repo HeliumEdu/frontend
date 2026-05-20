@@ -18,12 +18,14 @@ class InfoContainer extends StatelessWidget {
   final String text;
   final IconData? icon;
   final VoidCallback? onDismiss;
+  final Widget? trailing;
 
   const InfoContainer({
     super.key,
     required this.text,
     this.icon,
     this.onDismiss,
+    this.trailing,
   });
 
   @override
@@ -59,6 +61,10 @@ class InfoContainer extends StatelessWidget {
               style: AppStyles.standardBodyText(context),
             ),
           ),
+          if (trailing != null) ...[
+            const SizedBox(width: 8),
+            trailing!,
+          ],
           if (onDismiss != null) ...[
             const SizedBox(width: 8),
             Semantics(

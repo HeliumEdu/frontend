@@ -66,9 +66,9 @@ class _SignupScreenState extends BasePageScreenState<SignupScreen> {
     super.initState();
 
     _termsRecognizer = TapGestureRecognizer()
-      ..onTap = () => UrlHelpers.launchWebUrl('https://www.heliumedu.com/terms');
+      ..onTap = () => UrlHelpers.launchWebUrl(AppConstants.termsUrl);
     _privacyRecognizer = TapGestureRecognizer()
-      ..onTap = () => UrlHelpers.launchWebUrl('https://www.heliumedu.com/privacy');
+      ..onTap = () => UrlHelpers.launchWebUrl(AppConstants.privacyUrl);
 
     _initializeForm();
 
