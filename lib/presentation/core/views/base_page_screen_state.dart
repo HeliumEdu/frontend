@@ -215,7 +215,13 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
         isLoading = true;
       });
 
-      loadSettings();
+      loadSettings().whenComplete(() {
+        if (mounted) {
+          setState(() {
+            isLoading = false;
+          });
+        }
+      });
     }
   }
 

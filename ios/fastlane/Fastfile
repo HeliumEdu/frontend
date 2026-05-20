@@ -84,13 +84,18 @@ platform :ios do
     # deliver leaves the App Store version unattached. Select the build
     # explicitly so the version lands fully staged — operator only has to
     # click Submit for Review.
+    #
+    # Note: Spaceship's Build.all keyword names are counter-intuitive — the
+    # `version:` keyword filters by `preReleaseVersion.version` (the SEMVER),
+    # and the `build_number:` keyword filters by the Build's own `version`
+    # field (the CFBundleVersion). See spaceship/connect_api/models/build.rb.
     edit_version = spaceship_app.get_edit_app_store_version(platform: "IOS")
     UI.user_error!("No editable App Store version found for #{version} after upload_to_app_store") unless edit_version
 
     build = Spaceship::ConnectAPI::Build.all(
       app_id: spaceship_app.id,
-      filter: { "preReleaseVersion.version" => version, version: build_number },
-      includes: "preReleaseVersion",
+      version: version,
+      build_number: build_number,
       limit: 1
     ).first
     UI.user_error!("TestFlight build #{version} (#{build_number}) not found in App Store Connect — TestFlight processing may not have completed.") unless build

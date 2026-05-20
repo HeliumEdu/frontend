@@ -10,8 +10,10 @@ import 'package:heliumapp/config/analytics_event.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/core/analytics_service.dart';
 import 'package:heliumapp/presentation/ui/components/helium_elevated_button.dart';
+import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
+import 'package:heliumapp/utils/url_helpers.dart';
 
 class ErrorCard extends StatefulWidget {
   final String message;
@@ -74,6 +76,17 @@ class _ErrorCardState extends State<ErrorCard> {
             child: HeliumElevatedButton(
               buttonText: 'Reload',
               onPressed: widget.onReload,
+            ),
+          ),
+          const SizedBox(height: 12),
+          ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 200),
+            child: HeliumElevatedButton(
+              buttonText: 'Support Portal',
+              icon: Icons.menu_book_outlined,
+              backgroundColor: context.colorScheme.onSurfaceVariant,
+              onPressed: () =>
+                  UrlHelpers.launchWebUrl(AppConstants.supportPortalUrl),
             ),
           ),
         ],

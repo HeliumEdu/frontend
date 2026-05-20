@@ -25,6 +25,7 @@ class HeliumElevatedButton extends StatelessWidget {
   final bool isLoading;
   final bool enabled;
   final Color? backgroundColor;
+  final bool fullWidth;
 
   const HeliumElevatedButton({
     super.key,
@@ -35,6 +36,7 @@ class HeliumElevatedButton extends StatelessWidget {
     this.isLoading = false,
     this.enabled = true,
     this.backgroundColor,
+    this.fullWidth = true,
   });
 
   static ButtonStyle baseStyle(
@@ -72,6 +74,7 @@ class HeliumElevatedButton extends StatelessWidget {
       style: baseStyle(
         context.colorScheme,
         backgroundColor: effectiveBg,
+        minimumWidth: fullWidth ? double.infinity : 0,
       ).copyWith(tapTargetSize: MaterialTapTargetSize.shrinkWrap),
       label: isLoading
           ? LoadingIndicator(

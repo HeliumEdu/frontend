@@ -14,11 +14,19 @@ import 'package:heliumapp/utils/planner_helper.dart';
 class AppConstants {
   static const appName = 'Helium';
 
+  static const _heliumBaseUrl = 'https://www.heliumedu.com';
+
   static const iosUrl = 'https://apps.apple.com/app/app-name/id6758323154';
   static const androidUrl = 'https://play.google.com/store/apps/details?id=com.heliumedu.heliumapp';
   static const patreonUrl = 'https://www.patreon.com/alexdlaird/membership';
   static const githubUrl = 'https://github.com/HeliumEdu';
-  static const whereToStartUrl = 'https://www.heliumedu.com/support/getting-started/where-to-start-with-helium';
+  static const termsUrl = '$_heliumBaseUrl/terms';
+  static const privacyUrl = '$_heliumBaseUrl/privacy';
+  static const supportPortalUrl = '$_heliumBaseUrl/support';
+  static const supportWhereToStartUrl = '$_heliumBaseUrl/support/getting-started/where-to-start-with-helium';
+  static const supportExternalCalendarsUrl = '$_heliumBaseUrl/support/sync-and-integration/how-to-sync-google-apple-or-other-calendars-into-helium-using-external-calendars';
+  static const supportFeedsUrl = '$_heliumBaseUrl/support/sync-and-integration/how-to-sync-helium-out-to-google-apple-or-other-calendars-using-feeds';
+  static const supportImportExportUrl = '$_heliumBaseUrl/support/import-export-and-backup/using-exports-to-backup-data-move-between-accounts';
 
   static const assignmentIcon = Icons.assignment_outlined;
   static const eventIcon = Icons.event_outlined;
