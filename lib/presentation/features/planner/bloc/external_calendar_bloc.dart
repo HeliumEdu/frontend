@@ -23,6 +23,10 @@ class ExternalCalendarBloc
     on<CreateExternalCalendarEvent>(_onCreateExternalCalendar);
     on<UpdateExternalCalendarEvent>(_onUpdateExternalCalendar);
     on<DeleteExternalCalendarEvent>(_onDeleteExternalCalendar);
+    on<ResetExternalCalendarsEvent>(
+      (event, emit) =>
+          emit(ExternalCalendarInitial(origin: EventOrigin.bloc)),
+    );
   }
 
   Future<void> _onFetchExternalCalendars(

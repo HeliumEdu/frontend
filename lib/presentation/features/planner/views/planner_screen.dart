@@ -73,7 +73,6 @@ import 'package:heliumapp/presentation/features/planner/widgets/day_popout_dialo
 import 'package:heliumapp/presentation/features/planner/widgets/planner_item_meta_row.dart';
 import 'package:heliumapp/presentation/features/planner/widgets/todos_data_grid.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/core/base_event.dart';
-import 'package:heliumapp/presentation/features/shared/bloc/core/provider_helpers.dart';
 import 'package:heliumapp/presentation/ui/components/helium_checkbox_list_tile.dart';
 import 'package:heliumapp/presentation/ui/components/helium_icon_button.dart';
 import 'package:heliumapp/presentation/ui/feedback/error_card.dart';
@@ -104,7 +103,6 @@ class PlannerScreen extends StatelessWidget {
   static const String calendarNextButtonKey = 'planner_calendar_next_button';
 
   final DioClient _dioClient = DioClient();
-  final ProviderHelpers _providerHelpers = ProviderHelpers();
 
   PlannerScreen({super.key});
 
@@ -112,8 +110,6 @@ class PlannerScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiBlocProvider(
       providers: [
-        BlocProvider(create: _providerHelpers.createAttachmentBloc()),
-        BlocProvider(create: _providerHelpers.createReminderBloc()),
         BlocProvider(
           create: (context) => PlannerBloc(
             courseRepository: CourseRepositoryImpl(
@@ -191,12 +187,6 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
   String get routePath => AppRoute.plannerScreen;
 
   @override
-  List<BlocProvider>? get inheritableProviders => [
-    BlocProvider<AttachmentBloc>.value(value: context.read<AttachmentBloc>()),
-    BlocProvider<ReminderBloc>.value(value: context.read<ReminderBloc>()),
-  ];
-
-  @override
   VoidCallback get actionButtonCallback => () {
     // For Todos and Schedule views, use today as initial date since we don't
     // have a confident selection. For calendar views, use the selected date.
@@ -208,15 +198,12 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
         ? truncatedNow
         : _calendarController.selectedDate;
 
-    openWithGuard(
-      '${DeepLinkParam.homeworkId}:new',
-      () => showPlannerItemAdd(
-        context,
-        initialDate: initialDate,
-        isFromMonthView: _calendarController.view == CalendarView.month,
-        isEdit: false,
-        isNew: true,
-      ),
+    showPlannerItemAdd(
+      context,
+      initialDate: initialDate,
+      isFromMonthView: _calendarController.view == CalendarView.month,
+      isEdit: false,
+      isNew: true,
     );
   };
 
@@ -396,6 +383,9 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
             settings.defaultView,
           );
           _changeView(defaultView);
+
+          // Dispose the previous instance before replacing it.
+          _plannerItemDataSource?.dispose();
 
           _plannerItemDataSource = PlannerItemDataSource(
             homeworkRepository: HomeworkRepositoryImpl(
@@ -1061,36 +1051,23 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
       _deferredOpenItemId = plannerItem.id;
       _deferredOpenAction = () {
         if (!mounted) return;
-        final paramKey = homeworkId != null
-            ? '${DeepLinkParam.homeworkId}:$homeworkId'
-            : '${DeepLinkParam.eventId}:$eventId';
-        openWithGuard(
-          paramKey,
-          () => showPlannerItemAdd(
-            context,
-            eventId: eventId,
-            homeworkId: homeworkId,
-            isEdit: true,
-            isNew: false,
-          ),
+        showPlannerItemAdd(
+          context,
+          eventId: eventId,
+          homeworkId: homeworkId,
+          isEdit: true,
+          isNew: false,
         );
       };
       return false;
     }
 
-    final paramKey = homeworkId != null
-        ? '${DeepLinkParam.homeworkId}:$homeworkId'
-        : '${DeepLinkParam.eventId}:$eventId';
-
-    openWithGuard(
-      paramKey,
-      () => showPlannerItemAdd(
-        context,
-        eventId: eventId,
-        homeworkId: homeworkId,
-        isEdit: true,
-        isNew: false,
-      ),
+    showPlannerItemAdd(
+      context,
+      eventId: eventId,
+      homeworkId: homeworkId,
+      isEdit: true,
+      isNew: false,
     );
 
     return true;
@@ -3292,7 +3269,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
             : null,
         onEditSchedule: () {
           context.go(
-            '${AppRoute.coursesScreen}?id=${event.ownerId}&${DeepLinkParam.tab}=2',
+            '${AppRoute.coursesScreen}/${event.ownerId}/schedule',
           );
         },
       ),
@@ -4052,7 +4029,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
     } else {
       final RenderBox button = context.findRenderObject() as RenderBox;
       final RenderBox overlay =
-          Overlay.of(context).context.findRenderObject() as RenderBox;
+          Overlay.of(context, rootOverlay: true).context.findRenderObject() as RenderBox;
       final RelativeRect position = RelativeRect.fromRect(
         Rect.fromPoints(
           button.localToGlobal(Offset.zero, ancestor: overlay),
@@ -4069,6 +4046,10 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
         position: position,
         color: context.colorScheme.surface,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        // Open on the root navigator so the popup's tap-outside barrier
+        // covers the header — tapping anywhere on the page (including the
+        // header) dismisses the menu.
+        useRootNavigator: true,
         items: [
           PopupMenuItem(
             enabled: false,
@@ -4158,7 +4139,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
     } else {
       final RenderBox button = buttonContext.findRenderObject() as RenderBox;
       final RenderBox overlay =
-          Overlay.of(context).context.findRenderObject() as RenderBox;
+          Overlay.of(context, rootOverlay: true).context.findRenderObject() as RenderBox;
       final RelativeRect position = RelativeRect.fromRect(
         Rect.fromPoints(
           button.localToGlobal(Offset.zero, ancestor: overlay),
@@ -4175,6 +4156,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
         position: position,
         color: context.colorScheme.surface,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        useRootNavigator: true,
         items: [
           PopupMenuItem(
             enabled: false,

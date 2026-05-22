@@ -20,10 +20,12 @@ platform :android do
     )
   end
 
-  desc "Promote internal-track AAB to a draft Production release, pushing metadata + screenshots"
+  desc "Promote internal-track AAB to Production, pushing metadata + screenshots. Defaults to draft status (operator manually sends for review); set submit_for_review:true to release status 'completed' (auto-sent for review — Managed Publishing in Play Console then gates post-review publish on a manual click)."
   lane :promote_to_production_draft do |options|
     version = options[:version]
     version_code = options[:version_code]
+    # Fastlane CLI args arrive as strings; coerce to a real boolean.
+    submit_for_review = options[:submit_for_review].to_s == "true"
 
     UI.user_error!("version is required") unless version
     UI.user_error!("version_code is required") unless version_code
@@ -45,7 +47,10 @@ platform :android do
       metadata_path: metadata_dir,
       track: 'internal',
       track_promote_to: 'production',
-      track_promote_release_status: 'draft',
+      # 'completed' = auto-submit for review (Managed Publishing then holds
+      # the approved release for manual publish). 'draft' = release sits in
+      # Play Console awaiting manual 'Send for review' click.
+      track_promote_release_status: submit_for_review ? 'completed' : 'draft',
       version_name: version,
       version_code: version_code.to_i,
       skip_upload_aab: true,
@@ -54,5 +59,11 @@ platform :android do
       skip_upload_images: false,
       skip_upload_screenshots: false
     )
+
+    if submit_for_review
+      UI.success("Promoted #{version} (#{version_code}) to Production with release status 'completed'. Google's review is async; once approved Play will hold the release for a manual 'Publish' click in Play Console (Managed Publishing).")
+    else
+      UI.success("Promoted #{version} (#{version_code}) to Production as a draft. Click 'Send for review' in Play Console when ready.")
+    end
   end
 end

@@ -49,6 +49,7 @@ class NoteScreenDataFetched extends NoteState {
   final String? linkedEntityType;
   final String? linkedEntityTitle;
   final Color? linkedEntityColor;
+  final bool? linkedEntityCompleted;
 
   NoteScreenDataFetched({
     required super.origin,
@@ -56,6 +57,7 @@ class NoteScreenDataFetched extends NoteState {
     this.linkedEntityType,
     this.linkedEntityTitle,
     this.linkedEntityColor,
+    this.linkedEntityCompleted,
   });
 }
 

@@ -15,7 +15,6 @@ import 'package:heliumapp/presentation/features/auth/bloc/auth_event.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_state.dart';
 import 'package:heliumapp/presentation/ui/components/drop_down.dart';
 import 'package:heliumapp/presentation/ui/components/helium_checkbox_list_tile.dart';
-import 'package:heliumapp/presentation/ui/feedback/discard_changes_scope.dart';
 import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
 import 'package:heliumapp/presentation/ui/components/searchable_dropdown.dart';
 import 'package:heliumapp/presentation/ui/components/spinner_field.dart';
@@ -124,9 +123,7 @@ class PreferencesScreenState extends State<PreferencesScreen> {
       },
       child: _isLoading
           ? const Center(child: LoadingIndicator(expanded: false))
-          : DiscardChangesScope(
-        isDirty: _isChanged,
-        child: SingleChildScrollView(
+          : SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -405,7 +402,6 @@ class PreferencesScreenState extends State<PreferencesScreen> {
             const SizedBox(height: 12),
           ],
         ),
-      ),
       ),
     );
   }

@@ -167,16 +167,10 @@ Future<void> showResourceGroupDialog<T extends BaseModel>({
   required bool isEdit,
   ResourceGroupModel? group,
 }) {
-  final resourceBloc = parentContext.read<ResourceBloc>();
-
   return showDialog(
     context: parentContext,
     barrierDismissible: false,
-    builder: (BuildContext dialogContext) {
-      return BlocProvider<ResourceBloc>.value(
-        value: resourceBloc,
-        child: _ResourceGroupProvidedWidget(isEdit: isEdit, group: group),
-      );
-    },
+    builder: (BuildContext dialogContext) =>
+        _ResourceGroupProvidedWidget(isEdit: isEdit, group: group),
   );
 }

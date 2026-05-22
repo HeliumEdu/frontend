@@ -58,6 +58,29 @@ void main() {
   });
 
   group('FcmService', () {
+    group('notificationsRoute', () {
+      test(
+        'resolves to the path-based notifications overlay under planner',
+        () {
+          // GIVEN/WHEN — the static route consumed by every FCM tap handler
+          final route = FcmService.notificationsRoute;
+
+          // THEN
+          expect(route, '/planner/notifications');
+        },
+      );
+
+      test('does not use the legacy dialog query-param URL format', () {
+        // GIVEN/WHEN
+        final route = FcmService.notificationsRoute;
+
+        // THEN — regression guard for the legacy `?dialog=notifications`
+        // shape that no longer matches any router redirect.
+        expect(route, isNot(contains('dialog=')));
+        expect(route, isNot(contains('?')));
+      });
+    });
+
     group('showLocalNotification', () {
       test('calls localNotifications.show with correct parameters', () async {
         // GIVEN

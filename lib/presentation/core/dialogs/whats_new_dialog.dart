@@ -6,8 +6,10 @@
 // For details regarding the license, please refer to the LICENSE file.
 
 import 'package:flutter/material.dart';
+import 'package:heliumapp/config/app_router.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/core/whats_new_service.dart';
+import 'package:heliumapp/presentation/navigation/shell/navigation_shell.dart';
 import 'package:heliumapp/presentation/ui/components/helium_elevated_button.dart';
 import 'package:heliumapp/presentation/ui/components/support_helium_card.dart';
 import 'package:heliumapp/utils/app_style.dart';
@@ -15,8 +17,38 @@ import 'package:heliumapp/utils/responsive_helpers.dart';
 
 const String whatsNewDismissButtonKey = 'whats_new_dismiss_button';
 
-class _WhatsNewDialogWidget extends StatelessWidget {
+class _WhatsNewDialogWidget extends StatefulWidget {
   const _WhatsNewDialogWidget();
+
+  @override
+  State<_WhatsNewDialogWidget> createState() => _WhatsNewDialogWidgetState();
+}
+
+class _WhatsNewDialogWidgetState extends State<_WhatsNewDialogWidget> {
+  @override
+  void initState() {
+    super.initState();
+    router.routerDelegate.addListener(_dismissIfOverlayActive);
+  }
+
+  @override
+  void dispose() {
+    router.routerDelegate.removeListener(_dismissIfOverlayActive);
+    super.dispose();
+  }
+
+  /// Pops this dialog when the user opens a route-based overlay (settings,
+  /// notifications, an entity editor). The promotional dialog yields to
+  /// any deliberate navigation rather than being left stranded under it.
+  void _dismissIfOverlayActive() {
+    if (!mounted) return;
+    final path = router.routerDelegate.currentConfiguration.uri.path;
+    final onShellTab =
+        NavigationPage.values.any((page) => page.route == path);
+    if (!onShellTab) {
+      Navigator.of(context).pop();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {

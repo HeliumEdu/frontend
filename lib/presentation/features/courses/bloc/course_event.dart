@@ -15,6 +15,12 @@ abstract class CourseEvent extends BaseEvent {
   CourseEvent({required super.origin});
 }
 
+/// Clears all course state. Dispatched on logout so per-user data does not
+/// carry into the next session.
+class ResetCoursesEvent extends CourseEvent {
+  ResetCoursesEvent() : super(origin: EventOrigin.bloc);
+}
+
 class FetchCoursesScreenDataEvent extends CourseEvent {
   final bool forceRefresh;
 

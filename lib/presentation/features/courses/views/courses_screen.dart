@@ -14,18 +14,10 @@ import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/core/analytics_service.dart';
 import 'package:heliumapp/utils/color_helpers.dart';
-import 'package:heliumapp/core/dio_client.dart';
 import 'package:heliumapp/data/models/base_model.dart';
 import 'package:heliumapp/data/models/planner/course_group_model.dart';
 import 'package:heliumapp/data/models/planner/course_model.dart';
 import 'package:heliumapp/data/models/planner/course_schedule_model.dart';
-import 'package:heliumapp/data/repositories/category_repository_impl.dart';
-import 'package:heliumapp/data/repositories/course_repository_impl.dart';
-import 'package:heliumapp/data/repositories/course_schedule_event_repository_impl.dart';
-import 'package:heliumapp/data/sources/category_remote_data_source.dart';
-import 'package:heliumapp/data/sources/course_remote_data_source.dart';
-import 'package:heliumapp/data/sources/course_schedule_builder_source.dart';
-import 'package:heliumapp/data/sources/course_schedule_remote_data_source.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_bloc.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_state.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/core/base_event.dart';
@@ -57,40 +49,10 @@ import 'package:heliumapp/utils/sort_helpers.dart';
 import 'package:heliumapp/utils/url_helpers.dart';
 
 class CoursesScreen extends StatelessWidget {
-  final DioClient _dioClient = DioClient();
-
-  CoursesScreen({super.key});
-
-  StatefulWidget buildScreen() => const _CoursesProvidedScreen();
+  const CoursesScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return MultiBlocProvider(
-      providers: [
-        BlocProvider(
-          create: (context) => CourseBloc(
-            courseRepository: CourseRepositoryImpl(
-              remoteDataSource: CourseRemoteDataSourceImpl(
-                dioClient: _dioClient,
-              ),
-            ),
-            courseScheduleRepository: CourseScheduleRepositoryImpl(
-              remoteDataSource: CourseScheduleRemoteDataSourceImpl(
-                dioClient: _dioClient,
-              ),
-              builderSource: CourseScheduleBuilderSource(),
-            ),
-            categoryRepository: CategoryRepositoryImpl(
-              remoteDataSource: CategoryRemoteDataSourceImpl(
-                dioClient: _dioClient,
-              ),
-            ),
-          ),
-        ),
-      ],
-      child: buildScreen(),
-    );
-  }
+  Widget build(BuildContext context) => const _CoursesProvidedScreen();
 }
 
 class _CoursesProvidedScreen extends StatefulWidget {
@@ -111,14 +73,10 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen>
   @override
   VoidCallback get actionButtonCallback => () {
     if (_selectedGroupId != null) {
-      openWithGuard(
-        '${DeepLinkParam.id}:new',
-        () => showCourseAdd(
-          context,
-          courseGroupId: _selectedGroupId!,
-          isEdit: false,
-          isNew: true,
-        ),
+      showCourseAdd(
+        context,
+        courseGroupId: _selectedGroupId!,
+        isNew: true,
       );
     } else {
       showSnackBar(context, 'Create a group first.', type: SnackType.info);
@@ -402,57 +360,6 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen>
     openFromQueryParams();
   }
 
-  @override
-  bool handleRouteEntityParams(Map<String, String> queryParams) {
-    final idParam = queryParams[DeepLinkParam.id];
-    if (idParam == null) return false;
-
-    final parsed = DeepLinkParam.parseId(idParam);
-    final tabValue = int.tryParse(queryParams[DeepLinkParam.tab] ?? '') ?? 1;
-    final initialStep = (tabValue - 1).clamp(0, 4);
-
-    if (parsed.isNew) {
-      if (_selectedGroupId == null) return false;
-      return openFromDeepLink('${DeepLinkParam.id}:new', () {
-        return showCourseAdd(
-          context,
-          courseGroupId: _selectedGroupId!,
-          isEdit: false,
-          isNew: true,
-          initialStep: initialStep,
-        );
-      });
-    }
-
-    if (parsed.id != null) {
-      CourseModel? course;
-      for (final courses in _coursesMap.values) {
-        course = courses.firstWhereOrNull((c) => c.id == parsed.id);
-        if (course != null) break;
-      }
-      if (course == null) return false;
-
-      if (_selectedGroupId != course.courseGroup) {
-        setState(() {
-          _selectedGroupId = course!.courseGroup;
-        });
-      }
-
-      return openFromDeepLink('${DeepLinkParam.id}:${parsed.id}', () {
-        return showCourseAdd(
-          context,
-          courseGroupId: course!.courseGroup,
-          courseId: course.id,
-          isEdit: true,
-          isNew: false,
-          initialStep: initialStep,
-        );
-      });
-    }
-
-    return false;
-  }
-
   Widget _buildCourseCard(BuildContext context, CourseModel course) {
     return MobileGestureDetector(
       onTap: () => _onEdit(course),
@@ -728,15 +635,11 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen>
   }
 
   void _onEdit(CourseModel course) {
-    openWithGuard(
-      '${DeepLinkParam.id}:${course.id}',
-      () => showCourseAdd(
-        context,
-        courseGroupId: course.courseGroup,
-        courseId: course.id,
-        isEdit: true,
-        isNew: false,
-      ),
+    showCourseAdd(
+      context,
+      courseGroupId: course.courseGroup,
+      courseId: course.id,
+      isNew: false,
     );
   }
 

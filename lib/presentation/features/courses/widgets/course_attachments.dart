@@ -11,7 +11,7 @@ import 'package:heliumapp/presentation/features/shared/widgets/core/base_attachm
 class CourseAttachments extends BaseAttachments {
   final int courseGroupId;
 
-  CourseAttachments({
+  const CourseAttachments({
     super.key,
     required this.courseGroupId,
     required super.entityId,

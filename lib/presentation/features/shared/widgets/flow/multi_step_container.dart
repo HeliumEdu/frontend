@@ -7,6 +7,8 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
+import 'package:heliumapp/config/dirty_dialog_registry.dart';
 import 'package:heliumapp/data/models/auth/user_model.dart';
 import 'package:heliumapp/presentation/core/views/base_page_screen_state.dart';
 import 'package:heliumapp/presentation/ui/feedback/discard_changes_scope.dart';
@@ -141,10 +143,17 @@ abstract class MultiStepContainerState<T extends MultiStepContainer>
   /// Pops without consulting [isDirty]. Use from bloc listeners after a
   /// successful save where the form is logically clean even if isChanged
   /// hasn't been reset.
+  ///
+  /// Uses `context.pop` so GoRouter's URL state stays in sync when the
+  /// dialog is hosted by a path-based route; for screens still pushed
+  /// imperatively via `showDialog`, this falls through to the same
+  /// navigator pop with no URL side-effect. Also releases the dirty-dialog
+  /// registry slot so the silent guard doesn't fight an intentional close.
   @protected
   void closeWithoutPrompt() {
     if (!mounted) return;
-    Navigator.of(context).pop();
+    DirtyDialogRegistry.releaseActive();
+    context.pop();
   }
 
   Future<void> _attemptDismiss() async {

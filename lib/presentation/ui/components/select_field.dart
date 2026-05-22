@@ -173,7 +173,7 @@ class SelectField<T extends BaseTitledModel> extends StatelessWidget {
     } else {
       final RenderBox button = buttonContext.findRenderObject() as RenderBox;
       final RenderBox overlay =
-          Overlay.of(parentContext).context.findRenderObject() as RenderBox;
+          Overlay.of(parentContext, rootOverlay: true).context.findRenderObject() as RenderBox;
       final RelativeRect position = RelativeRect.fromRect(
         Rect.fromPoints(
           button.localToGlobal(Offset.zero, ancestor: overlay),
@@ -190,6 +190,9 @@ class SelectField<T extends BaseTitledModel> extends StatelessWidget {
         position: position,
         color: Theme.of(parentContext).colorScheme.surface,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0)),
+        // Use the root navigator so the dismiss barrier reliably covers the
+        // page chrome (header / nav rail) — taps there still close the menu.
+        useRootNavigator: true,
         items: [
           PopupMenuItem(
             enabled: false,

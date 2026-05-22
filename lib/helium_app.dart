@@ -22,6 +22,7 @@ import 'package:heliumapp/utils/sf_calendar_helpers.dart';
 import 'package:heliumapp/utils/snack_bar_helpers.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:logging/logging.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 final _log = Logger('app');
 
@@ -32,7 +33,7 @@ class HeliumApp extends StatefulWidget {
   State<HeliumApp> createState() => _HeliumAppState();
 }
 
-class _HeliumAppState extends State<HeliumApp> {
+class _HeliumAppState extends State<HeliumApp> with WidgetsBindingObserver {
   final _themeNotifier = ThemeNotifier();
 
   @override
@@ -40,15 +41,38 @@ class _HeliumAppState extends State<HeliumApp> {
     super.initState();
     _themeNotifier.addListener(_onThemeChanged);
     if (PrintService.isSupported) HardwareKeyboard.instance.addHandler(_handleKeyEvent);
+    WidgetsBinding.instance.addObserver(this);
     _log.info('HeliumApp initialized with theme: ${_themeNotifier.themeMode}');
   }
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _themeNotifier.removeListener(_onThemeChanged);
     if (PrintService.isSupported) HardwareKeyboard.instance.removeHandler(_handleKeyEvent);
     super.dispose();
   }
+
+  // Dismiss any in-app browser left on top when a Universal/App Link
+  // re-enters the app from SFSafariVC / Custom Tabs. Mobile-only: web and
+  // desktop url_launcher implementations don't implement closeWebView and
+  // would throw on every URL change.
+  @override
+  Future<bool> didPushRouteInformation(RouteInformation routeInformation) async {
+    if (_isMobile) unawaited(closeInAppWebView());
+    return false;
+  }
+
+  @override
+  Future<bool> didPushRoute(String route) async {
+    if (_isMobile) unawaited(closeInAppWebView());
+    return false;
+  }
+
+  bool get _isMobile =>
+      !kIsWeb &&
+      (defaultTargetPlatform == TargetPlatform.iOS ||
+          defaultTargetPlatform == TargetPlatform.android);
 
   void _onThemeChanged() {
     setState(() {});

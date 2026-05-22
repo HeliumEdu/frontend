@@ -7,8 +7,10 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
+import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/config/app_theme.dart';
-import 'package:heliumapp/presentation/core/views/notification_screen.dart';
+import 'package:heliumapp/presentation/navigation/shell/navigation_shell.dart';
 import 'package:heliumapp/presentation/ui/components/settings_button.dart';
 import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
 import 'package:heliumapp/utils/app_globals.dart';
@@ -106,7 +108,8 @@ class PageHeader extends StatelessWidget {
                 button: true,
                 child: IconButton(
                   onPressed: () {
-                    showNotifications(context);
+                    final shellPath = BranchPathScope.of(context);
+                    context.push('$shellPath${AppRoute.notificationsScreen}');
                   },
                   icon: Icon(
                     Icons.notifications,

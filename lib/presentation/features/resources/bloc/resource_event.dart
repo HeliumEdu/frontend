@@ -13,6 +13,12 @@ abstract class ResourceEvent extends BaseEvent {
   ResourceEvent({required super.origin});
 }
 
+/// Clears all resource state. Dispatched on logout so per-user data does not
+/// carry into the next session.
+class ResetResourcesEvent extends ResourceEvent {
+  ResetResourcesEvent() : super(origin: EventOrigin.bloc);
+}
+
 class FetchResourcesScreenDataEvent extends ResourceEvent {
   final bool forceRefresh;
 

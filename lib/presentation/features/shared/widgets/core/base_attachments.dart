@@ -14,7 +14,6 @@ import 'package:heliumapp/presentation/features/planner/bloc/attachment_bloc.dar
 import 'package:heliumapp/presentation/features/planner/bloc/attachment_event.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/attachment_state.dart';
 import 'package:heliumapp/presentation/features/planner/dialogs/confirm_delete_dialog.dart';
-import 'package:heliumapp/presentation/features/shared/bloc/core/provider_helpers.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/info/info_bloc.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/info/info_state.dart';
 import 'package:heliumapp/presentation/features/shared/widgets/flow/multi_step_container.dart';
@@ -30,13 +29,9 @@ import 'package:heliumapp/utils/snack_bar_helpers.dart'
     show SnackBarHelper, SnackType;
 import 'package:heliumapp/utils/sort_helpers.dart';
 import 'package:heliumapp/utils/storage_helpers.dart';
-import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
 
-final _log = Logger('presentation.widgets');
-
 abstract class BaseAttachments extends StatelessWidget {
-  final ProviderHelpers _providerHelpers = ProviderHelpers();
   final int entityId;
   final bool isEdit;
   final UserSettingsModel? userSettings;
@@ -45,7 +40,7 @@ abstract class BaseAttachments extends StatelessWidget {
   /// can query the live [BaseAttachmentsState] (e.g. for `hasUnsavedFiles`).
   final GlobalKey<BaseAttachmentsState>? contentKey;
 
-  BaseAttachments({
+  const BaseAttachments({
     super.key,
     required this.entityId,
     required this.isEdit,
@@ -56,24 +51,7 @@ abstract class BaseAttachments extends StatelessWidget {
   BaseAttachmentsContent buildContent();
 
   @override
-  Widget build(BuildContext context) {
-    AttachmentBloc? existingBloc;
-    try {
-      final found = context.read<AttachmentBloc>();
-      existingBloc = found.isClosed ? null : found;
-    } catch (_) {
-      _log.info('AttachmentBloc not passed, will create a new one');
-    }
-
-    return MultiBlocProvider(
-      providers: [
-        existingBloc != null
-            ? BlocProvider<AttachmentBloc>.value(value: existingBloc)
-            : BlocProvider(create: _providerHelpers.createAttachmentBloc()),
-      ],
-      child: buildContent(),
-    );
-  }
+  Widget build(BuildContext context) => buildContent();
 }
 
 abstract class BaseAttachmentsContent extends StatefulWidget {

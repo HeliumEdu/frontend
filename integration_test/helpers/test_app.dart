@@ -8,9 +8,9 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:heliumapp/config/app_providers.dart';
 import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/config/app_router.dart';
 import 'package:heliumapp/config/pref_service.dart';
@@ -19,22 +19,12 @@ import 'package:heliumapp/core/log_formatter.dart';
 import 'package:heliumapp/core/log_service.dart';
 import 'package:heliumapp/data/models/planner/course_group_model.dart';
 import 'package:heliumapp/data/models/planner/resource_group_model.dart';
-import 'package:heliumapp/data/repositories/auth_repository_impl.dart';
-import 'package:heliumapp/data/sources/auth_remote_data_source.dart';
 import 'package:heliumapp/helium_app.dart';
 import 'package:heliumapp/presentation/core/dialogs/getting_started_dialog.dart';
 import 'package:heliumapp/presentation/core/dialogs/whats_new_dialog.dart';
-import 'package:heliumapp/presentation/features/auth/bloc/auth_bloc.dart';
 import 'package:heliumapp/presentation/features/auth/controllers/credentials_form_controller.dart';
 import 'package:heliumapp/presentation/features/auth/views/login_screen.dart';
-import 'package:heliumapp/data/repositories/info_repository_impl.dart';
-import 'package:heliumapp/data/sources/info_remote_data_source.dart';
-import 'package:heliumapp/presentation/features/planner/bloc/external_calendar_bloc.dart';
-import 'package:heliumapp/presentation/features/planner/bloc/planneritem_bloc.dart';
-import 'package:heliumapp/presentation/features/shared/bloc/info/info_bloc.dart';
-import 'package:heliumapp/presentation/features/shared/bloc/info/info_event.dart';
 import 'package:heliumapp/presentation/features/planner/views/planner_screen.dart';
-import 'package:heliumapp/presentation/features/shared/bloc/core/provider_helpers.dart';
 import 'package:http/http.dart' as http;
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
@@ -270,37 +260,7 @@ Future<void> initializeTestApp(WidgetTester tester) async {
   // Clear any stored auth state between tests
   await DioClient().clearStorage();
 
-  final dioClient = DioClient();
-  final providerHelpers = ProviderHelpers();
-
-  await tester.pumpWidget(
-    MultiBlocProvider(
-      providers: [
-        BlocProvider(
-          create: (context) => AuthBloc(
-            authRepository: AuthRepositoryImpl(
-              remoteDataSource: AuthRemoteDataSourceImpl(dioClient: dioClient),
-            ),
-            dioClient: dioClient,
-          ),
-        ),
-        BlocProvider<InfoBloc>(
-          create: (context) => InfoBloc(
-            infoRepository: InfoRepositoryImpl(
-              remoteDataSource: InfoRemoteDataSourceImpl(dioClient: dioClient),
-            ),
-          )..add(LoadInfoEvent()),
-        ),
-        BlocProvider<ExternalCalendarBloc>(
-          create: providerHelpers.createExternalCalendarBloc(),
-        ),
-        BlocProvider<PlannerItemBloc>(
-          create: providerHelpers.createPlannerItemBloc(),
-        ),
-      ],
-      child: const HeliumApp(),
-    ),
-  );
+  await tester.pumpWidget(const AppProviders(child: HeliumApp()));
 
   // Wait for the app to settle
   await tester.pumpAndSettle();

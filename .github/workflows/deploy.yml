@@ -35,6 +35,11 @@ on:
           - web
           - android
           - ios
+      auto_submit_for_review:
+        description: 'Auto-submit for review on App Store and Play. Leave unchecked to stage as drafts and submit manually.'
+        required: false
+        type: boolean
+        default: false
   workflow_call:
     inputs:
       version_type:
@@ -56,6 +61,11 @@ on:
         required: false
         type: string
         default: all
+      auto_submit_for_review:
+        description: 'Auto-submit for review on App Store and Play'
+        required: false
+        type: boolean
+        default: false
       artifact_run_id:
         description: "Workflow run ID containing release artifacts"
         required: false
@@ -416,16 +426,17 @@ jobs:
           SEMVER="${FULL_VERSION%%+*}"
           bundle exec fastlane deploy_internal aab_path:../android-build/app-release.aab version:$SEMVER
 
-      - name: Promote to Google Play Production (Draft)
+      - name: Promote to Google Play Production
         if: inputs.environment == 'prod'
         env:
           FULL_VERSION: ${{ inputs.artifact_run_id != '' && inputs.specific_version || steps.find_run.outputs.full_version }}
+          AUTO_SUBMIT_FOR_REVIEW: ${{ inputs.auto_submit_for_review }}
         run: |
           cd android
           SEMVER="${FULL_VERSION%%+*}"
           VERSION_CODE="${FULL_VERSION##*+}"
-          echo "Promoting $SEMVER ($VERSION_CODE) to Production (draft) ..."
-          bundle exec fastlane promote_to_production_draft version:$SEMVER version_code:$VERSION_CODE
+          echo "Promoting $SEMVER ($VERSION_CODE) to Production ..."
+          bundle exec fastlane promote_to_production_draft version:$SEMVER version_code:$VERSION_CODE submit_for_review:$AUTO_SUBMIT_FOR_REVIEW
 
       - name: Cleanup service account key
         if: always()
@@ -574,12 +585,13 @@ jobs:
           APP_STORE_CONNECT_API_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_ISSUER_ID }}
           APP_STORE_CONNECT_TEAM_ID: ${{ secrets.APP_STORE_CONNECT_TEAM_ID }}
           FULL_VERSION: ${{ inputs.artifact_run_id != '' && inputs.specific_version || steps.find_run.outputs.full_version }}
+          AUTO_SUBMIT_FOR_REVIEW: ${{ inputs.auto_submit_for_review }}
         run: |
           cd ios
           SEMVER="${FULL_VERSION%%+*}"
           BUILD="${FULL_VERSION##*+}"
           echo "Staging App Store version $SEMVER ($BUILD) ..."
-          bundle exec fastlane deploy_appstore version:$SEMVER build_number:$BUILD
+          bundle exec fastlane deploy_appstore version:$SEMVER build_number:$BUILD submit_for_review:$AUTO_SUBMIT_FOR_REVIEW
 
       - name: Cleanup API key
         if: always()

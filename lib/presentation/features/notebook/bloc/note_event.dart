@@ -12,6 +12,12 @@ abstract class NoteEvent extends BaseEvent {
   NoteEvent({required super.origin});
 }
 
+/// Clears all note state. Dispatched on logout so per-user data does not
+/// carry into the next session.
+class ResetNotesEvent extends NoteEvent {
+  ResetNotesEvent() : super(origin: EventOrigin.bloc);
+}
+
 class FetchNotesEvent extends NoteEvent {
   final String? search;
   final String? linkedEntityType;

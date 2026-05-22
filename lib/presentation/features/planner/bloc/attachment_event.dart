@@ -9,6 +9,10 @@ import 'package:heliumapp/data/models/attachment_file.dart';
 
 abstract class AttachmentEvent {}
 
+/// Clears all attachment state. Dispatched on logout so per-user data does
+/// not carry into the next session.
+class ResetAttachmentsEvent extends AttachmentEvent {}
+
 class FetchAttachmentsEvent extends AttachmentEvent {
   int? eventId;
   int? homeworkId;

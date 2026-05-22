@@ -15,7 +15,6 @@ import 'package:heliumapp/presentation/features/auth/bloc/auth_state.dart';
 import 'package:heliumapp/presentation/features/shared/controllers/basic_form_controller.dart';
 import 'package:heliumapp/presentation/features/settings/controllers/change_password_form_controller.dart';
 import 'package:heliumapp/presentation/ui/components/helium_password_field.dart';
-import 'package:heliumapp/presentation/ui/feedback/discard_changes_scope.dart';
 import 'package:heliumapp/utils/snack_bar_helpers.dart';
 
 class ChangePasswordScreen extends StatefulWidget {
@@ -109,9 +108,7 @@ class ChangePasswordScreenState extends State<ChangePasswordScreen> {
           widget.onCompleted?.call();
         }
       },
-      child: DiscardChangesScope(
-        isDirty: _formController.isChanged,
-        child: SingleChildScrollView(
+      child: SingleChildScrollView(
         child: AutofillGroup(
           child: Form(
             key: _formController.formKey,
@@ -150,7 +147,6 @@ class ChangePasswordScreenState extends State<ChangePasswordScreen> {
             ),
           ),
         ),
-      ),
       ),
     );
   }

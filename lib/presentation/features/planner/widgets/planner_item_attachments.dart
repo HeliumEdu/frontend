@@ -11,7 +11,7 @@ import 'package:heliumapp/presentation/features/shared/widgets/core/base_attachm
 class PlannerItemAttachments extends BaseAttachments {
   final bool isEvent;
 
-  PlannerItemAttachments({
+  const PlannerItemAttachments({
     super.key,
     required this.isEvent,
     required super.entityId,

@@ -10,17 +10,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/config/app_theme.dart';
-import 'package:heliumapp/core/dio_client.dart';
 import 'package:heliumapp/data/models/planner/course_model.dart';
 import 'package:heliumapp/data/models/planner/note_model.dart';
 import 'package:heliumapp/data/models/planner/resource_group_model.dart';
 import 'package:heliumapp/data/models/planner/resource_model.dart';
-import 'package:heliumapp/data/repositories/course_repository_impl.dart';
-import 'package:heliumapp/data/repositories/note_repository_impl.dart';
-import 'package:heliumapp/data/repositories/resource_repository_impl.dart';
-import 'package:heliumapp/data/sources/course_remote_data_source.dart';
-import 'package:heliumapp/data/sources/note_remote_data_source.dart';
-import 'package:heliumapp/data/sources/resource_remote_data_source.dart';
 import 'package:heliumapp/presentation/core/views/base_page_screen_state.dart';
 import 'package:heliumapp/presentation/core/views/deep_link_mixin.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_bloc.dart';
@@ -31,7 +24,6 @@ import 'package:heliumapp/presentation/features/notebook/bloc/note_state.dart';
 import 'package:heliumapp/presentation/features/resources/bloc/resource_bloc.dart';
 import 'package:heliumapp/presentation/features/resources/bloc/resource_event.dart';
 import 'package:heliumapp/presentation/features/resources/bloc/resource_state.dart';
-import 'package:heliumapp/presentation/features/shared/bloc/core/provider_helpers.dart';
 import 'package:heliumapp/presentation/features/resources/constants/resource_constants.dart';
 import 'package:heliumapp/presentation/features/resources/dialogs/resource_group_dialog.dart';
 import 'package:heliumapp/presentation/features/resources/views/resource_add_screen.dart';
@@ -56,40 +48,10 @@ import 'package:heliumapp/utils/sort_helpers.dart';
 import 'package:heliumapp/utils/url_helpers.dart';
 
 class ResourcesScreen extends StatelessWidget {
-  final DioClient _dioClient = DioClient();
-
-  ResourcesScreen({super.key});
-
-  StatefulWidget buildScreen() => const _ResourcesProvidedScreen();
+  const ResourcesScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return MultiBlocProvider(
-      providers: [
-        BlocProvider(
-          create: (context) => ResourceBloc(
-            resourceRepository: ResourceRepositoryImpl(
-              remoteDataSource: ResourceRemoteDataSourceImpl(
-                dioClient: _dioClient,
-              ),
-            ),
-            courseRepository: CourseRepositoryImpl(
-              remoteDataSource: CourseRemoteDataSourceImpl(
-                dioClient: _dioClient,
-              ),
-            ),
-            noteRepository: NoteRepositoryImpl(
-              remoteDataSource: NoteRemoteDataSourceImpl(dioClient: _dioClient),
-            ),
-          ),
-        ),
-        BlocProvider(
-          create: ProviderHelpers().createNoteBloc(),
-        ),
-      ],
-      child: buildScreen(),
-    );
-  }
+  Widget build(BuildContext context) => const _ResourcesProvidedScreen();
 }
 
 class _ResourcesProvidedScreen extends StatefulWidget {
@@ -111,13 +73,10 @@ class _ResourcesScreenState
   @override
   VoidCallback get actionButtonCallback => () {
     if (_selectedGroupId != null) {
-      openWithGuard(
-        '${DeepLinkParam.id}:new',
-        () => showResourceAdd(
-          context,
-          resourceGroupId: _selectedGroupId!,
-          isEdit: false,
-        ),
+      showResourceAdd(
+        context,
+        resourceGroupId: _selectedGroupId!,
+        isEdit: false,
       );
     } else {
       showSnackBar(context, 'Create a group first.', type: SnackType.info);
@@ -333,48 +292,6 @@ class _ResourcesScreenState
     );
   }
 
-  @override
-  bool handleRouteEntityParams(Map<String, String> queryParams) {
-    final idParam = queryParams[DeepLinkParam.id];
-    if (idParam == null) return false;
-
-    final parsed = DeepLinkParam.parseId(idParam);
-    final tabValue = int.tryParse(queryParams[DeepLinkParam.tab] ?? '') ?? 1;
-    final initialStep = (tabValue - 1).clamp(0, 2);
-
-    if (parsed.isNew) {
-      if (_selectedGroupId == null) return false;
-      return openFromDeepLink('${DeepLinkParam.id}:new', () {
-        return showResourceAdd(
-          context,
-          resourceGroupId: _selectedGroupId!,
-          isEdit: false,
-          initialStep: initialStep,
-        );
-      });
-    }
-
-    if (parsed.id != null) {
-      ResourceModel? resource;
-      for (final resources in _resourcesMap.values) {
-        resource = resources.firstWhereOrNull((r) => r.id == parsed.id);
-        if (resource != null) break;
-      }
-      if (resource == null) return false;
-      return openFromDeepLink('${DeepLinkParam.id}:${parsed.id}', () {
-        return showResourceAdd(
-          context,
-          resourceGroupId: resource!.resourceGroup,
-          resourceId: resource.id,
-          isEdit: true,
-          initialStep: initialStep,
-        );
-      });
-    }
-
-    return false;
-  }
-
   void _upsertNoteForResource(int resourceId, NoteModel note) {
     _notesMap[resourceId] = note;
   }
@@ -577,14 +494,11 @@ class _ResourcesScreenState
   }
 
   void _onEdit(ResourceModel resource) {
-    openWithGuard(
-      '${DeepLinkParam.id}:${resource.id}',
-      () => showResourceAdd(
-        context,
-        resourceGroupId: resource.resourceGroup,
-        resourceId: resource.id,
-        isEdit: true,
-      ),
+    showResourceAdd(
+      context,
+      resourceGroupId: resource.resourceGroup,
+      resourceId: resource.id,
+      isEdit: true,
     );
   }
 

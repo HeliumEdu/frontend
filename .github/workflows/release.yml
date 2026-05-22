@@ -38,6 +38,11 @@ on:
           - web
           - android
           - ios
+      auto_submit_for_review:
+        description: 'Auto-submit for review on App Store and Play. Leave unchecked to stage as drafts and submit manually.'
+        required: false
+        type: boolean
+        default: false
   workflow_call:
     inputs:
       bump_type:
@@ -60,6 +65,11 @@ on:
         required: false
         type: string
         default: all
+      auto_submit_for_review:
+        description: "Auto-submit for review on both stores; post-review publish still manual"
+        required: false
+        type: boolean
+        default: false
     outputs:
       version:
         description: "Released version"
@@ -472,13 +482,15 @@ jobs:
           VERSION: ${{ needs.prereq.outputs.version }}
           ENVIRONMENT: ${{ inputs.environment }}
           PLATFORMS: ${{ inputs.platforms }}
+          AUTO_SUBMIT_FOR_REVIEW: ${{ inputs.auto_submit_for_review }}
         run: |
           gh workflow run deploy.yml \
             --repo ${{ github.repository }} \
             -f version_type=specific \
             -f specific_version="$VERSION" \
             -f environment="$ENVIRONMENT" \
-            -f platforms="$PLATFORMS"
+            -f platforms="$PLATFORMS" \
+            -f auto_submit_for_review="$AUTO_SUBMIT_FOR_REVIEW"
 
       - name: Deployment trigger summary
         env:

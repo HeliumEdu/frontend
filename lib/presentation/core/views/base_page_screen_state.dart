@@ -201,7 +201,12 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
   UserSettingsModel? userSettings;
   bool settingsLoaded = false;
   bool settingsError = false;
-  bool isLoading = false;
+  // Default true so authenticated screens never flash unloaded content
+  // between mount and the first BLoC fetch completing. Subclasses flip this
+  // to false from their own BLoC listeners when their data is ready, since
+  // user-settings loading and screen-data loading are independent and the
+  // latter is what gates UI readiness.
+  bool isLoading = true;
   bool isSubmitting = false;
 
   @override
@@ -211,17 +216,9 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
     super.initState();
 
     if (isAuthenticatedScreen) {
-      setState(() {
-        isLoading = true;
-      });
-
-      loadSettings().whenComplete(() {
-        if (mounted) {
-          setState(() {
-            isLoading = false;
-          });
-        }
-      });
+      loadSettings();
+    } else {
+      isLoading = false;
     }
   }
 
@@ -254,13 +251,7 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
       settingsError = false;
       isLoading = true;
     });
-    loadSettings().whenComplete(() {
-      if (mounted) {
-        setState(() {
-          isLoading = false;
-        });
-      }
-    });
+    loadSettings();
   }
 
   @mustCallSuper

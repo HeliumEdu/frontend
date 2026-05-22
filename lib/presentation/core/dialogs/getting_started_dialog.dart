@@ -11,9 +11,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:heliumapp/config/app_route.dart';
+import 'package:heliumapp/config/app_router.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/config/pref_service.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_bloc.dart';
+import 'package:heliumapp/presentation/navigation/shell/navigation_shell.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_event.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_state.dart';
 import 'package:heliumapp/presentation/ui/components/helium_elevated_button.dart';
@@ -145,12 +147,27 @@ class _GettingStartedDialogWidgetState
         PrefService().getInt(SettingsPrefKey.gettingStartedLastPage.key) ?? 0;
     _currentPage = savedPage.clamp(0, _cards.length - 1);
     _pageController = PageController(initialPage: _currentPage);
+    router.routerDelegate.addListener(_dismissIfOverlayActive);
   }
 
   @override
   void dispose() {
+    router.routerDelegate.removeListener(_dismissIfOverlayActive);
     _pageController.dispose();
     super.dispose();
+  }
+
+  /// Pops this dialog when the user opens a route-based overlay (settings,
+  /// notifications, an entity editor). The promotional dialog yields to
+  /// any deliberate navigation rather than being left stranded under it.
+  void _dismissIfOverlayActive() {
+    if (!mounted) return;
+    final path = router.routerDelegate.currentConfiguration.uri.path;
+    final onShellTab =
+        NavigationPage.values.any((page) => page.route == path);
+    if (!onShellTab) {
+      Navigator.of(context).pop();
+    }
   }
 
   void _onPageChanged(int page) {
@@ -176,7 +193,12 @@ class _GettingStartedDialogWidgetState
           }
 
           if (!context.mounted) return;
-          context.go(AppRoute.coursesScreen);
+          // Defer so SfCalendar's pending post-frame setState fires before
+          // the branch swap disposes it.
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (!context.mounted) return;
+            context.go(AppRoute.coursesScreen);
+          });
         } else if (state is AuthError) {
           if (!context.mounted) return;
           SnackBarHelper.show(

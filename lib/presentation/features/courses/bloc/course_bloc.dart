@@ -43,6 +43,9 @@ class CourseBloc extends Bloc<CourseEvent, CourseState> {
     on<UpdateCourseEvent>(_onUpdateCourse);
     on<DeleteCourseEvent>(_onDeleteCourse);
     on<UpdateCourseScheduleEvent>(_onUpdateCourseSchedule);
+    on<ResetCoursesEvent>(
+      (event, emit) => emit(CourseInitial(origin: EventOrigin.bloc)),
+    );
   }
 
   Future<void> _onFetchCoursesScreenDataEvent(

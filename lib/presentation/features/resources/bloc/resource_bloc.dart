@@ -38,6 +38,9 @@ class ResourceBloc extends Bloc<ResourceEvent, ResourceState> {
     on<CreateResourceEvent>(_onCreateResource);
     on<UpdateResourceEvent>(_onUpdateResource);
     on<DeleteResourceEvent>(_onDeleteResource);
+    on<ResetResourcesEvent>(
+      (event, emit) => emit(ResourcesInitial(origin: EventOrigin.bloc)),
+    );
   }
 
   Future<void> _onFetchResourcesScreenData(

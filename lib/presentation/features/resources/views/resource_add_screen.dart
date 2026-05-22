@@ -5,77 +5,95 @@
 //
 // For details regarding the license, please refer to the LICENSE file.
 
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:heliumapp/config/app_route.dart';
 import 'package:logging/logging.dart';
 import 'package:heliumapp/config/app_router.dart';
+import 'package:heliumapp/config/dirty_dialog_registry.dart';
 import 'package:heliumapp/data/models/planner/request/note_request_model.dart';
 import 'package:heliumapp/presentation/features/notebook/bloc/note_bloc.dart';
 import 'package:heliumapp/presentation/features/notebook/bloc/note_event.dart';
 import 'package:heliumapp/presentation/features/notebook/bloc/note_state.dart';
 import 'package:heliumapp/presentation/features/resources/bloc/resource_bloc.dart';
+import 'package:heliumapp/presentation/features/resources/bloc/resource_event.dart';
 import 'package:heliumapp/presentation/features/resources/bloc/resource_state.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/core/base_event.dart';
 import 'package:heliumapp/presentation/features/shared/widgets/flow/multi_step_container.dart';
 import 'package:heliumapp/presentation/features/resources/widgets/resource_details.dart';
-import 'package:heliumapp/utils/app_globals.dart';
+import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
 import 'package:heliumapp/utils/deep_link_helpers.dart';
-import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:heliumapp/utils/snack_bar_helpers.dart';
 
 final _log = Logger('presentation.views');
 
-/// Shows resource add/edit screen (responsive: dialog on desktop, full-screen on mobile)
+/// Pushes the resource editor route on the resources shell.
+///
+/// Step navigation and dialog dismissal are URL-driven; callers only need to
+/// specify which resource (or 'new') and, for the create flow, which
+/// resource group to attach it to. The group rides along as GoRouter `extra`
+/// so the URL stays focused on the entity, not its containing group.
 Future<void> showResourceAdd(
   BuildContext context, {
   required int resourceGroupId,
   int? resourceId,
   bool isEdit = false,
-  int initialStep = 0,
+  String initialStep = 'details',
 }) {
-  final resourceBloc = context.read<ResourceBloc>();
-  final noteBloc = context.read<NoteBloc>();
-  final basePath = router.routerDelegate.currentConfiguration.uri.path;
-  final idValue = resourceId?.toString() ?? 'new';
-
-  context.setQueryParam(DeepLinkParam.id, idValue);
-
-  final useCompact = Responsive.useCompactLayout(context);
-
-  return showScreenAsDialog(
-    context,
-    child: MultiBlocProvider(
-      providers: [
-        BlocProvider<ResourceBloc>.value(value: resourceBloc),
-        BlocProvider<NoteBloc>.value(value: noteBloc),
-      ],
-      child: ResourceAddScreen(
-        resourceGroupId: resourceGroupId,
-        resourceId: resourceId,
-        isEdit: isEdit,
-        isNew: !isEdit,
-        initialStep: initialStep,
-      ),
-    ),
-    width: useCompact ? double.infinity : AppConstants.centeredDialogWidth,
-    insetPadding: useCompact ? EdgeInsets.zero : const EdgeInsets.all(16),
-    alignment: Alignment.center,
-  ).then((_) => clearRouteQueryParams(basePath));
+  final id = resourceId?.toString() ?? 'new';
+  final target = '${AppRoute.resourcesScreen}/$id/$initialStep';
+  final currentPath =
+      router.routerDelegate.currentConfiguration.uri.path;
+  if (currentPath == target) {
+    // Already on this exact route; avoid duplicate push that would stack
+    // a second dialog page with the same shared key.
+    return Future.value();
+  }
+  return context.push<void>(
+    target,
+    extra: ResourceDialogExtra(resourceGroupId: resourceGroupId),
+  );
 }
 
 class ResourceAddScreen extends MultiStepContainer {
-  final int resourceGroupId;
+  /// Shell path the dialog is overlaying — used to build sub-step URLs.
+  final String shellPath;
+
+  /// Resource group containing the resource. Required for the create flow
+  /// and the multi-step widgets that consume it.
+  final int? resourceGroupId;
+
+  /// Resource primary key. Null when creating a new resource
+  /// (`isNew == true`).
   final int? resourceId;
 
-  const ResourceAddScreen({
+  /// URL step segment to render on initial mount.
+  final String initialStepName;
+
+  /// Full URL the route was matched at — passed in from the pageBuilder so
+  /// the dialog's dirty-guard registration captures the active path without
+  /// racing against `routerDelegate.currentConfiguration`, which lags push.
+  final String initialFullPath;
+
+  ResourceAddScreen({
     super.key,
-    required this.resourceGroupId,
-    this.resourceId,
-    required super.isEdit,
+    required this.shellPath,
     required super.isNew,
-    super.initialStep = 0,
-  });
+    required this.initialFullPath,
+    this.resourceId,
+    this.resourceGroupId,
+    this.initialStepName = 'details',
+  }) : super(
+          isEdit: !isNew,
+          initialStep: _resolveStepIndex(initialStepName),
+        );
+
+  static int _resolveStepIndex(String name) {
+    final idx = resourceDialogSteps.indexOf(name);
+    return idx >= 0 ? idx : 0;
+  }
 
   @override
   State<ResourceAddScreen> createState() => _ResourceAddScreenState();
@@ -85,7 +103,110 @@ class _ResourceAddScreenState
     extends MultiStepContainerState<ResourceAddScreen> {
   final _detailsKey = GlobalKey<ResourceDetailsState>();
 
+  int? _currentResourceId;
+  int? _currentResourceGroupId;
+  String? _registeredPrefix;
+
   bool _pendingRedirectToNotebook = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _currentResourceId = widget.resourceId;
+    _currentResourceGroupId = widget.resourceGroupId;
+    _registerDirtyGuard();
+    // The modal scope does not rebuild on Page swap, so the URL is the
+    // source of truth for the active step.
+    router.routerDelegate.addListener(_syncStepFromUrl);
+
+    if (_currentResourceGroupId == null) {
+      if (widget.isNew) {
+        // Create flow refreshed without the in-app `extra`. We have no
+        // group to attach the new resource to — drop back to the index.
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) context.go(widget.shellPath);
+        });
+      } else if (_currentResourceId != null) {
+        // Edit flow without a hint — try the BLoC's cache, otherwise
+        // request a fetch and wait for the listener below.
+        _resolveGroupFromBlocState(context.read<ResourceBloc>().state);
+        if (_currentResourceGroupId == null) {
+          context.read<ResourceBloc>().add(
+                FetchResourcesScreenDataEvent(origin: EventOrigin.dialog),
+              );
+        }
+      }
+    }
+  }
+
+  void _resolveGroupFromBlocState(ResourceState state) {
+    if (state is! ResourcesScreenDataFetched) return;
+    final match = state.resources
+        .firstWhereOrNull((r) => r.id == _currentResourceId);
+    if (match != null) {
+      _currentResourceGroupId = match.resourceGroup;
+    }
+  }
+
+  @override
+  void dispose() {
+    router.routerDelegate.removeListener(_syncStepFromUrl);
+    if (_registeredPrefix != null) {
+      DirtyDialogRegistry.unregister(_registeredPrefix!);
+    }
+    super.dispose();
+  }
+
+  /// Registers (or re-registers, after a new-resource save mints a real
+  /// ID) this dialog with the dirty-dialog guard so URL-driven dismissals
+  /// can't silently lose unsaved changes.
+  void _registerDirtyGuard() {
+    final prefix =
+        '${widget.shellPath}/${_currentResourceId?.toString() ?? 'new'}';
+    final routerPath =
+        router.routerDelegate.currentConfiguration.uri.path;
+    final fullPath = routerPath.startsWith(prefix)
+        ? routerPath
+        : widget.initialFullPath;
+    DirtyDialogRegistry.register(
+      prefix: prefix,
+      fullPath: fullPath,
+      isDirty: () => isDirty,
+    );
+    _registeredPrefix = prefix;
+  }
+
+  void _syncStepFromUrl() {
+    if (!mounted) return;
+    final path = router.routerDelegate.currentConfiguration.uri.path;
+    final prefix = _registeredPrefix;
+    if (prefix != null && path.startsWith(prefix)) {
+      DirtyDialogRegistry.updateFullPath(prefix: prefix, fullPath: path);
+    }
+    final segments = path.split('/').where((s) => s.isNotEmpty).toList();
+    final resourcesIdx = segments.indexOf('resources');
+    if (resourcesIdx < 0 || segments.length < resourcesIdx + 3) return;
+    final stepName = segments[resourcesIdx + 2];
+    final newStep = resourceDialogSteps.indexOf(stepName);
+    if (newStep >= 0 && newStep != currentStep) {
+      super.navigateToStep(newStep);
+    }
+  }
+
+  @override
+  void navigateToStep(int step) {
+    if (step < 0 || step >= steps.length) return;
+    if (!mounted) return;
+    final id = _currentResourceId?.toString() ?? 'new';
+    final stepName = resourceDialogSteps[step];
+    final groupId = _currentResourceGroupId;
+    context.go(
+      '${widget.shellPath}/$id/$stepName',
+      extra: groupId != null
+          ? ResourceDialogExtra(resourceGroupId: groupId)
+          : null,
+    );
+  }
 
   @override
   String get screenTitle => widget.isEdit ? 'Edit Resource' : 'Add Resource';
@@ -126,6 +247,17 @@ class _ResourceAddScreenState
             showSnackBar(context, state.message!, type: SnackType.error);
             _detailsKey.currentState?.resetSubmitting();
             setState(() => isSubmitting = false);
+          } else if (state is ResourcesScreenDataFetched &&
+              _currentResourceGroupId == null &&
+              _currentResourceId != null) {
+            final match = state.resources
+                .firstWhereOrNull((r) => r.id == _currentResourceId);
+            if (match != null) {
+              setState(() => _currentResourceGroupId = match.resourceGroup);
+            } else {
+              // Resource not found after fetch; back out to the index.
+              context.go(widget.shellPath);
+            }
           } else if (state is ResourceCreated) {
             final noteContent = _detailsKey.currentState?.noteContent;
 
@@ -145,7 +277,12 @@ class _ResourceAddScreenState
                   ),
                 ));
               } else {
-                navigateAndClearStack(context, '${AppRoute.notebookScreen}?${DeepLinkParam.linkResourceId}=${state.resource.id}');
+                DirtyDialogRegistry.releaseActive();
+                navigateAndClearStack(
+                  context,
+                  '${AppRoute.notebookScreen}/notes/new'
+                  '?${DeepLinkParam.linkResourceId}=${state.resource.id}',
+                );
               }
             } else {
               _log.info('Resource created without notebook redirect (resourceId=${state.resource.id}, hasNoteContent=${noteContent != null})');
@@ -158,12 +295,18 @@ class _ResourceAddScreenState
                   ),
                 ));
               }
-              if (!Responsive.isMobile(context)) {
-                context.setQueryParam(
-                  DeepLinkParam.id,
-                  state.resource.id.toString(),
-                );
+              setState(() {
+                _currentResourceId = state.resource.id;
+                _currentResourceGroupId = state.resource.resourceGroup;
+              });
+              // New resource minted its real ID — the URL prefix that the
+              // dirty-dialog guard owns has changed
+              // (`/resources/new` → `/resources/<id>`), so swap the
+              // registration before triggering the URL update.
+              if (_registeredPrefix != null) {
+                DirtyDialogRegistry.unregister(_registeredPrefix!);
               }
+              _registerDirtyGuard();
               showSnackBar(context, 'Resource created.', useRootMessenger: true);
               closeWithoutPrompt();
             }
@@ -178,13 +321,23 @@ class _ResourceAddScreenState
 
               if (linkedNoteId != null && noteContent != null) {
                 // Existing note being updated; ID is already known
-                navigateAndClearStack(context, '${AppRoute.notebookScreen}?id=$linkedNoteId');
+                DirtyDialogRegistry.releaseActive();
+                navigateAndClearStack(
+                  context,
+                  '${AppRoute.notebookScreen}/notes/$linkedNoteId',
+                );
               } else if (linkedNoteId == null && noteContent != null) {
                 // New note being created by NoteBloc; wait for NoteCreated
                 _pendingRedirectToNotebook = true;
               } else {
-                // No note content; navigate with linkResourceId to create one in notebook
-                navigateAndClearStack(context, '${AppRoute.notebookScreen}?${DeepLinkParam.linkResourceId}=${state.resource.id}');
+                // No note content; navigate to the new-note dialog with the
+                // resource link riding via extra so it isn't in the URL.
+                DirtyDialogRegistry.releaseActive();
+                navigateAndClearStack(
+                  context,
+                  '${AppRoute.notebookScreen}/notes/new'
+                  '?${DeepLinkParam.linkResourceId}=${state.resource.id}',
+                );
               }
             } else {
               closeWithoutPrompt();
@@ -200,11 +353,25 @@ class _ResourceAddScreenState
             setState(() => isSubmitting = false);
           } else if (state is NoteCreated && _pendingRedirectToNotebook) {
             _pendingRedirectToNotebook = false;
-            navigateAndClearStack(context, '${AppRoute.notebookScreen}?id=${state.note.id}');
+            DirtyDialogRegistry.releaseActive();
+            navigateAndClearStack(
+              context,
+              '${AppRoute.notebookScreen}/notes/${state.note.id}',
+            );
           }
         },
       ),
     ];
+  }
+
+  @override
+  Widget buildMainArea(BuildContext context) {
+    if (_currentResourceGroupId == null) {
+      return const Expanded(
+        child: Center(child: LoadingIndicator(expanded: false)),
+      );
+    }
+    return super.buildMainArea(context);
   }
 
   late final List<MultiStepDefinition> _steps = [
@@ -214,9 +381,9 @@ class _ResourceAddScreenState
       stepScreenType: ScreenType.entityPage,
       builder: (context) => ResourceDetails(
         key: _detailsKey,
-        resourceGroupId: widget.resourceGroupId,
-        resourceId: widget.resourceId,
-        isEdit: widget.isEdit,
+        resourceGroupId: _currentResourceGroupId!,
+        resourceId: _currentResourceId,
+        isEdit: widget.isEdit || _currentResourceId != null,
         onSubmitRequested: () => saveAction?.call(),
         onActionStarted: () => setState(() => isSubmitting = true),
       ),
@@ -226,4 +393,3 @@ class _ResourceAddScreenState
   @override
   List<MultiStepDefinition> get steps => _steps;
 }
-

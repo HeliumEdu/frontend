@@ -21,6 +21,7 @@ class AttachmentBloc extends Bloc<AttachmentEvent, AttachmentState> {
     on<FetchAttachmentsEvent>(_onFetchAttachments);
     on<CreateAttachmentEvent>(_onCreateAttachments);
     on<DeleteAttachmentEvent>(_onDeleteAttachments);
+    on<ResetAttachmentsEvent>((event, emit) => emit(AttachmentInitial()));
   }
 
   Future<void> _onFetchAttachments(

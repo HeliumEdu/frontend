@@ -5,13 +5,18 @@
 //
 // For details regarding the license, please refer to the LICENSE file.
 
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/config/app_router.dart';
-import 'package:heliumapp/utils/deep_link_helpers.dart';
+import 'package:heliumapp/config/dirty_dialog_registry.dart';
 import 'package:heliumapp/presentation/features/courses/bloc/course_bloc.dart';
+import 'package:heliumapp/presentation/features/courses/bloc/course_event.dart';
 import 'package:heliumapp/presentation/features/courses/bloc/course_state.dart';
+import 'package:heliumapp/presentation/features/shared/bloc/core/base_event.dart';
+import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
 import 'package:heliumapp/presentation/features/shared/widgets/flow/multi_step_container.dart';
 import 'package:heliumapp/presentation/features/courses/widgets/course_attachments.dart';
 import 'package:heliumapp/presentation/features/shared/widgets/core/base_attachments.dart';
@@ -19,57 +24,73 @@ import 'package:heliumapp/presentation/features/courses/widgets/course_categorie
 import 'package:heliumapp/presentation/features/courses/widgets/course_details.dart';
 import 'package:heliumapp/presentation/features/courses/widgets/course_reminders.dart';
 import 'package:heliumapp/presentation/features/courses/widgets/course_schedule.dart';
-import 'package:heliumapp/utils/app_globals.dart';
-import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:heliumapp/utils/snack_bar_helpers.dart';
 
-/// Shows course add/edit screen (responsive: dialog on desktop, full-screen on mobile)
+/// Pushes the course editor route on the current shell.
+///
+/// Step navigation, sub-screen state, and dialog dismissal are URL-driven;
+/// callers only need to specify which course (or 'new') and, for the
+/// create flow, which course group to attach it to. The group rides along
+/// as GoRouter `extra` so the URL stays focused on the entity, not its
+/// containing group.
 Future<void> showCourseAdd(
   BuildContext context, {
   required int courseGroupId,
   int? courseId,
-  required bool isEdit,
   required bool isNew,
-  int initialStep = 0,
+  String initialStep = 'details',
 }) {
-  final courseBloc = context.read<CourseBloc>();
-  final basePath = router.routerDelegate.currentConfiguration.uri.path;
-  final idValue = courseId?.toString() ?? 'new';
-
-  context.setQueryParam(DeepLinkParam.id, idValue);
-
-  final useCompact = Responsive.useCompactLayout(context);
-
-  return showScreenAsDialog(
-    context,
-    child: BlocProvider<CourseBloc>.value(
-      value: courseBloc,
-      child: CourseAddScreen(
-        courseGroupId: courseGroupId,
-        courseId: courseId,
-        isEdit: isEdit,
-        isNew: isNew,
-        initialStep: initialStep,
-      ),
-    ),
-    width: useCompact ? double.infinity : AppConstants.centeredDialogWidth,
-    insetPadding: useCompact ? EdgeInsets.zero : const EdgeInsets.all(16),
-    alignment: Alignment.center,
-  ).then((_) => clearRouteQueryParams(basePath));
+  final id = courseId?.toString() ?? 'new';
+  final target = '${AppRoute.coursesScreen}/$id/$initialStep';
+  final currentPath =
+      router.routerDelegate.currentConfiguration.uri.path;
+  if (currentPath == target) {
+    // Already on this exact route; avoid duplicate push that would stack
+    // a second dialog page with the same shared key.
+    return Future.value();
+  }
+  return context.push<void>(
+    target,
+    extra: CourseDialogExtra(courseGroupId: courseGroupId),
+  );
 }
 
 class CourseAddScreen extends MultiStepContainer {
-  final int courseGroupId;
+  /// Shell path the dialog is overlaying — used to build sub-step URLs.
+  final String shellPath;
+
+  /// Course group containing the course. Required for the create flow and
+  /// the multi-step widgets that need it (categories, attachments).
+  final int? courseGroupId;
+
+  /// Course primary key. Null when creating a new course (`isNew == true`).
   final int? courseId;
 
-  const CourseAddScreen({
+  /// URL step segment to render on initial mount (`details`, `schedule`, etc.).
+  final String initialStepName;
+
+  /// Full URL the route was matched at — passed in from the pageBuilder so
+  /// the dialog's dirty-guard registration captures the active path without
+  /// racing against `routerDelegate.currentConfiguration`, which lags push.
+  final String initialFullPath;
+
+  CourseAddScreen({
     super.key,
-    required this.courseGroupId,
-    this.courseId,
-    required super.isEdit,
+    required this.shellPath,
     required super.isNew,
-    super.initialStep = 0,
-  });
+    required this.initialFullPath,
+    this.courseId,
+    this.courseGroupId,
+    this.initialStepName = 'details',
+  }) : super(
+          isEdit: !isNew,
+          initialStep: _resolveStepIndex(initialStepName),
+        );
+
+  static int _resolveStepIndex(String name) {
+    final idx = courseDialogSteps.indexOf(name);
+    return idx >= 0 ? idx : 0;
+  }
 
   @override
   State<CourseAddScreen> createState() => _CourseAddScreenState();
@@ -81,12 +102,111 @@ class _CourseAddScreenState extends MultiStepContainerState<CourseAddScreen> {
   final _attachmentsKey = GlobalKey<BaseAttachmentsState>();
 
   int? _currentCourseId;
+  int? _currentCourseGroupId;
   int? _targetStep;
+  String? _registeredPrefix;
 
   @override
   void initState() {
     super.initState();
     _currentCourseId = widget.courseId;
+    _currentCourseGroupId = widget.courseGroupId;
+    _registerDirtyGuard();
+    // The modal scope does not rebuild on Page swap, so the URL is the
+    // source of truth for the active step.
+    router.routerDelegate.addListener(_syncStepFromUrl);
+
+    if (_currentCourseGroupId == null) {
+      if (widget.isNew) {
+        // Create flow refreshed without the in-app `extra`. We have no
+        // group to attach the new course to — drop back to the index.
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) context.go(widget.shellPath);
+        });
+      } else if (_currentCourseId != null) {
+        // Edit flow without a hint — try the BLoC's cache, otherwise
+        // request a fetch and wait for the listener below.
+        _resolveGroupFromBlocState(context.read<CourseBloc>().state);
+        if (_currentCourseGroupId == null) {
+          context.read<CourseBloc>().add(
+                FetchCoursesScreenDataEvent(origin: EventOrigin.dialog),
+              );
+        }
+      }
+    }
+  }
+
+  void _resolveGroupFromBlocState(CourseState state) {
+    if (state is! CoursesScreenDataFetched) return;
+    final match = state.courses
+        .firstWhereOrNull((c) => c.id == _currentCourseId);
+    if (match != null) {
+      _currentCourseGroupId = match.courseGroup;
+    }
+  }
+
+  @override
+  void dispose() {
+    router.routerDelegate.removeListener(_syncStepFromUrl);
+    if (_registeredPrefix != null) {
+      DirtyDialogRegistry.unregister(_registeredPrefix!);
+    }
+    super.dispose();
+  }
+
+  /// Registers (or re-registers, after a new-course save mints a real ID)
+  /// this dialog with the dirty-dialog guard so URL-driven dismissals can't
+  /// silently lose unsaved changes.
+  void _registerDirtyGuard() {
+    final prefix =
+        '${widget.shellPath}/${_currentCourseId?.toString() ?? 'new'}';
+    final routerPath =
+        router.routerDelegate.currentConfiguration.uri.path;
+    // Prefer the routerDelegate's settled path if it already matches our
+    // dialog (e.g. after a new-course save); otherwise fall back to the URL
+    // the pageBuilder matched on, which is authoritative for the active
+    // route even when the routerDelegate hasn't caught up yet.
+    final fullPath = routerPath.startsWith(prefix)
+        ? routerPath
+        : widget.initialFullPath;
+    DirtyDialogRegistry.register(
+      prefix: prefix,
+      fullPath: fullPath,
+      isDirty: () => isDirty,
+    );
+    _registeredPrefix = prefix;
+  }
+
+  void _syncStepFromUrl() {
+    if (!mounted) return;
+    final path = router.routerDelegate.currentConfiguration.uri.path;
+    final prefix = _registeredPrefix;
+    if (prefix != null && path.startsWith(prefix)) {
+      DirtyDialogRegistry.updateFullPath(prefix: prefix, fullPath: path);
+    }
+    final segments = path.split('/').where((s) => s.isNotEmpty).toList();
+    final classesIdx = segments.indexOf('classes');
+    if (classesIdx < 0 || segments.length < classesIdx + 3) return;
+    final stepName = segments[classesIdx + 2];
+    final newStep = courseDialogSteps.indexOf(stepName);
+    if (newStep >= 0 && newStep != currentStep) {
+      super.navigateToStep(newStep);
+    }
+  }
+
+  @override
+  void navigateToStep(int step) {
+    if (step < 0 || step >= steps.length) return;
+    if (!mounted) return;
+    final id = _currentCourseId?.toString() ?? 'new';
+    final stepName = courseDialogSteps[step];
+    final groupId = _currentCourseGroupId;
+    context.go(
+      '${widget.shellPath}/$id/$stepName',
+      extra: groupId != null
+          ? CourseDialogExtra(courseGroupId: groupId)
+          : null,
+    );
   }
 
   @override
@@ -106,8 +226,6 @@ class _CourseAddScreenState extends MultiStepContainerState<CourseAddScreen> {
       }
       _targetStep = step;
       saveAction!();
-
-      // BlocListener will handle state transition after save
       return;
     }
 
@@ -139,9 +257,6 @@ class _CourseAddScreenState extends MultiStepContainerState<CourseAddScreen> {
     if (steps[currentStep].stepScreenType != ScreenType.entityPage) {
       return null;
     }
-    // Return function that evaluates widget state when called, not when getter runs
-    // Note: Don't set isSubmitting here - let onActionStarted callback handle it
-    // after validation passes. Otherwise, validation failures leave spinner stuck.
     return () {
       if (isSubmitting) return;
       Function? widgetSubmit;
@@ -151,12 +266,14 @@ class _CourseAddScreenState extends MultiStepContainerState<CourseAddScreen> {
         case 0:
           widgetSubmit = _detailsKey.currentState?.onSubmit;
           widgetLoading = _detailsKey.currentState?.isLoading ?? true;
-          widgetChanged = _detailsKey.currentState?.formController.isChanged ?? true;
+          widgetChanged =
+              _detailsKey.currentState?.formController.isChanged ?? true;
           break;
         case 1:
           widgetSubmit = _scheduleKey.currentState?.onSubmit;
           widgetLoading = _scheduleKey.currentState?.isLoading ?? true;
-          widgetChanged = _scheduleKey.currentState?.formController.isChanged ?? true;
+          widgetChanged =
+              _scheduleKey.currentState?.formController.isChanged ?? true;
           break;
       }
       if (widgetLoading) return;
@@ -180,29 +297,48 @@ class _CourseAddScreenState extends MultiStepContainerState<CourseAddScreen> {
             _detailsKey.currentState?.resetSubmitting();
             _scheduleKey.currentState?.resetSubmitting();
             setState(() => isSubmitting = false);
+          } else if (state is CoursesScreenDataFetched &&
+              _currentCourseGroupId == null &&
+              _currentCourseId != null) {
+            final match = state.courses
+                .firstWhereOrNull((c) => c.id == _currentCourseId);
+            if (match != null) {
+              setState(() => _currentCourseGroupId = match.courseGroup);
+            } else {
+              // Course not found after fetch; back out to the index.
+              context.go(widget.shellPath);
+            }
           } else if (state is CourseCreated || state is CourseUpdated) {
             state as CourseEntityState;
 
             if (state is CourseCreated) {
               final willClose = _willCloseAfterSave();
-              showSnackBar(context, 'Class created.', useRootMessenger: willClose);
+              showSnackBar(
+                context,
+                'Class created.',
+                useRootMessenger: willClose,
+              );
             }
 
             setState(() {
               _currentCourseId = state.course.id;
+              _currentCourseGroupId = state.course.courseGroup;
               isSubmitting = false;
             });
 
-            if (!Responsive.isMobile(context) && state is CourseCreated) {
-              context.setQueryParam(
-                DeepLinkParam.id,
-                state.course.id.toString(),
-              );
+            if (state is CourseCreated) {
+              // New course minted its real ID — the URL prefix that the
+              // dirty-dialog guard owns has changed (`/classes/new` →
+              // `/classes/<id>`), so swap the registration before
+              // `_navigateAfterSave` triggers the URL update.
+              if (_registeredPrefix != null) {
+                DirtyDialogRegistry.unregister(_registeredPrefix!);
+              }
+              _registerDirtyGuard();
             }
 
             _navigateAfterSave();
           } else if (state is CourseScheduleUpdated) {
-            // No snackbar on updates
             setState(() => isSubmitting = false);
             _navigateAfterSave();
           }
@@ -220,7 +356,6 @@ class _CourseAddScreenState extends MultiStepContainerState<CourseAddScreen> {
 
   void _navigateAfterSave() {
     if (_targetStep != null) {
-      // User explicitly requested a specific step (clicked step icon)
       final step = _targetStep!;
       _targetStep = null;
       if (step < steps.length) {
@@ -229,11 +364,20 @@ class _CourseAddScreenState extends MultiStepContainerState<CourseAddScreen> {
         closeWithoutPrompt();
       }
     } else if (widget.isNew && currentStep + 1 < steps.length) {
-      // In create mode, auto-advance to next step
       navigateToStep(currentStep + 1);
     } else {
       closeWithoutPrompt();
     }
+  }
+
+  @override
+  Widget buildMainArea(BuildContext context) {
+    if (_currentCourseGroupId == null) {
+      return const Expanded(
+        child: Center(child: LoadingIndicator(expanded: false)),
+      );
+    }
+    return super.buildMainArea(context);
   }
 
   late final List<MultiStepDefinition> _steps = [
@@ -243,7 +387,7 @@ class _CourseAddScreenState extends MultiStepContainerState<CourseAddScreen> {
       stepScreenType: ScreenType.entityPage,
       builder: (context) => CourseDetails(
         key: _detailsKey,
-        courseGroupId: widget.courseGroupId,
+        courseGroupId: _currentCourseGroupId!,
         courseId: _currentCourseId,
         isEdit: widget.isEdit || _currentCourseId != null,
         isNew: widget.isNew,
@@ -258,7 +402,7 @@ class _CourseAddScreenState extends MultiStepContainerState<CourseAddScreen> {
       stepScreenType: ScreenType.entityPage,
       builder: (context) => CourseSchedule(
         key: _scheduleKey,
-        courseGroupId: widget.courseGroupId,
+        courseGroupId: _currentCourseGroupId!,
         courseId: _currentCourseId!,
         isEdit: widget.isEdit || _currentCourseId != null,
         isNew: widget.isNew,
@@ -282,7 +426,7 @@ class _CourseAddScreenState extends MultiStepContainerState<CourseAddScreen> {
       tooltip: 'Categories',
       stepScreenType: ScreenType.subPage,
       builder: (context) => CourseCategories(
-        courseGroupId: widget.courseGroupId,
+        courseGroupId: _currentCourseGroupId!,
         courseId: _currentCourseId!,
         isEdit: widget.isEdit || _currentCourseId != null,
         isNew: widget.isNew,
@@ -295,7 +439,7 @@ class _CourseAddScreenState extends MultiStepContainerState<CourseAddScreen> {
       stepScreenType: ScreenType.subPage,
       builder: (context) => CourseAttachments(
         contentKey: _attachmentsKey,
-        courseGroupId: widget.courseGroupId,
+        courseGroupId: _currentCourseGroupId!,
         entityId: _currentCourseId!,
         isEdit: widget.isEdit || _currentCourseId != null,
         userSettings: userSettings,
@@ -306,4 +450,3 @@ class _CourseAddScreenState extends MultiStepContainerState<CourseAddScreen> {
   @override
   List<MultiStepDefinition> get steps => _steps;
 }
-

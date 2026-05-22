@@ -30,33 +30,24 @@ class AppRoute {
 /// Naming convention:
 /// - The parent entity of the page uses the bare [id] param (e.g., note on
 ///   /notebook, class on /classes, resource on /resources).
-/// - [homeworkId] and [eventId] are global; they open the planner item editor
-///   from any shell route or from /notifications on mobile.
-/// - Linked-entity params on /notebook use the `linked` prefix to avoid
-///   collision with the global planner params.
+/// - Linked-entity params on /notebook create a note pre-linked to the
+///   homework/event/resource specified.
 class DeepLinkParam {
-  // Global params; valid on any shell route and /notifications (mobile)
-  static const String homeworkId = 'homeworkId';
-  static const String eventId = 'eventId';
-
   // Parent-entity param; meaning depends on the current route
   static const String id = 'id';
 
-  // /notebook link-entity params; create a note pre-linked to the entity
+  // Note-link query params on `/notebook/notes/new` — pre-link the new note
+  // to an existing entity. Lives in the URL so the link survives browser
+  // refresh; non-routing metadata, not a dialog-routing trigger.
   static const String linkHomeworkId = 'linkHomeworkId';
   static const String linkEventId = 'linkEventId';
   static const String linkResourceId = 'linkResourceId';
 
-  // Modifiers (apply to whichever entity param or dialog is present)
+  // Modifiers (apply to whichever entity param is present)
   static const String tab = 'tab';
-  static const String dialog = 'dialog';
 
   // /planner: anchor the calendar's initial display date (YYYY-MM-DD)
   static const String date = 'date';
-
-  // dialog= values
-  static const String dialogSettings = 'settings';
-  static const String dialogNotifications = 'notifications';
 
   /// Parses an entity ID param that accepts either an integer or the sentinel
   /// string `'new'`.

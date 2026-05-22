@@ -15,10 +15,12 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_quill/flutter_quill.dart';
 import 'package:flutter_quill/quill_delta.dart';
 import 'package:flutter_quill_to_pdf/flutter_quill_to_pdf.dart';
+import 'package:go_router/go_router.dart';
 import 'package:heliumapp/config/analytics_event.dart';
 import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/config/app_router.dart';
 import 'package:heliumapp/config/app_theme.dart';
+import 'package:heliumapp/config/dirty_dialog_registry.dart';
 import 'package:heliumapp/core/analytics_service.dart';
 import 'package:heliumapp/data/models/planner/note_model.dart';
 import 'package:heliumapp/data/models/planner/request/note_request_model.dart';
@@ -50,6 +52,11 @@ import 'package:sentry_flutter/sentry_flutter.dart';
 
 enum SaveStatus { unsaved, saving, saved, error }
 
+/// Pushes the note editor route on the notebook shell.
+///
+/// Linked-entity context (homework, event, resource) rides as query params
+/// on the note URL so the link survives browser refresh / sharing. A
+/// deep-link edit ignores these — the note's own model carries the relation.
 Future<void> showNoteAdd(
   BuildContext context, {
   required bool isNew,
@@ -58,44 +65,49 @@ Future<void> showNoteAdd(
   int? linkEventId,
   int? linkResourceId,
 }) {
-  final noteBloc = context.read<NoteBloc>();
-  final basePath = router.routerDelegate.currentConfiguration.uri.path;
-  final idParam = noteId?.toString() ?? (isNew ? 'new' : null);
-
-  if (idParam != null) {
-    context.setQueryParam(DeepLinkParam.id, idParam);
+  final id = noteId?.toString() ?? 'new';
+  final queryParameters = <String, String>{
+    if (linkHomeworkId != null)
+      DeepLinkParam.linkHomeworkId: linkHomeworkId.toString(),
+    if (linkEventId != null)
+      DeepLinkParam.linkEventId: linkEventId.toString(),
+    if (linkResourceId != null)
+      DeepLinkParam.linkResourceId: linkResourceId.toString(),
+  };
+  final target = Uri(
+    path: '${AppRoute.notebookScreen}/notes/$id',
+    queryParameters: queryParameters.isEmpty ? null : queryParameters,
+  ).toString();
+  final currentUri = router.routerDelegate.currentConfiguration.uri;
+  if (currentUri.toString() == target) {
+    // Already on this exact route; avoid duplicate push that would stack
+    // a second dialog page with the same shared key.
+    return Future.value();
   }
-
-  final useCompact = Responsive.useCompactLayout(context);
-
-  return showScreenAsDialog(
-    context,
-    child: BlocProvider<NoteBloc>.value(
-      value: noteBloc,
-      child: NoteAddScreen(
-        isNew: isNew,
-        noteId: noteId,
-        linkHomeworkId: linkHomeworkId,
-        linkEventId: linkEventId,
-        linkResourceId: linkResourceId,
-      ),
-    ),
-    width: double.infinity,
-    insetPadding: useCompact ? EdgeInsets.zero : const EdgeInsets.all(32),
-    alignment: Alignment.center,
-  ).then((_) => clearRouteQueryParams(basePath));
+  return context.push<void>(target);
 }
 
 class NoteAddScreen extends StatefulWidget {
+  /// Shell path the dialog is overlaying — used to build the dialog's
+  /// dirty-guard prefix and to resolve the underlying screen on dismissal.
+  final String shellPath;
+
   final bool isNew;
   final int? noteId;
   final int? linkHomeworkId;
   final int? linkEventId;
   final int? linkResourceId;
 
+  /// Full URL the route was matched at — passed in from the pageBuilder so
+  /// the dialog's dirty-guard registration captures the active path without
+  /// racing against `routerDelegate.currentConfiguration`, which lags push.
+  final String initialFullPath;
+
   const NoteAddScreen({
     super.key,
+    required this.shellPath,
     required this.isNew,
+    required this.initialFullPath,
     this.noteId,
     this.linkHomeworkId,
     this.linkEventId,
@@ -118,11 +130,14 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
   PrintHandler? _printHandler;
 
   NoteModel? _note;
+  int? _currentNoteId;
   String? _linkedEntityType;
   String? _linkedEntityTitle;
   Color? _linkedEntityColor;
+  bool? _linkedEntityCompleted;
   bool _showSearch = false;
   bool _hasRequestedInitialFocus = false;
+  String? _registeredPrefix;
 
   // Auto-save state
   SaveStatus _saveStatus = SaveStatus.saved;
@@ -137,6 +152,7 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
   @override
   void initState() {
     super.initState();
+    _currentNoteId = widget.noteId;
     _quillController = QuillController.basic();
     _saveStatus = widget.noteId == null ? SaveStatus.unsaved : SaveStatus.saved;
 
@@ -144,6 +160,9 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
     _editorFocusNode.addListener(_onEditorFocusChanged);
     _printHandler = _printNote;
     PrintService().register(_printHandler!);
+
+    _registerDirtyGuard();
+    router.routerDelegate.addListener(_syncFromUrl);
 
     context.read<NoteBloc>().add(
       FetchNoteScreenDataEvent(
@@ -158,6 +177,10 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
 
   @override
   void dispose() {
+    router.routerDelegate.removeListener(_syncFromUrl);
+    if (_registeredPrefix != null) {
+      DirtyDialogRegistry.unregister(_registeredPrefix!);
+    }
     PrintService().unregister(_printHandler);
     _debounceTimer?.cancel();
     _documentSubscription?.cancel();
@@ -168,6 +191,44 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
     _titleFocusNode.dispose();
     _editorFocusNode.dispose();
     super.dispose();
+  }
+
+  /// Registers (or re-registers, after a new-note save mints a real ID)
+  /// this dialog with the dirty-dialog guard so URL-driven dismissals can't
+  /// silently lose unsaved changes.
+  void _registerDirtyGuard() {
+    final prefix =
+        '${widget.shellPath}/notes/${_currentNoteId?.toString() ?? 'new'}';
+    final routerPath =
+        router.routerDelegate.currentConfiguration.uri.path;
+    // Prefer the routerDelegate's settled path if it already matches our
+    // dialog (e.g. after a new-note save); otherwise fall back to the URL
+    // the pageBuilder matched on, which is authoritative for the active
+    // route even when the routerDelegate hasn't caught up yet.
+    final fullPath = routerPath.startsWith(prefix)
+        ? routerPath
+        : widget.initialFullPath;
+    DirtyDialogRegistry.register(
+      prefix: prefix,
+      fullPath: fullPath,
+      isDirty: () => isDirty,
+    );
+    _registeredPrefix = prefix;
+  }
+
+  void _syncFromUrl() {
+    if (!mounted) return;
+    final path = router.routerDelegate.currentConfiguration.uri.path;
+    final prefix = _registeredPrefix;
+    if (prefix != null && path.startsWith(prefix)) {
+      DirtyDialogRegistry.updateFullPath(prefix: prefix, fullPath: path);
+    }
+  }
+
+  bool get isDirty {
+    if (_autoSaveDisabled) return false;
+    return _saveStatus == SaveStatus.unsaved ||
+        _saveStatus == SaveStatus.error;
   }
 
   @override
@@ -206,10 +267,12 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
     final redirect = _pendingRedirectRoute;
     if (redirect != null) {
       _pendingRedirectRoute = null;
+      DirtyDialogRegistry.releaseActive();
       navigateAndClearStack(context, redirect);
       return;
     }
-    Navigator.of(context).pop();
+    DirtyDialogRegistry.releaseActive();
+    context.pop();
   }
 
   void _onDelete() {
@@ -339,6 +402,7 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
               _linkedEntityType = state.linkedEntityType;
               _linkedEntityTitle = state.linkedEntityTitle;
               _linkedEntityColor = state.linkedEntityColor;
+              _linkedEntityCompleted = state.linkedEntityCompleted;
             });
             if (state.note != null) {
               _populateNoteData(state.note!);
@@ -362,16 +426,24 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
               // Auto-save created the note - update state but don't close
               setState(() {
                 _note = state.note;
+                _currentNoteId = state.note.id;
                 _saveStatus = SaveStatus.saved;
                 _autoSaveErrorCount = 0;
                 _autoSaveDisabled = false;
               });
               _isAutoSaving = false;
-              // Update URL from id=new to the actual ID
+              // Auto-save minted a real ID — the URL prefix that the
+              // dirty-dialog guard owns has changed (`/notebook/notes/new`
+              // → `/notebook/notes/<id>`), so swap the registration before
+              // the URL update so the listener doesn't tear down the new
+              // slot mid-transition.
+              if (_registeredPrefix != null) {
+                DirtyDialogRegistry.unregister(_registeredPrefix!);
+              }
+              _registerDirtyGuard();
               if (!Responsive.isMobile(context)) {
-                context.setQueryParam(
-                  DeepLinkParam.id,
-                  state.note.id.toString(),
+                context.go(
+                  '${widget.shellPath}/notes/${state.note.id}',
                 );
               }
               showSnackBar(context, 'Note created.');
@@ -951,9 +1023,11 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
   Widget _buildLinkedEntityBadge() {
     final entityType = _linkedEntityType ?? '';
     final title = _linkedEntityTitle ?? '';
-    final strikethrough = _note?.linkedEntityCompleted == true
-        ? TextDecoration.lineThrough
-        : null;
+    // Prefer the loaded note's completion (existing-edit flow) but fall
+    // back to the linked-entity fetch's completion (new-note flow).
+    final completed = _note?.linkedEntityCompleted ?? _linkedEntityCompleted;
+    final strikethrough =
+        completed == true ? TextDecoration.lineThrough : null;
 
     final Widget badge;
     if (entityType == 'resource') {
@@ -993,20 +1067,28 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
       );
     }
 
+    // For an existing note the link IDs come from the loaded model; for a
+    // new note being created via the linked-entity flow they come from the
+    // widget params (the IDs the route was opened with).
     final entityId = switch (entityType) {
-      'homework' => _note?.homework.firstOrNull,
-      'event' => _note?.events.firstOrNull,
-      'resource' => _note?.resources.firstOrNull,
+      'homework' =>
+        _note?.homework.firstOrNull ?? widget.linkHomeworkId,
+      'event' => _note?.events.firstOrNull ?? widget.linkEventId,
+      'resource' =>
+        _note?.resources.firstOrNull ?? widget.linkResourceId,
       _ => null,
     };
     if (entityId == null) return badge;
 
     final route = switch (entityType) {
       'homework' =>
-        '${AppRoute.plannerScreen}?${DeepLinkParam.homeworkId}=$entityId',
-      'event' => '${AppRoute.plannerScreen}?${DeepLinkParam.eventId}=$entityId',
+        '${AppRoute.plannerScreen}/$plannerItemHomeworkPath/$entityId/'
+            '${plannerItemDialogSteps.first}',
+      'event' =>
+        '${AppRoute.plannerScreen}/$plannerItemEventPath/$entityId/'
+            '${plannerItemDialogSteps.first}',
       'resource' =>
-        '${AppRoute.resourcesScreen}?${DeepLinkParam.id}=$entityId',
+        '${AppRoute.resourcesScreen}/$entityId/${resourceDialogSteps.first}',
       _ => null,
     };
     if (route == null) return badge;

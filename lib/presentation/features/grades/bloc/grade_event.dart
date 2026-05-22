@@ -12,3 +12,7 @@ class FetchGradeScreenDataEvent extends GradeEvent {
 
   FetchGradeScreenDataEvent({this.forceRefresh = false});
 }
+
+/// Clears all grade state. Dispatched on logout so per-user data does not
+/// carry into the next session.
+class ResetGradesEvent extends GradeEvent {}

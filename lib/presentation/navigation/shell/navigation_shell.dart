@@ -97,6 +97,40 @@ class NavigationShellProvider extends InheritedWidget {
       label != oldWidget.label;
 }
 
+/// Exposes the live [StatefulNavigationShell] so descendants can compute the
+/// current branch's root path (e.g. `/notebook`) on demand.
+///
+/// `router.routerDelegate.currentConfiguration.uri.path` is unreliable for
+/// this — `StatefulShellRoute.indexedStack` does not always reflect the
+/// active branch's location in the router's top-level URI, so the URI-based
+/// read can lag behind the actually-selected branch. `currentIndex` on the
+/// shell is a live getter and always reflects the active branch.
+class BranchPathScope extends InheritedWidget {
+  const BranchPathScope({
+    super.key,
+    required this.navigationShell,
+    required super.child,
+  });
+
+  final StatefulNavigationShell navigationShell;
+
+  static String of(BuildContext context) {
+    final scope =
+        context.dependOnInheritedWidgetOfExactType<BranchPathScope>();
+    assert(
+      scope != null,
+      'BranchPathScope.of() called outside of NavigationShell',
+    );
+    if (scope == null) return AppRoute.plannerScreen;
+    final index = scope.navigationShell.currentIndex;
+    return NavigationPage.values[index].route;
+  }
+
+  @override
+  bool updateShouldNotify(BranchPathScope oldWidget) =>
+      navigationShell != oldWidget.navigationShell;
+}
+
 enum NavigationPage {
   planner('Planner', Icons.calendar_month, AppRoute.plannerScreen),
   notes('Notebook', Icons.library_books, AppRoute.notebookScreen),
@@ -127,28 +161,26 @@ enum NavigationPage {
       case NavigationPage.notes:
         return const NotebookScreen();
       case NavigationPage.courses:
-        return CoursesScreen();
+        return const CoursesScreen();
       case NavigationPage.resources:
-        return ResourcesScreen();
+        return const ResourcesScreen();
       case NavigationPage.grades:
-        return GradesScreen();
+        return const GradesScreen();
     }
   }
 }
 
-/// Shell widget for main tab navigation using go_router
+/// Shell widget for main tab navigation using go_router's StatefulShellRoute.
 class NavigationShell extends StatefulWidget {
-  final Widget child;
+  final StatefulNavigationShell navigationShell;
 
-  const NavigationShell({super.key, required this.child});
+  const NavigationShell({super.key, required this.navigationShell});
 
   @override
   State<NavigationShell> createState() => _NavigationShellState();
 }
 
 class _NavigationShellState extends State<NavigationShell> {
-  // Cache screen widgets to prevent recreation on every build/resize
-  final Map<NavigationPage, Widget> _screenCache = {};
   final InheritableProvidersNotifier _inheritableProvidersNotifier =
       InheritableProvidersNotifier();
   bool _isShowingGettingStarted = false;
@@ -157,10 +189,6 @@ class _NavigationShellState extends State<NavigationShell> {
   @override
   void initState() {
     super.initState();
-    // Pre-build all screens to cache them
-    for (final page in NavigationPage.values) {
-      _screenCache[page] = page.buildScreen();
-    }
 
     DioClient().cacheService.addInactivityResumeListener(_checkGettingStartedDialog);
     _checkDialogs();
@@ -177,18 +205,14 @@ class _NavigationShellState extends State<NavigationShell> {
 
   @override
   Widget build(BuildContext context) {
-    final currentPage = _getCurrentPage(context);
+    final currentPage = NavigationPage.values[widget.navigationShell.currentIndex];
 
-    // Only update browser title if no other route or dialog is on top of the shell.
-    // Use global router state since the shell's local GoRouterState doesn't know
-    // about routes pushed outside of it (like Settings or Notifications).
-    // Also check ModalRoute.isCurrent to skip when dialogs are open.
     final globalLocation = router.routerDelegate.currentConfiguration.uri.path;
-    final isShellRoute = NavigationPage.values.any(
+    final isShellTab = NavigationPage.values.any(
       (p) => p.route == globalLocation,
     );
     final isCurrentRoute = ModalRoute.of(context)?.isCurrent ?? false;
-    if (isShellRoute && isCurrentRoute) {
+    if (isShellTab && isCurrentRoute) {
       _updateBrowserTitle(currentPage);
     }
 
@@ -208,7 +232,9 @@ class _NavigationShellState extends State<NavigationShell> {
         builder: (context, constraints) {
           final useNavigationRail = !Responsive.isMobile(context);
 
-          return Scaffold(
+          return BranchPathScope(
+            navigationShell: widget.navigationShell,
+            child: Scaffold(
             body: Row(
               children: [
                 if (useNavigationRail)
@@ -244,7 +270,6 @@ class _NavigationShellState extends State<NavigationShell> {
                       notifier: _inheritableProvidersNotifier,
                       child: Column(
                         children: [
-                          // Static PageHeader that doesn't animate
                           ListenableBuilder(
                             listenable: _inheritableProvidersNotifier,
                             builder: (context, _) => PageHeader(
@@ -255,48 +280,10 @@ class _NavigationShellState extends State<NavigationShell> {
                                   _inheritableProvidersNotifier.providers,
                             ),
                           ),
-                          // Only the content area animates
                           Expanded(
-                            child: AnimatedSwitcher(
-                              duration: const Duration(milliseconds: 300),
-                              switchInCurve: Curves.easeInOut,
-                              switchOutCurve: Curves.easeInOut,
-                              transitionBuilder: (child, animation) {
-                                // Vertical slide for NavigationRail
-                                // Horizontal slide for NavigationBar
-                                if (useNavigationRail) {
-                                  return SlideTransition(
-                                    position: Tween<Offset>(
-                                      begin: const Offset(0, 0.1),
-                                      end: Offset.zero,
-                                    ).animate(animation),
-                                    child: FadeTransition(
-                                      opacity: animation,
-                                      child: child,
-                                    ),
-                                  );
-                                } else {
-                                  return SlideTransition(
-                                    position: Tween<Offset>(
-                                      begin: const Offset(0.1, 0),
-                                      end: Offset.zero,
-                                    ).animate(animation),
-                                    child: FadeTransition(
-                                      opacity: animation,
-                                      child: child,
-                                    ),
-                                  );
-                                }
-                              },
-                              child: KeyedSubtree(
-                                key: ValueKey(currentPage),
-                                child: NavigationShellProvider(
-                                  label: currentPage.label,
-                                  child:
-                                      _screenCache[currentPage] ??
-                                      currentPage.buildScreen(),
-                                ),
-                              ),
+                            child: NavigationShellProvider(
+                              label: currentPage.label,
+                              child: widget.navigationShell,
                             ),
                           ),
                         ],
@@ -306,7 +293,7 @@ class _NavigationShellState extends State<NavigationShell> {
                 ),
               ],
             ),
-            bottomNavigationBar: useNavigationRail
+            bottomNavigationBar: (useNavigationRail || !isShellTab)
                 ? null
                 : TooltipVisibility(
                     visible: false,
@@ -334,6 +321,7 @@ class _NavigationShellState extends State<NavigationShell> {
                           .toList(),
                     ),
                   ),
+            ),
           );
         },
       ),
@@ -380,18 +368,16 @@ class _NavigationShellState extends State<NavigationShell> {
         return;
       }
 
-      // Skip startup dialogs when landing on a deep link
-      final params =
-          router.routerDelegate.currentConfiguration.uri.queryParameters;
-      final hasDeepLinkParams =
-          params.containsKey(DeepLinkParam.homeworkId) ||
-          params.containsKey(DeepLinkParam.eventId) ||
-          params.containsKey(DeepLinkParam.id) ||
-          params.containsKey(DeepLinkParam.dialog) ||
-          params.containsKey(DeepLinkParam.linkHomeworkId) ||
-          params.containsKey(DeepLinkParam.linkEventId) ||
-          params.containsKey(DeepLinkParam.linkResourceId);
-      if (hasDeepLinkParams) return;
+      // Skip startup dialogs whenever the user lands on anything other than
+      // a bare shell tab — covers path-based dialog routes (e.g.
+      // /planner/settings, /classes/25/details, /planner/homework/5/details)
+      // and remaining query-param deep links on the shell screens.
+      final uri = router.routerDelegate.currentConfiguration.uri;
+      final onShellTab =
+          NavigationPage.values.any((p) => p.route == uri.path);
+      final params = uri.queryParameters;
+      final hasDeepLinkParams = params.containsKey(DeepLinkParam.id);
+      if (!onShellTab || hasDeepLinkParams) return;
 
       if (showGettingStarted) {
         // Re-check from the server: the value captured above may be stale if
@@ -424,17 +410,11 @@ class _NavigationShellState extends State<NavigationShell> {
     }
   }
 
-  NavigationPage _getCurrentPage(BuildContext context) {
-    final location = GoRouterState.of(context).matchedLocation;
-    return NavigationPage.fromRoute(location) ?? NavigationPage.planner;
-  }
-
   void _onDestinationSelected(BuildContext context, int index) {
-    final newPage = NavigationPage.values[index];
-    final currentPage = _getCurrentPage(context);
-    if (newPage != currentPage) {
-      context.go(newPage.route);
-    }
+    widget.navigationShell.goBranch(
+      index,
+      initialLocation: index == widget.navigationShell.currentIndex,
+    );
   }
 
   /// Updates the browser title directly via DOM when navigating within the
@@ -518,16 +498,3 @@ class _NavigationShellState extends State<NavigationShell> {
   }
 }
 
-/// Content widget for shell routes - displays the appropriate screen.
-class NavigationShellContent extends StatelessWidget {
-  final NavigationPage page;
-
-  const NavigationShellContent({super.key, required this.page});
-
-  @override
-  Widget build(BuildContext context) {
-    // The actual content is handled by NavigationShell's AnimatedSwitcher
-    // This widget is just a marker for go_router
-    return const SizedBox.shrink();
-  }
-}

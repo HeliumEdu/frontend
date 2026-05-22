@@ -16,16 +16,11 @@ import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/config/pref_service.dart';
 import 'package:heliumapp/core/analytics_service.dart';
-import 'package:heliumapp/core/dio_client.dart';
 import 'package:heliumapp/data/models/auth/user_model.dart';
 import 'package:heliumapp/data/models/planner/course_group_model.dart';
 import 'package:heliumapp/data/models/planner/grade_category_model.dart';
 import 'package:heliumapp/data/models/planner/grade_course_group_model.dart';
 import 'package:heliumapp/data/models/planner/grade_course_model.dart';
-import 'package:heliumapp/data/repositories/course_repository_impl.dart';
-import 'package:heliumapp/data/repositories/grade_repository_impl.dart';
-import 'package:heliumapp/data/sources/course_remote_data_source.dart';
-import 'package:heliumapp/data/sources/grade_remote_data_source.dart';
 import 'package:heliumapp/presentation/core/views/base_page_screen_state.dart';
 import 'package:heliumapp/presentation/core/views/deep_link_mixin.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_bloc.dart';
@@ -37,7 +32,6 @@ import 'package:heliumapp/presentation/features/planner/bloc/planneritem_bloc.da
 import 'package:heliumapp/presentation/features/planner/bloc/planneritem_state.dart';
 import 'package:heliumapp/presentation/features/grades/dialogs/grade_calculator_dialog.dart';
 import 'package:heliumapp/presentation/features/planner/views/planner_item_add_screen.dart';
-import 'package:heliumapp/presentation/features/shared/bloc/core/provider_helpers.dart';
 import 'package:heliumapp/presentation/ui/components/category_title_label.dart';
 import 'package:heliumapp/presentation/ui/components/course_title_label.dart';
 import 'package:heliumapp/presentation/ui/components/grade_label.dart';
@@ -60,35 +54,10 @@ import 'package:syncfusion_flutter_charts/charts.dart' as charts;
 import 'package:syncfusion_flutter_gauges/gauges.dart';
 
 class GradesScreen extends StatelessWidget {
-  final DioClient _dioClient = DioClient();
-  final ProviderHelpers _providerHelpers = ProviderHelpers();
-
-  GradesScreen({super.key});
+  const GradesScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return MultiBlocProvider(
-      providers: [
-        BlocProvider(create: _providerHelpers.createAttachmentBloc()),
-        BlocProvider(
-          create: (context) =>
-              GradeBloc(
-                gradeRepository: GradeRepositoryImpl(
-                  remoteDataSource: GradeRemoteDataSourceImpl(
-                    dioClient: _dioClient,
-                  ),
-                ),
-                courseRepository: CourseRepositoryImpl(
-                  remoteDataSource: CourseRemoteDataSourceImpl(
-                    dioClient: _dioClient,
-                  ),
-                ),
-              ),
-        ),
-      ],
-      child: const _GradesProvidedScreen(),
-    );
-  }
+  Widget build(BuildContext context) => const _GradesProvidedScreen();
 }
 
 class _AtRiskBadge extends StatelessWidget {
@@ -967,21 +936,19 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
         ? selectedGroup.numHomework - selectedGroup.numHomeworkGraded
         : selectedGroup.numHomework;
 
-    // Courses sorted by ungraded count descending; top course is first
-    final sortedCourses = [...selectedGroup.courses]
-      ..sort((a, b) {
+    // Cycle only through courses with pending work, sorted by ungraded
+    // count descending. Excluding fully-graded courses keeps the chip
+    // visible and meaningful across every tap of the rotator.
+    final sortedCourses = [
+      for (final course in selectedGroup.courses)
+        if (course.numHomework - course.numHomeworkGraded > 0) course,
+    ]..sort((a, b) {
         final aU = a.numHomework - a.numHomeworkGraded;
         final bU = b.numHomework - b.numHomeworkGraded;
         return bU.compareTo(aU);
       });
 
-    final topCourse =
-    sortedCourses.isNotEmpty &&
-        (sortedCourses.first.numHomework -
-            sortedCourses.first.numHomeworkGraded) >
-            0
-        ? sortedCourses.first
-        : null;
+    final topCourse = sortedCourses.isNotEmpty ? sortedCourses.first : null;
 
     final displayCourse = _pendingImpactCourseId != null
         ? selectedGroup.courses.firstWhereOrNull(
@@ -1157,7 +1124,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
       final RenderBox button = buttonContext.findRenderObject() as RenderBox;
       final RenderBox overlay =
       Overlay
-          .of(context)
+          .of(context, rootOverlay: true)
           .context
           .findRenderObject() as RenderBox;
       final RelativeRect position = RelativeRect.fromRect(
@@ -1176,6 +1143,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
         position: position,
         color: context.colorScheme.surface,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0)),
+        useRootNavigator: true,
         items: [
           PopupMenuItem(
             enabled: false,
@@ -1263,6 +1231,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
         name: 'uses_grade_calculator', value: 'true'));
     showDialog(
       context: context,
+      useRootNavigator: true,
       builder: (context) =>
           GradeCalculatorDialog(
             categories: course.categories,
@@ -1406,8 +1375,14 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
                   builder: (buttonContext) =>
                       Tooltip(
                         message: 'What Grade Do I Need?',
-                        child: IconButton(
+                        child: IconButton.outlined(
                           icon: const Icon(Icons.calculate_outlined),
+                          style: IconButton.styleFrom(
+                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                            side: BorderSide(
+                              color: context.colorScheme.primary,
+                            ),
+                          ),
                           onPressed: () =>
                               _showGradeCalculatorOptions(
                                 buttonContext,
@@ -1418,6 +1393,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
                       ),
                 ),
               ),
+            if (coursesWithCategories.isNotEmpty) const SizedBox(width: 8),
             // Gear icon for settings
             PrintHidden(
               child: Builder(
@@ -1425,13 +1401,20 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
                     Semantics(
                       label: 'Graph settings',
                       button: true,
-                      child: IconButton(
+                      child: IconButton.outlined(
                         icon: const Icon(Icons.settings),
+                        style: IconButton.styleFrom(
+                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          side: BorderSide(
+                            color: context.colorScheme.primary,
+                          ),
+                        ),
                         onPressed: () => _showGraphSettings(buttonContext),
                       ),
                     ),
               ),
             ),
+            const SizedBox(width: 8),
             // Expand/collapse chevron
             PrintHidden(
               child: Semantics(
@@ -1962,15 +1945,11 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
     }
 
     // Open the calendar item (assignment)
-    openWithGuard(
-      '${DeepLinkParam.homeworkId}:$homeworkId',
-          () =>
-          showPlannerItemAdd(
-            context,
-            homeworkId: homeworkId,
-            isEdit: true,
-            isNew: false,
-          ),
+    showPlannerItemAdd(
+      context,
+      homeworkId: homeworkId,
+      isEdit: true,
+      isNew: false,
     );
   }
 
@@ -2259,7 +2238,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
       final RenderBox button = buttonContext.findRenderObject() as RenderBox;
       final RenderBox overlay =
       Overlay
-          .of(context)
+          .of(context, rootOverlay: true)
           .context
           .findRenderObject() as RenderBox;
       final RelativeRect position = RelativeRect.fromRect(
@@ -2278,6 +2257,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
         position: position,
         color: context.colorScheme.surface,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0)),
+        useRootNavigator: true,
         items: [
           PopupMenuItem(
             enabled: false,

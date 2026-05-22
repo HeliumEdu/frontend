@@ -12,6 +12,12 @@ abstract class ExternalCalendarEvent extends BaseEvent {
   ExternalCalendarEvent({required super.origin});
 }
 
+/// Clears all external calendar state. Dispatched on logout so per-user data
+/// does not carry into the next session.
+class ResetExternalCalendarsEvent extends ExternalCalendarEvent {
+  ResetExternalCalendarsEvent() : super(origin: EventOrigin.bloc);
+}
+
 class FetchExternalCalendarsEvent extends ExternalCalendarEvent {
   final bool forceRefresh;
 

@@ -21,6 +21,7 @@ class GradeBloc extends Bloc<GradeEvent, GradeState> {
   GradeBloc({required this.gradeRepository, required this.courseRepository})
     : super(GradeInitial()) {
     on<FetchGradeScreenDataEvent>(_onFetchGrades);
+    on<ResetGradesEvent>((event, emit) => emit(GradeInitial()));
   }
 
   Future<void> _onFetchGrades(

@@ -15,6 +15,7 @@ import 'package:heliumapp/config/analytics_event.dart';
 import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/config/app_router.dart';
 import 'package:heliumapp/config/app_theme.dart';
+import 'package:heliumapp/config/dirty_dialog_registry.dart';
 import 'package:heliumapp/config/theme_notifier.dart';
 import 'package:heliumapp/core/analytics_service.dart';
 import 'package:heliumapp/data/models/auth/request/update_settings_request_model.dart';
@@ -44,7 +45,6 @@ import 'package:heliumapp/presentation/ui/layout/page_header.dart';
 import 'package:heliumapp/presentation/ui/layout/shadow_container.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/app_style.dart';
-import 'package:heliumapp/utils/deep_link_helpers.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -58,42 +58,35 @@ enum SettingsSubScreen {
   importExport,
 }
 
-/// Shows settings screen (responsive: side panel on desktop, full-screen on mobile)
-Future<void> showSettings(BuildContext context, {int? initialTab}) {
+/// Navigates to the settings route (responsive: side panel on desktop,
+/// full-screen on mobile). The route's pageBuilder handles dialog rendering.
+Future<void> showSettings(BuildContext context, {String? initialTab}) async {
   unawaited(AnalyticsService().logEvent(name: AnalyticsEvent.settingsOpen, parameters: {'category': AnalyticsCategory.featureInteraction.value}));
-  final currentUri = router.routerDelegate.currentConfiguration.uri;
-  final hasDialogParam = currentUri.queryParameters.containsKey(
-    DeepLinkParam.dialog,
-  );
-  final basePath = hasDialogParam ? currentUri.path : null;
-
-  final useCompact = Responsive.useCompactLayout(context);
-
-  final result = showScreenAsDialog(
-    context,
-    child: SettingsScreen(initialTab: initialTab),
-    width: useCompact ? double.infinity : AppConstants.leftPanelDialogWidth,
-    alignment: useCompact ? Alignment.center : Alignment.centerLeft,
-    insetPadding: useCompact
-        ? EdgeInsets.zero
-        : const EdgeInsets.only(top: 16, bottom: 16, left: 16, right: 100),
-  );
-
-  if (basePath != null) {
-    return result.then((_) => clearRouteQueryParams(basePath));
-  }
-  return result;
+  final path = initialTab == null
+      ? AppRoute.settingScreen
+      : '${AppRoute.settingScreen}/$initialTab';
+  await context.push<void>(path);
 }
 
 class SettingsScreen extends StatefulWidget {
   // Field name constants for integration testing
   static const String deleteAccountPasswordField = 'delete_account_password';
 
-  /// 1-based tab index to open at, corresponding to [SettingsSubScreen] ordinal.
-  /// Null opens the settings home page.
-  final int? initialTab;
+  /// URL tab segment for the sub-screen to open at, e.g. `'preferences'`,
+  /// `'import-export'`. Null opens the settings home page.
+  final String? initialTab;
 
-  const SettingsScreen({super.key, this.initialTab});
+  /// Underlying shell tab path (e.g. `/planner`, `/notebook`) the dialog is
+  /// overlaying. Used to construct sub-screen URLs and the close-fallback
+  /// target so the dialog stays scoped to the current shell across the
+  /// settings → sub-screen flow.
+  final String shellPath;
+
+  const SettingsScreen({
+    super.key,
+    this.initialTab,
+    this.shellPath = AppRoute.plannerScreen,
+  });
 
   @override
   State<SettingsScreen> createState() => _SettingsScreenState();
@@ -178,12 +171,14 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
     if (_activeSubScreen != null) {
       if (await _confirmDiscardActiveSubScreen()) {
         if (!mounted) return;
-        setState(() => _activeSubScreen = null);
+        context.go(_settingsBaseUrl());
       }
-    } else if (DialogModeProvider.isDialogMode(context)) {
-      Navigator.of(context).pop();
-    } else {
+    } else if (context.canPop()) {
       context.pop();
+    } else {
+      // Deep-link entry — no underlying shell page to pop back to.
+      // Send the user to the shell tab the URL implies.
+      context.go(_shellBaseUrl());
     }
   };
 
@@ -218,31 +213,87 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
 
     context.read<AuthBloc>().add(FetchProfileEvent());
 
-    final tab = widget.initialTab;
-    if (tab != null) {
-      final subScreen = _subScreenFromTab(tab);
-      if (subScreen != null) {
-        _activeSubScreen = subScreen;
-      }
-    }
+    _activeSubScreen = _subScreenFromTab(widget.initialTab);
+    DirtyDialogRegistry.register(
+      prefix: _settingsBaseUrl(),
+      fullPath: router.routerDelegate.currentConfiguration.uri.path,
+      isDirty: _activeSubScreenIsDirty,
+    );
+    // The dialog's modal scope does not rebuild on Page swap (canUpdate
+    // match), so the URL is the source of truth for sub-screen state.
+    router.routerDelegate.addListener(_syncSubScreenFromUrl);
   }
 
-  static SettingsSubScreen? _subScreenFromTab(int tab) => switch (tab) {
-    1 => SettingsSubScreen.preferences,
-    2 => SettingsSubScreen.externalCalendars,
-    3 => SettingsSubScreen.feeds,
-    4 => SettingsSubScreen.changeEmail,
-    5 => SettingsSubScreen.changePassword,
-    6 => SettingsSubScreen.importExport,
+  bool _activeSubScreenIsDirty() => switch (_activeSubScreen) {
+        SettingsSubScreen.preferences =>
+          _preferencesKey.currentState?.isChanged ?? false,
+        SettingsSubScreen.changeEmail =>
+          _changeEmailKey.currentState?.isChanged ?? false,
+        SettingsSubScreen.changePassword =>
+          _changePasswordKey.currentState?.isChanged ?? false,
+        _ => false,
+      };
+
+  static SettingsSubScreen? _subScreenFromTab(String? tab) => switch (tab) {
+    'preferences' => SettingsSubScreen.preferences,
+    'external-calendars' => SettingsSubScreen.externalCalendars,
+    'feeds' => SettingsSubScreen.feeds,
+    'change-email' => SettingsSubScreen.changeEmail,
+    'change-password' => SettingsSubScreen.changePassword,
+    'import-export' => SettingsSubScreen.importExport,
     _ => null,
   };
 
+  static String? _tabFromSubScreen(SettingsSubScreen subScreen) =>
+      switch (subScreen) {
+        SettingsSubScreen.preferences => 'preferences',
+        SettingsSubScreen.externalCalendars => 'external-calendars',
+        SettingsSubScreen.feeds => 'feeds',
+        SettingsSubScreen.changeEmail => 'change-email',
+        SettingsSubScreen.changePassword => 'change-password',
+        SettingsSubScreen.importExport => 'import-export',
+      };
+
+  /// Base URL path for the settings dialog on the current shell tab —
+  /// e.g. on `/notebook` returns `/notebook/settings`. Derived from the
+  /// dialog's shellPath, which is authoritative for the active overlay
+  /// route's underlying shell.
+  String _settingsBaseUrl() =>
+      '${widget.shellPath}${AppRoute.settingScreen}';
+
+  /// Underlying shell tab path used as the close-fallback target when the
+  /// dialog was entered via deep link and there's no history to pop.
+  String _shellBaseUrl() => widget.shellPath;
+
   @override
   void dispose() {
+    router.routerDelegate.removeListener(_syncSubScreenFromUrl);
+    DirtyDialogRegistry.unregister(_settingsBaseUrl());
     _dangerZoneTimer?.cancel();
     _deleteAccountPasswordController.dispose();
 
     super.dispose();
+  }
+
+  void _syncSubScreenFromUrl() {
+    if (!mounted) return;
+    final path = router.routerDelegate.currentConfiguration.uri.path;
+    final settingsBase = _settingsBaseUrl();
+    if (path.startsWith(settingsBase)) {
+      DirtyDialogRegistry.updateFullPath(
+        prefix: settingsBase,
+        fullPath: path,
+      );
+    }
+    final segments = path.split('/').where((s) => s.isNotEmpty).toList();
+    final settingsIdx = segments.indexOf('settings');
+    final tab = (settingsIdx >= 0 && settingsIdx < segments.length - 1)
+        ? segments[settingsIdx + 1]
+        : null;
+    final newSubScreen = _subScreenFromTab(tab);
+    if (newSubScreen != _activeSubScreen) {
+      setState(() => _activeSubScreen = newSubScreen);
+    }
   }
 
   @override
@@ -295,6 +346,9 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
             });
           } else if (state is AuthLoggedOut) {
             if (!context.mounted) return;
+            // The session is gone; any in-progress form is moot. Release
+            // the guard so the redirect to /login can land.
+            DirtyDialogRegistry.releaseActive();
             context.go(AppRoute.loginScreen);
           } else if (state is AuthAccountDeleted) {
             showSnackBar(
@@ -308,6 +362,7 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
             if (DialogModeProvider.isDialogMode(context)) {
               Navigator.of(context).pop();
             }
+            DirtyDialogRegistry.releaseActive();
             context.go(AppRoute.loginScreen);
           }
         },
@@ -333,28 +388,28 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
                 key: _preferencesKey,
                 userSettings: userSettings,
                 onActionStarted: () => setState(() => isSubmitting = true),
-                onCompleted: () => setState(() {
-                  isSubmitting = false;
-                  _activeSubScreen = null;
-                }),
+                onCompleted: () {
+                  setState(() => isSubmitting = false);
+                  context.go(_settingsBaseUrl());
+                },
                 onFailed: () => setState(() => isSubmitting = false),
               ),
               SettingsSubScreen.changeEmail => ChangeEmailScreen(
                 key: _changeEmailKey,
                 onActionStarted: () => setState(() => isSubmitting = true),
-                onCompleted: () => setState(() {
-                  isSubmitting = false;
-                  _activeSubScreen = null;
-                }),
+                onCompleted: () {
+                  setState(() => isSubmitting = false);
+                  context.go(_settingsBaseUrl());
+                },
                 onFailed: () => setState(() => isSubmitting = false),
               ),
               SettingsSubScreen.changePassword => ChangePasswordScreen(
                 key: _changePasswordKey,
                 onActionStarted: () => setState(() => isSubmitting = true),
-                onCompleted: () => setState(() {
-                  isSubmitting = false;
-                  _activeSubScreen = null;
-                }),
+                onCompleted: () {
+                  setState(() => isSubmitting = false);
+                  context.go(_settingsBaseUrl());
+                },
                 onFailed: () => setState(() => isSubmitting = false),
               ),
               SettingsSubScreen.externalCalendars => ExternalCalendarsScreen(
@@ -376,8 +431,8 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
         if (didPop) return;
         if (!mounted) return;
         if (await _confirmDiscardActiveSubScreen()) {
-          if (!mounted) return;
-          setState(() => _activeSubScreen = null);
+          if (!context.mounted) return;
+          context.go(_settingsBaseUrl());
         }
       },
       child: content,
@@ -385,11 +440,7 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
   }
 
   void _onNavigateRequested(String route) {
-    setState(() => _activeSubScreen = null);
     if (!mounted) return;
-    if (DialogModeProvider.isDialogMode(context)) {
-      Navigator.of(context).pop();
-    }
     context.go(route);
   }
 
@@ -613,7 +664,7 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
   }
 
   void _navigateToSubSettings(SettingsSubScreen subScreen) {
-    setState(() => _activeSubScreen = subScreen);
+    context.go('${_settingsBaseUrl()}/${_tabFromSubScreen(subScreen)}');
   }
 
   Widget _buildSettingsItem({
@@ -892,7 +943,6 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
 
     showDialog(
       context: parentContext,
-      barrierDismissible: false,
       builder: (dialogContext) => StatefulBuilder(
         builder: (context, setState) {
           return AlertDialog(
@@ -1047,7 +1097,6 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
 
     showDialog(
       context: parentContext,
-      barrierDismissible: false,
       builder: (dialogContext) => StatefulBuilder(
         builder: (context, setState) {
           void handleSubmit() {

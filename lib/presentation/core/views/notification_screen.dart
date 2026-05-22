@@ -9,6 +9,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:heliumapp/config/analytics_event.dart';
 import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/config/app_router.dart';
@@ -30,7 +31,6 @@ import 'package:heliumapp/presentation/features/planner/bloc/planneritem_state.d
 import 'package:heliumapp/presentation/features/planner/bloc/reminder_bloc.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/reminder_event.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/reminder_state.dart';
-import 'package:heliumapp/presentation/features/planner/views/planner_item_add_screen.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/core/base_event.dart';
 import 'package:heliumapp/presentation/ui/components/course_title_label.dart';
 import 'package:heliumapp/presentation/ui/components/generic_label.dart';
@@ -43,43 +43,33 @@ import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/conversion_helpers.dart';
 import 'package:heliumapp/utils/date_time_helpers.dart';
-import 'package:heliumapp/utils/deep_link_helpers.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:heliumapp/utils/error_helpers.dart';
 import 'package:heliumapp/utils/sort_helpers.dart';
 
-/// Shows notifications screen (responsive: side panel on desktop, full-screen on mobile)
-Future<void> showNotifications(BuildContext context) {
+/// Navigates to the notifications route (responsive: side panel on desktop,
+/// full-screen on mobile). The route's pageBuilder handles dialog rendering.
+Future<void> showNotifications(BuildContext context) async {
   unawaited(AnalyticsService().logEvent(name: AnalyticsEvent.notificationsOpen, parameters: {'category': AnalyticsCategory.featureInteraction.value}));
-  final currentUri = router.routerDelegate.currentConfiguration.uri;
-  final hasDialogParam =
-      currentUri.queryParameters.containsKey(DeepLinkParam.dialog);
-  final basePath = hasDialogParam ? currentUri.path : null;
-
-  final useCompact = Responsive.useCompactLayout(context);
-
-  final result = showScreenAsDialog(
-    context,
-    child: NotificationsScreen(),
-    width: useCompact ? double.infinity : AppConstants.notificationsDialogWidth,
-    alignment: useCompact ? Alignment.center : Alignment.centerRight,
-    insetPadding: useCompact
-        ? EdgeInsets.zero
-        : const EdgeInsets.only(top: 16, bottom: 16, right: 16, left: 100),
-  );
-
-  if (basePath != null) {
-    return result.then((_) => clearRouteQueryParams(basePath));
-  }
-  return result;
+  await context.push<void>(AppRoute.notificationsScreen);
 }
 
 class NotificationsScreen extends StatelessWidget {
+  /// Underlying shell tab path (e.g. `/notebook`, `/classes`) the dialog is
+  /// overlaying. Used to scope homework/event open-from-notification flows
+  /// to the originating shell so the planner-item editor lands there
+  /// instead of always on /planner.
+  final String shellPath;
+
   final DioClient _dioClient = DioClient();
 
-  NotificationsScreen({super.key});
+  NotificationsScreen({
+    super.key,
+    this.shellPath = AppRoute.plannerScreen,
+  });
 
-  StatefulWidget buildScreen() => const _NotificationsProvidedScreen();
+  StatefulWidget buildScreen() =>
+      _NotificationsProvidedScreen(shellPath: shellPath);
 
   @override
   Widget build(BuildContext context) {
@@ -101,7 +91,9 @@ class NotificationsScreen extends StatelessWidget {
 }
 
 class _NotificationsProvidedScreen extends StatefulWidget {
-  const _NotificationsProvidedScreen();
+  final String shellPath;
+
+  const _NotificationsProvidedScreen({required this.shellPath});
 
   @override
   State<_NotificationsProvidedScreen> createState() =>
@@ -671,77 +663,70 @@ class _NotificationsScreenState
     if (_isOpeningEntity) return;
     _isOpeningEntity = true;
 
-    _readNotificationIds.add(notification.id);
+    try {
+      _readNotificationIds.add(notification.id);
 
-    await _storeReadNotifications();
+      await _storeReadNotifications();
 
-    if (!mounted) return;
+      if (!mounted) return;
 
-    setState(() {
-      _notifications = _notifications.map((n) {
-        if (n.id == notification.id) {
-          return NotificationModel(
-            id: n.id,
-            title: n.title,
-            body: n.body,
-            color: n.color,
-            timestamp: n.timestamp,
-            isRead: true,
-            reminder: n.reminder,
-          );
-        }
-        return n;
-      }).toList();
-    });
-
-    if (!mounted) return;
-
-    // Course reminders: navigate to /classes and open the course editor there.
-    final courseId = notification.reminder.course?.id;
-    if (courseId != null) {
-      Navigator.of(context).pop();
-      // Defer navigation so the pop completes and GoRouter processes the stack
-      // change before we push the next route; calling router.go synchronously
-      // after pop can conflict with GoRouter's async redirect handling
-      Future.delayed(Duration.zero, () {
-        router.go(
-          '${AppRoute.coursesScreen}?${DeepLinkParam.id}=$courseId',
-        );
+      setState(() {
+        _notifications = _notifications.map((n) {
+          if (n.id == notification.id) {
+            return NotificationModel(
+              id: n.id,
+              title: n.title,
+              body: n.body,
+              color: n.color,
+              timestamp: n.timestamp,
+              isRead: true,
+              reminder: n.reminder,
+            );
+          }
+          return n;
+        }).toList();
       });
-      return;
-    }
 
-    // Desktop: close dialog, then set entity param so shell opens the editor.
-    if (DialogModeProvider.isDialogMode(context)) {
+      if (!mounted) return;
+
+      // Course reminders: navigate to /classes and open the course editor there.
+      final courseId = notification.reminder.course?.id;
+      if (courseId != null) {
+        context.pop();
+        // Defer navigation so the pop completes and GoRouter processes the stack
+        // change before we push the next route; calling router.go synchronously
+        // after pop can conflict with GoRouter's async redirect handling
+        Future.delayed(Duration.zero, () {
+          router.go(
+            '${AppRoute.coursesScreen}/$courseId/${courseDialogSteps.first}',
+          );
+        });
+        return;
+      }
+
+      // Homework / event reminders: close the notifications overlay, then
+      // open the planner item editor on the originating shell so the
+      // dialog stays anchored where the user was.
       final homeworkId = notification.reminder.homework?.id;
       final eventId = notification.reminder.event?.id;
-      final basePath = router.routerDelegate.currentConfiguration.uri.path;
-      Navigator.of(context).pop();
-      // Defer navigation so the pop completes and GoRouter processes the stack
-      // change before we push the next route; calling router.replace
-      // synchronously after pop can conflict with GoRouter's async redirect
-      Future.delayed(Duration.zero, () {
-        if (homeworkId != null) {
-          router.replace(
-            '$basePath?${DeepLinkParam.homeworkId}=$homeworkId',
-          );
-        } else if (eventId != null) {
-          router.replace(
-            '$basePath?${DeepLinkParam.eventId}=$eventId',
-          );
-        }
-      });
-      return;
-    }
+      if (homeworkId == null && eventId == null) return;
 
-    await showPlannerItemAdd(
-      context,
-      eventId: notification.reminder.event?.id,
-      homeworkId: notification.reminder.homework?.id,
-      isEdit: true,
-      isNew: false,
-    );
-    _isOpeningEntity = false;
+      final entityPath =
+          homeworkId != null ? plannerItemHomeworkPath : plannerItemEventPath;
+      final entityId = homeworkId ?? eventId!;
+      final shellPath = widget.shellPath;
+      context.pop();
+      // Defer navigation so the pop completes and GoRouter processes the
+      // stack change before we push the next route.
+      Future.delayed(Duration.zero, () {
+        router.go(
+          '$shellPath/$entityPath/$entityId/'
+          '${plannerItemDialogSteps.first}',
+        );
+      });
+    } finally {
+      _isOpeningEntity = false;
+    }
   }
 
   Future<void> _dismissReminder(NotificationModel notification) async {

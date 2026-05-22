@@ -62,12 +62,20 @@ void clearRouteQueryParams(String expectedPath) {
 }
 
 /// Navigates to [uri] and clears all Navigator-pushed routes from the stack.
-void navigateAndClearStack(BuildContext context, String uri) {
-  // Clear all pushed routes (dialogs, /notifications, etc.) first, then defer
-  // navigation to next frame. This ensures cleanup callbacks complete before
-  // the route change, preventing race conditions with GoRouter's async redirect.
-  Navigator.of(context).popUntil((route) => route.isFirst);
+///
+/// [extra] is forwarded to GoRouter so transient context (e.g. dialog payload
+/// like [NoteDialogExtra]) can ride along without polluting the URL.
+void navigateAndClearStack(BuildContext context, String uri, {Object? extra}) {
+  final navigator = Navigator.of(context);
+  // addPostFrameCallback doesn't schedule a frame; on a static screen with
+  // nothing to pop, deferring would strand the callback until the next event.
+  if (!navigator.canPop()) {
+    router.go(uri, extra: extra);
+    return;
+  }
+  // Let popped routes' cleanup callbacks settle before GoRouter redirects.
+  navigator.popUntil((route) => route.isFirst);
   WidgetsBinding.instance.addPostFrameCallback((_) {
-    router.go(uri);
+    router.go(uri, extra: extra);
   });
 }

@@ -61,6 +61,9 @@ class PlannerItemBloc extends Bloc<PlannerItemEvent, PlannerItemState> {
     on<CloneHomeworkEvent>(_onCloneHomework);
     on<UpdateHomeworkEvent>(_onUpdateHomework);
     on<DeleteHomeworkEvent>(_onDeleteHomework);
+    on<ResetPlannerItemsEvent>(
+      (event, emit) => emit(PlannerItemInitial(origin: EventOrigin.bloc)),
+    );
   }
 
   Future<void> _onFetchPlannerItemScreenDataEvent(

@@ -385,7 +385,7 @@ class FcmService {
   Future<void> _onNotificationTap(RemoteMessage message) async {
     final messageId = message.messageId;
     _log.info('Notification $messageId tapped');
-    await router.push(_notificationsRoute);
+    await router.push(notificationsRoute);
   }
 
   /// Pending route to navigate to once the router is initialized.
@@ -417,7 +417,7 @@ class FcmService {
       _log.info('App opened from terminated state via notification');
       // Defer navigation - router may not be initialized yet during cold start.
       // The app's main widget should check pendingRoute after router is ready.
-      pendingRoute = _notificationsRoute;
+      pendingRoute = notificationsRoute;
     }
   }
 
@@ -445,9 +445,9 @@ class FcmService {
           notification,
           (_) {
             if (_onForegroundTap != null) {
-              _onForegroundTap!(_notificationsRoute);
+              _onForegroundTap!(notificationsRoute);
             } else {
-              router.go(_notificationsRoute);
+              router.go(notificationsRoute);
             }
           },
         );
@@ -488,7 +488,7 @@ class FcmService {
 
   void _onNotificationTapped(NotificationResponse response) {
     _log.info('Local notification tapped: ${response.id}');
-    router.push(_notificationsRoute);
+    router.push(notificationsRoute);
   }
 
   Future<void> registerToken({bool force = false}) async {
@@ -528,12 +528,9 @@ class FcmService {
 
   bool get isInitialized => _isInitialized;
 
-  static String get _notificationsRoute => Uri(
-    path: AppRoute.plannerScreen,
-    queryParameters: {
-      DeepLinkParam.dialog: DeepLinkParam.dialogNotifications,
-    },
-  ).toString();
+  @visibleForTesting
+  static String get notificationsRoute =>
+      '${AppRoute.plannerScreen}${AppRoute.notificationsScreen}';
 
   static NotificationModel _messageToNotification(RemoteMessage message) {
     final payload = json.decode(message.data['json_payload']);

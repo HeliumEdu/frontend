@@ -12,12 +12,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/config/pref_service.dart';
-import 'package:heliumapp/core/dio_client.dart';
 import 'package:heliumapp/data/models/auth/user_model.dart';
 import 'package:heliumapp/data/models/planner/note_model.dart';
-import 'package:heliumapp/data/sources/event_remote_data_source.dart';
-import 'package:heliumapp/data/sources/homework_remote_data_source.dart';
-import 'package:heliumapp/data/sources/resource_remote_data_source.dart';
 import 'package:heliumapp/presentation/core/views/base_page_screen_state.dart';
 import 'package:heliumapp/presentation/core/views/deep_link_mixin.dart';
 import 'package:heliumapp/presentation/ui/layout/page_header.dart';
@@ -29,7 +25,6 @@ import 'package:heliumapp/presentation/features/notebook/bloc/note_state.dart';
 import 'package:heliumapp/presentation/features/notebook/views/note_add_screen.dart';
 import 'package:heliumapp/presentation/features/notebook/widgets/notebook_data_grid.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/core/base_event.dart';
-import 'package:heliumapp/presentation/features/shared/bloc/core/provider_helpers.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/planneritem_bloc.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/planneritem_state.dart';
 import 'package:heliumapp/presentation/features/planner/dialogs/confirm_delete_dialog.dart';
@@ -42,20 +37,13 @@ import 'package:heliumapp/utils/print_helpers.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:heliumapp/utils/search_helpers.dart';
 import 'package:heliumapp/utils/sort_helpers.dart';
-import 'package:logging/logging.dart';
 
-final _log = Logger('presentation.views');
 
 class NotebookScreen extends StatelessWidget {
   const NotebookScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return BlocProvider(
-      create: ProviderHelpers().createNoteBloc(),
-      child: const _NotebookProvidedScreen(),
-    );
-  }
+  Widget build(BuildContext context) => const _NotebookProvidedScreen();
 }
 
 class _NotebookProvidedScreen extends StatefulWidget {
@@ -387,64 +375,6 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen>
     );
   }
 
-  @override
-  bool handleRouteEntityParams(Map<String, String> queryParams) {
-    final idParam = queryParams[DeepLinkParam.id];
-    final linkHomeworkId =
-        int.tryParse(queryParams[DeepLinkParam.linkHomeworkId] ?? '');
-    final linkEventId =
-        int.tryParse(queryParams[DeepLinkParam.linkEventId] ?? '');
-    final linkResourceId =
-        int.tryParse(queryParams[DeepLinkParam.linkResourceId] ?? '');
-
-    if (idParam == null &&
-        linkHomeworkId == null &&
-        linkEventId == null &&
-        linkResourceId == null) {
-      return false;
-    }
-
-    // Validate note ID exists (for edit case)
-    if (idParam != null) {
-      final parsed = DeepLinkParam.parseId(idParam);
-      if (!parsed.isNew && parsed.id != null) {
-        final noteExists = _notes.any((n) => n.id == parsed.id);
-        if (!noteExists) return false;
-      }
-    }
-
-    final String key;
-    if (idParam != null) {
-      key = '${DeepLinkParam.id}:$idParam';
-    } else if (linkHomeworkId != null) {
-      key = '${DeepLinkParam.linkHomeworkId}:$linkHomeworkId';
-    } else if (linkEventId != null) {
-      key = '${DeepLinkParam.linkEventId}:$linkEventId';
-    } else {
-      key = '${DeepLinkParam.linkResourceId}:$linkResourceId';
-    }
-
-    // Use async validation for linked entities
-    if (linkResourceId != null) {
-      return openFromDeepLink(key, () => _resolveResourceAndOpenNote(linkResourceId));
-    }
-    if (linkHomeworkId != null) {
-      return openFromDeepLink(key, () => _resolveHomeworkAndOpenNote(linkHomeworkId));
-    }
-    if (linkEventId != null) {
-      return openFromDeepLink(key, () => _resolveEventAndOpenNote(linkEventId));
-    }
-
-    return openFromDeepLink(key, () {
-      final parsed = DeepLinkParam.parseId(idParam);
-      return showNoteAdd(
-        context,
-        isNew: parsed.isNew || (idParam != null && parsed.id == null),
-        noteId: parsed.id,
-      );
-    });
-  }
-
   void _fetchNotes() {
     context.read<NoteBloc>().add(
       FetchNotesEvent(
@@ -485,58 +415,6 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen>
     }
 
     return filtered;
-  }
-
-  Future<void> _resolveResourceAndOpenNote(int resourceId) async {
-    try {
-      final resources = await ResourceRemoteDataSourceImpl(
-        dioClient: DioClient(),
-      ).getResources(id: resourceId);
-      if (!mounted) return;
-      if (resources.isEmpty) return;
-      await showNoteAdd(
-        context,
-        isNew: true,
-        linkResourceId: resourceId,
-      );
-    } catch (_) {
-      // silently fail; bad or stale deep link
-      _log.warning('Failed to resolve resource deep link for note (resourceId=$resourceId); link may be stale or invalid');
-    }
-  }
-
-  Future<void> _resolveHomeworkAndOpenNote(int homeworkId) async {
-    try {
-      await HomeworkRemoteDataSourceImpl(
-        dioClient: DioClient(),
-      ).getHomework(id: homeworkId);
-      if (!mounted) return;
-      await showNoteAdd(
-        context,
-        isNew: true,
-        linkHomeworkId: homeworkId,
-      );
-    } catch (_) {
-      // silently fail; bad or stale deep link (404)
-      _log.warning('Failed to resolve homework deep link for note (homeworkId=$homeworkId); link may be stale or invalid');
-    }
-  }
-
-  Future<void> _resolveEventAndOpenNote(int eventId) async {
-    try {
-      await EventRemoteDataSourceImpl(
-        dioClient: DioClient(),
-      ).getEvent(id: eventId);
-      if (!mounted) return;
-      await showNoteAdd(
-        context,
-        isNew: true,
-        linkEventId: eventId,
-      );
-    } catch (_) {
-      // silently fail; bad or stale deep link (404)
-      _log.warning('Failed to resolve event deep link for note (eventId=$eventId); link may be stale or invalid');
-    }
   }
 
   void _saveFilterStateIfEnabled() {
@@ -703,7 +581,7 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen>
     } else {
       final RenderBox button = context.findRenderObject() as RenderBox;
       final RenderBox overlay =
-          Overlay.of(context).context.findRenderObject() as RenderBox;
+          Overlay.of(context, rootOverlay: true).context.findRenderObject() as RenderBox;
       final RelativeRect position = RelativeRect.fromRect(
         Rect.fromPoints(
           button.localToGlobal(Offset.zero, ancestor: overlay),
@@ -720,6 +598,10 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen>
         position: position,
         color: context.colorScheme.surface,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        // Open on the root navigator so the popup's tap-outside barrier
+        // covers the header — tapping anywhere on the page (including the
+        // header) dismisses the menu.
+        useRootNavigator: true,
         items: [
           PopupMenuItem(
             enabled: false,
@@ -732,17 +614,11 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen>
   }
 
   void _createNewNote() {
-    openWithGuard(
-      '${DeepLinkParam.id}:new',
-      () => showNoteAdd(context, isNew: true),
-    );
+    showNoteAdd(context, isNew: true);
   }
 
   void _openNote(NoteModel note) {
-    openWithGuard(
-      '${DeepLinkParam.id}:${note.id}',
-      () => showNoteAdd(context, isNew: false, noteId: note.id),
-    );
+    showNoteAdd(context, isNew: false, noteId: note.id);
   }
 
   void _confirmDeleteNote(BuildContext context, NoteModel note) {

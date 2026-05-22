@@ -7,31 +7,18 @@
 
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_web_plugins/url_strategy.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:heliumapp/config/app_route.dart';
+import 'package:heliumapp/config/app_providers.dart';
 import 'package:heliumapp/config/app_router.dart';
 import 'package:heliumapp/config/pref_service.dart';
 import 'package:heliumapp/core/analytics_service.dart';
-import 'package:heliumapp/core/dio_client.dart';
 import 'package:heliumapp/core/fcm_service.dart';
 import 'package:heliumapp/core/feedback_service.dart';
 import 'package:heliumapp/core/log_service.dart';
 import 'package:heliumapp/core/sentry_service.dart';
-import 'package:heliumapp/data/repositories/auth_repository_impl.dart';
-import 'package:heliumapp/data/repositories/info_repository_impl.dart';
-import 'package:heliumapp/data/sources/auth_remote_data_source.dart';
-import 'package:heliumapp/data/sources/info_remote_data_source.dart';
 import 'package:heliumapp/firebase_environment.dart';
 import 'package:heliumapp/helium_app.dart';
-import 'package:heliumapp/presentation/core/views/notification_screen.dart';
-import 'package:heliumapp/presentation/features/auth/bloc/auth_bloc.dart';
-import 'package:heliumapp/presentation/features/planner/bloc/external_calendar_bloc.dart';
-import 'package:heliumapp/presentation/features/planner/bloc/planneritem_bloc.dart';
-import 'package:heliumapp/presentation/features/shared/bloc/core/provider_helpers.dart';
-import 'package:heliumapp/presentation/features/shared/bloc/info/info_bloc.dart';
-import 'package:heliumapp/presentation/features/shared/bloc/info/info_event.dart';
 import 'package:logging/logging.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
 
@@ -79,13 +66,7 @@ void main() async {
   }
 
   FcmService.setForegroundTapCallback((route) {
-    final context = rootNavigatorKey.currentContext;
-    if (context == null) { router.go(route); return; }
-    if (route.contains(DeepLinkParam.dialogNotifications)) {
-      showNotifications(context);
-    } else {
-      router.go(route);
-    }
+    router.go(route);
   });
 
   await PrefService().init();
@@ -96,40 +77,10 @@ void main() async {
     _log.severe('FeedbackService initialization failed', e);
   }
 
-  final DioClient dioClient = DioClient();
-  final providerHelpers = ProviderHelpers();
-
   // Handle pending notification navigation after first frame renders
   WidgetsBinding.instance.addPostFrameCallback((_) {
     FcmService.handlePendingRoute();
   });
 
-  runApp(
-    MultiBlocProvider(
-      providers: [
-        BlocProvider(
-          create: (context) => AuthBloc(
-            authRepository: AuthRepositoryImpl(
-              remoteDataSource: AuthRemoteDataSourceImpl(dioClient: dioClient),
-            ),
-            dioClient: dioClient,
-          ),
-        ),
-        BlocProvider<InfoBloc>(
-          create: (context) => InfoBloc(
-            infoRepository: InfoRepositoryImpl(
-              remoteDataSource: InfoRemoteDataSourceImpl(dioClient: dioClient),
-            ),
-          )..add(LoadInfoEvent()),
-        ),
-        BlocProvider<ExternalCalendarBloc>(
-          create: providerHelpers.createExternalCalendarBloc(),
-        ),
-        BlocProvider<PlannerItemBloc>(
-          create: providerHelpers.createPlannerItemBloc(),
-        ),
-      ],
-      child: const HeliumApp(),
-    ),
-  );
+  runApp(const AppProviders(child: HeliumApp()));
 }

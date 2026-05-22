@@ -21,6 +21,9 @@ class ReminderBloc extends Bloc<ReminderEvent, ReminderState> {
     on<CreateReminderEvent>(_onCreateReminders);
     on<UpdateReminderEvent>(_onUpdateReminders);
     on<DeleteReminderEvent>(_onDeleteReminders);
+    on<ResetRemindersEvent>(
+      (event, emit) => emit(ReminderInitial(origin: EventOrigin.bloc)),
+    );
   }
 
   Future<void> _onFetchReminders(

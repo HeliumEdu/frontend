@@ -12,6 +12,12 @@ abstract class ReminderEvent extends BaseEvent {
   ReminderEvent({required super.origin});
 }
 
+/// Clears all reminder state. Dispatched on logout so per-user data does not
+/// carry into the next session.
+class ResetRemindersEvent extends ReminderEvent {
+  ResetRemindersEvent() : super(origin: EventOrigin.bloc);
+}
+
 class FetchRemindersEvent extends ReminderEvent {
   bool? sent;
   bool? dismissed;

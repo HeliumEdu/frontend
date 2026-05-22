@@ -38,6 +38,9 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
     on<CreateNoteEvent>(_onCreateNote);
     on<UpdateNoteEvent>(_onUpdateNote);
     on<DeleteNoteEvent>(_onDeleteNote);
+    on<ResetNotesEvent>(
+      (event, emit) => emit(NoteInitial(origin: EventOrigin.bloc)),
+    );
   }
 
   Future<void> _onFetchNotes(
@@ -120,6 +123,7 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
           linkedEntityType: 'homework',
           linkedEntityTitle: homework.title,
           linkedEntityColor: course?.color,
+          linkedEntityCompleted: homework.completed,
         ));
         return;
       }

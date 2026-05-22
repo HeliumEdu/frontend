@@ -25,10 +25,12 @@ platform :ios do
     )
   end
 
-  desc "Stage an App Store version with the latest TestFlight build, push metadata + screenshots, stop short of Submit for Review"
+  desc "Stage an App Store version with the latest TestFlight build, push metadata + screenshots. Optionally auto-submit for App Review (post-review publish remains manual via App Store Connect)."
   lane :deploy_appstore do |options|
     version = options[:version]
     build_number = options[:build_number]
+    # Fastlane CLI args arrive as strings; coerce to a real boolean.
+    submit_for_review = options[:submit_for_review].to_s == "true"
 
     UI.user_error!("version is required") unless version
     UI.user_error!("build_number is required") unless build_number
@@ -46,6 +48,7 @@ platform :ios do
     # the existing submission in App Store Connect (or, if the version is
     # already shipped, do a patch bump) before re-running.
     locked_states = %w[
+      READY_FOR_REVIEW
       WAITING_FOR_REVIEW
       IN_REVIEW
       PROCESSING_FOR_APP_STORE
@@ -73,11 +76,25 @@ platform :ios do
       skip_binary_upload: true,
       skip_metadata: false,
       skip_screenshots: false,
-      submit_for_review: false,
+      # Without this, deliver appends to existing slots instead of replacing
+      # the set, so order in App Store Connect drifts from local filename order.
+      overwrite_screenshots: true,
+      submit_for_review: submit_for_review,
+      # `automatic_release: false` is the post-review manual-publish gate —
+      # Apple's equivalent of Play's Managed Publishing, applied per-version.
+      # The version sits in PENDING_DEVELOPER_RELEASE after Apple approves
+      # until the operator clicks "Release this version" in App Store Connect.
       automatic_release: false,
       force: true,
       precheck_include_in_app_purchases: false
     )
+
+    if submit_for_review
+      # When submitting for review, deliver itself locates and attaches the
+      # build as part of the submission flow — no manual selection needed.
+      UI.success("Submitted App Store version #{version} (build #{build_number}) for review. Apple's review is async; when approved the version will sit in PENDING_DEVELOPER_RELEASE awaiting a manual 'Release this version' click in App Store Connect.")
+      next
+    end
 
     # `upload_to_app_store` only auto-selects a TestFlight build when
     # `submit_for_review: true`. We deliberately stop short of submit, so

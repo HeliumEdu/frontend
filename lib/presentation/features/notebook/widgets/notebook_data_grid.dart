@@ -8,6 +8,7 @@
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:heliumapp/config/app_route.dart';
+import 'package:heliumapp/config/app_router.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/data/models/auth/user_model.dart';
 import 'package:heliumapp/data/models/planner/note_model.dart';
@@ -701,10 +702,13 @@ class NotesDataSource extends BaseDataGridSource {
   static String? _linkedEntityRoute(String entityType, int entityId) {
     return switch (entityType) {
       'homework' =>
-        '${AppRoute.plannerScreen}?${DeepLinkParam.homeworkId}=$entityId',
-      'event' => '${AppRoute.plannerScreen}?${DeepLinkParam.eventId}=$entityId',
+        '${AppRoute.plannerScreen}/$plannerItemHomeworkPath/$entityId/'
+            '${plannerItemDialogSteps.first}',
+      'event' =>
+        '${AppRoute.plannerScreen}/$plannerItemEventPath/$entityId/'
+            '${plannerItemDialogSteps.first}',
       'resource' =>
-        '${AppRoute.resourcesScreen}?${DeepLinkParam.id}=$entityId',
+        '${AppRoute.resourcesScreen}/$entityId/${resourceDialogSteps.first}',
       _ => null,
     };
   }
@@ -722,10 +726,10 @@ class NotesDataSource extends BaseDataGridSource {
     if (entityId == null) return badge;
     final route = _linkedEntityRoute(entityType, entityId);
     if (route == null) return badge;
-    return MouseRegion(
-      cursor: SystemMouseCursors.click,
-      child: Tooltip(
-        message: _linkedEntityTooltip(entityType),
+    return Tooltip(
+      message: _linkedEntityTooltip(entityType),
+      child: MouseRegion(
+        cursor: SystemMouseCursors.click,
         child: GestureDetector(
           behavior: HitTestBehavior.opaque,
           onTap: () => navigateAndClearStack(context, route),

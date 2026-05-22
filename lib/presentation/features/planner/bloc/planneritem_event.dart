@@ -13,6 +13,12 @@ abstract class PlannerItemEvent extends BaseEvent {
   PlannerItemEvent({required super.origin});
 }
 
+/// Clears all planner item state. Dispatched on logout so per-user data does
+/// not carry into the next session.
+class ResetPlannerItemsEvent extends PlannerItemEvent {
+  ResetPlannerItemsEvent() : super(origin: EventOrigin.bloc);
+}
+
 class FetchPlannerItemScreenDataEvent extends PlannerItemEvent {
   final int? eventId;
   final int? homeworkId;

@@ -1245,7 +1245,7 @@ class TodosDataSource extends BaseDataGridSource {
             ? null
             : () => navigateAndClearStack(
                 _context,
-                '${AppRoute.notebookScreen}?id=$linkedNoteId',
+                '${AppRoute.notebookScreen}/notes/$linkedNoteId',
               ),
       ),
     );
