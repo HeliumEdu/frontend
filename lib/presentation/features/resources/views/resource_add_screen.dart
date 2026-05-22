@@ -280,7 +280,7 @@ class _ResourceAddScreenState
                 DirtyDialogRegistry.releaseActive();
                 navigateAndClearStack(
                   context,
-                  '${AppRoute.notebookScreen}/notes/new'
+                  '${AppRoute.notebookScreen}/new'
                   '?${DeepLinkParam.linkResourceId}=${state.resource.id}',
                 );
               }
@@ -324,7 +324,7 @@ class _ResourceAddScreenState
                 DirtyDialogRegistry.releaseActive();
                 navigateAndClearStack(
                   context,
-                  '${AppRoute.notebookScreen}/notes/$linkedNoteId',
+                  '${AppRoute.notebookScreen}/$linkedNoteId',
                 );
               } else if (linkedNoteId == null && noteContent != null) {
                 // New note being created by NoteBloc; wait for NoteCreated
@@ -335,7 +335,7 @@ class _ResourceAddScreenState
                 DirtyDialogRegistry.releaseActive();
                 navigateAndClearStack(
                   context,
-                  '${AppRoute.notebookScreen}/notes/new'
+                  '${AppRoute.notebookScreen}/new'
                   '?${DeepLinkParam.linkResourceId}=${state.resource.id}',
                 );
               }
@@ -356,7 +356,7 @@ class _ResourceAddScreenState
             DirtyDialogRegistry.releaseActive();
             navigateAndClearStack(
               context,
-              '${AppRoute.notebookScreen}/notes/${state.note.id}',
+              '${AppRoute.notebookScreen}/${state.note.id}',
             );
           }
         },

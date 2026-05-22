@@ -148,12 +148,11 @@ class _ImportExportScreenState extends State<ImportExportScreen> {
               ),
             ),
             const SizedBox(width: 12),
-            IntrinsicWidth(
-              child: HeliumElevatedButton(
-                onPressed: _openFileChooser,
-                buttonText: 'Choose',
-                icon: Icons.folder_open_outlined,
-              ),
+            HeliumElevatedButton(
+              onPressed: _openFileChooser,
+              buttonText: 'Choose',
+              icon: Icons.folder_open_outlined,
+              fullWidth: false,
             ),
           ],
         ),

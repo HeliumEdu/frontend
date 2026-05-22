@@ -433,14 +433,14 @@ class CourseDialogExtra {
 const _noteDialogPageKey = ValueKey('note-dialog');
 
 /// Note entity overlay route mounted under the `/notebook` shell branch.
-/// `/notebook/notes/:id` renders the editor; the dialog is single-step so
-/// no step segment is needed. The `id` segment accepts an integer or the
+/// `/notebook/:id` renders the editor; the dialog is single-step so no
+/// step segment is needed. The `id` segment accepts an integer or the
 /// `'new'` sentinel. Linked-entity context (homework, event, resource)
 /// rides as GoRouter `extra` since it's only meaningful for the in-app
 /// create flow.
 List<RouteBase> _noteEntityRoutes() => [
       GoRoute(
-        path: 'notes/:id',
+        path: ':id',
         parentNavigatorKey: rootNavigatorKey,
         pageBuilder: (context, state) => _noteDialogPage(context, state),
       ),

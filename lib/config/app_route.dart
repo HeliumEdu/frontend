@@ -36,7 +36,7 @@ class DeepLinkParam {
   // Parent-entity param; meaning depends on the current route
   static const String id = 'id';
 
-  // Note-link query params on `/notebook/notes/new` — pre-link the new note
+  // Note-link query params on `/notebook/new` — pre-link the new note
   // to an existing entity. Lives in the URL so the link survives browser
   // refresh; non-routing metadata, not a dialog-routing trigger.
   static const String linkHomeworkId = 'linkHomeworkId';

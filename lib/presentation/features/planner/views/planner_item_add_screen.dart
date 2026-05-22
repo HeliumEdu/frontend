@@ -444,18 +444,18 @@ class _PlannerItemAddScreenState
               if (linkedNoteId != null) {
                 navigateAndClearStack(
                   context,
-                  '${AppRoute.notebookScreen}/notes/$linkedNoteId',
+                  '${AppRoute.notebookScreen}/$linkedNoteId',
                 );
               } else if (state.isEvent) {
                 navigateAndClearStack(
                   context,
-                  '${AppRoute.notebookScreen}/notes/new'
+                  '${AppRoute.notebookScreen}/new'
                   '?${DeepLinkParam.linkEventId}=${state.entityId}',
                 );
               } else {
                 navigateAndClearStack(
                   context,
-                  '${AppRoute.notebookScreen}/notes/new'
+                  '${AppRoute.notebookScreen}/new'
                   '?${DeepLinkParam.linkHomeworkId}=${state.entityId}',
                 );
               }

@@ -75,7 +75,7 @@ Future<void> showNoteAdd(
       DeepLinkParam.linkResourceId: linkResourceId.toString(),
   };
   final target = Uri(
-    path: '${AppRoute.notebookScreen}/notes/$id',
+    path: '${AppRoute.notebookScreen}/$id',
     queryParameters: queryParameters.isEmpty ? null : queryParameters,
   ).toString();
   final currentUri = router.routerDelegate.currentConfiguration.uri;
@@ -433,8 +433,8 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
               });
               _isAutoSaving = false;
               // Auto-save minted a real ID — the URL prefix that the
-              // dirty-dialog guard owns has changed (`/notebook/notes/new`
-              // → `/notebook/notes/<id>`), so swap the registration before
+              // dirty-dialog guard owns has changed (`/notebook/new`
+              // → `/notebook/<id>`), so swap the registration before
               // the URL update so the listener doesn't tear down the new
               // slot mid-transition.
               if (_registeredPrefix != null) {
