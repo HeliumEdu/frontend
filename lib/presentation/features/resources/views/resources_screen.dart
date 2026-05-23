@@ -149,10 +149,11 @@ class _ResourcesScreenState
             // No snackbar on updates
 
             setState(() {
-              _resourceGroups[_resourceGroups.indexWhere(
-                    (g) => g.id == state.resourceGroup.id,
-                  )] =
-                  state.resourceGroup;
+              final index = _resourceGroups.indexWhere(
+                (g) => g.id == state.resourceGroup.id,
+              );
+              if (index == -1) return;
+              _resourceGroups[index] = state.resourceGroup;
               Sort.byTitle(_resourceGroups);
             });
           } else if (state is ResourceGroupDeleted) {
@@ -183,6 +184,7 @@ class _ResourcesScreenState
               final index = _resourcesMap[_selectedGroupId]!.indexWhere(
                 (m) => m.id == state.resource.id,
               );
+              if (index == -1) return;
               _resourcesMap[_selectedGroupId]![index] = state.resource;
               Sort.byTitle(_resourcesMap[_selectedGroupId]!);
             });

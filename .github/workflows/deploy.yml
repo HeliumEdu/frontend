@@ -40,6 +40,11 @@ on:
         required: false
         type: boolean
         default: false
+      push_store_assets:
+        description: 'Re-upload store-listing assets (pushing unchanges assets is fine, it will just cause them to be part of the re-review).'
+        required: false
+        type: boolean
+        default: false
   workflow_call:
     inputs:
       version_type:
@@ -63,6 +68,11 @@ on:
         default: all
       auto_submit_for_review:
         description: 'Auto-submit for review on App Store and Play'
+        required: false
+        type: boolean
+        default: false
+      push_store_assets:
+        description: 'Re-upload store-listing assets'
         required: false
         type: boolean
         default: false
@@ -431,12 +441,13 @@ jobs:
         env:
           FULL_VERSION: ${{ inputs.artifact_run_id != '' && inputs.specific_version || steps.find_run.outputs.full_version }}
           AUTO_SUBMIT_FOR_REVIEW: ${{ inputs.auto_submit_for_review }}
+          PUSH_STORE_ASSETS: ${{ inputs.push_store_assets }}
         run: |
           cd android
           SEMVER="${FULL_VERSION%%+*}"
           VERSION_CODE="${FULL_VERSION##*+}"
           echo "Promoting $SEMVER ($VERSION_CODE) to Production ..."
-          bundle exec fastlane promote_to_production_draft version:$SEMVER version_code:$VERSION_CODE submit_for_review:$AUTO_SUBMIT_FOR_REVIEW
+          bundle exec fastlane promote_to_production_draft version:$SEMVER version_code:$VERSION_CODE submit_for_review:$AUTO_SUBMIT_FOR_REVIEW push_store_assets:$PUSH_STORE_ASSETS
 
       - name: Cleanup service account key
         if: always()
@@ -586,12 +597,13 @@ jobs:
           APP_STORE_CONNECT_TEAM_ID: ${{ secrets.APP_STORE_CONNECT_TEAM_ID }}
           FULL_VERSION: ${{ inputs.artifact_run_id != '' && inputs.specific_version || steps.find_run.outputs.full_version }}
           AUTO_SUBMIT_FOR_REVIEW: ${{ inputs.auto_submit_for_review }}
+          PUSH_STORE_ASSETS: ${{ inputs.push_store_assets }}
         run: |
           cd ios
           SEMVER="${FULL_VERSION%%+*}"
           BUILD="${FULL_VERSION##*+}"
           echo "Staging App Store version $SEMVER ($BUILD) ..."
-          bundle exec fastlane deploy_appstore version:$SEMVER build_number:$BUILD submit_for_review:$AUTO_SUBMIT_FOR_REVIEW
+          bundle exec fastlane deploy_appstore version:$SEMVER build_number:$BUILD submit_for_review:$AUTO_SUBMIT_FOR_REVIEW push_store_assets:$PUSH_STORE_ASSETS
 
       - name: Cleanup API key
         if: always()

@@ -43,6 +43,11 @@ on:
         required: false
         type: boolean
         default: false
+      push_store_assets:
+        description: 'Re-upload store-listing assets (pushing unchanges assets is fine, it will just cause them to be part of the re-review).'
+        required: false
+        type: boolean
+        default: false
   workflow_call:
     inputs:
       bump_type:
@@ -67,6 +72,11 @@ on:
         default: all
       auto_submit_for_review:
         description: "Auto-submit for review on both stores; post-review publish still manual"
+        required: false
+        type: boolean
+        default: false
+      push_store_assets:
+        description: "Re-upload store-listing assets"
         required: false
         type: boolean
         default: false
@@ -483,6 +493,7 @@ jobs:
           ENVIRONMENT: ${{ inputs.environment }}
           PLATFORMS: ${{ inputs.platforms }}
           AUTO_SUBMIT_FOR_REVIEW: ${{ inputs.auto_submit_for_review }}
+          PUSH_STORE_ASSETS: ${{ inputs.push_store_assets }}
         run: |
           gh workflow run deploy.yml \
             --repo ${{ github.repository }} \
@@ -490,7 +501,8 @@ jobs:
             -f specific_version="$VERSION" \
             -f environment="$ENVIRONMENT" \
             -f platforms="$PLATFORMS" \
-            -f auto_submit_for_review="$AUTO_SUBMIT_FOR_REVIEW"
+            -f auto_submit_for_review="$AUTO_SUBMIT_FOR_REVIEW" \
+            -f push_store_assets="$PUSH_STORE_ASSETS"
 
       - name: Deployment trigger summary
         env:

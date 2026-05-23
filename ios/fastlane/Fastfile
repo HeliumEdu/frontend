@@ -25,12 +25,16 @@ platform :ios do
     )
   end
 
-  desc "Stage an App Store version with the latest TestFlight build, push metadata + screenshots. Optionally auto-submit for App Review (post-review publish remains manual via App Store Connect)."
+  desc "Stage an App Store version with the latest TestFlight build, push metadata text every time and screenshots only when push_store_assets:true. Optionally auto-submit for App Review (post-review publish remains manual via App Store Connect). The marketing app icon is part of the IPA and is not affected by this flag."
   lane :deploy_appstore do |options|
     version = options[:version]
     build_number = options[:build_number]
     # Fastlane CLI args arrive as strings; coerce to a real boolean.
     submit_for_review = options[:submit_for_review].to_s == "true"
+    # Default false: screenshots only re-upload when the operator explicitly
+    # flips this on. Re-pushing identical bytes still flips the asset records
+    # in App Store Connect and forces Apple to re-review marketing assets.
+    push_store_assets = options[:push_store_assets].to_s == "true"
 
     UI.user_error!("version is required") unless version
     UI.user_error!("build_number is required") unless build_number
@@ -75,7 +79,7 @@ platform :ios do
       build_number: build_number,
       skip_binary_upload: true,
       skip_metadata: false,
-      skip_screenshots: false,
+      skip_screenshots: !push_store_assets,
       # Without this, deliver appends to existing slots instead of replacing
       # the set, so order in App Store Connect drifts from local filename order.
       overwrite_screenshots: true,

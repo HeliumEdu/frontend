@@ -33,12 +33,14 @@ class _ConfirmDeleteWidgetState<T extends BaseTitledModel> extends State<_Confir
 
   @override
   Widget build(BuildContext context) {
+    final title = widget.item.title.trim();
+    final label = title.isEmpty ? 'this item' : '"$title"';
     return AlertDialog(
       title: Text('Confirm Delete', style: AppStyles.pageTitle(context)),
       content: SizedBox(
         width: Responsive.getDialogWidth(context),
         child: Text(
-          'Are you sure you want to delete "${widget.item.title}"? ${_withTrailingSpace(widget.additionalWarning)}This action cannot be undone.',
+          'Are you sure you want to delete $label? ${_withTrailingSpace(widget.additionalWarning)}This action cannot be undone.',
           style: AppStyles.standardBodyText(context),
         ),
       ),
