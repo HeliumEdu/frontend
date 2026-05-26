@@ -587,8 +587,9 @@ const List<String> plannerItemDialogSteps = [
   'attachments',
 ];
 
-/// URL segment identifying the homework variant of the planner item dialog.
-const String plannerItemHomeworkPath = 'homework';
+/// URL segment identifying the assignment (homework) variant of the planner
+/// item dialog.
+const String plannerItemHomeworkPath = 'assignment';
 
 /// URL segment identifying the event variant of the planner item dialog.
 const String plannerItemEventPath = 'event';

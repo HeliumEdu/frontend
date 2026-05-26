@@ -555,6 +555,7 @@ class _PlannerItemAddScreenState
         key: _detailsKey,
         eventId: _currentIsEvent == true ? _currentEntityId : null,
         homeworkId: _currentIsEvent == false ? _currentEntityId : null,
+        initialIsEvent: widget.isNew ? !widget.isHomework : null,
         initialDate: widget.initialDate,
         isFromMonthView: widget.isFromMonthView,
         isEdit: widget.isEdit || _currentEntityId != null,

@@ -57,6 +57,7 @@ final _log = Logger('presentation.widgets');
 class PlannerItemDetails extends StatefulWidget {
   final int? eventId;
   final int? homeworkId;
+  final bool? initialIsEvent;
   final DateTime? initialDate;
   final bool isFromMonthView;
   final bool isEdit;
@@ -70,6 +71,7 @@ class PlannerItemDetails extends StatefulWidget {
     super.key,
     this.eventId,
     this.homeworkId,
+    this.initialIsEvent,
     this.initialDate,
     this.isFromMonthView = false,
     required this.isEdit,
@@ -98,7 +100,7 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
   bool isLoading = true;
   bool _isSubmitting = false;
   bool _hasRequestedInitialFocus = false;
-  bool _isEvent = false;
+  late bool _isEvent;
   PlannerItemBaseModel? _plannerItem;
   List<CourseGroupModel> _courseGroups = [];
   List<CourseModel> _courses = [];
@@ -116,6 +118,7 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
 
     _eventId = widget.eventId;
     _homeworkId = widget.homeworkId;
+    _isEvent = widget.initialIsEvent ?? (widget.eventId != null);
 
     if (!widget.isEdit) formController.markChanged(userInitiated: false);
 
