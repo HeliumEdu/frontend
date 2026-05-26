@@ -5,6 +5,7 @@
 //
 // For details regarding the license, please refer to the LICENSE file.
 
+import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -221,6 +222,13 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
                           onSelectionChanged: (Set<bool> selected) {
                             setState(() {
                               _isEvent = selected.first;
+                              if (!_isEvent &&
+                                  formController.selectedCourse == null &&
+                                  _courses.isNotEmpty) {
+                                _selectCourse(
+                                  _pickInitialCourseId(formController.startDate),
+                                );
+                              }
                             });
                             widget.onIsEventChanged?.call(_isEvent);
                           },
@@ -244,7 +252,7 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
                   if (!_isEvent) ...[
                     DropDown(
                       label: 'Class',
-                      initialValue: _courseItems.firstWhere(
+                      initialValue: _courseItems.firstWhereOrNull(
                         (c) => c.id == formController.selectedCourse,
                       ),
                       items: _courseItems,
