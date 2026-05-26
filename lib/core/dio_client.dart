@@ -529,7 +529,7 @@ class DioClient {
           type: SnackType.error,
         );
 
-        router.go(AppRoute.loginScreen);
+        router.go(AppRoute.signinScreen);
       }
     } catch (_) {
       // Ignore navigation errors

@@ -347,9 +347,9 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
           } else if (state is AuthLoggedOut) {
             if (!context.mounted) return;
             // The session is gone; any in-progress form is moot. Release
-            // the guard so the redirect to /login can land.
+            // the guard so the redirect to /signin can land.
             DirtyDialogRegistry.releaseActive();
-            context.go(AppRoute.loginScreen);
+            context.go(AppRoute.signinScreen);
           } else if (state is AuthAccountDeleted) {
             showSnackBar(
               context,
@@ -363,7 +363,7 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
               Navigator.of(context).pop();
             }
             DirtyDialogRegistry.releaseActive();
-            context.go(AppRoute.loginScreen);
+            context.go(AppRoute.signinScreen);
           }
         },
       ),

@@ -25,7 +25,7 @@ void main() {
   );
 
   group('Smoke Tests', () {
-    namedTestWidgets('app launches and shows login screen', (tester) async {
+    namedTestWidgets('app launches and shows signin screen', (tester) async {
       await initializeTestApp(tester);
 
       // Verify the logo is displayed (match our logo asset, not package assets)

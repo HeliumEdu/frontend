@@ -8,8 +8,12 @@
 class AppRoute {
   // Unauthenticated routes
   static const String landingScreen = '/';
-  static const String loginScreen = '/login';
+  static const String signinScreen = '/signin';
   static const String signupScreen = '/signup';
+
+  /// Legacy aliases — redirected to canonical routes.
+  static const String loginScreen = '/login';
+  static const String registerScreen = '/register';
   static const String forgotPasswordScreen = '/forgot';
   static const String verifyEmailScreen = '/verify';
   static const String setupAccountScreen = '/setup';

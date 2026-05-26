@@ -293,7 +293,7 @@ class _VerifyEmailScreenState extends BasePageScreenState<VerifyEmailScreen> {
             Center(
               child: TextButton(
                 onPressed: () {
-                  context.go(AppRoute.loginScreen);
+                  context.go(AppRoute.signinScreen);
                 },
                 child: Row(
                   mainAxisSize: MainAxisSize.min,

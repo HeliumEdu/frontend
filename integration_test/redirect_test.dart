@@ -51,7 +51,7 @@ void main() {
     for (var i = 0; i < protectedPaths.length; i++) {
       final path = protectedPaths[i];
       namedTestWidgets(
-        '${i + 1}. Unauthenticated $path redirects to /login with next=$path',
+        '${i + 1}. Unauthenticated $path redirects to /signin with next=$path',
         (tester) async {
           await initializeTestApp(tester);
           await PrefService().clear();
@@ -60,41 +60,41 @@ void main() {
           router.go(path);
           await tester.pumpAndSettle();
 
-          final reachedLogin = await waitForRoute(
+          final reachedSignin = await waitForRoute(
             tester,
-            AppRoute.loginScreen,
+            AppRoute.signinScreen,
             browserTitle: 'Sign In',
             timeout: config.apiTimeout,
           );
           expect(
-            reachedLogin,
+            reachedSignin,
             isTrue,
-            reason: '$path should redirect unauthenticated user to /login',
+            reason: '$path should redirect unauthenticated user to /signin',
           );
 
           final uri = router.routeInformationProvider.value.uri;
           expect(
             uri.path,
-            equals(AppRoute.loginScreen),
-            reason: 'Should be on /login after redirect',
+            equals(AppRoute.signinScreen),
+            reason: 'Should be on /signin after redirect',
           );
           expect(
             uri.queryParameters['next'],
             equals(path),
-            reason: '/login should carry next=$path to preserve intended route',
+            reason: '/signin should carry next=$path to preserve intended route',
           );
 
           // Strip leftover ?next= so subsequent suites don't honor it on
-          // their first login. tearDownAll has no tester to pump, so the
+          // their first signin. tearDownAll has no tester to pump, so the
           // navigation must happen inside the test body.
-          router.go(AppRoute.loginScreen);
+          router.go(AppRoute.signinScreen);
           await tester.pumpAndSettle();
         },
       );
     }
 
     namedTestWidgets(
-      '${protectedPaths.length + 1}. Authenticated /login redirects to /planner',
+      '${protectedPaths.length + 1}. Authenticated /signin redirects to /planner',
       (tester) async {
         if (!canProceed) {
           _log.warning('Skipping: user does not exist');
@@ -110,8 +110,8 @@ void main() {
         );
         expect(loggedIn, isTrue, reason: 'Should be logged in');
 
-        _log.info('Navigating to /login while authenticated ...');
-        router.go(AppRoute.loginScreen);
+        _log.info('Navigating to /signin while authenticated ...');
+        router.go(AppRoute.signinScreen);
         final reachedPlanner = await waitForRoute(
           tester,
           AppRoute.plannerScreen,
@@ -122,7 +122,7 @@ void main() {
           reachedPlanner,
           isTrue,
           reason:
-              '/login should bounce an authenticated user to /planner',
+              '/signin should bounce an authenticated user to /planner',
         );
       },
     );

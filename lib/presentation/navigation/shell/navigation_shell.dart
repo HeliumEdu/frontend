@@ -225,7 +225,7 @@ class _NavigationShellState extends State<NavigationShell> {
             context,
             rootNavigator: true,
           ).popUntil((route) => route.isFirst);
-          context.go(AppRoute.loginScreen);
+          context.go(AppRoute.signinScreen);
         }
       },
       child: LayoutBuilder(

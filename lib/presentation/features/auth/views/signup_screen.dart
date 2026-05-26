@@ -400,7 +400,7 @@ class _SignupScreenState extends BasePageScreenState<SignupScreen> {
                 children: [
                   TextButton(
                     onPressed: () {
-                      context.go(AppRoute.loginScreen);
+                      context.go(AppRoute.signinScreen);
                     },
                     child: Row(
                       mainAxisSize: MainAxisSize.min,

@@ -66,7 +66,7 @@ void initializeRouter() {
             const MaterialPage(child: LandingScreen()),
       ),
       GoRoute(
-        path: AppRoute.loginScreen,
+        path: AppRoute.signinScreen,
         pageBuilder: (context, state) =>
             const MaterialPage(child: LoginScreen()),
       ),
@@ -74,6 +74,15 @@ void initializeRouter() {
         path: AppRoute.signupScreen,
         pageBuilder: (context, state) =>
             const MaterialPage(child: SignupScreen()),
+      ),
+      // Legacy aliases
+      GoRoute(
+        path: AppRoute.loginScreen,
+        redirect: (_, _) => AppRoute.signinScreen,
+      ),
+      GoRoute(
+        path: AppRoute.registerScreen,
+        redirect: (_, _) => AppRoute.signupScreen,
       ),
       GoRoute(
         path: AppRoute.forgotPasswordScreen,
@@ -584,12 +593,10 @@ const String plannerItemHomeworkPath = 'homework';
 /// URL segment identifying the event variant of the planner item dialog.
 const String plannerItemEventPath = 'event';
 
-/// Page keys shared across every variant of the homework / event editor
-/// routes so step transitions update the existing dialog in place rather
-/// than pushing a new one each time. Distinct keys per entity type so the
-/// homework and event dialogs don't collide if both somehow become visible.
-const _homeworkDialogPageKey = ValueKey('homework-dialog');
-const _eventDialogPageKey = ValueKey('event-dialog');
+/// Page key shared across every variant of the homework / event editor
+/// routes so step and entity-type transitions update the existing dialog in
+/// place rather than pushing a new one each time.
+const _plannerItemDialogPageKey = ValueKey('planner-item-dialog');
 
 /// Planner item entity overlay routes (homework + event), duplicated under
 /// every shell branch so opening a planner item keeps the user on the shell
@@ -702,7 +709,7 @@ Page<dynamic> _plannerItemDialogPage(
   return responsiveDialogPage(
     context,
     state,
-    key: isHomework ? _homeworkDialogPageKey : _eventDialogPageKey,
+    key: _plannerItemDialogPageKey,
     child: PlannerItemAddScreen(
       shellPath: shellPath,
       isHomework: isHomework,
@@ -760,8 +767,10 @@ Future<String?> _authRedirect(BuildContext context, GoRouterState state) async {
   // bypass the !isLoggedIn guard and expose the screen to unauthenticated users.
   final publicRoutes = [
     AppRoute.landingScreen,
-    AppRoute.loginScreen,
+    AppRoute.signinScreen,
     AppRoute.signupScreen,
+    AppRoute.loginScreen,
+    AppRoute.registerScreen,
     AppRoute.forgotPasswordScreen,
     AppRoute.verifyEmailScreen,
     AppRoute.mobileWebScreen,
@@ -774,7 +783,7 @@ Future<String?> _authRedirect(BuildContext context, GoRouterState state) async {
     // Pass intended destination as ?next param for redirect after login
     final intendedUrl = state.uri.toString();
     final encodedNext = Uri.encodeComponent(intendedUrl);
-    return '${AppRoute.loginScreen}?next=$encodedNext';
+    return '${AppRoute.signinScreen}?next=$encodedNext';
   }
 
   // If logged in, check setup status for routing
@@ -789,7 +798,7 @@ Future<String?> _authRedirect(BuildContext context, GoRouterState state) async {
       final statusCode = e.response?.statusCode;
       if (statusCode == 401 || statusCode == 403) {
         await DioClient().clearStorage();
-        return AppRoute.loginScreen;
+        return AppRoute.signinScreen;
       }
       rethrow;
     }

@@ -168,7 +168,7 @@ class _ForgotPasswordScreenState
                 Center(
                   child: TextButton(
                     onPressed: () {
-                      context.go(AppRoute.loginScreen);
+                      context.go(AppRoute.signinScreen);
                     },
                     child: Row(
                       mainAxisSize: MainAxisSize.min,

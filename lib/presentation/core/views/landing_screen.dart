@@ -80,13 +80,13 @@ class _LandingScreenState extends State<LandingScreen> {
             'Access and refresh tokens missing or invalid, navigating to login',
           );
           await _authSubscription?.cancel();
-          _navigateToLogin();
+          _navigateToSignin();
         }
       });
       context.read<AuthBloc>().add(CheckAuthEvent());
     } else {
       _log.info('No token found or context not mounted, navigate to login');
-      _navigateToLogin();
+      _navigateToSignin();
     }
   }
 
@@ -99,9 +99,9 @@ class _LandingScreenState extends State<LandingScreen> {
     context.go(targetRoute);
   }
 
-  void _navigateToLogin() {
+  void _navigateToSignin() {
     if (!mounted) return;
 
-    context.replace(AppRoute.loginScreen);
+    context.replace(AppRoute.signinScreen);
   }
 }

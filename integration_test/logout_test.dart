@@ -116,18 +116,18 @@ void main() {
       await tester.tap(confirmButton.last);
 
       _log.info(
-        'Waiting for redirect to login (timeout: ${config.apiTimeout.inSeconds}s) ...',
+        'Waiting for redirect to signin (timeout: ${config.apiTimeout.inSeconds}s) ...',
       );
-      final loginScreenFound = await waitForRoute(
+      final signinScreenFound = await waitForRoute(
         tester,
-        AppRoute.loginScreen,
+        AppRoute.signinScreen,
         browserTitle: 'Sign In',
         timeout: config.apiTimeout,
       );
       expect(
-        loginScreenFound,
+        signinScreenFound,
         isTrue,
-        reason: 'Should be redirected to login after logout',
+        reason: 'Should be redirected to signin after logout',
       );
 
       // PrefService is a singleton; the test process reads the same secure
