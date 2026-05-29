@@ -217,18 +217,23 @@ run_device "Pixel Tablet"     "pixel-tablet" capture_android "pixel-tablet" "$AN
 # initialized). Looks for NN-*_iphone.png / NN-*_ipad.png without _framed.
 echo ""
 echo "════════════════════════════════════════════════════════════"
-echo "Checking for un-framed raw screenshots ..."
+echo "Checking for un-framed raw screenshots in $IOS_DEST ..."
 echo "════════════════════════════════════════════════════════════"
-for raw in "$IOS_DEST"/*_iphone.png "$IOS_DEST"/*_ipad.png; do
+FRAMED_COUNT=0
+echo "  Scanning: $IOS_DEST"
+echo "  Raw (non-framed) .png files found:"
+for raw in "$IOS_DEST"/*.png; do
+  [[ -f "$raw" ]] || continue
+  b="$(basename "$raw" .png)"
+  [[ "$b" == *_framed ]] && continue
+  echo "    $b"
+done
+for raw in "$IOS_DEST"/*.png; do
   [[ -f "$raw" ]] || continue
   basename="$(basename "$raw" .png)"
-  # Skip if this is already a framed file
+  # Skip framed files
   [[ "$basename" == *_framed ]] && continue
-  # Skip if a framed version already exists that is newer
   framed_path="$IOS_DEST/${basename}_framed.png"
-  if [[ -f "$framed_path" ]] && [[ "$framed_path" -nt "$raw" ]]; then
-    continue
-  fi
   echo "  Framing $basename ..."
   cp "$raw" "$WORKDIR/${basename}.png"
   (
@@ -239,6 +244,7 @@ for raw in "$IOS_DEST"/*_iphone.png "$IOS_DEST"/*_ipad.png; do
     mv "$WORKDIR/${basename}_framed.png" "$framed_path"
     rm -f "$raw" "$WORKDIR/${basename}.png"
     echo "  ✓ $(basename "$framed_path")"
+    ((FRAMED_COUNT++))
   else
     echo "  ✗ frameit failed to produce ${basename}_framed.png" >&2
     echo "    Check /tmp/frameit.log for details." >&2
@@ -247,6 +253,9 @@ for raw in "$IOS_DEST"/*_iphone.png "$IOS_DEST"/*_ipad.png; do
     exit 1
   fi
 done
+if [[ "$FRAMED_COUNT" -eq 0 ]]; then
+  echo "  (none found)"
+fi
 
 echo ""
 echo "════════════════════════════════════════════════════════════"
