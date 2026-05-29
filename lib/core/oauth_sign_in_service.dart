@@ -63,6 +63,41 @@ class OAuthSignInService {
     return _signInWithOAuth(OAuthProvider.microsoft);
   }
 
+  Future<(String, String)?> checkRedirectResult() async {
+    try {
+      final userCredential = await _firebaseAuth.getRedirectResult();
+
+      if (userCredential.user == null) {
+        return null;
+      }
+
+      final String? firebaseIdToken = await userCredential.user!.getIdToken();
+      if (firebaseIdToken == null) {
+        _log.severe('No Firebase ID token in OAuth redirect result');
+        return null;
+      }
+
+      final providerId = userCredential.additionalUserInfo?.providerId;
+      final provider = switch (providerId) {
+        'google.com' => 'google',
+        'apple.com' => 'apple',
+        'microsoft.com' => 'microsoft',
+        _ => null,
+      };
+
+      if (provider == null) {
+        _log.warning('Unknown provider in redirect result: $providerId');
+        return null;
+      }
+
+      _log.info('Redirect result obtained for $provider');
+      return (firebaseIdToken, provider);
+    } catch (e, s) {
+      _log.warning('Error checking OAuth redirect result', e, s);
+      return null;
+    }
+  }
+
   Future<String?> _signInWithOAuth(OAuthProvider provider) async {
     final providerName = switch (provider) {
       OAuthProvider.google => 'Google',
@@ -75,14 +110,21 @@ class OAuthSignInService {
         'Starting $providerName Sign-In flow on ${kIsWeb ? "web" : "mobile"}',
       );
 
-      final UserCredential userCredential;
+      final UserCredential? userCredential;
 
       if (provider == OAuthProvider.google && !kIsWeb) {
         // Google on mobile uses the google_sign_in package
         userCredential = await _signInWithGoogleMobile();
       } else {
-        // Apple/Microsoft (all platforms) and Google on web use Firebase Auth directly
+        // Google/Apple on web use signInWithPopup; Microsoft on web uses signInWithRedirect
+      // (Microsoft's OAuth pages set COOP: same-origin, severing the popup opener chain).
+      // On mobile, Apple/Microsoft use signInWithProvider.
         userCredential = await _signInWithFirebaseAuthProvider(provider);
+      }
+
+      if (userCredential == null) {
+        // On web, null means signInWithRedirect was initiated and page is navigating away
+        return null;
       }
 
       final String? firebaseIdToken = await userCredential.user?.getIdToken();
@@ -171,7 +213,7 @@ class OAuthSignInService {
     return await _firebaseAuth.signInWithCredential(credential);
   }
 
-  Future<UserCredential> _signInWithFirebaseAuthProvider(
+  Future<UserCredential?> _signInWithFirebaseAuthProvider(
     OAuthProvider provider,
   ) async {
     final providerName = switch (provider) {
@@ -197,7 +239,13 @@ class OAuthSignInService {
       authProvider.addScope('profile');
     }
 
-    if (kIsWeb) {
+    if (kIsWeb && provider == OAuthProvider.microsoft) {
+      // Microsoft's OAuth pages set COOP: same-origin, which severs the opener
+      // chain required by signInWithPopup. Redirect flow avoids this entirely.
+      _log.info('Using Firebase Auth redirect for $providerName on web');
+      await _firebaseAuth.signInWithRedirect(authProvider);
+      return null; // Page navigates away to OAuth provider; unreachable in practice
+    } else if (kIsWeb) {
       _log.info('Using Firebase Auth popup for $providerName on web');
       return await _firebaseAuth.signInWithPopup(authProvider);
     } else {

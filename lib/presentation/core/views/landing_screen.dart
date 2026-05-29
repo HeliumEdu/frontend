@@ -13,6 +13,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/core/dio_client.dart';
+import 'package:heliumapp/core/oauth_sign_in_service.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_bloc.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_event.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_state.dart';
@@ -60,6 +61,29 @@ class _LandingScreenState extends State<LandingScreen> {
   }
 
   Future<void> _checkAutoLogin() async {
+    if (kIsWeb) {
+      final redirectResult = await OAuthSignInService().checkRedirectResult();
+      if (redirectResult != null) {
+        _log.info('OAuth redirect result found, completing sign-in');
+        _authSubscription = context.read<AuthBloc>().stream.listen((state) async {
+          if (state is AuthLoggedIn) {
+            await _authSubscription?.cancel();
+            _navigateToTarget();
+          } else if (state is AuthError || state is AuthUnauthenticated) {
+            await _authSubscription?.cancel();
+            _navigateToSignin();
+          }
+        });
+        if (mounted) {
+          context.read<AuthBloc>().add(OAuthRedirectResultEvent(
+            firebaseToken: redirectResult.$1,
+            provider: redirectResult.$2,
+          ));
+        }
+        return;
+      }
+    }
+
     final accessToken = await _dioClient.getAccessToken();
 
     if (mounted && (accessToken?.isNotEmpty ?? false)) {
