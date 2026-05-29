@@ -220,14 +220,6 @@ echo "════════════════════════�
 echo "Checking for un-framed raw screenshots in $IOS_DEST ..."
 echo "════════════════════════════════════════════════════════════"
 FRAMED_COUNT=0
-echo "  Scanning: $IOS_DEST"
-echo "  Raw (non-framed) .png files found:"
-for raw in "$IOS_DEST"/*.png; do
-  [[ -f "$raw" ]] || continue
-  b="$(basename "$raw" .png)"
-  [[ "$b" == *_framed ]] && continue
-  echo "    $b"
-done
 for raw in "$IOS_DEST"/*.png; do
   [[ -f "$raw" ]] || continue
   basename="$(basename "$raw" .png)"
