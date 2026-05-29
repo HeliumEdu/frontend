@@ -110,13 +110,9 @@ frame_and_move() {
   ) || true
 
   if [[ -f "$WORKDIR/$framed" ]]; then
-    if [[ -f "$dest/$framed" ]] && cmp -s "$WORKDIR/$framed" "$dest/$framed"; then
-      echo "  ⊜ $framed unchanged; skipping"
-    else
-      mv "$WORKDIR/$framed" "$dest/$framed"
-      echo "  ✓ $dest/$framed"
-    fi
+    mv "$WORKDIR/$framed" "$dest/$framed"
     rm -f "$raw"
+    echo "  ✓ $dest/$framed"
   else
     echo "  ✗ frameit failed to produce $framed" >&2
     echo "    Check /tmp/frameit.log for details." >&2
@@ -255,13 +251,9 @@ for raw in "$IOS_DEST"/*.png; do
     fastlane frameit >/tmp/frameit.log 2>&1
   ) || true
   if [[ -f "$WORKDIR/${basename}_framed.png" ]]; then
-    if [[ -f "$framed_path" ]] && cmp -s "$WORKDIR/${basename}_framed.png" "$framed_path"; then
-      echo "  ⊜ $(basename "$framed_path") unchanged; skipping"
-    else
-      mv "$WORKDIR/${basename}_framed.png" "$framed_path"
-      echo "  ✓ $(basename "$framed_path")"
-    fi
+    mv "$WORKDIR/${basename}_framed.png" "$framed_path"
     rm -f "$raw" "$WORKDIR/${basename}.png"
+    echo "  ✓ $(basename "$framed_path")"
     ((FRAMED_COUNT++))
   else
     echo "  ✗ frameit failed to produce ${basename}_framed.png" >&2

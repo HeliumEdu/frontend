@@ -21,8 +21,10 @@ BG_COLOR="${BG_COLOR:-white}"
 
 if command -v magick >/dev/null; then
   IM=(magick)
+  IM_IDENTIFY=(magick identify)
 elif command -v convert >/dev/null; then
   IM=(convert)
+  IM_IDENTIFY=(identify)
 else
   echo "Error: ImageMagick not found. brew install imagemagick" >&2
   exit 1
@@ -30,6 +32,11 @@ fi
 
 letterbox() {
   local in="$1" w="$2" h="$3"
+  local dims
+  dims=$("${IM_IDENTIFY[@]}" -format "%wx%h" "$in")
+  if [[ "$dims" == "${w}x${h}" ]]; then
+    return 1
+  fi
   local tmp
   tmp=$(mktemp -t letterbox.XXXXXX.png)
   "${IM[@]}" "$in" \
@@ -38,10 +45,6 @@ letterbox() {
     -background "$BG_COLOR" \
     -extent "${w}x${h}" \
     "$tmp"
-  if cmp -s "$tmp" "$in"; then
-    rm -f "$tmp"
-    return 1
-  fi
   mv "$tmp" "$in"
 }
 
