@@ -171,7 +171,7 @@ class _LoginScreenViewState extends BasePageScreenState<LoginScreen> {
           key: _formController.formKey,
           child: Column(
             children: [
-              const SizedBox(height: 50),
+              const SizedBox(height: 40),
 
               Center(child: Image.asset(AppAssets.logoImagePath, height: 90.0)),
 
@@ -188,7 +188,8 @@ class _LoginScreenViewState extends BasePageScreenState<LoginScreen> {
                 keyboardType: TextInputType.emailAddress,
                 autofillHints: const [AutofillHints.email],
               ),
-              const SizedBox(height: 32),
+
+              const SizedBox(height: 12),
 
               HeliumPasswordField(
                 key: const Key(CredentialsFormController.passwordField),
@@ -199,7 +200,7 @@ class _LoginScreenViewState extends BasePageScreenState<LoginScreen> {
                 autofillHints: const [AutofillHints.password],
               ),
 
-              const SizedBox(height: 12),
+              const SizedBox(height: 4),
 
               Row(
                 mainAxisAlignment: MainAxisAlignment.end,
@@ -221,7 +222,7 @@ class _LoginScreenViewState extends BasePageScreenState<LoginScreen> {
                 ],
               ),
 
-              const SizedBox(height: 25),
+              const SizedBox(height: 12),
 
               BlocBuilder<AuthBloc, AuthState>(
                 builder: (context, state) {
@@ -242,7 +243,7 @@ class _LoginScreenViewState extends BasePageScreenState<LoginScreen> {
                 },
               ),
 
-              const SizedBox(height: 25),
+              const SizedBox(height: 15),
 
               Row(
                 children: [
@@ -262,7 +263,7 @@ class _LoginScreenViewState extends BasePageScreenState<LoginScreen> {
                 ],
               ),
 
-              const SizedBox(height: 25),
+              const SizedBox(height: 15),
 
               SizedBox(
                 width: 250.0,
@@ -311,6 +312,7 @@ class _LoginScreenViewState extends BasePageScreenState<LoginScreen> {
               ],
 
               const SizedBox(height: 12),
+
               SizedBox(
                 width: 250,
                 height: 40,
@@ -332,7 +334,7 @@ class _LoginScreenViewState extends BasePageScreenState<LoginScreen> {
                 ),
               ),
 
-              const SizedBox(height: 25),
+              const SizedBox(height: 12),
 
               Center(
                 child: TextButton(

@@ -18,7 +18,6 @@ class SignupFormController extends CredentialsFormController {
 
   final TextEditingController confirmPasswordController =
       TextEditingController();
-  bool agreeToTerms = false;
   String selectedTimeZone = 'UTC';
 
   Future<void> initializeTimeZones() async {
@@ -39,7 +38,6 @@ class SignupFormController extends CredentialsFormController {
     super.clearForm();
 
     confirmPasswordController.clear();
-    agreeToTerms = false;
     selectedTimeZone = 'UTC';
   }
 
