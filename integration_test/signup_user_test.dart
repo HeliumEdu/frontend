@@ -102,11 +102,6 @@ void main() {
       await tester.tap(find.text('America / Chicago'));
       await tester.pumpAndSettle();
 
-      // Agree to terms - find and tap the checkbox
-      final checkbox = find.byType(CheckboxListTile);
-      await tester.tap(checkbox);
-      await tester.pumpAndSettle();
-
       // Capture timestamp before submitting (for email polling)
       signupInitiatedAt = DateTime.now().toUtc();
 
