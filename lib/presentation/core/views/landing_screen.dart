@@ -7,6 +7,7 @@
 
 import 'dart:async';
 
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -61,30 +62,26 @@ class _LandingScreenState extends State<LandingScreen> {
   }
 
   Future<void> _checkAutoLogin() async {
-    if (kIsWeb) {
-      try {
-        final redirectResult = await OAuthSignInService().checkRedirectResult();
-        if (redirectResult != null) {
-          _log.info('OAuth redirect result found, completing sign-in');
-          _authSubscription = context.read<AuthBloc>().stream.listen((state) async {
-            if (state is AuthLoggedIn) {
-              await _authSubscription?.cancel();
-              _navigateToTarget();
-            } else if (state is AuthError || state is AuthUnauthenticated) {
-              await _authSubscription?.cancel();
-              _navigateToSignin();
-            }
-          });
-          if (mounted) {
-            context.read<AuthBloc>().add(OAuthRedirectResultEvent(
-              firebaseToken: redirectResult.$1,
-              provider: redirectResult.$2,
-            ));
+    if (kIsWeb && Firebase.apps.isNotEmpty) {
+      final redirectResult = await OAuthSignInService().checkRedirectResult();
+      if (redirectResult != null) {
+        _log.info('OAuth redirect result found, completing sign-in');
+        _authSubscription = context.read<AuthBloc>().stream.listen((state) async {
+          if (state is AuthLoggedIn) {
+            await _authSubscription?.cancel();
+            _navigateToTarget();
+          } else if (state is AuthError || state is AuthUnauthenticated) {
+            await _authSubscription?.cancel();
+            _navigateToSignin();
           }
-          return;
+        });
+        if (mounted) {
+          context.read<AuthBloc>().add(OAuthRedirectResultEvent(
+            firebaseToken: redirectResult.$1,
+            provider: redirectResult.$2,
+          ));
         }
-      } catch (e, s) {
-        _log.warning('OAuth redirect check failed, proceeding with normal auth', e, s);
+        return;
       }
     }
 
