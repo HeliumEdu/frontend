@@ -63,25 +63,29 @@ class _LandingScreenState extends State<LandingScreen> {
 
   Future<void> _checkAutoLogin() async {
     if (kIsWeb && Firebase.apps.isNotEmpty) {
-      final redirectResult = await OAuthSignInService().checkRedirectResult();
-      if (redirectResult != null) {
-        _log.info('OAuth redirect result found, completing sign-in');
-        _authSubscription = context.read<AuthBloc>().stream.listen((state) async {
-          if (state is AuthLoggedIn) {
-            await _authSubscription?.cancel();
-            _navigateToTarget();
-          } else if (state is AuthError || state is AuthUnauthenticated) {
-            await _authSubscription?.cancel();
-            _navigateToSignin();
+      try {
+        final redirectResult = await OAuthSignInService().checkRedirectResult();
+        if (redirectResult != null) {
+          _log.info('OAuth redirect result found, completing sign-in');
+          _authSubscription = context.read<AuthBloc>().stream.listen((state) async {
+            if (state is AuthLoggedIn) {
+              await _authSubscription?.cancel();
+              _navigateToTarget();
+            } else if (state is AuthError || state is AuthUnauthenticated) {
+              await _authSubscription?.cancel();
+              _navigateToSignin();
+            }
+          });
+          if (mounted) {
+            context.read<AuthBloc>().add(OAuthRedirectResultEvent(
+              firebaseToken: redirectResult.$1,
+              provider: redirectResult.$2,
+            ));
           }
-        });
-        if (mounted) {
-          context.read<AuthBloc>().add(OAuthRedirectResultEvent(
-            firebaseToken: redirectResult.$1,
-            provider: redirectResult.$2,
-          ));
+          return;
         }
-        return;
+      } catch (e, s) {
+        _log.warning('OAuth redirect check failed, proceeding with normal auth', e, s);
       }
     }
 
