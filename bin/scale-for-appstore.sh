@@ -38,6 +38,10 @@ letterbox() {
     -background "$BG_COLOR" \
     -extent "${w}x${h}" \
     "$tmp"
+  if cmp -s "$tmp" "$in"; then
+    rm -f "$tmp"
+    return 1
+  fi
   mv "$tmp" "$in"
 }
 
@@ -47,22 +51,28 @@ echo "iPhone → 1320 × 2868 (App Store 6.9\")"
 count=0
 for f in "$DIR"/*_iphone_framed.png; do
   [[ -f "$f" ]] || continue
-  letterbox "$f" 1320 2868
-  echo "  ✓ $(basename "$f")"
-  ((count++))
+  if letterbox "$f" 1320 2868; then
+    echo "  ✓ $(basename "$f")"
+    ((count++))
+  else
+    echo "  ⊜ $(basename "$f") unchanged"
+  fi
 done
-echo "  ($count files)"
+echo "  ($count files updated)"
 
 echo ""
 echo "iPad → 2064 × 2752 (App Store 13\")"
 count=0
 for f in "$DIR"/*_ipad_framed.png; do
   [[ -f "$f" ]] || continue
-  letterbox "$f" 2064 2752
-  echo "  ✓ $(basename "$f")"
-  ((count++))
+  if letterbox "$f" 2064 2752; then
+    echo "  ✓ $(basename "$f")"
+    ((count++))
+  else
+    echo "  ⊜ $(basename "$f") unchanged"
+  fi
 done
-echo "  ($count files)"
+echo "  ($count files updated)"
 
 echo ""
 echo "Done. Files updated in place at $DIR"
