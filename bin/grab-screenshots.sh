@@ -32,6 +32,14 @@ WORKDIR=$(mktemp -d)
 mkdir -p "$IOS_DEST" "$ANDROID_PHONE_DEST" "$ANDROID_TABLET_DEST"
 trap 'rm -rf "$WORKDIR"' EXIT
 
+# ─── pre-flight: frameit frames must be downloaded ───────────────────────
+FRAMEIT_DIR="${HOME}/.fastlane/frameit/latest"
+if [[ ! -d "$FRAMEIT_DIR" ]] || [[ -z "$(ls "$FRAMEIT_DIR"/*.png 2>/dev/null)" ]]; then
+  echo "✗ Device frames not found at $FRAMEIT_DIR" >&2
+  echo "  Run: make screenshots" >&2
+  exit 1
+fi
+
 # ─── shot lists per device class ─────────────────────────────────────────
 PHONE_SHOTS=(month-view grades todos edit-assignment agenda edit-note notebook create-account)
 TABLET_SHOTS=(month-view grades todos edit-note notebook week-view classes)
@@ -89,8 +97,11 @@ frame_and_move() {
     rm -f "$raw"
     echo "  ✓ $dest/$framed"
   else
-    mv "$raw" "$dest/${slug}.png"
-    echo "  ⚠ no frame for these dimensions; saved raw → $dest/${slug}.png"
+    echo "  ✗ frameit failed to produce $framed" >&2
+    echo "    Check /tmp/frameit.log for details." >&2
+    echo "    Run: make screenshots" >&2
+    rm -f "$raw"
+    exit 1
   fi
 }
 
