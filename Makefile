@@ -1,4 +1,4 @@
-.PHONY: all env install clean clean-chrome icons build-android build-android-release build-ios-dev build-ios build-ios-release update-version firebase-config build-web test start-platform stop-platform test-integration test-integration-smoke test-playwright coverage run-devserver build-docker-local build-docker run-docker stop-docker restart-docker publish
+.PHONY: all env install screenshots clean clean-chrome icons build-android build-android-release build-ios-dev build-ios build-ios-release update-version firebase-config build-web test start-platform stop-platform test-integration test-integration-smoke test-playwright coverage run-devserver build-docker-local build-docker run-docker stop-docker restart-docker publish
 
 SHELL := /usr/bin/env bash
 TAG_VERSION ?= latest
@@ -86,6 +86,15 @@ env:
 
 install: env
 	flutter pub get
+
+screenshots:
+	@command -v brew >/dev/null || { echo "Error: Homebrew not installed"; exit 1; }
+	@brew list fastlane >/dev/null 2>&1 || brew install fastlane
+	@brew list imagemagick >/dev/null 2>&1 || brew install imagemagick
+	@if [ ! -d "$$HOME/.fastlane/frameit/latest" ] || [ -z "$$(ls $$HOME/.fastlane/frameit/latest/*.png 2>/dev/null)" ]; then \
+		fastlane frameit download_frames; \
+	fi
+	./bin/grab-screenshots.sh
 
 clean:
 	flutter clean

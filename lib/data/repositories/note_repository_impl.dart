@@ -24,6 +24,7 @@ class NoteRepositoryImpl implements NoteRepository {
     int? resourceId,
     DateTime? updatedAtGte,
     bool includeContent = false,
+    bool shownOnCalendar = false,
     bool forceRefresh = false,
   }) async {
     return remoteDataSource.getNotes(
@@ -34,6 +35,7 @@ class NoteRepositoryImpl implements NoteRepository {
       resourceId: resourceId,
       updatedAtGte: updatedAtGte,
       includeContent: includeContent,
+      shownOnCalendar: shownOnCalendar,
       forceRefresh: forceRefresh,
     );
   }

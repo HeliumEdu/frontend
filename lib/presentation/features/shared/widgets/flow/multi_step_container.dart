@@ -9,6 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:heliumapp/config/dirty_dialog_registry.dart';
+import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/data/models/auth/user_model.dart';
 import 'package:heliumapp/presentation/core/views/base_page_screen_state.dart';
 import 'package:heliumapp/presentation/ui/feedback/discard_changes_scope.dart';
@@ -114,7 +115,7 @@ abstract class MultiStepContainerState<T extends MultiStepContainer>
           _attemptDismiss();
         },
         child: AnimatedSwitcher(
-          duration: const Duration(milliseconds: 300),
+          duration: AppConstants.uiAnimationDuration,
           transitionBuilder: (child, animation) {
             return SlideTransition(
               position:

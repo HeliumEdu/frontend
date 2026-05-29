@@ -72,6 +72,8 @@ class SettingsScreen extends StatefulWidget {
   // Field name constants for integration testing
   static const String deleteAccountPasswordField = 'delete_account_password';
 
+  static const _dangerZoneTimeout = Duration(seconds: 5);
+
   /// URL tab segment for the sub-screen to open at, e.g. `'preferences'`,
   /// `'import-export'`. Null opens the settings home page.
   final String? initialTab;
@@ -113,6 +115,9 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
   bool _hasOAuthProviders = false;
   bool _dangerZoneExpanded = false;
   Timer? _dangerZoneTimer;
+  // Cached at sub-screen entry so title/form don't flash if _hasUsablePassword
+  // updates while the changePassword sub-screen is still mounted.
+  bool _changePasswordPasswordless = false;
 
   @override
   String get screenTitle => switch (_activeSubScreen) {
@@ -120,7 +125,8 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
     SettingsSubScreen.externalCalendars => 'External Calendars',
     SettingsSubScreen.feeds => 'Feeds',
     SettingsSubScreen.changeEmail => 'Change Email',
-    SettingsSubScreen.changePassword => 'Change Password',
+    SettingsSubScreen.changePassword =>
+      _changePasswordPasswordless ? 'Set Password' : 'Change Password',
     SettingsSubScreen.importExport => 'Import/Export',
     null => 'Settings',
   };
@@ -131,7 +137,10 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
     SettingsSubScreen.externalCalendars => AppConstants.externalCalendarIcon,
     SettingsSubScreen.feeds => Icons.rss_feed,
     SettingsSubScreen.changeEmail => Icons.email_outlined,
-    SettingsSubScreen.changePassword => Icons.lock_outlined,
+    SettingsSubScreen.changePassword =>
+      _changePasswordPasswordless
+          ? Icons.lock_open_outlined
+          : Icons.lock_outlined,
     SettingsSubScreen.importExport => Icons.swap_horiz,
     null => Icons.settings,
   };
@@ -292,6 +301,9 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
         : null;
     final newSubScreen = _subScreenFromTab(tab);
     if (newSubScreen != _activeSubScreen) {
+      if (newSubScreen == SettingsSubScreen.changePassword) {
+        _changePasswordPasswordless = !_hasUsablePassword;
+      }
       setState(() => _activeSubScreen = newSubScreen);
     }
   }
@@ -405,9 +417,17 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
               ),
               SettingsSubScreen.changePassword => ChangePasswordScreen(
                 key: _changePasswordKey,
+                passwordless: _changePasswordPasswordless,
                 onActionStarted: () => setState(() => isSubmitting = true),
                 onCompleted: () {
-                  setState(() => isSubmitting = false);
+                  setState(() {
+                    isSubmitting = false;
+                    _hasUsablePassword = true;
+                    // Don't clear _changePasswordPasswordless here — it must
+                    // stay true until after the sub-screen is no longer
+                    // rendered, otherwise the title flashes to "Change Password"
+                    // for one frame before navigation completes.
+                  });
                   context.go(_settingsBaseUrl());
                 },
                 onFailed: () => setState(() => isSubmitting = false),
@@ -471,11 +491,8 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
                   children: [
                     Text(
                       _version,
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: context.colorScheme.onSurface.withValues(
-                          alpha: 0.3,
-                        ),
+                      style: AppStyles.smallSecondaryText(context).copyWith(
+                        color: context.colorScheme.onSurface.withValues(alpha: 0.3),
                       ),
                     ),
                     const SizedBox(height: 4),
@@ -484,11 +501,8 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
                           launchUrl(Uri.parse(AppConstants.githubUrl)),
                       child: Text(
                         'Open Source on GitHub',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: context.colorScheme.onSurface.withValues(
-                            alpha: 0.3,
-                          ),
+                        style: AppStyles.smallSecondaryText(context).copyWith(
+                          color: context.colorScheme.onSurface.withValues(alpha: 0.3),
                         ),
                       ),
                     ),
@@ -627,16 +641,19 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
                   _navigateToSubSettings(SettingsSubScreen.changeEmail),
               iconColor: context.colorScheme.primary,
             ),
-          if (_hasUsablePassword) const Divider(height: 1, indent: 68),
-          if (_hasUsablePassword)
-            _buildSettingsItem(
-              icon: Icons.lock_outline,
-              label: 'Change Password',
-              hint: 'Update your password',
-              onTap: () =>
-                  _navigateToSubSettings(SettingsSubScreen.changePassword),
-              iconColor: context.colorScheme.primary,
-            ),
+          const Divider(height: 1, indent: 68),
+          _buildSettingsItem(
+            icon: _hasUsablePassword
+                ? Icons.lock_outline
+                : Icons.lock_open_outlined,
+            label: _hasUsablePassword ? 'Change Password' : 'Set Password',
+            hint: _hasUsablePassword
+                ? 'Update your password'
+                : 'Add a password to your account',
+            onTap: () =>
+                _navigateToSubSettings(SettingsSubScreen.changePassword),
+            iconColor: context.colorScheme.primary,
+          ),
           const Divider(height: 1, indent: 68),
           _buildSettingsItem(
             icon: Icons.swap_horiz,
@@ -664,6 +681,9 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
   }
 
   void _navigateToSubSettings(SettingsSubScreen subScreen) {
+    if (subScreen == SettingsSubScreen.changePassword) {
+      _changePasswordPasswordless = !_hasUsablePassword;
+    }
     context.go('${_settingsBaseUrl()}/${_tabFromSubScreen(subScreen)}');
   }
 
@@ -768,7 +788,7 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
           setState(() {
             _dangerZoneExpanded = true;
           });
-          _dangerZoneTimer = Timer(const Duration(seconds: 5), () {
+          _dangerZoneTimer = Timer(SettingsScreen._dangerZoneTimeout, () {
             if (mounted) {
               setState(() {
                 _dangerZoneExpanded = false;
@@ -833,7 +853,7 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
           hint: 'Permanently delete all Events',
           onTap: () {
             _dangerZoneTimer?.cancel();
-            _dangerZoneTimer = Timer(const Duration(seconds: 5), () {
+            _dangerZoneTimer = Timer(SettingsScreen._dangerZoneTimeout, () {
               if (mounted) {
                 setState(() {
                   _dangerZoneExpanded = false;
@@ -851,7 +871,7 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
           hint: 'Permanently delete your account',
           onTap: () {
             _dangerZoneTimer?.cancel();
-            _dangerZoneTimer = Timer(const Duration(seconds: 5), () {
+            _dangerZoneTimer = Timer(SettingsScreen._dangerZoneTimeout, () {
               if (mounted) {
                 setState(() {
                   _dangerZoneExpanded = false;
@@ -1152,8 +1172,8 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
                     children: [
                       Text(
                         _hasUsablePassword
-                            ? 'To permanently delete your account—and all data you have stored in Helium—confirm your password below. This action cannot be undone.'
-                            : 'To permanently delete your account—and all data you have stored in Helium—confirm by clicking the Delete button below. This action cannot be undone.',
+                            ? 'To permanently delete your account — and all data you have stored in Helium—confirm your password below. This action cannot be undone.'
+                            : 'To permanently delete your account — and all data you have stored in Helium—confirm by clicking the Delete button below. This action cannot be undone.',
                         style: AppStyles.standardBodyText(context),
                       ),
                       if (_hasUsablePassword) ...[

@@ -393,6 +393,28 @@ class _SignupScreenState extends BasePageScreenState<SignupScreen> {
                 ),
               ],
 
+              const SizedBox(height: 12),
+              SizedBox(
+                width: _oauthButtonWidth,
+                height: _oauthButtonHeight,
+                child: IgnorePointer(
+                  ignoring: _isOAuthLoading || isSubmitting,
+                  child: Opacity(
+                    opacity: _isOAuthLoading || isSubmitting ? 0.5 : 1.0,
+                    child: SignInButton(
+                      Buttons.microsoft,
+                      onPressed: () {
+                        setState(() {
+                          _isOAuthLoading = true;
+                        });
+                        context.read<AuthBloc>().add(MicrosoftLoginEvent());
+                      },
+                      text: 'Sign up with Microsoft',
+                    ),
+                  ),
+                ),
+              ),
+
               const SizedBox(height: 25),
 
               Row(

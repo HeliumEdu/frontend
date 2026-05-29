@@ -32,6 +32,8 @@ class GoogleLoginEvent extends AuthEvent {}
 
 class AppleLoginEvent extends AuthEvent {}
 
+class MicrosoftLoginEvent extends AuthEvent {}
+
 class LogoutEvent extends AuthEvent {}
 
 class CheckAuthEvent extends AuthEvent {}
@@ -51,10 +53,10 @@ class EnablePrivateFeedsEvent extends AuthEvent {}
 class DisablePrivateFeedsEvent extends AuthEvent {}
 
 class ChangePasswordEvent extends AuthEvent {
-  final String oldPassword;
+  final String? oldPassword;
   final String newPassword;
 
-  ChangePasswordEvent({required this.oldPassword, required this.newPassword});
+  ChangePasswordEvent({this.oldPassword, required this.newPassword});
 }
 
 class ChangeEmailEvent extends AuthEvent {

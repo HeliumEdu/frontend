@@ -310,6 +310,28 @@ class _LoginScreenViewState extends BasePageScreenState<LoginScreen> {
                 ),
               ],
 
+              const SizedBox(height: 12),
+              SizedBox(
+                width: 250,
+                height: 40,
+                child: IgnorePointer(
+                  ignoring: _isOAuthLoading || isSubmitting,
+                  child: Opacity(
+                    opacity: _isOAuthLoading || isSubmitting ? 0.5 : 1.0,
+                    child: SignInButton(
+                      Buttons.microsoft,
+                      onPressed: () {
+                        setState(() {
+                          _isOAuthLoading = true;
+                        });
+                        context.read<AuthBloc>().add(MicrosoftLoginEvent());
+                      },
+                      text: 'Sign in with Microsoft',
+                    ),
+                  ),
+                ),
+              ),
+
               const SizedBox(height: 25),
 
               Center(

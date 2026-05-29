@@ -59,6 +59,11 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
+  Future<TokenResponseModel> loginWithMicrosoft(String firebaseIdToken) async {
+    return remoteDataSource.loginWithMicrosoft(firebaseIdToken);
+  }
+
+  @override
   Future<TokenResponseModel> refreshToken(
     RefreshTokenRequestModel request,
   ) async {

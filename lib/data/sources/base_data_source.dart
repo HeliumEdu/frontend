@@ -68,7 +68,7 @@ abstract class BaseDataSource {
           );
         } else {
           String errorMessage =
-              e.response?.statusMessage ?? 'An unexpected error occurred.';
+              e.response?.statusMessage ?? HeliumException.unexpectedError;
           String? errorCode = statusCode.toString();
 
           if (responseData != null) {
@@ -96,7 +96,7 @@ abstract class BaseDataSource {
                 'Failed to parse error response: ${e.response?.statusMessage}',
                 parseError,
               );
-              errorMessage = 'An unexpected error occurred.';
+              errorMessage = HeliumException.unexpectedError;
             }
           }
 

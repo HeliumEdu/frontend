@@ -33,6 +33,8 @@ class AppConstants {
   static const courseScheduleIcon = Icons.school;
   static const externalCalendarIcon = Icons.hub;
 
+  static const uiAnimationDuration = Duration(milliseconds: 300);
+
   static const authContainerSize = 120.0;
   static const minHeightForTrailingNav = 620.0;
   static const leftPanelDialogWidth = 500.0;

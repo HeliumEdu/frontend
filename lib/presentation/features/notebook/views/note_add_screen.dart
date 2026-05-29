@@ -22,8 +22,13 @@ import 'package:heliumapp/config/app_router.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/config/dirty_dialog_registry.dart';
 import 'package:heliumapp/core/analytics_service.dart';
+import 'package:heliumapp/data/models/planner/course_model.dart';
+import 'package:heliumapp/data/models/planner/event_model.dart';
+import 'package:heliumapp/data/models/planner/homework_model.dart';
 import 'package:heliumapp/data/models/planner/note_model.dart';
 import 'package:heliumapp/data/models/planner/request/note_request_model.dart';
+import 'package:heliumapp/data/models/planner/resource_group_model.dart';
+import 'package:heliumapp/data/models/planner/resource_model.dart';
 import 'package:heliumapp/presentation/core/views/base_page_screen_state.dart';
 import 'package:heliumapp/presentation/features/notebook/bloc/note_bloc.dart';
 import 'package:heliumapp/presentation/features/notebook/bloc/note_event.dart';
@@ -41,6 +46,7 @@ import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
 import 'package:heliumapp/presentation/ui/layout/page_header.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/app_style.dart';
+import 'package:heliumapp/utils/search_helpers.dart';
 import 'package:heliumapp/utils/deep_link_helpers.dart';
 import 'package:heliumapp/utils/print_helpers.dart';
 import 'package:heliumapp/utils/print_service.dart';
@@ -139,6 +145,19 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
   bool _hasRequestedInitialFocus = false;
   String? _registeredPrefix;
 
+  // Link picker state
+  bool _showLinkPicker = false;
+  bool _isPickerLoading = false;
+  bool _isLinking = false;
+  bool _pendingUnlink = false;
+  String _linkPickerType = 'homework';
+  final TextEditingController _linkPickerSearchController = TextEditingController();
+  List<HomeworkModel> _linkableHomework = [];
+  List<EventModel> _linkableEvents = [];
+  List<ResourceModel> _linkableResources = [];
+  List<CourseModel> _linkableCourses = [];
+  List<ResourceGroupModel> _linkableResourceGroups = [];
+
   // Auto-save state
   SaveStatus _saveStatus = SaveStatus.saved;
   Timer? _debounceTimer;
@@ -190,6 +209,7 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
     _quillController.dispose();
     _titleFocusNode.dispose();
     _editorFocusNode.dispose();
+    _linkPickerSearchController.dispose();
     super.dispose();
   }
 
@@ -241,7 +261,7 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
   ScreenType get screenType => ScreenType.entityPage;
 
   @override
-  Function get cancelAction => _saveAndClose;
+  Function get cancelAction => _cancelAndClose;
 
   @override
   Function? get saveAction => _saveAndClose;
@@ -289,6 +309,25 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
         );
       },
     );
+  }
+
+  bool _hasContentChangedFromSaved() {
+    final currentTitle = _titleController.text;
+    final currentContent = jsonEncode(
+      _quillController.document.toDelta().toJson(),
+    );
+    return currentTitle != (_note?.title ?? '') ||
+        currentContent != _getSavedContentAsJson();
+  }
+
+  void _cancelAndClose() {
+    if (_pendingUnlink) {
+      setState(() {
+        _pendingUnlink = false;
+        if (!_hasContentChangedFromSaved()) _saveStatus = SaveStatus.saved;
+      });
+    }
+    _saveAndClose();
   }
 
   void _saveAndClose() {
@@ -376,9 +415,14 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
         UpdateNoteEvent(
           origin: EventOrigin.subScreen,
           noteId: _note!.id,
-          request: NoteRequestModel(title: title, content: {'ops': content}),
+          request: NoteRequestModel(
+            title: title,
+            content: {'ops': content},
+            clearLinks: _pendingUnlink,
+          ),
         ),
       );
+      _pendingUnlink = false;
     }
   }
 
@@ -452,18 +496,36 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
               showSnackBar(context, 'Note created.', useRootMessenger: true);
               _closeImmediately();
             }
+          } else if (state is LinkableEntitiesFetched) {
+            setState(() {
+              _isPickerLoading = false;
+              _linkableHomework = state.homework;
+              _linkableEvents = state.events;
+              _linkableResources = state.resources;
+              _linkableCourses = state.courses;
+              _linkableResourceGroups = state.resourceGroups;
+            });
           } else if (state is NoteUpdated) {
             if (_isAutoSaving) {
-              // Auto-save updated the note - update state but don't close
+              // Auto-save or link change updated the note - update state but don't close
               setState(() {
+                _isLinking = false;
+                _pendingUnlink = false;
                 _note = state.note;
                 _saveStatus = SaveStatus.saved;
                 _autoSaveErrorCount = 0;
                 _autoSaveDisabled = false;
+                _linkedEntityType = state.note.linkedEntityType.isEmpty
+                    ? null
+                    : state.note.linkedEntityType;
+                _linkedEntityTitle = state.note.linkedEntityTitle;
+                _linkedEntityCompleted = state.note.linkedEntityCompleted;
+                _linkedEntityColor = state.note.courseColor ?? state.note.categoryColor;
               });
               _isAutoSaving = false;
             } else {
               // Manual save - close
+              _pendingUnlink = false;
               _closeImmediately();
             }
           } else if (state is NoteDeleted) {
@@ -598,9 +660,14 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
         UpdateNoteEvent(
           origin: EventOrigin.subScreen,
           noteId: _note!.id,
-          request: NoteRequestModel(title: title, content: {'ops': content}),
+          request: NoteRequestModel(
+            title: title,
+            content: {'ops': content},
+            clearLinks: _pendingUnlink,
+          ),
         ),
       );
+      _pendingUnlink = false;
     }
   }
 
@@ -669,6 +736,7 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
       child: Column(
         children: [
           _buildTitleRow(context),
+          if (_showLinkPicker) _buildLinkPicker(context),
           Expanded(child: _buildEditorContainer(context, isCompact)),
         ],
       ),
@@ -690,6 +758,7 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
             child: Column(
               children: [
                 _buildTitleRow(context),
+                if (_showLinkPicker) _buildLinkPicker(context),
                 SizedBox(
                   height: editorContainerHeight,
                   child: _buildEditorContainer(context, isCompact),
@@ -769,7 +838,7 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
           const double titleMinWidth = 225;
           const double badgeMaxWidth = 250;
           const double gap = 4;
-          final hasBadge = _linkedEntityType != null;
+          final hasBadge = _linkedEntityType != null || _note != null;
           final effectiveBadgeMax = hasBadge
               ? (constraints.maxWidth - titleMinWidth - gap * 2).clamp(
                   0.0,
@@ -1029,6 +1098,55 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
     final strikethrough =
         completed == true ? TextDecoration.lineThrough : null;
 
+    // Standalone note: show tappable badge with link icon to open the picker.
+    if (entityType.isEmpty) {
+      final outlineColor = context.colorScheme.outline.withValues(alpha: 0.4);
+      final textColor = context.colorScheme.onSurface.withValues(alpha: 0.6);
+      return MouseRegion(
+        cursor: (_showLinkPicker || _isLinking)
+            ? SystemMouseCursors.basic
+            : SystemMouseCursors.click,
+        child: GestureDetector(
+          onTap: (_showLinkPicker || _isLinking)
+              ? null
+              : () {
+                  setState(() {
+                    _showLinkPicker = true;
+                    _isPickerLoading = true;
+                  });
+                  context.read<NoteBloc>().add(
+                    FetchLinkableEntitiesEvent(origin: EventOrigin.subScreen),
+                  );
+                },
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+            decoration: BoxDecoration(
+              border: Border.all(color: outlineColor),
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.add_link, size: 14, color: textColor),
+                const SizedBox(width: 4),
+                Flexible(
+                  child: Text(
+                    'Standalone',
+                    style: AppStyles.standardBodyText(context)
+                        .copyWith(color: textColor),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
+    final VoidCallback? onDelete =
+        (_note != null && !_isLinking) ? _unlinkNote : null;
+
     final Widget badge;
     if (entityType == 'resource') {
       if (userSettings == null) return const SizedBox.shrink();
@@ -1036,6 +1154,8 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
         title: title,
         userSettings: userSettings!,
         textDecoration: strikethrough,
+        onDelete: onDelete,
+        onDeleteLabel: 'Unlink',
       );
     } else if (entityType == 'event') {
       badge = GenericLabel(
@@ -1043,8 +1163,10 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
         color: userSettings?.eventsColor ?? context.colorScheme.tertiary,
         icon: AppConstants.eventIcon,
         textDecoration: strikethrough,
+        onDelete: onDelete,
+        onDeleteLabel: 'Unlink',
       );
-    } else if (entityType == 'homework') {
+    } else {
       final courseColor = _note?.courseColor ?? _linkedEntityColor;
       final categoryColor = _note?.categoryColor;
       final badgeColor =
@@ -1056,14 +1178,8 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
         color: badgeColor ?? context.colorScheme.primary,
         icon: AppConstants.assignmentIcon,
         textDecoration: strikethrough,
-      );
-    } else {
-      return Text(
-        title,
-        style: AppStyles.standardBodyText(
-          context,
-        ).copyWith(color: context.colorScheme.onSurface.withValues(alpha: 0.6)),
-        overflow: TextOverflow.ellipsis,
+        onDelete: onDelete,
+        onDeleteLabel: 'Unlink',
       );
     }
 
@@ -1071,46 +1187,374 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
     // new note being created via the linked-entity flow they come from the
     // widget params (the IDs the route was opened with).
     final entityId = switch (entityType) {
-      'homework' =>
-        _note?.homework.firstOrNull ?? widget.linkHomeworkId,
+      'homework' => _note?.homework.firstOrNull ?? widget.linkHomeworkId,
       'event' => _note?.events.firstOrNull ?? widget.linkEventId,
-      'resource' =>
-        _note?.resources.firstOrNull ?? widget.linkResourceId,
+      'resource' => _note?.resources.firstOrNull ?? widget.linkResourceId,
       _ => null,
     };
-    if (entityId == null) return badge;
 
-    final route = switch (entityType) {
-      'homework' =>
-        '${AppRoute.plannerScreen}/$plannerItemHomeworkPath/$entityId/'
-            '${plannerItemDialogSteps.first}',
-      'event' =>
-        '${AppRoute.plannerScreen}/$plannerItemEventPath/$entityId/'
-            '${plannerItemDialogSteps.first}',
-      'resource' =>
-        '${AppRoute.resourcesScreen}/$entityId/${resourceDialogSteps.first}',
-      _ => null,
+    Widget badgeWidget = badge;
+    if (entityId != null) {
+      final route = switch (entityType) {
+        'homework' =>
+          '${AppRoute.plannerScreen}/$plannerItemHomeworkPath/$entityId/'
+              '${plannerItemDialogSteps.first}',
+        'event' =>
+          '${AppRoute.plannerScreen}/$plannerItemEventPath/$entityId/'
+              '${plannerItemDialogSteps.first}',
+        'resource' =>
+          '${AppRoute.resourcesScreen}/$entityId/${resourceDialogSteps.first}',
+        _ => null,
+      };
+      if (route != null) {
+        final tooltip =
+            entityType == 'resource' ? 'Open in Resources' : 'Open in Planner';
+        badgeWidget = MouseRegion(
+          cursor: SystemMouseCursors.click,
+          child: Tooltip(
+            message: tooltip,
+            child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: () {
+                _pendingRedirectRoute = route;
+                _saveAndClose();
+              },
+              child: badge,
+            ),
+          ),
+        );
+      }
+    }
+
+    return badgeWidget;
+  }
+
+  void _unlinkNote() {
+    if (_note == null) return;
+    setState(() {
+      _pendingUnlink = true;
+      _saveStatus = SaveStatus.unsaved;
+      _linkedEntityType = null;
+      _linkedEntityTitle = null;
+      _linkedEntityColor = null;
+      _linkedEntityCompleted = null;
+    });
+  }
+
+  void _linkNoteTo(String type, int id, String title) {
+    if (_note == null) return;
+    setState(() {
+      _isAutoSaving = true;
+      _isLinking = true;
+      _pendingUnlink = false;
+      _saveStatus = SaveStatus.saving;
+      _showLinkPicker = false;
+      _linkPickerSearchController.clear();
+    });
+    final request = switch (type) {
+      'homework' => NoteRequestModel(homeworkId: id),
+      'event' => NoteRequestModel(eventId: id),
+      _ => NoteRequestModel(resourceId: id),
     };
-    if (route == null) return badge;
-
-    final tooltip = entityType == 'resource'
-        ? 'Open in Resources'
-        : 'Open in Planner';
-    return MouseRegion(
-      cursor: SystemMouseCursors.click,
-      child: Tooltip(
-        message: tooltip,
-        child: GestureDetector(
-          behavior: HitTestBehavior.opaque,
-          onTap: () {
-            _pendingRedirectRoute = route;
-            _saveAndClose();
-          },
-          child: badge,
-        ),
+    context.read<NoteBloc>().add(
+      UpdateNoteEvent(
+        origin: EventOrigin.subScreen,
+        noteId: _note!.id,
+        request: request,
       ),
     );
   }
+
+  Widget _buildLinkPicker(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 4),
+      decoration: BoxDecoration(
+        color: context.colorScheme.surface,
+        border: Border.all(
+          color: context.colorScheme.outline.withValues(alpha: 0.2),
+        ),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(8, 8, 8, 4),
+                  child: Row(
+                    children: [
+                      SegmentedButton<String>(
+                        selected: {_linkPickerType},
+                        showSelectedIcon: false,
+                        onSelectionChanged: (selected) => setState(() {
+                          _linkPickerType = selected.first;
+                          _linkPickerSearchController.clear();
+                        }),
+                        segments: const [
+                          ButtonSegment(
+                            value: 'homework',
+                            icon: Icon(AppConstants.assignmentIcon),
+                          ),
+                          ButtonSegment(
+                            value: 'event',
+                            icon: Icon(AppConstants.eventIcon),
+                          ),
+                          ButtonSegment(
+                            value: 'resource',
+                            icon: Icon(Icons.book_outlined),
+                          ),
+                        ],
+                      ),
+                      Expanded(
+                        child: Center(
+                          child: Text(
+                            switch (_linkPickerType) {
+                              'event' => 'Link Event',
+                              'resource' => 'Link Resource',
+                              _ => 'Link Assignment',
+                            },
+                            style: AppStyles.pageTitle(context).copyWith(
+                              fontSize: Responsive.getFontSize(
+                                context,
+                                mobile: 14,
+                                tablet: 18,
+                                desktop: 22,
+                              ),
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                      ),
+                      Semantics(
+                        label: 'Close',
+                        button: true,
+                        child: IconButton(
+                          icon: Icon(
+                            Icons.close,
+                            size: 20,
+                            color: context.colorScheme.onSurface.withValues(
+                              alpha: 0.4,
+                            ),
+                          ),
+                          visualDensity: VisualDensity.compact,
+                          onPressed: () => setState(() {
+                            _showLinkPicker = false;
+                            _linkPickerSearchController.clear();
+                          }),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  child: SizedBox(
+                    height: 40,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: context.colorScheme.surface,
+                        border: Border.all(
+                          color: context.colorScheme.outline.withValues(
+                            alpha: 0.2,
+                          ),
+                        ),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: TapRegion(
+                          onTapOutside: Responsive.isMobile(context)
+                              ? (_) => FocusScope.of(context).unfocus()
+                              : null,
+                          child: TextField(
+                            controller: _linkPickerSearchController,
+                            style: AppStyles.formText(context),
+                            decoration: InputDecoration(
+                              hintText: 'Search ...',
+                              hintStyle: AppStyles.formHint(context),
+                              prefixIcon: Icon(
+                                Icons.search,
+                                color: context.colorScheme.onSurface.withValues(
+                                  alpha: 0.4,
+                                ),
+                              ),
+                              border: InputBorder.none,
+                              enabledBorder: InputBorder.none,
+                              focusedBorder: InputBorder.none,
+                              isDense: true,
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 10,
+                              ),
+                              suffixIcon: ValueListenableBuilder<TextEditingValue>(
+                                valueListenable: _linkPickerSearchController,
+                                builder: (context, value, _) {
+                                  if (value.text.isEmpty) {
+                                    return const SizedBox.shrink();
+                                  }
+                                  return IconButton(
+                                    onPressed: () {
+                                      _linkPickerSearchController.clear();
+                                      setState(() {});
+                                    },
+                                    icon: Icon(
+                                      Icons.close,
+                                      size: 20,
+                                      color: context.colorScheme.onSurface
+                                          .withValues(alpha: 0.4),
+                                    ),
+                                    tooltip: 'Clear',
+                                  );
+                                },
+                              ),
+                            ),
+                            onChanged: (_) => setState(() {}),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 4),
+                SizedBox(
+                  height: 160,
+                  child: _isPickerLoading
+                      ? const Center(child: LoadingIndicator(expanded: false))
+                      : _buildPickerList(context),
+                ),
+                const SizedBox(height: 4),
+              ],
+            ),
+    );
+  }
+
+  Widget _buildPickerList(BuildContext context) {
+    final query = _linkPickerSearchController.text.trim();
+    final onSurface50 = context.colorScheme.onSurface.withValues(alpha: 0.5);
+    final rows = <_LinkPickerRow>[];
+
+    switch (_linkPickerType) {
+      case 'homework':
+        final courseIndex = {for (final c in _linkableCourses) c.id: c};
+        final byGroup = <int, List<HomeworkModel>>{};
+        for (final h in _linkableHomework) {
+          final courseTitle = courseIndex[h.course.id]?.title ?? '';
+          if (query.isEmpty ||
+              SearchHelper.matches(h.title, query) ||
+              SearchHelper.matches(courseTitle, query)) {
+            byGroup.putIfAbsent(h.course.id, () => []).add(h);
+          }
+        }
+        final sortedCourseIds = byGroup.keys.toList()
+          ..sort(
+            (a, b) => (courseIndex[a]?.title ?? '').compareTo(
+              courseIndex[b]?.title ?? '',
+            ),
+          );
+        for (final courseId in sortedCourseIds) {
+          final course = courseIndex[courseId];
+          rows.add(_LinkGroupHeader(
+            title: course?.title ?? '',
+            color: course?.color,
+          ));
+          for (final h in byGroup[courseId]!) {
+            rows.add(_LinkPickerItem(id: h.id, title: h.title));
+          }
+        }
+
+      case 'event':
+        for (final e in _linkableEvents) {
+          if (query.isEmpty || SearchHelper.matches(e.title, query)) {
+            rows.add(_LinkPickerItem(id: e.id, title: e.title));
+          }
+        }
+
+      default:
+        final groupIndex = {
+          for (final g in _linkableResourceGroups) g.id: g,
+        };
+        final byGroup = <int, List<ResourceModel>>{};
+        for (final r in _linkableResources) {
+          final groupTitle = groupIndex[r.resourceGroup]?.title ?? '';
+          if (query.isEmpty ||
+              SearchHelper.matches(r.title, query) ||
+              SearchHelper.matches(groupTitle, query)) {
+            byGroup.putIfAbsent(r.resourceGroup, () => []).add(r);
+          }
+        }
+        final sortedGroupIds = byGroup.keys.toList()
+          ..sort(
+            (a, b) => (groupIndex[a]?.title ?? '').compareTo(
+              groupIndex[b]?.title ?? '',
+            ),
+          );
+        for (final groupId in sortedGroupIds) {
+          rows.add(_LinkGroupHeader(title: groupIndex[groupId]?.title ?? ''));
+          for (final r in byGroup[groupId]!) {
+            rows.add(_LinkPickerItem(id: r.id, title: r.title));
+          }
+        }
+    }
+
+    if (rows.isEmpty) {
+      return Center(
+        child: Text(
+          switch (_linkPickerType) {
+            'event' => query.isEmpty ? 'No available events' : 'No events match',
+            'resource' => query.isEmpty ? 'No available resources' : 'No resources match',
+            _ => query.isEmpty ? 'No available assignments' : 'No assignments match',
+          },
+          style: AppStyles.standardBodyTextLight(context).copyWith(
+            color: onSurface50,
+          ),
+        ),
+      );
+    }
+
+    return ListView.builder(
+      itemCount: rows.length,
+      itemBuilder: (context, index) {
+        final row = rows[index];
+        if (row is _LinkGroupHeader) {
+          return Padding(
+            padding: const EdgeInsets.fromLTRB(12, 8, 12, 2),
+            child: Text(
+              row.title,
+              style: AppStyles.smallSecondaryText(context).copyWith(
+                color: row.color ?? onSurface50,
+                fontWeight: FontWeight.w600,
+              ),
+              overflow: TextOverflow.ellipsis,
+            ),
+          );
+        }
+        final item = row as _LinkPickerItem;
+        return ListTile(
+          dense: true,
+          contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+          title: Text(
+            item.title,
+            style: AppStyles.formText(context),
+            overflow: TextOverflow.ellipsis,
+          ),
+          onTap: () => _linkNoteTo(_linkPickerType, item.id, item.title),
+        );
+      },
+    );
+  }
+}
+
+sealed class _LinkPickerRow {}
+
+class _LinkGroupHeader extends _LinkPickerRow {
+  final String title;
+  final Color? color;
+  _LinkGroupHeader({required this.title, this.color});
+}
+
+class _LinkPickerItem extends _LinkPickerRow {
+  final int id;
+  final String title;
+  _LinkPickerItem({required this.id, required this.title});
 }
 
 class _AnimatedSyncIcon extends StatefulWidget {

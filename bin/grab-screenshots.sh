@@ -32,6 +32,14 @@ WORKDIR=$(mktemp -d)
 mkdir -p "$IOS_DEST" "$ANDROID_PHONE_DEST" "$ANDROID_TABLET_DEST"
 trap 'rm -rf "$WORKDIR"' EXIT
 
+# ─── pre-flight: frameit frames must be downloaded ───────────────────────
+FRAMEIT_DIR="${HOME}/.fastlane/frameit/latest"
+if [[ ! -d "$FRAMEIT_DIR" ]] || [[ -z "$(ls "$FRAMEIT_DIR"/*.png 2>/dev/null)" ]]; then
+  echo "✗ Device frames not found at $FRAMEIT_DIR" >&2
+  echo "  Run: make screenshots" >&2
+  exit 1
+fi
+
 # ─── shot lists per device class ─────────────────────────────────────────
 PHONE_SHOTS=(month-view grades todos edit-assignment agenda edit-note notebook create-account)
 TABLET_SHOTS=(month-view grades todos edit-note notebook week-view classes)
@@ -73,12 +81,29 @@ capture_android() {
 
 # ─── framing ─────────────────────────────────────────────────────────────
 # frameit operates on every .png in cwd, producing <name>_framed.png.
+# Framefile.json forces specific device types so framing works regardless of
+# which fastlane version maps the resolution to which device name.
+write_framefile() {
+  cat > "$WORKDIR/Framefile.json" <<'FRAMEFILE'
+{
+  "default": {
+    "frame": "BLACK"
+  },
+  "data": [
+    { "filter": "_iphone", "force_device_type": "iPhone 14 Pro" },
+    { "filter": "_ipad",   "force_device_type": "iPad Pro (12.9-inch) (4th generation)" }
+  ]
+}
+FRAMEFILE
+}
+
 frame_and_move() {
   local raw="$1"     # raw png in $WORKDIR
   local slug="$2"    # e.g. 01-month-view_iphone
   local dest="$3"    # destination dir
   local framed="${slug}_framed.png"
 
+  write_framefile
   (
     cd "$WORKDIR"
     fastlane frameit >/tmp/frameit.log 2>&1
@@ -89,8 +114,11 @@ frame_and_move() {
     rm -f "$raw"
     echo "  ✓ $dest/$framed"
   else
-    mv "$raw" "$dest/${slug}.png"
-    echo "  ⚠ no frame for these dimensions; saved raw → $dest/${slug}.png"
+    echo "  ✗ frameit failed to produce $framed" >&2
+    echo "    Check /tmp/frameit.log for details." >&2
+    echo "    Run: make screenshots" >&2
+    rm -f "$raw"
+    exit 1
   fi
 }
 
@@ -98,7 +126,7 @@ frame_and_move() {
 # Source frame: jamesjingyi/mockup-device-frames (Porcelain colorway),
 # rotated to portrait and tinted dark to match the Pixel 5 phone frame.
 # Frame's screen area: 1731×2747 at offset +200+200 (portrait).
-PIXEL_TABLET_FRAME="$REPO/scripts/frame-pixel-tablet.png"
+PIXEL_TABLET_FRAME="$REPO/bin/frame-pixel-tablet.png"
 
 composite_pixel_tablet() {
   local raw="$1"
@@ -200,6 +228,44 @@ run_device "iPhone 15 Pro"    "iphone"       capture_ios     "frameit"      "$IO
 run_device "iPad Air 13\" M4" "ipad"         capture_ios     "frameit"      "$IOS_DEST"            "${TABLET_SHOTS[@]}"
 run_device "Pixel 5"          "pixel-phone"  capture_android "frameit"      "$ANDROID_PHONE_DEST"  "${PHONE_SHOTS[@]}"
 run_device "Pixel Tablet"     "pixel-tablet" capture_android "pixel-tablet" "$ANDROID_TABLET_DEST" "${TABLET_SHOTS[@]}"
+
+# ─── frame any remaining raw screenshots in dest ────────────────────────
+# Catches files from a prior run where framing failed (e.g. frameit wasn't
+# initialized). Looks for NN-*_iphone.png / NN-*_ipad.png without _framed.
+echo ""
+echo "════════════════════════════════════════════════════════════"
+echo "Checking for un-framed raw screenshots in $IOS_DEST ..."
+echo "════════════════════════════════════════════════════════════"
+FRAMED_COUNT=0
+for raw in "$IOS_DEST"/*.png; do
+  [[ -f "$raw" ]] || continue
+  basename="$(basename "$raw" .png)"
+  # Skip framed files
+  [[ "$basename" == *_framed ]] && continue
+  framed_path="$IOS_DEST/${basename}_framed.png"
+  echo "  Framing $basename ..."
+  cp "$raw" "$WORKDIR/${basename}.png"
+  write_framefile
+  (
+    cd "$WORKDIR"
+    fastlane frameit >/tmp/frameit.log 2>&1
+  ) || true
+  if [[ -f "$WORKDIR/${basename}_framed.png" ]]; then
+    mv "$WORKDIR/${basename}_framed.png" "$framed_path"
+    rm -f "$raw" "$WORKDIR/${basename}.png"
+    echo "  ✓ $(basename "$framed_path")"
+    ((FRAMED_COUNT++))
+  else
+    echo "  ✗ frameit failed to produce ${basename}_framed.png" >&2
+    echo "    Check /tmp/frameit.log for details." >&2
+    echo "    Run: make screenshots" >&2
+    rm -f "$WORKDIR/${basename}.png"
+    exit 1
+  fi
+done
+if [[ "$FRAMED_COUNT" -eq 0 ]]; then
+  echo "  (none found)"
+fi
 
 echo ""
 echo "════════════════════════════════════════════════════════════"

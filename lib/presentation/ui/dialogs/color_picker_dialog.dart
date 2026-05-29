@@ -9,6 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/presentation/ui/components/helium_elevated_button.dart';
+import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/color_helpers.dart';
 
 class _ColorPickerWidget extends StatefulWidget {
@@ -143,7 +144,7 @@ class _ColorPickerWidgetState extends State<_ColorPickerWidget> {
                 const SizedBox(width: 8),
                 Text(
                   'Custom color',
-                  style: TextStyle(color: context.colorScheme.primary),
+                  style: AppStyles.formText(context).copyWith(color: context.colorScheme.primary),
                 ),
                 const SizedBox(width: 8),
                 Icon(Icons.arrow_forward, color: context.colorScheme.primary),
@@ -191,7 +192,7 @@ class _ColorPickerWidgetState extends State<_ColorPickerWidget> {
               ),
               label: Text(
                 'Presets',
-                style: TextStyle(color: context.colorScheme.primary),
+                style: AppStyles.formText(context).copyWith(color: context.colorScheme.primary),
               ),
             ),
             const SizedBox(width: 8),

@@ -16,6 +16,7 @@ class ResourceModel extends BaseTitledModel {
   final String? details;
   final int resourceGroup;
   final List<int> courses;
+  final List<int> notes;
 
   ResourceModel({
     required super.id,
@@ -28,6 +29,7 @@ class ResourceModel extends BaseTitledModel {
     this.details,
     required this.resourceGroup,
     required this.courses,
+    required this.notes,
   });
 
   factory ResourceModel.fromJson(Map<String, dynamic> json) {
@@ -44,6 +46,7 @@ class ResourceModel extends BaseTitledModel {
           : json['details']?.toString(),
       resourceGroup: json['material_group'],
       courses: json['courses'] != null ? List<int>.from(json['courses']) : [],
+      notes: json['notes'] != null ? List<int>.from(json['notes']) : [],
     );
   }
 

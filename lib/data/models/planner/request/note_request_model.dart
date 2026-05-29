@@ -11,6 +11,7 @@ class NoteRequestModel {
   final int? homeworkId;
   final int? eventId;
   final int? resourceId;
+  final bool clearLinks;
 
   NoteRequestModel({
     this.title,
@@ -18,6 +19,7 @@ class NoteRequestModel {
     this.homeworkId,
     this.eventId,
     this.resourceId,
+    this.clearLinks = false,
   });
 
   Map<String, dynamic> toJson() {
@@ -25,9 +27,15 @@ class NoteRequestModel {
 
     if (title != null) json['title'] = title;
     if (content != null) json['content'] = content;
-    if (homeworkId != null) json['homework'] = [homeworkId];
-    if (eventId != null) json['events'] = [eventId];
-    if (resourceId != null) json['resources'] = [resourceId];
+    if (clearLinks) {
+      json['homework'] = [];
+      json['events'] = [];
+      json['resources'] = [];
+    } else {
+      if (homeworkId != null) json['homework'] = [homeworkId];
+      if (eventId != null) json['events'] = [eventId];
+      if (resourceId != null) json['resources'] = [resourceId];
+    }
 
     return json;
   }

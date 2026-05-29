@@ -79,6 +79,7 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen>
   List<NoteModel> _notes = [];
   String? _searchQuery;
   final Set<String> _filterEntityTypes = {};
+  bool _shownOnCalendar = false;
   final TextEditingController _searchController = TextEditingController();
   final FocusNode _searchFocusNode = FocusNode();
   int _rowsPerPage = 10;
@@ -311,7 +312,8 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen>
                 const SizedBox(width: 8),
                 Builder(
                   builder: (context) {
-                    final hasFilters = _filterEntityTypes.isNotEmpty;
+                    final hasFilters =
+                        _filterEntityTypes.isNotEmpty || _shownOnCalendar;
                     return IconButton.outlined(
                       onPressed: () => _openFilterMenu(context),
                       tooltip: 'Filters',
@@ -380,6 +382,7 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen>
       FetchNotesEvent(
         origin: EventOrigin.screen,
         forceRefresh: true,
+        shownOnCalendar: _shownOnCalendar,
       ),
     );
   }
@@ -422,6 +425,7 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen>
 
     final filterState = {
       'filterEntityTypes': _filterEntityTypes.toList(),
+      'shownOnCalendar': _shownOnCalendar,
     };
     PrefService().setString(
       _savedNotebookFilterStateKey,
@@ -437,22 +441,38 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen>
 
     final savedState = PrefService().getString(_savedNotebookFilterStateKey);
     List<dynamic>? savedEntityTypes;
+    bool? savedExcludeHiddenGroups;
     if (savedState != null && savedState.isNotEmpty) {
       try {
         final filterState = jsonDecode(savedState) as Map<String, dynamic>;
         savedEntityTypes = filterState['filterEntityTypes'] as List<dynamic>?;
+        savedExcludeHiddenGroups =
+            filterState['shownOnCalendar'] as bool?;
       } catch (_) {}
     }
 
-    if (savedEntityTypes == null && savedRowsPerPage == null) return;
+    if (savedEntityTypes == null &&
+        savedExcludeHiddenGroups == null &&
+        savedRowsPerPage == null) {
+      return;
+    }
 
     setState(() {
       if (savedEntityTypes != null) {
         _filterEntityTypes.clear();
         _filterEntityTypes.addAll(savedEntityTypes.cast<String>());
       }
+      if (savedExcludeHiddenGroups != null) {
+        _shownOnCalendar = savedExcludeHiddenGroups;
+      }
       if (savedRowsPerPage != null) _rowsPerPage = savedRowsPerPage;
     });
+
+    if (savedExcludeHiddenGroups == true) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _fetchNotes();
+      });
+    }
   }
 
   void _openFilterMenu(BuildContext context) {
@@ -462,7 +482,7 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen>
       final filterOptions = [
         (
           value: 'standalone',
-          label: 'Unlinked',
+          label: 'Standalone',
           iconWidget: Icon(
             Icons.link_off,
             size: 18,
@@ -512,13 +532,18 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen>
                 ),
                 TextButton(
                   onPressed: () {
+                    final wasExcluding = _shownOnCalendar;
                     _filterEntityTypes.clear();
+                    _shownOnCalendar = false;
                     _saveFilterStateIfEnabled();
                     setMenuState(() {});
                     // Defer outer setState because setMenuState may still be
                     // executing its rebuild when this callback runs
                     WidgetsBinding.instance.addPostFrameCallback((_) {
-                      if (mounted) setState(() {});
+                      if (mounted) {
+                        setState(() {});
+                        if (wasExcluding) _fetchNotes();
+                      }
                     });
                   },
                   child: const Text('Clear All'),
@@ -563,6 +588,42 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen>
                 dense: true,
               );
             }),
+            const Divider(height: 16),
+            HeliumCheckboxListTile(
+              title: Row(
+                children: [
+                  Icon(
+                    Icons.visibility_off_outlined,
+                    size: 18,
+                    color: context.colorScheme.onSurface,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'Hide notes linked to hidden groups',
+                      style: AppStyles.formText(context),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
+              ),
+              value: _shownOnCalendar,
+              onChanged: (value) {
+                _shownOnCalendar = value ?? false;
+                _saveFilterStateIfEnabled();
+                setMenuState(() {});
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  if (mounted) {
+                    setState(() {});
+                    _fetchNotes();
+                  }
+                });
+              },
+              controlAffinity: ListTileControlAffinity.leading,
+              contentPadding: EdgeInsets.zero,
+              dense: true,
+            ),
           ],
         ),
       );

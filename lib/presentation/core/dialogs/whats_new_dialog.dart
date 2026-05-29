@@ -94,9 +94,25 @@ class _WhatsNewDialogWidgetState extends State<_WhatsNewDialogWidget> {
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // What's New rotation: new features are added at the top, pushing each
-                    // existing item down one position. When the list exceeds 4-5 items, drop
-                    // the bottom-most feature (above 'New surprises ahead').
+                    // What's New is a fixed-size stack of 4 items. For every new entry
+                    // added at the top, remove one from the bottom. Order reflects recency:
+                    // newest feature first, oldest last.
+                    _buildFeatureItem(
+                      context,
+                      icon: Icons.trending_up,
+                      title: 'Grade Projection',
+                      description:
+                          '"What Could I Get?" — project your final grade based on how you do on remaining assignments',
+                    ),
+                    const SizedBox(height: 12),
+                    _buildFeatureItem(
+                      context,
+                      icon: Icons.link,
+                      title: 'Link & Unlink Notes',
+                      description:
+                          'Re-link a note to a different item, or turn it standalone, without leaving the editor',
+                    ),
+                    const SizedBox(height: 12),
                     _buildFeatureItem(
                       context,
                       icon: Icons.print_outlined,
@@ -110,23 +126,7 @@ class _WhatsNewDialogWidgetState extends State<_WhatsNewDialogWidget> {
                       icon: Icons.school,
                       title: 'Class Reminders',
                       description:
-                      "Reminders can be added to a class, so you can now receive push notifications when it's time for class",
-                    ),
-                    const SizedBox(height: 12),
-                    _buildFeatureItem(
-                      context,
-                      icon: Icons.calendar_month,
-                      title: 'Cancellations & Holidays',
-                      description:
-                          'Exclude specific sessions from a recurring class schedule, or set holidays for a term that apply across all classes',
-                    ),
-                    const SizedBox(height: 12),
-                    _buildFeatureItem(
-                      context,
-                      icon: Icons.library_books,
-                      title: 'Notebook',
-                      description:
-                          'Rich notes help you link all your work together',
+                          "Reminders can be added to a class, so you can now receive push notifications when it's time for class",
                     ),
                     const SizedBox(height: 8),
                     const Divider(),

@@ -23,6 +23,7 @@ import 'package:heliumapp/data/models/planner/event_model.dart';
 import 'package:heliumapp/data/models/planner/external_calendar_event_model.dart';
 import 'package:heliumapp/data/models/planner/external_calendar_model.dart';
 import 'package:heliumapp/data/models/planner/grade_course_group_model.dart';
+import 'package:heliumapp/data/models/planner/homework_series_item_model.dart';
 import 'package:heliumapp/data/models/planner/homework_model.dart';
 import 'package:heliumapp/data/models/planner/reminder_model.dart';
 import 'package:heliumapp/data/models/planner/resource_group_model.dart';
@@ -297,7 +298,7 @@ class MockModels {
     int id = 1,
     String title = 'Fall 2025',
     double overallGrade = 88.5,
-    List<List<dynamic>>? gradePoints,
+    List<HomeworkSeriesItemModel>? homeworkSeries,
     int numHomework = 20,
     int numHomeworkCompleted = 15,
     int numHomeworkGraded = 12,
@@ -306,7 +307,7 @@ class MockModels {
       id: id,
       title: title,
       overallGrade: overallGrade,
-      gradePoints: gradePoints ?? [],
+      homeworkSeries: homeworkSeries ?? [],
       courses: [],
       numHomework: numHomework,
       numHomeworkCompleted: numHomeworkCompleted,
@@ -361,6 +362,7 @@ class MockModels {
       price: price,
       resourceGroup: resourceGroup,
       courses: courses ?? [],
+      notes: [],
     );
   }
 

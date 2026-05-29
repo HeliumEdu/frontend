@@ -16,6 +16,8 @@ class GenericLabel extends StatelessWidget {
   final IconData icon;
   final bool compact;
   final TextDecoration? textDecoration;
+  final VoidCallback? onDelete;
+  final String onDeleteLabel;
 
   const GenericLabel({
     super.key,
@@ -24,6 +26,8 @@ class GenericLabel extends StatelessWidget {
     required this.icon,
     this.compact = false,
     this.textDecoration,
+    this.onDelete,
+    this.onDeleteLabel = 'Remove',
   });
 
   @override
@@ -82,13 +86,46 @@ class GenericLabel extends StatelessWidget {
                               .copyWith(
                                 color: BadgeColors.foreground(context, color),
                                 decoration: textDecoration,
-                                decorationColor: BadgeColors.foreground(context, color),
-                                decorationThickness: textDecoration != null ? 2.0 : null,
+                                decorationColor: BadgeColors.foreground(
+                                  context,
+                                  color,
+                                ),
+                                decorationThickness: textDecoration != null
+                                    ? 2.0
+                                    : null,
                               ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
+                  if (onDelete != null) ...[
+                    const SizedBox(width: 2),
+                    Semantics(
+                      label: onDeleteLabel,
+                      button: true,
+                      child: Tooltip(
+                        message: onDeleteLabel,
+                        child: IconButton(
+                          onPressed: onDelete,
+                          icon: const Icon(Icons.close),
+                          iconSize: Responsive.getIconSize(
+                            context,
+                            mobile: 16,
+                            tablet: 18,
+                            desktop: 20,
+                          ),
+                          color: BadgeColors.foreground(context, color),
+                          hoverColor: BadgeColors.border(context, color),
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(),
+                          visualDensity: VisualDensity.compact,
+                          style: IconButton.styleFrom(
+                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ],
               ),
             ),

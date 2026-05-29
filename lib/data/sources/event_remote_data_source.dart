@@ -99,7 +99,7 @@ class EventRemoteDataSourceImpl extends EventRemoteDataSource {
       throw handleDioError(e, s);
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
-      throw HeliumException(message: 'An unexpected error occurred.');
+      throw HeliumException(message: HeliumException.unexpectedError);
     }
   }
 
@@ -129,7 +129,7 @@ class EventRemoteDataSourceImpl extends EventRemoteDataSource {
       throw handleDioError(e, s);
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
-      throw HeliumException(message: 'An unexpected error occurred.');
+      throw HeliumException(message: HeliumException.unexpectedError);
     }
   }
 
@@ -157,7 +157,7 @@ class EventRemoteDataSourceImpl extends EventRemoteDataSource {
       throw handleDioError(e, s);
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
-      throw HeliumException(message: 'An unexpected error occurred.');
+      throw HeliumException(message: HeliumException.unexpectedError);
     }
   }
 
@@ -184,7 +184,7 @@ class EventRemoteDataSourceImpl extends EventRemoteDataSource {
       throw handleDioError(e, s);
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
-      throw HeliumException(message: 'An unexpected error occurred.');
+      throw HeliumException(message: HeliumException.unexpectedError);
     }
   }
 
@@ -213,7 +213,7 @@ class EventRemoteDataSourceImpl extends EventRemoteDataSource {
       throw handleDioError(e, s);
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
-      throw HeliumException(message: 'An unexpected error occurred.');
+      throw HeliumException(message: HeliumException.unexpectedError);
     }
   }
 
@@ -237,7 +237,7 @@ class EventRemoteDataSourceImpl extends EventRemoteDataSource {
       throw handleDioError(e, s);
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
-      throw HeliumException(message: 'An unexpected error occurred.');
+      throw HeliumException(message: HeliumException.unexpectedError);
     }
   }
 
@@ -261,7 +261,7 @@ class EventRemoteDataSourceImpl extends EventRemoteDataSource {
       throw handleDioError(e, s);
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
-      throw HeliumException(message: 'An unexpected error occurred.');
+      throw HeliumException(message: HeliumException.unexpectedError);
     }
   }
 }

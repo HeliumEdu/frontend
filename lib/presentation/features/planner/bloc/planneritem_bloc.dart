@@ -135,7 +135,7 @@ class PlannerItemBloc extends Bloc<PlannerItemEvent, PlannerItemState> {
       emit(
         PlannerItemsError(
           origin: event.origin,
-          message: 'An unexpected error occurred.',
+          message: HeliumException.unexpectedError,
         ),
       );
     }
@@ -162,7 +162,7 @@ class PlannerItemBloc extends Bloc<PlannerItemEvent, PlannerItemState> {
       emit(
         PlannerItemsError(
           origin: event.origin,
-          message: 'An unexpected error occurred.',
+          message: HeliumException.unexpectedError,
         ),
       );
     }
@@ -205,7 +205,7 @@ class PlannerItemBloc extends Bloc<PlannerItemEvent, PlannerItemState> {
       emit(
         PlannerItemsError(
           origin: event.origin,
-          message: 'An unexpected error occurred.',
+          message: HeliumException.unexpectedError,
         ),
       );
     }
@@ -235,7 +235,7 @@ class PlannerItemBloc extends Bloc<PlannerItemEvent, PlannerItemState> {
       emit(
         PlannerItemsError(
           origin: event.origin,
-          message: 'An unexpected error occurred.',
+          message: HeliumException.unexpectedError,
         ),
       );
     }
@@ -299,7 +299,7 @@ class PlannerItemBloc extends Bloc<PlannerItemEvent, PlannerItemState> {
       emit(
         PlannerItemsError(
           origin: event.origin,
-          message: 'An unexpected error occurred.',
+          message: HeliumException.unexpectedError,
         ),
       );
     }
@@ -319,7 +319,7 @@ class PlannerItemBloc extends Bloc<PlannerItemEvent, PlannerItemState> {
       emit(
         PlannerItemsError(
           origin: event.origin,
-          message: 'An unexpected error occurred.',
+          message: HeliumException.unexpectedError,
         ),
       );
     }
@@ -339,7 +339,7 @@ class PlannerItemBloc extends Bloc<PlannerItemEvent, PlannerItemState> {
       emit(
         PlannerItemsError(
           origin: event.origin,
-          message: 'An unexpected error occurred.',
+          message: HeliumException.unexpectedError,
         ),
       );
     }
@@ -366,7 +366,7 @@ class PlannerItemBloc extends Bloc<PlannerItemEvent, PlannerItemState> {
       emit(
         PlannerItemsError(
           origin: event.origin,
-          message: 'An unexpected error occurred.',
+          message: HeliumException.unexpectedError,
         ),
       );
     }
@@ -413,7 +413,7 @@ class PlannerItemBloc extends Bloc<PlannerItemEvent, PlannerItemState> {
       emit(
         PlannerItemsError(
           origin: event.origin,
-          message: 'An unexpected error occurred.',
+          message: HeliumException.unexpectedError,
         ),
       );
     }
@@ -447,7 +447,7 @@ class PlannerItemBloc extends Bloc<PlannerItemEvent, PlannerItemState> {
       emit(
         PlannerItemsError(
           origin: event.origin,
-          message: 'An unexpected error occurred.',
+          message: HeliumException.unexpectedError,
         ),
       );
     }
@@ -516,7 +516,7 @@ class PlannerItemBloc extends Bloc<PlannerItemEvent, PlannerItemState> {
       emit(
         PlannerItemsError(
           origin: event.origin,
-          message: 'An unexpected error occurred.',
+          message: HeliumException.unexpectedError,
         ),
       );
     }
@@ -540,7 +540,7 @@ class PlannerItemBloc extends Bloc<PlannerItemEvent, PlannerItemState> {
       emit(
         PlannerItemsError(
           origin: event.origin,
-          message: 'An unexpected error occurred.',
+          message: HeliumException.unexpectedError,
         ),
       );
     }

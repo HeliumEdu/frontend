@@ -7,7 +7,12 @@
 
 import 'dart:ui';
 
+import 'package:heliumapp/data/models/planner/course_model.dart';
+import 'package:heliumapp/data/models/planner/event_model.dart';
+import 'package:heliumapp/data/models/planner/homework_model.dart';
 import 'package:heliumapp/data/models/planner/note_model.dart';
+import 'package:heliumapp/data/models/planner/resource_group_model.dart';
+import 'package:heliumapp/data/models/planner/resource_model.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/core/base_state.dart';
 
 abstract class NoteState extends BaseState {
@@ -85,5 +90,22 @@ class NoteDeleted extends NoteState {
   NoteDeleted({
     required super.origin,
     required this.noteId,
+  });
+}
+
+class LinkableEntitiesFetched extends NoteState {
+  final List<HomeworkModel> homework;
+  final List<EventModel> events;
+  final List<ResourceModel> resources;
+  final List<CourseModel> courses;
+  final List<ResourceGroupModel> resourceGroups;
+
+  LinkableEntitiesFetched({
+    required super.origin,
+    required this.homework,
+    required this.events,
+    required this.resources,
+    required this.courses,
+    required this.resourceGroups,
   });
 }

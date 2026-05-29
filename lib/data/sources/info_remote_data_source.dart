@@ -46,7 +46,7 @@ class InfoRemoteDataSourceImpl extends InfoRemoteDataSource {
       throw handleDioError(e, s);
     } catch (e, s) {
       _log.severe('An unexpected error occurred fetching /info/', e, s);
-      throw HeliumException(message: 'An unexpected error occurred.');
+      throw HeliumException(message: HeliumException.unexpectedError);
     }
   }
 }

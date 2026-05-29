@@ -49,7 +49,7 @@ class ReminderBloc extends Bloc<ReminderEvent, ReminderState> {
       emit(
         RemindersError(
           origin: event.origin,
-          message: 'An unexpected error occurred.',
+          message: HeliumException.unexpectedError,
         ),
       );
     }
@@ -70,7 +70,7 @@ class ReminderBloc extends Bloc<ReminderEvent, ReminderState> {
       emit(
         RemindersError(
           origin: event.origin,
-          message: 'An unexpected error occurred.',
+          message: HeliumException.unexpectedError,
         ),
       );
     }
@@ -94,7 +94,7 @@ class ReminderBloc extends Bloc<ReminderEvent, ReminderState> {
       emit(
         RemindersError(
           origin: event.origin,
-          message: 'An unexpected error occurred.',
+          message: HeliumException.unexpectedError,
         ),
       );
     }
@@ -115,7 +115,7 @@ class ReminderBloc extends Bloc<ReminderEvent, ReminderState> {
       emit(
         RemindersError(
           origin: event.origin,
-          message: 'An unexpected error occurred.',
+          message: HeliumException.unexpectedError,
         ),
       );
     }

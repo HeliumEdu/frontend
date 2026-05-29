@@ -5,6 +5,8 @@
 //
 // For details regarding the license, please refer to the LICENSE file.
 
+import 'dart:async';
+
 import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -45,8 +47,6 @@ import 'package:heliumapp/utils/color_helpers.dart';
 import 'package:heliumapp/utils/date_time_helpers.dart';
 import 'package:heliumapp/utils/grade_helpers.dart';
 import 'package:heliumapp/utils/planner_helper.dart';
-import 'dart:async';
-
 import 'package:heliumapp/utils/quill_helpers.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:heliumapp/utils/snack_bar_helpers.dart';
@@ -848,11 +848,20 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
       }
       _courseSchedules = state.courseSchedules;
       _categories = state.categories;
+      final weightedCourseIds = _categories
+          .where((c) => c.weight > 0)
+          .map((c) => c.course)
+          .toSet();
       _categoryItems = _categories
           .map(
             (c) => DropDownItem(
               id: c.id,
               value: c,
+              label: weightedCourseIds.contains(c.course)
+                  ? (c.weight > 0
+                      ? '${c.title} (${c.weight.toStringAsFixed(0)}%)'
+                      : '${c.title} (Not Graded)')
+                  : c.title,
               iconData: Icons.category_outlined,
               iconColor: c.color,
             ),

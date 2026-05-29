@@ -6,6 +6,7 @@
 // For details regarding the license, please refer to the LICENSE file.
 
 import 'package:flutter/material.dart';
+import 'package:heliumapp/utils/app_globals.dart';
 
 class BasicFormController {
   final GlobalKey<FormState> formKey = GlobalKey<FormState>();
@@ -53,7 +54,7 @@ class BasicFormController {
         if (context != null) {
           Scrollable.ensureVisible(
             context,
-            duration: const Duration(milliseconds: 300),
+            duration: AppConstants.uiAnimationDuration,
             curve: Curves.easeInOut,
             alignment: 0.1,
           );
