@@ -62,8 +62,11 @@ void main() {
       await tester.pumpAndSettle();
 
       // Verify we're on the signup screen
-      expect(find.text('Create an Account'), findsOneWidget);
       expectBrowserTitle('Create an Account');
+      expect(
+        find.byKey(const Key(SignupScreen.signUpButtonKey)),
+        findsOneWidget,
+      );
 
       // Fill in the signup form using helper for web compatibility
       await enterTextInField(
@@ -100,11 +103,6 @@ void main() {
       // Wait for dropdown options to appear and select America/Chicago
       await waitForWidget(tester, find.text('America / Chicago'));
       await tester.tap(find.text('America / Chicago'));
-      await tester.pumpAndSettle();
-
-      // Agree to terms - find and tap the checkbox
-      final checkbox = find.byType(CheckboxListTile);
-      await tester.tap(checkbox);
       await tester.pumpAndSettle();
 
       // Capture timestamp before submitting (for email polling)

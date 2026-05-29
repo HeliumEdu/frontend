@@ -7,6 +7,7 @@
 
 import 'dart:async';
 
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -61,7 +62,7 @@ class _LandingScreenState extends State<LandingScreen> {
   }
 
   Future<void> _checkAutoLogin() async {
-    if (kIsWeb) {
+    if (kIsWeb && Firebase.apps.isNotEmpty) {
       try {
         final redirectResult = await OAuthSignInService().checkRedirectResult();
         if (redirectResult != null) {
