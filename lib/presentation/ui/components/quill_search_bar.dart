@@ -227,9 +227,7 @@ class _QuillSearchBarState extends State<QuillSearchBar> {
                         vertical: 10,
                       ),
                       suffixText: _matchText,
-                      suffixStyle: AppStyles.formHint(
-                        context,
-                      ).copyWith(fontSize: 12),
+                      suffixStyle: AppStyles.menuItemHint(context),
                     ),
                     onChanged: _onTextChanged,
                     textInputAction: TextInputAction.search,

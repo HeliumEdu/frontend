@@ -31,6 +31,8 @@ abstract class AuthRepository {
 
   Future<TokenResponseModel> loginWithApple(String firebaseIdToken);
 
+  Future<TokenResponseModel> loginWithMicrosoft(String firebaseIdToken);
+
   Future<TokenResponseModel> refreshToken(RefreshTokenRequestModel request);
 
   Future<void> logout();

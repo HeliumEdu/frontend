@@ -18,12 +18,14 @@ import 'package:heliumapp/presentation/ui/components/helium_password_field.dart'
 import 'package:heliumapp/utils/snack_bar_helpers.dart';
 
 class ChangePasswordScreen extends StatefulWidget {
+  final bool passwordless;
   final VoidCallback? onActionStarted;
   final VoidCallback? onCompleted;
   final VoidCallback? onFailed;
 
   const ChangePasswordScreen({
     super.key,
+    this.passwordless = false,
     this.onActionStarted,
     this.onCompleted,
     this.onFailed,
@@ -49,7 +51,9 @@ class ChangePasswordScreenState extends State<ChangePasswordScreen> {
   @override
   void initState() {
     super.initState();
-    _formController.oldPasswordController.addListener(_recomputeChanged);
+    if (!widget.passwordless) {
+      _formController.oldPasswordController.addListener(_recomputeChanged);
+    }
     _formController.newPasswordController.addListener(_recomputeChanged);
     _formController.confirmPasswordController.addListener(_recomputeChanged);
 
@@ -66,7 +70,9 @@ class ChangePasswordScreenState extends State<ChangePasswordScreen> {
 
   @override
   void dispose() {
-    _formController.oldPasswordController.removeListener(_recomputeChanged);
+    if (!widget.passwordless) {
+      _formController.oldPasswordController.removeListener(_recomputeChanged);
+    }
     _formController.newPasswordController.removeListener(_recomputeChanged);
     _formController.confirmPasswordController.removeListener(_recomputeChanged);
     _formController.dispose();
@@ -76,7 +82,8 @@ class ChangePasswordScreenState extends State<ChangePasswordScreen> {
   void _recomputeChanged() {
     if (!_changeTrackingActive) return;
     final dirty =
-        _formController.oldPasswordController.text != _initialOld ||
+        (!widget.passwordless &&
+            _formController.oldPasswordController.text != _initialOld) ||
         _formController.newPasswordController.text != _initialNew ||
         _formController.confirmPasswordController.text != _initialConfirm;
     if (dirty == _formController.isChanged) return;
@@ -100,11 +107,7 @@ class ChangePasswordScreenState extends State<ChangePasswordScreen> {
             _initialConfirm = _formController.confirmPasswordController.text;
             _formController.isChanged = false;
           });
-          SnackBarHelper.show(
-            context,
-            'Password changed.',
-            useRootMessenger: true,
-          );
+          SnackBarHelper.show(context, 'Password changed.');
           widget.onCompleted?.call();
         }
       },
@@ -115,18 +118,21 @@ class ChangePasswordScreenState extends State<ChangePasswordScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                HeliumPasswordField(
-                  label: 'Current password',
-                  autofocus: kIsWeb,
-                  controller: _formController.oldPasswordController,
-                  validator: BasicFormController.validatePassword,
-                  onFieldSubmitted: (value) => onSubmit(),
-                  autofillHints: const [AutofillHints.password],
-                ),
-                const SizedBox(height: 14),
+                if (!widget.passwordless) ...[
+                  HeliumPasswordField(
+                    label: 'Current password',
+                    autofocus: kIsWeb,
+                    controller: _formController.oldPasswordController,
+                    validator: BasicFormController.validatePassword,
+                    onFieldSubmitted: (value) => onSubmit(),
+                    autofillHints: const [AutofillHints.password],
+                  ),
+                  const SizedBox(height: 14),
+                ],
 
                 HeliumPasswordField(
                   label: 'New password',
+                  autofocus: widget.passwordless && kIsWeb,
                   controller: _formController.newPasswordController,
                   validator: BasicFormController.validatePassword,
                   autofillHints: const [AutofillHints.newPassword],
@@ -159,7 +165,9 @@ class ChangePasswordScreenState extends State<ChangePasswordScreen> {
 
       context.read<AuthBloc>().add(
         ChangePasswordEvent(
-          oldPassword: _formController.oldPasswordController.text,
+          oldPassword: widget.passwordless
+              ? null
+              : _formController.oldPasswordController.text,
           newPassword: _formController.newPasswordController.text,
         ),
       );

@@ -50,7 +50,7 @@ class ExternalCalendarBloc
       emit(
         ExternalCalendarsError(
           origin: event.origin,
-          message: 'An unexpected error occurred.',
+          message: HeliumException.unexpectedError,
         ),
       );
     }
@@ -74,7 +74,7 @@ class ExternalCalendarBloc
       emit(
         ExternalCalendarsError(
           origin: event.origin,
-          message: 'An unexpected error occurred.',
+          message: HeliumException.unexpectedError,
         ),
       );
     }
@@ -101,7 +101,7 @@ class ExternalCalendarBloc
       emit(
         ExternalCalendarsError(
           origin: event.origin,
-          message: 'An unexpected error occurred.',
+          message: HeliumException.unexpectedError,
         ),
       );
     }
@@ -127,7 +127,7 @@ class ExternalCalendarBloc
       emit(
         ExternalCalendarsError(
           origin: event.origin,
-          message: 'An unexpected error occurred.',
+          message: HeliumException.unexpectedError,
         ),
       );
     }
@@ -149,7 +149,7 @@ class ExternalCalendarBloc
       emit(
         ExternalCalendarsError(
           origin: event.origin,
-          message: 'An unexpected error occurred.',
+          message: HeliumException.unexpectedError,
         ),
       );
     }

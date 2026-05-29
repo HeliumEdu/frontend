@@ -175,10 +175,7 @@ class _NotesEditorState extends State<NotesEditor> with WidgetsBindingObserver {
                 ),
                 label: Text(
                   'Open in Notebook',
-                  style: TextStyle(
-                    fontSize: 12.0,
-                    color: context.colorScheme.primary,
-                  ),
+                  style: AppStyles.smallSecondaryText(context).copyWith(color: context.colorScheme.primary),
                 ),
               ),
           ],

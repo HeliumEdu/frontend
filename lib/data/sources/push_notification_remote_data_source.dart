@@ -57,7 +57,7 @@ class PushTokenRemoteDataSourceImpl extends PushNotificationRemoteDataSource {
       throw handleDioError(e, s);
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
-      throw HeliumException(message: 'An unexpected error occurred.');
+      throw HeliumException(message: HeliumException.unexpectedError);
     }
   }
 
@@ -113,7 +113,7 @@ class PushTokenRemoteDataSourceImpl extends PushNotificationRemoteDataSource {
       throw HeliumException(message: errorMessage);
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
-      throw HeliumException(message: 'An unexpected error occurred.');
+      throw HeliumException(message: HeliumException.unexpectedError);
     }
   }
 
@@ -140,7 +140,7 @@ class PushTokenRemoteDataSourceImpl extends PushNotificationRemoteDataSource {
       throw handleDioError(e, s);
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
-      throw HeliumException(message: 'An unexpected error occurred.');
+      throw HeliumException(message: HeliumException.unexpectedError);
     }
   }
 
@@ -167,7 +167,7 @@ class PushTokenRemoteDataSourceImpl extends PushNotificationRemoteDataSource {
       throw handleDioError(e, s);
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
-      throw HeliumException(message: 'An unexpected error occurred.');
+      throw HeliumException(message: HeliumException.unexpectedError);
     }
   }
 }

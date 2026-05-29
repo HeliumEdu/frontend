@@ -17,6 +17,7 @@ abstract class NoteRepository {
     int? resourceId,
     DateTime? updatedAtGte,
     bool includeContent = false,
+    bool shownOnCalendar = false,
     bool forceRefresh = false,
   });
 

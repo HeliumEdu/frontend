@@ -66,7 +66,7 @@ class SupportHeliumCard extends StatelessWidget {
                       const SizedBox(height: 4),
                       Text(
                         compact
-                            ? 'A passion project, free for everyone—made '
+                            ? 'A passion project, free for everyone — made '
                                   'possible by supporters like you.'
                             : 'A passion project, free for everyone. '
                                   'Supporters like you are what make that '

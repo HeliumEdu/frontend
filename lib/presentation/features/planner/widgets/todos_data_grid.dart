@@ -281,12 +281,10 @@ class TodosDataGridState extends BaseDataGridState<TodosDataGrid> {
                         maintainState: true,
                         child: Text(
                           'Export CSV',
-                          style: AppStyles.buttonText(context).copyWith(
+                          style: AppStyles.smallSecondaryText(context).copyWith(
                             color: isDisabled
-                                ? context.colorScheme.onSurface
-                                    .withValues(alpha: 0.38)
+                                ? context.colorScheme.onSurface.withValues(alpha: 0.38)
                                 : context.colorScheme.primary,
-                            fontSize: 12,
                           ),
                         ),
                       ),
@@ -746,27 +744,20 @@ class TodosDataGridState extends BaseDataGridState<TodosDataGrid> {
 
   Future<void> _expandDataWindowForAllCourses() async {
     final dataSource = widget.dataSource;
-    final courses = dataSource.courses ?? [];
+    final courseGroups =
+        dataSource.courseGroupsById?.values.toList() ?? [];
 
-    if (courses.isEmpty) {
-      _log.fine('No courses, skipping data window expansion');
+    if (courseGroups.isEmpty) {
+      _log.fine('No course groups, skipping data window expansion');
       return;
     }
 
-    DateTime? from;
-    DateTime? to;
-
-    for (final course in courses) {
-      final startDate = course.startDate;
-      final endDate = course.endDate.add(const Duration(days: 1));
-
-      if (from == null || startDate.isBefore(from)) from = startDate;
-      if (to == null || endDate.isAfter(to)) to = endDate;
-    }
-
-    if (from != null && to != null) {
-      _log.info('Date window for ${courses.length} courses: $from to $to');
-      await dataSource.handleLoadMore(from, to);
+    final window = PlannerHelper.courseGroupDateWindow(courseGroups);
+    if (window != null) {
+      _log.info(
+        'Date window from ${courseGroups.length} course groups: ${window.from} to ${window.to}',
+      );
+      await dataSource.handleLoadMore(window.from, window.to);
     }
   }
 

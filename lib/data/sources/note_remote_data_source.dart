@@ -29,6 +29,7 @@ abstract class NoteRemoteDataSource extends BaseDataSource {
     int? resourceId,
     DateTime? updatedAtGte,
     bool includeContent = false,
+    bool shownOnCalendar = false,
     bool forceRefresh = false,
   });
 
@@ -60,6 +61,7 @@ class NoteRemoteDataSourceImpl extends NoteRemoteDataSource {
     int? resourceId,
     DateTime? updatedAtGte,
     bool includeContent = false,
+    bool shownOnCalendar = false,
     bool forceRefresh = false,
   }) async {
     try {
@@ -77,6 +79,7 @@ class NoteRemoteDataSourceImpl extends NoteRemoteDataSource {
         queryParameters['updated_at__gte'] = updatedAtGte.toIso8601String();
       }
       if (includeContent) queryParameters['include_content'] = 'true';
+      if (shownOnCalendar) queryParameters['shown_on_calendar'] = 'true';
 
       final response = await dioClient.dio.get(
         ApiUrl.plannerNotesListUrl,
@@ -108,7 +111,7 @@ class NoteRemoteDataSourceImpl extends NoteRemoteDataSource {
       throw handleDioError(e, s);
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
-      throw HeliumException(message: 'An unexpected error occurred.');
+      throw HeliumException(message: HeliumException.unexpectedError);
     }
   }
 
@@ -138,7 +141,7 @@ class NoteRemoteDataSourceImpl extends NoteRemoteDataSource {
       throw handleDioError(e, s);
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
-      throw HeliumException(message: 'An unexpected error occurred.');
+      throw HeliumException(message: HeliumException.unexpectedError);
     }
   }
 
@@ -166,7 +169,7 @@ class NoteRemoteDataSourceImpl extends NoteRemoteDataSource {
       throw handleDioError(e, s);
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
-      throw HeliumException(message: 'An unexpected error occurred.');
+      throw HeliumException(message: HeliumException.unexpectedError);
     }
   }
 
@@ -200,7 +203,7 @@ class NoteRemoteDataSourceImpl extends NoteRemoteDataSource {
       throw handleDioError(e, s);
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
-      throw HeliumException(message: 'An unexpected error occurred.');
+      throw HeliumException(message: HeliumException.unexpectedError);
     }
   }
 
@@ -224,7 +227,7 @@ class NoteRemoteDataSourceImpl extends NoteRemoteDataSource {
       throw handleDioError(e, s);
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
-      throw HeliumException(message: 'An unexpected error occurred.');
+      throw HeliumException(message: HeliumException.unexpectedError);
     }
   }
 }

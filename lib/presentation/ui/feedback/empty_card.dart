@@ -49,11 +49,13 @@ class EmptyCard extends StatelessWidget {
           const SizedBox(height: 16),
           Text(
             title,
+            textAlign: TextAlign.center,
             style: AppStyles.headingText(context).copyWith(color: onSurface),
           ),
           const SizedBox(height: 8),
           Text(
             message,
+            textAlign: TextAlign.center,
             style: AppStyles.standardBodyTextLight(context).copyWith(color: onSurface),
           ),
           if (action != null) ...[

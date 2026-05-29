@@ -19,6 +19,7 @@ import 'package:heliumapp/presentation/navigation/shell/navigation_shell.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_event.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_state.dart';
 import 'package:heliumapp/presentation/ui/components/helium_elevated_button.dart';
+import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:heliumapp/utils/snack_bar_helpers.dart';
@@ -343,7 +344,7 @@ class _GettingStartedDialogWidgetState
                     button: true,
                     child: IconButton(
                       onPressed: () => _pageController.previousPage(
-                        duration: const Duration(milliseconds: 300),
+                        duration: AppConstants.uiAnimationDuration,
                         curve: Curves.easeInOut,
                       ),
                       icon: const Icon(Icons.chevron_left),
@@ -364,7 +365,7 @@ class _GettingStartedDialogWidgetState
                       Feedback.forTap(context);
                       _pageController.animateToPage(
                         index,
-                        duration: const Duration(milliseconds: 300),
+                        duration: AppConstants.uiAnimationDuration,
                         curve: Curves.easeInOut,
                       );
                     },
@@ -396,7 +397,7 @@ class _GettingStartedDialogWidgetState
                     button: true,
                     child: IconButton(
                       onPressed: () => _pageController.nextPage(
-                        duration: const Duration(milliseconds: 300),
+                        duration: AppConstants.uiAnimationDuration,
                         curve: Curves.easeInOut,
                       ),
                       icon: const Icon(Icons.chevron_right),

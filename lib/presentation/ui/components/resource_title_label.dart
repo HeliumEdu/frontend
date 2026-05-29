@@ -16,6 +16,7 @@ class ResourceTitleLabel extends StatelessWidget {
   final UserSettingsModel userSettings;
   final bool compact;
   final VoidCallback? onDelete;
+  final String onDeleteLabel;
   final TextDecoration? textDecoration;
 
   const ResourceTitleLabel({
@@ -24,6 +25,7 @@ class ResourceTitleLabel extends StatelessWidget {
     required this.userSettings,
     this.compact = false,
     this.onDelete,
+    this.onDeleteLabel = 'Remove',
     this.textDecoration,
   });
 
@@ -36,7 +38,11 @@ class ResourceTitleLabel extends StatelessWidget {
         children: [
           Container(
             padding: EdgeInsets.symmetric(
-              horizontal: Responsive.getResponsiveValue(context, mobile: 6, desktop: 5),
+              horizontal: Responsive.getResponsiveValue(
+                context,
+                mobile: 6,
+                desktop: 5,
+              ),
             ),
             decoration: BoxDecoration(
               color: userSettings.resourceColor,
@@ -48,7 +54,9 @@ class ResourceTitleLabel extends StatelessWidget {
             child: Center(
               child: Icon(
                 Icons.book_outlined,
-                color: HeliumColors.contrastingTextColor(userSettings.resourceColor),
+                color: HeliumColors.contrastingTextColor(
+                  userSettings.resourceColor,
+                ),
                 size: Responsive.getIconSize(
                   context,
                   mobile: 14,
@@ -60,15 +68,24 @@ class ResourceTitleLabel extends StatelessWidget {
           ),
           Flexible(
             child: Container(
-              padding: EdgeInsets.symmetric(horizontal: compact ? 6 : 10, vertical: compact ? 2 : 6),
+              padding: EdgeInsets.symmetric(
+                horizontal: compact ? 6 : 10,
+                vertical: compact ? 2 : 6,
+              ),
               decoration: BoxDecoration(
-                color: BadgeColors.background(context, userSettings.resourceColor),
+                color: BadgeColors.background(
+                  context,
+                  userSettings.resourceColor,
+                ),
                 borderRadius: const BorderRadius.only(
                   topRight: Radius.circular(10),
                   bottomRight: Radius.circular(10),
                 ),
                 border: Border.all(
-                  color: BadgeColors.border(context, userSettings.resourceColor),
+                  color: BadgeColors.border(
+                    context,
+                    userSettings.resourceColor,
+                  ),
                 ),
               ),
               child: Row(
@@ -77,15 +94,24 @@ class ResourceTitleLabel extends StatelessWidget {
                   Flexible(
                     child: Text(
                       title,
-                      style: (compact
-                              ? AppStyles.smallSecondaryText(context)
-                              : AppStyles.standardBodyText(context))
-                          .copyWith(
-                            color: BadgeColors.foreground(context, userSettings.resourceColor),
-                            decoration: textDecoration,
-                            decorationColor: BadgeColors.foreground(context, userSettings.resourceColor),
-                            decorationThickness: textDecoration != null ? 2.0 : null,
-                          ),
+                      style:
+                          (compact
+                                  ? AppStyles.smallSecondaryText(context)
+                                  : AppStyles.standardBodyText(context))
+                              .copyWith(
+                                color: BadgeColors.foreground(
+                                  context,
+                                  userSettings.resourceColor,
+                                ),
+                                decoration: textDecoration,
+                                decorationColor: BadgeColors.foreground(
+                                  context,
+                                  userSettings.resourceColor,
+                                ),
+                                decorationThickness: textDecoration != null
+                                    ? 2.0
+                                    : null,
+                              ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -93,24 +119,33 @@ class ResourceTitleLabel extends StatelessWidget {
                   if (onDelete != null) ...[
                     const SizedBox(width: 2),
                     Semantics(
-                      label: 'Remove',
+                      label: onDeleteLabel,
                       button: true,
-                      child: IconButton(
-                        onPressed: onDelete,
-                        icon: const Icon(Icons.close),
-                        iconSize: Responsive.getIconSize(
-                          context,
-                          mobile: 16,
-                          tablet: 18,
-                          desktop: 20,
-                        ),
-                        color: BadgeColors.foreground(context, userSettings.resourceColor),
-                        hoverColor: BadgeColors.border(context, userSettings.resourceColor),
-                        padding: EdgeInsets.zero,
-                        constraints: const BoxConstraints(),
-                        visualDensity: VisualDensity.compact,
-                        style: IconButton.styleFrom(
-                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      child: Tooltip(
+                        message: onDeleteLabel,
+                        child: IconButton(
+                          onPressed: onDelete,
+                          icon: const Icon(Icons.close),
+                          iconSize: Responsive.getIconSize(
+                            context,
+                            mobile: 16,
+                            tablet: 18,
+                            desktop: 20,
+                          ),
+                          color: BadgeColors.foreground(
+                            context,
+                            userSettings.resourceColor,
+                          ),
+                          hoverColor: BadgeColors.border(
+                            context,
+                            userSettings.resourceColor,
+                          ),
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(),
+                          visualDensity: VisualDensity.compact,
+                          style: IconButton.styleFrom(
+                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          ),
                         ),
                       ),
                     ),

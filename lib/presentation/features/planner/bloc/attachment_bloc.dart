@@ -40,7 +40,7 @@ class AttachmentBloc extends Bloc<AttachmentEvent, AttachmentState> {
     } on HeliumException catch (e) {
       emit(AttachmentsError(message: e.message));
     } catch (e) {
-      emit(AttachmentsError(message: 'An unexpected error occurred.'));
+      emit(AttachmentsError(message: HeliumException.unexpectedError));
     }
   }
 
@@ -109,7 +109,7 @@ class AttachmentBloc extends Bloc<AttachmentEvent, AttachmentState> {
     } on HeliumException catch (e) {
       emit(AttachmentsError(message: e.message));
     } catch (e) {
-      emit(AttachmentsError(message: 'An unexpected error occurred.'));
+      emit(AttachmentsError(message: HeliumException.unexpectedError));
     }
   }
 }

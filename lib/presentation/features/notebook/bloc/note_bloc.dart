@@ -7,8 +7,13 @@
 
 import 'package:bloc/bloc.dart';
 import 'package:heliumapp/core/helium_exception.dart';
+import 'package:heliumapp/data/models/planner/course_group_model.dart';
 import 'package:heliumapp/data/models/planner/course_model.dart';
+import 'package:heliumapp/data/models/planner/event_model.dart';
 import 'package:heliumapp/data/models/planner/homework_model.dart';
+import 'package:heliumapp/data/models/planner/resource_group_model.dart';
+import 'package:heliumapp/data/models/planner/resource_model.dart';
+import 'package:heliumapp/utils/planner_helper.dart';
 import 'package:heliumapp/domain/repositories/course_repository.dart';
 import 'package:heliumapp/domain/repositories/event_repository.dart';
 import 'package:heliumapp/domain/repositories/homework_repository.dart';
@@ -35,6 +40,7 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
     on<FetchNotesEvent>(_onFetchNotes);
     on<FetchNoteEvent>(_onFetchNote);
     on<FetchNoteScreenDataEvent>(_onFetchNoteScreenData);
+    on<FetchLinkableEntitiesEvent>(_onFetchLinkableEntities);
     on<CreateNoteEvent>(_onCreateNote);
     on<UpdateNoteEvent>(_onUpdateNote);
     on<DeleteNoteEvent>(_onDeleteNote);
@@ -52,6 +58,7 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
       final notes = await noteRepository.getNotes(
         search: event.search,
         linkedEntityType: event.linkedEntityType,
+        shownOnCalendar: event.shownOnCalendar,
         forceRefresh: event.forceRefresh,
       );
       emit(NotesFetched(origin: event.origin, notes: notes));
@@ -60,7 +67,7 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
     } catch (e) {
       emit(NotesError(
         origin: event.origin,
-        message: 'An unexpected error occurred.',
+        message: HeliumException.unexpectedError,
       ));
     }
   }
@@ -81,7 +88,7 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
     } catch (e) {
       emit(NotesError(
         origin: event.origin,
-        message: 'An unexpected error occurred.',
+        message: HeliumException.unexpectedError,
       ));
     }
   }
@@ -158,7 +165,71 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
     } catch (e) {
       emit(NotesError(
         origin: event.origin,
-        message: 'An unexpected error occurred.',
+        message: HeliumException.unexpectedError,
+      ));
+    }
+  }
+
+
+
+  Future<void> _onFetchLinkableEntities(
+      FetchLinkableEntitiesEvent event,
+      Emitter<NoteState> emit,
+      ) async {
+    try {
+      final List<CourseGroupModel> courseGroups =
+      await courseRepository.getCourseGroups();
+      final window = PlannerHelper.courseGroupDateWindow(courseGroups);
+
+      final results = await Future.wait([
+        window != null
+            ? homeworkRepository.getHomeworks(
+          from: window.from,
+          to: window.to,
+        )
+            : Future.value(<HomeworkModel>[]),
+        eventRepository.getEvents(),
+        resourceRepository.getResources(),
+        resourceRepository.getResourceGroups(),
+        courseRepository.getCourses(),
+      ]);
+
+      final courses = results[4] as List<CourseModel>;
+      final visibleCourseIds = courses
+          .where((c) => c.shownOnCalendar != false)
+          .map((c) => c.id)
+          .toSet();
+
+      final resourceGroups = results[3] as List<ResourceGroupModel>;
+      final visibleGroupIds = resourceGroups
+          .where((g) => g.shownOnCalendar != false)
+          .map((g) => g.id)
+          .toSet();
+
+      emit(LinkableEntitiesFetched(
+        origin: event.origin,
+        homework: (results[0] as List<HomeworkModel>)
+            .where((h) =>
+        h.notes.isEmpty &&
+            visibleCourseIds.contains(h.course.id))
+            .toList(),
+        events: (results[1] as List<EventModel>)
+            .where((e) => e.notes.isEmpty)
+            .toList(),
+        resources: (results[2] as List<ResourceModel>)
+            .where((r) =>
+        r.notes.isEmpty &&
+            visibleGroupIds.contains(r.resourceGroup))
+            .toList(),
+        courses: courses,
+        resourceGroups: resourceGroups,
+      ));
+    } on HeliumException catch (e) {
+      emit(NotesError(origin: event.origin, message: e.message));
+    } catch (e) {
+      emit(NotesError(
+        origin: event.origin,
+        message: 'Failed to load items.',
       ));
     }
   }
@@ -176,7 +247,7 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
     } catch (e) {
       emit(NotesError(
         origin: event.origin,
-        message: 'An unexpected error occurred.',
+        message: HeliumException.unexpectedError,
       ));
     }
   }
@@ -202,7 +273,7 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
     } catch (e) {
       emit(NotesError(
         origin: event.origin,
-        message: 'An unexpected error occurred.',
+        message: HeliumException.unexpectedError,
       ));
     }
   }
@@ -220,7 +291,7 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
     } catch (e) {
       emit(NotesError(
         origin: event.origin,
-        message: 'An unexpected error occurred.',
+        message: HeliumException.unexpectedError,
       ));
     }
   }

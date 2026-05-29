@@ -599,13 +599,9 @@ class _NotificationsScreenState
                               : _formatCourseScheduleTime(
                                   notification.reminder,
                                 ),
-                          style: AppStyles.standardBodyTextLight(context)
-                              .copyWith(
-                                fontSize: 12,
-                                color: context.colorScheme.onSurface.withValues(
-                                  alpha: 0.5,
-                                ),
-                              ),
+                          style: AppStyles.smallSecondaryTextLight(context).copyWith(
+                            color: context.colorScheme.onSurface.withValues(alpha: 0.5),
+                          ),
                           maxLines: 1,
                         ),
                       ],

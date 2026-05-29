@@ -5,7 +5,7 @@
 # (re-running on already-scaled files is a no-op).
 #
 # Override background color (e.g. brand blue):
-#   BG_COLOR='#418eb9' ./scripts/scale-for-appstore.sh
+#   BG_COLOR='#418eb9' ./bin/scale-for-appstore.sh
 #
 # Targets:
 #   *_iphone_framed.png  →  1320 × 2868  (App Store 6.9")

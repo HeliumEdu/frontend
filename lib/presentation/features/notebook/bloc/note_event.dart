@@ -21,12 +21,14 @@ class ResetNotesEvent extends NoteEvent {
 class FetchNotesEvent extends NoteEvent {
   final String? search;
   final String? linkedEntityType;
+  final bool shownOnCalendar;
   final bool forceRefresh;
 
   FetchNotesEvent({
     required super.origin,
     this.search,
     this.linkedEntityType,
+    this.shownOnCalendar = false,
     this.forceRefresh = false,
   });
 }
@@ -55,6 +57,10 @@ class FetchNoteScreenDataEvent extends NoteEvent {
     this.linkEventId,
     this.linkResourceId,
   });
+}
+
+class FetchLinkableEntitiesEvent extends NoteEvent {
+  FetchLinkableEntitiesEvent({required super.origin});
 }
 
 class CreateNoteEvent extends NoteEvent {

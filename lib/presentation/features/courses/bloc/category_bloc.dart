@@ -42,7 +42,7 @@ class CategoryBloc extends Bloc<CategoryEvent, CategoryState> {
       emit(
         CategoriesError(
           origin: event.origin,
-          message: 'An unexpected error occurred.',
+          message: HeliumException.unexpectedError,
         ),
       );
     }
@@ -67,7 +67,7 @@ class CategoryBloc extends Bloc<CategoryEvent, CategoryState> {
       emit(
         CategoriesError(
           origin: event.origin,
-          message: 'An unexpected error occurred.',
+          message: HeliumException.unexpectedError,
         ),
       );
     }
@@ -93,7 +93,7 @@ class CategoryBloc extends Bloc<CategoryEvent, CategoryState> {
       emit(
         CategoriesError(
           origin: event.origin,
-          message: 'An unexpected error occurred.',
+          message: HeliumException.unexpectedError,
         ),
       );
     }
@@ -141,7 +141,7 @@ class CategoryBloc extends Bloc<CategoryEvent, CategoryState> {
       emit(
         CategoriesError(
           origin: event.origin,
-          message: 'An unexpected error occurred.',
+          message: HeliumException.unexpectedError,
         ),
       );
     }

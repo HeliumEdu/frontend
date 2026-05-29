@@ -340,6 +340,25 @@ class PlannerHelper {
     });
   }
 
+  /// Returns the widest `from/to` window spanned by the visible (non-hidden)
+  /// groups in [courseGroups], or `null` when none are visible.
+  static ({DateTime from, DateTime to})? courseGroupDateWindow(
+    List<CourseGroupModel> courseGroups,
+  ) {
+    final visible = courseGroups
+        .where((g) => g.shownOnCalendar != false)
+        .toList();
+    if (visible.isEmpty) return null;
+    return (
+      from: visible
+          .map((g) => g.startDate)
+          .reduce((a, b) => a.isBefore(b) ? a : b),
+      to: visible
+          .map((g) => g.endDate)
+          .reduce((a, b) => a.isAfter(b) ? a : b),
+    );
+  }
+
   /// Rounds [minute] to the nearest 30-minute boundary (0 or 30).
   /// Used when snapping drag-and-drop and resize times on the calendar.
   /// A result of 60 is valid; DateTime/TZDateTime constructors overflow it

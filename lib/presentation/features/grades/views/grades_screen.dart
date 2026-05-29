@@ -21,6 +21,7 @@ import 'package:heliumapp/data/models/planner/course_group_model.dart';
 import 'package:heliumapp/data/models/planner/grade_category_model.dart';
 import 'package:heliumapp/data/models/planner/grade_course_group_model.dart';
 import 'package:heliumapp/data/models/planner/grade_course_model.dart';
+import 'package:heliumapp/data/models/planner/homework_series_item_model.dart';
 import 'package:heliumapp/presentation/core/views/base_page_screen_state.dart';
 import 'package:heliumapp/presentation/core/views/deep_link_mixin.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_bloc.dart';
@@ -30,7 +31,7 @@ import 'package:heliumapp/presentation/features/grades/bloc/grade_event.dart';
 import 'package:heliumapp/presentation/features/grades/bloc/grade_state.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/planneritem_bloc.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/planneritem_state.dart';
-import 'package:heliumapp/presentation/features/grades/dialogs/grade_calculator_dialog.dart';
+import 'package:heliumapp/presentation/features/grades/dialogs/grade_calculator_container.dart';
 import 'package:heliumapp/presentation/features/planner/views/planner_item_add_screen.dart';
 import 'package:heliumapp/presentation/ui/components/category_title_label.dart';
 import 'package:heliumapp/presentation/ui/components/course_title_label.dart';
@@ -140,8 +141,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
       (userSettings?.onTrackTolerance ??
           FallbackConstants.defaultOnTrackTolerance)
           .toDouble();
-  static const double _defaultDesiredGradeBoost =
-  5.0;
+  static const double _defaultDesiredGradeBoost = 5.0;
   static const double _chartAnimationDurationMs = 250;
 
   List<CourseGroupModel> _courseGroups = [];
@@ -204,13 +204,15 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
           } else if (state is HomeworkUpdated) {
             final homework = state.homework;
 
-            List<dynamic>? matched;
+            HomeworkSeriesItemModel? matched;
             outer:
             for (final group in _grades) {
-              for (final point in group.gradePoints) {
-                if (point.length > 2 && point[2] == homework.id) {
-                  matched = point;
-                  break outer;
+              for (final course in group.courses) {
+                for (final item in course.homeworkSeries) {
+                  if (item.id == homework.id) {
+                    matched = item;
+                    break outer;
+                  }
                 }
               }
             }
@@ -222,52 +224,17 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
               return;
             }
 
-            final prevTitle = matched.length > 3
-                ? matched[3] as String?
-                : null;
-            final prevGradePercent = GradeHelper.parseGrade(
-              matched.length > 4 ? matched[4] : null,
-            );
-            final prevCategoryId = matched.length > 5
-                ? matched[5] as int?
-                : null;
-            final prevCourseId = matched.length > 6
-                ? matched[6] as int?
-                : null;
-
             final newGradePercent = GradeHelper.parseGrade(
               homework.currentGrade,
             );
 
-            if (prevGradePercent != newGradePercent ||
-                prevCategoryId != homework.category.id ||
-                prevCourseId != homework.course.id) {
+            if (matched.assignmentGrade != newGradePercent ||
+                matched.categoryId != homework.category.id ||
+                matched.courseId != homework.course.id ||
+                matched.title != homework.title) {
               context.read<GradeBloc>().add(
                 FetchGradeScreenDataEvent(forceRefresh: true),
               );
-              return;
-            }
-
-            if (prevTitle != homework.title) {
-              setState(() {
-                for (final group in _grades) {
-                  for (final pointList in [
-                    group.gradePoints,
-                    ...group.courses.expand(
-                      (c) => [
-                        c.gradePoints,
-                        ...c.categories.map((cat) => cat.gradePoints),
-                      ],
-                    ),
-                  ]) {
-                    for (final point in pointList) {
-                      if (point.length > 3 && point[2] == homework.id) {
-                        point[3] = homework.title;
-                      }
-                    }
-                  }
-                }
-              });
             }
           }
         },
@@ -523,9 +490,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
   Widget _buildSummaryTitle(String title) {
     return Text(
       title,
-      style: AppStyles.standardBodyText(
-        context,
-      ).copyWith(fontWeight: FontWeight.w600),
+      style: AppStyles.standardBodyTextEmphasis(context),
       textAlign: TextAlign.center,
     );
   }
@@ -543,16 +508,13 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
       overallGradeUrgency,
     );
 
-    // Calculate trend from grade points if available
     double? trend;
-    if (selectedGroup.gradePoints.length >= 2) {
-      final recent =
-          GradeHelper.parseGrade(selectedGroup.gradePoints.last[1]) ?? 0.0;
-      final previous =
-          GradeHelper.parseGrade(
-            selectedGroup.gradePoints[selectedGroup.gradePoints.length - 2][1],
-          ) ??
-              0.0;
+    final gradedItems = selectedGroup.homeworkSeries
+        .where((item) => item.graded)
+        .toList();
+    if (gradedItems.length >= 2) {
+      final recent = gradedItems.last.cumulativeGrade ?? 0.0;
+      final previous = gradedItems[gradedItems.length - 2].cumulativeGrade ?? 0.0;
       trend = recent - previous;
     }
 
@@ -807,9 +769,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
                   const SizedBox(width: 6),
                   Text(
                     status,
-                    style: AppStyles.standardBodyText(
-                      context,
-                    ).copyWith(color: statusColor, fontWeight: FontWeight.w600),
+                    style: AppStyles.standardBodyTextEmphasis(context).copyWith(color: statusColor),
                   ),
                 ],
               ),
@@ -862,7 +822,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
               if (!firstAtRiskContext.mounted) return;
               Scrollable.ensureVisible(
                 firstAtRiskContext,
-                duration: const Duration(milliseconds: 300),
+                duration: AppConstants.uiAnimationDuration,
                 curve: Curves.easeInOut,
                 alignment: 0.1,
               );
@@ -936,9 +896,6 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
         ? selectedGroup.numHomework - selectedGroup.numHomeworkGraded
         : selectedGroup.numHomework;
 
-    // Cycle only through courses with pending work, sorted by ungraded
-    // count descending. Excluding fully-graded courses keeps the chip
-    // visible and meaningful across every tap of the rotator.
     final sortedCourses = [
       for (final course in selectedGroup.courses)
         if (course.numHomework - course.numHomeworkGraded > 0) course,
@@ -952,21 +909,24 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
 
     final displayCourse = _pendingImpactCourseId != null
         ? selectedGroup.courses.firstWhereOrNull(
-          (c) => c.id == _pendingImpactCourseId,
-    ) ??
-        topCourse
+              (c) => c.id == _pendingImpactCourseId,
+            ) ??
+            topCourse
         : topCourse;
 
     final displayUngraded = displayCourse != null
         ? displayCourse.numHomework - displayCourse.numHomeworkGraded
         : 0;
 
+    final impactAssignment = displayCourse?.ungradedAssignments.firstOrNull;
+    final impactTitle = impactAssignment?.title;
+
     return _buildSummaryCard(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           _buildSummaryTitle('Pending Impact'),
-          const SizedBox(height: 12),
+          SizedBox(height: Responsive.getResponsiveValue(context, mobile: 4, desktop: 8)),
           Container(
             width: _summaryCircleSize,
             height: _summaryCircleSize,
@@ -1002,7 +962,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
               ),
             ),
           ),
-          const SizedBox(height: 12),
+          SizedBox(height: Responsive.getResponsiveValue(context, mobile: 4, desktop: 8)),
           Text(
             'ungraded ${ungradedCount.plural('assignment')}',
             style: AppStyles.smallSecondaryText(context).copyWith(
@@ -1013,7 +973,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
             textAlign: TextAlign.center,
           ),
           if (displayCourse != null && displayUngraded > 0) ...[
-            const SizedBox(height: 8),
+            const SizedBox(height: 4),
             MouseRegion(
               cursor: sortedCourses.length > 1
                   ? SystemMouseCursors.click
@@ -1034,8 +994,9 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
                       vertical: 4,
                     ),
                     decoration: BoxDecoration(
-                      color: displayCourse.color.withValues(alpha: 0.15),
-                      borderRadius: BorderRadius.circular(12.0),
+                      color: BadgeColors.background(context, displayCourse.color),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: BadgeColors.border(context, displayCourse.color)),
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
@@ -1052,7 +1013,9 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
                         Flexible(
                           child: Text(
                             '$displayUngraded in ${displayCourse.title}',
-                            style: AppStyles.smallSecondaryText(context),
+                            style: AppStyles.smallSecondaryText(context).copyWith(
+                              color: BadgeColors.foreground(context, displayCourse.color),
+                            ),
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
@@ -1061,7 +1024,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
                           Icon(
                             Icons.swap_horiz,
                             size: 12,
-                            color: displayCourse.color,
+                            color: BadgeColors.foreground(context, displayCourse.color),
                           ),
                         ],
                       ],
@@ -1070,6 +1033,60 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
                 ),
               ),
             ),
+            if (impactTitle != null) ...[
+              SizedBox(height: Responsive.getResponsiveValue(context, mobile: 2, desktop: 4)),
+              MouseRegion(
+                cursor: SystemMouseCursors.click,
+                child: Semantics(
+                  label: 'Open assignment',
+                  button: true,
+                  child: GestureDetector(
+                    onTap: () {
+                      Feedback.forTap(context);
+                      showPlannerItemAdd(
+                        context,
+                        homeworkId: impactAssignment!.id,
+                        isEdit: true,
+                        isNew: false,
+                      );
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 2,
+                      ),
+                      decoration: BoxDecoration(
+                        color: BadgeColors.background(context, displayCourse.color),
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(
+                          color: BadgeColors.border(context, displayCourse.color),
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.trending_up,
+                            size: 12,
+                            color: BadgeColors.foreground(context, displayCourse.color),
+                          ),
+                          const SizedBox(width: 4),
+                          Flexible(
+                            child: Text(
+                              impactTitle,
+                              style: AppStyles.smallSecondaryText(context).copyWith(
+                                color: BadgeColors.foreground(context, displayCourse.color),
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ],
         ],
       ),
@@ -1086,20 +1103,8 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
   void _showGradeCalculatorOptions(BuildContext buttonContext,
       GradeCourseGroupModel selectedGroup,
       List<GradeCourseModel> courses,) {
-    final eligibleCourses = courses
-        .where(_courseHasEligibleGradeCalculatorCategory)
-        .toList();
-
-    if (eligibleCourses.isEmpty) {
-      showSnackBar(
-        context,
-        'No classes have exactly one remaining graded item.',
-      );
-      return;
-    }
-
-    if (eligibleCourses.length == 1) {
-      _openGradeCalculator(eligibleCourses.first);
+    if (courses.length == 1) {
+      _openGradeCalculator(courses.first);
       return;
     }
 
@@ -1117,7 +1122,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
             StatefulBuilder(
               builder: (menuContext, _) =>
                   _buildGradeCalculatorPickerContent(
-                      menuContext, eligibleCourses),
+                      menuContext, courses),
             ),
       );
     } else {
@@ -1152,7 +1157,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
               builder: (menuContext, _) =>
                   _buildGradeCalculatorPickerContent(
                     menuContext,
-                    eligibleCourses,
+                    courses,
                   ),
             ),
           ),
@@ -1162,7 +1167,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
   }
 
   Widget _buildGradeCalculatorPickerContent(BuildContext menuContext,
-      List<GradeCourseModel> eligibleCourses,) {
+      List<GradeCourseModel> courses,) {
     return Material(
       color: context.colorScheme.surface,
       child: Padding(
@@ -1171,12 +1176,12 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
-            for (int i = 0; i < eligibleCourses.length; i++) ...[
+            for (int i = 0; i < courses.length; i++) ...[
               if (i > 0) const Divider(height: 1),
               Padding(
                 padding: EdgeInsets.only(
                   top: i == 0 ? 0 : 8,
-                  bottom: i == eligibleCourses.length - 1 ? 0 : 8,
+                  bottom: i == courses.length - 1 ? 0 : 8,
                 ),
                 child: ListTile(
                   leading: Padding(
@@ -1184,17 +1189,17 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
                     child: Icon(
                       Icons.school,
                       size: 16,
-                      color: eligibleCourses[i].color,
+                      color: courses[i].color,
                     ),
                   ),
                   title: Text(
-                    eligibleCourses[i].title,
+                    courses[i].title,
                     style: AppStyles.formText(context),
                     overflow: TextOverflow.ellipsis,
                   ),
                   subtitle: GradeLabel(
                     grade: GradeHelper.gradeForDisplay(
-                      eligibleCourses[i].overallGrade,
+                      courses[i].overallGrade,
                     ),
                     userSettings: userSettings!,
                     compact: true,
@@ -1204,7 +1209,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
                   contentPadding: EdgeInsets.zero,
                   onTap: () {
                     Navigator.pop(menuContext);
-                    _openGradeCalculator(eligibleCourses[i]);
+                    _openGradeCalculator(courses[i]);
                   },
                 ),
               ),
@@ -1213,13 +1218,6 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
         ),
       ),
     );
-  }
-
-  bool _courseHasEligibleGradeCalculatorCategory(GradeCourseModel course) {
-    return course.categories.any((category) {
-      final remainingItems = category.numHomework - category.numHomeworkGraded;
-      return category.weight > 0 && remainingItems == 1;
-    });
   }
 
   void _openGradeCalculator(GradeCourseModel course) {
@@ -1233,11 +1231,8 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
       context: context,
       useRootNavigator: true,
       builder: (context) =>
-          GradeCalculatorDialog(
-            categories: course.categories,
-            currentOverallGrade: course.overallGrade,
-            courseTitle: course.title,
-            courseColor: course.color,
+          GradeCalculatorContainer(
+            course: course,
             userSettings: userSettings!,
             defaultDesiredGradeBoost: _defaultDesiredGradeBoost,
           ),
@@ -1259,11 +1254,11 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
     final List<charts.CartesianSeries<_ChartDataPoint, DateTime>> series = [];
 
     if (isTermView) {
-      if (selectedGroup.gradePoints.isNotEmpty) {
-        series.add(_buildOverallSeries(selectedGroup.gradePoints));
+      if (selectedGroup.homeworkSeries.any((item) => item.graded)) {
+        series.add(_buildOverallSeries(selectedGroup.homeworkSeries));
       }
       for (var course in selectedGroup.courses) {
-        if (course.gradePoints.isNotEmpty) {
+        if (course.homeworkSeries.any((item) => item.graded)) {
           series.add(_buildCourseSeries(course));
         }
       }
@@ -1275,12 +1270,11 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
             (c) => c.id == selectedCourseId,
       );
       if (course != null) {
-        if (course.gradePoints.isNotEmpty) {
-          series.add(_buildOverallSeries(course.gradePoints));
+        if (course.homeworkSeries.any((item) => item.graded)) {
+          series.add(_buildOverallSeries(course.homeworkSeries));
         }
-        // Add category grade trends
         for (var category in course.categories) {
-          if (category.gradePoints.isNotEmpty) {
+          if (category.homeworkSeries.any((item) => item.graded)) {
             series.add(_buildCategorySeries(category));
           }
         }
@@ -1313,7 +1307,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
         children: [
           _buildGraphHeader(selectedGroup, isTermView),
           AnimatedSize(
-            duration: const Duration(milliseconds: 300),
+            duration: AppConstants.uiAnimationDuration,
             curve: Curves.easeInOut,
             child: _graphExpanded
                 ? Column(
@@ -1374,7 +1368,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
                 child: Builder(
                   builder: (buttonContext) =>
                       Tooltip(
-                        message: 'What Grade Do I Need?',
+                        message: 'Grade Calculator',
                         child: IconButton.outlined(
                           icon: const Icon(Icons.calculate_outlined),
                           style: IconButton.styleFrom(
@@ -1423,7 +1417,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
                 child: IconButton(
                   icon: AnimatedRotation(
                     turns: _graphExpanded ? 0.5 : 0,
-                    duration: const Duration(milliseconds: 300),
+                    duration: AppConstants.uiAnimationDuration,
                     child: const Icon(Icons.keyboard_arrow_down),
                   ),
                   onPressed: () {
@@ -1679,9 +1673,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
             if (isTermView)
               Text(
                 'Overall • $classGradeAtPoint',
-                style: AppStyles.standardBodyText(
-                  context,
-                ).copyWith(fontWeight: FontWeight.w600),
+                style: AppStyles.standardBodyTextEmphasis(context),
                 overflow: TextOverflow.ellipsis,
               )
             else
@@ -1692,9 +1684,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
                   const SizedBox(width: 4),
                   Text(
                     '• $classGradeAtPoint',
-                    style: AppStyles.standardBodyText(
-                      context,
-                    ).copyWith(fontWeight: FontWeight.w600),
+                    style: AppStyles.standardBodyTextEmphasis(context),
                   ),
                 ],
               ),
@@ -1723,9 +1713,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
                 const SizedBox(width: 4),
                 Text(
                   '• $classGradeAtPoint',
-                  style: AppStyles.standardBodyText(
-                    context,
-                  ).copyWith(fontWeight: FontWeight.w600),
+                  style: AppStyles.standardBodyTextEmphasis(context),
                 ),
               ],
             ),
@@ -1803,8 +1791,8 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
   }
 
   charts.SplineSeries<_ChartDataPoint, DateTime> _buildOverallSeries(
-      List<List<dynamic>> gradePoints,) {
-    final dataSource = _parseGradePoints(gradePoints);
+      List<HomeworkSeriesItemModel> homeworkSeries,) {
+    final dataSource = _parseHomeworkSeries(homeworkSeries);
     return _buildOverallLikeSeries(dataSource);
   }
 
@@ -1833,7 +1821,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
 
   charts.SplineSeries<_ChartDataPoint, DateTime> _buildCourseSeries(
       GradeCourseModel course,) {
-    final dataSource = _parseGradePoints(course.gradePoints);
+    final dataSource = _parseHomeworkSeries(course.homeworkSeries);
     return charts.SplineSeries<_ChartDataPoint, DateTime>(
       name: course.title,
       dataSource: dataSource,
@@ -1857,7 +1845,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
 
   charts.SplineSeries<_ChartDataPoint, DateTime> _buildCategorySeries(
       GradeCategoryModel category,) {
-    final dataSource = _parseGradePoints(category.gradePoints);
+    final dataSource = _parseHomeworkSeries(category.homeworkSeries);
     return charts.SplineSeries<_ChartDataPoint, DateTime>(
       name: category.title,
       dataSource: dataSource,
@@ -1879,34 +1867,19 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
     );
   }
 
-  List<_ChartDataPoint> _parseGradePoints(List<List<dynamic>> gradePoints) {
-    return gradePoints.map((point) {
-      // point format: [date, grade_value, homework_id, homework_title, ...]
-      // date can be either a timestamp (int) or ISO string
-      DateTime date;
-      if (point[0] is int) {
-        date = DateTime.fromMillisecondsSinceEpoch(point[0] as int);
-      } else if (point[0] is String) {
-        date = DateTime.parse(point[0] as String);
-      } else {
-        date = DateTime.now(); // Fallback
-      }
-
-      final grade = GradeHelper.parseGrade(point[1]) ?? 0.0;
-      final homeworkId = point.length > 2 ? point[2] as int? : null;
-      final homeworkTitle = point.length > 3 ? point[3] as String? : null;
-      final homeworkGrade = point.length > 4 ? point[4] : null;
-      final categoryId = point.length > 5 ? point[5] as int? : null;
-
-      return _ChartDataPoint(
-        date: date,
-        grade: grade,
-        homeworkId: homeworkId,
-        homeworkTitle: homeworkTitle,
-        homeworkGrade: homeworkGrade,
-        categoryId: categoryId,
-      );
-    }).toList();
+  List<_ChartDataPoint> _parseHomeworkSeries(
+      List<HomeworkSeriesItemModel> homeworkSeries,) {
+    return homeworkSeries
+        .where((item) => item.graded)
+        .map((item) => _ChartDataPoint(
+              date: item.start,
+              grade: item.cumulativeGrade ?? 0.0,
+              homeworkId: item.id,
+              homeworkTitle: item.title,
+              homeworkGrade: item.assignmentGrade,
+              categoryId: item.categoryId,
+            ))
+        .toList();
   }
 
   GradeCategoryModel? _categoryForId(int? categoryId) {
@@ -2284,7 +2257,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
             _buildCourseSummaryArea(index, isExpanded, course),
 
             AnimatedSize(
-              duration: const Duration(milliseconds: 300),
+              duration: AppConstants.uiAnimationDuration,
               curve: Curves.easeInOut,
               child: isExpanded && course.categories.isNotEmpty
                   ? _buildCourseArea(course)
@@ -2396,7 +2369,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
                 child: IconButton(
                   icon: AnimatedRotation(
                     turns: isExpanded ? 0.5 : 0,
-                    duration: const Duration(milliseconds: 300),
+                    duration: AppConstants.uiAnimationDuration,
                     child: Icon(
                       Icons.keyboard_arrow_down,
                       color: context.colorScheme.primary,
@@ -2726,9 +2699,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
           alignment: Alignment.center,
           child: Text(
             percentText,
-            style: AppStyles.smallSecondaryText(
-              context,
-            ).copyWith(fontWeight: FontWeight.w600, color: textColor),
+            style: AppStyles.smallSecondaryTextEmphasis(context).copyWith(color: textColor),
           ),
         ),
       ],

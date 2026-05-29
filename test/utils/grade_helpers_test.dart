@@ -285,6 +285,8 @@ GradeCategoryModel _createCategory({
   required String title,
   required double weight,
   required double grade,
+  int numHomework = 0,
+  int numHomeworkGraded = 0,
 }) {
   return GradeCategoryModel(
     id: id,
@@ -294,8 +296,8 @@ GradeCategoryModel _createCategory({
     color: const Color(0xFF000000),
     gradeByWeight: grade >= 0 ? (weight * grade / 100) : null,
     trend: null,
-    numHomework: 0,
-    numHomeworkGraded: 0,
-    gradePoints: [],
+    numHomework: numHomework,
+    numHomeworkGraded: numHomeworkGraded,
+    homeworkSeries: [],
   );
 }

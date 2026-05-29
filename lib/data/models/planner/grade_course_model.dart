@@ -9,6 +9,7 @@ import 'dart:ui';
 
 import 'package:heliumapp/data/models/base_model.dart';
 import 'package:heliumapp/data/models/planner/grade_category_model.dart';
+import 'package:heliumapp/data/models/planner/homework_series_item_model.dart';
 import 'package:heliumapp/utils/color_helpers.dart';
 import 'package:heliumapp/utils/conversion_helpers.dart';
 
@@ -19,8 +20,8 @@ class GradeCourseModel extends BaseTitledModel {
   final int numHomework;
   final int numHomeworkCompleted;
   final int numHomeworkGraded;
-  final List<List<dynamic>> gradePoints;
   final List<GradeCategoryModel> categories;
+  final List<HomeworkSeriesItemModel> homeworkSeries;
 
   GradeCourseModel({
     required super.id,
@@ -31,9 +32,27 @@ class GradeCourseModel extends BaseTitledModel {
     required this.numHomework,
     required this.numHomeworkCompleted,
     required this.numHomeworkGraded,
-    required this.gradePoints,
     required this.categories,
+    required this.homeworkSeries,
   });
+
+  List<HomeworkSeriesItemModel> get ungradedAssignments {
+    final ungraded = homeworkSeries.where((item) => !item.graded).toList();
+    ungraded.sort((a, b) {
+      final aImpact = a.impactScore;
+      final bImpact = b.impactScore;
+      if (aImpact != null && bImpact != null) {
+        final cmp = bImpact.compareTo(aImpact);
+        if (cmp != 0) return cmp;
+      } else if (aImpact != null) {
+        return -1;
+      } else if (bImpact != null) {
+        return 1;
+      }
+      return a.start.compareTo(b.start);
+    });
+    return ungraded;
+  }
 
   factory GradeCourseModel.fromJson(Map<String, dynamic> json) {
     return GradeCourseModel(
@@ -45,16 +64,20 @@ class GradeCourseModel extends BaseTitledModel {
       numHomework: json['num_homework'],
       numHomeworkCompleted: json['num_homework_completed'],
       numHomeworkGraded: json['num_homework_graded'],
-      gradePoints:
-          (json['grade_points'] as List<dynamic>?)
-              ?.map((point) => point as List<dynamic>)
-              .toList() ??
-          [],
       categories:
           (json['categories'] as List<dynamic>?)
               ?.map(
                 (category) => GradeCategoryModel.fromJson(
                   category as Map<String, dynamic>,
+                ),
+              )
+              .toList() ??
+          [],
+      homeworkSeries:
+          (json['homework_series'] as List<dynamic>?)
+              ?.map(
+                (item) => HomeworkSeriesItemModel.fromJson(
+                  item as Map<String, dynamic>,
                 ),
               )
               .toList() ??
@@ -72,8 +95,8 @@ class GradeCourseModel extends BaseTitledModel {
       'num_homework': numHomework,
       'num_homework_completed': numHomeworkCompleted,
       'num_homework_graded': numHomeworkGraded,
-      'grade_points': gradePoints,
       'categories': categories.map((c) => c.toJson()).toList(),
+      'homework_series': homeworkSeries.map((item) => item.toJson()).toList(),
     };
   }
 }

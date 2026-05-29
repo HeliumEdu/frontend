@@ -31,6 +31,7 @@ import 'package:heliumapp/data/models/planner/external_calendar_model.dart';
 import 'package:heliumapp/data/models/planner/homework_model.dart';
 import 'package:heliumapp/data/models/planner/planner_item_base_model.dart';
 import 'package:heliumapp/data/models/planner/request/event_request_model.dart';
+import 'package:heliumapp/data/models/planner/reminder_model.dart';
 import 'package:heliumapp/data/models/planner/request/homework_request_model.dart';
 import 'package:heliumapp/data/repositories/category_repository_impl.dart';
 import 'package:heliumapp/data/repositories/course_repository_impl.dart';
@@ -55,7 +56,6 @@ import 'package:heliumapp/presentation/features/auth/bloc/auth_state.dart';
 import 'package:heliumapp/presentation/features/courses/bloc/category_bloc.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/attachment_bloc.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/attachment_state.dart';
-import 'package:heliumapp/data/models/planner/reminder_model.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/reminder_bloc.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/reminder_state.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/external_calendar_bloc.dart';
@@ -166,7 +166,6 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
   static const _monthMinItemDisplayCount = 3;
   static const _minCalendarHeightMobile = 480.0;
   static const _minCalendarHeightDesktop = 675.0;
-  static const _uiAnimationDuration = Duration(milliseconds: 300);
   static const _tooltipWaitDuration = Duration(milliseconds: 500);
   static const _tooltipShowDuration = Duration(seconds: 8);
   // How long to suppress tooltips after any intentional user action (drag,
@@ -1318,13 +1317,13 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
 
     if (!isMobile) {
       return AnimatedContainer(
-        duration: _uiAnimationDuration,
+        duration: AppConstants.uiAnimationDuration,
         width: expandedToolbarWidth,
         child: Stack(
           alignment: Alignment.centerRight,
           children: [
             AnimatedOpacity(
-              duration: _uiAnimationDuration,
+              duration: AppConstants.uiAnimationDuration,
               opacity: _isSearchExpanded ? 0.0 : 1.0,
               child: IgnorePointer(
                 ignoring: _isSearchExpanded,
@@ -1332,12 +1331,12 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
               ),
             ),
             AnimatedPositioned(
-              duration: _uiAnimationDuration,
+              duration: AppConstants.uiAnimationDuration,
               curve: Curves.easeInOut,
               right: 0,
               width: _isSearchExpanded ? expandedToolbarWidth : 46,
               child: AnimatedOpacity(
-                duration: _uiAnimationDuration,
+                duration: AppConstants.uiAnimationDuration,
                 opacity: _isSearchExpanded ? 1.0 : 0.0,
                 child: IgnorePointer(
                   ignoring: !_isSearchExpanded,
@@ -1350,13 +1349,13 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
       );
     } else {
       return AnimatedContainer(
-        duration: _uiAnimationDuration,
+        duration: AppConstants.uiAnimationDuration,
         width: expandedToolbarWidth,
         child: Stack(
           alignment: Alignment.centerRight,
           children: [
             AnimatedOpacity(
-              duration: _uiAnimationDuration,
+              duration: AppConstants.uiAnimationDuration,
               opacity: _isSearchExpanded ? 0.0 : 1.0,
               child: IgnorePointer(
                 ignoring: _isSearchExpanded,
@@ -1364,12 +1363,12 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
               ),
             ),
             AnimatedPositioned(
-              duration: _uiAnimationDuration,
+              duration: AppConstants.uiAnimationDuration,
               curve: Curves.easeInOut,
               right: 0,
               width: _isSearchExpanded ? expandedToolbarWidth : 46,
               child: AnimatedOpacity(
-                duration: _uiAnimationDuration,
+                duration: AppConstants.uiAnimationDuration,
                 opacity: _isSearchExpanded ? 1.0 : 0.0,
                 child: IgnorePointer(
                   ignoring: !_isSearchExpanded,
@@ -3094,6 +3093,21 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
             ),
           ),
         );
+      } else if (isTouchDevice && plannerItem is CourseScheduleEventModel) {
+        leftColumn = MouseRegion(
+          cursor: SystemMouseCursors.click,
+          child: GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: () {
+              Feedback.forTap(context);
+              _openPlannerItem(plannerItem, occurrenceDate: occurrenceDate);
+            },
+            child: SizedBox(
+              height: agendaHeight,
+              child: leftContent,
+            ),
+          ),
+        );
       } else {
         leftColumn = leftContent;
       }
@@ -3673,9 +3687,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
                   Expanded(
                     child: Text(
                       'Filters',
-                      style: AppStyles.formText(
-                        context,
-                      ).copyWith(fontWeight: FontWeight.w600),
+                      style: AppStyles.headingText(context),
                     ),
                   ),
                   TextButton(

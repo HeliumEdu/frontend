@@ -98,7 +98,7 @@ frame_and_move() {
 # Source frame: jamesjingyi/mockup-device-frames (Porcelain colorway),
 # rotated to portrait and tinted dark to match the Pixel 5 phone frame.
 # Frame's screen area: 1731×2747 at offset +200+200 (portrait).
-PIXEL_TABLET_FRAME="$REPO/scripts/frame-pixel-tablet.png"
+PIXEL_TABLET_FRAME="$REPO/bin/frame-pixel-tablet.png"
 
 composite_pixel_tablet() {
   local raw="$1"

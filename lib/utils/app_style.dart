@@ -49,6 +49,10 @@ extension AppStyles on BuildContext {
     fontFeatures: [const FontFeature.tabularFigures()],
   );
 
+  // Used for emphasized body text (column headers, key values, status labels)
+  static TextStyle standardBodyTextEmphasis(BuildContext context) =>
+      standardBodyText(context).copyWith(fontWeight: FontWeight.w600);
+
   // Used for secondary text with a lighter weight (like prominent calendar data)
   static TextStyle standardBodyTextLight(BuildContext context) {
     final base = standardBodyText(context);
@@ -95,6 +99,10 @@ extension AppStyles on BuildContext {
       fontFeatures: base.fontFeatures,
     ).copyWith(decorationThickness: 2.0);
   }
+
+  // Used for emphasized small secondary text (badges, highlighted counts)
+  static TextStyle smallSecondaryTextEmphasis(BuildContext context) =>
+      smallSecondaryText(context).copyWith(fontWeight: FontWeight.w600);
 
   // Used for responsive button text
   static TextStyle buttonText(BuildContext context) => poppins(

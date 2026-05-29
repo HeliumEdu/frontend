@@ -7,11 +7,12 @@
 
 import 'package:heliumapp/data/models/base_model.dart';
 import 'package:heliumapp/data/models/planner/grade_course_model.dart';
+import 'package:heliumapp/data/models/planner/homework_series_item_model.dart';
 import 'package:heliumapp/utils/conversion_helpers.dart';
 
 class GradeCourseGroupModel extends BaseTitledModel {
   final double overallGrade;
-  final List<List<dynamic>> gradePoints;
+  final List<HomeworkSeriesItemModel> homeworkSeries;
   final List<GradeCourseModel> courses;
   final int numHomework;
   final int numHomeworkCompleted;
@@ -21,7 +22,7 @@ class GradeCourseGroupModel extends BaseTitledModel {
     required super.id,
     required super.title,
     required this.overallGrade,
-    required this.gradePoints,
+    required this.homeworkSeries,
     required this.courses,
     required this.numHomework,
     required this.numHomeworkCompleted,
@@ -33,9 +34,13 @@ class GradeCourseGroupModel extends BaseTitledModel {
       id: json['id'],
       title: json['title'],
       overallGrade: toDouble(json['overall_grade'])!,
-      gradePoints:
-          (json['grade_points'] as List<dynamic>?)
-              ?.map((point) => point as List<dynamic>)
+      homeworkSeries:
+          (json['homework_series'] as List<dynamic>?)
+              ?.map(
+                (item) => HomeworkSeriesItemModel.fromJson(
+                  item as Map<String, dynamic>,
+                ),
+              )
               .toList() ??
           [],
       courses:
@@ -57,7 +62,7 @@ class GradeCourseGroupModel extends BaseTitledModel {
       'id': id,
       'title': title,
       'overall_grade': overallGrade,
-      'grade_points': gradePoints,
+      'homework_series': homeworkSeries.map((item) => item.toJson()).toList(),
       'courses': courses.map((c) => c.toJson()).toList(),
       'num_homework': numHomework,
       'num_homework_completed': numHomeworkCompleted,

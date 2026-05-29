@@ -6,15 +6,16 @@
 // For details regarding the license, please refer to the LICENSE file.
 
 class ChangePasswordRequestModel {
-  final String oldPassword;
+  final String? oldPassword;
   final String password;
 
-  ChangePasswordRequestModel({
-    required this.oldPassword,
-    required this.password,
-  });
+  ChangePasswordRequestModel({this.oldPassword, required this.password});
 
   Map<String, dynamic> toJson() {
-    return {'old_password': oldPassword, 'password': password};
+    final json = <String, dynamic>{'password': password};
+    if (oldPassword != null && oldPassword!.isNotEmpty) {
+      json['old_password'] = oldPassword;
+    }
+    return json;
   }
 }

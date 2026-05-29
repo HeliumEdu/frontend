@@ -55,7 +55,7 @@ class PlannerBloc extends Bloc<PlannerEvent, PlannerState> {
       emit(
         PlannerError(
           origin: event.origin,
-          message: 'An unexpected error occurred.',
+          message: HeliumException.unexpectedError,
         ),
       );
     }
@@ -105,7 +105,7 @@ class PlannerBloc extends Bloc<PlannerEvent, PlannerState> {
       emit(
         PlannerError(
           origin: event.origin,
-          message: 'An unexpected error occurred.',
+          message: HeliumException.unexpectedError,
         ),
       );
     }

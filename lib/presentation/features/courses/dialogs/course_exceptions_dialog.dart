@@ -210,7 +210,7 @@ class _CourseExceptionsDialogState extends State<CourseExceptionsDialog> {
       if (mounted) {
         setState(() {
           _isSaving = false;
-          _message = 'An unexpected error occurred.';
+          _message = HeliumException.unexpectedError;
           _messageType = SnackType.error;
         });
       }

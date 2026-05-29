@@ -8,6 +8,8 @@
 import 'package:heliumapp/core/api_error_parser.dart';
 
 class HeliumException implements Exception {
+  static const unexpectedError = 'An unexpected error occurred.';
+
   final String message;
   final String? code;
   final int? httpStatusCode;

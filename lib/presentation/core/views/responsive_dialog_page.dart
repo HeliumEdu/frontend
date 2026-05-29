@@ -31,10 +31,7 @@ Page<T> responsiveDialogPage<T>(
   if (Responsive.useCompactLayout(context)) {
     return MaterialPage<T>(
       key: pageKey,
-      child: DialogModeProvider(
-        isFullScreen: true,
-        child: child,
-      ),
+      child: _FullScreenPageContent(child: child),
     );
   }
   return _DialogPage<T>(
@@ -78,6 +75,34 @@ class _DialogPage<T> extends Page<T> {
       // build, so URL-driven Page swaps under a shared page key reach the
       // dialog content via the modal scope's `changedInternalState` rebuild.
       builder: (dialogContext) => const _DialogPageContent(),
+    );
+  }
+}
+
+class _FullScreenPageContent extends StatefulWidget {
+  final Widget child;
+
+  const _FullScreenPageContent({required this.child});
+
+  @override
+  State<_FullScreenPageContent> createState() => _FullScreenPageContentState();
+}
+
+class _FullScreenPageContentState extends State<_FullScreenPageContent> {
+  final _scaffoldMessengerKey = GlobalKey<ScaffoldMessengerState>();
+
+  @override
+  Widget build(BuildContext context) {
+    return ScaffoldMessenger(
+      key: _scaffoldMessengerKey,
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        body: DialogModeProvider(
+          isFullScreen: true,
+          scaffoldMessengerKey: _scaffoldMessengerKey,
+          child: widget.child,
+        ),
+      ),
     );
   }
 }

@@ -45,6 +45,8 @@ abstract class AuthRemoteDataSource extends BaseDataSource {
 
   Future<TokenResponseModel> loginWithApple(String firebaseIdToken);
 
+  Future<TokenResponseModel> loginWithMicrosoft(String firebaseIdToken);
+
   Future<TokenResponseModel> refreshToken(RefreshTokenRequestModel request);
 
   Future<void> logout();
@@ -102,7 +104,7 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
       throw handleDioError(e, s);
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
-      throw HeliumException(message: 'An unexpected error occurred.');
+      throw HeliumException(message: HeliumException.unexpectedError);
     }
   }
 
@@ -155,7 +157,7 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
       throw handleDioError(e, s);
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
-      throw HeliumException(message: 'An unexpected error occurred.');
+      throw HeliumException(message: HeliumException.unexpectedError);
     }
   }
 
@@ -182,7 +184,7 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
       throw handleDioError(e, s);
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
-      throw HeliumException(message: 'An unexpected error occurred.');
+      throw HeliumException(message: HeliumException.unexpectedError);
     }
   }
 
@@ -235,7 +237,7 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
       throw handleDioError(e, s);
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
-      throw HeliumException(message: 'An unexpected error occurred.');
+      throw HeliumException(message: HeliumException.unexpectedError);
     }
   }
 
@@ -247,6 +249,11 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
   @override
   Future<TokenResponseModel> loginWithApple(String firebaseIdToken) async {
     return _loginWithOAuth(firebaseIdToken, 'apple');
+  }
+
+  @override
+  Future<TokenResponseModel> loginWithMicrosoft(String firebaseIdToken) async {
+    return _loginWithOAuth(firebaseIdToken, 'microsoft');
   }
 
   Future<TokenResponseModel> _loginWithOAuth(
@@ -336,7 +343,7 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
       throw handleDioError(e, s);
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
-      throw HeliumException(message: 'An unexpected error occurred.');
+      throw HeliumException(message: HeliumException.unexpectedError);
     }
   }
 
@@ -389,7 +396,7 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
       throw handleDioError(e, s);
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
-      throw HeliumException(message: 'An unexpected error occurred.');
+      throw HeliumException(message: HeliumException.unexpectedError);
     }
   }
 
@@ -411,7 +418,7 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
       throw handleDioError(e, s);
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
-      throw HeliumException(message: 'An unexpected error occurred.');
+      throw HeliumException(message: HeliumException.unexpectedError);
     }
   }
 
@@ -431,7 +438,7 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
       throw handleDioError(e, s);
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
-      throw HeliumException(message: 'An unexpected error occurred.');
+      throw HeliumException(message: HeliumException.unexpectedError);
     }
   }
 
@@ -460,7 +467,7 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
       throw handleDioError(e, s);
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
-      throw HeliumException(message: 'An unexpected error occurred.');
+      throw HeliumException(message: HeliumException.unexpectedError);
     }
   }
 
@@ -484,7 +491,7 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
       throw handleDioError(e, s);
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
-      throw HeliumException(message: 'An unexpected error occurred.');
+      throw HeliumException(message: HeliumException.unexpectedError);
     }
   }
 
@@ -508,7 +515,7 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
       throw handleDioError(e, s);
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
-      throw HeliumException(message: 'An unexpected error occurred.');
+      throw HeliumException(message: HeliumException.unexpectedError);
     }
   }
 
@@ -538,7 +545,7 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
       throw handleDioError(e, s);
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
-      throw HeliumException(message: 'An unexpected error occurred.');
+      throw HeliumException(message: HeliumException.unexpectedError);
     }
   }
 
@@ -564,7 +571,7 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
       throw handleDioError(e, s);
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
-      throw HeliumException(message: 'An unexpected error occurred.');
+      throw HeliumException(message: HeliumException.unexpectedError);
     }
   }
 
@@ -590,7 +597,7 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
       throw handleDioError(e, s);
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
-      throw HeliumException(message: 'An unexpected error occurred.');
+      throw HeliumException(message: HeliumException.unexpectedError);
     }
   }
 
@@ -613,7 +620,7 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
       throw handleDioError(e, s);
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
-      throw HeliumException(message: 'An unexpected error occurred.');
+      throw HeliumException(message: HeliumException.unexpectedError);
     }
   }
 }

@@ -16,6 +16,7 @@ final _log = Logger('core.oauth_sign_in');
 enum OAuthProvider {
   google,
   apple,
+  microsoft,
 }
 
 class OAuthSignInService {
@@ -58,8 +59,16 @@ class OAuthSignInService {
     return _signInWithOAuth(OAuthProvider.apple);
   }
 
+  Future<String?> signInWithMicrosoft() async {
+    return _signInWithOAuth(OAuthProvider.microsoft);
+  }
+
   Future<String?> _signInWithOAuth(OAuthProvider provider) async {
-    final providerName = provider == OAuthProvider.google ? 'Google' : 'Apple';
+    final providerName = switch (provider) {
+      OAuthProvider.google => 'Google',
+      OAuthProvider.apple => 'Apple',
+      OAuthProvider.microsoft => 'Microsoft',
+    };
 
     try {
       _log.info(
@@ -72,7 +81,7 @@ class OAuthSignInService {
         // Google on mobile uses the google_sign_in package
         userCredential = await _signInWithGoogleMobile();
       } else {
-        // Apple (all platforms) and Google on web use Firebase Auth directly
+        // Apple/Microsoft (all platforms) and Google on web use Firebase Auth directly
         userCredential = await _signInWithFirebaseAuthProvider(provider);
       }
 
@@ -165,18 +174,27 @@ class OAuthSignInService {
   Future<UserCredential> _signInWithFirebaseAuthProvider(
     OAuthProvider provider,
   ) async {
-    final providerName = provider == OAuthProvider.google ? 'Google' : 'Apple';
+    final providerName = switch (provider) {
+      OAuthProvider.google => 'Google',
+      OAuthProvider.apple => 'Apple',
+      OAuthProvider.microsoft => 'Microsoft',
+    };
 
-    final dynamic authProvider = provider == OAuthProvider.google
-        ? GoogleAuthProvider()
-        : AppleAuthProvider();
+    final dynamic authProvider = switch (provider) {
+      OAuthProvider.google => GoogleAuthProvider(),
+      OAuthProvider.apple => AppleAuthProvider(),
+      OAuthProvider.microsoft => MicrosoftAuthProvider(),
+    };
 
     if (provider == OAuthProvider.google) {
       authProvider.addScope('email');
       authProvider.addScope('profile');
-    } else {
+    } else if (provider == OAuthProvider.apple) {
       authProvider.addScope('email');
       authProvider.addScope('name');
+    } else {
+      authProvider.addScope('email');
+      authProvider.addScope('profile');
     }
 
     if (kIsWeb) {
