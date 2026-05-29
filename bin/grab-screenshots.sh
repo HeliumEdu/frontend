@@ -212,6 +212,42 @@ run_device "iPad Air 13\" M4" "ipad"         capture_ios     "frameit"      "$IO
 run_device "Pixel 5"          "pixel-phone"  capture_android "frameit"      "$ANDROID_PHONE_DEST"  "${PHONE_SHOTS[@]}"
 run_device "Pixel Tablet"     "pixel-tablet" capture_android "pixel-tablet" "$ANDROID_TABLET_DEST" "${TABLET_SHOTS[@]}"
 
+# ─── frame any remaining raw screenshots in dest ────────────────────────
+# Catches files from a prior run where framing failed (e.g. frameit wasn't
+# initialized). Looks for NN-*_iphone.png / NN-*_ipad.png without _framed.
+echo ""
+echo "════════════════════════════════════════════════════════════"
+echo "Checking for un-framed raw screenshots ..."
+echo "════════════════════════════════════════════════════════════"
+for raw in "$IOS_DEST"/*_iphone.png "$IOS_DEST"/*_ipad.png; do
+  [[ -f "$raw" ]] || continue
+  basename="$(basename "$raw" .png)"
+  # Skip if this is already a framed file
+  [[ "$basename" == *_framed ]] && continue
+  # Skip if a framed version already exists that is newer
+  framed_path="$IOS_DEST/${basename}_framed.png"
+  if [[ -f "$framed_path" ]] && [[ "$framed_path" -nt "$raw" ]]; then
+    continue
+  fi
+  echo "  Framing $basename ..."
+  cp "$raw" "$WORKDIR/${basename}.png"
+  (
+    cd "$WORKDIR"
+    fastlane frameit >/tmp/frameit.log 2>&1
+  ) || true
+  if [[ -f "$WORKDIR/${basename}_framed.png" ]]; then
+    mv "$WORKDIR/${basename}_framed.png" "$framed_path"
+    rm -f "$raw" "$WORKDIR/${basename}.png"
+    echo "  ✓ $(basename "$framed_path")"
+  else
+    echo "  ✗ frameit failed to produce ${basename}_framed.png" >&2
+    echo "    Check /tmp/frameit.log for details." >&2
+    echo "    Run: make screenshots" >&2
+    rm -f "$WORKDIR/${basename}.png"
+    exit 1
+  fi
+done
+
 echo ""
 echo "════════════════════════════════════════════════════════════"
 echo "Capture done. Scaling iPhone and iPad shots to App Store dimensions ..."
