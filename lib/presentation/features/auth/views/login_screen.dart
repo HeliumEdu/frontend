@@ -14,6 +14,7 @@ import 'package:go_router/go_router.dart';
 import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/config/pref_service.dart';
+import 'package:heliumapp/core/oauth_sign_in_service.dart';
 import 'package:heliumapp/presentation/core/views/base_page_screen_state.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_bloc.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_event.dart';
@@ -57,6 +58,10 @@ class _LoginScreenViewState extends BasePageScreenState<LoginScreen> {
   void initState() {
     super.initState();
 
+    if (kIsWeb) {
+      _checkOAuthRedirect();
+    }
+
     // Defer until after initState so GoRouterState and snackbar scaffold are
     // available; both require an attached BuildContext
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -77,6 +82,25 @@ class _LoginScreenViewState extends BasePageScreenState<LoginScreen> {
     setState(() {
       isLoading = false;
     });
+  }
+
+  Future<void> _checkOAuthRedirect() async {
+    try {
+      final redirectResult = await OAuthSignInService().checkRedirectResult();
+      if (redirectResult == null) return;
+
+      _log.info('OAuth redirect result found on login screen, completing sign-in');
+      if (!mounted) return;
+      setState(() {
+        _isOAuthLoading = true;
+      });
+      context.read<AuthBloc>().add(OAuthRedirectResultEvent(
+        firebaseToken: redirectResult.$1,
+        provider: redirectResult.$2,
+      ));
+    } catch (e, s) {
+      _log.warning('OAuth redirect check failed on login screen', e, s);
+    }
   }
 
   @override

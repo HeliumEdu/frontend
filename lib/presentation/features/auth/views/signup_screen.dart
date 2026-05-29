@@ -16,6 +16,7 @@ import 'package:go_router/go_router.dart';
 import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/config/pref_service.dart';
+import 'package:heliumapp/core/oauth_sign_in_service.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_bloc.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_event.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_state.dart';
@@ -35,6 +36,9 @@ import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:heliumapp/utils/time_zone_constants.dart';
 import 'package:sign_in_button/sign_in_button.dart';
 import 'package:heliumapp/utils/url_helpers.dart';
+import 'package:logging/logging.dart';
+
+final _log = Logger('presentation.views');
 
 class SignupScreen extends StatefulWidget {
   static const String signUpButtonKey = 'signup_sign_up_button';
@@ -70,11 +74,34 @@ class _SignupScreenState extends BasePageScreenState<SignupScreen> {
     _privacyRecognizer = TapGestureRecognizer()
       ..onTap = () => UrlHelpers.launchWebUrl(AppConstants.privacyUrl);
 
+    if (kIsWeb) {
+      _checkOAuthRedirect();
+    }
+
     _initializeForm();
 
     setState(() {
       isLoading = false;
     });
+  }
+
+  Future<void> _checkOAuthRedirect() async {
+    try {
+      final redirectResult = await OAuthSignInService().checkRedirectResult();
+      if (redirectResult == null) return;
+
+      _log.info('OAuth redirect result found on signup screen, completing sign-in');
+      if (!mounted) return;
+      setState(() {
+        _isOAuthLoading = true;
+      });
+      context.read<AuthBloc>().add(OAuthRedirectResultEvent(
+        firebaseToken: redirectResult.$1,
+        provider: redirectResult.$2,
+      ));
+    } catch (e, s) {
+      _log.warning('OAuth redirect check failed on signup screen', e, s);
+    }
   }
 
   @override
