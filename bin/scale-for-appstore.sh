@@ -82,15 +82,29 @@ WWW_MOBILE="$REPO/../www/public/press/screenshots/mobile"
 if [[ -d "$WWW_MOBILE" ]]; then
   echo ""
   echo "Copying press screenshots → $WWW_MOBILE"
-  cp "$DIR/01-month-view_iphone_framed.png" "$WWW_MOBILE/helium-phone-month-view.png"
-  cp "$DIR/02-grades_iphone_framed.png"     "$WWW_MOBILE/helium-phone-grades.png"
-  cp "$DIR/03-todos_iphone_framed.png"      "$WWW_MOBILE/helium-phone-todos.png"
-  cp "$DIR/06-edit-note_iphone_framed.png"  "$WWW_MOBILE/helium-phone-note-editor.png"
-  cp "$DIR/01-month-view_ipad_framed.png"   "$WWW_MOBILE/helium-tablet-month-view.png"
-  cp "$DIR/02-grades_ipad_framed.png"       "$WWW_MOBILE/helium-tablet-grades.png"
-  cp "$DIR/03-todos_ipad_framed.png"        "$WWW_MOBILE/helium-tablet-todos.png"
-  cp "$DIR/04-edit-note_ipad_framed.png"    "$WWW_MOBILE/helium-tablet-note-editor.png"
-  echo "  ✓ 8 screenshots copied"
+  PRESS_MAP=(
+    "01-month-view_iphone_framed.png:helium-phone-month-view.png"
+    "02-grades_iphone_framed.png:helium-phone-grades.png"
+    "03-todos_iphone_framed.png:helium-phone-todos.png"
+    "06-edit-note_iphone_framed.png:helium-phone-note-editor.png"
+    "01-month-view_ipad_framed.png:helium-tablet-month-view.png"
+    "02-grades_ipad_framed.png:helium-tablet-grades.png"
+    "03-todos_ipad_framed.png:helium-tablet-todos.png"
+    "04-edit-note_ipad_framed.png:helium-tablet-note-editor.png"
+  )
+  copied=0
+  for entry in "${PRESS_MAP[@]}"; do
+    src="$DIR/${entry%%:*}"
+    dst="$WWW_MOBILE/${entry##*:}"
+    if [[ -f "$dst" ]] && cmp -s "$src" "$dst"; then
+      echo "  ⊜ ${entry##*:} unchanged"
+    else
+      cp "$src" "$dst"
+      echo "  ✓ ${entry##*:}"
+      ((copied++))
+    fi
+  done
+  echo "  ($copied files updated)"
 else
   echo ""
   echo "⚠ $WWW_MOBILE not found; skipping press copy."
