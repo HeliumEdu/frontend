@@ -85,12 +85,12 @@ void main() {
       await tester.pumpAndSettle();
 
       // Verify we're on the signup screen
+      expectBrowserTitle('Create an Account');
       expect(
-        find.text('Create an Account'),
+        find.byKey(const Key(SignupScreen.signUpButtonKey)),
         findsOneWidget,
         reason: 'Should navigate to signup screen',
       );
-      expectBrowserTitle('Create an Account');
 
       // Verify signup form elements are displayed
       expect(
@@ -114,11 +114,11 @@ void main() {
         reason: 'Sign Up button should be displayed',
       );
 
-      // Verify terms checkbox is present
+      // Verify legal text is present
       expect(
-        find.byType(CheckboxListTile),
+        find.textContaining('Terms of Service'),
         findsOneWidget,
-        reason: 'Terms checkbox should be displayed',
+        reason: 'Legal text with Terms of Service link should be displayed',
       );
 
       // Verify back to sign in link

@@ -62,8 +62,11 @@ void main() {
       await tester.pumpAndSettle();
 
       // Verify we're on the signup screen
-      expect(find.text('Create an Account'), findsOneWidget);
       expectBrowserTitle('Create an Account');
+      expect(
+        find.byKey(const Key(SignupScreen.signUpButtonKey)),
+        findsOneWidget,
+      );
 
       // Fill in the signup form using helper for web compatibility
       await enterTextInField(
