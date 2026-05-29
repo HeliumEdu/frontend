@@ -81,12 +81,29 @@ capture_android() {
 
 # ─── framing ─────────────────────────────────────────────────────────────
 # frameit operates on every .png in cwd, producing <name>_framed.png.
+# Framefile.json forces specific device types so framing works regardless of
+# which fastlane version maps the resolution to which device name.
+write_framefile() {
+  cat > "$WORKDIR/Framefile.json" <<'FRAMEFILE'
+{
+  "default": {
+    "frame": "BLACK"
+  },
+  "data": [
+    { "filter": "_iphone", "force_device_type": "iPhone 14 Pro" },
+    { "filter": "_ipad",   "force_device_type": "iPad Pro (12.9-inch) (4th generation)" }
+  ]
+}
+FRAMEFILE
+}
+
 frame_and_move() {
   local raw="$1"     # raw png in $WORKDIR
   local slug="$2"    # e.g. 01-month-view_iphone
   local dest="$3"    # destination dir
   local framed="${slug}_framed.png"
 
+  write_framefile
   (
     cd "$WORKDIR"
     fastlane frameit >/tmp/frameit.log 2>&1
@@ -232,6 +249,7 @@ for raw in "$IOS_DEST"/*.png; do
   framed_path="$IOS_DEST/${basename}_framed.png"
   echo "  Framing $basename ..."
   cp "$raw" "$WORKDIR/${basename}.png"
+  write_framefile
   (
     cd "$WORKDIR"
     fastlane frameit >/tmp/frameit.log 2>&1
