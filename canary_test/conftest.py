@@ -99,3 +99,14 @@ def apple_sign_in_credentials() -> dict:
     assert client_id, "PLATFORM_APPLE_CLIENT_ID environment variable is required"
 
     return {"key_p8": key_p8, "key_id": key_id, "team_id": team_id, "client_id": client_id}
+
+
+@pytest.fixture(scope="session")
+def microsoft_sign_in_credentials() -> dict:
+    client_id = os.environ.get("PLATFORM_MICROSOFT_CLIENT_ID")
+    client_secret = os.environ.get("PLATFORM_MICROSOFT_CLIENT_SECRET")
+
+    assert client_id, "PLATFORM_MICROSOFT_CLIENT_ID environment variable is required"
+    assert client_secret, "PLATFORM_MICROSOFT_CLIENT_SECRET environment variable is required"
+
+    return {"client_id": client_id, "client_secret": client_secret}
