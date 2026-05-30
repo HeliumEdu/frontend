@@ -65,6 +65,8 @@
 				<key>CFBundleURLSchemes</key>
 				<array>
 					<string>com.googleusercontent.apps.643279973445-jfl7v2elnh84ld4drtlkekt5b8e5llg0</string>
+					<!-- Required for Firebase Auth signInWithProvider (Microsoft) ASWebAuthenticationSession callback -->
+					<string>com.heliumedu.heliumapp</string>
 				</array>
 			</dict>
 		</array>
