@@ -283,7 +283,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       );
     } catch (e, s) {
       _log.severe('$provider Sign-In error', e, s);
-      emit(AuthError(message: '$provider Sign-In failed: $e'));
+      emit(AuthError(message: '$provider Sign In failed: $e'));
     }
   }
 
@@ -340,7 +340,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     };
 
     if (backendLogin == null) {
-      emit(AuthError(message: 'Sign-in with $providerName failed.'));
+      emit(AuthError(message: 'Sign in with $providerName failed.'));
       return;
     }
 

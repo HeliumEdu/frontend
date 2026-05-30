@@ -304,7 +304,7 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
       throw handleDioError(e, s);
     } catch (e, s) {
       _log.severe('An unexpected error occurred during $provider login', e, s);
-      throw HeliumException(message: 'Sign-in failed.');
+      throw HeliumException(message: 'Sign in failed.');
     }
   }
 
