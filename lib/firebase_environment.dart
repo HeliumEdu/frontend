@@ -12,22 +12,11 @@ import 'package:heliumapp/firebase_options.dart';
 
 const _overrideFirebaseAuthDomain = String.fromEnvironment('FIREBASE_AUTH_DOMAIN');
 
-/// Derives the Firebase auth domain from the current web hostname, or falls
-/// back to the compile-time override or the prod default for mobile.
+/// Returns the Firebase auth domain, defaulting to the Firebase-managed
+/// default domain required for signInWithRedirect to function correctly.
 String get firebaseAuthDomain {
   if (_overrideFirebaseAuthDomain.isNotEmpty) return _overrideFirebaseAuthDomain;
-
-  if (kIsWeb) {
-    final host = Uri.base.host;
-    if (host == 'localhost' || host == '127.0.0.1' || host.isEmpty) {
-      return 'auth.heliumedu.com';
-    }
-
-    // Derives auth domain from app host: app.{env.}heliumedu.com -> auth.{env.}heliumedu.com
-    return host.replaceFirst('app.', 'auth.');
-  }
-
-  return 'auth.heliumedu.com';
+  return 'helium-edu.firebaseapp.com';
 }
 
 FirebaseOptions firebaseOptionsWithOverrides() {

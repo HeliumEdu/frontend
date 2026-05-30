@@ -6,11 +6,9 @@
 // For details regarding the license, please refer to the LICENSE file.
 
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:heliumapp/core/helium_exception.dart';
-import 'package:heliumapp/firebase_options.dart';
 import 'package:logging/logging.dart';
 
 final _log = Logger('core.oauth_sign_in');
@@ -28,16 +26,8 @@ class OAuthSignInService {
 
   OAuthSignInService._internal();
 
-  // Named secondary app used only for Microsoft on web. Microsoft requires
-  // signInWithRedirect, whose result is stored under the authDomain the
-  // Firebase auth handler uses — helium-edu.firebaseapp.com (from init.json).
-  // Keeping this separate leaves the primary app's auth.heliumedu.com domain
-  // untouched for Google and Apple.
-  static const _microsoftWebAppName = 'microsoft-auth';
-
   final GoogleSignIn _googleSignIn = GoogleSignIn.instance;
   final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
-  FirebaseAuth? _microsoftWebAuth;
   bool _initialized = false;
 
   Future<void> _ensureInitialized() async {
@@ -61,23 +51,6 @@ class OAuthSignInService {
     return '643279973445-e69crc4hlj2tp29jsrbr2o7ompl042r9.apps.googleusercontent.com';
   }
 
-  Future<FirebaseAuth> _getMicrosoftWebAuth() async {
-    if (_microsoftWebAuth != null) return _microsoftWebAuth!;
-    FirebaseApp app;
-    try {
-      app = Firebase.app(_microsoftWebAppName);
-    } catch (_) {
-      app = await Firebase.initializeApp(
-        name: _microsoftWebAppName,
-        options: DefaultFirebaseOptions.currentPlatform.copyWith(
-          authDomain: 'helium-edu.firebaseapp.com',
-        ),
-      );
-    }
-    _microsoftWebAuth = FirebaseAuth.instanceFor(app: app);
-    return _microsoftWebAuth!;
-  }
-
   Future<String?> signInWithGoogle() async {
     return _signInWithOAuth(OAuthProvider.google);
   }
@@ -92,10 +65,7 @@ class OAuthSignInService {
 
   Future<(String, String)?> checkRedirectResult() async {
     try {
-      // Microsoft redirect uses the secondary app (helium-edu.firebaseapp.com authDomain).
-      // Google and Apple use signInWithPopup and never leave a redirect result.
-      final microsoftAuth = await _getMicrosoftWebAuth();
-      final userCredential = await microsoftAuth.getRedirectResult();
+      final userCredential = await _firebaseAuth.getRedirectResult();
 
       if (userCredential.user == null) {
         return null;
@@ -272,12 +242,8 @@ class OAuthSignInService {
     if (kIsWeb && provider == OAuthProvider.microsoft) {
       // Microsoft's OAuth pages set COOP: same-origin, which severs the opener
       // chain required by signInWithPopup. Redirect flow avoids this entirely.
-      // Uses the secondary Firebase app so the redirect result is stored under
-      // helium-edu.firebaseapp.com — matching the authDomain the handler's
-      // init.json advertises — without affecting Google/Apple's auth domain.
       _log.info('Using Firebase Auth redirect for $providerName on web');
-      final microsoftAuth = await _getMicrosoftWebAuth();
-      await microsoftAuth.signInWithRedirect(authProvider);
+      await _firebaseAuth.signInWithRedirect(authProvider);
       return null; // Page navigates away to OAuth provider; unreachable in practice
     } else if (kIsWeb) {
       _log.info('Using Firebase Auth popup for $providerName on web');
@@ -294,9 +260,6 @@ class OAuthSignInService {
         await _googleSignIn.signOut();
       }
       await _firebaseAuth.signOut();
-      if (_microsoftWebAuth != null) {
-        await _microsoftWebAuth!.signOut();
-      }
       _log.info('Signed out from OAuth providers and Firebase');
     } catch (e, s) {
       _log.warning('Error signing out from OAuth/Firebase', e, s);

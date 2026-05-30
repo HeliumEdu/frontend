@@ -42,6 +42,9 @@ app.*.symbols
 # Obfuscation related
 app.*.map.json
 
+# Firebase CLI
+.firebase/
+
 # Playwright
 /playwright/screenshots/
 
