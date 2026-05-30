@@ -63,40 +63,6 @@ class OAuthSignInService {
     return _signInWithOAuth(OAuthProvider.microsoft);
   }
 
-  Future<(String, String)?> checkRedirectResult() async {
-    try {
-      final userCredential = await _firebaseAuth.getRedirectResult();
-
-      if (userCredential.user == null) {
-        return null;
-      }
-
-      final String? firebaseIdToken = await userCredential.user!.getIdToken();
-      if (firebaseIdToken == null) {
-        _log.severe('No Firebase ID token in OAuth redirect result');
-        return null;
-      }
-
-      final providerId = userCredential.additionalUserInfo?.providerId;
-      final provider = switch (providerId) {
-        'google.com' => 'google',
-        'apple.com' => 'apple',
-        'microsoft.com' => 'microsoft',
-        _ => null,
-      };
-
-      if (provider == null) {
-        _log.warning('Unknown provider in redirect result: $providerId');
-        return null;
-      }
-
-      _log.info('Redirect result obtained for $provider');
-      return (firebaseIdToken, provider);
-    } catch (e, s) {
-      _log.warning('Error checking OAuth redirect result', e, s);
-      return null;
-    }
-  }
 
   Future<String?> _signInWithOAuth(OAuthProvider provider) async {
     final providerName = switch (provider) {

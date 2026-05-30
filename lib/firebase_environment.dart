@@ -30,9 +30,7 @@ String get firebaseAuthDomain {
 }
 
 FirebaseOptions firebaseOptionsWithOverrides() {
-  final base = DefaultFirebaseOptions.currentPlatform;
-  if (kIsWeb) {
-    return base.copyWith(authDomain: firebaseAuthDomain);
-  }
-  return base;
+  return DefaultFirebaseOptions.currentPlatform.copyWith(
+    authDomain: firebaseAuthDomain,
+  );
 }

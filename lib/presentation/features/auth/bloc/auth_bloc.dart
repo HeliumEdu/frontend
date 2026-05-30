@@ -42,7 +42,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<GoogleLoginEvent>(_onGoogleLogin);
     on<AppleLoginEvent>(_onAppleLogin);
     on<MicrosoftLoginEvent>(_onMicrosoftLogin);
-    on<OAuthRedirectResultEvent>(_onOAuthRedirectResult);
+
     on<LogoutEvent>(_onLogout);
     on<CheckAuthEvent>(_onCheckAuth);
     on<RefreshTokenEvent>(_onRefreshToken);
@@ -326,31 +326,6 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     );
   }
 
-  Future<void> _onOAuthRedirectResult(
-    OAuthRedirectResultEvent event,
-    Emitter<AuthState> emit,
-  ) async {
-    final providerName =
-        '${event.provider[0].toUpperCase()}${event.provider.substring(1)}';
-    final backendLogin = switch (event.provider) {
-      'google' => authRepository.loginWithGoogle,
-      'apple' => authRepository.loginWithApple,
-      'microsoft' => authRepository.loginWithMicrosoft,
-      _ => null,
-    };
-
-    if (backendLogin == null) {
-      emit(AuthError(message: 'Sign in with $providerName failed.'));
-      return;
-    }
-
-    await _onOAuthLogin(
-      providerName,
-      () async => event.firebaseToken,
-      backendLogin,
-      emit,
-    );
-  }
 
   Future<void> _onLogout(LogoutEvent event, Emitter<AuthState> emit) async {
     emit(AuthLoading());
