@@ -239,13 +239,7 @@ class OAuthSignInService {
       authProvider.addScope('profile');
     }
 
-    if (kIsWeb && provider == OAuthProvider.microsoft) {
-      // Microsoft's OAuth pages set COOP: same-origin, which severs the opener
-      // chain required by signInWithPopup. Redirect flow avoids this entirely.
-      _log.info('Using Firebase Auth redirect for $providerName on web');
-      await _firebaseAuth.signInWithRedirect(authProvider);
-      return null; // Page navigates away to OAuth provider; unreachable in practice
-    } else if (kIsWeb) {
+    if (kIsWeb) {
       _log.info('Using Firebase Auth popup for $providerName on web');
       return await _firebaseAuth.signInWithPopup(authProvider);
     } else {
