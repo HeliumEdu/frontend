@@ -63,40 +63,6 @@ class OAuthSignInService {
     return _signInWithOAuth(OAuthProvider.microsoft);
   }
 
-  Future<(String, String)?> checkRedirectResult() async {
-    try {
-      final userCredential = await _firebaseAuth.getRedirectResult();
-
-      if (userCredential.user == null) {
-        return null;
-      }
-
-      final String? firebaseIdToken = await userCredential.user!.getIdToken();
-      if (firebaseIdToken == null) {
-        _log.severe('No Firebase ID token in OAuth redirect result');
-        return null;
-      }
-
-      final providerId = userCredential.additionalUserInfo?.providerId;
-      final provider = switch (providerId) {
-        'google.com' => 'google',
-        'apple.com' => 'apple',
-        'microsoft.com' => 'microsoft',
-        _ => null,
-      };
-
-      if (provider == null) {
-        _log.warning('Unknown provider in redirect result: $providerId');
-        return null;
-      }
-
-      _log.info('Redirect result obtained for $provider');
-      return (firebaseIdToken, provider);
-    } catch (e, s) {
-      _log.warning('Error checking OAuth redirect result', e, s);
-      return null;
-    }
-  }
 
   Future<String?> _signInWithOAuth(OAuthProvider provider) async {
     final providerName = switch (provider) {
@@ -113,17 +79,12 @@ class OAuthSignInService {
       final UserCredential? userCredential;
 
       if (provider == OAuthProvider.google && !kIsWeb) {
-        // Google on mobile uses the google_sign_in package
         userCredential = await _signInWithGoogleMobile();
       } else {
-        // Google/Apple on web use signInWithPopup; Microsoft on web uses signInWithRedirect
-      // (Microsoft's OAuth pages set COOP: same-origin, severing the popup opener chain).
-      // On mobile, Apple/Microsoft use signInWithProvider.
         userCredential = await _signInWithFirebaseAuthProvider(provider);
       }
 
       if (userCredential == null) {
-        // On web, null means signInWithRedirect was initiated and page is navigating away
         return null;
       }
 
@@ -132,7 +93,7 @@ class OAuthSignInService {
       if (firebaseIdToken == null) {
         _log.severe('Firebase did not provide an ID token');
         throw HeliumException(
-          message: 'Sign-in with $providerName failed.',
+          message: 'Sign in with $providerName failed.',
         );
       }
 
@@ -148,9 +109,15 @@ class OAuthSignInService {
         _log.info('$providerName Sign-In cancelled by user');
         return null;
       }
+      if (e.code == 'account-exists-with-different-credential') {
+        _log.info('$providerName Sign-In blocked: email already linked to another provider');
+        throw HeliumException(
+          message: 'Sorry, this email is registered with a different sign in method.',
+        );
+      }
       _log.warning('Firebase Auth exception: ${e.code} - ${e.message}');
       throw HeliumException(
-        message: 'Sign-in with $providerName failed.',
+        message: 'Sign in with $providerName failed.',
       );
     } on GoogleSignInException catch (e) {
       _log.warning(
@@ -163,7 +130,7 @@ class OAuthSignInService {
       }
       _log.warning('Google Sign-In exception: ${e.code} - ${e.description}');
       throw HeliumException(
-        message: 'Sign-in with $providerName failed.',
+        message: 'Sign in with $providerName failed.',
       );
     } catch (e, s) {
       _log.severe(
@@ -176,7 +143,7 @@ class OAuthSignInService {
         rethrow;
       }
 
-      throw HeliumException(message: 'Sign-in with $providerName failed.');
+      throw HeliumException(message: 'Sign in with $providerName failed.');
     }
   }
 
@@ -200,7 +167,7 @@ class OAuthSignInService {
     if (googleAuth.idToken == null) {
       _log.severe('Google Sign-In did not provide an ID token');
       throw HeliumException(
-        message: 'Sign-in with Google failed.',
+        message: 'Sign in with Google failed.',
       );
     }
 

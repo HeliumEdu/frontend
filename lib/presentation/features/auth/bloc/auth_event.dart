@@ -34,12 +34,6 @@ class AppleLoginEvent extends AuthEvent {}
 
 class MicrosoftLoginEvent extends AuthEvent {}
 
-class OAuthRedirectResultEvent extends AuthEvent {
-  final String firebaseToken;
-  final String provider;
-
-  OAuthRedirectResultEvent({required this.firebaseToken, required this.provider});
-}
 
 class LogoutEvent extends AuthEvent {}
 
