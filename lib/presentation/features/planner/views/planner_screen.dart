@@ -1698,11 +1698,11 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
   bool _hasCoursesFilter() {
     if (_plannerItemDataSource == null) return false;
 
-    final filteredCourses = _plannerItemDataSource!.filteredCourses;
+    final selectedCourses = _plannerItemDataSource!.selectedCourses;
 
-    if (filteredCourses.isEmpty) return false;
+    if (selectedCourses.isEmpty) return false;
 
-    return filteredCourses.values.any((isSelected) => isSelected);
+    return selectedCourses.values.any((isSelected) => isSelected);
   }
 
   List<CategoryModel> _deduplicateCategoriesByTitle(
@@ -1722,7 +1722,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
       return _deduplicatedCategories;
     }
 
-    final filteredCourseIds = _plannerItemDataSource!.filteredCourses.entries
+    final filteredCourseIds = _plannerItemDataSource!.selectedCourses.entries
         .where((e) => e.value)
         .map((e) => e.key)
         .toSet();
@@ -1734,18 +1734,53 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
     return _deduplicateCategoriesByTitle(filteredCategories);
   }
 
+  List<ExternalCalendarModel> _getVisibleExternalCalendars() {
+    if (_currentView == PlannerView.todos) return [];
+
+    final enabled = _externalCalendarsById.values
+        .where((c) => c.shownOnCalendar == true)
+        .toList();
+    if (enabled.length <= 1) return [];
+
+    final filterTypes = _plannerItemDataSource!.filterTypes;
+    final externalCalendarsVisible = filterTypes.isEmpty ||
+        filterTypes.contains(PlannerFilterType.externalCalendars.value);
+    if (!externalCalendarsVisible) return [];
+
+    return enabled;
+  }
+
+  bool _areAssignmentsVisible() {
+    if (_currentView == PlannerView.todos) return true;
+    final types = _plannerItemDataSource!.filterTypes;
+    return types.isEmpty ||
+        types.contains(PlannerFilterType.assignments.value);
+  }
+
+  bool _areCourseItemsVisible() {
+    if (_currentView == PlannerView.todos) return true;
+    final types = _plannerItemDataSource!.filterTypes;
+    return types.isEmpty ||
+        types.contains(PlannerFilterType.assignments.value) ||
+        types.contains(PlannerFilterType.classSchedules.value);
+  }
+
   bool _hasStatusFilters() {
     if (_plannerItemDataSource == null) return false;
 
     final categories = _plannerItemDataSource!.filterCategories;
     final types = _plannerItemDataSource!.filterTypes;
     final statuses = _plannerItemDataSource!.filterStatuses;
+    final selectedCalendars =
+        _plannerItemDataSource!.selectedExternalCalendarIds;
 
     if (types.isNotEmpty) return true;
 
     if (categories.isNotEmpty) return true;
 
     if (statuses.isNotEmpty) return true;
+
+    if (selectedCalendars.isNotEmpty) return true;
 
     return false;
   }
@@ -3671,6 +3706,9 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
       }
 
       final visibleCategories = _getVisibleCategories();
+      final visibleExternalCalendars = _getVisibleExternalCalendars();
+      final selectedExternalCalendarIds =
+          _plannerItemDataSource!.selectedExternalCalendarIds;
 
       return ConstrainedBox(
         constraints: BoxConstraints(
@@ -3699,63 +3737,6 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
                   ),
                 ],
               ),
-
-              _buildSheetSectionHeader(context, 'CLASSES'),
-              for (int i = 0; i < displayCourses.length; i++) ...[
-                if (i > 0 &&
-                    displayCourses[i].courseGroup !=
-                        displayCourses[i - 1].courseGroup)
-                  const Divider(height: 20),
-                Builder(
-                  builder: (context) {
-                    final course = displayCourses[i];
-                    final isSelected =
-                        _plannerItemDataSource!.filteredCourses[course.id] ??
-                        false;
-                    return HeliumCheckboxListTile(
-                      title: Row(
-                        children: [
-                          Container(
-                            width: 12,
-                            height: 12,
-                            decoration: BoxDecoration(
-                              color: course.color,
-                              shape: BoxShape.circle,
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: Text(
-                              course.title,
-                              style: AppStyles.formText(context),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                        ],
-                      ),
-                      value: isSelected,
-                      onChanged: (value) {
-                        final currentFilters = Map<int, bool>.from(
-                          _plannerItemDataSource!.filteredCourses,
-                        );
-                        if (value == true) {
-                          currentFilters[course.id] = true;
-                        } else {
-                          currentFilters.remove(course.id);
-                        }
-                        _plannerItemDataSource!.setFilteredCourses(
-                          currentFilters,
-                        );
-                        setSheetState(() {});
-                      },
-                      controlAffinity: ListTileControlAffinity.leading,
-                      dense: true,
-                      contentPadding: EdgeInsets.zero,
-                    );
-                  },
-                ),
-              ],
 
               if (_currentView != PlannerView.todos) ...[
                 _buildSheetSectionHeader(context, 'TYPES'),
@@ -3794,46 +3775,6 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
                       }
                     } else {
                       currentTypes.remove(PlannerFilterType.assignments.value);
-                    }
-                    _plannerItemDataSource!.setFilterTypes(currentTypes);
-                    setSheetState(() {});
-                  },
-                  controlAffinity: ListTileControlAffinity.leading,
-                  dense: true,
-                  contentPadding: EdgeInsets.zero,
-                ),
-                HeliumCheckboxListTile(
-                  title: Row(
-                    children: [
-                      Icon(
-                        AppConstants.eventIcon,
-                        size: 18,
-                        color: PlannerTypeColors.events(
-                          userSettings?.eventsColor,
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        PlannerFilterType.events.value,
-                        style: AppStyles.formText(context),
-                      ),
-                    ],
-                  ),
-                  value: _plannerItemDataSource!.filterTypes.contains(
-                    PlannerFilterType.events.value,
-                  ),
-                  onChanged: (value) {
-                    final currentTypes = List<String>.from(
-                      _plannerItemDataSource!.filterTypes,
-                    );
-                    if (value == true) {
-                      if (!currentTypes.contains(
-                        PlannerFilterType.events.value,
-                      )) {
-                        currentTypes.add(PlannerFilterType.events.value);
-                      }
-                    } else {
-                      currentTypes.remove(PlannerFilterType.events.value);
                     }
                     _plannerItemDataSource!.setFilterTypes(currentTypes);
                     setSheetState(() {});
@@ -3892,6 +3833,46 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
                 HeliumCheckboxListTile(
                   title: Row(
                     children: [
+                      Icon(
+                        AppConstants.eventIcon,
+                        size: 18,
+                        color: PlannerTypeColors.events(
+                          userSettings?.eventsColor,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        PlannerFilterType.events.value,
+                        style: AppStyles.formText(context),
+                      ),
+                    ],
+                  ),
+                  value: _plannerItemDataSource!.filterTypes.contains(
+                    PlannerFilterType.events.value,
+                  ),
+                  onChanged: (value) {
+                    final currentTypes = List<String>.from(
+                      _plannerItemDataSource!.filterTypes,
+                    );
+                    if (value == true) {
+                      if (!currentTypes.contains(
+                        PlannerFilterType.events.value,
+                      )) {
+                        currentTypes.add(PlannerFilterType.events.value);
+                      }
+                    } else {
+                      currentTypes.remove(PlannerFilterType.events.value);
+                    }
+                    _plannerItemDataSource!.setFilterTypes(currentTypes);
+                    setSheetState(() {});
+                  },
+                  controlAffinity: ListTileControlAffinity.leading,
+                  dense: true,
+                  contentPadding: EdgeInsets.zero,
+                ),
+                HeliumCheckboxListTile(
+                  title: Row(
+                    children: [
                       _currentView == PlannerView.month &&
                               Responsive.isMobile(context)
                           ? const Icon(
@@ -3938,6 +3919,112 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
                 ),
               ],
 
+              if (_areCourseItemsVisible() && displayCourses.length > 1) ...[
+              _buildSheetSectionHeader(context, 'CLASSES'),
+              for (int i = 0; i < displayCourses.length; i++) ...[
+                if (i > 0 &&
+                    displayCourses[i].courseGroup !=
+                        displayCourses[i - 1].courseGroup)
+                  const Divider(height: 20),
+                Builder(
+                  builder: (context) {
+                    final course = displayCourses[i];
+                    final isSelected =
+                        _plannerItemDataSource!.selectedCourses[course.id] ??
+                        false;
+                    return HeliumCheckboxListTile(
+                      title: Row(
+                        children: [
+                          Container(
+                            width: 12,
+                            height: 12,
+                            decoration: BoxDecoration(
+                              color: course.color,
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              course.title,
+                              style: AppStyles.formText(context),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ),
+                      value: isSelected,
+                      onChanged: (value) {
+                        final currentFilters = Map<int, bool>.from(
+                          _plannerItemDataSource!.selectedCourses,
+                        );
+                        if (value == true) {
+                          currentFilters[course.id] = true;
+                        } else {
+                          currentFilters.remove(course.id);
+                        }
+                        _plannerItemDataSource!.setSelectedCourses(
+                          currentFilters,
+                        );
+                        setSheetState(() {});
+                      },
+                      controlAffinity: ListTileControlAffinity.leading,
+                      dense: true,
+                      contentPadding: EdgeInsets.zero,
+                    );
+                  },
+                ),
+              ],
+              ],
+
+              if (visibleExternalCalendars.isNotEmpty) ...[
+                _buildSheetSectionHeader(context, 'EXTERNAL CALENDARS'),
+                ...visibleExternalCalendars.map((calendar) {
+                  return HeliumCheckboxListTile(
+                    title: Row(
+                      children: [
+                        Container(
+                          width: 12,
+                          height: 12,
+                          decoration: BoxDecoration(
+                            color: calendar.color,
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            calendar.title,
+                            style: AppStyles.formText(context),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                    ),
+                    value: selectedExternalCalendarIds.contains(calendar.id),
+                    onChanged: (value) {
+                      final current = Set<int>.from(
+                        selectedExternalCalendarIds,
+                      );
+                      if (value == true) {
+                        current.add(calendar.id);
+                      } else {
+                        current.remove(calendar.id);
+                      }
+                      _plannerItemDataSource!
+                          .setSelectedExternalCalendarIds(current);
+                      setSheetState(() {});
+                    },
+                    controlAffinity: ListTileControlAffinity.leading,
+                    dense: true,
+                    contentPadding: EdgeInsets.zero,
+                  );
+                }),
+              ],
+
+              if (_areAssignmentsVisible()) ...[
               _buildSheetSectionHeader(context, 'STATUS'),
               _CheckboxToggle(
                 isChecked: isCompleteFilterEnabled,
@@ -3988,8 +4075,9 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
                 },
               ),
               buildStatusTile(PlannerFilterStatus.overdue.value),
+              ],
 
-              if (visibleCategories.isNotEmpty) ...[
+              if (visibleCategories.length > 1 && _areAssignmentsVisible()) ...[
                 _buildSheetSectionHeader(context, 'CATEGORIES'),
                 ...visibleCategories.map((category) {
                   return HeliumCheckboxListTile(
