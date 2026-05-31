@@ -16,6 +16,7 @@ import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
+import 'package:heliumapp/utils/url_helpers.dart';
 
 enum ScreenType { page, subPage, entityPage }
 
@@ -31,6 +32,7 @@ class PageHeader extends StatelessWidget {
   final IconData cancelIcon;
   final List<BlocProvider>? inheritableProviders;
   final List<Widget> additionalButtons;
+  final String? helpUrl;
 
   const PageHeader({
     super.key,
@@ -43,6 +45,7 @@ class PageHeader extends StatelessWidget {
     this.cancelIcon = Icons.close,
     this.inheritableProviders,
     this.additionalButtons = const [],
+    this.helpUrl,
   });
 
   /// Returns true if the settings button should appear in the page header
@@ -102,6 +105,21 @@ class PageHeader extends StatelessWidget {
 
         Row(
           children: [
+            if (screenType == ScreenType.page && helpUrl != null) ...[
+              Semantics(
+                label: 'Help',
+                button: true,
+                child: IconButton(
+                  onPressed: () => UrlHelpers.launchWebUrl(helpUrl!),
+                  tooltip: 'Learn more',
+                  icon: Icon(
+                    Icons.menu_book_outlined,
+                    color: context.colorScheme.primary,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+            ],
             if (screenType == ScreenType.page)
               Semantics(
                 label: 'Notifications',

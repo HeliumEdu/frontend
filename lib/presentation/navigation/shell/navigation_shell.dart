@@ -136,13 +136,14 @@ enum NavigationPage {
   notes('Notebook', Icons.library_books, AppRoute.notebookScreen),
   courses('Classes', Icons.school, AppRoute.coursesScreen),
   resources('Resources', Icons.book, AppRoute.resourcesScreen),
-  grades('Grades', Icons.bar_chart, AppRoute.gradesScreen);
+  grades('Grades', Icons.bar_chart, AppRoute.gradesScreen, helpUrl: AppConstants.supportGradesDashboardUrl);
 
   final String label;
   final IconData icon;
   final String route;
+  final String? helpUrl;
 
-  const NavigationPage(this.label, this.icon, this.route);
+  const NavigationPage(this.label, this.icon, this.route, {this.helpUrl});
 
   String get navKeyName => 'nav_tab_$name';
 
@@ -278,6 +279,7 @@ class _NavigationShellState extends State<NavigationShell> {
                               screenType: ScreenType.page,
                               inheritableProviders:
                                   _inheritableProvidersNotifier.providers,
+                              helpUrl: currentPage.helpUrl,
                             ),
                           ),
                           Expanded(

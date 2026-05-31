@@ -32,6 +32,7 @@ class _OnboardingCard {
   final IconData icon;
   final List<String> imagePaths;
   final bool stackedDevices;
+  final String? overlayImagePath;
 
   const _OnboardingCard({
     required this.title,
@@ -39,6 +40,7 @@ class _OnboardingCard {
     required this.icon,
     this.imagePaths = const [],
     this.stackedDevices = false,
+    this.overlayImagePath,
   });
 }
 
@@ -81,7 +83,11 @@ const _cards = [
         'and term in real time. Know where to focus, what is '
         'piling up, and calculate what you need to score on the final.',
     icon: Icons.bar_chart_outlined,
-    imagePaths: ['assets/img/onboarding_grades.png'],
+    imagePaths: [
+      'assets/img/onboarding_grades.png',
+      'assets/img/onboarding_grade_detail.png',
+    ],
+    overlayImagePath: 'assets/img/onboarding_grade_calculator.png',
   ),
   _OnboardingCard(
     title: 'Notes for anything',
@@ -268,7 +274,10 @@ class _GettingStartedDialogWidgetState
       imageWidget = Padding(
         padding: const EdgeInsets.symmetric(horizontal: 24.0),
         child: card.imagePaths.length > 1
-            ? _CyclingImage(imagePaths: card.imagePaths)
+            ? _CyclingImage(
+                imagePaths: card.imagePaths,
+                overlayImagePath: card.overlayImagePath,
+              )
             : Image.asset(
                 card.imagePaths.first,
                 fit: BoxFit.contain,
@@ -458,8 +467,9 @@ class _GettingStartedDialogWidgetState
 
 class _CyclingImage extends StatefulWidget {
   final List<String> imagePaths;
+  final String? overlayImagePath;
 
-  const _CyclingImage({required this.imagePaths});
+  const _CyclingImage({required this.imagePaths, this.overlayImagePath});
 
   @override
   State<_CyclingImage> createState() => _CyclingImageState();
@@ -490,14 +500,48 @@ class _CyclingImageState extends State<_CyclingImage> {
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedSwitcher(
-      duration: _fadeDuration,
-      child: Image.asset(
-        widget.imagePaths[_currentIndex],
-        key: ValueKey(_currentIndex),
-        fit: BoxFit.contain,
-        filterQuality: FilterQuality.high,
-      ),
+    return Stack(
+      alignment: Alignment.center,
+      children: [
+        AnimatedSwitcher(
+          duration: _fadeDuration,
+          child: Image.asset(
+            widget.imagePaths[_currentIndex],
+            key: ValueKey(_currentIndex),
+            fit: BoxFit.contain,
+            filterQuality: FilterQuality.high,
+          ),
+        ),
+        if (widget.overlayImagePath != null)
+          AnimatedOpacity(
+            opacity: _currentIndex == 1 ? 1.0 : 0.0,
+            duration: _fadeDuration,
+            child: FractionallySizedBox(
+              widthFactor: 0.40,
+              child: Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.25),
+                      blurRadius: 50,
+                      spreadRadius: -12,
+                      offset: const Offset(0, 25),
+                    ),
+                  ],
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(16),
+                  child: Image.asset(
+                    widget.overlayImagePath!,
+                    fit: BoxFit.contain,
+                    filterQuality: FilterQuality.high,
+                  ),
+                ),
+              ),
+            ),
+          ),
+      ],
     );
   }
 }
