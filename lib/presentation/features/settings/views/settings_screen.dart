@@ -48,7 +48,7 @@ import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:sign_in_button/sign_in_button.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'package:heliumapp/utils/url_helpers.dart';
 
 enum SettingsSubScreen {
   preferences,
@@ -501,7 +501,7 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
                     const SizedBox(height: 4),
                     TextButton(
                       onPressed: () =>
-                          launchUrl(Uri.parse(AppConstants.githubUrl)),
+                          UrlHelpers.launchWebUrl(AppConstants.githubUrl),
                       child: Text(
                         'Open Source on GitHub',
                         style: AppStyles.smallSecondaryText(context).copyWith(
@@ -566,7 +566,7 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
               ),
               HeliumIconButton(
                 onPressed: () =>
-                    launchUrl(Uri.parse(AppConstants.supportPortalUrl)),
+                    UrlHelpers.launchWebUrl(AppConstants.supportPortalUrl),
                 icon: Icons.menu_book_outlined,
                 backgroundColor: context.colorScheme.onSurfaceVariant,
                 tooltip: 'Support Portal',
