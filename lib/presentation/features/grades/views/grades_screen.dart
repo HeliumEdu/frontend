@@ -49,6 +49,7 @@ import 'package:heliumapp/utils/date_time_helpers.dart';
 import 'package:heliumapp/utils/format_helpers.dart';
 import 'package:heliumapp/utils/grade_helpers.dart';
 import 'package:heliumapp/utils/print_helpers.dart';
+import 'package:heliumapp/utils/sort_helpers.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:intl/intl.dart';
 import 'package:syncfusion_flutter_charts/charts.dart' as charts;
@@ -2492,8 +2493,8 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
   }
 
   Widget _buildCategoryTable(GradeCourseModel course, bool hasWeightedGrading) {
-    final sortedCategories = [...course.categories]
-      ..sort((a, b) => a.title.compareTo(b.title));
+    final sortedCategories = [...course.categories];
+    Sort.byTitle(sortedCategories);
     final totalBreakdown = course.categories.fold<double>(
       0,
           (sum, cat) =>

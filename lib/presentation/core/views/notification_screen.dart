@@ -688,7 +688,7 @@ class _NotificationsScreenState
       // Course reminders: navigate to /classes and open the course editor there.
       final courseId = notification.reminder.course?.id;
       if (courseId != null) {
-        context.pop();
+        if (context.canPop()) context.pop();
         // Defer navigation so the pop completes and GoRouter processes the stack
         // change before we push the next route; calling router.go synchronously
         // after pop can conflict with GoRouter's async redirect handling
@@ -711,7 +711,7 @@ class _NotificationsScreenState
           homeworkId != null ? plannerItemHomeworkPath : plannerItemEventPath;
       final entityId = homeworkId ?? eventId!;
       final shellPath = widget.shellPath;
-      context.pop();
+      if (context.canPop()) context.pop();
       // Defer navigation so the pop completes and GoRouter processes the
       // stack change before we push the next route.
       Future.delayed(Duration.zero, () {

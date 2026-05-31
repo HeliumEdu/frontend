@@ -20,6 +20,7 @@ import 'package:heliumapp/presentation/ui/feedback/warning_container.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/date_time_helpers.dart';
 import 'package:heliumapp/utils/grade_helpers.dart';
+import 'package:heliumapp/utils/sort_helpers.dart';
 
 /// "What Could I Get?" projection tab content.
 ///
@@ -88,17 +89,23 @@ class _GradeProjectionTabState extends State<GradeProjectionTab> {
     );
   }
 
-  /// Category IDs to display — excludes zero-weight categories for weighted courses.
+  /// Category IDs to display, sorted alphabetically by title.
+  /// Excludes zero-weight categories for weighted courses.
   List<int> get _displayCategoryIds {
-    return widget.ungradedAssignments
+    final validIds = widget.ungradedAssignments
         .where((a) {
           if (!_hasWeightedGrading) return true;
           final cat = _categoryFor(a.categoryId);
           return cat != null && cat.weight > 0;
         })
         .map((a) => a.categoryId)
-        .toSet()
+        .toSet();
+
+    final orderedCategories = widget.categories
+        .where((c) => validIds.contains(c.id))
         .toList();
+    Sort.byTitle(orderedCategories);
+    return orderedCategories.map((c) => c.id).toList();
   }
 
   void _onSliderChanged(int assignmentId, double rawScore, double pointsPossible) {
@@ -165,7 +172,8 @@ class _GradeProjectionTabState extends State<GradeProjectionTab> {
     final category = _categoryFor(categoryId);
     final assignments = widget.ungradedAssignments
         .where((a) => a.categoryId == categoryId)
-        .toList();
+        .toList()
+      ..sort((a, b) => a.start.compareTo(b.start));
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,

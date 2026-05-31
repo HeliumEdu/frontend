@@ -20,6 +20,7 @@ import 'package:heliumapp/presentation/ui/feedback/success_container.dart';
 import 'package:heliumapp/presentation/ui/feedback/warning_container.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/grade_helpers.dart';
+import 'package:heliumapp/utils/sort_helpers.dart';
 import 'package:heliumapp/core/analytics_service.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
@@ -80,10 +81,12 @@ class _GradeCalculatorDialogState extends State<GradeCalculatorDialog> {
   }
 
   List<GradeCategoryModel> get _eligibleTargetCategories {
-    return _normalizedCategories.where((cat) {
+    final eligible = _normalizedCategories.where((cat) {
       final remainingItems = cat.numHomework - cat.numHomeworkGraded;
       return cat.weight > 0 && remainingItems == 1;
     }).toList();
+    Sort.byTitle(eligible);
+    return eligible;
   }
 
   @override
