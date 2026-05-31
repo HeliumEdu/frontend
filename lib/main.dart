@@ -5,7 +5,9 @@
 //
 // For details regarding the license, please refer to the LICENSE file.
 
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_web_plugins/url_strategy.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -49,6 +51,10 @@ void main() async {
     await Firebase.initializeApp(options: firebaseOptionsWithOverrides());
   } catch (e) {
     _log.severe('Firebase initialization failed', e);
+  }
+
+  if (!kIsWeb) {
+    FirebaseAuth.instance.customAuthDomain = firebaseAuthDomain;
   }
 
   try {
