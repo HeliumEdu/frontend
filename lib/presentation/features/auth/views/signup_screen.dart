@@ -36,9 +36,6 @@ import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:heliumapp/utils/time_zone_constants.dart';
 import 'package:sign_in_button/sign_in_button.dart';
 import 'package:heliumapp/utils/url_helpers.dart';
-import 'package:logging/logging.dart';
-
-final _log = Logger('presentation.views');
 
 class SignupScreen extends StatefulWidget {
   static const String signUpButtonKey = 'signup_sign_up_button';

@@ -158,3 +158,51 @@ def test_apple_sign_in_credentials(apple_sign_in_credentials: dict) -> None:
         f"Apple Sign In credential check failed: expected 'invalid_grant' but got "
         f"'{error}' ({response.status_code}). This likely indicates an invalid key, Key ID, Team ID, or Client ID."
     )
+
+
+def test_microsoft_sign_in_credentials(microsoft_sign_in_credentials: dict) -> None:
+    """
+    Credential health check: validate the Microsoft Sign In client secret by pinging Microsoft's token endpoint.
+
+    A dummy authorization code is submitted with real client credentials. Microsoft responds with
+    'invalid_grant' when credentials are valid (the code is bad but the client checked out). Any other
+    error — particularly 'invalid_client' — indicates the client ID or client secret is broken or expired.
+    """
+    response = requests.post(
+        "https://login.microsoftonline.com/common/oauth2/v2.0/token",
+        data={
+            "client_id": microsoft_sign_in_credentials["client_id"],
+            "client_secret": microsoft_sign_in_credentials["client_secret"],
+            "code": "dummy_authorization_code",
+            "grant_type": "authorization_code",
+            "redirect_uri": "https://auth.heliumedu.com/__/auth/handler",
+        },
+        headers={"Content-Type": "application/x-www-form-urlencoded"},
+        timeout=10,
+    )
+    error = response.json().get("error")
+    assert error == "invalid_grant", (
+        f"Microsoft Sign In credential check failed: expected 'invalid_grant' but got "
+        f"'{error}' ({response.status_code}). This likely indicates an invalid client ID or client secret."
+    )
+
+
+def test_firebase_auth_domain_reachable() -> None:
+    """
+    Reachability check: verify the Firebase Auth custom domain (auth.heliumedu.com) is routing correctly.
+
+    A GET to the auth handler without parameters should return a non-404, non-5xx response — confirming
+    the custom domain DNS and Firebase Auth routing are intact. A 404 or connection failure indicates the
+    domain is misconfigured or deprovisioned.
+    """
+    response = requests.get(
+        "https://auth.heliumedu.com/__/auth/handler",
+        timeout=10,
+        allow_redirects=True,
+    )
+    assert response.status_code != 404, (
+        "Firebase Auth handler returned 404 — auth.heliumedu.com custom domain may be misconfigured."
+    )
+    assert response.status_code < 500, (
+        f"Firebase Auth handler returned server error {response.status_code}."
+    )

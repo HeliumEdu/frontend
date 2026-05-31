@@ -47,6 +47,7 @@ import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:sign_in_button/sign_in_button.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 enum SettingsSubScreen {
@@ -113,6 +114,7 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
   String _version = '';
   bool _hasUsablePassword = true;
   bool _hasOAuthProviders = false;
+  List<String> _oauthProviders = [];
   bool _dangerZoneExpanded = false;
   Timer? _dangerZoneTimer;
   // Cached at sub-screen entry so title/form don't flash if _hasUsablePassword
@@ -345,6 +347,7 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
               _emailChanging = state.user.emailChanging;
               _hasUsablePassword = state.user.hasUsablePassword;
               _hasOAuthProviders = state.user.hasOAuthProviders;
+              _oauthProviders = state.user.oauthProviders;
 
               isLoading = false;
             });
@@ -584,6 +587,11 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
                       prefixIcon: Icons.email_outlined,
                     ),
                   ),
+                  for (final provider in _oauthProviders)
+                    if (_buildProviderBadge(provider) case final badge?) ...[
+                      const SizedBox(width: 8),
+                      badge,
+                    ],
                 ],
               ),
               if (_emailChanging != null && _emailChanging!.isNotEmpty) ...[
@@ -598,6 +606,36 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
           ),
         ],
       ),
+    );
+  }
+
+  Widget? _buildProviderBadge(String provider) {
+    // Google's SignInButton asserts mini != true; use SignInButtonBuilder
+    // directly with the package's own Google G image asset to match the mini
+    // style that Apple and Microsoft render via SignInButton(mini: true).
+    if (provider == 'google') {
+      return IgnorePointer(
+        child: SignInButtonBuilder(
+          text: '',
+          mini: true,
+          backgroundColor: Colors.white,
+          onPressed: () {},
+          image: Image.asset(
+            'assets/logos/google_light.png',
+            package: 'sign_in_button',
+            height: 24,
+          ),
+        ),
+      );
+    }
+    final button = switch (provider) {
+      'apple' => Buttons.apple,
+      'microsoft' => Buttons.microsoft,
+      _ => null,
+    };
+    if (button == null) return null;
+    return IgnorePointer(
+      child: SignInButton(button, mini: true, onPressed: () {}),
     );
   }
 

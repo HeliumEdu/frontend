@@ -75,6 +75,16 @@ void main() {
         findsOneWidget,
         reason: 'Google sign in should be displayed',
       );
+      expect(
+        find.text('Sign in with Apple'),
+        findsOneWidget,
+        reason: 'Apple sign in should be displayed',
+      );
+      expect(
+        find.text('Sign in with Microsoft'),
+        findsOneWidget,
+        reason: 'Microsoft sign in should be displayed',
+      );
     });
 
     namedTestWidgets('can navigate to signup screen', (tester) async {
