@@ -162,7 +162,7 @@ void main() {
           userSettings: userSettings,
         );
 
-        expect(freshDataSource.filteredCourses, isEmpty);
+        expect(freshDataSource.selectedCourses, isEmpty);
         expect(freshDataSource.filterCategories, isEmpty);
         expect(freshDataSource.filterTypes, isEmpty);
         expect(freshDataSource.filterStatuses, isEmpty);
@@ -399,12 +399,12 @@ void main() {
       });
 
       test('returns all homeworks when no courses selected', () {
-        dataSource.setFilteredCourses({});
+        dataSource.setSelectedCourses({});
         expect(dataSource.filteredHomeworks, hasLength(3));
       });
 
       test('filters by single selected course', () {
-        dataSource.setFilteredCourses({1: true});
+        dataSource.setSelectedCourses({1: true});
         final filtered = dataSource.filteredHomeworks;
 
         expect(filtered, hasLength(2));
@@ -412,12 +412,12 @@ void main() {
       });
 
       test('filters by multiple selected courses', () {
-        dataSource.setFilteredCourses({1: true, 2: true});
+        dataSource.setSelectedCourses({1: true, 2: true});
         expect(dataSource.filteredHomeworks, hasLength(3));
       });
 
       test('filters out when course not selected', () {
-        dataSource.setFilteredCourses({1: true, 2: false});
+        dataSource.setSelectedCourses({1: true, 2: false});
         final filtered = dataSource.filteredHomeworks;
 
         expect(filtered, hasLength(2));
@@ -425,7 +425,7 @@ void main() {
       });
 
       test('filters by course ID', () {
-        dataSource.setFilteredCourses({1: true});
+        dataSource.setSelectedCourses({1: true});
         final filtered = dataSource.filteredHomeworks;
 
         expect(filtered, hasLength(2));
@@ -444,7 +444,7 @@ void main() {
         dataSource.addPlannerItem(scheduleEvent1);
         dataSource.addPlannerItem(scheduleEvent2);
 
-        dataSource.setFilteredCourses({1: true});
+        dataSource.setSelectedCourses({1: true});
         dataSource.setFilterTypes(['Class Schedules']);
 
         expect(dataSource.appointments, hasLength(1));
@@ -768,7 +768,7 @@ void main() {
       });
 
       test('applies course and category filters together', () {
-        dataSource.setFilteredCourses({1: true});
+        dataSource.setSelectedCourses({1: true});
         dataSource.setFilterCategories(['Assignments']);
 
         final filtered = dataSource.filteredHomeworks;
@@ -777,7 +777,7 @@ void main() {
       });
 
       test('applies all filters together', () {
-        dataSource.setFilteredCourses({1: true});
+        dataSource.setSelectedCourses({1: true});
         dataSource.setFilterCategories(['Assignments']);
         dataSource.setFilterStatuses({'Incomplete'});
         dataSource.setSearchQuery('Math');
@@ -788,7 +788,7 @@ void main() {
       });
 
       test('returns empty when filters exclude all items', () {
-        dataSource.setFilteredCourses({1: true});
+        dataSource.setSelectedCourses({1: true});
         dataSource.setSearchQuery('Physics');
 
         expect(dataSource.filteredHomeworks, isEmpty);
@@ -1165,9 +1165,9 @@ void main() {
       });
 
       test('clears filtered courses', () {
-        dataSource.setFilteredCourses({1: true});
+        dataSource.setSelectedCourses({1: true});
         dataSource.clearFilters();
-        expect(dataSource.filteredCourses, isEmpty);
+        expect(dataSource.selectedCourses, isEmpty);
       });
     });
 
