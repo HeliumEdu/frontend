@@ -67,6 +67,7 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
   List<String> _filterCategories = [];
   List<String> _filterTypes = [];
   Set<String> _filterStatuses = {};
+  Set<int> _filteredExternalCalendarIds = {};
   String _searchQuery = '';
   int _todosItemsPerPage = 10;
   final Map<int, bool> _completedOverrides = {};
@@ -282,6 +283,8 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
   List<String> get filterTypes => _filterTypes;
 
   Set<String> get filterStatuses => _filterStatuses;
+
+  Set<int> get filteredExternalCalendarIds => _filteredExternalCalendarIds;
 
   String get searchQuery => _searchQuery;
 
@@ -812,10 +815,19 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
       items.addAll(_applySearchFilterToItems(courseScheduleEvents));
     }
 
-    // ExternalCalendar events - apply search filter only
+    // ExternalCalendar events - apply search and per-calendar filters
     if (includeAllTypes ||
         _filterTypes.contains(PlannerFilterType.externalCalendars.value)) {
-      items.addAll(_applySearchFilterToItems(allExternalCalendarEvents));
+      final externalEvents = _filteredExternalCalendarIds.isEmpty
+          ? allExternalCalendarEvents
+          : allExternalCalendarEvents
+                .where(
+                  (e) => !_filteredExternalCalendarIds.contains(
+                    int.tryParse(e.ownerId),
+                  ),
+                )
+                .toList();
+      items.addAll(_applySearchFilterToItems(externalEvents));
     }
 
     // Sort using effective (override-aware) times so drag-drop optimistic
@@ -887,6 +899,15 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
     _applyFiltersAndNotify();
   }
 
+  void setFilteredExternalCalendarIds(Set<int> ids) {
+    _log.info(
+      'External calendar filter changed: ${ids.isEmpty ? "all" : ids.join(", ")}',
+    );
+    _filteredExternalCalendarIds = ids;
+    _saveFiltersIfEnabled();
+    _applyFiltersAndNotify();
+  }
+
   void setSearchQuery(String query) {
     _log.info('Search query changed: "${query.isEmpty ? "(empty)" : query}"');
     _searchQuery = query;
@@ -899,6 +920,7 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
     _filterCategories = [];
     _filterTypes = [];
     _filterStatuses = {};
+    _filteredExternalCalendarIds = {};
     _saveFiltersIfEnabled();
     _applyFiltersAndNotify();
   }
@@ -913,6 +935,7 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
       'filterCategories': _filterCategories,
       'filterTypes': _filterTypes,
       'filterStatuses': _filterStatuses.toList(),
+      'filteredExternalCalendars': _filteredExternalCalendarIds.toList(),
     };
 
     PrefService().setString('saved_filter_state', jsonEncode(filterState));
@@ -955,6 +978,13 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
       final savedStatuses = filterState['filterStatuses'] as List<dynamic>?;
       if (savedStatuses != null) {
         _filterStatuses = savedStatuses.cast<String>().toSet();
+      }
+
+      final savedExternalCalendars =
+          filterState['filteredExternalCalendars'] as List<dynamic>?;
+      if (savedExternalCalendars != null) {
+        _filteredExternalCalendarIds =
+            savedExternalCalendars.map((e) => e as int).toSet();
       }
 
       _log.info('Filter state restored');
@@ -1235,6 +1265,7 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
         searchQuery: _searchQuery,
         categoryIdToTitle: _buildCategoryIdToTitleMap(),
         completedOverrides: Map.from(_completedOverrides),
+        filteredExternalCalendarIds: Set.from(_filteredExternalCalendarIds),
       );
 
       final input = FilterComputeInput(items: filterableItems, params: params);

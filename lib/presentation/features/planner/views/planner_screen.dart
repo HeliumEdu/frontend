@@ -1734,18 +1734,36 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
     return _deduplicateCategoriesByTitle(filteredCategories);
   }
 
+  List<ExternalCalendarModel> _getVisibleExternalCalendars() {
+    final enabled = _externalCalendarsById.values
+        .where((c) => c.shownOnCalendar == true)
+        .toList();
+    if (enabled.length <= 1) return [];
+
+    final filterTypes = _plannerItemDataSource!.filterTypes;
+    final externalCalendarsVisible = filterTypes.isEmpty ||
+        filterTypes.contains(PlannerFilterType.externalCalendars.value);
+    if (!externalCalendarsVisible) return [];
+
+    return enabled;
+  }
+
   bool _hasStatusFilters() {
     if (_plannerItemDataSource == null) return false;
 
     final categories = _plannerItemDataSource!.filterCategories;
     final types = _plannerItemDataSource!.filterTypes;
     final statuses = _plannerItemDataSource!.filterStatuses;
+    final hiddenCalendars =
+        _plannerItemDataSource!.filteredExternalCalendarIds;
 
     if (types.isNotEmpty) return true;
 
     if (categories.isNotEmpty) return true;
 
     if (statuses.isNotEmpty) return true;
+
+    if (hiddenCalendars.isNotEmpty) return true;
 
     return false;
   }
@@ -3671,6 +3689,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
       }
 
       final visibleCategories = _getVisibleCategories();
+      final visibleExternalCalendars = _getVisibleExternalCalendars();
 
       return ConstrainedBox(
         constraints: BoxConstraints(
@@ -3938,6 +3957,55 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
                 ),
               ],
 
+              if (visibleExternalCalendars.isNotEmpty) ...[
+                _buildSheetSectionHeader(context, 'EXTERNAL CALENDARS'),
+                ...visibleExternalCalendars.map((calendar) {
+                  final isHidden = _plannerItemDataSource!
+                      .filteredExternalCalendarIds
+                      .contains(calendar.id);
+                  return HeliumCheckboxListTile(
+                    title: Row(
+                      children: [
+                        Container(
+                          width: 12,
+                          height: 12,
+                          decoration: BoxDecoration(
+                            color: calendar.color,
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            calendar.title,
+                            style: AppStyles.formText(context),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                    ),
+                    value: !isHidden,
+                    onChanged: (value) {
+                      final current = Set<int>.from(
+                        _plannerItemDataSource!.filteredExternalCalendarIds,
+                      );
+                      if (value == true) {
+                        current.remove(calendar.id);
+                      } else {
+                        current.add(calendar.id);
+                      }
+                      _plannerItemDataSource!
+                          .setFilteredExternalCalendarIds(current);
+                      setSheetState(() {});
+                    },
+                    controlAffinity: ListTileControlAffinity.leading,
+                    dense: true,
+                    contentPadding: EdgeInsets.zero,
+                  );
+                }),
+              ],
+
               _buildSheetSectionHeader(context, 'STATUS'),
               _CheckboxToggle(
                 isChecked: isCompleteFilterEnabled,
@@ -3989,7 +4057,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
               ),
               buildStatusTile(PlannerFilterStatus.overdue.value),
 
-              if (visibleCategories.isNotEmpty) ...[
+              if (visibleCategories.length > 1) ...[
                 _buildSheetSectionHeader(context, 'CATEGORIES'),
                 ...visibleCategories.map((category) {
                   return HeliumCheckboxListTile(

@@ -50,6 +50,7 @@ class FilterParams {
   final String searchQuery;
   final Map<int, String> categoryIdToTitle;
   final Map<int, bool> completedOverrides;
+  final Set<int> filteredExternalCalendarIds;
 
   const FilterParams({
     required this.filterTypes,
@@ -59,6 +60,7 @@ class FilterParams {
     required this.searchQuery,
     required this.categoryIdToTitle,
     required this.completedOverrides,
+    required this.filteredExternalCalendarIds,
   });
 }
 
@@ -80,7 +82,12 @@ List<int> computeFilteredItems(FilterComputeInput input) {
   final List<FilterableItem> filtered = [];
 
   for (final item in items) {
-    if (!_shouldIncludeByType(item, params.filterTypes, includeAllTypes)) {
+    if (!_shouldIncludeByType(
+      item,
+      params.filterTypes,
+      includeAllTypes,
+      params.filteredExternalCalendarIds,
+    )) {
       continue;
     }
 
@@ -102,18 +109,27 @@ bool _shouldIncludeByType(
   FilterableItem item,
   List<String> filterTypes,
   bool includeAllTypes,
+  Set<int> filteredExternalCalendarIds,
 ) {
-  if (includeAllTypes) return true;
-
   switch (item.type) {
     case PlannerItemType.homework:
-      return filterTypes.contains(PlannerFilterType.assignments.value);
+      return includeAllTypes ||
+          filterTypes.contains(PlannerFilterType.assignments.value);
     case PlannerItemType.event:
-      return filterTypes.contains(PlannerFilterType.events.value);
+      return includeAllTypes ||
+          filterTypes.contains(PlannerFilterType.events.value);
     case PlannerItemType.courseSchedule:
-      return filterTypes.contains(PlannerFilterType.classSchedules.value);
+      return includeAllTypes ||
+          filterTypes.contains(PlannerFilterType.classSchedules.value);
     case PlannerItemType.external:
-      return filterTypes.contains(PlannerFilterType.externalCalendars.value);
+      if (!includeAllTypes &&
+          !filterTypes.contains(PlannerFilterType.externalCalendars.value)) {
+        return false;
+      }
+      if (filteredExternalCalendarIds.isEmpty) return true;
+      final calendarId = int.tryParse(item.ownerId ?? '');
+      return calendarId == null ||
+          !filteredExternalCalendarIds.contains(calendarId);
   }
 }
 
