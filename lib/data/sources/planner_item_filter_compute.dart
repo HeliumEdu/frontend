@@ -50,7 +50,7 @@ class FilterParams {
   final String searchQuery;
   final Map<int, String> categoryIdToTitle;
   final Map<int, bool> completedOverrides;
-  final Set<int> filteredExternalCalendarIds;
+  final Set<int> selectedExternalCalendarIds;
 
   const FilterParams({
     required this.filterTypes,
@@ -60,7 +60,7 @@ class FilterParams {
     required this.searchQuery,
     required this.categoryIdToTitle,
     required this.completedOverrides,
-    required this.filteredExternalCalendarIds,
+    required this.selectedExternalCalendarIds,
   });
 }
 
@@ -86,7 +86,7 @@ List<int> computeFilteredItems(FilterComputeInput input) {
       item,
       params.filterTypes,
       includeAllTypes,
-      params.filteredExternalCalendarIds,
+      params.selectedExternalCalendarIds,
     )) {
       continue;
     }
@@ -109,7 +109,7 @@ bool _shouldIncludeByType(
   FilterableItem item,
   List<String> filterTypes,
   bool includeAllTypes,
-  Set<int> filteredExternalCalendarIds,
+  Set<int> selectedExternalCalendarIds,
 ) {
   switch (item.type) {
     case PlannerItemType.homework:
@@ -126,10 +126,10 @@ bool _shouldIncludeByType(
           !filterTypes.contains(PlannerFilterType.externalCalendars.value)) {
         return false;
       }
-      if (filteredExternalCalendarIds.isEmpty) return true;
+      if (selectedExternalCalendarIds.isEmpty) return true;
       final calendarId = int.tryParse(item.ownerId ?? '');
       return calendarId == null ||
-          !filteredExternalCalendarIds.contains(calendarId);
+          selectedExternalCalendarIds.contains(calendarId);
   }
 }
 

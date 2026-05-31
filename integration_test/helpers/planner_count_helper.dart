@@ -139,7 +139,7 @@ class PlannerCountHelper {
         for (final c in snapshot.categoriesById.values) c.id: c.title,
       },
       completedOverrides: const {},
-      filteredExternalCalendarIds: const {},
+      selectedExternalCalendarIds: const {},
     );
 
     return computeFilteredItems(
