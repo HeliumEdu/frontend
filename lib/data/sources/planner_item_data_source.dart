@@ -29,6 +29,7 @@ import 'package:heliumapp/domain/repositories/event_repository.dart';
 import 'package:heliumapp/domain/repositories/external_calendar_repository.dart';
 import 'package:heliumapp/domain/repositories/homework_repository.dart';
 import 'package:heliumapp/utils/app_globals.dart';
+import 'package:heliumapp/utils/date_time_helpers.dart';
 import 'package:heliumapp/utils/grade_helpers.dart';
 import 'package:heliumapp/utils/planner_helper.dart';
 import 'package:heliumapp/utils/search_helpers.dart';
@@ -325,7 +326,7 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
   /// Returns items that occur on [day] from the current filtered appointments.
   /// Recurring schedule items are expanded into day-specific occurrences.
   List<PlannerItemBaseModel> getItemsForDay(DateTime day) {
-    final dayStart = DateTime(day.year, day.month, day.day);
+    final dayStart = HeliumDateTime.dateOnly(day);
     final dayEnd = dayStart.add(const Duration(days: 1));
     final itemsForDay = <PlannerItemBaseModel>[];
 
@@ -633,8 +634,8 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
 
   String _cacheKey(DateTime from, DateTime to) {
     // API query parameters are date-only, so cache keys can be the same
-    final fromKey = DateTime(from.year, from.month, from.day);
-    final toKey = DateTime(to.year, to.month, to.day);
+    final fromKey = HeliumDateTime.dateOnly(from);
+    final toKey = HeliumDateTime.dateOnly(to);
     return '${fromKey.toIso8601String()}_${toKey.toIso8601String()}';
   }
 

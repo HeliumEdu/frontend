@@ -16,6 +16,7 @@ import 'package:heliumapp/presentation/ui/feedback/info_container.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/date_time_helpers.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
+import 'package:heliumapp/utils/sort_helpers.dart';
 import 'package:heliumapp/utils/snack_bar_helpers.dart';
 
 /// Reusable dialog for managing a list of exception dates.
@@ -137,7 +138,7 @@ class _CourseExceptionsDialogState extends State<CourseExceptionsDialog> {
 
   bool _isExcepted(DateTime date) => _exceptions.any(
         (d) =>
-            d.year == date.year && d.month == date.month && d.day == date.day,
+            Sort.isSameDate(d, date),
       );
 
   /// Returns the first non-excepted date on or after today, within the allowed
@@ -145,11 +146,7 @@ class _CourseExceptionsDialogState extends State<CourseExceptionsDialog> {
   DateTime? _selectableInitialDate() {
     final last =
         widget.lastDate ?? DateTime.now().add(const Duration(days: 365 * 10));
-    var candidate = DateTime(
-      DateTime.now().year,
-      DateTime.now().month,
-      DateTime.now().day,
-    );
+    var candidate = HeliumDateTime.dateOnly(DateTime.now());
     while (!candidate.isAfter(last)) {
       if (!_isExcepted(candidate)) return candidate;
       candidate = candidate.add(const Duration(days: 1));
@@ -170,7 +167,7 @@ class _CourseExceptionsDialogState extends State<CourseExceptionsDialog> {
     );
     if (picked == null) return;
 
-    final dateOnly = DateTime(picked.year, picked.month, picked.day);
+    final dateOnly = HeliumDateTime.dateOnly(picked);
     setState(() {
       _exceptions = [..._exceptions, dateOnly]..sort();
     });
