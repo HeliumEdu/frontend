@@ -1698,11 +1698,11 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
   bool _hasCoursesFilter() {
     if (_plannerItemDataSource == null) return false;
 
-    final filteredCourses = _plannerItemDataSource!.filteredCourses;
+    final selectedCourses = _plannerItemDataSource!.selectedCourses;
 
-    if (filteredCourses.isEmpty) return false;
+    if (selectedCourses.isEmpty) return false;
 
-    return filteredCourses.values.any((isSelected) => isSelected);
+    return selectedCourses.values.any((isSelected) => isSelected);
   }
 
   List<CategoryModel> _deduplicateCategoriesByTitle(
@@ -1722,7 +1722,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
       return _deduplicatedCategories;
     }
 
-    final filteredCourseIds = _plannerItemDataSource!.filteredCourses.entries
+    final filteredCourseIds = _plannerItemDataSource!.selectedCourses.entries
         .where((e) => e.value)
         .map((e) => e.key)
         .toSet();
@@ -1771,7 +1771,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
     final categories = _plannerItemDataSource!.filterCategories;
     final types = _plannerItemDataSource!.filterTypes;
     final statuses = _plannerItemDataSource!.filterStatuses;
-    final hiddenCalendars =
+    final selectedCalendars =
         _plannerItemDataSource!.selectedExternalCalendarIds;
 
     if (types.isNotEmpty) return true;
@@ -1780,7 +1780,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
 
     if (statuses.isNotEmpty) return true;
 
-    if (hiddenCalendars.isNotEmpty) return true;
+    if (selectedCalendars.isNotEmpty) return true;
 
     return false;
   }
@@ -3707,6 +3707,8 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
 
       final visibleCategories = _getVisibleCategories();
       final visibleExternalCalendars = _getVisibleExternalCalendars();
+      final selectedExternalCalendarIds =
+          _plannerItemDataSource!.selectedExternalCalendarIds;
 
       return ConstrainedBox(
         constraints: BoxConstraints(
@@ -3917,7 +3919,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
                 ),
               ],
 
-              if (_areCourseItemsVisible()) ...[
+              if (_areCourseItemsVisible() && displayCourses.length > 1) ...[
               _buildSheetSectionHeader(context, 'CLASSES'),
               for (int i = 0; i < displayCourses.length; i++) ...[
                 if (i > 0 &&
@@ -3928,7 +3930,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
                   builder: (context) {
                     final course = displayCourses[i];
                     final isSelected =
-                        _plannerItemDataSource!.filteredCourses[course.id] ??
+                        _plannerItemDataSource!.selectedCourses[course.id] ??
                         false;
                     return HeliumCheckboxListTile(
                       title: Row(
@@ -3955,14 +3957,14 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
                       value: isSelected,
                       onChanged: (value) {
                         final currentFilters = Map<int, bool>.from(
-                          _plannerItemDataSource!.filteredCourses,
+                          _plannerItemDataSource!.selectedCourses,
                         );
                         if (value == true) {
                           currentFilters[course.id] = true;
                         } else {
                           currentFilters.remove(course.id);
                         }
-                        _plannerItemDataSource!.setFilteredCourses(
+                        _plannerItemDataSource!.setSelectedCourses(
                           currentFilters,
                         );
                         setSheetState(() {});
@@ -3979,8 +3981,6 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
               if (visibleExternalCalendars.isNotEmpty) ...[
                 _buildSheetSectionHeader(context, 'EXTERNAL CALENDARS'),
                 ...visibleExternalCalendars.map((calendar) {
-                  final selected = _plannerItemDataSource!
-                      .selectedExternalCalendarIds;
                   return HeliumCheckboxListTile(
                     title: Row(
                       children: [
@@ -4003,10 +4003,10 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
                         ),
                       ],
                     ),
-                    value: selected.contains(calendar.id),
+                    value: selectedExternalCalendarIds.contains(calendar.id),
                     onChanged: (value) {
                       final current = Set<int>.from(
-                        _plannerItemDataSource!.selectedExternalCalendarIds,
+                        selectedExternalCalendarIds,
                       );
                       if (value == true) {
                         current.add(calendar.id);

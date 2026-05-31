@@ -63,7 +63,7 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
   final Map<String, List<PlannerItemBaseModel>> _dateRangeCache = {};
 
   bool _hasLoadedInitialData = false;
-  Map<int, bool> _filteredCourses = {};
+  Map<int, bool> _selectedCourses = {};
   List<String> _filterCategories = [];
   List<String> _filterTypes = [];
   Set<String> _filterStatuses = {};
@@ -276,7 +276,7 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
 
   bool get hasLoadedInitialData => _hasLoadedInitialData;
 
-  Map<int, bool> get filteredCourses => _filteredCourses;
+  Map<int, bool> get selectedCourses => _selectedCourses;
 
   List<String> get filterCategories => _filterCategories;
 
@@ -859,7 +859,7 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
         .toList();
   }
 
-  void setFilteredCourses(Map<int, bool> courses) {
+  void setSelectedCourses(Map<int, bool> courses) {
     final selectedCourses = courses.entries
         .where((e) => e.value)
         .map((e) => e.key)
@@ -867,7 +867,7 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
     _log.info(
       'Course filter changed: ${selectedCourses.isEmpty ? "all" : selectedCourses.join(", ")}',
     );
-    _filteredCourses = courses;
+    _selectedCourses = courses;
     _saveFiltersIfEnabled();
     _applyFiltersAndNotify();
   }
@@ -901,7 +901,7 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
 
   void setSelectedExternalCalendarIds(Set<int> ids) {
     _log.info(
-      'External calendar filter changed: ${ids.isEmpty ? "all" : "only ${ids.join(", ")}"}',
+      'External calendar filter changed: ${ids.isEmpty ? "all" : ids.join(", ")}',
     );
     _selectedExternalCalendarIds = ids;
     _saveFiltersIfEnabled();
@@ -916,7 +916,7 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
 
   void clearFilters() {
     _log.info('All filters cleared');
-    _filteredCourses = {};
+    _selectedCourses = {};
     _filterCategories = [];
     _filterTypes = [];
     _filterStatuses = {};
@@ -929,7 +929,7 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
     if (!userSettings.rememberFilterState) return;
 
     final filterState = {
-      'filteredCourses': _filteredCourses.map(
+      'filteredCourses': _selectedCourses.map(
         (key, value) => MapEntry(key.toString(), value),
       ),
       'filterCategories': _filterCategories,
@@ -960,7 +960,7 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
       final savedCourses =
           filterState['filteredCourses'] as Map<String, dynamic>?;
       if (savedCourses != null) {
-        _filteredCourses = savedCourses.map(
+        _selectedCourses = savedCourses.map(
           (key, value) => MapEntry(int.parse(key), value as bool),
         );
       }
@@ -1351,13 +1351,13 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
   }
 
   bool _hasSelectedCourses() {
-    if (_filteredCourses.isEmpty) return false;
-    return _filteredCourses.values.any((isSelected) => isSelected);
+    if (_selectedCourses.isEmpty) return false;
+    return _selectedCourses.values.any((isSelected) => isSelected);
   }
 
   Set<int> _getSelectedCourseIds() {
-    if (_filteredCourses.isEmpty) return {};
-    return _filteredCourses.entries
+    if (_selectedCourses.isEmpty) return {};
+    return _selectedCourses.entries
         .where((entry) => entry.value)
         .map((entry) => entry.key)
         .toSet();
