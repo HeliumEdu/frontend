@@ -18,6 +18,7 @@ class UserModel extends BaseModel {
   final String? emailChanging;
   final bool hasUsablePassword;
   final bool hasOAuthProviders;
+  final List<String> oauthProviders;
 
   UserModel({
     required super.id,
@@ -26,6 +27,7 @@ class UserModel extends BaseModel {
     this.emailChanging,
     required this.hasUsablePassword,
     required this.hasOAuthProviders,
+    this.oauthProviders = const [],
   });
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
@@ -36,6 +38,9 @@ class UserModel extends BaseModel {
       settings: UserSettingsModel.fromJson(json['settings']),
       hasUsablePassword: json['has_usable_password'] ?? true,
       hasOAuthProviders: json['has_oauth_providers'] ?? false,
+      oauthProviders: (json['oauth_providers'] as List<dynamic>? ?? [])
+          .map((p) => p['provider'] as String)
+          .toList(),
     );
   }
 
