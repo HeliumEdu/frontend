@@ -5,7 +5,7 @@
     "display": "standalone",
     "background_color": "#418eb9",
     "theme_color": "#418eb9",
-    "description": "A free, color-coded online student planner for classes, homework, grades, and notes — the academic calendar built for the way you actually study.",
+    "description": "A free, color-coded online student planner for classes, homework, grades, and notes.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [
