@@ -590,7 +590,13 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
                   for (final provider in _oauthProviders)
                     if (_buildProviderBadge(provider) case final badge?) ...[
                       const SizedBox(width: 8),
-                      badge,
+                      Theme(
+                        data: Theme.of(context).copyWith(
+                          materialTapTargetSize:
+                              MaterialTapTargetSize.shrinkWrap,
+                        ),
+                        child: badge,
+                      ),
                     ],
                 ],
               ),
