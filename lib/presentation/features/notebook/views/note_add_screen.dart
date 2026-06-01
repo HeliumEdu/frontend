@@ -14,7 +14,9 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_quill/flutter_quill.dart';
 import 'package:flutter_quill/quill_delta.dart';
+import 'package:flutter_quill_delta_from_html/flutter_quill_delta_from_html.dart';
 import 'package:flutter_quill_to_pdf/flutter_quill_to_pdf.dart';
+import 'package:html/parser.dart' as html_parser;
 import 'package:go_router/go_router.dart';
 import 'package:heliumapp/config/analytics_event.dart';
 import 'package:heliumapp/config/app_route.dart';
@@ -50,6 +52,7 @@ import 'package:heliumapp/utils/search_helpers.dart';
 import 'package:heliumapp/utils/deep_link_helpers.dart';
 import 'package:heliumapp/utils/print_helpers.dart';
 import 'package:heliumapp/utils/print_service.dart';
+import 'package:heliumapp/utils/quill_clipboard.dart';
 import 'package:heliumapp/utils/quill_helpers.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:pdf/pdf.dart';
@@ -172,7 +175,17 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
   void initState() {
     super.initState();
     _currentNoteId = widget.noteId;
-    _quillController = QuillController.basic();
+    _quillController = QuillController.basic(
+      config: QuillControllerConfig(
+        // ignore: experimental_member_use
+        clipboardConfig: QuillClipboardConfig(
+          // ignore: experimental_member_use
+          enableExternalRichPaste: !kIsWeb,
+          // ignore: experimental_member_use
+          onClipboardPaste: _handleClipboardPaste,
+        ),
+      ),
+    );
     _saveStatus = widget.noteId == null ? SaveStatus.unsaved : SaveStatus.saved;
 
     _titleController.addListener(_onContentChanged);
@@ -216,7 +229,7 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
   /// silently lose unsaved changes.
   void _registerDirtyGuard() {
     final prefix =
-        '${widget.shellPath}/notes/${_currentNoteId?.toString() ?? 'new'}';
+        '${widget.shellPath}/${_currentNoteId?.toString() ?? 'new'}';
     final routerPath =
         router.routerDelegate.currentConfiguration.uri.path;
     // Prefer the routerDelegate's settled path if it already matches our
@@ -485,7 +498,7 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
               _registerDirtyGuard();
               if (!Responsive.isMobile(context)) {
                 context.go(
-                  '${widget.shellPath}/notes/${state.note.id}',
+                  '${widget.shellPath}/${state.note.id}',
                 );
               }
               showSnackBar(context, 'Note created.');
@@ -699,6 +712,23 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
       if (!isNoteEdited(change)) return;
       _onContentChanged();
     });
+  }
+
+  Future<bool> _handleClipboardPaste() async {
+    final html = await readHtmlFromClipboard();
+    if (html == null || html.isEmpty) return false;
+
+    final bodyHtml = html_parser.parse(html).body?.outerHtml ?? html;
+    final delta = HtmlToDelta().convert(bodyHtml);
+    if (delta.isEmpty) return false;
+
+    _quillController.replaceText(
+      _quillController.selection.start,
+      _quillController.selection.end - _quillController.selection.start,
+      delta,
+      TextSelection.collapsed(offset: _quillController.selection.end),
+    );
+    return true;
   }
 
   void _populateNoteData(NoteModel note) {
