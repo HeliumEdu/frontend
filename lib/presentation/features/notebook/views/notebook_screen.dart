@@ -514,7 +514,15 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen>
         ),
       ];
 
-      return Padding(
+      return Material(
+        color: context.colorScheme.surface,
+        child: ConstrainedBox(
+          constraints: BoxConstraints(
+            maxHeight:
+                MediaQuery.of(context).size.height * AppConstants.bottomSheetMaxHeightFactor,
+          ),
+          child: SingleChildScrollView(
+            child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -625,6 +633,9 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen>
               dense: true,
             ),
           ],
+        ),
+            ),
+          ),
         ),
       );
     }
