@@ -632,6 +632,24 @@ Future<bool> loginAndNavigateToPlanner(
   return true;
 }
 
+/// Opens the planner filter sheet, taps Clear All, and dismisses it.
+/// Safe to call even when no filters are active.
+Future<void> clearPlannerFilters(WidgetTester tester) async {
+  final filterButton = find.byKey(const Key(PlannerScreen.filterButtonKey));
+  final clearAllButton = find.text('Clear All');
+  await tester.tap(filterButton);
+  final filterOpened = await waitForWidget(
+    tester,
+    clearAllButton,
+    timeout: const Duration(seconds: 5),
+  );
+  if (!filterOpened) return;
+  await tester.tap(clearAllButton);
+  await tester.pumpAndSettle();
+  await tester.tapAt(const Offset(10, 10));
+  await tester.pumpAndSettle();
+}
+
 /// Navigates the month-view calendar to the current month in [timezoneName],
 /// correcting for any offset between the CI device's UTC clock and the user's
 /// configured timezone.

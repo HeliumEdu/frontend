@@ -148,6 +148,9 @@ void main() {
               'External calendar event should disappear after filtering to '
               'Assignments only',
         );
+
+        _log.info('Clearing Assignments filter ...');
+        await clearPlannerFilters(tester);
       },
     );
 
