@@ -52,7 +52,7 @@ const _cards = [
         'see Helium in action. Take your time exploring — click through '
         'to see what you can do.',
     icon: Icons.rocket_launch_outlined,
-    imagePaths: ['assets/img/onboarding_welcome.png'],
+    imagePaths: ['assets/img/onboarding_month_view.png'],
   ),
   _OnboardingCard(
     title: 'One Planner, every view',
@@ -63,7 +63,7 @@ const _cards = [
         'schedule.',
     icon: Icons.calendar_month_outlined,
     imagePaths: [
-      'assets/img/onboarding_planner.png',
+      'assets/img/onboarding_week_view.png',
       'assets/img/onboarding_todos.png',
     ],
   ),
@@ -74,7 +74,7 @@ const _cards = [
         'assignments connect. Track deadlines, class times, locations, '
         'and Resources — all in one place.',
     icon: Icons.school_outlined,
-    imagePaths: ['assets/img/onboarding_classes.png'],
+    imagePaths: ['assets/img/onboarding_class_manager.png'],
   ),
   _OnboardingCard(
     title: 'Know your grades',
@@ -84,10 +84,10 @@ const _cards = [
         'piling up, and calculate what you need to score on the final.',
     icon: Icons.bar_chart_outlined,
     imagePaths: [
-      'assets/img/onboarding_grades.png',
-      'assets/img/onboarding_grade_detail.png',
+      'assets/img/onboarding_grades_dashboard.png',
+      'assets/img/onboarding_grades_breakdown.png',
     ],
-    overlayImagePath: 'assets/img/onboarding_grade_calculator.png',
+    overlayImagePath: 'assets/img/onboarding_grade_calculator_square.png',
   ),
   _OnboardingCard(
     title: 'Notes for anything',
@@ -106,7 +106,7 @@ const _cards = [
         'Apple, or other calendars. Enable Feeds to share your Helium '
         'schedule back to those other apps.',
     icon: Icons.sync_outlined,
-    imagePaths: ['assets/img/onboarding_sync.png'],
+    imagePaths: ['assets/img/onboarding_external_calendars.png'],
   ),
   _OnboardingCard(
     title: 'Available everywhere',
