@@ -1,4 +1,4 @@
-.PHONY: all env install screenshots clean clean-chrome icons build-android build-android-release build-ios-dev build-ios build-ios-release update-version firebase-config build-web test start-platform stop-platform test-integration test-integration-smoke test-playwright coverage run-devserver build-docker-local build-docker run-docker stop-docker restart-docker publish
+.PHONY: all env install screenshots clean clean-chrome icons build-android build-android-release build-ios-dev build-ios build-ios-release update-version firebase-config build-web test start-platform stop-platform install-chromedriver test-integration test-integration-smoke test-playwright coverage run-devserver build-docker-local build-docker run-docker stop-docker restart-docker publish
 
 SHELL := /usr/bin/env bash
 TAG_VERSION ?= latest
@@ -161,6 +161,9 @@ start-platform:
 
 stop-platform:
 	@curl -fsSL "https://raw.githubusercontent.com/HeliumEdu/platform/main/bin/stop-platform.sh?$$(date +%s)" | bash
+
+install-chromedriver:
+	npm install -g chromedriver
 
 test-integration:
 ifeq ($(ENVIRONMENT),dev-local)

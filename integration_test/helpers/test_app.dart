@@ -664,7 +664,7 @@ Future<void> navigateCalendarToUserTimezone(
 ) async {
   final userLocation = tzlib.getLocation(timezoneName);
   final nowInUserTz = tzlib.TZDateTime.now(userLocation);
-  final deviceNow = DateTime.now();
+  final deviceNow = tzlib.TZDateTime.now(userLocation);
 
   final monthDiff = (nowInUserTz.year * 12 + nowInUserTz.month) -
       (deviceNow.year * 12 + deviceNow.month);
