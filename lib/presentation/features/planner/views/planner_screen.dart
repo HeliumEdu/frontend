@@ -3710,10 +3710,8 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
       final selectedExternalCalendarIds =
           _plannerItemDataSource!.selectedExternalCalendarIds;
 
-      return ConstrainedBox(
-        constraints: BoxConstraints(
-          maxHeight: MediaQuery.of(context).size.height * 0.8,
-        ),
+      return SizedBox(
+        height: MediaQuery.of(context).size.height * 0.55,
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(16),
           child: Column(
