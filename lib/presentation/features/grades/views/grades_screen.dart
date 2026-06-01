@@ -1171,7 +1171,12 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
       List<GradeCourseModel> courses,) {
     return Material(
       color: context.colorScheme.surface,
-      child: Padding(
+      child: ConstrainedBox(
+        constraints: BoxConstraints(
+          maxHeight: MediaQuery.of(context).size.height * AppConstants.bottomSheetMaxHeightFactor,
+        ),
+        child: SingleChildScrollView(
+        child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -1216,6 +1221,8 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
               ),
             ],
           ],
+        ),
+        ),
         ),
       ),
     );
@@ -1364,6 +1371,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
               ),
             ),
             // Calculator icon for grade calculator
+            if (coursesWithCategories.isNotEmpty) const SizedBox(width: 8),
             if (coursesWithCategories.isNotEmpty)
               PrintHidden(
                 child: Builder(
@@ -2070,129 +2078,97 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
     Widget buildContent(BuildContext menuContext, StateSetter setMenuState) {
       return Material(
         color: context.colorScheme.surface,
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // Radio group for graph view mode
-              RadioGroup<String>(
-                groupValue: _graphViewMode.radioValue,
-                onChanged: (value) {
-                  if (value == null) return;
-                  setState(() {
-                    _graphViewMode = _GraphViewMode.fromRadioValue(value);
-                  });
-                  Navigator.pop(menuContext);
-                },
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    // Entire Term option
-                    InkWell(
-                      onTap: () {
-                        setState(() {
-                          _graphViewMode = const _GraphViewMode.term();
-                        });
-                        Navigator.pop(menuContext);
-                      },
-                      child: Padding(
-                        padding: const EdgeInsets.only(
-                          left: 4,
-                          top: 8,
-                          bottom: 8,
-                        ),
-                        child: Row(
-                          children: [
-                            const Radio<String>(value: 'term'),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: Text(
-                                'Entire Term',
-                                style: AppStyles.formText(context),
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                    const Divider(height: 20),
-                    // Individual courses
-                    ...selectedGroup.courses.map(
-                          (course) =>
-                          InkWell(
-                            onTap: () {
-                              setState(
-                                    () =>
-                                _graphViewMode = _GraphViewMode.course(
-                                  course.id,
-                                ),
-                              );
-                              Navigator.pop(menuContext);
-                            },
-                            child: Padding(
-                              padding: const EdgeInsets.only(
-                                left: 4,
-                                top: 8,
-                                bottom: 8,
-                              ),
-                              child: Row(
-                                children: [
-                                  Radio<String>(
-                                    value: _GraphViewMode
-                                        .course(
-                                      course.id,
-                                    )
-                                        .radioValue,
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Icon(Icons.school, size: 16,
-                                      color: course.color),
-                                  const SizedBox(width: 8),
-                                  Expanded(
-                                    child: Text(
-                                      course.title,
-                                      style: AppStyles.formText(context),
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
+        child: ConstrainedBox(
+          constraints: BoxConstraints(
+            maxHeight: MediaQuery.of(context).size.height * AppConstants.bottomSheetMaxHeightFactor,
+          ),
+          child: SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  RadioGroup<String>(
+                    groupValue: _graphViewMode.radioValue,
+                    onChanged: (value) {
+                      if (value == null) return;
+                      setState(() => _graphViewMode =
+                          _GraphViewMode.fromRadioValue(value));
+                      Navigator.pop(menuContext);
+                    },
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        RadioListTile<String>(
+                          title: Text(
+                            'Entire Term',
+                            style: AppStyles.formText(context),
                           ),
+                          value: const _GraphViewMode.term().radioValue,
+                          controlAffinity: ListTileControlAffinity.leading,
+                          dense: true,
+                          contentPadding: const EdgeInsets.only(left: 4),
+                        ),
+                        const Divider(height: 20),
+                        ...selectedGroup.courses.map(
+                          (course) => RadioListTile<String>(
+                            title: Row(
+                              children: [
+                                Icon(Icons.school, size: 16,
+                                    color: course.color),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: Text(
+                                    course.title,
+                                    style: AppStyles.formText(context),
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            value:
+                                _GraphViewMode.course(course.id).radioValue,
+                            controlAffinity: ListTileControlAffinity.leading,
+                            dense: true,
+                            contentPadding: const EdgeInsets.only(left: 4),
+                          ),
+                        ),
+                      ],
                     ),
-                  ],
-                ),
+                  ),
+                  const Divider(height: 20),
+                  HeliumCheckboxListTile(
+                    controlAffinity: ListTileControlAffinity.leading,
+                    title: Text(
+                      'Auto-adjust to graded range',
+                      style: AppStyles.formText(context),
+                    ),
+                    value: _autoAdjustToGradedRange == true,
+                    onChanged: (value) {
+                      _setAutoAdjustToGradedRange(value ?? false);
+                      setMenuState(() {});
+                    },
+                    dense: true,
+                    contentPadding: EdgeInsets.zero,
+                  ),
+                  HeliumCheckboxListTile(
+                    controlAffinity: ListTileControlAffinity.leading,
+                    title: Text(
+                      'Hide legend',
+                      style: AppStyles.formText(context),
+                    ),
+                    value: _hideLegend == true,
+                    onChanged: (value) {
+                      _setHideLegend(value ?? false);
+                      setMenuState(() {});
+                    },
+                    dense: true,
+                    contentPadding: EdgeInsets.zero,
+                  ),
+                ],
               ),
-              const Divider(height: 20),
-              HeliumCheckboxListTile(
-                controlAffinity: ListTileControlAffinity.leading,
-                title: Text(
-                  'Auto-adjust to graded range',
-                  style: AppStyles.formText(context),
-                ),
-                value: _autoAdjustToGradedRange == true,
-                onChanged: (value) {
-                  _setAutoAdjustToGradedRange(value ?? false);
-                  setMenuState(() {});
-                },
-                dense: true,
-                contentPadding: EdgeInsets.zero,
-              ),
-              HeliumCheckboxListTile(
-                controlAffinity: ListTileControlAffinity.leading,
-                title: Text('Hide legend', style: AppStyles.formText(context)),
-                value: _hideLegend == true,
-                onChanged: (value) {
-                  _setHideLegend(value ?? false);
-                  setMenuState(() {});
-                },
-                dense: true,
-                contentPadding: EdgeInsets.zero,
-              ),
-            ],
+            ),
           ),
         ),
       );
