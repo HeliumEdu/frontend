@@ -10,6 +10,7 @@ import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/data/models/base_model.dart';
 import 'package:heliumapp/data/models/planner/course_model.dart';
 import 'package:heliumapp/presentation/ui/components/helium_checkbox_list_tile.dart';
+import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 
@@ -105,7 +106,11 @@ class SelectField<T extends BaseTitledModel> extends StatelessWidget {
     Widget buildContent(BuildContext menuContext, StateSetter setMenuState) {
       return Material(
         color: Theme.of(parentContext).colorScheme.surface,
-        child: SingleChildScrollView(
+        child: ConstrainedBox(
+          constraints: BoxConstraints(
+            maxHeight: MediaQuery.of(parentContext).size.height * AppConstants.bottomSheetMaxHeightFactor,
+          ),
+          child: SingleChildScrollView(
           child: Padding(
             padding: const EdgeInsets.all(16.0),
             child: Column(
@@ -156,6 +161,7 @@ class SelectField<T extends BaseTitledModel> extends StatelessWidget {
               }).toList(),
             ),
           ),
+        ),
         ),
       );
     }

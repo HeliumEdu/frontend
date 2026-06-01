@@ -454,20 +454,50 @@ void main() {
             'Should show "Showing X to Y of $totalExpected" after Todos view initializes',
       );
 
-      _log.info('Opening filter menu ...');
+      // Filter interaction helpers (same pattern as Test 7).
       final filterButton = find.byKey(
         const Key(PlannerScreen.filterButtonKey),
       );
-      await tester.tap(filterButton);
+      final clearAllButton = find.text('Clear All');
 
-      // Wait for filter menu to open (look for CheckboxListTile)
-      final checkboxListTiles = find.byType(CheckboxListTile);
-      final filterMenuOpened = await waitForWidget(
-        tester,
-        checkboxListTiles,
-        timeout: const Duration(seconds: 5),
+      Finder filterTileFor(String text) => find.ancestor(
+        of: find.text(text),
+        matching: find.byType(CheckboxListTile),
       );
-      expect(filterMenuOpened, isTrue, reason: 'Filter menu should open');
+
+      Future<void> ensureFilterMenuOpen() async {
+        if (clearAllButton.evaluate().isNotEmpty) return;
+        await tester.tap(filterButton);
+        await waitForWidget(
+          tester,
+          clearAllButton,
+          timeout: const Duration(seconds: 5),
+        );
+      }
+
+      Future<void> closeFilterMenu() async {
+        if (clearAllButton.evaluate().isEmpty) return;
+        await tester.tapAt(const Offset(10, 10));
+        await tester.pumpAndSettle();
+      }
+
+      Future<void> applyFilters({Set<String> tileLabels = const {}}) async {
+        await closeFilterMenu();
+        await ensureFilterMenuOpen();
+        await tester.tap(clearAllButton);
+        await tester.pumpAndSettle();
+        for (final label in tileLabels) {
+          final tile = filterTileFor(label);
+          await tester.ensureVisible(tile);
+          await tester.pumpAndSettle();
+          await tester.tap(tile);
+          await tester.pumpAndSettle();
+        }
+      }
+
+      // Verify TYPES section is hidden and other sections are present.
+      _log.info('Checking filter section visibility in Todos view ...');
+      await ensureFilterMenuOpen();
 
       expect(
         find.ancestor(
@@ -502,17 +532,37 @@ void main() {
         reason: 'External Calendars filter should be hidden in Todos view',
       );
 
-      final fundamentalsCheckbox = find.ancestor(
-        of: find.textContaining('Fundamentals'),
-        matching: find.byType(CheckboxListTile),
+      // CLASSES, STATUS, and CATEGORIES sections should be present.
+      expect(
+        find.ancestor(
+          of: find.text(fundamentals.title),
+          matching: find.byType(CheckboxListTile),
+        ),
+        findsOneWidget,
+        reason: 'CLASSES section should be visible in Todos filter',
       );
       expect(
-        fundamentalsCheckbox,
+        find.ancestor(
+          of: find.text('Complete'),
+          matching: find.byType(CheckboxListTile),
+        ),
         findsOneWidget,
-        reason: 'Fundamentals checkbox should be in filter menu',
+        reason: 'STATUS section should be visible in Todos filter',
       );
-      await tester.tap(fundamentalsCheckbox);
-      await tester.pumpAndSettle();
+      expect(
+        find.ancestor(
+          of: find.text(homeworkCategoryTitle),
+          matching: find.byType(CheckboxListTile),
+        ),
+        findsOneWidget,
+        reason: 'CATEGORIES section should be visible in Todos filter',
+      );
+
+      await closeFilterMenu();
+
+      // Fundamentals course filter.
+      _log.info('Applying Fundamentals filter ...');
+      await applyFilters(tileLabels: {fundamentals.title});
 
       final fundExpected = counts.expectedCount(
         snapshot: snap,
@@ -527,17 +577,9 @@ void main() {
             'After Fundamentals filter: should show "Showing 1 to $fundUpper of $fundExpected"',
       );
 
-      final homeworkCheckbox = find.ancestor(
-        of: find.textContaining('Homework'),
-        matching: find.byType(CheckboxListTile),
-      );
-      expect(
-        homeworkCheckbox,
-        findsOneWidget,
-        reason: 'Homework category should be in filters',
-      );
-      await tester.tap(homeworkCheckbox);
-      await tester.pumpAndSettle();
+      // Fundamentals + Homework category filter (clean state via Clear All).
+      _log.info('Applying Fundamentals + Homework filter ...');
+      await applyFilters(tileLabels: {fundamentals.title, homeworkCategoryTitle});
 
       final funHwExpected = counts.expectedCount(
         snapshot: snap,
@@ -556,8 +598,7 @@ void main() {
       );
 
       _log.info('Closing filter menu ...');
-      await tester.tapAt(const Offset(10, 10));
-      await tester.pumpAndSettle();
+      await closeFilterMenu();
 
       // On desktop the search field is always visible inline; on smaller
       // viewports it's behind a button that must be tapped first.
@@ -702,6 +743,8 @@ void main() {
         equals('40/50'),
         reason: 'Grade should still be 40/50 even after unchecking completed',
       );
+
+      await clearPlannerFilters(tester);
     });
 
     namedTestWidgets('5. Month view edit assignment and checkbox toggle', (
@@ -1613,6 +1656,8 @@ void main() {
           ],
           reason: 'Exclude Creative Writing + Class Schedules',
         );
+
+        await clearPlannerFilters(tester);
       },
     );
 
