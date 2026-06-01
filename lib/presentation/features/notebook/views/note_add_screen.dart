@@ -176,7 +176,6 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
     _saveStatus = widget.noteId == null ? SaveStatus.unsaved : SaveStatus.saved;
 
     _titleController.addListener(_onContentChanged);
-    _editorFocusNode.addListener(_onEditorFocusChanged);
     _printHandler = _printNote;
     PrintService().register(_printHandler!);
 
@@ -204,7 +203,6 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
     _debounceTimer?.cancel();
     _documentSubscription?.cancel();
     _titleController.removeListener(_onContentChanged);
-    _editorFocusNode.removeListener(_onEditorFocusChanged);
     _titleController.dispose();
     _quillController.dispose();
     _titleFocusNode.dispose();
@@ -599,15 +597,6 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
     _debounceTimer = Timer(_autoSaveDebounce, _triggerAutoSave);
   }
 
-  void _onEditorFocusChanged() {
-    // Trigger save on blur if there are unsaved changes
-    if (!_editorFocusNode.hasFocus &&
-        _saveStatus == SaveStatus.unsaved &&
-        !_autoSaveDisabled) {
-      _triggerAutoSave();
-    }
-  }
-
   void _triggerAutoSave() {
     if (_saveStatus == SaveStatus.saving || _autoSaveDisabled) return;
 
@@ -883,6 +872,7 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
         controller: _quillController,
         config: QuillSimpleToolbarConfig(
           toolbarRunSpacing: 0,
+          toolbarSectionSpacing: 8,
           customButtons: [
             QuillToolbarCustomButtonOptions(
               icon: const Icon(Icons.print_outlined),
@@ -929,10 +919,21 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
                     overlayColor: WidgetStatePropertyAll(
                       context.colorScheme.onPrimary.withValues(alpha: 0.1),
                     ),
+                    minimumSize: const WidgetStatePropertyAll(Size.zero),
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                   ),
                 ),
                 iconButtonUnselectedData: IconButtonData(
-                  color: context.colorScheme.onSurface,
+                  style: ButtonStyle(
+                    backgroundColor: const WidgetStatePropertyAll(
+                      Colors.transparent,
+                    ),
+                    foregroundColor: WidgetStatePropertyAll(
+                      context.colorScheme.onSurface,
+                    ),
+                    minimumSize: const WidgetStatePropertyAll(Size.zero),
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  ),
                 ),
               ),
             ),
