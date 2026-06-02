@@ -22,6 +22,8 @@ void main() {
   late MockCourseRepository mockCourseRepository;
   late MockCourseScheduleRepository mockCourseScheduleRepository;
   late MockCategoryRepository mockCategoryRepository;
+  late MockAttachmentRepository mockAttachmentRepository;
+  late MockReminderRepository mockReminderRepository;
   late CourseBloc courseBloc;
 
   setUpAll(() {
@@ -32,10 +34,14 @@ void main() {
     mockCourseRepository = MockCourseRepository();
     mockCourseScheduleRepository = MockCourseScheduleRepository();
     mockCategoryRepository = MockCategoryRepository();
+    mockAttachmentRepository = MockAttachmentRepository();
+    mockReminderRepository = MockReminderRepository();
     courseBloc = CourseBloc(
       courseRepository: mockCourseRepository,
       courseScheduleRepository: mockCourseScheduleRepository,
       categoryRepository: mockCategoryRepository,
+      attachmentRepository: mockAttachmentRepository,
+      reminderRepository: mockReminderRepository,
     );
   });
 
@@ -58,6 +64,15 @@ void main() {
           when(
             () => mockCourseRepository.getCourses(),
           ).thenAnswer((_) async => MockModels.createCourses());
+          when(
+            () => mockCategoryRepository.getCategories(),
+          ).thenAnswer((_) async => MockModels.createCategories());
+          when(
+            () => mockAttachmentRepository.getAttachments(),
+          ).thenAnswer((_) async => MockModels.createAttachments());
+          when(
+            () => mockReminderRepository.getReminders(),
+          ).thenAnswer((_) async => MockModels.createReminders());
           return courseBloc;
         },
         act: (bloc) =>
