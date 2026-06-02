@@ -11,6 +11,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_quill/flutter_quill.dart';
 import 'package:flutter_quill/quill_delta.dart';
 import 'package:flutter_quill_delta_from_html/flutter_quill_delta_from_html.dart';
+import 'package:heliumapp/utils/quill_html_sanitizers.dart';
 import 'package:heliumapp/utils/quill_paste.dart';
 import 'package:quill_native_bridge/quill_native_bridge.dart';
 import 'package:vsc_quill_delta_to_html/vsc_quill_delta_to_html.dart';
@@ -130,19 +131,29 @@ class _HeliumQuillEditorState extends State<HeliumQuillEditor> {
     // whitespace/newlines (e.g., complex layout HTML with no text content)
     // and fall through to plain text.
     if (html != null) {
-      final delta = HtmlToDelta().convert(html);
-      final hasText = delta.toList().any((op) =>
-          op.isInsert &&
-          op.data is String &&
-          (op.data as String).trim().isNotEmpty);
-      if (hasText) {
-        widget.controller.replaceText(
-          start,
-          len,
-          delta,
-          TextSelection.collapsed(offset: sel.end),
-        );
-        return;
+      try {
+        final raw = HtmlToDelta().convert(sanitizeClipboardHtml(html));
+        // Strip non-text embed ops — Quill has no renderer for embed types from
+        // external sources (e.g. Google Docs checkboxes), which causes a fatal
+        // render assertion. Text ops and their inline/block attributes are kept.
+        final safeOps =
+            raw.toList().where((op) => op.isInsert && op.data is String).toList();
+        final delta = safeOps.fold(Delta(), (d, op) => d..push(op));
+        final hasText = delta.toList().any((op) =>
+            op.isInsert &&
+            op.data is String &&
+            (op.data as String).trim().isNotEmpty);
+        if (hasText) {
+          widget.controller.replaceText(
+            start,
+            len,
+            delta,
+            TextSelection.collapsed(offset: sel.end),
+          );
+          return;
+        }
+      } catch (_) {
+        // Conversion or insertion failed; fall through to plain text.
       }
     }
 

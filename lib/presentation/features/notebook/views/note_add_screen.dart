@@ -36,6 +36,7 @@ import 'package:heliumapp/presentation/features/notebook/bloc/note_state.dart';
 import 'package:heliumapp/presentation/features/planner/dialogs/confirm_delete_dialog.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/core/base_event.dart';
 import 'package:heliumapp/presentation/features/shared/controllers/basic_form_controller.dart';
+import 'package:heliumapp/presentation/ui/components/course_title_label.dart';
 import 'package:heliumapp/presentation/ui/components/generic_label.dart';
 import 'package:heliumapp/presentation/ui/components/helium_icon_button.dart';
 import 'package:heliumapp/presentation/ui/components/label_and_text_form_field.dart';
@@ -1482,16 +1483,23 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
       itemBuilder: (context, index) {
         final row = rows[index];
         if (row is _LinkGroupHeader) {
+          final Widget groupBadge;
+          if (_linkPickerType == 'resource' && userSettings != null) {
+            groupBadge = ResourceTitleLabel(
+              title: row.title,
+              userSettings: userSettings!,
+              compact: true,
+            );
+          } else {
+            groupBadge = CourseTitleLabel(
+              title: row.title,
+              color: row.color ?? context.colorScheme.primary,
+              compact: true,
+            );
+          }
           return Padding(
             padding: const EdgeInsets.fromLTRB(12, 8, 12, 2),
-            child: Text(
-              row.title,
-              style: AppStyles.smallSecondaryText(context).copyWith(
-                color: row.color ?? onSurface50,
-                fontWeight: FontWeight.w600,
-              ),
-              overflow: TextOverflow.ellipsis,
-            ),
+            child: groupBadge,
           );
         }
         final item = row as _LinkPickerItem;
