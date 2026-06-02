@@ -26,6 +26,10 @@ import 'package:heliumapp/presentation/features/courses/bloc/category_state.dart
 import 'package:heliumapp/presentation/features/courses/bloc/course_bloc.dart';
 import 'package:heliumapp/presentation/features/courses/bloc/course_event.dart';
 import 'package:heliumapp/presentation/features/courses/bloc/course_state.dart';
+import 'package:heliumapp/presentation/features/planner/bloc/attachment_bloc.dart';
+import 'package:heliumapp/presentation/features/planner/bloc/attachment_state.dart';
+import 'package:heliumapp/presentation/features/planner/bloc/reminder_bloc.dart';
+import 'package:heliumapp/presentation/features/planner/bloc/reminder_state.dart';
 import 'package:heliumapp/presentation/features/planner/dialogs/confirm_delete_dialog.dart';
 import 'package:heliumapp/presentation/features/courses/dialogs/course_group_dialog.dart';
 import 'package:heliumapp/presentation/core/views/base_page_screen_state.dart';
@@ -92,6 +96,9 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen>
   final Map<int, List<CourseModel>> _coursesMap = {};
   final Map<int, int> _categoryCounts = {};
   final Map<int, int> _categoryToCourse = {};
+  final Map<int, int> _attachmentCounts = {};
+  final Map<int, int> _reminderCounts = {};
+  final Map<int, int> _reminderToCourse = {};
   int? _selectedGroupId;
 
   @override
@@ -237,6 +244,55 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen>
                 _categoryToCourse[category.id] = courseId;
               }
             });
+          }
+        },
+      ),
+      BlocListener<AttachmentBloc, AttachmentState>(
+        listener: (context, state) {
+          if (state is AttachmentsCreated) {
+            setState(() {
+              for (final attachment in state.attachments) {
+                if (attachment.course != null) {
+                  _attachmentCounts[attachment.course!] =
+                      (_attachmentCounts[attachment.course!] ?? 0) + 1;
+                }
+              }
+            });
+          } else if (state is AttachmentDeleted && state.courseId != null) {
+            setState(() {
+              final current = _attachmentCounts[state.courseId] ?? 0;
+              if (current > 1) {
+                _attachmentCounts[state.courseId!] = current - 1;
+              } else {
+                _attachmentCounts.remove(state.courseId);
+              }
+            });
+          }
+        },
+      ),
+      BlocListener<ReminderBloc, ReminderState>(
+        listener: (context, state) {
+          if (state is ReminderCreated) {
+            final courseId = state.reminder.course?.id;
+            if (courseId != null) {
+              setState(() {
+                _reminderCounts[courseId] =
+                    (_reminderCounts[courseId] ?? 0) + 1;
+                _reminderToCourse[state.reminder.id] = courseId;
+              });
+            }
+          } else if (state is ReminderDeleted) {
+            final courseId = _reminderToCourse.remove(state.id);
+            if (courseId != null) {
+              setState(() {
+                final current = _reminderCounts[courseId] ?? 0;
+                if (current > 1) {
+                  _reminderCounts[courseId] = current - 1;
+                } else {
+                  _reminderCounts.remove(courseId);
+                }
+              });
+            }
           }
         },
       ),
@@ -394,6 +450,24 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen>
         _categoryToCourse[category.id] = category.course;
       }
 
+      _attachmentCounts.clear();
+      for (final attachment in state.attachments) {
+        if (attachment.course != null) {
+          _attachmentCounts[attachment.course!] =
+              (_attachmentCounts[attachment.course!] ?? 0) + 1;
+        }
+      }
+
+      _reminderCounts.clear();
+      _reminderToCourse.clear();
+      for (final reminder in state.reminders) {
+        final courseId = reminder.course?.id;
+        if (courseId != null) {
+          _reminderCounts[courseId] = (_reminderCounts[courseId] ?? 0) + 1;
+          _reminderToCourse[reminder.id] = courseId;
+        }
+      }
+
       if (_courseGroups.isNotEmpty) {
         _selectedGroupId = _courseGroups.first.id;
       }
@@ -406,6 +480,8 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen>
 
   Widget _buildCourseCard(BuildContext context, CourseModel course) {
     final categoryCount = _categoryCounts[course.id] ?? 0;
+    final attachmentCount = _attachmentCounts[course.id] ?? 0;
+    final reminderCount = _reminderCounts[course.id] ?? 0;
 
     return MobileGestureDetector(
       onTap: () => _onEdit(course),
@@ -643,6 +719,66 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen>
                                 ),
                               ),
                             ),
+                          ],
+                        ),
+                      ],
+                      if (attachmentCount > 0 || reminderCount > 0) ...[
+                        const SizedBox(height: 6),
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            if (attachmentCount > 0) ...[
+                              Icon(
+                                Icons.attachment,
+                                size: Responsive.getIconSize(
+                                  context,
+                                  mobile: 14,
+                                  tablet: 16,
+                                  desktop: 16,
+                                ),
+                                color: context.semanticColors.success.withValues(
+                                  alpha: 0.9,
+                                ),
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                '$attachmentCount',
+                                style: AppStyles.smallSecondaryText(
+                                  context,
+                                ).copyWith(
+                                  color: context.semanticColors.success.withValues(
+                                    alpha: 0.9,
+                                  ),
+                                ),
+                              ),
+                            ],
+                            if (attachmentCount > 0 && reminderCount > 0)
+                              const SizedBox(width: 10),
+                            if (reminderCount > 0) ...[
+                              Icon(
+                                Icons.notifications_outlined,
+                                size: Responsive.getIconSize(
+                                  context,
+                                  mobile: 14,
+                                  tablet: 16,
+                                  desktop: 16,
+                                ),
+                                color: context.colorScheme.primary.withValues(
+                                  alpha: 0.9,
+                                ),
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                '$reminderCount',
+                                style: AppStyles.smallSecondaryText(
+                                  context,
+                                ).copyWith(
+                                  color: context.colorScheme.primary.withValues(
+                                    alpha: 0.9,
+                                  ),
+                                ),
+                              ),
+                            ],
                           ],
                         ),
                       ],

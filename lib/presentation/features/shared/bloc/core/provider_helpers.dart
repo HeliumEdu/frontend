@@ -142,6 +142,12 @@ class ProviderHelpers {
       categoryRepository: CategoryRepositoryImpl(
         remoteDataSource: CategoryRemoteDataSourceImpl(dioClient: _dioClient),
       ),
+      attachmentRepository: AttachmentRepositoryImpl(
+        remoteDataSource: AttachmentRemoteDataSourceImpl(dioClient: _dioClient),
+      ),
+      reminderRepository: ReminderRepositoryImpl(
+        remoteDataSource: ReminderRemoteDataSourceImpl(dioClient: _dioClient),
+      ),
     );
   }
 
