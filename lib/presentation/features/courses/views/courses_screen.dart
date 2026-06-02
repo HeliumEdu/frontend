@@ -21,6 +21,8 @@ import 'package:heliumapp/data/models/planner/course_schedule_model.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_bloc.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_state.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/core/base_event.dart';
+import 'package:heliumapp/presentation/features/courses/bloc/category_bloc.dart';
+import 'package:heliumapp/presentation/features/courses/bloc/category_state.dart';
 import 'package:heliumapp/presentation/features/courses/bloc/course_bloc.dart';
 import 'package:heliumapp/presentation/features/courses/bloc/course_event.dart';
 import 'package:heliumapp/presentation/features/courses/bloc/course_state.dart';
@@ -88,6 +90,8 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen>
 
   List<CourseGroupModel> _courseGroups = [];
   final Map<int, List<CourseModel>> _coursesMap = {};
+  final Map<int, int> _categoryCounts = {};
+  final Map<int, int> _categoryToCourse = {};
   int? _selectedGroupId;
 
   @override
@@ -200,6 +204,38 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen>
               _coursesMap[_selectedGroupId]![index].schedules[0] =
                   state.schedule;
               Sort.byTitle(_coursesMap[_selectedGroupId]!);
+            });
+          }
+        },
+      ),
+      BlocListener<CategoryBloc, CategoryState>(
+        listener: (context, state) {
+          if (state is CategoryCreated) {
+            setState(() {
+              _categoryCounts[state.category.course] =
+                  (_categoryCounts[state.category.course] ?? 0) + 1;
+              _categoryToCourse[state.category.id] = state.category.course;
+            });
+          } else if (state is CategoryDeleted) {
+            final courseId = _categoryToCourse.remove(state.id);
+            if (courseId != null) {
+              setState(() {
+                final current = _categoryCounts[courseId] ?? 0;
+                if (current > 1) {
+                  _categoryCounts[courseId] = current - 1;
+                } else {
+                  _categoryCounts.remove(courseId);
+                }
+              });
+            }
+          } else if (state is CategoriesFetched && state.categories.isNotEmpty) {
+            final courseId = state.categories.first.course;
+            setState(() {
+              _categoryToCourse.removeWhere((_, v) => v == courseId);
+              _categoryCounts[courseId] = state.categories.length;
+              for (final category in state.categories) {
+                _categoryToCourse[category.id] = courseId;
+              }
             });
           }
         },
@@ -350,6 +386,14 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen>
         Sort.byTitle(_coursesMap[group.id]!);
       }
 
+      _categoryCounts.clear();
+      _categoryToCourse.clear();
+      for (final category in state.categories) {
+        _categoryCounts[category.course] =
+            (_categoryCounts[category.course] ?? 0) + 1;
+        _categoryToCourse[category.id] = category.course;
+      }
+
       if (_courseGroups.isNotEmpty) {
         _selectedGroupId = _courseGroups.first.id;
       }
@@ -361,6 +405,8 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen>
   }
 
   Widget _buildCourseCard(BuildContext context, CourseModel course) {
+    final categoryCount = _categoryCounts[course.id] ?? 0;
+
     return MobileGestureDetector(
       onTap: () => _onEdit(course),
       child: Card(
@@ -442,50 +488,168 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen>
 
               const SizedBox(height: 16),
 
-              if (course.teacherName.isNotEmpty)
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    SelectableText(
-                      course.teacherName,
-                      style: AppStyles.headingText(context),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        if (course.teacherName.isNotEmpty) ...[
+                          SelectableText(
+                            course.teacherName,
+                            style: AppStyles.headingText(context),
+                          ),
+                          const SizedBox(height: 6),
+                        ],
+                        if (course.isOnline)
+                          Row(
+                            children: [
+                              Icon(
+                                Icons.language,
+                                size: Responsive.getIconSize(
+                                  context,
+                                  mobile: 16,
+                                  tablet: 18,
+                                  desktop: 20,
+                                ),
+                                color: context.colorScheme.onSurface.withValues(
+                                  alpha: 0.4,
+                                ),
+                              ),
+                              const SizedBox(width: 4),
+                              SelectableText(
+                                'Online',
+                                style: AppStyles.standardBodyText(
+                                  context,
+                                ).copyWith(
+                                  color: context.colorScheme.onSurface
+                                      .withValues(alpha: 0.5),
+                                  fontSize: Responsive.getFontSize(
+                                    context,
+                                    mobile: 13,
+                                    tablet: 14,
+                                    desktop: 15,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          )
+                        else if (course.room.isNotEmpty)
+                          Row(
+                            children: [
+                              Icon(
+                                Icons.pin_drop_outlined,
+                                size: Responsive.getIconSize(
+                                  context,
+                                  mobile: 16,
+                                  tablet: 18,
+                                  desktop: 20,
+                                ),
+                                color: context.colorScheme.onSurface
+                                    .withValues(alpha: 0.4),
+                              ),
+                              const SizedBox(width: 4),
+                              SelectableText(
+                                course.room,
+                                style: AppStyles.standardBodyText(
+                                  context,
+                                ).copyWith(
+                                  color: context.colorScheme.onSurface
+                                      .withValues(alpha: 0.5),
+                                  fontSize: Responsive.getFontSize(
+                                    context,
+                                    mobile: 13,
+                                    tablet: 14,
+                                    desktop: 15,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                      ],
                     ),
-                    const SizedBox(height: 8),
-                  ],
-                ),
-
-              if (course.room.isNotEmpty)
-                Row(
-                  children: [
-                    Icon(
-                      Icons.pin_drop_outlined,
-                      size: Responsive.getIconSize(
-                        context,
-                        mobile: 16,
-                        tablet: 18,
-                        desktop: 20,
+                  ),
+                  const SizedBox(width: 16),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.category_outlined,
+                            size: Responsive.getIconSize(
+                              context,
+                              mobile: 14,
+                              tablet: 16,
+                              desktop: 16,
+                            ),
+                            color: context.colorScheme.onSurface.withValues(
+                              alpha: 0.5,
+                            ),
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            '$categoryCount ${categoryCount == 1 ? 'category' : 'categories'}',
+                            style: AppStyles.smallSecondaryText(
+                              context,
+                            ).copyWith(
+                              color: context.colorScheme.onSurface.withValues(
+                                alpha: 0.6,
+                              ),
+                            ),
+                          ),
+                          if (course.hasWeightedGrading == true) ...[
+                            const SizedBox(width: 6),
+                            Icon(
+                              Icons.balance,
+                              size: Responsive.getIconSize(
+                                context,
+                                mobile: 14,
+                                tablet: 16,
+                                desktop: 16,
+                              ),
+                              color: context.colorScheme.onSurface,
+                            ),
+                          ],
+                        ],
                       ),
-                      color: context.colorScheme.onSurface.withValues(
-                        alpha: 0.4,
-                      ),
-                    ),
-                    const SizedBox(width: 4),
-                    SelectableText(
-                      course.room,
-                      style: AppStyles.standardBodyText(context).copyWith(
-                        color: context.colorScheme.onSurface.withValues(
-                          alpha: 0.5,
+                      if (course.credits > 0) ...[
+                        const SizedBox(height: 6),
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.school_outlined,
+                              size: Responsive.getIconSize(
+                                context,
+                                mobile: 14,
+                                tablet: 16,
+                                desktop: 16,
+                              ),
+                              color: context.colorScheme.onSurface.withValues(
+                                alpha: 0.5,
+                              ),
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              _formatCredits(course.credits),
+                              style: AppStyles.smallSecondaryText(
+                                context,
+                              ).copyWith(
+                                color: context.colorScheme.onSurface.withValues(
+                                  alpha: 0.6,
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
-                        fontSize: Responsive.getFontSize(
-                          context,
-                          mobile: 13,
-                          tablet: 14,
-                          desktop: 15,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
+                      ],
+                    ],
+                  ),
+                ],
+              ),
 
               const SizedBox(height: 12),
 
@@ -534,6 +698,13 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen>
         ),
       ),
     );
+  }
+
+  String _formatCredits(double credits) {
+    final formatted = credits % 1 == 0
+        ? credits.toInt().toString()
+        : credits.toStringAsFixed(1);
+    return '$formatted ${credits == 1.0 ? 'credit' : 'credits'}';
   }
 
   List<Container> _buildCourseScheduleContainers(CourseModel course) {

@@ -62,3 +62,7 @@ class DeleteCategoryEvent extends CategoryEvent {
     required this.isLastCategory,
   });
 }
+
+class ResetCategoriesEvent extends CategoryEvent {
+  ResetCategoriesEvent() : super(origin: EventOrigin.bloc);
+}

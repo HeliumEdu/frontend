@@ -22,6 +22,9 @@ class CategoryBloc extends Bloc<CategoryEvent, CategoryState> {
     on<CreateCategoryEvent>(_onCreateCategory);
     on<UpdateCategoryEvent>(_onUpdateCategory);
     on<DeleteCategoryEvent>(_onDeleteCategory);
+    on<ResetCategoriesEvent>(
+      (event, emit) => emit(CategoryInitial(origin: EventOrigin.bloc)),
+    );
   }
 
   Future<void> _onFetchCategories(

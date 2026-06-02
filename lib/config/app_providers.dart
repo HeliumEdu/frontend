@@ -14,6 +14,8 @@ import 'package:heliumapp/data/sources/auth_remote_data_source.dart';
 import 'package:heliumapp/data/sources/info_remote_data_source.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_bloc.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_state.dart';
+import 'package:heliumapp/presentation/features/courses/bloc/category_bloc.dart';
+import 'package:heliumapp/presentation/features/courses/bloc/category_event.dart';
 import 'package:heliumapp/presentation/features/courses/bloc/course_bloc.dart';
 import 'package:heliumapp/presentation/features/courses/bloc/course_event.dart';
 import 'package:heliumapp/presentation/features/grades/bloc/grade_bloc.dart';
@@ -82,6 +84,10 @@ class AppProviders extends StatelessWidget {
           lazy: true,
           create: providerHelpers.createPlannerItemBloc(),
         ),
+        BlocProvider<CategoryBloc>(
+          lazy: true,
+          create: providerHelpers.createCategoryBloc(),
+        ),
         BlocProvider<CourseBloc>(
           lazy: true,
           create: providerHelpers.createCourseBloc(),
@@ -115,6 +121,7 @@ class AppProviders extends StatelessWidget {
           context.read<ExternalCalendarBloc>().add(
             ResetExternalCalendarsEvent(),
           );
+          context.read<CategoryBloc>().add(ResetCategoriesEvent());
           context.read<CourseBloc>().add(ResetCoursesEvent());
           context.read<NoteBloc>().add(ResetNotesEvent());
           context.read<ResourceBloc>().add(ResetResourcesEvent());

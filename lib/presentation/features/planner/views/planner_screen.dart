@@ -53,7 +53,6 @@ import 'package:heliumapp/presentation/core/views/base_page_screen_state.dart';
 import 'package:heliumapp/presentation/core/views/deep_link_mixin.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_bloc.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_state.dart';
-import 'package:heliumapp/presentation/features/courses/bloc/category_bloc.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/attachment_bloc.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/attachment_state.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/reminder_bloc.dart';
@@ -124,15 +123,6 @@ class PlannerScreen extends StatelessWidget {
             ),
             resourceRepository: ResourceRepositoryImpl(
               remoteDataSource: ResourceRemoteDataSourceImpl(
-                dioClient: _dioClient,
-              ),
-            ),
-          ),
-        ),
-        BlocProvider(
-          create: (context) => CategoryBloc(
-            categoryRepository: CategoryRepositoryImpl(
-              remoteDataSource: CategoryRemoteDataSourceImpl(
                 dioClient: _dioClient,
               ),
             ),

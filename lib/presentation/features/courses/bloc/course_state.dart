@@ -5,6 +5,7 @@
 //
 // For details regarding the license, please refer to the LICENSE file.
 
+import 'package:heliumapp/data/models/planner/category_model.dart';
 import 'package:heliumapp/data/models/planner/course_group_model.dart';
 import 'package:heliumapp/data/models/planner/course_model.dart';
 import 'package:heliumapp/data/models/planner/course_schedule_event_model.dart';
@@ -47,12 +48,14 @@ class CoursesError extends CourseState {
 class CoursesScreenDataFetched extends CourseState {
   final List<CourseGroupModel> courseGroups;
   final List<CourseModel> courses;
+  final List<CategoryModel> categories;
 
   CoursesScreenDataFetched({
     required super.origin,
     super.message,
     required this.courseGroups,
     required this.courses,
+    required this.categories,
   });
 }
 
