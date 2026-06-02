@@ -797,7 +797,9 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
                           (HardwareKeyboard.instance.isMetaPressed ||
                               HardwareKeyboard.instance.isControlPressed);
                       if (isFindShortcut) {
-                        setState(() => _showSearch = !_showSearch);
+                        setState(() {
+                _showSearch = !_showSearch;
+              });
                         return KeyEventResult.handled;
                       }
                       return null;
@@ -902,7 +904,9 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
         buttonOptions: QuillSimpleToolbarButtonOptions(
           search: QuillToolbarSearchButtonOptions(
             customOnPressedCallback: (_) async {
-              setState(() => _showSearch = !_showSearch);
+              setState(() {
+                _showSearch = !_showSearch;
+              });
             },
           ),
           base: baseOptions.base,

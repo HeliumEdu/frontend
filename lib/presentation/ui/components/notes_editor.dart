@@ -193,7 +193,13 @@ class _NotesEditorState extends State<NotesEditor> with WidgetsBindingObserver {
                     showBackgroundColorButton: false,
                     showColorButton: !isCompact,
                     showIndent: !isCompact,
-                    buttonOptions: HeliumQuillToolbar.defaultButtonOptions(context),
+                    buttonOptions: () {
+                      final opts = HeliumQuillToolbar.defaultButtonOptions(context);
+                      return QuillSimpleToolbarButtonOptions(
+                        base: opts.base,
+                        color: opts.color,
+                      );
+                    }(),
                   ),
                 ),
                 const Divider(height: 1),
