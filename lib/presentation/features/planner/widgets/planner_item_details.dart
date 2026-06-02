@@ -968,13 +968,12 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
     if (widget.isEdit && state.linkedNote != null) {
       formController.linkedNoteId = state.linkedNote!.id;
       formController.notesController.dispose();
-      formController.notesController = state.linkedNote!.content != null
-          ? QuillController(
-              document: tryParseNotesDocument(state.linkedNote!.content) ??
-                  buildUnrenderableNotePlaceholder(),
-              selection: const TextSelection.collapsed(offset: 0),
-            )
-          : QuillController.basic();
+      formController.notesController = heliumQuillController(
+        document: state.linkedNote!.content != null
+            ? tryParseNotesDocument(state.linkedNote!.content) ??
+                buildUnrenderableNotePlaceholder()
+            : null,
+      );
     }
 
     setState(() {

@@ -9,7 +9,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_quill/flutter_quill.dart';
 import 'package:heliumapp/config/app_theme.dart';
-import 'package:heliumapp/presentation/ui/dialogs/color_picker_dialog.dart';
+import 'package:heliumapp/presentation/ui/components/helium_quill_editor.dart';
+import 'package:heliumapp/presentation/ui/components/helium_quill_toolbar.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 
@@ -47,33 +48,8 @@ class NotesEditor extends StatefulWidget {
     BuildContext context,
     QuillController controller,
     bool isBackground,
-  ) async {
-    final key = isBackground ? 'background' : 'color';
-    final stored = controller.getSelectionStyle().attributes[key]?.value as String?;
-
-    Color initial = Colors.black;
-    if (stored != null) {
-      // Quill stores as #AARRGGBB; strip # and parse
-      final hex = stored.startsWith('#') ? stored.substring(1) : stored;
-      final padded = hex.length == 6 ? 'ff$hex' : hex;
-      initial = Color(int.tryParse(padded, radix: 16) ?? 0xFF000000);
-    }
-
-    await showColorPickerDialog(
-      parentContext: context,
-      initialColor: initial,
-      onSelected: (color) {
-        final a = (color.a * 255).round().toRadixString(16).padLeft(2, '0');
-        final r = (color.r * 255).round().toRadixString(16).padLeft(2, '0');
-        final g = (color.g * 255).round().toRadixString(16).padLeft(2, '0');
-        final b = (color.b * 255).round().toRadixString(16).padLeft(2, '0');
-        final hex = '#$a$r$g$b'.toUpperCase();
-        controller.formatSelection(
-          isBackground ? BackgroundAttribute(hex) : ColorAttribute(hex),
-        );
-      },
-    );
-  }
+  ) =>
+      HeliumQuillToolbar.showColorPicker(context, controller, isBackground);
 
   @override
   State<NotesEditor> createState() => _NotesEditorState();
@@ -194,10 +170,8 @@ class _NotesEditorState extends State<NotesEditor> with WidgetsBindingObserver {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 4),
-                  child: QuillSimpleToolbar(
-                    controller: widget.controller,
+                HeliumQuillToolbar(
+                  controller: widget.controller,
                   config: QuillSimpleToolbarConfig(
                     toolbarRunSpacing: 0,
                     toolbarSectionSpacing: 8,
@@ -219,50 +193,7 @@ class _NotesEditorState extends State<NotesEditor> with WidgetsBindingObserver {
                     showBackgroundColorButton: false,
                     showColorButton: !isCompact,
                     showIndent: !isCompact,
-                    buttonOptions: QuillSimpleToolbarButtonOptions(
-                      base: QuillToolbarBaseButtonOptions(
-                        iconTheme: QuillIconTheme(
-                          iconButtonSelectedData: IconButtonData(
-                            style: ButtonStyle(
-                              backgroundColor: WidgetStatePropertyAll(
-                                context.colorScheme.primary,
-                              ),
-                              foregroundColor: WidgetStatePropertyAll(
-                                context.colorScheme.onPrimary,
-                              ),
-                              overlayColor: WidgetStatePropertyAll(
-                                context.colorScheme.onPrimary.withValues(
-                                  alpha: 0.1,
-                                ),
-                              ),
-                              minimumSize: const WidgetStatePropertyAll(
-                                Size.zero,
-                              ),
-                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                            ),
-                          ),
-                          iconButtonUnselectedData: IconButtonData(
-                            style: ButtonStyle(
-                              backgroundColor: const WidgetStatePropertyAll(
-                                Colors.transparent,
-                              ),
-                              foregroundColor: WidgetStatePropertyAll(
-                                context.colorScheme.onSurface,
-                              ),
-                              minimumSize: const WidgetStatePropertyAll(
-                                Size.zero,
-                              ),
-                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                            ),
-                          ),
-                        ),
-                      ),
-                      color: QuillToolbarColorButtonOptions(
-                        customOnPressedCallback: (ctrl, isBackground) =>
-                            NotesEditor.showColorPicker(context, ctrl, isBackground),
-                      ),
-                    ),
-                  ),
+                    buttonOptions: HeliumQuillToolbar.defaultButtonOptions(context),
                   ),
                 ),
                 const Divider(height: 1),
@@ -271,7 +202,7 @@ class _NotesEditorState extends State<NotesEditor> with WidgetsBindingObserver {
                     minHeight: 125.0,
                     maxHeight: 300.0,
                   ),
-                  child: QuillEditor.basic(
+                  child: HeliumQuillEditor(
                     controller: widget.controller,
                     focusNode: widget.focusNode,
                     config: QuillEditorConfig(

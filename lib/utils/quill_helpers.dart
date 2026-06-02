@@ -77,6 +77,30 @@ Document buildUnrenderableNotePlaceholder() {
   ]);
 }
 
+/// Creates a [QuillController] pre-configured with Helium's clipboard settings:
+/// rich-paste enabled on native platforms, and the web paste interceptor
+/// activated on web. Pass an optional [document] to pre-populate content;
+/// omit it for a blank controller.
+QuillController heliumQuillController({Document? document}) {
+  // ignore: experimental_member_use
+  final clipboardConfig = QuillClipboardConfig(
+    // ignore: experimental_member_use
+    enableExternalRichPaste: !kIsWeb,
+    // ignore: experimental_member_use
+    onClipboardPaste: kIsWeb ? () async => true : null,
+  );
+  // ignore: experimental_member_use
+  final config = QuillControllerConfig(clipboardConfig: clipboardConfig);
+  if (document != null) {
+    return QuillController(
+      document: document,
+      selection: const TextSelection.collapsed(offset: 0),
+      config: config,
+    );
+  }
+  return QuillController.basic(config: config);
+}
+
 /// Builds a Quill Delta JSON map from a QuillController.
 /// Returns null if the content is empty (only whitespace/newline).
 Map<String, dynamic>? buildNotesDelta(QuillController controller) {

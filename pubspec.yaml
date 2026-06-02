@@ -64,6 +64,8 @@ dependencies:
   dio_smart_retry: 7.0.1
   html: 0.15.6
   diacritic: 0.1.6
+  vsc_quill_delta_to_html: ^1.0.5
+  quill_native_bridge: ^11.1.0
 
 dev_dependencies:
   flutter_test:

@@ -8,6 +8,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_quill/flutter_quill.dart';
 import 'package:heliumapp/presentation/features/shared/controllers/basic_form_controller.dart';
+import 'package:heliumapp/utils/quill_helpers.dart';
 
 class ResourceFormController extends BasicFormController {
   final TextEditingController titleController = TextEditingController();
@@ -18,7 +19,7 @@ class ResourceFormController extends BasicFormController {
   int selectedStatus = 0;
   int selectedCondition = 0;
   String initialNotes = '';
-  QuillController notesController = QuillController.basic();
+  QuillController notesController = heliumQuillController();
   int? linkedNoteId;
 
   void dispose() {
