@@ -89,11 +89,11 @@ if [[ -d "$WWW_MOBILE" ]]; then
     "01-month-view_iphone_framed.png:helium-phone-month-view.png"
     "02-grades_iphone_framed.png:helium-phone-grades.png"
     "03-todos_iphone_framed.png:helium-phone-todos.png"
-    "06-edit-note_iphone_framed.png:helium-phone-note-editor.png"
+    "06-edit-note_iphone_framed.png:helium-phone-notebook.png"
     "01-month-view_ipad_framed.png:helium-tablet-month-view.png"
     "02-grades_ipad_framed.png:helium-tablet-grades.png"
     "03-todos_ipad_framed.png:helium-tablet-todos.png"
-    "04-edit-note_ipad_framed.png:helium-tablet-note-editor.png"
+    "04-edit-note_ipad_framed.png:helium-tablet-notebook.png"
   )
   copied=0
   for entry in "${PRESS_MAP[@]}"; do
