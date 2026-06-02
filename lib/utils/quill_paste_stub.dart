@@ -10,7 +10,7 @@
 /// browser event interception needed.
 void Function()? registerQuillClipboardListeners({
   required bool Function() isEditorFocused,
-  required void Function() onCopy,
+  required ({String html, String plain})? Function() onCopy,
   required void Function(String? html, String? plainText) onPaste,
 }) =>
     null;

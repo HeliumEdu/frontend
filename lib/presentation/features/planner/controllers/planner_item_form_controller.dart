@@ -8,6 +8,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_quill/flutter_quill.dart';
 import 'package:heliumapp/presentation/features/shared/controllers/basic_form_controller.dart';
+import 'package:heliumapp/utils/quill_helpers.dart';
 
 class PlannerItemFormController extends BasicFormController {
   // Field name constants for integration testing
@@ -36,7 +37,7 @@ class PlannerItemFormController extends BasicFormController {
   /// schedule's class time. Parallels [isChanged] but scoped to time only.
   bool userChangedTime = false;
   double priorityValue = 50.0;
-  QuillController notesController = QuillController.basic();
+  QuillController notesController = heliumQuillController();
   int? linkedNoteId;
 
   PlannerItemFormController() {

@@ -13,9 +13,11 @@ import 'package:web/web.dart';
 /// editor on web.
 ///
 /// **Copy**: [onCopy] is called synchronously when the user copies with the
-/// editor focused. The implementation should capture the current Quill
-/// selection Delta for use on subsequent same-tab pastes, since Flutter web
-/// never calls [QuillController.clipboardSelection] via the browser copy path.
+/// editor focused. It must return `({String html, String plain})` with the
+/// content to place on the clipboard, or `null` for a collapsed/empty
+/// selection. The listener calls [ClipboardEvent.preventDefault] and writes
+/// both representations via [ClipboardEvent.clipboardData.setData] — no
+/// clipboard-write permission required.
 ///
 /// **Paste**: [onPaste] is called with the raw clipboard HTML and plain text
 /// read from [ClipboardEvent.clipboardData] (no clipboard-read permission
@@ -25,12 +27,17 @@ import 'package:web/web.dart';
 /// Returns a single callback that removes both listeners; call it in dispose.
 void Function()? registerQuillClipboardListeners({
   required bool Function() isEditorFocused,
-  required void Function() onCopy,
+  required ({String html, String plain})? Function() onCopy,
   required void Function(String? html, String? plainText) onPaste,
 }) {
   final copyListener = (JSAny? event) {
     if (!isEditorFocused()) return;
-    onCopy();
+    final content = onCopy();
+    if (content == null) return;
+    final clipEvent = event as ClipboardEvent;
+    clipEvent.preventDefault();
+    clipEvent.clipboardData?.setData('text/html', content.html);
+    clipEvent.clipboardData?.setData('text/plain', content.plain);
   }.toJS;
 
   final pasteListener = (JSAny? event) {

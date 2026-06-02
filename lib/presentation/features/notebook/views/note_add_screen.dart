@@ -14,7 +14,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_quill/flutter_quill.dart';
 import 'package:flutter_quill/quill_delta.dart';
-import 'package:flutter_quill_delta_from_html/flutter_quill_delta_from_html.dart';
 import 'package:flutter_quill_to_pdf/flutter_quill_to_pdf.dart';
 import 'package:go_router/go_router.dart';
 import 'package:heliumapp/config/analytics_event.dart';
@@ -51,7 +50,8 @@ import 'package:heliumapp/utils/search_helpers.dart';
 import 'package:heliumapp/utils/deep_link_helpers.dart';
 import 'package:heliumapp/utils/print_helpers.dart';
 import 'package:heliumapp/utils/print_service.dart';
-import 'package:heliumapp/utils/quill_paste.dart';
+import 'package:heliumapp/presentation/ui/components/helium_quill_editor.dart';
+import 'package:heliumapp/presentation/ui/components/helium_quill_toolbar.dart';
 import 'package:heliumapp/utils/quill_helpers.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:pdf/pdf.dart';
@@ -169,34 +169,12 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
   StreamSubscription<DocChange>? _documentSubscription;
 
   String? _pendingRedirectRoute;
-  void Function()? _removeWebClipboardListeners;
-
-  // Own copy cache for web: Flutter web never calls clipboardSelection() via
-  // the browser copy path, so Quill's static Delta cache stays empty. We
-  // intercept the browser copy event instead and maintain our own cache.
-  static String _webCopiedPlainText = '';
-  static Delta _webCopiedDelta = Delta();
 
   @override
   void initState() {
     super.initState();
     _currentNoteId = widget.noteId;
-    _quillController = QuillController.basic(
-      config: QuillControllerConfig(
-        // ignore: experimental_member_use
-        clipboardConfig: QuillClipboardConfig(
-          // ignore: experimental_member_use
-          enableExternalRichPaste: !kIsWeb,
-          // ignore: experimental_member_use
-          onClipboardPaste: kIsWeb ? () async => true : null,
-        ),
-      ),
-    );
-    _removeWebClipboardListeners = registerQuillClipboardListeners(
-      isEditorFocused: () => _editorFocusNode.hasFocus,
-      onCopy: _captureWebCopy,
-      onPaste: _handleWebPaste,
-    );
+    _quillController = heliumQuillController();
     _saveStatus = widget.noteId == null ? SaveStatus.unsaved : SaveStatus.saved;
 
     _titleController.addListener(_onContentChanged);
@@ -226,7 +204,6 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
     PrintService().unregister(_printHandler);
     _debounceTimer?.cancel();
     _documentSubscription?.cancel();
-    _removeWebClipboardListeners?.call();
     _titleController.removeListener(_onContentChanged);
     _titleController.dispose();
     _quillController.dispose();
@@ -726,69 +703,6 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
     });
   }
 
-  void _captureWebCopy() {
-    final sel = _quillController.selection;
-    if (!sel.isValid || sel.isCollapsed) return;
-    _webCopiedPlainText = _quillController.document.getPlainText(
-        sel.start, sel.end - sel.start);
-    _webCopiedDelta =
-        _quillController.document.toDelta().slice(sel.start, sel.end);
-  }
-
-  void _handleWebPaste(String? html, String? plainText) {
-    final sel = _quillController.selection;
-    final start = sel.start;
-    final len = sel.end - sel.start;
-
-    // Within-app copy: match against our own browser-copy cache. Flutter web
-    // never calls clipboardSelection(), so Quill's static cache is always
-    // empty; we maintain our own via the copy event listener.
-    if (plainText != null &&
-        plainText.trimRight() == _webCopiedPlainText.trimRight() &&
-        _webCopiedPlainText.isNotEmpty &&
-        _webCopiedDelta.isNotEmpty) {
-      _quillController.replaceText(
-        start,
-        len,
-        _webCopiedDelta,
-        TextSelection.collapsed(offset: sel.end),
-      );
-      return;
-    }
-
-    // Cross-tab or external HTML paste. Pass the raw clipboard HTML directly
-    // to HtmlToDelta, which handles its own parsing. Skip the result if it
-    // contains only whitespace/newlines (e.g., complex layout HTML like
-    // pagedjs margin divs that have no text content) and fall through to
-    // plain text instead.
-    if (html != null) {
-      final delta = HtmlToDelta().convert(html);
-      final hasText = delta.toList().any((op) =>
-          op.isInsert &&
-          op.data is String &&
-          (op.data as String).trim().isNotEmpty);
-      if (hasText) {
-        _quillController.replaceText(
-          start,
-          len,
-          delta,
-          TextSelection.collapsed(offset: sel.end),
-        );
-        return;
-      }
-    }
-
-    // Plain text fallback.
-    if (plainText != null) {
-      _quillController.replaceText(
-        start,
-        len,
-        plainText,
-        TextSelection.collapsed(offset: start + plainText.length),
-      );
-    }
-  }
-
   void _populateNoteData(NoteModel note) {
     _note = note;
     _titleController.text = note.title;
@@ -867,7 +781,7 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
               _buildQuillToolbar(context, isCompact),
               const Divider(height: 1),
               Expanded(
-                child: QuillEditor.basic(
+                child: HeliumQuillEditor(
                   controller: _quillController,
                   focusNode: _editorFocusNode,
                   config: QuillEditorConfig(
@@ -883,7 +797,9 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
                           (HardwareKeyboard.instance.isMetaPressed ||
                               HardwareKeyboard.instance.isControlPressed);
                       if (isFindShortcut) {
-                        setState(() => _showSearch = !_showSearch);
+                        setState(() {
+                _showSearch = !_showSearch;
+              });
                         return KeyEventResult.handled;
                       }
                       return null;
@@ -954,86 +870,48 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
 
   Widget _buildQuillToolbar(BuildContext context, bool isCompact) {
     final isPhoneLandscape = Responsive.isPhoneLandscape(context);
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      child: QuillSimpleToolbar(
-        controller: _quillController,
-        config: QuillSimpleToolbarConfig(
-          toolbarRunSpacing: 0,
-          toolbarSectionSpacing: 8,
-          customButtons: [
-            QuillToolbarCustomButtonOptions(
-              icon: const Icon(Icons.print_outlined),
-              tooltip: 'Print',
-              onPressed: _printNote,
-            ),
-          ],
-          showDividers: !isCompact,
-          showFontSize: !isCompact,
-          showHeaderStyle: !isCompact,
-          showInlineCode: !isCompact,
-          showClearFormat: !isCompact,
-          showStrikeThrough: !isCompact,
-          showAlignmentButtons: !isCompact,
-          showLeftAlignment: !isCompact,
-          showCenterAlignment: !isCompact,
-          showRightAlignment: !isCompact,
-          showCodeBlock: !isCompact,
-          showUnderLineButton: !isCompact,
-          showIndent: !isCompact,
-          showSubscript: !isCompact,
-          showSuperscript: !isCompact,
-          showBackgroundColorButton: !isCompact,
-          showRedo: !isCompact,
-          showSearchButton: !isPhoneLandscape,
-          buttonOptions: QuillSimpleToolbarButtonOptions(
-            search: QuillToolbarSearchButtonOptions(
-              customOnPressedCallback: (_) async {
-                setState(() {
-                  _showSearch = !_showSearch;
-                });
-              },
-            ),
-            base: QuillToolbarBaseButtonOptions(
-              iconTheme: QuillIconTheme(
-                iconButtonSelectedData: IconButtonData(
-                  style: ButtonStyle(
-                    backgroundColor: WidgetStatePropertyAll(
-                      context.colorScheme.primary,
-                    ),
-                    foregroundColor: WidgetStatePropertyAll(
-                      context.colorScheme.onPrimary,
-                    ),
-                    overlayColor: WidgetStatePropertyAll(
-                      context.colorScheme.onPrimary.withValues(alpha: 0.1),
-                    ),
-                    minimumSize: const WidgetStatePropertyAll(Size.zero),
-                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                  ),
-                ),
-                iconButtonUnselectedData: IconButtonData(
-                  style: ButtonStyle(
-                    backgroundColor: const WidgetStatePropertyAll(
-                      Colors.transparent,
-                    ),
-                    foregroundColor: WidgetStatePropertyAll(
-                      context.colorScheme.onSurface,
-                    ),
-                    minimumSize: const WidgetStatePropertyAll(Size.zero),
-                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                  ),
-                ),
-              ),
-            ),
-            color: QuillToolbarColorButtonOptions(
-              customOnPressedCallback: (ctrl, isBackground) =>
-                  NotesEditor.showColorPicker(context, ctrl, isBackground),
-            ),
-            backgroundColor: QuillToolbarColorButtonOptions(
-              customOnPressedCallback: (ctrl, isBackground) =>
-                  NotesEditor.showColorPicker(context, ctrl, isBackground),
-            ),
+    final baseOptions = HeliumQuillToolbar.defaultButtonOptions(context);
+    return HeliumQuillToolbar(
+      controller: _quillController,
+      config: QuillSimpleToolbarConfig(
+        toolbarRunSpacing: 0,
+        toolbarSectionSpacing: 8,
+        customButtons: [
+          QuillToolbarCustomButtonOptions(
+            icon: const Icon(Icons.print_outlined),
+            tooltip: 'Print',
+            onPressed: _printNote,
           ),
+        ],
+        showDividers: !isCompact,
+        showFontSize: !isCompact,
+        showHeaderStyle: !isCompact,
+        showInlineCode: !isCompact,
+        showClearFormat: !isCompact,
+        showStrikeThrough: !isCompact,
+        showAlignmentButtons: !isCompact,
+        showLeftAlignment: !isCompact,
+        showCenterAlignment: !isCompact,
+        showRightAlignment: !isCompact,
+        showCodeBlock: !isCompact,
+        showUnderLineButton: !isCompact,
+        showIndent: !isCompact,
+        showSubscript: !isCompact,
+        showSuperscript: !isCompact,
+        showBackgroundColorButton: !isCompact,
+        showRedo: !isCompact,
+        showSearchButton: !isPhoneLandscape,
+        buttonOptions: QuillSimpleToolbarButtonOptions(
+          search: QuillToolbarSearchButtonOptions(
+            customOnPressedCallback: (_) async {
+              setState(() {
+                _showSearch = !_showSearch;
+              });
+            },
+          ),
+          base: baseOptions.base,
+          color: baseOptions.color,
+          backgroundColor: baseOptions.backgroundColor,
         ),
       ),
     );

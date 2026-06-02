@@ -323,15 +323,14 @@ class ResourceDetailsState extends State<ResourceDetails> {
       formController.notesController.dispose();
       if (state.linkedNote != null) {
         formController.linkedNoteId = state.linkedNote!.id;
-        formController.notesController = state.linkedNote!.content != null
-            ? QuillController(
-                document: tryParseNotesDocument(state.linkedNote!.content) ??
-                    buildUnrenderableNotePlaceholder(),
-                selection: const TextSelection.collapsed(offset: 0),
-              )
-            : QuillController.basic();
+        formController.notesController = heliumQuillController(
+          document: state.linkedNote!.content != null
+              ? tryParseNotesDocument(state.linkedNote!.content) ??
+                  buildUnrenderableNotePlaceholder()
+              : null,
+        );
       } else {
-        formController.notesController = QuillController.basic();
+        formController.notesController = heliumQuillController();
       }
     }
 
