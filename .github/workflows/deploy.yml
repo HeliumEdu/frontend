@@ -201,7 +201,6 @@ jobs:
 
           echo "Deploying version ${VERSION} to s3://${BUCKET_NAME} ..."
 
-          # Sync the web build to S3
           aws s3 sync ./web-build "s3://${BUCKET_NAME}" \
             --delete \
             --cache-control "public, max-age=10800" \
@@ -214,7 +213,6 @@ jobs:
             --exclude "flutter_bootstrap.js" \
             --exclude "canvaskit/*"
 
-          # Upload index.html and JSON files with no-cache
           aws s3 cp ./web-build/index.html "s3://${BUCKET_NAME}/index.html" \
             --cache-control "no-cache, no-store, must-revalidate"
 
@@ -228,26 +226,39 @@ jobs:
             fi
           done
 
-          # Upload manifest and other JSON files (preserving directory structure)
-          find ./web-build -name "*.json" ! -path "./web-build/.well-known/*" -exec sh -c 'RELPATH="${1#./web-build/}"; aws s3 cp "$1" "s3://'"${BUCKET_NAME}"'/${RELPATH}" --cache-control "no-cache, no-store, must-revalidate" --content-type "application/json"' _ {} \;
+          aws s3 sync ./web-build "s3://${BUCKET_NAME}" \
+            --exclude "*" \
+            --include "*.json" \
+            --exclude ".well-known/*" \
+            --cache-control "no-cache, no-store, must-revalidate" \
+            --content-type "application/json"
 
-          # Upload .bin files (e.g., AssetManifest.bin) with no-cache so the
+          # Sync .bin files (e.g., AssetManifest.bin) with no-cache so the
           # asset manifest cannot drift behind the rest of the build.
-          find ./web-build -name "*.bin" -exec sh -c 'RELPATH="${1#./web-build/}"; aws s3 cp "$1" "s3://'"${BUCKET_NAME}"'/${RELPATH}" --cache-control "no-cache, no-store, must-revalidate"' _ {} \;
+          aws s3 sync ./web-build "s3://${BUCKET_NAME}" \
+            --exclude "*" \
+            --include "*.bin" \
+            --cache-control "no-cache, no-store, must-revalidate"
 
-          # Upload PNG assets with revalidation. URLs are stable across builds
+          # Sync PNG assets with revalidation. URLs are stable across builds
           # but contents can change, so let the browser keep the bytes and
           # revalidate via ETag instead of refetching every load.
-          find ./web-build -name "*.png" -exec sh -c 'RELPATH="${1#./web-build/}"; aws s3 cp "$1" "s3://'"${BUCKET_NAME}"'/${RELPATH}" --cache-control "public, max-age=0, must-revalidate"' _ {} \;
+          aws s3 sync ./web-build "s3://${BUCKET_NAME}" \
+            --exclude "*" \
+            --include "*.png" \
+            --cache-control "public, max-age=0, must-revalidate"
 
-          # Upload CanvasKit runtime files with no-cache so JS/WASM stay in sync.
+          # Sync CanvasKit runtime files with no-cache so JS/WASM stay in sync.
           if [ -d ./web-build/canvaskit ]; then
-            find ./web-build/canvaskit -type f -exec sh -c 'RELPATH="${1#./web-build/}"; aws s3 cp "$1" "s3://'"${BUCKET_NAME}"'/${RELPATH}" --cache-control "no-cache, no-store, must-revalidate"' _ {} \;
+            aws s3 sync ./web-build/canvaskit "s3://${BUCKET_NAME}/canvaskit" \
+              --cache-control "no-cache, no-store, must-revalidate"
           fi
 
-          # Upload all .well-known files with correct content-type (includes extensionless files)
+          # Sync all .well-known files with correct content-type (includes extensionless files)
           if [ -d ./web-build/.well-known ]; then
-            find ./web-build/.well-known -type f -exec sh -c 'RELPATH="${1#./web-build/}"; aws s3 cp "$1" "s3://'"${BUCKET_NAME}"'/${RELPATH}" --content-type "application/json" --cache-control "public, max-age=10800"' _ {} \;
+            aws s3 sync ./web-build/.well-known "s3://${BUCKET_NAME}/.well-known" \
+              --content-type "application/json" \
+              --cache-control "public, max-age=10800"
           fi
 
           echo "Deployment complete!"
