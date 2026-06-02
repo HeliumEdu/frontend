@@ -53,9 +53,11 @@ String _sanitizeWordOnline(String html) {
   // data-ccp-props is a Word Online-specific data attribute.
   if (!html.contains('data-ccp-props')) return html;
 
+  var result = html;
+
   // Step 1: Convert <p role="heading" aria-level="N"> to <hN>.
   // The lookahead ensures role="heading" is present regardless of attribute order.
-  html = html.replaceAllMapped(
+  result = result.replaceAllMapped(
     RegExp(
       r'<p\b(?=[^>]*\brole="heading")[^>]*\baria-level="(\d+)"[^>]*>([\s\S]*?)<\/p>',
       caseSensitive: false,
@@ -65,7 +67,7 @@ String _sanitizeWordOnline(String html) {
 
   // Step 2: Unwrap ListContainerWrapper divs. Each list item lives in its own
   // wrapper div; stripping those makes the <ul>/<ol> elements adjacent.
-  html = html.replaceAllMapped(
+  result = result.replaceAllMapped(
     RegExp(
       r'<div\b[^>]*\bListContainerWrapper\b[^>]*>([\s\S]*?)<\/div>',
       caseSensitive: false,
@@ -74,17 +76,17 @@ String _sanitizeWordOnline(String html) {
   );
 
   // Step 3: Merge consecutive <ul> and <ol> elements.
-  html = html.replaceAll(
+  result = result.replaceAll(
     RegExp(r'<\/ul>\s*<ul\b[^>]*>', caseSensitive: false),
     '',
   );
-  html = html.replaceAll(
+  result = result.replaceAll(
     RegExp(r'<\/ol>\s*<ol\b[^>]*>', caseSensitive: false),
     '',
   );
 
   // Step 4: Strip <p> wrappers inside <li> elements, keeping their content.
-  html = html.replaceAllMapped(
+  result = result.replaceAllMapped(
     RegExp(
       r'(<li\b[^>]*>)\s*<p\b[^>]*>([\s\S]*?)<\/p>\s*(<\/li>)',
       caseSensitive: false,
@@ -92,5 +94,5 @@ String _sanitizeWordOnline(String html) {
     (match) => '${match.group(1)!}${match.group(2)!}${match.group(3)!}',
   );
 
-  return html;
+  return result;
 }
