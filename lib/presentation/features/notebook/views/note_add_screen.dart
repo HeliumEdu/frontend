@@ -14,6 +14,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_quill/flutter_quill.dart';
 import 'package:flutter_quill/quill_delta.dart';
+import 'package:flutter_quill_delta_from_html/flutter_quill_delta_from_html.dart';
 import 'package:flutter_quill_to_pdf/flutter_quill_to_pdf.dart';
 import 'package:go_router/go_router.dart';
 import 'package:heliumapp/config/analytics_event.dart';
@@ -50,6 +51,7 @@ import 'package:heliumapp/utils/search_helpers.dart';
 import 'package:heliumapp/utils/deep_link_helpers.dart';
 import 'package:heliumapp/utils/print_helpers.dart';
 import 'package:heliumapp/utils/print_service.dart';
+import 'package:heliumapp/utils/quill_paste.dart';
 import 'package:heliumapp/utils/quill_helpers.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:pdf/pdf.dart';
@@ -167,16 +169,37 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
   StreamSubscription<DocChange>? _documentSubscription;
 
   String? _pendingRedirectRoute;
+  void Function()? _removeWebClipboardListeners;
+
+  // Own copy cache for web: Flutter web never calls clipboardSelection() via
+  // the browser copy path, so Quill's static Delta cache stays empty. We
+  // intercept the browser copy event instead and maintain our own cache.
+  static String _webCopiedPlainText = '';
+  static Delta _webCopiedDelta = Delta();
 
   @override
   void initState() {
     super.initState();
     _currentNoteId = widget.noteId;
-    _quillController = QuillController.basic();
+    _quillController = QuillController.basic(
+      config: QuillControllerConfig(
+        // ignore: experimental_member_use
+        clipboardConfig: QuillClipboardConfig(
+          // ignore: experimental_member_use
+          enableExternalRichPaste: !kIsWeb,
+          // ignore: experimental_member_use
+          onClipboardPaste: kIsWeb ? () async => true : null,
+        ),
+      ),
+    );
+    _removeWebClipboardListeners = registerQuillClipboardListeners(
+      isEditorFocused: () => _editorFocusNode.hasFocus,
+      onCopy: _captureWebCopy,
+      onPaste: _handleWebPaste,
+    );
     _saveStatus = widget.noteId == null ? SaveStatus.unsaved : SaveStatus.saved;
 
     _titleController.addListener(_onContentChanged);
-    _editorFocusNode.addListener(_onEditorFocusChanged);
     _printHandler = _printNote;
     PrintService().register(_printHandler!);
 
@@ -203,8 +226,8 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
     PrintService().unregister(_printHandler);
     _debounceTimer?.cancel();
     _documentSubscription?.cancel();
+    _removeWebClipboardListeners?.call();
     _titleController.removeListener(_onContentChanged);
-    _editorFocusNode.removeListener(_onEditorFocusChanged);
     _titleController.dispose();
     _quillController.dispose();
     _titleFocusNode.dispose();
@@ -218,7 +241,7 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
   /// silently lose unsaved changes.
   void _registerDirtyGuard() {
     final prefix =
-        '${widget.shellPath}/notes/${_currentNoteId?.toString() ?? 'new'}';
+        '${widget.shellPath}/${_currentNoteId?.toString() ?? 'new'}';
     final routerPath =
         router.routerDelegate.currentConfiguration.uri.path;
     // Prefer the routerDelegate's settled path if it already matches our
@@ -487,7 +510,7 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
               _registerDirtyGuard();
               if (!Responsive.isMobile(context)) {
                 context.go(
-                  '${widget.shellPath}/notes/${state.note.id}',
+                  '${widget.shellPath}/${state.note.id}',
                 );
               }
               showSnackBar(context, 'Note created.');
@@ -599,15 +622,6 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
     _debounceTimer = Timer(_autoSaveDebounce, _triggerAutoSave);
   }
 
-  void _onEditorFocusChanged() {
-    // Trigger save on blur if there are unsaved changes
-    if (!_editorFocusNode.hasFocus &&
-        _saveStatus == SaveStatus.unsaved &&
-        !_autoSaveDisabled) {
-      _triggerAutoSave();
-    }
-  }
-
   void _triggerAutoSave() {
     if (_saveStatus == SaveStatus.saving || _autoSaveDisabled) return;
 
@@ -710,6 +724,69 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
       if (!isNoteEdited(change)) return;
       _onContentChanged();
     });
+  }
+
+  void _captureWebCopy() {
+    final sel = _quillController.selection;
+    if (!sel.isValid || sel.isCollapsed) return;
+    _webCopiedPlainText = _quillController.document.getPlainText(
+        sel.start, sel.end - sel.start);
+    _webCopiedDelta =
+        _quillController.document.toDelta().slice(sel.start, sel.end);
+  }
+
+  void _handleWebPaste(String? html, String? plainText) {
+    final sel = _quillController.selection;
+    final start = sel.start;
+    final len = sel.end - sel.start;
+
+    // Within-app copy: match against our own browser-copy cache. Flutter web
+    // never calls clipboardSelection(), so Quill's static cache is always
+    // empty; we maintain our own via the copy event listener.
+    if (plainText != null &&
+        plainText.trimRight() == _webCopiedPlainText.trimRight() &&
+        _webCopiedPlainText.isNotEmpty &&
+        _webCopiedDelta.isNotEmpty) {
+      _quillController.replaceText(
+        start,
+        len,
+        _webCopiedDelta,
+        TextSelection.collapsed(offset: sel.end),
+      );
+      return;
+    }
+
+    // Cross-tab or external HTML paste. Pass the raw clipboard HTML directly
+    // to HtmlToDelta, which handles its own parsing. Skip the result if it
+    // contains only whitespace/newlines (e.g., complex layout HTML like
+    // pagedjs margin divs that have no text content) and fall through to
+    // plain text instead.
+    if (html != null) {
+      final delta = HtmlToDelta().convert(html);
+      final hasText = delta.toList().any((op) =>
+          op.isInsert &&
+          op.data is String &&
+          (op.data as String).trim().isNotEmpty);
+      if (hasText) {
+        _quillController.replaceText(
+          start,
+          len,
+          delta,
+          TextSelection.collapsed(offset: sel.end),
+        );
+        return;
+      }
+    }
+
+    // Plain text fallback.
+    if (plainText != null) {
+      _quillController.replaceText(
+        start,
+        len,
+        plainText,
+        TextSelection.collapsed(offset: start + plainText.length),
+      );
+    }
   }
 
   void _populateNoteData(NoteModel note) {
@@ -883,6 +960,7 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
         controller: _quillController,
         config: QuillSimpleToolbarConfig(
           toolbarRunSpacing: 0,
+          toolbarSectionSpacing: 8,
           customButtons: [
             QuillToolbarCustomButtonOptions(
               icon: const Icon(Icons.print_outlined),
@@ -929,10 +1007,21 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
                     overlayColor: WidgetStatePropertyAll(
                       context.colorScheme.onPrimary.withValues(alpha: 0.1),
                     ),
+                    minimumSize: const WidgetStatePropertyAll(Size.zero),
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                   ),
                 ),
                 iconButtonUnselectedData: IconButtonData(
-                  color: context.colorScheme.onSurface,
+                  style: ButtonStyle(
+                    backgroundColor: const WidgetStatePropertyAll(
+                      Colors.transparent,
+                    ),
+                    foregroundColor: WidgetStatePropertyAll(
+                      context.colorScheme.onSurface,
+                    ),
+                    minimumSize: const WidgetStatePropertyAll(Size.zero),
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  ),
                 ),
               ),
             ),

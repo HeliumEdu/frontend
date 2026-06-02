@@ -3,7 +3,7 @@ description: "A free, color-coded online student planner for classes, homework, 
 
 publish_to: 'none'
 
-version: 3.6.2+302
+version: 3.6.2+303
 
 environment:
   sdk: ^3.11.0
@@ -49,6 +49,7 @@ dependencies:
   syncfusion_flutter_datagrid: 33.2.4
   syncfusion_localizations: 33.2.4
   flutter_quill: 11.5.0
+  flutter_quill_delta_from_html: ^1.4.1
   flutter_quill_to_pdf: ^2.3.9
   pdf: ^3.12.0
   printing: ^5.14.3

@@ -200,6 +200,7 @@ class _NotesEditorState extends State<NotesEditor> with WidgetsBindingObserver {
                     controller: widget.controller,
                   config: QuillSimpleToolbarConfig(
                     toolbarRunSpacing: 0,
+                    toolbarSectionSpacing: 8,
                     showFontFamily: !isCompact,
                     showDividers: !isCompact,
                     showStrikeThrough: !isCompact,
@@ -223,9 +224,6 @@ class _NotesEditorState extends State<NotesEditor> with WidgetsBindingObserver {
                         iconTheme: QuillIconTheme(
                           iconButtonSelectedData: IconButtonData(
                             style: ButtonStyle(
-                              tapTargetSize: isCompact
-                                  ? MaterialTapTargetSize.shrinkWrap
-                                  : null,
                               backgroundColor: WidgetStatePropertyAll(
                                 context.colorScheme.primary,
                               ),
@@ -237,16 +235,25 @@ class _NotesEditorState extends State<NotesEditor> with WidgetsBindingObserver {
                                   alpha: 0.1,
                                 ),
                               ),
+                              minimumSize: const WidgetStatePropertyAll(
+                                Size.zero,
+                              ),
+                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                             ),
                           ),
                           iconButtonUnselectedData: IconButtonData(
-                            color: context.colorScheme.onSurface,
-                            style: isCompact
-                                ? const ButtonStyle(
-                                    tapTargetSize:
-                                        MaterialTapTargetSize.shrinkWrap,
-                                  )
-                                : null,
+                            style: ButtonStyle(
+                              backgroundColor: const WidgetStatePropertyAll(
+                                Colors.transparent,
+                              ),
+                              foregroundColor: WidgetStatePropertyAll(
+                                context.colorScheme.onSurface,
+                              ),
+                              minimumSize: const WidgetStatePropertyAll(
+                                Size.zero,
+                              ),
+                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                            ),
                           ),
                         ),
                       ),
