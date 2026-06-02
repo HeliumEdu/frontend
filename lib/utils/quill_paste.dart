@@ -5,5 +5,5 @@
 //
 // For details regarding the license, please refer to the LICENSE file.
 
-export 'quill_clipboard_stub.dart'
-    if (dart.library.js_interop) 'quill_clipboard_web.dart';
+export 'quill_paste_stub.dart'
+    if (dart.library.js_interop) 'quill_paste_web.dart';

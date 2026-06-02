@@ -16,7 +16,6 @@ import 'package:flutter_quill/flutter_quill.dart';
 import 'package:flutter_quill/quill_delta.dart';
 import 'package:flutter_quill_delta_from_html/flutter_quill_delta_from_html.dart';
 import 'package:flutter_quill_to_pdf/flutter_quill_to_pdf.dart';
-import 'package:html/parser.dart' as html_parser;
 import 'package:go_router/go_router.dart';
 import 'package:heliumapp/config/analytics_event.dart';
 import 'package:heliumapp/config/app_route.dart';
@@ -52,7 +51,7 @@ import 'package:heliumapp/utils/search_helpers.dart';
 import 'package:heliumapp/utils/deep_link_helpers.dart';
 import 'package:heliumapp/utils/print_helpers.dart';
 import 'package:heliumapp/utils/print_service.dart';
-import 'package:heliumapp/utils/quill_clipboard.dart';
+import 'package:heliumapp/utils/quill_paste.dart';
 import 'package:heliumapp/utils/quill_helpers.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:pdf/pdf.dart';
@@ -170,6 +169,13 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
   StreamSubscription<DocChange>? _documentSubscription;
 
   String? _pendingRedirectRoute;
+  void Function()? _removeWebClipboardListeners;
+
+  // Own copy cache for web: Flutter web never calls clipboardSelection() via
+  // the browser copy path, so Quill's static Delta cache stays empty. We
+  // intercept the browser copy event instead and maintain our own cache.
+  static String _webCopiedPlainText = '';
+  static Delta _webCopiedDelta = Delta();
 
   @override
   void initState() {
@@ -182,9 +188,14 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
           // ignore: experimental_member_use
           enableExternalRichPaste: !kIsWeb,
           // ignore: experimental_member_use
-          onClipboardPaste: _handleClipboardPaste,
+          onClipboardPaste: kIsWeb ? () async => true : null,
         ),
       ),
+    );
+    _removeWebClipboardListeners = registerQuillClipboardListeners(
+      isEditorFocused: () => _editorFocusNode.hasFocus,
+      onCopy: _captureWebCopy,
+      onPaste: _handleWebPaste,
     );
     _saveStatus = widget.noteId == null ? SaveStatus.unsaved : SaveStatus.saved;
 
@@ -215,6 +226,7 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
     PrintService().unregister(_printHandler);
     _debounceTimer?.cancel();
     _documentSubscription?.cancel();
+    _removeWebClipboardListeners?.call();
     _titleController.removeListener(_onContentChanged);
     _titleController.dispose();
     _quillController.dispose();
@@ -714,21 +726,67 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
     });
   }
 
-  Future<bool> _handleClipboardPaste() async {
-    final html = await readHtmlFromClipboard();
-    if (html == null || html.isEmpty) return false;
+  void _captureWebCopy() {
+    final sel = _quillController.selection;
+    if (!sel.isValid || sel.isCollapsed) return;
+    _webCopiedPlainText = _quillController.document.getPlainText(
+        sel.start, sel.end - sel.start);
+    _webCopiedDelta =
+        _quillController.document.toDelta().slice(sel.start, sel.end);
+  }
 
-    final bodyHtml = html_parser.parse(html).body?.outerHtml ?? html;
-    final delta = HtmlToDelta().convert(bodyHtml);
-    if (delta.isEmpty) return false;
+  void _handleWebPaste(String? html, String? plainText) {
+    final sel = _quillController.selection;
+    final start = sel.start;
+    final len = sel.end - sel.start;
 
-    _quillController.replaceText(
-      _quillController.selection.start,
-      _quillController.selection.end - _quillController.selection.start,
-      delta,
-      TextSelection.collapsed(offset: _quillController.selection.end),
-    );
-    return true;
+    // Within-app copy: match against our own browser-copy cache. Flutter web
+    // never calls clipboardSelection(), so Quill's static cache is always
+    // empty; we maintain our own via the copy event listener.
+    if (plainText != null &&
+        plainText.trimRight() == _webCopiedPlainText.trimRight() &&
+        _webCopiedPlainText.isNotEmpty &&
+        _webCopiedDelta.isNotEmpty) {
+      _quillController.replaceText(
+        start,
+        len,
+        _webCopiedDelta,
+        TextSelection.collapsed(offset: sel.end),
+      );
+      return;
+    }
+
+    // Cross-tab or external HTML paste. Pass the raw clipboard HTML directly
+    // to HtmlToDelta, which handles its own parsing. Skip the result if it
+    // contains only whitespace/newlines (e.g., complex layout HTML like
+    // pagedjs margin divs that have no text content) and fall through to
+    // plain text instead.
+    if (html != null) {
+      final delta = HtmlToDelta().convert(html);
+      final hasText = delta.toList().any((op) =>
+          op.isInsert &&
+          op.data is String &&
+          (op.data as String).trim().isNotEmpty);
+      if (hasText) {
+        _quillController.replaceText(
+          start,
+          len,
+          delta,
+          TextSelection.collapsed(offset: sel.end),
+        );
+        return;
+      }
+    }
+
+    // Plain text fallback.
+    if (plainText != null) {
+      _quillController.replaceText(
+        start,
+        len,
+        plainText,
+        TextSelection.collapsed(offset: start + plainText.length),
+      );
+    }
   }
 
   void _populateNoteData(NoteModel note) {
