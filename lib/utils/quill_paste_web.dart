@@ -9,8 +9,8 @@ import 'dart:js_interop';
 
 import 'package:web/web.dart';
 
-/// Registers document-level `copy` and `paste` event listeners for the Quill
-/// editor on web.
+/// Registers document-level `copy`, `paste`, and `keydown` event listeners for
+/// the Quill editor on web.
 ///
 /// **Copy**: [onCopy] is called synchronously when the user copies with the
 /// editor focused. It must return `({String html, String plain})` with the
@@ -21,15 +21,30 @@ import 'package:web/web.dart';
 ///
 /// **Paste**: [onPaste] is called with the raw clipboard HTML and plain text
 /// read from [ClipboardEvent.clipboardData] (no clipboard-read permission
-/// required). Both listeners run in capture phase so they fire before
-/// Flutter's textarea handlers.
+/// required). When the user triggers paste-without-formatting
+/// (`Cmd+Shift+V` / `Ctrl+Shift+V`), html is passed as `null` so the caller
+/// falls through to plain-text insertion.
 ///
-/// Returns a single callback that removes both listeners; call it in dispose.
+/// All listeners run in capture phase so they fire before Flutter's textarea
+/// handlers. Returns a single callback that removes all listeners; call it in
+/// dispose.
 void Function()? registerQuillClipboardListeners({
   required bool Function() isEditorFocused,
   required ({String html, String plain})? Function() onCopy,
   required void Function(String? html, String? plainText) onPaste,
 }) {
+  bool pasteAsPlainText = false;
+
+  final keydownListener = (JSAny? event) {
+    if (!isEditorFocused()) return;
+    final keyEvent = event as KeyboardEvent;
+    if (keyEvent.key.toLowerCase() == 'v' &&
+        keyEvent.shiftKey &&
+        (keyEvent.metaKey || keyEvent.ctrlKey)) {
+      pasteAsPlainText = true;
+    }
+  }.toJS;
+
   final copyListener = (JSAny? event) {
     if (!isEditorFocused()) return;
     final content = onCopy();
@@ -47,15 +62,19 @@ void Function()? registerQuillClipboardListeners({
     clipEvent.preventDefault();
     final htmlRaw = clipEvent.clipboardData?.getData('text/html') ?? '';
     final plainRaw = clipEvent.clipboardData?.getData('text/plain') ?? '';
+    final usePlainOnly = pasteAsPlainText;
+    pasteAsPlainText = false;
     onPaste(
-      htmlRaw.isEmpty ? null : htmlRaw,
+      usePlainOnly || htmlRaw.isEmpty ? null : htmlRaw,
       plainRaw.isEmpty ? null : plainRaw,
     );
   }.toJS;
 
+  document.addEventListener('keydown', keydownListener, true.toJS);
   document.addEventListener('copy', copyListener, true.toJS);
   document.addEventListener('paste', pasteListener, true.toJS);
   return () {
+    document.removeEventListener('keydown', keydownListener, true.toJS);
     document.removeEventListener('copy', copyListener, true.toJS);
     document.removeEventListener('paste', pasteListener, true.toJS);
   };
