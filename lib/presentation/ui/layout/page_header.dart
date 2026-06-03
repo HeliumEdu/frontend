@@ -31,7 +31,8 @@ class PageHeader extends StatelessWidget {
   final Function? saveAction;
   final IconData cancelIcon;
   final List<BlocProvider>? inheritableProviders;
-  final List<Widget> additionalButtons;
+  final List<Widget> additionalLeftButtons;
+  final List<Widget> additionalRightButtons;
   final String? helpUrl;
 
   const PageHeader({
@@ -44,7 +45,8 @@ class PageHeader extends StatelessWidget {
     this.saveAction,
     this.cancelIcon = Icons.close,
     this.inheritableProviders,
-    this.additionalButtons = const [],
+    this.additionalLeftButtons = const [],
+    this.additionalRightButtons = const [],
     this.helpUrl,
   });
 
@@ -83,8 +85,8 @@ class PageHeader extends StatelessWidget {
                   ),
                 ),
               ),
-              if (additionalButtons.isNotEmpty) const SizedBox(width: 8),
-              ...additionalButtons,
+              if (additionalLeftButtons.isNotEmpty) const SizedBox(width: 8),
+              ...additionalLeftButtons,
             ],
           )
         else if (showSettingsInHeader(context))
@@ -105,6 +107,8 @@ class PageHeader extends StatelessWidget {
 
         Row(
           children: [
+            ...additionalRightButtons,
+            if (additionalRightButtons.isNotEmpty) const SizedBox(width: 8),
             if (screenType == ScreenType.page && helpUrl != null) ...[
               Semantics(
                 label: 'Help',

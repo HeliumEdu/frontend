@@ -296,7 +296,7 @@ class _CourseAddScreenState extends MultiStepContainerState<CourseAddScreen> {
             showSnackBar(context, state.message!, type: SnackType.error);
             _detailsKey.currentState?.resetSubmitting();
             _scheduleKey.currentState?.resetSubmitting();
-            setState(() => isSubmitting = false);
+            setState(() { isLoading = false; isSubmitting = false; });
           } else if (state is CoursesScreenDataFetched &&
               _currentCourseGroupId == null &&
               _currentCourseId != null) {

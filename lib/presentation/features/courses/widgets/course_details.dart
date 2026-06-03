@@ -394,7 +394,7 @@ class CourseDetailsState extends State<CourseDetails> {
 
       final request = CourseRequestModel(
         title: formController.titleController.text.trim(),
-        room: formController.roomController.text.trim(),
+        room: formController.isOnline ? '' : formController.roomController.text.trim(),
         credits: formController.creditsController.text.trim().isEmpty
             ? '0'
             : formController.creditsController.text.trim(),

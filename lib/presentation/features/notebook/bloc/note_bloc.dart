@@ -7,10 +7,12 @@
 
 import 'package:bloc/bloc.dart';
 import 'package:heliumapp/core/helium_exception.dart';
+import 'package:heliumapp/data/models/id_or_entity.dart';
 import 'package:heliumapp/data/models/planner/course_group_model.dart';
 import 'package:heliumapp/data/models/planner/course_model.dart';
 import 'package:heliumapp/data/models/planner/event_model.dart';
 import 'package:heliumapp/data/models/planner/homework_model.dart';
+import 'package:heliumapp/data/models/planner/note_model.dart';
 import 'package:heliumapp/data/models/planner/resource_group_model.dart';
 import 'package:heliumapp/data/models/planner/resource_model.dart';
 import 'package:heliumapp/utils/planner_helper.dart';
@@ -48,6 +50,19 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
       (event, emit) => emit(NoteInitial(origin: EventOrigin.bloc)),
     );
   }
+
+  /// An entity is linkable if it has no notes, or its only note is the one
+  /// currently being edited (which the user may have just unlinked locally).
+  static bool _isLinkableEntity(
+    List<IdOrEntity<NoteModel>> notes,
+    int? currentNoteId,
+  ) =>
+      notes.isEmpty ||
+      (currentNoteId != null && notes.every((n) => n.id == currentNoteId));
+
+  static bool _isLinkableResource(List<int> notes, int? currentNoteId) =>
+      notes.isEmpty ||
+      (currentNoteId != null && notes.every((id) => id == currentNoteId));
 
   Future<void> _onFetchNotes(
     FetchNotesEvent event,
@@ -206,20 +221,22 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
           .map((g) => g.id)
           .toSet();
 
+      final currentNoteId = event.currentNoteId;
+
       emit(LinkableEntitiesFetched(
         origin: event.origin,
         homework: (results[0] as List<HomeworkModel>)
             .where((h) =>
-        h.notes.isEmpty &&
-            visibleCourseIds.contains(h.course.id))
+                _isLinkableEntity(h.notes, currentNoteId) &&
+                visibleCourseIds.contains(h.course.id))
             .toList(),
         events: (results[1] as List<EventModel>)
-            .where((e) => e.notes.isEmpty)
+            .where((e) => _isLinkableEntity(e.notes, currentNoteId))
             .toList(),
         resources: (results[2] as List<ResourceModel>)
             .where((r) =>
-        r.notes.isEmpty &&
-            visibleGroupIds.contains(r.resourceGroup))
+                _isLinkableResource(r.notes, currentNoteId) &&
+                visibleGroupIds.contains(r.resourceGroup))
             .toList(),
         courses: courses,
         resourceGroups: resourceGroups,

@@ -91,6 +91,7 @@ class _ResourcesScreenState
   Map<int, CourseModel> _coursesMap = {};
   Map<int, NoteModel> _notesMap = {}; // resourceId -> Note
   int? _selectedGroupId;
+  String? _screenError;
 
   @override
   void initState() {
@@ -134,7 +135,9 @@ class _ResourcesScreenState
       ),
       BlocListener<ResourceBloc, ResourceState>(
         listener: (context, state) {
-          if (state is ResourcesScreenDataFetched) {
+          if (state is ResourcesError && state.origin == EventOrigin.screen) {
+            setState(() { isLoading = false; _screenError = state.message; });
+          } else if (state is ResourcesScreenDataFetched) {
             _populateInitialStateData(state);
           } else if (state is ResourceGroupCreated) {
             showSnackBar(context, 'Group created.');
@@ -258,9 +261,9 @@ class _ResourcesScreenState
           return const Center(child: LoadingIndicator(expanded: false));
         }
 
-        if (state is ResourcesError && state.origin == EventOrigin.screen) {
+        if (_screenError != null) {
           return ErrorCard(
-            message: state.message!,
+            message: _screenError!,
             source: 'resources_screen',
             onReload: () {
               context.read<ResourceBloc>().add(
@@ -353,6 +356,7 @@ class _ResourcesScreenState
       }
 
       isLoading = false;
+      _screenError = null;
     });
 
     openFromQueryParams();

@@ -100,6 +100,7 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen>
   final Map<int, int> _reminderCounts = {};
   final Map<int, int> _reminderToCourse = {};
   int? _selectedGroupId;
+  String? _screenError;
 
   @override
   void initState() {
@@ -128,7 +129,9 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen>
       ),
       BlocListener<CourseBloc, CourseState>(
         listener: (context, state) {
-          if (state is CoursesScreenDataFetched) {
+          if (state is CoursesError && state.origin == EventOrigin.screen) {
+            setState(() { isLoading = false; _screenError = state.message; });
+          } else if (state is CoursesScreenDataFetched) {
             _populateInitialStateData(state);
           } else if (state is CourseGroupCreated) {
             showSnackBar(context, 'Class group created.');
@@ -351,9 +354,9 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen>
           return const Center(child: LoadingIndicator(expanded: false));
         }
 
-        if (state is CoursesError && state.origin == EventOrigin.screen) {
+        if (_screenError != null) {
           return ErrorCard(
-            message: state.message!,
+            message: _screenError!,
             source: 'courses_screen',
             onReload: () {
               context.read<CourseBloc>().add(
@@ -473,6 +476,7 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen>
       }
 
       isLoading = false;
+      _screenError = null;
     });
 
     openFromQueryParams();

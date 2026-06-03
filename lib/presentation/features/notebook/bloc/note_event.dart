@@ -60,7 +60,12 @@ class FetchNoteScreenDataEvent extends NoteEvent {
 }
 
 class FetchLinkableEntitiesEvent extends NoteEvent {
-  FetchLinkableEntitiesEvent({required super.origin});
+  final int? currentNoteId;
+
+  FetchLinkableEntitiesEvent({
+    required super.origin,
+    this.currentNoteId,
+  });
 }
 
 class CreateNoteEvent extends NoteEvent {

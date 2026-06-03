@@ -246,7 +246,7 @@ class _ResourceAddScreenState
           if (state is ResourcesError) {
             showSnackBar(context, state.message!, type: SnackType.error);
             _detailsKey.currentState?.resetSubmitting();
-            setState(() => isSubmitting = false);
+            setState(() { isLoading = false; isSubmitting = false; });
           } else if (state is ResourcesScreenDataFetched &&
               _currentResourceGroupId == null &&
               _currentResourceId != null) {
