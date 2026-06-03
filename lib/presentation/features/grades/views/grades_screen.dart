@@ -189,7 +189,9 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
       BlocListener<GradeBloc, GradeState>(
         listener: (context, state) {
           if (state is GradesError) {
-            showSnackBar(context, state.message!, type: SnackType.error);
+            final wasInitialLoad = isLoading;
+            setState(() => isLoading = false);
+            if (!wasInitialLoad) showSnackBar(context, state.message!, type: SnackType.error);
           } else if (state is GradeScreenDataFetched) {
             _populateInitiateStateData(state);
             openFromQueryParams();
@@ -2309,6 +2311,34 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
                               ? context.colorScheme.error
                               : context.colorScheme.onSurface.withValues(
                             alpha: 0.5,
+                          ),
+                        ),
+                      ],
+                      if (course.categories.any((c) => c.weight > 0)) ...[
+                        const SizedBox(width: 8),
+                        Icon(
+                          Icons.circle,
+                          size: Responsive.getIconSize(
+                            context,
+                            mobile: 6,
+                            tablet: 7,
+                            desktop: 8,
+                          ),
+                          color: context.colorScheme.onSurface.withValues(
+                            alpha: 0.3,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Icon(
+                          Icons.balance,
+                          size: Responsive.getIconSize(
+                            context,
+                            mobile: 14,
+                            tablet: 16,
+                            desktop: 18,
+                          ),
+                          color: context.colorScheme.onSurface.withValues(
+                            alpha: 0.6,
                           ),
                         ),
                       ],

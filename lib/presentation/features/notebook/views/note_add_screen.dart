@@ -7,6 +7,7 @@
 
 import 'dart:async';
 import 'dart:convert';
+import 'dart:math' as math;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -43,6 +44,7 @@ import 'package:heliumapp/presentation/ui/components/label_and_text_form_field.d
 import 'package:heliumapp/presentation/ui/components/notes_editor.dart';
 import 'package:heliumapp/presentation/ui/components/quill_search_bar.dart';
 import 'package:heliumapp/presentation/ui/components/resource_title_label.dart';
+import 'package:heliumapp/presentation/ui/feedback/discard_changes_scope.dart';
 import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
 import 'package:heliumapp/presentation/ui/layout/page_header.dart';
 import 'package:heliumapp/utils/app_globals.dart';
@@ -127,9 +129,9 @@ class NoteAddScreen extends StatefulWidget {
   State<NoteAddScreen> createState() => _NoteAddScreenState();
 }
 
-class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
-  static const _autoSaveDebounce = Duration(seconds: 5);
-  static const _maxAutoSaveErrors = 3;
+class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
+    with WidgetsBindingObserver {
+  static const _autoSaveDebounce = Duration(seconds: 1);
 
   final BasicFormController _formController = BasicFormController();
   final TextEditingController _titleController = TextEditingController();
@@ -166,7 +168,7 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
   Timer? _debounceTimer;
   bool _isAutoSaving = false;
   int _autoSaveErrorCount = 0;
-  bool _autoSaveDisabled = false;
+  bool _isDiscardDialogOpen = false;
   StreamSubscription<DocChange>? _documentSubscription;
 
   String? _pendingRedirectRoute;
@@ -174,6 +176,7 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _currentNoteId = widget.noteId;
     _quillController = heliumQuillController();
     _saveStatus = widget.noteId == null ? SaveStatus.unsaved : SaveStatus.saved;
@@ -197,7 +200,19 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
   }
 
   @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.paused ||
+        state == AppLifecycleState.hidden) {
+      if (_debounceTimer?.isActive == true) {
+        _debounceTimer!.cancel();
+        _triggerAutoSave();
+      }
+    }
+  }
+
+  @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     router.routerDelegate.removeListener(_syncFromUrl);
     if (_registeredPrefix != null) {
       DirtyDialogRegistry.unregister(_registeredPrefix!);
@@ -247,9 +262,15 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
   }
 
   bool get isDirty {
-    if (_autoSaveDisabled) return false;
     return _saveStatus == SaveStatus.unsaved ||
         _saveStatus == SaveStatus.error;
+  }
+
+  Duration get _effectiveDebounce {
+    if (_autoSaveErrorCount == 0) return _autoSaveDebounce;
+    return Duration(
+      seconds: math.min(60, 5 * (1 << (_autoSaveErrorCount - 1))),
+    );
   }
 
   @override
@@ -283,6 +304,12 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
     ];
   }
 
+  @override
+  List<Widget> get additionalRightHeaderButtons {
+    if (_note == null && widget.noteId != null) return const [];
+    return [_buildSyncStatusIcon()];
+  }
+
   void _closeImmediately() {
     if (!mounted) return;
     final redirect = _pendingRedirectRoute;
@@ -312,23 +339,16 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
     );
   }
 
-  bool _hasContentChangedFromSaved() {
-    final currentTitle = _titleController.text;
-    final currentContent = jsonEncode(
-      _quillController.document.toDelta().toJson(),
-    );
-    return currentTitle != (_note?.title ?? '') ||
-        currentContent != _getSavedContentAsJson();
-  }
-
-  void _cancelAndClose() {
-    if (_pendingUnlink) {
-      setState(() {
-        _pendingUnlink = false;
-        if (!_hasContentChangedFromSaved()) _saveStatus = SaveStatus.saved;
-      });
+  Future<void> _cancelAndClose() async {
+    if (isDirty || _pendingUnlink) {
+      _debounceTimer?.cancel();
+      _isDiscardDialogOpen = true;
+      final shouldDiscard = await confirmDiscardChanges(context);
+      _isDiscardDialogOpen = false;
+      if (!mounted) return;
+      if (!shouldDiscard) return;
     }
-    _saveAndClose();
+    _closeImmediately();
   }
 
   void _saveAndClose() {
@@ -388,43 +408,7 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
       return;
     }
 
-    _debounceTimer?.cancel();
-    setState(() {
-      isSubmitting = true;
-      _isAutoSaving = false;
-      _saveStatus = SaveStatus.saving;
-    });
-
-    final title = _titleController.text.trim();
-    final content = _quillController.document.toDelta().toJson();
-
-    if (_note?.id == null) {
-      context.read<NoteBloc>().add(
-        CreateNoteEvent(
-          origin: EventOrigin.subScreen,
-          request: NoteRequestModel(
-            title: title,
-            content: {'ops': content},
-            homeworkId: widget.linkHomeworkId,
-            eventId: widget.linkEventId,
-            resourceId: widget.linkResourceId,
-          ),
-        ),
-      );
-    } else {
-      context.read<NoteBloc>().add(
-        UpdateNoteEvent(
-          origin: EventOrigin.subScreen,
-          noteId: _note!.id,
-          request: NoteRequestModel(
-            title: title,
-            content: {'ops': content},
-            clearLinks: _pendingUnlink,
-          ),
-        ),
-      );
-      _pendingUnlink = false;
-    }
+    _performSave(isAutoSave: false);
   }
 
   @override
@@ -433,14 +417,35 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
       BlocListener<NoteBloc, NoteState>(
         listener: (context, state) {
           if (state is NotesError) {
-            if (_isAutoSaving) {
-              _handleAutoSaveError(state.message ?? 'Auto-save failed');
+            if (isLoading) {
+              showSnackBar(
+                context,
+                state.message!,
+                type: SnackType.error,
+                useRootMessenger: true,
+              );
+              _closeImmediately();
+            } else if (_isPickerLoading) {
+              setState(() {
+                _isPickerLoading = false;
+                _showLinkPicker = false;
+              });
+              showSnackBar(
+                context,
+                state.message!,
+                type: SnackType.error,
+              );
+            } else if (_isAutoSaving) {
+              if (_isLinking) {
+                setState(() { _isLinking = false; isSubmitting = false; });
+              } else if (_note == null) {
+                setState(() => isSubmitting = false);
+              }
+              _handleAutoSaveError(state.message!);
               _isAutoSaving = false;
             } else {
-              setState(() {
-                isSubmitting = false;
-              });
-              showSnackBar(context, state.message!, type: SnackType.error);
+              setState(() => isSubmitting = false);
+              _handleAutoSaveError('Manual save failed');
             }
           } else if (state is NoteScreenDataFetched) {
             setState(() {
@@ -470,13 +475,14 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
             if (_isAutoSaving) {
               // Auto-save created the note - update state but don't close
               setState(() {
+                isSubmitting = false;
                 _note = state.note;
                 _currentNoteId = state.note.id;
                 _saveStatus = SaveStatus.saved;
                 _autoSaveErrorCount = 0;
-                _autoSaveDisabled = false;
               });
               _isAutoSaving = false;
+              _onContentChanged();
               // Auto-save minted a real ID — the URL prefix that the
               // dirty-dialog guard owns has changed (`/notebook/new`
               // → `/notebook/<id>`), so swap the registration before
@@ -510,12 +516,12 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
             if (_isAutoSaving) {
               // Auto-save or link change updated the note - update state but don't close
               setState(() {
+                if (_isLinking) isSubmitting = false;
                 _isLinking = false;
                 _pendingUnlink = false;
                 _note = state.note;
                 _saveStatus = SaveStatus.saved;
                 _autoSaveErrorCount = 0;
-                _autoSaveDisabled = false;
                 _linkedEntityType = state.note.linkedEntityType.isEmpty
                     ? null
                     : state.note.linkedEntityType;
@@ -524,6 +530,7 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
                 _linkedEntityColor = state.note.courseColor ?? state.note.categoryColor;
               });
               _isAutoSaving = false;
+              _onContentChanged();
             } else {
               // Manual save - close
               _pendingUnlink = false;
@@ -551,7 +558,7 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
         canPop: false,
         onPopInvokedWithResult: (didPop, _) {
           if (didPop) return;
-          _saveAndClose();
+          _cancelAndClose();
         },
         child: isCompact
             ? _buildCompactLayout(context, isCompact)
@@ -568,7 +575,7 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
   }
 
   void _onContentChanged() {
-    if (isLoading || _autoSaveDisabled || _saveStatus == SaveStatus.saving) {
+    if (isLoading || _saveStatus == SaveStatus.saving || _isDiscardDialogOpen) {
       return;
     }
 
@@ -585,7 +592,8 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
     }
 
     setState(() {
-      _saveStatus = SaveStatus.unsaved;
+      // Preserve error state — icon stays red until a save actually succeeds
+      if (_saveStatus != SaveStatus.error) _saveStatus = SaveStatus.unsaved;
     });
 
     // For new notes, only auto-save once title OR body is non-empty
@@ -597,11 +605,11 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
     }
 
     _debounceTimer?.cancel();
-    _debounceTimer = Timer(_autoSaveDebounce, _triggerAutoSave);
+    _debounceTimer = Timer(_effectiveDebounce, _triggerAutoSave);
   }
 
   void _triggerAutoSave() {
-    if (_saveStatus == SaveStatus.saving || _autoSaveDisabled) return;
+    if (_saveStatus == SaveStatus.saving || _isAutoSaving || _isDiscardDialogOpen) return;
 
     final title = _titleController.text.trim();
     final bodyIsEmpty = _quillController.document.toPlainText().trim().isEmpty;
@@ -609,11 +617,6 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
     // Require at least title or body
     if (title.isEmpty && bodyIsEmpty) return;
 
-    _performSave(isAutoSave: true);
-  }
-
-  void _onSaveIconTapped() {
-    if (_saveStatus == SaveStatus.saving) return;
     _performSave(isAutoSave: true);
   }
 
@@ -627,8 +630,9 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
     _debounceTimer?.cancel();
 
     setState(() {
-      _saveStatus = SaveStatus.saving;
+      if (_saveStatus != SaveStatus.error) _saveStatus = SaveStatus.saving;
       _isAutoSaving = isAutoSave;
+      if (!isAutoSave || _note?.id == null) isSubmitting = true;
     });
 
     final title = _titleController.text.trim();
@@ -677,23 +681,11 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
           scope.setContexts('autosave_error', {'error': message}),
     );
 
-    if (_autoSaveErrorCount >= _maxAutoSaveErrors) {
-      setState(() {
-        _saveStatus = SaveStatus.error;
-        _autoSaveDisabled = true;
-      });
-      showSnackBar(
-        context,
-        'Auto-save disabled. Connect to the Internet and manually save to re-enable.',
-        type: SnackType.error,
-        seconds: 5,
-      );
-    } else {
-      setState(() {
-        _saveStatus = SaveStatus.error;
-      });
-      showSnackBar(context, message, type: SnackType.error);
-    }
+    setState(() => _saveStatus = SaveStatus.error);
+
+    // Reuse debounce slot to schedule background retry with backoff
+    _debounceTimer?.cancel();
+    _debounceTimer = Timer(_effectiveDebounce, _triggerAutoSave);
   }
 
   void _setupDocumentListener() {
@@ -860,8 +852,6 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
                   child: _buildLinkedEntityBadge(),
                 ),
               ],
-              const SizedBox(width: gap),
-              _buildSaveStatusIcon(),
             ],
           );
         },
@@ -918,60 +908,32 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
     );
   }
 
-  Widget _buildSaveStatusIcon() {
+  Widget _buildSyncStatusIcon() {
     final IconData icon;
     final Color color;
     final String tooltip;
-    final bool animate;
 
-    switch (_saveStatus) {
-      case SaveStatus.unsaved:
-        icon = Icons.cloud_outlined;
-        color = context.colorScheme.onSurface.withValues(alpha: 0.5);
-        tooltip = 'Unsaved changes';
-        animate = false;
-      case SaveStatus.saving:
-        icon = Icons.sync;
-        color = context.colorScheme.primary;
-        tooltip = 'Saving ...';
-        animate = true;
-      case SaveStatus.saved:
-        icon = Icons.cloud_done_outlined;
-        color = context.colorScheme.primary;
-        tooltip = 'All changes saved';
-        animate = false;
-      case SaveStatus.error:
-        icon = Icons.cloud_off_outlined;
-        color = context.colorScheme.error;
-        tooltip = _autoSaveDisabled
-            ? 'Auto-save disabled - tap to retry'
-            : 'Save failed - tap to retry';
-        animate = false;
+    if (_saveStatus == SaveStatus.error) {
+      icon = Icons.cloud_off_outlined;
+      color = context.colorScheme.error;
+      tooltip = 'Auto-save failed, will retry';
+    } else if (_note == null) {
+      icon = Icons.cloud_outlined;
+      color = context.colorScheme.onSurface.withValues(alpha: 0.5);
+      tooltip = 'Auto-save not yet active';
+    } else {
+      icon = Icons.cloud_outlined;
+      color = context.colorScheme.primary;
+      tooltip = 'Auto-save active';
     }
 
-    final isEmpty = _isNoteEmpty;
-    final isDisabled = isEmpty || _saveStatus == SaveStatus.saving;
-
-    // Dim the icon when disabled due to empty note
-    final effectiveColor = isEmpty ? color.withValues(alpha: 0.3) : color;
-
-    Widget iconWidget = Icon(icon, size: 18, color: effectiveColor);
-
-    if (animate) {
-      iconWidget = _AnimatedSyncIcon(color: effectiveColor);
-    }
-
-    final button = InkWell(
-      onTap: isDisabled ? null : _onSaveIconTapped,
-      borderRadius: BorderRadius.circular(6),
-      child: Padding(padding: const EdgeInsets.all(8), child: iconWidget),
+    return Tooltip(
+      message: tooltip,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 4),
+        child: Icon(icon, size: 18, color: color),
+      ),
     );
-
-    if (isEmpty) {
-      return Semantics(label: tooltip, button: true, child: button);
-    }
-
-    return Tooltip(message: tooltip, child: button);
   }
 
   Future<void> _printNote() async {
@@ -1083,7 +1045,10 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
                     _isPickerLoading = true;
                   });
                   context.read<NoteBloc>().add(
-                    FetchLinkableEntitiesEvent(origin: EventOrigin.subScreen),
+                    FetchLinkableEntitiesEvent(
+                      origin: EventOrigin.subScreen,
+                      currentNoteId: _note?.id,
+                    ),
                   );
                 },
           child: Container(
@@ -1214,6 +1179,7 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
     setState(() {
       _isAutoSaving = true;
       _isLinking = true;
+      isSubmitting = true;
       _pendingUnlink = false;
       _saveStatus = SaveStatus.saving;
       _showLinkPicker = false;
@@ -1253,6 +1219,12 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
                       SegmentedButton<String>(
                         selected: {_linkPickerType},
                         showSelectedIcon: false,
+                        style: ButtonStyle(
+                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          visualDensity: Responsive.isMobile(context)
+                              ? VisualDensity.compact
+                              : null,
+                        ),
                         onSelectionChanged: (selected) => setState(() {
                           _linkPickerType = selected.first;
                           _linkPickerSearchController.clear();
@@ -1336,6 +1308,7 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen> {
                           child: TextField(
                             controller: _linkPickerSearchController,
                             style: AppStyles.formText(context),
+                            textAlignVertical: TextAlignVertical.center,
                             decoration: InputDecoration(
                               hintText: 'Search ...',
                               hintStyle: AppStyles.formHint(context),
@@ -1532,39 +1505,3 @@ class _LinkPickerItem extends _LinkPickerRow {
   _LinkPickerItem({required this.id, required this.title});
 }
 
-class _AnimatedSyncIcon extends StatefulWidget {
-  final Color color;
-
-  const _AnimatedSyncIcon({required this.color});
-
-  @override
-  State<_AnimatedSyncIcon> createState() => _AnimatedSyncIconState();
-}
-
-class _AnimatedSyncIconState extends State<_AnimatedSyncIcon>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-      duration: const Duration(milliseconds: 1000),
-      vsync: this,
-    )..repeat();
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return RotationTransition(
-      turns: _controller,
-      child: Icon(Icons.sync, size: 18, color: widget.color),
-    );
-  }
-}

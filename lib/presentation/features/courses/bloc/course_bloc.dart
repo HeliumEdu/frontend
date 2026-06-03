@@ -8,14 +8,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:heliumapp/core/helium_exception.dart';
+import 'package:heliumapp/data/models/planner/attachment_model.dart';
+import 'package:heliumapp/data/models/planner/category_model.dart';
 import 'package:heliumapp/data/models/planner/request/category_request_model.dart';
 import 'package:heliumapp/data/models/planner/course_group_model.dart';
 import 'package:heliumapp/data/models/planner/course_model.dart';
 import 'package:heliumapp/data/models/planner/course_schedule_model.dart';
 import 'package:heliumapp/data/models/planner/request/course_schedule_request_model.dart';
+import 'package:heliumapp/data/models/planner/reminder_model.dart';
+import 'package:heliumapp/domain/repositories/attachment_repository.dart';
 import 'package:heliumapp/domain/repositories/category_repository.dart';
 import 'package:heliumapp/domain/repositories/course_repository.dart';
 import 'package:heliumapp/domain/repositories/course_schedule_event_repository.dart';
+import 'package:heliumapp/domain/repositories/reminder_repository.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/core/base_event.dart';
 import 'package:heliumapp/presentation/features/courses/bloc/course_event.dart';
 import 'package:heliumapp/presentation/features/courses/bloc/course_state.dart';
@@ -24,11 +29,15 @@ class CourseBloc extends Bloc<CourseEvent, CourseState> {
   final CourseRepository courseRepository;
   final CourseScheduleRepository courseScheduleRepository;
   final CategoryRepository categoryRepository;
+  final AttachmentRepository attachmentRepository;
+  final ReminderRepository reminderRepository;
 
   CourseBloc({
     required this.courseRepository,
     required this.courseScheduleRepository,
     required this.categoryRepository,
+    required this.attachmentRepository,
+    required this.reminderRepository,
   }) : super(CourseInitial(origin: EventOrigin.bloc)) {
     on<FetchCoursesScreenDataEvent>(_onFetchCoursesScreenDataEvent);
     on<FetchCourseScreenDataEvent>(_onFetchCourseScreenDataEvent);
@@ -57,14 +66,24 @@ class CourseBloc extends Bloc<CourseEvent, CourseState> {
       final results = await Future.wait([
         courseRepository.getCourseGroups(forceRefresh: event.forceRefresh),
         courseRepository.getCourses(forceRefresh: event.forceRefresh),
+        categoryRepository.getCategories(forceRefresh: event.forceRefresh),
+        attachmentRepository.getAttachments(forceRefresh: event.forceRefresh),
+        reminderRepository.getReminders(forceRefresh: event.forceRefresh),
       ]);
       final courseGroups = results[0] as List<CourseGroupModel>;
       final courses = results[1] as List<CourseModel>;
+      final categories = results[2] as List<CategoryModel>;
+      final attachments = results[3] as List<AttachmentModel>;
+      final reminders = results[4] as List<ReminderModel>;
+
       emit(
         CoursesScreenDataFetched(
           origin: event.origin,
           courseGroups: courseGroups,
           courses: courses,
+          categories: categories,
+          attachments: attachments,
+          reminders: reminders,
         ),
       );
     } on HeliumException catch (e) {

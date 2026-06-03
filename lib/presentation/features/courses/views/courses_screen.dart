@@ -21,9 +21,15 @@ import 'package:heliumapp/data/models/planner/course_schedule_model.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_bloc.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_state.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/core/base_event.dart';
+import 'package:heliumapp/presentation/features/courses/bloc/category_bloc.dart';
+import 'package:heliumapp/presentation/features/courses/bloc/category_state.dart';
 import 'package:heliumapp/presentation/features/courses/bloc/course_bloc.dart';
 import 'package:heliumapp/presentation/features/courses/bloc/course_event.dart';
 import 'package:heliumapp/presentation/features/courses/bloc/course_state.dart';
+import 'package:heliumapp/presentation/features/planner/bloc/attachment_bloc.dart';
+import 'package:heliumapp/presentation/features/planner/bloc/attachment_state.dart';
+import 'package:heliumapp/presentation/features/planner/bloc/reminder_bloc.dart';
+import 'package:heliumapp/presentation/features/planner/bloc/reminder_state.dart';
 import 'package:heliumapp/presentation/features/planner/dialogs/confirm_delete_dialog.dart';
 import 'package:heliumapp/presentation/features/courses/dialogs/course_group_dialog.dart';
 import 'package:heliumapp/presentation/core/views/base_page_screen_state.dart';
@@ -88,7 +94,13 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen>
 
   List<CourseGroupModel> _courseGroups = [];
   final Map<int, List<CourseModel>> _coursesMap = {};
+  final Map<int, int> _categoryCounts = {};
+  final Map<int, int> _categoryToCourse = {};
+  final Map<int, int> _attachmentCounts = {};
+  final Map<int, int> _reminderCounts = {};
+  final Map<int, int> _reminderToCourse = {};
   int? _selectedGroupId;
+  String? _screenError;
 
   @override
   void initState() {
@@ -117,7 +129,9 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen>
       ),
       BlocListener<CourseBloc, CourseState>(
         listener: (context, state) {
-          if (state is CoursesScreenDataFetched) {
+          if (state is CoursesError && state.origin == EventOrigin.screen) {
+            setState(() { isLoading = false; _screenError = state.message; });
+          } else if (state is CoursesScreenDataFetched) {
             _populateInitialStateData(state);
           } else if (state is CourseGroupCreated) {
             showSnackBar(context, 'Class group created.');
@@ -204,6 +218,87 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen>
           }
         },
       ),
+      BlocListener<CategoryBloc, CategoryState>(
+        listener: (context, state) {
+          if (state is CategoryCreated) {
+            setState(() {
+              _categoryCounts[state.category.course] =
+                  (_categoryCounts[state.category.course] ?? 0) + 1;
+              _categoryToCourse[state.category.id] = state.category.course;
+            });
+          } else if (state is CategoryDeleted) {
+            final courseId = _categoryToCourse.remove(state.id);
+            if (courseId != null) {
+              setState(() {
+                final current = _categoryCounts[courseId] ?? 0;
+                if (current > 1) {
+                  _categoryCounts[courseId] = current - 1;
+                } else {
+                  _categoryCounts.remove(courseId);
+                }
+              });
+            }
+          } else if (state is CategoriesFetched && state.categories.isNotEmpty) {
+            final courseId = state.categories.first.course;
+            setState(() {
+              _categoryToCourse.removeWhere((_, v) => v == courseId);
+              _categoryCounts[courseId] = state.categories.length;
+              for (final category in state.categories) {
+                _categoryToCourse[category.id] = courseId;
+              }
+            });
+          }
+        },
+      ),
+      BlocListener<AttachmentBloc, AttachmentState>(
+        listener: (context, state) {
+          if (state is AttachmentsCreated) {
+            setState(() {
+              for (final attachment in state.attachments) {
+                if (attachment.course != null) {
+                  _attachmentCounts[attachment.course!] =
+                      (_attachmentCounts[attachment.course!] ?? 0) + 1;
+                }
+              }
+            });
+          } else if (state is AttachmentDeleted && state.courseId != null) {
+            setState(() {
+              final current = _attachmentCounts[state.courseId] ?? 0;
+              if (current > 1) {
+                _attachmentCounts[state.courseId!] = current - 1;
+              } else {
+                _attachmentCounts.remove(state.courseId);
+              }
+            });
+          }
+        },
+      ),
+      BlocListener<ReminderBloc, ReminderState>(
+        listener: (context, state) {
+          if (state is ReminderCreated) {
+            final courseId = state.reminder.course?.id;
+            if (courseId != null) {
+              setState(() {
+                _reminderCounts[courseId] =
+                    (_reminderCounts[courseId] ?? 0) + 1;
+                _reminderToCourse[state.reminder.id] = courseId;
+              });
+            }
+          } else if (state is ReminderDeleted) {
+            final courseId = _reminderToCourse.remove(state.id);
+            if (courseId != null) {
+              setState(() {
+                final current = _reminderCounts[courseId] ?? 0;
+                if (current > 1) {
+                  _reminderCounts[courseId] = current - 1;
+                } else {
+                  _reminderCounts.remove(courseId);
+                }
+              });
+            }
+          }
+        },
+      ),
     ];
   }
 
@@ -259,9 +354,9 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen>
           return const Center(child: LoadingIndicator(expanded: false));
         }
 
-        if (state is CoursesError && state.origin == EventOrigin.screen) {
+        if (_screenError != null) {
           return ErrorCard(
-            message: state.message!,
+            message: _screenError!,
             source: 'courses_screen',
             onReload: () {
               context.read<CourseBloc>().add(
@@ -350,17 +445,48 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen>
         Sort.byTitle(_coursesMap[group.id]!);
       }
 
+      _categoryCounts.clear();
+      _categoryToCourse.clear();
+      for (final category in state.categories) {
+        _categoryCounts[category.course] =
+            (_categoryCounts[category.course] ?? 0) + 1;
+        _categoryToCourse[category.id] = category.course;
+      }
+
+      _attachmentCounts.clear();
+      for (final attachment in state.attachments) {
+        if (attachment.course != null) {
+          _attachmentCounts[attachment.course!] =
+              (_attachmentCounts[attachment.course!] ?? 0) + 1;
+        }
+      }
+
+      _reminderCounts.clear();
+      _reminderToCourse.clear();
+      for (final reminder in state.reminders) {
+        final courseId = reminder.course?.id;
+        if (courseId != null) {
+          _reminderCounts[courseId] = (_reminderCounts[courseId] ?? 0) + 1;
+          _reminderToCourse[reminder.id] = courseId;
+        }
+      }
+
       if (_courseGroups.isNotEmpty) {
         _selectedGroupId = _courseGroups.first.id;
       }
 
       isLoading = false;
+      _screenError = null;
     });
 
     openFromQueryParams();
   }
 
   Widget _buildCourseCard(BuildContext context, CourseModel course) {
+    final categoryCount = _categoryCounts[course.id] ?? 0;
+    final attachmentCount = _attachmentCounts[course.id] ?? 0;
+    final reminderCount = _reminderCounts[course.id] ?? 0;
+
     return MobileGestureDetector(
       onTap: () => _onEdit(course),
       child: Card(
@@ -442,50 +568,228 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen>
 
               const SizedBox(height: 16),
 
-              if (course.teacherName.isNotEmpty)
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    SelectableText(
-                      course.teacherName,
-                      style: AppStyles.headingText(context),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        if (course.teacherName.isNotEmpty) ...[
+                          SelectableText(
+                            course.teacherName,
+                            style: AppStyles.headingText(context),
+                          ),
+                          const SizedBox(height: 6),
+                        ],
+                        if (course.isOnline)
+                          Row(
+                            children: [
+                              Icon(
+                                Icons.language,
+                                size: Responsive.getIconSize(
+                                  context,
+                                  mobile: 16,
+                                  tablet: 18,
+                                  desktop: 20,
+                                ),
+                                color: context.colorScheme.onSurface.withValues(
+                                  alpha: 0.4,
+                                ),
+                              ),
+                              const SizedBox(width: 4),
+                              SelectableText(
+                                'Online',
+                                style: AppStyles.standardBodyText(
+                                  context,
+                                ).copyWith(
+                                  color: context.colorScheme.onSurface
+                                      .withValues(alpha: 0.5),
+                                  fontSize: Responsive.getFontSize(
+                                    context,
+                                    mobile: 13,
+                                    tablet: 14,
+                                    desktop: 15,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          )
+                        else if (course.room.isNotEmpty)
+                          Row(
+                            children: [
+                              Icon(
+                                Icons.pin_drop_outlined,
+                                size: Responsive.getIconSize(
+                                  context,
+                                  mobile: 16,
+                                  tablet: 18,
+                                  desktop: 20,
+                                ),
+                                color: context.colorScheme.onSurface
+                                    .withValues(alpha: 0.4),
+                              ),
+                              const SizedBox(width: 4),
+                              SelectableText(
+                                course.room,
+                                style: AppStyles.standardBodyText(
+                                  context,
+                                ).copyWith(
+                                  color: context.colorScheme.onSurface
+                                      .withValues(alpha: 0.5),
+                                  fontSize: Responsive.getFontSize(
+                                    context,
+                                    mobile: 13,
+                                    tablet: 14,
+                                    desktop: 15,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                      ],
                     ),
-                    const SizedBox(height: 8),
-                  ],
-                ),
-
-              if (course.room.isNotEmpty)
-                Row(
-                  children: [
-                    Icon(
-                      Icons.pin_drop_outlined,
-                      size: Responsive.getIconSize(
-                        context,
-                        mobile: 16,
-                        tablet: 18,
-                        desktop: 20,
+                  ),
+                  const SizedBox(width: 16),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.category_outlined,
+                            size: Responsive.getIconSize(
+                              context,
+                              mobile: 14,
+                              tablet: 16,
+                              desktop: 16,
+                            ),
+                            color: context.colorScheme.onSurface.withValues(
+                              alpha: 0.5,
+                            ),
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            '$categoryCount ${categoryCount == 1 ? 'category' : 'categories'}',
+                            style: AppStyles.smallSecondaryText(
+                              context,
+                            ).copyWith(
+                              color: context.colorScheme.onSurface.withValues(
+                                alpha: 0.6,
+                              ),
+                            ),
+                          ),
+                          if (course.hasWeightedGrading == true) ...[
+                            const SizedBox(width: 6),
+                            Icon(
+                              Icons.balance,
+                              size: Responsive.getIconSize(
+                                context,
+                                mobile: 14,
+                                tablet: 16,
+                                desktop: 16,
+                              ),
+                              color: context.colorScheme.onSurface,
+                            ),
+                          ],
+                        ],
                       ),
-                      color: context.colorScheme.onSurface.withValues(
-                        alpha: 0.4,
-                      ),
-                    ),
-                    const SizedBox(width: 4),
-                    SelectableText(
-                      course.room,
-                      style: AppStyles.standardBodyText(context).copyWith(
-                        color: context.colorScheme.onSurface.withValues(
-                          alpha: 0.5,
+                      if (course.credits > 0) ...[
+                        const SizedBox(height: 6),
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.school_outlined,
+                              size: Responsive.getIconSize(
+                                context,
+                                mobile: 14,
+                                tablet: 16,
+                                desktop: 16,
+                              ),
+                              color: context.colorScheme.onSurface.withValues(
+                                alpha: 0.5,
+                              ),
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              _formatCredits(course.credits),
+                              style: AppStyles.smallSecondaryText(
+                                context,
+                              ).copyWith(
+                                color: context.colorScheme.onSurface.withValues(
+                                  alpha: 0.6,
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
-                        fontSize: Responsive.getFontSize(
-                          context,
-                          mobile: 13,
-                          tablet: 14,
-                          desktop: 15,
+                      ],
+                      if (attachmentCount > 0 || reminderCount > 0) ...[
+                        const SizedBox(height: 6),
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            if (attachmentCount > 0) ...[
+                              Icon(
+                                Icons.attachment,
+                                size: Responsive.getIconSize(
+                                  context,
+                                  mobile: 14,
+                                  tablet: 16,
+                                  desktop: 16,
+                                ),
+                                color: context.semanticColors.success.withValues(
+                                  alpha: 0.9,
+                                ),
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                '$attachmentCount',
+                                style: AppStyles.smallSecondaryText(
+                                  context,
+                                ).copyWith(
+                                  color: context.semanticColors.success.withValues(
+                                    alpha: 0.9,
+                                  ),
+                                ),
+                              ),
+                            ],
+                            if (attachmentCount > 0 && reminderCount > 0)
+                              const SizedBox(width: 10),
+                            if (reminderCount > 0) ...[
+                              Icon(
+                                Icons.notifications_outlined,
+                                size: Responsive.getIconSize(
+                                  context,
+                                  mobile: 14,
+                                  tablet: 16,
+                                  desktop: 16,
+                                ),
+                                color: context.colorScheme.primary.withValues(
+                                  alpha: 0.9,
+                                ),
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                '$reminderCount',
+                                style: AppStyles.smallSecondaryText(
+                                  context,
+                                ).copyWith(
+                                  color: context.colorScheme.primary.withValues(
+                                    alpha: 0.9,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ],
                         ),
-                      ),
-                    ),
-                  ],
-                ),
+                      ],
+                    ],
+                  ),
+                ],
+              ),
 
               const SizedBox(height: 12),
 
@@ -534,6 +838,13 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen>
         ),
       ),
     );
+  }
+
+  String _formatCredits(double credits) {
+    final formatted = credits % 1 == 0
+        ? credits.toInt().toString()
+        : credits.toStringAsFixed(1);
+    return '$formatted ${credits == 1.0 ? 'credit' : 'credits'}';
   }
 
   List<Container> _buildCourseScheduleContainers(CourseModel course) {

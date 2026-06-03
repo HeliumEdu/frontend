@@ -5,10 +5,13 @@
 //
 // For details regarding the license, please refer to the LICENSE file.
 
+import 'package:heliumapp/data/models/planner/attachment_model.dart';
+import 'package:heliumapp/data/models/planner/category_model.dart';
 import 'package:heliumapp/data/models/planner/course_group_model.dart';
 import 'package:heliumapp/data/models/planner/course_model.dart';
 import 'package:heliumapp/data/models/planner/course_schedule_event_model.dart';
 import 'package:heliumapp/data/models/planner/course_schedule_model.dart';
+import 'package:heliumapp/data/models/planner/reminder_model.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/core/base_state.dart';
 
 abstract class CourseState extends BaseState {
@@ -47,12 +50,18 @@ class CoursesError extends CourseState {
 class CoursesScreenDataFetched extends CourseState {
   final List<CourseGroupModel> courseGroups;
   final List<CourseModel> courses;
+  final List<CategoryModel> categories;
+  final List<AttachmentModel> attachments;
+  final List<ReminderModel> reminders;
 
   CoursesScreenDataFetched({
     required super.origin,
     super.message,
     required this.courseGroups,
     required this.courses,
+    required this.categories,
+    required this.attachments,
+    required this.reminders,
   });
 }
 

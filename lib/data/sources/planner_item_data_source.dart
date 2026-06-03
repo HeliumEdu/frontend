@@ -642,15 +642,32 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
     return '${fromKey.toIso8601String()}_${toKey.toIso8601String()}';
   }
 
+  bool isOnlineForItem(PlannerItemBaseModel plannerItem) {
+    if (plannerItem is HomeworkModel) {
+      final course = courses?.firstWhereOrNull(
+        (c) => c.id == plannerItem.course.id,
+      );
+      return course?.isOnline ?? false;
+    } else if (plannerItem is CourseScheduleEventModel) {
+      final courseId = int.tryParse(plannerItem.ownerId);
+      final course = courses?.firstWhereOrNull((c) => c.id == courseId);
+      return course?.isOnline ?? false;
+    } else {
+      return false;
+    }
+  }
+
   String? getLocationForItem(PlannerItemBaseModel plannerItem) {
     if (plannerItem is HomeworkModel) {
       final course = courses?.firstWhereOrNull(
         (c) => c.id == plannerItem.course.id,
       );
+      if (course?.isOnline ?? false) return null;
       return course?.room;
     } else if (plannerItem is CourseScheduleEventModel) {
       final courseId = int.tryParse(plannerItem.ownerId);
       final course = courses?.firstWhereOrNull((c) => c.id == courseId);
+      if (course?.isOnline ?? false) return null;
       return course?.room;
     } else {
       return plannerItem.location;

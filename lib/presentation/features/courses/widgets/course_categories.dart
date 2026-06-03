@@ -8,10 +8,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:heliumapp/config/app_theme.dart';
-import 'package:heliumapp/core/dio_client.dart';
 import 'package:heliumapp/data/models/planner/category_model.dart';
-import 'package:heliumapp/data/repositories/category_repository_impl.dart';
-import 'package:heliumapp/data/sources/category_remote_data_source.dart';
 import 'package:heliumapp/presentation/features/courses/bloc/category_bloc.dart';
 import 'package:heliumapp/presentation/features/courses/bloc/category_event.dart'
     show FetchCategoriesEvent, DeleteCategoryEvent;
@@ -35,14 +32,13 @@ import 'package:heliumapp/utils/sort_helpers.dart';
 
 /// Course categories widget for the third step of course add/edit flow
 class CourseCategories extends StatelessWidget {
-  final DioClient _dioClient = DioClient();
   final int courseGroupId;
   final int courseId;
   final bool isEdit;
   final bool isNew;
   final UserSettingsModel? userSettings;
 
-  CourseCategories({
+  const CourseCategories({
     super.key,
     required this.courseGroupId,
     required this.courseId,
@@ -53,25 +49,12 @@ class CourseCategories extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MultiBlocProvider(
-      providers: [
-        BlocProvider(
-          create: (context) => CategoryBloc(
-            categoryRepository: CategoryRepositoryImpl(
-              remoteDataSource: CategoryRemoteDataSourceImpl(
-                dioClient: _dioClient,
-              ),
-            ),
-          ),
-        ),
-      ],
-      child: _CourseCategoriesContent(
-        courseGroupId: courseGroupId,
-        courseId: courseId,
-        isEdit: isEdit,
-        isNew: isNew,
-        userSettings: userSettings,
-      ),
+    return _CourseCategoriesContent(
+      courseGroupId: courseGroupId,
+      courseId: courseId,
+      isEdit: isEdit,
+      isNew: isNew,
+      userSettings: userSettings,
     );
   }
 }
@@ -252,8 +235,21 @@ class _CourseCategoriesContentState extends State<_CourseCategoriesContent> {
                     const SizedBox(height: 6),
                     Row(
                       children: [
+                        Icon(
+                          Icons.balance,
+                          size: Responsive.getIconSize(
+                            context,
+                            mobile: 14,
+                            tablet: 16,
+                            desktop: 18,
+                          ),
+                          color: context.colorScheme.onSurface.withValues(
+                            alpha: 0.6,
+                          ),
+                        ),
+                        const SizedBox(width: 4),
                         SelectableText(
-                          'Weight: ${GradeHelper.percentForDisplay(category.weight.toString(), true)}',
+                          GradeHelper.percentForDisplay(category.weight.toString(), true),
                           style: AppStyles.standardBodyTextLight(context)
                               .copyWith(
                                 color: context.colorScheme.onSurface.withValues(

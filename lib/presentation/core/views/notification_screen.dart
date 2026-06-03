@@ -151,7 +151,9 @@ class _NotificationsScreenState
       BlocListener<ReminderBloc, ReminderState>(
         listener: (context, state) {
           if (state is RemindersError) {
-            showSnackBar(context, state.message!, type: SnackType.error);
+            final wasInitialLoad = isLoading;
+            setState(() => isLoading = false);
+            if (!wasInitialLoad) showSnackBar(context, state.message!, type: SnackType.error);
           } else if (state is RemindersFetched) {
             _populateInitialStateData(state);
           } else if (state is ReminderUpdated) {

@@ -335,6 +335,7 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
           if (state is AuthError) {
             // Only handle on the main settings page; sub-screens handle their own errors.
             if (_activeSubScreen == null) {
+              setState(() => isLoading = false);
               showSnackBar(context, state.message!, type: SnackType.error);
             }
           } else if (state is AuthProfileFetched) {

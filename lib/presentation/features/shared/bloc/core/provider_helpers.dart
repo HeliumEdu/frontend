@@ -30,6 +30,7 @@ import 'package:heliumapp/data/repositories/grade_repository_impl.dart';
 import 'package:heliumapp/data/repositories/reminder_repository_impl.dart';
 import 'package:heliumapp/data/sources/grade_remote_data_source.dart';
 import 'package:heliumapp/data/sources/reminder_remote_data_source.dart';
+import 'package:heliumapp/presentation/features/courses/bloc/category_bloc.dart';
 import 'package:heliumapp/presentation/features/courses/bloc/course_bloc.dart';
 import 'package:heliumapp/presentation/features/grades/bloc/grade_bloc.dart';
 import 'package:heliumapp/presentation/features/notebook/bloc/note_bloc.dart';
@@ -119,6 +120,14 @@ class ProviderHelpers {
     );
   }
 
+  CategoryBloc Function(BuildContext context) createCategoryBloc() {
+    return (context) => CategoryBloc(
+      categoryRepository: CategoryRepositoryImpl(
+        remoteDataSource: CategoryRemoteDataSourceImpl(dioClient: _dioClient),
+      ),
+    );
+  }
+
   CourseBloc Function(BuildContext context) createCourseBloc() {
     return (context) => CourseBloc(
       courseRepository: CourseRepositoryImpl(
@@ -132,6 +141,12 @@ class ProviderHelpers {
       ),
       categoryRepository: CategoryRepositoryImpl(
         remoteDataSource: CategoryRemoteDataSourceImpl(dioClient: _dioClient),
+      ),
+      attachmentRepository: AttachmentRepositoryImpl(
+        remoteDataSource: AttachmentRemoteDataSourceImpl(dioClient: _dioClient),
+      ),
+      reminderRepository: ReminderRepositoryImpl(
+        remoteDataSource: ReminderRemoteDataSourceImpl(dioClient: _dioClient),
       ),
     );
   }

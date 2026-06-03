@@ -53,7 +53,6 @@ import 'package:heliumapp/presentation/core/views/base_page_screen_state.dart';
 import 'package:heliumapp/presentation/core/views/deep_link_mixin.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_bloc.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_state.dart';
-import 'package:heliumapp/presentation/features/courses/bloc/category_bloc.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/attachment_bloc.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/attachment_state.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/reminder_bloc.dart';
@@ -124,15 +123,6 @@ class PlannerScreen extends StatelessWidget {
             ),
             resourceRepository: ResourceRepositoryImpl(
               remoteDataSource: ResourceRemoteDataSourceImpl(
-                dioClient: _dioClient,
-              ),
-            ),
-          ),
-        ),
-        BlocProvider(
-          create: (context) => CategoryBloc(
-            categoryRepository: CategoryRepositoryImpl(
-              remoteDataSource: CategoryRemoteDataSourceImpl(
                 dioClient: _dioClient,
               ),
             ),
@@ -458,7 +448,9 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
               ),
             );
           } else if (state is PlannerError) {
-            showSnackBar(context, state.message!, type: SnackType.error);
+            final wasInitialLoad = isLoading;
+            setState(() => isLoading = false);
+            if (!wasInitialLoad) showSnackBar(context, state.message!, type: SnackType.error);
           }
         },
       ),
@@ -1424,6 +1416,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
                                 onChanged: _onSearchTextFieldChanged,
                                 onTapOutside: (_) {},
                                 style: AppStyles.formText(context),
+                                textAlignVertical: TextAlignVertical.center,
                                 decoration: InputDecoration(
                                   hintText: 'Search ...',
                                   hintStyle: AppStyles.formHint(context),
@@ -2480,9 +2473,15 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
         ? Icons.repeat
         : Icons.access_time;
     final rows = <_PlannerTooltipRow>[];
+    final isOnline =
+        _plannerItemDataSource?.isOnlineForItem(plannerItem) ?? false;
     final location = _plannerItemDataSource?.getLocationForItem(plannerItem);
 
-    if (location != null && location.isNotEmpty) {
+    if (isOnline) {
+      rows.add(
+        const _PlannerTooltipRow.text(icon: Icons.language, text: 'Online'),
+      );
+    } else if (location != null && location.isNotEmpty) {
       rows.add(
         _PlannerTooltipRow.text(icon: Icons.pin_drop_outlined, text: location),
       );
@@ -2721,6 +2720,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
 
   Widget _buildCalendarItemCenterForAgenda({
     required PlannerItemBaseModel plannerItem,
+    bool isOnline = false,
     String? location,
     bool? completedOverride,
     required Color backgroundColor,
@@ -2747,18 +2747,22 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
             backgroundColor: backgroundColor,
           ),
         if (PlannerHelper.shouldShowLocationBelowTitle(
-              context,
-              plannerItem,
-              true,
-              _currentView,
-            ) &&
-            location != null &&
-            location.isNotEmpty)
-          _buildCalendarItemLocationRow(
-            location,
-            isInAgenda: true,
-            backgroundColor: backgroundColor,
-          ),
+          context,
+          plannerItem,
+          true,
+          _currentView,
+        ))
+          if (isOnline)
+            _buildCalendarItemOnlineRow(
+              isInAgenda: true,
+              backgroundColor: backgroundColor,
+            )
+          else if (location != null && location.isNotEmpty)
+            _buildCalendarItemLocationRow(
+              location,
+              isInAgenda: true,
+              backgroundColor: backgroundColor,
+            ),
       ],
     );
 
@@ -2775,6 +2779,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
 
   Widget _buildCalendarItemCenterForTimeline({
     required PlannerItemBaseModel plannerItem,
+    bool isOnline = false,
     String? location,
     Widget? inlineIcon,
     bool? completedOverride,
@@ -2889,18 +2894,22 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
             backgroundColor: backgroundColor,
           ),
         if (PlannerHelper.shouldShowLocationBelowTitle(
-              context,
-              plannerItem,
-              false,
-              _currentView,
-            ) &&
-            location != null &&
-            location.isNotEmpty)
-          _buildCalendarItemLocationRow(
-            location,
-            isInAgenda: false,
-            backgroundColor: backgroundColor,
-          ),
+          context,
+          plannerItem,
+          false,
+          _currentView,
+        ))
+          if (isOnline)
+            _buildCalendarItemOnlineRow(
+              isInAgenda: false,
+              backgroundColor: backgroundColor,
+            )
+          else if (location != null && location.isNotEmpty)
+            _buildCalendarItemLocationRow(
+              location,
+              isInAgenda: false,
+              backgroundColor: backgroundColor,
+            ),
       ],
     );
 
@@ -3047,6 +3056,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
     DateTime? occurrenceDate,
   }) {
     final color = _plannerItemDataSource!.getColorForItem(plannerItem);
+    final isOnline = _plannerItemDataSource!.isOnlineForItem(plannerItem);
     final location = _plannerItemDataSource!.getLocationForItem(plannerItem);
     final course = _getCourseForPlannerItem(plannerItem);
 
@@ -3059,6 +3069,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
 
     final centerWidget = _buildCalendarItemCenterForAgenda(
       plannerItem: plannerItem,
+      isOnline: isOnline,
       location: location,
       completedOverride: completedOverride,
       backgroundColor: color,
@@ -3155,6 +3166,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
     if (isMobileLayout) {
       final centerContent = _buildCalendarItemCenterForAgenda(
         plannerItem: plannerItem,
+        isOnline: isOnline,
         location: location,
         completedOverride: completedOverride,
         backgroundColor: color,
@@ -3205,6 +3217,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
     DateTime? occurrenceDate,
   }) {
     final color = _plannerItemDataSource!.getColorForItem(plannerItem);
+    final isOnline = _plannerItemDataSource!.isOnlineForItem(plannerItem);
     final location = _plannerItemDataSource!.getLocationForItem(plannerItem);
 
     final inlineIcon = _buildItemIcon(
@@ -3216,6 +3229,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
 
     final centerWidget = _buildCalendarItemCenterForTimeline(
       plannerItem: plannerItem,
+      isOnline: isOnline,
       location: location,
       inlineIcon: inlineIcon,
       completedOverride: completedOverride,
@@ -4583,6 +4597,31 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
       Icons.repeat,
       size: 10,
       color: foregroundColor.withValues(alpha: 0.4),
+    );
+  }
+
+  Widget _buildCalendarItemOnlineRow({
+    required bool isInAgenda,
+    required Color backgroundColor,
+  }) {
+    final foregroundColor = backgroundColor.contrasting;
+    return Row(
+      children: [
+        Icon(
+          Icons.language,
+          size: 10,
+          color: foregroundColor.withValues(alpha: 0.4),
+        ),
+        const SizedBox(width: 2),
+        Text(
+          'Online',
+          style:
+              (isInAgenda
+                      ? AppStyles.smallSecondaryTextLight(context)
+                      : AppStyles.calendarItemTextLight(context))
+                  .copyWith(color: foregroundColor.withValues(alpha: 0.7)),
+        ),
+      ],
     );
   }
 

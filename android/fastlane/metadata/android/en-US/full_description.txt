@@ -4,16 +4,16 @@ A free, color-coded online student planner for classes, homework, grades, and no
 Color-code classes, assignments, and personal events — and toggle between Light and Dark mode. Pull in Google, Apple, or any iCal calendar, or push Helium back out.
 
 📊 LIVE GRADE TRACKER & CALCULATOR
-Helium recalculates your grades in real time — by class, by category, and across the term. The dashboard surfaces At-Risk Classes, Progress vs. Pace, and Pending Impact at a glance. Use the "What Grade Do I Need?" calculator to see what you need on the Final.
+Helium recalculates your grades in real time — by class, by category, and across the term. The dashboard surfaces At-Risk Classes, Progress vs. Pace, and Pending Impact at a glance. Use the grade calculator to project your grade with hypothetical scores, or enter a target to find out exactly what you need on the Final.
 
 📘 RICH NOTEBOOK
-Write rich notes, linked directly to items in your Planner, so the context you need is always right where you need it. Or keep standalone notes for anything else, from lecture summaries to paper drafts. Format like a doc, search across everything, and print any note when you need a hard copy.
+Write rich notes, linked directly to items in your Planner, so the context you need is always right where you need it. Or keep standalone notes for anything else, from lecture summaries to paper drafts. Format like a doc, search across everything, print when you need a hard copy.
 
 🗓️ AT-A-GLANCE SCHEDULES
-Classes time-blocked hour by hour. Drag to reschedule, check assignments off right from the calendar, and tap any class for details — room, teacher email, grading scale.
+Classes time-blocked hour by hour. Drag to reschedule, check off completed assignments right from the calendar, and tap any class for details — room, teacher email, grading scale.
 
 ✅ TODOS VIEW
-A focused, checkable list of your assignments. Sort and filter by class, priority, due date, or resources — organize your study time the way you want.
+A focused checklist of your assignments. Sort and filter by class, priority, due date, or resources — organize your study time the way you want.
 
 📝 DETAILED ASSIGNMENT PLANNER
 Class, category, priority, Reminders, Attachments like rubrics, formatted Notes, and linked Resources — every detail in one place. For a weekly assignment, create it once, then clone the template for the rest of the term.
