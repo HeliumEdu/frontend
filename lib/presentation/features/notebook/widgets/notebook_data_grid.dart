@@ -540,7 +540,7 @@ class NotesDataSource extends BaseDataGridSource {
 
       Color? rowColor;
       if (entityType == 'homework') {
-        rowColor = (userSettings?.colorByCategory ?? false) && categoryColor != null
+        rowColor = (userSettings?.colorByCategory ?? FallbackConstants.defaultColorByCategory) && categoryColor != null
             ? categoryColor
             : courseColor;
       } else if (entityType == 'event') {
@@ -866,18 +866,18 @@ class NotesDataSource extends BaseDataGridSource {
       } else if (entityType == 'event') {
         badge = GenericLabel(
           label: originalLinkedTo,
-          color: userSettings?.eventsColor ?? context.colorScheme.tertiary,
+          color: userSettings?.eventsColor ?? FallbackConstants.defaultEventsColor,
           icon: AppConstants.eventIcon,
           compact: true,
           textDecoration: strikethrough,
         );
       } else if (entityType == 'homework') {
-        final badgeColor = (userSettings?.colorByCategory ?? false) && categoryColor != null
+        final badgeColor = (userSettings?.colorByCategory ?? FallbackConstants.defaultColorByCategory) && categoryColor != null
             ? categoryColor
             : courseColor;
         badge = GenericLabel(
           label: originalLinkedTo,
-          color: badgeColor ?? context.colorScheme.primary,
+          color: badgeColor ?? FallbackConstants.fallbackColor,
           icon: AppConstants.assignmentIcon,
           compact: true,
           textDecoration: strikethrough,

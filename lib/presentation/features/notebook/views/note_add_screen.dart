@@ -1093,7 +1093,7 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
     } else if (entityType == 'event') {
       badge = GenericLabel(
         label: title,
-        color: userSettings?.eventsColor ?? context.colorScheme.tertiary,
+        color: userSettings?.eventsColor ?? FallbackConstants.defaultEventsColor,
         icon: AppConstants.eventIcon,
         textDecoration: strikethrough,
         onDelete: onDelete,
@@ -1103,12 +1103,12 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
       final courseColor = _note?.courseColor ?? _linkedEntityColor;
       final categoryColor = _note?.categoryColor;
       final badgeColor =
-          (userSettings?.colorByCategory ?? false) && categoryColor != null
+          (userSettings?.colorByCategory ?? FallbackConstants.defaultColorByCategory) && categoryColor != null
           ? categoryColor
           : courseColor;
       badge = GenericLabel(
         label: title,
-        color: badgeColor ?? context.colorScheme.primary,
+        color: badgeColor ?? FallbackConstants.fallbackColor,
         icon: AppConstants.assignmentIcon,
         textDecoration: strikethrough,
         onDelete: onDelete,
@@ -1466,7 +1466,7 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
           } else {
             groupBadge = CourseTitleLabel(
               title: row.title,
-              color: row.color ?? context.colorScheme.primary,
+              color: row.color ?? FallbackConstants.fallbackColor,
               compact: true,
             );
           }

@@ -67,8 +67,8 @@ void main() {
       expect(2.plural('item'), 'items');
     });
 
-    test('uses custom plural suffix', () {
-      expect(2.plural('box', 'es'), 'boxes');
+    test('uses custom plural word', () {
+      expect(2.plural('box', 'boxes'), 'boxes');
     });
   });
 }
