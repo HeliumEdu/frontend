@@ -847,7 +847,7 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen>
     final formatted = credits % 1 == 0
         ? credits.toInt().toString()
         : credits.toStringAsFixed(1);
-    return '$formatted ${credits == 1.0 ? 'credit' : 'credits'}';
+    return '$formatted ${credits.plural('credit')}';
   }
 
   List<Container> _buildCourseScheduleContainers(CourseModel course) {

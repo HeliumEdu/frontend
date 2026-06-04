@@ -8,9 +8,9 @@
 import 'package:heliumapp/data/models/planner/reminder_model.dart';
 import 'package:heliumapp/presentation/features/planner/constants/reminder_constants.dart';
 
-extension PluralExtension on int {
+extension PluralExtension on num {
   String plural(String singularWord, [String? pluralWord]) {
-    return (this == 0 || this > 1)
+    return this != 1
         ? (pluralWord ?? '${singularWord}s')
         : singularWord;
   }
@@ -21,10 +21,7 @@ extension BytesFormatting on int {
 }
 
 String reminderOffset(ReminderModel reminder) {
-  String units = ReminderConstants.offsetTypes[reminder.offsetType]
-      .toLowerCase();
-  if (reminder.offset == 1) {
-    units = units.substring(0, units.length - 1);
-  }
-  return '${reminder.offset.toString()} $units';
+  final plural = ReminderConstants.offsetTypes[reminder.offsetType].toLowerCase();
+  final singular = plural.substring(0, plural.length - 1);
+  return '${reminder.offset} ${reminder.offset.plural(singular)}';
 }
