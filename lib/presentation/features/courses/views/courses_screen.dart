@@ -47,6 +47,7 @@ import 'package:heliumapp/presentation/ui/components/pill_badge.dart';
 import 'package:heliumapp/presentation/ui/layout/responsive_card_grid.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/error_helpers.dart';
+import 'package:heliumapp/utils/format_helpers.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/date_time_helpers.dart';
 import 'package:heliumapp/utils/print_helpers.dart';
@@ -654,47 +655,49 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen>
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
-                      Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            Icons.category_outlined,
-                            size: Responsive.getIconSize(
-                              context,
-                              mobile: 14,
-                              tablet: 16,
-                              desktop: 16,
-                            ),
-                            color: context.colorScheme.onSurface.withValues(
-                              alpha: 0.5,
-                            ),
-                          ),
-                          const SizedBox(width: 4),
-                          Text(
-                            '$categoryCount ${categoryCount == 1 ? 'category' : 'categories'}',
-                            style: AppStyles.smallSecondaryText(
-                              context,
-                            ).copyWith(
-                              color: context.colorScheme.onSurface.withValues(
-                                alpha: 0.6,
-                              ),
-                            ),
-                          ),
-                          if (course.hasWeightedGrading == true) ...[
-                            const SizedBox(width: 6),
+                      if (categoryCount > 0) ...[
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
                             Icon(
-                              Icons.balance,
+                              Icons.category_outlined,
                               size: Responsive.getIconSize(
                                 context,
                                 mobile: 14,
                                 tablet: 16,
                                 desktop: 16,
                               ),
-                              color: context.colorScheme.onSurface,
+                              color: context.colorScheme.onSurface.withValues(
+                                alpha: 0.5,
+                              ),
                             ),
+                            const SizedBox(width: 4),
+                            Text(
+                              '$categoryCount ${categoryCount.plural('category', 'categories')}',
+                              style: AppStyles.smallSecondaryText(
+                                context,
+                              ).copyWith(
+                                color: context.colorScheme.onSurface.withValues(
+                                  alpha: 0.6,
+                                ),
+                              ),
+                            ),
+                            if (course.hasWeightedGrading == true) ...[
+                              const SizedBox(width: 6),
+                              Icon(
+                                Icons.balance,
+                                size: Responsive.getIconSize(
+                                  context,
+                                  mobile: 14,
+                                  tablet: 16,
+                                  desktop: 16,
+                                ),
+                                color: context.colorScheme.onSurface,
+                              ),
+                            ],
                           ],
-                        ],
-                      ),
+                        ),
+                      ],
                       if (course.credits > 0) ...[
                         const SizedBox(height: 6),
                         Row(

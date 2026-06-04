@@ -298,12 +298,12 @@ class _ImportExportScreenState extends State<ImportExportScreen> {
 
     final courses = data['courses'] as int? ?? 0;
     if (courses > 0) {
-      parts.add('$courses ${courses.plural('class', 'es')}');
+      parts.add('$courses ${courses.plural('class', 'classes')}');
     }
 
     final categories = data['categories'] as int? ?? 0;
     if (categories > 0) {
-      parts.add('$categories ${categories == 1 ? 'category' : 'categories'}');
+      parts.add('$categories ${categories.plural('category', 'categories')}');
     }
 
     final homework = data['homework'] as int? ?? 0;

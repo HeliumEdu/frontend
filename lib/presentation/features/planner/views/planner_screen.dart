@@ -858,10 +858,10 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
           controller: _calendarController,
           headerHeight: 0,
           showCurrentTimeIndicator: true,
-          showWeekNumber: userSettings?.showWeekNumbers ?? false,
+          showWeekNumber: userSettings?.showWeekNumbers ?? FallbackConstants.defaultShowWeekNumbers,
           allowDragAndDrop:
               !Responsive.isTouchDevice(context) ||
-              (userSettings?.dragAndDropOnMobile ?? true),
+              (userSettings?.dragAndDropOnMobile ?? FallbackConstants.defaultDragAndDropOnMobile),
           dragAndDropSettings: DragAndDropSettings(
             timeIndicatorStyle: AppStyles.smallSecondaryText(
               context,
@@ -2426,7 +2426,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
   }) {
     if (_isCalendarInteractionInProgress ||
         Responsive.isTouchDevice(context) ||
-        !(userSettings?.showPlannerTooltips ?? true)) {
+        !(userSettings?.showPlannerTooltips ?? FallbackConstants.defaultShowPlannerTooltips)) {
       return child;
     }
 

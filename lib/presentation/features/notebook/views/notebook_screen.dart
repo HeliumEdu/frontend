@@ -424,7 +424,7 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen>
   }
 
   void _saveFilterStateIfEnabled() {
-    if (!(userSettings?.rememberFilterState ?? false)) return;
+    if (!(userSettings?.rememberFilterState ?? FallbackConstants.defaultRememberFilterState)) return;
 
     final filterState = {
       'filterEntityTypes': _filterEntityTypes.toList(),
@@ -512,7 +512,7 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen>
           iconWidget: Icon(
             Icons.book_outlined,
             size: 18,
-            color: userSettings?.resourceColor ?? context.colorScheme.secondary,
+            color: userSettings?.resourceColor ?? FallbackConstants.defaultResourceColor,
           ),
         ),
       ];

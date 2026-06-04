@@ -2423,7 +2423,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
   }
 
   void _saveGraphSettingsIfEnabled() {
-    if (!(userSettings?.rememberFilterState ?? false)) return;
+    if (!(userSettings?.rememberFilterState ?? FallbackConstants.defaultRememberFilterState)) return;
 
     final graphSettings = {
       'autoAdjustToGradedRange': _autoAdjustToGradedRange,

@@ -9,9 +9,9 @@ import 'package:heliumapp/data/models/planner/reminder_model.dart';
 import 'package:heliumapp/presentation/features/planner/constants/reminder_constants.dart';
 
 extension PluralExtension on int {
-  String plural(String singularWord, [String pluralLetters = 's']) {
+  String plural(String singularWord, [String? pluralWord]) {
     return (this == 0 || this > 1)
-        ? '$singularWord$pluralLetters'
+        ? (pluralWord ?? '${singularWord}s')
         : singularWord;
   }
 }
