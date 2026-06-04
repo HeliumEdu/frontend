@@ -471,16 +471,17 @@ class _NavigationShellState extends State<NavigationShell> {
             const SizedBox(height: 4),
             const SizedBox(width: 32, child: Divider()),
             const SizedBox(height: 4),
+          ],
+          if (!PageHeader.showSettingsInHeader(context)) ...[
             _buildAppStoreButton(
               context: context,
               icon: Icons.volunteer_activism,
               tooltip: 'Keep Helium Free',
               url: AppConstants.patreonUrl,
             ),
-            if (!PageHeader.showSettingsInHeader(context))
-              const SizedBox(width: 40, child: Divider()),
+            const SizedBox(width: 40, child: Divider()),
+            settingsButton,
           ],
-          if (!PageHeader.showSettingsInHeader(context)) ...[settingsButton],
         ],
       ),
     );
