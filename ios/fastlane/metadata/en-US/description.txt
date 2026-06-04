@@ -17,7 +17,7 @@ DETAILED ASSIGNMENT PLANNER
 Class, category, priority, Reminders, Attachments like rubrics, formatted Notes, and linked Resources — every detail in one place. For a weekly assignment, create it once, then clone the template for the rest of the term.
 
 REMINDERS
-Reminders before assignments, classes, exams, or events — native push notifications on iOS, Android, and web, or email if that's your style.
+Reminders before assignments, classes, exams, or events — push notifications, or email if that's your style.
 
 BUILT FOR STUDENTS
 Middle school, high school, college, university, grad school, homeschool — Helium helps every kind of student stay organized and succeed academically. Create your free online account today, and take control of your student life.
