@@ -84,6 +84,8 @@ capture_android() {
 # Framefile.json forces specific device types so framing works regardless of
 # which fastlane version maps the resolution to which device name.
 write_framefile() {
+  # force_device_type pins to the newest frame available in frameit's catalog
+  # (14 Pro is the latest; 15 Pro frames have not been released upstream).
   cat > "$WORKDIR/Framefile.json" <<'FRAMEFILE'
 {
   "default": {
@@ -205,8 +207,8 @@ run_device() {
   echo "════════════════════════════════════════════════════════════"
   echo "  $label  (${#shots[@]} screenshots → $dest)"
   echo "════════════════════════════════════════════════════════════"
-  read -r -p "Boot the $label sim/emulator, launch Helium, sign in, then press Enter (or 'skip' to skip this device): " reply
-  if [[ "$reply" == "skip" ]]; then
+  read -r -p "Boot the $label sim/emulator, launch Helium, sign in, then press Enter ('s' to skip this device): " reply
+  if [[ "$reply" == "s" || "$reply" == "S" ]]; then
     echo "Skipping $label."
     return 0
   fi
@@ -272,3 +274,9 @@ echo "════════════════════════�
 echo "Capture done. Scaling iPhone and iPad shots to App Store dimensions ..."
 echo "════════════════════════════════════════════════════════════"
 "$(dirname "${BASH_SOURCE[0]}")/scale-for-appstore.sh"
+
+echo ""
+echo "════════════════════════════════════════════════════════════"
+echo "Syncing onboarding screenshots from www ..."
+echo "════════════════════════════════════════════════════════════"
+"$(dirname "${BASH_SOURCE[0]}")/sync-onboarding.sh"
