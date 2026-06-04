@@ -224,10 +224,16 @@ class _NotificationsScreenState
         }
 
         if (state is RemindersError && state.origin == EventOrigin.screen) {
-          return ErrorCard(
-            message: state.message!,
-            source: 'notification_screen',
-            onReload: () => _fetchReminders(forceRefresh: true),
+          return Expanded(
+            child: Padding(
+              padding: const EdgeInsets.all(8),
+              child: ErrorCard(
+                message: state.message!,
+                source: 'notification_screen',
+                onReload: () => _fetchReminders(forceRefresh: true),
+                expanded: false,
+              ),
+            ),
           );
         }
 

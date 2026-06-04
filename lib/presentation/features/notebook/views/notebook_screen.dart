@@ -117,6 +117,8 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen>
         listener: (context, state) {
           if (state is NotesError && state.origin == EventOrigin.screen) {
             setState(() => isLoading = false);
+          } else if (state is NotesError && state.origin != EventOrigin.screen) {
+            showSnackBar(context, state.message!, type: SnackType.error);
           } else if (state is NotesFetched) {
             setState(() {
               _notes = state.notes;
@@ -701,7 +703,7 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen>
       onDelete: (deletedNote) {
         this.context.read<NoteBloc>().add(
           DeleteNoteEvent(
-            origin: EventOrigin.screen,
+            origin: EventOrigin.dialog,
             noteId: deletedNote.id,
           ),
         );

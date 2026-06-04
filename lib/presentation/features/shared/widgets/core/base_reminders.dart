@@ -149,8 +149,12 @@ abstract class BaseReminderWidgetState<T extends BaseRemindersContent>
           setState(() {
             reminders.removeWhere((c) => c.id == state.id);
           });
-        } else if (state is RemindersError && reminders.isNotEmpty) {
-          SnackBarHelper.show(context, state.message!, type: SnackType.error);
+        } else if (state is RemindersError) {
+          if (reminders.isEmpty) {
+            setState(() => isLoading = false);
+          } else if (state.origin != EventOrigin.dialog) {
+            SnackBarHelper.show(context, state.message!, type: SnackType.error);
+          }
         }
       },
       child: _buildContent(context),

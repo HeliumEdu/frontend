@@ -3725,8 +3725,12 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
       final selectedExternalCalendarIds =
           _plannerItemDataSource!.selectedExternalCalendarIds;
 
-      return SizedBox(
-        height: MediaQuery.of(context).size.height * AppConstants.bottomSheetMaxHeightFactor,
+      return ConstrainedBox(
+        constraints: isMobile
+            ? BoxConstraints.tightFor(
+                height: MediaQuery.of(context).size.height * AppConstants.bottomSheetMaxHeightFactor,
+              )
+            : BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.75),
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(16),
           child: Column(
@@ -4146,10 +4150,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
       final RelativeRect position = RelativeRect.fromRect(
         Rect.fromPoints(
           button.localToGlobal(Offset.zero, ancestor: overlay),
-          button.localToGlobal(
-            button.size.bottomRight(Offset.zero),
-            ancestor: overlay,
-          ),
+          button.localToGlobal(button.size.bottomRight(Offset.zero), ancestor: overlay),
         ),
         Offset.zero & overlay.size,
       );

@@ -77,6 +77,7 @@ abstract class BaseAttachmentsState extends State<BaseAttachmentsContent> {
   List<AttachmentModel> attachments = [];
   bool isLoading = true;
   bool isSubmitting = false;
+  bool _initialFetchComplete = false;
 
   @mustBeOverridden
   FetchAttachmentsEvent createFetchAttachmentsEvent({
@@ -99,6 +100,7 @@ abstract class BaseAttachmentsState extends State<BaseAttachmentsContent> {
     } else {
       setState(() {
         isLoading = false;
+        _initialFetchComplete = true;
       });
     }
   }
@@ -112,12 +114,17 @@ abstract class BaseAttachmentsState extends State<BaseAttachmentsContent> {
     return BlocListener<AttachmentBloc, AttachmentState>(
       listener: (context, state) {
         if (state is AttachmentsError) {
-          SnackBarHelper.show(context, state.message!, type: SnackType.error, seconds: 4);
+          if (!_initialFetchComplete) {
+            setState(() => isLoading = false);
+          } else {
+            SnackBarHelper.show(context, state.message!, type: SnackType.error, seconds: 4);
+          }
         } else if (state is AttachmentsFetched) {
           setState(() {
             attachments = state.attachments;
             Sort.byTitle(attachments);
             isLoading = false;
+            _initialFetchComplete = true;
           });
         } else if (state is AttachmentsCreated) {
           SnackBarHelper.show(
@@ -161,7 +168,7 @@ abstract class BaseAttachmentsState extends State<BaseAttachmentsContent> {
                         );
                       }
 
-                      if (state is AttachmentsError) {
+                      if (state is AttachmentsError && !_initialFetchComplete) {
                         return ErrorCard(
                           message: state.message!,
                           source: 'attachments_widget',
@@ -439,7 +446,7 @@ abstract class BaseAttachmentsState extends State<BaseAttachmentsContent> {
       isLoading = true;
     });
 
-    final success = await HeliumStorage.downloadFile(
+    final errorMessage = await HeliumStorage.downloadFile(
       attachment.attachment,
       attachment.title,
     );
@@ -449,14 +456,11 @@ abstract class BaseAttachmentsState extends State<BaseAttachmentsContent> {
     setState(() {
       isLoading = false;
     });
-    if (success) {
+
+    if (errorMessage == null) {
       SnackBarHelper.show(context, '"${attachment.title}" downloaded.');
     } else {
-      SnackBarHelper.show(
-        context,
-        'Failed to download "${attachment.title}".',
-        type: SnackType.error,
-      );
+      SnackBarHelper.show(context, errorMessage, type: SnackType.error);
     }
   }
 }

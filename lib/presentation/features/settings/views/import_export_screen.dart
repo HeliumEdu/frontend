@@ -348,7 +348,9 @@ class _ImportExportScreenState extends State<ImportExportScreen> {
     try {
       final response = await _dioClient.dio.get<Uint8List>(
         ApiUrl.importExportExportUrl,
-        options: Options(responseType: ResponseType.bytes),
+        options: _dioClient.cacheService.forceRefreshOptions().copyWith(
+          responseType: ResponseType.bytes,
+        ),
       );
 
       if (!mounted) return;

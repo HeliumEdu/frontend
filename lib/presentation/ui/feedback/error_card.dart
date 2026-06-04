@@ -66,6 +66,7 @@ class _ErrorCardState extends State<ErrorCard> {
           const SizedBox(height: 16),
           Text(
             widget.message,
+            textAlign: TextAlign.center,
             style: AppStyles.headingText(context).copyWith(
               color: context.colorScheme.error.withValues(alpha: 0.9),
             ),

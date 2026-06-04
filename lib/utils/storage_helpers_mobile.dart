@@ -53,6 +53,8 @@ Future<bool> downloadFilePlatform(String url, String filename) async {
       _log.warning('Unsupported platform for download');
       return false;
     }
+  } on DioException {
+    rethrow;
   } catch (e) {
     _log.severe('Mobile download failed', e);
     return false;
@@ -125,6 +127,8 @@ Future<bool> _downloadFileAndroid(String url, String filename) async {
     _log.info('  File size: $size bytes');
 
     return exists;
+  } on DioException {
+    rethrow;
   } catch (e) {
     _log.severe('Android download failed', e);
     return false;
@@ -170,6 +174,8 @@ Future<bool> _downloadFileIOS(String url, String filename) async {
 
     _log.info('iOS share sheet result: ${result.status}');
     return result.status != ShareResultStatus.dismissed;
+  } on DioException {
+    rethrow;
   } catch (e) {
     _log.severe('iOS download failed', e);
     return false;
