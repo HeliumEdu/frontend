@@ -13,7 +13,7 @@ import 'package:heliumapp/utils/app_style.dart';
 class DropDown<T> extends StatelessWidget {
   static const _fieldBorderRadius = 8.0;
   static const _contentPadding = 12.0;
-  static const _iconTextSpacing = 10.0;
+  static const _iconTextSpacing = 12.0;
 
   final String? label;
   final IconData? prefixIcon;

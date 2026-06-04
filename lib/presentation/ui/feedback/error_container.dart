@@ -13,7 +13,7 @@ import 'package:heliumapp/utils/responsive_helpers.dart';
 class ErrorContainer extends StatelessWidget {
   static const _containerBorderRadius = 12.0;
   static const _containerPadding = 14.0;
-  static const _iconTextSpacing = 10.0;
+  static const _iconTextSpacing = 12.0;
 
   final String text;
   final IconData? icon;

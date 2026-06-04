@@ -97,6 +97,9 @@ class _GradeCalculatorContainerState extends State<GradeCalculatorContainer>
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     IconButton(
+                      style: IconButton.styleFrom(
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      ),
                       onPressed: () => Navigator.pop(context),
                       icon: Icon(Icons.close, color: context.colorScheme.secondary),
                     ),
@@ -108,8 +111,12 @@ class _GradeCalculatorContainerState extends State<GradeCalculatorContainer>
                 TabBar(
                   controller: _tabController,
                   tabs: _tabs.map((label) => Tab(text: label)).toList(),
-                  labelStyle: AppStyles.formLabel(context),
-                  unselectedLabelStyle: AppStyles.formText(context),
+                  labelStyle: AppStyles.formLabel(context).copyWith(
+                    fontSize: Responsive.getFontSize(context, mobile: 12, tablet: 14, desktop: 15),
+                  ),
+                  unselectedLabelStyle: AppStyles.formText(context).copyWith(
+                    fontSize: Responsive.getFontSize(context, mobile: 12, tablet: 14, desktop: 15),
+                  ),
                   indicatorSize: TabBarIndicatorSize.tab,
                 ),
                 const SizedBox(height: 16),

@@ -823,7 +823,7 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
         builder: (context, constraints) {
           const double titleMinWidth = 225;
           const double badgeMaxWidth = 250;
-          const double gap = 4;
+          const double gap = 8;
           final hasBadge = _linkedEntityType != null || _note != null;
           final effectiveBadgeMax = hasBadge
               ? (constraints.maxWidth - titleMinWidth - gap * 2).clamp(
@@ -1268,6 +1268,9 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
                         label: 'Close',
                         button: true,
                         child: IconButton(
+                          style: IconButton.styleFrom(
+                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          ),
                           icon: Icon(
                             Icons.close,
                             size: 20,

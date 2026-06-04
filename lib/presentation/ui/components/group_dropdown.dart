@@ -149,6 +149,7 @@ class GroupDropdown<T extends BaseTitledModel> extends StatelessWidget {
                 color: context.colorScheme.error,
               ),
             ),
+            const SizedBox(width: 8),
           ];
   }
 

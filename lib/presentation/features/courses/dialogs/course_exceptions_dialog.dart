@@ -258,7 +258,7 @@ class _CourseExceptionsDialogState extends State<CourseExceptionsDialog> {
               size: 20,
               color: context.colorScheme.primary,
             ),
-            const SizedBox(width: 10),
+            const SizedBox(width: 12),
             Expanded(
               child: Text(
                 HeliumDateTime.formatDate(date),

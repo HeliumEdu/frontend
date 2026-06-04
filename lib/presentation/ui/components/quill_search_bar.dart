@@ -186,6 +186,9 @@ class _QuillSearchBarState extends State<QuillSearchBar> {
               label: 'Close search',
               button: true,
               child: IconButton(
+                style: IconButton.styleFrom(
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                ),
                 icon: Icon(
                   Icons.close,
                   size: 20,
@@ -238,6 +241,9 @@ class _QuillSearchBarState extends State<QuillSearchBar> {
             ),
             const SizedBox(width: 4),
             IconButton(
+              style: IconButton.styleFrom(
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              ),
               icon: Icon(
                 Icons.keyboard_arrow_up,
                 size: 20,
@@ -250,6 +256,9 @@ class _QuillSearchBarState extends State<QuillSearchBar> {
               onPressed: _offsets.isNotEmpty ? _moveToPrevious : null,
             ),
             IconButton(
+              style: IconButton.styleFrom(
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              ),
               icon: Icon(
                 Icons.keyboard_arrow_down,
                 size: 20,
@@ -263,6 +272,9 @@ class _QuillSearchBarState extends State<QuillSearchBar> {
             ),
             const SizedBox(width: 4),
             IconButton(
+              style: IconButton.styleFrom(
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              ),
               icon: Icon(
                 Icons.text_fields,
                 size: 18,
@@ -282,6 +294,9 @@ class _QuillSearchBarState extends State<QuillSearchBar> {
               },
             ),
             IconButton(
+              style: IconButton.styleFrom(
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              ),
               icon: Icon(
                 Icons.border_outer,
                 size: 18,
