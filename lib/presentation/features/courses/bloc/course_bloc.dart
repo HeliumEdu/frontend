@@ -68,7 +68,7 @@ class CourseBloc extends Bloc<CourseEvent, CourseState> {
         courseRepository.getCourses(forceRefresh: event.forceRefresh),
         categoryRepository.getCategories(forceRefresh: event.forceRefresh),
         attachmentRepository.getAttachments(forceRefresh: event.forceRefresh),
-        reminderRepository.getReminders(forceRefresh: event.forceRefresh),
+        reminderRepository.getReminders(sent: false, forceRefresh: event.forceRefresh),
       ]);
       final courseGroups = results[0] as List<CourseGroupModel>;
       final courses = results[1] as List<CourseModel>;

@@ -71,7 +71,7 @@ void main() {
             () => mockAttachmentRepository.getAttachments(),
           ).thenAnswer((_) async => MockModels.createAttachments());
           when(
-            () => mockReminderRepository.getReminders(),
+            () => mockReminderRepository.getReminders(sent: false),
           ).thenAnswer((_) async => MockModels.createReminders());
           return courseBloc;
         },
