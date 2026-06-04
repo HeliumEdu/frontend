@@ -340,7 +340,7 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
   }
 
   Future<void> _cancelAndClose() async {
-    if (isDirty || _pendingUnlink) {
+    if ((isDirty && !_isNoteEmpty) || _pendingUnlink) {
       _debounceTimer?.cancel();
       _isDiscardDialogOpen = true;
       final shouldDiscard = await confirmDiscardChanges(context);

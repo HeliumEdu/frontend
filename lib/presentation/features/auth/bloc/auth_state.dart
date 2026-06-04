@@ -91,6 +91,3 @@ class AuthError extends AuthState {
   bool get hasFieldErrors => parsedError?.hasFieldErrors ?? false;
 }
 
-class AuthProfileError extends AuthError {
-  AuthProfileError({required super.message});
-}

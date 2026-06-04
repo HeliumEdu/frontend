@@ -116,9 +116,7 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen>
       BlocListener<NoteBloc, NoteState>(
         listener: (context, state) {
           if (state is NotesError && state.origin == EventOrigin.screen) {
-            final wasInitialLoad = isLoading;
             setState(() => isLoading = false);
-            if (!wasInitialLoad) showSnackBar(context, state.message!, type: SnackType.error);
           } else if (state is NotesFetched) {
             setState(() {
               _notes = state.notes;

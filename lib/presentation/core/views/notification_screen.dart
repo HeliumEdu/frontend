@@ -151,9 +151,10 @@ class _NotificationsScreenState
       BlocListener<ReminderBloc, ReminderState>(
         listener: (context, state) {
           if (state is RemindersError) {
-            final wasInitialLoad = isLoading;
             setState(() => isLoading = false);
-            if (!wasInitialLoad) showSnackBar(context, state.message!, type: SnackType.error);
+            if (state.origin != EventOrigin.screen) {
+              showSnackBar(context, state.message!, type: SnackType.error);
+            }
           } else if (state is RemindersFetched) {
             _populateInitialStateData(state);
           } else if (state is ReminderUpdated) {
@@ -222,7 +223,7 @@ class _NotificationsScreenState
           return const LoadingIndicator();
         }
 
-        if (state is RemindersError) {
+        if (state is RemindersError && state.origin == EventOrigin.screen) {
           return ErrorCard(
             message: state.message!,
             source: 'notification_screen',
@@ -263,7 +264,7 @@ class _NotificationsScreenState
   void _fetchReminders({bool forceRefresh = false}) {
     context.read<ReminderBloc>().add(
       FetchRemindersEvent(
-        origin: EventOrigin.subScreen,
+        origin: EventOrigin.screen,
         sent: true,
         dismissed: false,
         type: 3,

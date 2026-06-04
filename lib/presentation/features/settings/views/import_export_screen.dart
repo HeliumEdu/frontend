@@ -281,7 +281,7 @@ class _ImportExportScreenState extends State<ImportExportScreen> {
     } on DioException catch (e) {
       _log.severe('Import failed.', e);
       if (mounted) {
-        final message = _extractErrorMessage(e) ?? 'Import failed.';
+        final message = _extractErrorMessage(e) ?? 'Failed to import Helium file.';
         SnackBarHelper.show(context, message, type: SnackType.error);
       }
     } finally {
@@ -437,7 +437,7 @@ class _ImportExportScreenState extends State<ImportExportScreen> {
       if (mounted) {
         SnackBarHelper.show(
           context,
-          'Failed to import example schedule.',
+          _extractErrorMessage(e) ?? 'Failed to import example schedule.',
           type: SnackType.error,
         );
       }
