@@ -48,6 +48,40 @@ letterbox() {
   mv "$tmp" "$in"
 }
 
+# ─── copy pre-letterbox frame assets (phone/tablet mockups for app and www) ──
+FLUTTER_ASSETS="$REPO/assets/img"
+WWW_FRAMES="$REPO/../www/src/assets/img/screenshots/frames"
+
+copy_frame_asset() {
+  local src_name="$1" flutter_name="$2" www_name="$3" target_w="$4" target_h="$5"
+  local src="$DIR/$src_name"
+  [[ -f "$src" ]] || return 0
+  local dims
+  dims=$("${IM_IDENTIFY[@]}" -format "%wx%h" "$src")
+  if [[ "$dims" == "${target_w}x${target_h}" ]]; then
+    echo "  ⊜ $(basename "$src") already at App Store dims; skipping"
+    return 0
+  fi
+  local dsts=("$FLUTTER_ASSETS/$flutter_name" "$WWW_FRAMES/$www_name")
+  for dst in "${dsts[@]}"; do
+    [[ -d "$(dirname "$dst")" ]] || continue
+    if [[ -f "$dst" ]] && cmp -s "$src" "$dst"; then
+      echo "  ⊜ $(basename "$dst") unchanged"
+    else
+      cp "$src" "$dst"
+      echo "  ✓ $(basename "$dst")"
+      ((frame_copied++))
+    fi
+  done
+}
+
+echo "Copying pre-letterbox frame assets ..."
+frame_copied=0
+copy_frame_asset "01-month-view_iphone_framed.png" "frame_phone.png"  "frame-phone.png"  1320 2868
+copy_frame_asset "01-month-view_ipad_framed.png"   "frame_tablet.png" "frame-tablet.png" 2064 2752
+echo "  ($frame_copied files updated)"
+
+echo ""
 echo "Background: $BG_COLOR"
 echo ""
 echo "iPhone → 1320 × 2868 (App Store 6.9\")"
