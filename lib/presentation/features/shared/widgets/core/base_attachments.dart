@@ -307,7 +307,7 @@ abstract class BaseAttachmentsState extends State<BaseAttachmentsContent> {
                 desktop: 24,
               ),
             ),
-            const SizedBox(width: 10),
+            const SizedBox(width: 12),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -386,7 +386,7 @@ abstract class BaseAttachmentsState extends State<BaseAttachmentsContent> {
                 desktop: 24,
               ),
             ),
-            const SizedBox(width: 10),
+            const SizedBox(width: 12),
             Expanded(
               child: SelectableText(
                 attachment.title,

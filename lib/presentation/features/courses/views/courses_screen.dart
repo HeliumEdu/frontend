@@ -760,7 +760,7 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen>
                               ),
                             ],
                             if (attachmentCount > 0 && reminderCount > 0)
-                              const SizedBox(width: 10),
+                              const SizedBox(width: 12),
                             if (reminderCount > 0) ...[
                               Icon(
                                 Icons.notifications_outlined,

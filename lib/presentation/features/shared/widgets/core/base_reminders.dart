@@ -249,7 +249,7 @@ abstract class BaseReminderWidgetState<T extends BaseRemindersContent>
                   desktop: 24,
                 ),
               ),
-              const SizedBox(width: 10),
+              const SizedBox(width: 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
