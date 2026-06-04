@@ -25,7 +25,7 @@ SYNC_MAP=(
   "grades-breakdown.png:onboarding_grades_breakdown.png"
   "grades-dashboard.png:onboarding_grades_dashboard.png"
   "month-view.png:onboarding_month_view.png"
-  "notebook.png:onboarding_notebook.png"
+  "edit-note.png:onboarding_notebook.png"
   "reminders.png:onboarding_reminders.png"
   "todos.png:onboarding_todos.png"
   "week-view.png:onboarding_week_view.png"

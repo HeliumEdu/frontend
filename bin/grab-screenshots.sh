@@ -41,8 +41,8 @@ if [[ ! -d "$FRAMEIT_DIR" ]] || [[ -z "$(ls "$FRAMEIT_DIR"/*.png 2>/dev/null)" ]
 fi
 
 # ─── shot lists per device class ─────────────────────────────────────────
-PHONE_SHOTS=(month-view grades todos edit-assignment agenda edit-note notebook create-account)
-TABLET_SHOTS=(month-view grades todos edit-note notebook week-view classes)
+PHONE_SHOTS=(month-view grades edit-note todos agenda edit-assignment create-account)
+TABLET_SHOTS=(month-view grades edit-note todos week-view classes)
 
 # ─── capture helpers ─────────────────────────────────────────────────────
 capture_ios() {
