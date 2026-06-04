@@ -1426,6 +1426,9 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
                 label: _graphExpanded ? 'Collapse' : 'Expand',
                 button: true,
                 child: IconButton(
+                  style: IconButton.styleFrom(
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  ),
                   icon: AnimatedRotation(
                     turns: _graphExpanded ? 0.5 : 0,
                     duration: AppConstants.uiAnimationDuration,

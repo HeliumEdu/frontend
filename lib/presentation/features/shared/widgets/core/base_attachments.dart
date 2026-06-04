@@ -324,6 +324,9 @@ abstract class BaseAttachmentsState extends State<BaseAttachmentsContent> {
               label: 'Remove from upload',
               button: true,
               child: IconButton(
+                style: IconButton.styleFrom(
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                ),
                 onPressed: () {
                   if (index < filesToUpload.length) {
                     // Defer setState so any in-progress frame caused by the tap

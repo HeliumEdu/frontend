@@ -614,6 +614,9 @@ class _NotificationsScreenState
               if (!isTouchDevice) ...[
                 const SizedBox(width: 4),
                 IconButton(
+                  style: IconButton.styleFrom(
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  ),
                   onPressed: () => _dismissReminder(notification),
                   icon: Icon(
                     Icons.close,

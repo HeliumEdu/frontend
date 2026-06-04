@@ -75,6 +75,9 @@ class PageHeader extends StatelessWidget {
                   label: cancelIcon == Icons.close ? 'Close' : 'Back',
                   button: true,
                   child: IconButton(
+                    style: IconButton.styleFrom(
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    ),
                     onPressed: () {
                       cancelAction?.call();
                     },
@@ -114,6 +117,9 @@ class PageHeader extends StatelessWidget {
                 label: 'Help',
                 button: true,
                 child: IconButton(
+                  style: IconButton.styleFrom(
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  ),
                   onPressed: () => UrlHelpers.launchWebUrl(helpUrl!),
                   tooltip: 'Learn more',
                   icon: Icon(
@@ -129,6 +135,9 @@ class PageHeader extends StatelessWidget {
                 label: 'Notifications',
                 button: true,
                 child: IconButton(
+                  style: IconButton.styleFrom(
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  ),
                   onPressed: () {
                     final shellPath = BranchPathScope.of(context);
                     context.push('$shellPath${AppRoute.notificationsScreen}');
@@ -145,6 +154,9 @@ class PageHeader extends StatelessWidget {
                 button: true,
                 child: IconButton(
                   key: const Key(saveButtonKey),
+                  style: IconButton.styleFrom(
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  ),
                   onPressed: isLoading
                       ? null
                       : () {
