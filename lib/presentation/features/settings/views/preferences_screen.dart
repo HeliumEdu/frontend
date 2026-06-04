@@ -106,7 +106,7 @@ class PreferencesScreenState extends State<PreferencesScreen> {
   Widget build(BuildContext context) {
     return BlocListener<AuthBloc, AuthState>(
       listener: (context, state) {
-        if (state is AuthProfileError) {
+        if (state is AuthError) {
           SnackBarHelper.show(context, state.message!, type: SnackType.error);
           setState(() => _isSubmitting = false);
           widget.onFailed?.call();
@@ -117,7 +117,10 @@ class PreferencesScreenState extends State<PreferencesScreen> {
           if (!_isRememberFilterSelection) {
             PrefService().setString('saved_filter_state', '');
           }
-          setState(() => _isChanged = false);
+          setState(() {
+            _isChanged = false;
+            _isSubmitting = false;
+          });
           widget.onCompleted?.call();
         }
       },

@@ -44,6 +44,8 @@ Future<bool> downloadFilePlatform(String url, String filename) async {
     }
 
     return downloadBytesPlatform(response.data!, filename);
+  } on DioException {
+    rethrow;
   } catch (e) {
     _log.severe('Web download failed', e);
     return false;

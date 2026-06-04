@@ -340,7 +340,7 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
   }
 
   Future<void> _cancelAndClose() async {
-    if (isDirty || _pendingUnlink) {
+    if ((isDirty && !_isNoteEmpty) || _pendingUnlink) {
       _debounceTimer?.cancel();
       _isDiscardDialogOpen = true;
       final shouldDiscard = await confirmDiscardChanges(context);
@@ -1213,7 +1213,7 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 Padding(
-                  padding: const EdgeInsets.fromLTRB(8, 8, 8, 4),
+                  padding: const EdgeInsets.all(8),
                   child: Row(
                     children: [
                       SegmentedButton<String>(

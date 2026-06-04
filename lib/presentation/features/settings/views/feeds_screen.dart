@@ -17,6 +17,7 @@ import 'package:heliumapp/presentation/features/auth/bloc/auth_event.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_state.dart';
 import 'package:heliumapp/presentation/ui/components/helium_elevated_button.dart';
 import 'package:heliumapp/presentation/ui/components/helium_icon_button.dart';
+import 'package:heliumapp/presentation/ui/feedback/error_card.dart';
 import 'package:heliumapp/presentation/ui/feedback/info_container.dart';
 import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
 import 'package:heliumapp/presentation/ui/feedback/warning_container.dart';
@@ -38,40 +39,79 @@ class FeedsScreen extends StatefulWidget {
 
 class _FeedsScreenState extends State<FeedsScreen> {
   PrivateFeedModel? _feedUrls;
+  bool _feedsLoaded = false;
+
+  @override
+  void initState() {
+    super.initState();
+    final authState = context.read<AuthBloc>().state;
+    if (authState is AuthProfileFetched) {
+      _applyProfileState(authState);
+    }
+  }
+
+  void _applyProfileState(AuthProfileFetched state) {
+    final slug = state.user.settings.privateSlug;
+    _feedsLoaded = true;
+    _feedUrls = slug != null
+        ? PrivateFeedModel(
+            eventsPrivateUrl:
+                '${ApiUrl.baseUrl}/feed/private/$slug/events.ics',
+            homeworkPrivateUrl:
+                '${ApiUrl.baseUrl}/feed/private/$slug/homework.ics',
+            courseSchedulesPrivateUrl:
+                '${ApiUrl.baseUrl}/feed/private/$slug/courseschedules.ics',
+          )
+        : null;
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.only(bottom: 12),
-          child: InfoContainer(
-            text: "Feeds allow you to take Helium's calendars elsewhere.",
-            trailing: HeliumIconButton(
-              icon: Icons.menu_book_outlined,
-              backgroundColor: context.colorScheme.onSurfaceVariant,
-              tooltip: 'Learn more',
-              onPressed: () =>
-                  UrlHelpers.launchWebUrl(AppConstants.supportFeedsUrl),
+    return BlocListener<AuthBloc, AuthState>(
+      listener: (context, state) {
+        if (state is AuthProfileFetched) {
+          setState(() => _applyProfileState(state));
+        } else if (state is AuthError) {
+          if (_feedsLoaded) {
+            SnackBarHelper.show(context, state.message!, type: SnackType.error);
+          }
+        }
+      },
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: InfoContainer(
+              text: "Feeds allow you to take Helium's calendars elsewhere.",
+              trailing: HeliumIconButton(
+                icon: Icons.menu_book_outlined,
+                backgroundColor: context.colorScheme.onSurfaceVariant,
+                tooltip: 'Learn more',
+                onPressed: () =>
+                    UrlHelpers.launchWebUrl(AppConstants.supportFeedsUrl),
+              ),
             ),
           ),
-        ),
-        BlocBuilder<AuthBloc, AuthState>(
-          builder: (context, state) {
-            if (state is AuthProfileFetched) {
-              if (state.user.settings.privateSlug != null) {
-                final privateSlug = state.user.settings.privateSlug;
+          BlocBuilder<AuthBloc, AuthState>(
+            builder: (context, state) {
+              if (!_feedsLoaded) {
+                if (state is AuthError) {
+                  return ErrorCard(
+                    message: state.message!,
+                    source: 'feeds_screen',
+                    onReload: () =>
+                        context.read<AuthBloc>().add(FetchProfileEvent()),
+                  );
+                }
+                return const LoadingIndicator();
+              }
 
-                _feedUrls = PrivateFeedModel(
-                  eventsPrivateUrl:
-                      '${ApiUrl.baseUrl}/feed/private/$privateSlug/events.ics',
-                  homeworkPrivateUrl:
-                      '${ApiUrl.baseUrl}/feed/private/$privateSlug/homework.ics',
-                  courseSchedulesPrivateUrl:
-                      '${ApiUrl.baseUrl}/feed/private/$privateSlug/courseschedules.ics',
-                );
+              if (state is AuthLoading) {
+                return const LoadingIndicator();
+              }
 
+              if (_feedUrls != null) {
                 return Expanded(
                   child: _buildFeedsEnabledArea(
                     _feedUrls!.homeworkPrivateUrl,
@@ -82,12 +122,10 @@ class _FeedsScreenState extends State<FeedsScreen> {
               } else {
                 return Expanded(child: _buildFeedsDisabledArea());
               }
-            }
-
-            return const LoadingIndicator();
-          },
-        ),
-      ],
+            },
+          ),
+        ],
+      ),
     );
   }
 

@@ -5,6 +5,7 @@
 //
 // For details regarding the license, please refer to the LICENSE file.
 
+import 'package:dio/dio.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:heliumapp/utils/format_helpers.dart';
@@ -161,15 +162,22 @@ class HeliumStorage {
     return PickFilesResult(files: files, errors: errors);
   }
 
-  static Future<bool> downloadFile(
-    String url,
-    String filename,
-  ) async {
+  /// Downloads a remote file. Returns null on success or an error message string on failure.
+  static Future<String?> downloadFile(String url, String filename) async {
     try {
-      return await downloadFilePlatform(url, filename);
+      final success = await downloadFilePlatform(url, filename);
+      return success ? null : 'Failed to download "$filename".';
+    } on DioException catch (e) {
+      _log.severe('An error occurred during file download', e);
+      final data = e.response?.data;
+      if (data is Map<String, dynamic>) {
+        if (data.containsKey('details')) return data['details'].toString();
+        if (data.containsKey('detail')) return data['detail'].toString();
+      }
+      return 'Failed to download "$filename".';
     } catch (e) {
       _log.severe('An error occurred during file download', e);
-      return false;
+      return 'Failed to download "$filename".';
     }
   }
 

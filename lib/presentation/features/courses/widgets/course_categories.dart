@@ -235,21 +235,27 @@ class _CourseCategoriesContentState extends State<_CourseCategoriesContent> {
                     const SizedBox(height: 6),
                     Row(
                       children: [
-                        Icon(
-                          Icons.balance,
-                          size: Responsive.getIconSize(
-                            context,
-                            mobile: 14,
-                            tablet: 16,
-                            desktop: 18,
-                          ),
-                          color: context.colorScheme.onSurface.withValues(
-                            alpha: 0.6,
+                        Tooltip(
+                          message: 'Weight',
+                          child: Icon(
+                            Icons.balance,
+                            size: Responsive.getIconSize(
+                              context,
+                              mobile: 14,
+                              tablet: 16,
+                              desktop: 18,
+                            ),
+                            color: context.colorScheme.onSurface.withValues(
+                              alpha: 0.6,
+                            ),
                           ),
                         ),
                         const SizedBox(width: 4),
                         SelectableText(
-                          GradeHelper.percentForDisplay(category.weight.toString(), true),
+                          GradeHelper.percentForDisplay(
+                            category.weight.toString(),
+                            true,
+                          ),
                           style: AppStyles.standardBodyTextLight(context)
                               .copyWith(
                                 color: context.colorScheme.onSurface.withValues(
@@ -259,26 +265,22 @@ class _CourseCategoriesContentState extends State<_CourseCategoriesContent> {
                         ),
                         if (category.numHomework != null) ...[
                           const SizedBox(width: 16),
-                          Icon(
-                            Icons.assignment_outlined,
-                            size: Responsive.getIconSize(
-                              context,
-                              mobile: 16,
-                              tablet: 18,
-                              desktop: 20,
-                            ),
-                            color: context.colorScheme.onSurface.withValues(
-                              alpha: 0.6,
+                          Tooltip(
+                            message: 'Assignments',
+                            child: Icon(
+                              Icons.assignment_outlined,
+                              size: Responsive.getIconSize(
+                                context,
+                                mobile: 16,
+                                tablet: 18,
+                                desktop: 20,
+                              ),
+                              color: context.colorScheme.onSurface.withValues(
+                                alpha: 0.6,
+                              ),
                             ),
                           ),
-                          Text(
-                            ': ',
-                            style: AppStyles.standardBodyTextLight(context)
-                                .copyWith(
-                                  color: context.colorScheme.onSurface
-                                      .withValues(alpha: 0.6),
-                                ),
-                          ),
+                          const SizedBox(width: 4),
                           SelectableText(
                             '${category.numHomework}',
                             style: AppStyles.standardBodyTextLight(context)

@@ -448,9 +448,10 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
               ),
             );
           } else if (state is PlannerError) {
-            final wasInitialLoad = isLoading;
             setState(() => isLoading = false);
-            if (!wasInitialLoad) showSnackBar(context, state.message!, type: SnackType.error);
+            if (state.origin != EventOrigin.screen) {
+              showSnackBar(context, state.message!, type: SnackType.error);
+            }
           }
         },
       ),
@@ -674,7 +675,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
           return const Center(child: LoadingIndicator(expanded: false));
         }
 
-        if (state is PlannerError) {
+        if (state is PlannerError && state.origin == EventOrigin.screen) {
           return ErrorCard(
             message: state.message!,
             source: 'planner_screen',
@@ -3321,7 +3322,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
         onSkip: (date) async {
           context.read<PlannerBloc>().add(
             SkipCourseOccurrenceEvent(
-              origin: EventOrigin.screen,
+              origin: EventOrigin.dialog,
               course: course,
               date: date,
             ),
@@ -3724,8 +3725,12 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
       final selectedExternalCalendarIds =
           _plannerItemDataSource!.selectedExternalCalendarIds;
 
-      return SizedBox(
-        height: MediaQuery.of(context).size.height * AppConstants.bottomSheetMaxHeightFactor,
+      return ConstrainedBox(
+        constraints: isMobile
+            ? BoxConstraints.tightFor(
+                height: MediaQuery.of(context).size.height * AppConstants.bottomSheetMaxHeightFactor,
+              )
+            : BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.75),
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(16),
           child: Column(
@@ -4145,10 +4150,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
       final RelativeRect position = RelativeRect.fromRect(
         Rect.fromPoints(
           button.localToGlobal(Offset.zero, ancestor: overlay),
-          button.localToGlobal(
-            button.size.bottomRight(Offset.zero),
-            ancestor: overlay,
-          ),
+          button.localToGlobal(button.size.bottomRight(Offset.zero), ancestor: overlay),
         ),
         Offset.zero & overlay.size,
       );
