@@ -434,10 +434,16 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
               } else if (_note == null) {
                 setState(() => isSubmitting = false);
               }
+              if (_autoSaveErrorCount == 0) {
+                showSnackBar(context, state.message!, type: SnackType.error);
+              }
               _handleAutoSaveError(state.message!);
               _isAutoSaving = false;
             } else {
               setState(() => isSubmitting = false);
+              if (_autoSaveErrorCount == 0) {
+                showSnackBar(context, state.message!, type: SnackType.error);
+              }
               _handleAutoSaveError('Manual save failed');
             }
           } else if (state is NoteScreenDataFetched) {
