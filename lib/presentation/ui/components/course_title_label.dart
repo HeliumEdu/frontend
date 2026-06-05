@@ -68,10 +68,6 @@ class CourseTitleLabel extends StatelessWidget {
             ),
           Flexible(
             child: Container(
-              padding: EdgeInsets.symmetric(
-                horizontal: compact ? 6 : 10,
-                vertical: compact ? 2 : 6,
-              ),
               decoration: BoxDecoration(
                 color: BadgeColors.background(context, color),
                 borderRadius: showIcon
@@ -84,44 +80,58 @@ class CourseTitleLabel extends StatelessWidget {
               ),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   Flexible(
-                    child: Text(
-                      title,
-                      style:
-                          (compact
-                                  ? AppStyles.smallSecondaryText(context)
-                                  : AppStyles.standardBodyText(context))
-                              .copyWith(
-                                color: BadgeColors.foreground(context, color),
-                              ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: compact ? 6 : 10,
+                        vertical: compact ? 2 : 6,
+                      ),
+                      child: Text(
+                        title,
+                        style:
+                            (compact
+                                    ? AppStyles.smallSecondaryText(context)
+                                    : AppStyles.standardBodyText(context))
+                                .copyWith(
+                                  color: BadgeColors.foreground(context, color),
+                                ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
                     ),
                   ),
                   if (onDelete != null) ...[
-                    const SizedBox(width: 2),
-                    Semantics(
-                      label: onDeleteLabel,
-                      button: true,
-                      child: Tooltip(
-                        message: onDeleteLabel,
-                        child: IconButton(
-                          onPressed: onDelete,
-                          icon: const Icon(Icons.close),
-                          iconSize: Responsive.getIconSize(
-                            context,
-                            mobile: 16,
-                            tablet: 18,
-                            desktop: 20,
-                          ),
-                          color: BadgeColors.foreground(context, color),
-                          hoverColor: BadgeColors.border(context, color),
-                          padding: EdgeInsets.zero,
-                          constraints: const BoxConstraints(),
-                          visualDensity: VisualDensity.compact,
-                          style: IconButton.styleFrom(
-                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    Container(
+                      width: 1,
+                      color: BadgeColors.border(context, color),
+                    ),
+                    GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onTap: onDelete,
+                      child: MouseRegion(
+                        cursor: SystemMouseCursors.click,
+                        child: Semantics(
+                          label: onDeleteLabel,
+                          button: true,
+                          child: Tooltip(
+                            message: onDeleteLabel,
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 6),
+                              child: Center(
+                                child: Icon(
+                                  Icons.close,
+                                  size: Responsive.getIconSize(
+                                    context,
+                                    mobile: 16,
+                                    tablet: 18,
+                                    desktop: 20,
+                                  ),
+                                  color: BadgeColors.foreground(context, color),
+                                ),
+                              ),
+                            ),
                           ),
                         ),
                       ),

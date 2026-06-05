@@ -40,6 +40,8 @@ import 'package:heliumapp/presentation/features/shared/controllers/basic_form_co
 import 'package:heliumapp/presentation/ui/components/course_title_label.dart';
 import 'package:heliumapp/presentation/ui/components/generic_label.dart';
 import 'package:heliumapp/presentation/ui/components/helium_icon_button.dart';
+import 'package:heliumapp/presentation/ui/components/helium_quill_editor.dart';
+import 'package:heliumapp/presentation/ui/components/helium_quill_toolbar.dart';
 import 'package:heliumapp/presentation/ui/components/label_and_text_form_field.dart';
 import 'package:heliumapp/presentation/ui/components/notes_editor.dart';
 import 'package:heliumapp/presentation/ui/components/quill_search_bar.dart';
@@ -49,14 +51,12 @@ import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
 import 'package:heliumapp/presentation/ui/layout/page_header.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/app_style.dart';
-import 'package:heliumapp/utils/search_helpers.dart';
 import 'package:heliumapp/utils/deep_link_helpers.dart';
 import 'package:heliumapp/utils/print_helpers.dart';
 import 'package:heliumapp/utils/print_service.dart';
-import 'package:heliumapp/presentation/ui/components/helium_quill_editor.dart';
-import 'package:heliumapp/presentation/ui/components/helium_quill_toolbar.dart';
 import 'package:heliumapp/utils/quill_helpers.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
+import 'package:heliumapp/utils/search_helpers.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:sentry_flutter/sentry_flutter.dart';
@@ -80,8 +80,7 @@ Future<void> showNoteAdd(
   final queryParameters = <String, String>{
     if (linkHomeworkId != null)
       DeepLinkParam.linkHomeworkId: linkHomeworkId.toString(),
-    if (linkEventId != null)
-      DeepLinkParam.linkEventId: linkEventId.toString(),
+    if (linkEventId != null) DeepLinkParam.linkEventId: linkEventId.toString(),
     if (linkResourceId != null)
       DeepLinkParam.linkResourceId: linkResourceId.toString(),
   };
@@ -156,7 +155,8 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
   bool _isLinking = false;
   bool _pendingUnlink = false;
   String _linkPickerType = 'homework';
-  final TextEditingController _linkPickerSearchController = TextEditingController();
+  final TextEditingController _linkPickerSearchController =
+      TextEditingController();
   List<HomeworkModel> _linkableHomework = [];
   List<EventModel> _linkableEvents = [];
   List<ResourceModel> _linkableResources = [];
@@ -233,10 +233,8 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
   /// this dialog with the dirty-dialog guard so URL-driven dismissals can't
   /// silently lose unsaved changes.
   void _registerDirtyGuard() {
-    final prefix =
-        '${widget.shellPath}/${_currentNoteId?.toString() ?? 'new'}';
-    final routerPath =
-        router.routerDelegate.currentConfiguration.uri.path;
+    final prefix = '${widget.shellPath}/${_currentNoteId?.toString() ?? 'new'}';
+    final routerPath = router.routerDelegate.currentConfiguration.uri.path;
     // Prefer the routerDelegate's settled path if it already matches our
     // dialog (e.g. after a new-note save); otherwise fall back to the URL
     // the pageBuilder matched on, which is authoritative for the active
@@ -262,8 +260,7 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
   }
 
   bool get isDirty {
-    return _saveStatus == SaveStatus.unsaved ||
-        _saveStatus == SaveStatus.error;
+    return _saveStatus == SaveStatus.unsaved || _saveStatus == SaveStatus.error;
   }
 
   Duration get _effectiveDebounce {
@@ -430,11 +427,7 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
                 _isPickerLoading = false;
                 _showLinkPicker = false;
               });
-              showSnackBar(
-                context,
-                state.message!,
-                type: SnackType.error,
-              );
+              showSnackBar(context, state.message!, type: SnackType.error);
             } else if (_isAutoSaving) {
               if (_isLinking) {
                 setState(() { _isLinking = false; isSubmitting = false; });
@@ -1025,8 +1018,7 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
     // Prefer the loaded note's completion (existing-edit flow) but fall
     // back to the linked-entity fetch's completion (new-note flow).
     final completed = _note?.linkedEntityCompleted ?? _linkedEntityCompleted;
-    final strikethrough =
-        completed == true ? TextDecoration.lineThrough : null;
+    final strikethrough = completed == true ? TextDecoration.lineThrough : null;
 
     // Standalone note: show tappable badge with link icon to open the picker.
     if (entityType.isEmpty) {
@@ -1201,7 +1193,7 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
 
   Widget _buildLinkPicker(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 4),
+      margin: const EdgeInsets.symmetric(vertical: 4),
       decoration: BoxDecoration(
         color: context.colorScheme.surface,
         border: Border.all(
@@ -1507,4 +1499,3 @@ class _LinkPickerItem extends _LinkPickerRow {
   final String title;
   _LinkPickerItem({required this.id, required this.title});
 }
-

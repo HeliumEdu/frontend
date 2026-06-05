@@ -27,14 +27,10 @@ class NoteRequestModel {
 
     if (title != null) json['title'] = title;
     if (content != null) json['content'] = content;
-    if (clearLinks) {
-      json['homework'] = [];
-      json['events'] = [];
-      json['resources'] = [];
-    } else {
-      if (homeworkId != null) json['homework'] = [homeworkId];
-      if (eventId != null) json['events'] = [eventId];
-      if (resourceId != null) json['resources'] = [resourceId];
+    if (clearLinks || homeworkId != null || eventId != null || resourceId != null) {
+      json['homework'] = homeworkId != null ? [homeworkId] : [];
+      json['events'] = eventId != null ? [eventId] : [];
+      json['resources'] = resourceId != null ? [resourceId] : [];
     }
 
     return json;
