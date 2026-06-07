@@ -33,6 +33,7 @@ class HeliumCheckboxListTile extends StatelessWidget {
   final Color? checkColor;
   final Color? tileColor;
   final ShapeBorder? shape;
+  final double? horizontalTitleGap;
   final FocusNode? focusNode;
   final bool autofocus;
 
@@ -54,6 +55,7 @@ class HeliumCheckboxListTile extends StatelessWidget {
     this.checkColor,
     this.tileColor,
     this.shape,
+    this.horizontalTitleGap,
     this.focusNode,
     this.autofocus = false,
   });
@@ -82,6 +84,7 @@ class HeliumCheckboxListTile extends StatelessWidget {
       checkColor: checkColor,
       tileColor: tileColor,
       shape: shape,
+      horizontalTitleGap: horizontalTitleGap,
       focusNode: focusNode,
       autofocus: autofocus,
       enableFeedback: false,

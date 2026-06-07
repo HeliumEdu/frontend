@@ -320,12 +320,6 @@ class CourseScheduleState extends State<CourseSchedule> {
                           ),
                         ),
                       ),
-                      foregroundColor: WidgetStateProperty.resolveWith((states) {
-                        if (states.contains(WidgetState.selected)) {
-                          return context.colorScheme.onPrimary;
-                        }
-                        return context.colorScheme.onSurfaceVariant;
-                      }),
                       backgroundColor: WidgetStateProperty.resolveWith((states) {
                         if (states.contains(WidgetState.selected)) {
                           return context.colorScheme.primary;

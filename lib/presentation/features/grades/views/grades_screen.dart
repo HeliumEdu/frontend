@@ -157,6 +157,16 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
   bool _autoAdjustToGradedRange = false;
   bool _hideLegend = false;
   bool _graphExpanded = true;
+  bool _defaultsApplied = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_defaultsApplied) {
+      _defaultsApplied = true;
+      _autoAdjustToGradedRange = Responsive.isMobile(context);
+    }
+  }
 
   @override
   Future<UserSettingsModel?> loadSettings() {
@@ -1605,7 +1615,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
             SizedBox(
               width: Responsive.getResponsiveValue(
                 context,
-                mobile: 160,
+                mobile: 135,
                 tablet: 200,
                 desktop: 240,
               ),
@@ -1767,6 +1777,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
             dense: true,
             contentPadding: EdgeInsets.zero,
             visualDensity: VisualDensity.compact,
+            horizontalTitleGap: Responsive.isMobile(context) ? 8.0 : null,
             controlAffinity: ListTileControlAffinity.leading,
             value: isVisible,
             title: Row(
@@ -1781,7 +1792,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
                     color: s.color,
                   ),
                 ),
-                const SizedBox(width: 8),
+                SizedBox(width: Responsive.isMobile(context) ? 4 : 8),
                 Expanded(
                   child: Text(
                     s.name ?? '',
