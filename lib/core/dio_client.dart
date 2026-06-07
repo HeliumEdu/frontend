@@ -6,6 +6,7 @@
 // For details regarding the license, please refer to the LICENSE file.
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:dio/dio.dart';
@@ -25,6 +26,7 @@ import 'package:heliumapp/data/models/auth/request/update_settings_request_model
 import 'package:heliumapp/data/models/auth/token_response_model.dart';
 import 'package:heliumapp/data/models/auth/user_model.dart';
 import 'package:heliumapp/utils/color_helpers.dart';
+import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:heliumapp/utils/snack_bar_helpers.dart';
 import 'package:logging/logging.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -439,7 +441,7 @@ class DioClient {
     await ThemeNotifier().setThemeMode(themeMode);
 
     final p = _prefService;
-    return Future.wait([
+    final result = await Future.wait([
       ?p.setString(SettingsPrefKey.timeZone.key, settings.timeZone.toString()),
       ?p.setBool(SettingsPrefKey.colorByCategory.key, settings.colorByCategory),
       ?p.setInt(SettingsPrefKey.defaultView.key, settings.defaultView),
@@ -462,6 +464,23 @@ class DioClient {
       ?p.setInt(SettingsPrefKey.onTrackTolerance.key, settings.onTrackTolerance),
       ?p.setBool(SettingsPrefKey.showWeekNumbers.key, settings.showWeekNumbers),
     ]);
+
+    if (p.getString('saved_grades_graph_settings') == null) {
+      final view = WidgetsBinding.instance.platformDispatcher.views.firstOrNull;
+      final isMobile = view != null &&
+          Responsive.isMobileWidth(
+            view.physicalSize.width / view.devicePixelRatio,
+          );
+      await p.setString(
+        'saved_grades_graph_settings',
+        jsonEncode({
+          'autoAdjustToGradedRange': isMobile,
+          'hideLegend': false,
+        }),
+      );
+    }
+
+    return result;
   }
 
   Future<void> updateSettings(UpdateSettingsRequestModel request) async {
