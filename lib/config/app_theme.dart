@@ -194,7 +194,12 @@ class AppTheme {
               return colorScheme.primary.withValues(alpha: 0.3);
             }
           }),
-          foregroundColor: WidgetStateProperty.all(colorScheme.onPrimary),
+          foregroundColor: WidgetStateColor.resolveWith((states) {
+            if (states.contains(WidgetState.selected)) {
+              return colorScheme.onPrimary;
+            }
+            return colorScheme.onSurfaceVariant;
+          }),
           shape: WidgetStateProperty.all<OutlinedBorder>(
             RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
           ),

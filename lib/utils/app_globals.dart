@@ -47,7 +47,7 @@ class AppConstants {
 class FallbackConstants {
   static const fallbackColor = seedColor;
 
-  static const defaultViewIndex = 2;
+  static const defaultViewIndex = 0;
   static const defaultWeekStartsOn = 0;
   static const defaultTimeZone = 'UTC';
   static const defaultReminderType = 3;
