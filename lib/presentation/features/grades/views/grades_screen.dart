@@ -157,16 +157,6 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
   bool _autoAdjustToGradedRange = false;
   bool _hideLegend = false;
   bool _graphExpanded = true;
-  bool _defaultsApplied = false;
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    if (!_defaultsApplied) {
-      _defaultsApplied = true;
-      _autoAdjustToGradedRange = Responsive.isMobile(context);
-    }
-  }
 
   @override
   Future<UserSettingsModel?> loadSettings() {
