@@ -229,7 +229,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
               homework.currentGrade,
             );
 
-            if (matched.assignmentGrade != newGradePercent ||
+            if (matched.homeworkGrade != newGradePercent ||
                 matched.categoryId != homework.category.id ||
                 matched.courseId != homework.course.id ||
                 matched.title != homework.title) {
@@ -1898,7 +1898,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
               grade: item.cumulativeGrade ?? 0.0,
               homeworkId: item.id,
               homeworkTitle: item.title,
-              homeworkGrade: item.assignmentGrade,
+              homeworkGrade: item.homeworkGrade,
               categoryId: item.categoryId,
             ))
         .toList();
