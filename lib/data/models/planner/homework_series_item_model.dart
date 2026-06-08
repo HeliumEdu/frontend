@@ -13,7 +13,7 @@ class HomeworkSeriesItemModel {
   final int courseId;
   final double? pointsPossible;
   final bool graded;
-  final double? assignmentGrade;
+  final double? homeworkGrade;
   final double? cumulativeGrade;
   final double? impactScore;
 
@@ -25,7 +25,7 @@ class HomeworkSeriesItemModel {
     required this.courseId,
     this.pointsPossible,
     required this.graded,
-    this.assignmentGrade,
+    this.homeworkGrade,
     this.cumulativeGrade,
     this.impactScore,
   });
@@ -39,7 +39,7 @@ class HomeworkSeriesItemModel {
       courseId: json['course_id'],
       pointsPossible: (json['points_possible'] as num?)?.toDouble(),
       graded: json['graded'],
-      assignmentGrade: (json['assignment_grade'] as num?)?.toDouble(),
+      homeworkGrade: (json['homework_grade'] as num?)?.toDouble(),
       cumulativeGrade: (json['cumulative_grade'] as num?)?.toDouble(),
       impactScore: (json['impact_score'] as num?)?.toDouble(),
     );
@@ -54,7 +54,7 @@ class HomeworkSeriesItemModel {
       'course_id': courseId,
       'points_possible': pointsPossible,
       'graded': graded,
-      'assignment_grade': assignmentGrade,
+      'homework_grade': homeworkGrade,
       'cumulative_grade': cumulativeGrade,
       'impact_score': impactScore,
     };

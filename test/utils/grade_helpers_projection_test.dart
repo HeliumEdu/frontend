@@ -317,7 +317,7 @@ HomeworkSeriesItemModel _createAssignment({
     courseId: 1,
     pointsPossible: pointsPossible,
     graded: false,
-    assignmentGrade: null,
+    homeworkGrade: null,
     cumulativeGrade: null,
     impactScore: null,
   );

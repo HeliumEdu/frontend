@@ -229,7 +229,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
               homework.currentGrade,
             );
 
-            if (matched.assignmentGrade != newGradePercent ||
+            if (matched.homeworkGrade != newGradePercent ||
                 matched.categoryId != homework.category.id ||
                 matched.courseId != homework.course.id ||
                 matched.title != homework.title) {
@@ -1109,6 +1109,14 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
       return;
     }
 
+    if (!_graphViewMode.isTerm) {
+      final filteredCourse = courses.where((c) => c.id == _graphViewMode.courseId).firstOrNull;
+      if (filteredCourse != null) {
+        _openGradeCalculator(filteredCourse);
+        return;
+      }
+    }
+
     final isMobile = Responsive.isMobile(context);
 
     if (isMobile) {
@@ -1476,6 +1484,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
           // Chart area
           Expanded(
             child: charts.SfCartesianChart(
+              margin: const EdgeInsets.fromLTRB(0, 10, 8, 6),
               tooltipBehavior: charts.TooltipBehavior(
                 enable: false,
                 header: '',
@@ -1889,7 +1898,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
               grade: item.cumulativeGrade ?? 0.0,
               homeworkId: item.id,
               homeworkTitle: item.title,
-              homeworkGrade: item.assignmentGrade,
+              homeworkGrade: item.homeworkGrade,
               categoryId: item.categoryId,
             ))
         .toList();
