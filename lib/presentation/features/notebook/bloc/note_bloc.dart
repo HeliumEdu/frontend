@@ -9,6 +9,7 @@ import 'package:bloc/bloc.dart';
 import 'package:heliumapp/core/helium_exception.dart';
 import 'package:heliumapp/data/models/id_or_entity.dart';
 import 'package:heliumapp/data/models/planner/course_group_model.dart';
+import 'package:heliumapp/data/models/planner/category_model.dart';
 import 'package:heliumapp/data/models/planner/course_model.dart';
 import 'package:heliumapp/data/models/planner/event_model.dart';
 import 'package:heliumapp/data/models/planner/homework_model.dart';
@@ -16,6 +17,7 @@ import 'package:heliumapp/data/models/planner/note_model.dart';
 import 'package:heliumapp/data/models/planner/resource_group_model.dart';
 import 'package:heliumapp/data/models/planner/resource_model.dart';
 import 'package:heliumapp/utils/planner_helper.dart';
+import 'package:heliumapp/domain/repositories/category_repository.dart';
 import 'package:heliumapp/domain/repositories/course_repository.dart';
 import 'package:heliumapp/domain/repositories/event_repository.dart';
 import 'package:heliumapp/domain/repositories/homework_repository.dart';
@@ -31,6 +33,7 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
   final EventRepository eventRepository;
   final ResourceRepository resourceRepository;
   final CourseRepository courseRepository;
+  final CategoryRepository categoryRepository;
 
   NoteBloc({
     required this.noteRepository,
@@ -38,6 +41,7 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
     required this.eventRepository,
     required this.resourceRepository,
     required this.courseRepository,
+    required this.categoryRepository,
   }) : super(NoteInitial(origin: EventOrigin.bloc)) {
     on<FetchNotesEvent>(_onFetchNotes);
     on<FetchNoteEvent>(_onFetchNote);
@@ -207,6 +211,7 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
         resourceRepository.getResources(),
         resourceRepository.getResourceGroups(),
         courseRepository.getCourses(),
+        categoryRepository.getCategories(),
       ]);
 
       final courses = results[4] as List<CourseModel>;
@@ -240,6 +245,7 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
             .toList(),
         courses: courses,
         resourceGroups: resourceGroups,
+        categories: results[5] as List<CategoryModel>,
       ));
     } on HeliumException catch (e) {
       emit(NotesError(origin: event.origin, message: e.message));
