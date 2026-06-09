@@ -7,6 +7,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:heliumapp/utils/print_helpers.dart';
+import 'package:heliumapp/utils/sort_helpers.dart';
 import 'package:logging/logging.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 
@@ -58,7 +59,9 @@ mixin SortableDataGridSource on DataGridSource {
       }
 
       int comparison = 0;
-      if (valueA is Comparable && valueB is Comparable) {
+      if (valueA is String && valueB is String) {
+        comparison = Sort.compareNatural(valueA, valueB);
+      } else if (valueA is Comparable && valueB is Comparable) {
         comparison = valueA.compareTo(valueB);
       }
 

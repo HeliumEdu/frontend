@@ -56,7 +56,9 @@ import 'package:heliumapp/utils/print_helpers.dart';
 import 'package:heliumapp/utils/print_service.dart';
 import 'package:heliumapp/utils/quill_helpers.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
+import 'package:heliumapp/utils/date_time_helpers.dart';
 import 'package:heliumapp/utils/search_helpers.dart';
+import 'package:heliumapp/utils/sort_helpers.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:sentry_flutter/sentry_flutter.dart';
@@ -1388,7 +1390,8 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
         }
         final sortedCourseIds = byGroup.keys.toList()
           ..sort(
-            (a, b) => (courseIndex[a]?.title ?? '').compareTo(
+            (a, b) => Sort.compareNatural(
+              courseIndex[a]?.title ?? '',
               courseIndex[b]?.title ?? '',
             ),
           );
@@ -1398,16 +1401,20 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
             title: course?.title ?? '',
             color: course?.color,
           ));
-          for (final h in byGroup[courseId]!) {
-            rows.add(_LinkPickerItem(id: h.id, title: h.title));
+          final items = byGroup[courseId]!
+            ..sort((a, b) => a.start.compareTo(b.start));
+          for (final h in items) {
+            rows.add(_LinkPickerItem(id: h.id, title: h.title, date: h.start));
           }
         }
 
       case 'event':
-        for (final e in _linkableEvents) {
-          if (query.isEmpty || SearchHelper.matches(e.title, query)) {
-            rows.add(_LinkPickerItem(id: e.id, title: e.title));
-          }
+        final filteredEvents = _linkableEvents
+            .where((e) => query.isEmpty || SearchHelper.matches(e.title, query))
+            .toList()
+          ..sort((a, b) => a.start.compareTo(b.start));
+        for (final e in filteredEvents) {
+          rows.add(_LinkPickerItem(id: e.id, title: e.title, date: e.start));
         }
 
       default:
@@ -1425,13 +1432,16 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
         }
         final sortedGroupIds = byGroup.keys.toList()
           ..sort(
-            (a, b) => (groupIndex[a]?.title ?? '').compareTo(
+            (a, b) => Sort.compareNatural(
+              groupIndex[a]?.title ?? '',
               groupIndex[b]?.title ?? '',
             ),
           );
         for (final groupId in sortedGroupIds) {
           rows.add(_LinkGroupHeader(title: groupIndex[groupId]?.title ?? ''));
-          for (final r in byGroup[groupId]!) {
+          final items = byGroup[groupId]!
+            ..sort((a, b) => Sort.compareNatural(a.title, b.title));
+          for (final r in items) {
             rows.add(_LinkPickerItem(id: r.id, title: r.title));
           }
         }
@@ -1477,6 +1487,11 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
           );
         }
         final item = row as _LinkPickerItem;
+        final dateText = item.date != null && userSettings != null
+            ? HeliumDateTime.formatDateForTodos(
+                HeliumDateTime.toLocal(item.date!, userSettings!.timeZone),
+              )
+            : null;
         return ListTile(
           dense: true,
           contentPadding: const EdgeInsets.symmetric(horizontal: 16),
@@ -1485,6 +1500,14 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
             style: AppStyles.formText(context),
             overflow: TextOverflow.ellipsis,
           ),
+          trailing: dateText != null
+              ? Text(
+                  dateText,
+                  style: AppStyles.smallSecondaryText(context).copyWith(
+                    color: context.colorScheme.outline,
+                  ),
+                )
+              : null,
           onTap: () => _linkNoteTo(_linkPickerType, item.id, item.title),
         );
       },
@@ -1503,5 +1526,6 @@ class _LinkGroupHeader extends _LinkPickerRow {
 class _LinkPickerItem extends _LinkPickerRow {
   final int id;
   final String title;
-  _LinkPickerItem({required this.id, required this.title});
+  final DateTime? date;
+  _LinkPickerItem({required this.id, required this.title, this.date});
 }
