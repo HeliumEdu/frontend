@@ -336,7 +336,7 @@ class PlannerHelper {
       );
       if (groupComparison != 0) return groupComparison;
 
-      return a.title.compareTo(b.title);
+      return Sort.compareNatural(a.title, b.title);
     });
   }
 
