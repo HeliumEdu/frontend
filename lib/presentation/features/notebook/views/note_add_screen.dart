@@ -23,6 +23,7 @@ import 'package:heliumapp/config/app_router.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/config/dirty_dialog_registry.dart';
 import 'package:heliumapp/core/analytics_service.dart';
+import 'package:heliumapp/data/models/planner/category_model.dart';
 import 'package:heliumapp/data/models/planner/course_model.dart';
 import 'package:heliumapp/data/models/planner/event_model.dart';
 import 'package:heliumapp/data/models/planner/homework_model.dart';
@@ -56,7 +57,9 @@ import 'package:heliumapp/utils/print_helpers.dart';
 import 'package:heliumapp/utils/print_service.dart';
 import 'package:heliumapp/utils/quill_helpers.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
+import 'package:heliumapp/utils/date_time_helpers.dart';
 import 'package:heliumapp/utils/search_helpers.dart';
+import 'package:heliumapp/utils/sort_helpers.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:sentry_flutter/sentry_flutter.dart';
@@ -140,11 +143,11 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
   PrintHandler? _printHandler;
 
   NoteModel? _note;
-  int? _currentNoteId;
   String? _linkedEntityType;
   String? _linkedEntityTitle;
   Color? _linkedEntityColor;
   bool? _linkedEntityCompleted;
+  int? _pendingLinkId;
   bool _showSearch = false;
   bool _hasRequestedInitialFocus = false;
   String? _registeredPrefix;
@@ -162,6 +165,7 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
   List<ResourceModel> _linkableResources = [];
   List<CourseModel> _linkableCourses = [];
   List<ResourceGroupModel> _linkableResourceGroups = [];
+  List<CategoryModel> _linkableCategories = [];
 
   // Auto-save state
   SaveStatus _saveStatus = SaveStatus.saved;
@@ -177,9 +181,16 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    _currentNoteId = widget.noteId;
     _quillController = heliumQuillController();
     _saveStatus = widget.noteId == null ? SaveStatus.unsaved : SaveStatus.saved;
+
+    if (widget.linkHomeworkId != null) {
+      _pendingLinkId = widget.linkHomeworkId;
+    } else if (widget.linkEventId != null) {
+      _pendingLinkId = widget.linkEventId;
+    } else if (widget.linkResourceId != null) {
+      _pendingLinkId = widget.linkResourceId;
+    }
 
     _titleController.addListener(_onContentChanged);
     _printHandler = _printNote;
@@ -233,7 +244,7 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
   /// this dialog with the dirty-dialog guard so URL-driven dismissals can't
   /// silently lose unsaved changes.
   void _registerDirtyGuard() {
-    final prefix = '${widget.shellPath}/${_currentNoteId?.toString() ?? 'new'}';
+    final prefix = '${widget.shellPath}/${(_note?.id ?? widget.noteId)?.toString() ?? 'new'}';
     final routerPath = router.routerDelegate.currentConfiguration.uri.path;
     // Prefer the routerDelegate's settled path if it already matches our
     // dialog (e.g. after a new-note save); otherwise fall back to the URL
@@ -382,11 +393,7 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
 
     // New linked note with empty body: skip stub creation
     final bodyIsEmpty = _quillController.document.toPlainText().trim().isEmpty;
-    if (_note?.id == null &&
-        (widget.linkEventId != null ||
-            widget.linkHomeworkId != null ||
-            widget.linkResourceId != null) &&
-        bodyIsEmpty) {
+    if (_note?.id == null && _linkedEntityType != null && bodyIsEmpty) {
       showSnackBar(
         context,
         'Note was empty, so nothing to save.',
@@ -476,7 +483,6 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
               setState(() {
                 isSubmitting = false;
                 _note = state.note;
-                _currentNoteId = state.note.id;
                 _saveStatus = SaveStatus.saved;
                 _autoSaveErrorCount = 0;
               });
@@ -510,6 +516,7 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
               _linkableResources = state.resources;
               _linkableCourses = state.courses;
               _linkableResourceGroups = state.resourceGroups;
+              _linkableCategories = state.categories;
             });
           } else if (state is NoteUpdated) {
             if (_isAutoSaving) {
@@ -644,9 +651,9 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
           request: NoteRequestModel(
             title: title,
             content: {'ops': content},
-            homeworkId: widget.linkHomeworkId,
-            eventId: widget.linkEventId,
-            resourceId: widget.linkResourceId,
+            homeworkId: _linkedEntityType == 'homework' ? _pendingLinkId : null,
+            eventId: _linkedEntityType == 'event' ? _pendingLinkId : null,
+            resourceId: _linkedEntityType == 'resource' ? _pendingLinkId : null,
           ),
         ),
       );
@@ -823,13 +830,10 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
           const double titleMinWidth = 225;
           const double badgeMaxWidth = 250;
           const double gap = 8;
-          final hasBadge = _linkedEntityType != null || _note != null;
-          final effectiveBadgeMax = hasBadge
-              ? (constraints.maxWidth - titleMinWidth - gap * 2).clamp(
-                  0.0,
-                  badgeMaxWidth,
-                )
-              : 0.0;
+          final effectiveBadgeMax = (constraints.maxWidth - titleMinWidth - gap * 2).clamp(
+            0.0,
+            badgeMaxWidth,
+          );
           return Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
@@ -844,13 +848,11 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
                   onFieldSubmitted: (_) => saveAction?.call(),
                 ),
               ),
-              if (hasBadge) ...[
-                const SizedBox(width: gap),
-                ConstrainedBox(
-                  constraints: BoxConstraints(maxWidth: effectiveBadgeMax),
-                  child: _buildLinkedEntityBadge(),
-                ),
-              ],
+              const SizedBox(width: gap),
+              ConstrainedBox(
+                constraints: BoxConstraints(maxWidth: effectiveBadgeMax),
+                child: _buildLinkedEntityBadge(),
+              ),
             ],
           );
         },
@@ -1075,8 +1077,7 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
       );
     }
 
-    final VoidCallback? onDelete =
-        (_note != null && !_isLinking) ? _unlinkNote : null;
+    final VoidCallback? onDelete = !_isLinking ? _unlinkNote : null;
 
     final Widget badge;
     if (entityType == 'resource') {
@@ -1118,9 +1119,9 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
     // new note being created via the linked-entity flow they come from the
     // widget params (the IDs the route was opened with).
     final entityId = switch (entityType) {
-      'homework' => _note?.homework.firstOrNull ?? widget.linkHomeworkId,
-      'event' => _note?.events.firstOrNull ?? widget.linkEventId,
-      'resource' => _note?.resources.firstOrNull ?? widget.linkResourceId,
+      'homework' => _note?.homework.firstOrNull ?? _pendingLinkId,
+      'event' => _note?.events.firstOrNull ?? _pendingLinkId,
+      'resource' => _note?.resources.firstOrNull ?? _pendingLinkId,
       _ => null,
     };
 
@@ -1161,9 +1162,9 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
   }
 
   void _unlinkNote() {
-    if (_note == null) return;
     setState(() {
-      _pendingUnlink = true;
+      if (_note != null) _pendingUnlink = true;
+      _pendingLinkId = null;
       _saveStatus = SaveStatus.unsaved;
       _linkedEntityType = null;
       _linkedEntityTitle = null;
@@ -1173,7 +1174,42 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
   }
 
   void _linkNoteTo(String type, int id, String title) {
-    if (_note == null) return;
+    if (_note == null) {
+      Color? color;
+      bool? completed;
+      if (type == 'homework') {
+        final homework = _linkableHomework.cast<HomeworkModel?>().firstWhere(
+          (h) => h?.id == id,
+          orElse: () => null,
+        );
+        final course = _linkableCourses.cast<CourseModel?>().firstWhere(
+          (c) => c?.id == homework?.course.id,
+          orElse: () => null,
+        );
+        final category = _linkableCategories.cast<CategoryModel?>().firstWhere(
+          (c) => c?.id == homework?.category.id,
+          orElse: () => null,
+        );
+        color = (userSettings?.colorByCategory ?? FallbackConstants.defaultColorByCategory) && category != null
+            ? category.color
+            : course?.color;
+        completed = homework?.completed;
+      } else if (type == 'event') {
+        color = userSettings?.eventsColor;
+      }
+      setState(() {
+        _pendingLinkId = id;
+        _pendingUnlink = false;
+        _linkedEntityType = type;
+        _linkedEntityTitle = title;
+        _linkedEntityColor = color;
+        _linkedEntityCompleted = completed;
+        _showLinkPicker = false;
+        _linkPickerSearchController.clear();
+      });
+      return;
+    }
+
     setState(() {
       _isAutoSaving = true;
       _isLinking = true;
@@ -1388,7 +1424,8 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
         }
         final sortedCourseIds = byGroup.keys.toList()
           ..sort(
-            (a, b) => (courseIndex[a]?.title ?? '').compareTo(
+            (a, b) => Sort.compareNatural(
+              courseIndex[a]?.title ?? '',
               courseIndex[b]?.title ?? '',
             ),
           );
@@ -1398,16 +1435,20 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
             title: course?.title ?? '',
             color: course?.color,
           ));
-          for (final h in byGroup[courseId]!) {
-            rows.add(_LinkPickerItem(id: h.id, title: h.title));
+          final items = byGroup[courseId]!
+            ..sort((a, b) => a.start.compareTo(b.start));
+          for (final h in items) {
+            rows.add(_LinkPickerItem(id: h.id, title: h.title, date: h.start));
           }
         }
 
       case 'event':
-        for (final e in _linkableEvents) {
-          if (query.isEmpty || SearchHelper.matches(e.title, query)) {
-            rows.add(_LinkPickerItem(id: e.id, title: e.title));
-          }
+        final filteredEvents = _linkableEvents
+            .where((e) => query.isEmpty || SearchHelper.matches(e.title, query))
+            .toList()
+          ..sort((a, b) => a.start.compareTo(b.start));
+        for (final e in filteredEvents) {
+          rows.add(_LinkPickerItem(id: e.id, title: e.title, date: e.start));
         }
 
       default:
@@ -1425,13 +1466,16 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
         }
         final sortedGroupIds = byGroup.keys.toList()
           ..sort(
-            (a, b) => (groupIndex[a]?.title ?? '').compareTo(
+            (a, b) => Sort.compareNatural(
+              groupIndex[a]?.title ?? '',
               groupIndex[b]?.title ?? '',
             ),
           );
         for (final groupId in sortedGroupIds) {
           rows.add(_LinkGroupHeader(title: groupIndex[groupId]?.title ?? ''));
-          for (final r in byGroup[groupId]!) {
+          final items = byGroup[groupId]!
+            ..sort((a, b) => Sort.compareNatural(a.title, b.title));
+          for (final r in items) {
             rows.add(_LinkPickerItem(id: r.id, title: r.title));
           }
         }
@@ -1477,6 +1521,11 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
           );
         }
         final item = row as _LinkPickerItem;
+        final dateText = item.date != null && userSettings != null
+            ? HeliumDateTime.formatDateForTodos(
+                HeliumDateTime.toLocal(item.date!, userSettings!.timeZone),
+              )
+            : null;
         return ListTile(
           dense: true,
           contentPadding: const EdgeInsets.symmetric(horizontal: 16),
@@ -1485,6 +1534,14 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
             style: AppStyles.formText(context),
             overflow: TextOverflow.ellipsis,
           ),
+          trailing: dateText != null
+              ? Text(
+                  dateText,
+                  style: AppStyles.smallSecondaryText(context).copyWith(
+                    color: context.colorScheme.outline,
+                  ),
+                )
+              : null,
           onTap: () => _linkNoteTo(_linkPickerType, item.id, item.title),
         );
       },
@@ -1503,5 +1560,6 @@ class _LinkGroupHeader extends _LinkPickerRow {
 class _LinkPickerItem extends _LinkPickerRow {
   final int id;
   final String title;
-  _LinkPickerItem({required this.id, required this.title});
+  final DateTime? date;
+  _LinkPickerItem({required this.id, required this.title, this.date});
 }

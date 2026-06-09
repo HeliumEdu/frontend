@@ -7,6 +7,7 @@
 
 import 'dart:ui';
 
+import 'package:heliumapp/data/models/planner/category_model.dart';
 import 'package:heliumapp/data/models/planner/course_model.dart';
 import 'package:heliumapp/data/models/planner/event_model.dart';
 import 'package:heliumapp/data/models/planner/homework_model.dart';
@@ -99,6 +100,7 @@ class LinkableEntitiesFetched extends NoteState {
   final List<ResourceModel> resources;
   final List<CourseModel> courses;
   final List<ResourceGroupModel> resourceGroups;
+  final List<CategoryModel> categories;
 
   LinkableEntitiesFetched({
     required super.origin,
@@ -107,5 +109,6 @@ class LinkableEntitiesFetched extends NoteState {
     required this.resources,
     required this.courses,
     required this.resourceGroups,
+    required this.categories,
   });
 }

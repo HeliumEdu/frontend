@@ -113,12 +113,31 @@ class Sort {
       }
     }
 
-    // 6. Final tiebreaker: sort by title alphabetically
-    return aTitle.compareTo(bTitle);
+    // 6. Final tiebreaker: sort by title naturally
+    return compareNatural(aTitle, bTitle);
+  }
+
+  /// Natural sort: digit runs are compared numerically so "Homework 2" orders
+  /// before "Homework 10". Non-digit runs are compared case-insensitively.
+  static int compareNatural(String a, String b) {
+    final pattern = RegExp(r'(\d+|\D+)');
+    final aSegs = pattern.allMatches(a).map((m) => m.group(0)!).toList();
+    final bSegs = pattern.allMatches(b).map((m) => m.group(0)!).toList();
+    for (var i = 0; i < aSegs.length && i < bSegs.length; i++) {
+      final aSeg = aSegs[i];
+      final bSeg = bSegs[i];
+      final aNum = int.tryParse(aSeg);
+      final bNum = int.tryParse(bSeg);
+      final cmp = (aNum != null && bNum != null)
+          ? aNum.compareTo(bNum)
+          : aSeg.toLowerCase().compareTo(bSeg.toLowerCase());
+      if (cmp != 0) return cmp;
+    }
+    return aSegs.length.compareTo(bSegs.length);
   }
 
   static void byTitle(List<BaseTitledModel> list) {
-    list.sort((a, b) => a.title.compareTo(b.title));
+    list.sort((a, b) => compareNatural(a.title, b.title));
   }
 
   static void byUpdatedAt(List<NoteModel> list) {

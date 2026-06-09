@@ -90,6 +90,9 @@ class ProviderHelpers {
       courseRepository: CourseRepositoryImpl(
         remoteDataSource: CourseRemoteDataSourceImpl(dioClient: _dioClient),
       ),
+      categoryRepository: CategoryRepositoryImpl(
+        remoteDataSource: CategoryRemoteDataSourceImpl(dioClient: _dioClient),
+      ),
     );
   }
 
