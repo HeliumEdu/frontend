@@ -175,7 +175,7 @@ class _GradeCalculatorDialogState extends State<GradeCalculatorDialog> {
         expanded: false,
         icon: Icons.hourglass_empty,
         title: 'Come back later',
-        message: 'Check back when a category is down to its last ungraded assignment (ex. the Final).',
+        message: 'Check back when a category is down to its last ungraded assignment (e.g. the Final).',
       );
     }
 
