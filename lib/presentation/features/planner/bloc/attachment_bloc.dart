@@ -67,7 +67,7 @@ class AttachmentBloc extends Bloc<AttachmentEvent, AttachmentState> {
             .then<AttachmentModel?>((a) => a)
             .catchError((Object e) {
               failedFilenames.add(file.title);
-              if (e is HeliumException) {
+              if (e is ValidationException) {
                 errorMessages.add(e.displayMessage);
               }
               return null;
