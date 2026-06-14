@@ -23,6 +23,7 @@ import 'package:heliumapp/data/models/auth/request/change_password_request_model
 import 'package:heliumapp/data/models/auth/request/delete_account_request_model.dart';
 import 'package:heliumapp/data/models/auth/request/forgot_password_request_model.dart';
 import 'package:heliumapp/data/models/auth/request/refresh_token_request_model.dart';
+import 'package:heliumapp/data/models/auth/request/reset_password_request_model.dart';
 import 'package:heliumapp/data/models/auth/request/update_settings_request_model.dart';
 import 'package:heliumapp/data/models/auth/token_response_model.dart';
 import 'package:heliumapp/data/models/auth/user_model.dart';
@@ -71,6 +72,10 @@ abstract class AuthRemoteDataSource extends BaseDataSource {
 
   Future<NoContentResponseModel> forgotPassword(
     ForgotPasswordRequestModel request,
+  );
+
+  Future<NoContentResponseModel> confirmPasswordReset(
+    ResetPasswordRequestModel request,
   );
 
   Future<void> deleteExampleSchedule();
@@ -564,6 +569,32 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
       } else {
         throw ServerException(
           message: 'Failed to send reset email.',
+          code: response.statusCode.toString(),
+        );
+      }
+    } on DioException catch (e, s) {
+      throw handleDioError(e, s);
+    } catch (e, s) {
+      _log.severe('An unexpected error occurred', e, s);
+      throw HeliumException(message: HeliumException.unexpectedError);
+    }
+  }
+
+  @override
+  Future<NoContentResponseModel> confirmPasswordReset(
+    ResetPasswordRequestModel request,
+  ) async {
+    try {
+      final response = await dioClient.dio.put(
+        ApiUrl.authUserForgotConfirmUrl,
+        data: request.toJson(),
+      );
+
+      if (response.statusCode == 200) {
+        return NoContentResponseModel(message: 'Password reset successfully');
+      } else {
+        throw ServerException(
+          message: 'Failed to reset password.',
           code: response.statusCode.toString(),
         );
       }

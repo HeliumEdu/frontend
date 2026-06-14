@@ -15,6 +15,7 @@ class AppRoute {
   static const String loginScreen = '/login';
   static const String registerScreen = '/register';
   static const String forgotPasswordScreen = '/forgot';
+  static const String resetPasswordScreen = '/forgot/confirm';
   static const String verifyEmailScreen = '/verify';
   static const String setupAccountScreen = '/setup';
   static const String mobileWebScreen = '/mobile-web';

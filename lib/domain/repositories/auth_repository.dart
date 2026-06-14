@@ -9,6 +9,7 @@ import 'package:heliumapp/data/models/auth/request/change_email_request_model.da
 import 'package:heliumapp/data/models/auth/request/change_password_request_model.dart';
 import 'package:heliumapp/data/models/auth/request/delete_account_request_model.dart';
 import 'package:heliumapp/data/models/auth/request/forgot_password_request_model.dart';
+import 'package:heliumapp/data/models/auth/request/reset_password_request_model.dart';
 import 'package:heliumapp/data/models/auth/login_request_model.dart';
 import 'package:heliumapp/data/models/auth/private_feed_model.dart';
 import 'package:heliumapp/data/models/auth/request/refresh_token_request_model.dart';
@@ -57,6 +58,10 @@ abstract class AuthRepository {
 
   Future<NoContentResponseModel> forgotPassword(
     ForgotPasswordRequestModel request,
+  );
+
+  Future<NoContentResponseModel> confirmPasswordReset(
+    ResetPasswordRequestModel request,
   );
 
   Future<void> deleteExampleSchedule();
