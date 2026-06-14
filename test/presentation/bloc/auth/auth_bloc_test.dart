@@ -446,6 +446,82 @@ void main() {
       );
     });
 
+    group('ResetPasswordEvent', () {
+      const uid = 'abc123';
+      const token = 'valid-token';
+      const password = 'newpassword123';
+
+      blocTest<AuthBloc, AuthState>(
+        'emits [AuthLoading, AuthPasswordResetConfirmed] when reset succeeds',
+        build: () {
+          when(
+            () => mockAuthRepository.confirmPasswordReset(any()),
+          ).thenAnswer(
+            (_) async =>
+                NoContentResponseModel(message: 'Password reset successfully'),
+          );
+          return authBloc;
+        },
+        act: (bloc) => bloc.add(
+          ResetPasswordEvent(uid: uid, token: token, password: password),
+        ),
+        expect: () => [isA<AuthLoading>(), isA<AuthPasswordResetConfirmed>()],
+        verify: (_) {
+          verify(
+            () => mockAuthRepository.confirmPasswordReset(any()),
+          ).called(1);
+        },
+      );
+
+      blocTest<AuthBloc, AuthState>(
+        'emits [AuthLoading, AuthError] when token is invalid',
+        build: () {
+          when(
+            () => mockAuthRepository.confirmPasswordReset(any()),
+          ).thenThrow(
+            ValidationException(message: 'Invalid or expired token'),
+          );
+          return authBloc;
+        },
+        act: (bloc) => bloc.add(
+          ResetPasswordEvent(
+            uid: uid,
+            token: 'expired-token',
+            password: password,
+          ),
+        ),
+        expect: () => [
+          isA<AuthLoading>(),
+          isA<AuthError>().having(
+            (e) => e.message,
+            'message',
+            'Invalid or expired token',
+          ),
+        ],
+      );
+
+      blocTest<AuthBloc, AuthState>(
+        'emits [AuthLoading, AuthError] when unexpected error occurs',
+        build: () {
+          when(
+            () => mockAuthRepository.confirmPasswordReset(any()),
+          ).thenThrow(Exception('Network error'));
+          return authBloc;
+        },
+        act: (bloc) => bloc.add(
+          ResetPasswordEvent(uid: uid, token: token, password: password),
+        ),
+        expect: () => [
+          isA<AuthLoading>(),
+          isA<AuthError>().having(
+            (e) => e.message,
+            'message',
+            contains('unexpected error'),
+          ),
+        ],
+      );
+    });
+
     group('DeleteAccountEvent', () {
       const password = 'password123';
 

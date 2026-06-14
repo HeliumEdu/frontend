@@ -11,6 +11,7 @@ import 'package:heliumapp/core/helium_exception.dart';
 import 'package:heliumapp/data/models/auth/request/change_password_request_model.dart';
 import 'package:heliumapp/data/models/auth/request/delete_account_request_model.dart';
 import 'package:heliumapp/data/models/auth/request/forgot_password_request_model.dart';
+import 'package:heliumapp/data/models/auth/request/reset_password_request_model.dart';
 import 'package:heliumapp/data/models/auth/request/refresh_token_request_model.dart';
 import 'package:heliumapp/data/models/auth/register_request_model.dart';
 import 'package:heliumapp/data/models/auth/user_model.dart';
@@ -319,6 +320,48 @@ void main() {
 
         // THEN
         expect(result.message, contains('email sent'));
+      });
+    });
+
+    group('confirmPasswordReset', () {
+      test('returns NoContentResponseModel on 200 response', () async {
+        // GIVEN
+        when(
+          () => mockDio.put(any(), data: any(named: 'data')),
+        ).thenAnswer((_) async => givenSuccessResponse({}, statusCode: 200));
+
+        final request = ResetPasswordRequestModel(
+          uid: 'abc123',
+          token: 'valid-token',
+          password: 'newpassword123',
+        );
+
+        // WHEN
+        final result = await dataSource.confirmPasswordReset(request);
+
+        // THEN
+        expect(result.message, contains('reset'));
+      });
+
+      test('throws ValidationException on 400 response', () async {
+        // GIVEN
+        when(() => mockDio.put(any(), data: any(named: 'data'))).thenThrow(
+          givenValidationException({
+            'token': ['Invalid or expired token'],
+          }),
+        );
+
+        final request = ResetPasswordRequestModel(
+          uid: 'abc123',
+          token: 'expired-token',
+          password: 'newpassword123',
+        );
+
+        // WHEN/THEN
+        expect(
+          () => dataSource.confirmPasswordReset(request),
+          throwsA(isA<ValidationException>()),
+        );
       });
     });
 
