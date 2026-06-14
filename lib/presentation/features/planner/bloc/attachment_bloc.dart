@@ -51,7 +51,8 @@ class AttachmentBloc extends Bloc<AttachmentEvent, AttachmentState> {
     emit(AttachmentsLoading());
 
     final successes = <AttachmentModel>[];
-    var failureCount = 0;
+    final failedFilenames = <String>{};
+    final errorMessages = <String>[];
 
     final results = await Future.wait(
       event.files.map(
@@ -64,15 +65,19 @@ class AttachmentBloc extends Bloc<AttachmentEvent, AttachmentState> {
               homework: event.homeworkId,
             )
             .then<AttachmentModel?>((a) => a)
-            .catchError((_) => null),
+            .catchError((Object e) {
+              failedFilenames.add(file.title);
+              if (e is ValidationException) {
+                errorMessages.add(e.displayMessage);
+              }
+              return null;
+            }),
       ),
     );
 
     for (final result in results) {
       if (result != null) {
         successes.add(result);
-      } else {
-        failureCount++;
       }
     }
 
@@ -80,11 +85,14 @@ class AttachmentBloc extends Bloc<AttachmentEvent, AttachmentState> {
       emit(AttachmentsCreated(attachments: successes));
     }
 
-    if (failureCount > 0) {
+    if (failedFilenames.isNotEmpty) {
+      final distinctMessages = errorMessages.toSet();
       emit(
         AttachmentsError(
-          message:
-              '$failureCount ${failureCount.plural('attachment')} failed to upload',
+          message: distinctMessages.length == 1
+              ? distinctMessages.first
+              : '${failedFilenames.length} ${failedFilenames.length.plural('attachment')} failed to upload',
+          failedFilenames: failedFilenames,
         ),
       );
     }

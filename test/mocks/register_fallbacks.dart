@@ -10,6 +10,7 @@ import 'dart:typed_data';
 import 'package:heliumapp/data/models/auth/request/change_password_request_model.dart';
 import 'package:heliumapp/data/models/auth/request/delete_account_request_model.dart';
 import 'package:heliumapp/data/models/auth/request/forgot_password_request_model.dart';
+import 'package:heliumapp/data/models/auth/request/reset_password_request_model.dart';
 import 'package:heliumapp/data/models/auth/login_request_model.dart';
 import 'package:heliumapp/data/models/auth/request/refresh_token_request_model.dart';
 import 'package:heliumapp/data/models/auth/register_request_model.dart';
@@ -39,6 +40,7 @@ void registerFallbackValues() {
   registerFallbackValue(_FakeRefreshTokenRequestModel());
   registerFallbackValue(_FakeChangePasswordRequestModel());
   registerFallbackValue(_FakeForgotPasswordRequestModel());
+  registerFallbackValue(_FakeResetPasswordRequestModel());
   registerFallbackValue(_FakeDeleteAccountRequestModel());
   registerFallbackValue(_FakeUpdateSettingsRequestModel());
   registerFallbackValue(_FakeUserSettingsModel());
@@ -70,6 +72,9 @@ class _FakeChangePasswordRequestModel extends Fake
 
 class _FakeForgotPasswordRequestModel extends Fake
     implements ForgotPasswordRequestModel {}
+
+class _FakeResetPasswordRequestModel extends Fake
+    implements ResetPasswordRequestModel {}
 
 class _FakeDeleteAccountRequestModel extends Fake
     implements DeleteAccountRequestModel {}

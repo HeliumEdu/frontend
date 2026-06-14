@@ -75,6 +75,7 @@ abstract class BaseAttachmentsState extends State<BaseAttachmentsContent> {
 
   List<AttachmentFile> filesToUpload = [];
   List<AttachmentModel> attachments = [];
+  Set<String> _failedFileTitles = {};
   bool isLoading = true;
   bool isSubmitting = false;
   bool _initialFetchComplete = false;
@@ -117,6 +118,7 @@ abstract class BaseAttachmentsState extends State<BaseAttachmentsContent> {
           if (!_initialFetchComplete) {
             setState(() => isLoading = false);
           } else {
+            setState(() => _failedFileTitles = state.failedFilenames);
             SnackBarHelper.show(context, state.message!, type: SnackType.error, seconds: 4);
           }
         } else if (state is AttachmentsFetched) {
@@ -259,6 +261,7 @@ abstract class BaseAttachmentsState extends State<BaseAttachmentsContent> {
       filesToUpload = result.files
           .map((f) => AttachmentFile(bytes: f.bytes, title: f.name))
           .toList();
+      _failedFileTitles = {};
     });
   }
 
@@ -275,6 +278,7 @@ abstract class BaseAttachmentsState extends State<BaseAttachmentsContent> {
 
     setState(() {
       isSubmitting = true;
+      _failedFileTitles = {};
     });
 
     context.read<AttachmentBloc>().add(createCreateAttachmentsEvent());
@@ -298,6 +302,7 @@ abstract class BaseAttachmentsState extends State<BaseAttachmentsContent> {
     AttachmentFile file,
     int index,
   ) {
+    final hasFailed = _failedFileTitles.contains(file.title);
     return Card(
       key: ValueKey('file_upload_$index'),
       child: Padding(
@@ -305,8 +310,8 @@ abstract class BaseAttachmentsState extends State<BaseAttachmentsContent> {
         child: Row(
           children: [
             Icon(
-              Icons.insert_drive_file_outlined,
-              color: context.colorScheme.primary,
+              hasFailed ? Icons.error_outline : Icons.insert_drive_file_outlined,
+              color: hasFailed ? context.colorScheme.error : context.colorScheme.primary,
               size: Responsive.getIconSize(
                 context,
                 mobile: 20,

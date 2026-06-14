@@ -23,6 +23,7 @@ import 'package:heliumapp/presentation/core/views/mobile_web_screen.dart';
 import 'package:heliumapp/presentation/core/views/notification_screen.dart';
 import 'package:heliumapp/presentation/features/auth/views/forgot_password_screen.dart';
 import 'package:heliumapp/presentation/features/auth/views/login_screen.dart';
+import 'package:heliumapp/presentation/features/auth/views/reset_password_screen.dart';
 import 'package:heliumapp/presentation/features/auth/views/setup_account_screen.dart';
 import 'package:heliumapp/presentation/features/auth/views/signup_screen.dart';
 import 'package:heliumapp/presentation/features/auth/views/verify_email_screen.dart';
@@ -88,6 +89,16 @@ void initializeRouter() {
         path: AppRoute.forgotPasswordScreen,
         pageBuilder: (context, state) =>
             const MaterialPage(child: ForgotPasswordScreen()),
+      ),
+      GoRoute(
+        path: AppRoute.resetPasswordScreen,
+        pageBuilder: (context, state) {
+          final uid = state.uri.queryParameters['uid'];
+          final token = state.uri.queryParameters['token'];
+          return MaterialPage(
+            child: ResetPasswordScreen(uid: uid, token: token),
+          );
+        },
       ),
       GoRoute(
         path: AppRoute.verifyEmailScreen,
@@ -773,6 +784,7 @@ Future<String?> _authRedirect(BuildContext context, GoRouterState state) async {
     AppRoute.loginScreen,
     AppRoute.registerScreen,
     AppRoute.forgotPasswordScreen,
+    AppRoute.resetPasswordScreen,
     AppRoute.verifyEmailScreen,
     AppRoute.mobileWebScreen,
   ];
@@ -821,7 +833,8 @@ Future<String?> _authRedirect(BuildContext context, GoRouterState state) async {
     // On public routes: redirect to setup or planner based on setup status
     // Exception: verify screen should always be accessible (for email change verification)
     if (publicRoutes.contains(matchedLocation) &&
-        matchedLocation != AppRoute.verifyEmailScreen) {
+        matchedLocation != AppRoute.verifyEmailScreen &&
+        matchedLocation != AppRoute.resetPasswordScreen) {
       return isSetupComplete
           ? AppRoute.plannerScreen
           : AppRoute.setupAccountScreen;

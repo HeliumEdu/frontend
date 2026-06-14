@@ -73,6 +73,18 @@ class ForgotPasswordEvent extends AuthEvent {
   ForgotPasswordEvent({required this.email});
 }
 
+class ResetPasswordEvent extends AuthEvent {
+  final String uid;
+  final String token;
+  final String password;
+
+  ResetPasswordEvent({
+    required this.uid,
+    required this.token,
+    required this.password,
+  });
+}
+
 class DeleteAccountEvent extends AuthEvent {
   final String? password;
 

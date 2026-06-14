@@ -69,7 +69,7 @@ class _ForgotPasswordScreenState
           } else if (state is AuthPasswordReset) {
             showSnackBar(
               context,
-              'Almost there! Check your email for a temporary password.',
+              'Check your email for a link to reset your password.',
               seconds: 6,
             );
 
@@ -136,8 +136,8 @@ class _ForgotPasswordScreenState
 
                 Text(
                   _emailSent
-                      ? "You've been emailed a temporary password. Sign in to your account using the temporary password, then change it immediately."
-                      : 'Enter the email associated with your account. We\'ll reset your password and send a temporary one to you.',
+                      ? 'Check your email for a link to reset your password.'
+                      : 'Enter the email associated with your account and we\'ll send you a password reset link.',
                   style: AppStyles.headingText(context),
                 ),
 

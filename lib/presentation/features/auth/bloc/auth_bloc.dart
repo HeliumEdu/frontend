@@ -19,6 +19,7 @@ import 'package:heliumapp/data/models/auth/request/change_password_request_model
 import 'package:heliumapp/data/models/auth/request/delete_account_request_model.dart';
 import 'package:heliumapp/data/models/auth/request/forgot_password_request_model.dart';
 import 'package:heliumapp/data/models/auth/request/refresh_token_request_model.dart';
+import 'package:heliumapp/data/models/auth/request/reset_password_request_model.dart';
 import 'package:heliumapp/data/models/auth/request/update_settings_request_model.dart';
 import 'package:heliumapp/data/models/auth/user_model.dart';
 import 'package:heliumapp/core/analytics_service.dart';
@@ -53,6 +54,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<ChangePasswordEvent>(_onChangePassword);
     on<ChangeEmailEvent>(_onChangeEmail);
     on<ForgotPasswordEvent>(_onForgotPassword);
+    on<ResetPasswordEvent>(_onResetPassword);
     on<DeleteAccountEvent>(_onDeleteAccount);
     on<DeleteExampleScheduleEvent>(_onDeleteExampleSchedule);
     on<RefreshScheduleDataEvent>(_onRefreshScheduleData);
@@ -201,6 +203,32 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       final request = ForgotPasswordRequestModel(email: event.email);
       await authRepository.forgotPassword(request);
       emit(AuthPasswordReset());
+    } on HeliumException catch (e) {
+      emit(AuthError(
+        message: e.displayMessage,
+        code: e.code,
+        httpStatusCode: e.httpStatusCode,
+        parsedError: e.parsedError,
+      ));
+    } catch (e) {
+      emit(AuthError(message: HeliumException.unexpectedError));
+    }
+  }
+
+  Future<void> _onResetPassword(
+    ResetPasswordEvent event,
+    Emitter<AuthState> emit,
+  ) async {
+    emit(AuthLoading());
+
+    try {
+      final request = ResetPasswordRequestModel(
+        uid: event.uid,
+        token: event.token,
+        password: event.password,
+      );
+      await authRepository.confirmPasswordReset(request);
+      emit(AuthPasswordResetConfirmed());
     } on HeliumException catch (e) {
       emit(AuthError(
         message: e.displayMessage,

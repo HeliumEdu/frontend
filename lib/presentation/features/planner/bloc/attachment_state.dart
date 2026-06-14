@@ -18,7 +18,9 @@ class AttachmentInitial extends AttachmentState {}
 class AttachmentsLoading extends AttachmentState {}
 
 class AttachmentsError extends AttachmentState {
-  AttachmentsError({required super.message});
+  final Set<String> failedFilenames;
+
+  AttachmentsError({required super.message, this.failedFilenames = const {}});
 }
 
 class AttachmentsFetched extends AttachmentState {
