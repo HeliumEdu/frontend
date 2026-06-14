@@ -60,7 +60,7 @@ abstract class AuthRepository {
     ForgotPasswordRequestModel request,
   );
 
-  Future<NoContentResponseModel> confirmPasswordReset(
+  Future<TokenResponseModel> confirmPasswordReset(
     ResetPasswordRequestModel request,
   );
 
