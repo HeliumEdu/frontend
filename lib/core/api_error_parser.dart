@@ -120,14 +120,21 @@ class ApiErrorParser {
     List<String> displayMessages,
   ) {
     for (final item in data) {
-      final message = item.toString();
-      final match = _fieldPrefixPattern.firstMatch(message);
-      if (match != null) {
-        final field = match.group(1)!;
-        final errorMsg = match.group(2)!;
-        fieldErrors.putIfAbsent(field, () => []).add(errorMsg);
-        displayMessages.add(errorMsg);
+      if (item is Map<String, dynamic>) {
+        _parseMap(item, fieldErrors, generalErrors, displayMessages);
+      } else if (item is String) {
+        final match = _fieldPrefixPattern.firstMatch(item.trim());
+        if (match != null) {
+          final field = match.group(1)!;
+          final errorMsg = match.group(2)!;
+          fieldErrors.putIfAbsent(field, () => []).add(errorMsg);
+          displayMessages.add(errorMsg);
+        } else {
+          generalErrors.add(item.trim());
+          displayMessages.add(item.trim());
+        }
       } else {
+        final message = item.toString();
         generalErrors.add(message);
         displayMessages.add(message);
       }
