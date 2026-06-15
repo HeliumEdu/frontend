@@ -149,6 +149,7 @@ class _ResetPasswordScreenState
                   ? 'Enter your new password below.'
                   : 'This reset link is invalid or has expired. Please request a new one.',
               style: AppStyles.headingText(context),
+              textAlign: TextAlign.center,
             ),
 
             const SizedBox(height: 25),

@@ -139,7 +139,17 @@ class _ForgotPasswordScreenState
                       ? 'Check your email for a link to reset your password.'
                       : 'Enter the email associated with your account and we\'ll send you a password reset link.',
                   style: AppStyles.headingText(context),
+                  textAlign: TextAlign.center,
                 ),
+
+                if (_emailSent) ...[
+                  const SizedBox(height: 12),
+                  Text(
+                    'If an account with a password exists for that address, you\'ll receive a reset link shortly.',
+                    style: AppStyles.smallSecondaryText(context),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
 
                 const SizedBox(height: 25),
 
@@ -157,7 +167,7 @@ class _ForgotPasswordScreenState
                   const SizedBox(height: 25),
 
                   HeliumElevatedButton(
-                    buttonText: 'Reset Password',
+                    buttonText: 'Send Reset Link',
                     isLoading: isSubmitting,
                     onPressed: _onSubmit,
                   ),
