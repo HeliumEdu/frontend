@@ -47,6 +47,9 @@ void main() {
     ).thenAnswer((_) async => <void>[]);
     when(() => mockDioClient.clearStorage()).thenAnswer((_) async => <void>[]);
     when(() => mockDioClient.getRefreshToken()).thenAnswer((_) async => null);
+    when(
+      () => mockDioClient.fetchSettings(),
+    ).thenAnswer((_) async => null);
     dataSource = AuthRemoteDataSourceImpl(dioClient: mockDioClient);
   });
 
