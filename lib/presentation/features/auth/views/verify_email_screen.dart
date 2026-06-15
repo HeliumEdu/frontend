@@ -187,6 +187,7 @@ class _VerifyEmailScreenState extends BasePageScreenState<VerifyEmailScreen> {
             Text(
               'Enter the verification code sent to your email address to complete your registration.',
               style: AppStyles.headingText(context),
+              textAlign: TextAlign.center,
             ),
 
             const SizedBox(height: 25),
