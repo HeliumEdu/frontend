@@ -452,20 +452,22 @@ void main() {
       const password = 'newpassword123';
 
       blocTest<AuthBloc, AuthState>(
-        'emits [AuthLoading, AuthPasswordResetConfirmed] when reset succeeds',
+        'emits [AuthLoading, AuthLoggedIn] when reset succeeds',
         build: () {
           when(
             () => mockAuthRepository.confirmPasswordReset(any()),
           ).thenAnswer(
-            (_) async =>
-                NoContentResponseModel(message: 'Password reset successfully'),
+            (_) async => TokenResponseModel(
+              access: 'reset_access_token',
+              refresh: 'reset_refresh_token',
+            ),
           );
           return authBloc;
         },
         act: (bloc) => bloc.add(
           ResetPasswordEvent(uid: uid, token: token, password: password),
         ),
-        expect: () => [isA<AuthLoading>(), isA<AuthPasswordResetConfirmed>()],
+        expect: () => [isA<AuthLoading>(), isA<AuthLoggedIn>()],
         verify: (_) {
           verify(
             () => mockAuthRepository.confirmPasswordReset(any()),

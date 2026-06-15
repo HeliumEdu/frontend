@@ -74,7 +74,7 @@ abstract class AuthRemoteDataSource extends BaseDataSource {
     ForgotPasswordRequestModel request,
   );
 
-  Future<NoContentResponseModel> confirmPasswordReset(
+  Future<TokenResponseModel> confirmPasswordReset(
     ResetPasswordRequestModel request,
   );
 
@@ -581,7 +581,7 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
   }
 
   @override
-  Future<NoContentResponseModel> confirmPasswordReset(
+  Future<TokenResponseModel> confirmPasswordReset(
     ResetPasswordRequestModel request,
   ) async {
     try {
@@ -591,7 +591,14 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
       );
 
       if (response.statusCode == 200) {
-        return NoContentResponseModel(message: 'Password reset successfully');
+        final tokenResponse = TokenResponseModel.fromJson(
+          response.data as Map<String, dynamic>,
+        );
+
+        await dioClient.saveTokens(tokenResponse.access, tokenResponse.refresh);
+        await dioClient.fetchSettings();
+
+        return tokenResponse;
       } else {
         throw ServerException(
           message: 'Failed to reset password.',

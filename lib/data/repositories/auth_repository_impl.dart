@@ -123,7 +123,7 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
-  Future<NoContentResponseModel> confirmPasswordReset(
+  Future<TokenResponseModel> confirmPasswordReset(
     ResetPasswordRequestModel request,
   ) async {
     return remoteDataSource.confirmPasswordReset(request);

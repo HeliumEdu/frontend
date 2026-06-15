@@ -228,7 +228,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         password: event.password,
       );
       await authRepository.confirmPasswordReset(request);
-      emit(AuthPasswordResetConfirmed());
+      emit(AuthLoggedIn());
     } on HeliumException catch (e) {
       emit(AuthError(
         message: e.displayMessage,

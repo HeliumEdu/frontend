@@ -47,6 +47,9 @@ void main() {
     ).thenAnswer((_) async => <void>[]);
     when(() => mockDioClient.clearStorage()).thenAnswer((_) async => <void>[]);
     when(() => mockDioClient.getRefreshToken()).thenAnswer((_) async => null);
+    when(
+      () => mockDioClient.fetchSettings(),
+    ).thenAnswer((_) async => null);
     dataSource = AuthRemoteDataSourceImpl(dioClient: mockDioClient);
   });
 
@@ -324,11 +327,16 @@ void main() {
     });
 
     group('confirmPasswordReset', () {
-      test('returns NoContentResponseModel on 200 response', () async {
+      test('returns TokenResponseModel and saves tokens on 200 response',
+          () async {
         // GIVEN
+        final json = givenTokenResponseJson(
+          access: 'reset_access_token',
+          refresh: 'reset_refresh_token',
+        );
         when(
           () => mockDio.put(any(), data: any(named: 'data')),
-        ).thenAnswer((_) async => givenSuccessResponse({}, statusCode: 200));
+        ).thenAnswer((_) async => givenSuccessResponse(json, statusCode: 200));
 
         final request = ResetPasswordRequestModel(
           uid: 'abc123',
@@ -340,7 +348,13 @@ void main() {
         final result = await dataSource.confirmPasswordReset(request);
 
         // THEN
-        expect(result.message, contains('reset'));
+        verifyTokenResponseMatchesJson(result, json);
+        verify(
+          () => mockDioClient.saveTokens(
+            'reset_access_token',
+            'reset_refresh_token',
+          ),
+        ).called(1);
       });
 
       test('throws ValidationException on 400 response', () async {

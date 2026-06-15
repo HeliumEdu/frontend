@@ -68,15 +68,15 @@ class _ResetPasswordScreenState
     return [
       BlocListener<AuthBloc, AuthState>(
         listener: (context, state) {
-          if (state is AuthPasswordResetConfirmed) {
+          if (state is AuthLoggedIn) {
             showSnackBar(
               context,
-              'Password reset! Please sign in with your new password.',
+              'Password reset! Welcome back.',
               seconds: 4,
             );
 
             if (!context.mounted) return;
-            context.go(AppRoute.signinScreen);
+            context.go(AppRoute.plannerScreen);
           } else if (state is AuthError) {
             showSnackBar(context, state.message!, type: SnackType.error, seconds: 4);
           }

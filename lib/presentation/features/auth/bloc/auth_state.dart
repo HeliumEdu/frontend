@@ -64,8 +64,6 @@ class AuthEmailChangeCancelled extends AuthState {}
 
 class AuthPasswordReset extends AuthState {}
 
-class AuthPasswordResetConfirmed extends AuthState {}
-
 class AuthAuthenticated extends AuthState {}
 
 class AuthTokenRefreshed extends AuthState {}
