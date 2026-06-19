@@ -90,6 +90,7 @@ class SentryService {
         '(?i)messaging/unsupported-browser',
         '(?i)watchdogtermination',
         '(?i)database deleted by request of the user',
+        '(?i)script error',
       ];
 
       options.ignoreTransactions = [
