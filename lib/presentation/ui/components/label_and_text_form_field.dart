@@ -33,6 +33,8 @@ class LabelAndTextFormField extends StatefulWidget {
   final Iterable<String>? autofillHints;
   final Widget? trailingIconButton;
 
+  final Widget? inlineSuffix;
+
   const LabelAndTextFormField({
     super.key,
     this.label,
@@ -55,6 +57,7 @@ class LabelAndTextFormField extends StatefulWidget {
     this.fieldKey,
     this.autofillHints,
     this.trailingIconButton,
+    this.inlineSuffix,
   });
 
   @override
@@ -95,6 +98,51 @@ class _LabelAndTextFormFieldState extends State<LabelAndTextFormField> {
     });
   }
 
+  Widget _buildTextFormField(BuildContext context) {
+    return TextFormField(
+      key: widget.fieldKey,
+      initialValue: widget.initialValue,
+      autofocus: widget.autofocus,
+      controller: widget.controller,
+      validator: widget.validator,
+      focusNode: widget.focusNode,
+      readOnly: widget.readOnly,
+      maxLines: widget.maxLines,
+      obscureText: widget.obscureText,
+      onChanged: widget.onChanged,
+      keyboardType: widget.keyboardType,
+      inputFormatters: widget.inputFormatters,
+      autofillHints: widget.autofillHints,
+      style: AppStyles.formText(context),
+      onFieldSubmitted: widget.onFieldSubmitted,
+      decoration: InputDecoration(
+        prefixIcon: widget.prefixIcon != null
+            ? Icon(
+                widget.prefixIcon,
+                color: context.colorScheme.onSurface.withValues(alpha: 0.4),
+              )
+            : null,
+        contentPadding: EdgeInsets.only(
+          left: _fieldContentPaddingLeft,
+          top: _horizontalPadding(),
+          bottom: _horizontalPadding(),
+        ),
+        hintText: widget.hintText,
+        hintStyle: AppStyles.formHint(context),
+        border: InputBorder.none,
+        enabledBorder: InputBorder.none,
+        focusedBorder: InputBorder.none,
+        disabledBorder: InputBorder.none,
+        errorBorder: InputBorder.none,
+        focusedErrorBorder: InputBorder.none,
+        suffixIcon: widget.suffixIcon,
+        errorText: widget.errorText,
+        errorStyle: AppStyles.formErrorStyle(context),
+        errorMaxLines: 3,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final formField = Column(
@@ -113,53 +161,23 @@ class _LabelAndTextFormFieldState extends State<LabelAndTextFormField> {
             ),
             borderRadius: BorderRadius.circular(_fieldBorderRadius),
           ),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(_fieldBorderRadius),
-            child: TextFormField(
-              key: widget.fieldKey,
-              initialValue: widget.initialValue,
-              autofocus: widget.autofocus,
-              controller: widget.controller,
-              validator: widget.validator,
-              focusNode: widget.focusNode,
-              readOnly: widget.readOnly,
-              maxLines: widget.maxLines,
-              obscureText: widget.obscureText,
-              onChanged: widget.onChanged,
-              keyboardType: widget.keyboardType,
-              inputFormatters: widget.inputFormatters,
-              autofillHints: widget.autofillHints,
-              style: AppStyles.formText(context),
-              onFieldSubmitted: widget.onFieldSubmitted,
-              decoration: InputDecoration(
-                prefixIcon: widget.prefixIcon != null
-                    ? Icon(
-                        widget.prefixIcon,
-                        color: context.colorScheme.onSurface.withValues(
-                          alpha: 0.4,
-                        ),
-                      )
-                    : null,
-                contentPadding: EdgeInsets.only(
-                  left: _fieldContentPaddingLeft,
-                  top: _horizontalPadding(),
-                  bottom: _horizontalPadding(),
+          child: widget.inlineSuffix != null
+              ? Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Expanded(
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(_fieldBorderRadius),
+                        child: _buildTextFormField(context),
+                      ),
+                    ),
+                    widget.inlineSuffix!,
+                  ],
+                )
+              : ClipRRect(
+                  borderRadius: BorderRadius.circular(_fieldBorderRadius),
+                  child: _buildTextFormField(context),
                 ),
-                hintText: widget.hintText,
-                hintStyle: AppStyles.formHint(context),
-                border: InputBorder.none,
-                enabledBorder: InputBorder.none,
-                focusedBorder: InputBorder.none,
-                disabledBorder: InputBorder.none,
-                errorBorder: InputBorder.none,
-                focusedErrorBorder: InputBorder.none,
-                suffixIcon: widget.suffixIcon,
-                errorText: widget.errorText,
-                errorStyle: AppStyles.formErrorStyle(context),
-                errorMaxLines: 3,
-              ),
-            ),
-          ),
         ),
       ],
     );

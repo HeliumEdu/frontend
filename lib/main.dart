@@ -18,9 +18,12 @@ import 'package:heliumapp/core/analytics_service.dart';
 import 'package:heliumapp/core/fcm_service.dart';
 import 'package:heliumapp/core/feedback_service.dart';
 import 'package:heliumapp/core/log_service.dart';
+import 'package:heliumapp/core/motion_service.dart';
 import 'package:heliumapp/core/sentry_service.dart';
 import 'package:heliumapp/firebase_environment.dart';
 import 'package:heliumapp/helium_app.dart';
+import 'package:heliumapp/utils/web_helpers_stub.dart'
+    if (dart.library.js_interop) 'package:heliumapp/utils/web_helpers_web.dart';
 import 'package:logging/logging.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
 
@@ -76,6 +79,11 @@ void main() async {
   });
 
   await PrefService().init();
+
+  final accessibilityFeatures = WidgetsBinding.instance.platformDispatcher.accessibilityFeatures;
+  MotionService().init(
+    accessibilityFeatures.disableAnimations || accessibilityFeatures.reduceMotion || getSystemReduceMotion(),
+  );
 
   try {
     await FeedbackService().init();

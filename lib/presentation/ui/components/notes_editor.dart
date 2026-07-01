@@ -7,6 +7,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:heliumapp/core/motion_service.dart';
 import 'package:flutter_quill/flutter_quill.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/presentation/ui/components/helium_quill_editor.dart';
@@ -107,7 +108,7 @@ class _NotesEditorState extends State<NotesEditor> with WidgetsBindingObserver {
       if (ctx != null) {
         Scrollable.ensureVisible(
           ctx,
-          duration: const Duration(milliseconds: 200),
+          duration: MotionService().effectiveDuration(const Duration(milliseconds: 200)),
           curve: Curves.easeOut,
         );
       }

@@ -19,6 +19,7 @@ import 'package:heliumapp/presentation/navigation/shell/navigation_shell.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_event.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_state.dart';
 import 'package:heliumapp/presentation/ui/components/helium_elevated_button.dart';
+import 'package:heliumapp/core/motion_service.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
@@ -352,10 +353,12 @@ class _GettingStartedDialogWidgetState
                     label: 'Previous',
                     button: true,
                     child: IconButton(
-                      onPressed: () => _pageController.previousPage(
-                        duration: AppConstants.uiAnimationDuration,
-                        curve: Curves.easeInOut,
-                      ),
+                      onPressed: () => MotionService().reduceMotion
+                          ? _pageController.jumpToPage(_currentPage - 1)
+                          : _pageController.previousPage(
+                              duration: AppConstants.uiAnimationDuration,
+                              curve: Curves.easeInOut,
+                            ),
                       icon: const Icon(Icons.chevron_left),
                       padding: EdgeInsets.zero,
                       constraints: const BoxConstraints(),
@@ -372,14 +375,18 @@ class _GettingStartedDialogWidgetState
                   child: GestureDetector(
                     onTap: () {
                       Feedback.forTap(context);
-                      _pageController.animateToPage(
-                        index,
-                        duration: AppConstants.uiAnimationDuration,
-                        curve: Curves.easeInOut,
-                      );
+                      if (MotionService().reduceMotion) {
+                        _pageController.jumpToPage(index);
+                      } else {
+                        _pageController.animateToPage(
+                          index,
+                          duration: AppConstants.uiAnimationDuration,
+                          curve: Curves.easeInOut,
+                        );
+                      }
                     },
                     child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 200),
+                      duration: MotionService().effectiveDuration(const Duration(milliseconds: 200)),
                       margin: const EdgeInsets.symmetric(horizontal: 4.0),
                       width: isActive ? _activeDotSize : _dotSize,
                       height: isActive ? _activeDotSize : _dotSize,
@@ -405,10 +412,12 @@ class _GettingStartedDialogWidgetState
                     label: 'Next',
                     button: true,
                     child: IconButton(
-                      onPressed: () => _pageController.nextPage(
-                        duration: AppConstants.uiAnimationDuration,
-                        curve: Curves.easeInOut,
-                      ),
+                      onPressed: () => MotionService().reduceMotion
+                          ? _pageController.jumpToPage(_currentPage + 1)
+                          : _pageController.nextPage(
+                              duration: AppConstants.uiAnimationDuration,
+                              curve: Curves.easeInOut,
+                            ),
                       icon: const Icon(Icons.chevron_right),
                       padding: EdgeInsets.zero,
                       constraints: const BoxConstraints(),
@@ -476,7 +485,7 @@ class _CyclingImage extends StatefulWidget {
 }
 
 class _CyclingImageState extends State<_CyclingImage> {
-  static const _cycleDuration = Duration(milliseconds: 2500);
+  static const _cycleDuration = Duration(milliseconds: 3500);
   static const _fadeDuration = Duration(milliseconds: 600);
 
   int _currentIndex = 0;
@@ -504,7 +513,7 @@ class _CyclingImageState extends State<_CyclingImage> {
       alignment: Alignment.center,
       children: [
         AnimatedSwitcher(
-          duration: _fadeDuration,
+          duration: MotionService().effectiveDuration(_fadeDuration),
           child: Image.asset(
             widget.imagePaths[_currentIndex],
             key: ValueKey(_currentIndex),
@@ -515,7 +524,7 @@ class _CyclingImageState extends State<_CyclingImage> {
         if (widget.overlayImagePath != null)
           AnimatedOpacity(
             opacity: _currentIndex == 1 ? 1.0 : 0.0,
-            duration: _fadeDuration,
+            duration: MotionService().effectiveDuration(_fadeDuration),
             child: FractionallySizedBox(
               widthFactor: 0.40,
               child: Container(

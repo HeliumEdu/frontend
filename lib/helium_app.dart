@@ -14,6 +14,7 @@ import 'package:heliumapp/config/analytics_event.dart';
 import 'package:heliumapp/config/app_router.dart';
 import 'package:heliumapp/config/theme_notifier.dart';
 import 'package:heliumapp/core/analytics_service.dart';
+import 'package:heliumapp/core/motion_service.dart';
 import 'package:heliumapp/utils/print_service.dart';
 import 'package:heliumapp/utils/web_helpers_stub.dart'
     if (dart.library.js_interop) 'package:heliumapp/utils/web_helpers_web.dart';
@@ -42,6 +43,14 @@ class _HeliumAppState extends State<HeliumApp> with WidgetsBindingObserver {
     _themeNotifier.addListener(_onThemeChanged);
     if (PrintService.isSupported) HardwareKeyboard.instance.addHandler(_handleKeyEvent);
     WidgetsBinding.instance.addObserver(this);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final features = WidgetsBinding.instance.platformDispatcher.accessibilityFeatures;
+      MotionService().init(
+        features.disableAnimations || features.reduceMotion || getSystemReduceMotion(),
+      );
+      setState(() {});
+    });
     _log.info('HeliumApp initialized with theme: ${_themeNotifier.themeMode}');
   }
 
@@ -109,8 +118,8 @@ class _HeliumAppState extends State<HeliumApp> with WidgetsBindingObserver {
       scaffoldMessengerKey: rootScaffoldMessengerKey,
       routerConfig: router,
       debugShowCheckedModeBanner: false,
-      theme: AppTheme.light,
-      darkTheme: AppTheme.dark,
+      theme: AppTheme.light(reduceMotion: MotionService().reduceMotion),
+      darkTheme: AppTheme.dark(reduceMotion: MotionService().reduceMotion),
       themeMode: _themeNotifier.themeMode,
       localizationsDelegates: const [
         HeliumQuillLocalizationsDelegate(),
