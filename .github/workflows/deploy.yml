@@ -426,6 +426,7 @@ jobs:
         uses: ruby/setup-ruby@v1
         with:
           ruby-version: '3.3'
+          bundler: 'Gemfile.lock'
           bundler-cache: false
 
       - name: Install Fastlane
@@ -576,6 +577,7 @@ jobs:
         uses: ruby/setup-ruby@v1
         with:
           ruby-version: '3.3'
+          bundler: 'Gemfile.lock'
           bundler-cache: false
 
       - name: Install Fastlane
