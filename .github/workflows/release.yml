@@ -9,9 +9,8 @@ on:
         description: 'Version bump type'
         required: true
         type: choice
-        default: build
+        default: patch
         options:
-          - build
           - patch
           - minor
           - major
@@ -54,7 +53,7 @@ on:
         description: "Version bump type"
         required: false
         type: string
-        default: build
+        default: patch
       trigger_deploy_after_release:
         description: "Trigger deploy after release"
         required: false
