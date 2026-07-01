@@ -103,32 +103,52 @@ class SemanticColors extends ThemeExtension<SemanticColors> {
   }
 }
 
+class _NoMotionPageTransitionsBuilder extends PageTransitionsBuilder {
+  const _NoMotionPageTransitionsBuilder();
+
+  @override
+  Widget buildTransitions<T>(
+    PageRoute<T> route,
+    BuildContext context,
+    Animation<double> animation,
+    Animation<double> secondaryAnimation,
+    Widget child,
+  ) => child;
+}
+
 class AppTheme {
-  static ThemeData get light {
+  static ThemeData light({bool reduceMotion = false}) {
     final colorScheme = ColorScheme.fromSeed(
       seedColor: seedColor,
       brightness: Brightness.light,
       primary: seedColor,
       error: const Color(0xffc51d4b),
     );
-    return _buildTheme(colorScheme, SemanticColors.light);
+    return _buildTheme(colorScheme, SemanticColors.light, reduceMotion: reduceMotion);
   }
 
-  static ThemeData get dark {
+  static ThemeData dark({bool reduceMotion = false}) {
     final colorScheme = ColorScheme.fromSeed(
       seedColor: seedColor,
       brightness: Brightness.dark,
       primary: const Color(0xff5aa2c2),
       error: const Color(0xffe15c7b),
     );
-    return _buildTheme(colorScheme, SemanticColors.dark);
+    return _buildTheme(colorScheme, SemanticColors.dark, reduceMotion: reduceMotion);
   }
 
   static ThemeData _buildTheme(
     ColorScheme colorScheme,
-    SemanticColors semantic,
-  ) {
+    SemanticColors semantic, {
+    bool reduceMotion = false,
+  }) {
     return ThemeData(
+      pageTransitionsTheme: reduceMotion
+          ? const PageTransitionsTheme(builders: {
+              TargetPlatform.android: _NoMotionPageTransitionsBuilder(),
+              TargetPlatform.iOS: _NoMotionPageTransitionsBuilder(),
+            })
+          : const PageTransitionsTheme(),
       useMaterial3: true,
       colorScheme: colorScheme,
       textTheme: AppStyles.defaultTextTheme(colorScheme),

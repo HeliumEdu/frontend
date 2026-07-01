@@ -6,6 +6,7 @@
 // For details regarding the license, please refer to the LICENSE file.
 
 import 'package:flutter/material.dart';
+import 'package:heliumapp/core/motion_service.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 
 class BasicFormController {
@@ -54,7 +55,7 @@ class BasicFormController {
         if (context != null) {
           Scrollable.ensureVisible(
             context,
-            duration: AppConstants.uiAnimationDuration,
+            duration: MotionService().effectiveDuration(AppConstants.uiAnimationDuration),
             curve: Curves.easeInOut,
             alignment: 0.1,
           );

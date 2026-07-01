@@ -16,6 +16,7 @@ import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/config/pref_service.dart';
 import 'package:heliumapp/core/analytics_service.dart';
+import 'package:heliumapp/core/motion_service.dart';
 import 'package:heliumapp/data/models/auth/user_model.dart';
 import 'package:heliumapp/data/models/planner/course_group_model.dart';
 import 'package:heliumapp/data/models/planner/grade_category_model.dart';
@@ -823,7 +824,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
               if (!firstAtRiskContext.mounted) return;
               Scrollable.ensureVisible(
                 firstAtRiskContext,
-                duration: AppConstants.uiAnimationDuration,
+                duration: MotionService().effectiveDuration(AppConstants.uiAnimationDuration),
                 curve: Curves.easeInOut,
                 alignment: 0.1,
               );
@@ -1323,7 +1324,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
         children: [
           _buildGraphHeader(selectedGroup, isTermView),
           AnimatedSize(
-            duration: AppConstants.uiAnimationDuration,
+            duration: MotionService().effectiveDuration(AppConstants.uiAnimationDuration),
             curve: Curves.easeInOut,
             child: _graphExpanded
                 ? Column(
@@ -1437,7 +1438,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
                   ),
                   icon: AnimatedRotation(
                     turns: _graphExpanded ? 0.5 : 0,
-                    duration: AppConstants.uiAnimationDuration,
+                    duration: MotionService().effectiveDuration(AppConstants.uiAnimationDuration),
                     child: const Icon(Icons.keyboard_arrow_down),
                   ),
                   onPressed: () {
@@ -2247,7 +2248,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
             _buildCourseSummaryArea(index, isExpanded, course),
 
             AnimatedSize(
-              duration: AppConstants.uiAnimationDuration,
+              duration: MotionService().effectiveDuration(AppConstants.uiAnimationDuration),
               curve: Curves.easeInOut,
               child: isExpanded && course.categories.isNotEmpty
                   ? _buildCourseArea(course)
@@ -2387,7 +2388,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
                 child: IconButton(
                   icon: AnimatedRotation(
                     turns: isExpanded ? 0.5 : 0,
-                    duration: AppConstants.uiAnimationDuration,
+                    duration: MotionService().effectiveDuration(AppConstants.uiAnimationDuration),
                     child: Icon(
                       Icons.keyboard_arrow_down,
                       color: context.colorScheme.primary,

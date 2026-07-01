@@ -9,6 +9,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:heliumapp/config/app_theme.dart';
+import 'package:heliumapp/core/motion_service.dart';
 import 'package:heliumapp/presentation/ui/layout/shadow_container.dart';
 
 typedef StepperHeaderStep = ({IconData icon, bool isEnabled, String? tooltip});
@@ -171,7 +172,7 @@ class _StepperHeaderState extends State<StepperHeader> {
       width: size,
       height: size,
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 150),
+        duration: MotionService().effectiveDuration(const Duration(milliseconds: 150)),
         decoration: BoxDecoration(
           shape: BoxShape.circle,
           color: backgroundColor,

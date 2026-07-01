@@ -13,9 +13,11 @@ import 'package:heliumapp/data/models/auth/user_model.dart';
 import 'package:heliumapp/data/models/planner/grade_course_model.dart';
 import 'package:heliumapp/presentation/features/grades/dialogs/grade_calculator_dialog.dart';
 import 'package:heliumapp/presentation/features/grades/dialogs/grade_projection_tab.dart';
+import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:heliumapp/core/analytics_service.dart';
+import 'package:heliumapp/core/motion_service.dart';
 
 /// Tabbed dialog container for the grade calculator feature.
 ///
@@ -48,7 +50,11 @@ class _GradeCalculatorContainerState extends State<GradeCalculatorContainer>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: _tabs.length, vsync: this);
+    _tabController = TabController(
+      length: _tabs.length,
+      vsync: this,
+      animationDuration: MotionService().effectiveDuration(AppConstants.uiAnimationDuration),
+    );
     _tabController.addListener(_onTabChanged);
     unawaited(AnalyticsService().logScreenView(screenName: 'grade_calculator_what_could_i_get'));
   }

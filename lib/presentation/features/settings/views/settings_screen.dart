@@ -578,28 +578,31 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const SizedBox(height: 12),
-              Row(
-                children: [
-                  Expanded(
-                    child: LabelAndTextFormField(
-                      initialValue: _email,
-                      keyboardType: TextInputType.emailAddress,
-                      readOnly: true,
-                      prefixIcon: Icons.email_outlined,
-                    ),
-                  ),
-                  for (final provider in _oauthProviders)
-                    if (_buildProviderBadge(provider) case final badge?) ...[
-                      const SizedBox(width: 8),
-                      Theme(
-                        data: Theme.of(context).copyWith(
-                          materialTapTargetSize:
-                              MaterialTapTargetSize.shrinkWrap,
+              LabelAndTextFormField(
+                initialValue: _email,
+                keyboardType: TextInputType.emailAddress,
+                readOnly: true,
+                prefixIcon: Icons.email_outlined,
+                inlineSuffix: _hasOAuthProviders
+                    ? Padding(
+                        padding: const EdgeInsets.only(right: 6),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            for (final provider in _oauthProviders)
+                              if (_buildProviderBadge(provider) case final badge?) ...[
+                                const SizedBox(width: 6),
+                                Theme(
+                                  data: Theme.of(context).copyWith(
+                                    materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                  ),
+                                  child: badge,
+                                ),
+                              ],
+                          ],
                         ),
-                        child: badge,
-                      ),
-                    ],
-                ],
+                      )
+                    : null,
               ),
               if (_emailChanging != null && _emailChanging!.isNotEmpty) ...[
                 const SizedBox(height: 8),

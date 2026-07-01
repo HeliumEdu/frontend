@@ -487,7 +487,7 @@ class PreferencesScreenState extends State<PreferencesScreen> {
           const Expanded(child: Divider()),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 10),
-            child: Text(title, style: AppStyles.smallSecondaryTextLight(context)),
+            child: Text(title, style: AppStyles.smallSecondaryTextEmphasis(context)),
           ),
           const Expanded(child: Divider()),
         ],

@@ -18,6 +18,7 @@ import 'package:heliumapp/core/analytics_service.dart';
 import 'package:heliumapp/core/fcm_service.dart';
 import 'package:heliumapp/core/feedback_service.dart';
 import 'package:heliumapp/core/log_service.dart';
+import 'package:heliumapp/core/motion_service.dart';
 import 'package:heliumapp/core/sentry_service.dart';
 import 'package:heliumapp/firebase_environment.dart';
 import 'package:heliumapp/helium_app.dart';
@@ -76,6 +77,11 @@ void main() async {
   });
 
   await PrefService().init();
+
+  final accessibilityFeatures = WidgetsBinding.instance.platformDispatcher.accessibilityFeatures;
+  MotionService().init(
+    accessibilityFeatures.disableAnimations || accessibilityFeatures.reduceMotion,
+  );
 
   try {
     await FeedbackService().init();

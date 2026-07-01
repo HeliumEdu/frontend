@@ -18,6 +18,7 @@ import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/core/analytics_service.dart';
 import 'package:heliumapp/core/dio_client.dart';
 import 'package:heliumapp/core/feedback_service.dart';
+import 'package:heliumapp/core/motion_service.dart';
 import 'package:heliumapp/data/models/auth/user_model.dart';
 import 'package:heliumapp/data/models/id_or_entity.dart';
 import 'package:heliumapp/data/models/planner/attachment_model.dart';
@@ -1310,13 +1311,13 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
 
     if (!isMobile) {
       return AnimatedContainer(
-        duration: AppConstants.uiAnimationDuration,
+        duration: MotionService().effectiveDuration(AppConstants.uiAnimationDuration),
         width: expandedToolbarWidth,
         child: Stack(
           alignment: Alignment.centerRight,
           children: [
             AnimatedOpacity(
-              duration: AppConstants.uiAnimationDuration,
+              duration: MotionService().effectiveDuration(AppConstants.uiAnimationDuration),
               opacity: _isSearchExpanded ? 0.0 : 1.0,
               child: IgnorePointer(
                 ignoring: _isSearchExpanded,
@@ -1324,12 +1325,12 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
               ),
             ),
             AnimatedPositioned(
-              duration: AppConstants.uiAnimationDuration,
+              duration: MotionService().effectiveDuration(AppConstants.uiAnimationDuration),
               curve: Curves.easeInOut,
               right: 0,
               width: _isSearchExpanded ? expandedToolbarWidth : 46,
               child: AnimatedOpacity(
-                duration: AppConstants.uiAnimationDuration,
+                duration: MotionService().effectiveDuration(AppConstants.uiAnimationDuration),
                 opacity: _isSearchExpanded ? 1.0 : 0.0,
                 child: IgnorePointer(
                   ignoring: !_isSearchExpanded,
@@ -1342,13 +1343,13 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
       );
     } else {
       return AnimatedContainer(
-        duration: AppConstants.uiAnimationDuration,
+        duration: MotionService().effectiveDuration(AppConstants.uiAnimationDuration),
         width: expandedToolbarWidth,
         child: Stack(
           alignment: Alignment.centerRight,
           children: [
             AnimatedOpacity(
-              duration: AppConstants.uiAnimationDuration,
+              duration: MotionService().effectiveDuration(AppConstants.uiAnimationDuration),
               opacity: _isSearchExpanded ? 0.0 : 1.0,
               child: IgnorePointer(
                 ignoring: _isSearchExpanded,
@@ -1356,12 +1357,12 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
               ),
             ),
             AnimatedPositioned(
-              duration: AppConstants.uiAnimationDuration,
+              duration: MotionService().effectiveDuration(AppConstants.uiAnimationDuration),
               curve: Curves.easeInOut,
               right: 0,
               width: _isSearchExpanded ? expandedToolbarWidth : 46,
               child: AnimatedOpacity(
-                duration: AppConstants.uiAnimationDuration,
+                duration: MotionService().effectiveDuration(AppConstants.uiAnimationDuration),
                 opacity: _isSearchExpanded ? 1.0 : 0.0,
                 child: IgnorePointer(
                   ignoring: !_isSearchExpanded,
