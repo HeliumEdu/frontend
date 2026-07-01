@@ -46,7 +46,9 @@ class _HeliumAppState extends State<HeliumApp> with WidgetsBindingObserver {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       final features = WidgetsBinding.instance.platformDispatcher.accessibilityFeatures;
-      MotionService().init(features.disableAnimations || features.reduceMotion);
+      MotionService().init(
+        features.disableAnimations || features.reduceMotion || getSystemReduceMotion(),
+      );
       setState(() {});
     });
     _log.info('HeliumApp initialized with theme: ${_themeNotifier.themeMode}');

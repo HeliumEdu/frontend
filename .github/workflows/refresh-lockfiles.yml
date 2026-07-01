@@ -82,7 +82,7 @@ jobs:
         run: |
           flutter pub get
           cd ios
-          ${{ inputs.pod_update && 'pod update' || 'pod install' }}
+          ${{ inputs.pod_update && 'bundle exec pod update' || 'bundle exec pod install' }}
 
       - name: Get GitHub App bot user ID
         id: get-bot-user-id

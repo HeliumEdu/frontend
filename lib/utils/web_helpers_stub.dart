@@ -5,5 +5,7 @@
 //
 // For details regarding the license, please refer to the LICENSE file.
 
-/// No-op stub used on non-web platforms.
+/// No-op stubs used on non-web platforms.
 void triggerBrowserPrint() {}
+
+bool getSystemReduceMotion() => false;
