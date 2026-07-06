@@ -69,6 +69,7 @@ class SentryService {
         options.dist = dist;
       }
 
+      options.sendDefaultPii = false;
       options.tracesSampleRate = 0.1;
       // ignore: experimental_member_use
       options.profilesSampleRate = 0.1;
@@ -102,6 +103,24 @@ class SentryService {
     });
 
     _log.info('Sentry initialized successfully');
+  }
+
+  void setUser(String? userId) {
+    if (!isEnabled || userId == null) return;
+    try {
+      Sentry.configureScope((scope) => scope.setUser(SentryUser(id: userId)));
+    } catch (e) {
+      _log.warning('Failed to set Sentry user context', e);
+    }
+  }
+
+  void clearUser() {
+    if (!isEnabled) return;
+    try {
+      Sentry.configureScope((scope) => scope.setUser(null));
+    } catch (e) {
+      _log.warning('Failed to clear Sentry user context', e);
+    }
   }
 
   /// Check if running on a Google Play pre-launch test farm device.

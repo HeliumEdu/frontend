@@ -9,9 +9,8 @@ on:
         description: 'Version bump type'
         required: true
         type: choice
-        default: build
+        default: patch
         options:
-          - build
           - patch
           - minor
           - major
@@ -54,7 +53,7 @@ on:
         description: "Version bump type"
         required: false
         type: string
-        default: build
+        default: patch
       trigger_deploy_after_release:
         description: "Trigger deploy after release"
         required: false
@@ -529,3 +528,68 @@ jobs:
     secrets:
       bot_app_id: ${{ secrets.HELIUM_BOT_APP_ID }}
       bot_private_key: ${{ secrets.HELIUM_BOT_PRIVATE_KEY }}
+
+  bump-develop:
+    name: Bump develop to next version
+    needs: [prereq, cleanup]
+    if: "!cancelled() && needs.prereq.result == 'success' && needs.cleanup.result == 'success'"
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Generate GitHub App token
+        id: app-token
+        uses: actions/create-github-app-token@v3
+        with:
+          client-id: ${{ secrets.HELIUM_BOT_APP_ID }}
+          private-key: ${{ secrets.HELIUM_BOT_PRIVATE_KEY }}
+          skip-token-revoke: true
+
+      - uses: actions/checkout@v6
+        with:
+          token: ${{ steps.app-token.outputs.token }}
+          ref: develop
+          fetch-depth: 1
+
+      - name: Get bot user ID
+        id: bot-user
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          APP_SLUG: ${{ steps.app-token.outputs.app-slug }}
+        run: |
+          echo "user-id=$(gh api "/users/${APP_SLUG}[bot]" --jq .id)" >> "$GITHUB_OUTPUT"
+
+      - name: Configure git
+        env:
+          APP_SLUG: ${{ steps.app-token.outputs.app-slug }}
+          USER_ID: ${{ steps.bot-user.outputs.user-id }}
+        run: |
+          git config user.name "${APP_SLUG}[bot]"
+          git config user.email "${USER_ID}+${APP_SLUG}[bot]@users.noreply.github.com"
+
+      - name: Bump pubspec.yaml to next patch version
+        env:
+          RELEASED_VERSION: ${{ needs.prereq.outputs.version }}
+        run: |
+          set -euo pipefail
+          SEMVER="${RELEASED_VERSION%%+*}"
+          BUILD="${RELEASED_VERSION##*+}"
+          IFS='.' read -r MAJOR MINOR PATCH <<< "$SEMVER"
+          NEXT_VERSION="${MAJOR}.${MINOR}.$((PATCH + 1))+$((BUILD + 1))"
+          sed -i "s/^version: .*/version: ${NEXT_VERSION}/" pubspec.yaml
+          echo "Bumped develop to ${NEXT_VERSION}"
+
+      - name: Commit and push
+        env:
+          RELEASED_VERSION: ${{ needs.prereq.outputs.version }}
+        run: |
+          git add pubspec.yaml
+          if git diff --cached --quiet; then
+            echo "No version change needed, skipping"
+            exit 0
+          fi
+          SEMVER="${RELEASED_VERSION%%+*}"
+          BUILD="${RELEASED_VERSION##*+}"
+          IFS='.' read -r MAJOR MINOR PATCH <<< "$SEMVER"
+          NEXT_VERSION="${MAJOR}.${MINOR}.$((PATCH + 1))+$((BUILD + 1))"
+          git commit -m "Bump version to ${NEXT_VERSION}"
+          git push origin develop
