@@ -107,12 +107,20 @@ class SentryService {
 
   void setUser(String? userId) {
     if (!isEnabled || userId == null) return;
-    Sentry.configureScope((scope) => scope.setUser(SentryUser(id: userId)));
+    try {
+      Sentry.configureScope((scope) => scope.setUser(SentryUser(id: userId)));
+    } catch (e) {
+      _log.warning('Failed to set Sentry user context', e);
+    }
   }
 
   void clearUser() {
     if (!isEnabled) return;
-    Sentry.configureScope((scope) => scope.setUser(null));
+    try {
+      Sentry.configureScope((scope) => scope.setUser(null));
+    } catch (e) {
+      _log.warning('Failed to clear Sentry user context', e);
+    }
   }
 
   /// Check if running on a Google Play pre-launch test farm device.
