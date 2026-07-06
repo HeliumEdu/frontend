@@ -23,6 +23,8 @@ import 'package:heliumapp/data/models/auth/request/reset_password_request_model.
 import 'package:heliumapp/data/models/auth/request/update_settings_request_model.dart';
 import 'package:heliumapp/data/models/auth/user_model.dart';
 import 'package:heliumapp/core/analytics_service.dart';
+import 'package:heliumapp/core/jwt_utils.dart';
+import 'package:heliumapp/core/sentry_service.dart';
 import 'package:heliumapp/domain/repositories/auth_repository.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_event.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_state.dart';
@@ -409,6 +411,9 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       if (accessToken?.isNotEmpty ?? false) {
         try {
           await dioClient.fetchSettings();
+
+          final userId = JwtUtils.getUserId(accessToken!);
+          SentryService().setUser(userId?.toString());
 
           emit(AuthAuthenticated());
         } catch (e) {

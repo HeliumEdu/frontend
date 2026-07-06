@@ -14,6 +14,7 @@ import 'package:heliumapp/core/api_url.dart';
 import 'package:heliumapp/core/dio_client.dart';
 import 'package:heliumapp/core/fcm_service.dart';
 import 'package:heliumapp/core/helium_exception.dart';
+import 'package:heliumapp/core/sentry_service.dart';
 import 'package:heliumapp/core/jwt_utils.dart';
 import 'package:heliumapp/data/models/auth/login_request_model.dart';
 import 'package:heliumapp/data/models/auth/private_feed_model.dart';
@@ -150,6 +151,7 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
         final verifyUserId = JwtUtils.getUserId(response.data['access'] as String);
         unawaited(AnalyticsService().setUserId(verifyUserId?.toString()));
         unawaited(AnalyticsService().logSignUp());
+        SentryService().setUser(verifyUserId?.toString());
 
         return tokenResponse;
       } else {
@@ -230,6 +232,7 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
         final loginUserId = JwtUtils.getUserId(response.data['access'] as String);
         unawaited(AnalyticsService().setUserId(loginUserId?.toString()));
         unawaited(AnalyticsService().logLogin(loginMethod: 'email'));
+        SentryService().setUser(loginUserId?.toString());
 
         return loginResponse;
       } else {
@@ -297,6 +300,7 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
         final oauthUserId = JwtUtils.getUserId(response.data['access'] as String);
         unawaited(AnalyticsService().setUserId(oauthUserId?.toString()));
         unawaited(AnalyticsService().logLogin(loginMethod: provider));
+        SentryService().setUser(oauthUserId?.toString());
 
         return loginResponse;
       } else {
@@ -367,6 +371,7 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
       }
 
       await dioClient.clearStorage();
+      SentryService().clearUser();
 
       if (refreshToken?.isNotEmpty ?? false) {
         try {
@@ -458,8 +463,8 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
       );
 
       if (response.statusCode == 204) {
-        // After successful deletion, clear storage
         await dioClient.clearStorage();
+        SentryService().clearUser();
 
         return NoContentResponseModel(message: 'Account deleted');
       } else {
@@ -597,6 +602,10 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
 
         await dioClient.saveTokens(tokenResponse.access, tokenResponse.refresh);
         await dioClient.fetchSettings();
+
+        final resetUserId = JwtUtils.getUserId(tokenResponse.access);
+        unawaited(AnalyticsService().setUserId(resetUserId?.toString()));
+        SentryService().setUser(resetUserId?.toString());
 
         return tokenResponse;
       } else {
