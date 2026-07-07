@@ -1477,9 +1477,19 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
         now.isAfter(xAxisRange.min) && now.isBefore(xAxisRange.max);
     final isTermView = _graphViewMode.isTerm;
 
-    return SizedBox(
-      height: 400,
-      child: Row(
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final legendWidth = _hideLegend
+            ? 0.0
+            : Responsive.getResponsiveValue(
+                context, mobile: 135, tablet: 200, desktop: 240,
+              );
+        final chartWidth = constraints.maxWidth - legendWidth - 8;
+        final useNearestPoint = chartWidth < 430;
+
+        return SizedBox(
+          height: 400,
+          child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Chart area
@@ -1517,7 +1527,9 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
                 enable: true,
                 activationMode: charts.ActivationMode.singleTap,
                 lineType: charts.TrackballLineType.vertical,
-                tooltipDisplayMode: charts.TrackballDisplayMode.floatAllPoints,
+                tooltipDisplayMode: useNearestPoint
+                  ? charts.TrackballDisplayMode.nearestPoint
+                  : charts.TrackballDisplayMode.floatAllPoints,
                 builder: (context, trackballDetails) {
                   return _buildTrackballTooltip(
                     trackballDetails,
@@ -1622,7 +1634,9 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
               child: _buildLegend(series),
             ),
         ],
-      ),
+        ),
+      );
+      },
     );
   }
 
@@ -1646,10 +1660,8 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
       return const SizedBox.shrink();
     }
 
-    final pointData = dataSource[pointIndex];
-
     return _buildGradeTrendTooltip(
-      chartPoint: pointData,
+      chartPoint: dataSource[pointIndex],
       seriesName: series.name ?? '',
       isTermView: isTermView,
     );

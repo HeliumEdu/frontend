@@ -32,9 +32,12 @@ ifndef RELEASE_VERSION
     RELEASE_ARGS += --dart-define=PROJECT_API_HOST=$(PROJECT_API_HOST)
 endif
 
-BUILD_NUMBER_ARG :=
+BUILD_OVERRIDE_ARGS :=
+ifdef BUILD_NAME
+    BUILD_OVERRIDE_ARGS += --build-name=$(BUILD_NAME)
+endif
 ifdef BUILD_NUMBER
-    BUILD_NUMBER_ARG := --build-number=$(BUILD_NUMBER)
+    BUILD_OVERRIDE_ARGS += --build-number=$(BUILD_NUMBER)
 endif
 
 RUN_ARGS :=
@@ -125,7 +128,7 @@ build-ios: install
 	flutter build ios --debug --no-codesign
 
 build-ios-release: install
-	flutter build ipa --release --export-options-plist=ios/ExportOptions.plist --obfuscate --split-debug-info=build/symbols $(RELEASE_ARGS) $(BUILD_NUMBER_ARG)
+	flutter build ipa --release --export-options-plist=ios/ExportOptions.plist --obfuscate --split-debug-info=build/symbols $(RELEASE_ARGS) $(BUILD_OVERRIDE_ARGS)
 
 build-web: install
 	flutter build web --release --source-maps --no-tree-shake-icons --pwa-strategy=none $(RELEASE_ARGS)
