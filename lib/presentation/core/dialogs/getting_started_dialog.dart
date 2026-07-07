@@ -121,9 +121,9 @@ const _cards = [
   _OnboardingCard(
     title: 'Ready when you are',
     description:
-        "You'll see this welcome screen each time you open Helium or "
-        'return after a break, so you can keep exploring. Once you '
-        'clear the example data, it will go away.',
+        "You'll see this welcome screen periodically until you clear the "
+        'example data, and until then, feel free to explore it and get a feel '
+        'for everything Helium has to offer.',
     icon: Icons.auto_delete_outlined,
     imagePaths: ['assets/img/onboarding_reminders.png'],
   ),
