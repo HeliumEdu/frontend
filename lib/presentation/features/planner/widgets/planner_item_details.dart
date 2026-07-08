@@ -194,6 +194,7 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
       children: [
         Expanded(
           child: SingleChildScrollView(
+            keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
             child: Form(
               key: formController.formKey,
               child: Column(

@@ -125,6 +125,11 @@ class _HeliumAppState extends State<HeliumApp> with WidgetsBindingObserver {
         HeliumQuillLocalizationsDelegate(),
         HeliumSfLocalizationsDelegate(),
       ],
+      builder: (context, child) => GestureDetector(
+        onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
+        behavior: HitTestBehavior.opaque,
+        child: child,
+      ),
     );
   }
 }

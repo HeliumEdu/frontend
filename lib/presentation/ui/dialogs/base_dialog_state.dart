@@ -54,6 +54,7 @@ abstract class BaseDialogState<T extends StatefulWidget> extends State<T> {
       child: SizedBox(
         width: Responsive.getDialogWidth(context),
         child: SingleChildScrollView(
+          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
           child: Material(
             color: context.colorScheme.surface,
             borderRadius: BorderRadius.circular(_dialogBorderRadius),
