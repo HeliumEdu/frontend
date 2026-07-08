@@ -112,6 +112,7 @@ class ChangePasswordScreenState extends State<ChangePasswordScreen> {
         }
       },
       child: SingleChildScrollView(
+        keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
         child: AutofillGroup(
           child: Form(
             key: _formController.formKey,

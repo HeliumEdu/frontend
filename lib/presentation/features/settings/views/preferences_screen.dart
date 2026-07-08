@@ -127,6 +127,7 @@ class PreferencesScreenState extends State<PreferencesScreen> {
       child: _isLoading
           ? const Center(child: LoadingIndicator(expanded: false))
           : SingleChildScrollView(
+        keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [

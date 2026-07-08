@@ -743,6 +743,7 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
             .clamp(minEditorContainerHeight, double.infinity);
 
         return SingleChildScrollView(
+          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
           child: Form(
             key: _formController.formKey,
             child: Column(

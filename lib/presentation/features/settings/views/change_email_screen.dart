@@ -124,6 +124,7 @@ class ChangeEmailScreenState extends State<ChangeEmailScreen> {
         }
       },
       child: SingleChildScrollView(
+        keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
         child: AutofillGroup(
           child: Form(
             key: _formController.formKey,

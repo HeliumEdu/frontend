@@ -118,6 +118,7 @@ class ResourceDetailsState extends State<ResourceDetails> {
       children: [
         Expanded(
           child: SingleChildScrollView(
+            keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
             child: Form(
               key: formController.formKey,
               child: Column(
