@@ -58,9 +58,6 @@ Future<void> showResourceAdd(
 }
 
 class ResourceAddScreen extends MultiStepContainer {
-  /// Shell path the dialog is overlaying — used to build sub-step URLs.
-  final String shellPath;
-
   /// Resource group containing the resource. Required for the create flow
   /// and the multi-step widgets that consume it.
   final int? resourceGroupId;
@@ -79,7 +76,7 @@ class ResourceAddScreen extends MultiStepContainer {
 
   ResourceAddScreen({
     super.key,
-    required this.shellPath,
+    required super.shellPath,
     required super.isNew,
     required this.initialFullPath,
     this.resourceId,

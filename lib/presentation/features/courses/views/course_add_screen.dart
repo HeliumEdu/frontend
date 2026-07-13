@@ -56,9 +56,6 @@ Future<void> showCourseAdd(
 }
 
 class CourseAddScreen extends MultiStepContainer {
-  /// Shell path the dialog is overlaying — used to build sub-step URLs.
-  final String shellPath;
-
   /// Course group containing the course. Required for the create flow and
   /// the multi-step widgets that need it (categories, attachments).
   final int? courseGroupId;
@@ -76,7 +73,7 @@ class CourseAddScreen extends MultiStepContainer {
 
   CourseAddScreen({
     super.key,
-    required this.shellPath,
+    required super.shellPath,
     required super.isNew,
     required this.initialFullPath,
     this.courseId,
