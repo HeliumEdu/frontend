@@ -21,6 +21,7 @@ import 'package:heliumapp/presentation/ui/components/spinner_field.dart';
 import 'package:heliumapp/presentation/ui/components/color_selector.dart';
 import 'package:heliumapp/presentation/features/planner/constants/reminder_constants.dart';
 import 'package:heliumapp/utils/app_globals.dart';
+import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/color_helpers.dart';
 import 'package:heliumapp/utils/snack_bar_helpers.dart';
@@ -168,6 +169,10 @@ class PreferencesScreenState extends State<PreferencesScreen> {
                 'Remember filter selections',
                 style: AppStyles.formLabel(context),
               ),
+              subtitle: Text(
+                'Keep your chosen filters on this device when you leave and come back',
+                style: AppStyles.smallSecondaryText(context),
+              ),
               value: _isRememberFilterSelection,
               onChanged: (value) {
                 setState(() {
@@ -193,21 +198,22 @@ class PreferencesScreenState extends State<PreferencesScreen> {
               controlAffinity: ListTileControlAffinity.leading,
               contentPadding: EdgeInsets.zero,
             ),
-            HeliumCheckboxListTile(
-              title: Text(
-                'Show tooltips',
-                style: AppStyles.formLabel(context),
+            if (!Responsive.isTouchDevice(context))
+              HeliumCheckboxListTile(
+                title: Text(
+                  'Show tooltips',
+                  style: AppStyles.formLabel(context),
+                ),
+                value: _isShowPlannerTooltips,
+                onChanged: (value) {
+                  setState(() {
+                    _isShowPlannerTooltips = value!;
+                    _isChanged = true;
+                  });
+                },
+                controlAffinity: ListTileControlAffinity.leading,
+                contentPadding: EdgeInsets.zero,
               ),
-              value: _isShowPlannerTooltips,
-              onChanged: (value) {
-                setState(() {
-                  _isShowPlannerTooltips = value!;
-                  _isChanged = true;
-                });
-              },
-              controlAffinity: ListTileControlAffinity.leading,
-              contentPadding: EdgeInsets.zero,
-            ),
 
             _buildSectionHeader('CALENDAR'),
             DropDown(
@@ -227,6 +233,10 @@ class PreferencesScreenState extends State<PreferencesScreen> {
               title: Text(
                 'Collapse busy days',
                 style: AppStyles.formLabel(context),
+              ),
+              subtitle: Text(
+                'Limit visible items per day in month view and show "+N more"',
+                style: AppStyles.smallSecondaryText(context),
               ),
               value: _isCollapseBusyDays,
               onChanged: (value) {
@@ -308,6 +318,10 @@ class PreferencesScreenState extends State<PreferencesScreen> {
                 'Color by assignment category',
                 style: AppStyles.formLabel(context),
               ),
+              subtitle: Text(
+                'Use the category color instead of the class color',
+                style: AppStyles.smallSecondaryText(context),
+              ),
               value: _isSelectedColorByCategory,
               onChanged: (value) {
                 setState(() {
@@ -324,6 +338,10 @@ class PreferencesScreenState extends State<PreferencesScreen> {
               'At-risk threshold (%)',
               style: AppStyles.formLabel(context),
             ),
+            Text(
+              'Classes with an overall grade below this are flagged as at-risk',
+              style: AppStyles.smallSecondaryText(context),
+            ),
             const SizedBox(height: 8),
             SizedBox(
               width: 120,
@@ -337,6 +355,10 @@ class PreferencesScreenState extends State<PreferencesScreen> {
             Text(
               'On-track tolerance (%)',
               style: AppStyles.formLabel(context),
+            ),
+            Text(
+              'How close to the threshold an overall class grade can be and still count as on-track',
+              style: AppStyles.smallSecondaryText(context),
             ),
             const SizedBox(height: 8),
             SizedBox(
