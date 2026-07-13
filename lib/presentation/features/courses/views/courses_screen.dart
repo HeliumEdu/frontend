@@ -729,63 +729,34 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen>
                           ],
                         ),
                       ],
-                      if (attachmentCount > 0 || reminderCount > 0) ...[
+                      if (attachmentCount > 0) ...[
                         const SizedBox(height: 6),
                         Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            if (attachmentCount > 0) ...[
-                              Icon(
-                                Icons.attachment,
-                                size: Responsive.getIconSize(
-                                  context,
-                                  mobile: 14,
-                                  tablet: 16,
-                                  desktop: 16,
-                                ),
+                            Icon(
+                              Icons.attachment,
+                              size: Responsive.getIconSize(
+                                context,
+                                mobile: 14,
+                                tablet: 16,
+                                desktop: 16,
+                              ),
+                              color: context.semanticColors.success.withValues(
+                                alpha: 0.9,
+                              ),
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              '$attachmentCount',
+                              style: AppStyles.smallSecondaryText(
+                                context,
+                              ).copyWith(
                                 color: context.semanticColors.success.withValues(
                                   alpha: 0.9,
                                 ),
                               ),
-                              const SizedBox(width: 4),
-                              Text(
-                                '$attachmentCount',
-                                style: AppStyles.smallSecondaryText(
-                                  context,
-                                ).copyWith(
-                                  color: context.semanticColors.success.withValues(
-                                    alpha: 0.9,
-                                  ),
-                                ),
-                              ),
-                            ],
-                            if (attachmentCount > 0 && reminderCount > 0)
-                              const SizedBox(width: 12),
-                            if (reminderCount > 0) ...[
-                              Icon(
-                                Icons.notifications_outlined,
-                                size: Responsive.getIconSize(
-                                  context,
-                                  mobile: 14,
-                                  tablet: 16,
-                                  desktop: 16,
-                                ),
-                                color: context.colorScheme.primary.withValues(
-                                  alpha: 0.9,
-                                ),
-                              ),
-                              const SizedBox(width: 4),
-                              Text(
-                                '$reminderCount',
-                                style: AppStyles.smallSecondaryText(
-                                  context,
-                                ).copyWith(
-                                  color: context.colorScheme.primary.withValues(
-                                    alpha: 0.9,
-                                  ),
-                                ),
-                              ),
-                            ],
+                            ),
                           ],
                         ),
                       ],
@@ -813,20 +784,47 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen>
                     color: context.colorScheme.onSurface.withValues(alpha: 0.4),
                   ),
                   const SizedBox(width: 4),
-                  SelectableText(
-                    '${HeliumDateTime.formatDate(course.startDate)} to ${HeliumDateTime.formatDate(course.endDate)}',
-                    style: AppStyles.standardBodyText(context).copyWith(
-                      color: context.colorScheme.onSurface.withValues(
-                        alpha: 0.5,
-                      ),
-                      fontSize: Responsive.getFontSize(
-                        context,
-                        mobile: 13,
-                        tablet: 14,
-                        desktop: 15,
+                  Expanded(
+                    child: SelectableText(
+                      '${HeliumDateTime.formatDate(course.startDate)} to ${HeliumDateTime.formatDate(course.endDate)}',
+                      style: AppStyles.standardBodyText(context).copyWith(
+                        color: context.colorScheme.onSurface.withValues(
+                          alpha: 0.5,
+                        ),
+                        fontSize: Responsive.getFontSize(
+                          context,
+                          mobile: 13,
+                          tablet: 14,
+                          desktop: 15,
+                        ),
                       ),
                     ),
                   ),
+                  if (reminderCount > 0) ...[
+                    Icon(
+                      Icons.notifications_outlined,
+                      size: Responsive.getIconSize(
+                        context,
+                        mobile: 14,
+                        tablet: 16,
+                        desktop: 16,
+                      ),
+                      color: context.colorScheme.primary.withValues(
+                        alpha: 0.9,
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      '$reminderCount',
+                      style: AppStyles.smallSecondaryText(
+                        context,
+                      ).copyWith(
+                        color: context.colorScheme.primary.withValues(
+                          alpha: 0.9,
+                        ),
+                      ),
+                    ),
+                  ],
                 ],
               ),
 

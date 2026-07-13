@@ -42,12 +42,14 @@ class MultiStepDefinition {
 abstract class MultiStepContainer extends StatefulWidget {
   final bool isEdit;
   final bool isNew;
+  final String shellPath;
   final int initialStep;
 
   const MultiStepContainer({
     super.key,
     required this.isEdit,
     required this.isNew,
+    required this.shellPath,
     this.initialStep = 0,
   });
 }
@@ -155,7 +157,11 @@ abstract class MultiStepContainerState<T extends MultiStepContainer>
   void closeWithoutPrompt() {
     if (!mounted) return;
     DirtyDialogRegistry.releaseActive();
-    context.pop();
+    if (context.canPop()) {
+      context.pop();
+    } else {
+      context.go(widget.shellPath);
+    }
   }
 
   Future<void> _attemptDismiss() async {

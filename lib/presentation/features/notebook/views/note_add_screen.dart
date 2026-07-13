@@ -328,7 +328,11 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
       return;
     }
     DirtyDialogRegistry.releaseActive();
-    context.pop();
+    if (context.canPop()) {
+      context.pop();
+    } else {
+      context.go(widget.shellPath);
+    }
   }
 
   void _onDelete() {

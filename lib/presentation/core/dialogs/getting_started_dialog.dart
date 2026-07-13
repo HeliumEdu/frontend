@@ -173,7 +173,7 @@ class _GettingStartedDialogWidgetState
     final path = router.routerDelegate.currentConfiguration.uri.path;
     final onShellTab =
         NavigationPage.values.any((page) => page.route == path);
-    if (!onShellTab) {
+    if (!onShellTab && Navigator.canPop(context)) {
       Navigator.of(context).pop();
     }
   }

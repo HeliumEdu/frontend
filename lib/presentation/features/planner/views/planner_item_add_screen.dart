@@ -97,10 +97,6 @@ const _validShellPaths = [
 ];
 
 class PlannerItemAddScreen extends MultiStepContainer {
-  /// Shell path the dialog is overlaying — used to build sub-step URLs and
-  /// the dirty-guard prefix.
-  final String shellPath;
-
   /// True when the URL mounted the homework variant, false for event. For
   /// the create flow this seeds the initial entity type; the user can
   /// toggle in details, which swaps the URL between variants.
@@ -126,7 +122,7 @@ class PlannerItemAddScreen extends MultiStepContainer {
 
   PlannerItemAddScreen({
     super.key,
-    required this.shellPath,
+    required super.shellPath,
     required this.isHomework,
     required super.isNew,
     required this.initialFullPath,
