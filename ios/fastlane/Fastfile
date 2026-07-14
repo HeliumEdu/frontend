@@ -28,6 +28,7 @@ platform :ios do
   desc "Upload IPA to TestFlight and wait for App-Store-side processing"
   lane :deploy_testflight do |options|
     ipa_path = options[:ipa_path] || "../build/ios/ipa/heliumedu.ipa"
+    build_number = options[:build_number]
 
     api_key = app_store_connect_api_key(
       key_id: ENV["APP_STORE_CONNECT_API_KEY_ID"],
@@ -35,16 +36,33 @@ platform :ios do
       key_filepath: File.expand_path("~/.appstoreconnect/private_keys/AuthKey_#{ENV['APP_STORE_CONNECT_API_KEY_ID']}.p8")
     )
 
-    # Wait for processing so deploy_appstore can attach the build immediately
-    # in the same pipeline run.
-    upload_to_testflight(
-      api_key: api_key,
-      ipa: ipa_path,
-      skip_submission: true,
-      skip_waiting_for_build_processing: false,
-      wait_processing_timeout_duration: 1800,
-      distribute_external: false
-    )
+    begin
+      # Wait for processing so deploy_appstore can attach the build immediately
+      # in the same pipeline run.
+      upload_to_testflight(
+        api_key: api_key,
+        ipa: ipa_path,
+        skip_submission: true,
+        skip_waiting_for_build_processing: false,
+        wait_processing_timeout_duration: 1800,
+        distribute_external: false
+      )
+    rescue => upload_error
+      # altool retries transient network blips (e.g. `WILL RETRY PART N`
+      # after a TLS reset) internally and exits successfully, but fastlane's
+      # output parser matches the `Failed with error:` substring in that retry
+      # chatter and raises anyway. Before trusting the failure, re-query App
+      # Store Connect for the build we just uploaded — if Apple already has it,
+      # the upload genuinely succeeded and the raise is a false positive.
+      raise upload_error unless build_number
+      raise upload_error unless build_uploaded?(build_number)
+
+      UI.important(
+        "upload_to_testflight raised (#{upload_error.message}), but build " \
+        "#{build_number} is present in App Store Connect — treating the " \
+        "upload as successful (transient altool retry false positive)."
+      )
+    end
   end
 
   desc "Stage an App Store version with the latest TestFlight build, push metadata text every time and screenshots only when push_store_assets:true. Optionally auto-submit for App Review (post-review publish remains manual via App Store Connect). The marketing app icon is part of the IPA and is not affected by this flag."
@@ -145,5 +163,26 @@ platform :ios do
 
     edit_version.select_build(build_id: build.id)
     UI.success("Attached build #{version} (#{build_number}) to App Store version #{version}")
+  end
+
+  # Returns true if a build with the given CFBundleVersion exists in App Store
+  # Connect. Assumes Spaceship auth is already primed (app_store_connect_api_key
+  # sets the token in lane context). Swallows lookup errors so a flaky verify
+  # never masks the original upload failure — the caller re-raises in that case.
+  def build_uploaded?(build_number)
+    app_identifier = CredentialsManager::AppfileConfig.try_fetch_value(:app_identifier)
+    spaceship_app = Spaceship::ConnectAPI::App.find(app_identifier)
+    return false unless spaceship_app
+
+    # Spaceship's `build_number:` keyword filters on the Build's own `version`
+    # field, which is the CFBundleVersion (our CI build number).
+    !Spaceship::ConnectAPI::Build.all(
+      app_id: spaceship_app.id,
+      build_number: build_number.to_s,
+      limit: 1
+    ).empty?
+  rescue => verify_error
+    UI.error("Failed to verify build #{build_number} in App Store Connect: #{verify_error.message}")
+    false
   end
 end
