@@ -51,7 +51,7 @@ final _log = Logger('presentation.widgets');
 enum TodosColumn {
   completed(label: '', fixedWidth: 52, isCheckbox: true),
   title(label: 'Title', mobileWidth: 70, desktopWidth: 95),
-  due(label: 'Due', mobileWidth: 144, desktopWidth: 154),
+  due(label: 'Due', mobileWidth: 144, slimMobileWidth: 134, desktopWidth: 154),
   className(label: 'Class', minViewportWidth: 625, fixedWidth: 120),
   category(label: 'Category', minViewportWidth: 950, fixedWidth: 129),
   priority(label: 'Priority', minViewportWidth: 1150, fixedWidth: 116),
@@ -69,6 +69,7 @@ enum TodosColumn {
     required this.label,
     this.fixedWidth,
     this.mobileWidth,
+    this.slimMobileWidth,
     this.tabletWidth,
     this.desktopWidth,
     this.minViewportWidth,
@@ -79,13 +80,19 @@ enum TodosColumn {
   final String label;
   final double? fixedWidth;
   final double? mobileWidth;
+  final double? slimMobileWidth;
   final double? tabletWidth;
   final double? desktopWidth;
   final double? minViewportWidth;
   final bool showOnTouchDevice;
   final bool isCheckbox;
 
-  double? widthForLayout({required bool isMobile, required bool isTablet}) {
+  double? widthForLayout({
+    required bool isMobile,
+    required bool isTablet,
+    bool isSlimMobile = false,
+  }) {
+    if (isSlimMobile && slimMobileWidth != null) return slimMobileWidth;
     if (isMobile && mobileWidth != null) return mobileWidth;
     if (isTablet && tabletWidth != null) return tabletWidth;
     if (desktopWidth != null) return desktopWidth;
@@ -184,6 +191,7 @@ class TodosDataGridState extends BaseDataGridState<TodosDataGrid> {
 
     final isMobile = Responsive.isMobile(context);
     final isTablet = Responsive.isTablet(context);
+    final isSlimMobile = Responsive.isSlimMobile(context);
     final isTouchDevice = Responsive.isTouchDevice(context);
     final isCompact = Responsive.isCompact(context);
     final isCapturing = PrintableArea.capturing.value;
@@ -192,7 +200,13 @@ class TodosDataGridState extends BaseDataGridState<TodosDataGrid> {
     final headerColor =
         context.colorScheme.surfaceContainerHighest.withValues(alpha: 0.5);
 
-    final columns = _buildColumns(isMobile, isTablet, showActions, isCompact);
+    final columns = _buildColumns(
+      isMobile,
+      isTablet,
+      showActions,
+      isCompact,
+      isSlimMobile,
+    );
 
     return Stack(
       children: [
@@ -451,32 +465,39 @@ class TodosDataGridState extends BaseDataGridState<TodosDataGrid> {
     bool isTablet,
     bool showActions,
     bool isCompact,
+    bool isSlimMobile,
   ) {
     final columns = <GridColumn>[];
+
+    double? width(TodosColumn column) => column.widthForLayout(
+      isMobile: isMobile,
+      isTablet: isTablet,
+      isSlimMobile: isSlimMobile,
+    );
 
     columns.add(GridColumn(
       columnName: 'completed',
       label: _buildHeaderCell(TodosColumn.completed),
-      width: TodosColumn.completed.widthForLayout(isMobile: isMobile, isTablet: isTablet)!,
+      width: width(TodosColumn.completed)!,
     ));
 
     columns.add(GridColumn(
       columnName: 'title',
       label: _buildHeaderCell(TodosColumn.title),
-      minimumWidth: TodosColumn.title.widthForLayout(isMobile: isMobile, isTablet: isTablet)!,
+      minimumWidth: width(TodosColumn.title)!,
     ));
 
     columns.add(GridColumn(
       columnName: 'due',
       label: _buildHeaderCell(TodosColumn.due),
-      width: TodosColumn.due.widthForLayout(isMobile: isMobile, isTablet: isTablet)!,
+      width: width(TodosColumn.due)!,
     ));
 
     if (_shouldShowColumn(TodosColumn.className)) {
       columns.add(GridColumn(
         columnName: 'className',
         label: _buildHeaderCell(TodosColumn.className),
-        minimumWidth: TodosColumn.className.widthForLayout(isMobile: isMobile, isTablet: isTablet)!,
+        minimumWidth: width(TodosColumn.className)!,
       ));
     }
 
@@ -484,7 +505,7 @@ class TodosDataGridState extends BaseDataGridState<TodosDataGrid> {
       columns.add(GridColumn(
         columnName: 'category',
         label: _buildHeaderCell(TodosColumn.category),
-        minimumWidth: TodosColumn.category.widthForLayout(isMobile: isMobile, isTablet: isTablet)!,
+        minimumWidth: width(TodosColumn.category)!,
       ));
     }
 
@@ -492,7 +513,7 @@ class TodosDataGridState extends BaseDataGridState<TodosDataGrid> {
       columns.add(GridColumn(
         columnName: 'priority',
         label: _buildHeaderCell(TodosColumn.priority),
-        width: TodosColumn.priority.widthForLayout(isMobile: isMobile, isTablet: isTablet)!,
+        width: width(TodosColumn.priority)!,
       ));
     }
 
@@ -500,7 +521,7 @@ class TodosDataGridState extends BaseDataGridState<TodosDataGrid> {
       columns.add(GridColumn(
         columnName: 'grade',
         label: _buildHeaderCell(TodosColumn.grade),
-        width: TodosColumn.grade.widthForLayout(isMobile: isMobile, isTablet: isTablet)!,
+        width: width(TodosColumn.grade)!,
       ));
     }
 
@@ -508,7 +529,7 @@ class TodosDataGridState extends BaseDataGridState<TodosDataGrid> {
       columns.add(GridColumn(
         columnName: 'meta',
         label: const SizedBox.shrink(),
-        width: TodosColumn.meta.widthForLayout(isMobile: isMobile, isTablet: isTablet)!,
+        width: width(TodosColumn.meta)!,
         allowSorting: false,
       ));
     }

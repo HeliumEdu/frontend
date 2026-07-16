@@ -8,6 +8,7 @@
 import 'dart:async';
 
 import 'package:collection/collection.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -1232,6 +1233,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
     final bool isSlimMobile = Responsive.isSlimMobile(context);
     final double chevronGap = isSlimMobile ? 2 : 3;
     final double chevronSize = _headerButtonSize(context);
+    final double leadingGap = Responsive.isMobile(context) ? 4 : 8;
 
     return Expanded(
       child: Row(
@@ -1239,7 +1241,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          SizedBox(width: chevronGap),
+          SizedBox(width: leadingGap),
           if (showNavButtons) ...[
             PrintHidden(
               child: Semantics(
@@ -1739,11 +1741,17 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
     final bool isMobile = Responsive.isMobile(context);
     final bool isSlimMobile = Responsive.isSlimMobile(context);
     final double sideInset = isMobile ? 2 : 8;
+    const double webInset = kIsWeb ? 4 : 0;
     // Vertical padding + the 24px dropdown icon sets the date height to match
     // the header's chevrons: 8+24+8 = 40 normally, 6+24+6 = 36 on slim phones.
     final double vInset = isSlimMobile ? 6 : 8;
     return Padding(
-      padding: EdgeInsets.only(left: sideInset, top: vInset, bottom: vInset),
+      padding: EdgeInsets.only(
+        left: sideInset + webInset,
+        right: webInset,
+        top: vInset,
+        bottom: vInset,
+      ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.center,
