@@ -17,6 +17,7 @@ class HeliumIconButton extends StatelessWidget {
   final Color? backgroundColor;
   final Color? iconColor;
   final double? size;
+  final double? minimumSize;
   final VisualDensity? visualDensity;
 
   const HeliumIconButton({
@@ -28,6 +29,7 @@ class HeliumIconButton extends StatelessWidget {
     this.backgroundColor,
     this.iconColor,
     this.size,
+    this.minimumSize,
     this.visualDensity,
   });
 
@@ -64,7 +66,9 @@ class HeliumIconButton extends StatelessWidget {
       icon: Icon(icon, color: effectiveIconColor, size: useSize),
       tooltip: tooltip,
       padding: const EdgeInsets.all(6),
-      constraints: const BoxConstraints(),
+      constraints: minimumSize != null
+          ? BoxConstraints(minWidth: minimumSize!, minHeight: minimumSize!)
+          : const BoxConstraints(),
       visualDensity: visualDensity,
     );
   }

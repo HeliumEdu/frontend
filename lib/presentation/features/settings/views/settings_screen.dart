@@ -546,7 +546,6 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
                     icon: Icon(Icons.settings_brightness),
                   ),
                 ],
-                style: const ButtonStyle(visualDensity: VisualDensity.compact),
                 selected: {themeNotifier.themeMode},
                 onSelectionChanged: (Set<ThemeMode> selected) {
                   themeNotifier.setThemeMode(selected.first, logAnalytics: true);
@@ -573,7 +572,8 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
                 icon: Icons.menu_book_outlined,
                 backgroundColor: context.colorScheme.onSurfaceVariant,
                 tooltip: 'Support Portal',
-                size: 20,
+                minimumSize: 40,
+                visualDensity: context.theme.visualDensity,
               ),
             ],
           ),

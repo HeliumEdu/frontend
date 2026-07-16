@@ -1445,7 +1445,7 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
           final items = byGroup[courseId]!
             ..sort((a, b) => a.start.compareTo(b.start));
           for (final h in items) {
-            rows.add(_LinkPickerItem(id: h.id, title: h.title, date: h.start));
+            rows.add(_LinkPickerItem(id: h.id, title: h.title, date: h.start, allDay: h.allDay));
           }
         }
 
@@ -1455,7 +1455,7 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
             .toList()
           ..sort((a, b) => a.start.compareTo(b.start));
         for (final e in filteredEvents) {
-          rows.add(_LinkPickerItem(id: e.id, title: e.title, date: e.start));
+          rows.add(_LinkPickerItem(id: e.id, title: e.title, date: e.start, allDay: e.allDay));
         }
 
       default:
@@ -1503,7 +1503,9 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
       );
     }
 
-    return ListView.builder(
+    return Material(
+      type: MaterialType.transparency,
+      child: ListView.builder(
       itemCount: rows.length,
       itemBuilder: (context, index) {
         final row = rows[index];
@@ -1529,9 +1531,13 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
         }
         final item = row as _LinkPickerItem;
         final dateText = item.date != null && userSettings != null
-            ? HeliumDateTime.formatDateForTodos(
-                HeliumDateTime.toLocal(item.date!, userSettings!.timeZone),
-              )
+            ? () {
+                final localDate =
+                    HeliumDateTime.toLocal(item.date!, userSettings!.timeZone);
+                return item.allDay
+                    ? HeliumDateTime.formatDateForTodos(localDate)
+                    : HeliumDateTime.formatDateAndTimeForTodos(localDate);
+              }()
             : null;
         return ListTile(
           dense: true,
@@ -1552,6 +1558,7 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
           onTap: () => _linkNoteTo(_linkPickerType, item.id, item.title),
         );
       },
+      ),
     );
   }
 }
@@ -1568,5 +1575,11 @@ class _LinkPickerItem extends _LinkPickerRow {
   final int id;
   final String title;
   final DateTime? date;
-  _LinkPickerItem({required this.id, required this.title, this.date});
+  final bool allDay;
+  _LinkPickerItem({
+    required this.id,
+    required this.title,
+    this.date,
+    this.allDay = true,
+  });
 }
