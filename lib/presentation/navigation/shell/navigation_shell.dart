@@ -426,7 +426,10 @@ class _NavigationShellState extends State<NavigationShell> {
     title_helper.setTitle('${page.label} | ${AppConstants.appName}');
   }
 
-  Widget _buildLeading(BuildContext context) {
+  Widget? _buildLeading(BuildContext context) {
+    if (Responsive.isPhoneLandscape(context)) {
+      return null;
+    }
     return Padding(
       padding: const EdgeInsets.only(top: 8, bottom: 8),
       child: ClipRRect(
@@ -438,13 +441,14 @@ class _NavigationShellState extends State<NavigationShell> {
 
   Widget? _buildTrailing(BuildContext context, double availableHeight) {
     final inheritableProviders = _inheritableProvidersNotifier.providers;
+    final compactSettings = Responsive.isPhoneLandscape(context);
     final settingsButton =
         inheritableProviders != null && inheritableProviders.isNotEmpty
         ? MultiBlocProvider(
             providers: inheritableProviders,
-            child: const SettingsButton(compact: false),
+            child: SettingsButton(compact: compactSettings),
           )
-        : const SettingsButton(compact: false);
+        : SettingsButton(compact: compactSettings);
 
     final bottomPadding = Responsive.isPhoneLandscape(context) ? 0.0 : 16.0;
 
@@ -473,13 +477,15 @@ class _NavigationShellState extends State<NavigationShell> {
             const SizedBox(height: 4),
           ],
           if (!PageHeader.showSettingsInHeader(context)) ...[
-            _buildAppStoreButton(
-              context: context,
-              icon: Icons.volunteer_activism,
-              tooltip: 'Keep Helium Free',
-              url: AppConstants.patreonUrl,
-            ),
-            const SizedBox(width: 40, child: Divider()),
+            if (!Responsive.isPhoneLandscape(context)) ...[
+              _buildAppStoreButton(
+                context: context,
+                icon: Icons.volunteer_activism,
+                tooltip: 'Keep Helium Free',
+                url: AppConstants.patreonUrl,
+              ),
+              const SizedBox(width: 40, child: Divider()),
+            ],
             settingsButton,
           ],
         ],

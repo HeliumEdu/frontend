@@ -391,7 +391,7 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
           if (showActionButton && actionButtonCallback != null)
             Positioned(
               right: 16,
-              bottom: 16,
+              bottom: 12,
               child: buildFloatingActionButton(),
             ),
         ],
@@ -411,9 +411,6 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
           ],
         ),
       ),
-      floatingActionButton: showActionButton && actionButtonCallback != null
-          ? buildFloatingActionButton()
-          : null,
     );
   }
 

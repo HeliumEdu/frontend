@@ -12,7 +12,7 @@ import 'package:heliumapp/utils/app_style.dart';
 
 class HeliumElevatedButton extends StatelessWidget {
   static const _buttonBorderRadius = 6.0;
-  static const _buttonMinHeight = 45.0;
+  static const _buttonMinHeight = 44.0;
   static const _buttonHorizontalPadding = 12.0;
   static const _iconSize = 16.0;
   static const _loadingIndicatorSize = 20.0;
@@ -26,6 +26,8 @@ class HeliumElevatedButton extends StatelessWidget {
   final bool enabled;
   final Color? backgroundColor;
   final bool fullWidth;
+  final double? minHeight;
+  final VisualDensity? visualDensity;
 
   const HeliumElevatedButton({
     super.key,
@@ -37,19 +39,22 @@ class HeliumElevatedButton extends StatelessWidget {
     this.enabled = true,
     this.backgroundColor,
     this.fullWidth = true,
+    this.minHeight,
+    this.visualDensity,
   });
 
   static ButtonStyle baseStyle(
     ColorScheme colorScheme, {
     Color? backgroundColor,
     double minimumWidth = double.infinity,
+    double minimumHeight = _buttonMinHeight,
   }) {
     return ButtonStyle(
       backgroundColor: WidgetStatePropertyAll(
         backgroundColor ?? colorScheme.primary,
       ),
       foregroundColor: WidgetStatePropertyAll(colorScheme.onPrimary),
-      minimumSize: WidgetStatePropertyAll(Size(minimumWidth, _buttonMinHeight)),
+      minimumSize: WidgetStatePropertyAll(Size(minimumWidth, minimumHeight)),
       padding: const WidgetStatePropertyAll(
         EdgeInsets.symmetric(horizontal: _buttonHorizontalPadding),
       ),
@@ -75,7 +80,11 @@ class HeliumElevatedButton extends StatelessWidget {
         context.colorScheme,
         backgroundColor: effectiveBg,
         minimumWidth: fullWidth ? double.infinity : 0,
-      ).copyWith(tapTargetSize: MaterialTapTargetSize.shrinkWrap),
+        minimumHeight: minHeight ?? _buttonMinHeight,
+      ).copyWith(
+        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        visualDensity: visualDensity,
+      ),
       label: isLoading
           ? LoadingIndicator(
               size: _loadingIndicatorSize,

@@ -346,7 +346,7 @@ class _GettingStartedDialogWidgetState
       child: Row(
         children: [
           SizedBox(
-            width: 40,
+            width: 36,
             child: isFirst
                 ? const SizedBox.shrink()
                 : Semantics(
@@ -361,7 +361,14 @@ class _GettingStartedDialogWidgetState
                             ),
                       icon: const Icon(Icons.chevron_left),
                       padding: EdgeInsets.zero,
-                      constraints: const BoxConstraints(),
+                      constraints: const BoxConstraints(
+                        minWidth: 36,
+                        minHeight: 36,
+                      ),
+                      visualDensity: context.theme.visualDensity,
+                      style: IconButton.styleFrom(
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      ),
                     ),
                   ),
           ),
@@ -373,6 +380,7 @@ class _GettingStartedDialogWidgetState
                 return MouseRegion(
                   cursor: SystemMouseCursors.click,
                   child: GestureDetector(
+                    behavior: HitTestBehavior.opaque,
                     onTap: () {
                       Feedback.forTap(context);
                       if (MotionService().reduceMotion) {
@@ -385,18 +393,25 @@ class _GettingStartedDialogWidgetState
                         );
                       }
                     },
-                    child: AnimatedContainer(
-                      duration: MotionService().effectiveDuration(const Duration(milliseconds: 200)),
-                      margin: const EdgeInsets.symmetric(horizontal: 4.0),
-                      width: isActive ? _activeDotSize : _dotSize,
-                      height: isActive ? _activeDotSize : _dotSize,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: isActive
-                            ? context.colorScheme.primary
-                            : context.colorScheme.onSurface.withValues(
-                                alpha: 0.25,
-                              ),
+                    child: SizedBox(
+                      width: 24,
+                      height: 36,
+                      child: Center(
+                        child: AnimatedContainer(
+                          duration: MotionService().effectiveDuration(
+                            const Duration(milliseconds: 200),
+                          ),
+                          width: isActive ? _activeDotSize : _dotSize,
+                          height: isActive ? _activeDotSize : _dotSize,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: isActive
+                                ? context.colorScheme.primary
+                                : context.colorScheme.onSurface.withValues(
+                                    alpha: 0.25,
+                                  ),
+                          ),
+                        ),
                       ),
                     ),
                   ),
@@ -405,7 +420,7 @@ class _GettingStartedDialogWidgetState
             ),
           ),
           SizedBox(
-            width: 40,
+            width: 36,
             child: isLast
                 ? const SizedBox.shrink()
                 : Semantics(
@@ -420,7 +435,14 @@ class _GettingStartedDialogWidgetState
                             ),
                       icon: const Icon(Icons.chevron_right),
                       padding: EdgeInsets.zero,
-                      constraints: const BoxConstraints(),
+                      constraints: const BoxConstraints(
+                        minWidth: 36,
+                        minHeight: 36,
+                      ),
+                      visualDensity: context.theme.visualDensity,
+                      style: IconButton.styleFrom(
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      ),
                     ),
                   ),
           ),

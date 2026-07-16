@@ -55,8 +55,7 @@ class _FeedsScreenState extends State<FeedsScreen> {
     _feedsLoaded = true;
     _feedUrls = slug != null
         ? PrivateFeedModel(
-            eventsPrivateUrl:
-                '${ApiUrl.baseUrl}/feed/private/$slug/events.ics',
+            eventsPrivateUrl: '${ApiUrl.baseUrl}/feed/private/$slug/events.ics',
             homeworkPrivateUrl:
                 '${ApiUrl.baseUrl}/feed/private/$slug/homework.ics',
             courseSchedulesPrivateUrl:
@@ -202,59 +201,69 @@ class _FeedsScreenState extends State<FeedsScreen> {
                   ],
                 ),
                 const SizedBox(height: 12),
-                IntrinsicHeight(
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Expanded(
-                        child: HeliumElevatedButton(
-                          onPressed: () {
-                            Clipboard.setData(ClipboardData(text: url));
-                            SnackBarHelper.show(
-                              context,
-                              '$label feed URL copied.',
-                            );
-                          },
-                          icon: Icons.copy,
-                          buttonText: 'Copy',
-                          backgroundColor: color,
-                        ),
+                Row(
+                  children: [
+                    Expanded(
+                      child: HeliumElevatedButton(
+                        onPressed: () {
+                          Clipboard.setData(ClipboardData(text: url));
+                          SnackBarHelper.show(
+                            context,
+                            '$label feed URL copied.',
+                          );
+                        },
+                        icon: Icons.copy,
+                        buttonText: 'Copy',
+                        backgroundColor: color,
+                        minHeight: 36,
+                        // Standard density so the Copy and Share buttons stay a
+                        // consistent 36px on both mobile and web instead of the
+                        // adaptive density shrinking them on desktop.
+                        visualDensity: VisualDensity.standard,
                       ),
-                      const SizedBox(width: 10),
-                      Builder(
-                        builder: (buttonContext) => AspectRatio(
-                          aspectRatio: 1,
-                          child: IconButton(
-                            onPressed: () async {
-                              final box =
-                                  buttonContext.findRenderObject() as RenderBox?;
-                              final sharePositionOrigin = box != null
-                                  ? box.localToGlobal(Offset.zero) & box.size
-                                  : null;
+                    ),
+                    const SizedBox(width: 10),
+                    Builder(
+                      builder: (buttonContext) => IconButton(
+                        onPressed: () async {
+                          final box =
+                              buttonContext.findRenderObject() as RenderBox?;
+                          final sharePositionOrigin = box != null
+                              ? box.localToGlobal(Offset.zero) & box.size
+                              : null;
 
-                              try {
-                                await SharePlus.instance.share(
-                                  ShareParams(
-                                    text: url,
-                                    sharePositionOrigin: sharePositionOrigin,
-                                  ),
-                                );
-                              } on PlatformException {
-                                final context = rootScaffoldMessengerKey.currentContext;
-                                if (context != null && context.mounted) {
-                                  SnackBarHelper.show(context, 'Failed to share link.', type: SnackType.error);
-                                }
-                              }
-                            },
-                            icon: Icon(Icons.share_outlined, color: color),
-                            style: IconButton.styleFrom(
-                              backgroundColor: color.withValues(alpha: 0.12),
-                            ),
-                          ),
+                          try {
+                            await SharePlus.instance.share(
+                              ShareParams(
+                                text: url,
+                                sharePositionOrigin: sharePositionOrigin,
+                              ),
+                            );
+                          } on PlatformException {
+                            final context =
+                                rootScaffoldMessengerKey.currentContext;
+                            if (context != null && context.mounted) {
+                              SnackBarHelper.show(
+                                context,
+                                'Failed to share link.',
+                                type: SnackType.error,
+                              );
+                            }
+                          }
+                        },
+                        icon: Icon(Icons.share_outlined, color: color),
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(
+                          minWidth: 36,
+                          minHeight: 36,
+                        ),
+                        style: IconButton.styleFrom(
+                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          backgroundColor: color.withValues(alpha: 0.12),
                         ),
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -359,9 +368,9 @@ class _FeedsScreenState extends State<FeedsScreen> {
 
                           Navigator.of(dialogContext).pop();
 
-                          parentContext
-                              .read<AuthBloc>()
-                              .add(DisablePrivateFeedsEvent());
+                          parentContext.read<AuthBloc>().add(
+                            DisablePrivateFeedsEvent(),
+                          );
                         },
                       ),
                     ),

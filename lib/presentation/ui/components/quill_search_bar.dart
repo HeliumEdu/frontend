@@ -186,6 +186,7 @@ class _QuillSearchBarState extends State<QuillSearchBar> {
               label: 'Close search',
               button: true,
               child: IconButton(
+                constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
                 style: IconButton.styleFrom(
                   tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                 ),
@@ -194,7 +195,6 @@ class _QuillSearchBarState extends State<QuillSearchBar> {
                   size: 20,
                   color: context.colorScheme.onSurface.withValues(alpha: 0.4),
                 ),
-                visualDensity: VisualDensity.compact,
                 onPressed: () {
                   _clearSelection();
                   widget.onClose();
@@ -241,6 +241,7 @@ class _QuillSearchBarState extends State<QuillSearchBar> {
             ),
             const SizedBox(width: 4),
             IconButton(
+              constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
               style: IconButton.styleFrom(
                 tapTargetSize: MaterialTapTargetSize.shrinkWrap,
               ),
@@ -252,10 +253,10 @@ class _QuillSearchBarState extends State<QuillSearchBar> {
                     : context.colorScheme.onSurface.withValues(alpha: 0.4),
               ),
               tooltip: 'Previous',
-              visualDensity: VisualDensity.compact,
               onPressed: _offsets.isNotEmpty ? _moveToPrevious : null,
             ),
             IconButton(
+              constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
               style: IconButton.styleFrom(
                 tapTargetSize: MaterialTapTargetSize.shrinkWrap,
               ),
@@ -267,11 +268,11 @@ class _QuillSearchBarState extends State<QuillSearchBar> {
                     : context.colorScheme.onSurface.withValues(alpha: 0.4),
               ),
               tooltip: 'Next',
-              visualDensity: VisualDensity.compact,
               onPressed: _offsets.isNotEmpty ? _moveToNext : null,
             ),
             const SizedBox(width: 4),
             IconButton(
+              constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
               style: IconButton.styleFrom(
                 tapTargetSize: MaterialTapTargetSize.shrinkWrap,
               ),
@@ -283,7 +284,6 @@ class _QuillSearchBarState extends State<QuillSearchBar> {
                     : context.colorScheme.onSurface.withValues(alpha: 0.4),
               ),
               tooltip: 'Match case',
-              visualDensity: VisualDensity.compact,
               onPressed: () {
                 setState(() {
                   _caseSensitive = !_caseSensitive;
@@ -294,6 +294,7 @@ class _QuillSearchBarState extends State<QuillSearchBar> {
               },
             ),
             IconButton(
+              constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
               style: IconButton.styleFrom(
                 tapTargetSize: MaterialTapTargetSize.shrinkWrap,
               ),
@@ -305,7 +306,6 @@ class _QuillSearchBarState extends State<QuillSearchBar> {
                     : context.colorScheme.onSurface.withValues(alpha: 0.4),
               ),
               tooltip: 'Match whole word',
-              visualDensity: VisualDensity.compact,
               onPressed: () {
                 setState(() {
                   _wholeWord = !_wholeWord;

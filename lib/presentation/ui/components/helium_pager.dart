@@ -99,7 +99,8 @@ class HeliumPager extends StatelessWidget {
             icon: const Icon(Icons.first_page),
             iconSize: 20,
             padding: EdgeInsets.zero,
-            constraints: const BoxConstraints(),
+            constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+            visualDensity: context.theme.visualDensity,
             style: IconButton.styleFrom(
               tapTargetSize: MaterialTapTargetSize.shrinkWrap,
             ),
@@ -117,7 +118,8 @@ class HeliumPager extends StatelessWidget {
               icon: const Icon(Icons.chevron_left),
               iconSize: 20,
               padding: EdgeInsets.zero,
-              constraints: const BoxConstraints(),
+              constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+              visualDensity: context.theme.visualDensity,
               style: IconButton.styleFrom(
                 tapTargetSize: MaterialTapTargetSize.shrinkWrap,
               ),
@@ -138,7 +140,8 @@ class HeliumPager extends StatelessWidget {
               icon: const Icon(Icons.chevron_right),
               iconSize: 20,
               padding: EdgeInsets.zero,
-              constraints: const BoxConstraints(),
+              constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+              visualDensity: context.theme.visualDensity,
               style: IconButton.styleFrom(
                 tapTargetSize: MaterialTapTargetSize.shrinkWrap,
               ),
@@ -156,7 +159,8 @@ class HeliumPager extends StatelessWidget {
             icon: const Icon(Icons.last_page),
             iconSize: 20,
             padding: EdgeInsets.zero,
-            constraints: const BoxConstraints(),
+            constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+            visualDensity: context.theme.visualDensity,
             style: IconButton.styleFrom(
               tapTargetSize: MaterialTapTargetSize.shrinkWrap,
             ),
@@ -231,7 +235,7 @@ class HeliumPager extends StatelessWidget {
         disabledBackgroundColor: isActive
             ? context.colorScheme.primary
             : null,
-        minimumSize: const Size(40, 40),
+        minimumSize: const Size(36, 36),
         padding: EdgeInsets.zero,
         side: BorderSide(color: context.colorScheme.primary),
       ),

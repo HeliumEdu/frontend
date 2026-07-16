@@ -1307,6 +1307,9 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
                         label: 'Close',
                         button: true,
                         child: IconButton(
+                          visualDensity: Responsive.isMobile(context)
+                              ? VisualDensity.compact
+                              : context.theme.visualDensity,
                           style: IconButton.styleFrom(
                             tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                           ),
@@ -1317,7 +1320,6 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
                               alpha: 0.4,
                             ),
                           ),
-                          visualDensity: VisualDensity.compact,
                           onPressed: () => setState(() {
                             _showLinkPicker = false;
                             _linkPickerSearchController.clear();
