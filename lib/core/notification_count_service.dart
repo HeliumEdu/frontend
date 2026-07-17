@@ -7,6 +7,7 @@
 
 import 'package:flutter/foundation.dart';
 import 'package:heliumapp/core/dio_client.dart';
+import 'package:heliumapp/data/models/notification/notification_model.dart';
 import 'package:heliumapp/data/repositories/reminder_repository_impl.dart';
 import 'package:heliumapp/data/sources/reminder_remote_data_source.dart';
 import 'package:heliumapp/domain/repositories/reminder_repository.dart';
@@ -26,6 +27,9 @@ class NotificationCountService {
   final ValueNotifier<int> count = ValueNotifier<int>(0);
 
   final ReminderRepository _reminderRepository;
+
+  List<NotificationModel>? _cachedNotifications;
+  int? _cachedForCount;
 
   static NotificationCountService _instance =
       NotificationCountService._internal();
@@ -65,11 +69,46 @@ class NotificationCountService {
     }
   }
 
-  void increment() => count.value = count.value + 1;
+  void increment() {
+    count.value = count.value + 1;
+    // A push arrived: membership changed, so the cached list is stale even if a
+    // later decrement restores this exact count.
+    invalidateCachedNotifications();
+  }
 
   void decrement() {
     if (count.value > 0) count.value = count.value - 1;
+    invalidateCachedNotifications();
   }
 
-  void reset() => count.value = 0;
+  void reset() {
+    count.value = 0;
+    _cachedNotifications = null;
+    _cachedForCount = null;
+  }
+
+  /// The notification list from the last screen load, but only while the bell
+  /// count hasn't drifted since — so the list is still current. Returns a copy
+  /// (the screen mutates its list in place); null when there's no usable cache.
+  List<NotificationModel>? get cachedNotifications {
+    if (_cachedNotifications == null || _cachedForCount != count.value) {
+      return null;
+    }
+    return List.of(_cachedNotifications!);
+  }
+
+  /// Stores the notification list the screen just rendered, keyed to the current
+  /// bell count, so a later open with an unchanged count can skip the fetch.
+  void cacheNotifications(List<NotificationModel> notifications) {
+    _cachedNotifications = List.of(notifications);
+    _cachedForCount = count.value;
+  }
+
+  /// Drops the cached list. Call when the notification screen mutates its list
+  /// locally (dismiss/update/delete), since those changes don't always move the
+  /// count and would otherwise leave the cache stale.
+  void invalidateCachedNotifications() {
+    _cachedNotifications = null;
+    _cachedForCount = null;
+  }
 }

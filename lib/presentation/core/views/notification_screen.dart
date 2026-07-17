@@ -125,7 +125,15 @@ class _NotificationsScreenState
   Future<UserSettingsModel?> loadSettings() {
     return super.loadSettings().then((settings) {
       if (mounted && settings != null) {
-        _fetchReminders();
+        final cached = NotificationCountService().cachedNotifications;
+        if (cached != null) {
+          setState(() {
+            _notifications = cached;
+            isLoading = false;
+          });
+        } else {
+          _fetchReminders();
+        }
       }
       return settings;
     });
@@ -151,6 +159,7 @@ class _NotificationsScreenState
                 reminder.startOfRange == null ||
                 reminder.startOfRange!.isAfter(DateTime.now());
 
+            NotificationCountService().invalidateCachedNotifications();
             if (shouldRemove) {
               if (reminder.dismissed) {
                 showSnackBar(context, 'Reminder dismissed.');
@@ -174,6 +183,7 @@ class _NotificationsScreenState
               }
             }
           } else if (state is ReminderDeleted) {
+            NotificationCountService().invalidateCachedNotifications();
             setState(() {
               _notifications.removeWhere((n) => n.reminder.id == state.id);
             });
@@ -324,11 +334,14 @@ class _NotificationsScreenState
     });
 
     // The fetched active set is authoritative; reconcile the bell badge count
-    // with it (corrects any drift from local increment/decrement).
+    // with it (corrects any drift from local increment/decrement) and cache the
+    // list so a reopen with an unchanged count can skip the fetch.
     NotificationCountService().count.value = notifications.length;
+    NotificationCountService().cacheNotifications(notifications);
   }
 
   void _removeNotificationByPlannerItemId({int? eventId, int? homeworkId}) {
+    NotificationCountService().invalidateCachedNotifications();
     setState(() {
       _notifications.removeWhere((n) {
         if (eventId != null) return n.reminder.event?.entity?.id == eventId;
