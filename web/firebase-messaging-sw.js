@@ -64,6 +64,16 @@ self.addEventListener('notificationclick', (event) => {
 messaging.onBackgroundMessage((payload) => {
   console.log('[firebase-messaging-sw.js] Received background message:', payload);
 
+  // A dismiss data push (reminder dismissed on another device) clears the
+  // already-shown notification, which the SW filed under tag = reminder id.
+  if (payload.data?.action === 'dismiss') {
+    const reminderId = payload.data.reminder_id;
+    if (!reminderId) return;
+    return self.registration
+      .getNotifications({ tag: reminderId })
+      .then((notifications) => notifications.forEach((n) => n.close()));
+  }
+
   // If any tab is visible, the Dart foreground handler will show the notification.
   // Skip here to avoid a duplicate — onBackgroundMessage and onMessage are not
   // strictly mutually exclusive in Chrome's Firebase web SDK implementation.

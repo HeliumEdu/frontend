@@ -15,6 +15,7 @@ import 'package:heliumapp/config/app_router.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/core/dio_client.dart';
 import 'package:heliumapp/core/notification_count_service.dart';
+import 'package:heliumapp/core/notification_reconciler.dart';
 import 'package:heliumapp/core/whats_new_service.dart';
 import 'package:heliumapp/presentation/core/dialogs/getting_started_dialog.dart';
 import 'package:heliumapp/presentation/core/dialogs/whats_new_dialog.dart';
@@ -214,6 +215,7 @@ class _NavigationShellState extends State<NavigationShell> {
 
   void _refreshNotificationCount() {
     unawaited(NotificationCountService().refresh());
+    unawaited(NotificationReconciler().reconcile());
   }
 
   @override

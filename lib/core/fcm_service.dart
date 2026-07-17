@@ -96,6 +96,10 @@ class FcmService {
   @visibleForTesting
   static Duration get dedupeWindowForTesting => _dedupeWindow;
 
+  @visibleForTesting
+  Future<void> handleDismissMessageForTesting(RemoteMessage message) =>
+      _handleDismissMessage(message);
+
   Future<void> init() async {
     if (isInitialized) return;
 
@@ -361,6 +365,11 @@ class FcmService {
     final messageId = message.messageId ?? 'unknown';
     _log.info('Foreground message $messageId received from FCM');
 
+    if (message.data['action'] == 'dismiss') {
+      await _handleDismissMessage(message);
+      return;
+    }
+
     if (kDebugMode) {
       if (await _handleTestMessages(message, messageId)) return;
     }
@@ -382,6 +391,31 @@ class FcmService {
     await showLocalNotification(notification);
     NotificationCountService().increment();
     _log.info('Foreground message $messageId notification displayed');
+  }
+
+  /// Clears a reminder's notification in response to a silent
+  /// `{action: dismiss, reminder_id}` push (dismissed on another device).
+  /// Android cancels by the tag the FCM SDK posts under, `reminder_{id}` at the
+  /// hardcoded id 0. iOS clears natively in AppDelegate and web in the service
+  /// worker, so this only touches the count on those platforms.
+  Future<void> _handleDismissMessage(RemoteMessage message) async {
+    final reminderId = message.data['reminder_id'];
+    if (reminderId == null || reminderId.isEmpty) {
+      _log.warning('Dismiss message missing reminder_id, ignoring');
+      return;
+    }
+
+    _log.info('Dismiss received for reminder $reminderId; clearing notification');
+
+    if (!kIsWeb && Platform.isAndroid) {
+      try {
+        await _localNotifications.cancel(id: 0, tag: 'reminder_$reminderId');
+      } catch (e, s) {
+        _log.warning('Failed to clear notification for reminder $reminderId', e, s);
+      }
+    }
+
+    NotificationCountService().decrement();
   }
 
   Future<void> _onNotificationTap(RemoteMessage message) async {
@@ -611,9 +645,10 @@ class FcmService {
 
 @pragma('vm:entry-point')
 Future<void> _onBackgroundMessage(RemoteMessage message) async {
-  // The OS displays the notification natively via AndroidConfig/APNSConfig.
-  // No display logic needed here; this handler exists to satisfy Firebase's
-  // background message registration requirement.
+  // Reminder pushes are displayed natively by the OS, so this handler exists
+  // to register the background isolate and to clear a notification on a dismiss
+  // push. The count is left to refresh() on resume — this isolate has its own
+  // memory, separate from the UI's NotificationCountService.
   try {
     await Firebase.initializeApp();
   } catch (e) {
@@ -622,4 +657,20 @@ Future<void> _onBackgroundMessage(RemoteMessage message) async {
   }
 
   _log.info('Background message ${message.messageId ?? 'unknown'} received from FCM');
+
+  if (message.data['action'] == 'dismiss' && !kIsWeb && Platform.isAndroid) {
+    final reminderId = message.data['reminder_id'];
+    if (reminderId == null || reminderId.isEmpty) return;
+
+    try {
+      await FlutterLocalNotificationsPlugin().cancel(
+        id: 0,
+        tag: 'reminder_$reminderId',
+      );
+    } catch (e, s) {
+      // Method channels aren't guaranteed in the background isolate; a failure
+      // is reconciled when the app next resumes.
+      _log.warning('Background dismiss clear failed for reminder $reminderId', e, s);
+    }
+  }
 }

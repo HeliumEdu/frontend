@@ -5,16 +5,19 @@
 //
 // For details regarding the license, please refer to the LICENSE file.
 
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:heliumapp/config/pref_service.dart';
 import 'package:heliumapp/core/dio_client.dart';
 import 'package:heliumapp/core/fcm_service.dart';
+import 'package:heliumapp/core/notification_count_service.dart';
 import 'package:heliumapp/data/models/notification/notification_model.dart';
 import 'package:heliumapp/data/models/planner/reminder_model.dart';
 import 'package:mocktail/mocktail.dart';
 
 import '../mocks/mock_firebase.dart';
+import '../mocks/mock_repositories.dart';
 import '../mocks/mock_services.dart';
 
 class MockNotificationDetails extends Mock implements NotificationDetails {}
@@ -127,6 +130,47 @@ void main() {
             payload: any(named: 'payload'),
           ),
         ).called(1);
+      });
+    });
+
+    group('dismiss message', () {
+      late MockReminderRepository mockReminderRepository;
+
+      setUp(() {
+        mockReminderRepository = MockReminderRepository();
+        NotificationCountService.setInstanceForTesting(
+          NotificationCountService.forTesting(
+            reminderRepository: mockReminderRepository,
+          ),
+        );
+      });
+
+      tearDown(NotificationCountService.resetForTesting);
+
+      test('decrements the bell count for a valid dismiss', () async {
+        // GIVEN a non-zero count and a dismiss push for a reminder
+        NotificationCountService().count.value = 3;
+        const message = RemoteMessage(
+          data: {'action': 'dismiss', 'reminder_id': '42'},
+        );
+
+        // WHEN the dismiss message is handled
+        await fcmService.handleDismissMessageForTesting(message);
+
+        // THEN the bell count drops by one
+        expect(NotificationCountService().count.value, 2);
+      });
+
+      test('ignores a dismiss missing its reminder_id', () async {
+        // GIVEN a dismiss push with no reminder_id
+        NotificationCountService().count.value = 3;
+        const message = RemoteMessage(data: {'action': 'dismiss'});
+
+        // WHEN the dismiss message is handled
+        await fcmService.handleDismissMessageForTesting(message);
+
+        // THEN the count is untouched (nothing to dismiss)
+        expect(NotificationCountService().count.value, 3);
       });
     });
   });

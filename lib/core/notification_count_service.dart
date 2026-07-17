@@ -14,7 +14,7 @@ import 'package:logging/logging.dart';
 
 final _log = Logger('core.notification_count');
 
-/// Tracks the count of active (sent, undismissed popup) reminders for the
+/// Tracks the count of active (sent, undismissed push) reminders for the
 /// notification-bell badge. Held as a singleton with a [ValueNotifier] so the
 /// header bell can react to it and out-of-tree callers (FCM pushes, the dismiss
 /// flow) can adjust it without a network round trip.
