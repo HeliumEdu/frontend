@@ -114,6 +114,11 @@ class _NotificationsScreenState
   @override
   EdgeInsets get scaffoldInsets => const EdgeInsets.all(0);
 
+  /// Width floor reserved for the notification title so a long course/room
+  /// badge stretches only into the space beyond it, never squeezing the title
+  /// below this.
+  static const double _minTitleWidth = 120.0;
+
   final PrefService _prefService = PrefService();
 
   List<NotificationModel> _notifications = [];
@@ -511,71 +516,69 @@ class _NotificationsScreenState
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
-                      children: [
-                        // When a badge follows, Text hugs content;
-                        // when alone, Flexible allows ellipsis
-                        if (plannerItem is HomeworkModel &&
-                                plannerItem.course.entity != null ||
-                            notification.reminder.course?.entity != null &&
+                    LayoutBuilder(
+                      builder: (context, constraints) {
+                        // The title hugs its content and ellipsizes only when
+                        // squeezed; the badge stretches to fill the row but is
+                        // capped so the title always keeps at least
+                        // [_minTitleWidth].
+                        final badgeMaxWidth =
+                            (constraints.maxWidth - _minTitleWidth)
+                                .clamp(0.0, double.infinity);
+                        return Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Flexible(
+                              child: Text(
+                                notification.title,
+                                style: AppStyles.standardBodyText(context)
+                                    .copyWith(
+                                      fontWeight: notification.isRead
+                                          ? FontWeight.normal
+                                          : FontWeight.w600,
+                                    ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            if (plannerItem is HomeworkModel &&
+                                plannerItem.course.entity != null)
+                              Padding(
+                                padding: const EdgeInsets.only(left: 4),
+                                child: ConstrainedBox(
+                                  constraints: BoxConstraints(
+                                    maxWidth: badgeMaxWidth,
+                                  ),
+                                  child: CourseTitleLabel(
+                                    title: plannerItem.course.entity!.title,
+                                    color: plannerItem.course.entity!.color,
+                                    compact: true,
+                                  ),
+                                ),
+                              )
+                            else if (notification.reminder.course?.entity !=
+                                    null &&
                                 notification
                                     .reminder.course!.entity!.room.isNotEmpty)
-                          Text(
-                            notification.title,
-                            style: AppStyles.standardBodyText(context).copyWith(
-                              fontWeight: notification.isRead
-                                  ? FontWeight.normal
-                                  : FontWeight.w600,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          )
-                        else
-                          Flexible(
-                            child: Text(
-                              notification.title,
-                              overflow: TextOverflow.ellipsis,
-                              style: AppStyles.standardBodyText(context)
-                                  .copyWith(
-                                    fontWeight: notification.isRead
-                                        ? FontWeight.normal
-                                        : FontWeight.w600,
+                              Padding(
+                                padding: const EdgeInsets.only(left: 4),
+                                child: ConstrainedBox(
+                                  constraints: BoxConstraints(
+                                    maxWidth: badgeMaxWidth,
                                   ),
-                            ),
-                          ),
-                        if (plannerItem is HomeworkModel &&
-                            plannerItem.course.entity != null) ...[
-                          const SizedBox(width: 4),
-                          Expanded(
-                            child: Align(
-                              alignment: Alignment.centerRight,
-                              child: CourseTitleLabel(
-                                title: plannerItem.course.entity!.title,
-                                color: plannerItem.course.entity!.color,
-                                compact: true,
+                                  child: GenericLabel(
+                                    label: notification
+                                        .reminder.course!.entity!.room,
+                                    color: notification
+                                        .reminder.course!.entity!.color,
+                                    icon: Icons.pin_drop_outlined,
+                                    compact: true,
+                                  ),
+                                ),
                               ),
-                            ),
-                          ),
-                        ] else if (notification.reminder.course?.entity !=
-                                null &&
-                            notification
-                                .reminder.course!.entity!.room.isNotEmpty) ...[
-                          const SizedBox(width: 4),
-                          Expanded(
-                            child: Align(
-                              alignment: Alignment.centerRight,
-                              child: GenericLabel(
-                                label:
-                                    notification.reminder.course!.entity!.room,
-                                color:
-                                    notification.reminder.course!.entity!.color,
-                                icon: Icons.pin_drop_outlined,
-                                compact: true,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ],
+                          ],
+                        );
+                      },
                     ),
 
                     const SizedBox(height: 4),
