@@ -9,6 +9,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 class ResponsiveBreakpoints {
+  static const double slimMobile = 390;
+
   static const double mobile = 600;
 
   static const double tablet = 1024;
@@ -29,6 +31,10 @@ class Responsive {
 
   static bool isMobile(BuildContext context) {
     return isMobileWidth(MediaQuery.of(context).size.width);
+  }
+
+  static bool isSlimMobile(BuildContext context) {
+    return isSlimMobileWidth(MediaQuery.of(context).size.width);
   }
 
   /// Returns true when the device is in a "phone landscape" configuration:
@@ -60,6 +66,10 @@ class Responsive {
 
   static bool isMobileWidth(double width) {
     return width < ResponsiveBreakpoints.mobile;
+  }
+
+  static bool isSlimMobileWidth(double width) {
+    return width < ResponsiveBreakpoints.slimMobile;
   }
 
   static bool isTabletWidth(double width) {
@@ -141,9 +151,13 @@ class Responsive {
   static double getFontSize(
     BuildContext context, {
     required double mobile,
+    double? slimMobile,
     double? tablet,
     double? desktop,
   }) {
+    if (slimMobile != null && isSlimMobile(context)) {
+      return slimMobile;
+    }
     final deviceType = getDeviceType(context);
     switch (deviceType) {
       case DeviceType.desktop:

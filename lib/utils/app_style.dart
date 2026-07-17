@@ -107,7 +107,12 @@ extension AppStyles on BuildContext {
   // Used for responsive button text
   static TextStyle buttonText(BuildContext context) => poppins(
     fontWeight: FontWeight.w600,
-    fontSize: Responsive.getFontSize(context, mobile: 15, desktop: 16),
+    fontSize: Responsive.getFontSize(
+      context,
+      slimMobile: 14,
+      mobile: 15,
+      desktop: 16,
+    ),
     color: Theme.of(context).colorScheme.onPrimary,
     fontFeatures: [const FontFeature.tabularFigures()],
   );

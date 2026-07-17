@@ -591,6 +591,7 @@ jobs:
           APP_STORE_CONNECT_API_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_ISSUER_ID }}
           APP_STORE_CONNECT_API_KEY: ${{ secrets.APP_STORE_CONNECT_API_KEY }}
           APP_STORE_CONNECT_TEAM_ID: ${{ secrets.APP_STORE_CONNECT_TEAM_ID }}
+          FULL_VERSION: ${{ inputs.artifact_run_id != '' && inputs.specific_version || steps.find_run.outputs.full_version }}
         run: |
           cd ios
           echo "Deploying to TestFlight ..."
@@ -599,7 +600,8 @@ jobs:
           mkdir -p ~/.appstoreconnect/private_keys
           echo "$APP_STORE_CONNECT_API_KEY" > ~/.appstoreconnect/private_keys/AuthKey_${APP_STORE_CONNECT_API_KEY_ID}.p8
 
-          bundle exec fastlane deploy_testflight ipa_path:../ios-build/Helium.ipa
+          BUILD="${FULL_VERSION##*+}"
+          bundle exec fastlane deploy_testflight ipa_path:../ios-build/Helium.ipa build_number:$BUILD
 
       - name: Stage App Store version
         if: inputs.environment == 'prod'

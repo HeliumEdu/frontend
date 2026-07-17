@@ -75,8 +75,6 @@ class ErrorContainer extends StatelessWidget {
                 ),
                 style: IconButton.styleFrom(
                   tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                  minimumSize: Size.zero,
-                  padding: EdgeInsets.zero,
                 ),
               ),
             ),

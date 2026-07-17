@@ -311,12 +311,18 @@ class CourseScheduleState extends State<CourseSchedule> {
                         )
                         .toList(),
                     style: ButtonStyle(
+                      padding: WidgetStatePropertyAll(
+                        EdgeInsets.symmetric(
+                          horizontal: Responsive.isSlimMobile(context) ? 6 : 8,
+                        ),
+                      ),
                       textStyle: WidgetStateProperty.all(
                         AppStyles.buttonText(context).copyWith(
                           fontSize: Responsive.getFontSize(
                             context,
-                            mobile: 12,
-                            desktop: 13,
+                            slimMobile: 12,
+                            mobile: 13,
+                            desktop: 14,
                           ),
                         ),
                       ),

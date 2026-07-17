@@ -8,6 +8,7 @@
 import 'dart:async';
 
 import 'package:collection/collection.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -671,31 +672,31 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
       onPointerUp: (_) => _plannerItemDataSource?.thawChangeNotifications(),
       onPointerCancel: (_) => _plannerItemDataSource?.thawChangeNotifications(),
       child: BlocBuilder<PlannerBloc, PlannerState>(
-      builder: (context, state) {
-        if (state is PlannerLoading) {
-          return const Center(child: LoadingIndicator(expanded: false));
-        }
+        builder: (context, state) {
+          if (state is PlannerLoading) {
+            return const Center(child: LoadingIndicator(expanded: false));
+          }
 
-        if (state is PlannerError && state.origin == EventOrigin.screen) {
-          return ErrorCard(
-            message: state.message!,
-            source: 'planner_screen',
-            onReload: () {
-              context.read<PlannerBloc>().add(
-                FetchPlannerScreenDataEvent(
-                  origin: EventOrigin.screen,
-                  forceRefresh: true,
-                ),
-              );
-            },
-          );
-        }
+          if (state is PlannerError && state.origin == EventOrigin.screen) {
+            return ErrorCard(
+              message: state.message!,
+              source: 'planner_screen',
+              onReload: () {
+                context.read<PlannerBloc>().add(
+                  FetchPlannerScreenDataEvent(
+                    origin: EventOrigin.screen,
+                    forceRefresh: true,
+                  ),
+                );
+              },
+            );
+          }
 
-        // Flexible instead of toggling Expanded/bare child; keeping the
-        // widget type constant prevents SfCalendar from being disposed
-        // and remounted when isCapturing changes.
-        return _buildTodosContent();
-      },
+          // Flexible instead of toggling Expanded/bare child; keeping the
+          // widget type constant prevents SfCalendar from being disposed
+          // and remounted when isCapturing changes.
+          return _buildTodosContent();
+        },
       ),
     );
   }
@@ -771,14 +772,22 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
             final int displayCount = maxItems > _monthMinItemDisplayCount
                 ? maxItems
                 : _monthMinItemDisplayCount;
-            final expandedHeight = _calculateExpandedCalendarHeight(displayCount);
+            final expandedHeight = _calculateExpandedCalendarHeight(
+              displayCount,
+            );
             final fillHeight = _calculateCalendarHeight(constraints.maxHeight);
-            calendarHeight = expandedHeight > fillHeight ? expandedHeight : fillHeight;
+            calendarHeight = expandedHeight > fillHeight
+                ? expandedHeight
+                : fillHeight;
             // Set display count to the number of fixed-height slots that fit
             // so items stack at their natural height (empty space at cell
             // bottom) instead of stretching to fill the cell.
-            final slotsAtFixedHeight = _calculateCalendarItemDisplayCount(calendarHeight);
-            noCollapseCount = maxItems > slotsAtFixedHeight ? maxItems : slotsAtFixedHeight;
+            final slotsAtFixedHeight = _calculateCalendarItemDisplayCount(
+              calendarHeight,
+            );
+            noCollapseCount = maxItems > slotsAtFixedHeight
+                ? maxItems
+                : slotsAtFixedHeight;
           } else {
             // Collapse enabled: fill viewport dynamically, down to minimum.
             calendarHeight = _calculateCalendarHeight(constraints.maxHeight);
@@ -808,7 +817,10 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
     final cellHeight = (availableHeight - dayHeaderHeight) / monthRows;
     final availableForCalendarItems = cellHeight - dayNumberHeight;
     // Each item occupies its height plus the inter-item gap SfCalendar inserts.
-    final count = (availableForCalendarItems / (_monthCalendarItemHeight + _monthCalendarItemGap)).floor();
+    final count =
+        (availableForCalendarItems /
+                (_monthCalendarItemHeight + _monthCalendarItemGap))
+            .floor();
 
     return count.clamp(_monthMinItemDisplayCount, 10);
   }
@@ -834,7 +846,9 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
     const int monthRows = 6;
     // n items require n slots of (height + gap), minus the trailing gap,
     // plus cell bottom padding SfCalendar reserves below the last item.
-    final itemsHeight = maxItems * (_monthCalendarItemHeight + _monthCalendarItemGap) - _monthCalendarItemGap;
+    final itemsHeight =
+        maxItems * (_monthCalendarItemHeight + _monthCalendarItemGap) -
+        _monthCalendarItemGap;
     final cellHeight = dayNumberHeight + itemsHeight + _monthCellBottomPadding;
     return dayHeaderHeight + (monthRows * cellHeight);
   }
@@ -860,10 +874,13 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
           controller: _calendarController,
           headerHeight: 0,
           showCurrentTimeIndicator: true,
-          showWeekNumber: userSettings?.showWeekNumbers ?? FallbackConstants.defaultShowWeekNumbers,
+          showWeekNumber:
+              userSettings?.showWeekNumbers ??
+              FallbackConstants.defaultShowWeekNumbers,
           allowDragAndDrop:
               !Responsive.isTouchDevice(context) ||
-              (userSettings?.dragAndDropOnMobile ?? FallbackConstants.defaultDragAndDropOnMobile),
+              (userSettings?.dragAndDropOnMobile ??
+                  FallbackConstants.defaultDragAndDropOnMobile),
           dragAndDropSettings: DragAndDropSettings(
             timeIndicatorStyle: AppStyles.smallSecondaryText(
               context,
@@ -1035,7 +1052,8 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
     _deferredOpenItemId = null;
     _deferredOpenAction = null;
 
-    final hasPendingWrite = (homeworkId != null &&
+    final hasPendingWrite =
+        (homeworkId != null &&
             (_pendingToggleTimers.containsKey(homeworkId) ||
                 _inFlightCompletionIds.contains(homeworkId))) ||
         _plannerItemDataSource!.hasTimeOverride(plannerItem.id);
@@ -1072,7 +1090,12 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: ShadowContainer(
-        padding: const EdgeInsets.only(left: 8, right: 8, top: 4, bottom: 4),
+        padding: EdgeInsets.only(
+          left: isMobile ? 6 : 8,
+          right: isMobile ? 6 : 8,
+          top: 4,
+          bottom: 4,
+        ),
         child: LayoutBuilder(
           builder: (context, constraints) {
             return SizedBox(
@@ -1117,6 +1140,11 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
     );
   }
 
+  /// Shared height for the calendar header controls: 40 normally, 36 on slim
+  /// phones so the row fits without overflowing (matches the chevrons/date).
+  double _headerButtonSize(BuildContext context) =>
+      Responsive.isSlimMobile(context) ? 36 : 40;
+
   Widget _buildTodayButton({required bool showLabel, Key? key}) {
     final icon = Icon(
       Icons.calendar_today,
@@ -1136,9 +1164,16 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
           padding: WidgetStateProperty.all(
             const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
           ),
-          // Pin the min/max size to ensure matches filter buttons on other side of header
-          minimumSize: WidgetStateProperty.all(const Size(0, 48)),
-          maximumSize: WidgetStateProperty.all(const Size(double.infinity, 48)),
+          // Pin height to match the other header controls on both mobile and
+          // web. Standard density keeps it fixed so it stays aligned with the
+          // density-fixed icon buttons (and the non-button date field).
+          minimumSize: WidgetStateProperty.all(
+            Size(0, _headerButtonSize(context)),
+          ),
+          maximumSize: WidgetStateProperty.all(
+            Size(double.infinity, _headerButtonSize(context)),
+          ),
+          visualDensity: VisualDensity.standard,
           side: WidgetStateProperty.all(
             BorderSide(color: context.colorScheme.primary),
           ),
@@ -1160,6 +1195,10 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
           icon: icon,
           style: IconButton.styleFrom(
             tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            minimumSize: Size(
+              _headerButtonSize(context),
+              _headerButtonSize(context),
+            ),
             side: BorderSide(color: context.colorScheme.primary),
           ),
         ),
@@ -1191,6 +1230,10 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
     final String headerText = _buildHeaderDate();
 
     final showNavButtons = _currentView != PlannerView.agenda;
+    final bool isSlimMobile = Responsive.isSlimMobile(context);
+    final double chevronGap = isSlimMobile ? 2 : 3;
+    final double chevronSize = _headerButtonSize(context);
+    final double leadingGap = Responsive.isMobile(context) ? 4 : 8;
 
     return Expanded(
       child: Row(
@@ -1198,7 +1241,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          const SizedBox(width: 4),
+          SizedBox(width: leadingGap),
           if (showNavButtons) ...[
             PrintHidden(
               child: Semantics(
@@ -1212,14 +1255,17 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
                   ),
                   onPressed: _calendarController.backward,
                   padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(),
+                  constraints: BoxConstraints(
+                    minWidth: chevronSize,
+                    minHeight: chevronSize,
+                  ),
                   style: IconButton.styleFrom(
                     tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                   ),
                 ),
               ),
             ),
-            const SizedBox(width: 4),
+            SizedBox(width: chevronGap),
           ],
           Stack(
             alignment: Alignment.center,
@@ -1239,7 +1285,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
                   button: true,
                   child: InkWell(
                     onTap: _openDatePicker,
-                    borderRadius: BorderRadius.circular(16),
+                    borderRadius: BorderRadius.circular(6),
                     child: _buildHeaderLabelRow(headerText),
                   ),
                 ),
@@ -1261,7 +1307,10 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
                   ),
                   onPressed: _calendarController.forward,
                   padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(),
+                  constraints: BoxConstraints(
+                    minWidth: chevronSize,
+                    minHeight: chevronSize,
+                  ),
                   style: IconButton.styleFrom(
                     tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                   ),
@@ -1311,13 +1360,17 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
 
     if (!isMobile) {
       return AnimatedContainer(
-        duration: MotionService().effectiveDuration(AppConstants.uiAnimationDuration),
+        duration: MotionService().effectiveDuration(
+          AppConstants.uiAnimationDuration,
+        ),
         width: expandedToolbarWidth,
         child: Stack(
           alignment: Alignment.centerRight,
           children: [
             AnimatedOpacity(
-              duration: MotionService().effectiveDuration(AppConstants.uiAnimationDuration),
+              duration: MotionService().effectiveDuration(
+                AppConstants.uiAnimationDuration,
+              ),
               opacity: _isSearchExpanded ? 0.0 : 1.0,
               child: IgnorePointer(
                 ignoring: _isSearchExpanded,
@@ -1325,12 +1378,16 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
               ),
             ),
             AnimatedPositioned(
-              duration: MotionService().effectiveDuration(AppConstants.uiAnimationDuration),
+              duration: MotionService().effectiveDuration(
+                AppConstants.uiAnimationDuration,
+              ),
               curve: Curves.easeInOut,
               right: 0,
               width: _isSearchExpanded ? expandedToolbarWidth : 46,
               child: AnimatedOpacity(
-                duration: MotionService().effectiveDuration(AppConstants.uiAnimationDuration),
+                duration: MotionService().effectiveDuration(
+                  AppConstants.uiAnimationDuration,
+                ),
                 opacity: _isSearchExpanded ? 1.0 : 0.0,
                 child: IgnorePointer(
                   ignoring: !_isSearchExpanded,
@@ -1343,13 +1400,17 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
       );
     } else {
       return AnimatedContainer(
-        duration: MotionService().effectiveDuration(AppConstants.uiAnimationDuration),
+        duration: MotionService().effectiveDuration(
+          AppConstants.uiAnimationDuration,
+        ),
         width: expandedToolbarWidth,
         child: Stack(
           alignment: Alignment.centerRight,
           children: [
             AnimatedOpacity(
-              duration: MotionService().effectiveDuration(AppConstants.uiAnimationDuration),
+              duration: MotionService().effectiveDuration(
+                AppConstants.uiAnimationDuration,
+              ),
               opacity: _isSearchExpanded ? 0.0 : 1.0,
               child: IgnorePointer(
                 ignoring: _isSearchExpanded,
@@ -1357,12 +1418,16 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
               ),
             ),
             AnimatedPositioned(
-              duration: MotionService().effectiveDuration(AppConstants.uiAnimationDuration),
+              duration: MotionService().effectiveDuration(
+                AppConstants.uiAnimationDuration,
+              ),
               curve: Curves.easeInOut,
               right: 0,
               width: _isSearchExpanded ? expandedToolbarWidth : 46,
               child: AnimatedOpacity(
-                duration: MotionService().effectiveDuration(AppConstants.uiAnimationDuration),
+                duration: MotionService().effectiveDuration(
+                  AppConstants.uiAnimationDuration,
+                ),
                 opacity: _isSearchExpanded ? 1.0 : 0.0,
                 child: IgnorePointer(
                   ignoring: !_isSearchExpanded,
@@ -1487,7 +1552,6 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
                           ),
                           tooltip: 'Collapse',
                           padding: EdgeInsets.zero,
-                          constraints: const BoxConstraints(),
                           style: IconButton.styleFrom(
                             tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                           ),
@@ -1524,6 +1588,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
   }
 
   Widget _buildFilterButtonsRow({bool hideSearchButton = false}) {
+    final double buttonGap = Responsive.isMobile(context) ? 4 : 8;
     return Row(
       mainAxisAlignment: MainAxisAlignment.end,
       mainAxisSize: MainAxisSize.min,
@@ -1538,12 +1603,16 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
               icon: const Icon(Icons.calendar_month),
               style: IconButton.styleFrom(
                 tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                minimumSize: Size(
+                  _headerButtonSize(context),
+                  _headerButtonSize(context),
+                ),
                 side: BorderSide(color: context.colorScheme.primary),
               ),
             );
           },
         ),
-        const SizedBox(width: 8),
+        SizedBox(width: buttonGap),
         Builder(
           builder: (context) {
             final hasFilters = _hasCoursesFilter() || _hasStatusFilters();
@@ -1556,6 +1625,10 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
               icon: const Icon(Icons.filter_alt),
               style: IconButton.styleFrom(
                 tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                minimumSize: Size(
+                  _headerButtonSize(context),
+                  _headerButtonSize(context),
+                ),
                 backgroundColor: hasFilters
                     ? context.colorScheme.primary
                     : null,
@@ -1572,7 +1645,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
           },
         ),
         if (!hideSearchButton) ...[
-          const SizedBox(width: 8),
+          SizedBox(width: buttonGap),
           Builder(
             builder: (context) {
               final hasSearchQuery = _hasSearchQuery();
@@ -1591,6 +1664,10 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
                   icon: const Icon(Icons.search),
                   style: IconButton.styleFrom(
                     tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    minimumSize: Size(
+                      _headerButtonSize(context),
+                      _headerButtonSize(context),
+                    ),
                     backgroundColor: hasSearchQuery
                         ? context.colorScheme.primary
                         : null,
@@ -1661,11 +1738,19 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
   }
 
   Widget _buildHeaderLabelRow(String text) {
+    final bool isMobile = Responsive.isMobile(context);
+    final bool isSlimMobile = Responsive.isSlimMobile(context);
+    final double sideInset = isMobile ? 2 : 8;
+    const double webInset = kIsWeb ? 4 : 0;
+    // Vertical padding + the 24px dropdown icon sets the date height to match
+    // the header's chevrons: 8+24+8 = 40 normally, 6+24+6 = 36 on slim phones.
+    final double vInset = isSlimMobile ? 6 : 8;
     return Padding(
       padding: EdgeInsets.only(
-        left: Responsive.isMobile(context) ? 4 : 8,
-        top: 8,
-        bottom: 8,
+        left: sideInset + webInset,
+        right: webInset,
+        top: vInset,
+        bottom: vInset,
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -1673,16 +1758,32 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
         children: [
           Text(
             text,
-            style: AppStyles.headingText(
-              context,
-            ).copyWith(color: context.colorScheme.onSurface),
+            style: AppStyles.headingText(context).copyWith(
+              color: context.colorScheme.onSurface,
+              // Trim the date 1pt on slim phones to reclaim the last few pixels
+              // the header row needs to fit.
+              fontSize: isSlimMobile ? 14 : null,
+            ),
           ),
           const SizedBox(width: 2),
           PrintHidden(
-            child: Icon(
-              Icons.arrow_drop_down,
-              color: context.colorScheme.primary,
-              size: 24,
+            child: SizedBox(
+              // The arrow_drop_down glyph carries ~4px of empty optical padding
+              // on its trailing edge; reserve a narrower box so the right
+              // chevron pulls in to stay symmetric with the tightened left
+              // inset above.
+              width: isMobile ? 18 : 24,
+              height: 24,
+              child: OverflowBox(
+                maxWidth: 24,
+                maxHeight: 24,
+                alignment: Alignment.centerLeft,
+                child: Icon(
+                  Icons.arrow_drop_down,
+                  color: context.colorScheme.primary,
+                  size: 24,
+                ),
+              ),
             ),
           ),
         ],
@@ -1738,7 +1839,8 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
     if (enabled.length <= 1) return [];
 
     final filterTypes = _plannerItemDataSource!.filterTypes;
-    final externalCalendarsVisible = filterTypes.isEmpty ||
+    final externalCalendarsVisible =
+        filterTypes.isEmpty ||
         filterTypes.contains(PlannerFilterType.externalCalendars.value);
     if (!externalCalendarsVisible) return [];
 
@@ -1748,8 +1850,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
   bool _areAssignmentsVisible() {
     if (_currentView == PlannerView.todos) return true;
     final types = _plannerItemDataSource!.filterTypes;
-    return types.isEmpty ||
-        types.contains(PlannerFilterType.assignments.value);
+    return types.isEmpty || types.contains(PlannerFilterType.assignments.value);
   }
 
   bool _areCourseItemsVisible() {
@@ -1945,7 +2046,10 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
       _plannerItemDataSource!.resetAppointments();
       if (dropDetails.droppingTime != null) {
         if (plannerItem is CourseScheduleEventModel) {
-          _showCourseScheduleEventDialog(plannerItem, dropDetails.droppingTime!);
+          _showCourseScheduleEventDialog(
+            plannerItem,
+            dropDetails.droppingTime!,
+          );
           // HE-184: drop this branch when recurring Events become editable.
         } else if (_isReadOnlyRecurringEvent(plannerItem)) {
           _showRecurringEventReadOnlySnackBar();
@@ -2075,7 +2179,8 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
     // HE-184: drop the `&& !_isReadOnlyRecurringEvent(...)` guard when
     // recurring Events become resizable.
     if (plannerItem is HomeworkModel ||
-        (plannerItem is EventModel && !_isReadOnlyRecurringEvent(plannerItem))) {
+        (plannerItem is EventModel &&
+            !_isReadOnlyRecurringEvent(plannerItem))) {
       final DateTime start = tz.TZDateTime(
         userSettings!.timeZone,
         resizeDetails.startTime!.year,
@@ -2428,7 +2533,8 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
   }) {
     if (_isCalendarInteractionInProgress ||
         Responsive.isTouchDevice(context) ||
-        !(userSettings?.showPlannerTooltips ?? FallbackConstants.defaultShowPlannerTooltips)) {
+        !(userSettings?.showPlannerTooltips ??
+            FallbackConstants.defaultShowPlannerTooltips)) {
       return child;
     }
 
@@ -3150,10 +3256,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
               Feedback.forTap(context);
               _openPlannerItem(plannerItem, occurrenceDate: occurrenceDate);
             },
-            child: SizedBox(
-              height: agendaHeight,
-              child: leftContent,
-            ),
+            child: SizedBox(height: agendaHeight, child: leftContent),
           ),
         );
       } else {
@@ -3333,9 +3436,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
             ? course.website.toString()
             : null,
         onEditSchedule: () {
-          context.go(
-            '${AppRoute.coursesScreen}/${event.ownerId}/schedule',
-          );
+          context.go('${AppRoute.coursesScreen}/${event.ownerId}/schedule');
         },
       ),
     );
@@ -3729,9 +3830,13 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
       return ConstrainedBox(
         constraints: isMobile
             ? BoxConstraints.tightFor(
-                height: MediaQuery.of(context).size.height * AppConstants.bottomSheetMaxHeightFactor,
+                height:
+                    MediaQuery.of(context).size.height *
+                    AppConstants.bottomSheetMaxHeightFactor,
               )
-            : BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.75),
+            : BoxConstraints(
+                maxHeight: MediaQuery.of(context).size.height * 0.75,
+              ),
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(16),
           child: Column(
@@ -3938,62 +4043,62 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
               ],
 
               if (_areCourseItemsVisible() && displayCourses.length > 1) ...[
-              _buildSheetSectionHeader(context, 'CLASSES'),
-              for (int i = 0; i < displayCourses.length; i++) ...[
-                if (i > 0 &&
-                    displayCourses[i].courseGroup !=
-                        displayCourses[i - 1].courseGroup)
-                  const Divider(height: 20),
-                Builder(
-                  builder: (context) {
-                    final course = displayCourses[i];
-                    final isSelected =
-                        _plannerItemDataSource!.selectedCourses[course.id] ??
-                        false;
-                    return HeliumCheckboxListTile(
-                      title: Row(
-                        children: [
-                          Container(
-                            width: 12,
-                            height: 12,
-                            decoration: BoxDecoration(
-                              color: course.color,
-                              shape: BoxShape.circle,
+                _buildSheetSectionHeader(context, 'CLASSES'),
+                for (int i = 0; i < displayCourses.length; i++) ...[
+                  if (i > 0 &&
+                      displayCourses[i].courseGroup !=
+                          displayCourses[i - 1].courseGroup)
+                    const Divider(height: 20),
+                  Builder(
+                    builder: (context) {
+                      final course = displayCourses[i];
+                      final isSelected =
+                          _plannerItemDataSource!.selectedCourses[course.id] ??
+                          false;
+                      return HeliumCheckboxListTile(
+                        title: Row(
+                          children: [
+                            Container(
+                              width: 12,
+                              height: 12,
+                              decoration: BoxDecoration(
+                                color: course.color,
+                                shape: BoxShape.circle,
+                              ),
                             ),
-                          ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: Text(
-                              course.title,
-                              style: AppStyles.formText(context),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                course.title,
+                                style: AppStyles.formText(context),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
                             ),
-                          ),
-                        ],
-                      ),
-                      value: isSelected,
-                      onChanged: (value) {
-                        final currentFilters = Map<int, bool>.from(
-                          _plannerItemDataSource!.selectedCourses,
-                        );
-                        if (value == true) {
-                          currentFilters[course.id] = true;
-                        } else {
-                          currentFilters.remove(course.id);
-                        }
-                        _plannerItemDataSource!.setSelectedCourses(
-                          currentFilters,
-                        );
-                        setSheetState(() {});
-                      },
-                      controlAffinity: ListTileControlAffinity.leading,
-                      dense: true,
-                      contentPadding: EdgeInsets.zero,
-                    );
-                  },
-                ),
-              ],
+                          ],
+                        ),
+                        value: isSelected,
+                        onChanged: (value) {
+                          final currentFilters = Map<int, bool>.from(
+                            _plannerItemDataSource!.selectedCourses,
+                          );
+                          if (value == true) {
+                            currentFilters[course.id] = true;
+                          } else {
+                            currentFilters.remove(course.id);
+                          }
+                          _plannerItemDataSource!.setSelectedCourses(
+                            currentFilters,
+                          );
+                          setSheetState(() {});
+                        },
+                        controlAffinity: ListTileControlAffinity.leading,
+                        dense: true,
+                        contentPadding: EdgeInsets.zero,
+                      );
+                    },
+                  ),
+                ],
               ],
 
               if (visibleExternalCalendars.isNotEmpty) ...[
@@ -4031,8 +4136,9 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
                       } else {
                         current.remove(calendar.id);
                       }
-                      _plannerItemDataSource!
-                          .setSelectedExternalCalendarIds(current);
+                      _plannerItemDataSource!.setSelectedExternalCalendarIds(
+                        current,
+                      );
                       setSheetState(() {});
                     },
                     controlAffinity: ListTileControlAffinity.leading,
@@ -4043,56 +4149,56 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
               ],
 
               if (_areAssignmentsVisible()) ...[
-              _buildSheetSectionHeader(context, 'STATUS'),
-              _CheckboxToggle(
-                isChecked: isCompleteFilterEnabled,
-                isToggleOn: showCompletedOnly,
-                baseLabel: PlannerFilterStatus.complete.value,
-                toggleOnLabel: PlannerFilterStatus.complete.value,
-                toggleOffLabel: PlannerFilterStatus.incomplete.value,
-                onCheckedChanged: (value) {
-                  setCompleteFilterMode(
-                    enabled: value ?? false,
-                    // Default to complete-only when enabling via checkbox.
-                    completeOnly: true,
-                  );
-                },
-                onToggleChanged: (value) {
-                  setCompleteFilterMode(enabled: true, completeOnly: value);
-                },
-                onToggleTapWhenDisabled: () {
-                  setCompleteFilterMode(
-                    enabled: true,
-                    // If switch is tapped first, enable and show complete-only.
-                    completeOnly: true,
-                  );
-                },
-              ),
-              _CheckboxToggle(
-                isChecked: isGradedFilterEnabled,
-                isToggleOn: showGradedOnly,
-                baseLabel: PlannerFilterStatus.graded.value,
-                toggleOnLabel: PlannerFilterStatus.graded.value,
-                toggleOffLabel: PlannerFilterStatus.ungraded.value,
-                onCheckedChanged: (value) {
-                  setGradedFilterMode(
-                    enabled: value ?? false,
-                    // Default to graded-only when enabling via checkbox.
-                    gradedOnly: true,
-                  );
-                },
-                onToggleChanged: (value) {
-                  setGradedFilterMode(enabled: true, gradedOnly: value);
-                },
-                onToggleTapWhenDisabled: () {
-                  setGradedFilterMode(
-                    enabled: true,
-                    // If switch is tapped first, enable and show graded-only.
-                    gradedOnly: true,
-                  );
-                },
-              ),
-              buildStatusTile(PlannerFilterStatus.overdue.value),
+                _buildSheetSectionHeader(context, 'STATUS'),
+                _CheckboxToggle(
+                  isChecked: isCompleteFilterEnabled,
+                  isToggleOn: showCompletedOnly,
+                  baseLabel: PlannerFilterStatus.complete.value,
+                  toggleOnLabel: PlannerFilterStatus.complete.value,
+                  toggleOffLabel: PlannerFilterStatus.incomplete.value,
+                  onCheckedChanged: (value) {
+                    setCompleteFilterMode(
+                      enabled: value ?? false,
+                      // Default to complete-only when enabling via checkbox.
+                      completeOnly: true,
+                    );
+                  },
+                  onToggleChanged: (value) {
+                    setCompleteFilterMode(enabled: true, completeOnly: value);
+                  },
+                  onToggleTapWhenDisabled: () {
+                    setCompleteFilterMode(
+                      enabled: true,
+                      // If switch is tapped first, enable and show complete-only.
+                      completeOnly: true,
+                    );
+                  },
+                ),
+                _CheckboxToggle(
+                  isChecked: isGradedFilterEnabled,
+                  isToggleOn: showGradedOnly,
+                  baseLabel: PlannerFilterStatus.graded.value,
+                  toggleOnLabel: PlannerFilterStatus.graded.value,
+                  toggleOffLabel: PlannerFilterStatus.ungraded.value,
+                  onCheckedChanged: (value) {
+                    setGradedFilterMode(
+                      enabled: value ?? false,
+                      // Default to graded-only when enabling via checkbox.
+                      gradedOnly: true,
+                    );
+                  },
+                  onToggleChanged: (value) {
+                    setGradedFilterMode(enabled: true, gradedOnly: value);
+                  },
+                  onToggleTapWhenDisabled: () {
+                    setGradedFilterMode(
+                      enabled: true,
+                      // If switch is tapped first, enable and show graded-only.
+                      gradedOnly: true,
+                    );
+                  },
+                ),
+                buildStatusTile(PlannerFilterStatus.overdue.value),
               ],
 
               if (visibleCategories.length > 1 && _areAssignmentsVisible()) ...[
@@ -4147,11 +4253,15 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
     } else {
       final RenderBox button = context.findRenderObject() as RenderBox;
       final RenderBox overlay =
-          Overlay.of(context, rootOverlay: true).context.findRenderObject() as RenderBox;
+          Overlay.of(context, rootOverlay: true).context.findRenderObject()
+              as RenderBox;
       final RelativeRect position = RelativeRect.fromRect(
         Rect.fromPoints(
           button.localToGlobal(Offset.zero, ancestor: overlay),
-          button.localToGlobal(button.size.bottomRight(Offset.zero), ancestor: overlay),
+          button.localToGlobal(
+            button.size.bottomRight(Offset.zero),
+            ancestor: overlay,
+          ),
         ),
         Offset.zero & overlay.size,
       );
@@ -4192,50 +4302,52 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
       color: context.colorScheme.surface,
       child: ConstrainedBox(
         constraints: BoxConstraints(
-          maxHeight: MediaQuery.of(context).size.height * AppConstants.bottomSheetMaxHeightFactor,
+          maxHeight:
+              MediaQuery.of(context).size.height *
+              AppConstants.bottomSheetMaxHeightFactor,
         ),
         child: SingleChildScrollView(
           child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            RadioGroup<PlannerView>(
-              groupValue: _currentView,
-              onChanged: (value) {
-                setState(() {
-                  _changeView(value!);
-                });
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                RadioGroup<PlannerView>(
+                  groupValue: _currentView,
+                  onChanged: (value) {
+                    setState(() {
+                      _changeView(value!);
+                    });
 
-                Navigator.pop(menuContext);
+                    Navigator.pop(menuContext);
 
-                if (isMobile) {
-                  setState(() {
-                    _isFilterExpanded = false;
-                  });
-                }
-              },
-              child: Column(
-                children: List.generate(PlannerView.values.length, (index) {
-                  return RadioListTile<PlannerView>(
-                    title: Text(
-                      CalendarConstants
-                          .defaultViews[PlannerHelper.mapHeliumViewToApiView(
-                        PlannerView.values[index],
-                      )],
-                      style: AppStyles.formText(context),
-                    ),
-                    value: PlannerView.values[index],
-                    controlAffinity: ListTileControlAffinity.leading,
-                    dense: true,
-                    contentPadding: const EdgeInsets.only(left: 4),
-                  );
-                }),
-              ),
+                    if (isMobile) {
+                      setState(() {
+                        _isFilterExpanded = false;
+                      });
+                    }
+                  },
+                  child: Column(
+                    children: List.generate(PlannerView.values.length, (index) {
+                      return RadioListTile<PlannerView>(
+                        title: Text(
+                          CalendarConstants
+                              .defaultViews[PlannerHelper.mapHeliumViewToApiView(
+                            PlannerView.values[index],
+                          )],
+                          style: AppStyles.formText(context),
+                        ),
+                        value: PlannerView.values[index],
+                        controlAffinity: ListTileControlAffinity.leading,
+                        dense: true,
+                        contentPadding: const EdgeInsets.only(left: 4),
+                      );
+                    }),
+                  ),
+                ),
+              ],
             ),
-          ],
-        ),
           ),
         ),
       ),
@@ -4261,7 +4373,8 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
     } else {
       final RenderBox button = buttonContext.findRenderObject() as RenderBox;
       final RenderBox overlay =
-          Overlay.of(context, rootOverlay: true).context.findRenderObject() as RenderBox;
+          Overlay.of(context, rootOverlay: true).context.findRenderObject()
+              as RenderBox;
       final RelativeRect position = RelativeRect.fromRect(
         Rect.fromPoints(
           button.localToGlobal(Offset.zero, ancestor: overlay),

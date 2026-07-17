@@ -43,8 +43,8 @@ class ColorSelector extends StatelessWidget {
         },
         borderRadius: BorderRadius.circular(8),
         child: Container(
-          width: 33,
-          height: 33,
+          width: 32,
+          height: 32,
           decoration: BoxDecoration(
             color: selectedColor,
             borderRadius: BorderRadius.circular(8),

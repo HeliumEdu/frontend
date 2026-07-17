@@ -751,7 +751,7 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
     if (filterDebounceDuration == Duration.zero) {
       _applyFiltersSynchronously();
     } else {
-      await _applyFiltersAsync();
+      await _applyFiltersAsync(showOverlay: false);
     }
 
     if (!_hasLoadedInitialData) {
@@ -1257,10 +1257,14 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
     }
   }
 
-  Future<void> _applyFiltersAsync() async {
+  /// [showOverlay] drives the screen's full-area refresh scrim via
+  /// [isRefreshing]. It's suppressed when called from [handleLoadMore], where
+  /// SfCalendar already shows its own built-in loader — avoiding two
+  /// overlapping spinners on calendar-driven loads.
+  Future<void> _applyFiltersAsync({bool showOverlay = true}) async {
     if (_isFilteringInProgress) return;
     _isFilteringInProgress = true;
-    _isRefreshing = true;
+    if (showOverlay) _isRefreshing = true;
     // Defer notification to avoid triggering rebuild during build phase
     // (handleLoadMore can be called during SfCalendar's layout)
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -1309,7 +1313,7 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
       rethrow;
     } finally {
       _isFilteringInProgress = false;
-      _isRefreshing = false;
+      if (showOverlay) _isRefreshing = false;
     }
   }
 
