@@ -24,6 +24,7 @@ import 'package:heliumapp/core/fcm_web_notifications_stub.dart'
     if (dart.library.html) 'package:heliumapp/core/fcm_web_notifications_web.dart'
     as web_notifications;
 import 'package:heliumapp/core/jwt_utils.dart';
+import 'package:heliumapp/core/notification_count_service.dart';
 import 'package:heliumapp/data/models/notification/notification_model.dart';
 import 'package:heliumapp/data/models/notification/request/push_token_request_model.dart';
 import 'package:heliumapp/data/repositories/push_notification_repository_impl.dart';
@@ -379,13 +380,36 @@ class FcmService {
     _recentMessageIds[notification.id.toString()] = now;
 
     await showLocalNotification(notification);
+    NotificationCountService().increment();
     _log.info('Foreground message $messageId notification displayed');
   }
 
   Future<void> _onNotificationTap(RemoteMessage message) async {
     final messageId = message.messageId;
     _log.info('Notification $messageId tapped');
-    await router.push(notificationsRoute);
+    await router.push(_routeForMessage(message));
+  }
+
+  /// Resolves the deep-link route for a tapped push: the specific entity the
+  /// reminder is attached to, falling back to the notifications list if the
+  /// payload carries no linked entity (or can't be parsed).
+  static String _routeForMessage(RemoteMessage message) {
+    try {
+      return _routeForNotification(_messageToNotification(message));
+    } catch (e, s) {
+      _log.warning('Failed to resolve entity route for tapped push', e, s);
+      return notificationsRoute;
+    }
+  }
+
+  static String _routeForNotification(NotificationModel notification) {
+    final reminder = notification.reminder;
+    return reminderEntityRoute(
+          courseId: reminder.course?.id,
+          homeworkId: reminder.homework?.id,
+          eventId: reminder.event?.id,
+        ) ??
+        notificationsRoute;
   }
 
   /// Pending route to navigate to once the router is initialized.
@@ -417,7 +441,7 @@ class FcmService {
       _log.info('App opened from terminated state via notification');
       // Defer navigation - router may not be initialized yet during cold start.
       // The app's main widget should check pendingRoute after router is ready.
-      pendingRoute = notificationsRoute;
+      pendingRoute = _routeForMessage(initialMessage);
     }
   }
 
@@ -441,13 +465,14 @@ class FcmService {
   Future<void> showLocalNotification(NotificationModel notification) async {
     if (kIsWeb) {
       if (await web_notifications.requestWebNotificationPermission()) {
+        final route = _routeForNotification(notification);
         web_notifications.showWebNotification(
           notification,
           (_) {
             if (_onForegroundTap != null) {
-              _onForegroundTap!(notificationsRoute);
+              _onForegroundTap!(route);
             } else {
-              router.go(notificationsRoute);
+              router.go(route);
             }
           },
         );
@@ -483,12 +508,14 @@ class FcmService {
       title: notification.title,
       body: notification.body,
       notificationDetails: platformDetails,
+      payload: _routeForNotification(notification),
     );
   }
 
   void _onNotificationTapped(NotificationResponse response) {
     _log.info('Local notification tapped: ${response.id}');
-    router.push(notificationsRoute);
+    final route = response.payload;
+    router.push(route != null && route.isNotEmpty ? route : notificationsRoute);
   }
 
   Future<void> registerToken({bool force = false}) async {

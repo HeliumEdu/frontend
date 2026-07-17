@@ -102,7 +102,6 @@ void main() {
           body: 'Test Body',
           reminder: reminder,
           timestamp: '2025-01-15T10:00:00Z',
-          isRead: false,
         );
 
         when(

@@ -16,6 +16,7 @@ import 'package:heliumapp/config/app_router.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/core/analytics_service.dart';
 import 'package:heliumapp/core/dio_client.dart';
+import 'package:heliumapp/core/notification_count_service.dart';
 import 'package:heliumapp/data/models/auth/user_model.dart';
 import 'package:heliumapp/data/models/notification/notification_model.dart';
 import 'package:heliumapp/data/models/planner/homework_model.dart';
@@ -153,6 +154,7 @@ class _NotificationsScreenState
             if (shouldRemove) {
               if (reminder.dismissed) {
                 showSnackBar(context, 'Reminder dismissed.');
+                NotificationCountService().decrement();
               }
               setState(() {
                 _notifications.removeWhere((n) => n.reminder.id == reminder.id);
@@ -320,6 +322,10 @@ class _NotificationsScreenState
       _notifications = notifications;
       isLoading = false;
     });
+
+    // The fetched active set is authoritative; reconcile the bell badge count
+    // with it (corrects any drift from local increment/decrement).
+    NotificationCountService().count.value = notifications.length;
   }
 
   void _removeNotificationByPlannerItemId({int? eventId, int? homeworkId}) {
@@ -638,41 +644,20 @@ class _NotificationsScreenState
     try {
       if (!mounted) return;
 
-      // Course reminders: navigate to /classes and open the course editor there.
-      final courseId = notification.reminder.course?.id;
-      if (courseId != null) {
-        if (context.canPop()) context.pop();
-        // Defer navigation so the pop completes and GoRouter processes the stack
-        // change before we push the next route; calling router.go synchronously
-        // after pop can conflict with GoRouter's async redirect handling
-        Future.delayed(Duration.zero, () {
-          router.go(
-            '${AppRoute.coursesScreen}/$courseId/${courseDialogSteps.first}',
-          );
-        });
-        return;
-      }
+      final route = reminderEntityRoute(
+        courseId: notification.reminder.course?.id,
+        homeworkId: notification.reminder.homework?.id,
+        eventId: notification.reminder.event?.id,
+        shellPath: widget.shellPath,
+      );
+      if (route == null) return;
 
-      // Homework / event reminders: close the notifications overlay, then
-      // open the planner item editor on the originating shell so the
-      // dialog stays anchored where the user was.
-      final homeworkId = notification.reminder.homework?.id;
-      final eventId = notification.reminder.event?.id;
-      if (homeworkId == null && eventId == null) return;
-
-      final entityPath =
-          homeworkId != null ? plannerItemHomeworkPath : plannerItemEventPath;
-      final entityId = homeworkId ?? eventId!;
-      final shellPath = widget.shellPath;
+      // Close the notifications overlay, then open the entity editor. Defer so
+      // the pop completes and GoRouter processes the stack change before the
+      // next push — calling router.go synchronously after pop can conflict with
+      // GoRouter's async redirect handling.
       if (context.canPop()) context.pop();
-      // Defer navigation so the pop completes and GoRouter processes the
-      // stack change before we push the next route.
-      Future.delayed(Duration.zero, () {
-        router.go(
-          '$shellPath/$entityPath/$entityId/'
-          '${plannerItemDialogSteps.first}',
-        );
-      });
+      Future.delayed(Duration.zero, () => router.go(route));
     } finally {
       _isOpeningEntity = false;
     }

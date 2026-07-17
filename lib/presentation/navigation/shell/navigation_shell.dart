@@ -5,6 +5,8 @@
 //
 // For details regarding the license, please refer to the LICENSE file.
 
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -12,6 +14,7 @@ import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/config/app_router.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/core/dio_client.dart';
+import 'package:heliumapp/core/notification_count_service.dart';
 import 'package:heliumapp/core/whats_new_service.dart';
 import 'package:heliumapp/presentation/core/dialogs/getting_started_dialog.dart';
 import 'package:heliumapp/presentation/core/dialogs/whats_new_dialog.dart';
@@ -192,7 +195,9 @@ class _NavigationShellState extends State<NavigationShell> {
     super.initState();
 
     DioClient().cacheService.addInactivityResumeListener(_checkGettingStartedDialog);
+    DioClient().cacheService.addInactivityResumeListener(_refreshNotificationCount);
     _checkDialogs();
+    _refreshNotificationCount();
   }
 
   @override
@@ -200,8 +205,15 @@ class _NavigationShellState extends State<NavigationShell> {
     DioClient().cacheService.removeInactivityResumeListener(
       _checkGettingStartedDialog,
     );
+    DioClient().cacheService.removeInactivityResumeListener(
+      _refreshNotificationCount,
+    );
     _inheritableProvidersNotifier.dispose();
     super.dispose();
+  }
+
+  void _refreshNotificationCount() {
+    unawaited(NotificationCountService().refresh());
   }
 
   @override

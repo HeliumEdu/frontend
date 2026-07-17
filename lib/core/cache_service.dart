@@ -189,6 +189,13 @@ class CacheService with WidgetsBindingObserver {
     return _options.copyWith(policy: CachePolicy.refresh).toOptions();
   }
 
+  /// Returns options that skip the cache entirely — the request always hits the
+  /// network and its response is never stored. Use for endpoints that manage
+  /// their own freshness and shouldn't participate in the shared cache.
+  Options noCacheOptions() {
+    return _options.copyWith(policy: CachePolicy.noCache).toOptions();
+  }
+
   /// Clears all cached responses.
   /// Call this after any mutation (create/update/delete) to ensure
   /// subsequent GET requests fetch fresh data.

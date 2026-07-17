@@ -32,6 +32,13 @@ abstract class ReminderRemoteDataSource extends BaseDataSource {
     bool forceRefresh = false,
   });
 
+  Future<int> getRemindersCount({
+    bool? sent,
+    bool? dismissed,
+    int? type,
+    DateTime? startOfRange,
+  });
+
   Future<ReminderModel> createReminder(ReminderRequestModel request);
 
   Future<ReminderModel> updateReminder(int id, ReminderRequestModel request);
@@ -92,6 +99,48 @@ class ReminderRemoteDataSourceImpl extends ReminderRemoteDataSource {
       } else {
         throw ServerException(
           message: 'Failed to fetch reminders: ${response.statusCode}.',
+        );
+      }
+    } on DioException catch (e, s) {
+      throw handleDioError(e, s);
+    } catch (e, s) {
+      _log.severe('An unexpected error occurred', e, s);
+      throw HeliumException(message: HeliumException.unexpectedError);
+    }
+  }
+
+  @override
+  Future<int> getRemindersCount({
+    bool? sent,
+    bool? dismissed,
+    int? type,
+    DateTime? startOfRange,
+  }) async {
+    try {
+      _log.info('Fetching Reminders count ...');
+
+      final Map<String, dynamic> queryParameters = {'page_size': 1};
+      if (sent != null) queryParameters['sent'] = sent;
+      if (dismissed != null) queryParameters['dismissed'] = dismissed;
+      if (type != null) queryParameters['type'] = type;
+      if (startOfRange != null) {
+        queryParameters['start_of_range__lte'] =
+            startOfRange.toUtc().toIso8601String();
+      }
+
+      final response = await dioClient.dio.get(
+        ApiUrl.plannerRemindersListUrl,
+        queryParameters: queryParameters,
+        options: dioClient.cacheService.noCacheOptions(),
+      );
+
+      if (response.statusCode == 200) {
+        final count = response.data['count'] as int;
+        _log.info('... fetched Reminders count: $count');
+        return count;
+      } else {
+        throw ServerException(
+          message: 'Failed to fetch reminders count: ${response.statusCode}.',
         );
       }
     } on DioException catch (e, s) {

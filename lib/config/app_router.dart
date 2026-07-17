@@ -605,6 +605,28 @@ const String plannerItemHomeworkPath = 'assignment';
 /// URL segment identifying the event variant of the planner item dialog.
 const String plannerItemEventPath = 'event';
 
+/// Builds the deep-link route that opens the entity a reminder is attached to
+/// (course, homework, or event), or null if the reminder has no linked entity.
+/// [shellPath] anchors homework/event dialogs to a shell branch, defaulting to
+/// the planner for entry points without an active shell (e.g. a push tap).
+String? reminderEntityRoute({
+  int? courseId,
+  int? homeworkId,
+  int? eventId,
+  String shellPath = AppRoute.plannerScreen,
+}) {
+  if (courseId != null) {
+    return '${AppRoute.coursesScreen}/$courseId/${courseDialogSteps.first}';
+  }
+  if (homeworkId != null || eventId != null) {
+    final entityPath =
+        homeworkId != null ? plannerItemHomeworkPath : plannerItemEventPath;
+    final entityId = homeworkId ?? eventId!;
+    return '$shellPath/$entityPath/$entityId/${plannerItemDialogSteps.first}';
+  }
+  return null;
+}
+
 /// Page key shared across every variant of the homework / event editor
 /// routes so step and entity-type transitions update the existing dialog in
 /// place rather than pushing a new one each time.

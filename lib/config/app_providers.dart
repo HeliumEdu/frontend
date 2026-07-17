@@ -8,6 +8,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:heliumapp/core/dio_client.dart';
+import 'package:heliumapp/core/notification_count_service.dart';
 import 'package:heliumapp/data/repositories/auth_repository_impl.dart';
 import 'package:heliumapp/data/repositories/info_repository_impl.dart';
 import 'package:heliumapp/data/sources/auth_remote_data_source.dart';
@@ -128,6 +129,7 @@ class AppProviders extends StatelessWidget {
           context.read<GradeBloc>().add(ResetGradesEvent());
           context.read<AttachmentBloc>().add(ResetAttachmentsEvent());
           context.read<ReminderBloc>().add(ResetRemindersEvent());
+          NotificationCountService().reset();
         },
         child: child,
       ),
