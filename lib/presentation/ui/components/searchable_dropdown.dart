@@ -244,8 +244,11 @@ class _SearchableDropdownState<T> extends State<SearchableDropdown<T>> {
                                 }
                               },
                       ),
-                      contentPadding: const EdgeInsets.only(top: 0, left: 12),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                      ),
                       enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8.0),
                         borderSide: BorderSide(
                           color: context.colorScheme.outline.withValues(
                             alpha: 0.2,
@@ -253,6 +256,7 @@ class _SearchableDropdownState<T> extends State<SearchableDropdown<T>> {
                         ),
                       ),
                       focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8.0),
                         borderSide: BorderSide(
                           color: context.colorScheme.outline.withValues(
                             alpha: 0.2,

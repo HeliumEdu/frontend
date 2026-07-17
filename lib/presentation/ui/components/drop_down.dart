@@ -58,16 +58,18 @@ class DropDown<T> extends StatelessWidget {
               prefixIcon: prefixIcon != null
                   ? Icon(prefixIcon, color: iconColor)
                   : null,
-              contentPadding: EdgeInsets.only(
-                top: prefixIcon != null ? _contentPadding : 0,
-                left: _contentPadding,
+              contentPadding: EdgeInsets.symmetric(
+                horizontal: _contentPadding,
+                vertical: prefixIcon != null ? _contentPadding : 0,
               ),
               enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(_fieldBorderRadius),
                 borderSide: BorderSide(
                   color: context.colorScheme.outline.withValues(alpha: 0.2),
                 ),
               ),
               focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(_fieldBorderRadius),
                 borderSide: BorderSide(
                   color: context.colorScheme.outline.withValues(alpha: 0.2),
                 ),
