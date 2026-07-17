@@ -110,6 +110,7 @@ void main() {
             title: any(named: 'title'),
             body: any(named: 'body'),
             notificationDetails: any(named: 'notificationDetails'),
+            payload: any(named: 'payload'),
           ),
         ).thenAnswer((_) async {});
 
@@ -123,6 +124,7 @@ void main() {
             title: 'Test Title',
             body: 'Test Body',
             notificationDetails: any(named: 'notificationDetails', that: isA<NotificationDetails>()),
+            payload: any(named: 'payload'),
           ),
         ).called(1);
       });
