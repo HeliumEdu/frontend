@@ -15,7 +15,6 @@ class NotificationModel extends BaseModel {
   final String title;
   final String body;
   final String timestamp;
-  final bool isRead;
   final ReminderModel reminder;
   final CourseModel? course;
   final Color? color;
@@ -25,7 +24,6 @@ class NotificationModel extends BaseModel {
     required this.title,
     required this.body,
     required this.timestamp,
-    required this.isRead,
     required this.reminder,
     this.course,
     this.color,
@@ -37,7 +35,6 @@ class NotificationModel extends BaseModel {
       'title': title,
       'body': body,
       'timestamp': timestamp,
-      'is_read': isRead,
       'color': color,
       'reminder': reminder.toJson(),
     };

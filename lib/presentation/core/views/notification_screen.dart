@@ -14,7 +14,6 @@ import 'package:heliumapp/config/analytics_event.dart';
 import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/config/app_router.dart';
 import 'package:heliumapp/config/app_theme.dart';
-import 'package:heliumapp/config/pref_service.dart';
 import 'package:heliumapp/core/analytics_service.dart';
 import 'package:heliumapp/core/dio_client.dart';
 import 'package:heliumapp/data/models/auth/user_model.dart';
@@ -41,7 +40,6 @@ import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
 import 'package:heliumapp/presentation/ui/layout/page_header.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/app_style.dart';
-import 'package:heliumapp/utils/conversion_helpers.dart';
 import 'package:heliumapp/utils/date_time_helpers.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:heliumapp/utils/error_helpers.dart';
@@ -119,26 +117,8 @@ class _NotificationsScreenState
   /// below this.
   static const double _minTitleWidth = 120.0;
 
-  final PrefService _prefService = PrefService();
-
   List<NotificationModel> _notifications = [];
-  List<int> _readNotificationIds = [];
   bool _isOpeningEntity = false;
-
-  @override
-  void initState() {
-    super.initState();
-
-    // Ensure PrefService is initialized
-    _prefService.init().then((_) {
-      setState(() {
-        _readNotificationIds =
-            (_prefService.getStringList('read_notification_ids') ?? [])
-                .map((n) => toInt(n)!)
-                .toList();
-      });
-    });
-  }
 
   @override
   Future<UserSettingsModel?> loadSettings() {
@@ -177,8 +157,6 @@ class _NotificationsScreenState
               setState(() {
                 _notifications.removeWhere((n) => n.reminder.id == reminder.id);
               });
-              _readNotificationIds.remove(reminder.id);
-              _storeReadNotifications();
             } else {
               final index = _notifications.indexWhere(
                 (n) => n.reminder.id == reminder.id,
@@ -197,8 +175,6 @@ class _NotificationsScreenState
             setState(() {
               _notifications.removeWhere((n) => n.reminder.id == state.id);
             });
-            _readNotificationIds.remove(state.id);
-            _storeReadNotifications();
           }
         },
       ),
@@ -458,7 +434,6 @@ class _NotificationsScreenState
       body: reminder.title,
       color: color,
       timestamp: timestamp,
-      isRead: _readNotificationIds.contains(reminder.id),
       reminder: reminder,
     );
   }
@@ -491,17 +466,6 @@ class _NotificationsScreenState
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Container(
-                width: 8.0,
-                height: 8.0,
-                margin: const EdgeInsets.only(top: 6, right: 12.0),
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: notification.isRead
-                      ? Colors.transparent
-                      : context.colorScheme.primary,
-                ),
-              ),
               if (notification.color != null)
                 Container(
                   width: 4.0,
@@ -532,11 +496,7 @@ class _NotificationsScreenState
                               child: Text(
                                 notification.title,
                                 style: AppStyles.standardBodyText(context)
-                                    .copyWith(
-                                      fontWeight: notification.isRead
-                                          ? FontWeight.normal
-                                          : FontWeight.w600,
-                                    ),
+                                    .copyWith(fontWeight: FontWeight.w600),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                               ),
@@ -676,29 +636,6 @@ class _NotificationsScreenState
     _isOpeningEntity = true;
 
     try {
-      _readNotificationIds.add(notification.id);
-
-      await _storeReadNotifications();
-
-      if (!mounted) return;
-
-      setState(() {
-        _notifications = _notifications.map((n) {
-          if (n.id == notification.id) {
-            return NotificationModel(
-              id: n.id,
-              title: n.title,
-              body: n.body,
-              color: n.color,
-              timestamp: n.timestamp,
-              isRead: true,
-              reminder: n.reminder,
-            );
-          }
-          return n;
-        }).toList();
-      });
-
       if (!mounted) return;
 
       // Course reminders: navigate to /classes and open the course editor there.
@@ -750,13 +687,6 @@ class _NotificationsScreenState
         id: notification.id,
         request: req,
       ),
-    );
-  }
-
-  Future<void> _storeReadNotifications() async {
-    await _prefService.setStringList(
-      'read_notification_ids',
-      _readNotificationIds.map((n) => n.toString()).toList(),
     );
   }
 }
