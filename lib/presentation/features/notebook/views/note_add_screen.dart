@@ -1445,7 +1445,14 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
           final items = byGroup[courseId]!
             ..sort((a, b) => a.start.compareTo(b.start));
           for (final h in items) {
-            rows.add(_LinkPickerItem(id: h.id, title: h.title, date: h.start, allDay: h.allDay));
+            rows.add(_LinkPickerItem(
+              id: h.id,
+              title: h.title,
+              date: h.start,
+              allDay: h.allDay,
+              color: course?.color,
+              completed: h.completed,
+            ));
           }
         }
 
@@ -1455,7 +1462,13 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
             .toList()
           ..sort((a, b) => a.start.compareTo(b.start));
         for (final e in filteredEvents) {
-          rows.add(_LinkPickerItem(id: e.id, title: e.title, date: e.start, allDay: e.allDay));
+          rows.add(_LinkPickerItem(
+            id: e.id,
+            title: e.title,
+            date: e.start,
+            allDay: e.allDay,
+            color: userSettings?.eventsColor ?? FallbackConstants.defaultEventsColor,
+          ));
         }
 
       default:
@@ -1483,7 +1496,11 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
           final items = byGroup[groupId]!
             ..sort((a, b) => Sort.compareNatural(a.title, b.title));
           for (final r in items) {
-            rows.add(_LinkPickerItem(id: r.id, title: r.title));
+            rows.add(_LinkPickerItem(
+              id: r.id,
+              title: r.title,
+              color: userSettings?.resourceColor ?? FallbackConstants.defaultResourceColor,
+            ));
           }
         }
     }
@@ -1530,6 +1547,7 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
           );
         }
         final item = row as _LinkPickerItem;
+        final accent = item.color ?? FallbackConstants.fallbackColor;
         final dateText = item.date != null && userSettings != null
             ? () {
                 final localDate =
@@ -1539,23 +1557,35 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
                     : HeliumDateTime.formatDateAndTimeForTodos(localDate);
               }()
             : null;
-        return ListTile(
-          dense: true,
-          contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-          title: Text(
-            item.title,
-            style: AppStyles.formText(context),
-            overflow: TextOverflow.ellipsis,
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              border: Border(left: BorderSide(color: accent, width: 3)),
+            ),
+            child: ListTile(
+              dense: true,
+              contentPadding: const EdgeInsets.only(left: 10, right: 4),
+              title: Text(
+                item.title,
+                style: AppStyles.formText(context).copyWith(
+                  decoration:
+                      item.completed ? TextDecoration.lineThrough : null,
+                  decorationColor: context.colorScheme.onSurface,
+                ),
+                overflow: TextOverflow.ellipsis,
+              ),
+              trailing: dateText != null
+                  ? Text(
+                      dateText,
+                      style: AppStyles.smallSecondaryText(context).copyWith(
+                        color: context.colorScheme.outline,
+                      ),
+                    )
+                  : null,
+              onTap: () => _linkNoteTo(_linkPickerType, item.id, item.title),
+            ),
           ),
-          trailing: dateText != null
-              ? Text(
-                  dateText,
-                  style: AppStyles.smallSecondaryText(context).copyWith(
-                    color: context.colorScheme.outline,
-                  ),
-                )
-              : null,
-          onTap: () => _linkNoteTo(_linkPickerType, item.id, item.title),
         );
       },
       ),
@@ -1576,10 +1606,16 @@ class _LinkPickerItem extends _LinkPickerRow {
   final String title;
   final DateTime? date;
   final bool allDay;
+
+  final Color? color;
+  final bool completed;
+
   _LinkPickerItem({
     required this.id,
     required this.title,
     this.date,
     this.allDay = true,
+    this.color,
+    this.completed = false,
   });
 }
