@@ -13,3 +13,7 @@ void triggerBrowserPrint() => web.window.print();
 
 bool getSystemReduceMotion() =>
     web.window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/// Reloads the page to pull the latest web build (the web equivalent of an
+/// app-store update).
+void reloadPage() => web.window.location.reload();

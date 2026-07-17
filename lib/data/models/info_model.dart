@@ -13,13 +13,19 @@
 class InfoModel {
   final int maxUploadSize;
   final List<String> importFileTypes;
+  final String minimumSupportedVersion;
 
-  InfoModel({required this.maxUploadSize, required this.importFileTypes});
+  InfoModel({
+    required this.maxUploadSize,
+    required this.importFileTypes,
+    this.minimumSupportedVersion = '0.0.0',
+  });
 
   factory InfoModel.fromJson(Map<String, dynamic> json) {
     return InfoModel(
       maxUploadSize: json['max_upload_size'],
       importFileTypes: List<String>.from(json['import_file_types']),
+      minimumSupportedVersion: json['minimum_supported_version'] ?? '0.0.0',
     );
   }
 
@@ -27,6 +33,7 @@ class InfoModel {
     return {
       'max_upload_size': maxUploadSize,
       'import_file_types': importFileTypes,
+      'minimum_supported_version': minimumSupportedVersion,
     };
   }
 }

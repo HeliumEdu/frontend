@@ -9,3 +9,5 @@
 void triggerBrowserPrint() {}
 
 bool getSystemReduceMotion() => false;
+
+void reloadPage() {}

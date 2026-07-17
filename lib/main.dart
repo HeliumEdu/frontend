@@ -15,6 +15,7 @@ import 'package:heliumapp/config/app_providers.dart';
 import 'package:heliumapp/config/app_router.dart';
 import 'package:heliumapp/config/pref_service.dart';
 import 'package:heliumapp/core/analytics_service.dart';
+import 'package:heliumapp/core/app_version_service.dart';
 import 'package:heliumapp/core/fcm_service.dart';
 import 'package:heliumapp/core/feedback_service.dart';
 import 'package:heliumapp/core/log_service.dart';
@@ -79,6 +80,8 @@ void main() async {
   });
 
   await PrefService().init();
+
+  await AppVersionService().init();
 
   final accessibilityFeatures = WidgetsBinding.instance.platformDispatcher.accessibilityFeatures;
   MotionService().init(
