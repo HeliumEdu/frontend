@@ -365,7 +365,7 @@ class _GettingStartedDialogWidgetState
                         minWidth: 36,
                         minHeight: 36,
                       ),
-                      visualDensity: context.theme.visualDensity,
+                      visualDensity: VisualDensity.standard,
                       style: IconButton.styleFrom(
                         tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                       ),
@@ -439,7 +439,7 @@ class _GettingStartedDialogWidgetState
                         minWidth: 36,
                         minHeight: 36,
                       ),
-                      visualDensity: context.theme.visualDensity,
+                      visualDensity: VisualDensity.standard,
                       style: IconButton.styleFrom(
                         tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                       ),
