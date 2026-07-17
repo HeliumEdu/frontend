@@ -627,15 +627,16 @@ class _NotificationsScreenState
                   style: IconButton.styleFrom(
                     tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                   ),
+                  tooltip: 'Dismiss reminder',
                   onPressed: () => _dismissReminder(notification),
                   icon: Icon(
                     Icons.close,
                     color: context.colorScheme.secondary.withValues(alpha: 0.7),
                     size: Responsive.getIconSize(
                       context,
-                      mobile: 20,
-                      tablet: 22,
-                      desktop: 24,
+                      mobile: 16,
+                      tablet: 18,
+                      desktop: 20,
                     ),
                   ),
                 ),
@@ -655,7 +656,7 @@ class _NotificationsScreenState
           padding: const EdgeInsets.only(right: 20),
           color: context.colorScheme.secondary,
           child: Icon(
-            Icons.archive_outlined,
+            Icons.close,
             color: context.colorScheme.onSecondary,
           ),
         ),
