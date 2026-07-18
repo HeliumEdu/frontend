@@ -492,6 +492,7 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
     SnackBarAction? action,
     bool useRootMessenger = false,
   }) {
+    if (!mounted) return;
     SnackBarHelper.show(
       context,
       message,

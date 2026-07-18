@@ -427,6 +427,8 @@ class _NavigationShellState extends State<NavigationShell> {
   }
 
   void _onDestinationSelected(BuildContext context, int index) {
+    ScaffoldMessenger.of(context)
+        .removeCurrentSnackBar(reason: SnackBarClosedReason.remove);
     widget.navigationShell.goBranch(
       index,
       initialLocation: index == widget.navigationShell.currentIndex,
