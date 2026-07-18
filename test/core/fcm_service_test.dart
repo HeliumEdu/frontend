@@ -147,7 +147,7 @@ void main() {
 
       tearDown(NotificationCountService.resetForTesting);
 
-      test('decrements the bell count for a valid dismiss', () async {
+      test('does not decrement the count (avoids echo double-count)', () async {
         // GIVEN a non-zero count and a dismiss push for a reminder
         NotificationCountService().count.value = 3;
         const message = RemoteMessage(
@@ -157,8 +157,9 @@ void main() {
         // WHEN the dismiss message is handled
         await fcmService.handleDismissMessageForTesting(message);
 
-        // THEN the bell count drops by one
-        expect(NotificationCountService().count.value, 2);
+        // THEN the count is unchanged — the in-app ReminderUpdated listener is
+        // responsible for decrementing; the push handler only clears the tray.
+        expect(NotificationCountService().count.value, 3);
       });
 
       test('ignores a dismiss missing its reminder_id', () async {

@@ -397,7 +397,14 @@ class FcmService {
   /// `{action: dismiss, reminder_id}` push (dismissed on another device).
   /// Android cancels by the tag the FCM SDK posts under, `reminder_{id}` at the
   /// hardcoded id 0. iOS clears natively in AppDelegate and web in the service
-  /// worker, so this only touches the count on those platforms.
+  /// worker, so this only touches the tray on those platforms.
+  ///
+  /// The bell count is NOT decremented here: the dismiss push fans out to ALL
+  /// devices including the originator, so this handler fires both for cross-device
+  /// dismisses AND as an echo of the user's own in-app dismiss. The in-app path
+  /// already decrements via the ReminderUpdated listener; decrementing here too
+  /// would double-count. The count self-corrects on the next refresh() (resume,
+  /// screen open) for cross-device dismisses where the screen was closed.
   Future<void> _handleDismissMessage(RemoteMessage message) async {
     final reminderId = message.data['reminder_id'];
     if (reminderId == null || reminderId.isEmpty) {
@@ -414,8 +421,6 @@ class FcmService {
         _log.warning('Failed to clear notification for reminder $reminderId', e, s);
       }
     }
-
-    NotificationCountService().decrement();
   }
 
   Future<void> _onNotificationTap(RemoteMessage message) async {

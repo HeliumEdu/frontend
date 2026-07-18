@@ -136,6 +136,7 @@ class _NotificationsScreenState
   }
 
   void _onCountChanged() {
+    if (!mounted) return;
     final current = NotificationCountService().count.value;
     if (current > _lastKnownCount && _notifications.isNotEmpty) {
       _lastKnownCount = current;
