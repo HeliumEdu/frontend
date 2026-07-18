@@ -10,6 +10,7 @@ import 'dart:async';
 import 'package:bloc/bloc.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:heliumapp/core/dio_client.dart';
+import 'package:heliumapp/core/notification_count_service.dart';
 import 'package:heliumapp/core/oauth_sign_in_service.dart';
 import 'package:heliumapp/core/helium_exception.dart';
 import 'package:heliumapp/data/models/auth/login_request_model.dart';
@@ -575,6 +576,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       await authRepository.updateUserSettings(
         UpdateSettingsRequestModel(showGettingStarted: false),
       );
+      unawaited(NotificationCountService().refresh());
 
       emit(AuthScheduleDataRefreshed());
     } on HeliumException catch (e) {

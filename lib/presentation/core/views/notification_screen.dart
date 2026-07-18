@@ -120,6 +120,30 @@ class _NotificationsScreenState
 
   List<NotificationModel> _notifications = [];
   bool _isOpeningEntity = false;
+  int _lastKnownCount = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _lastKnownCount = NotificationCountService().count.value;
+    NotificationCountService().count.addListener(_onCountChanged);
+  }
+
+  @override
+  void dispose() {
+    NotificationCountService().count.removeListener(_onCountChanged);
+    super.dispose();
+  }
+
+  void _onCountChanged() {
+    final current = NotificationCountService().count.value;
+    if (current > _lastKnownCount && _notifications.isNotEmpty) {
+      _lastKnownCount = current;
+      _fetchReminders(forceRefresh: true);
+    } else {
+      _lastKnownCount = current;
+    }
+  }
 
   @override
   Future<UserSettingsModel?> loadSettings() {
@@ -212,7 +236,7 @@ class _NotificationsScreenState
   Widget buildMainArea(BuildContext context) {
     return BlocBuilder<ReminderBloc, ReminderState>(
       builder: (context, state) {
-        if (state is RemindersLoading) {
+        if (state is RemindersLoading && _notifications.isEmpty) {
           return const LoadingIndicator();
         }
 
