@@ -222,12 +222,12 @@ class _NavigationShellState extends State<NavigationShell> {
   Widget build(BuildContext context) {
     final currentPage = NavigationPage.values[widget.navigationShell.currentIndex];
 
-    final globalLocation = router.routerDelegate.currentConfiguration.uri.path;
-    final isShellTab = NavigationPage.values.any(
-      (p) => p.route == globalLocation,
-    );
-    final isCurrentRoute = ModalRoute.of(context)?.isCurrent ?? false;
-    if (isShellTab && isCurrentRoute) {
+    // True when no full-screen overlay (settings, notifications, entity editor)
+    // is pushed above the shell. Reads the shell's own ModalRoute rather than the
+    // router URI, which goes stale after cross-branch navigation and left the bar
+    // permanently hidden (flutter/flutter#146610).
+    final isCurrentRoute = ModalRoute.isCurrentOf(context) ?? false;
+    if (isCurrentRoute) {
       _updateBrowserTitle(currentPage);
     }
 
@@ -309,7 +309,7 @@ class _NavigationShellState extends State<NavigationShell> {
                 ),
               ],
             ),
-            bottomNavigationBar: (useNavigationRail || !isShellTab)
+            bottomNavigationBar: (useNavigationRail || !isCurrentRoute)
                 ? null
                 : TooltipVisibility(
                     visible: false,

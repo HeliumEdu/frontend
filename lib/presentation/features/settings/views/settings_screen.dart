@@ -465,7 +465,18 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
 
   void _onNavigateRequested(String route) {
     if (!mounted) return;
-    context.go(route);
+    // Pop the overlay before switching branches; a cross-branch `go` from an open
+    // overlay strands `/settings/...` as the origin branch's saved location and
+    // corrupts branch restore + the URL (flutter/flutter#146610). canPop is false
+    // on deep-link entry, so `go` alone handles that. Defer a frame so the overlay
+    // dismisses before the shell rebuilds under it.
+    if (context.canPop()) {
+      context.pop();
+    }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      context.go(route);
+    });
   }
 
   Widget _buildSettingsPage() {
