@@ -698,33 +698,42 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
         endDate.day,
       );
 
-      final results = await Future.wait([
-        homeworkRepository.getHomeworks(
-          from: tzStartDate,
-          to: tzEndDate,
-          shownOnCalendar: true,
-          forceRefresh: forceRefresh,
-        ),
-        eventRepository.getEvents(
-          from: startDate,
-          to: endDate,
-          forceRefresh: forceRefresh,
-        ),
-        courseScheduleRepository.getCourseScheduleEvents(
-          courses: courses ?? [],
-          from: startDate,
-          to: endDate,
-          courseGroupsById: courseGroupsById,
-          shownOnCalendar: true,
-          forceRefresh: forceRefresh,
-        ),
-        externalCalendarRepository.getExternalCalendarEvents(
-          from: startDate,
-          to: endDate,
-          shownOnCalendar: true,
-          forceRefresh: forceRefresh,
-        ),
-      ]);
+      final List<dynamic> results;
+      try {
+        results = await Future.wait([
+          homeworkRepository.getHomeworks(
+            from: tzStartDate,
+            to: tzEndDate,
+            shownOnCalendar: true,
+            forceRefresh: forceRefresh,
+          ),
+          eventRepository.getEvents(
+            from: startDate,
+            to: endDate,
+            forceRefresh: forceRefresh,
+          ),
+          courseScheduleRepository.getCourseScheduleEvents(
+            courses: courses ?? [],
+            from: startDate,
+            to: endDate,
+            courseGroupsById: courseGroupsById,
+            shownOnCalendar: true,
+            forceRefresh: forceRefresh,
+          ),
+          externalCalendarRepository.getExternalCalendarEvents(
+            from: startDate,
+            to: endDate,
+            shownOnCalendar: true,
+            forceRefresh: forceRefresh,
+          ),
+        ]);
+      } catch (_) {
+        // The range stays uncached (retried on next view). Dismiss SfCalendar's
+        // load-more overlay by notifying with the data we already have, else it
+        // spins forever; rethrow so loadMoreWidgetBuilder can surface the error.
+        _notifyCalendarReset();
+        rethrow;
+      }
       final homeworks = results[0] as List<HomeworkModel>;
       final events = results[1] as List<EventModel>;
       final courseScheduleEvents = results[2] as List<CourseScheduleEventModel>;
