@@ -164,11 +164,6 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
 
   bool get isAuthenticatedScreen => true;
 
-  /// Opt in only for pure-scrollable bodies (paired with
-  /// [HeliumFullScreenScrollView]); pinned-bottom or fixed-height content must
-  /// leave this false so nothing renders under the home indicator.
-  bool get flowContentIntoBottomSafeArea => false;
-
   bool get enablePrint => false;
 
   bool get enablePrintFlexColumn => false;
@@ -383,13 +378,12 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
 
     if (isDialogMode) {
       final isFullScreen = DialogModeProvider.isFullScreenMode(context);
-      final reserveBottom = isFullScreen && !flowContentIntoBottomSafeArea;
       return Material(
         color: context.colorScheme.surface,
         borderRadius: BorderRadius.circular(isFullScreen ? 0 : 16),
         child: SafeArea(
           top: isFullScreen,
-          bottom: reserveBottom,
+          bottom: false,
           left: false,
           right: false,
           child: Column(

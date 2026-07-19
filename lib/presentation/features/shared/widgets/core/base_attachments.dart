@@ -19,7 +19,6 @@ import 'package:heliumapp/presentation/features/shared/bloc/info/info_state.dart
 import 'package:heliumapp/presentation/features/shared/widgets/flow/multi_step_container.dart';
 import 'package:heliumapp/presentation/ui/components/helium_elevated_button.dart';
 import 'package:heliumapp/presentation/ui/components/helium_icon_button.dart';
-import 'package:heliumapp/presentation/ui/layout/helium_full_screen_scroll_view.dart';
 import 'package:heliumapp/presentation/ui/feedback/empty_card.dart';
 import 'package:heliumapp/presentation/ui/feedback/error_card.dart';
 import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
@@ -155,9 +154,16 @@ abstract class BaseAttachmentsState extends State<BaseAttachmentsContent> {
           });
         }
       },
+      // Bottom-pin the buttons clear of the home indicator: the enclosing
+      // full-screen dialog does not reserve the bottom safe area, and these
+      // buttons sit below the scroll, so they'd otherwise render under it.
       child: isLoading || widget.userSettings == null
           ? const Center(child: LoadingIndicator(expanded: false))
-          : Column(
+          : Padding(
+            padding: EdgeInsets.only(
+              bottom: MediaQuery.of(context).viewPadding.bottom,
+            ),
+            child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text('Attachments', style: AppStyles.featureText(context)),
@@ -219,6 +225,7 @@ abstract class BaseAttachmentsState extends State<BaseAttachmentsContent> {
                 const SizedBox(height: 12),
               ],
             ),
+          ),
     );
   }
 
@@ -373,9 +380,6 @@ abstract class BaseAttachmentsState extends State<BaseAttachmentsContent> {
 
   Widget _buildAttachmentsList() {
     return ListView.builder(
-      padding: EdgeInsets.only(
-        bottom: HeliumFullScreenScrollView.insetOf(context),
-      ),
       itemCount: attachments.length,
       itemBuilder: (context, index) {
         return _buildAttachmentCard(context, attachments[index]);

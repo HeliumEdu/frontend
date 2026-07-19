@@ -741,13 +741,20 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
     const double titleRowHeight = 64;
     const double minEditorContainerHeight = 260;
 
+    // The full-screen dialog doesn't reserve the bottom safe area, so subtract
+    // it here — the editor is fixed-height, not scrollable content, so it must
+    // stay clear of the home indicator rather than flow under it.
+    final bottomInset = MediaQuery.of(context).viewPadding.bottom;
+
     return LayoutBuilder(
       builder: (context, constraints) {
-        final editorContainerHeight = (constraints.maxHeight - titleRowHeight)
-            .clamp(minEditorContainerHeight, double.infinity);
+        final editorContainerHeight =
+            (constraints.maxHeight - titleRowHeight - bottomInset)
+                .clamp(minEditorContainerHeight, double.infinity);
 
         return SingleChildScrollView(
           keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+          padding: EdgeInsets.only(bottom: bottomInset),
           child: Form(
             key: _formController.formKey,
             child: Column(
