@@ -18,6 +18,7 @@ import 'package:heliumapp/presentation/features/courses/bloc/course_state.dart';
 import 'package:heliumapp/presentation/features/shared/controllers/basic_form_controller.dart';
 import 'package:heliumapp/presentation/features/courses/controllers/course_form_controller.dart';
 import 'package:heliumapp/presentation/ui/components/color_selector.dart';
+import 'package:heliumapp/presentation/ui/layout/helium_full_screen_scroll_view.dart';
 import 'package:heliumapp/presentation/ui/components/helium_checkbox_list_tile.dart';
 import 'package:heliumapp/utils/snack_bar_helpers.dart';
 import 'package:heliumapp/presentation/features/shared/widgets/flow/multi_step_container.dart';
@@ -109,7 +110,7 @@ class CourseDetailsState extends State<CourseDetails> {
     return Column(
       children: [
         Expanded(
-          child: SingleChildScrollView(
+          child: HeliumFullScreenScrollView(
             keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
             child: Form(
               key: formController.formKey,

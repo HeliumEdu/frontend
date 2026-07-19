@@ -33,6 +33,7 @@ import 'package:heliumapp/presentation/features/planner/bloc/reminder_event.dart
 import 'package:heliumapp/presentation/features/planner/bloc/reminder_state.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/core/base_event.dart';
 import 'package:heliumapp/presentation/ui/components/course_title_label.dart';
+import 'package:heliumapp/presentation/ui/layout/helium_full_screen_scroll_view.dart';
 import 'package:heliumapp/presentation/ui/components/generic_label.dart';
 import 'package:heliumapp/presentation/ui/components/non_touch_selectable_text.dart';
 import 'package:heliumapp/presentation/ui/feedback/empty_card.dart';
@@ -261,7 +262,7 @@ class _NotificationsScreenState
               onRefresh: () async => _fetchReminders(forceRefresh: true),
               color: context.colorScheme.primary,
               child: LayoutBuilder(
-                builder: (context, constraints) => SingleChildScrollView(
+                builder: (context, constraints) => HeliumFullScreenScrollView(
                   physics: const AlwaysScrollableScrollPhysics(),
                   child: ConstrainedBox(
                     constraints: BoxConstraints(
@@ -304,6 +305,9 @@ class _NotificationsScreenState
         onRefresh: () async => _fetchReminders(forceRefresh: true),
         color: context.colorScheme.primary,
         child: ListView.builder(
+          padding: EdgeInsets.only(
+            bottom: HeliumFullScreenScrollView.insetOf(context),
+          ),
           itemCount: _notifications.length,
           itemBuilder: (context, index) {
             try {

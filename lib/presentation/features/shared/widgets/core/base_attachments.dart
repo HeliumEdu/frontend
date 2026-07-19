@@ -19,6 +19,7 @@ import 'package:heliumapp/presentation/features/shared/bloc/info/info_state.dart
 import 'package:heliumapp/presentation/features/shared/widgets/flow/multi_step_container.dart';
 import 'package:heliumapp/presentation/ui/components/helium_elevated_button.dart';
 import 'package:heliumapp/presentation/ui/components/helium_icon_button.dart';
+import 'package:heliumapp/presentation/ui/layout/helium_full_screen_scroll_view.dart';
 import 'package:heliumapp/presentation/ui/feedback/empty_card.dart';
 import 'package:heliumapp/presentation/ui/feedback/error_card.dart';
 import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
@@ -372,6 +373,9 @@ abstract class BaseAttachmentsState extends State<BaseAttachmentsContent> {
 
   Widget _buildAttachmentsList() {
     return ListView.builder(
+      padding: EdgeInsets.only(
+        bottom: HeliumFullScreenScrollView.insetOf(context),
+      ),
       itemCount: attachments.length,
       itemBuilder: (context, index) {
         return _buildAttachmentCard(context, attachments[index]);

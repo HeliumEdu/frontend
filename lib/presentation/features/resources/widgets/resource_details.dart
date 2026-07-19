@@ -24,6 +24,7 @@ import 'package:heliumapp/presentation/features/resources/bloc/resource_state.da
 import 'package:heliumapp/presentation/features/shared/controllers/basic_form_controller.dart';
 import 'package:heliumapp/presentation/features/resources/controllers/resource_form_controller.dart';
 import 'package:heliumapp/presentation/ui/components/select_field.dart';
+import 'package:heliumapp/presentation/ui/layout/helium_full_screen_scroll_view.dart';
 import 'package:heliumapp/utils/snack_bar_helpers.dart';
 import 'package:heliumapp/presentation/ui/components/course_title_label.dart';
 import 'package:heliumapp/presentation/ui/components/drop_down.dart';
@@ -117,7 +118,7 @@ class ResourceDetailsState extends State<ResourceDetails> {
     return Column(
       children: [
         Expanded(
-          child: SingleChildScrollView(
+          child: HeliumFullScreenScrollView(
             keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
             child: Form(
               key: formController.formKey,

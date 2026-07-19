@@ -31,6 +31,7 @@ import 'package:heliumapp/presentation/features/planner/bloc/planneritem_state.d
 import 'package:heliumapp/presentation/features/planner/controllers/planner_item_form_controller.dart';
 import 'package:heliumapp/presentation/features/planner/dialogs/confirm_delete_dialog.dart';
 import 'package:heliumapp/presentation/ui/components/select_field.dart';
+import 'package:heliumapp/presentation/ui/layout/helium_full_screen_scroll_view.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/core/base_event.dart';
 import 'package:heliumapp/presentation/features/shared/controllers/basic_form_controller.dart';
 import 'package:heliumapp/presentation/features/shared/widgets/flow/multi_step_container.dart';
@@ -193,7 +194,7 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
     return Column(
       children: [
         Expanded(
-          child: SingleChildScrollView(
+          child: HeliumFullScreenScrollView(
             keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
             child: Form(
               key: formController.formKey,
