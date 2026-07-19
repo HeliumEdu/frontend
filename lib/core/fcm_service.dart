@@ -209,6 +209,17 @@ class FcmService {
     _log.info(
       'Notification permission status: ${settings.authorizationStatus}',
     );
+
+    // Let FlutterFire present foreground notifications on iOS so its swizzled
+    // delegate fires onMessage (and the bell increments); without this the app
+    // would need a native willPresent override that suppresses onMessage.
+    if (!kIsWeb && Platform.isIOS) {
+      await _firebaseMessaging!.setForegroundNotificationPresentationOptions(
+        alert: true,
+        badge: true,
+        sound: true,
+      );
+    }
   }
 
   Future<void> _getFCMToken() async {

@@ -20,9 +20,6 @@ import FirebaseMessaging
   ) -> Bool {
     FirebaseApp.configure()
 
-    // Set up notification delegate for foreground notifications
-    UNUserNotificationCenter.current().delegate = self
-
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
   }
 
@@ -50,19 +47,6 @@ import FirebaseMessaging
       default:
         result(FlutterMethodNotImplemented)
       }
-    }
-  }
-
-  // Handle foreground notifications - required for iOS 10+
-  override func userNotificationCenter(
-    _ center: UNUserNotificationCenter,
-    willPresent notification: UNNotification,
-    withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void
-  ) {
-    if #available(iOS 14.0, *) {
-      completionHandler([.banner, .badge, .sound])
-    } else {
-      completionHandler([.alert, .badge, .sound])
     }
   }
 
