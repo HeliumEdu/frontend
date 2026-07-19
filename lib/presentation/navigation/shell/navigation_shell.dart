@@ -196,7 +196,8 @@ class _NavigationShellState extends State<NavigationShell> {
     super.initState();
 
     DioClient().cacheService.addInactivityResumeListener(_checkGettingStartedDialog);
-    DioClient().cacheService.addInactivityResumeListener(_refreshNotificationCount);
+    // Cheap count query — refresh on every resume, not just the 10-min window.
+    DioClient().cacheService.addQuickResumeListener(_refreshNotificationCount);
     _checkDialogs();
     _refreshNotificationCount();
   }
@@ -206,7 +207,7 @@ class _NavigationShellState extends State<NavigationShell> {
     DioClient().cacheService.removeInactivityResumeListener(
       _checkGettingStartedDialog,
     );
-    DioClient().cacheService.removeInactivityResumeListener(
+    DioClient().cacheService.removeQuickResumeListener(
       _refreshNotificationCount,
     );
     _inheritableProvidersNotifier.dispose();

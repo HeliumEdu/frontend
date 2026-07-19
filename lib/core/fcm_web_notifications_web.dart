@@ -48,6 +48,39 @@ Future<bool> requestWebNotificationPermission() async {
   }
 }
 
+/// Closes any shown web notification for [reminderId] — both page-created ones
+/// (foreground) and service-worker-shown ones — so a dismiss received while a
+/// tab is foregrounded clears it (the SW's own dismiss handler only runs when no
+/// tab is visible).
+void dismissWebNotification(String reminderId) {
+  try {
+    for (final n in _activeNotifications.toList()) {
+      if (n.tag == reminderId) {
+        n.close();
+        _activeNotifications.remove(n);
+      }
+    }
+
+    final registration =
+        web.window.navigator.serviceWorker.controller != null
+        ? web.window.navigator.serviceWorker.ready
+        : null;
+    if (registration == null) return;
+    registration.toDart.then((reg) {
+      reg
+          .getNotifications(web.GetNotificationOptions(tag: reminderId))
+          .toDart
+          .then((notifications) {
+            for (final n in notifications.toDart) {
+              n.close();
+            }
+          });
+    });
+  } catch (e) {
+    _log.warning('Failed to dismiss web notification $reminderId', e);
+  }
+}
+
 void showWebNotification(
   NotificationModel notification,
   Function(Map<String, dynamic>) onTap,

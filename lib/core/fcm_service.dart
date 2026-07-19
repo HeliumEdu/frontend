@@ -414,7 +414,11 @@ class FcmService {
 
     _log.info('Dismiss received for reminder $reminderId; clearing notification');
 
-    if (!kIsWeb && Platform.isAndroid) {
+    if (kIsWeb) {
+      // A foregrounded tab receives dismiss via onMessage, not the SW's
+      // onBackgroundMessage, so clear the notification here.
+      web_notifications.dismissWebNotification(reminderId);
+    } else if (Platform.isAndroid) {
       try {
         await _localNotifications.cancel(id: 0, tag: 'reminder_$reminderId');
       } catch (e, s) {

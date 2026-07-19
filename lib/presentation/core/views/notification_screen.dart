@@ -631,22 +631,31 @@ class _NotificationsScreenState
               ),
               if (!isTouchDevice) ...[
                 const SizedBox(width: 4),
-                IconButton(
-                  style: IconButton.styleFrom(
-                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                  ),
-                  tooltip: 'Dismiss reminder',
-                  onPressed: () => _dismissReminder(notification),
-                  icon: Icon(
-                    Icons.close,
-                    color: context.colorScheme.secondary.withValues(alpha: 0.7),
-                    size: Responsive.getIconSize(
+                Builder(
+                  builder: (context) {
+                    final iconSize = Responsive.getIconSize(
                       context,
                       mobile: 16,
                       tablet: 18,
                       desktop: 20,
-                    ),
-                  ),
+                    );
+                    return IconButton(
+                      style: IconButton.styleFrom(
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        padding: const EdgeInsets.all(4),
+                        minimumSize: Size.zero,
+                      ),
+                      constraints: const BoxConstraints(),
+                      tooltip: 'Dismiss reminder',
+                      onPressed: () => _dismissReminder(notification),
+                      icon: Icon(
+                        Icons.close,
+                        color:
+                            context.colorScheme.secondary.withValues(alpha: 0.7),
+                        size: iconSize,
+                      ),
+                    );
+                  },
                 ),
               ],
             ],

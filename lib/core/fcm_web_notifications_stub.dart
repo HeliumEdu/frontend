@@ -22,3 +22,7 @@ void showWebNotification(
 ) {
   // No-op on non-web platforms
 }
+
+void dismissWebNotification(String reminderId) {
+  // No-op on non-web platforms
+}
