@@ -381,9 +381,12 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
       return Material(
         color: context.colorScheme.surface,
         borderRadius: BorderRadius.circular(isFullScreen ? 0 : 16),
+        // Full-screen: don't reserve the bottom safe area, so scroll content
+        // flows past it into the device's rounded corner for an "infinite" look
+        // (the home indicator overlays translucently; content scrolls clear).
         child: SafeArea(
           top: isFullScreen,
-          bottom: isFullScreen,
+          bottom: false,
           left: false,
           right: false,
           child: Column(
