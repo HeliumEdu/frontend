@@ -409,10 +409,20 @@ jobs:
       - name: Build iOS release IPA
         env:
           COCOAPODS_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_VERSION: ${{ steps.ci-version.outputs.build-name }}+${{ steps.ci-version.outputs.build-number }}
         run: |
+          SENTRY_DIST="${RELEASE_VERSION##*+}"
           make build-ios-release ENVIRONMENT=prod \
+            RELEASE_VERSION="$RELEASE_VERSION" SENTRY_DIST="$SENTRY_DIST" \
             BUILD_NAME=${{ steps.ci-version.outputs.build-name }} \
             BUILD_NUMBER=${{ steps.ci-version.outputs.build-number }}
+
+      - name: Upload debug symbols to Sentry
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+        run: |
+          npm install -g @sentry/cli
+          SENTRY_PROPERTIES=sentry.properties sentry-cli debug-files upload build/symbols/ build/ios/archive/Runner.xcarchive/dSYMs/
 
       - name: Deploy to TestFlight
         env:

@@ -17,6 +17,7 @@ import 'package:heliumapp/presentation/features/courses/bloc/course_state.dart';
 import 'package:heliumapp/presentation/features/shared/controllers/basic_form_controller.dart';
 import 'package:heliumapp/presentation/features/shared/widgets/flow/multi_step_container.dart';
 import 'package:heliumapp/presentation/ui/components/helium_checkbox_list_tile.dart';
+import 'package:heliumapp/presentation/ui/layout/helium_full_screen_scroll_view.dart';
 import 'package:heliumapp/presentation/ui/components/helium_elevated_button.dart';
 import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
 import 'package:heliumapp/utils/app_globals.dart';
@@ -237,7 +238,7 @@ class CourseScheduleState extends State<CourseSchedule> {
     return Column(
       children: [
         Expanded(
-          child: SingleChildScrollView(
+          child: HeliumFullScreenScrollView(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [

@@ -66,7 +66,7 @@ class LabelAndTextFormField extends StatefulWidget {
 
 class _LabelAndTextFormFieldState extends State<LabelAndTextFormField> {
   static const _fieldBorderRadius = 8.0;
-  static const _fieldContentPaddingLeft = 12.0;
+  static const _fieldContentPadding = 12.0;
   static const _trailingButtonSize = 48.0;
   static const _trailingButtonLabelOffset = 30.0;
   static const _verticalContentPaddingWithAffordance = 15.0;
@@ -122,10 +122,9 @@ class _LabelAndTextFormFieldState extends State<LabelAndTextFormField> {
                 color: context.colorScheme.onSurface.withValues(alpha: 0.4),
               )
             : null,
-        contentPadding: EdgeInsets.only(
-          left: _fieldContentPaddingLeft,
-          top: _horizontalPadding(),
-          bottom: _horizontalPadding(),
+        contentPadding: EdgeInsets.symmetric(
+          horizontal: _fieldContentPadding,
+          vertical: _verticalPadding(),
         ),
         hintText: widget.hintText,
         hintStyle: AppStyles.formHint(context),
@@ -211,7 +210,7 @@ class _LabelAndTextFormFieldState extends State<LabelAndTextFormField> {
     return formField;
   }
 
-  double _horizontalPadding() {
+  double _verticalPadding() {
     if (widget.prefixIcon != null ||
         widget.suffixIcon != null ||
         widget.maxLines > 1) {

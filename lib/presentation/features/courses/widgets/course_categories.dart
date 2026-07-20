@@ -18,6 +18,7 @@ import 'package:heliumapp/presentation/features/planner/dialogs/confirm_delete_d
 import 'package:heliumapp/presentation/features/shared/bloc/core/base_event.dart';
 import 'package:heliumapp/presentation/features/shared/widgets/flow/multi_step_container.dart';
 import 'package:heliumapp/presentation/ui/components/category_title_label.dart';
+import 'package:heliumapp/presentation/ui/layout/helium_full_screen_scroll_view.dart';
 import 'package:heliumapp/presentation/ui/components/helium_icon_button.dart';
 import 'package:heliumapp/presentation/ui/feedback/empty_card.dart';
 import 'package:heliumapp/presentation/ui/feedback/error_card.dart';
@@ -208,6 +209,9 @@ class _CourseCategoriesContentState extends State<_CourseCategoriesContent> {
 
   Widget _buildCategoriesList() {
     return ListView.builder(
+      padding: EdgeInsets.only(
+        bottom: HeliumFullScreenScrollView.insetOf(context),
+      ),
       itemCount: _categories.length,
       itemBuilder: (context, index) {
         final category = _categories[index];

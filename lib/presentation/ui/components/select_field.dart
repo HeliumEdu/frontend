@@ -48,7 +48,7 @@ class SelectField<T extends BaseTitledModel> extends StatelessWidget {
         vertical: 8.0,
       ),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(6.0),
+        borderRadius: BorderRadius.circular(8.0),
         border: Border.all(
           color: context.colorScheme.outline.withValues(alpha: 0.2),
         ),

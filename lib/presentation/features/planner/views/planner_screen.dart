@@ -19,6 +19,7 @@ import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/core/analytics_service.dart';
 import 'package:heliumapp/core/dio_client.dart';
 import 'package:heliumapp/core/feedback_service.dart';
+import 'package:heliumapp/core/helium_exception.dart';
 import 'package:heliumapp/core/motion_service.dart';
 import 'package:heliumapp/data/models/auth/user_model.dart';
 import 'package:heliumapp/data/models/id_or_entity.dart';
@@ -2012,6 +2013,17 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
     return FutureBuilder<void>(
       future: loadMorePlannerItems(),
       builder: (context, snapShot) {
+        // Stop the spinner on error, else SfCalendar hangs on it indefinitely.
+        if (snapShot.hasError) {
+          final error = snapShot.error;
+          final message = error is HeliumException
+              ? error.displayMessage
+              : HeliumException.unexpectedError;
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted) showSnackBar(context, message, type: SnackType.error);
+          });
+          return const SizedBox.shrink();
+        }
         return const Center(child: LoadingIndicator(expanded: false));
       },
     );

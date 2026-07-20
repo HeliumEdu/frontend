@@ -20,6 +20,7 @@ import 'package:heliumapp/presentation/features/planner/dialogs/confirm_delete_d
 import 'package:heliumapp/presentation/features/settings/dialogs/external_calendar_dialog.dart';
 import 'package:heliumapp/presentation/ui/feedback/empty_card.dart';
 import 'package:heliumapp/presentation/ui/feedback/error_card.dart';
+import 'package:heliumapp/presentation/ui/layout/helium_full_screen_scroll_view.dart';
 import 'package:heliumapp/presentation/ui/components/helium_icon_button.dart';
 import 'package:heliumapp/presentation/ui/feedback/info_container.dart';
 import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
@@ -177,6 +178,9 @@ class ExternalCalendarsScreenState extends State<ExternalCalendarsScreen> {
 
   Widget _buildExternalCalendarsList() {
     return ListView.builder(
+      padding: EdgeInsets.only(
+        bottom: HeliumFullScreenScrollView.insetOf(context),
+      ),
       itemCount: _externalCalendars.length,
       itemBuilder: (context, index) {
         return _buildExternalCalendarCard(_externalCalendars[index]);

@@ -17,6 +17,7 @@ import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/core/analytics_service.dart';
 import 'package:heliumapp/core/api_url.dart';
 import 'package:heliumapp/core/dio_client.dart';
+import 'package:heliumapp/core/notification_count_service.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_bloc.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_event.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/info/info_bloc.dart';
@@ -260,6 +261,7 @@ class _ImportExportScreenState extends State<ImportExportScreen> {
 
       if (response.statusCode == 200) {
         await _dioClient.cacheService.invalidateAll();
+        unawaited(NotificationCountService().refresh());
 
         final data = response.data as Map<String, dynamic>;
         final counts = _formatImportCounts(data);
@@ -415,6 +417,11 @@ class _ImportExportScreenState extends State<ImportExportScreen> {
 
       if (response.statusCode == 204) {
         await _dioClient.cacheService.invalidateAll();
+        // Warm the settings cache so the router's auth-redirect read is a hit,
+        // not a post-redirect cold fetch that stalls the outgoing screen.
+        await _dioClient.fetchSettings(forceRefresh: true);
+        if (!mounted) return;
+        unawaited(NotificationCountService().refresh());
         if (mounted) {
           unawaited(AnalyticsService().logEvent(name: AnalyticsEvent.exampleScheduleImport, parameters: {'category': AnalyticsCategory.onboarding.value}));
           unawaited(AnalyticsService().setUserProperty(name: 'onboarding_complete', value: 'false'));

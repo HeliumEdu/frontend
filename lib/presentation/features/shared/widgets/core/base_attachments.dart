@@ -154,9 +154,16 @@ abstract class BaseAttachmentsState extends State<BaseAttachmentsContent> {
           });
         }
       },
+      // Bottom-pin the buttons clear of the home indicator: the enclosing
+      // full-screen dialog does not reserve the bottom safe area, and these
+      // buttons sit below the scroll, so they'd otherwise render under it.
       child: isLoading || widget.userSettings == null
           ? const Center(child: LoadingIndicator(expanded: false))
-          : Column(
+          : Padding(
+            padding: EdgeInsets.only(
+              bottom: MediaQuery.of(context).viewPadding.bottom,
+            ),
+            child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text('Attachments', style: AppStyles.featureText(context)),
@@ -218,6 +225,7 @@ abstract class BaseAttachmentsState extends State<BaseAttachmentsContent> {
                 const SizedBox(height: 12),
               ],
             ),
+          ),
     );
   }
 

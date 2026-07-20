@@ -107,7 +107,6 @@ class PlannerHelper {
       body: payload['notification_body'] as String,
       reminder: reminder,
       timestamp: start,
-      isRead: false,
     );
   }
 

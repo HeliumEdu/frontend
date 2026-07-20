@@ -24,6 +24,7 @@ import 'package:heliumapp/core/fcm_web_notifications_stub.dart'
     if (dart.library.html) 'package:heliumapp/core/fcm_web_notifications_web.dart'
     as web_notifications;
 import 'package:heliumapp/core/jwt_utils.dart';
+import 'package:heliumapp/core/notification_count_service.dart';
 import 'package:heliumapp/data/models/notification/notification_model.dart';
 import 'package:heliumapp/data/models/notification/request/push_token_request_model.dart';
 import 'package:heliumapp/data/repositories/push_notification_repository_impl.dart';
@@ -94,6 +95,10 @@ class FcmService {
 
   @visibleForTesting
   static Duration get dedupeWindowForTesting => _dedupeWindow;
+
+  @visibleForTesting
+  Future<void> handleDismissMessageForTesting(RemoteMessage message) =>
+      _handleDismissMessage(message);
 
   Future<void> init() async {
     if (isInitialized) return;
@@ -204,6 +209,16 @@ class FcmService {
     _log.info(
       'Notification permission status: ${settings.authorizationStatus}',
     );
+
+    // Let FlutterFire present foreground iOS notifications so its swizzled
+    // delegate fires onMessage; a native willPresent override would suppress it.
+    if (!kIsWeb && Platform.isIOS) {
+      await _firebaseMessaging!.setForegroundNotificationPresentationOptions(
+        alert: true,
+        badge: true,
+        sound: true,
+      );
+    }
   }
 
   Future<void> _getFCMToken() async {
@@ -360,6 +375,11 @@ class FcmService {
     final messageId = message.messageId ?? 'unknown';
     _log.info('Foreground message $messageId received from FCM');
 
+    if (message.data['action'] == 'dismiss') {
+      await _handleDismissMessage(message);
+      return;
+    }
+
     if (kDebugMode) {
       if (await _handleTestMessages(message, messageId)) return;
     }
@@ -379,13 +399,70 @@ class FcmService {
     _recentMessageIds[notification.id.toString()] = now;
 
     await showLocalNotification(notification);
+    NotificationCountService().increment();
     _log.info('Foreground message $messageId notification displayed');
+  }
+
+  /// Clears a reminder's notification in response to a silent
+  /// `{action: dismiss, reminder_id}` push (dismissed on another device).
+  /// Android cancels by the tag the FCM SDK posts under, `reminder_{id}` at the
+  /// hardcoded id 0. iOS clears natively in AppDelegate and web in the service
+  /// worker, so this only touches the tray on those platforms.
+  ///
+  /// The bell count is NOT decremented here: the dismiss push fans out to ALL
+  /// devices including the originator, so this handler fires both for cross-device
+  /// dismisses AND as an echo of the user's own in-app dismiss. The in-app path
+  /// already decrements via the ReminderUpdated listener; decrementing here too
+  /// would double-count. The count self-corrects on the next refresh() (resume,
+  /// screen open) for cross-device dismisses where the screen was closed.
+  Future<void> _handleDismissMessage(RemoteMessage message) async {
+    final reminderId = message.data['reminder_id'];
+    if (reminderId == null || reminderId.isEmpty) {
+      _log.warning('Dismiss message missing reminder_id, ignoring');
+      return;
+    }
+
+    _log.info('Dismiss received for reminder $reminderId; clearing notification');
+
+    if (kIsWeb) {
+      // A foregrounded tab receives dismiss via onMessage, not the SW's
+      // onBackgroundMessage, so clear the notification here.
+      web_notifications.dismissWebNotification(reminderId);
+    } else if (Platform.isAndroid) {
+      try {
+        await _localNotifications.cancel(id: 0, tag: 'reminder_$reminderId');
+      } catch (e, s) {
+        _log.warning('Failed to clear notification for reminder $reminderId', e, s);
+      }
+    }
   }
 
   Future<void> _onNotificationTap(RemoteMessage message) async {
     final messageId = message.messageId;
     _log.info('Notification $messageId tapped');
-    await router.push(notificationsRoute);
+    await router.push(_routeForMessage(message));
+  }
+
+  /// Resolves the deep-link route for a tapped push: the specific entity the
+  /// reminder is attached to, falling back to the notifications list if the
+  /// payload carries no linked entity (or can't be parsed).
+  static String _routeForMessage(RemoteMessage message) {
+    try {
+      return _routeForNotification(_messageToNotification(message));
+    } catch (e, s) {
+      _log.warning('Failed to resolve entity route for tapped push', e, s);
+      return notificationsRoute;
+    }
+  }
+
+  static String _routeForNotification(NotificationModel notification) {
+    final reminder = notification.reminder;
+    return reminderEntityRoute(
+          courseId: reminder.course?.id,
+          homeworkId: reminder.homework?.id,
+          eventId: reminder.event?.id,
+        ) ??
+        notificationsRoute;
   }
 
   /// Pending route to navigate to once the router is initialized.
@@ -417,7 +494,7 @@ class FcmService {
       _log.info('App opened from terminated state via notification');
       // Defer navigation - router may not be initialized yet during cold start.
       // The app's main widget should check pendingRoute after router is ready.
-      pendingRoute = notificationsRoute;
+      pendingRoute = _routeForMessage(initialMessage);
     }
   }
 
@@ -441,13 +518,14 @@ class FcmService {
   Future<void> showLocalNotification(NotificationModel notification) async {
     if (kIsWeb) {
       if (await web_notifications.requestWebNotificationPermission()) {
+        final route = _routeForNotification(notification);
         web_notifications.showWebNotification(
           notification,
           (_) {
             if (_onForegroundTap != null) {
-              _onForegroundTap!(notificationsRoute);
+              _onForegroundTap!(route);
             } else {
-              router.go(notificationsRoute);
+              router.go(route);
             }
           },
         );
@@ -483,12 +561,14 @@ class FcmService {
       title: notification.title,
       body: notification.body,
       notificationDetails: platformDetails,
+      payload: _routeForNotification(notification),
     );
   }
 
   void _onNotificationTapped(NotificationResponse response) {
     _log.info('Local notification tapped: ${response.id}');
-    router.push(notificationsRoute);
+    final route = response.payload;
+    router.push(route != null && route.isNotEmpty ? route : notificationsRoute);
   }
 
   Future<void> registerToken({bool force = false}) async {
@@ -584,9 +664,10 @@ class FcmService {
 
 @pragma('vm:entry-point')
 Future<void> _onBackgroundMessage(RemoteMessage message) async {
-  // The OS displays the notification natively via AndroidConfig/APNSConfig.
-  // No display logic needed here; this handler exists to satisfy Firebase's
-  // background message registration requirement.
+  // Reminder pushes are displayed natively by the OS, so this handler exists
+  // to register the background isolate and to clear a notification on a dismiss
+  // push. The count is left to refresh() on resume — this isolate has its own
+  // memory, separate from the UI's NotificationCountService.
   try {
     await Firebase.initializeApp();
   } catch (e) {
@@ -595,4 +676,20 @@ Future<void> _onBackgroundMessage(RemoteMessage message) async {
   }
 
   _log.info('Background message ${message.messageId ?? 'unknown'} received from FCM');
+
+  if (message.data['action'] == 'dismiss' && !kIsWeb && Platform.isAndroid) {
+    final reminderId = message.data['reminder_id'];
+    if (reminderId == null || reminderId.isEmpty) return;
+
+    try {
+      await FlutterLocalNotificationsPlugin().cancel(
+        id: 0,
+        tag: 'reminder_$reminderId',
+      );
+    } catch (e, s) {
+      // Method channels aren't guaranteed in the background isolate; a failure
+      // is reconciled when the app next resumes.
+      _log.warning('Background dismiss clear failed for reminder $reminderId', e, s);
+    }
+  }
 }

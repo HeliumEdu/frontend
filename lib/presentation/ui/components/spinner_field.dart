@@ -84,6 +84,10 @@ class SpinnerField extends StatelessWidget {
                   },
                   child: TextFormField(
                     controller: controller,
+                    expands: true,
+                    maxLines: null,
+                    minLines: null,
+                    textAlignVertical: TextAlignVertical.center,
                     keyboardType: const TextInputType.numberWithOptions(
                       decimal: true,
                     ),

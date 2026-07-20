@@ -5,6 +5,8 @@
 //
 // For details regarding the license, please refer to the LICENSE file.
 
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -12,6 +14,8 @@ import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/config/app_router.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/core/dio_client.dart';
+import 'package:heliumapp/core/notification_count_service.dart';
+import 'package:heliumapp/core/notification_reconciler.dart';
 import 'package:heliumapp/core/whats_new_service.dart';
 import 'package:heliumapp/presentation/core/dialogs/getting_started_dialog.dart';
 import 'package:heliumapp/presentation/core/dialogs/whats_new_dialog.dart';
@@ -192,7 +196,10 @@ class _NavigationShellState extends State<NavigationShell> {
     super.initState();
 
     DioClient().cacheService.addInactivityResumeListener(_checkGettingStartedDialog);
+    // Cheap count query — refresh on every resume, not just the 10-min window.
+    DioClient().cacheService.addQuickResumeListener(_refreshNotificationCount);
     _checkDialogs();
+    _refreshNotificationCount();
   }
 
   @override
@@ -200,20 +207,26 @@ class _NavigationShellState extends State<NavigationShell> {
     DioClient().cacheService.removeInactivityResumeListener(
       _checkGettingStartedDialog,
     );
+    DioClient().cacheService.removeQuickResumeListener(
+      _refreshNotificationCount,
+    );
     _inheritableProvidersNotifier.dispose();
     super.dispose();
+  }
+
+  void _refreshNotificationCount() {
+    unawaited(NotificationCountService().refresh());
+    unawaited(NotificationReconciler().reconcile());
   }
 
   @override
   Widget build(BuildContext context) {
     final currentPage = NavigationPage.values[widget.navigationShell.currentIndex];
 
-    final globalLocation = router.routerDelegate.currentConfiguration.uri.path;
-    final isShellTab = NavigationPage.values.any(
-      (p) => p.route == globalLocation,
-    );
-    final isCurrentRoute = ModalRoute.of(context)?.isCurrent ?? false;
-    if (isShellTab && isCurrentRoute) {
+    // Only update the browser title when the shell is the visible top route (no
+    // overlay above it). Reads the shell's own ModalRoute rather than the router
+    // URI, which goes stale after cross-branch navigation (flutter/flutter#146610).
+    if (ModalRoute.isCurrentOf(context) ?? false) {
       _updateBrowserTitle(currentPage);
     }
 
@@ -295,7 +308,7 @@ class _NavigationShellState extends State<NavigationShell> {
                 ),
               ],
             ),
-            bottomNavigationBar: (useNavigationRail || !isShellTab)
+            bottomNavigationBar: useNavigationRail
                 ? null
                 : TooltipVisibility(
                     visible: false,
@@ -413,6 +426,8 @@ class _NavigationShellState extends State<NavigationShell> {
   }
 
   void _onDestinationSelected(BuildContext context, int index) {
+    ScaffoldMessenger.of(context)
+        .removeCurrentSnackBar(reason: SnackBarClosedReason.remove);
     widget.navigationShell.goBranch(
       index,
       initialLocation: index == widget.navigationShell.currentIndex,

@@ -20,6 +20,13 @@ abstract class ReminderRepository {
     bool forceRefresh = false,
   });
 
+  Future<int> getRemindersCount({
+    bool? sent,
+    bool? dismissed,
+    int? type,
+    DateTime? startOfRange,
+  });
+
   Future<ReminderModel> createReminder(ReminderRequestModel request);
 
   Future<ReminderModel> updateReminder(int id, ReminderRequestModel request);

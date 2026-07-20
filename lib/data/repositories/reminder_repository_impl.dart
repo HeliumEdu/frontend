@@ -39,6 +39,21 @@ class ReminderRepositoryImpl implements ReminderRepository {
   }
 
   @override
+  Future<int> getRemindersCount({
+    bool? sent,
+    bool? dismissed,
+    int? type,
+    DateTime? startOfRange,
+  }) async {
+    return remoteDataSource.getRemindersCount(
+      sent: sent,
+      dismissed: dismissed,
+      type: type,
+      startOfRange: startOfRange,
+    );
+  }
+
+  @override
   Future<ReminderModel> createReminder(ReminderRequestModel request) async {
     return remoteDataSource.createReminder(request);
   }

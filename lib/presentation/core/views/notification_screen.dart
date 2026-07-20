@@ -14,9 +14,9 @@ import 'package:heliumapp/config/analytics_event.dart';
 import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/config/app_router.dart';
 import 'package:heliumapp/config/app_theme.dart';
-import 'package:heliumapp/config/pref_service.dart';
 import 'package:heliumapp/core/analytics_service.dart';
 import 'package:heliumapp/core/dio_client.dart';
+import 'package:heliumapp/core/notification_count_service.dart';
 import 'package:heliumapp/data/models/auth/user_model.dart';
 import 'package:heliumapp/data/models/notification/notification_model.dart';
 import 'package:heliumapp/data/models/planner/homework_model.dart';
@@ -33,6 +33,7 @@ import 'package:heliumapp/presentation/features/planner/bloc/reminder_event.dart
 import 'package:heliumapp/presentation/features/planner/bloc/reminder_state.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/core/base_event.dart';
 import 'package:heliumapp/presentation/ui/components/course_title_label.dart';
+import 'package:heliumapp/presentation/ui/layout/helium_full_screen_scroll_view.dart';
 import 'package:heliumapp/presentation/ui/components/generic_label.dart';
 import 'package:heliumapp/presentation/ui/components/non_touch_selectable_text.dart';
 import 'package:heliumapp/presentation/ui/feedback/empty_card.dart';
@@ -41,7 +42,6 @@ import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
 import 'package:heliumapp/presentation/ui/layout/page_header.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/app_style.dart';
-import 'package:heliumapp/utils/conversion_helpers.dart';
 import 'package:heliumapp/utils/date_time_helpers.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:heliumapp/utils/error_helpers.dart';
@@ -114,32 +114,52 @@ class _NotificationsScreenState
   @override
   EdgeInsets get scaffoldInsets => const EdgeInsets.all(0);
 
-  final PrefService _prefService = PrefService();
+  /// Width floor reserved for the notification title so a long course/room
+  /// badge stretches only into the space beyond it, never squeezing the title
+  /// below this.
+  static const double _minTitleWidth = 120.0;
 
   List<NotificationModel> _notifications = [];
-  List<int> _readNotificationIds = [];
   bool _isOpeningEntity = false;
+  int _lastKnownCount = 0;
 
   @override
   void initState() {
     super.initState();
+    _lastKnownCount = NotificationCountService().count.value;
+    NotificationCountService().count.addListener(_onCountChanged);
+  }
 
-    // Ensure PrefService is initialized
-    _prefService.init().then((_) {
-      setState(() {
-        _readNotificationIds =
-            (_prefService.getStringList('read_notification_ids') ?? [])
-                .map((n) => toInt(n)!)
-                .toList();
-      });
-    });
+  @override
+  void dispose() {
+    NotificationCountService().count.removeListener(_onCountChanged);
+    super.dispose();
+  }
+
+  void _onCountChanged() {
+    if (!mounted) return;
+    final current = NotificationCountService().count.value;
+    if (current > _lastKnownCount && _notifications.isNotEmpty) {
+      _lastKnownCount = current;
+      _fetchReminders(forceRefresh: true);
+    } else {
+      _lastKnownCount = current;
+    }
   }
 
   @override
   Future<UserSettingsModel?> loadSettings() {
     return super.loadSettings().then((settings) {
       if (mounted && settings != null) {
-        _fetchReminders();
+        final cached = NotificationCountService().cachedNotifications;
+        if (cached != null) {
+          setState(() {
+            _notifications = cached;
+            isLoading = false;
+          });
+        } else {
+          _fetchReminders();
+        }
       }
       return settings;
     });
@@ -165,15 +185,15 @@ class _NotificationsScreenState
                 reminder.startOfRange == null ||
                 reminder.startOfRange!.isAfter(DateTime.now());
 
+            NotificationCountService().invalidateCachedNotifications();
             if (shouldRemove) {
               if (reminder.dismissed) {
                 showSnackBar(context, 'Reminder dismissed.');
+                NotificationCountService().decrement();
               }
               setState(() {
                 _notifications.removeWhere((n) => n.reminder.id == reminder.id);
               });
-              _readNotificationIds.remove(reminder.id);
-              _storeReadNotifications();
             } else {
               final index = _notifications.indexWhere(
                 (n) => n.reminder.id == reminder.id,
@@ -189,11 +209,10 @@ class _NotificationsScreenState
               }
             }
           } else if (state is ReminderDeleted) {
+            NotificationCountService().invalidateCachedNotifications();
             setState(() {
               _notifications.removeWhere((n) => n.reminder.id == state.id);
             });
-            _readNotificationIds.remove(state.id);
-            _storeReadNotifications();
           }
         },
       ),
@@ -219,7 +238,7 @@ class _NotificationsScreenState
   Widget buildMainArea(BuildContext context) {
     return BlocBuilder<ReminderBloc, ReminderState>(
       builder: (context, state) {
-        if (state is RemindersLoading) {
+        if (state is RemindersLoading && _notifications.isEmpty) {
           return const LoadingIndicator();
         }
 
@@ -243,7 +262,7 @@ class _NotificationsScreenState
               onRefresh: () async => _fetchReminders(forceRefresh: true),
               color: context.colorScheme.primary,
               child: LayoutBuilder(
-                builder: (context, constraints) => SingleChildScrollView(
+                builder: (context, constraints) => HeliumFullScreenScrollView(
                   physics: const AlwaysScrollableScrollPhysics(),
                   child: ConstrainedBox(
                     constraints: BoxConstraints(
@@ -286,6 +305,9 @@ class _NotificationsScreenState
         onRefresh: () async => _fetchReminders(forceRefresh: true),
         color: context.colorScheme.primary,
         child: ListView.builder(
+          padding: EdgeInsets.only(
+            bottom: HeliumFullScreenScrollView.insetOf(context),
+          ),
           itemCount: _notifications.length,
           itemBuilder: (context, index) {
             try {
@@ -339,9 +361,16 @@ class _NotificationsScreenState
       _notifications = notifications;
       isLoading = false;
     });
+
+    // The fetched active set is authoritative; reconcile the bell badge count
+    // with it (corrects any drift from local increment/decrement) and cache the
+    // list so a reopen with an unchanged count can skip the fetch.
+    NotificationCountService().count.value = notifications.length;
+    NotificationCountService().cacheNotifications(notifications);
   }
 
   void _removeNotificationByPlannerItemId({int? eventId, int? homeworkId}) {
+    NotificationCountService().invalidateCachedNotifications();
     setState(() {
       _notifications.removeWhere((n) {
         if (eventId != null) return n.reminder.event?.entity?.id == eventId;
@@ -453,7 +482,6 @@ class _NotificationsScreenState
       body: reminder.title,
       color: color,
       timestamp: timestamp,
-      isRead: _readNotificationIds.contains(reminder.id),
       reminder: reminder,
     );
   }
@@ -486,17 +514,6 @@ class _NotificationsScreenState
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Container(
-                width: 8.0,
-                height: 8.0,
-                margin: const EdgeInsets.only(top: 6, right: 12.0),
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: notification.isRead
-                      ? Colors.transparent
-                      : context.colorScheme.primary,
-                ),
-              ),
               if (notification.color != null)
                 Container(
                   width: 4.0,
@@ -511,71 +528,65 @@ class _NotificationsScreenState
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
-                      children: [
-                        // When a badge follows, Text hugs content;
-                        // when alone, Flexible allows ellipsis
-                        if (plannerItem is HomeworkModel &&
-                                plannerItem.course.entity != null ||
-                            notification.reminder.course?.entity != null &&
+                    LayoutBuilder(
+                      builder: (context, constraints) {
+                        // The title hugs its content and ellipsizes only when
+                        // squeezed; the badge stretches to fill the row but is
+                        // capped so the title always keeps at least
+                        // [_minTitleWidth].
+                        final badgeMaxWidth =
+                            (constraints.maxWidth - _minTitleWidth)
+                                .clamp(0.0, double.infinity);
+                        return Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Flexible(
+                              child: Text(
+                                notification.title,
+                                style: AppStyles.standardBodyText(context)
+                                    .copyWith(fontWeight: FontWeight.w600),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            if (plannerItem is HomeworkModel &&
+                                plannerItem.course.entity != null)
+                              Padding(
+                                padding: const EdgeInsets.only(left: 4),
+                                child: ConstrainedBox(
+                                  constraints: BoxConstraints(
+                                    maxWidth: badgeMaxWidth,
+                                  ),
+                                  child: CourseTitleLabel(
+                                    title: plannerItem.course.entity!.title,
+                                    color: plannerItem.course.entity!.color,
+                                    compact: true,
+                                  ),
+                                ),
+                              )
+                            else if (notification.reminder.course?.entity !=
+                                    null &&
                                 notification
                                     .reminder.course!.entity!.room.isNotEmpty)
-                          Text(
-                            notification.title,
-                            style: AppStyles.standardBodyText(context).copyWith(
-                              fontWeight: notification.isRead
-                                  ? FontWeight.normal
-                                  : FontWeight.w600,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          )
-                        else
-                          Flexible(
-                            child: Text(
-                              notification.title,
-                              overflow: TextOverflow.ellipsis,
-                              style: AppStyles.standardBodyText(context)
-                                  .copyWith(
-                                    fontWeight: notification.isRead
-                                        ? FontWeight.normal
-                                        : FontWeight.w600,
+                              Padding(
+                                padding: const EdgeInsets.only(left: 4),
+                                child: ConstrainedBox(
+                                  constraints: BoxConstraints(
+                                    maxWidth: badgeMaxWidth,
                                   ),
-                            ),
-                          ),
-                        if (plannerItem is HomeworkModel &&
-                            plannerItem.course.entity != null) ...[
-                          const SizedBox(width: 4),
-                          Expanded(
-                            child: Align(
-                              alignment: Alignment.centerRight,
-                              child: CourseTitleLabel(
-                                title: plannerItem.course.entity!.title,
-                                color: plannerItem.course.entity!.color,
-                                compact: true,
+                                  child: GenericLabel(
+                                    label: notification
+                                        .reminder.course!.entity!.room,
+                                    color: notification
+                                        .reminder.course!.entity!.color,
+                                    icon: Icons.pin_drop_outlined,
+                                    compact: true,
+                                  ),
+                                ),
                               ),
-                            ),
-                          ),
-                        ] else if (notification.reminder.course?.entity !=
-                                null &&
-                            notification
-                                .reminder.course!.entity!.room.isNotEmpty) ...[
-                          const SizedBox(width: 4),
-                          Expanded(
-                            child: Align(
-                              alignment: Alignment.centerRight,
-                              child: GenericLabel(
-                                label:
-                                    notification.reminder.course!.entity!.room,
-                                color:
-                                    notification.reminder.course!.entity!.color,
-                                icon: Icons.pin_drop_outlined,
-                                compact: true,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ],
+                          ],
+                        );
+                      },
                     ),
 
                     const SizedBox(height: 4),
@@ -620,21 +631,31 @@ class _NotificationsScreenState
               ),
               if (!isTouchDevice) ...[
                 const SizedBox(width: 4),
-                IconButton(
-                  style: IconButton.styleFrom(
-                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                  ),
-                  onPressed: () => _dismissReminder(notification),
-                  icon: Icon(
-                    Icons.close,
-                    color: context.colorScheme.secondary.withValues(alpha: 0.7),
-                    size: Responsive.getIconSize(
+                Builder(
+                  builder: (context) {
+                    final iconSize = Responsive.getIconSize(
                       context,
-                      mobile: 20,
-                      tablet: 22,
-                      desktop: 24,
-                    ),
-                  ),
+                      mobile: 16,
+                      tablet: 18,
+                      desktop: 20,
+                    );
+                    return IconButton(
+                      style: IconButton.styleFrom(
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        padding: const EdgeInsets.all(4),
+                        minimumSize: Size.zero,
+                      ),
+                      constraints: const BoxConstraints(),
+                      tooltip: 'Dismiss reminder',
+                      onPressed: () => _dismissReminder(notification),
+                      icon: Icon(
+                        Icons.close,
+                        color:
+                            context.colorScheme.secondary.withValues(alpha: 0.7),
+                        size: iconSize,
+                      ),
+                    );
+                  },
                 ),
               ],
             ],
@@ -652,7 +673,7 @@ class _NotificationsScreenState
           padding: const EdgeInsets.only(right: 20),
           color: context.colorScheme.secondary,
           child: Icon(
-            Icons.archive_outlined,
+            Icons.close,
             color: context.colorScheme.onSecondary,
           ),
         ),
@@ -672,66 +693,22 @@ class _NotificationsScreenState
     _isOpeningEntity = true;
 
     try {
-      _readNotificationIds.add(notification.id);
-
-      await _storeReadNotifications();
-
       if (!mounted) return;
 
-      setState(() {
-        _notifications = _notifications.map((n) {
-          if (n.id == notification.id) {
-            return NotificationModel(
-              id: n.id,
-              title: n.title,
-              body: n.body,
-              color: n.color,
-              timestamp: n.timestamp,
-              isRead: true,
-              reminder: n.reminder,
-            );
-          }
-          return n;
-        }).toList();
-      });
+      final route = reminderEntityRoute(
+        courseId: notification.reminder.course?.id,
+        homeworkId: notification.reminder.homework?.id,
+        eventId: notification.reminder.event?.id,
+        shellPath: widget.shellPath,
+      );
+      if (route == null) return;
 
-      if (!mounted) return;
-
-      // Course reminders: navigate to /classes and open the course editor there.
-      final courseId = notification.reminder.course?.id;
-      if (courseId != null) {
-        if (context.canPop()) context.pop();
-        // Defer navigation so the pop completes and GoRouter processes the stack
-        // change before we push the next route; calling router.go synchronously
-        // after pop can conflict with GoRouter's async redirect handling
-        Future.delayed(Duration.zero, () {
-          router.go(
-            '${AppRoute.coursesScreen}/$courseId/${courseDialogSteps.first}',
-          );
-        });
-        return;
-      }
-
-      // Homework / event reminders: close the notifications overlay, then
-      // open the planner item editor on the originating shell so the
-      // dialog stays anchored where the user was.
-      final homeworkId = notification.reminder.homework?.id;
-      final eventId = notification.reminder.event?.id;
-      if (homeworkId == null && eventId == null) return;
-
-      final entityPath =
-          homeworkId != null ? plannerItemHomeworkPath : plannerItemEventPath;
-      final entityId = homeworkId ?? eventId!;
-      final shellPath = widget.shellPath;
+      // Close the notifications overlay, then open the entity editor. Defer so
+      // the pop completes and GoRouter processes the stack change before the
+      // next push — calling router.go synchronously after pop can conflict with
+      // GoRouter's async redirect handling.
       if (context.canPop()) context.pop();
-      // Defer navigation so the pop completes and GoRouter processes the
-      // stack change before we push the next route.
-      Future.delayed(Duration.zero, () {
-        router.go(
-          '$shellPath/$entityPath/$entityId/'
-          '${plannerItemDialogSteps.first}',
-        );
-      });
+      Future.delayed(Duration.zero, () => router.go(route));
     } finally {
       _isOpeningEntity = false;
     }
@@ -746,13 +723,6 @@ class _NotificationsScreenState
         id: notification.id,
         request: req,
       ),
-    );
-  }
-
-  Future<void> _storeReadNotifications() async {
-    await _prefService.setStringList(
-      'read_notification_ids',
-      _readNotificationIds.map((n) => n.toString()).toList(),
     );
   }
 }

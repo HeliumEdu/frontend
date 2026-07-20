@@ -7,6 +7,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/presentation/core/views/base_page_screen_state.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 
@@ -95,8 +96,11 @@ class _FullScreenPageContentState extends State<_FullScreenPageContent> {
   Widget build(BuildContext context) {
     return ScaffoldMessenger(
       key: _scaffoldMessengerKey,
+      // Opaque so the full-screen overlay fully covers the shell (incl. its
+      // bottom nav bar) beneath it on the root navigator; a transparent scaffold
+      // let the bar bleed through during the slide-in.
       child: Scaffold(
-        backgroundColor: Colors.transparent,
+        backgroundColor: context.colorScheme.surface,
         body: DialogModeProvider(
           isFullScreen: true,
           scaffoldMessengerKey: _scaffoldMessengerKey,

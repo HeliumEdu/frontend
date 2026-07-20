@@ -21,6 +21,7 @@ import 'package:heliumapp/utils/snack_bar_helpers.dart' show SnackBarHelper, Sna
 import 'package:heliumapp/presentation/features/shared/widgets/flow/multi_step_container.dart';
 import 'package:heliumapp/presentation/ui/feedback/empty_card.dart';
 import 'package:heliumapp/presentation/ui/feedback/error_card.dart';
+import 'package:heliumapp/presentation/ui/layout/helium_full_screen_scroll_view.dart';
 import 'package:heliumapp/presentation/ui/components/helium_icon_button.dart';
 import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
 import 'package:heliumapp/presentation/ui/layout/mobile_gesture_detector.dart';
@@ -230,6 +231,9 @@ abstract class BaseReminderWidgetState<T extends BaseRemindersContent>
 
   Widget _buildRemindersList() {
     return ListView.builder(
+      padding: EdgeInsets.only(
+        bottom: HeliumFullScreenScrollView.insetOf(context),
+      ),
       itemCount: reminders.length,
       itemBuilder: (context, index) {
         final reminder = reminders[index];

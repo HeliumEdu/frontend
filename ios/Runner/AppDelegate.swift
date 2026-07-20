@@ -12,32 +12,65 @@ import FirebaseMessaging
 
 @main
 @objc class AppDelegate: FlutterAppDelegate, FlutterImplicitEngineDelegate {
+  private static let nativeChannelName = "com.heliumedu.heliumapp/native"
+
   override func application(
     _ application: UIApplication,
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
   ) -> Bool {
     FirebaseApp.configure()
 
-    // Set up notification delegate for foreground notifications
-    UNUserNotificationCenter.current().delegate = self
-
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
   }
 
   func didInitializeImplicitFlutterEngine(_ engineBridge: FlutterImplicitEngineBridge) {
     GeneratedPluginRegistrant.register(with: engineBridge.pluginRegistry)
+
+    let channel = FlutterMethodChannel(
+      name: AppDelegate.nativeChannelName,
+      binaryMessenger: engineBridge.applicationRegistrar.messenger()
+    )
+    channel.setMethodCallHandler { call, result in
+      switch call.method {
+      case "getDeliveredReminderIdentifiers":
+        UNUserNotificationCenter.current().getDeliveredNotifications { notifications in
+          let identifiers = notifications.map { $0.request.identifier }
+          result(identifiers)
+        }
+      case "removeDeliveredNotifications":
+        let identifiers = (call.arguments as? [String: Any])?["identifiers"] as? [String] ?? []
+        if !identifiers.isEmpty {
+          UNUserNotificationCenter.current()
+            .removeDeliveredNotifications(withIdentifiers: identifiers)
+        }
+        result(nil)
+      default:
+        result(FlutterMethodNotImplemented)
+      }
+    }
   }
 
-  // Handle foreground notifications - required for iOS 10+
-  override func userNotificationCenter(
-    _ center: UNUserNotificationCenter,
-    willPresent notification: UNNotification,
-    withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void
+  // Clears a reminder's notification when it is dismissed on another device.
+  // APNs files the notification under "reminder_<id>" (from apns-collapse-id),
+  // so the dismiss push's reminder_id addresses it directly. Handled natively
+  // rather than in the Dart background handler, which is unreliable on iOS when
+  // terminated (flutterfire #7407). FCM swizzling forwards the callback here.
+  override func application(
+    _ application: UIApplication,
+    didReceiveRemoteNotification userInfo: [AnyHashable: Any],
+    fetchCompletionHandler completionHandler: @escaping (UIBackgroundFetchResult) -> Void
   ) {
-    if #available(iOS 14.0, *) {
-      completionHandler([.banner, .badge, .sound])
-    } else {
-      completionHandler([.alert, .badge, .sound])
+    if let action = userInfo["action"] as? String, action == "dismiss",
+       let reminderId = userInfo["reminder_id"] as? String {
+      let identifier = "reminder_\(reminderId)"
+      UNUserNotificationCenter.current()
+        .removeDeliveredNotifications(withIdentifiers: [identifier])
     }
+
+    super.application(
+      application,
+      didReceiveRemoteNotification: userInfo,
+      fetchCompletionHandler: completionHandler
+    )
   }
 }

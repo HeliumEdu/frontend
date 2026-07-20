@@ -190,15 +190,9 @@ class _GradeCalculatorDialogState extends State<GradeCalculatorDialog> {
         ),
         const SizedBox(height: 12),
 
-        Expanded(
-          child: Center(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Text('Category', style: AppStyles.formLabel(context)),
-                const SizedBox(height: 9),
-                DropdownButtonFormField<int>(
+        Text('Category', style: AppStyles.formLabel(context)),
+        const SizedBox(height: 9),
+        DropdownButtonFormField<int>(
                   initialValue: _selectedCategoryId,
                   decoration: InputDecoration(
                     contentPadding: const EdgeInsets.only(left: 12),
@@ -249,49 +243,39 @@ class _GradeCalculatorDialogState extends State<GradeCalculatorDialog> {
                 ),
                 const SizedBox(height: 12),
 
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: SpinnerField(
-                    label: 'Desired Class Grade (%)',
-                    controller: _desiredGradeController,
-                    minValue: 0,
-                    maxValue: 100,
-                    step: 0.5,
-                    allowDecimal: true,
-                    maxSpinnerWidth: 120,
-                    onChanged: (_) {
-                      setState(() {
-                        _result = null;
-                        _validationErrorMessage = null;
-                      });
-                    },
-                  ),
-                ),
-              ],
-            ),
+        Align(
+          alignment: Alignment.centerLeft,
+          child: SpinnerField(
+            label: 'Desired Class Grade (%)',
+            controller: _desiredGradeController,
+            minValue: 0,
+            maxValue: 100,
+            step: 0.5,
+            allowDecimal: true,
+            maxSpinnerWidth: 120,
+            onChanged: (_) {
+              setState(() {
+                _result = null;
+                _validationErrorMessage = null;
+              });
+            },
           ),
         ),
 
-        ConstrainedBox(
-          constraints: const BoxConstraints(minHeight: 80),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            mainAxisAlignment: MainAxisAlignment.end,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              if (_validationErrorMessage != null)
-                ErrorContainer(text: _validationErrorMessage!, icon: Icons.warning_amber_rounded),
+        if (_validationErrorMessage != null) ...[
+          const SizedBox(height: 12),
+          ErrorContainer(text: _validationErrorMessage!, icon: Icons.warning_amber_rounded),
+        ] else if (_result != null) ...[
+          const SizedBox(height: 12),
+          if (!_result!.isAchievable)
+            _result!.state == NeededGradeState.unachievable
+                ? WarningContainer(text: _buildResultMessage(_result!))
+                : ErrorContainer(text: _buildResultMessage(_result!), icon: Icons.warning_amber_rounded)
+          else
+            SuccessContainer(text: _buildResultMessage(_result!)),
+        ],
 
-              if (_result != null)
-                if (!_result!.isAchievable)
-                  _result!.state == NeededGradeState.unachievable
-                      ? WarningContainer(text: _buildResultMessage(_result!))
-                      : ErrorContainer(text: _buildResultMessage(_result!), icon: Icons.warning_amber_rounded)
-                else
-                  SuccessContainer(text: _buildResultMessage(_result!)),
-            ],
-          ),
-        ),
+        const Spacer(),
         const SizedBox(height: 12),
 
         HeliumElevatedButton(buttonText: 'Calculate', onPressed: _calculate),

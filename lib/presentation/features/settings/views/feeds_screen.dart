@@ -17,6 +17,7 @@ import 'package:heliumapp/presentation/features/auth/bloc/auth_event.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_state.dart';
 import 'package:heliumapp/presentation/ui/components/helium_elevated_button.dart';
 import 'package:heliumapp/presentation/ui/components/helium_icon_button.dart';
+import 'package:heliumapp/presentation/ui/layout/helium_full_screen_scroll_view.dart';
 import 'package:heliumapp/presentation/ui/feedback/error_card.dart';
 import 'package:heliumapp/presentation/ui/feedback/info_container.dart';
 import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
@@ -275,7 +276,7 @@ class _FeedsScreenState extends State<FeedsScreen> {
 
   Widget _buildFeedsDisabledArea() {
     return Center(
-      child: SingleChildScrollView(
+      child: HeliumFullScreenScrollView(
         child: Column(
           children: [
             Container(
@@ -389,7 +390,7 @@ class _FeedsScreenState extends State<FeedsScreen> {
     String eventsUrl,
     String courseScheduleUrl,
   ) {
-    return SingleChildScrollView(
+    return HeliumFullScreenScrollView(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

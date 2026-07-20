@@ -41,6 +41,7 @@ import 'package:heliumapp/presentation/ui/components/support_helium_card.dart';
 import 'package:heliumapp/presentation/ui/feedback/discard_changes_scope.dart';
 import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
 import 'package:heliumapp/presentation/ui/feedback/warning_container.dart';
+import 'package:heliumapp/presentation/ui/layout/helium_full_screen_scroll_view.dart';
 import 'package:heliumapp/presentation/ui/layout/page_header.dart';
 import 'package:heliumapp/presentation/ui/layout/shadow_container.dart';
 import 'package:heliumapp/utils/app_globals.dart';
@@ -465,12 +466,19 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
 
   void _onNavigateRequested(String route) {
     if (!mounted) return;
+    // Pop the overlay before switching branches; a cross-branch `go` straight
+    // from an open overlay strands `/settings/...` as the origin branch's saved
+    // location and corrupts branch restore + the URL (flutter/flutter#146610).
+    // canPop is false on deep-link entry, so `go` alone handles that.
+    if (context.canPop()) {
+      context.pop();
+    }
     context.go(route);
   }
 
   Widget _buildSettingsPage() {
     return Expanded(
-      child: SingleChildScrollView(
+      child: HeliumFullScreenScrollView(
         keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
         child: Column(
           children: [

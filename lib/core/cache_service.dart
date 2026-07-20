@@ -32,7 +32,8 @@ class CacheService with WidgetsBindingObserver {
 
   DateTime? _pausedAt;
   Future<void> Function()? onInactivityResume;
-  final List<VoidCallback> _onInactivityResumeCallbacks = [];
+  final _inactivityResume = _ResumeListeners();
+  final _quickResume = _ResumeListeners();
 
   CacheService() {
     _store = MemCacheStore();
@@ -122,26 +123,37 @@ class CacheService with WidgetsBindingObserver {
         } else {
           _notifyInactivityResume();
         }
+      } else {
+        // A push may have arrived while backgrounded; refresh cheap state
+        // without the heavy invalidate/refetch path.
+        _notifyQuickResume();
       }
       _pausedAt = null;
     }
   }
 
-  /// Register a callback to be notified when app resumes after inactivity threshold
-  void addInactivityResumeListener(VoidCallback callback) {
-    _onInactivityResumeCallbacks.add(callback);
-  }
+  /// Fires only after the [inactivityThreshold] resume (heavy path: runs after
+  /// cache invalidation + settings refetch).
+  void addInactivityResumeListener(VoidCallback callback) =>
+      _inactivityResume.add(callback);
 
-  /// Remove a previously registered callback
-  void removeInactivityResumeListener(VoidCallback callback) {
-    _onInactivityResumeCallbacks.remove(callback);
-  }
+  void removeInactivityResumeListener(VoidCallback callback) =>
+      _inactivityResume.remove(callback);
+
+  /// Fires on every resume from background (including the inactivity resume).
+  /// For cheap refreshes like the notification count.
+  void addQuickResumeListener(VoidCallback callback) =>
+      _quickResume.add(callback);
+
+  void removeQuickResumeListener(VoidCallback callback) =>
+      _quickResume.remove(callback);
 
   void _notifyInactivityResume() {
-    for (final callback in _onInactivityResumeCallbacks) {
-      callback();
-    }
+    _inactivityResume.notify();
+    _notifyQuickResume();
   }
+
+  void _notifyQuickResume() => _quickResume.notify();
 
   /// The cache interceptor to add to Dio.
   /// Only caches GET requests; POST, PUT, DELETE, and PATCH bypass caching
@@ -189,6 +201,13 @@ class CacheService with WidgetsBindingObserver {
     return _options.copyWith(policy: CachePolicy.refresh).toOptions();
   }
 
+  /// Returns options that skip the cache entirely — the request always hits the
+  /// network and its response is never stored. Use for endpoints that manage
+  /// their own freshness and shouldn't participate in the shared cache.
+  Options noCacheOptions() {
+    return _options.copyWith(policy: CachePolicy.noCache).toOptions();
+  }
+
   /// Clears all cached responses.
   /// Call this after any mutation (create/update/delete) to ensure
   /// subsequent GET requests fetch fresh data.
@@ -200,4 +219,20 @@ class CacheService with WidgetsBindingObserver {
   /// Clears all cached responses synchronously accessible method.
   /// Alias for invalidateAll() for API consistency with DioClient.clearStorage().
   Future<void> clearAll() => invalidateAll();
+}
+
+/// A registerable set of resume callbacks, iterated over a copy so a listener
+/// can add/remove during notification.
+class _ResumeListeners {
+  final List<VoidCallback> _callbacks = [];
+
+  void add(VoidCallback callback) => _callbacks.add(callback);
+
+  void remove(VoidCallback callback) => _callbacks.remove(callback);
+
+  void notify() {
+    for (final callback in List<VoidCallback>.of(_callbacks)) {
+      callback();
+    }
+  }
 }
