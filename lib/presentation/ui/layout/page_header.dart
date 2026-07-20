@@ -79,12 +79,16 @@ class PageHeader extends StatelessWidget {
                     style: IconButton.styleFrom(
                       tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                     ),
-                    onPressed: () {
-                      cancelAction?.call();
-                    },
+                    onPressed: isLoading
+                        ? null
+                        : () {
+                            cancelAction?.call();
+                          },
                     icon: Icon(
                       cancelIcon,
-                      color: context.colorScheme.secondary,
+                      color: isLoading
+                          ? context.colorScheme.secondary.withValues(alpha: 0.3)
+                          : context.colorScheme.secondary,
                     ),
                   ),
                 ),

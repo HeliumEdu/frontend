@@ -38,8 +38,17 @@ final _log = Logger('presentation.settings');
 
 class ImportExportScreen extends StatefulWidget {
   final void Function(String route)? onNavigateRequested;
+  final VoidCallback? onActionStarted;
+  final VoidCallback? onCompleted;
+  final VoidCallback? onFailed;
 
-  const ImportExportScreen({super.key, this.onNavigateRequested});
+  const ImportExportScreen({
+    super.key,
+    this.onNavigateRequested,
+    this.onActionStarted,
+    this.onCompleted,
+    this.onFailed,
+  });
 
   @override
   State<ImportExportScreen> createState() => _ImportExportScreenState();
@@ -243,6 +252,7 @@ class _ImportExportScreenState extends State<ImportExportScreen> {
     setState(() {
       _isImporting = true;
     });
+    widget.onActionStarted?.call();
 
     try {
       final formData = FormData.fromMap({
@@ -291,6 +301,7 @@ class _ImportExportScreenState extends State<ImportExportScreen> {
         setState(() {
           _isImporting = false;
         });
+        widget.onCompleted?.call();
       }
     }
   }
@@ -346,6 +357,7 @@ class _ImportExportScreenState extends State<ImportExportScreen> {
     setState(() {
       _isExporting = true;
     });
+    widget.onActionStarted?.call();
 
     try {
       final response = await _dioClient.dio.get<Uint8List>(
@@ -399,6 +411,7 @@ class _ImportExportScreenState extends State<ImportExportScreen> {
         setState(() {
           _isExporting = false;
         });
+        widget.onCompleted?.call();
       }
     }
   }
@@ -407,6 +420,7 @@ class _ImportExportScreenState extends State<ImportExportScreen> {
     setState(() {
       _isImportingExample = true;
     });
+    widget.onActionStarted?.call();
 
     try {
       final response = await _dioClient.dio.post(
@@ -455,6 +469,7 @@ class _ImportExportScreenState extends State<ImportExportScreen> {
         setState(() {
           _isImportingExample = false;
         });
+        widget.onCompleted?.call();
       }
     }
   }

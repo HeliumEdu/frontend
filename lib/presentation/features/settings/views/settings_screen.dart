@@ -443,6 +443,9 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
               SettingsSubScreen.feeds => FeedsScreen(userSettings: userSettings),
               SettingsSubScreen.importExport => ImportExportScreen(
                 onNavigateRequested: _onNavigateRequested,
+                onActionStarted: () => setState(() => isSubmitting = true),
+                onCompleted: () => setState(() => isSubmitting = false),
+                onFailed: () => setState(() => isSubmitting = false),
               ),
             },
           );
@@ -465,7 +468,7 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
   }
 
   void _onNavigateRequested(String route) {
-    if (!mounted) return;
+    if (!mounted || isSubmitting) return;
     // Pop the overlay before switching branches; a cross-branch `go` straight
     // from an open overlay strands `/settings/...` as the origin branch's saved
     // location and corrupts branch restore + the URL (flutter/flutter#146610).

@@ -486,7 +486,11 @@ class _GettingStartedDialogWidgetState
                 "I'll explore first",
                 style: AppStyles.standardBodyText(
                   context,
-                ).copyWith(color: context.colorScheme.primary),
+                ).copyWith(
+                  color: isLoading
+                      ? context.colorScheme.primary.withValues(alpha: 0.3)
+                      : context.colorScheme.primary,
+                ),
               ),
             ),
           ),
