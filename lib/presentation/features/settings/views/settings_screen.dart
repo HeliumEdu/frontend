@@ -468,7 +468,7 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
   }
 
   void _onNavigateRequested(String route) {
-    if (!mounted || isSubmitting) return;
+    if (!mounted) return;
     // Pop the overlay before switching branches; a cross-branch `go` straight
     // from an open overlay strands `/settings/...` as the origin branch's saved
     // location and corrupts branch restore + the URL (flutter/flutter#146610).
