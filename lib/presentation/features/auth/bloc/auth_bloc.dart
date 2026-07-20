@@ -576,6 +576,9 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       await authRepository.updateUserSettings(
         UpdateSettingsRequestModel(showGettingStarted: false),
       );
+      // Warm the settings cache so the router's auth-redirect read is a hit,
+      // not a post-redirect cold fetch that stalls the outgoing screen.
+      await dioClient.fetchSettings(forceRefresh: true);
       unawaited(NotificationCountService().refresh());
 
       emit(AuthScheduleDataRefreshed());

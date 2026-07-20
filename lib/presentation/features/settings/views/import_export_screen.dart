@@ -417,6 +417,10 @@ class _ImportExportScreenState extends State<ImportExportScreen> {
 
       if (response.statusCode == 204) {
         await _dioClient.cacheService.invalidateAll();
+        // Warm the settings cache so the router's auth-redirect read is a hit,
+        // not a post-redirect cold fetch that stalls the outgoing screen.
+        await _dioClient.fetchSettings(forceRefresh: true);
+        if (!mounted) return;
         unawaited(NotificationCountService().refresh());
         if (mounted) {
           unawaited(AnalyticsService().logEvent(name: AnalyticsEvent.exampleScheduleImport, parameters: {'category': AnalyticsCategory.onboarding.value}));
