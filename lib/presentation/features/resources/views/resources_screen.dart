@@ -352,7 +352,12 @@ class _ResourcesScreenState
       }
 
       if (_resourceGroups.isNotEmpty) {
-        _selectedGroupId = _resourceGroups.first.id;
+        if (_selectedGroupId == null ||
+            !_resourceGroups.any((g) => g.id == _selectedGroupId)) {
+          _selectedGroupId = _resourceGroups.first.id;
+        }
+      } else {
+        _selectedGroupId = null;
       }
 
       isLoading = false;

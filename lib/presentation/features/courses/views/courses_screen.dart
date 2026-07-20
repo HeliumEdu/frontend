@@ -473,7 +473,12 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen>
       }
 
       if (_courseGroups.isNotEmpty) {
-        _selectedGroupId = _courseGroups.first.id;
+        if (_selectedGroupId == null ||
+            !_courseGroups.any((g) => g.id == _selectedGroupId)) {
+          _selectedGroupId = _courseGroups.first.id;
+        }
+      } else {
+        _selectedGroupId = null;
       }
 
       isLoading = false;
