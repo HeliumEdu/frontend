@@ -1359,87 +1359,45 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
       );
     }
 
-    if (!isMobile) {
-      return AnimatedContainer(
-        duration: MotionService().effectiveDuration(
-          AppConstants.uiAnimationDuration,
-        ),
-        width: expandedToolbarWidth,
-        child: Stack(
-          alignment: Alignment.centerRight,
-          children: [
-            AnimatedOpacity(
+    return AnimatedContainer(
+      duration: MotionService().effectiveDuration(
+        AppConstants.uiAnimationDuration,
+      ),
+      width: expandedToolbarWidth,
+      child: Stack(
+        alignment: Alignment.centerRight,
+        children: [
+          AnimatedOpacity(
+            duration: MotionService().effectiveDuration(
+              AppConstants.uiAnimationDuration,
+            ),
+            opacity: _isSearchExpanded ? 0.0 : 1.0,
+            child: IgnorePointer(
+              ignoring: _isSearchExpanded,
+              child: _buildFilterAndSearchButtons(),
+            ),
+          ),
+          AnimatedPositioned(
+            duration: MotionService().effectiveDuration(
+              AppConstants.uiAnimationDuration,
+            ),
+            curve: Curves.easeInOut,
+            right: 0,
+            width: _isSearchExpanded ? expandedToolbarWidth : 46,
+            child: AnimatedOpacity(
               duration: MotionService().effectiveDuration(
                 AppConstants.uiAnimationDuration,
               ),
-              opacity: _isSearchExpanded ? 0.0 : 1.0,
+              opacity: _isSearchExpanded ? 1.0 : 0.0,
               child: IgnorePointer(
-                ignoring: _isSearchExpanded,
-                child: _buildFilterAndSearchButtons(),
+                ignoring: !_isSearchExpanded,
+                child: _buildSearchField(),
               ),
             ),
-            AnimatedPositioned(
-              duration: MotionService().effectiveDuration(
-                AppConstants.uiAnimationDuration,
-              ),
-              curve: Curves.easeInOut,
-              right: 0,
-              width: _isSearchExpanded ? expandedToolbarWidth : 46,
-              child: AnimatedOpacity(
-                duration: MotionService().effectiveDuration(
-                  AppConstants.uiAnimationDuration,
-                ),
-                opacity: _isSearchExpanded ? 1.0 : 0.0,
-                child: IgnorePointer(
-                  ignoring: !_isSearchExpanded,
-                  child: _buildSearchField(),
-                ),
-              ),
-            ),
-          ],
-        ),
-      );
-    } else {
-      return AnimatedContainer(
-        duration: MotionService().effectiveDuration(
-          AppConstants.uiAnimationDuration,
-        ),
-        width: expandedToolbarWidth,
-        child: Stack(
-          alignment: Alignment.centerRight,
-          children: [
-            AnimatedOpacity(
-              duration: MotionService().effectiveDuration(
-                AppConstants.uiAnimationDuration,
-              ),
-              opacity: _isSearchExpanded ? 0.0 : 1.0,
-              child: IgnorePointer(
-                ignoring: _isSearchExpanded,
-                child: _buildFilterAndSearchButtons(),
-              ),
-            ),
-            AnimatedPositioned(
-              duration: MotionService().effectiveDuration(
-                AppConstants.uiAnimationDuration,
-              ),
-              curve: Curves.easeInOut,
-              right: 0,
-              width: _isSearchExpanded ? expandedToolbarWidth : 46,
-              child: AnimatedOpacity(
-                duration: MotionService().effectiveDuration(
-                  AppConstants.uiAnimationDuration,
-                ),
-                opacity: _isSearchExpanded ? 1.0 : 0.0,
-                child: IgnorePointer(
-                  ignoring: !_isSearchExpanded,
-                  child: _buildSearchField(),
-                ),
-              ),
-            ),
-          ],
-        ),
-      );
-    }
+          ),
+        ],
+      ),
+    );
   }
 
   Widget _buildSearchField({bool showCloseButton = true}) {
