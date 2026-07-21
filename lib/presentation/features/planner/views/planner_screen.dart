@@ -206,7 +206,6 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
   late final CalendarController _calendarController;
   final TextEditingController _searchController = TextEditingController();
   final FocusNode _searchFocusNode = FocusNode();
-  Timer? _searchFocusTimer;
   final ScrollController _monthViewScrollController = ScrollController();
 
   final GlobalKey _todayButtonKey = GlobalKey();
@@ -353,17 +352,11 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
     _wasDesktop = isDesktop;
   }
 
-  /// Raises the keyboard after the expand animation settles so its relayout
-  /// stays off the animating frames. Guarded against a collapse mid-delay.
-  void _focusSearchAfterExpand() {
-    _searchFocusTimer?.cancel();
-    _searchFocusTimer = Timer(
-      MotionService().effectiveDuration(AppConstants.uiAnimationDuration),
-      () {
-        if (!mounted || !_isSearchExpanded) return;
-        _searchFocusNode.requestFocus();
-      },
-    );
+  /// Raises the keyboard once the expand animation settles so its relayout
+  /// stays off the animating frames. No-op on collapse.
+  void _onSearchExpandEnd() {
+    if (!mounted || !_isSearchExpanded) return;
+    _searchFocusNode.requestFocus();
   }
 
   /// Warms the search icon glyphs at idle so the first expand skips the cold
@@ -395,7 +388,6 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
   @override
   void dispose() {
     router.routerDelegate.removeListener(_onRouterChanged);
-    _searchFocusTimer?.cancel();
     _tooltipSuppressTimer?.cancel();
     for (final timer in _pendingToggleTimers.values) {
       timer.cancel();
@@ -1428,6 +1420,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
               AppConstants.uiAnimationDuration,
             ),
             curve: Curves.easeInOut,
+            onEnd: _onSearchExpandEnd,
             right: 0,
             width: _isSearchExpanded ? expandedToolbarWidth : 46,
             child: AnimatedOpacity(
@@ -1664,7 +1657,6 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
                       _isFilterExpanded = false;
                       _isSearchExpanded = true;
                     });
-                    _focusSearchAfterExpand();
                   },
                   icon: const Icon(Icons.search),
                   style: IconButton.styleFrom(
