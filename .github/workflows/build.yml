@@ -239,7 +239,7 @@ jobs:
           echo "CI build: ${CI_VERSION}+${BUILD}"
 
       - name: Build web
-        run: make build-web ENVIRONMENT=prod
+        run: make build-web ENVIRONMENT=prod FIREBASE_AUTH_DOMAIN=auth.heliumedu.com
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v6
