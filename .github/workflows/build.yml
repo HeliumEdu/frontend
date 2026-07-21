@@ -224,6 +224,20 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-pub-
 
+      - name: Compute CI build version
+        id: ci-version
+        run: |
+          CURRENT=$(grep '^version:' pubspec.yaml | cut -d' ' -f2)
+          SEMVER="${CURRENT%%+*}"
+          IFS='.' read -r MAJOR MINOR PATCH <<< "$SEMVER"
+          CI_VERSION="${MAJOR}.${MINOR}.$((PATCH + 1))"
+          BUILD="${CURRENT##*+}"
+
+          sed -i "s/^version:.*/version: ${CI_VERSION}+${BUILD}/" pubspec.yaml
+
+          echo "version=${CI_VERSION}+${BUILD}" >> $GITHUB_OUTPUT
+          echo "CI build: ${CI_VERSION}+${BUILD}"
+
       - name: Build web
         run: make build-web ENVIRONMENT=prod
 
@@ -299,6 +313,7 @@ jobs:
           echo "### CI Preview Deployment Complete" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "- **Commit**: ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Version**: ${{ steps.ci-version.outputs.version }}" >> $GITHUB_STEP_SUMMARY
           if [ -n "${{ steps.cloudfront.outputs.domain }}" ]; then
             echo "- **URL**: https://${{ steps.cloudfront.outputs.domain }}" >> $GITHUB_STEP_SUMMARY
           fi

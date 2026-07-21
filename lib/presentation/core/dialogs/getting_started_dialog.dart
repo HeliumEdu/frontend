@@ -220,7 +220,9 @@ class _GettingStartedDialogWidgetState
         builder: (context, state) {
           final isLoading = state is AuthLoading;
 
-          return Dialog(
+          return PopScope(
+            canPop: !isLoading,
+            child: Dialog(
             insetPadding: isMobile
                 ? const EdgeInsets.symmetric(horizontal: 8.0, vertical: 24.0)
                 : const EdgeInsets.symmetric(horizontal: 40.0, vertical: 24.0),
@@ -256,6 +258,7 @@ class _GettingStartedDialogWidgetState
                 ],
               ),
             ),
+          ),
           );
         },
       ),
@@ -486,7 +489,11 @@ class _GettingStartedDialogWidgetState
                 "I'll explore first",
                 style: AppStyles.standardBodyText(
                   context,
-                ).copyWith(color: context.colorScheme.primary),
+                ).copyWith(
+                  color: isLoading
+                      ? context.colorScheme.primary.withValues(alpha: 0.3)
+                      : context.colorScheme.primary,
+                ),
               ),
             ),
           ),

@@ -317,7 +317,12 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
       _courseGroups = state.courseGroups;
       _grades = state.grades;
       if (_courseGroups.isNotEmpty) {
-        _selectedGroupId = _courseGroups.first.id;
+        if (_selectedGroupId == null ||
+            !_courseGroups.any((g) => g.id == _selectedGroupId)) {
+          _selectedGroupId = _courseGroups.first.id;
+        }
+      } else {
+        _selectedGroupId = null;
       }
       _pendingImpactCourseId = null;
       isLoading = false;

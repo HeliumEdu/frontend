@@ -443,6 +443,9 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
               SettingsSubScreen.feeds => FeedsScreen(userSettings: userSettings),
               SettingsSubScreen.importExport => ImportExportScreen(
                 onNavigateRequested: _onNavigateRequested,
+                onActionStarted: () => setState(() => isSubmitting = true),
+                onCompleted: () => setState(() => isSubmitting = false),
+                onFailed: () => setState(() => isSubmitting = false),
               ),
             },
           );
@@ -451,9 +454,9 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
     // barrierDismissible, system back, or programmatic pop). When a sub-screen
     // is active, we suppress the dialog dismissal and treat it as "back".
     return PopScope(
-      canPop: _activeSubScreen == null,
+      canPop: _activeSubScreen == null && !isSubmitting,
       onPopInvokedWithResult: (didPop, _) async {
-        if (didPop) return;
+        if (didPop || isSubmitting) return;
         if (!mounted) return;
         if (await _confirmDiscardActiveSubScreen()) {
           if (!context.mounted) return;

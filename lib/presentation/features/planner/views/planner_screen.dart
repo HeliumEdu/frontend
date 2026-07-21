@@ -6,6 +6,7 @@
 // For details regarding the license, please refer to the LICENSE file.
 
 import 'dart:async';
+import 'dart:ui' as ui;
 
 import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
@@ -308,6 +309,10 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
     if (!_applyDateDeepLink()) {
       _goToToday();
     }
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      unawaited(_warmSearchGlyphs());
+    });
   }
 
   /// Reads the `?date=` query param when the current location is /planner
@@ -345,6 +350,39 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
       });
     }
     _wasDesktop = isDesktop;
+  }
+
+  /// Raises the keyboard once the expand animation settles so its relayout
+  /// stays off the animating frames. No-op on collapse.
+  void _onSearchExpandEnd() {
+    if (!mounted || !_isSearchExpanded) return;
+    _searchFocusNode.requestFocus();
+  }
+
+  /// Warms the search icon glyphs at idle so the first expand skips the cold
+  /// glyph-atlas cost. Off-tree raster, so layout is untouched.
+  Future<void> _warmSearchGlyphs() async {
+    final recorder = ui.PictureRecorder();
+    final canvas = Canvas(recorder);
+    for (final icon in const [Icons.search, Icons.close]) {
+      final painter = TextPainter(
+        textDirection: TextDirection.ltr,
+        text: TextSpan(
+          text: String.fromCharCode(icon.codePoint),
+          style: TextStyle(
+            fontFamily: icon.fontFamily,
+            package: icon.fontPackage,
+            fontSize: 24,
+          ),
+        ),
+      )..layout();
+      painter.paint(canvas, Offset.zero);
+      painter.dispose();
+    }
+    final picture = recorder.endRecording();
+    final image = await picture.toImage(48, 48);
+    picture.dispose();
+    image.dispose();
   }
 
   @override
@@ -1359,87 +1397,46 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
       );
     }
 
-    if (!isMobile) {
-      return AnimatedContainer(
-        duration: MotionService().effectiveDuration(
-          AppConstants.uiAnimationDuration,
-        ),
-        width: expandedToolbarWidth,
-        child: Stack(
-          alignment: Alignment.centerRight,
-          children: [
-            AnimatedOpacity(
+    return AnimatedContainer(
+      duration: MotionService().effectiveDuration(
+        AppConstants.uiAnimationDuration,
+      ),
+      width: expandedToolbarWidth,
+      child: Stack(
+        alignment: Alignment.centerRight,
+        children: [
+          AnimatedOpacity(
+            duration: MotionService().effectiveDuration(
+              AppConstants.uiAnimationDuration,
+            ),
+            opacity: _isSearchExpanded ? 0.0 : 1.0,
+            child: IgnorePointer(
+              ignoring: _isSearchExpanded,
+              child: _buildFilterAndSearchButtons(),
+            ),
+          ),
+          AnimatedPositioned(
+            duration: MotionService().effectiveDuration(
+              AppConstants.uiAnimationDuration,
+            ),
+            curve: Curves.easeInOut,
+            onEnd: _onSearchExpandEnd,
+            right: 0,
+            width: _isSearchExpanded ? expandedToolbarWidth : 46,
+            child: AnimatedOpacity(
               duration: MotionService().effectiveDuration(
                 AppConstants.uiAnimationDuration,
               ),
-              opacity: _isSearchExpanded ? 0.0 : 1.0,
+              opacity: _isSearchExpanded ? 1.0 : 0.0,
               child: IgnorePointer(
-                ignoring: _isSearchExpanded,
-                child: _buildFilterAndSearchButtons(),
+                ignoring: !_isSearchExpanded,
+                child: _buildSearchField(),
               ),
             ),
-            AnimatedPositioned(
-              duration: MotionService().effectiveDuration(
-                AppConstants.uiAnimationDuration,
-              ),
-              curve: Curves.easeInOut,
-              right: 0,
-              width: _isSearchExpanded ? expandedToolbarWidth : 46,
-              child: AnimatedOpacity(
-                duration: MotionService().effectiveDuration(
-                  AppConstants.uiAnimationDuration,
-                ),
-                opacity: _isSearchExpanded ? 1.0 : 0.0,
-                child: IgnorePointer(
-                  ignoring: !_isSearchExpanded,
-                  child: _buildSearchField(),
-                ),
-              ),
-            ),
-          ],
-        ),
-      );
-    } else {
-      return AnimatedContainer(
-        duration: MotionService().effectiveDuration(
-          AppConstants.uiAnimationDuration,
-        ),
-        width: expandedToolbarWidth,
-        child: Stack(
-          alignment: Alignment.centerRight,
-          children: [
-            AnimatedOpacity(
-              duration: MotionService().effectiveDuration(
-                AppConstants.uiAnimationDuration,
-              ),
-              opacity: _isSearchExpanded ? 0.0 : 1.0,
-              child: IgnorePointer(
-                ignoring: _isSearchExpanded,
-                child: _buildFilterAndSearchButtons(),
-              ),
-            ),
-            AnimatedPositioned(
-              duration: MotionService().effectiveDuration(
-                AppConstants.uiAnimationDuration,
-              ),
-              curve: Curves.easeInOut,
-              right: 0,
-              width: _isSearchExpanded ? expandedToolbarWidth : 46,
-              child: AnimatedOpacity(
-                duration: MotionService().effectiveDuration(
-                  AppConstants.uiAnimationDuration,
-                ),
-                opacity: _isSearchExpanded ? 1.0 : 0.0,
-                child: IgnorePointer(
-                  ignoring: !_isSearchExpanded,
-                  child: _buildSearchField(),
-                ),
-              ),
-            ),
-          ],
-        ),
-      );
-    }
+          ),
+        ],
+      ),
+    );
   }
 
   Widget _buildSearchField({bool showCloseButton = true}) {
@@ -1659,7 +1656,6 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
                     setState(() {
                       _isFilterExpanded = false;
                       _isSearchExpanded = true;
-                      _searchFocusNode.requestFocus();
                     });
                   },
                   icon: const Icon(Icons.search),
