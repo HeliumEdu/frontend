@@ -20,12 +20,17 @@ class UnauthenticatedScaffold extends StatelessWidget {
   final double maxWidth;
   final bool showCard;
 
+  /// Set false on screens whose fields use `AutofillGroup`: on iOS the bottom
+  /// scroll inset dismisses the keyboard when a field gains focus.
+  final bool flowIntoBottomInset;
+
   const UnauthenticatedScaffold({
     super.key,
     required this.title,
     required this.child,
     this.maxWidth = 450,
     this.showCard = true,
+    this.flowIntoBottomInset = true,
   });
 
   @override
@@ -35,9 +40,9 @@ class UnauthenticatedScaffold extends StatelessWidget {
       color: context.colorScheme.primary,
       child: Scaffold(
         body: SafeArea(
-          bottom: false,
+          bottom: !flowIntoBottomInset,
           child: ResponsiveCenterCard(
-            flowIntoBottomInset: true,
+            flowIntoBottomInset: flowIntoBottomInset,
             maxWidth: maxWidth,
             showCard: showCard,
             child: child,
