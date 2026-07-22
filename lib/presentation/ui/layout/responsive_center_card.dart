@@ -52,7 +52,8 @@ class ResponsiveCenterCard extends StatelessWidget {
     return LayoutBuilder(
       builder: (context, constraints) {
         return SingleChildScrollView(
-          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+          // Not onDrag: it drops the keyboard on focus-scroll (flutter#160331).
+          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.manual,
           padding: inset == 0 ? null : EdgeInsets.only(bottom: inset),
           child: ConstrainedBox(
             constraints: BoxConstraints(minHeight: constraints.maxHeight),

@@ -10,11 +10,10 @@ import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/presentation/ui/layout/responsive_center_card.dart';
 
 /// Scaffold for full-page screens outside the authenticated area (sign in,
-/// sign up, account setup, etc.). These have no bottom navigation, so their
-/// content flows edge-to-edge past the bottom safe area: [SafeArea] omits its
-/// bottom inset and [ResponsiveCenterCard] reserves that inset as scroll
-/// padding so the last item still rests above the home indicator. Pairing
-/// those two settings here keeps them from drifting apart per screen.
+/// sign up, account setup). With no bottom navigation, content flows
+/// edge-to-edge: [SafeArea] drops its bottom inset and [ResponsiveCenterCard]
+/// reserves it as scroll padding so the last item rests above the home
+/// indicator.
 class UnauthenticatedScaffold extends StatelessWidget {
   final String title;
   final Widget child;
