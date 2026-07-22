@@ -168,7 +168,6 @@ class _SignupScreenState extends BasePageScreenState<SignupScreen> {
   Widget buildScaffold(BuildContext context) {
     return UnauthenticatedScaffold(
       title: '$screenTitle | ${AppConstants.appName}',
-      flowIntoBottomInset: false,
       child: buildMainArea(context),
     );
   }

@@ -9,10 +9,9 @@ import 'package:flutter/material.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/presentation/ui/layout/responsive_center_card.dart';
 
-/// Scaffold for full-page screens outside the authenticated area (sign in,
-/// sign up, account setup). With no bottom navigation, content flows
-/// edge-to-edge: [SafeArea] drops its bottom inset and [ResponsiveCenterCard]
-/// reserves it as scroll padding so the last item rests above the home
+/// Scaffold for full-page unauthenticated screens (sign in, sign up, account
+/// setup). With no bottom navigation, content flows edge-to-edge past the
+/// bottom safe area, with bottom padding so the last item rests above the home
 /// indicator.
 class UnauthenticatedScaffold extends StatelessWidget {
   final String title;
@@ -20,17 +19,12 @@ class UnauthenticatedScaffold extends StatelessWidget {
   final double maxWidth;
   final bool showCard;
 
-  /// Set false on screens whose fields use `AutofillGroup`: on iOS the bottom
-  /// scroll inset dismisses the keyboard when a field gains focus.
-  final bool flowIntoBottomInset;
-
   const UnauthenticatedScaffold({
     super.key,
     required this.title,
     required this.child,
     this.maxWidth = 450,
     this.showCard = true,
-    this.flowIntoBottomInset = true,
   });
 
   @override
@@ -42,7 +36,7 @@ class UnauthenticatedScaffold extends StatelessWidget {
         body: SafeArea(
           bottom: false,
           child: ResponsiveCenterCard(
-            flowIntoBottomInset: flowIntoBottomInset,
+            flowIntoBottomInset: true,
             maxWidth: maxWidth,
             showCard: showCard,
             child: child,

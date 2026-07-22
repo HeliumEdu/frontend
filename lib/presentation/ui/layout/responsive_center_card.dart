@@ -46,17 +46,20 @@ class ResponsiveCenterCard extends StatelessWidget {
                 : Padding(padding: const EdgeInsets.all(16), child: child),
           );
 
-    final inset =
-        flowIntoBottomInset ? Responsive.bottomSafeAreaInset(context) : 0.0;
+    final inset = flowIntoBottomInset
+        ? Responsive.bottomSafeAreaInset(context)
+        : 0.0;
 
     return LayoutBuilder(
       builder: (context, constraints) {
         return SingleChildScrollView(
           keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-          padding: inset == 0 ? null : EdgeInsets.only(bottom: inset),
           child: ConstrainedBox(
             constraints: BoxConstraints(minHeight: constraints.maxHeight),
-            child: Center(child: content),
+            child: Padding(
+              padding: EdgeInsets.only(bottom: inset),
+              child: Center(child: content),
+            ),
           ),
         );
       },
