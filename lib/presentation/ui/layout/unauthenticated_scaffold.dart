@@ -40,7 +40,7 @@ class UnauthenticatedScaffold extends StatelessWidget {
       color: context.colorScheme.primary,
       child: Scaffold(
         body: SafeArea(
-          bottom: !flowIntoBottomInset,
+          bottom: false,
           child: ResponsiveCenterCard(
             flowIntoBottomInset: flowIntoBottomInset,
             maxWidth: maxWidth,
