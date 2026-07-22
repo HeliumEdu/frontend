@@ -18,7 +18,7 @@ import 'package:heliumapp/presentation/features/shared/controllers/basic_form_co
 import 'package:heliumapp/presentation/core/views/base_page_screen_state.dart';
 import 'package:heliumapp/presentation/ui/components/helium_elevated_button.dart';
 import 'package:heliumapp/presentation/ui/components/label_and_text_form_field.dart';
-import 'package:heliumapp/presentation/ui/layout/responsive_center_card.dart';
+import 'package:heliumapp/presentation/ui/layout/unauthenticated_scaffold.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
@@ -65,7 +65,12 @@ class _ForgotPasswordScreenState
       BlocListener<AuthBloc, AuthState>(
         listener: (context, state) {
           if (state is AuthError) {
-            showSnackBar(context, state.message!, type: SnackType.error, seconds: 4);
+            showSnackBar(
+              context,
+              state.message!,
+              type: SnackType.error,
+              seconds: 4,
+            );
           } else if (state is AuthPasswordReset) {
             showSnackBar(
               context,
@@ -84,10 +89,9 @@ class _ForgotPasswordScreenState
 
   @override
   Widget buildScaffold(BuildContext context) {
-    return Title(
+    return UnauthenticatedScaffold(
       title: '$screenTitle | ${AppConstants.appName}',
-      color: context.colorScheme.primary,
-      child: Scaffold(body: SafeArea(child: buildMainArea(context))),
+      child: buildMainArea(context),
     );
   }
 
@@ -95,117 +99,115 @@ class _ForgotPasswordScreenState
   Widget buildMainArea(BuildContext context) {
     return BlocBuilder<AuthBloc, AuthState>(
       builder: (context, state) {
-        return ResponsiveCenterCard(
-          child: Form(
-            key: _formController.formKey,
-            child: Column(
-              children: [
+        return Form(
+          key: _formController.formKey,
+          child: Column(
+            children: [
+              const SizedBox(height: 12),
+
+              Text(
+                screenTitle,
+                style: AppStyles.featureText(context).copyWith(
+                  fontSize: Responsive.getFontSize(context, mobile: 22),
+                ),
+              ),
+
+              const SizedBox(height: 25),
+
+              Center(
+                child: Container(
+                  width: AppConstants.authContainerSize,
+                  height: AppConstants.authContainerSize,
+                  decoration: BoxDecoration(
+                    color: context.colorScheme.primary.withValues(alpha: 0.1),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    Icons.lock_reset,
+                    size: Responsive.getIconSize(
+                      context,
+                      mobile: 60,
+                      tablet: 64,
+                      desktop: 68,
+                    ),
+                    color: context.colorScheme.primary,
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 25),
+
+              Text(
+                _emailSent
+                    ? 'Check your email for a link to reset your password.'
+                    : 'Enter the email associated with your account and we\'ll send you a password reset link.',
+                style: AppStyles.headingText(context),
+                textAlign: TextAlign.center,
+              ),
+
+              if (_emailSent) ...[
                 const SizedBox(height: 12),
-
                 Text(
-                  screenTitle,
-                  style: AppStyles.featureText(context).copyWith(
-                    fontSize: Responsive.getFontSize(context, mobile: 22),
-                  ),
-                ),
-
-                const SizedBox(height: 25),
-
-                Center(
-                  child: Container(
-                    width: AppConstants.authContainerSize,
-                    height: AppConstants.authContainerSize,
-                    decoration: BoxDecoration(
-                      color: context.colorScheme.primary.withValues(alpha: 0.1),
-                      shape: BoxShape.circle,
-                    ),
-                    child: Icon(
-                      Icons.lock_reset,
-                      size: Responsive.getIconSize(
-                        context,
-                        mobile: 60,
-                        tablet: 64,
-                        desktop: 68,
-                      ),
-                      color: context.colorScheme.primary,
-                    ),
-                  ),
-                ),
-
-                const SizedBox(height: 25),
-
-                Text(
-                  _emailSent
-                      ? 'Check your email for a link to reset your password.'
-                      : 'Enter the email associated with your account and we\'ll send you a password reset link.',
-                  style: AppStyles.headingText(context),
+                  'If an account with a password exists for that address, you\'ll receive a reset link shortly.',
+                  style: AppStyles.smallSecondaryText(context),
                   textAlign: TextAlign.center,
                 ),
+              ],
 
-                if (_emailSent) ...[
-                  const SizedBox(height: 12),
-                  Text(
-                    'If an account with a password exists for that address, you\'ll receive a reset link shortly.',
-                    style: AppStyles.smallSecondaryText(context),
-                    textAlign: TextAlign.center,
-                  ),
-                ],
+              const SizedBox(height: 25),
 
-                const SizedBox(height: 25),
-
-                if (!_emailSent) ...[
-                  LabelAndTextFormField(
-                    hintText: 'Email',
-                    autofocus: kIsWeb,
-                    prefixIcon: Icons.email_outlined,
-                    controller: _emailController,
-                    onFieldSubmitted: (value) => _onSubmit(),
-                    validator: BasicFormController.validateRequiredEmail,
-                    keyboardType: TextInputType.emailAddress,
-                  ),
-
-                  const SizedBox(height: 25),
-
-                  HeliumElevatedButton(
-                    buttonText: 'Send Reset Link',
-                    isLoading: isSubmitting,
-                    onPressed: _onSubmit,
-                  ),
-                ],
+              if (!_emailSent) ...[
+                LabelAndTextFormField(
+                  hintText: 'Email',
+                  autofocus: kIsWeb,
+                  prefixIcon: Icons.email_outlined,
+                  controller: _emailController,
+                  onFieldSubmitted: (value) => _onSubmit(),
+                  validator: BasicFormController.validateRequiredEmail,
+                  keyboardType: TextInputType.emailAddress,
+                ),
 
                 const SizedBox(height: 25),
 
-                Center(
-                  child: TextButton(
-                    onPressed: () {
-                      context.go(AppRoute.signinScreen);
-                    },
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          Icons.arrow_back,
-                          size: Responsive.getIconSize(
-                            context,
-                            mobile: 18,
-                            tablet: 20,
-                            desktop: 22,
-                          ),
-                          color: context.colorScheme.primary,
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          'Back to sign in',
-                          style: AppStyles.buttonText(
-                            context,
-                          ).copyWith(color: context.colorScheme.primary),
-                        ),
-                      ],
-                    ),
-                  ),
+                HeliumElevatedButton(
+                  buttonText: 'Send Reset Link',
+                  isLoading: isSubmitting,
+                  onPressed: _onSubmit,
                 ),
               ],
-            ),
+
+              const SizedBox(height: 25),
+
+              Center(
+                child: TextButton(
+                  onPressed: () {
+                    context.go(AppRoute.signinScreen);
+                  },
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.arrow_back,
+                        size: Responsive.getIconSize(
+                          context,
+                          mobile: 18,
+                          tablet: 20,
+                          desktop: 22,
+                        ),
+                        color: context.colorScheme.primary,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Back to sign in',
+                        style: AppStyles.buttonText(
+                          context,
+                        ).copyWith(color: context.colorScheme.primary),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
           ),
         );
       },
@@ -224,4 +226,3 @@ class _ForgotPasswordScreenState
     }
   }
 }
-

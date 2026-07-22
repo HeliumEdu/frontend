@@ -27,7 +27,7 @@ import 'package:heliumapp/presentation/core/views/base_page_screen_state.dart';
 import 'package:heliumapp/presentation/ui/components/helium_elevated_button.dart';
 import 'package:heliumapp/presentation/ui/components/helium_password_field.dart';
 import 'package:heliumapp/presentation/ui/components/label_and_text_form_field.dart';
-import 'package:heliumapp/presentation/ui/layout/responsive_center_card.dart';
+import 'package:heliumapp/presentation/ui/layout/unauthenticated_scaffold.dart';
 import 'package:heliumapp/presentation/ui/components/searchable_dropdown.dart';
 import 'package:heliumapp/utils/app_assets.dart';
 import 'package:heliumapp/utils/app_globals.dart';
@@ -78,7 +78,6 @@ class _SignupScreenState extends BasePageScreenState<SignupScreen> {
     });
   }
 
-
   @override
   void dispose() {
     _termsRecognizer.dispose();
@@ -102,18 +101,14 @@ class _SignupScreenState extends BasePageScreenState<SignupScreen> {
 
             if (!context.mounted) return;
 
-            showSnackBar(
-              context,
-              'Welcome to Helium!',
-              seconds: 3,
-            );
+            showSnackBar(context, 'Welcome to Helium!', seconds: 3);
 
             // Check if account setup is complete. Default to false for OAuth
             // (new users won't have the pref yet, and the setup screen handles
             // the already-complete case by redirecting immediately).
             final isSetupComplete =
-                PrefService().getBool(SettingsPrefKey.isSetupComplete.key)
-                    ?? !wasOAuthFlow;
+                PrefService().getBool(SettingsPrefKey.isSetupComplete.key) ??
+                !wasOAuthFlow;
 
             if (!isSetupComplete) {
               if (wasOAuthFlow) {
@@ -150,7 +145,12 @@ class _SignupScreenState extends BasePageScreenState<SignupScreen> {
               '${AppRoute.verifyEmailScreen}?email=${Uri.encodeComponent(email)}',
             );
           } else if (state is AuthError) {
-            showSnackBar(context, state.message!, type: SnackType.error, seconds: 6);
+            showSnackBar(
+              context,
+              state.message!,
+              type: SnackType.error,
+              seconds: 6,
+            );
           }
 
           if (state is! AuthLoading && state is! AuthLoggedIn) {
@@ -166,261 +166,262 @@ class _SignupScreenState extends BasePageScreenState<SignupScreen> {
 
   @override
   Widget buildScaffold(BuildContext context) {
-    return Title(
+    return UnauthenticatedScaffold(
       title: '$screenTitle | ${AppConstants.appName}',
-      color: context.colorScheme.primary,
-      child: Scaffold(body: SafeArea(child: buildMainArea(context))),
+      child: buildMainArea(context),
     );
   }
 
   @override
   Widget buildMainArea(BuildContext context) {
-    return ResponsiveCenterCard(
-      child: AutofillGroup(
-        child: Form(
-          key: _formController.formKey,
-          child: Column(
-            children: [
-              const SizedBox(height: 25),
+    return AutofillGroup(
+      child: Form(
+        key: _formController.formKey,
+        child: Column(
+          children: [
+            const SizedBox(height: 25),
 
-              Center(child: Image.asset(AppAssets.logoImagePath, height: 90.0)),
+            Center(child: Image.asset(AppAssets.logoImagePath, height: 90.0)),
 
-              const SizedBox(height: 35),
+            const SizedBox(height: 35),
 
-              SizedBox(
-                width: _oauthButtonWidth,
-                height: _oauthButtonHeight,
-                child: IgnorePointer(
-                  ignoring: _isOAuthLoading || isSubmitting,
-                  child: Opacity(
-                    opacity: _isOAuthLoading || isSubmitting ? 0.5 : 1.0,
-                    child: SignInButton(
-                      Buttons.google,
-                      onPressed: () {
-                        setState(() {
-                          _isOAuthLoading = true;
-                        });
-                        context.read<AuthBloc>().add(GoogleLoginEvent());
-                      },
-                      text: 'Sign up with Google',
-                    ),
-                  ),
-                ),
-              ),
-
-              // Only show Apple Sign-In on iOS and web (not Android)
-              if (kIsWeb || !Platform.isAndroid) ...[
-                const SizedBox(height: 12),
-                SizedBox(
-                  width: _oauthButtonWidth,
-                  height: _oauthButtonHeight,
-                  child: IgnorePointer(
-                    ignoring: _isOAuthLoading || isSubmitting,
-                    child: Opacity(
-                      opacity: _isOAuthLoading || isSubmitting ? 0.5 : 1.0,
-                      child: SignInButton(
-                        Buttons.apple,
-                        onPressed: () {
-                          setState(() {
-                            _isOAuthLoading = true;
-                          });
-                          context.read<AuthBloc>().add(AppleLoginEvent());
-                        },
-                        text: 'Sign up with Apple',
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-
-              const SizedBox(height: 12),
-
-              SizedBox(
-                width: _oauthButtonWidth,
-                height: _oauthButtonHeight,
-                child: IgnorePointer(
-                  ignoring: _isOAuthLoading || isSubmitting,
-                  child: Opacity(
-                    opacity: _isOAuthLoading || isSubmitting ? 0.5 : 1.0,
-                    child: SignInButton(
-                      Buttons.microsoft,
-                      onPressed: () {
-                        setState(() {
-                          _isOAuthLoading = true;
-                        });
-                        context.read<AuthBloc>().add(MicrosoftLoginEvent());
-                      },
-                      text: 'Sign up with Microsoft',
-                    ),
-                  ),
-                ),
-              ),
-
-              const SizedBox(height: 15),
-
-              Row(
-                children: [
-                  const Expanded(child: Divider()),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: Text(
-                      'OR',
-                      style: AppStyles.standardBodyText(context).copyWith(
-                        color: context.colorScheme.onSurface.withValues(
-                          alpha: 0.6,
-                        ),
-                      ),
-                    ),
-                  ),
-                  const Expanded(child: Divider()),
-                ],
-              ),
-
-              const SizedBox(height: 15),
-
-              LabelAndTextFormField(
-                key: const Key(CredentialsFormController.emailField),
-                hintText: 'Email',
-                autofocus: kIsWeb,
-                prefixIcon: Icons.email_outlined,
-                controller: _formController.emailController,
-                validator: BasicFormController.validateRequiredEmail,
-                onFieldSubmitted: (value) => _onSubmit(),
-                keyboardType: TextInputType.emailAddress,
-                autofillHints: const [AutofillHints.email],
-              ),
-              const SizedBox(height: 12),
-
-              HeliumPasswordField(
-                key: const Key(CredentialsFormController.passwordField),
-                hintText: 'Password',
-                controller: _formController.passwordController,
-                validator: BasicFormController.validatePassword,
-                onFieldSubmitted: (value) => _onSubmit(),
-                autofillHints: const [AutofillHints.newPassword],
-              ),
-              const SizedBox(height: 12),
-
-              HeliumPasswordField(
-                key: const Key(SignupFormController.confirmPasswordField),
-                hintText: 'Confirm password',
-                prefixIcon: Icons.repeat,
-                controller: _formController.confirmPasswordController,
-                validator: _formController.validateConfirmPassword,
-                onFieldSubmitted: (value) => _onSubmit(),
-                autofillHints: const [AutofillHints.newPassword],
-              ),
-              const SizedBox(height: 12),
-
-              SearchableDropdown(
-                key: const Key(SignupFormController.timeZoneField),
-                initialValue: TimeZoneConstants.items.firstWhere(
-                  (tz) => tz.value == _formController.selectedTimeZone,
-                  orElse: () => TimeZoneConstants.items.firstWhere(
-                    (tz) => tz.value == 'UTC',
-                  ),
-                ),
-                items: TimeZoneConstants.items,
-                onChanged: (value) {
-                  setState(() {
-                    _formController.selectedTimeZone = value!.value!;
-                  });
-                },
-              ),
-
-              const SizedBox(height: 16),
-
-              BlocBuilder<AuthBloc, AuthState>(
-                builder: (context, state) {
-                  return SizedBox(
-                    width: _oauthButtonWidth,
-                    child: HeliumElevatedButton(
-                      key: const Key(SignupScreen.signUpButtonKey),
-                      buttonText: 'Sign Up',
-                      isLoading: isSubmitting,
-                      enabled: !_isOAuthLoading,
-                      onPressed: _onSubmit,
-                    ),
-                  );
-                },
-              ),
-
-              const SizedBox(height: 12),
-
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  TextButton(
+            SizedBox(
+              width: _oauthButtonWidth,
+              height: _oauthButtonHeight,
+              child: IgnorePointer(
+                ignoring: _isOAuthLoading || isSubmitting,
+                child: Opacity(
+                  opacity: _isOAuthLoading || isSubmitting ? 0.5 : 1.0,
+                  child: SignInButton(
+                    Buttons.google,
                     onPressed: () {
-                      context.go(AppRoute.signinScreen);
+                      setState(() {
+                        _isOAuthLoading = true;
+                      });
+                      context.read<AuthBloc>().add(GoogleLoginEvent());
                     },
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          Icons.arrow_back,
-                          size: Responsive.getIconSize(
-                            context,
-                            mobile: 18,
-                            tablet: 20,
-                            desktop: 22,
-                          ),
-                          color: context.colorScheme.primary,
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          'Back to sign in',
-                          style: AppStyles.buttonText(
-                            context,
-                          ).copyWith(color: context.colorScheme.primary),
-                        ),
-                      ],
-                    ),
+                    text: 'Sign up with Google',
                   ),
-                ],
+                ),
               ),
+            ),
 
-              const SizedBox(height: 8),
-
-              RichText(
-                textAlign: TextAlign.center,
-                text: TextSpan(
-                  text: "By signing up, you agree to Helium's ",
-                  style: AppStyles.formText(context).copyWith(
-                    color: context.colorScheme.onSurface.withValues(alpha: 0.6),
+            // Only show Apple Sign-In on iOS and web (not Android)
+            if (kIsWeb || !Platform.isAndroid) ...[
+              const SizedBox(height: 12),
+              SizedBox(
+                width: _oauthButtonWidth,
+                height: _oauthButtonHeight,
+                child: IgnorePointer(
+                  ignoring: _isOAuthLoading || isSubmitting,
+                  child: Opacity(
+                    opacity: _isOAuthLoading || isSubmitting ? 0.5 : 1.0,
+                    child: SignInButton(
+                      Buttons.apple,
+                      onPressed: () {
+                        setState(() {
+                          _isOAuthLoading = true;
+                        });
+                        context.read<AuthBloc>().add(AppleLoginEvent());
+                      },
+                      text: 'Sign up with Apple',
+                    ),
                   ),
-                  children: [
-                    TextSpan(
-                      text: 'Terms of Service',
-                      style: AppStyles.formText(context).copyWith(
-                        color: context.colorScheme.primary,
-                      ),
-                      recognizer: _termsRecognizer,
-                    ),
-                    TextSpan(
-                      text: ' and ',
-                      style: AppStyles.formText(context).copyWith(
-                        color: context.colorScheme.onSurface.withValues(alpha: 0.6),
-                      ),
-                    ),
-                    TextSpan(
-                      text: 'Privacy Policy',
-                      style: AppStyles.formText(context).copyWith(
-                        color: context.colorScheme.primary,
-                      ),
-                      recognizer: _privacyRecognizer,
-                    ),
-                    TextSpan(
-                      text: '.',
-                      style: AppStyles.formText(context).copyWith(
-                        color: context.colorScheme.onSurface.withValues(alpha: 0.6),
-                      ),
-                    ),
-                  ],
                 ),
               ),
             ],
-          ),
+
+            const SizedBox(height: 12),
+
+            SizedBox(
+              width: _oauthButtonWidth,
+              height: _oauthButtonHeight,
+              child: IgnorePointer(
+                ignoring: _isOAuthLoading || isSubmitting,
+                child: Opacity(
+                  opacity: _isOAuthLoading || isSubmitting ? 0.5 : 1.0,
+                  child: SignInButton(
+                    Buttons.microsoft,
+                    onPressed: () {
+                      setState(() {
+                        _isOAuthLoading = true;
+                      });
+                      context.read<AuthBloc>().add(MicrosoftLoginEvent());
+                    },
+                    text: 'Sign up with Microsoft',
+                  ),
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 15),
+
+            Row(
+              children: [
+                const Expanded(child: Divider()),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: Text(
+                    'OR',
+                    style: AppStyles.standardBodyText(context).copyWith(
+                      color: context.colorScheme.onSurface.withValues(
+                        alpha: 0.6,
+                      ),
+                    ),
+                  ),
+                ),
+                const Expanded(child: Divider()),
+              ],
+            ),
+
+            const SizedBox(height: 15),
+
+            LabelAndTextFormField(
+              key: const Key(CredentialsFormController.emailField),
+              hintText: 'Email',
+              autofocus: kIsWeb,
+              prefixIcon: Icons.email_outlined,
+              controller: _formController.emailController,
+              validator: BasicFormController.validateRequiredEmail,
+              onFieldSubmitted: (value) => _onSubmit(),
+              keyboardType: TextInputType.emailAddress,
+              autofillHints: const [AutofillHints.email],
+            ),
+            const SizedBox(height: 12),
+
+            HeliumPasswordField(
+              key: const Key(CredentialsFormController.passwordField),
+              hintText: 'Password',
+              controller: _formController.passwordController,
+              validator: BasicFormController.validatePassword,
+              onFieldSubmitted: (value) => _onSubmit(),
+              autofillHints: const [AutofillHints.newPassword],
+            ),
+            const SizedBox(height: 12),
+
+            HeliumPasswordField(
+              key: const Key(SignupFormController.confirmPasswordField),
+              hintText: 'Confirm password',
+              prefixIcon: Icons.repeat,
+              controller: _formController.confirmPasswordController,
+              validator: _formController.validateConfirmPassword,
+              onFieldSubmitted: (value) => _onSubmit(),
+              autofillHints: const [AutofillHints.newPassword],
+            ),
+            const SizedBox(height: 12),
+
+            SearchableDropdown(
+              key: const Key(SignupFormController.timeZoneField),
+              initialValue: TimeZoneConstants.items.firstWhere(
+                (tz) => tz.value == _formController.selectedTimeZone,
+                orElse: () => TimeZoneConstants.items.firstWhere(
+                  (tz) => tz.value == 'UTC',
+                ),
+              ),
+              items: TimeZoneConstants.items,
+              onChanged: (value) {
+                setState(() {
+                  _formController.selectedTimeZone = value!.value!;
+                });
+              },
+            ),
+
+            const SizedBox(height: 16),
+
+            BlocBuilder<AuthBloc, AuthState>(
+              builder: (context, state) {
+                return SizedBox(
+                  width: _oauthButtonWidth,
+                  child: HeliumElevatedButton(
+                    key: const Key(SignupScreen.signUpButtonKey),
+                    buttonText: 'Sign Up',
+                    isLoading: isSubmitting,
+                    enabled: !_isOAuthLoading,
+                    onPressed: _onSubmit,
+                  ),
+                );
+              },
+            ),
+
+            const SizedBox(height: 12),
+
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                TextButton(
+                  onPressed: () {
+                    context.go(AppRoute.signinScreen);
+                  },
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.arrow_back,
+                        size: Responsive.getIconSize(
+                          context,
+                          mobile: 18,
+                          tablet: 20,
+                          desktop: 22,
+                        ),
+                        color: context.colorScheme.primary,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Back to sign in',
+                        style: AppStyles.buttonText(
+                          context,
+                        ).copyWith(color: context.colorScheme.primary),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 8),
+
+            RichText(
+              textAlign: TextAlign.center,
+              text: TextSpan(
+                text: "By signing up, you agree to Helium's ",
+                style: AppStyles.formText(context).copyWith(
+                  color: context.colorScheme.onSurface.withValues(alpha: 0.6),
+                ),
+                children: [
+                  TextSpan(
+                    text: 'Terms of Service',
+                    style: AppStyles.formText(
+                      context,
+                    ).copyWith(color: context.colorScheme.primary),
+                    recognizer: _termsRecognizer,
+                  ),
+                  TextSpan(
+                    text: ' and ',
+                    style: AppStyles.formText(context).copyWith(
+                      color: context.colorScheme.onSurface.withValues(
+                        alpha: 0.6,
+                      ),
+                    ),
+                  ),
+                  TextSpan(
+                    text: 'Privacy Policy',
+                    style: AppStyles.formText(
+                      context,
+                    ).copyWith(color: context.colorScheme.primary),
+                    recognizer: _privacyRecognizer,
+                  ),
+                  TextSpan(
+                    text: '.',
+                    style: AppStyles.formText(context).copyWith(
+                      color: context.colorScheme.onSurface.withValues(
+                        alpha: 0.6,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
       ),
     );

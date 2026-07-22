@@ -7,6 +7,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:heliumapp/presentation/core/views/base_page_screen_state.dart';
+import 'package:heliumapp/utils/responsive_helpers.dart';
 
 /// A [SingleChildScrollView] that, inside a full-screen dialog, adds bottom
 /// scroll padding equal to the device's bottom safe-area inset. The dialog
@@ -35,7 +36,7 @@ class HeliumFullScreenScrollView extends StatelessWidget {
   /// full-screen dialogs or when there's no bottom inset.
   static double insetOf(BuildContext context) {
     if (!DialogModeProvider.isFullScreenMode(context)) return 0;
-    return MediaQuery.of(context).viewPadding.bottom;
+    return Responsive.bottomSafeAreaInset(context);
   }
 
   @override

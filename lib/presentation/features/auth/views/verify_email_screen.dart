@@ -21,7 +21,7 @@ import 'package:heliumapp/presentation/features/shared/controllers/basic_form_co
 import 'package:heliumapp/presentation/core/views/base_page_screen_state.dart';
 import 'package:heliumapp/presentation/ui/components/helium_elevated_button.dart';
 import 'package:heliumapp/presentation/ui/components/label_and_text_form_field.dart';
-import 'package:heliumapp/presentation/ui/layout/responsive_center_card.dart';
+import 'package:heliumapp/presentation/ui/layout/unauthenticated_scaffold.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
@@ -118,7 +118,12 @@ class _VerifyEmailScreenState extends BasePageScreenState<VerifyEmailScreen> {
             );
             _startResendCountdown();
           } else if (state is AuthError) {
-            showSnackBar(context, state.message!, type: SnackType.error, seconds: 4);
+            showSnackBar(
+              context,
+              state.message!,
+              type: SnackType.error,
+              seconds: 4,
+            );
             setState(() {
               _isResending = false;
             });
@@ -136,192 +141,189 @@ class _VerifyEmailScreenState extends BasePageScreenState<VerifyEmailScreen> {
 
   @override
   Widget buildScaffold(BuildContext context) {
-    return Title(
+    return UnauthenticatedScaffold(
       title: '$screenTitle | ${AppConstants.appName}',
-      color: context.colorScheme.primary,
-      child: Scaffold(body: SafeArea(child: buildMainArea(context))),
+      child: buildMainArea(context),
     );
   }
 
   @override
   Widget buildMainArea(BuildContext context) {
-    return ResponsiveCenterCard(
-      child: Form(
-        key: _formController.formKey,
-        child: Column(
-          children: [
-            const SizedBox(height: 12),
+    return Form(
+      key: _formController.formKey,
+      child: Column(
+        children: [
+          const SizedBox(height: 12),
 
-            Text(
-              screenTitle,
-              style: AppStyles.featureText(
-                context,
-              ).copyWith(fontSize: Responsive.getFontSize(context, mobile: 22)),
-            ),
+          Text(
+            screenTitle,
+            style: AppStyles.featureText(
+              context,
+            ).copyWith(fontSize: Responsive.getFontSize(context, mobile: 22)),
+          ),
 
-            const SizedBox(height: 25),
+          const SizedBox(height: 25),
 
-            Center(
-              child: Container(
-                width: AppConstants.authContainerSize,
-                height: AppConstants.authContainerSize,
-                decoration: BoxDecoration(
-                  color: context.colorScheme.primary.withValues(alpha: 0.1),
-                  shape: BoxShape.circle,
+          Center(
+            child: Container(
+              width: AppConstants.authContainerSize,
+              height: AppConstants.authContainerSize,
+              decoration: BoxDecoration(
+                color: context.colorScheme.primary.withValues(alpha: 0.1),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                Icons.mark_email_read,
+                size: Responsive.getIconSize(
+                  context,
+                  mobile: 60,
+                  tablet: 64,
+                  desktop: 68,
                 ),
-                child: Icon(
-                  Icons.mark_email_read,
-                  size: Responsive.getIconSize(
-                    context,
-                    mobile: 60,
-                    tablet: 64,
-                    desktop: 68,
-                  ),
-                  color: context.colorScheme.primary,
-                ),
+                color: context.colorScheme.primary,
               ),
             ),
+          ),
 
-            const SizedBox(height: 25),
+          const SizedBox(height: 25),
 
-            Text(
-              'Enter the verification code sent to your email address to complete your registration.',
-              style: AppStyles.headingText(context),
-              textAlign: TextAlign.center,
-            ),
+          Text(
+            'Enter the verification code sent to your email address to complete your registration.',
+            style: AppStyles.headingText(context),
+            textAlign: TextAlign.center,
+          ),
 
-            const SizedBox(height: 25),
+          const SizedBox(height: 25),
 
-            LabelAndTextFormField(
-              key: const Key(VerifyEmailScreen.emailField),
-              hintText: 'Email',
-              autofocus: kIsWeb && widget.email == null,
-              prefixIcon: Icons.email_outlined,
-              controller: _emailController,
-              validator: BasicFormController.validateRequiredEmail,
-              onFieldSubmitted: (value) => _onSubmit(),
-              keyboardType: TextInputType.emailAddress,
-            ),
-            const SizedBox(height: 12),
+          LabelAndTextFormField(
+            key: const Key(VerifyEmailScreen.emailField),
+            hintText: 'Email',
+            autofocus: kIsWeb && widget.email == null,
+            prefixIcon: Icons.email_outlined,
+            controller: _emailController,
+            validator: BasicFormController.validateRequiredEmail,
+            onFieldSubmitted: (value) => _onSubmit(),
+            keyboardType: TextInputType.emailAddress,
+          ),
+          const SizedBox(height: 12),
 
-            LabelAndTextFormField(
-              key: const Key(VerifyEmailScreen.codeField),
-              hintText: 'Verification code',
-              autofocus: widget.email != null && widget.code == null,
-              prefixIcon: Icons.pin,
-              controller: _codeController,
-              validator: _validateCode,
-              onFieldSubmitted: (value) => _onSubmit(),
-              keyboardType: TextInputType.number,
-              inputFormatters: [
-                FilteringTextInputFormatter.digitsOnly,
-                LengthLimitingTextInputFormatter(6),
-              ],
-            ),
+          LabelAndTextFormField(
+            key: const Key(VerifyEmailScreen.codeField),
+            hintText: 'Verification code',
+            autofocus: widget.email != null && widget.code == null,
+            prefixIcon: Icons.pin,
+            controller: _codeController,
+            validator: _validateCode,
+            onFieldSubmitted: (value) => _onSubmit(),
+            keyboardType: TextInputType.number,
+            inputFormatters: [
+              FilteringTextInputFormatter.digitsOnly,
+              LengthLimitingTextInputFormatter(6),
+            ],
+          ),
 
-            const SizedBox(height: 25),
+          const SizedBox(height: 25),
 
-            BlocBuilder<AuthBloc, AuthState>(
-              builder: (context, state) {
-                return HeliumElevatedButton(
-                  buttonText: 'Verify & Sign In',
-                  isLoading: isSubmitting,
-                  onPressed: _onSubmit,
-                );
-              },
-            ),
+          BlocBuilder<AuthBloc, AuthState>(
+            builder: (context, state) {
+              return HeliumElevatedButton(
+                buttonText: 'Verify & Sign In',
+                isLoading: isSubmitting,
+                onPressed: _onSubmit,
+              );
+            },
+          ),
 
-            const SizedBox(height: 16),
+          const SizedBox(height: 16),
 
-            Center(
-              child: TextButton(
-                onPressed: _canResend ? _onResend : null,
-                child: _isResending
-                    ? SizedBox(
-                        width: _resendSpinnerSize,
-                        height: _resendSpinnerSize,
-                        child: CircularProgressIndicator(
-                          strokeWidth: _resendSpinnerStrokeWidth,
-                          color: context.colorScheme.primary,
+          Center(
+            child: TextButton(
+              onPressed: _canResend ? _onResend : null,
+              child: _isResending
+                  ? SizedBox(
+                      width: _resendSpinnerSize,
+                      height: _resendSpinnerSize,
+                      child: CircularProgressIndicator(
+                        strokeWidth: _resendSpinnerStrokeWidth,
+                        color: context.colorScheme.primary,
+                      ),
+                    )
+                  : Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.refresh,
+                          size: Responsive.getIconSize(
+                            context,
+                            mobile: 18,
+                            tablet: 20,
+                            desktop: 22,
+                          ),
+                          color: _canResend
+                              ? context.colorScheme.primary
+                              : context.colorScheme.onSurface.withValues(
+                                  alpha: 0.38,
+                                ),
                         ),
-                      )
-                    : Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            Icons.refresh,
-                            size: Responsive.getIconSize(
-                              context,
-                              mobile: 18,
-                              tablet: 20,
-                              desktop: 22,
-                            ),
+                        const SizedBox(width: 8),
+                        Text(
+                          'Resend verification email',
+                          style: AppStyles.buttonText(context).copyWith(
                             color: _canResend
                                 ? context.colorScheme.primary
                                 : context.colorScheme.onSurface.withValues(
                                     alpha: 0.38,
                                   ),
                           ),
+                        ),
+                        if (_resendCountdown > 0) ...[
                           const SizedBox(width: 8),
                           Text(
-                            'Resend verification email',
+                            '($_resendCountdown)',
                             style: AppStyles.buttonText(context).copyWith(
-                              color: _canResend
-                                  ? context.colorScheme.primary
-                                  : context.colorScheme.onSurface.withValues(
-                                      alpha: 0.38,
-                                    ),
-                            ),
-                          ),
-                          if (_resendCountdown > 0) ...[
-                            const SizedBox(width: 8),
-                            Text(
-                              '($_resendCountdown)',
-                              style: AppStyles.buttonText(context).copyWith(
-                                color: context.colorScheme.onSurface.withValues(
-                                  alpha: 0.38,
-                                ),
+                              color: context.colorScheme.onSurface.withValues(
+                                alpha: 0.38,
                               ),
                             ),
-                          ],
+                          ),
                         ],
-                      ),
+                      ],
+                    ),
+            ),
+          ),
+
+          const SizedBox(height: 12),
+
+          Center(
+            child: TextButton(
+              onPressed: () {
+                context.go(AppRoute.signinScreen);
+              },
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.arrow_back,
+                    size: Responsive.getIconSize(
+                      context,
+                      mobile: 18,
+                      tablet: 20,
+                      desktop: 22,
+                    ),
+                    color: context.colorScheme.primary,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Back to login',
+                    style: AppStyles.buttonText(
+                      context,
+                    ).copyWith(color: context.colorScheme.primary),
+                  ),
+                ],
               ),
             ),
-
-            const SizedBox(height: 12),
-
-            Center(
-              child: TextButton(
-                onPressed: () {
-                  context.go(AppRoute.signinScreen);
-                },
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      Icons.arrow_back,
-                      size: Responsive.getIconSize(
-                        context,
-                        mobile: 18,
-                        tablet: 20,
-                        desktop: 22,
-                      ),
-                      color: context.colorScheme.primary,
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      'Back to login',
-                      style: AppStyles.buttonText(
-                        context,
-                      ).copyWith(color: context.colorScheme.primary),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -396,4 +398,3 @@ class _VerifyEmailScreenState extends BasePageScreenState<VerifyEmailScreen> {
     });
   }
 }
-
