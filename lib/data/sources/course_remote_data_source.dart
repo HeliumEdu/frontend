@@ -282,7 +282,7 @@ class CourseRemoteDataSourceImpl extends CourseRemoteDataSource {
         }
       } else {
         throw ServerException(
-          message: 'Failed to fetch course groups.',
+          message: 'Failed to fetch groups.',
           code: response.statusCode.toString(),
         );
       }
@@ -308,7 +308,7 @@ class CourseRemoteDataSourceImpl extends CourseRemoteDataSource {
         return CourseGroupModel.fromJson(response.data);
       } else {
         throw ServerException(
-          message: 'Failed to fetch course group.',
+          message: 'Failed to fetch group.',
           code: response.statusCode.toString(),
         );
       }
@@ -345,7 +345,7 @@ class CourseRemoteDataSourceImpl extends CourseRemoteDataSource {
         return group;
       } else {
         throw ServerException(
-          message: 'Failed to create course group.',
+          message: 'Failed to create group.',
           code: response.statusCode.toString(),
         );
       }
@@ -375,7 +375,7 @@ class CourseRemoteDataSourceImpl extends CourseRemoteDataSource {
         return CourseGroupModel.fromJson(response.data);
       } else {
         throw ServerException(
-          message: 'Failed to update course group.',
+          message: 'Failed to update group.',
           code: response.statusCode.toString(),
         );
       }
@@ -401,7 +401,7 @@ class CourseRemoteDataSourceImpl extends CourseRemoteDataSource {
         return;
       } else {
         throw ServerException(
-          message: 'Failed to delete course group.',
+          message: 'Failed to delete group.',
           code: response.statusCode.toString(),
         );
       }

@@ -42,7 +42,7 @@ class _CourseGroupWidgetState
   late List<DateTime> _groupExceptions;
 
   @override
-  String get dialogTitle => 'Class Group';
+  String get dialogTitle => 'Group';
 
   @override
   BasicFormController get formController => _formController;

@@ -135,7 +135,7 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen>
           } else if (state is CoursesScreenDataFetched) {
             _populateInitialStateData(state);
           } else if (state is CourseGroupCreated) {
-            showSnackBar(context, 'Class group created.');
+            showSnackBar(context, 'Group created.');
 
             setState(() {
               _courseGroups.add(state.courseGroup);
@@ -154,7 +154,7 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen>
               Sort.byStartDate(_courseGroups);
             });
           } else if (state is CourseGroupDeleted) {
-            showSnackBar(context, 'Class group deleted.');
+            showSnackBar(context, 'Group deleted.');
 
             setState(() {
               _courseGroups.removeWhere((g) => g.id == state.id);
