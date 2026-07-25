@@ -150,7 +150,7 @@ class CourseRemoteDataSourceImpl extends CourseRemoteDataSource {
         );
       }
     } on DioException catch (e, s) {
-      throw handleDioError(e, s);
+      throw handleDioError(e, s, notFoundEntity: 'Class');
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
       throw HeliumException(message: HeliumException.unexpectedError);
@@ -182,7 +182,7 @@ class CourseRemoteDataSourceImpl extends CourseRemoteDataSource {
         );
       }
     } on DioException catch (e, s) {
-      throw handleDioError(e, s);
+      throw handleDioError(e, s, notFoundEntity: 'Group');
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
       throw HeliumException(message: HeliumException.unexpectedError);
@@ -214,7 +214,7 @@ class CourseRemoteDataSourceImpl extends CourseRemoteDataSource {
         );
       }
     } on DioException catch (e, s) {
-      throw handleDioError(e, s);
+      throw handleDioError(e, s, notFoundEntity: 'Class');
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
       throw HeliumException(message: HeliumException.unexpectedError);
@@ -240,7 +240,7 @@ class CourseRemoteDataSourceImpl extends CourseRemoteDataSource {
         );
       }
     } on DioException catch (e, s) {
-      throw handleDioError(e, s);
+      throw handleDioError(e, s, notFoundEntity: 'Class');
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
       throw HeliumException(message: HeliumException.unexpectedError);
@@ -313,7 +313,7 @@ class CourseRemoteDataSourceImpl extends CourseRemoteDataSource {
         );
       }
     } on DioException catch (e, s) {
-      throw handleDioError(e, s);
+      throw handleDioError(e, s, notFoundEntity: 'Group');
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
       throw HeliumException(message: HeliumException.unexpectedError);
@@ -380,7 +380,7 @@ class CourseRemoteDataSourceImpl extends CourseRemoteDataSource {
         );
       }
     } on DioException catch (e, s) {
-      throw handleDioError(e, s);
+      throw handleDioError(e, s, notFoundEntity: 'Group');
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
       throw HeliumException(message: HeliumException.unexpectedError);
@@ -406,7 +406,7 @@ class CourseRemoteDataSourceImpl extends CourseRemoteDataSource {
         );
       }
     } on DioException catch (e, s) {
-      throw handleDioError(e, s);
+      throw handleDioError(e, s, notFoundEntity: 'Group');
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
       throw HeliumException(message: HeliumException.unexpectedError);
@@ -437,7 +437,7 @@ class CourseRemoteDataSourceImpl extends CourseRemoteDataSource {
         );
       }
     } on DioException catch (e, s) {
-      throw handleDioError(e, s);
+      throw handleDioError(e, s, notFoundEntity: 'Class');
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
       throw HeliumException(message: HeliumException.unexpectedError);
@@ -467,7 +467,7 @@ class CourseRemoteDataSourceImpl extends CourseRemoteDataSource {
         );
       }
     } on DioException catch (e, s) {
-      throw handleDioError(e, s);
+      throw handleDioError(e, s, notFoundEntity: 'Group');
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
       throw HeliumException(message: HeliumException.unexpectedError);

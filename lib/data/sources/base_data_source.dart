@@ -13,7 +13,11 @@ import 'package:logging/logging.dart';
 final _log = Logger('data.sources');
 
 abstract class BaseDataSource {
-  HeliumException handleDioError(DioException e, StackTrace s) {
+  HeliumException handleDioError(
+    DioException e,
+    StackTrace s, {
+    String? notFoundEntity,
+  }) {
     switch (e.type) {
       case DioExceptionType.connectionTimeout:
       case DioExceptionType.sendTimeout:
@@ -65,6 +69,11 @@ abstract class BaseDataSource {
             message: 'Server error. Please try again later.',
             code: '500',
             httpStatusCode: 500,
+          );
+        } else if (statusCode == 404) {
+          return NotFoundException(
+            message: '${notFoundEntity ?? 'Item'} not found.',
+            details: responseData,
           );
         } else {
           String errorMessage =
