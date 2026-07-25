@@ -10,6 +10,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/config/app_theme.dart';
+import 'package:heliumapp/config/pref_service.dart';
+import 'package:heliumapp/data/models/auth/user_model.dart';
 import 'package:heliumapp/data/models/planner/course_model.dart';
 import 'package:heliumapp/data/models/planner/note_model.dart';
 import 'package:heliumapp/data/models/planner/resource_group_model.dart';
@@ -39,6 +41,7 @@ import 'package:heliumapp/presentation/ui/feedback/error_card.dart';
 import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
 import 'package:heliumapp/presentation/ui/layout/mobile_gesture_detector.dart';
 import 'package:heliumapp/presentation/ui/layout/responsive_card_grid.dart';
+import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/error_helpers.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/print_helpers.dart';
@@ -64,6 +67,10 @@ class _ResourcesProvidedScreen extends StatefulWidget {
 class _ResourcesScreenState
     extends BasePageScreenState<_ResourcesProvidedScreen>
     with DeepLinkMixin {
+  static const int _showAllGroupId = -1;
+
+  static const _savedResourcesShowAllKey = 'saved_resources_show_all';
+
   @override
   bool get enablePrint => true;
 
@@ -72,15 +79,17 @@ class _ResourcesScreenState
 
   @override
   VoidCallback get actionButtonCallback => () {
-    if (_selectedGroupId != null) {
-      showResourceAdd(
-        context,
-        resourceGroupId: _selectedGroupId!,
-        isEdit: false,
-      );
-    } else {
+    if (_resourceGroups.isEmpty) {
       showSnackBar(context, 'Create a group first.', type: SnackType.info);
+      return;
     }
+    showResourceAdd(
+      context,
+      resourceGroupId: _selectedGroupId == _showAllGroupId
+          ? null
+          : _selectedGroupId,
+      isEdit: false,
+    );
   };
 
   @override
@@ -93,6 +102,12 @@ class _ResourcesScreenState
   int? _selectedGroupId;
   String? _screenError;
 
+  ResourceGroupModel get _showAllGroup => ResourceGroupModel(
+    id: _showAllGroupId,
+    title: 'Show All',
+    shownOnCalendar: true,
+  );
+
   @override
   void initState() {
     super.initState();
@@ -100,6 +115,15 @@ class _ResourcesScreenState
     context.read<ResourceBloc>().add(
       FetchResourcesScreenDataEvent(origin: EventOrigin.screen),
     );
+  }
+
+  @override
+  Future<UserSettingsModel?> loadSettings() {
+    return super.loadSettings().then((settings) {
+      if (!mounted || settings == null) return settings;
+      _restoreFilterStateIfEnabled(settings);
+      return settings;
+    });
   }
 
   @override
@@ -164,43 +188,44 @@ class _ResourcesScreenState
 
             setState(() {
               _resourceGroups.removeWhere((g) => g.id == state.id);
+              _resourcesMap.remove(state.id);
               if (_resourceGroups.isEmpty) {
                 _selectedGroupId = null;
-              } else {
+              } else if (_selectedGroupId != _showAllGroupId &&
+                  !_resourceGroups.any((g) => g.id == _selectedGroupId)) {
                 // Reset if selected group was deleted
-                if (!_resourceGroups.any((g) => g.id == _selectedGroupId)) {
-                  _selectedGroupId = _resourceGroups.first.id;
-                }
+                _selectedGroupId = _resourceGroups.first.id;
               }
             });
           } else if (state is ResourceCreated) {
-            if (_selectedGroupId == null) return;
-
+            // Keyed by the resource's own group rather than the active
+            // filter — a create from "Show All" (or any group's view) can
+            // target any group via the editor's Group field.
             setState(() {
-              _resourcesMap[_selectedGroupId]!.add(state.resource);
-              Sort.byTitle(_resourcesMap[_selectedGroupId]!);
+              _resourcesMap
+                  .putIfAbsent(state.resource.resourceGroup, () => [])
+                  .add(state.resource);
+              Sort.byTitle(_resourcesMap[state.resource.resourceGroup]!);
             });
           } else if (state is ResourceUpdated) {
-            if (_selectedGroupId == null) return;
-
+            // The resource may have moved to a different group; drop it from
+            // every list first, then add it back under its current group.
             setState(() {
-              final index = _resourcesMap[_selectedGroupId]!.indexWhere(
-                (m) => m.id == state.resource.id,
-              );
-              if (index == -1) return;
-              _resourcesMap[_selectedGroupId]![index] = state.resource;
-              Sort.byTitle(_resourcesMap[_selectedGroupId]!);
+              for (final resources in _resourcesMap.values) {
+                resources.removeWhere((m) => m.id == state.resource.id);
+              }
+              _resourcesMap
+                  .putIfAbsent(state.resource.resourceGroup, () => [])
+                  .add(state.resource);
+              Sort.byTitle(_resourcesMap[state.resource.resourceGroup]!);
             });
           } else if (state is ResourceDeleted) {
-            if (_selectedGroupId == null) return;
-
             showSnackBar(context, 'Resource deleted.');
 
             setState(() {
-              _resourcesMap[_selectedGroupId]!.removeWhere(
-                (m) => m.id == state.id,
-              );
-              Sort.byTitle(_resourcesMap[_selectedGroupId]!);
+              for (final resources in _resourcesMap.values) {
+                resources.removeWhere((m) => m.id == state.id);
+              }
               _notesMap.remove(state.id);
             });
           }
@@ -216,11 +241,16 @@ class _ResourcesScreenState
       builder: (context, isCapturing, _) => Padding(
         padding: const EdgeInsets.only(bottom: 12),
         child: GroupDropdown(
-          groups: _resourceGroups,
-          initialSelection: _resourceGroups.firstWhereOrNull(
-            (g) => g.id == _selectedGroupId,
-          ),
+          groups: _resourceGroups.isEmpty
+              ? _resourceGroups
+              : [_showAllGroup, ..._resourceGroups],
+          initialSelection: _selectedGroupId == _showAllGroupId
+              ? _showAllGroup
+              : _resourceGroups.firstWhereOrNull(
+                  (g) => g.id == _selectedGroupId,
+                ),
           isReadOnly: isCapturing,
+          isEditable: (g) => g.id != _showAllGroupId,
           onChanged: (value) {
             // The "+" button has a null value
             if (value == null) return;
@@ -229,6 +259,7 @@ class _ResourcesScreenState
             setState(() {
               _selectedGroupId = value.id;
             });
+            _saveFilterStateIfEnabled();
           },
           onCreate: () {
             showResourceGroupDialog(parentContext: context, isEdit: false);
@@ -282,6 +313,21 @@ class _ResourcesScreenState
           );
         }
 
+        if (_selectedGroupId == _showAllGroupId) {
+          final hasAnyResources = _resourceGroups.any(
+            (g) => _resourcesMap[g.id]?.isNotEmpty ?? false,
+          );
+          if (!hasAnyResources) {
+            return const EmptyCard(
+              icon: Icons.book,
+              title: "You haven't added any resources yet",
+              message: 'Click "+" to get started',
+              expanded: false,
+            );
+          }
+          return _buildGroupedResourcesList();
+        }
+
         if (_selectedGroupId == null ||
             (_resourcesMap[_selectedGroupId]?.isEmpty ?? true)) {
           return const EmptyCard(
@@ -313,21 +359,65 @@ class _ResourcesScreenState
         shrinkWrap: isCapturing,
         printPageBreakAfterRow: true,
         items: _resourcesMap[_selectedGroupId]!,
-        itemBuilder: (context, resource) {
-          try {
-            return _buildResourceCard(context, resource);
-          } catch (e, st) {
-            ErrorHelpers.logAndReport(
-              'Failed to render resource card ${resource.id}',
-              e,
-              st,
-              hints: {'resource_id': resource.id},
-            );
-            return const SizedBox.shrink();
-          }
+        itemBuilder: (context, resource) =>
+            _safeBuildResourceCard(context, resource),
+      ),
+    );
+  }
+
+  /// Renders every group that has at least one resource as its own labeled
+  /// section, in place of the single-group flat list, for the "Show All"
+  /// filter option.
+  Widget _buildGroupedResourcesList() {
+    final groupsWithResources = _resourceGroups
+        .where((g) => _resourcesMap[g.id]?.isNotEmpty ?? false)
+        .toList();
+
+    return ValueListenableBuilder<bool>(
+      valueListenable: PrintableArea.capturing,
+      builder: (context, isCapturing, _) => ListView.builder(
+        shrinkWrap: isCapturing,
+        physics: isCapturing ? const NeverScrollableScrollPhysics() : null,
+        itemCount: groupsWithResources.length,
+        itemBuilder: (context, index) {
+          final group = groupsWithResources[index];
+          return Padding(
+            padding: EdgeInsets.only(
+              bottom: index == groupsWithResources.length - 1 ? 0 : 24,
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(group.title, style: AppStyles.headingText(context)),
+                const SizedBox(height: 8),
+                ResponsiveCardGrid<ResourceModel>(
+                  maxCardWidth: Responsive.isDesktop(context) ? 430 : 390,
+                  shrinkWrap: true,
+                  printPageBreakAfterRow: true,
+                  items: _resourcesMap[group.id]!,
+                  itemBuilder: (context, resource) =>
+                      _safeBuildResourceCard(context, resource),
+                ),
+              ],
+            ),
+          );
         },
       ),
     );
+  }
+
+  Widget _safeBuildResourceCard(BuildContext context, ResourceModel resource) {
+    try {
+      return _buildResourceCard(context, resource);
+    } catch (e, st) {
+      ErrorHelpers.logAndReport(
+        'Failed to render resource card ${resource.id}',
+        e,
+        st,
+        hints: {'resource_id': resource.id},
+      );
+      return const SizedBox.shrink();
+    }
   }
 
   void _populateInitialStateData(ResourcesScreenDataFetched state) {
@@ -352,8 +442,10 @@ class _ResourcesScreenState
       }
 
       if (_resourceGroups.isNotEmpty) {
-        if (_selectedGroupId == null ||
-            !_resourceGroups.any((g) => g.id == _selectedGroupId)) {
+        final isValidSelection =
+            _selectedGroupId == _showAllGroupId ||
+            _resourceGroups.any((g) => g.id == _selectedGroupId);
+        if (_selectedGroupId == null || !isValidSelection) {
           _selectedGroupId = _resourceGroups.first.id;
         }
       } else {
@@ -511,6 +603,25 @@ class _ResourcesScreenState
       resourceId: resource.id,
       isEdit: true,
     );
+  }
+
+  void _saveFilterStateIfEnabled() {
+    if (!(userSettings?.rememberFilterState ?? FallbackConstants.defaultRememberFilterState)) return;
+
+    PrefService().setBool(
+      _savedResourcesShowAllKey,
+      _selectedGroupId == _showAllGroupId,
+    );
+  }
+
+  void _restoreFilterStateIfEnabled(UserSettingsModel settings) {
+    if (!settings.rememberFilterState) return;
+
+    if (PrefService().getBool(_savedResourcesShowAllKey) != true) return;
+
+    setState(() {
+      _selectedGroupId = _showAllGroupId;
+    });
   }
 
 }

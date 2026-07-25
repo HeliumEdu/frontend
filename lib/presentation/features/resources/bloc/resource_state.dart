@@ -65,12 +65,14 @@ class ResourcesScreenDataFetched extends ResourceState {
 class ResourceScreenDataFetched extends ResourceState {
   final ResourceModel? resource;
   final List<CourseModel> courses;
+  final List<ResourceGroupModel> resourceGroups;
   final NoteModel? linkedNote;
 
   ResourceScreenDataFetched({
     required super.origin,
     required this.resource,
     required this.courses,
+    required this.resourceGroups,
     this.linkedNote,
   });
 }

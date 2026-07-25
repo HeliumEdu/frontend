@@ -20,6 +20,7 @@ class DropDown<T> extends StatelessWidget {
   final DropDownItem<T>? initialValue;
   final List<DropDownItem<T>> items;
   final void Function(DropDownItem<T>?)? onChanged;
+  final String? Function(DropDownItem<T>?)? validator;
 
   const DropDown({
     super.key,
@@ -28,6 +29,7 @@ class DropDown<T> extends StatelessWidget {
     this.initialValue,
     required this.items,
     required this.onChanged,
+    this.validator,
   });
 
   @override
@@ -79,6 +81,7 @@ class DropDown<T> extends StatelessWidget {
             dropdownColor: context.colorScheme.surface,
             icon: Icon(Icons.keyboard_arrow_down, color: iconColor),
             isExpanded: true,
+            validator: validator,
             items: items.map((item) {
               if (item.isDivider) {
                 return DropdownMenuItem<DropDownItem<T>>(

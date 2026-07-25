@@ -172,6 +172,9 @@ void main() {
             () => mockCourseRepository.getCourses(shownOnCalendar: true),
           ).thenAnswer((_) async => MockModels.createCourses());
           when(
+            () => mockResourceRepository.getResourceGroups(),
+          ).thenAnswer((_) async => MockModels.createResourceGroups());
+          when(
             () => mockNoteRepository.getNotes(
               resourceId: resourceId,
               includeContent: true,
@@ -188,11 +191,13 @@ void main() {
         ),
         expect: () => [
           isA<ResourcesLoading>(),
-          isA<ResourceScreenDataFetched>().having(
-            (s) => s.resource?.id,
-            'resource id',
-            resourceId,
-          ),
+          isA<ResourceScreenDataFetched>()
+              .having((s) => s.resource?.id, 'resource id', resourceId)
+              .having(
+                (s) => s.resourceGroups.length,
+                'resourceGroups length',
+                2,
+              ),
         ],
       );
 
@@ -202,6 +207,9 @@ void main() {
           when(
             () => mockCourseRepository.getCourses(shownOnCalendar: true),
           ).thenAnswer((_) async => MockModels.createCourses());
+          when(
+            () => mockResourceRepository.getResourceGroups(),
+          ).thenAnswer((_) async => MockModels.createResourceGroups());
           return resourceBloc;
         },
         act: (bloc) => bloc.add(
@@ -222,6 +230,36 @@ void main() {
       );
 
       blocTest<ResourceBloc, ResourceState>(
+        'emits [ResourcesLoading, ResourceScreenDataFetched] with null resource when opened with no group in context',
+        build: () {
+          when(
+            () => mockCourseRepository.getCourses(shownOnCalendar: true),
+          ).thenAnswer((_) async => MockModels.createCourses());
+          when(
+            () => mockResourceRepository.getResourceGroups(),
+          ).thenAnswer((_) async => MockModels.createResourceGroups());
+          return resourceBloc;
+        },
+        act: (bloc) => bloc.add(
+          FetchResourceScreenDataEvent(
+            origin: EventOrigin.screen,
+            resourceGroupId: null,
+            resourceId: null,
+          ),
+        ),
+        expect: () => [
+          isA<ResourcesLoading>(),
+          isA<ResourceScreenDataFetched>()
+              .having((s) => s.resource, 'resource', isNull)
+              .having(
+                (s) => s.resourceGroups.length,
+                'resourceGroups length',
+                2,
+              ),
+        ],
+      );
+
+      blocTest<ResourceBloc, ResourceState>(
         'emits [ResourcesLoading, ResourcesError] when getResource fails',
         build: () {
           when(
@@ -231,6 +269,12 @@ void main() {
                   resourceId: resourceId,
                 ),
           ).thenThrow(NotFoundException(message: 'Resource not found'));
+          when(
+            () => mockCourseRepository.getCourses(shownOnCalendar: true),
+          ).thenAnswer((_) async => MockModels.createCourses());
+          when(
+            () => mockResourceRepository.getResourceGroups(),
+          ).thenAnswer((_) async => MockModels.createResourceGroups());
           return resourceBloc;
         },
         act: (bloc) => bloc.add(

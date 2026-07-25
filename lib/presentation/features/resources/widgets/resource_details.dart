@@ -7,12 +7,15 @@
 
 import 'dart:async';
 
+import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_quill/flutter_quill.dart';
 import 'package:heliumapp/config/app_theme.dart';
+import 'package:heliumapp/data/models/drop_down_item.dart';
 import 'package:heliumapp/data/models/planner/course_model.dart';
+import 'package:heliumapp/data/models/planner/resource_group_model.dart';
 import 'package:heliumapp/data/models/planner/request/resource_request_model.dart';
 import 'package:heliumapp/data/models/planner/request/note_request_model.dart';
 import 'package:heliumapp/presentation/features/notebook/bloc/note_bloc.dart';
@@ -39,7 +42,7 @@ import 'package:heliumapp/utils/sort_helpers.dart';
 import 'package:heliumapp/utils/url_helpers.dart';
 
 class ResourceDetails extends StatefulWidget {
-  final int resourceGroupId;
+  final int? resourceGroupId;
   final int? resourceId;
   final bool isEdit;
   final VoidCallback? onSubmitRequested;
@@ -47,7 +50,7 @@ class ResourceDetails extends StatefulWidget {
 
   const ResourceDetails({
     super.key,
-    required this.resourceGroupId,
+    this.resourceGroupId,
     this.resourceId,
     required this.isEdit,
     this.onSubmitRequested,
@@ -66,6 +69,7 @@ class ResourceDetailsState extends State<ResourceDetails> {
   StreamSubscription<DocChange>? _notesSubscription;
 
   List<CourseModel> _courses = [];
+  List<DropDownItem<int>> _groupItems = [];
   bool isLoading = true;
   bool _isSubmitting = false;
   bool _hasRequestedInitialFocus = false;
@@ -134,6 +138,24 @@ class ResourceDetailsState extends State<ResourceDetails> {
                     fieldKey: formController.getFieldKey('title'),
                     onChanged: (_) => formController.markChanged(),
                     onFieldSubmitted: (value) => (widget.onSubmitRequested ?? onSubmit).call(),
+                  ),
+                  const SizedBox(height: 14),
+                  DropDown<int>(
+                    label: 'Group',
+                    initialValue: _groupItems.firstWhereOrNull(
+                      (item) => item.id == formController.selectedResourceGroupId,
+                    ),
+                    items: _groupItems,
+                    onChanged: _groupItems.isEmpty
+                        ? null
+                        : (value) {
+                            formController.markChanged();
+                            setState(() {
+                              formController.selectedResourceGroupId = value?.id;
+                            });
+                          },
+                    validator: (value) =>
+                        value == null ? 'This field is required' : null,
                   ),
                   const SizedBox(height: 14),
                   Text('Classes', style: AppStyles.formLabel(context)),
@@ -241,6 +263,8 @@ class ResourceDetailsState extends State<ResourceDetails> {
       setState(() => _isSubmitting = true);
       widget.onActionStarted?.call();
 
+      final selectedGroupId = formController.selectedResourceGroupId!;
+
       final request = ResourceRequestModel(
         title: formController.titleController.text.trim(),
         status: formController.selectedStatus,
@@ -253,7 +277,7 @@ class ResourceDetailsState extends State<ResourceDetails> {
             : formController.priceController.text.trim(),
         details: widget.isEdit ? formController.initialNotes : '',
         courses: formController.selectedCourses,
-        resourceGroup: widget.resourceGroupId,
+        resourceGroup: selectedGroupId,
       );
 
       if (!mounted) return;
@@ -281,7 +305,8 @@ class ResourceDetailsState extends State<ResourceDetails> {
         context.read<ResourceBloc>().add(
           UpdateResourceEvent(
             origin: EventOrigin.subScreen,
-            resourceGroupId: widget.resourceGroupId,
+            // URL stays the current group; resourceGroup in the body reassigns it.
+            resourceGroupId: widget.resourceGroupId!,
             resourceId: widget.resourceId!,
             request: request,
             redirectToNotebook: redirectToNotebook,
@@ -292,7 +317,7 @@ class ResourceDetailsState extends State<ResourceDetails> {
         context.read<ResourceBloc>().add(
           CreateResourceEvent(
             origin: EventOrigin.subScreen,
-            resourceGroupId: widget.resourceGroupId,
+            resourceGroupId: selectedGroupId,
             request: request,
             redirectToNotebook: redirectToNotebook,
           ),
@@ -311,6 +336,12 @@ class ResourceDetailsState extends State<ResourceDetails> {
     _courses = state.courses;
     Sort.byTitle(_courses);
 
+    final List<ResourceGroupModel> resourceGroups = state.resourceGroups;
+    Sort.byTitle(resourceGroups);
+    _groupItems = resourceGroups
+        .map((g) => DropDownItem<int>(id: g.id, label: g.title))
+        .toList();
+
     if (widget.isEdit) {
       formController.titleController.text = state.resource!.title;
       formController.urlController.text = state.resource!.website?.toString() ?? '';
@@ -321,6 +352,7 @@ class ResourceDetailsState extends State<ResourceDetails> {
       formController.selectedCourses = List<int>.from(
         state.resource!.courses,
       );
+      formController.selectedResourceGroupId = state.resource!.resourceGroup;
 
       formController.notesController.dispose();
       if (state.linkedNote != null) {
@@ -334,6 +366,11 @@ class ResourceDetailsState extends State<ResourceDetails> {
       } else {
         formController.notesController = heliumQuillController();
       }
+    } else {
+      // Default to the launching context's group (a specific group's view);
+      // stays unset when opened without one (e.g. from "Show All"), forcing
+      // an explicit choice.
+      formController.selectedResourceGroupId ??= widget.resourceGroupId;
     }
 
     setState(() {
