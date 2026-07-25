@@ -134,7 +134,7 @@ class ResourceRemoteDataSourceImpl extends ResourceRemoteDataSource {
         );
       }
     } on DioException catch (e, s) {
-      throw handleDioError(e, s);
+      throw handleDioError(e, s, notFoundEntity: 'Group');
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
       throw HeliumException(message: HeliumException.unexpectedError);
@@ -196,7 +196,7 @@ class ResourceRemoteDataSourceImpl extends ResourceRemoteDataSource {
         );
       }
     } on DioException catch (e, s) {
-      throw handleDioError(e, s);
+      throw handleDioError(e, s, notFoundEntity: 'Group');
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
       throw HeliumException(message: HeliumException.unexpectedError);
@@ -222,7 +222,7 @@ class ResourceRemoteDataSourceImpl extends ResourceRemoteDataSource {
         );
       }
     } on DioException catch (e, s) {
-      throw handleDioError(e, s);
+      throw handleDioError(e, s, notFoundEntity: 'Group');
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
       throw HeliumException(message: HeliumException.unexpectedError);
@@ -311,7 +311,7 @@ class ResourceRemoteDataSourceImpl extends ResourceRemoteDataSource {
         );
       }
     } on DioException catch (e, s) {
-      throw handleDioError(e, s);
+      throw handleDioError(e, s, notFoundEntity: 'Resource');
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
       throw HeliumException(message: HeliumException.unexpectedError);
@@ -344,7 +344,7 @@ class ResourceRemoteDataSourceImpl extends ResourceRemoteDataSource {
         );
       }
     } on DioException catch (e, s) {
-      throw handleDioError(e, s);
+      throw handleDioError(e, s, notFoundEntity: 'Group');
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
       throw HeliumException(message: HeliumException.unexpectedError);
@@ -375,7 +375,7 @@ class ResourceRemoteDataSourceImpl extends ResourceRemoteDataSource {
         );
       }
     } on DioException catch (e, s) {
-      throw handleDioError(e, s);
+      throw handleDioError(e, s, notFoundEntity: 'Resource');
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
       throw HeliumException(message: HeliumException.unexpectedError);
@@ -404,7 +404,7 @@ class ResourceRemoteDataSourceImpl extends ResourceRemoteDataSource {
         );
       }
     } on DioException catch (e, s) {
-      throw handleDioError(e, s);
+      throw handleDioError(e, s, notFoundEntity: 'Resource');
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
       throw HeliumException(message: HeliumException.unexpectedError);

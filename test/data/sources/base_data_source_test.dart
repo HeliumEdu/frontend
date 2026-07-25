@@ -224,6 +224,27 @@ void main() {
         });
       });
 
+      group('404 Not Found', () {
+        test('returns NotFoundException with a generic message regardless of backend detail text', () {
+          // GIVEN
+          final error = givenDioException(
+            type: DioExceptionType.badResponse,
+            statusCode: 404,
+            responseData: {'detail': 'No CourseGroup matches the given query.'},
+          );
+
+          // WHEN
+          final result = dataSource.handleDioError(error, StackTrace.current);
+
+          // THEN
+          expect(result, isA<NotFoundException>());
+          expect(
+            result.message,
+            equals('Item not found.'),
+          );
+        });
+      });
+
       group('other status codes', () {
         test('extracts message from response data', () {
           // GIVEN
@@ -246,8 +267,8 @@ void main() {
           // GIVEN
           final error = givenDioException(
             type: DioExceptionType.badResponse,
-            statusCode: 404,
-            responseData: {'error': 'Resource not found'},
+            statusCode: 409,
+            responseData: {'error': 'Resource conflict'},
           );
 
           // WHEN
@@ -255,7 +276,7 @@ void main() {
 
           // THEN
           expect(result, isA<ServerException>());
-          expect(result.message, equals('Resource not found'));
+          expect(result.message, equals('Resource conflict'));
         });
 
         test('extracts detail from response data', () {
