@@ -52,7 +52,10 @@ class ResourceBloc extends Bloc<ResourceEvent, ResourceState> {
       final results = await Future.wait([
         resourceRepository.getResourceGroups(forceRefresh: event.forceRefresh),
         resourceRepository.getResources(forceRefresh: event.forceRefresh),
-        courseRepository.getCourses(forceRefresh: event.forceRefresh),
+        courseRepository.getCourses(
+          shownOnCalendar: true,
+          forceRefresh: event.forceRefresh,
+        ),
         noteRepository.getNotes(linkedEntityType: 'resource', includeContent: true, forceRefresh: event.forceRefresh),
       ]);
       final resourceGroups = results[0] as List<ResourceGroupModel>;
@@ -92,7 +95,7 @@ class ResourceBloc extends Bloc<ResourceEvent, ResourceState> {
             groupId: event.resourceGroupId,
             resourceId: event.resourceId!,
           ),
-        courseRepository.getCourses(),
+        courseRepository.getCourses(shownOnCalendar: true),
         if (event.resourceId != null)
           noteRepository.getNotes(resourceId: event.resourceId, includeContent: true),
       ]);

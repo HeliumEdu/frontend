@@ -59,7 +59,7 @@ void main() {
             () => mockResourceRepository.getResources(),
           ).thenAnswer((_) async => MockModels.createResources());
           when(
-            () => mockCourseRepository.getCourses(),
+            () => mockCourseRepository.getCourses(shownOnCalendar: true),
           ).thenAnswer((_) async => MockModels.createCourses());
           when(
             () => mockNoteRepository.getNotes(
@@ -85,7 +85,9 @@ void main() {
         verify: (_) {
           verify(() => mockResourceRepository.getResourceGroups()).called(1);
           verify(() => mockResourceRepository.getResources()).called(1);
-          verify(() => mockCourseRepository.getCourses()).called(1);
+          verify(
+            () => mockCourseRepository.getCourses(shownOnCalendar: true),
+          ).called(1);
         },
       );
 
@@ -167,7 +169,7 @@ void main() {
             ),
           ).thenAnswer((_) async => MockModels.createResource(id: resourceId));
           when(
-            () => mockCourseRepository.getCourses(),
+            () => mockCourseRepository.getCourses(shownOnCalendar: true),
           ).thenAnswer((_) async => MockModels.createCourses());
           when(
             () => mockNoteRepository.getNotes(
@@ -198,7 +200,7 @@ void main() {
         'emits [ResourcesLoading, ResourceScreenDataFetched] with null resource when resourceId is null',
         build: () {
           when(
-            () => mockCourseRepository.getCourses(),
+            () => mockCourseRepository.getCourses(shownOnCalendar: true),
           ).thenAnswer((_) async => MockModels.createCourses());
           return resourceBloc;
         },
