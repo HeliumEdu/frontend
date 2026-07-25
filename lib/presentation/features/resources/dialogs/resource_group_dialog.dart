@@ -39,7 +39,7 @@ class _ResourceGroupWidgetState
       ResourceGroupFormController();
 
   @override
-  String get dialogTitle => 'Resource Group';
+  String get dialogTitle => 'Group';
 
   @override
   BasicFormController get formController => _formController;

@@ -28,6 +28,9 @@ endif
 ifdef SENTRY_DIST
     RELEASE_ARGS += --dart-define=SENTRY_DIST=$(SENTRY_DIST)
 endif
+ifdef FIREBASE_AUTH_DOMAIN
+    RELEASE_ARGS += --dart-define=FIREBASE_AUTH_DOMAIN=$(FIREBASE_AUTH_DOMAIN)
+endif
 ifndef RELEASE_VERSION
     RELEASE_ARGS += --dart-define=PROJECT_API_HOST=$(PROJECT_API_HOST)
 endif

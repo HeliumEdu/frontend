@@ -206,4 +206,12 @@ class Responsive {
       return fallback;
     }
   }
+
+  /// The device's bottom safe-area inset, e.g. the iOS home indicator. Zero
+  /// where there is none (web, non-gesture Android). Use as bottom scroll
+  /// padding when content flows past a disabled bottom `SafeArea`, so the last
+  /// item rests above the indicator.
+  static double bottomSafeAreaInset(BuildContext context) {
+    return MediaQuery.of(context).viewPadding.bottom;
+  }
 }

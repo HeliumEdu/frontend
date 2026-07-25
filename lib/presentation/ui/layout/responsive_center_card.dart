@@ -13,11 +13,18 @@ class ResponsiveCenterCard extends StatelessWidget {
   final double maxWidth;
   final bool showCard;
 
+  /// Pads the scroll extent by [Responsive.bottomSafeAreaInset] so content can
+  /// flow edge-to-edge past a disabled bottom `SafeArea` while its last item
+  /// rests above the home indicator. Enable only when the enclosing scaffold
+  /// uses `SafeArea(bottom: false)`, else the inset double-counts.
+  final bool flowIntoBottomInset;
+
   const ResponsiveCenterCard({
     super.key,
     required this.child,
     this.maxWidth = 450,
     this.showCard = true,
+    this.flowIntoBottomInset = false,
   });
 
   @override
@@ -39,13 +46,20 @@ class ResponsiveCenterCard extends StatelessWidget {
                 : Padding(padding: const EdgeInsets.all(16), child: child),
           );
 
+    final inset = flowIntoBottomInset
+        ? Responsive.bottomSafeAreaInset(context)
+        : 0.0;
+
     return LayoutBuilder(
       builder: (context, constraints) {
         return SingleChildScrollView(
           keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
           child: ConstrainedBox(
             constraints: BoxConstraints(minHeight: constraints.maxHeight),
-            child: Center(child: content),
+            child: Padding(
+              padding: EdgeInsets.only(bottom: inset),
+              child: Center(child: content),
+            ),
           ),
         );
       },

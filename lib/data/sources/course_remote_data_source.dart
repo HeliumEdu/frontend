@@ -118,7 +118,7 @@ class CourseRemoteDataSourceImpl extends CourseRemoteDataSource {
         }
       } else {
         throw ServerException(
-          message: 'Failed to fetch courses.',
+          message: 'Failed to fetch classes.',
           code: response.statusCode.toString(),
         );
       }
@@ -145,7 +145,7 @@ class CourseRemoteDataSourceImpl extends CourseRemoteDataSource {
         return CourseModel.fromJson(response.data);
       } else {
         throw ServerException(
-          message: 'Failed to fetch course details.',
+          message: 'Failed to fetch class details.',
           code: response.statusCode.toString(),
         );
       }
@@ -177,7 +177,7 @@ class CourseRemoteDataSourceImpl extends CourseRemoteDataSource {
         return course;
       } else {
         throw ServerException(
-          message: 'Failed to create course.',
+          message: 'Failed to create class.',
           code: response.statusCode.toString(),
         );
       }
@@ -209,7 +209,7 @@ class CourseRemoteDataSourceImpl extends CourseRemoteDataSource {
         return CourseModel.fromJson(response.data);
       } else {
         throw ServerException(
-          message: 'Failed to update course.',
+          message: 'Failed to update class.',
           code: response.statusCode.toString(),
         );
       }
@@ -235,7 +235,7 @@ class CourseRemoteDataSourceImpl extends CourseRemoteDataSource {
         return;
       } else {
         throw ServerException(
-          message: 'Failed to delete course.',
+          message: 'Failed to delete class.',
           code: response.statusCode.toString(),
         );
       }
@@ -282,7 +282,7 @@ class CourseRemoteDataSourceImpl extends CourseRemoteDataSource {
         }
       } else {
         throw ServerException(
-          message: 'Failed to fetch course groups.',
+          message: 'Failed to fetch groups.',
           code: response.statusCode.toString(),
         );
       }
@@ -308,7 +308,7 @@ class CourseRemoteDataSourceImpl extends CourseRemoteDataSource {
         return CourseGroupModel.fromJson(response.data);
       } else {
         throw ServerException(
-          message: 'Failed to fetch course group.',
+          message: 'Failed to fetch group.',
           code: response.statusCode.toString(),
         );
       }
@@ -345,7 +345,7 @@ class CourseRemoteDataSourceImpl extends CourseRemoteDataSource {
         return group;
       } else {
         throw ServerException(
-          message: 'Failed to create course group.',
+          message: 'Failed to create group.',
           code: response.statusCode.toString(),
         );
       }
@@ -375,7 +375,7 @@ class CourseRemoteDataSourceImpl extends CourseRemoteDataSource {
         return CourseGroupModel.fromJson(response.data);
       } else {
         throw ServerException(
-          message: 'Failed to update course group.',
+          message: 'Failed to update group.',
           code: response.statusCode.toString(),
         );
       }
@@ -401,7 +401,7 @@ class CourseRemoteDataSourceImpl extends CourseRemoteDataSource {
         return;
       } else {
         throw ServerException(
-          message: 'Failed to delete course group.',
+          message: 'Failed to delete group.',
           code: response.statusCode.toString(),
         );
       }
@@ -432,7 +432,7 @@ class CourseRemoteDataSourceImpl extends CourseRemoteDataSource {
         await dioClient.cacheService.invalidateAll();
       } else {
         throw ServerException(
-          message: 'Failed to update course exceptions.',
+          message: 'Failed to update exceptions.',
           code: response.statusCode.toString(),
         );
       }
@@ -462,7 +462,7 @@ class CourseRemoteDataSourceImpl extends CourseRemoteDataSource {
         await dioClient.cacheService.invalidateAll();
       } else {
         throw ServerException(
-          message: 'Failed to update course group exceptions.',
+          message: 'Failed to update group exceptions.',
           code: response.statusCode.toString(),
         );
       }

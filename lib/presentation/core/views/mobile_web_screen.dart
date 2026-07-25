@@ -15,7 +15,7 @@ import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/config/pref_service.dart';
 import 'package:heliumapp/core/analytics_service.dart';
 import 'package:heliumapp/presentation/core/views/base_page_screen_state.dart';
-import 'package:heliumapp/presentation/ui/layout/responsive_center_card.dart';
+import 'package:heliumapp/presentation/ui/layout/unauthenticated_scaffold.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
@@ -42,90 +42,87 @@ class _MobileWebScreenState extends BasePageScreenState<MobileWebScreen> {
 
   @override
   Widget buildScaffold(BuildContext context) {
-    return Title(
+    return UnauthenticatedScaffold(
       title: screenTitle,
-      color: context.colorScheme.primary,
-      child: Scaffold(body: SafeArea(child: buildMainArea(context))),
+      maxWidth: 350.0,
+      child: buildMainArea(context),
     );
   }
 
   @override
   Widget buildMainArea(BuildContext context) {
-    return ResponsiveCenterCard(
-      maxWidth: 350.0,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                Icons.phone_iphone_outlined,
-                color: context.colorScheme.primary,
-              ),
-              const SizedBox(width: 8),
-              Icon(
-                Icons.arrow_forward_rounded,
-                color: context.colorScheme.primary.withValues(alpha: 0.8),
-                size: 18.0,
-              ),
-              const SizedBox(width: 8),
-              Icon(Icons.download_rounded, color: context.colorScheme.primary),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Text(
-            'Get the Helium App',
-            style: AppStyles.pageTitle(context),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'The native app is faster, smoother, and designed for your phone.',
-            style: AppStyles.standardBodyText(context),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 20),
-          _buildFeatureItem(
-            context,
-            icon: Icons.notifications_active_outlined,
-            title: 'Push notifications',
-            description: 'Stay on top of everything with reminders.',
-          ),
-          const SizedBox(height: 10),
-          _buildFeatureItem(
-            context,
-            icon: Icons.touch_app_outlined,
-            title: 'Better mobile UX',
-            description: 'Designed for touch, gestures, and small screens.',
-          ),
-          const SizedBox(height: 10),
-          _buildFeatureItem(
-            context,
-            icon: Icons.sync_outlined,
-            title: 'Everything stays synced',
-            description: 'Seamlessly transition between web, iOS, and Android.',
-          ),
-          const SizedBox(height: 18),
-          ..._buildStoreButtonsForDetectedPlatform(),
-          if (_isOpeningStore) ...[
-            const SizedBox(height: 8),
-            const Center(
-              child: SizedBox(
-                width: 18.0,
-                height: 18.0,
-                child: CircularProgressIndicator(strokeWidth: 2.0),
-              ),
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.phone_iphone_outlined,
+              color: context.colorScheme.primary,
             ),
+            const SizedBox(width: 8),
+            Icon(
+              Icons.arrow_forward_rounded,
+              color: context.colorScheme.primary.withValues(alpha: 0.8),
+              size: 18.0,
+            ),
+            const SizedBox(width: 8),
+            Icon(Icons.download_rounded, color: context.colorScheme.primary),
           ],
-          const SizedBox(height: 6),
-          TextButton(
-            onPressed: _continueOnWeb,
-            child: const Text('Continue on web'),
+        ),
+        const SizedBox(height: 12),
+        Text(
+          'Get the Helium App',
+          style: AppStyles.pageTitle(context),
+          textAlign: TextAlign.center,
+        ),
+        const SizedBox(height: 8),
+        Text(
+          'The native app is faster, smoother, and designed for your phone.',
+          style: AppStyles.standardBodyText(context),
+          textAlign: TextAlign.center,
+        ),
+        const SizedBox(height: 20),
+        _buildFeatureItem(
+          context,
+          icon: Icons.notifications_active_outlined,
+          title: 'Push notifications',
+          description: 'Stay on top of everything with reminders.',
+        ),
+        const SizedBox(height: 10),
+        _buildFeatureItem(
+          context,
+          icon: Icons.touch_app_outlined,
+          title: 'Better mobile UX',
+          description: 'Designed for touch, gestures, and small screens.',
+        ),
+        const SizedBox(height: 10),
+        _buildFeatureItem(
+          context,
+          icon: Icons.sync_outlined,
+          title: 'Everything stays synced',
+          description: 'Seamlessly transition between web, iOS, and Android.',
+        ),
+        const SizedBox(height: 18),
+        ..._buildStoreButtonsForDetectedPlatform(),
+        if (_isOpeningStore) ...[
+          const SizedBox(height: 8),
+          const Center(
+            child: SizedBox(
+              width: 18.0,
+              height: 18.0,
+              child: CircularProgressIndicator(strokeWidth: 2.0),
+            ),
           ),
         ],
-      ),
+        const SizedBox(height: 6),
+        TextButton(
+          onPressed: _continueOnWeb,
+          child: const Text('Continue on web'),
+        ),
+      ],
     );
   }
 
@@ -227,7 +224,12 @@ class _MobileWebScreenState extends BasePageScreenState<MobileWebScreen> {
   }
 
   Future<void> _continueOnWeb() async {
-    unawaited(AnalyticsService().logEvent(name: AnalyticsEvent.mobileWebContinue, parameters: {'category': AnalyticsCategory.featureInteraction.value}));
+    unawaited(
+      AnalyticsService().logEvent(
+        name: AnalyticsEvent.mobileWebContinue,
+        parameters: {'category': AnalyticsCategory.featureInteraction.value},
+      ),
+    );
     await PrefService().setBool('mobile_web_continue', true);
     if (!mounted) return;
 

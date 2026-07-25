@@ -24,7 +24,8 @@ import 'package:heliumapp/presentation/features/shared/controllers/basic_form_co
 import 'package:heliumapp/presentation/ui/components/helium_elevated_button.dart';
 import 'package:heliumapp/presentation/ui/components/helium_password_field.dart';
 import 'package:heliumapp/presentation/ui/components/label_and_text_form_field.dart';
-import 'package:heliumapp/presentation/ui/layout/responsive_center_card.dart';
+import 'package:heliumapp/presentation/ui/layout/unauthenticated_scaffold.dart';
+import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/app_assets.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
@@ -80,7 +81,6 @@ class _LoginScreenViewState extends BasePageScreenState<LoginScreen> {
     });
   }
 
-
   @override
   void dispose() {
     _formController.dispose();
@@ -108,8 +108,8 @@ class _LoginScreenViewState extends BasePageScreenState<LoginScreen> {
             // (new users won't have the pref yet, and the setup screen handles
             // the already-complete case by redirecting immediately).
             final isSetupComplete =
-                PrefService().getBool(SettingsPrefKey.isSetupComplete.key)
-                    ?? !wasOAuthFlow;
+                PrefService().getBool(SettingsPrefKey.isSetupComplete.key) ??
+                !wasOAuthFlow;
 
             if (!isSetupComplete) {
               if (wasOAuthFlow) {
@@ -145,7 +145,12 @@ class _LoginScreenViewState extends BasePageScreenState<LoginScreen> {
                 'Suppressing force logout ${state.httpStatusCode} error on login screen',
               );
             } else {
-              showSnackBar(context, state.message!, type: SnackType.error, seconds: 6);
+              showSnackBar(
+                context,
+                state.message!,
+                type: SnackType.error,
+                seconds: 6,
+              );
             }
           }
 
@@ -162,159 +167,137 @@ class _LoginScreenViewState extends BasePageScreenState<LoginScreen> {
 
   @override
   Widget buildScaffold(BuildContext context) {
-    return Scaffold(body: SafeArea(child: buildMainArea(context)));
+    return UnauthenticatedScaffold(
+      title: '$screenTitle | ${AppConstants.appName}',
+      child: buildMainArea(context),
+    );
   }
 
   @override
   Widget buildMainArea(BuildContext context) {
-    return ResponsiveCenterCard(
-      child: AutofillGroup(
-        child: Form(
-          key: _formController.formKey,
-          child: Column(
-            children: [
-              const SizedBox(height: 40),
+    return AutofillGroup(
+      child: Form(
+        key: _formController.formKey,
+        child: Column(
+          children: [
+            const SizedBox(height: 40),
 
-              Center(child: Image.asset(AppAssets.logoImagePath, height: 90.0)),
+            Center(child: Image.asset(AppAssets.logoImagePath, height: 90.0)),
 
-              const SizedBox(height: 50),
+            const SizedBox(height: 50),
 
-              LabelAndTextFormField(
-                key: const Key(CredentialsFormController.emailField),
-                hintText: 'Email',
-                autofocus: kIsWeb,
-                prefixIcon: Icons.email_outlined,
-                controller: _formController.emailController,
-                validator: BasicFormController.validateRequiredEmail,
-                onFieldSubmitted: (value) => _onSubmit(),
-                keyboardType: TextInputType.emailAddress,
-                autofillHints: const [AutofillHints.email],
-              ),
+            LabelAndTextFormField(
+              key: const Key(CredentialsFormController.emailField),
+              hintText: 'Email',
+              autofocus: kIsWeb,
+              prefixIcon: Icons.email_outlined,
+              controller: _formController.emailController,
+              validator: BasicFormController.validateRequiredEmail,
+              onFieldSubmitted: (value) => _onSubmit(),
+              keyboardType: TextInputType.emailAddress,
+              autofillHints: const [AutofillHints.email],
+            ),
 
-              const SizedBox(height: 12),
+            const SizedBox(height: 12),
 
-              HeliumPasswordField(
-                key: const Key(CredentialsFormController.passwordField),
-                hintText: 'Password',
-                controller: _formController.passwordController,
-                validator: BasicFormController.validateRequiredField,
-                onFieldSubmitted: (value) => _onSubmit(),
-                autofillHints: const [AutofillHints.password],
-              ),
+            HeliumPasswordField(
+              key: const Key(CredentialsFormController.passwordField),
+              hintText: 'Password',
+              controller: _formController.passwordController,
+              validator: BasicFormController.validateRequiredField,
+              onFieldSubmitted: (value) => _onSubmit(),
+              autofillHints: const [AutofillHints.password],
+            ),
 
-              const SizedBox(height: 4),
+            const SizedBox(height: 4),
 
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  ExcludeFocus(
-                    excluding: true,
-                    child: TextButton(
-                      onPressed: () {
-                        context.go(AppRoute.forgotPasswordScreen);
-                      },
-                      child: Text(
-                        'Forgot your password?',
-                        style: AppStyles.standardBodyText(
-                          context,
-                        ).copyWith(color: context.colorScheme.primary),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-
-              const SizedBox(height: 12),
-
-              BlocBuilder<AuthBloc, AuthState>(
-                builder: (context, state) {
-                  return Column(
-                    children: [
-                      SizedBox(
-                        width: 250.0,
-                        child: HeliumElevatedButton(
-                          key: const Key(LoginScreen.signInButtonKey),
-                          buttonText: 'Sign In',
-                          isLoading: isSubmitting,
-                          enabled: !_isOAuthLoading,
-                          onPressed: _onSubmit,
-                        ),
-                      ),
-                    ],
-                  );
-                },
-              ),
-
-              const SizedBox(height: 15),
-
-              Row(
-                children: [
-                  const Expanded(child: Divider()),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                ExcludeFocus(
+                  excluding: true,
+                  child: TextButton(
+                    onPressed: () {
+                      context.go(AppRoute.forgotPasswordScreen);
+                    },
                     child: Text(
-                      'OR',
-                      style: AppStyles.standardBodyText(context).copyWith(
-                        color: context.colorScheme.onSurface.withValues(
-                          alpha: 0.6,
-                        ),
-                      ),
-                    ),
-                  ),
-                  const Expanded(child: Divider()),
-                ],
-              ),
-
-              const SizedBox(height: 15),
-
-              SizedBox(
-                width: 250.0,
-                height: 40.0,
-                child: IgnorePointer(
-                  ignoring: _isOAuthLoading || isSubmitting,
-                  child: Opacity(
-                    opacity: _isOAuthLoading || isSubmitting ? 0.5 : 1.0,
-                    child: SignInButton(
-                      Buttons.google,
-                      onPressed: () {
-                        setState(() {
-                          _isOAuthLoading = true;
-                        });
-                        context.read<AuthBloc>().add(GoogleLoginEvent());
-                      },
-                      text: 'Sign in with Google',
-                    ),
-                  ),
-                ),
-              ),
-
-              // Only show Apple Sign-In on iOS and web (not Android)
-              if (kIsWeb || !Platform.isAndroid) ...[
-                const SizedBox(height: 12),
-                SizedBox(
-                  width: 250,
-                  height: 40,
-                  child: IgnorePointer(
-                    ignoring: _isOAuthLoading || isSubmitting,
-                    child: Opacity(
-                      opacity: _isOAuthLoading || isSubmitting ? 0.5 : 1.0,
-                      child: SignInButton(
-                        Buttons.apple,
-                        onPressed: () {
-                          setState(() {
-                            _isOAuthLoading = true;
-                          });
-                          context.read<AuthBloc>().add(AppleLoginEvent());
-                        },
-                        text: 'Sign in with Apple',
-                      ),
+                      'Forgot your password?',
+                      style: AppStyles.standardBodyText(
+                        context,
+                      ).copyWith(color: context.colorScheme.primary),
                     ),
                   ),
                 ),
               ],
+            ),
 
+            const SizedBox(height: 12),
+
+            BlocBuilder<AuthBloc, AuthState>(
+              builder: (context, state) {
+                return Column(
+                  children: [
+                    SizedBox(
+                      width: 250.0,
+                      child: HeliumElevatedButton(
+                        key: const Key(LoginScreen.signInButtonKey),
+                        buttonText: 'Sign In',
+                        isLoading: isSubmitting,
+                        enabled: !_isOAuthLoading,
+                        onPressed: _onSubmit,
+                      ),
+                    ),
+                  ],
+                );
+              },
+            ),
+
+            const SizedBox(height: 15),
+
+            Row(
+              children: [
+                const Expanded(child: Divider()),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: Text(
+                    'OR',
+                    style: AppStyles.standardBodyText(context).copyWith(
+                      color: context.colorScheme.onSurface.withValues(
+                        alpha: 0.6,
+                      ),
+                    ),
+                  ),
+                ),
+                const Expanded(child: Divider()),
+              ],
+            ),
+
+            const SizedBox(height: 15),
+
+            SizedBox(
+              width: 250.0,
+              height: 40.0,
+              child: IgnorePointer(
+                ignoring: _isOAuthLoading || isSubmitting,
+                child: Opacity(
+                  opacity: _isOAuthLoading || isSubmitting ? 0.5 : 1.0,
+                  child: SignInButton(
+                    Buttons.google,
+                    onPressed: () {
+                      setState(() {
+                        _isOAuthLoading = true;
+                      });
+                      context.read<AuthBloc>().add(GoogleLoginEvent());
+                    },
+                    text: 'Sign in with Google',
+                  ),
+                ),
+              ),
+            ),
+
+            // Only show Apple Sign-In on iOS and web (not Android)
+            if (kIsWeb || !Platform.isAndroid) ...[
               const SizedBox(height: 12),
-
               SizedBox(
                 width: 250,
                 height: 40,
@@ -323,53 +306,76 @@ class _LoginScreenViewState extends BasePageScreenState<LoginScreen> {
                   child: Opacity(
                     opacity: _isOAuthLoading || isSubmitting ? 0.5 : 1.0,
                     child: SignInButton(
-                      Buttons.microsoft,
+                      Buttons.apple,
                       onPressed: () {
                         setState(() {
                           _isOAuthLoading = true;
                         });
-                        context.read<AuthBloc>().add(MicrosoftLoginEvent());
+                        context.read<AuthBloc>().add(AppleLoginEvent());
                       },
-                      text: 'Sign in with Microsoft',
+                      text: 'Sign in with Apple',
                     ),
                   ),
                 ),
               ),
+            ],
 
-              const SizedBox(height: 12),
+            const SizedBox(height: 12),
 
-              Center(
-                child: TextButton(
-                  key: const Key(LoginScreen.signupLinkKey),
-                  onPressed: () {
-                    context.go(AppRoute.signupScreen);
-                  },
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        'Need an account?',
-                        style: AppStyles.buttonText(
-                          context,
-                        ).copyWith(color: context.colorScheme.primary),
-                      ),
-                      const SizedBox(width: 8),
-                      Icon(
-                        Icons.arrow_forward,
-                        size: Responsive.getIconSize(
-                          context,
-                          mobile: 18,
-                          tablet: 20,
-                          desktop: 22,
-                        ),
-                        color: context.colorScheme.primary,
-                      ),
-                    ],
+            SizedBox(
+              width: 250,
+              height: 40,
+              child: IgnorePointer(
+                ignoring: _isOAuthLoading || isSubmitting,
+                child: Opacity(
+                  opacity: _isOAuthLoading || isSubmitting ? 0.5 : 1.0,
+                  child: SignInButton(
+                    Buttons.microsoft,
+                    onPressed: () {
+                      setState(() {
+                        _isOAuthLoading = true;
+                      });
+                      context.read<AuthBloc>().add(MicrosoftLoginEvent());
+                    },
+                    text: 'Sign in with Microsoft',
                   ),
                 ),
               ),
-            ],
-          ),
+            ),
+
+            const SizedBox(height: 12),
+
+            Center(
+              child: TextButton(
+                key: const Key(LoginScreen.signupLinkKey),
+                onPressed: () {
+                  context.go(AppRoute.signupScreen);
+                },
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      'Need an account?',
+                      style: AppStyles.buttonText(
+                        context,
+                      ).copyWith(color: context.colorScheme.primary),
+                    ),
+                    const SizedBox(width: 8),
+                    Icon(
+                      Icons.arrow_forward,
+                      size: Responsive.getIconSize(
+                        context,
+                        mobile: 18,
+                        tablet: 20,
+                        desktop: 22,
+                      ),
+                      color: context.colorScheme.primary,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );

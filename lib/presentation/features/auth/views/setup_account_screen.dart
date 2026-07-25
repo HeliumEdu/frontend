@@ -11,12 +11,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_timezone/flutter_timezone.dart';
 import 'package:go_router/go_router.dart';
 import 'package:heliumapp/config/app_route.dart';
-import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/core/dio_client.dart';
 import 'package:heliumapp/data/models/auth/request/update_settings_request_model.dart';
 import 'package:heliumapp/presentation/core/views/base_page_screen_state.dart';
 import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
-import 'package:heliumapp/presentation/ui/layout/responsive_center_card.dart';
+import 'package:heliumapp/presentation/ui/layout/unauthenticated_scaffold.dart';
 import 'package:heliumapp/utils/app_assets.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/app_style.dart';
@@ -56,36 +55,33 @@ class _SetupAccountScreenState extends BasePageScreenState<SetupAccountScreen> {
 
   @override
   Widget buildScaffold(BuildContext context) {
-    return Title(
+    return UnauthenticatedScaffold(
       title: AppConstants.appName,
-      color: context.colorScheme.primary,
-      child: Scaffold(body: SafeArea(child: buildMainArea(context))),
+      showCard: false,
+      child: buildMainArea(context),
     );
   }
 
   @override
   Widget buildMainArea(BuildContext context) {
-    return ResponsiveCenterCard(
-      showCard: false,
-      child: Column(
-        children: [
-          Image.asset(AppAssets.logoImagePath, height: 90.0),
+    return Column(
+      children: [
+        Image.asset(AppAssets.logoImagePath, height: 90.0),
 
-          const SizedBox(height: 50),
+        const SizedBox(height: 50),
 
-          const LoadingIndicator(size: 48, strokeWidth: 4, expanded: false),
+        const LoadingIndicator(size: 48, strokeWidth: 4, expanded: false),
 
-          const SizedBox(height: 32),
+        const SizedBox(height: 32),
 
-          Text(
-            'Getting things ready ...',
-            style: AppStyles.standardBodyText(
-              context,
-            ).copyWith(fontSize: 18.0, fontWeight: FontWeight.w500),
-            textAlign: TextAlign.center,
-          ),
-        ],
-      ),
+        Text(
+          'Getting things ready ...',
+          style: AppStyles.standardBodyText(
+            context,
+          ).copyWith(fontSize: 18.0, fontWeight: FontWeight.w500),
+          textAlign: TextAlign.center,
+        ),
+      ],
     );
   }
 
@@ -127,8 +123,7 @@ class _SetupAccountScreenState extends BasePageScreenState<SetupAccountScreen> {
   Future<void> _updateDetectedTimeZone() async {
     try {
       final tz = (await FlutterTimezone.getLocalTimezone()).identifier;
-      final detectedTimeZone =
-          TimeZoneConstants.all.contains(tz) ? tz : 'UTC';
+      final detectedTimeZone = TimeZoneConstants.all.contains(tz) ? tz : 'UTC';
 
       await DioClient().updateSettings(
         UpdateSettingsRequestModel(timeZone: detectedTimeZone),

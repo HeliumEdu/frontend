@@ -160,7 +160,7 @@ class _ResourcesScreenState
               Sort.byTitle(_resourceGroups);
             });
           } else if (state is ResourceGroupDeleted) {
-            showSnackBar(context, 'Resource group deleted.');
+            showSnackBar(context, 'Group deleted.');
 
             setState(() {
               _resourceGroups.removeWhere((g) => g.id == state.id);
