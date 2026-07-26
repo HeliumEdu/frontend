@@ -142,7 +142,6 @@ class _VerifyEmailScreenState extends BasePageScreenState<VerifyEmailScreen> {
   @override
   Widget buildScaffold(BuildContext context) {
     return UnauthenticatedScaffold(
-      title: '$screenTitle | ${AppConstants.appName}',
       child: buildMainArea(context),
     );
   }

@@ -17,7 +17,6 @@ import 'package:heliumapp/presentation/core/views/base_page_screen_state.dart';
 import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
 import 'package:heliumapp/presentation/ui/layout/unauthenticated_scaffold.dart';
 import 'package:heliumapp/utils/app_assets.dart';
-import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/time_zone_constants.dart';
 import 'package:logging/logging.dart';
@@ -56,7 +55,6 @@ class _SetupAccountScreenState extends BasePageScreenState<SetupAccountScreen> {
   @override
   Widget buildScaffold(BuildContext context) {
     return UnauthenticatedScaffold(
-      title: AppConstants.appName,
       showCard: false,
       child: buildMainArea(context),
     );

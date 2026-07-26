@@ -43,7 +43,6 @@ class _MobileWebScreenState extends BasePageScreenState<MobileWebScreen> {
   @override
   Widget buildScaffold(BuildContext context) {
     return UnauthenticatedScaffold(
-      title: screenTitle,
       maxWidth: 350.0,
       child: buildMainArea(context),
     );

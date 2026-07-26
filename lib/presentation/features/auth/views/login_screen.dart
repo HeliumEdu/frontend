@@ -25,7 +25,6 @@ import 'package:heliumapp/presentation/ui/components/helium_elevated_button.dart
 import 'package:heliumapp/presentation/ui/components/helium_password_field.dart';
 import 'package:heliumapp/presentation/ui/components/label_and_text_form_field.dart';
 import 'package:heliumapp/presentation/ui/layout/unauthenticated_scaffold.dart';
-import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/app_assets.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
@@ -168,7 +167,6 @@ class _LoginScreenViewState extends BasePageScreenState<LoginScreen> {
   @override
   Widget buildScaffold(BuildContext context) {
     return UnauthenticatedScaffold(
-      title: '$screenTitle | ${AppConstants.appName}',
       child: buildMainArea(context),
     );
   }

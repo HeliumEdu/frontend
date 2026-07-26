@@ -95,7 +95,6 @@ class _ResetPasswordScreenState
   @override
   Widget buildScaffold(BuildContext context) {
     return UnauthenticatedScaffold(
-      title: '$screenTitle | ${AppConstants.appName}',
       child: buildMainArea(context),
     );
   }
