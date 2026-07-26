@@ -26,12 +26,16 @@ class FetchResourcesScreenDataEvent extends ResourceEvent {
 }
 
 class FetchResourceScreenDataEvent extends ResourceEvent {
-  final int resourceGroupId;
+  /// Null when the editor was opened without a specific group in context
+  /// (e.g. a create launched from the "Show All" filter). Always non-null
+  /// when [resourceId] is set, since editing an existing resource always
+  /// has a resolved group.
+  final int? resourceGroupId;
   final int? resourceId;
 
   FetchResourceScreenDataEvent({
     required super.origin,
-    required this.resourceGroupId,
+    this.resourceGroupId,
     this.resourceId,
   });
 }

@@ -52,7 +52,10 @@ class ResourceBloc extends Bloc<ResourceEvent, ResourceState> {
       final results = await Future.wait([
         resourceRepository.getResourceGroups(forceRefresh: event.forceRefresh),
         resourceRepository.getResources(forceRefresh: event.forceRefresh),
-        courseRepository.getCourses(forceRefresh: event.forceRefresh),
+        courseRepository.getCourses(
+          shownOnCalendar: true,
+          forceRefresh: event.forceRefresh,
+        ),
         noteRepository.getNotes(linkedEntityType: 'resource', includeContent: true, forceRefresh: event.forceRefresh),
       ]);
       final resourceGroups = results[0] as List<ResourceGroupModel>;
@@ -87,28 +90,26 @@ class ResourceBloc extends Bloc<ResourceEvent, ResourceState> {
     emit(ResourcesLoading(origin: event.origin));
     try {
       final results = await Future.wait([
+        courseRepository.getCourses(shownOnCalendar: true),
+        resourceRepository.getResourceGroups(),
         if (event.resourceId != null)
           resourceRepository.getResource(
-            groupId: event.resourceGroupId,
+            groupId: event.resourceGroupId!,
             resourceId: event.resourceId!,
           ),
-        courseRepository.getCourses(),
         if (event.resourceId != null)
           noteRepository.getNotes(resourceId: event.resourceId, includeContent: true),
       ]);
 
-      final ResourceModel? resource;
-      final List<CourseModel> courses;
+      final courses = results[0] as List<CourseModel>;
+      final resourceGroups = results[1] as List<ResourceGroupModel>;
+      ResourceModel? resource;
       NoteModel? linkedNote;
 
       if (event.resourceId != null) {
-        resource = results[0] as ResourceModel;
-        courses = results[1] as List<CourseModel>;
-        final notes = results[2] as List<NoteModel>;
+        resource = results[2] as ResourceModel;
+        final notes = results[3] as List<NoteModel>;
         linkedNote = notes.isNotEmpty ? notes.first : null;
-      } else {
-        resource = null;
-        courses = results[0] as List<CourseModel>;
       }
 
       emit(
@@ -116,6 +117,7 @@ class ResourceBloc extends Bloc<ResourceEvent, ResourceState> {
           origin: event.origin,
           resource: resource,
           courses: courses,
+          resourceGroups: resourceGroups,
           linkedNote: linkedNote,
         ),
       );

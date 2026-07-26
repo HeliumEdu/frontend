@@ -18,6 +18,9 @@ class ResourceFormController extends BasicFormController {
   List<int> selectedCourses = [];
   int selectedStatus = 0;
   int selectedCondition = 0;
+
+  /// Null until the user picks a group; unset when opened from "Show All".
+  int? selectedResourceGroupId;
   String initialNotes = '';
   QuillController notesController = heliumQuillController();
   int? linkedNoteId;

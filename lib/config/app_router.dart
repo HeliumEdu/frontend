@@ -584,9 +584,10 @@ Page<dynamic> _resourceDialogPage(
 /// refresh — existing-resource edits use [ResourceBloc] state to recover
 /// the group.
 class ResourceDialogExtra {
-  final int resourceGroupId;
+  /// Null when opened without a specific group (e.g. from "Show All").
+  final int? resourceGroupId;
 
-  const ResourceDialogExtra({required this.resourceGroupId});
+  const ResourceDialogExtra({this.resourceGroupId});
 }
 
 /// Step segments for the planner item (homework / event) editor dialog. URL

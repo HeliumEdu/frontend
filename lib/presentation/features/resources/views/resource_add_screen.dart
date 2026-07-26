@@ -34,10 +34,13 @@ final _log = Logger('presentation.views');
 /// Step navigation and dialog dismissal are URL-driven; callers only need to
 /// specify which resource (or 'new') and, for the create flow, which
 /// resource group to attach it to. The group rides along as GoRouter `extra`
-/// so the URL stays focused on the entity, not its containing group.
+/// so the URL stays focused on the entity, not its containing group. Pass
+/// `null` for a create launched without a specific group in context (e.g.
+/// from the "Show All" filter) — the editor's Group field starts unset and
+/// requires an explicit choice before saving.
 Future<void> showResourceAdd(
   BuildContext context, {
-  required int resourceGroupId,
+  int? resourceGroupId,
   int? resourceId,
   bool isEdit = false,
   String initialStep = 'details',
@@ -58,8 +61,9 @@ Future<void> showResourceAdd(
 }
 
 class ResourceAddScreen extends MultiStepContainer {
-  /// Resource group containing the resource. Required for the create flow
-  /// and the multi-step widgets that consume it.
+  /// Resource group containing the resource. Null for a create launched
+  /// without a specific group in context (e.g. from "Show All"), in which
+  /// case the multi-step widgets resolve it from the editor's Group field.
   final int? resourceGroupId;
 
   /// Resource primary key. Null when creating a new resource
@@ -116,22 +120,20 @@ class _ResourceAddScreenState
     // source of truth for the active step.
     router.routerDelegate.addListener(_syncStepFromUrl);
 
-    if (_currentResourceGroupId == null) {
-      if (widget.isNew) {
-        // Create flow refreshed without the in-app `extra`. We have no
-        // group to attach the new resource to — drop back to the index.
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (mounted) context.go(widget.shellPath);
-        });
-      } else if (_currentResourceId != null) {
-        // Edit flow without a hint — try the BLoC's cache, otherwise
-        // request a fetch and wait for the listener below.
-        _resolveGroupFromBlocState(context.read<ResourceBloc>().state);
-        if (_currentResourceGroupId == null) {
-          context.read<ResourceBloc>().add(
-                FetchResourcesScreenDataEvent(origin: EventOrigin.dialog),
-              );
-        }
+    // A create flow with no group hint (e.g. a "Show All" create) is not an
+    // error state — ResourceDetails renders its Group field unset and
+    // requires an explicit pick. Only the edit flow needs the group
+    // resolved up front, since it addresses the resource's nested endpoint.
+    if (_currentResourceGroupId == null &&
+        !widget.isNew &&
+        _currentResourceId != null) {
+      // Edit flow without a hint — try the BLoC's cache, otherwise
+      // request a fetch and wait for the listener below.
+      _resolveGroupFromBlocState(context.read<ResourceBloc>().state);
+      if (_currentResourceGroupId == null) {
+        context.read<ResourceBloc>().add(
+              FetchResourcesScreenDataEvent(origin: EventOrigin.dialog),
+            );
       }
     }
   }
@@ -363,7 +365,10 @@ class _ResourceAddScreenState
 
   @override
   Widget buildMainArea(BuildContext context) {
-    if (_currentResourceGroupId == null) {
+    // Only the edit flow requires the group resolved before rendering — a
+    // create flow with no hint is valid and renders with the Group field
+    // unset (see the initState comment above).
+    if (!widget.isNew && _currentResourceGroupId == null) {
       return const Expanded(
         child: Center(child: LoadingIndicator(expanded: false)),
       );
@@ -378,7 +383,7 @@ class _ResourceAddScreenState
       stepScreenType: ScreenType.entityPage,
       builder: (context) => ResourceDetails(
         key: _detailsKey,
-        resourceGroupId: _currentResourceGroupId!,
+        resourceGroupId: _currentResourceGroupId,
         resourceId: _currentResourceId,
         isEdit: widget.isEdit || _currentResourceId != null,
         onSubmitRequested: () => saveAction?.call(),

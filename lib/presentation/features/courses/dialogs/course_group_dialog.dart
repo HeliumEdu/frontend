@@ -221,7 +221,7 @@ class _CourseGroupWidgetState
             Expanded(
               child: HeliumCheckboxListTile(
                 title: Text(
-                  "Hide this group's classes and assignments from the Planner",
+                  "Hide this group's classes and assignments from the Planner and Resources",
                   style: AppStyles.formLabel(context),
                 ),
                 value: !_formController.shownOnCalendar,

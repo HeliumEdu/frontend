@@ -26,6 +26,11 @@ class GroupDropdown<T extends BaseTitledModel> extends StatelessWidget {
   final Function(T)? onDelete;
   final T? initialSelection;
 
+  /// Determines whether a given group shows edit/delete controls. Defaults
+  /// to always editable; pass to suppress controls on non-editable sentinel
+  /// entries (e.g. a "Show All" option mixed into [groups]).
+  final bool Function(T item)? isEditable;
+
   const GroupDropdown({
     super.key,
     required this.groups,
@@ -35,6 +40,7 @@ class GroupDropdown<T extends BaseTitledModel> extends StatelessWidget {
     this.onEdit,
     this.onDelete,
     this.initialSelection,
+    this.isEditable,
   });
 
   @override
@@ -109,7 +115,7 @@ class GroupDropdown<T extends BaseTitledModel> extends StatelessWidget {
   }
 
   List<Widget> buildEditButtons(BuildContext context, T item) {
-    return isReadOnly
+    return (isReadOnly || (isEditable != null && !isEditable!(item)))
         ? []
         : [
             const SizedBox(width: 12),
