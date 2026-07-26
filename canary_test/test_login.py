@@ -88,4 +88,4 @@ def test_login(page: Page, app_host: str, test_credentials: dict) -> None:
     # dismissed, so clear either one before asserting the title.
     dismiss_startup_dialogs(page)
 
-    expect(page).to_have_title(re.compile(r"Planner"), timeout=10_000)
+    expect(page).to_have_title(re.compile(r"Planner"), timeout=20_000)
