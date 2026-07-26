@@ -2,6 +2,8 @@ import re
 
 from playwright.sync_api import Page, expect
 
+from helpers.dialog_helper import dismiss_startup_dialogs
+
 
 def _click_flutter_field(page: Page, x: float, y: float, active_input_selector: str) -> None:
     """
@@ -80,4 +82,10 @@ def test_login(page: Page, app_host: str, test_credentials: dict) -> None:
 
     # Verify the app navigates to the planner screen
     page.wait_for_url(re.compile(r"/planner"), timeout=30_000)
+
+    # A startup dialog (Getting Started or What's New) can cover the Planner
+    # screen right after login; the browser title doesn't update until it's
+    # dismissed, so clear either one before asserting the title.
+    dismiss_startup_dialogs(page)
+
     expect(page).to_have_title(re.compile(r"Planner"), timeout=10_000)

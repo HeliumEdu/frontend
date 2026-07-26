@@ -61,8 +61,9 @@ Future<void> showResourceAdd(
 }
 
 class ResourceAddScreen extends MultiStepContainer {
-  /// Resource group containing the resource. Required for the create flow
-  /// and the multi-step widgets that consume it.
+  /// Resource group containing the resource. Null for a create launched
+  /// without a specific group in context (e.g. from "Show All"), in which
+  /// case the multi-step widgets resolve it from the editor's Group field.
   final int? resourceGroupId;
 
   /// Resource primary key. Null when creating a new resource

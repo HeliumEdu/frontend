@@ -69,7 +69,7 @@ class ResourceDetailsState extends State<ResourceDetails> {
   StreamSubscription<DocChange>? _notesSubscription;
 
   List<CourseModel> _courses = [];
-  List<DropDownItem<int>> _groupItems = [];
+  List<DropDownItem<ResourceGroupModel>> _groupItems = [];
   bool isLoading = true;
   bool _isSubmitting = false;
   bool _hasRequestedInitialFocus = false;
@@ -140,7 +140,7 @@ class ResourceDetailsState extends State<ResourceDetails> {
                     onFieldSubmitted: (value) => (widget.onSubmitRequested ?? onSubmit).call(),
                   ),
                   const SizedBox(height: 14),
-                  DropDown<int>(
+                  DropDown<ResourceGroupModel>(
                     label: 'Group',
                     initialValue: _groupItems.firstWhereOrNull(
                       (item) => item.id == formController.selectedResourceGroupId,
@@ -339,7 +339,7 @@ class ResourceDetailsState extends State<ResourceDetails> {
     final List<ResourceGroupModel> resourceGroups = state.resourceGroups;
     Sort.byTitle(resourceGroups);
     _groupItems = resourceGroups
-        .map((g) => DropDownItem<int>(id: g.id, label: g.title))
+        .map((g) => DropDownItem<ResourceGroupModel>(id: g.id, value: g, label: g.title))
         .toList();
 
     if (widget.isEdit) {
