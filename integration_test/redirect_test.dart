@@ -112,18 +112,6 @@ void main() {
 
         _log.info('Navigating to /signin while authenticated ...');
         router.go(AppRoute.signinScreen);
-
-        // The bounce-back remounts NavigationShell (signin has no shell),
-        // which can show the Getting Started dialog again — dismissing
-        // "I'll explore first" never persists as seen, so it's free to
-        // reappear on every mount. Confirm the route landed first (so the
-        // dialog helpers' own bounded wait isn't spent on the redirect
-        // itself), then clear any dialog before checking the title, same
-        // as loginAndNavigateToPlanner does on first entry.
-        await waitForRoute(tester, AppRoute.plannerScreen, timeout: config.apiTimeout);
-        await dismissGettingStartedDialog(tester);
-        await dismissWhatsNewDialog(tester);
-
         final reachedPlanner = await waitForRoute(
           tester,
           AppRoute.plannerScreen,

@@ -2,8 +2,6 @@ import re
 
 from playwright.sync_api import Page, expect
 
-from helpers.dialog_helper import dismiss_startup_dialogs, enable_flutter_semantics
-
 
 def _click_flutter_field(page: Page, x: float, y: float, active_input_selector: str) -> None:
     """
@@ -52,11 +50,6 @@ def test_login(page: Page, app_host: str, test_credentials: dict) -> None:
     page.wait_for_selector('flt-text-editing-host input[name="email"]', timeout=30_000)
     expect(page).to_have_title(re.compile(r"Sign In"), timeout=10_000)
 
-    # Enable semantics now, while the screen is just two fields and a button —
-    # not later, right before interacting with Planner's dense calendar grid.
-    # See enable_flutter_semantics' docstring for why that placement matters.
-    enable_flutter_semantics(page)
-
     # Read the email field's canvas coordinates from Flutter's IME transform
     email_coords = page.evaluate("""() => {
         const el = document.querySelector('flt-text-editing-host input[name="email"]');
@@ -87,10 +80,4 @@ def test_login(page: Page, app_host: str, test_credentials: dict) -> None:
 
     # Verify the app navigates to the planner screen
     page.wait_for_url(re.compile(r"/planner"), timeout=30_000)
-
-    # A startup dialog (Getting Started or What's New) can cover the Planner
-    # screen right after login; the browser title doesn't update until it's
-    # dismissed, so clear either one before asserting the title.
-    dismiss_startup_dialogs(page)
-
     expect(page).to_have_title(re.compile(r"Planner"), timeout=10_000)
