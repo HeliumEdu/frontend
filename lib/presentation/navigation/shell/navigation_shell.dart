@@ -13,6 +13,7 @@ import 'package:go_router/go_router.dart';
 import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/config/app_router.dart';
 import 'package:heliumapp/config/app_theme.dart';
+import 'package:heliumapp/config/pref_service.dart';
 import 'package:heliumapp/core/dio_client.dart';
 import 'package:heliumapp/core/notification_count_service.dart';
 import 'package:heliumapp/core/notification_reconciler.dart';
@@ -196,6 +197,7 @@ class _NavigationShellState extends State<NavigationShell> {
     super.initState();
 
     DioClient().cacheService.addInactivityResumeListener(_checkGettingStartedDialog);
+    DioClient().cacheService.addInactivityResumeListener(_clearScreenDropdownFilters);
     // Cheap count query — refresh on every resume, not just the 10-min window.
     DioClient().cacheService.addQuickResumeListener(_refreshNotificationCount);
     _checkDialogs();
@@ -207,6 +209,9 @@ class _NavigationShellState extends State<NavigationShell> {
     DioClient().cacheService.removeInactivityResumeListener(
       _checkGettingStartedDialog,
     );
+    DioClient().cacheService.removeInactivityResumeListener(
+      _clearScreenDropdownFilters,
+    );
     DioClient().cacheService.removeQuickResumeListener(
       _refreshNotificationCount,
     );
@@ -217,6 +222,10 @@ class _NavigationShellState extends State<NavigationShell> {
   void _refreshNotificationCount() {
     unawaited(NotificationCountService().refresh());
     unawaited(NotificationReconciler().reconcile());
+  }
+
+  void _clearScreenDropdownFilters() {
+    unawaited(PrefService().removeKeys(ScreensDropdownFilterPrefKey.allKeys));
   }
 
   @override

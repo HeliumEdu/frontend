@@ -46,6 +46,7 @@ import 'package:heliumapp/utils/error_helpers.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/color_helpers.dart';
+import 'package:heliumapp/utils/course_group_helpers.dart';
 import 'package:heliumapp/utils/date_time_helpers.dart';
 import 'package:heliumapp/utils/format_helpers.dart';
 import 'package:heliumapp/utils/grade_helpers.dart';
@@ -164,6 +165,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
     return super.loadSettings().then((settings) {
       if (!mounted || settings == null) return settings;
       _restoreGraphSettingsIfEnabled(settings);
+      _restoreSelectedGroup();
       return settings;
     });
   }
@@ -267,6 +269,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
             _pendingImpactCourseId = null;
             _expandedCourseIds.clear();
           });
+          _saveSelectedGroup();
         },
       ),
     );
@@ -319,7 +322,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
       if (_courseGroups.isNotEmpty) {
         if (_selectedGroupId == null ||
             !_courseGroups.any((g) => g.id == _selectedGroupId)) {
-          _selectedGroupId = _courseGroups.first.id;
+          _selectedGroupId = CourseGroupHelpers.currentGroupId(_courseGroups);
         }
       } else {
         _selectedGroupId = null;
@@ -2487,6 +2490,26 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
     } catch (_) {
       // Ignore malformed settings and keep defaults.
     }
+  }
+
+  void _saveSelectedGroup() {
+    if (_selectedGroupId == null) return;
+
+    PrefService().setInt(
+      ScreensDropdownFilterPrefKey.gradesGroupId.key,
+      _selectedGroupId!,
+    );
+  }
+
+  void _restoreSelectedGroup() {
+    final savedGroupId = PrefService().getInt(
+      ScreensDropdownFilterPrefKey.gradesGroupId.key,
+    );
+    if (savedGroupId == null) return;
+
+    setState(() {
+      _selectedGroupId = savedGroupId;
+    });
   }
 
   Widget _buildCourseArea(GradeCourseModel course) {
