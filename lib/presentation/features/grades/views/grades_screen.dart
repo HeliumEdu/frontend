@@ -16,6 +16,7 @@ import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/config/pref_service.dart';
 import 'package:heliumapp/core/analytics_service.dart';
+import 'package:heliumapp/core/dio_client.dart';
 import 'package:heliumapp/core/motion_service.dart';
 import 'package:heliumapp/data/models/auth/user_model.dart';
 import 'package:heliumapp/data/models/planner/course_group_model.dart';
@@ -51,6 +52,7 @@ import 'package:heliumapp/utils/date_time_helpers.dart';
 import 'package:heliumapp/utils/format_helpers.dart';
 import 'package:heliumapp/utils/grade_helpers.dart';
 import 'package:heliumapp/utils/print_helpers.dart';
+import 'package:heliumapp/utils/screen_dropdown_filter_helpers.dart';
 import 'package:heliumapp/utils/sort_helpers.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:intl/intl.dart';
@@ -165,7 +167,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
     return super.loadSettings().then((settings) {
       if (!mounted || settings == null) return settings;
       _restoreGraphSettingsIfEnabled(settings);
-      _restoreSelectedGroup();
+      _restoreSelectedGroup(settings);
       return settings;
     });
   }
@@ -174,7 +176,18 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
   void initState() {
     super.initState();
 
+    DioClient().cacheService.addInactivityResumeListener(
+      _resetSelectedGroupOnResume,
+    );
     context.read<GradeBloc>().add(FetchGradeScreenDataEvent());
+  }
+
+  @override
+  void dispose() {
+    DioClient().cacheService.removeInactivityResumeListener(
+      _resetSelectedGroupOnResume,
+    );
+    super.dispose();
   }
 
   @override
@@ -2495,20 +2508,34 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
   void _saveSelectedGroup() {
     if (_selectedGroupId == null) return;
 
-    PrefService().setInt(
-      ScreensDropdownFilterPrefKey.gradesGroupId.key,
+    ScreenDropdownFilterHelpers.save(
+      ScreensDropdownFilterPrefKey.gradesGroupId,
       _selectedGroupId!,
+      userSettings,
     );
   }
 
-  void _restoreSelectedGroup() {
-    final savedGroupId = PrefService().getInt(
-      ScreensDropdownFilterPrefKey.gradesGroupId.key,
+  void _restoreSelectedGroup(UserSettingsModel settings) {
+    final savedGroupId = ScreenDropdownFilterHelpers.restore(
+      ScreensDropdownFilterPrefKey.gradesGroupId,
+      settings,
     );
     if (savedGroupId == null) return;
 
     setState(() {
       _selectedGroupId = savedGroupId;
+    });
+  }
+
+  /// Fires on the same inactivity-resume threshold that makes the shell clear
+  /// the saved selection — but a screen that's currently mounted (i.e. the
+  /// user was sitting on it when they backgrounded/foregrounded) won't
+  /// otherwise pick that up, since restoring only happens on mount.
+  void _resetSelectedGroupOnResume() {
+    if (!mounted) return;
+
+    setState(() {
+      _selectedGroupId = CourseGroupHelpers.currentGroupId(_courseGroups);
     });
   }
 

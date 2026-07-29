@@ -1,0 +1,40 @@
+// Copyright (c) 2025 Helium Edu
+//
+// This source code is licensed under the MIT license found in the
+// LICENSE file in the root directory of this source tree.
+//
+// For details regarding the license, please refer to the LICENSE file.
+
+import 'package:heliumapp/config/pref_service.dart';
+import 'package:heliumapp/data/models/auth/user_model.dart';
+import 'package:heliumapp/utils/app_globals.dart';
+
+/// Persists and restores the last-selected group/term id for the Courses,
+/// Grades, and Resources dropdowns, gated by the same "Remember filter
+/// selections" setting used by Planner and Notebook.
+class ScreenDropdownFilterHelpers {
+  ScreenDropdownFilterHelpers._();
+
+  static bool _isEnabled(UserSettingsModel? settings) =>
+      settings?.rememberFilterState ??
+      FallbackConstants.defaultRememberFilterState;
+
+  static void save(
+    ScreensDropdownFilterPrefKey key,
+    int groupId,
+    UserSettingsModel? settings,
+  ) {
+    if (!_isEnabled(settings)) return;
+
+    PrefService().setInt(key.key, groupId);
+  }
+
+  static int? restore(
+    ScreensDropdownFilterPrefKey key,
+    UserSettingsModel? settings,
+  ) {
+    if (!_isEnabled(settings)) return null;
+
+    return PrefService().getInt(key.key);
+  }
+}
