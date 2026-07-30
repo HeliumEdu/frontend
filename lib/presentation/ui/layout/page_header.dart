@@ -193,7 +193,8 @@ class PageHeader extends StatelessWidget {
               ),
 
             // Help keep things centered when no right button
-            if (screenType == ScreenType.subPage)
+            if (screenType == ScreenType.subPage &&
+                additionalRightButtons.isEmpty)
               const Icon(Icons.space_bar, color: Colors.transparent),
           ],
         ),
