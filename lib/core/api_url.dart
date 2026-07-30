@@ -71,6 +71,7 @@ class ApiUrl {
   static const plannerRemindersListUrl = '/planner/reminders/';
   static const plannerAttachmentsListUrl = '/planner/attachments/';
   static const plannerEventsDeleteAll = '/planner/events/delete/all/';
+  static const plannerRemindersDismissAllUrl = '/planner/reminders/dismiss/all/';
 
   // Entities
   static String plannerCourseGroupsCoursesHomeworkDetailsUrl(

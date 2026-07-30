@@ -70,4 +70,17 @@ class ReminderRepositoryImpl implements ReminderRepository {
   Future<void> deleteReminder(int id) async {
     return remoteDataSource.deleteReminder(id);
   }
+
+  @override
+  Future<void> dismissAllReminders({
+    bool? sent,
+    int? type,
+    DateTime? startOfRange,
+  }) async {
+    return remoteDataSource.dismissAllReminders(
+      sent: sent,
+      type: type,
+      startOfRange: startOfRange,
+    );
+  }
 }

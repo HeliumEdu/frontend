@@ -63,3 +63,16 @@ class DeleteReminderEvent extends ReminderEvent {
 
   DeleteReminderEvent({required super.origin, required this.id});
 }
+
+class DismissAllRemindersEvent extends ReminderEvent {
+  final bool? sent;
+  final int? type;
+  final DateTime? startOfRange;
+
+  DismissAllRemindersEvent({
+    required super.origin,
+    this.sent,
+    this.type,
+    this.startOfRange,
+  });
+}

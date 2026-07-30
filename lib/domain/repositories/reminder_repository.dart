@@ -32,4 +32,10 @@ abstract class ReminderRepository {
   Future<ReminderModel> updateReminder(int id, ReminderRequestModel request);
 
   Future<void> deleteReminder(int id);
+
+  Future<void> dismissAllReminders({
+    bool? sent,
+    int? type,
+    DateTime? startOfRange,
+  });
 }

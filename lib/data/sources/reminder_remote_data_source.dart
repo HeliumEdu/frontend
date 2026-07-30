@@ -44,6 +44,12 @@ abstract class ReminderRemoteDataSource extends BaseDataSource {
   Future<ReminderModel> updateReminder(int id, ReminderRequestModel request);
 
   Future<void> deleteReminder(int id);
+
+  Future<void> dismissAllReminders({
+    bool? sent,
+    int? type,
+    DateTime? startOfRange,
+  });
 }
 
 class ReminderRemoteDataSourceImpl extends ReminderRemoteDataSource {
@@ -223,6 +229,44 @@ class ReminderRemoteDataSourceImpl extends ReminderRemoteDataSource {
       } else {
         throw ServerException(
           message: 'Failed to delete reminder: ${response.statusCode}.',
+        );
+      }
+    } on DioException catch (e, s) {
+      throw handleDioError(e, s);
+    } catch (e, s) {
+      _log.severe('An unexpected error occurred', e, s);
+      throw HeliumException(message: HeliumException.unexpectedError);
+    }
+  }
+
+  @override
+  Future<void> dismissAllReminders({
+    bool? sent,
+    int? type,
+    DateTime? startOfRange,
+  }) async {
+    try {
+      _log.info('Dismissing all Reminders ...');
+
+      final Map<String, dynamic> queryParameters = {};
+      if (sent != null) queryParameters['sent'] = sent;
+      if (type != null) queryParameters['type'] = type;
+      if (startOfRange != null) {
+        queryParameters['start_of_range__lte'] =
+            startOfRange.toUtc().toIso8601String();
+      }
+
+      final response = await dioClient.dio.patch(
+        ApiUrl.plannerRemindersDismissAllUrl,
+        queryParameters: queryParameters,
+      );
+
+      if (response.statusCode == 204) {
+        _log.info('... all Reminders dismissed');
+        await dioClient.cacheService.invalidateAll();
+      } else {
+        throw ServerException(
+          message: 'Failed to dismiss all reminders: ${response.statusCode}.',
         );
       }
     } on DioException catch (e, s) {

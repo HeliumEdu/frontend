@@ -114,6 +114,29 @@ class _NotificationsScreenState
   @override
   EdgeInsets get scaffoldInsets => const EdgeInsets.all(0);
 
+  @override
+  List<Widget> get additionalRightHeaderButtons {
+    if (_notifications.isEmpty) return const [];
+
+    return [
+      Semantics(
+        label: 'Dismiss all',
+        button: true,
+        child: IconButton(
+          style: IconButton.styleFrom(
+            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          ),
+          tooltip: 'Dismiss all',
+          onPressed: _dismissAllReminders,
+          icon: Icon(
+            Icons.done_all,
+            color: context.colorScheme.secondary,
+          ),
+        ),
+      ),
+    ];
+  }
+
   /// Width floor reserved for the notification title so a long course/room
   /// badge stretches only into the space beyond it, never squeezing the title
   /// below this.
@@ -212,6 +235,13 @@ class _NotificationsScreenState
             NotificationCountService().invalidateCachedNotifications();
             setState(() {
               _notifications.removeWhere((n) => n.reminder.id == state.id);
+            });
+          } else if (state is AllRemindersDismissed) {
+            showSnackBar(context, 'All Reminders dismissed.');
+            NotificationCountService().count.value = 0;
+            NotificationCountService().cacheNotifications(const []);
+            setState(() {
+              _notifications = [];
             });
           }
         },
@@ -722,6 +752,17 @@ class _NotificationsScreenState
         origin: EventOrigin.subScreen,
         id: notification.id,
         request: req,
+      ),
+    );
+  }
+
+  void _dismissAllReminders() {
+    context.read<ReminderBloc>().add(
+      DismissAllRemindersEvent(
+        origin: EventOrigin.subScreen,
+        sent: true,
+        type: 3,
+        startOfRange: DateTime.now(),
       ),
     );
   }
