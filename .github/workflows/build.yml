@@ -436,7 +436,7 @@ jobs:
         env:
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
         run: |
-          npm install -g @sentry/cli
+          npm install -g @sentry/cli@3.6.2
           SENTRY_PROPERTIES=sentry.properties sentry-cli debug-files upload build/symbols/ build/ios/archive/Runner.xcarchive/dSYMs/
 
       - name: Deploy to TestFlight

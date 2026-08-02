@@ -292,7 +292,7 @@ jobs:
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
           RELEASE_VERSION: ${{ inputs.artifact_run_id != '' && inputs.specific_version || steps.find_run.outputs.full_version }}
         run: |
-          npm install -g @sentry/cli
+          npm install -g @sentry/cli@3.6.2
           SENTRY_DIST="${RELEASE_VERSION##*+}"
           SENTRY_PROPERTIES=sentry.properties sentry-cli releases deploys "$RELEASE_VERSION" new \
             --env "${{ inputs.environment }}" \

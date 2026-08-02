@@ -11,6 +11,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/config/pref_service.dart';
+import 'package:heliumapp/core/dio_client.dart';
 import 'package:heliumapp/data/models/auth/user_model.dart';
 import 'package:heliumapp/data/models/planner/course_model.dart';
 import 'package:heliumapp/data/models/planner/note_model.dart';
@@ -41,12 +42,12 @@ import 'package:heliumapp/presentation/ui/feedback/error_card.dart';
 import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
 import 'package:heliumapp/presentation/ui/layout/mobile_gesture_detector.dart';
 import 'package:heliumapp/presentation/ui/layout/responsive_card_grid.dart';
-import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/error_helpers.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/print_helpers.dart';
 import 'package:heliumapp/utils/quill_helpers.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
+import 'package:heliumapp/utils/screen_dropdown_filter_helpers.dart';
 import 'package:heliumapp/utils/sort_helpers.dart';
 import 'package:heliumapp/utils/url_helpers.dart';
 
@@ -68,8 +69,6 @@ class _ResourcesScreenState
     extends BasePageScreenState<_ResourcesProvidedScreen>
     with DeepLinkMixin {
   static const int _showAllGroupId = -1;
-
-  static const _savedResourcesShowAllKey = 'saved_resources_show_all';
 
   @override
   bool get enablePrint => true;
@@ -112,16 +111,27 @@ class _ResourcesScreenState
   void initState() {
     super.initState();
 
+    DioClient().cacheService.addInactivityResumeListener(
+      _resetSelectedGroupOnResume,
+    );
     context.read<ResourceBloc>().add(
       FetchResourcesScreenDataEvent(origin: EventOrigin.screen),
     );
   }
 
   @override
+  void dispose() {
+    DioClient().cacheService.removeInactivityResumeListener(
+      _resetSelectedGroupOnResume,
+    );
+    super.dispose();
+  }
+
+  @override
   Future<UserSettingsModel?> loadSettings() {
     return super.loadSettings().then((settings) {
       if (!mounted || settings == null) return settings;
-      _restoreFilterStateIfEnabled(settings);
+      _restoreSelectedGroup(settings);
       return settings;
     });
   }
@@ -172,6 +182,7 @@ class _ResourcesScreenState
               _selectedGroupId = state.resourceGroup.id;
               _resourcesMap[_selectedGroupId!] = [];
             });
+            _saveSelectedGroup();
           } else if (state is ResourceGroupUpdated) {
             // No snackbar on updates
 
@@ -197,6 +208,7 @@ class _ResourcesScreenState
                 _selectedGroupId = _resourceGroups.first.id;
               }
             });
+            _saveSelectedGroup();
           } else if (state is ResourceCreated) {
             // Keyed by the resource's own group rather than the active
             // filter — a create from "Show All" (or any group's view) can
@@ -259,7 +271,7 @@ class _ResourcesScreenState
             setState(() {
               _selectedGroupId = value.id;
             });
-            _saveFilterStateIfEnabled();
+            _saveSelectedGroup();
           },
           onCreate: () {
             showResourceGroupDialog(parentContext: context, isEdit: false);
@@ -383,12 +395,21 @@ class _ResourcesScreenState
           final group = groupsWithResources[index];
           return Padding(
             padding: EdgeInsets.only(
-              bottom: index == groupsWithResources.length - 1 ? 0 : 24,
+              bottom: index == groupsWithResources.length - 1 ? 0 : 16,
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(group.title, style: AppStyles.headingText(context)),
+                Text(
+                  group.title,
+                  style: AppStyles.featureText(context).copyWith(
+                    fontSize: Responsive.getFontSize(
+                      context,
+                      mobile: 16,
+                      desktop: 17,
+                    ),
+                  ),
+                ),
                 const SizedBox(height: 8),
                 ResponsiveCardGrid<ResourceModel>(
                   maxCardWidth: Responsive.isDesktop(context) ? 430 : 390,
@@ -605,23 +626,37 @@ class _ResourcesScreenState
     );
   }
 
-  void _saveFilterStateIfEnabled() {
-    if (!(userSettings?.rememberFilterState ?? FallbackConstants.defaultRememberFilterState)) return;
+  void _saveSelectedGroup() {
+    if (_selectedGroupId == null) return;
 
-    PrefService().setBool(
-      _savedResourcesShowAllKey,
-      _selectedGroupId == _showAllGroupId,
+    ScreenDropdownFilterHelpers.save(
+      ScreensDropdownFilterPrefKey.resourcesGroupId,
+      _selectedGroupId!,
+      userSettings,
     );
   }
 
-  void _restoreFilterStateIfEnabled(UserSettingsModel settings) {
-    if (!settings.rememberFilterState) return;
-
-    if (PrefService().getBool(_savedResourcesShowAllKey) != true) return;
+  void _restoreSelectedGroup(UserSettingsModel settings) {
+    final savedGroupId = ScreenDropdownFilterHelpers.restore(
+      ScreensDropdownFilterPrefKey.resourcesGroupId,
+      settings,
+    );
+    if (savedGroupId == null) return;
 
     setState(() {
-      _selectedGroupId = _showAllGroupId;
+      _selectedGroupId = savedGroupId;
     });
   }
 
+  /// Fires on the same inactivity-resume threshold that makes the shell clear
+  /// the saved selection — but a screen that's currently mounted (i.e. the
+  /// user was sitting on it when they backgrounded/foregrounded) won't
+  /// otherwise pick that up, since restoring only happens on mount.
+  void _resetSelectedGroupOnResume() {
+    if (!mounted || _resourceGroups.isEmpty) return;
+
+    setState(() {
+      _selectedGroupId = _resourceGroups.first.id;
+    });
+  }
 }

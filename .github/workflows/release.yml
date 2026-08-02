@@ -203,7 +203,7 @@ jobs:
         env:
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
         run: |
-          npm install -g @sentry/cli
+          npm install -g @sentry/cli@3.6.2
           SENTRY_PROPERTIES=sentry.properties sentry-cli debug-files upload build/symbols/
 
       - name: Upload AAB artifact
@@ -305,7 +305,7 @@ jobs:
         env:
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
         run: |
-          npm install -g @sentry/cli
+          npm install -g @sentry/cli@3.6.2
           SENTRY_PROPERTIES=sentry.properties sentry-cli debug-files upload build/symbols/ build/ios/archive/Runner.xcarchive/dSYMs/
 
       - name: Upload IPA artifact
@@ -366,14 +366,15 @@ jobs:
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
           RELEASE_VERSION: ${{ needs.prereq.outputs.version }}
         run: |
-          npm install -g @sentry/cli
+          npm install -g @sentry/cli@3.6.2
           SENTRY_DIST="${RELEASE_VERSION##*+}"
           test -f build/web/main.dart.js.map
           SENTRY_PROPERTIES=sentry.properties sentry-cli releases new "$RELEASE_VERSION"
+          SENTRY_PROPERTIES=sentry.properties sentry-cli sourcemaps inject build/web
           SENTRY_PROPERTIES=sentry.properties sentry-cli sourcemaps upload \
             --release "$RELEASE_VERSION" \
             --dist "$SENTRY_DIST" \
-            --rewrite \
+            --no-rewrite \
             --validate \
             --url-prefix "~/" \
             build/web
@@ -473,7 +474,7 @@ jobs:
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
           VERSION: ${{ needs.prereq.outputs.version }}
         run: |
-          npm install -g @sentry/cli
+          npm install -g @sentry/cli@3.6.2
           SENTRY_PROPERTIES=sentry.properties sentry-cli releases new "$VERSION"
           SENTRY_PROPERTIES=sentry.properties sentry-cli releases set-commits --auto "$VERSION"
           SENTRY_PROPERTIES=sentry.properties sentry-cli releases finalize "$VERSION"

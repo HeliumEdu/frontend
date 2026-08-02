@@ -48,6 +48,18 @@ enum SettingsPrefKey {
   static Iterable<String> get allKeys => values.map((v) => v.key);
 }
 
+enum ScreensDropdownFilterPrefKey {
+  resourcesGroupId('saved_resources_group_id'),
+  coursesGroupId('saved_courses_group_id'),
+  gradesGroupId('saved_grades_group_id');
+
+  const ScreensDropdownFilterPrefKey(this.key);
+
+  final String key;
+
+  static Iterable<String> get allKeys => values.map((v) => v.key);
+}
+
 class PrefService {
   FlutterSecureStorage? _secureStorageOverride;
   FlutterSecureStorage get _secureStorage =>

@@ -21,6 +21,7 @@ class ReminderBloc extends Bloc<ReminderEvent, ReminderState> {
     on<CreateReminderEvent>(_onCreateReminders);
     on<UpdateReminderEvent>(_onUpdateReminders);
     on<DeleteReminderEvent>(_onDeleteReminders);
+    on<DismissAllRemindersEvent>(_onDismissAllReminders);
     on<ResetRemindersEvent>(
       (event, emit) => emit(ReminderInitial(origin: EventOrigin.bloc)),
     );
@@ -109,6 +110,31 @@ class ReminderBloc extends Bloc<ReminderEvent, ReminderState> {
     try {
       await reminderRepository.deleteReminder(event.id);
       emit(ReminderDeleted(origin: event.origin, id: event.id));
+    } on HeliumException catch (e) {
+      emit(RemindersError(origin: event.origin, message: e.message));
+    } catch (e) {
+      emit(
+        RemindersError(
+          origin: event.origin,
+          message: HeliumException.unexpectedError,
+        ),
+      );
+    }
+  }
+
+  Future<void> _onDismissAllReminders(
+    DismissAllRemindersEvent event,
+    Emitter<ReminderState> emit,
+  ) async {
+    emit(RemindersLoading(origin: event.origin));
+
+    try {
+      await reminderRepository.dismissAllReminders(
+        sent: event.sent,
+        type: event.type,
+        startOfRange: event.startOfRange,
+      );
+      emit(AllRemindersDismissed(origin: event.origin));
     } on HeliumException catch (e) {
       emit(RemindersError(origin: event.origin, message: e.message));
     } catch (e) {

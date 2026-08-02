@@ -18,6 +18,7 @@ import 'package:heliumapp/core/analytics_service.dart';
 import 'package:heliumapp/core/api_url.dart';
 import 'package:heliumapp/core/dio_client.dart';
 import 'package:heliumapp/core/notification_count_service.dart';
+import 'package:heliumapp/data/models/auth/user_model.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_bloc.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_event.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/info/info_bloc.dart';
@@ -37,6 +38,7 @@ import 'package:logging/logging.dart';
 final _log = Logger('presentation.settings');
 
 class ImportExportScreen extends StatefulWidget {
+  final UserSettingsModel? userSettings;
   final void Function(String route)? onNavigateRequested;
   final VoidCallback? onActionStarted;
   final VoidCallback? onCompleted;
@@ -44,6 +46,7 @@ class ImportExportScreen extends StatefulWidget {
 
   const ImportExportScreen({
     super.key,
+    this.userSettings,
     this.onNavigateRequested,
     this.onActionStarted,
     this.onCompleted,
@@ -216,7 +219,7 @@ class _ImportExportScreenState extends State<ImportExportScreen> {
           buttonText: 'Re-Import Example Schedule',
           icon: Icons.restore_outlined,
           isLoading: _isImportingExample,
-          enabled: !_isImportingExample,
+          enabled: !_isImportingExample && !(widget.userSettings?.showGettingStarted ?? false),
         ),
       ],
     );

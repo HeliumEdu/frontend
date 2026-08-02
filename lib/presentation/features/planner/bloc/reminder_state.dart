@@ -47,3 +47,7 @@ class ReminderDeleted extends ReminderState {
 
   ReminderDeleted({required super.origin, required this.id});
 }
+
+class AllRemindersDismissed extends ReminderState {
+  AllRemindersDismissed({required super.origin});
+}

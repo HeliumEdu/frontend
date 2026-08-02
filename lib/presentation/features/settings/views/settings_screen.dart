@@ -442,6 +442,7 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
               ),
               SettingsSubScreen.feeds => FeedsScreen(userSettings: userSettings),
               SettingsSubScreen.importExport => ImportExportScreen(
+                userSettings: userSettings,
                 onNavigateRequested: _onNavigateRequested,
                 onActionStarted: () => setState(() => isSubmitting = true),
                 onCompleted: () => setState(() => isSubmitting = false),
