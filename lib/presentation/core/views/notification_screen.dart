@@ -129,7 +129,7 @@ class _NotificationsScreenState
           tooltip: 'Dismiss all',
           onPressed: isEnabled ? _dismissAllReminders : null,
           icon: Icon(
-            Icons.done_all,
+            Icons.clear_all,
             color: isEnabled
                 ? context.colorScheme.secondary
                 : context.colorScheme.onSurface.withValues(alpha: 0.38),
