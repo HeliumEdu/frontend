@@ -116,7 +116,7 @@ class _NotificationsScreenState
 
   @override
   List<Widget> get additionalRightHeaderButtons {
-    if (_notifications.isEmpty) return const [];
+    final isEnabled = _notifications.isNotEmpty && !_isDismissingAll;
 
     return [
       Semantics(
@@ -127,10 +127,12 @@ class _NotificationsScreenState
             tapTargetSize: MaterialTapTargetSize.shrinkWrap,
           ),
           tooltip: 'Dismiss all',
-          onPressed: _dismissAllReminders,
+          onPressed: isEnabled ? _dismissAllReminders : null,
           icon: Icon(
             Icons.done_all,
-            color: context.colorScheme.secondary,
+            color: isEnabled
+                ? context.colorScheme.secondary
+                : context.colorScheme.onSurface.withValues(alpha: 0.38),
           ),
         ),
       ),
@@ -144,6 +146,7 @@ class _NotificationsScreenState
 
   List<NotificationModel> _notifications = [];
   bool _isOpeningEntity = false;
+  bool _isDismissingAll = false;
   int _lastKnownCount = 0;
 
   @override
@@ -194,7 +197,10 @@ class _NotificationsScreenState
       BlocListener<ReminderBloc, ReminderState>(
         listener: (context, state) {
           if (state is RemindersError) {
-            setState(() => isLoading = false);
+            setState(() {
+              isLoading = false;
+              _isDismissingAll = false;
+            });
             if (state.origin != EventOrigin.screen) {
               showSnackBar(context, state.message!, type: SnackType.error);
             }
@@ -242,6 +248,7 @@ class _NotificationsScreenState
             NotificationCountService().cacheNotifications(const []);
             setState(() {
               _notifications = [];
+              _isDismissingAll = false;
             });
           }
         },
@@ -757,6 +764,9 @@ class _NotificationsScreenState
   }
 
   void _dismissAllReminders() {
+    if (_isDismissingAll) return;
+    setState(() => _isDismissingAll = true);
+
     context.read<ReminderBloc>().add(
       DismissAllRemindersEvent(
         origin: EventOrigin.subScreen,
