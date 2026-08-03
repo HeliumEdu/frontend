@@ -116,7 +116,9 @@ class PageHeader extends StatelessWidget {
         Row(
           children: [
             ...additionalRightButtons,
-            if (additionalRightButtons.isNotEmpty) const SizedBox(width: 8),
+            if (additionalRightButtons.isNotEmpty &&
+                screenType != ScreenType.subPage)
+              const SizedBox(width: 8),
             if (screenType == ScreenType.page && helpUrl != null) ...[
               Semantics(
                 label: 'Help',
