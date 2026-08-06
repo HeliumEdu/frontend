@@ -103,11 +103,7 @@ void initializeRouter() {
       GoRoute(
         path: AppRoute.verifyEmailScreen,
         pageBuilder: (context, state) {
-          // `username` accepted as a back-compat alias so verification links
-          // from old emails (sent before the template moved to `?email=`) still
-          // auto-fill the form.
-          final email = state.uri.queryParameters['email']
-              ?? state.uri.queryParameters['username'];
+          final email = state.uri.queryParameters['email'];
           final code = state.uri.queryParameters['code'];
           return MaterialPage(
             child: VerifyEmailScreen(email: email, code: code),
