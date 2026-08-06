@@ -34,15 +34,9 @@ class ExternalCalendarEventModel extends EventBaseModel {
   }) : super(plannerItemType: PlannerItemType.external);
 
   factory ExternalCalendarEventModel.fromJson(Map<String, dynamic> json) {
-    // The backend assigns sequential ids per-request, making them unstable across
-    // date-range queries. Two events fetched in different queries (e.g. week view
-    // then month view) can share the same integer id, causing SfCalendar to
-    // misplace one event at the other's position. We replace the unstable backend
-    // id with a deterministic hash of the content-based identity fields so ids
-    // are stable and unique within the session.
-    //
-    // TODO: once the backend derives stable ids from ICS event UIDs (and the
-    // legacy frontend is shut down), remove this and use json['id'] directly.
+    // The backend derives a stable id per external calendar event from its ICS UID,
+    // so json['id'] is safe to use directly. This recomputes an equivalent id from
+    // the same content fields instead, which is redundant but harmless.
     final ownerId = json['owner_id'] as String;
     final start = DateTime.parse(json['start'] as String);
     final title = json['title'] as String;
