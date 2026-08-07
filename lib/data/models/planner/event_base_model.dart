@@ -12,9 +12,9 @@ import 'package:heliumapp/data/models/planner/planner_item_base_model.dart';
 /// [ExternalCalendarEventModel] both extend this — the data source treats them
 /// uniformly via `is EventBaseModel`.
 ///
-/// [CourseScheduleEventModel] is intentionally **not** an [EventBaseModel]: its
-/// recurrenceRule is built client-side from `Course.days_of_week` /
-/// `start_date` / `end_date` via `RRuleBuilder`, not sourced from the API.
+/// [CourseScheduleEventModel] is intentionally **not** an [EventBaseModel]: it
+/// is hydrated from a schedule's server-resolved `recurrence_groups` rather than
+/// deserialized directly from a single API entity like these types are.
 abstract class EventBaseModel extends PlannerItemBaseModel {
   /// iCal RRULE string (e.g. `FREQ=WEEKLY;BYDAY=MO,WE,FR`) that marks this
   /// event as a recurring series anchored on [start].

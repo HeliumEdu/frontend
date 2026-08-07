@@ -90,6 +90,7 @@ Map<String, dynamic> givenCourseScheduleJson({
   String satStartTime = '00:00:00',
   String satEndTime = '00:00:00',
   int course = 1,
+  List<Map<String, dynamic>>? recurrenceGroups,
 }) {
   return {
     'id': id,
@@ -109,6 +110,24 @@ Map<String, dynamic> givenCourseScheduleJson({
     'sat_start_time': satStartTime,
     'sat_end_time': satEndTime,
     'course': course,
+    'recurrence_groups': recurrenceGroups ?? [],
+  };
+}
+
+/// Creates JSON for a single server-resolved recurrence group, as returned in a
+/// schedule's `recurrence_groups`. Times are ISO-8601 UTC (`Z`) strings, matching
+/// the backend `CourseScheduleRecurrenceGroupSerializer` wire format.
+Map<String, dynamic> givenRecurrenceGroupJson({
+  String start = '2025-08-25T09:00:00Z',
+  String end = '2025-08-25T10:30:00Z',
+  String recurrenceRule = 'FREQ=WEEKLY;BYDAY=MO;UNTIL=20251215T235959Z',
+  List<String> exceptionDates = const [],
+}) {
+  return {
+    'start': start,
+    'end': end,
+    'recurrence_rule': recurrenceRule,
+    'exception_dates': exceptionDates,
   };
 }
 
