@@ -490,6 +490,16 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
       );
 
       if (response.statusCode == 200) {
+        // Changing the password invalidates the current tokens server-side; the response carries a
+        // fresh pair to keep this session signed in.
+        if (response.data['access'] != null &&
+            response.data['refresh'] != null) {
+          await dioClient.saveTokens(
+            response.data['access'],
+            response.data['refresh'],
+          );
+        }
+
         return UserModel.fromJson(response.data);
       } else {
         throw ServerException(
