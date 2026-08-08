@@ -5,6 +5,16 @@
 //
 // For details regarding the license, please refer to the LICENSE file.
 
+/// Server-side category provisioning template passed on course create; the backend seeds the
+/// corresponding default categories in the same request (see `CATEGORY_TEMPLATE_CHOICES`).
+enum CourseTemplate {
+  standard(0);
+
+  const CourseTemplate(this.value);
+
+  final int value;
+}
+
 class CourseRequestModel {
   final String title;
   final String room;
@@ -17,6 +27,7 @@ class CourseRequestModel {
   final String startDate;
   final String endDate;
   final int courseGroup;
+  final int? template;
 
   CourseRequestModel({
     required this.title,
@@ -30,7 +41,25 @@ class CourseRequestModel {
     required this.startDate,
     required this.endDate,
     required this.courseGroup,
+    this.template,
   });
+
+  CourseRequestModel copyWith({int? template}) {
+    return CourseRequestModel(
+      title: title,
+      room: room,
+      credits: credits,
+      color: color,
+      website: website,
+      isOnline: isOnline,
+      teacherName: teacherName,
+      teacherEmail: teacherEmail,
+      startDate: startDate,
+      endDate: endDate,
+      courseGroup: courseGroup,
+      template: template ?? this.template,
+    );
+  }
 
   Map<String, dynamic> toJson() {
     return {
@@ -45,6 +74,7 @@ class CourseRequestModel {
       'start_date': startDate,
       'end_date': endDate,
       'course_group': courseGroup,
+      if (template != null) 'template': template,
     };
   }
 
