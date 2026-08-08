@@ -173,10 +173,11 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen>
             // No snackbar on updates
 
             setState(() {
-              _courseGroups[_courseGroups.indexWhere(
-                    (g) => g.id == state.courseGroup.id,
-                  )] =
-                  state.courseGroup;
+              final index = _courseGroups.indexWhere(
+                (g) => g.id == state.courseGroup.id,
+              );
+              if (index == -1) return;
+              _courseGroups[index] = state.courseGroup;
               Sort.byStartDate(_courseGroups);
             });
           } else if (state is CourseGroupDeleted) {
@@ -184,24 +185,23 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen>
 
             setState(() {
               _courseGroups.removeWhere((g) => g.id == state.id);
+              _coursesMap.remove(state.id);
               if (_courseGroups.isEmpty) {
                 _selectedGroupId = null;
-              } else {
+              } else if (!_courseGroups.any((g) => g.id == _selectedGroupId)) {
                 // Reset if selected group was deleted
-                if (!_courseGroups.any((g) => g.id == _selectedGroupId)) {
-                  _selectedGroupId = CourseGroupHelpers.currentGroupId(
-                    _courseGroups,
-                  );
-                }
+                _selectedGroupId = CourseGroupHelpers.currentGroupId(
+                  _courseGroups,
+                );
               }
             });
             _saveSelectedGroup();
           } else if (state is CourseCreated) {
-            if (_selectedGroupId == null) return;
-
             setState(() {
-              _coursesMap[_selectedGroupId]!.add(state.course);
-              Sort.byTitle(_coursesMap[_selectedGroupId]!);
+              _coursesMap
+                  .putIfAbsent(state.course.courseGroup, () => [])
+                  .add(state.course);
+              Sort.byTitle(_coursesMap[state.course.courseGroup]!);
             });
             final totalCourses = _coursesMap.values.fold<int>(0, (sum, c) => sum + c.length);
             unawaited(AnalyticsService().setUserProperty(
@@ -209,25 +209,22 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen>
               value: _courseLoadBucket(totalCourses),
             ));
           } else if (state is CourseUpdated) {
-            if (_selectedGroupId == null) return;
-
             setState(() {
-              final index = _coursesMap[_selectedGroupId]!.indexWhere(
-                (c) => c.id == state.course.id,
-              );
-              _coursesMap[_selectedGroupId]![index] = state.course;
-              Sort.byTitle(_coursesMap[_selectedGroupId]!);
+              for (final courses in _coursesMap.values) {
+                courses.removeWhere((c) => c.id == state.course.id);
+              }
+              _coursesMap
+                  .putIfAbsent(state.course.courseGroup, () => [])
+                  .add(state.course);
+              Sort.byTitle(_coursesMap[state.course.courseGroup]!);
             });
           } else if (state is CourseDeleted) {
-            if (_selectedGroupId == null) return;
-
             showSnackBar(context, 'Class deleted.');
 
             setState(() {
-              _coursesMap[_selectedGroupId]!.removeWhere(
-                (c) => c.id == state.id,
-              );
-              Sort.byTitle(_coursesMap[_selectedGroupId]!);
+              for (final courses in _coursesMap.values) {
+                courses.removeWhere((c) => c.id == state.id);
+              }
             });
             final totalCourses = _coursesMap.values.fold<int>(0, (sum, c) => sum + c.length);
             unawaited(AnalyticsService().setUserProperty(
@@ -235,15 +232,28 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen>
               value: _courseLoadBucket(totalCourses),
             ));
           } else if (state is CourseScheduleUpdated) {
-            if (_selectedGroupId == null) return;
-
+            // Find the schedule's course across loaded groups (its group may
+            // differ from the active filter) and replace that schedule by id
+            // rather than assuming a single schedule at index 0.
             setState(() {
-              final index = _coursesMap[_selectedGroupId]!.indexWhere(
-                (c) => c.id == state.schedule.course,
-              );
-              _coursesMap[_selectedGroupId]![index].schedules[0] =
-                  state.schedule;
-              Sort.byTitle(_coursesMap[_selectedGroupId]!);
+              for (final courses in _coursesMap.values) {
+                final courseIndex = courses.indexWhere(
+                  (c) => c.id == state.schedule.course,
+                );
+                if (courseIndex == -1) continue;
+
+                final schedules = courses[courseIndex].schedules;
+                final scheduleIndex = schedules.indexWhere(
+                  (s) => s.id == state.schedule.id,
+                );
+                if (scheduleIndex >= 0) {
+                  schedules[scheduleIndex] = state.schedule;
+                } else {
+                  schedules.add(state.schedule);
+                }
+                Sort.byTitle(courses);
+                break;
+              }
             });
           }
         },
