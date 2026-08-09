@@ -21,6 +21,7 @@ import 'package:heliumapp/config/theme_notifier.dart';
 import 'package:heliumapp/core/analytics_service.dart';
 import 'package:heliumapp/core/api_url.dart';
 import 'package:heliumapp/core/cache_service.dart';
+import 'package:heliumapp/core/oauth_sign_in_service.dart';
 import 'package:heliumapp/data/models/auth/request/refresh_token_request_model.dart';
 import 'package:heliumapp/data/models/auth/request/update_settings_request_model.dart';
 import 'package:heliumapp/data/models/auth/token_response_model.dart';
@@ -539,6 +540,7 @@ class DioClient {
   ]) async {
     try {
       await clearStorage();
+      await OAuthSignInService().signOut();
       final context = rootNavigatorKey.currentContext;
       if (context != null && context.mounted) {
         SnackBarHelper.show(

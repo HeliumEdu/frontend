@@ -14,6 +14,7 @@ import 'package:heliumapp/core/api_url.dart';
 import 'package:heliumapp/core/dio_client.dart';
 import 'package:heliumapp/core/fcm_service.dart';
 import 'package:heliumapp/core/helium_exception.dart';
+import 'package:heliumapp/core/oauth_sign_in_service.dart';
 import 'package:heliumapp/core/sentry_service.dart';
 import 'package:heliumapp/core/jwt_utils.dart';
 import 'package:heliumapp/data/models/auth/login_request_model.dart';
@@ -371,6 +372,7 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
       }
 
       await dioClient.clearStorage();
+      await OAuthSignInService().signOut();
       SentryService().clearUser();
 
       if (refreshToken?.isNotEmpty ?? false) {
@@ -464,6 +466,7 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
 
       if (response.statusCode == 204) {
         await dioClient.clearStorage();
+        await OAuthSignInService().signOut();
         SentryService().clearUser();
 
         return NoContentResponseModel(message: 'Account deleted');
