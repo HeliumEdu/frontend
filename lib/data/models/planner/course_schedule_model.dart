@@ -7,6 +7,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:heliumapp/data/models/base_model.dart';
+import 'package:heliumapp/data/models/planner/course_schedule_recurrence_group_model.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/date_time_helpers.dart';
 
@@ -28,6 +29,8 @@ class CourseScheduleModel extends BaseModel {
   final TimeOfDay satEndTime;
   final int course;
 
+  final List<CourseScheduleRecurrenceGroupModel> recurrenceGroups;
+
   CourseScheduleModel({
     required super.id,
     required this.daysOfWeek,
@@ -46,6 +49,7 @@ class CourseScheduleModel extends BaseModel {
     required this.satStartTime,
     required this.satEndTime,
     required this.course,
+    this.recurrenceGroups = const [],
   });
 
   factory CourseScheduleModel.fromJson(Map<String, dynamic> json) {
@@ -67,6 +71,14 @@ class CourseScheduleModel extends BaseModel {
       satStartTime: HeliumTime.parse(json['sat_start_time'] as String)!,
       satEndTime: HeliumTime.parse(json['sat_end_time'] as String)!,
       course: json['course'],
+      recurrenceGroups:
+          (json['recurrence_groups'] as List<dynamic>? ?? const [])
+              .map(
+                (group) => CourseScheduleRecurrenceGroupModel.fromJson(
+                  group as Map<String, dynamic>,
+                ),
+              )
+              .toList(),
     );
   }
 

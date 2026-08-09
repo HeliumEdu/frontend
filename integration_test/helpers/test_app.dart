@@ -1046,7 +1046,7 @@ Future<void> expectGroupDropdownGroups(
 /// Assert we're on the Settings screen/dialog.
 /// Verifies: volunteer_activism icon, "Keep Helium Free" text, and "Change Password" button.
 /// [isDialog] should be true for both desktop (overlay dialog) and mobile (full-screen dialog).
-/// Dialog mode shows close (X) button; non-dialog mode shows back arrow (legacy behavior).
+/// Dialog mode shows close (X) button; non-dialog mode shows back arrow.
 void expectOnSettingsScreen({required bool isDialog}) {
   expect(
     find.byIcon(Icons.volunteer_activism),

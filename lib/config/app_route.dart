@@ -11,7 +11,7 @@ class AppRoute {
   static const String signinScreen = '/signin';
   static const String signupScreen = '/signup';
 
-  /// Legacy aliases — redirected to canonical routes.
+  /// Legacy aliases
   static const String loginScreen = '/login';
   static const String registerScreen = '/register';
   static const String forgotPasswordScreen = '/forgot';

@@ -210,9 +210,6 @@ class _ResourcesScreenState
             });
             _saveSelectedGroup();
           } else if (state is ResourceCreated) {
-            // Keyed by the resource's own group rather than the active
-            // filter — a create from "Show All" (or any group's view) can
-            // target any group via the editor's Group field.
             setState(() {
               _resourcesMap
                   .putIfAbsent(state.resource.resourceGroup, () => [])
@@ -220,8 +217,6 @@ class _ResourcesScreenState
               Sort.byTitle(_resourcesMap[state.resource.resourceGroup]!);
             });
           } else if (state is ResourceUpdated) {
-            // The resource may have moved to a different group; drop it from
-            // every list first, then add it back under its current group.
             setState(() {
               for (final resources in _resourcesMap.values) {
                 resources.removeWhere((m) => m.id == state.resource.id);

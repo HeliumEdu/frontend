@@ -10,10 +10,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:heliumapp/core/helium_exception.dart';
 import 'package:heliumapp/data/models/planner/attachment_model.dart';
 import 'package:heliumapp/data/models/planner/category_model.dart';
-import 'package:heliumapp/data/models/planner/request/category_request_model.dart';
 import 'package:heliumapp/data/models/planner/course_group_model.dart';
 import 'package:heliumapp/data/models/planner/course_model.dart';
 import 'package:heliumapp/data/models/planner/course_schedule_model.dart';
+import 'package:heliumapp/data/models/planner/request/course_request_model.dart';
 import 'package:heliumapp/data/models/planner/request/course_schedule_request_model.dart';
 import 'package:heliumapp/data/models/planner/reminder_model.dart';
 import 'package:heliumapp/domain/repositories/attachment_repository.dart';
@@ -359,7 +359,7 @@ class CourseBloc extends Bloc<CourseEvent, CourseState> {
     try {
       final course = await courseRepository.createCourse(
         event.courseGroupId,
-        event.request,
+        event.request.copyWith(template: CourseTemplate.standard.value),
       );
 
       final schedule = await _createEmptyCourseSchedule(
@@ -367,79 +367,6 @@ class CourseBloc extends Bloc<CourseEvent, CourseState> {
         course.id,
       );
       course.schedules.add(schedule);
-
-      final createCategoryRequest1 = CategoryRequestModel(
-        title: 'Homework 👨🏽‍💻',
-        weight: '0',
-        color: '#E21D55',
-      );
-      final createCategoryRequest2 = CategoryRequestModel(
-        title: 'Final Exam 📈',
-        weight: '0',
-        color: '#AF4F23',
-      );
-      final createCategoryRequest3 = CategoryRequestModel(
-        title: 'Midterm 📈',
-        weight: '0',
-        color: '#A17430',
-      );
-      final createCategoryRequest4 = CategoryRequestModel(
-        title: 'Project 🔨',
-        weight: '0',
-        color: '#05CC90',
-      );
-      final createCategoryRequest5 = CategoryRequestModel(
-        title: 'Quiz 💡',
-        weight: '0',
-        color: '#0D0E38',
-      );
-      final createCategoryRequest6 = CategoryRequestModel(
-        title: 'Reading 📖',
-        weight: '0',
-        color: '#3C1534',
-      );
-      final createCategoryRequest7 = CategoryRequestModel(
-        title: 'Lab 🧪',
-        weight: '0',
-        color: '#553555',
-      );
-      await Future.wait([
-        categoryRepository.createCategory(
-          course.courseGroup,
-          course.id,
-          createCategoryRequest1,
-        ),
-        categoryRepository.createCategory(
-          course.courseGroup,
-          course.id,
-          createCategoryRequest2,
-        ),
-        categoryRepository.createCategory(
-          course.courseGroup,
-          course.id,
-          createCategoryRequest3,
-        ),
-        categoryRepository.createCategory(
-          course.courseGroup,
-          course.id,
-          createCategoryRequest4,
-        ),
-        categoryRepository.createCategory(
-          course.courseGroup,
-          course.id,
-          createCategoryRequest5,
-        ),
-        categoryRepository.createCategory(
-          course.courseGroup,
-          course.id,
-          createCategoryRequest6,
-        ),
-        categoryRepository.createCategory(
-          course.courseGroup,
-          course.id,
-          createCategoryRequest7,
-        ),
-      ]);
 
       emit(
         CourseCreated(

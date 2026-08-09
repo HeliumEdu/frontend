@@ -303,10 +303,8 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
   /// Returns all planner items from all cached date ranges, deduplicated by type and id.
   ///
   /// [ExternalCalendarEventModel] uses a content-based key (ownerId + start + title)
-  /// instead of the platform-assigned id because the backend synthesizes sequential
-  /// ids per-request, making them unstable across different date-range queries. Once
-  /// the backend is updated to derive stable ids from the ICS event UID, this special
-  /// case can be removed and all types can use the standard type:id key.
+  /// instead of the platform-assigned id, mirroring the redundant id recomputation in
+  /// [ExternalCalendarEventModel.fromJson].
   List<PlannerItemBaseModel> get allPlannerItems {
     final seen = <String>{};
     final items = <PlannerItemBaseModel>[];

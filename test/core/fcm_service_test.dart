@@ -72,16 +72,6 @@ void main() {
           expect(route, '/planner/notifications');
         },
       );
-
-      test('does not use the legacy dialog query-param URL format', () {
-        // GIVEN/WHEN
-        final route = FcmService.notificationsRoute;
-
-        // THEN — regression guard for the legacy `?dialog=notifications`
-        // shape that no longer matches any router redirect.
-        expect(route, isNot(contains('dialog=')));
-        expect(route, isNot(contains('?')));
-      });
     });
 
     group('showLocalNotification', () {
