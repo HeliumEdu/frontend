@@ -372,7 +372,11 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
       }
 
       await dioClient.clearStorage();
-      await OAuthSignInService().signOut();
+      try {
+        await OAuthSignInService().signOut();
+      } catch (e) {
+        _log.warning('Failed to sign out of OAuth provider', e);
+      }
       SentryService().clearUser();
 
       if (refreshToken?.isNotEmpty ?? false) {
@@ -466,7 +470,11 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
 
       if (response.statusCode == 204) {
         await dioClient.clearStorage();
-        await OAuthSignInService().signOut();
+        try {
+          await OAuthSignInService().signOut();
+        } catch (e) {
+          _log.warning('Failed to sign out of OAuth provider', e);
+        }
         SentryService().clearUser();
 
         return NoContentResponseModel(message: 'Account deleted');
