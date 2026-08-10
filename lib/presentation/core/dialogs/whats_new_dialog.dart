@@ -102,7 +102,7 @@ class _WhatsNewDialogWidgetState extends State<_WhatsNewDialogWidget> {
                       icon: Icons.event_repeat,
                       title: 'Rotating Schedules',
                       description:
-                          'A/B Day, Week A/B, and cycle-day rotations, as well as other more flexible class schedule options',
+                          'A/B Day, Week A/B, and more options for class schedules',
                     ),
                     const SizedBox(height: 12),
                     _buildFeatureItem(
