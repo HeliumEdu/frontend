@@ -28,6 +28,7 @@ import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/date_time_helpers.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
+import 'package:heliumapp/utils/schedule_week_resolver.dart';
 import 'package:heliumapp/utils/url_helpers.dart';
 
 Future<void> showScheduleEditor({
@@ -99,11 +100,8 @@ class _ScheduleEditorScreenState extends BaseDialogState<ScheduleEditorScreen> {
 
   bool _isRotating = false;
   int _template = ScheduleTemplate.abDay;
-  bool _customIsWeekBased = false;
   final TextEditingController _cycleLengthController =
       TextEditingController(text: '6');
-  final TextEditingController _weekIntervalController =
-      TextEditingController(text: '2');
   int _weekOffset = 0;
   DateTime? _anchorDate;
   final Set<int> _cycleMeets = {1};
@@ -118,16 +116,10 @@ class _ScheduleEditorScreenState extends BaseDialogState<ScheduleEditorScreen> {
         .clamp(2, ScheduleTemplate.maxCycleLength);
   }
 
-  int get _effectiveWeekInterval {
-    if (_template == ScheduleTemplate.weekAb) return 2;
-    return (int.tryParse(_weekIntervalController.text) ?? 2)
-        .clamp(2, ScheduleTemplate.maxWeekInterval);
-  }
+  // Week rotations only ever repeat every other week (Week A/B).
+  int get _effectiveWeekInterval => 2;
 
-  bool get _isWeekBased =>
-      _isRotating &&
-      (_template == ScheduleTemplate.weekAb ||
-          (_template == ScheduleTemplate.custom && _customIsWeekBased));
+  bool get _isWeekBased => _isRotating && _template == ScheduleTemplate.weekAb;
 
   bool get _isDayCycle => _isRotating && !_isWeekBased;
 
@@ -237,7 +229,6 @@ class _ScheduleEditorScreenState extends BaseDialogState<ScheduleEditorScreen> {
   @override
   void dispose() {
     _cycleLengthController.dispose();
-    _weekIntervalController.dispose();
     super.dispose();
   }
 
@@ -274,11 +265,10 @@ class _ScheduleEditorScreenState extends BaseDialogState<ScheduleEditorScreen> {
           _cycleEndTimes[index] = slot.endTime;
         }
       }
-    } else if (schedule.weekInterval != null) {
+    } else if (schedule.isWeekBased) {
+      // Week rotations are only ever Week A/B (every other week).
       _isRotating = true;
-      _template = schedule.template ?? ScheduleTemplate.custom;
-      _customIsWeekBased = true;
-      _weekIntervalController.text = schedule.weekInterval.toString();
+      _template = ScheduleTemplate.weekAb;
       _weekOffset = schedule.weekOffset ?? 0;
       _anchorDate = schedule.anchorDate;
     }
@@ -399,7 +389,7 @@ class _ScheduleEditorScreenState extends BaseDialogState<ScheduleEditorScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _buildModeSelector(context),
-        const SizedBox(height: 25),
+        const SizedBox(height: 24),
         if (_isRotating)
           _buildRotatingConfig(context, scaffoldBgColor)
         else
@@ -444,15 +434,15 @@ class _ScheduleEditorScreenState extends BaseDialogState<ScheduleEditorScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text('Class Days', style: AppStyles.featureText(context)),
-        const SizedBox(height: 16),
+        const SizedBox(height: 14),
         Center(child: _buildDaySelector(context)),
         if (_selectedDays.isNotEmpty) ...[
-          const SizedBox(height: 25),
+          const SizedBox(height: 24),
           Text(
             _variesByDay ? 'Class Times' : 'Class Time',
             style: AppStyles.featureText(context),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 14),
           HeliumCheckboxListTile(
             title: Text('Varies by day', style: AppStyles.formLabel(context)),
             value: _variesByDay,
@@ -461,7 +451,7 @@ class _ScheduleEditorScreenState extends BaseDialogState<ScheduleEditorScreen> {
             visualDensity: VisualDensity.compact,
             contentPadding: EdgeInsets.zero,
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 14),
           if (_variesByDay)
             ...(_selectedDays.toList()..sort()).map(
               (dayIndex) =>
@@ -475,40 +465,31 @@ class _ScheduleEditorScreenState extends BaseDialogState<ScheduleEditorScreen> {
   }
 
   Widget _buildRotatingConfig(BuildContext context, Color scaffoldBgColor) {
+    // An API/import-created cycle whose length isn't a preset isn't a creatable
+    // option; it's surfaced (shown by its length) only when editing one.
+    final templateItems = [
+      ...ScheduleTemplate.items,
+      if (_template == ScheduleTemplate.custom)
+        ScheduleTemplate.customCycleItem(_effectiveCycleLength),
+    ];
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text('Rotation', style: AppStyles.featureText(context)),
-        const SizedBox(height: 12),
+        const SizedBox(height: 14),
         DropDown<int>(
-          initialValue: ScheduleTemplate.items.firstWhere(
+          initialValue: templateItems.firstWhere(
             (item) => item.id == _template,
-            orElse: () => ScheduleTemplate.items.first,
+            orElse: () => templateItems.first,
           ),
-          items: ScheduleTemplate.items,
+          items: templateItems,
           onChanged: (item) {
             if (item == null) return;
             _formController.markChanged();
             setState(() => _template = item.id);
           },
         ),
-        if (_template == ScheduleTemplate.custom) ...[
-          const SizedBox(height: 12),
-          SegmentedButton<bool>(
-            segments: const [
-              ButtonSegment<bool>(value: false, label: Text('Day cycle')),
-              ButtonSegment<bool>(value: true, label: Text('Week cycle')),
-            ],
-            style: _segmentedStyle(context),
-            selected: {_customIsWeekBased},
-            onSelectionChanged: (selection) {
-              _formController.markChanged();
-              setState(() => _customIsWeekBased = selection.first);
-            },
-            showSelectedIcon: false,
-          ),
-        ],
-        const SizedBox(height: 20),
+        const SizedBox(height: 14),
         if (_isWeekBased)
           _buildWeekBasedConfig(context, scaffoldBgColor)
         else
@@ -536,12 +517,12 @@ class _ScheduleEditorScreenState extends BaseDialogState<ScheduleEditorScreen> {
               },
             ),
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 14),
         ],
         _buildAnchorField(context, 'Cycle Day 1 falls on', scaffoldBgColor),
-        const SizedBox(height: 20),
+        const SizedBox(height: 24),
         Text('Class Days', style: AppStyles.featureText(context)),
-        const SizedBox(height: 12),
+        const SizedBox(height: 14),
         for (int day = 1; day <= cycleLength; day++)
           _buildCycleDayRow(context, day, scaffoldBgColor),
       ],
@@ -566,6 +547,13 @@ class _ScheduleEditorScreenState extends BaseDialogState<ScheduleEditorScreen> {
       ),
       child: child,
     );
+  }
+
+  String _cycleDayLabel(int day) {
+    if (_template == ScheduleTemplate.abDay) {
+      return day == 1 ? 'A Day' : 'B Day';
+    }
+    return 'Day $day';
   }
 
   Widget _buildCycleDayRow(BuildContext context, int day, Color bgColor) {
@@ -598,7 +586,7 @@ class _ScheduleEditorScreenState extends BaseDialogState<ScheduleEditorScreen> {
                   ),
                   const SizedBox(width: 12),
                   Text(
-                    'Day $day',
+                    _cycleDayLabel(day),
                     style: AppStyles.formLabel(context)
                         .copyWith(color: context.colorScheme.primary),
                   ),
@@ -649,6 +637,7 @@ class _ScheduleEditorScreenState extends BaseDialogState<ScheduleEditorScreen> {
         ? (_cycleStartTimes[day] ?? _defaultCycleStart)
         : (_cycleEndTimes[day] ?? _defaultCycleEnd);
     return HeliumTimeField(
+      label: isStart ? 'Start' : 'End',
       time: time,
       backgroundColor: bgColor,
       semanticsLabel: isStart ? 'Pick start time' : 'Pick end time',
@@ -693,32 +682,15 @@ class _ScheduleEditorScreenState extends BaseDialogState<ScheduleEditorScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        if (_template == ScheduleTemplate.custom) ...[
-          SizedBox(
-            width: 190,
-            child: SpinnerField(
-              label: 'Repeats every (weeks)',
-              controller: _weekIntervalController,
-              minValue: 2,
-              maxValue: ScheduleTemplate.maxWeekInterval.toDouble(),
-              onChanged: (_) {
-                _formController.markChanged();
-                setState(() {
-                  if (_weekOffset >= _effectiveWeekInterval) _weekOffset = 0;
-                });
-              },
-            ),
-          ),
-          const SizedBox(height: 20),
-        ],
         _buildWeekOffsetSelector(context),
-        const SizedBox(height: 20),
+        const SizedBox(height: 14),
         _buildAnchorField(
           context,
           'Week ${_weekOffsetLabel(0)} begins on',
           scaffoldBgColor,
         ),
-        const SizedBox(height: 20),
+        _buildAnchorPreview(context),
+        const SizedBox(height: 24),
         _buildWeeklyEditor(context, scaffoldBgColor),
       ],
     );
@@ -733,41 +705,27 @@ class _ScheduleEditorScreenState extends BaseDialogState<ScheduleEditorScreen> {
         Text('Which week', style: AppStyles.formLabel(context)),
         const SizedBox(height: 4),
         Text(
-          'The week of the rotation this class meets on; it repeats every '
-          '$interval weeks.',
+          'The week this class meets on — the A/B or odd/even week pattern, '
+          'every other week.',
           style: AppStyles.smallSecondaryText(context),
         ),
         const SizedBox(height: 12),
         Center(
-          child: Wrap(
-            alignment: WrapAlignment.center,
-            spacing: 8,
-            runSpacing: 8,
-            children: [
+          child: SegmentedButton<int>(
+            segments: [
               for (int i = 0; i < interval; i++)
-                ChoiceChip(
+                ButtonSegment<int>(
+                  value: i,
                   label: Text('Week ${_weekOffsetLabel(i)}'),
-                  selected: selected == i,
-                  showCheckmark: false,
-                  onSelected: (_) {
-                    _formController.markChanged();
-                    setState(() => _weekOffset = i);
-                  },
-                  selectedColor: context.colorScheme.primary,
-                  backgroundColor: Colors.transparent,
-                  labelStyle: AppStyles.buttonText(context).copyWith(
-                    color: selected == i
-                        ? context.colorScheme.onPrimary
-                        : context.colorScheme.onSurface,
-                  ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    side: BorderSide(
-                      color: context.colorScheme.outline.withValues(alpha: 0.5),
-                    ),
-                  ),
                 ),
             ],
+            style: _segmentedStyle(context),
+            selected: {selected},
+            onSelectionChanged: (selection) {
+              _formController.markChanged();
+              setState(() => _weekOffset = selection.first);
+            },
+            showSelectedIcon: false,
           ),
         ),
       ],
@@ -779,6 +737,34 @@ class _ScheduleEditorScreenState extends BaseDialogState<ScheduleEditorScreen> {
       return offset == 0 ? 'A' : 'B';
     }
     return '${offset + 1}';
+  }
+
+  /// A concrete confirmation of the anchor: the next few calendar weeks this
+  /// rotation actually meets, so a one-week-off anchor is caught before save.
+  Widget _buildAnchorPreview(BuildContext context) {
+    final anchor = _anchorDate;
+    if (anchor == null) return const SizedBox.shrink();
+
+    final windowStart =
+        (_overrideDates ? _startDate : null) ?? widget.courseStartDate ?? anchor;
+    final weeks = ScheduleWeekResolver.upcomingMeetingWeeks(
+      anchor: anchor,
+      interval: _effectiveWeekInterval,
+      offset: _weekOffset,
+      from: windowStart,
+    );
+    final dates = weeks
+        .map((monday) => HeliumDateTime.formatDate(monday, showYear: false))
+        .join(', ');
+
+    return Padding(
+      padding: const EdgeInsets.only(top: 8),
+      child: Text(
+        'This schedule (Week ${_weekOffsetLabel(_weekOffset)}) meets the week '
+        'of $dates.',
+        style: AppStyles.smallSecondaryText(context),
+      ),
+    );
   }
 
   Widget _buildAnchorField(BuildContext context, String label, Color bgColor) {
@@ -823,11 +809,15 @@ class _ScheduleEditorScreenState extends BaseDialogState<ScheduleEditorScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const SizedBox(height: 25),
+        const SizedBox(height: 24),
         Text('Class Dates', style: AppStyles.featureText(context)),
-        const SizedBox(height: 12),
+        const SizedBox(height: 14),
         HeliumCheckboxListTile(
           title: Text('Custom range', style: AppStyles.formLabel(context)),
+          subtitle: Text(
+            'Limit this schedule to just part of the term.',
+            style: AppStyles.smallSecondaryText(context),
+          ),
           value: _overrideDates,
           onChanged: _onOverrideDatesChanged,
           controlAffinity: ListTileControlAffinity.leading,
@@ -835,7 +825,7 @@ class _ScheduleEditorScreenState extends BaseDialogState<ScheduleEditorScreen> {
           contentPadding: EdgeInsets.zero,
         ),
         if (_overrideDates) ...[
-          const SizedBox(height: 12),
+          const SizedBox(height: 14),
           Row(
             children: [
               Expanded(
@@ -977,6 +967,7 @@ class _ScheduleEditorScreenState extends BaseDialogState<ScheduleEditorScreen> {
         : (isStart ? _startTimes[dayIndex] : _endTimes[dayIndex]);
 
     return HeliumTimeField(
+      label: isStart ? 'Start' : 'End',
       time: time,
       backgroundColor: bgColor,
       semanticsLabel: isStart ? 'Pick start time' : 'Pick end time',
@@ -1134,7 +1125,6 @@ class _ScheduleEditorScreenState extends BaseDialogState<ScheduleEditorScreen> {
         startDate: startDate,
         endDate: endDate,
         template: isPreset ? _template : null,
-        weekInterval: isPreset ? null : _effectiveWeekInterval,
         weekOffset: _weekOffset,
         anchorDate: _anchorDate,
       );
@@ -1155,7 +1145,6 @@ class _ScheduleEditorScreenState extends BaseDialogState<ScheduleEditorScreen> {
     int? cycleLength,
     DateTime? anchorDate,
     List<CourseScheduleCycleSlotModel>? cycleSlots,
-    int? weekInterval,
     int? weekOffset,
   }) {
     const off = TimeOfDay(hour: 0, minute: 0);
@@ -1184,7 +1173,6 @@ class _ScheduleEditorScreenState extends BaseDialogState<ScheduleEditorScreen> {
       cycleLength: cycleLength,
       anchorDate: anchorDate,
       cycleSlots: cycleSlots,
-      weekInterval: weekInterval,
       weekOffset: weekOffset,
     );
   }

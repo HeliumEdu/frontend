@@ -37,13 +37,13 @@ class CourseScheduleModel extends BaseModel {
 
   /// Rotating-schedule config, mutually exclusive by shape: a day cycle sets
   /// `cycleLength`/`anchorDate`/`cycleSlots`, a week-based rotation sets
-  /// `weekInterval`/`weekOffset`/`anchorDate`. `template` is the preset (null for
+  /// `isWeekBased`/`weekOffset`/`anchorDate`. `template` is the preset (null for
   /// plain weekly or Custom).
   final int? template;
   final int? cycleLength;
   final DateTime? anchorDate;
   final List<CourseScheduleCycleSlotModel> cycleSlots;
-  final int? weekInterval;
+  final bool isWeekBased;
   final int? weekOffset;
 
   final List<CourseScheduleRecurrenceGroupModel> recurrenceGroups;
@@ -72,7 +72,7 @@ class CourseScheduleModel extends BaseModel {
     this.cycleLength,
     this.anchorDate,
     this.cycleSlots = const [],
-    this.weekInterval,
+    this.isWeekBased = false,
     this.weekOffset,
     this.recurrenceGroups = const [],
   });
@@ -114,7 +114,7 @@ class CourseScheduleModel extends BaseModel {
             ),
           )
           .toList(),
-      weekInterval: json['week_interval'] as int?,
+      isWeekBased: json['is_week_based'] as bool? ?? false,
       weekOffset: json['week_offset'] as int?,
       recurrenceGroups:
           (json['recurrence_groups'] as List<dynamic>? ?? const [])
@@ -156,7 +156,7 @@ class CourseScheduleModel extends BaseModel {
           ? HeliumDateTime.formatDateForApi(anchorDate!)
           : null,
       'cycle_slots': cycleSlots.map((slot) => slot.toJson()).toList(),
-      'week_interval': weekInterval,
+      'is_week_based': isWeekBased,
       'week_offset': weekOffset,
     };
   }
@@ -226,7 +226,6 @@ class CourseScheduleModel extends BaseModel {
   }
 
   bool get isDayCycle => cycleLength != null;
-  bool get isWeekBased => weekInterval != null;
   bool get isRotating => isDayCycle || isWeekBased;
 
   /// Cycle-day labels ("Day 1") grouped by shared meeting-time range.

@@ -32,13 +32,11 @@ class CourseScheduleRequestModel {
   final DateTime? endDate;
 
   /// Rotating-schedule config (see `CourseScheduleModel`). A preset `template`
-  /// or the raw Custom fields (`cycleLength` / `weekInterval`), never both — see
-  /// `toJson`.
+  /// or the raw Custom field (`cycleLength`), never both — see `toJson`.
   final int? template;
   final int? cycleLength;
   final DateTime? anchorDate;
   final List<CourseScheduleCycleSlotModel>? cycleSlots;
-  final int? weekInterval;
   final int? weekOffset;
 
   CourseScheduleRequestModel({
@@ -63,7 +61,6 @@ class CourseScheduleRequestModel {
     this.cycleLength,
     this.anchorDate,
     this.cycleSlots,
-    this.weekInterval,
     this.weekOffset,
   });
 
@@ -95,14 +92,13 @@ class CourseScheduleRequestModel {
       'week_offset': weekOffset,
     };
 
-    // A template expands to cycle_length / week_interval server-side; sending
+    // A template expands to cycle_length / is_week_based server-side; sending
     // them alongside it conflicts, so only Custom sends the raw values.
     if (template != null) {
       json['template'] = template;
     } else {
       json['template'] = null;
       json['cycle_length'] = cycleLength;
-      json['week_interval'] = weekInterval;
     }
 
     return json;
