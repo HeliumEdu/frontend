@@ -29,6 +29,7 @@ import 'package:heliumapp/presentation/features/courses/bloc/category_state.dart
 import 'package:heliumapp/presentation/features/courses/bloc/course_bloc.dart';
 import 'package:heliumapp/presentation/features/courses/bloc/course_event.dart';
 import 'package:heliumapp/presentation/features/courses/bloc/course_state.dart';
+import 'package:heliumapp/presentation/features/courses/widgets/schedule_summary.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/attachment_bloc.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/attachment_state.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/reminder_bloc.dart';
@@ -46,7 +47,6 @@ import 'package:heliumapp/presentation/ui/components/helium_elevated_button.dart
 import 'package:heliumapp/presentation/ui/components/helium_icon_button.dart';
 import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
 import 'package:heliumapp/presentation/ui/layout/mobile_gesture_detector.dart';
-import 'package:heliumapp/presentation/ui/components/pill_badge.dart';
 import 'package:heliumapp/presentation/ui/layout/responsive_card_grid.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/course_group_helpers.dart';
@@ -873,8 +873,10 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen>
                 ],
               ),
 
-              if (course.schedules.isNotEmpty &&
-                  course.schedules[0].daysOfWeek != '0000000') ...[
+              if (course.schedules.any(
+                (schedule) =>
+                    schedule.daysOfWeek != '0000000' || schedule.isRotating,
+              )) ...[
                 const SizedBox(height: 12),
 
                 Column(children: _buildCourseScheduleContainers(course)),
@@ -896,54 +898,23 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen>
   List<Container> _buildCourseScheduleContainers(CourseModel course) {
     final List<Container> containers = [];
 
-    final schedulesByTime = _groupSchedulesByTime(course.schedules);
+    final renderable = course.schedules
+        .where((s) => s.daysOfWeek != '0000000' || s.isRotating)
+        .toList();
+    final ordered = Sort.courseSchedulesForDisplay(renderable);
 
-    for (final timeEntry in schedulesByTime.entries) {
-      final timeRange = timeEntry.key;
-      final days = timeEntry.value;
+    for (final schedule in ordered) {
+      if (schedule.groupsByTime().isEmpty) {
+        continue;
+      }
 
-      containers.add(
-        _buildGroupedScheduleContainer(days, timeRange, course.color),
-      );
+      containers.add(_buildScheduleContainer(schedule, course.color));
     }
 
     return containers;
   }
 
-  Map<String, List<String>> _groupSchedulesByTime(
-    List<CourseScheduleModel> schedules,
-  ) {
-    final Map<String, List<String>> schedulesByTime = {};
-
-    for (final schedule in schedules) {
-      if (schedule.allDaysSameTime()) {
-        final activeDays = schedule.getActiveDays();
-        if (activeDays.isNotEmpty) {
-          final timeKey = HeliumTime.formatTimeRange(
-            schedule.getStartTimeForDay(activeDays[0]),
-            schedule.getEndTimeForDay(activeDays[0]),
-          );
-          schedulesByTime.putIfAbsent(timeKey, () => []).addAll(activeDays);
-        }
-      } else {
-        for (final day in schedule.getActiveDays()) {
-          final timeKey = HeliumTime.formatTimeRange(
-            schedule.getStartTimeForDay(day),
-            schedule.getEndTimeForDay(day),
-          );
-          schedulesByTime.putIfAbsent(timeKey, () => []).add(day);
-        }
-      }
-    }
-
-    return schedulesByTime;
-  }
-
-  Container _buildGroupedScheduleContainer(
-    List<String> days,
-    String timeRange,
-    Color color,
-  ) {
+  Container _buildScheduleContainer(CourseScheduleModel schedule, Color color) {
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.all(12),
@@ -952,41 +923,10 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen>
         borderRadius: BorderRadius.circular(8),
         border: Border.all(color: BadgeColors.border(context, color)),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Wrap(
-            spacing: 6,
-            runSpacing: 6,
-            children: days.map((day) {
-              return PillBadge(text: day, color: color);
-            }).toList(),
-          ),
-
-          const SizedBox(height: 8),
-
-          Row(
-            children: [
-              Icon(
-                Icons.access_time,
-                size: Responsive.getIconSize(
-                  context,
-                  mobile: 14,
-                  tablet: 16,
-                  desktop: 18,
-                ),
-                color: context.colorScheme.onSurface.withValues(alpha: 0.4),
-              ),
-              const SizedBox(width: 4),
-              SelectableText(
-                timeRange,
-                style: AppStyles.standardBodyText(context).copyWith(
-                  color: context.colorScheme.onSurface.withValues(alpha: 0.6),
-                ),
-              ),
-            ],
-          ),
-        ],
+      child: ScheduleSummary(
+        schedule: schedule,
+        color: color,
+        selectable: true,
       ),
     );
   }

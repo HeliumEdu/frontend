@@ -7,31 +7,36 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:heliumapp/config/app_theme.dart';
-import 'package:heliumapp/data/models/planner/request/course_schedule_request_model.dart';
-import 'package:heliumapp/presentation/features/courses/dialogs/course_exceptions_dialog.dart';
-import 'package:heliumapp/presentation/features/shared/bloc/core/base_event.dart';
+import 'package:heliumapp/data/models/planner/course_schedule_model.dart';
 import 'package:heliumapp/presentation/features/courses/bloc/course_bloc.dart';
 import 'package:heliumapp/presentation/features/courses/bloc/course_event.dart';
 import 'package:heliumapp/presentation/features/courses/bloc/course_state.dart';
-import 'package:heliumapp/presentation/features/shared/controllers/basic_form_controller.dart';
-import 'package:heliumapp/presentation/features/shared/widgets/flow/multi_step_container.dart';
-import 'package:heliumapp/presentation/ui/components/helium_checkbox_list_tile.dart';
-import 'package:heliumapp/presentation/ui/layout/helium_full_screen_scroll_view.dart';
+import 'package:heliumapp/presentation/features/courses/dialogs/course_exceptions_dialog.dart';
+import 'package:heliumapp/data/models/base_model.dart';
+import 'package:heliumapp/presentation/features/planner/dialogs/confirm_delete_dialog.dart';
+import 'package:heliumapp/presentation/features/courses/widgets/schedule_card.dart';
+import 'package:heliumapp/presentation/features/courses/widgets/schedule_editor_screen.dart';
+import 'package:heliumapp/presentation/features/shared/bloc/core/base_event.dart';
 import 'package:heliumapp/presentation/ui/components/helium_elevated_button.dart';
+import 'package:heliumapp/presentation/ui/components/helium_icon_button.dart';
+import 'package:heliumapp/presentation/ui/feedback/empty_card.dart';
+import 'package:heliumapp/presentation/ui/feedback/error_card.dart';
 import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
-import 'package:heliumapp/utils/app_globals.dart';
+import 'package:heliumapp/presentation/ui/layout/helium_full_screen_scroll_view.dart';
+import 'package:heliumapp/config/app_theme.dart';
+import 'package:heliumapp/data/models/auth/user_model.dart' show UserSettingsModel;
 import 'package:heliumapp/utils/app_style.dart';
-import 'package:heliumapp/utils/date_time_helpers.dart';
-import 'package:heliumapp/utils/responsive_helpers.dart';
+import 'package:heliumapp/utils/snack_bar_helpers.dart' show SnackBarHelper;
+import 'package:heliumapp/utils/sort_helpers.dart';
 
-class CourseSchedule extends StatefulWidget {
+/// Schedule step of the course add/edit flow: a list of [ScheduleCard]s. Each
+/// schedule saves per-item through [CourseBloc], so there's no batched save here.
+class CourseSchedule extends StatelessWidget {
   final int courseGroupId;
   final int courseId;
   final bool isEdit;
   final bool isNew;
   final UserSettingsModel? userSettings;
-  final VoidCallback? onActionStarted;
 
   const CourseSchedule({
     super.key,
@@ -40,48 +45,76 @@ class CourseSchedule extends StatefulWidget {
     required this.isEdit,
     required this.isNew,
     this.userSettings,
-    this.onActionStarted,
   });
 
   @override
-  State<CourseSchedule> createState() => CourseScheduleState();
+  Widget build(BuildContext context) {
+    return _CourseScheduleContent(
+      courseGroupId: courseGroupId,
+      courseId: courseId,
+      isEdit: isEdit,
+      isNew: isNew,
+      userSettings: userSettings,
+    );
+  }
 }
 
-class CourseScheduleState extends State<CourseSchedule> {
-  final BasicFormController formController = BasicFormController();
+class _CourseScheduleContent extends StatefulWidget {
+  final int courseGroupId;
+  final int courseId;
+  final bool isEdit;
+  final bool isNew;
+  final UserSettingsModel? userSettings;
 
-  bool isLoading = true;
-  bool _isSubmitting = false;
-  int? _scheduleId;
-  bool _variesByDay = false;
-  Set<int> _selectedDays = {};
-  TimeOfDay _singleStartTime = const TimeOfDay(hour: 12, minute: 0);
-  TimeOfDay _singleEndTime = const TimeOfDay(hour: 12, minute: 50);
-  final Map<int, TimeOfDay?> _startTimes = {};
-  final Map<int, TimeOfDay?> _endTimes = {};
+  const _CourseScheduleContent({
+    required this.courseGroupId,
+    required this.courseId,
+    required this.isEdit,
+    required this.isNew,
+    this.userSettings,
+  });
+
+  @override
+  State<_CourseScheduleContent> createState() => _CourseScheduleContentState();
+}
+
+class _CourseScheduleContentState extends State<_CourseScheduleContent> {
+  bool _isLoading = true;
+  String? _error;
+  List<CourseScheduleModel> _schedules = [];
 
   List<DateTime> _courseExceptions = [];
   List<DateTime> _courseGroupExceptions = [];
   DateTime? _courseStartDate;
   DateTime? _courseEndDate;
   String? _courseTitle;
+  Color? _courseColor;
 
   @override
   void initState() {
     super.initState();
 
-    if (!widget.isEdit) formController.markChanged(userInitiated: false);
+    if (widget.isEdit) {
+      _fetchSchedules();
+      context.read<CourseBloc>().add(
+        FetchCourseScreenDataEvent(
+          origin: EventOrigin.subScreen,
+          courseGroupId: widget.courseGroupId,
+          courseId: widget.courseId,
+        ),
+      );
+    } else {
+      _isLoading = false;
+    }
+  }
 
+  void _fetchSchedules() {
+    setState(() {
+      _isLoading = true;
+      _error = null;
+    });
     context.read<CourseBloc>().add(
-      FetchCourseScheduleEvent(
-        origin: EventOrigin.subScreen,
-        courseGroupId: widget.courseGroupId,
-        courseId: widget.courseId,
-      ),
-    );
-
-    context.read<CourseBloc>().add(
-      FetchCourseScreenDataEvent(
+      FetchCourseSchedulesEvent(
         origin: EventOrigin.subScreen,
         courseGroupId: widget.courseGroupId,
         courseId: widget.courseId,
@@ -91,12 +124,24 @@ class CourseScheduleState extends State<CourseSchedule> {
 
   @override
   Widget build(BuildContext context) {
-    // Navigation and save success are handled by the parent screen's buildListeners().
-    // This widget only handles data fetching.
     return BlocListener<CourseBloc, CourseState>(
       listener: (context, state) {
-        if (state is CourseScheduleFetched) {
-          _populateInitialStateData(state);
+        if (state is CourseSchedulesFetched) {
+          setState(() {
+            _schedules = state.schedules;
+            _isLoading = false;
+          });
+        } else if (state is CourseScheduleCreated) {
+          SnackBarHelper.show(context, 'Schedule saved.');
+          setState(() => _schedules = [..._schedules, state.schedule]);
+        } else if (state is CourseScheduleUpdated) {
+          setState(() {
+            final index = _schedules.indexWhere((s) => s.id == state.schedule.id);
+            if (index >= 0) _schedules[index] = state.schedule;
+          });
+        } else if (state is CourseScheduleDeleted) {
+          SnackBarHelper.show(context, 'Schedule deleted.');
+          setState(() => _schedules.removeWhere((s) => s.id == state.id));
         } else if (state is CourseScreenDataFetched) {
           setState(() {
             _courseExceptions = state.course?.exceptions ?? [];
@@ -104,6 +149,12 @@ class CourseScheduleState extends State<CourseSchedule> {
             _courseStartDate = state.course?.startDate;
             _courseEndDate = state.course?.endDate;
             _courseTitle = state.course?.title;
+            _courseColor = state.course?.color;
+          });
+        } else if (_isFetchFailure(state)) {
+          setState(() {
+            _error = (state as CoursesError).message;
+            _isLoading = false;
           });
         }
       },
@@ -111,578 +162,162 @@ class CourseScheduleState extends State<CourseSchedule> {
     );
   }
 
-  void resetSubmitting() {
-    setState(() => _isSubmitting = false);
-  }
-
-  /// Submit the form. Called by parent screen when header save is pressed.
-  bool onSubmit() {
-    if (isLoading || _isSubmitting) return false;
-    if (_scheduleId == null) {
-      return false;
-    }
-
-    // Notify parent that action is starting (validation passed)
-    setState(() => _isSubmitting = true);
-    widget.onActionStarted?.call();
-
-    final String daysOfWeek = _generateDaysOfWeek();
-    const TimeOfDay defaultTime = TimeOfDay(hour: 0, minute: 0);
-
-    TimeOfDay sunStart, sunEnd;
-    TimeOfDay monStart, monEnd;
-    TimeOfDay tueStart, tueEnd;
-    TimeOfDay wedStart, wedEnd;
-    TimeOfDay thuStart, thuEnd;
-    TimeOfDay friStart, friEnd;
-    TimeOfDay satStart, satEnd;
-
-    if (_variesByDay) {
-      sunStart = _selectedDays.contains(0) && _startTimes[0] != null
-          ? _startTimes[0]!
-          : defaultTime;
-      sunEnd = _selectedDays.contains(0) && _endTimes[0] != null
-          ? _endTimes[0]!
-          : defaultTime;
-      monStart = _selectedDays.contains(1) && _startTimes[1] != null
-          ? _startTimes[1]!
-          : defaultTime;
-      monEnd = _selectedDays.contains(1) && _endTimes[1] != null
-          ? _endTimes[1]!
-          : defaultTime;
-      tueStart = _selectedDays.contains(2) && _startTimes[2] != null
-          ? _startTimes[2]!
-          : defaultTime;
-      tueEnd = _selectedDays.contains(2) && _endTimes[2] != null
-          ? _endTimes[2]!
-          : defaultTime;
-      wedStart = _selectedDays.contains(3) && _startTimes[3] != null
-          ? _startTimes[3]!
-          : defaultTime;
-      wedEnd = _selectedDays.contains(3) && _endTimes[3] != null
-          ? _endTimes[3]!
-          : defaultTime;
-      thuStart = _selectedDays.contains(4) && _startTimes[4] != null
-          ? _startTimes[4]!
-          : defaultTime;
-      thuEnd = _selectedDays.contains(4) && _endTimes[4] != null
-          ? _endTimes[4]!
-          : defaultTime;
-      friStart = _selectedDays.contains(5) && _startTimes[5] != null
-          ? _startTimes[5]!
-          : defaultTime;
-      friEnd = _selectedDays.contains(5) && _endTimes[5] != null
-          ? _endTimes[5]!
-          : defaultTime;
-      satStart = _selectedDays.contains(6) && _startTimes[6] != null
-          ? _startTimes[6]!
-          : defaultTime;
-      satEnd = _selectedDays.contains(6) && _endTimes[6] != null
-          ? _endTimes[6]!
-          : defaultTime;
-    } else {
-      sunStart = _singleStartTime;
-      sunEnd = _singleEndTime;
-      monStart = _singleStartTime;
-      monEnd = _singleEndTime;
-      tueStart = _singleStartTime;
-      tueEnd = _singleEndTime;
-      wedStart = _singleStartTime;
-      wedEnd = _singleEndTime;
-      thuStart = _singleStartTime;
-      thuEnd = _singleEndTime;
-      friStart = _singleStartTime;
-      friEnd = _singleEndTime;
-      satStart = _singleStartTime;
-      satEnd = _singleEndTime;
-    }
-
-    final request = CourseScheduleRequestModel(
-      daysOfWeek: daysOfWeek,
-      sunStartTime: sunStart,
-      sunEndTime: sunEnd,
-      monStartTime: monStart,
-      monEndTime: monEnd,
-      tueStartTime: tueStart,
-      tueEndTime: tueEnd,
-      wedStartTime: wedStart,
-      wedEndTime: wedEnd,
-      thuStartTime: thuStart,
-      thuEndTime: thuEnd,
-      friStartTime: friStart,
-      friEndTime: friEnd,
-      satStartTime: satStart,
-      satEndTime: satEnd,
-    );
-
-    context.read<CourseBloc>().add(
-      UpdateCourseScheduleEvent(
-        origin: EventOrigin.subScreen,
-        courseGroupId: widget.courseGroupId,
-        courseId: widget.courseId,
-        scheduleId: _scheduleId!,
-        request: request,
-      ),
-    );
-
-    return true;
-  }
+  /// A list-load failure, as opposed to a create/delete failure (which must not
+  /// discard the loaded list).
+  bool _isFetchFailure(CourseState state) =>
+      state is CoursesError &&
+      state.origin == EventOrigin.subScreen &&
+      _isLoading;
 
   Widget _buildContent(BuildContext context) {
-    if (isLoading || widget.userSettings == null) {
+    if (widget.userSettings == null) {
       return const Center(child: LoadingIndicator(expanded: false));
     }
 
-    final scaffoldBgColor = Theme.of(context).scaffoldBackgroundColor;
-
     return Column(
       children: [
-        Expanded(
-          child: HeliumFullScreenScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text('Schedules', style: AppStyles.featureText(context)),
+            Row(
+              mainAxisSize: MainAxisSize.min,
               children: [
-                Text('Schedule', style: AppStyles.featureText(context)),
-                const SizedBox(height: 14),
-                Container(
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: context.colorScheme.outline.withValues(alpha: 0.2),
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: context.colorScheme.shadow.withValues(
-                          alpha: 0.05,
-                        ),
-                        blurRadius: 8,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                  child: Material(
-                    color: context.colorScheme.surface,
-                    borderRadius: BorderRadius.circular(12),
-                    child: HeliumCheckboxListTile(
-                      title: Text(
-                        'Varies by day',
-                        style: AppStyles.formLabel(context),
-                      ),
-                      value: _variesByDay,
-                      onChanged: (value) {
-                        formController.markChanged();
-                        setState(() {
-                          _variesByDay = value!;
-                          if (_variesByDay) {
-                            for (int i = 0; i < 7; i++) {
-                              _startTimes[i] = _singleStartTime;
-                              _endTimes[i] = _singleEndTime;
-                            }
-                          } else {
-                            final firstDay = _selectedDays.firstOrNull;
-                            if (firstDay != null) {
-                              _singleStartTime = _startTimes[firstDay] ?? _singleStartTime;
-                              _singleEndTime = _endTimes[firstDay] ?? _singleEndTime;
-                            }
-                          }
-                        });
-                      },
-                      controlAffinity: ListTileControlAffinity.leading,
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 25),
-
-                Text('Class Days', style: AppStyles.featureText(context)),
-                const SizedBox(height: 16),
-                Center(
-                  child: SegmentedButton<int>(
-                    segments: CalendarConstants.dayNamesAbbrev
-                        .map(
-                          (day) => ButtonSegment<int>(
-                            value: CalendarConstants.dayNamesAbbrev.indexOf(
-                              day,
-                            ),
-                            label: Text(day),
-                          ),
-                        )
-                        .toList(),
-                    style: ButtonStyle(
-                      padding: WidgetStatePropertyAll(
-                        EdgeInsets.symmetric(
-                          horizontal: Responsive.isSlimMobile(context) ? 6 : 8,
-                        ),
-                      ),
-                      textStyle: WidgetStateProperty.all(
-                        AppStyles.buttonText(context).copyWith(
-                          fontSize: Responsive.getFontSize(
-                            context,
-                            slimMobile: 12,
-                            mobile: 13,
-                            desktop: 14,
-                          ),
-                        ),
-                      ),
-                      backgroundColor: WidgetStateProperty.resolveWith((states) {
-                        if (states.contains(WidgetState.selected)) {
-                          return context.colorScheme.primary;
-                        }
-                        return Colors.transparent;
-                      }),
-                    ),
-                    selected: _selectedDays,
-                    onSelectionChanged: (Set<int> newSelection) {
-                      formController.markChanged();
-                      setState(() {
-                        for (final dayIndex in newSelection) {
-                          if (!_selectedDays.contains(dayIndex)) {
-                            _startTimes[dayIndex] ??= _singleStartTime;
-                            _endTimes[dayIndex] ??= _singleEndTime;
-                          }
-                        }
-                        _selectedDays
-                          ..clear()
-                          ..addAll(newSelection);
-                      });
-                    },
-                    emptySelectionAllowed: true,
-                    multiSelectionEnabled: true,
-                    showSelectedIcon: false,
-                  ),
-                ),
-                const SizedBox(height: 25),
-                if (_selectedDays.isNotEmpty) ...[
-                  if (_variesByDay) ...[
-                    Text('Class Times', style: AppStyles.featureText(context)),
-                    const SizedBox(height: 16),
-                    ...(_selectedDays.toList()..sort()).map((dayIndex) {
-                      return _buildDayTimeContainer(
-                        context,
-                        dayIndex,
-                        scaffoldBgColor,
-                      );
-                    }),
-                  ] else ...[
-                    Text('Class Time', style: AppStyles.featureText(context)),
-                    const SizedBox(height: 16),
-                    _buildSingleTimeContainer(context, scaffoldBgColor),
-                  ],
-                  const SizedBox(height: 25),
+                if (widget.isEdit) ...[
+                  _buildCancellationsButton(context),
+                  const SizedBox(width: 12),
                 ],
-                _buildCancellationsButton(context),
-                const SizedBox(height: 12),
+                Semantics(
+                  label: 'Add schedule',
+                  button: true,
+                  child: HeliumIconButton(onPressed: _onAdd, icon: Icons.add),
+                ),
               ],
             ),
-          ),
+          ],
         ),
+        const SizedBox(height: 12),
+        Expanded(child: _buildList(context)),
       ],
     );
   }
 
-  Future<void> _selectTime(int dayIndex, bool isStartTime) async {
-    final pickedTime = await showTimePicker(
-      context: context,
-      initialTime: isStartTime
-          ? (_startTimes[dayIndex] ?? _singleStartTime)
-          : (_endTimes[dayIndex] ?? _singleEndTime),
-      initialEntryMode: Responsive.isTouchDevice(context)
-          ? TimePickerEntryMode.dial
-          : TimePickerEntryMode.input,
-      confirmText: 'Select',
-    );
-    if (pickedTime != null) {
-      formController.markChanged();
-      setState(() {
-        if (isStartTime) {
-          _startTimes[dayIndex] = pickedTime;
-          if (_endTimes[dayIndex] != null) {
-            _endTimes[dayIndex] = DateRangeEnforcer.adjustEndTime(
-              pickedTime,
-              _endTimes[dayIndex]!,
-            );
-          }
-        } else {
-          _endTimes[dayIndex] = pickedTime;
-          if (_startTimes[dayIndex] != null) {
-            _startTimes[dayIndex] = DateRangeEnforcer.adjustStartTime(
-              _startTimes[dayIndex]!,
-              pickedTime,
-            );
-          }
-        }
-      });
+  Widget _buildList(BuildContext context) {
+    if (_isLoading) {
+      return const Center(child: LoadingIndicator(expanded: false));
     }
-  }
 
-  Widget _buildDayTimeContainer(
-    BuildContext context,
-    int dayIndex,
-    Color bgColor,
-  ) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: context.colorScheme.surface,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(
-          color: context.colorScheme.outline.withValues(alpha: 0.2),
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: context.colorScheme.shadow.withValues(alpha: 0.04),
-            blurRadius: 6,
-            offset: const Offset(0, 1),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            CalendarConstants.dayNames[dayIndex],
-            style: AppStyles.formLabel(
-              context,
-            ).copyWith(color: context.colorScheme.primary),
-          ),
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              Expanded(
-                child: Semantics(
-                  label: 'Pick start time',
-                  button: true,
-                  child: GestureDetector(
-                    onTap: () {
-                      Feedback.forTap(context);
-                      _selectTime(dayIndex, true);
-                    },
-                    child: _buildTimeField(
-                      context,
-                      bgColor,
-                      _startTimes[dayIndex] != null
-                          ? HeliumTime.format(_startTimes[dayIndex]!)
-                          : '',
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Semantics(
-                  label: 'Pick end time',
-                  button: true,
-                  child: GestureDetector(
-                    onTap: () {
-                      Feedback.forTap(context);
-                      _selectTime(dayIndex, false);
-                    },
-                    child: _buildTimeField(
-                      context,
-                      bgColor,
-                      _endTimes[dayIndex] != null
-                          ? HeliumTime.format(_endTimes[dayIndex]!)
-                          : '',
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
+    if (_error != null) {
+      return ErrorCard(
+        message: _error!,
+        source: 'course_schedule',
+        onReload: _fetchSchedules,
+      );
+    }
 
-  Widget _buildSingleTimeContainer(BuildContext context, Color bgColor) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: context.colorScheme.surface,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(
-          color: context.colorScheme.outline.withValues(alpha: 0.2),
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: context.colorScheme.shadow.withValues(alpha: 0.04),
-            blurRadius: 6,
-            offset: const Offset(0, 1),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: Semantics(
-              label: 'Pick start time',
-              button: true,
-              child: GestureDetector(
-                onTap: () {
-                  Feedback.forTap(context);
-                  _selectSingleTime(true);
-                },
-                child: _buildTimeField(
-                  context,
-                  bgColor,
-                  HeliumTime.format(_singleStartTime),
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Semantics(
-              label: 'Pick end time',
-              button: true,
-              child: GestureDetector(
-                onTap: () {
-                  Feedback.forTap(context);
-                  _selectSingleTime(false);
-                },
-                child: _buildTimeField(
-                  context,
-                  bgColor,
-                  HeliumTime.format(_singleEndTime),
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+    if (_schedules.isEmpty) {
+      return const EmptyCard(
+        icon: Icons.date_range_outlined,
+        message: 'Click "+" to add a schedule',
+      );
+    }
 
-  Widget _buildTimeField(BuildContext context, Color bgColor, String timeText) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-      decoration: BoxDecoration(
-        color: bgColor,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(
-          color: context.colorScheme.outline.withValues(alpha: 0.3),
-        ),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(timeText, style: AppStyles.formText(context)),
-          Icon(
-            Icons.access_time,
-            color: context.colorScheme.primary,
-            size: Responsive.getIconSize(
-              context,
-              mobile: 18,
-              tablet: 20,
-              desktop: 22,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+    final schedules = Sort.courseSchedulesForDisplay(_schedules);
 
-  Widget _buildCancellationsButton(BuildContext context) {
-    if (!widget.isEdit) return const SizedBox.shrink();
-
-    return HeliumElevatedButton(
-      buttonText: 'Class Cancellations',
-      backgroundColor: context.colorScheme.onSurfaceVariant,
-      onPressed: () async {
-        await showCourseExceptionsDialog(
-          context: context,
-          courseTitle: _courseTitle ?? '',
-          courseExceptions: _courseExceptions,
-          onSave: (exceptions) async {
-            await context.read<CourseBloc>().courseRepository.updateCourseExceptions(
-              widget.courseGroupId,
-              widget.courseId,
-              exceptions,
-            );
-            if (context.mounted) {
-              context.read<CourseBloc>().add(
-                FetchCourseScreenDataEvent(
-                  origin: EventOrigin.subScreen,
-                  courseGroupId: widget.courseGroupId,
-                  courseId: widget.courseId,
-                ),
-              );
-            }
-          },
-          courseGroupExceptions: _courseGroupExceptions,
-          firstDate: _courseStartDate,
-          lastDate: _courseEndDate,
+    return ListView.builder(
+      padding: EdgeInsets.only(
+        bottom: HeliumFullScreenScrollView.insetOf(context),
+      ),
+      itemCount: schedules.length,
+      itemBuilder: (context, index) {
+        final schedule = schedules[index];
+        return ScheduleCard(
+          schedule: schedule,
+          color: _courseColor ?? context.colorScheme.primary,
+          onEdit: () => _onEdit(schedule),
+          onDelete: () => _onDelete(schedule),
         );
       },
     );
   }
 
-  void _populateInitialStateData(CourseScheduleFetched state) {
-    final schedule = state.schedule;
-    final activeDays = schedule.getActiveDayIndices();
-
-    setState(() {
-      _scheduleId = schedule.id;
-      _selectedDays = activeDays;
-      _variesByDay = !schedule.allDaysSameTime();
-
-      if (_variesByDay) {
-        for (final dayIndex in activeDays) {
-          _startTimes[dayIndex] = schedule.getStartTimeForDayIndex(dayIndex);
-          _endTimes[dayIndex] = schedule.getEndTimeForDayIndex(dayIndex);
-        }
-        final firstDay = activeDays.firstOrNull;
-        _singleStartTime = (firstDay != null ? _startTimes[firstDay] : null) ?? _singleStartTime;
-        _singleEndTime = (firstDay != null ? _endTimes[firstDay] : null) ?? _singleEndTime;
-      } else {
-        _singleStartTime = schedule.sunStartTime;
-        _singleEndTime = schedule.sunEndTime;
-      }
-
-      isLoading = false;
-    });
-  }
-
-  Future<void> _selectSingleTime(bool isStartTime) async {
-    final pickedTime = await showTimePicker(
-      context: context,
-      initialTime: isStartTime ? _singleStartTime : _singleEndTime,
-      initialEntryMode: Responsive.isTouchDevice(context)
-          ? TimePickerEntryMode.dial
-          : TimePickerEntryMode.input,
-      confirmText: 'Select',
+  void _onAdd() {
+    showScheduleEditor(
+      parentContext: context,
+      courseGroupId: widget.courseGroupId,
+      courseId: widget.courseId,
+      courseStartDate: _courseStartDate,
+      courseEndDate: _courseEndDate,
     );
-    if (pickedTime != null) {
-      formController.markChanged();
-      setState(() {
-        if (isStartTime) {
-          _singleStartTime = pickedTime;
-          _singleEndTime = DateRangeEnforcer.adjustEndTime(
-            pickedTime,
-            _singleEndTime,
-          );
-        } else {
-          _singleEndTime = pickedTime;
-          _singleStartTime = DateRangeEnforcer.adjustStartTime(
-            _singleStartTime,
-            pickedTime,
+  }
+
+  void _onEdit(CourseScheduleModel schedule) {
+    showScheduleEditor(
+      parentContext: context,
+      courseGroupId: widget.courseGroupId,
+      courseId: widget.courseId,
+      courseStartDate: _courseStartDate,
+      courseEndDate: _courseEndDate,
+      schedule: schedule,
+    );
+  }
+
+  void _onDelete(CourseScheduleModel schedule) {
+    showConfirmDeleteDialog<_DeletableSchedule>(
+      parentContext: context,
+      item: _DeletableSchedule(id: schedule.id),
+      onDelete: (_) {
+        context.read<CourseBloc>().add(
+          DeleteCourseScheduleEvent(
+            origin: EventOrigin.subScreen,
+            courseGroupId: widget.courseGroupId,
+            courseId: widget.courseId,
+            scheduleId: schedule.id,
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildCancellationsButton(BuildContext context) {
+    return HeliumElevatedButton(
+      buttonText: 'Cancellations',
+      backgroundColor: context.colorScheme.onSurfaceVariant,
+      fullWidth: false,
+      onPressed: _showCancellations,
+    );
+  }
+
+  Future<void> _showCancellations() async {
+    await showCourseExceptionsDialog(
+      context: context,
+      courseTitle: _courseTitle ?? '',
+      courseExceptions: _courseExceptions,
+      onSave: (exceptions) async {
+        await context.read<CourseBloc>().courseRepository.updateCourseExceptions(
+          widget.courseGroupId,
+          widget.courseId,
+          exceptions,
+        );
+        if (mounted) {
+          context.read<CourseBloc>().add(
+            FetchCourseScreenDataEvent(
+              origin: EventOrigin.subScreen,
+              courseGroupId: widget.courseGroupId,
+              courseId: widget.courseId,
+            ),
           );
         }
-      });
-    }
+      },
+      courseGroupExceptions: _courseGroupExceptions,
+      firstDate: _courseStartDate,
+      lastDate: _courseEndDate,
+    );
   }
+}
 
-  String _generateDaysOfWeek() {
-    final List<String> daysString = ['0', '0', '0', '0', '0', '0', '0'];
-    for (int dayIndex in _selectedDays) {
-      daysString[dayIndex] = '1';
-    }
-    return daysString.join('');
-  }
-
+/// [BaseTitledModel] adapter letting a title-less schedule reuse
+/// [showConfirmDeleteDialog]; the empty title yields its generic "this item" copy.
+class _DeletableSchedule extends BaseTitledModel {
+  _DeletableSchedule({required super.id}) : super(title: '');
 }

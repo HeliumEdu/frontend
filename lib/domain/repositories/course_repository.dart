@@ -45,7 +45,7 @@ abstract class CourseRepository {
 
   Future<void> deleteCourse(int groupId, int courseId);
 
-  Future<void> updateCourseExceptions(
+  Future<CourseModel> updateCourseExceptions(
     int groupId,
     int courseId,
     List<DateTime> exceptions,

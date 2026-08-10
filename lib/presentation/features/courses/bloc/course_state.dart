@@ -126,12 +126,6 @@ class CourseDeleted extends CourseState {
   CourseDeleted({required super.origin, required this.id});
 }
 
-class CourseScheduleFetched extends CourseState {
-  final CourseScheduleModel schedule;
-
-  CourseScheduleFetched({required super.origin, required this.schedule});
-}
-
 class CourseScheduleEventsFetched extends CourseState {
   final List<CourseScheduleEventModel> events;
 
@@ -147,4 +141,22 @@ class CourseScheduleUpdated extends CourseState {
     required this.schedule,
     required this.advanceNavOnSuccess,
   });
+}
+
+class CourseSchedulesFetched extends CourseState {
+  final List<CourseScheduleModel> schedules;
+
+  CourseSchedulesFetched({required super.origin, required this.schedules});
+}
+
+class CourseScheduleCreated extends CourseState {
+  final CourseScheduleModel schedule;
+
+  CourseScheduleCreated({required super.origin, required this.schedule});
+}
+
+class CourseScheduleDeleted extends CourseState {
+  final int id;
+
+  CourseScheduleDeleted({required super.origin, required this.id});
 }

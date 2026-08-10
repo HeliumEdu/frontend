@@ -45,4 +45,12 @@ abstract class CourseScheduleRepository {
     int scheduleId,
     CourseScheduleRequestModel request,
   );
+
+  Future<List<CourseScheduleModel>> getCourseSchedulesForCourse(
+    int groupId,
+    int courseId, {
+    bool forceRefresh = false,
+  });
+
+  Future<void> deleteCourseSchedule(int groupId, int courseId, int scheduleId);
 }

@@ -23,13 +23,13 @@ import 'package:heliumapp/presentation/ui/components/helium_checkbox_list_tile.d
 import 'package:heliumapp/utils/snack_bar_helpers.dart';
 import 'package:heliumapp/presentation/features/shared/widgets/flow/multi_step_container.dart';
 import 'package:heliumapp/presentation/ui/components/helium_icon_button.dart';
+import 'package:heliumapp/presentation/ui/components/helium_picker_field.dart';
 import 'package:heliumapp/presentation/ui/components/label_and_text_form_field.dart';
 import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
 import 'package:heliumapp/presentation/ui/components/spinner_field.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/color_helpers.dart' show HeliumColors;
 import 'package:heliumapp/utils/date_time_helpers.dart';
-import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:logging/logging.dart';
 import 'package:heliumapp/utils/url_helpers.dart';
 
@@ -132,114 +132,20 @@ class CourseDetailsState extends State<CourseDetails> {
                   Row(
                     children: [
                       Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text('From', style: AppStyles.formLabel(context)),
-                            const SizedBox(height: 9),
-                            Semantics(
-                              label: 'Pick start date',
-                              button: true,
-                              child: GestureDetector(
-                                onTap: () {
-                                  Feedback.forTap(context);
-                                  _selectDate(context, true);
-                                },
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 12,
-                                    vertical: 12,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(6),
-                                    border: Border.all(
-                                      color: context.colorScheme.outline
-                                          .withValues(alpha: 0.2),
-                                    ),
-                                    color: context.colorScheme.surface,
-                                  ),
-                                  child: Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Text(
-                                        HeliumDateTime.formatDate(
-                                          formController.startDate!,
-                                        ),
-                                        style: AppStyles.formText(context),
-                                      ),
-                                      Icon(
-                                        Icons.calendar_today,
-                                        color: context.colorScheme.primary,
-                                        size: Responsive.getIconSize(
-                                          context,
-                                          mobile: 18,
-                                          tablet: 20,
-                                          desktop: 22,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
+                        child: HeliumDateField(
+                          label: 'From',
+                          date: formController.startDate,
+                          semanticsLabel: 'Pick start date',
+                          onTap: () => _selectDate(context, true),
                         ),
                       ),
                       const SizedBox(width: 12),
                       Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text('To', style: AppStyles.formLabel(context)),
-                            const SizedBox(height: 9),
-                            Semantics(
-                              label: 'Pick end date',
-                              button: true,
-                              child: GestureDetector(
-                                onTap: () {
-                                  Feedback.forTap(context);
-                                  _selectDate(context, false);
-                                },
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 12,
-                                    vertical: 12,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(6),
-                                    border: Border.all(
-                                      color: context.colorScheme.outline
-                                          .withValues(alpha: 0.2),
-                                    ),
-                                    color: context.colorScheme.surface,
-                                  ),
-                                  child: Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Text(
-                                        HeliumDateTime.formatDate(
-                                          formController.endDate!,
-                                        ),
-                                        style: AppStyles.formText(context),
-                                      ),
-                                      Icon(
-                                        Icons.calendar_today,
-                                        color: context.colorScheme.primary,
-                                        size: Responsive.getIconSize(
-                                          context,
-                                          mobile: 18,
-                                          tablet: 20,
-                                          desktop: 22,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
+                        child: HeliumDateField(
+                          label: 'To',
+                          date: formController.endDate,
+                          semanticsLabel: 'Pick end date',
+                          onTap: () => _selectDate(context, false),
                         ),
                       ),
                     ],
@@ -344,6 +250,7 @@ class CourseDetailsState extends State<CourseDetails> {
                                 label: 'Color',
                                 selectedColor: formController.selectedColor,
                                 onColorSelected: (color) {
+                                  if (!mounted) return;
                                   formController.markChanged();
                                   setState(() {
                                     formController.selectedColor = color;

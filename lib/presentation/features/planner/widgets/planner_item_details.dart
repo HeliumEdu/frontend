@@ -12,7 +12,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/data/models/drop_down_item.dart';
 import 'package:heliumapp/data/models/planner/category_model.dart';
 import 'package:heliumapp/data/models/planner/course_group_model.dart';
@@ -37,6 +36,7 @@ import 'package:heliumapp/presentation/features/shared/controllers/basic_form_co
 import 'package:heliumapp/presentation/features/shared/widgets/flow/multi_step_container.dart';
 import 'package:heliumapp/presentation/ui/components/drop_down.dart';
 import 'package:heliumapp/presentation/ui/components/grade_label.dart';
+import 'package:heliumapp/presentation/ui/components/helium_picker_field.dart';
 import 'package:heliumapp/presentation/ui/components/helium_checkbox_list_tile.dart';
 import 'package:heliumapp/presentation/ui/components/label_and_text_form_field.dart';
 import 'package:heliumapp/presentation/ui/components/notes_editor.dart';
@@ -398,52 +398,7 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
     DateTime date,
     VoidCallback onTap,
   ) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(label, style: AppStyles.formLabel(context)),
-        const SizedBox(height: 9),
-        Semantics(
-          label: 'Pick $label date',
-          button: true,
-          child: GestureDetector(
-            onTap: () {
-              Feedback.forTap(context);
-              onTap();
-            },
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(6),
-                border: Border.all(
-                  color: context.colorScheme.outline.withValues(alpha: 0.2),
-                ),
-                color: context.colorScheme.surface,
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    HeliumDateTime.formatDate(date),
-                    style: AppStyles.formText(context),
-                  ),
-                  Icon(
-                    Icons.calendar_today,
-                    color: context.colorScheme.primary,
-                    size: Responsive.getIconSize(
-                      context,
-                      mobile: 18,
-                      tablet: 20,
-                      desktop: 22,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ],
-    );
+    return HeliumDateField(label: label, date: date, onTap: onTap);
   }
 
   Widget _buildTimePicker(
@@ -452,52 +407,7 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
     TimeOfDay time,
     VoidCallback onTap,
   ) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(label, style: AppStyles.formLabel(context)),
-        const SizedBox(height: 9),
-        Semantics(
-          label: 'Pick $label time',
-          button: true,
-          child: GestureDetector(
-            onTap: () {
-              Feedback.forTap(context);
-              onTap();
-            },
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(6),
-                border: Border.all(
-                  color: context.colorScheme.outline.withValues(alpha: 0.2),
-                ),
-                color: context.colorScheme.surface,
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    HeliumTime.format(time),
-                    style: AppStyles.formText(context),
-                  ),
-                  Icon(
-                    Icons.access_time,
-                    color: context.colorScheme.primary,
-                    size: Responsive.getIconSize(
-                      context,
-                      mobile: 18,
-                      tablet: 20,
-                      desktop: 22,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ],
-    );
+    return HeliumTimeField(label: label, time: time, onTap: onTap);
   }
 
   Widget _buildHomeworkFields(

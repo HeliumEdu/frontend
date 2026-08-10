@@ -28,6 +28,7 @@ class AppConstants {
   static const supportFeedsUrl = '$_heliumBaseUrl/support/sync-and-integration/how-to-sync-helium-out-to-google-apple-or-other-calendars-using-feeds';
   static const supportImportExportUrl = '$_heliumBaseUrl/support/import-export-and-backup/importing-and-exporting-your-data';
   static const supportGradesDashboardUrl = '$_heliumBaseUrl/support/grades-and-progress/understanding-the-grades-dashboard/';
+  static const supportSchedulesUrl = '$_heliumBaseUrl/support/classes/setting-up-and-managing-classes';
 
   static const assignmentIcon = Icons.assignment_outlined;
   static const eventIcon = Icons.event_outlined;

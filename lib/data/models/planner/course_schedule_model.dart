@@ -7,6 +7,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:heliumapp/data/models/base_model.dart';
+import 'package:heliumapp/data/models/planner/course_schedule_cycle_slot_model.dart';
 import 'package:heliumapp/data/models/planner/course_schedule_recurrence_group_model.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/date_time_helpers.dart';
@@ -29,6 +30,22 @@ class CourseScheduleModel extends BaseModel {
   final TimeOfDay satEndTime;
   final int course;
 
+  /// Optional per-schedule date window. Null means the schedule inherits the
+  /// parent course's dates.
+  final DateTime? startDate;
+  final DateTime? endDate;
+
+  /// Rotating-schedule config, mutually exclusive by shape: a day cycle sets
+  /// `cycleLength`/`anchorDate`/`cycleSlots`, a week-based rotation sets
+  /// `weekInterval`/`weekOffset`/`anchorDate`. `template` is the preset (null for
+  /// plain weekly or Custom).
+  final int? template;
+  final int? cycleLength;
+  final DateTime? anchorDate;
+  final List<CourseScheduleCycleSlotModel> cycleSlots;
+  final int? weekInterval;
+  final int? weekOffset;
+
   final List<CourseScheduleRecurrenceGroupModel> recurrenceGroups;
 
   CourseScheduleModel({
@@ -49,6 +66,14 @@ class CourseScheduleModel extends BaseModel {
     required this.satStartTime,
     required this.satEndTime,
     required this.course,
+    this.startDate,
+    this.endDate,
+    this.template,
+    this.cycleLength,
+    this.anchorDate,
+    this.cycleSlots = const [],
+    this.weekInterval,
+    this.weekOffset,
     this.recurrenceGroups = const [],
   });
 
@@ -71,6 +96,26 @@ class CourseScheduleModel extends BaseModel {
       satStartTime: HeliumTime.parse(json['sat_start_time'] as String)!,
       satEndTime: HeliumTime.parse(json['sat_end_time'] as String)!,
       course: json['course'],
+      startDate: json['start_date'] != null
+          ? DateTime.parse(json['start_date'] as String)
+          : null,
+      endDate: json['end_date'] != null
+          ? DateTime.parse(json['end_date'] as String)
+          : null,
+      template: json['template'] as int?,
+      cycleLength: json['cycle_length'] as int?,
+      anchorDate: json['anchor_date'] != null
+          ? DateTime.parse(json['anchor_date'] as String)
+          : null,
+      cycleSlots: (json['cycle_slots'] as List<dynamic>? ?? const [])
+          .map(
+            (slot) => CourseScheduleCycleSlotModel.fromJson(
+              slot as Map<String, dynamic>,
+            ),
+          )
+          .toList(),
+      weekInterval: json['week_interval'] as int?,
+      weekOffset: json['week_offset'] as int?,
       recurrenceGroups:
           (json['recurrence_groups'] as List<dynamic>? ?? const [])
               .map(
@@ -101,26 +146,51 @@ class CourseScheduleModel extends BaseModel {
       'sat_start_time': HeliumTime.formatForApi(satStartTime),
       'sat_end_time': HeliumTime.formatForApi(satEndTime),
       'course': course,
+      'start_date':
+          startDate != null ? HeliumDateTime.formatDateForApi(startDate!) : null,
+      'end_date':
+          endDate != null ? HeliumDateTime.formatDateForApi(endDate!) : null,
+      'template': template,
+      'cycle_length': cycleLength,
+      'anchor_date': anchorDate != null
+          ? HeliumDateTime.formatDateForApi(anchorDate!)
+          : null,
+      'cycle_slots': cycleSlots.map((slot) => slot.toJson()).toList(),
+      'week_interval': weekInterval,
+      'week_offset': weekOffset,
     };
   }
 
+  /// Whether every active day shares one start/end time. Inactive days are
+  /// ignored: their `00:00` is a placeholder, not a meeting time.
   bool allDaysSameTime() {
-    return (_timeEquals(sunStartTime, monStartTime) &&
-            _timeEquals(sunStartTime, tueStartTime) &&
-            _timeEquals(sunStartTime, wedStartTime) &&
-            _timeEquals(sunStartTime, thuStartTime) &&
-            _timeEquals(sunStartTime, friStartTime) &&
-            _timeEquals(sunStartTime, satStartTime)) &&
-        (_timeEquals(sunEndTime, monEndTime) &&
-            _timeEquals(sunEndTime, tueEndTime) &&
-            _timeEquals(sunEndTime, wedEndTime) &&
-            _timeEquals(sunEndTime, thuEndTime) &&
-            _timeEquals(sunEndTime, friEndTime) &&
-            _timeEquals(sunEndTime, satEndTime));
+    final activeDays = getActiveDayIndices().toList();
+    if (activeDays.length <= 1) return true;
+
+    final firstStart = getStartTimeForDayIndex(activeDays.first);
+    final firstEnd = getEndTimeForDayIndex(activeDays.first);
+    return activeDays.every(
+      (day) =>
+          _timeEquals(getStartTimeForDayIndex(day), firstStart) &&
+          _timeEquals(getEndTimeForDayIndex(day), firstEnd),
+    );
   }
 
   bool _timeEquals(TimeOfDay a, TimeOfDay b) {
     return a.hour == b.hour && a.minute == b.minute;
+  }
+
+  /// The earliest active day's start/end — the single time to show for a uniform
+  /// schedule. Reads the first active day rather than a fixed column (whose
+  /// `00:00` placeholder would mislead), and is null when no day is active.
+  TimeOfDay? get representativeStartTime {
+    final firstDay = getActiveDayIndices().firstOrNull;
+    return firstDay == null ? null : getStartTimeForDayIndex(firstDay);
+  }
+
+  TimeOfDay? get representativeEndTime {
+    final firstDay = getActiveDayIndices().firstOrNull;
+    return firstDay == null ? null : getEndTimeForDayIndex(firstDay);
   }
 
   /// Checks if the given day index (0=Sun, 6=Sat) is active in the schedule
@@ -141,6 +211,53 @@ class CourseScheduleModel extends BaseModel {
     }
     return indices;
   }
+
+  String? overrideDateRangeLabel() {
+    if (startDate == null && endDate == null) {
+      return null;
+    }
+    if (startDate != null && endDate != null) {
+      return '${HeliumDateTime.formatDate(startDate!)} to ${HeliumDateTime.formatDate(endDate!)}';
+    }
+    if (startDate != null) {
+      return 'From ${HeliumDateTime.formatDate(startDate!)}';
+    }
+    return 'Until ${HeliumDateTime.formatDate(endDate!)}';
+  }
+
+  bool get isDayCycle => cycleLength != null;
+  bool get isWeekBased => weekInterval != null;
+  bool get isRotating => isDayCycle || isWeekBased;
+
+  /// Cycle-day labels ("Day 1") grouped by shared meeting-time range.
+  Map<String, List<String>> cycleGroupsByTime() {
+    final Map<String, List<String>> byTime = {};
+    for (final slot in cycleSlots) {
+      final timeRange = HeliumTime.formatTimeRange(slot.startTime, slot.endTime);
+      final sortedIndices = slot.indices.toList()..sort();
+      for (final index in sortedIndices) {
+        byTime.putIfAbsent(timeRange, () => []).add('Day $index');
+      }
+    }
+    return byTime;
+  }
+
+  /// Active weekdays grouped by shared meeting-time range.
+  Map<String, List<String>> weeklyGroupsByTime() {
+    final Map<String, List<String>> byTime = {};
+    for (final day in getActiveDays()) {
+      final timeRange = HeliumTime.formatTimeRange(
+        getStartTimeForDay(day),
+        getEndTimeForDay(day),
+      );
+      byTime.putIfAbsent(timeRange, () => []).add(day);
+    }
+    return byTime;
+  }
+
+  /// Meeting-day labels grouped by shared time: cycle days if rotating, else weekdays.
+  Map<String, List<String>> groupsByTime() =>
+      isDayCycle ? cycleGroupsByTime() : weeklyGroupsByTime();
 
   // Helper method to get active days as abbreviated names
   List<String> getActiveDays() {

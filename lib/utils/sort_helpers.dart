@@ -8,6 +8,7 @@
 import 'package:heliumapp/data/models/base_model.dart';
 import 'package:heliumapp/data/models/planner/course_schedule_event_model.dart';
 import 'package:heliumapp/data/models/planner/course_group_model.dart';
+import 'package:heliumapp/data/models/planner/course_schedule_model.dart';
 import 'package:heliumapp/data/models/planner/homework_model.dart';
 import 'package:heliumapp/data/models/planner/note_model.dart';
 import 'package:heliumapp/data/models/planner/planner_item_base_model.dart';
@@ -146,6 +147,17 @@ class Sort {
 
   static void byStartDate(List<CourseGroupModel> list) {
     list.sort((a, b) => a.startDate.compareTo(b.startDate));
+  }
+
+  /// Date-inheriting schedules first, then date-overridden ones, each keeping
+  /// their existing order. A new list (stable partition; `List.sort` is not).
+  static List<CourseScheduleModel> courseSchedulesForDisplay(
+    List<CourseScheduleModel> schedules,
+  ) {
+    return [
+      ...schedules.where((s) => s.overrideDateRangeLabel() == null),
+      ...schedules.where((s) => s.overrideDateRangeLabel() != null),
+    ];
   }
 
   static void byStartOfRange(List<ReminderModel> list, timeZone) {

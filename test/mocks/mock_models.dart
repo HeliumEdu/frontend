@@ -19,6 +19,7 @@ import 'package:heliumapp/data/models/planner/category_model.dart';
 import 'package:heliumapp/data/models/planner/course_group_model.dart';
 import 'package:heliumapp/data/models/planner/course_model.dart';
 import 'package:heliumapp/data/models/planner/course_schedule_model.dart';
+import 'package:heliumapp/data/models/planner/request/course_schedule_request_model.dart';
 import 'package:heliumapp/data/models/planner/event_model.dart';
 import 'package:heliumapp/data/models/planner/external_calendar_event_model.dart';
 import 'package:heliumapp/data/models/planner/external_calendar_model.dart';
@@ -205,6 +206,32 @@ class MockModels {
       satStartTime: satStartTime ?? const TimeOfDay(hour: 0, minute: 0),
       satEndTime: satEndTime ?? const TimeOfDay(hour: 0, minute: 0),
       course: course,
+    );
+  }
+
+  /// Creates a mock [CourseScheduleRequestModel] with default or custom values.
+  static CourseScheduleRequestModel createCourseScheduleRequest({
+    String daysOfWeek = '0101010',
+  }) {
+    const off = TimeOfDay(hour: 0, minute: 0);
+    const start = TimeOfDay(hour: 9, minute: 0);
+    const end = TimeOfDay(hour: 10, minute: 0);
+    return CourseScheduleRequestModel(
+      daysOfWeek: daysOfWeek,
+      sunStartTime: off,
+      sunEndTime: off,
+      monStartTime: start,
+      monEndTime: end,
+      tueStartTime: off,
+      tueEndTime: off,
+      wedStartTime: start,
+      wedEndTime: end,
+      thuStartTime: off,
+      thuEndTime: off,
+      friStartTime: start,
+      friEndTime: end,
+      satStartTime: off,
+      satEndTime: off,
     );
   }
 

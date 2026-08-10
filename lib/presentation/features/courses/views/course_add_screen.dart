@@ -95,7 +95,6 @@ class CourseAddScreen extends MultiStepContainer {
 
 class _CourseAddScreenState extends MultiStepContainerState<CourseAddScreen> {
   final _detailsKey = GlobalKey<CourseDetailsState>();
-  final _scheduleKey = GlobalKey<CourseScheduleState>();
   final _attachmentsKey = GlobalKey<BaseAttachmentsState>();
 
   int? _currentCourseId;
@@ -214,9 +213,7 @@ class _CourseAddScreenState extends MultiStepContainerState<CourseAddScreen> {
     if (step == currentStep) return;
 
     if (saveAction != null) {
-      final changed = currentStep == 0
-          ? (_detailsKey.currentState?.formController.isChanged ?? true)
-          : (_scheduleKey.currentState?.formController.isChanged ?? true);
+      final changed = _detailsKey.currentState?.formController.isChanged ?? true;
       if (!changed) {
         navigateToStep(step);
         return;
@@ -240,8 +237,6 @@ class _CourseAddScreenState extends MultiStepContainerState<CourseAddScreen> {
     switch (currentStep) {
       case 0:
         return _detailsKey.currentState?.formController.isUserDirty ?? false;
-      case 1:
-        return _scheduleKey.currentState?.formController.isUserDirty ?? false;
       case 4:
         return _attachmentsKey.currentState?.hasUnsavedFiles ?? false;
       default:
@@ -266,12 +261,6 @@ class _CourseAddScreenState extends MultiStepContainerState<CourseAddScreen> {
           widgetChanged =
               _detailsKey.currentState?.formController.isChanged ?? true;
           break;
-        case 1:
-          widgetSubmit = _scheduleKey.currentState?.onSubmit;
-          widgetLoading = _scheduleKey.currentState?.isLoading ?? true;
-          widgetChanged =
-              _scheduleKey.currentState?.formController.isChanged ?? true;
-          break;
       }
       if (widgetLoading) return;
       if (!widgetChanged) {
@@ -289,10 +278,9 @@ class _CourseAddScreenState extends MultiStepContainerState<CourseAddScreen> {
     return [
       BlocListener<CourseBloc, CourseState>(
         listener: (context, state) {
-          if (state is CoursesError) {
+          if (state is CoursesError && state.origin != EventOrigin.dialog) {
             showSnackBar(context, state.message!, type: SnackType.error);
             _detailsKey.currentState?.resetSubmitting();
-            _scheduleKey.currentState?.resetSubmitting();
             setState(() { isLoading = false; isSubmitting = false; });
           } else if (state is CoursesScreenDataFetched &&
               _currentCourseGroupId == null &&
@@ -334,9 +322,6 @@ class _CourseAddScreenState extends MultiStepContainerState<CourseAddScreen> {
               _registerDirtyGuard();
             }
 
-            _navigateAfterSave();
-          } else if (state is CourseScheduleUpdated) {
-            setState(() => isSubmitting = false);
             _navigateAfterSave();
           }
         },
@@ -395,16 +380,14 @@ class _CourseAddScreenState extends MultiStepContainerState<CourseAddScreen> {
     ),
     MultiStepDefinition(
       icon: Icons.date_range_outlined,
-      tooltip: 'Schedule',
-      stepScreenType: ScreenType.entityPage,
+      tooltip: 'Schedules',
+      stepScreenType: ScreenType.subPage,
       builder: (context) => CourseSchedule(
-        key: _scheduleKey,
         courseGroupId: _currentCourseGroupId!,
         courseId: _currentCourseId!,
         isEdit: widget.isEdit || _currentCourseId != null,
         isNew: widget.isNew,
         userSettings: userSettings,
-        onActionStarted: () => setState(() => isSubmitting = true),
       ),
     ),
     MultiStepDefinition(

@@ -38,7 +38,7 @@ class PlannerBloc extends Bloc<PlannerEvent, PlannerState> {
   ) async {
     try {
       final exceptions = [...event.course.exceptions, event.date]..sort();
-      await courseRepository.updateCourseExceptions(
+      final updatedCourse = await courseRepository.updateCourseExceptions(
         event.course.courseGroup,
         event.course.id,
         exceptions,
@@ -46,7 +46,7 @@ class PlannerBloc extends Bloc<PlannerEvent, PlannerState> {
       emit(
         CourseOccurrenceSkipped(
           origin: event.origin,
-          updatedCourse: event.course.copyWith(exceptions: exceptions),
+          updatedCourse: updatedCourse,
         ),
       );
     } on HeliumException catch (e) {

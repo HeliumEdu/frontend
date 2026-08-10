@@ -94,4 +94,26 @@ class CourseScheduleRepositoryImpl implements CourseScheduleRepository {
       request,
     );
   }
+
+  @override
+  Future<List<CourseScheduleModel>> getCourseSchedulesForCourse(
+    int groupId,
+    int courseId, {
+    bool forceRefresh = false,
+  }) async {
+    return remoteDataSource.getCourseSchedulesForCourse(
+      groupId,
+      courseId,
+      forceRefresh: forceRefresh,
+    );
+  }
+
+  @override
+  Future<void> deleteCourseSchedule(
+    int groupId,
+    int courseId,
+    int scheduleId,
+  ) async {
+    return remoteDataSource.deleteCourseSchedule(groupId, courseId, scheduleId);
+  }
 }

@@ -132,17 +132,6 @@ class FetchAllCourseSchedulesEventsEvent extends CourseEvent {
   });
 }
 
-class FetchCourseScheduleEvent extends CourseEvent {
-  final int courseGroupId;
-  final int courseId;
-
-  FetchCourseScheduleEvent({
-    required super.origin,
-    required this.courseGroupId,
-    required this.courseId,
-  });
-}
-
 class UpdateCourseScheduleEvent extends CourseEvent {
   final int courseGroupId;
   final int courseId;
@@ -157,5 +146,44 @@ class UpdateCourseScheduleEvent extends CourseEvent {
     required this.scheduleId,
     required this.request,
     this.advanceNavOnSuccess = false,
+  });
+}
+
+class FetchCourseSchedulesEvent extends CourseEvent {
+  final int courseGroupId;
+  final int courseId;
+  final bool forceRefresh;
+
+  FetchCourseSchedulesEvent({
+    required super.origin,
+    required this.courseGroupId,
+    required this.courseId,
+    this.forceRefresh = false,
+  });
+}
+
+class CreateCourseScheduleEvent extends CourseEvent {
+  final int courseGroupId;
+  final int courseId;
+  final CourseScheduleRequestModel request;
+
+  CreateCourseScheduleEvent({
+    required super.origin,
+    required this.courseGroupId,
+    required this.courseId,
+    required this.request,
+  });
+}
+
+class DeleteCourseScheduleEvent extends CourseEvent {
+  final int courseGroupId;
+  final int courseId;
+  final int scheduleId;
+
+  DeleteCourseScheduleEvent({
+    required super.origin,
+    required this.courseGroupId,
+    required this.courseId,
+    required this.scheduleId,
   });
 }
