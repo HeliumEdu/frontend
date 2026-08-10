@@ -224,6 +224,7 @@ class _ScheduleEditorScreenState extends BaseDialogState<ScheduleEditorScreen> {
       _selectedDays = {1, 3, 5};
     }
     _anchorDate ??= widget.courseStartDate;
+    _normalizeCycleSelection();
   }
 
   @override
@@ -308,7 +309,12 @@ class _ScheduleEditorScreenState extends BaseDialogState<ScheduleEditorScreen> {
             color: context.colorScheme.surface,
             borderRadius: BorderRadius.circular(12),
             child: Padding(
-              padding: const EdgeInsets.all(20),
+              padding: EdgeInsets.fromLTRB(
+                20,
+                20,
+                20,
+                20 + (useCompact ? MediaQuery.of(context).padding.bottom : 0),
+              ),
               child: Form(
                 key: formController.formKey,
                 child: Column(
@@ -486,7 +492,10 @@ class _ScheduleEditorScreenState extends BaseDialogState<ScheduleEditorScreen> {
           onChanged: (item) {
             if (item == null) return;
             _formController.markChanged();
-            setState(() => _template = item.id);
+            setState(() {
+              _template = item.id;
+              _normalizeCycleSelection();
+            });
           },
         ),
         const SizedBox(height: 14),
@@ -513,7 +522,7 @@ class _ScheduleEditorScreenState extends BaseDialogState<ScheduleEditorScreen> {
               maxValue: ScheduleTemplate.maxCycleLength.toDouble(),
               onChanged: (_) {
                 _formController.markChanged();
-                setState(() {});
+                setState(_normalizeCycleSelection);
               },
             ),
           ),
@@ -615,6 +624,12 @@ class _ScheduleEditorScreenState extends BaseDialogState<ScheduleEditorScreen> {
   }
 
   void _onCycleDayChanged(int day, bool meets) {
+    // At least one cycle day must stay selected (mirrors the weekly day selector's
+    // non-empty rule) — unchecking the last remaining one is a no-op.
+    if (!meets &&
+        _cycleMeets.where((d) => d <= _effectiveCycleLength).length == 1) {
+      return;
+    }
     _formController.markChanged();
     setState(() {
       if (meets) {
@@ -625,6 +640,14 @@ class _ScheduleEditorScreenState extends BaseDialogState<ScheduleEditorScreen> {
         _cycleMeets.remove(day);
       }
     });
+  }
+
+  /// Keeps the cycle-day selection valid: drops any day beyond the current cycle
+  /// length and guarantees at least one remains (defaulting to Day 1), so the form
+  /// can't reach an empty/invalid state when the length or rotation changes.
+  void _normalizeCycleSelection() {
+    _cycleMeets.removeWhere((day) => day > _effectiveCycleLength);
+    if (_cycleMeets.isEmpty) _cycleMeets.add(1);
   }
 
   Widget _buildCycleTimeField(

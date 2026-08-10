@@ -34,7 +34,7 @@ class ScheduleSummary extends StatelessWidget {
   Widget build(BuildContext context) {
     final groups = schedule.groupsByTime().entries.toList();
     if (groups.isEmpty) {
-      return Text('No meeting days', style: AppStyles.formLabel(context));
+      return Text('This schedule is empty', style: AppStyles.formLabel(context));
     }
 
     final dateRange = schedule.overrideDateRangeLabel();

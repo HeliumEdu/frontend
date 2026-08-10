@@ -26,6 +26,7 @@ import 'package:heliumapp/presentation/ui/layout/helium_full_screen_scroll_view.
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/data/models/auth/user_model.dart' show UserSettingsModel;
 import 'package:heliumapp/utils/app_style.dart';
+import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:heliumapp/utils/snack_bar_helpers.dart' show SnackBarHelper;
 import 'package:heliumapp/utils/sort_helpers.dart';
 
@@ -280,10 +281,13 @@ class _CourseScheduleContentState extends State<_CourseScheduleContent> {
   }
 
   Widget _buildCancellationsButton(BuildContext context) {
+    final actionHeight =
+        Responsive.getIconSize(context, mobile: 20, tablet: 22, desktop: 24) + 12;
     return HeliumElevatedButton(
       buttonText: 'Cancellations',
       backgroundColor: context.colorScheme.onSurfaceVariant,
       fullWidth: false,
+      minHeight: actionHeight,
       onPressed: _showCancellations,
     );
   }
