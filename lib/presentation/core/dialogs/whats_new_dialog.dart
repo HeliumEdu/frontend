@@ -99,6 +99,14 @@ class _WhatsNewDialogWidgetState extends State<_WhatsNewDialogWidget> {
                     // newest feature first, oldest last.
                     _buildFeatureItem(
                       context,
+                      icon: Icons.event_repeat,
+                      title: 'Rotating Schedules',
+                      description:
+                          'A/B Day, Week A/B, and cycle-day rotations, as well as other more flexible class schedule options',
+                    ),
+                    const SizedBox(height: 12),
+                    _buildFeatureItem(
+                      context,
                       icon: Icons.trending_up,
                       title: 'Grade Projection',
                       description:
@@ -119,14 +127,6 @@ class _WhatsNewDialogWidgetState extends State<_WhatsNewDialogWidget> {
                       title: 'Print & Export',
                       description:
                           'Print anything across the app, including your formatted notes, or export "Todos" to CSV',
-                    ),
-                    const SizedBox(height: 12),
-                    _buildFeatureItem(
-                      context,
-                      icon: Icons.school,
-                      title: 'Class Reminders',
-                      description:
-                          "Reminders can be added to a class, so you can now receive push notifications when it's time for class",
                     ),
                     const SizedBox(height: 8),
                     const Divider(),
