@@ -99,7 +99,7 @@ class _WhatsNewDialogWidgetState extends State<_WhatsNewDialogWidget> {
                     // newest feature first, oldest last.
                     _buildFeatureItem(
                       context,
-                      icon: Icons.event_repeat,
+                      icon: Icons.autorenew,
                       title: 'Rotating Schedules',
                       description:
                           'A/B Day, Week A/B, and more options for class schedules',

@@ -76,8 +76,9 @@ class PreferencesScreenState extends State<PreferencesScreen> {
   String _selectedTimeZone = FallbackConstants.defaultTimeZone;
   String _selectedReminderOffsetType = ReminderConstants
       .offsetTypes[FallbackConstants.defaultReminderOffsetType];
-  String _selectedReminderType =
-      ReminderConstants.types[FallbackConstants.defaultReminderType];
+  String _selectedReminderType = ReminderConstants.itemForType(
+    FallbackConstants.defaultReminderType,
+  ).value!;
   bool _isShowPlannerTooltips = FallbackConstants.defaultShowPlannerTooltips;
   bool _isDragAndDropOnMobile = FallbackConstants.defaultDragAndDropOnMobile;
   bool _isSelectedColorByCategory = FallbackConstants.defaultColorByCategory;
@@ -377,13 +378,7 @@ class PreferencesScreenState extends State<PreferencesScreen> {
               initialValue: ReminderConstants.typeItems.firstWhere(
                 (rt) => rt.value == _selectedReminderType,
               ),
-              items: ReminderConstants.typeItems
-                  .where(
-                    (t) =>
-                        t.value == _selectedReminderType ||
-                        (t.value != 'Text' && t.value != 'Popup'),
-                  )
-                  .toList(),
+              items: ReminderConstants.typeItems,
               onChanged: (value) {
                 // Delay state update to avoid layout exception when items list changes
                 WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -460,7 +455,7 @@ class PreferencesScreenState extends State<PreferencesScreen> {
       gradeColor = '#${gradeColor.substring(3)}';
     }
     gradeColor = gradeColor.toLowerCase();
-    final reminderType = ReminderConstants.types.indexOf(_selectedReminderType);
+    final reminderType = ReminderConstants.typeForLabel(_selectedReminderType);
     final reminderOffsetType = ReminderConstants.offsetTypes.indexOf(
       _selectedReminderOffsetType,
     );
@@ -528,8 +523,9 @@ class PreferencesScreenState extends State<PreferencesScreen> {
       _selectedTimeZone = state.user.settings.timeZone.toString();
       _selectedReminderOffsetType = ReminderConstants
           .offsetTypes[state.user.settings.defaultReminderOffsetType];
-      _selectedReminderType =
-          ReminderConstants.types[state.user.settings.defaultReminderType];
+      _selectedReminderType = ReminderConstants.itemForType(
+        state.user.settings.defaultReminderType,
+      ).value!;
       _selectedEventColor = state.user.settings.eventsColor;
       _selectedGradeColor = state.user.settings.gradeColor;
       _selectedResourceColor = state.user.settings.resourceColor;
