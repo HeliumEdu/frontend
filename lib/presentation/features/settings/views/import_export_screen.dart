@@ -108,7 +108,7 @@ class _ImportExportScreenState extends State<ImportExportScreen> {
         Text('Import', style: AppStyles.featureText(context)),
         const SizedBox(height: 8),
         Text(
-          'Import a Helium file',
+          'Import a file',
           style: AppStyles.standardBodyTextLight(context),
         ),
         const SizedBox(height: 16),
@@ -296,7 +296,7 @@ class _ImportExportScreenState extends State<ImportExportScreen> {
     } on DioException catch (e) {
       _log.severe('Import failed.', e);
       if (mounted) {
-        final message = _extractErrorMessage(e) ?? 'Failed to import Helium file.';
+        final message = _extractErrorMessage(e) ?? 'Failed to import file.';
         SnackBarHelper.show(context, message, type: SnackType.error);
       }
     } finally {
