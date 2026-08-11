@@ -231,7 +231,7 @@ class _ImportExportScreenState extends State<ImportExportScreen> {
     final result = await HeliumStorage.pickFiles(
       maxUploadSize: info.maxUploadSize,
       allowMultiple: false,
-      allowedExtension: info.importFileTypes.first,
+      allowedExtensions: info.importFileTypes,
     );
 
     if (!mounted) return;
