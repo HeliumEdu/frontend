@@ -124,13 +124,7 @@ class _ReminderWidgetState extends BaseDialogState<_ReminderProvidedWidget> {
           initialValue: ReminderConstants.typeItems.firstWhere(
             (rt) => rt.id == _formController.reminderType,
           ),
-          items: ReminderConstants.typeItems
-              .where(
-                (t) =>
-                    t.id == _formController.reminderType ||
-                    (t.id != 2 && t.id != 0),
-              )
-              .toList(),
+          items: ReminderConstants.typeItems,
           onChanged: (value) {
             _formController.markChanged();
             setState(() {

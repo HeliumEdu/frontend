@@ -251,7 +251,7 @@ abstract class BaseReminderWidgetState<T extends BaseRemindersContent>
           child: Row(
             children: [
               Icon(
-                ReminderConstants.typeItems[reminder.type].iconData!,
+                ReminderConstants.itemForType(reminder.type).iconData!,
                 color: context.colorScheme.primary,
                 size: Responsive.getIconSize(
                   context,
@@ -266,7 +266,7 @@ abstract class BaseReminderWidgetState<T extends BaseRemindersContent>
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      '${ReminderConstants.types[reminder.type]} ${reminderOffset(reminder)} before',
+                      '${ReminderConstants.itemForType(reminder.type).value} ${reminderOffset(reminder)} before',
                       style: AppStyles.standardBodyTextLight(context).copyWith(
                         color: context.colorScheme.onSurface.withValues(
                           alpha: 0.9,

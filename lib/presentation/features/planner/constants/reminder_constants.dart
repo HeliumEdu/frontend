@@ -10,17 +10,18 @@ import 'package:heliumapp/data/models/drop_down_item.dart';
 import 'package:heliumapp/utils/dropdown_extensions.dart';
 
 class ReminderConstants {
-  static const List<String> types = ['Popup', 'Email', 'Text', 'Push'];
   static final List<DropDownItem<String>> typeItems = [
-    DropDownItem(
-      id: 0,
-      value: 'Popup',
-      iconData: Icons.notifications_outlined,
-    ),
     DropDownItem(id: 1, value: 'Email', iconData: Icons.mail_outline),
-    DropDownItem(id: 2, value: 'Text', iconData: Icons.sms_outlined),
     DropDownItem(id: 3, value: 'Push', iconData: Icons.phone_android_outlined),
   ];
+
+  /// The dropdown item for a reminder type (backend enum value).
+  static DropDownItem<String> itemForType(int type) =>
+      typeItems.firstWhere((t) => t.id == type);
+
+  /// The reminder type (backend enum value) for a display [label].
+  static int typeForLabel(String label) =>
+      typeItems.firstWhere((t) => t.value == label).id;
 
   static const List<String> offsetTypes = ['Minutes', 'Hours', 'Days', 'Weeks'];
   static final List<DropDownItem<String>> offsetTypeItems = offsetTypes
