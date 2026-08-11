@@ -283,7 +283,7 @@ void main() {
           _streamFile(name: 'backup.csv', size: 3, bytes: [1, 2, 3]),
         ]));
 
-        final result = await HeliumStorage.pickFiles(maxUploadSize: _testMaxUploadSize, allowedExtension: 'json');
+        final result = await HeliumStorage.pickFiles(maxUploadSize: _testMaxUploadSize, allowedExtensions: ['json']);
 
         expect(result.files, isEmpty);
         expect(result.errors, hasLength(1));
@@ -296,7 +296,7 @@ void main() {
           _streamFile(name: 'backup.json', size: 4, bytes: [1, 2, 3, 4]),
         ]));
 
-        final result = await HeliumStorage.pickFiles(maxUploadSize: _testMaxUploadSize, allowedExtension: 'json');
+        final result = await HeliumStorage.pickFiles(maxUploadSize: _testMaxUploadSize, allowedExtensions: ['json']);
 
         expect(result.files, hasLength(1));
         expect(result.errors, isEmpty);
@@ -309,7 +309,7 @@ void main() {
           _streamFile(name: 'backup.JSON', size: 2, bytes: [1, 2]),
         ]));
 
-        final result = await HeliumStorage.pickFiles(maxUploadSize: _testMaxUploadSize, allowedExtension: 'json');
+        final result = await HeliumStorage.pickFiles(maxUploadSize: _testMaxUploadSize, allowedExtensions: ['json']);
 
         expect(result.files, hasLength(1));
         expect(result.errors, isEmpty);
@@ -335,7 +335,7 @@ void main() {
           ),
         ]));
 
-        final result = await HeliumStorage.pickFiles(maxUploadSize: _testMaxUploadSize, allowedExtension: 'json');
+        final result = await HeliumStorage.pickFiles(maxUploadSize: _testMaxUploadSize, allowedExtensions: ['json']);
 
         expect(result.errors.first.reason, PickedFileErrorReason.wrongFileType);
       });
@@ -377,7 +377,7 @@ void main() {
         const error = PickedFileError(
           name: 'wrong.csv',
           reason: PickedFileErrorReason.wrongFileType,
-          allowedExtension: 'json',
+          allowedExtensions: ['json'],
         );
         expect(error.userMessage, 'Please select a JSON file');
       });
