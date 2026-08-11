@@ -11,6 +11,7 @@ import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/data/models/planner/course_schedule_cycle_slot_model.dart';
 import 'package:heliumapp/data/models/planner/course_schedule_model.dart';
 import 'package:heliumapp/data/models/planner/request/course_schedule_request_model.dart';
+import 'package:heliumapp/presentation/core/views/base_page_screen_state.dart';
 import 'package:heliumapp/presentation/features/courses/bloc/course_bloc.dart';
 import 'package:heliumapp/presentation/features/courses/bloc/course_event.dart';
 import 'package:heliumapp/presentation/features/courses/bloc/course_state.dart';
@@ -23,7 +24,8 @@ import 'package:heliumapp/presentation/ui/components/helium_picker_field.dart';
 import 'package:heliumapp/presentation/ui/components/spinner_field.dart';
 import 'package:heliumapp/presentation/ui/dialogs/base_dialog_state.dart';
 import 'package:heliumapp/presentation/ui/feedback/discard_changes_scope.dart';
-import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
+import 'package:heliumapp/presentation/ui/layout/helium_full_screen_scroll_view.dart';
+import 'package:heliumapp/presentation/ui/layout/page_header.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/date_time_helpers.dart';
@@ -41,21 +43,22 @@ Future<void> showScheduleEditor({
 }) {
   final courseBloc = parentContext.read<CourseBloc>();
 
-  return showDialog(
-    context: parentContext,
+  final useCompact = Responsive.useCompactLayout(parentContext);
+  return showScreenAsDialog(
+    parentContext,
     barrierDismissible: false,
-    builder: (BuildContext dialogContext) {
-      return BlocProvider<CourseBloc>.value(
-        value: courseBloc,
-        child: ScheduleEditorScreen(
-          courseGroupId: courseGroupId,
-          courseId: courseId,
-          courseStartDate: courseStartDate,
-          courseEndDate: courseEndDate,
-          schedule: schedule,
-        ),
-      );
-    },
+    width: useCompact ? double.infinity : AppConstants.centeredDialogWidth,
+    insetPadding: useCompact ? EdgeInsets.zero : const EdgeInsets.all(16),
+    child: BlocProvider<CourseBloc>.value(
+      value: courseBloc,
+      child: ScheduleEditorScreen(
+        courseGroupId: courseGroupId,
+        courseId: courseId,
+        courseStartDate: courseStartDate,
+        courseEndDate: courseEndDate,
+        schedule: schedule,
+      ),
+    ),
   );
 }
 
@@ -128,78 +131,6 @@ class _ScheduleEditorScreenState extends BaseDialogState<ScheduleEditorScreen> {
 
   @override
   BasicFormController get formController => _formController;
-
-  @override
-  Widget buildDialogHeader() {
-    final secondary = context.colorScheme.secondary;
-    return Column(
-      children: [
-        Row(
-          children: [
-            Semantics(
-              label: 'Close',
-              button: true,
-              child: IconButton(
-                style: IconButton.styleFrom(
-                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                ),
-                onPressed: isSubmitting ? null : _handleClose,
-                icon: Icon(
-                  Icons.close,
-                  color: isSubmitting
-                      ? secondary.withValues(alpha: 0.3)
-                      : secondary,
-                ),
-              ),
-            ),
-            Expanded(
-              child: Center(
-                child: Text(dialogTitle, style: AppStyles.pageTitle(context)),
-              ),
-            ),
-            Semantics(
-              label: 'Learn more',
-              button: true,
-              child: IconButton(
-                style: IconButton.styleFrom(
-                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                ),
-                onPressed: () =>
-                    UrlHelpers.launchWebUrl(AppConstants.supportSchedulesUrl),
-                tooltip: 'Learn more',
-                icon: Icon(
-                  Icons.menu_book_outlined,
-                  color: context.colorScheme.primary,
-                ),
-              ),
-            ),
-            Semantics(
-              label: 'Save',
-              button: true,
-              child: IconButton(
-                style: IconButton.styleFrom(
-                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                ),
-                onPressed: isSubmitting ? null : handleSubmit,
-                icon: isSubmitting
-                    ? const LoadingIndicator(
-                        size: 20,
-                        expanded: false,
-                        strokeWidth: 2.5,
-                      )
-                    : Icon(Icons.check, color: context.colorScheme.primary),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 12),
-      ],
-    );
-  }
-
-  // Actions live in the fixed header, not the base dialog's scrollable body.
-  @override
-  Widget buildButtonArea() => const SizedBox.shrink();
 
   Future<void> _handleClose() async {
     if (!_formController.isUserDirty) {
@@ -296,44 +227,72 @@ class _ScheduleEditorScreenState extends BaseDialogState<ScheduleEditorScreen> {
   }
 
   @override
-  Dialog buildDialog(BuildContext context) {
-    final useCompact = Responsive.useCompactLayout(context);
-    return Dialog(
-      backgroundColor: Colors.transparent,
-      insetPadding: useCompact ? EdgeInsets.zero : const EdgeInsets.all(16),
-      child: SizedBox(
-        width: useCompact ? double.infinity : AppConstants.centeredDialogWidth,
-        child: SingleChildScrollView(
-          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-          child: Material(
-            color: context.colorScheme.surface,
-            borderRadius: BorderRadius.circular(12),
-            child: Padding(
-              padding: EdgeInsets.fromLTRB(
-                20,
-                20,
-                20,
-                20 + (useCompact ? MediaQuery.of(context).padding.bottom : 0),
-              ),
-              child: Form(
-                key: formController.formKey,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    buildDialogHeader(),
-                    buildMainArea(context),
-                    if (errorMessage != null) buildErrorArea(),
-                    const SizedBox(height: 12),
-                    buildButtonArea(),
-                  ],
+  Widget build(BuildContext context) {
+    final isFullScreen = DialogModeProvider.isFullScreenMode(context);
+    final Widget content = Material(
+      color: context.colorScheme.surface,
+      child: SafeArea(
+        top: isFullScreen,
+        bottom: false,
+        left: false,
+        right: false,
+        child: Column(
+          children: [
+            PageHeader(
+              title: dialogTitle,
+              screenType: ScreenType.entityPage,
+              isLoading: isSubmitting,
+              cancelAction: _handleClose,
+              saveAction: handleSubmit,
+              additionalRightButtons: [
+                Semantics(
+                  label: 'Learn more',
+                  button: true,
+                  child: IconButton(
+                    style: IconButton.styleFrom(
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    ),
+                    tooltip: 'Learn more',
+                    onPressed: () => UrlHelpers.launchWebUrl(
+                      AppConstants.supportSchedulesUrl,
+                    ),
+                    icon: Icon(
+                      Icons.menu_book_outlined,
+                      color: context.colorScheme.primary,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            Expanded(
+              child: HeliumFullScreenScrollView(
+                keyboardDismissBehavior:
+                    ScrollViewKeyboardDismissBehavior.onDrag,
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
+                  child: Form(
+                    key: formController.formKey,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        buildMainArea(context),
+                        if (errorMessage != null) buildErrorArea(),
+                      ],
+                    ),
+                  ),
                 ),
               ),
             ),
-          ),
+          ],
         ),
       ),
     );
+
+    final listeners = buildListeners(context);
+    return listeners.isNotEmpty
+        ? MultiBlocListener(listeners: listeners, child: content)
+        : content;
   }
 
   @override
