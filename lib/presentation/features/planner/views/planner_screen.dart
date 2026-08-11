@@ -77,6 +77,7 @@ import 'package:heliumapp/presentation/features/planner/widgets/planner_item_met
 import 'package:heliumapp/presentation/features/planner/widgets/todos_data_grid.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/core/base_event.dart';
 import 'package:heliumapp/presentation/ui/components/helium_checkbox_list_tile.dart';
+import 'package:heliumapp/presentation/ui/components/helium_elevated_button.dart';
 import 'package:heliumapp/presentation/ui/components/helium_icon_button.dart';
 import 'package:heliumapp/presentation/ui/feedback/error_card.dart';
 import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
@@ -3432,6 +3433,12 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
       occurrenceDate: occurrenceDate,
       actions: CourseScheduleEventActions(
         onSkip: (date) async {
+          if (_courseMeetingCountOnDate(course, date) > 1) {
+            final confirmed = await _confirmSkipAllMeetings(course.title, date);
+            if (!confirmed || !mounted) return;
+          }
+
+          if (!context.mounted) return;
           context.read<PlannerBloc>().add(
             SkipCourseOccurrenceEvent(
               origin: EventOrigin.dialog,
@@ -3448,6 +3455,67 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
         },
       ),
     );
+  }
+
+  /// Meetings [course] has on [date] — more than one means a skip cancels
+  /// siblings too. Reuses the data source's recurrence expansion, which already
+  /// excludes existing exceptions.
+  int _courseMeetingCountOnDate(CourseModel course, DateTime date) {
+    final items = _plannerItemDataSource?.getItemsForDay(date) ?? const [];
+    return items
+        .whereType<CourseScheduleEventModel>()
+        .where((event) => event.ownerId == '${course.id}')
+        .length;
+  }
+
+  /// Warns that skipping cancels every meeting the course has that day, not just
+  /// the tapped one (skipping is a course-level cancellation). Returns `true` to
+  /// skip all.
+  Future<bool> _confirmSkipAllMeetings(String courseTitle, DateTime date) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(
+          'Skip all meetings that day?',
+          style: AppStyles.pageTitle(dialogContext),
+        ),
+        content: SizedBox(
+          width: Responsive.getDialogWidth(dialogContext),
+          child: Text(
+            '$courseTitle meets more than once on '
+            '${HeliumDateTime.formatDate(date)}. Skipping cancels all of its '
+            'meetings that day, not just this one.',
+            style: AppStyles.standardBodyText(dialogContext),
+          ),
+        ),
+        actions: [
+          SizedBox(
+            width: Responsive.getDialogWidth(dialogContext),
+            child: Row(
+              children: [
+                Expanded(
+                  child: HeliumElevatedButton(
+                    buttonText: 'Cancel',
+                    backgroundColor: dialogContext.colorScheme.outline,
+                    onPressed: () => Navigator.of(dialogContext).pop(false),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: HeliumElevatedButton(
+                    buttonText: 'Skip all',
+                    backgroundColor: dialogContext.colorScheme.error,
+                    onPressed: () => Navigator.of(dialogContext).pop(true),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+
+    return confirmed ?? false;
   }
 
   /// Shows a warning if homework dates fall outside the course's date range

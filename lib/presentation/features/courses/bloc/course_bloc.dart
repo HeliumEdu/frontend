@@ -5,16 +5,13 @@
 //
 // For details regarding the license, please refer to the LICENSE file.
 
-import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:heliumapp/core/helium_exception.dart';
 import 'package:heliumapp/data/models/planner/attachment_model.dart';
 import 'package:heliumapp/data/models/planner/category_model.dart';
 import 'package:heliumapp/data/models/planner/course_group_model.dart';
 import 'package:heliumapp/data/models/planner/course_model.dart';
-import 'package:heliumapp/data/models/planner/course_schedule_model.dart';
 import 'package:heliumapp/data/models/planner/request/course_request_model.dart';
-import 'package:heliumapp/data/models/planner/request/course_schedule_request_model.dart';
 import 'package:heliumapp/data/models/planner/reminder_model.dart';
 import 'package:heliumapp/domain/repositories/attachment_repository.dart';
 import 'package:heliumapp/domain/repositories/category_repository.dart';
@@ -43,7 +40,6 @@ class CourseBloc extends Bloc<CourseEvent, CourseState> {
     on<FetchCourseScreenDataEvent>(_onFetchCourseScreenDataEvent);
     on<FetchCoursesEvent>(_onFetchCourses);
     on<FetchCourseEvent>(_onFetchCourse);
-    on<FetchCourseScheduleEvent>(_onFetchCourseSchedule);
     on<FetchAllCourseSchedulesEventsEvent>(_onFetchAllCourseScheduleEvents);
     on<CreateCourseGroupEvent>(_onCreateCourseGroup);
     on<UpdateCourseGroupEvent>(_onUpdateCourseGroup);
@@ -52,6 +48,9 @@ class CourseBloc extends Bloc<CourseEvent, CourseState> {
     on<UpdateCourseEvent>(_onUpdateCourse);
     on<DeleteCourseEvent>(_onDeleteCourse);
     on<UpdateCourseScheduleEvent>(_onUpdateCourseSchedule);
+    on<FetchCourseSchedulesEvent>(_onFetchCourseSchedules);
+    on<CreateCourseScheduleEvent>(_onCreateCourseSchedule);
+    on<DeleteCourseScheduleEvent>(_onDeleteCourseSchedule);
     on<ResetCoursesEvent>(
       (event, emit) => emit(CourseInitial(origin: EventOrigin.bloc)),
     );
@@ -166,13 +165,6 @@ class CourseBloc extends Bloc<CourseEvent, CourseState> {
         event.courseGroupId,
         event.courseId,
       );
-      if (course.schedules.isEmpty) {
-        final schedule = await _createEmptyCourseSchedule(
-          event.courseGroupId,
-          course.id,
-        );
-        course.schedules.add(schedule);
-      }
       emit(CourseFetched(origin: event.origin, course: course));
     } on HeliumException catch (e) {
       emit(CoursesError(origin: event.origin, message: e.message));
@@ -186,37 +178,21 @@ class CourseBloc extends Bloc<CourseEvent, CourseState> {
     }
   }
 
-  Future<void> _onFetchCourseSchedule(
-    FetchCourseScheduleEvent event,
+  Future<void> _onFetchCourseSchedules(
+    FetchCourseSchedulesEvent event,
     Emitter<CourseState> emit,
   ) async {
     emit(CoursesLoading(origin: event.origin));
-
     try {
-      final schedule = await courseScheduleRepository
-          .getCourseScheduleForCourse(event.courseGroupId, event.courseId);
-      emit(CourseScheduleFetched(origin: event.origin, schedule: schedule));
-    } on HeliumException catch (e) {
-      if (e is NotFoundException || e.cause is NotFoundException) {
-        try {
-          final schedule = await _createEmptyCourseSchedule(
+      final schedules = await courseScheduleRepository
+          .getCourseSchedulesForCourse(
             event.courseGroupId,
             event.courseId,
+            forceRefresh: event.forceRefresh,
           );
-          emit(CourseScheduleFetched(origin: event.origin, schedule: schedule));
-        } on HeliumException catch (e2) {
-          emit(CoursesError(origin: event.origin, message: e2.message));
-        } catch (_) {
-          emit(
-            CoursesError(
-              origin: event.origin,
-              message: HeliumException.unexpectedError,
-            ),
-          );
-        }
-      } else {
-        emit(CoursesError(origin: event.origin, message: e.message));
-      }
+      emit(CourseSchedulesFetched(origin: event.origin, schedules: schedules));
+    } on HeliumException catch (e) {
+      emit(CoursesError(origin: event.origin, message: e.message));
     } catch (e) {
       emit(
         CoursesError(
@@ -227,34 +203,50 @@ class CourseBloc extends Bloc<CourseEvent, CourseState> {
     }
   }
 
-  Future<CourseScheduleModel> _createEmptyCourseSchedule(
-    int courseGroupId,
-    int courseId,
-  ) {
-    const defaultStart = TimeOfDay(hour: 12, minute: 0);
-    const defaultEnd = TimeOfDay(hour: 12, minute: 50);
-    final request = CourseScheduleRequestModel(
-      daysOfWeek: '0000000',
-      sunStartTime: defaultStart,
-      sunEndTime: defaultEnd,
-      monStartTime: defaultStart,
-      monEndTime: defaultEnd,
-      tueStartTime: defaultStart,
-      tueEndTime: defaultEnd,
-      wedStartTime: defaultStart,
-      wedEndTime: defaultEnd,
-      thuStartTime: defaultStart,
-      thuEndTime: defaultEnd,
-      friStartTime: defaultStart,
-      friEndTime: defaultEnd,
-      satStartTime: defaultStart,
-      satEndTime: defaultEnd,
-    );
-    return courseScheduleRepository.createCourseSchedule(
-      courseGroupId,
-      courseId,
-      request,
-    );
+  Future<void> _onCreateCourseSchedule(
+    CreateCourseScheduleEvent event,
+    Emitter<CourseState> emit,
+  ) async {
+    try {
+      final schedule = await courseScheduleRepository.createCourseSchedule(
+        event.courseGroupId,
+        event.courseId,
+        event.request,
+      );
+      emit(CourseScheduleCreated(origin: event.origin, schedule: schedule));
+    } on HeliumException catch (e) {
+      emit(CoursesError(origin: event.origin, message: e.message));
+    } catch (e) {
+      emit(
+        CoursesError(
+          origin: event.origin,
+          message: HeliumException.unexpectedError,
+        ),
+      );
+    }
+  }
+
+  Future<void> _onDeleteCourseSchedule(
+    DeleteCourseScheduleEvent event,
+    Emitter<CourseState> emit,
+  ) async {
+    try {
+      await courseScheduleRepository.deleteCourseSchedule(
+        event.courseGroupId,
+        event.courseId,
+        event.scheduleId,
+      );
+      emit(CourseScheduleDeleted(origin: event.origin, id: event.scheduleId));
+    } on HeliumException catch (e) {
+      emit(CoursesError(origin: event.origin, message: e.message));
+    } catch (e) {
+      emit(
+        CoursesError(
+          origin: event.origin,
+          message: HeliumException.unexpectedError,
+        ),
+      );
+    }
   }
 
   Future<void> _onFetchAllCourseScheduleEvents(
@@ -361,12 +353,6 @@ class CourseBloc extends Bloc<CourseEvent, CourseState> {
         event.courseGroupId,
         event.request.copyWith(template: CourseTemplate.standard.value),
       );
-
-      final schedule = await _createEmptyCourseSchedule(
-        course.courseGroup,
-        course.id,
-      );
-      course.schedules.add(schedule);
 
       emit(
         CourseCreated(

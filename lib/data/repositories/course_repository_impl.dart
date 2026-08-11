@@ -94,7 +94,7 @@ class CourseRepositoryImpl implements CourseRepository {
   }
 
   @override
-  Future<void> updateCourseExceptions(
+  Future<CourseModel> updateCourseExceptions(
     int groupId,
     int courseId,
     List<DateTime> exceptions,

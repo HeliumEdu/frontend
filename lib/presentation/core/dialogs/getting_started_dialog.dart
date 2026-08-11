@@ -60,7 +60,7 @@ const _cards = [
     description:
         'Switch between Month, Week, Day, Agenda, and Todos views. '
         'Open for details, drag to reschedule, filter, search, sort '
-        'by priority — everything you need to stay on top of your '
+        '— everything you need to stay on top of your '
         'schedule.',
     icon: Icons.calendar_month_outlined,
     imagePaths: [

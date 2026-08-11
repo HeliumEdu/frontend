@@ -337,7 +337,7 @@ Future<void> showCourseExceptionsDialog({
     context: context,
     barrierDismissible: false,
     builder: (_) => CourseExceptionsDialog(
-      title: 'Class Cancellations',
+      title: 'Cancellations',
       exceptions: courseExceptions,
       onSave: onSave,
       readOnlyExceptions: courseGroupExceptions,

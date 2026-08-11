@@ -330,53 +330,6 @@ void main() {
           ),
         ],
       );
-
-      blocTest<CourseBloc, CourseState>(
-        'self-heals by creating an empty schedule when the fetched course has none',
-        build: () {
-          when(
-            () => mockCourseRepository.getCourse(courseGroupId, courseId),
-          ).thenAnswer(
-            (_) async => MockModels.createCourse(id: courseId, schedules: []),
-          );
-          when(
-            () => mockCourseScheduleRepository.createCourseSchedule(
-              courseGroupId,
-              courseId,
-              any(),
-            ),
-          ).thenAnswer(
-            (_) async => MockModels.createCourseSchedule(daysOfWeek: '0000000'),
-          );
-          return courseBloc;
-        },
-        act: (bloc) => bloc.add(
-          FetchCourseEvent(
-            origin: EventOrigin.screen,
-            courseGroupId: courseGroupId,
-            courseId: courseId,
-          ),
-        ),
-        expect: () => [
-          isA<CoursesLoading>(),
-          isA<CourseFetched>()
-              .having((s) => s.course.schedules.length, 'schedules length', 1)
-              .having(
-                (s) => s.course.schedules.first.daysOfWeek,
-                'daysOfWeek',
-                '0000000',
-              ),
-        ],
-        verify: (_) {
-          verify(
-            () => mockCourseScheduleRepository.createCourseSchedule(
-              courseGroupId,
-              courseId,
-              any(),
-            ),
-          ).called(1);
-        },
-      );
     });
 
     group('DeleteCourseGroupEvent', () {
@@ -488,79 +441,107 @@ void main() {
       );
     });
 
-    group('FetchCourseScheduleEvent', () {
+    group('FetchCourseSchedulesEvent', () {
       const courseGroupId = 1;
       const courseId = 2;
 
       blocTest<CourseBloc, CourseState>(
-        'emits [CoursesLoading, CourseScheduleFetched] when fetch succeeds',
+        'emits [CoursesLoading, CourseSchedulesFetched] when fetch succeeds',
         build: () {
           when(
-            () => mockCourseScheduleRepository.getCourseScheduleForCourse(
+            () => mockCourseScheduleRepository.getCourseSchedulesForCourse(
               courseGroupId,
               courseId,
-            ),
-          ).thenAnswer((_) async => MockModels.createCourseSchedule());
-          return courseBloc;
-        },
-        act: (bloc) => bloc.add(
-          FetchCourseScheduleEvent(
-            origin: EventOrigin.screen,
-            courseGroupId: courseGroupId,
-            courseId: courseId,
-          ),
-        ),
-        expect: () => [isA<CoursesLoading>(), isA<CourseScheduleFetched>()],
-        verify: (_) {
-          verify(
-            () => mockCourseScheduleRepository.getCourseScheduleForCourse(
-              courseGroupId,
-              courseId,
-            ),
-          ).called(1);
-        },
-      );
-
-      blocTest<CourseBloc, CourseState>(
-        'self-heals by creating an empty schedule when none exists',
-        build: () {
-          // Mirrors what the data source actually produces: wraps the typed
-          // NotFoundException inside a generic HeliumException so the public
-          // `message` stays generic while `cause` preserves the original type.
-          when(
-            () => mockCourseScheduleRepository.getCourseScheduleForCourse(
-              courseGroupId,
-              courseId,
-            ),
-          ).thenThrow(HeliumException(
-            message: 'An unexpected error occurred.',
-            cause: NotFoundException(message: 'No Schedule found for Course'),
-          ));
-          when(
-            () => mockCourseScheduleRepository.createCourseSchedule(
-              courseGroupId,
-              courseId,
-              any(),
+              forceRefresh: any(named: 'forceRefresh'),
             ),
           ).thenAnswer(
-            (_) async => MockModels.createCourseSchedule(daysOfWeek: '0000000'),
+            (_) async => [
+              MockModels.createCourseSchedule(id: 10),
+              MockModels.createCourseSchedule(id: 11, daysOfWeek: '0010100'),
+            ],
           );
           return courseBloc;
         },
         act: (bloc) => bloc.add(
-          FetchCourseScheduleEvent(
-            origin: EventOrigin.screen,
+          FetchCourseSchedulesEvent(
+            origin: EventOrigin.subScreen,
             courseGroupId: courseGroupId,
             courseId: courseId,
           ),
         ),
         expect: () => [
           isA<CoursesLoading>(),
-          isA<CourseScheduleFetched>().having(
-            (s) => s.schedule.daysOfWeek,
-            'daysOfWeek',
-            '0000000',
+          isA<CourseSchedulesFetched>()
+              .having((s) => s.schedules.length, 'schedules length', 2),
+        ],
+        verify: (_) {
+          verify(
+            () => mockCourseScheduleRepository.getCourseSchedulesForCourse(
+              courseGroupId,
+              courseId,
+              forceRefresh: false,
+            ),
+          ).called(1);
+        },
+      );
+
+      blocTest<CourseBloc, CourseState>(
+        'emits [CoursesLoading, CoursesError] when fetch fails',
+        build: () {
+          when(
+            () => mockCourseScheduleRepository.getCourseSchedulesForCourse(
+              courseGroupId,
+              courseId,
+              forceRefresh: any(named: 'forceRefresh'),
+            ),
+          ).thenThrow(ServerException(message: 'Could not load schedules'));
+          return courseBloc;
+        },
+        act: (bloc) => bloc.add(
+          FetchCourseSchedulesEvent(
+            origin: EventOrigin.subScreen,
+            courseGroupId: courseGroupId,
+            courseId: courseId,
           ),
+        ),
+        expect: () => [
+          isA<CoursesLoading>(),
+          isA<CoursesError>().having(
+            (e) => e.message,
+            'message',
+            'Could not load schedules',
+          ),
+        ],
+      );
+    });
+
+    group('CreateCourseScheduleEvent', () {
+      const courseGroupId = 1;
+      const courseId = 2;
+
+      blocTest<CourseBloc, CourseState>(
+        'emits [CourseScheduleCreated] when create succeeds',
+        build: () {
+          when(
+            () => mockCourseScheduleRepository.createCourseSchedule(
+              courseGroupId,
+              courseId,
+              any(),
+            ),
+          ).thenAnswer((_) async => MockModels.createCourseSchedule(id: 42));
+          return courseBloc;
+        },
+        act: (bloc) => bloc.add(
+          CreateCourseScheduleEvent(
+            origin: EventOrigin.dialog,
+            courseGroupId: courseGroupId,
+            courseId: courseId,
+            request: MockModels.createCourseScheduleRequest(),
+          ),
+        ),
+        expect: () => [
+          isA<CourseScheduleCreated>()
+              .having((s) => s.schedule.id, 'schedule id', 42),
         ],
         verify: (_) {
           verify(
@@ -574,17 +555,8 @@ void main() {
       );
 
       blocTest<CourseBloc, CourseState>(
-        'emits [CoursesLoading, CoursesError] when self-heal create fails',
+        'emits [CoursesError] when create fails',
         build: () {
-          when(
-            () => mockCourseScheduleRepository.getCourseScheduleForCourse(
-              courseGroupId,
-              courseId,
-            ),
-          ).thenThrow(HeliumException(
-            message: 'An unexpected error occurred.',
-            cause: NotFoundException(message: 'No Schedule found for Course'),
-          ));
           when(
             () => mockCourseScheduleRepository.createCourseSchedule(
               courseGroupId,
@@ -595,10 +567,158 @@ void main() {
           return courseBloc;
         },
         act: (bloc) => bloc.add(
-          FetchCourseScheduleEvent(
-            origin: EventOrigin.screen,
+          CreateCourseScheduleEvent(
+            origin: EventOrigin.dialog,
             courseGroupId: courseGroupId,
             courseId: courseId,
+            request: MockModels.createCourseScheduleRequest(),
+          ),
+        ),
+        expect: () => [
+          isA<CoursesError>().having(
+            (e) => e.message,
+            'message',
+            'Could not create schedule',
+          ),
+        ],
+      );
+    });
+
+    group('DeleteCourseScheduleEvent', () {
+      const courseGroupId = 1;
+      const courseId = 2;
+      const scheduleId = 7;
+
+      blocTest<CourseBloc, CourseState>(
+        'emits [CourseScheduleDeleted] with the id when deletion succeeds',
+        build: () {
+          when(
+            () => mockCourseScheduleRepository.deleteCourseSchedule(
+              courseGroupId,
+              courseId,
+              scheduleId,
+            ),
+          ).thenAnswer((_) async {});
+          return courseBloc;
+        },
+        act: (bloc) => bloc.add(
+          DeleteCourseScheduleEvent(
+            origin: EventOrigin.subScreen,
+            courseGroupId: courseGroupId,
+            courseId: courseId,
+            scheduleId: scheduleId,
+          ),
+        ),
+        expect: () => [
+          isA<CourseScheduleDeleted>().having((s) => s.id, 'id', scheduleId),
+        ],
+        verify: (_) {
+          verify(
+            () => mockCourseScheduleRepository.deleteCourseSchedule(
+              courseGroupId,
+              courseId,
+              scheduleId,
+            ),
+          ).called(1);
+        },
+      );
+
+      blocTest<CourseBloc, CourseState>(
+        'emits [CoursesError] when deletion fails',
+        build: () {
+          when(
+            () => mockCourseScheduleRepository.deleteCourseSchedule(
+              courseGroupId,
+              courseId,
+              scheduleId,
+            ),
+          ).thenThrow(ServerException(message: 'Could not delete schedule'));
+          return courseBloc;
+        },
+        act: (bloc) => bloc.add(
+          DeleteCourseScheduleEvent(
+            origin: EventOrigin.subScreen,
+            courseGroupId: courseGroupId,
+            courseId: courseId,
+            scheduleId: scheduleId,
+          ),
+        ),
+        expect: () => [
+          isA<CoursesError>().having(
+            (e) => e.message,
+            'message',
+            'Could not delete schedule',
+          ),
+        ],
+      );
+    });
+
+    group('UpdateCourseScheduleEvent', () {
+      const courseGroupId = 1;
+      const courseId = 2;
+      const scheduleId = 5;
+
+      blocTest<CourseBloc, CourseState>(
+        'emits [CoursesLoading, CourseScheduleUpdated] when update succeeds',
+        build: () {
+          when(
+            () => mockCourseScheduleRepository.updateCourseSchedule(
+              courseGroupId,
+              courseId,
+              scheduleId,
+              any(),
+            ),
+          ).thenAnswer(
+            (_) async => MockModels.createCourseSchedule(id: scheduleId),
+          );
+          return courseBloc;
+        },
+        act: (bloc) => bloc.add(
+          UpdateCourseScheduleEvent(
+            origin: EventOrigin.dialog,
+            courseGroupId: courseGroupId,
+            courseId: courseId,
+            scheduleId: scheduleId,
+            request: MockModels.createCourseScheduleRequest(),
+          ),
+        ),
+        expect: () => [
+          isA<CoursesLoading>(),
+          isA<CourseScheduleUpdated>()
+              .having((s) => s.schedule.id, 'schedule id', scheduleId),
+        ],
+        verify: (_) {
+          verify(
+            () => mockCourseScheduleRepository.updateCourseSchedule(
+              courseGroupId,
+              courseId,
+              scheduleId,
+              any(),
+            ),
+          ).called(1);
+        },
+      );
+
+      blocTest<CourseBloc, CourseState>(
+        'emits [CoursesLoading, CoursesError] when update fails',
+        build: () {
+          when(
+            () => mockCourseScheduleRepository.updateCourseSchedule(
+              courseGroupId,
+              courseId,
+              scheduleId,
+              any(),
+            ),
+          ).thenThrow(ServerException(message: 'Could not update schedule'));
+          return courseBloc;
+        },
+        act: (bloc) => bloc.add(
+          UpdateCourseScheduleEvent(
+            origin: EventOrigin.dialog,
+            courseGroupId: courseGroupId,
+            courseId: courseId,
+            scheduleId: scheduleId,
+            request: MockModels.createCourseScheduleRequest(),
           ),
         ),
         expect: () => [
@@ -606,7 +726,7 @@ void main() {
           isA<CoursesError>().having(
             (e) => e.message,
             'message',
-            'Could not create schedule',
+            'Could not update schedule',
           ),
         ],
       );

@@ -249,6 +249,123 @@ void main() {
       });
     });
 
+    group('allDaysSameTime', () {
+      test('returns true for a uniform schedule with 00:00 off-days', () {
+        // GIVEN - MWF at one shared time; Sun/Tue/Thu/Sat inactive at 00:00
+        final schedule = CourseScheduleModel.fromJson(
+          givenCourseScheduleJson(
+            daysOfWeek: '0101010',
+            monStartTime: '09:00:00',
+            monEndTime: '10:30:00',
+            wedStartTime: '09:00:00',
+            wedEndTime: '10:30:00',
+            friStartTime: '09:00:00',
+            friEndTime: '10:30:00',
+          ),
+        );
+
+        // THEN - off-day 00:00 placeholders are ignored, not read as varying
+        expect(schedule.allDaysSameTime(), isTrue);
+      });
+
+      test('returns false when active days meet at different times', () {
+        // GIVEN - Mon/Wed at 09:00, Fri at 13:00
+        final schedule = CourseScheduleModel.fromJson(
+          givenCourseScheduleJson(
+            daysOfWeek: '0101010',
+            monStartTime: '09:00:00',
+            monEndTime: '10:30:00',
+            wedStartTime: '09:00:00',
+            wedEndTime: '10:30:00',
+            friStartTime: '13:00:00',
+            friEndTime: '14:30:00',
+          ),
+        );
+
+        // THEN
+        expect(schedule.allDaysSameTime(), isFalse);
+      });
+
+      test('returns true for a single active day', () {
+        // GIVEN - Mon only
+        final schedule = CourseScheduleModel.fromJson(
+          givenCourseScheduleJson(daysOfWeek: '0100000'),
+        );
+
+        // THEN
+        expect(schedule.allDaysSameTime(), isTrue);
+      });
+
+      test('returns true when no days are active', () {
+        // GIVEN
+        final schedule = CourseScheduleModel.fromJson(
+          givenCourseScheduleJson(daysOfWeek: '0000000'),
+        );
+
+        // THEN - vacuously uniform
+        expect(schedule.allDaysSameTime(), isTrue);
+      });
+    });
+
+    group('representativeStartTime / representativeEndTime', () {
+      test('reads the earliest active day, not a fixed column', () {
+        // GIVEN - MWF at 09:00-10:30; Sunday is inactive at 00:00
+        final schedule = CourseScheduleModel.fromJson(
+          givenCourseScheduleJson(
+            daysOfWeek: '0101010',
+            sunStartTime: '00:00:00',
+            sunEndTime: '00:00:00',
+            monStartTime: '09:00:00',
+            monEndTime: '10:30:00',
+          ),
+        );
+
+        // THEN - Monday (first active), never Sunday's 00:00 placeholder
+        expect(
+          schedule.representativeStartTime,
+          equals(const TimeOfDay(hour: 9, minute: 0)),
+        );
+        expect(
+          schedule.representativeEndTime,
+          equals(const TimeOfDay(hour: 10, minute: 30)),
+        );
+      });
+
+      test('reads the first active day when Sunday is inactive on a TTh schedule', () {
+        // GIVEN - Tue/Thu at 13:30-15:20
+        final schedule = CourseScheduleModel.fromJson(
+          givenCourseScheduleJson(
+            daysOfWeek: '0010100',
+            tueStartTime: '13:30:00',
+            tueEndTime: '15:20:00',
+            thuStartTime: '13:30:00',
+            thuEndTime: '15:20:00',
+          ),
+        );
+
+        // THEN - Tuesday (first active)
+        expect(
+          schedule.representativeStartTime,
+          equals(const TimeOfDay(hour: 13, minute: 30)),
+        );
+        expect(
+          schedule.representativeEndTime,
+          equals(const TimeOfDay(hour: 15, minute: 20)),
+        );
+      });
+
+      test('returns null when no days are active', () {
+        // GIVEN - a day-cycle-style row stores 0000000
+        final schedule = CourseScheduleModel.fromJson(
+          givenCourseScheduleJson(daysOfWeek: '0000000'),
+        );
+
+        // THEN
+        expect(schedule.representativeStartTime, isNull);
+        expect(schedule.representativeEndTime, isNull);
+      });
+    });
+
     group('getActiveDays', () {
       test('returns abbreviated day names for active days', () {
         // GIVEN - MWF schedule

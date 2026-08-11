@@ -58,7 +58,7 @@ abstract class CourseRemoteDataSource extends BaseDataSource {
 
   Future<void> deleteCourse(int groupId, int courseId);
 
-  Future<void> updateCourseExceptions(
+  Future<CourseModel> updateCourseExceptions(
     int groupId,
     int courseId,
     List<DateTime> exceptions,
@@ -414,7 +414,7 @@ class CourseRemoteDataSourceImpl extends CourseRemoteDataSource {
   }
 
   @override
-  Future<void> updateCourseExceptions(
+  Future<CourseModel> updateCourseExceptions(
     int groupId,
     int courseId,
     List<DateTime> exceptions,
@@ -430,6 +430,7 @@ class CourseRemoteDataSourceImpl extends CourseRemoteDataSource {
       if (response.statusCode == 200) {
         _log.info('... exceptions for Course $courseId updated');
         await dioClient.cacheService.invalidateAll();
+        return CourseModel.fromJson(response.data);
       } else {
         throw ServerException(
           message: 'Failed to update exceptions.',

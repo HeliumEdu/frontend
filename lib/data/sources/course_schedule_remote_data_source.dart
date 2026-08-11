@@ -40,6 +40,14 @@ abstract class CourseScheduleRemoteDataSource extends BaseDataSource {
     int scheduleId,
     CourseScheduleRequestModel request,
   );
+
+  Future<List<CourseScheduleModel>> getCourseSchedulesForCourse(
+    int groupId,
+    int courseId, {
+    bool forceRefresh = false,
+  });
+
+  Future<void> deleteCourseSchedule(int groupId, int courseId, int scheduleId);
 }
 
 class CourseScheduleRemoteDataSourceImpl
@@ -200,6 +208,78 @@ class CourseScheduleRemoteDataSourceImpl
       } else {
         throw ServerException(
           message: 'Failed to update class schedule.',
+          code: response.statusCode.toString(),
+        );
+      }
+    } on DioException catch (e, s) {
+      throw handleDioError(e, s);
+    } catch (e, s) {
+      _log.severe('An unexpected error occurred', e, s);
+      throw HeliumException(message: HeliumException.unexpectedError, cause: e);
+    }
+  }
+
+  @override
+  Future<List<CourseScheduleModel>> getCourseSchedulesForCourse(
+    int groupId,
+    int courseId, {
+    bool forceRefresh = false,
+  }) async {
+    try {
+      _log.info('Fetching CourseSchedules for Course $courseId ...');
+
+      final response = await dioClient.dio.get(
+        ApiUrl.plannerCourseGroupsCoursesSchedulesListUrl(groupId, courseId),
+        options: forceRefresh
+            ? dioClient.cacheService.forceRefreshOptions()
+            : null,
+      );
+
+      if (response.statusCode == 200 && response.data is List) {
+        final schedules = (response.data as List)
+            .map((schedule) => CourseScheduleModel.fromJson(schedule))
+            .toList();
+        _log.info(
+          '... fetched ${schedules.length} CourseSchedule(s) for Course $courseId',
+        );
+        return schedules;
+      } else {
+        throw ServerException(
+          message: 'Failed to fetch schedules.',
+          code: response.statusCode.toString(),
+        );
+      }
+    } on DioException catch (e, s) {
+      throw handleDioError(e, s);
+    } catch (e, s) {
+      _log.severe('An unexpected error occurred', e, s);
+      throw HeliumException(message: HeliumException.unexpectedError, cause: e);
+    }
+  }
+
+  @override
+  Future<void> deleteCourseSchedule(
+    int groupId,
+    int courseId,
+    int scheduleId,
+  ) async {
+    try {
+      _log.info('Deleting CourseSchedule $scheduleId for Course $courseId ...');
+
+      final response = await dioClient.dio.delete(
+        ApiUrl.plannerCourseGroupsCoursesSchedulesDetailsUrl(
+          groupId,
+          courseId,
+          scheduleId,
+        ),
+      );
+
+      if (response.statusCode == 204 || response.statusCode == 200) {
+        _log.info('... CourseSchedule $scheduleId deleted');
+        await dioClient.cacheService.invalidateAll();
+      } else {
+        throw ServerException(
+          message: 'Failed to delete class schedule.',
           code: response.statusCode.toString(),
         );
       }
