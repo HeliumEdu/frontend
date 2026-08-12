@@ -43,9 +43,8 @@ final _log = Logger('presentation.settings');
 /// Where an imported `.ics` lands. `header` is a non-selectable group label in the picker.
 enum _TargetKind { header, newCourse, existingCourse, events }
 
-/// A selectable destination in the ICS import picker. `id` is a course group id for
-/// [_TargetKind.newCourse]/[_TargetKind.header] and a course id for
-/// [_TargetKind.existingCourse]; it is null for [_TargetKind.events].
+/// A picker destination. `id` is a course-group id for `newCourse`/`header`, a course
+/// id for `existingCourse`, and null for `events`.
 class _ImportTarget {
   final _TargetKind kind;
   final int? id;
@@ -143,8 +142,6 @@ class _ImportExportScreenState extends State<ImportExportScreen> {
         Text('Import a file', style: AppStyles.standardBodyTextLight(context)),
         const SizedBox(height: 16),
         IntrinsicHeight(
-          // Bounds the row height so `stretch` can size the file field to the "Choose"
-          // button (the taller child, and thus the height-driver) inside this scroll view.
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
