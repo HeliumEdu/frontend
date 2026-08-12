@@ -13,6 +13,7 @@ import 'package:go_router/go_router.dart';
 import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/config/app_router.dart';
 import 'package:heliumapp/config/app_theme.dart';
+import 'package:heliumapp/config/donation_config.dart';
 import 'package:heliumapp/config/pref_service.dart';
 import 'package:heliumapp/core/dio_client.dart';
 import 'package:heliumapp/core/notification_count_service.dart';
@@ -502,13 +503,15 @@ class _NavigationShellState extends State<NavigationShell> {
           ],
           if (!PageHeader.showSettingsInHeader(context)) ...[
             if (!Responsive.isPhoneLandscape(context)) ...[
-              _buildAppStoreButton(
-                context: context,
-                icon: Icons.volunteer_activism,
-                tooltip: 'Keep Helium Free',
-                url: AppConstants.patreonUrl,
-              ),
-              const SizedBox(width: 40, child: Divider()),
+              if (showDonationLink) ...[
+                _buildAppStoreButton(
+                  context: context,
+                  icon: Icons.volunteer_activism,
+                  tooltip: 'Keep Helium Free',
+                  url: AppConstants.patreonUrl,
+                ),
+                const SizedBox(width: 40, child: Divider()),
+              ],
             ],
             settingsButton,
           ],

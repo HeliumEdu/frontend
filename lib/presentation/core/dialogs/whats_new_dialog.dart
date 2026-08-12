@@ -8,6 +8,7 @@
 import 'package:flutter/material.dart';
 import 'package:heliumapp/config/app_router.dart';
 import 'package:heliumapp/config/app_theme.dart';
+import 'package:heliumapp/config/donation_config.dart';
 import 'package:heliumapp/core/whats_new_service.dart';
 import 'package:heliumapp/presentation/navigation/shell/navigation_shell.dart';
 import 'package:heliumapp/presentation/ui/components/helium_elevated_button.dart';
@@ -128,10 +129,12 @@ class _WhatsNewDialogWidgetState extends State<_WhatsNewDialogWidget> {
                       description:
                           'Print anything across the app, including your formatted notes, or export "Todos" to CSV',
                     ),
-                    const SizedBox(height: 8),
-                    const Divider(),
-                    const SizedBox(height: 8),
-                    const SupportHeliumCard(compact: true),
+                    if (showDonationLink) ...[
+                      const SizedBox(height: 8),
+                      const Divider(),
+                      const SizedBox(height: 8),
+                      const SupportHeliumCard(compact: true),
+                    ],
                   ],
                 ),
               ),

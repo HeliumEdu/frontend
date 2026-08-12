@@ -16,6 +16,7 @@ import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/config/app_router.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/config/dirty_dialog_registry.dart';
+import 'package:heliumapp/config/donation_config.dart';
 import 'package:heliumapp/config/theme_notifier.dart';
 import 'package:heliumapp/core/analytics_service.dart';
 import 'package:heliumapp/data/models/auth/request/update_settings_request_model.dart';
@@ -488,9 +489,11 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
           children: [
             _buildProfileArea(),
 
-            const SizedBox(height: 12),
+            if (showDonationLink) ...[
+              const SizedBox(height: 12),
 
-            const SupportHeliumCard(),
+              const SupportHeliumCard(),
+            ],
 
             const SizedBox(height: 12),
 
