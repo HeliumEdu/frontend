@@ -37,7 +37,12 @@ final _log = Logger('presentation.widgets');
 enum NotebookColumn {
   title(label: 'Title'),
   due(label: 'Due', minViewportWidth: 900, mobileWidth: 144, desktopWidth: 154),
-  linkedTo(label: 'Linked To', mobileWidth: 130, tabletWidth: 150, desktopWidth: 200),
+  linkedTo(
+    label: 'Linked To',
+    mobileWidth: 130,
+    tabletWidth: 150,
+    desktopWidth: 200,
+  ),
   modified(label: 'Modified', minViewportWidth: 950, fixedWidth: 136);
 
   const NotebookColumn({
@@ -148,7 +153,10 @@ class _NotebookDataGridState extends BaseDataGridState<NotebookDataGrid> {
     final totalItems = widget.notes.length;
     final totalPages = isShowingAll
         ? 1
-        : (totalItems / widget.rowsPerPage).ceil().clamp(1, double.maxFinite.toInt());
+        : (totalItems / widget.rowsPerPage).ceil().clamp(
+            1,
+            double.maxFinite.toInt(),
+          );
 
     var effectiveCurrentPage = _currentPage;
     if (effectiveCurrentPage > totalPages && totalPages > 0) {
@@ -336,31 +344,36 @@ class _NotebookDataGridState extends BaseDataGridState<NotebookDataGrid> {
 
     final emptyState = !widget.isLoading && widget.notes.isEmpty
         ? !widget.hasAnyNotes
-            ? const EmptyCard(
-                expanded: false,
-                icon: Icons.library_books,
-                title: "You haven't added any notes yet",
-                message: 'Click "+" to get started',
-              )
-            : Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      Icons.library_books,
-                      size: 48,
-                      color: context.colorScheme.onSurface.withValues(alpha: 0.3),
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      widget.emptyMessage ?? 'No notes found',
-                      style: AppStyles.standardBodyTextLight(context).copyWith(
-                        color: context.colorScheme.onSurface.withValues(alpha: 0.5),
+              ? const EmptyCard(
+                  expanded: false,
+                  icon: Icons.library_books,
+                  title: "You haven't added any notes yet",
+                  message: 'Click "+" to get started',
+                )
+              : Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.library_books,
+                        size: 48,
+                        color: context.colorScheme.onSurface.withValues(
+                          alpha: 0.3,
+                        ),
                       ),
-                    ),
-                  ],
-                ),
-              )
+                      const SizedBox(height: 16),
+                      Text(
+                        widget.emptyMessage ?? 'No notes found',
+                        style: AppStyles.standardBodyTextLight(context)
+                            .copyWith(
+                              color: context.colorScheme.onSurface.withValues(
+                                alpha: 0.5,
+                              ),
+                            ),
+                      ),
+                    ],
+                  ),
+                )
         : null;
 
     if (isCapturing) {
@@ -403,41 +416,60 @@ class _NotebookDataGridState extends BaseDataGridState<NotebookDataGrid> {
   ) {
     final columns = <GridColumn>[];
 
-    columns.add(GridColumn(
-      columnName: 'title',
-      label: _buildHeaderCell(NotebookColumn.title),
-      minimumWidth: 170,
-    ));
+    columns.add(
+      GridColumn(
+        columnName: 'title',
+        label: _buildHeaderCell(NotebookColumn.title),
+        minimumWidth: 166,
+      ),
+    );
 
     if (_shouldShowColumn(NotebookColumn.due)) {
-      columns.add(GridColumn(
-        columnName: 'due',
-        label: _buildHeaderCell(NotebookColumn.due),
-        width: NotebookColumn.due.widthForLayout(isMobile: isMobile, isTablet: isTablet)!,
-      ));
+      columns.add(
+        GridColumn(
+          columnName: 'due',
+          label: _buildHeaderCell(NotebookColumn.due),
+          width: NotebookColumn.due.widthForLayout(
+            isMobile: isMobile,
+            isTablet: isTablet,
+          )!,
+        ),
+      );
     }
 
-    columns.add(GridColumn(
-      columnName: 'linkedTo',
-      label: _buildHeaderCell(NotebookColumn.linkedTo),
-      width: NotebookColumn.linkedTo.widthForLayout(isMobile: isMobile, isTablet: isTablet)!,
-    ));
+    columns.add(
+      GridColumn(
+        columnName: 'linkedTo',
+        label: _buildHeaderCell(NotebookColumn.linkedTo),
+        width: NotebookColumn.linkedTo.widthForLayout(
+          isMobile: isMobile,
+          isTablet: isTablet,
+        )!,
+      ),
+    );
 
     if (_shouldShowColumn(NotebookColumn.modified)) {
-      columns.add(GridColumn(
-        columnName: 'modified',
-        label: _buildHeaderCell(NotebookColumn.modified),
-        width: NotebookColumn.modified.widthForLayout(isMobile: isMobile, isTablet: isTablet)!,
-      ));
+      columns.add(
+        GridColumn(
+          columnName: 'modified',
+          label: _buildHeaderCell(NotebookColumn.modified),
+          width: NotebookColumn.modified.widthForLayout(
+            isMobile: isMobile,
+            isTablet: isTablet,
+          )!,
+        ),
+      );
     }
 
     if (showActions) {
-      columns.add(GridColumn(
-        columnName: 'actions',
-        label: const SizedBox.shrink(),
-        width: isCompact ? 51 : 93,
-        allowSorting: false,
-      ));
+      columns.add(
+        GridColumn(
+          columnName: 'actions',
+          label: const SizedBox.shrink(),
+          width: isCompact ? 51 : 97,
+          allowSorting: false,
+        ),
+      );
     }
 
     return columns;
@@ -540,7 +572,10 @@ class NotesDataSource extends BaseDataGridSource {
 
       Color? rowColor;
       if (entityType == 'homework') {
-        rowColor = (userSettings?.colorByCategory ?? FallbackConstants.defaultColorByCategory) && categoryColor != null
+        rowColor =
+            (userSettings?.colorByCategory ??
+                    FallbackConstants.defaultColorByCategory) &&
+                categoryColor != null
             ? categoryColor
             : courseColor;
       } else if (entityType == 'event') {
@@ -548,7 +583,9 @@ class NotesDataSource extends BaseDataGridSource {
       } else if (entityType == 'resource') {
         rowColor = userSettings?.resourceColor;
       } else if (entityType.isNotEmpty) {
-        _log.fine('buildRow: unsupported entityType "$entityType"; rowColor will be null');
+        _log.fine(
+          'buildRow: unsupported entityType "$entityType"; rowColor will be null',
+        );
       }
 
       final linkedEntityCompleted =
@@ -584,7 +621,9 @@ class NotesDataSource extends BaseDataGridSource {
                   decoration: BoxDecoration(
                     border: Border(
                       bottom: BorderSide(
-                        color: context.colorScheme.outline.withValues(alpha: 0.1),
+                        color: context.colorScheme.outline.withValues(
+                          alpha: 0.1,
+                        ),
                       ),
                     ),
                   ),
@@ -636,46 +675,57 @@ class NotesDataSource extends BaseDataGridSource {
     final rows = <DataGridRow>[];
     for (final note in notes) {
       try {
-        rows.add(DataGridRow(
-          cells: [
-            DataGridCell<String>(
-              columnName: 'title',
-              value: note.title.toLowerCase(),
-            ),
-            DataGridCell<DateTime?>(columnName: 'due', value: note.linkedEntityDue),
-            DataGridCell<String>(
-              columnName: 'linkedTo',
-              value: note.linkedEntityTitle?.toLowerCase() ?? '',
-            ),
-            DataGridCell<DateTime>(columnName: 'modified', value: note.updatedAt),
-            DataGridCell<int>(columnName: 'actions', value: note.id),
-            DataGridCell<Color?>(
-              columnName: '_courseColor',
-              value: note.courseColor,
-            ),
-            DataGridCell<Color?>(
-              columnName: '_categoryColor',
-              value: note.categoryColor,
-            ),
-            DataGridCell<String>(
-              columnName: '_entityType',
-              value: note.linkedEntityType,
-            ),
-            DataGridCell<int?>(
-              columnName: '_linkedEntityId',
-              value: _linkedEntityIdFor(note),
-            ),
-            DataGridCell<String>(columnName: '_originalTitle', value: note.title),
-            DataGridCell<String>(
-              columnName: '_originalLinkedTo',
-              value: note.linkedEntityTitle ?? '',
-            ),
-            DataGridCell<bool?>(
-              columnName: '_linkedEntityCompleted',
-              value: note.linkedEntityCompleted,
-            ),
-          ],
-        ));
+        rows.add(
+          DataGridRow(
+            cells: [
+              DataGridCell<String>(
+                columnName: 'title',
+                value: note.title.toLowerCase(),
+              ),
+              DataGridCell<DateTime?>(
+                columnName: 'due',
+                value: note.linkedEntityDue,
+              ),
+              DataGridCell<String>(
+                columnName: 'linkedTo',
+                value: note.linkedEntityTitle?.toLowerCase() ?? '',
+              ),
+              DataGridCell<DateTime>(
+                columnName: 'modified',
+                value: note.updatedAt,
+              ),
+              DataGridCell<int>(columnName: 'actions', value: note.id),
+              DataGridCell<Color?>(
+                columnName: '_courseColor',
+                value: note.courseColor,
+              ),
+              DataGridCell<Color?>(
+                columnName: '_categoryColor',
+                value: note.categoryColor,
+              ),
+              DataGridCell<String>(
+                columnName: '_entityType',
+                value: note.linkedEntityType,
+              ),
+              DataGridCell<int?>(
+                columnName: '_linkedEntityId',
+                value: _linkedEntityIdFor(note),
+              ),
+              DataGridCell<String>(
+                columnName: '_originalTitle',
+                value: note.title,
+              ),
+              DataGridCell<String>(
+                columnName: '_originalLinkedTo',
+                value: note.linkedEntityTitle ?? '',
+              ),
+              DataGridCell<bool?>(
+                columnName: '_linkedEntityCompleted',
+                value: note.linkedEntityCompleted,
+              ),
+            ],
+          ),
+        );
       } catch (e, st) {
         ErrorHelpers.logAndReport(
           'Failed to build row for note ${note.id}',
@@ -866,13 +916,17 @@ class NotesDataSource extends BaseDataGridSource {
       } else if (entityType == 'event') {
         badge = GenericLabel(
           label: originalLinkedTo,
-          color: userSettings?.eventsColor ?? FallbackConstants.defaultEventsColor,
+          color:
+              userSettings?.eventsColor ?? FallbackConstants.defaultEventsColor,
           icon: AppConstants.eventIcon,
           compact: true,
           textDecoration: strikethrough,
         );
       } else if (entityType == 'homework') {
-        final badgeColor = (userSettings?.colorByCategory ?? FallbackConstants.defaultColorByCategory) && categoryColor != null
+        final badgeColor =
+            (userSettings?.colorByCategory ??
+                    FallbackConstants.defaultColorByCategory) &&
+                categoryColor != null
             ? categoryColor
             : courseColor;
         badge = GenericLabel(
@@ -989,7 +1043,7 @@ class NotesDataSource extends BaseDataGridSource {
                     color: context.colorScheme.onSurface,
                   ),
                 ),
-                const SizedBox(width: 4),
+                const SizedBox(width: 8),
               ],
               Semantics(
                 label: 'Delete',

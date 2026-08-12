@@ -107,7 +107,8 @@ class _ImportExportScreenState extends State<ImportExportScreen> {
           Padding(
             padding: const EdgeInsets.only(bottom: 12),
             child: InfoContainer(
-              text: 'Backup, restore, or import data from an automated tool or shared schedule.',
+              text:
+                  'Backup, restore, or import data from an automated tool or shared schedule.',
               trailing: HeliumIconButton(
                 icon: Icons.menu_book_outlined,
                 backgroundColor: context.colorScheme.onSurfaceVariant,
@@ -139,67 +140,66 @@ class _ImportExportScreenState extends State<ImportExportScreen> {
       children: [
         Text('Import', style: AppStyles.featureText(context)),
         const SizedBox(height: 8),
-        Text(
-          'Import a file',
-          style: AppStyles.standardBodyTextLight(context),
-        ),
+        Text('Import a file', style: AppStyles.standardBodyTextLight(context)),
         const SizedBox(height: 16),
-        Row(
-          children: [
-            Expanded(
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12.0,
-                  vertical: 12.0,
-                ),
-                decoration: BoxDecoration(
-                  color: context.colorScheme.surfaceContainer,
-                  borderRadius: BorderRadius.circular(10.0),
-                  border: Border.all(
-                    color: context.colorScheme.outline.withValues(alpha: 0.2),
+        IntrinsicHeight(
+          // Bounds the row height so `stretch` can size the file field to the "Choose"
+          // button (the taller child, and thus the height-driver) inside this scroll view.
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Expanded(
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                  decoration: BoxDecoration(
+                    color: context.colorScheme.surfaceContainer,
+                    borderRadius: BorderRadius.circular(10.0),
+                    border: Border.all(
+                      color: context.colorScheme.outline.withValues(alpha: 0.2),
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.insert_drive_file_outlined,
+                        color: context.colorScheme.onSurface.withValues(
+                          alpha: 0.5,
+                        ),
+                        size: Responsive.getIconSize(
+                          context,
+                          mobile: 18,
+                          tablet: 20,
+                          desktop: 22,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          _selectedFileName ?? 'No file selected',
+                          style: AppStyles.standardBodyTextLight(context)
+                              .copyWith(
+                                color: _selectedFileName != null
+                                    ? context.colorScheme.onSurface
+                                    : context.colorScheme.onSurface.withValues(
+                                        alpha: 0.5,
+                                      ),
+                              ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-                child: Row(
-                  children: [
-                    Icon(
-                      Icons.insert_drive_file_outlined,
-                      color: context.colorScheme.onSurface.withValues(
-                        alpha: 0.5,
-                      ),
-                      size: Responsive.getIconSize(
-                        context,
-                        mobile: 18,
-                        tablet: 20,
-                        desktop: 22,
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        _selectedFileName ?? 'No file selected',
-                        style: AppStyles.standardBodyTextLight(context)
-                            .copyWith(
-                              color: _selectedFileName != null
-                                  ? context.colorScheme.onSurface
-                                  : context.colorScheme.onSurface.withValues(
-                                      alpha: 0.5,
-                                    ),
-                            ),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  ],
-                ),
               ),
-            ),
-            const SizedBox(width: 12),
-            HeliumElevatedButton(
-              onPressed: _openFileChooser,
-              buttonText: 'Choose',
-              icon: Icons.folder_open_outlined,
-              fullWidth: false,
-            ),
-          ],
+              const SizedBox(width: 12),
+              HeliumElevatedButton(
+                onPressed: _openFileChooser,
+                buttonText: 'Choose',
+                icon: Icons.folder_open_outlined,
+                fullWidth: false,
+              ),
+            ],
+          ),
         ),
         if (_selectedIsIcs) _buildTargetPicker(context),
         const SizedBox(height: 16),
@@ -208,7 +208,8 @@ class _ImportExportScreenState extends State<ImportExportScreen> {
           buttonText: 'Import',
           icon: Icons.upload_outlined,
           isLoading: _isImporting,
-          enabled: _selectedFileBytes != null &&
+          enabled:
+              _selectedFileBytes != null &&
               !_isImporting &&
               !_isLoadingTargets &&
               !(_selectedIsIcs && _selectedTarget == null),
@@ -235,7 +236,10 @@ class _ImportExportScreenState extends State<ImportExportScreen> {
               key: ValueKey(_selectedFileName),
               initialValue: _selectedTarget,
               isExpanded: true,
-              hint: Text('Select a destination', style: AppStyles.formText(context)),
+              hint: Text(
+                'Select a destination',
+                style: AppStyles.formText(context),
+              ),
               decoration: InputDecoration(
                 contentPadding: const EdgeInsets.only(left: 12),
                 filled: true,
@@ -253,7 +257,10 @@ class _ImportExportScreenState extends State<ImportExportScreen> {
                   ),
                 ),
               ),
-              icon: Icon(Icons.keyboard_arrow_down, color: context.colorScheme.primary),
+              icon: Icon(
+                Icons.keyboard_arrow_down,
+                color: context.colorScheme.primary,
+              ),
               dropdownColor: context.colorScheme.surface,
               style: AppStyles.formText(context),
               items: _buildTargetItems(context),
@@ -267,58 +274,72 @@ class _ImportExportScreenState extends State<ImportExportScreen> {
     );
   }
 
-  List<DropdownMenuItem<_ImportTarget>> _buildTargetItems(BuildContext context) {
+  List<DropdownMenuItem<_ImportTarget>> _buildTargetItems(
+    BuildContext context,
+  ) {
     final items = <DropdownMenuItem<_ImportTarget>>[];
 
     for (var i = 0; i < _courseGroups.length; i++) {
       final group = _courseGroups[i];
       if (i > 0) items.add(_dividerItem(context));
-      items.add(DropdownMenuItem(
-        enabled: false,
-        value: _ImportTarget(_TargetKind.header, group.id),
-        child: Text(group.title, style: AppStyles.formLabel(context)),
-      ));
-      items.add(DropdownMenuItem(
-        value: _ImportTarget(_TargetKind.newCourse, group.id),
-        child: Padding(
-          padding: const EdgeInsets.only(left: 12),
-          child: Row(
-            children: [
-              Icon(Icons.add, size: 16, color: context.colorScheme.primary),
-              const SizedBox(width: 8),
-              Text('Create a new class', style: AppStyles.formText(context)),
-            ],
-          ),
+      items.add(
+        DropdownMenuItem(
+          enabled: false,
+          value: _ImportTarget(_TargetKind.header, group.id),
+          child: Text(group.title, style: AppStyles.formLabel(context)),
         ),
-      ));
-      for (final course in _courses.where((c) => c.courseGroup == group.id)) {
-        items.add(DropdownMenuItem(
-          value: _ImportTarget(_TargetKind.existingCourse, course.id),
+      );
+      items.add(
+        DropdownMenuItem(
+          value: _ImportTarget(_TargetKind.newCourse, group.id),
           child: Padding(
             padding: const EdgeInsets.only(left: 12),
-            child: Text(
-              course.title,
-              style: AppStyles.formText(context),
-              overflow: TextOverflow.ellipsis,
+            child: Row(
+              children: [
+                Icon(Icons.add, size: 16, color: context.colorScheme.primary),
+                const SizedBox(width: 8),
+                Text('Create a new class', style: AppStyles.formText(context)),
+              ],
             ),
           ),
-        ));
+        ),
+      );
+      for (final course in _courses.where((c) => c.courseGroup == group.id)) {
+        items.add(
+          DropdownMenuItem(
+            value: _ImportTarget(_TargetKind.existingCourse, course.id),
+            child: Padding(
+              padding: const EdgeInsets.only(left: 12),
+              child: Text(
+                course.title,
+                style: AppStyles.formText(context),
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ),
+        );
       }
     }
 
     // Offset "Import as Events" from the class groups above.
     if (_courseGroups.isNotEmpty) items.add(_dividerItem(context));
 
-    items.add(DropdownMenuItem(
-      value: const _ImportTarget(_TargetKind.events),
-      child: Row(
-        children: [
-          Icon(AppConstants.eventIcon, size: 16, color: context.colorScheme.primary),
-          const SizedBox(width: 8),
-          Text('Import as Events', style: AppStyles.formText(context)),
-        ],
+    items.add(
+      DropdownMenuItem(
+        value: const _ImportTarget(_TargetKind.events),
+        child: Row(
+          children: [
+            Icon(
+              AppConstants.eventIcon,
+              size: 16,
+              color: context.colorScheme.primary,
+            ),
+            const SizedBox(width: 8),
+            Text('Import as Events', style: AppStyles.formText(context)),
+          ],
+        ),
       ),
-    ));
+    );
 
     return items;
   }
@@ -371,7 +392,9 @@ class _ImportExportScreenState extends State<ImportExportScreen> {
           buttonText: 'Re-Import Example Schedule',
           icon: Icons.restore_outlined,
           isLoading: _isImportingExample,
-          enabled: !_isImportingExample && !(widget.userSettings?.showGettingStarted ?? false),
+          enabled:
+              !_isImportingExample &&
+              !(widget.userSettings?.showGettingStarted ?? false),
         ),
       ],
     );
@@ -425,8 +448,9 @@ class _ImportExportScreenState extends State<ImportExportScreen> {
         _courseGroups = groups;
         _courses = courses;
         // With no class groups to import into, Events is the only destination.
-        _selectedTarget =
-            _courseGroups.isEmpty ? const _ImportTarget(_TargetKind.events) : null;
+        _selectedTarget = _courseGroups.isEmpty
+            ? const _ImportTarget(_TargetKind.events)
+            : null;
         _isLoadingTargets = false;
       });
     } catch (e) {
@@ -435,7 +459,11 @@ class _ImportExportScreenState extends State<ImportExportScreen> {
       setState(() {
         _isLoadingTargets = false;
       });
-      SnackBarHelper.show(context, 'Could not load your classes.', type: SnackType.error);
+      SnackBarHelper.show(
+        context,
+        'Could not load your classes.',
+        type: SnackType.error,
+      );
     }
   }
 
@@ -476,7 +504,14 @@ class _ImportExportScreenState extends State<ImportExportScreen> {
 
         if (mounted) {
           context.read<AuthBloc>().add(RefreshScheduleDataEvent());
-          unawaited(AnalyticsService().logEvent(name: AnalyticsEvent.importComplete, parameters: {'category': AnalyticsCategory.featureInteraction.value}));
+          unawaited(
+            AnalyticsService().logEvent(
+              name: AnalyticsEvent.importComplete,
+              parameters: {
+                'category': AnalyticsCategory.featureInteraction.value,
+              },
+            ),
+          );
           SnackBarHelper.show(
             context,
             'Imported: $counts.',
@@ -580,7 +615,14 @@ class _ImportExportScreenState extends State<ImportExportScreen> {
       if (!mounted) return;
 
       if (response.statusCode == 200 && response.data != null) {
-        unawaited(AnalyticsService().logEvent(name: AnalyticsEvent.exportTrigger, parameters: {'category': AnalyticsCategory.featureInteraction.value}));
+        unawaited(
+          AnalyticsService().logEvent(
+            name: AnalyticsEvent.exportTrigger,
+            parameters: {
+              'category': AnalyticsCategory.featureInteraction.value,
+            },
+          ),
+        );
         final contentDisposition = response.headers.value(
           'content-disposition',
         );
@@ -647,8 +689,18 @@ class _ImportExportScreenState extends State<ImportExportScreen> {
         if (!mounted) return;
         unawaited(NotificationCountService().refresh());
         if (mounted) {
-          unawaited(AnalyticsService().logEvent(name: AnalyticsEvent.exampleScheduleImport, parameters: {'category': AnalyticsCategory.onboarding.value}));
-          unawaited(AnalyticsService().setUserProperty(name: 'onboarding_complete', value: 'false'));
+          unawaited(
+            AnalyticsService().logEvent(
+              name: AnalyticsEvent.exampleScheduleImport,
+              parameters: {'category': AnalyticsCategory.onboarding.value},
+            ),
+          );
+          unawaited(
+            AnalyticsService().setUserProperty(
+              name: 'onboarding_complete',
+              value: 'false',
+            ),
+          );
           context.read<AuthBloc>().add(FetchProfileEvent());
           context.read<AuthBloc>().add(RefreshScheduleDataEvent());
           SnackBarHelper.show(
