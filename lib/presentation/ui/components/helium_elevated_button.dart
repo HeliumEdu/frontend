@@ -66,7 +66,11 @@ class HeliumElevatedButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final effectiveIconColor = iconColor ?? context.colorScheme.onPrimary;
+    // When disabled, dim the icon to match the disabled label rather than leaving it the
+    // enabled `onPrimary`, which is illegible on the dimmed background (notably in dark mode).
+    final effectiveIconColor = enabled
+        ? (iconColor ?? context.colorScheme.onPrimary)
+        : context.colorScheme.onSurface.withValues(alpha: 0.38);
     final effectiveBg = !isLoading && enabled
         ? backgroundColor ?? context.colorScheme.primary
         : context.colorScheme.onSurface.withValues(alpha: 0.12);
