@@ -174,6 +174,7 @@ class _GettingStartedDialogWidgetState
     final onShellTab =
         NavigationPage.values.any((page) => page.route == path);
     if (!onShellTab && Navigator.canPop(context)) {
+      router.routerDelegate.removeListener(_dismissIfOverlayActive);
       Navigator.of(context).pop();
     }
   }

@@ -1,0 +1,31 @@
+// Copyright (c) 2025 Helium Edu
+//
+// This source code is licensed under the MIT license found in the
+// LICENSE file in the root directory of this source tree.
+//
+// For details regarding the license, please refer to the LICENSE file.
+
+import 'package:flutter/foundation.dart';
+
+/// Platform buckets for gating platform-specific features.
+enum AppPlatform { ios, android, web }
+
+/// Current platform; web wins over the underlying OS (iOS Safari is web).
+AppPlatform get currentAppPlatform {
+  if (kIsWeb) return AppPlatform.web;
+  return defaultTargetPlatform == TargetPlatform.iOS
+      ? AppPlatform.ios
+      : AppPlatform.android;
+}
+
+/// Per-platform donation-link visibility. Flip a flag to show or hide every
+/// donation surface on that platform. iOS is off: App Store guideline 3.1.1
+/// treats an external donation link as an in-app purchase.
+const Map<AppPlatform, bool> _donationVisibleByPlatform = {
+  AppPlatform.ios: false,
+  AppPlatform.android: true,
+  AppPlatform.web: true,
+};
+
+bool get showDonationLink =>
+    _donationVisibleByPlatform[currentAppPlatform] ?? true;

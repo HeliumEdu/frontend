@@ -162,6 +162,7 @@ class ApiUrl {
 
   // Import/Export
   static const importExportImportUrl = '/importexport/import/';
+  static const importExportImportIcsUrl = '/importexport/import/ics/';
   static const importExportExportUrl = '/importexport/export/';
   static const importExportExampleScheduleUrl =
       '/importexport/import/exampleschedule/';
