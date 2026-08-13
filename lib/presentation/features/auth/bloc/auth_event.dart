@@ -5,6 +5,7 @@
 //
 // For details regarding the license, please refer to the LICENSE file.
 
+import 'package:heliumapp/core/google_account_store.dart';
 import 'package:heliumapp/data/models/auth/request/update_settings_request_model.dart';
 
 abstract class AuthEvent {}
@@ -28,7 +29,13 @@ class LoginEvent extends AuthEvent {
   LoginEvent({required this.email, required this.password});
 }
 
-class GoogleLoginEvent extends AuthEvent {}
+class GoogleLoginEvent extends AuthEvent {
+  /// Confirms the remembered Google account (iOS only): true to continue as
+  /// it, false for a different account, null if dismissed without a choice.
+  final Future<bool?> Function(RememberedGoogleAccount)? onChooseAccount;
+
+  GoogleLoginEvent({this.onChooseAccount});
+}
 
 class AppleLoginEvent extends AuthEvent {}
 

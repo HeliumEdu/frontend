@@ -60,6 +60,22 @@ enum ScreensDropdownFilterPrefKey {
   static Iterable<String> get allKeys => values.map((v) => v.key);
 }
 
+/// Every key `PrefService`'s shared-prefs side manages, so `clear()` can't
+/// reach keys owned by other storage (e.g. `GoogleAccountStore`) that
+/// happens to share the same underlying storage on web. New ad-hoc
+/// `PrefService().set*` keys must be added here or they'll throw on first use.
+Set<String> get _sharedPrefsAllowList => {
+  ...SettingsPrefKey.allKeys,
+  ...ScreensDropdownFilterPrefKey.allKeys,
+  'saved_filter_state',
+  'saved_rows_per_page',
+  'mobile_web_continue',
+  'saved_grades_graph_settings',
+  'saved_notebook_filter_state',
+  'feedback_session_ended_clean',
+  'feedback_clean_session_count',
+};
+
 class PrefService {
   FlutterSecureStorage? _secureStorageOverride;
   FlutterSecureStorage get _secureStorage =>
@@ -109,7 +125,9 @@ class PrefService {
     _initCompleter = Completer<void>();
     try {
       _sharedStorage = await SharedPreferencesWithCache.create(
-        cacheOptions: const SharedPreferencesWithCacheOptions(),
+        cacheOptions: SharedPreferencesWithCacheOptions(
+          allowList: _sharedPrefsAllowList,
+        ),
       );
       _isInitialized = true;
       _initCompleter!.complete();
