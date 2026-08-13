@@ -76,8 +76,12 @@ class SentryService {
       options.enableAutoPerformanceTracing = true;
       options.enableUserInteractionTracing = true;
 
-      // Belt-and-suspenders for auth errors with non-null values. In
-      // sentry_flutter, ignoreErrors is a Dart-side filter that runs on the
+      // Our API traffic all runs through Dio, whose integration already
+      // captures 5xx. Native capture only adds third-party SDK noise (Firebase,
+      // FCM) we don't control and can't act on, so turn it off.
+      options.captureNativeFailedRequests = false;
+
+      // In sentry_flutter, ignoreErrors is a Dart-side filter that runs on the
       // deserialized SentryEvent; same as beforeSend. For onerror events where
       // exception.value is null after deserialization, neither filter can match;
       // those cases are prevented at the source (see _authRedirect in
@@ -92,6 +96,8 @@ class SentryService {
         '(?i)watchdogtermination',
         '(?i)database deleted by request of the user',
         '(?i)script error',
+        '(?i)importing a module script failed',
+        '(?i)failed to fetch dynamically imported module',
       ];
 
       options.ignoreTransactions = [
