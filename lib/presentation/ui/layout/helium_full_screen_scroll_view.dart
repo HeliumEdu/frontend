@@ -13,8 +13,7 @@ import 'package:heliumapp/utils/responsive_helpers.dart';
 /// bottom of its content by the device's bottom safe-area inset. The dialog
 /// renders with `SafeArea(bottom: false)` so content flows into the rounded
 /// corner while scrolling; this padding lets the last item still come to rest
-/// above the home indicator. A plain scroll view otherwise (no padding outside
-/// full-screen mode or when there's no bottom inset).
+/// above the home indicator. Outside full-screen mode the inset is zero.
 ///
 /// The inset pads the content rather than the scroll viewport: viewport
 /// padding around an `AutofillGroup` dismisses the keyboard on focus on iOS.
@@ -49,12 +48,10 @@ class HeliumFullScreenScrollView extends StatelessWidget {
       keyboardDismissBehavior: keyboardDismissBehavior,
       controller: controller,
       physics: physics,
-      child: inset == 0
-          ? child
-          : Padding(
-              padding: EdgeInsets.only(bottom: inset),
-              child: child,
-            ),
+      child: Padding(
+        padding: EdgeInsets.only(bottom: inset),
+        child: child,
+      ),
     );
   }
 }

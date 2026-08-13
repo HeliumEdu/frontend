@@ -10,6 +10,7 @@ import 'dart:async';
 import 'package:bloc/bloc.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:heliumapp/core/dio_client.dart';
+import 'package:heliumapp/core/last_oauth_provider_store.dart';
 import 'package:heliumapp/core/notification_count_service.dart';
 import 'package:heliumapp/core/oauth_sign_in_service.dart';
 import 'package:heliumapp/core/helium_exception.dart';
@@ -255,6 +256,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
       await authRepository.login(request);
 
+      await LastOAuthProviderStore().clearLastUsedProvider();
+
       emit(AuthLoggedIn());
     } on HeliumException catch (e) {
       // Check for inactive account error
@@ -325,7 +328,9 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     final oauthSignInService = OAuthSignInService();
     await _onOAuthLogin(
       'Google',
-      oauthSignInService.signInWithGoogle,
+      () => oauthSignInService.signInWithGoogle(
+        onChooseAccount: event.onChooseAccount,
+      ),
       authRepository.loginWithGoogle,
       emit,
     );

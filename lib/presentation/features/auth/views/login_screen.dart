@@ -14,12 +14,14 @@ import 'package:go_router/go_router.dart';
 import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/config/pref_service.dart';
+import 'package:heliumapp/core/last_oauth_provider_store.dart';
 
 import 'package:heliumapp/presentation/core/views/base_page_screen_state.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_bloc.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_event.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_state.dart';
 import 'package:heliumapp/presentation/features/auth/controllers/credentials_form_controller.dart';
+import 'package:heliumapp/presentation/features/auth/widgets/google_account_confirm_sheet.dart';
 import 'package:heliumapp/presentation/features/shared/controllers/basic_form_controller.dart';
 import 'package:heliumapp/presentation/ui/components/helium_elevated_button.dart';
 import 'package:heliumapp/presentation/ui/components/helium_password_field.dart';
@@ -53,6 +55,7 @@ class _LoginScreenViewState extends BasePageScreenState<LoginScreen> {
   final CredentialsFormController _formController = CredentialsFormController();
   String? _nextRoute;
   bool _isOAuthLoading = false;
+  String? _lastUsedProvider;
 
   @override
   void initState() {
@@ -75,9 +78,25 @@ class _LoginScreenViewState extends BasePageScreenState<LoginScreen> {
       }
     });
 
+    LastOAuthProviderStore().getLastUsedProvider().then((provider) {
+      _log.info('Last used OAuth provider loaded: $provider');
+      if (!mounted) return;
+      setState(() {
+        _lastUsedProvider = provider;
+      });
+    });
+
     setState(() {
       isLoading = false;
     });
+  }
+
+  ShapeBorder? _lastUsedShape(String provider) {
+    if (_lastUsedProvider != provider) return null;
+    return RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(6),
+      side: BorderSide(color: context.colorScheme.primary, width: 2),
+    );
   }
 
   @override
@@ -281,11 +300,22 @@ class _LoginScreenViewState extends BasePageScreenState<LoginScreen> {
                   opacity: _isOAuthLoading || isSubmitting ? 0.5 : 1.0,
                   child: SignInButton(
                     Buttons.google,
+                    shape: _lastUsedShape('google'),
                     onPressed: () {
                       setState(() {
                         _isOAuthLoading = true;
                       });
-                      context.read<AuthBloc>().add(GoogleLoginEvent());
+                      context.read<AuthBloc>().add(
+                        GoogleLoginEvent(
+                          onChooseAccount: (account) {
+                            if (!context.mounted) return Future.value(null);
+                            return showGoogleAccountConfirmSheet(
+                              parentContext: context,
+                              account: account,
+                            );
+                          },
+                        ),
+                      );
                     },
                     text: 'Sign in with Google',
                   ),
@@ -305,6 +335,7 @@ class _LoginScreenViewState extends BasePageScreenState<LoginScreen> {
                     opacity: _isOAuthLoading || isSubmitting ? 0.5 : 1.0,
                     child: SignInButton(
                       Buttons.apple,
+                      shape: _lastUsedShape('apple'),
                       onPressed: () {
                         setState(() {
                           _isOAuthLoading = true;
@@ -329,6 +360,7 @@ class _LoginScreenViewState extends BasePageScreenState<LoginScreen> {
                   opacity: _isOAuthLoading || isSubmitting ? 0.5 : 1.0,
                   child: SignInButton(
                     Buttons.microsoft,
+                    shape: _lastUsedShape('microsoft'),
                     onPressed: () {
                       setState(() {
                         _isOAuthLoading = true;
