@@ -57,11 +57,23 @@ bool isNoteEdited(DocChange change) => change.source == ChangeSource.local;
 Document? tryParseNotesDocument(Map<String, dynamic>? notes) {
   if (notes == null) return null;
   try {
-    return Document.fromJson(notes['ops'] as List);
+    return Document.fromJson(_ensureTrailingNewline(notes['ops'] as List));
   } catch (e, stack) {
     ErrorHelpers.logAndReport('Quill note content failed to parse', e, stack);
     return null;
   }
+}
+
+/// Quill requires a document to end in a newline. Content lacking it (e.g. a
+/// legacy note ending in text or an embed) parses into a child-less document
+/// that crashes flutter_quill's hit-testing on tap. Returns [ops] terminated,
+/// leaving an empty list for [Document.fromJson] to reject into the placeholder.
+List<dynamic> _ensureTrailingNewline(List<dynamic> ops) {
+  if (ops.isEmpty) return ops;
+  final last = ops.last;
+  final insert = last is Map ? last['insert'] : null;
+  if (insert is String && insert.endsWith('\n')) return ops;
+  return [...ops, {'insert': '\n'}];
 }
 
 /// A placeholder Document shown in editors when the source Note's content
