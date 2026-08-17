@@ -63,16 +63,16 @@ void main() async {
 
   try {
     await AnalyticsService().init();
-  } catch (e) {
-    _log.severe('Analytics initialization failed', e);
+  } catch (e, s) {
+    _log.severe('Analytics initialization failed', e, s);
   }
 
   initializeRouter();
 
   try {
     await FcmService().init();
-  } catch (e) {
-    _log.severe('FCM initialization failed', e);
+  } catch (e, s) {
+    _log.severe('FCM initialization failed', e, s);
   }
 
   FcmService.setForegroundTapCallback((route) {

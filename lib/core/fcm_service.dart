@@ -143,8 +143,7 @@ class FcmService {
 
       _isInitialized = true;
       _log.info('FCM initialized successfully');
-    } catch (e, s) {
-      _log.severe('FCM initialization failed', e, s);
+    } catch (_) {
       rethrow;
     }
   }

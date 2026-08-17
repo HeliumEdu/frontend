@@ -6,6 +6,7 @@
 // For details regarding the license, please refer to the LICENSE file.
 
 import 'package:flutter/foundation.dart';
+import 'package:heliumapp/core/helium_exception.dart';
 import 'package:heliumapp/core/log_formatter.dart';
 import 'package:heliumapp/core/sentry_service.dart';
 import 'package:logging/logging.dart';
@@ -40,20 +41,65 @@ class LogService {
   }
 
   void _forwardToSentry(LogRecord record) {
-    if (record.level >= Level.SEVERE) {
-      if (record.error != null) {
+    switch (classifyRecord(record)) {
+      case LogSentryAction.captureException:
         Sentry.captureException(record.error, stackTrace: record.stackTrace);
-      } else {
+      case LogSentryAction.captureMessage:
         Sentry.captureMessage(record.message, level: SentryLevel.error);
-      }
-    } else if (record.level >= Level.WARNING) {
-      Sentry.addBreadcrumb(
-        Breadcrumb(
-          message: record.message,
-          category: record.loggerName,
-          level: SentryLevel.warning,
-        ),
-      );
+      case LogSentryAction.breadcrumb:
+        _addBreadcrumb(
+          record,
+          record.level >= Level.SEVERE ? SentryLevel.info : SentryLevel.warning,
+        );
+      case LogSentryAction.drop:
+        break;
     }
   }
+
+  /// Decides how a [LogRecord] maps onto Sentry when forwarded in release.
+  /// Pure (no side effects) so the routing can be unit-tested without a hub.
+  @visibleForTesting
+  static LogSentryAction classifyRecord(LogRecord record) {
+    if (record.level >= Level.SEVERE) {
+      // Handled connectivity failures (offline/DNS/timeout) are non-actionable;
+      // keep them as breadcrumbs rather than events.
+      if (record.error is NetworkException) {
+        return LogSentryAction.breadcrumb;
+      }
+      if (record.error != null) {
+        return LogSentryAction.captureException;
+      }
+      return LogSentryAction.captureMessage;
+    }
+    if (record.level >= Level.WARNING) {
+      return LogSentryAction.breadcrumb;
+    }
+    return LogSentryAction.drop;
+  }
+
+  void _addBreadcrumb(LogRecord record, SentryLevel level) {
+    Sentry.addBreadcrumb(
+      Breadcrumb(
+        message: record.message,
+        category: record.loggerName,
+        level: level,
+      ),
+    );
+  }
+}
+
+/// How a forwarded [LogRecord] is routed to Sentry.
+@visibleForTesting
+enum LogSentryAction {
+  /// Captured as an error event with the attached error + stacktrace.
+  captureException,
+
+  /// Captured as an error-level message event (no attached error).
+  captureMessage,
+
+  /// Attached as a breadcrumb (not its own event).
+  breadcrumb,
+
+  /// Not forwarded.
+  drop;
 }
