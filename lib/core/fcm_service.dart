@@ -334,9 +334,7 @@ class FcmService {
         }
       }
 
-      _log.info(
-        'Registering FCM token with for $userId on device $_deviceId ...',
-      );
+      _log.info('Registering FCM token for $userId ...');
 
       await cleanExistingTokens();
 

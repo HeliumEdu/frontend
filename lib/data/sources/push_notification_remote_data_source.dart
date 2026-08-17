@@ -86,7 +86,7 @@ class PushTokenRemoteDataSourceImpl extends PushNotificationRemoteDataSource {
             errorMessage = response.data as String;
           }
         }
-        _log.severe('API Error: $errorMessage');
+        _log.severe('Failed to delete push token, status: ${response.statusCode}');
         throw ServerException(
           message: errorMessage,
           code: response.statusCode.toString(),
@@ -109,7 +109,9 @@ class PushTokenRemoteDataSourceImpl extends PushNotificationRemoteDataSource {
       } else {
         errorMessage = e.message ?? errorMessage;
       }
-      _log.severe('DioException Error: $errorMessage');
+      _log.severe(
+        'DioException deleting push token, status: ${e.response?.statusCode}',
+      );
       throw HeliumException(message: errorMessage);
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);

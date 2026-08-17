@@ -97,7 +97,7 @@ Future<bool> _downloadFileAndroid(String url, String filename) async {
     }
 
     final filePath = '${downloadsDir.path}/$filename';
-    _log.info('Attempting download to PUBLIC Downloads: $filePath');
+    _log.info('Attempting download to PUBLIC Downloads: ${downloadsDir.path}');
 
     final response = await Dio().download(
       url,
@@ -122,7 +122,7 @@ Future<bool> _downloadFileAndroid(String url, String filename) async {
     final size = exists ? await file.length() : 0;
 
     _log.info('Download complete:');
-    _log.info('  Path: $filePath');
+    _log.info('  Dir: ${downloadsDir.path}');
     _log.info('  File exists: $exists');
     _log.info('  File size: $size bytes');
 
@@ -143,7 +143,7 @@ Future<bool> _downloadFileIOS(String url, String filename) async {
     final Directory appDocDir = await getApplicationDocumentsDirectory();
     final filePath = '${appDocDir.path}/$filename';
 
-    _log.info('Downloading to app documents: $filePath');
+    _log.info('Downloading to app documents: ${appDocDir.path}');
 
     final response = await Dio().download(
       url,
@@ -225,7 +225,7 @@ Future<bool> _downloadBytesAndroid(Uint8List bytes, String filename) async {
     final file = File(filePath);
     await file.writeAsBytes(bytes);
 
-    _log.info('Bytes saved to: $filePath');
+    _log.info('Bytes saved to: ${downloadsDir.path}');
     return await file.exists();
   } catch (e) {
     _log.severe('Android bytes download failed', e);
@@ -240,7 +240,7 @@ Future<bool> _downloadBytesIOS(Uint8List bytes, String filename) async {
     final file = File(filePath);
     await file.writeAsBytes(bytes);
 
-    _log.info('Bytes saved to: $filePath');
+    _log.info('Bytes saved to: ${appDocDir.path}');
 
     // On iOS, open share sheet so user can save to Files or share
     final result = await SharePlus.instance.share(

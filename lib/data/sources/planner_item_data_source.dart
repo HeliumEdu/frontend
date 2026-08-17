@@ -898,7 +898,7 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
 
   void setFilterCategories(List<String> categories) {
     _log.info(
-      'Category filter changed: ${categories.isEmpty ? "all" : categories.join(", ")}',
+      'Category filter changed: ${categories.isEmpty ? "all" : "${categories.length} selected"}',
     );
     _filterCategories = categories;
     _saveFiltersIfEnabled();
@@ -933,7 +933,7 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
   }
 
   void setSearchQuery(String query) {
-    _log.info('Search query changed: "${query.isEmpty ? "(empty)" : query}"');
+    _log.info('Search query changed (empty: ${query.isEmpty})');
     _searchQuery = query;
     _applyFiltersAndNotify();
   }
@@ -1025,7 +1025,7 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
     }
 
     _log.info(
-      'Calendar item added: ${plannerItem.runtimeType} ${plannerItem.id} "${plannerItem.title}"',
+      'Calendar item added: ${plannerItem.runtimeType} ${plannerItem.id}',
     );
 
     final itemStart = plannerItem.start;
@@ -1067,7 +1067,7 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
 
     if (updated) {
       _log.info(
-        'Calendar item updated: ${plannerItem.runtimeType} ${plannerItem.id} "${plannerItem.title}"',
+        'Calendar item updated: ${plannerItem.runtimeType} ${plannerItem.id}',
       );
     }
 
@@ -1117,7 +1117,7 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
 
     if (removedItem != null) {
       _log.info(
-        'Calendar item removed: ${removedItem.runtimeType} $plannerItemId "${removedItem.title}"',
+        'Calendar item removed: ${removedItem.runtimeType} $plannerItemId',
       );
       appointments!.remove(removedItem);
       _completedOverrides.remove(plannerItemId);

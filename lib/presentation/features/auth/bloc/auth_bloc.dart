@@ -307,7 +307,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       _log.info('$provider Sign-In successful');
       emit(AuthLoggedIn());
     } on HeliumException catch (e) {
-      _log.warning('$provider Sign-In failed: ${e.message}');
+      _log.warning('$provider Sign-In failed: ${e.runtimeType} code=${e.code}');
       emit(
         AuthError(
           message: e.message,

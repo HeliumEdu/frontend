@@ -400,7 +400,7 @@ class DioClient {
         return null;
       }
     } catch (apiError) {
-      _log.severe('Error fetching settings from API: $apiError', apiError);
+      _log.severe('Error fetching settings from API: ${apiError.runtimeType}');
 
       return null;
     }

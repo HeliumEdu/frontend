@@ -122,9 +122,7 @@ class OAuthSignInService {
 
       return firebaseIdToken;
     } on FirebaseAuthException catch (e) {
-      _log.warning(
-        'FirebaseAuthException caught - code: ${e.code}, message: ${e.message}',
-      );
+      _log.warning('FirebaseAuthException caught - code: ${e.code}');
 
       if (e.code == 'popup-closed-by-user' ||
           e.code == 'canceled' ||
@@ -141,26 +139,24 @@ class OAuthSignInService {
           message: 'Sorry, this email is registered with a different sign in method.',
         );
       }
-      _log.warning('Firebase Auth exception: ${e.code} - ${e.message}');
+      _log.warning('Firebase Auth exception: ${e.code}');
       throw HeliumException(
         message: 'Sign in with $providerName failed.',
       );
     } on GoogleSignInException catch (e) {
-      _log.warning(
-        'GoogleSignInException caught - code: ${e.code}, description: ${e.description}',
-      );
+      _log.warning('GoogleSignInException caught - code: ${e.code}');
 
       if (e.code == GoogleSignInExceptionCode.canceled) {
         _log.info('$providerName Sign-In cancelled by user');
         return null;
       }
-      _log.warning('Google Sign-In exception: ${e.code} - ${e.description}');
+      _log.warning('Google Sign-In exception: ${e.code}');
       throw HeliumException(
         message: 'Sign in with $providerName failed.',
       );
     } catch (e, s) {
       _log.severe(
-        'Unexpected error during $providerName Sign-In - type: ${e.runtimeType}, error: $e',
+        'Unexpected error during $providerName Sign-In - type: ${e.runtimeType}',
         e,
         s,
       );
@@ -232,15 +228,14 @@ class OAuthSignInService {
     // offered account - fall back to interactive if it doesn't (e.g. expired).
     if (googleUser != null && googleUser.id == remembered.googleUserId) {
       _log.info(
-        'Google account confirmation: lightweight reauth succeeded for '
-        '${remembered.email}',
+        'Google account confirmation: lightweight reauth succeeded',
       );
       return _finishGoogleFirebaseSignIn(googleUser, remember: true);
     }
 
     _log.info(
-      'Google account confirmation: lightweight reauth unavailable for '
-      '${remembered.email}, falling back to interactive',
+      'Google account confirmation: lightweight reauth unavailable, '
+      'falling back to interactive',
     );
     return _interactiveGoogleSignIn();
   }

@@ -61,7 +61,7 @@ class AttachmentRemoteDataSourceImpl extends AttachmentRemoteDataSource {
               : course != null
                   ? 'Course $course'
                   : 'unknown';
-      _log.info('Creating Attachment "$filename" (${fileSizeKb}KB) for $parentInfo ...');
+      _log.info('Creating Attachment (${fileSizeKb}KB) for $parentInfo ...');
 
       // Create FormData for file upload
       final multipart = MultipartFile.fromBytes(

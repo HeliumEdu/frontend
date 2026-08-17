@@ -2154,17 +2154,13 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
       if (isMismatch) {
         _log.warning(
           'Calendar drag mismatch — rejecting: '
-          'sf=${item.id} "${item.title}" '
-          'hover=${hovered.id} "${hovered.title}"',
+          'sf=${item.id} hover=${hovered.id}',
         );
         _dragRejected = true;
         _plannerItemDataSource!.resetAppointments();
         return;
       } else if (hovered == null) {
-        _log.warning(
-          'Calendar drag no hover — '
-          'sf=${item.id} "${item.title}"',
-        );
+        _log.warning('Calendar drag no hover — sf=${item.id}');
       }
       if (_isLockedCalendarInteractionItem(item)) {
         // Locked items are not draggable; triggering a rebuild mid-drag corrupts
