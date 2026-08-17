@@ -70,6 +70,7 @@ class SentryService {
       }
 
       options.sendDefaultPii = false;
+      options.maxBreadcrumbs = 200;
       options.tracesSampleRate = 0.1;
       // ignore: experimental_member_use
       options.profilesSampleRate = 0.1;

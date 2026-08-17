@@ -47,10 +47,7 @@ class LogService {
       case LogSentryAction.captureMessage:
         Sentry.captureMessage(record.message, level: SentryLevel.error);
       case LogSentryAction.breadcrumb:
-        _addBreadcrumb(
-          record,
-          record.level >= Level.SEVERE ? SentryLevel.info : SentryLevel.warning,
-        );
+        _addBreadcrumb(record, _breadcrumbLevelFor(record));
       case LogSentryAction.drop:
         break;
     }
@@ -71,10 +68,17 @@ class LogService {
       }
       return LogSentryAction.captureMessage;
     }
-    if (record.level >= Level.WARNING) {
+    if (record.level >= Level.INFO) {
       return LogSentryAction.breadcrumb;
     }
     return LogSentryAction.drop;
+  }
+
+  static SentryLevel _breadcrumbLevelFor(LogRecord record) {
+    if (record.level >= Level.WARNING) {
+      return SentryLevel.warning;
+    }
+    return SentryLevel.info;
   }
 
   void _addBreadcrumb(LogRecord record, SentryLevel level) {

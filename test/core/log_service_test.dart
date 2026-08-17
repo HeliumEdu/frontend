@@ -116,14 +116,26 @@ void main() {
       });
     });
 
-    group('Below WARNING is dropped', () {
-      test('INFO is dropped', () {
+    group('INFO tier (breadcrumb — Sentry LoggingIntegration default)', () {
+      test('INFO becomes a breadcrumb', () {
         expect(
           LogService.classifyRecord(_record(Level.INFO)),
-          LogSentryAction.drop,
+          LogSentryAction.breadcrumb,
         );
       });
 
+      test('INFO with an attached error still only breadcrumbs (not an event)', () {
+        final record = _record(Level.INFO, error: Exception('x'));
+
+        expect(
+          LogService.classifyRecord(record),
+          LogSentryAction.breadcrumb,
+          reason: 'INFO must never create an event regardless of attached error',
+        );
+      });
+    });
+
+    group('Below INFO is dropped', () {
       test('FINE is dropped', () {
         expect(
           LogService.classifyRecord(_record(Level.FINE)),
@@ -131,11 +143,9 @@ void main() {
         );
       });
 
-      test('INFO with an attached error is still dropped', () {
-        final record = _record(Level.INFO, error: Exception('x'));
-
+      test('FINER is dropped', () {
         expect(
-          LogService.classifyRecord(record),
+          LogService.classifyRecord(_record(Level.FINER)),
           LogSentryAction.drop,
         );
       });
