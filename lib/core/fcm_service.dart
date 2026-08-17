@@ -587,9 +587,7 @@ class FcmService {
     for (final token in existingTokens) {
       if (token.deviceId == _deviceId) {
         await pushTokenRepo.deletePushTokenById(token.id);
-        _log.info(
-          'Unregistered push token ID: ${token.id} for device $_deviceId',
-        );
+        _log.info('Unregistered push token ID: ${token.id}');
       }
     }
 
