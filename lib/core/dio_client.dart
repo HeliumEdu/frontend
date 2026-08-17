@@ -153,6 +153,9 @@ class DioClient {
             _log.info('Got 401 error, attempting to refresh token ...');
             _isRefreshing = true;
             _refreshCompleter = Completer<void>();
+            // Absorb completeError when no request is awaiting, so it can't
+            // escape as an unhandled error.
+            unawaited(_refreshCompleter!.future.catchError((_) {}));
 
             try {
               final refreshToken = await getRefreshToken();
@@ -178,6 +181,27 @@ class DioClient {
                     'Accept': 'application/json',
                   },
                   validateStatus: (status) => status != null && status < 500,
+                ),
+              );
+
+              // Mirror _dio's retry so a transient connection blip self-heals.
+              refreshDio.interceptors.add(
+                RetryInterceptor(
+                  dio: refreshDio,
+                  logPrint: (message) => _log.info(message),
+                  retries: 3,
+                  retryDelays: const [
+                    Duration(seconds: 1),
+                    Duration(seconds: 2),
+                    Duration(seconds: 3),
+                  ],
+                  retryEvaluator: DefaultRetryEvaluator({
+                    HttpStatus.requestTimeout,
+                    HttpStatus.internalServerError,
+                    HttpStatus.badGateway,
+                    HttpStatus.serviceUnavailable,
+                    HttpStatus.gatewayTimeout,
+                  }).evaluate,
                 ),
               );
 
