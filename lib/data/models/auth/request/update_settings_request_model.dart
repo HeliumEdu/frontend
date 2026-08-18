@@ -1,7 +1,3 @@
-// Copyright (c) Helium Edu
-//
-// SPDX-License-Identifier: Apache-2.0
-
 class UpdateSettingsRequestModel {
   final String? timeZone;
   final int? defaultView;

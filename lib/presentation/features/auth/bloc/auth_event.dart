@@ -1,7 +1,3 @@
-// Copyright (c) Helium Edu
-//
-// SPDX-License-Identifier: Apache-2.0
-
 import 'package:heliumapp/core/google_account_store.dart';
 import 'package:heliumapp/data/models/auth/request/update_settings_request_model.dart';
 

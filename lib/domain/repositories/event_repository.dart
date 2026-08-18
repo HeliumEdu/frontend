@@ -1,7 +1,3 @@
-// Copyright (c) Helium Edu
-//
-// SPDX-License-Identifier: Apache-2.0
-
 import 'package:heliumapp/data/models/planner/event_model.dart';
 import 'package:heliumapp/data/models/planner/request/event_request_model.dart';
 

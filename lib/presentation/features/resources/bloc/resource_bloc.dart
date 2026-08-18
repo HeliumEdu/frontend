@@ -1,7 +1,3 @@
-// Copyright (c) Helium Edu
-//
-// SPDX-License-Identifier: Apache-2.0
-
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:heliumapp/core/helium_exception.dart';
 import 'package:heliumapp/data/models/planner/course_model.dart';

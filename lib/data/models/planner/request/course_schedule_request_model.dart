@@ -1,7 +1,3 @@
-// Copyright (c) Helium Edu
-//
-// SPDX-License-Identifier: Apache-2.0
-
 import 'package:flutter/material.dart';
 import 'package:heliumapp/data/models/planner/course_schedule_cycle_slot_model.dart';
 import 'package:heliumapp/utils/date_time_helpers.dart';

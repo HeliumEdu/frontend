@@ -1,7 +1,3 @@
-// Copyright (c) Helium Edu
-//
-// SPDX-License-Identifier: Apache-2.0
-
 import 'package:flutter/services.dart';
 import 'package:heliumapp/utils/snack_bar_helpers.dart';
 import 'package:url_launcher/url_launcher.dart';

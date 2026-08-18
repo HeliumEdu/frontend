@@ -1,7 +1,3 @@
-// Copyright (c) Helium Edu
-//
-// SPDX-License-Identifier: Apache-2.0
-
 class PushTokenRequestModel {
   final String deviceId;
   final String token;

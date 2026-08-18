@@ -1,7 +1,3 @@
-// Copyright (c) Helium Edu
-//
-// SPDX-License-Identifier: Apache-2.0
-
 import 'package:heliumapp/data/models/planner/planner_item_base_model.dart';
 
 /// Base for planner items that carry RRULE-driven recurrence sourced from the

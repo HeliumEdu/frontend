@@ -1,7 +1,3 @@
-// Copyright (c) Helium Edu
-//
-// SPDX-License-Identifier: Apache-2.0
-
 import 'dart:ui';
 
 import 'package:heliumapp/data/models/planner/category_model.dart';

@@ -1,7 +1,3 @@
-// Copyright (c) Helium Edu
-//
-// SPDX-License-Identifier: Apache-2.0
-
 /// Configuration for integration tests.
 class TestConfig {
   static final TestConfig _instance = TestConfig._internal();

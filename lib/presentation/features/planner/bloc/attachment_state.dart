@@ -1,7 +1,3 @@
-// Copyright (c) Helium Edu
-//
-// SPDX-License-Identifier: Apache-2.0
-
 import 'package:heliumapp/data/models/planner/attachment_model.dart';
 
 abstract class AttachmentState {

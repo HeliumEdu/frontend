@@ -1,7 +1,3 @@
-// Copyright (c) Helium Edu
-//
-// SPDX-License-Identifier: Apache-2.0
-
 /// One recurring occurrence definition for a [CourseScheduleModel], resolved
 /// server-side: an iCal [recurrenceRule] anchored at [start]/[end] with
 /// course and course-group exceptions already merged into [exceptionDates].

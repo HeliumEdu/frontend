@@ -1,7 +1,3 @@
-// Copyright (c) Helium Edu
-//
-// SPDX-License-Identifier: Apache-2.0
-
 import 'package:flutter/material.dart';
 import 'package:heliumapp/data/models/base_model.dart';
 import 'package:heliumapp/presentation/ui/components/helium_elevated_button.dart';

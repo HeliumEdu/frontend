@@ -1,7 +1,3 @@
-// Copyright (c) Helium Edu
-//
-// SPDX-License-Identifier: Apache-2.0
-
 /// Client-side mirror of the backend `resolve_week_index` for "Week A/B"
 /// rotations. The backend owns rendering; this exists only so the schedule
 /// editor can preview which calendar weeks a rotation resolves to, catching a

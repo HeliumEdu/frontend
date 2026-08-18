@@ -1,7 +1,3 @@
-// Copyright (c) Helium Edu
-//
-// SPDX-License-Identifier: Apache-2.0
-
 class ApiUrl {
   static const _overrideHost = String.fromEnvironment('PROJECT_API_HOST');
 

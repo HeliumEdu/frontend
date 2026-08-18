@@ -1,7 +1,3 @@
-// Copyright (c) Helium Edu
-//
-// SPDX-License-Identifier: Apache-2.0
-
 // Runs all integration test suites in order. signup must come first; the
 // authed/external_calendar/logout/redirect suites assume the test user
 // already exists. delete_user removes it at the end.

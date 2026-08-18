@@ -1,7 +1,3 @@
-// Copyright (c) Helium Edu
-//
-// SPDX-License-Identifier: Apache-2.0
-
 class ExternalCalendarRequestModel {
   final String? title;
   final String? url;

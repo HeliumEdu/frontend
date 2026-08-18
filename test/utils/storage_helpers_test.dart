@@ -1,7 +1,3 @@
-// Copyright (c) Helium Edu
-//
-// SPDX-License-Identifier: Apache-2.0
-
 // These tests run on the VM (flutter test), so storage_helpers_mobile.dart is
 // the active platform file and kIsWeb = false throughout.
 //

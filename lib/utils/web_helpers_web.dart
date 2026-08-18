@@ -1,7 +1,3 @@
-// Copyright (c) Helium Edu
-//
-// SPDX-License-Identifier: Apache-2.0
-
 import 'package:web/web.dart' as web;
 
 /// Calls the browser's native print dialog synchronously.

@@ -1,7 +1,3 @@
-// Copyright (c) Helium Edu
-//
-// SPDX-License-Identifier: Apache-2.0
-
 typedef HtmlSanitizer = String Function(String html);
 
 final List<HtmlSanitizer> _sanitizers = [

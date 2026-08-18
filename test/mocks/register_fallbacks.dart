@@ -1,7 +1,3 @@
-// Copyright (c) Helium Edu
-//
-// SPDX-License-Identifier: Apache-2.0
-
 import 'dart:typed_data';
 
 import 'package:heliumapp/data/models/auth/request/change_password_request_model.dart';

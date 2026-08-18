@@ -1,7 +1,3 @@
-// Copyright (c) Helium Edu
-//
-// SPDX-License-Identifier: Apache-2.0
-
 /// Utility functions for course and course-group exception dates.
 ///
 /// The backend stores exceptions as a comma-separated string of YYYYMMDD dates

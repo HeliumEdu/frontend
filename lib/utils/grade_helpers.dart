@@ -1,7 +1,3 @@
-// Copyright (c) Helium Edu
-//
-// SPDX-License-Identifier: Apache-2.0
-
 // Grading math is also implemented in the backend at
 // projects/platform/helium/planner/services/gradingservice.py (the source of
 // truth for actual grades). This file operates on category aggregates the

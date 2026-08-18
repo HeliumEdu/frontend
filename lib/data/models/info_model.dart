@@ -1,7 +1,3 @@
-// Copyright (c) Helium Edu
-//
-// SPDX-License-Identifier: Apache-2.0
-
 /// Runtime configuration served by `GET /info/`.
 ///
 /// `/info/` returns additional fields (name, version, token lifetimes, oauth

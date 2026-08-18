@@ -1,7 +1,3 @@
-// Copyright (c) Helium Edu
-//
-// SPDX-License-Identifier: Apache-2.0
-
 import 'package:heliumapp/utils/planner_helper.dart';
 import 'package:heliumapp/utils/search_helpers.dart';
 import 'package:heliumapp/utils/sort_helpers.dart';

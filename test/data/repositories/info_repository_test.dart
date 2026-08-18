@@ -1,7 +1,3 @@
-// Copyright (c) Helium Edu
-//
-// SPDX-License-Identifier: Apache-2.0
-
 import 'package:flutter_test/flutter_test.dart';
 import 'package:heliumapp/data/models/info_model.dart';
 import 'package:heliumapp/data/repositories/info_repository_impl.dart';

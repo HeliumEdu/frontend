@@ -1,7 +1,3 @@
-// Copyright (c) Helium Edu
-//
-// SPDX-License-Identifier: Apache-2.0
-
 /// No-op stub used on non-web platforms.
 /// On native (iOS/Android), the platform handles clipboard natively — no
 /// browser event interception needed.

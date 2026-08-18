@@ -1,7 +1,3 @@
-// Copyright (c) Helium Edu
-//
-// SPDX-License-Identifier: Apache-2.0
-
 import 'package:diacritic/diacritic.dart';
 
 /// Search utilities for filter-style search fields (planner, notebook,

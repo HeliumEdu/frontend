@@ -1,7 +1,3 @@
-// Copyright (c) Helium Edu
-//
-// SPDX-License-Identifier: Apache-2.0
-
 /// Parsed API error containing field-specific and general errors
 class ParsedApiError {
   /// Map of field names to their error messages

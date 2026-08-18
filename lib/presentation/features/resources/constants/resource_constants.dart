@@ -1,7 +1,3 @@
-// Copyright (c) Helium Edu
-//
-// SPDX-License-Identifier: Apache-2.0
-
 import 'package:heliumapp/data/models/drop_down_item.dart';
 import 'package:heliumapp/utils/dropdown_extensions.dart';
 

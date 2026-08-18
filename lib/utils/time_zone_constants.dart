@@ -1,7 +1,3 @@
-// Copyright (c) Helium Edu
-//
-// SPDX-License-Identifier: Apache-2.0
-
 // AUTO-GENERATED — DO NOT EDIT.
 // Refreshed periodically from IANA tzdata via:
 //   platform/bin/refresh-timezones.py

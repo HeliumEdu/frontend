@@ -1,7 +1,3 @@
-// Copyright (c) Helium Edu
-//
-// SPDX-License-Identifier: Apache-2.0
-
 /// Client-side semver comparison for the force-update gate. Mirrors the
 /// backend's `versionutils` contract (3-segment `major.minor.patch` with an
 /// optional `+build` suffix, e.g. `3.6.18+336`), but with the OPPOSITE

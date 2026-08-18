@@ -1,7 +1,3 @@
-// Copyright (c) Helium Edu
-//
-// SPDX-License-Identifier: Apache-2.0
-
 /// Server-side category provisioning template passed on course create; the backend seeds the
 /// corresponding default categories in the same request (see `CATEGORY_TEMPLATE_CHOICES`).
 enum CourseTemplate {

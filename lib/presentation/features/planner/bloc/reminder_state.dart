@@ -1,7 +1,3 @@
-// Copyright (c) Helium Edu
-//
-// SPDX-License-Identifier: Apache-2.0
-
 import 'package:heliumapp/data/models/planner/reminder_model.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/core/base_state.dart';
 
