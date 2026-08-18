@@ -155,7 +155,7 @@ class HeliumStorage {
         }
         files.add(PickedFile(name: platFile.name, bytes: bytes));
       } catch (e) {
-        _log.warning('Failed to read picked file: ${platFile.name}', e);
+        _log.warning('Failed to read picked file', e);
         errors.add(PickedFileError(
           name: platFile.name,
           reason: PickedFileErrorReason.readError,

@@ -31,7 +31,7 @@ class InfoBloc extends Bloc<InfoEvent, InfoState> {
       final info = await infoRepository.getInfo();
       emit(InfoLoaded(info: info));
     } on HeliumException catch (e) {
-      _log.warning('Failed to load /info/: ${e.message}');
+      _log.warning('Failed to load /info/: ${e.runtimeType} code=${e.code}');
       emit(InfoLoadFailed(message: e.displayMessage));
     } catch (e, s) {
       _log.severe('Unexpected error loading /info/', e, s);

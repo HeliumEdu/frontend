@@ -63,8 +63,7 @@ class AnalyticsService {
       await analytics.setAnalyticsCollectionEnabled(true);
       _isInitialized = true;
       _log.info('Analytics initialized successfully');
-    } catch (e, s) {
-      _log.severe('Analytics initialization failed', e, s);
+    } catch (_) {
       rethrow;
     }
   }

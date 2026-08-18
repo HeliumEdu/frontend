@@ -55,7 +55,7 @@ abstract class BaseDataSource {
               ? parsedError.displayMessage
               : 'Unknown validation error occurred.';
 
-          _log.severe('Error message: ${e.message}', e, s);
+          _log.severe('Validation error, status: $statusCode');
 
           return ValidationException(
             message: errorMessage,

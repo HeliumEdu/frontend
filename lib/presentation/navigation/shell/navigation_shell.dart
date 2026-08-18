@@ -365,7 +365,7 @@ class _NavigationShellState extends State<NavigationShell> {
       if (!mounted || !showGettingStarted) return;
       await _showGettingStartedDialogSafely();
     } catch (e) {
-      _log.warning('Failed to check getting started dialog state: $e');
+      _log.warning('Failed to check getting started dialog state: ${e.runtimeType}');
     }
   }
 
@@ -380,7 +380,7 @@ class _NavigationShellState extends State<NavigationShell> {
           FallbackConstants.defaultShowGettingStarted;
       showWhatsNew = await WhatsNewService().shouldShowWhatsNew();
     } catch (e) {
-      _log.warning('Failed to prepare startup dialogs: $e');
+      _log.warning('Failed to prepare startup dialogs: ${e.runtimeType}');
     }
 
     if (!mounted) return;
@@ -416,7 +416,7 @@ class _NavigationShellState extends State<NavigationShell> {
         try {
           await showWhatsNewDialog(context);
         } catch (e) {
-          _log.warning('Failed to show What\'s New dialog: $e');
+          _log.warning('Failed to show What\'s New dialog: ${e.runtimeType}');
         }
       }
     });
@@ -429,7 +429,7 @@ class _NavigationShellState extends State<NavigationShell> {
     try {
       await showGettingStartedDialog(context);
     } catch (e) {
-      _log.warning('Failed to show getting started dialog: $e');
+      _log.warning('Failed to show getting started dialog: ${e.runtimeType}');
     } finally {
       _isShowingGettingStarted = false;
     }

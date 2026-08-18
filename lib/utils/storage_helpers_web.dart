@@ -74,7 +74,7 @@ Future<bool> downloadBytesPlatform(Uint8List bytes, String filename) async {
     anchor.remove();
     web.URL.revokeObjectURL(blobUrl);
 
-    _log.info('Web download triggered for: $filename');
+    _log.info('Web download triggered');
     return true;
   } catch (e) {
     _log.severe('Web bytes download failed', e);

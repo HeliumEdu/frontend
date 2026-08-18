@@ -31,7 +31,9 @@ import 'package:heliumapp/utils/snack_bar_helpers.dart';
 import 'package:logging/logging.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:pretty_dio_logger/pretty_dio_logger.dart';
+import 'package:heliumapp/core/sentry_service.dart';
 import 'package:sentry_dio/sentry_dio.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:uuid/uuid.dart';
 
 final _log = Logger('core');
@@ -99,7 +101,10 @@ class DioClient {
 
           _clientPlatform ??= _resolveClientPlatform();
           options.headers['X-Client-Platform'] = _clientPlatform;
-          options.headers['X-Request-ID'] = const Uuid().v4();
+
+          final requestId = const Uuid().v4();
+          options.headers['X-Request-ID'] = requestId;
+          _addRequestBreadcrumb(requestId, options);
 
           final token = await _prefService.getSecure('access_token');
           if (token?.isNotEmpty ?? false) {
@@ -153,6 +158,9 @@ class DioClient {
             _log.info('Got 401 error, attempting to refresh token ...');
             _isRefreshing = true;
             _refreshCompleter = Completer<void>();
+            // Absorb completeError when no request is awaiting, so it can't
+            // escape as an unhandled error.
+            unawaited(_refreshCompleter!.future.catchError((_) {}));
 
             try {
               final refreshToken = await getRefreshToken();
@@ -178,6 +186,27 @@ class DioClient {
                     'Accept': 'application/json',
                   },
                   validateStatus: (status) => status != null && status < 500,
+                ),
+              );
+
+              // Mirror _dio's retry so a transient connection blip self-heals.
+              refreshDio.interceptors.add(
+                RetryInterceptor(
+                  dio: refreshDio,
+                  logPrint: (message) => _log.info(message),
+                  retries: 3,
+                  retryDelays: const [
+                    Duration(seconds: 1),
+                    Duration(seconds: 2),
+                    Duration(seconds: 3),
+                  ],
+                  retryEvaluator: DefaultRetryEvaluator({
+                    HttpStatus.requestTimeout,
+                    HttpStatus.internalServerError,
+                    HttpStatus.badGateway,
+                    HttpStatus.serviceUnavailable,
+                    HttpStatus.gatewayTimeout,
+                  }).evaluate,
                 ),
               );
 
@@ -376,7 +405,7 @@ class DioClient {
         return null;
       }
     } catch (apiError) {
-      _log.severe('Error fetching settings from API: $apiError', apiError);
+      _log.severe('Error fetching settings from API: ${apiError.runtimeType}');
 
       return null;
     }
@@ -519,6 +548,19 @@ class DioClient {
     if (Platform.isIOS) return 'ios';
     if (Platform.isAndroid) return 'android';
     return 'unknown';
+  }
+
+  void _addRequestBreadcrumb(String requestId, RequestOptions options) {
+    if (!SentryService().isEnabled) return;
+    Sentry.addBreadcrumb(
+      Breadcrumb(
+        message: '${options.method} ${options.path}',
+        category: 'http.request',
+        type: 'http',
+        level: SentryLevel.info,
+        data: {'request_id': requestId},
+      ),
+    );
   }
 
   bool _isInvalidTokenError(dynamic responseData) {

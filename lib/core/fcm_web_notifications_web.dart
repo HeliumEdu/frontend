@@ -106,7 +106,7 @@ void showWebNotification(
       _activeNotifications.remove(webNotification);
     }.toJS;
 
-    _log.info('Web notification displayed: ${notification.title}');
+    _log.info('Web notification displayed');
   } catch (e) {
     _log.warning('Failed to show web notification', e);
   }

@@ -143,8 +143,7 @@ class FcmService {
 
       _isInitialized = true;
       _log.info('FCM initialized successfully');
-    } catch (e, s) {
-      _log.severe('FCM initialization failed', e, s);
+    } catch (_) {
       rethrow;
     }
   }
@@ -334,9 +333,7 @@ class FcmService {
         }
       }
 
-      _log.info(
-        'Registering FCM token with for $userId on device $_deviceId ...',
-      );
+      _log.info('Registering FCM token for $userId ...');
 
       await cleanExistingTokens();
 
@@ -590,9 +587,7 @@ class FcmService {
     for (final token in existingTokens) {
       if (token.deviceId == _deviceId) {
         await pushTokenRepo.deletePushTokenById(token.id);
-        _log.info(
-          'Unregistered push token ID: ${token.id} for device $_deviceId',
-        );
+        _log.info('Unregistered push token ID: ${token.id}');
       }
     }
 

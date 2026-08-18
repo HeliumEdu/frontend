@@ -36,7 +36,7 @@ class PushTokenRemoteDataSourceImpl extends PushNotificationRemoteDataSource {
     PushTokenRequestModel request,
   ) async {
     try {
-      _log.info('Registering PushToken for device ${request.deviceId} ...');
+      _log.info('Registering PushToken ...');
 
       final response = await dioClient.dio.post(
         ApiUrl.authUserPushTokenUrl,
@@ -45,7 +45,7 @@ class PushTokenRemoteDataSourceImpl extends PushNotificationRemoteDataSource {
 
       if (response.statusCode == 201) {
         final pushToken = PushTokenModel.fromJson(response.data);
-        _log.info('... PushToken ${pushToken.id} registered for device ${request.deviceId}');
+        _log.info('... PushToken ${pushToken.id} registered');
         return pushToken;
       } else {
         throw ServerException(
@@ -86,7 +86,7 @@ class PushTokenRemoteDataSourceImpl extends PushNotificationRemoteDataSource {
             errorMessage = response.data as String;
           }
         }
-        _log.severe('API Error: $errorMessage');
+        _log.severe('Failed to delete push token, status: ${response.statusCode}');
         throw ServerException(
           message: errorMessage,
           code: response.statusCode.toString(),
@@ -109,7 +109,9 @@ class PushTokenRemoteDataSourceImpl extends PushNotificationRemoteDataSource {
       } else {
         errorMessage = e.message ?? errorMessage;
       }
-      _log.severe('DioException Error: $errorMessage');
+      _log.severe(
+        'DioException deleting push token, status: ${e.response?.statusCode}',
+      );
       throw HeliumException(message: errorMessage);
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);

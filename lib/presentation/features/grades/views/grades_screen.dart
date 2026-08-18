@@ -308,11 +308,9 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
           );
         }
 
-        final List<GradeCourseModel> courses = _grades.isNotEmpty
-            ? _grades
-            .firstWhere((g) => g.id == _selectedGroupId)
-            .courses
-            : [];
+        final List<GradeCourseModel> courses =
+            _grades.firstWhereOrNull((g) => g.id == _selectedGroupId)?.courses ??
+            [];
 
         if (_grades.isEmpty || courses.isEmpty) {
           return const EmptyCard(

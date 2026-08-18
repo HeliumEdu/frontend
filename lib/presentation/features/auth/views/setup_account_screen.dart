@@ -110,7 +110,7 @@ class _SetupAccountScreenState extends BasePageScreenState<SetupAccountScreen> {
         );
       }
     } catch (e) {
-      _log.warning('Unexpected setup initialization error: $e');
+      _log.warning('Unexpected setup initialization error: ${e.runtimeType}');
     } finally {
       if (mounted) {
         _startPolling();
@@ -128,7 +128,7 @@ class _SetupAccountScreenState extends BasePageScreenState<SetupAccountScreen> {
       );
       _log.info('Updated user timezone from setup flow');
     } catch (e) {
-      _log.warning('Failed to auto-detect or update timezone: $e');
+      _log.warning('Failed to auto-detect or update timezone: ${e.runtimeType}');
     }
   }
 
@@ -160,7 +160,7 @@ class _SetupAccountScreenState extends BasePageScreenState<SetupAccountScreen> {
         _log.info('--> Setup not yet complete, continuing to poll');
       }
     } catch (e) {
-      _log.warning('Error checking setup status: $e');
+      _log.warning('Error checking setup status: ${e.runtimeType}');
     } finally {
       _isPolling = false;
     }
