@@ -131,7 +131,13 @@ class FcmService {
     try {
       await _initializeNotifications();
 
-      await _requestPermission();
+      if (!await _requestPermission()) {
+        _log.info(
+          'FCM not supported in this browser (permission API unavailable), skipping initialization',
+        );
+        _isSupported = false;
+        return;
+      }
 
       await _getFCMToken();
 
@@ -192,18 +198,27 @@ class FcmService {
         ?.createNotificationChannel(channel);
   }
 
-  Future<void> _requestPermission() async {
-    if (_firebaseMessaging == null) return;
+  /// Returns false if the browser's notification permission API is
+  /// unavailable (distinct from the user denying permission, which is a
+  /// normal [NotificationSettings] response, not a thrown error).
+  Future<bool> _requestPermission() async {
+    if (_firebaseMessaging == null) return true;
 
-    final settings = await _firebaseMessaging!.requestPermission(
-      alert: true,
-      announcement: false,
-      badge: true,
-      carPlay: false,
-      criticalAlert: false,
-      provisional: false,
-      sound: true,
-    );
+    final NotificationSettings settings;
+    try {
+      settings = await _firebaseMessaging!.requestPermission(
+        alert: true,
+        announcement: false,
+        badge: true,
+        carPlay: false,
+        criticalAlert: false,
+        provisional: false,
+        sound: true,
+      );
+    } catch (e) {
+      _log.info('Notification permission API unavailable', e);
+      return false;
+    }
 
     _log.info(
       'Notification permission status: ${settings.authorizationStatus}',
@@ -218,6 +233,7 @@ class FcmService {
         sound: true,
       );
     }
+    return true;
   }
 
   Future<void> _getFCMToken() async {
