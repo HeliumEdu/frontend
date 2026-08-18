@@ -1,6 +1,6 @@
-// Copyright (c) 2025 Helium Edu
+// Copyright (c) Helium Edu
 //
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: Apache-2.0
 
 import 'dart:async';
 
