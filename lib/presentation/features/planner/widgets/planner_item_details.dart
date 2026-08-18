@@ -419,11 +419,9 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
       children: [
         DropDown(
           label: 'Category',
-          initialValue: _categoryItems.isNotEmpty
-              ? _categoryItems.firstWhere(
-                  (c) => c.id == formController.selectedCategory,
-                )
-              : null,
+          initialValue: _categoryItems.firstWhereOrNull(
+            (c) => c.id == formController.selectedCategory,
+          ),
           items: _categoryItems
               .where(
                 (category) =>
