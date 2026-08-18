@@ -58,9 +58,11 @@ class LogService {
   @visibleForTesting
   static LogSentryAction classifyRecord(LogRecord record) {
     if (record.level >= Level.SEVERE) {
-      // Handled connectivity failures (offline/DNS/timeout) are non-actionable;
-      // keep them as breadcrumbs rather than events.
-      if (record.error is NetworkException) {
+      // Handled connectivity and 401/403 auth failures are non-actionable, so
+      // keep them as breadcrumbs. This type check works where the string-based
+      // filters in sentry_service._beforeSend can't: AOT minifies type names.
+      if (record.error is NetworkException ||
+          record.error is UnauthorizedException) {
         return LogSentryAction.breadcrumb;
       }
       if (record.error != null) {
