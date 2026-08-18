@@ -38,7 +38,13 @@ class LastOAuthProviderStore {
     _instance = instance;
   }
 
-  Future<String?> getLastUsedProvider() => _secureStorage.read(key: _key);
+  Future<String?> getLastUsedProvider() async {
+    try {
+      return await _secureStorage.read(key: _key);
+    } catch (_) {
+      return null;
+    }
+  }
 
   Future<void> setLastUsedProvider(String provider) {
     return _secureStorage.write(key: _key, value: provider);
