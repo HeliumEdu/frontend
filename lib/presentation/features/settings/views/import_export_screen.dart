@@ -436,7 +436,11 @@ class _ImportExportScreenState extends State<ImportExportScreen> {
   String? _validateJsonFile(Uint8List bytes) {
     final Object? decoded;
     try {
-      decoded = jsonDecode(utf8.decode(bytes));
+      var text = utf8.decode(bytes);
+      if (text.isNotEmpty && text.codeUnitAt(0) == 0xFEFF) {
+        text = text.substring(1);
+      }
+      decoded = jsonDecode(text);
     } catch (_) {
       return 'This file isn\'t valid JSON.';
     }
