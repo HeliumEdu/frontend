@@ -15,7 +15,7 @@ AppPlatform get currentAppPlatform {
 /// donation surface on that platform. iOS is off: App Store guideline 3.1.1
 /// treats an external donation link as an in-app purchase.
 const Map<AppPlatform, bool> _donationVisibleByPlatform = {
-  AppPlatform.ios: false,
+  AppPlatform.ios: true,
   AppPlatform.android: true,
   AppPlatform.web: true,
 };
