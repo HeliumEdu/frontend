@@ -9,6 +9,18 @@ import 'package:heliumapp/utils/storage_helpers_mobile.dart'
 
 final _log = Logger('utils');
 
+bool _isTransientConnectionError(DioException e) {
+  switch (e.type) {
+    case DioExceptionType.connectionError:
+    case DioExceptionType.connectionTimeout:
+    case DioExceptionType.sendTimeout:
+    case DioExceptionType.receiveTimeout:
+      return true;
+    default:
+      return false;
+  }
+}
+
 /// A file that was successfully picked and validated by [HeliumStorage.pickFiles].
 class PickedFile {
   final String name;
@@ -165,7 +177,11 @@ class HeliumStorage {
       final success = await downloadFilePlatform(url, filename);
       return success ? null : 'Failed to download "$filename".';
     } on DioException catch (e) {
-      _log.severe('An error occurred during file download', e);
+      if (_isTransientConnectionError(e)) {
+        _log.warning('Transient network error during file download', e);
+      } else {
+        _log.severe('An error occurred during file download', e);
+      }
       final data = e.response?.data;
       if (data is Map<String, dynamic>) {
         if (data.containsKey('details')) return data['details'].toString();

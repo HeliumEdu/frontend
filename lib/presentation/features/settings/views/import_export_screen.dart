@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
@@ -8,6 +9,7 @@ import 'package:heliumapp/config/analytics_event.dart';
 import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/core/analytics_service.dart';
+import 'package:heliumapp/core/api_error_parser.dart';
 import 'package:heliumapp/core/api_url.dart';
 import 'package:heliumapp/core/dio_client.dart';
 import 'package:heliumapp/core/notification_count_service.dart';
@@ -408,6 +410,15 @@ class _ImportExportScreenState extends State<ImportExportScreen> {
     if (result.cancelled || result.files.isEmpty) return;
 
     final file = result.files.first;
+    final isIcs = file.name.toLowerCase().endsWith('.ics');
+    final contentError = isIcs
+        ? _validateIcsFile(file.bytes)
+        : _validateJsonFile(file.bytes);
+    if (contentError != null) {
+      SnackBarHelper.show(context, contentError, type: SnackType.error);
+      return;
+    }
+
     setState(() {
       _selectedFileName = file.name;
       _selectedFileBytes = file.bytes;
@@ -420,6 +431,31 @@ class _ImportExportScreenState extends State<ImportExportScreen> {
     if (_selectedIsIcs) {
       await _loadImportTargets();
     }
+  }
+
+  String? _validateJsonFile(Uint8List bytes) {
+    final Object? decoded;
+    try {
+      var text = utf8.decode(bytes);
+      if (text.isNotEmpty && text.codeUnitAt(0) == 0xFEFF) {
+        text = text.substring(1);
+      }
+      decoded = jsonDecode(text);
+    } catch (_) {
+      return 'This file isn\'t valid JSON.';
+    }
+    if (decoded is! Map) {
+      return 'This doesn\'t look like a Helium export file.';
+    }
+    return null;
+  }
+
+  String? _validateIcsFile(Uint8List bytes) {
+    final text = utf8.decode(bytes, allowMalformed: true);
+    if (!text.contains('BEGIN:VCALENDAR')) {
+      return 'This doesn\'t look like a valid calendar file.';
+    }
+    return null;
   }
 
   Future<void> _loadImportTargets() async {
@@ -514,10 +550,21 @@ class _ImportExportScreenState extends State<ImportExportScreen> {
         SnackBarHelper.show(context, 'Import failed.', type: SnackType.error);
       }
     } on DioException catch (e) {
-      _log.severe('Import failed.', e);
+      final parsedError = ApiErrorParser.parse(e.response?.data);
+      final message = parsedError.displayMessage.isNotEmpty
+          ? parsedError.displayMessage
+          : null;
+      if (e.response?.statusCode == 400 && message != null) {
+        _log.info('Import rejected: $message');
+      } else {
+        _log.severe('Import failed.', e);
+      }
       if (mounted) {
-        final message = _extractErrorMessage(e) ?? 'Failed to import file.';
-        SnackBarHelper.show(context, message, type: SnackType.error);
+        SnackBarHelper.show(
+          context,
+          message ?? 'Failed to import file.',
+          type: SnackType.error,
+        );
       }
     } finally {
       if (mounted) {

@@ -22,11 +22,13 @@ permissions:
 
 concurrency:
   group: "canary-${{ inputs.environment || 'prod' }}"
+  cancel-in-progress: true
 
 jobs:
   check:
     name: Check Prerequisites
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     outputs:
       should_run: ${{ steps.check.outputs.should_run }}
 
@@ -48,6 +50,7 @@ jobs:
     if: needs.check.outputs.should_run == 'true'
 
     runs-on: ubuntu-latest
+    timeout-minutes: 15
 
     env:
       FORCE_COLOR: 1
