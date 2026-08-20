@@ -12,8 +12,7 @@ AppPlatform get currentAppPlatform {
 }
 
 /// Per-platform donation-link visibility. Flip a flag to show or hide every
-/// donation surface on that platform. iOS is off: App Store guideline 3.1.1
-/// treats an external donation link as an in-app purchase.
+/// donation surface on that platform.
 const Map<AppPlatform, bool> _donationVisibleByPlatform = {
   AppPlatform.ios: true,
   AppPlatform.android: true,
