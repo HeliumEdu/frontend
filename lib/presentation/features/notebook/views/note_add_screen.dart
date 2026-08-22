@@ -166,6 +166,8 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
   bool _isAutoSaving = false;
   int _autoSaveErrorCount = 0;
   bool _isDiscardDialogOpen = false;
+
+  bool _isClosing = false;
   StreamSubscription<DocChange>? _documentSubscription;
 
   String? _pendingRedirectRoute;
@@ -312,7 +314,8 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
   }
 
   void _closeImmediately() {
-    if (!mounted) return;
+    if (!mounted || _isClosing) return;
+    _isClosing = true;
     final redirect = _pendingRedirectRoute;
     if (redirect != null) {
       _pendingRedirectRoute = null;

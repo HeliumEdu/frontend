@@ -258,6 +258,10 @@ class SentryService {
       return true;
     }
 
+    if (combined.contains('failed host lookup')) {
+      return true;
+    }
+
     // Expected when device goes offline in background
     if (_looksLikeNetworkError(combined) &&
         (combined.contains('/auth/token/refresh/') ||

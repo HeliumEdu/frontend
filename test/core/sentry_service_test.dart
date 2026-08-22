@@ -98,6 +98,38 @@ void main() {
       });
     });
 
+    group('Offline host-lookup filtering', () {
+      test('Filters uncaught SocketException host-lookup (device offline)', () {
+        final event = SentryEvent(
+          exceptions: [
+            SentryException(
+              type: 'SocketException',
+              value:
+                  "SocketException: Failed host lookup: 'api.heliumedu.com' "
+                  '(OS Error: nodename nor servname provided, errno = 8)',
+            ),
+          ],
+        );
+
+        expect(SentryService.shouldFilterEvent(event), isTrue,
+            reason: 'DNS failure means the device is offline; not actionable');
+      });
+
+      test('Does NOT filter a non-host-lookup socket error', () {
+        final event = SentryEvent(
+          exceptions: [
+            SentryException(
+              type: 'SocketException',
+              value: 'SocketException: Connection reset by peer',
+            ),
+          ],
+        );
+
+        expect(SentryService.shouldFilterEvent(event), isFalse,
+            reason: 'Only host-lookup/DNS failures are filtered, not all socket errors');
+      });
+    });
+
     group('UnauthorizedException type filtering', () {
       test('Filters UnauthorizedException type', () {
         final event = SentryEvent(
