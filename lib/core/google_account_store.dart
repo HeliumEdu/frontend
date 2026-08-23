@@ -42,10 +42,9 @@ class RememberedGoogleAccount {
 
 /// Remembers the Google account that most recently signed in to Helium on
 /// this device (iOS only; see `OAuthSignInService`) - display metadata only,
-/// tokens stay in GIDSignIn's own Keychain cache. `accountName` (iOS),
-/// `sharedPreferencesName` (Android) and `publicKey` (web) give it its own
-/// storage namespace so `PrefService().clear()` (every Helium logout) can't
-/// wipe it.
+/// tokens stay in GIDSignIn's own Keychain cache. `accountName`/`publicKey`
+/// give it its own storage namespace so `PrefService().clear()` (every
+/// Helium logout) can't wipe it.
 class GoogleAccountStore {
   static const String _key = 'google_remembered_account';
   static const String _accountName = 'google_account_store';
@@ -59,7 +58,6 @@ class GoogleAccountStore {
   GoogleAccountStore._internal()
     : _secureStorage = const FlutterSecureStorage(
         iOptions: IOSOptions(accountName: _accountName),
-        aOptions: AndroidOptions(sharedPreferencesName: _accountName),
         webOptions: WebOptions(publicKey: _accountName),
       );
 

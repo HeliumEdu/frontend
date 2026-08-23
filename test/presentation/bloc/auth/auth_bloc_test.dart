@@ -31,12 +31,12 @@ void main() {
       dioClient: mockDioClient,
     );
 
-    final mockSecureStorage = MockFlutterSecureStorage();
+    final mockLastOAuthPrefs = MockSharedPreferencesAsync();
     when(
-      () => mockSecureStorage.delete(key: any(named: 'key')),
+      () => mockLastOAuthPrefs.remove(any()),
     ).thenAnswer((_) async {});
     LastOAuthProviderStore.setInstanceForTesting(
-      LastOAuthProviderStore.forTesting(secureStorage: mockSecureStorage),
+      LastOAuthProviderStore.forTesting(prefs: mockLastOAuthPrefs),
     );
   });
 
