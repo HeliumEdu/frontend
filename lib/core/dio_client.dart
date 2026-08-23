@@ -177,6 +177,7 @@ class DioClient {
                   headers: {
                     'Content-Type': 'application/json',
                     'Accept': 'application/json',
+                    if (_clientVersion != null) 'X-Client-Version': _clientVersion,
                     'X-Client-Platform':
                         _clientPlatform ??= _resolveClientPlatform(),
                   },
