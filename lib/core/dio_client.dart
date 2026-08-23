@@ -177,6 +177,8 @@ class DioClient {
                   headers: {
                     'Content-Type': 'application/json',
                     'Accept': 'application/json',
+                    'X-Client-Platform':
+                        _clientPlatform ??= _resolveClientPlatform(),
                   },
                   validateStatus: (status) => status != null && status < 500,
                 ),
