@@ -81,10 +81,10 @@ class SentryService {
       // those cases are prevented at the source (see _authRedirect in
       // app_router.dart).
       options.ignoreErrors = [
-        '(?i)(status code of|http status error \\[)(401|403)',
-        '(?i)dioexception.*bad response.*(401|403)',
-        '(?i)bad response.*(401|403)',
-        '(?i)goexception.*(401|403)',
+        '(?i)(status code of|http status error \\[)4\\d\\d',
+        '(?i)dioexception.*bad response.*4\\d\\d',
+        '(?i)bad response.*4\\d\\d',
+        '(?i)goexception.*4\\d\\d',
         '(?i)flutterCanvasKit.*is not a constructor',
         '(?i)messaging/unsupported-browser',
         '(?i)watchdogtermination',
@@ -152,7 +152,7 @@ class SentryService {
       final originalError = hint.get('originalError');
       if (originalError != null) {
         final errorString = originalError.toString().toLowerCase();
-        if (_containsAuthStatusCode(errorString) &&
+        if (_containsClientErrorStatusCode(errorString) &&
             _looksLikeHttpError(errorString)) {
           _log.info('Filtered event from Sentry (via hint originalError)');
           return null;
@@ -224,37 +224,19 @@ class SentryService {
       return true;
     }
 
-    if (type.contains('unauthorizedexception')) {
+    if (type.contains('unauthorizedexception') ||
+        type.contains('validationexception') ||
+        type.contains('notfoundexception')) {
       return true;
     }
 
-    if (type.contains('goexception') && _containsAuthStatusCode(combined)) {
+    // GoException-wrapped redirects can carry a 4xx without HTTP keywords.
+    if (type.contains('goexception') &&
+        _containsClientErrorStatusCode(combined)) {
       return true;
     }
 
-    if (type.contains('dioexception') || combined.contains('dio')) {
-      if (_containsAuthStatusCode(combined)) {
-        return true;
-      }
-    }
-
-    // GoRouter wraps redirect errors; wrapped DioException ends up in value
-    if (type.contains('goexception')) {
-      if (_containsAuthStatusCode(combined) && _looksLikeHttpError(combined)) {
-        return true;
-      }
-    }
-
-    if (value.contains('status code of 401') ||
-        value.contains('status code of 403')) {
-      return true;
-    }
-
-    if (value.contains('bad response') && _containsAuthStatusCode(value)) {
-      return true;
-    }
-
-    if (_containsAuthStatusCode(combined) && _looksLikeHttpError(combined)) {
+    if (_containsClientErrorStatusCode(combined) && _looksLikeHttpError(combined)) {
       return true;
     }
 
@@ -315,21 +297,19 @@ class SentryService {
     ];
     final eventText = textParts.join(' ').toLowerCase();
 
-    if (eventText.contains('/auth/user/verify/') &&
-        eventText.contains('400')) {
-      return true;
-    }
-
-    if (_containsAuthStatusCode(eventText) && _looksLikeHttpError(eventText)) {
+    if (_containsClientErrorStatusCode(eventText) &&
+        _looksLikeHttpError(eventText)) {
       return true;
     }
 
     return false;
   }
 
-  /// Check if text contains 401 or 403 status codes
-  bool _containsAuthStatusCode(String text) {
-    return text.contains('401') || text.contains('403');
+  /// Matches any HTTP 4xx (client error) status code in free text.
+  static final _clientErrorStatusPattern = RegExp(r'\b4\d\d\b');
+
+  bool _containsClientErrorStatusCode(String text) {
+    return _clientErrorStatusPattern.hasMatch(text);
   }
 
   /// Check if text looks like an HTTP error

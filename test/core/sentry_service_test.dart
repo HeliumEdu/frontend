@@ -249,6 +249,24 @@ void main() {
       });
     });
 
+    group('Whole 4xx prefix is filtered (client errors are expected flow)', () {
+      for (final code in const [400, 404, 409, 422, 429]) {
+        test('$code client error is filtered', () {
+          final event = SentryEvent(
+            exceptions: [
+              SentryException(
+                type: 'DioException',
+                value:
+                    'DioException [bad response]: /api/planner/courses/ returned status code of $code',
+              ),
+            ],
+          );
+          expect(SentryService.shouldFilterEvent(event), isTrue,
+              reason: '$code is a handled 4xx and should not reach Sentry');
+        });
+      }
+    });
+
     group('Errors that should NOT be filtered', () {
       test('500 server error', () {
         final event = SentryEvent(
@@ -261,33 +279,6 @@ void main() {
         );
         expect(SentryService.shouldFilterEvent(event), isFalse,
             reason: '500 errors are bugs and should NOT be filtered');
-      });
-
-      test('404 not found', () {
-        final event = SentryEvent(
-          exceptions: [
-            SentryException(
-              type: 'DioException',
-              value: 'status code of 404 Not Found',
-            ),
-          ],
-        );
-        expect(SentryService.shouldFilterEvent(event), isFalse,
-            reason: '404 errors might indicate bugs');
-      });
-
-      test('400 validation on non-verify endpoint', () {
-        final event = SentryEvent(
-          exceptions: [
-            SentryException(
-              type: 'DioException',
-              value:
-                  'DioException [bad response]: /api/planner/courses/ returned 400',
-            ),
-          ],
-        );
-        expect(SentryService.shouldFilterEvent(event), isFalse,
-            reason: 'Validation 400 on non-verify endpoints might be bugs');
       });
 
       test('Network timeout', () {
