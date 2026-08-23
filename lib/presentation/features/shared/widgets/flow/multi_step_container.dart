@@ -60,6 +60,8 @@ abstract class MultiStepContainerState<T extends MultiStepContainer>
   late int _currentStep;
   int _previousStep = 0;
 
+  bool _isClosing = false;
+
   @override
   void initState() {
     super.initState();
@@ -148,7 +150,8 @@ abstract class MultiStepContainerState<T extends MultiStepContainer>
   /// registry slot so the silent guard doesn't fight an intentional close.
   @protected
   void closeWithoutPrompt() {
-    if (!mounted) return;
+    if (!mounted || _isClosing) return;
+    _isClosing = true;
     DirtyDialogRegistry.releaseActive();
     if (context.canPop()) {
       context.pop();

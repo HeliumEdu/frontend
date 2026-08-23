@@ -3569,6 +3569,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
 
     showDialog(
       context: context,
+      useRootNavigator: false,
       builder: (_) => PlannerDayPopOutDialog(
         date: date,
         dataSource: _plannerItemDataSource!,
