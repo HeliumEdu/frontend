@@ -14,6 +14,9 @@ class MockCacheService extends Mock implements CacheService {}
 class MockSharedPreferencesWithCache extends Mock
     implements SharedPreferencesWithCache {}
 
+class MockSharedPreferencesAsync extends Mock
+    implements SharedPreferencesAsync {}
+
 class MockPrefService extends Mock implements PrefService {}
 
 class MockDio extends Mock implements Dio {}
