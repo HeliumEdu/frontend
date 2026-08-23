@@ -22,6 +22,7 @@ import 'package:heliumapp/presentation/ui/components/label_and_text_form_field.d
 import 'package:heliumapp/presentation/ui/layout/unauthenticated_scaffold.dart';
 import 'package:heliumapp/utils/app_assets.dart';
 import 'package:heliumapp/utils/app_style.dart';
+import 'package:heliumapp/utils/google_avatar_helpers.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:logging/logging.dart';
 import 'package:sign_in_button/sign_in_button.dart';
@@ -300,8 +301,16 @@ class _LoginScreenViewState extends BasePageScreenState<LoginScreen> {
                       });
                       context.read<AuthBloc>().add(
                         GoogleLoginEvent(
-                          onChooseAccount: (account) {
-                            if (!context.mounted) return Future.value(null);
+                          onChooseAccount: (account) async {
+                            if (!context.mounted) return null;
+
+                            await GoogleAvatar.precache(
+                              context,
+                              account.photoUrl,
+                            );
+
+                            if (!context.mounted) return null;
+
                             return showGoogleAccountConfirmSheet(
                               parentContext: context,
                               account: account,

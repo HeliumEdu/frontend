@@ -3,6 +3,7 @@ import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/core/google_account_store.dart';
 import 'package:heliumapp/presentation/ui/components/helium_elevated_button.dart';
 import 'package:heliumapp/utils/app_style.dart';
+import 'package:heliumapp/utils/google_avatar_helpers.dart';
 
 class _GoogleAccountConfirmSheet extends StatelessWidget {
   final RememberedGoogleAccount account;
@@ -12,6 +13,7 @@ class _GoogleAccountConfirmSheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final hasName = account.displayName?.isNotEmpty ?? false;
+    final photoUrl = GoogleAvatar.sizedUrl(account.photoUrl);
     final label = hasName ? account.displayName! : account.email;
     final initial = label[0].toUpperCase();
 
@@ -28,10 +30,10 @@ class _GoogleAccountConfirmSheet extends StatelessWidget {
                 CircleAvatar(
                   radius: 28,
                   backgroundColor: context.colorScheme.primary,
-                  backgroundImage: account.photoUrl != null
-                      ? NetworkImage(account.photoUrl!)
+                  backgroundImage: photoUrl != null
+                      ? NetworkImage(photoUrl)
                       : null,
-                  child: account.photoUrl == null
+                  child: photoUrl == null
                       ? Text(
                           initial,
                           style: AppStyles.pageTitle(
