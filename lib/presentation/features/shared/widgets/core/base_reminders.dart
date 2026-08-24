@@ -25,6 +25,7 @@ import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:heliumapp/utils/sort_helpers.dart';
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
+import 'package:heliumapp/data/models/auth/user_settings_model.dart';
 
 final _log = Logger('presentation.widgets');
 

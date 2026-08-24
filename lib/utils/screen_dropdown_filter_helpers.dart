@@ -1,5 +1,5 @@
 import 'package:heliumapp/config/pref_service.dart';
-import 'package:heliumapp/data/models/auth/user_model.dart';
+import 'package:heliumapp/data/models/auth/user_settings_model.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 
 /// Persists and restores the last-selected group/term id for the Courses,

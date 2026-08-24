@@ -10,6 +10,7 @@ import 'package:heliumapp/data/models/auth/register_request_model.dart';
 import 'package:heliumapp/data/models/auth/token_response_model.dart';
 import 'package:heliumapp/data/models/auth/request/update_settings_request_model.dart';
 import 'package:heliumapp/data/models/auth/user_model.dart';
+import 'package:heliumapp/data/models/auth/user_settings_model.dart';
 import 'package:heliumapp/data/models/no_content_response_model.dart';
 
 abstract class AuthRepository {

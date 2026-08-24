@@ -4,13 +4,13 @@ import 'package:go_router/go_router.dart';
 import 'package:heliumapp/config/dirty_dialog_registry.dart';
 import 'package:heliumapp/core/motion_service.dart';
 import 'package:heliumapp/utils/app_globals.dart';
-import 'package:heliumapp/data/models/auth/user_model.dart';
+import 'package:heliumapp/data/models/auth/user_settings_model.dart';
 import 'package:heliumapp/presentation/core/views/base_page_screen_state.dart';
 import 'package:heliumapp/presentation/ui/feedback/discard_changes_scope.dart';
 import 'package:heliumapp/presentation/ui/layout/page_header.dart';
 import 'package:heliumapp/presentation/features/shared/widgets/flow/stepper_header.dart';
 
-export 'package:heliumapp/data/models/auth/user_model.dart'
+export 'package:heliumapp/data/models/auth/user_settings_model.dart'
     show UserSettingsModel;
 export 'package:heliumapp/presentation/core/views/base_page_screen_state.dart'
     show showScreenAsDialog;

@@ -25,6 +25,7 @@ import 'package:heliumapp/utils/color_helpers.dart' show HeliumColors;
 import 'package:heliumapp/utils/date_time_helpers.dart';
 import 'package:logging/logging.dart';
 import 'package:heliumapp/utils/url_helpers.dart';
+import 'package:heliumapp/data/models/auth/user_settings_model.dart';
 
 final _log = Logger('presentation.widgets');
 

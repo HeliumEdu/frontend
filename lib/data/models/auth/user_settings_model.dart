@@ -1,0 +1,117 @@
+import 'dart:ui';
+
+import 'package:heliumapp/utils/app_globals.dart';
+import 'package:heliumapp/utils/color_helpers.dart';
+import 'package:timezone/standalone.dart' as tz;
+
+class UserSettingsModel {
+  tz.Location timeZone;
+  final int defaultView;
+  final int colorSchemeTheme;
+  final int weekStartsOn;
+  final int whatsNewVersionSeen;
+  final bool showGettingStarted;
+  final bool isSetupComplete;
+  final Color eventsColor;
+  final Color resourceColor;
+  final Color gradeColor;
+  final int defaultReminderType;
+  final int defaultReminderOffset;
+  final int defaultReminderOffsetType;
+  final bool colorByCategory;
+  final bool showPlannerTooltips;
+  final bool dragAndDropOnMobile;
+  final bool rememberFilterState;
+  final bool collapseBusyDays;
+  final int atRiskThreshold;
+  final int onTrackTolerance;
+  final bool showWeekNumbers;
+  final String? privateSlug;
+  final bool promptForReview;
+
+  UserSettingsModel({
+    required this.timeZone,
+    required this.defaultView,
+    required this.colorSchemeTheme,
+    required this.weekStartsOn,
+    required this.whatsNewVersionSeen,
+    required this.showGettingStarted,
+    required this.isSetupComplete,
+    required this.eventsColor,
+    required this.resourceColor,
+    required this.gradeColor,
+    required this.defaultReminderType,
+    required this.defaultReminderOffset,
+    required this.defaultReminderOffsetType,
+    required this.colorByCategory,
+    required this.showPlannerTooltips,
+    required this.dragAndDropOnMobile,
+    required this.rememberFilterState,
+    required this.collapseBusyDays,
+    required this.atRiskThreshold,
+    required this.onTrackTolerance,
+    required this.showWeekNumbers,
+    this.privateSlug,
+    this.promptForReview = false,
+  });
+
+  factory UserSettingsModel.fromJson(Map<String, dynamic> json) {
+    // Do not all default fallbacks here; userSettings must be populated and
+    // non-null before base pages will move past isLoading, meaning if tests
+    // fail and adding default values here would "fix" them, that is not the
+    // correct solution, that is an incorrect workaround; find the actual
+    // regression further up the stack and patch with default values
+    // there (if necessary)
+    return UserSettingsModel(
+      timeZone: tz.getLocation(json['time_zone']),
+      defaultView: json['default_view'],
+      colorSchemeTheme: json['color_scheme_theme'],
+      weekStartsOn: json['week_starts_on'],
+      whatsNewVersionSeen: json['whats_new_version_seen'],
+      showGettingStarted: json['show_getting_started'],
+      isSetupComplete: json['is_setup_complete'],
+      eventsColor: HeliumColors.hexToColor(json['events_color']),
+      resourceColor: HeliumColors.hexToColor(json['material_color']),
+      gradeColor: HeliumColors.hexToColor(json['grade_color']),
+      defaultReminderType: json['default_reminder_type'],
+      defaultReminderOffset: json['default_reminder_offset'],
+      defaultReminderOffsetType: json['default_reminder_offset_type'],
+      colorByCategory: json['calendar_use_category_colors'],
+      showPlannerTooltips: json['show_planner_tooltips'],
+      dragAndDropOnMobile: json['drag_and_drop_on_mobile'],
+      rememberFilterState: json['remember_filter_state'],
+      collapseBusyDays: json['calendar_event_limit'],
+      atRiskThreshold: json['at_risk_threshold'] ?? FallbackConstants.defaultAtRiskThreshold,
+      onTrackTolerance: json['on_track_tolerance'] ?? FallbackConstants.defaultOnTrackTolerance,
+      showWeekNumbers: json['show_week_numbers'] ?? FallbackConstants.defaultShowWeekNumbers,
+      privateSlug: json['private_slug'],
+      promptForReview: json['prompt_for_review'] ?? false,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'time_zone': timeZone,
+      'default_view': defaultView,
+      'color_scheme_theme': colorSchemeTheme,
+      'week_starts_on': weekStartsOn,
+      'show_getting_started': showGettingStarted,
+      'is_setup_complete': isSetupComplete,
+      'events_color': eventsColor,
+      'material_color': resourceColor,
+      'grade_color': gradeColor,
+      'default_reminder_type': defaultReminderOffset,
+      'default_reminder_offset': defaultReminderOffset,
+      'default_reminder_offset_type': defaultReminderOffsetType,
+      'calendar_use_category_colors': colorByCategory,
+      'show_planner_tooltips': showPlannerTooltips,
+      'drag_and_drop_on_mobile': dragAndDropOnMobile,
+      'remember_filter_state': rememberFilterState,
+      'calendar_event_limit': collapseBusyDays,
+      'at_risk_threshold': atRiskThreshold,
+      'on_track_tolerance': onTrackTolerance,
+      'show_week_numbers': showWeekNumbers,
+      'private_slug': privateSlug,
+    };
+  }
+}
