@@ -63,6 +63,7 @@ class SentryService {
       }
 
       options.sendDefaultPii = false;
+      options.enableLogs = true;
       options.maxBreadcrumbs = 200;
       options.tracesSampleRate = 0.1;
       // ignore: experimental_member_use
@@ -156,7 +157,7 @@ class SentryService {
         final errorString = originalError.toString().toLowerCase();
         if (_containsClientErrorStatusCode(errorString) &&
             _looksLikeHttpError(errorString)) {
-          _log.info('Filtered event from Sentry (via hint originalError)');
+          _log.fine('Filtered event from Sentry (via hint originalError)');
           return null;
         }
       }
@@ -175,7 +176,7 @@ class SentryService {
     if (osContext != null) {
       final kernelVersion = (osContext.kernelVersion ?? '').toLowerCase();
       if (kernelVersion.contains('development')) {
-        _log.info('Filtered event from Sentry (Apple development device)');
+        _log.fine('Filtered event from Sentry (Apple development device)');
         return true;
       }
     }
@@ -183,14 +184,14 @@ class SentryService {
     if (event.exceptions != null) {
       for (final exception in event.exceptions!) {
         if (_shouldFilterSentryException(exception)) {
-          _log.info('Filtered event from Sentry (via SentryException)');
+          _log.fine('Filtered event from Sentry (via SentryException)');
           return true;
         }
       }
     }
 
     if (_shouldFilterByText(event)) {
-      _log.info('Filtered event from Sentry (via text matching)');
+      _log.fine('Filtered event from Sentry (via text matching)');
       return true;
     }
 

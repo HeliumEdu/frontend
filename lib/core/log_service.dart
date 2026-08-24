@@ -42,6 +42,9 @@ class LogService {
         Sentry.captureMessage(record.message, level: SentryLevel.error);
       case LogSentryAction.breadcrumb:
         _addBreadcrumb(record, _breadcrumbLevelFor(record));
+      case LogSentryAction.log:
+        _sendLog(record);
+        _addBreadcrumb(record, _breadcrumbLevelFor(record));
       case LogSentryAction.drop:
         break;
     }
@@ -60,7 +63,7 @@ class LogService {
           record.error is NotFoundException ||
           record.error is ValidationException ||
           _isConnectivityFailure(record.error)) {
-        return LogSentryAction.breadcrumb;
+        return LogSentryAction.log;
       }
       if (record.error != null) {
         return LogSentryAction.captureException;
@@ -68,7 +71,7 @@ class LogService {
       return LogSentryAction.captureMessage;
     }
     if (record.level >= Level.INFO) {
-      return LogSentryAction.breadcrumb;
+      return LogSentryAction.log;
     }
     return LogSentryAction.drop;
   }
@@ -101,6 +104,29 @@ class LogService {
     return SentryLevel.info;
   }
 
+  void _sendLog(LogRecord record) {
+    final logger = Sentry.logger;
+    final body = record.error == null
+        ? record.message
+        : '${record.message}: ${record.error}';
+
+    final attributes = _logAttributes(record);
+    if (record.level >= Level.SEVERE) {
+      logger.error(body, attributes: attributes);
+    } else if (record.level >= Level.WARNING) {
+      logger.warn(body, attributes: attributes);
+    } else {
+      logger.info(body, attributes: attributes);
+    }
+  }
+
+  Map<String, SentryAttribute> _logAttributes(LogRecord record) => {
+    'logger': SentryAttribute.string(record.loggerName),
+    'level': SentryAttribute.string(record.level.name),
+    if (record.error != null)
+      'error_type': SentryAttribute.string(record.error.runtimeType.toString()),
+  };
+
   void _addBreadcrumb(LogRecord record, SentryLevel level) {
     Sentry.addBreadcrumb(
       Breadcrumb(
@@ -123,6 +149,10 @@ enum LogSentryAction {
 
   /// Attached as a breadcrumb (not its own event).
   breadcrumb,
+
+  /// Sent to Sentry Logs *and* kept as a breadcrumb — queryable later, without
+  /// raising an issue.
+  log,
 
   /// Not forwarded.
   drop;
