@@ -92,18 +92,37 @@ class ApiErrorParser {
   ) {
     data.forEach((key, value) {
       if (value is List) {
-        final messages = value.map((v) => v.toString()).toList();
+        final messages = value.expand<String>(_flatten).toList();
         fieldErrors[key] = messages;
         displayMessages.addAll(messages);
       } else if (value is String) {
         fieldErrors[key] = [value];
         displayMessages.add(value);
       } else {
-        final message = value.toString();
-        fieldErrors[key] = [message];
-        displayMessages.add(message);
+        final messages = _flatten(value, key);
+        fieldErrors[key] = messages;
+        displayMessages.addAll(messages);
       }
     });
+  }
+
+  /// Flattens nested DRF errors (`{"courses": {"1": {"start_date": [...]}}}`)
+  /// into lines; without this they reach the user as a raw Dart map.
+  static List<String> _flatten(dynamic value, [String prefix = '']) {
+    if (value is Map) {
+      final lines = <String>[];
+      value.forEach((key, nested) {
+        final label = prefix.isEmpty ? '$key' : '$prefix $key';
+        lines.addAll(_flatten(nested, label));
+      });
+      return lines;
+    }
+
+    if (value is List) {
+      return value.expand((v) => _flatten(v, prefix)).toList();
+    }
+
+    return [prefix.isEmpty ? '$value' : '$prefix: $value'];
   }
 
   static void _parseList(

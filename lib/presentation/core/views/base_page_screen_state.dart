@@ -479,7 +479,7 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
   void showSnackBar(
     BuildContext context,
     String message, {
-    int seconds = 2,
+    int? seconds,
     SnackType type = SnackType.success,
     bool clearSnackBar = true,
     SnackBarAction? action,

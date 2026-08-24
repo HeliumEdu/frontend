@@ -572,7 +572,6 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
           SnackBarHelper.show(
             context,
             "This assignment won't appear in the Todos view, since it is now outside the class's date range.",
-            seconds: 5,
             type: SnackType.info,
           );
         }

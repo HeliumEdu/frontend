@@ -3399,7 +3399,6 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
     showSnackBar(
       context,
       'Editing recurring Events in Helium is not yet supported.',
-      seconds: 4,
       type: SnackType.info,
     );
   }
@@ -3523,7 +3522,6 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
       showSnackBar(
         context,
         "This assignment won't appear in the Todos view, since it is now outside the class's date range.",
-        seconds: 5,
         type: SnackType.info,
       );
     }
