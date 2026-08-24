@@ -114,8 +114,8 @@ class SnackBarHelper {
 /// Snack bar text that copies itself to the clipboard when tapped — a
 /// drag-select can't outlast a deliberately short timer.
 ///
-/// Display is clipped so a long server response can't grow over the screen; the
-/// clipboard still receives all of [message], and repeat taps are idempotent.
+/// Display is capped at four lines; the clipboard receives all of [message]
+/// either way, so repeat taps are idempotent.
 class _CopyableSnackBarContent extends StatefulWidget {
   final String message;
   final Color foregroundColor;
