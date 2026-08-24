@@ -196,13 +196,7 @@ class DioClient {
                     Duration(seconds: 2),
                     Duration(seconds: 3),
                   ],
-                  retryEvaluator: DefaultRetryEvaluator({
-                    HttpStatus.requestTimeout,
-                    HttpStatus.internalServerError,
-                    HttpStatus.badGateway,
-                    HttpStatus.serviceUnavailable,
-                    HttpStatus.gatewayTimeout,
-                  }).evaluate,
+                  retryEvaluator: _HeliumRetryEvaluator().evaluate,
                 ),
               );
 
@@ -312,13 +306,7 @@ class DioClient {
           Duration(seconds: 2),
           Duration(seconds: 3),
         ],
-        retryEvaluator: DefaultRetryEvaluator({
-          HttpStatus.requestTimeout,
-          HttpStatus.internalServerError,
-          HttpStatus.badGateway,
-          HttpStatus.serviceUnavailable,
-          HttpStatus.gatewayTimeout,
-        }).evaluate,
+        retryEvaluator: _HeliumRetryEvaluator().evaluate,
       ),
     );
 
@@ -591,5 +579,42 @@ class DioClient {
     } catch (_) {
       // Ignore navigation errors
     }
+  }
+}
+
+class _HeliumRetryEvaluator {
+  static const Set<String> _retryableMethods = {'GET', 'HEAD', 'OPTIONS'};
+  static const Duration _maxTotalWait = Duration(seconds: 30);
+  static const String _deadlineKey = 'helium_retry_deadline';
+
+  static const Set<int> retryableStatuses = {
+    HttpStatus.requestTimeout,
+    HttpStatus.internalServerError,
+    HttpStatus.badGateway,
+    HttpStatus.serviceUnavailable,
+    HttpStatus.gatewayTimeout,
+  };
+
+  final DefaultRetryEvaluator _delegate = DefaultRetryEvaluator(
+    retryableStatuses,
+  );
+
+  FutureOr<bool> evaluate(DioException error, int attempt) {
+    final options = error.requestOptions;
+
+    if (!_retryableMethods.contains(options.method.toUpperCase())) {
+      return false;
+    }
+
+    final deadline =
+        options.extra[_deadlineKey] as DateTime? ??
+        DateTime.now().add(_maxTotalWait);
+    options.extra[_deadlineKey] = deadline;
+
+    if (!DateTime.now().isBefore(deadline)) {
+      return false;
+    }
+
+    return _delegate.evaluate(error, attempt);
   }
 }
