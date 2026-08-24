@@ -4,10 +4,6 @@ import 'package:flutter/widgets.dart';
 import 'package:logging/logging.dart';
 
 final _log = Logger('analytics');
-
-/// A no-op navigator observer for use when analytics is disabled
-class _NoOpNavigatorObserver extends NavigatorObserver {}
-
 class AnalyticsService {
   FirebaseAnalytics? _analytics;
 
@@ -137,3 +133,6 @@ class AnalyticsService {
     }
   }
 }
+
+/// A no-op navigator observer for use when analytics is disabled
+class _NoOpNavigatorObserver extends NavigatorObserver {}

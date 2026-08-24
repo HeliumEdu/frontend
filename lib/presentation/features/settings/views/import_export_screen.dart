@@ -37,23 +37,6 @@ final _log = Logger('presentation.settings');
 
 /// Where an imported `.ics` lands. `header` is a non-selectable group label in the picker.
 enum _TargetKind { header, newCourse, existingCourse, events }
-
-/// A picker destination. `id` is a course-group id for `newCourse`/`header`, a course
-/// id for `existingCourse`, and null for `events`.
-class _ImportTarget {
-  final _TargetKind kind;
-  final int? id;
-
-  const _ImportTarget(this.kind, [this.id]);
-
-  @override
-  bool operator ==(Object other) =>
-      other is _ImportTarget && other.kind == kind && other.id == id;
-
-  @override
-  int get hashCode => Object.hash(kind, id);
-}
-
 class ImportExportScreen extends StatefulWidget {
   final UserSettingsModel? userSettings;
   final void Function(String route)? onNavigateRequested;
@@ -785,4 +768,20 @@ class _ImportExportScreenState extends State<ImportExportScreen> {
     }
     return null;
   }
+}
+
+/// A picker destination. `id` is a course-group id for `newCourse`/`header`, a course
+/// id for `existingCourse`, and null for `events`.
+class _ImportTarget {
+  final _TargetKind kind;
+  final int? id;
+
+  const _ImportTarget(this.kind, [this.id]);
+
+  @override
+  bool operator ==(Object other) =>
+      other is _ImportTarget && other.kind == kind && other.id == id;
+
+  @override
+  int get hashCode => Object.hash(kind, id);
 }

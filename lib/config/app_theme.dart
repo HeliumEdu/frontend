@@ -4,20 +4,6 @@ import 'package:heliumapp/presentation/ui/components/helium_elevated_button.dart
 import 'package:heliumapp/utils/app_style.dart';
 
 const Color seedColor = Color(0xff418eb9);
-
-class _NoMotionPageTransitionsBuilder extends PageTransitionsBuilder {
-  const _NoMotionPageTransitionsBuilder();
-
-  @override
-  Widget buildTransitions<T>(
-    PageRoute<T> route,
-    BuildContext context,
-    Animation<double> animation,
-    Animation<double> secondaryAnimation,
-    Widget child,
-  ) => child;
-}
-
 class AppTheme {
   static ThemeData light({bool reduceMotion = false}) {
     final colorScheme = ColorScheme.fromSeed(
@@ -236,4 +222,17 @@ extension ThemeContextExtension on BuildContext {
       Theme.of(this).extension<SemanticColors>() ?? SemanticColors.light;
 
   bool get isDarkMode => Theme.of(this).brightness == Brightness.dark;
+}
+
+class _NoMotionPageTransitionsBuilder extends PageTransitionsBuilder {
+  const _NoMotionPageTransitionsBuilder();
+
+  @override
+  Widget buildTransitions<T>(
+    PageRoute<T> route,
+    BuildContext context,
+    Animation<double> animation,
+    Animation<double> secondaryAnimation,
+    Widget child,
+  ) => child;
 }
