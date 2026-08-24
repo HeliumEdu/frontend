@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:heliumapp/utils/format_helpers.dart';
 import 'package:logging/logging.dart';
 // Conditional import - uses web implementation on web, mobile on native platforms
@@ -112,6 +113,14 @@ class HeliumStorage {
         withData: false,
         withReadStream: true,
       );
+    } on PlatformException catch (e) {
+      if (e.code == 'already_active') {
+        _log.warning('File picker reported an active session');
+        return const PickFilesResult(files: [], cancelled: true);
+      }
+
+      _log.severe('Error during file picking', e);
+      return const PickFilesResult(files: []);
     } catch (e) {
       _log.severe('Error during file picking', e);
       return const PickFilesResult(files: []);

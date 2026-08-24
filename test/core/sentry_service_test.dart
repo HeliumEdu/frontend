@@ -130,6 +130,91 @@ void main() {
       });
     });
 
+    group('Dio connectivity failure filtering', () {
+      test('Filters connection timeout that outlived retries (FRONTEND-87)', () {
+        final event = SentryEvent(
+          exceptions: [
+            SentryException(
+              type: 'minified:bx',
+              value:
+                  'DioException [connection timeout]: The request connection took '
+                  'longer than 0:00:30.000000 and it was aborted. To get rid of '
+                  'this exception, try raising the RequestOptions.connectTimeout '
+                  'above the duration of 0:00:30.000000 or improve the response '
+                  'time of the server.',
+            ),
+          ],
+        );
+
+        expect(SentryService.shouldFilterEvent(event), isTrue,
+            reason:
+                'A timeout surviving DioClient retries is a dead network path, '
+                'not a client bug');
+      });
+
+      test('Filters send and receive timeouts', () {
+        for (final type in ['send timeout', 'receive timeout']) {
+          final event = SentryEvent(
+            exceptions: [
+              SentryException(
+                type: 'DioException',
+                value: 'DioException [$type]: The request took too long.',
+              ),
+            ],
+          );
+
+          expect(SentryService.shouldFilterEvent(event), isTrue,
+              reason: 'DioException [$type] should not be an event');
+        }
+      });
+
+      test('Filters connection error', () {
+        final event = SentryEvent(
+          exceptions: [
+            SentryException(
+              type: 'DioException',
+              value:
+                  'DioException [connection error]: The connection errored: '
+                  "Failed host lookup: 'api.heliumedu.com'",
+            ),
+          ],
+        );
+
+        expect(SentryService.shouldFilterEvent(event), isTrue,
+            reason: 'Connection errors mean the device cannot reach the API');
+      });
+
+      test('Does NOT filter bad certificate', () {
+        final event = SentryEvent(
+          exceptions: [
+            SentryException(
+              type: 'DioException',
+              value: 'DioException [bad certificate]: The certificate is bad.',
+            ),
+          ],
+        );
+
+        expect(SentryService.shouldFilterEvent(event), isFalse,
+            reason: 'Bad certificates are actionable, not connectivity noise');
+      });
+
+      test('Does NOT filter a 500 bad response', () {
+        final event = SentryEvent(
+          exceptions: [
+            SentryException(
+              type: 'DioException',
+              value:
+                  'DioException [bad response]: This exception was thrown because '
+                  'the response has a status code of 500.',
+            ),
+          ],
+        );
+
+        expect(SentryService.shouldFilterEvent(event), isFalse,
+            reason: '5xx responses are server bugs we need to triage');
+      });
+    });
+
     group('UnauthorizedException type filtering', () {
       test('Filters UnauthorizedException type', () {
         final event = SentryEvent(
@@ -279,19 +364,6 @@ void main() {
         );
         expect(SentryService.shouldFilterEvent(event), isFalse,
             reason: '500 errors are bugs and should NOT be filtered');
-      });
-
-      test('Network timeout', () {
-        final event = SentryEvent(
-          exceptions: [
-            SentryException(
-              type: 'DioException',
-              value: 'DioException [connection timeout]',
-            ),
-          ],
-        );
-        expect(SentryService.shouldFilterEvent(event), isFalse,
-            reason: 'Network timeouts should NOT be filtered');
       });
 
       test('Generic exception', () {

@@ -85,6 +85,8 @@ class SentryService {
         '(?i)dioexception.*bad response.*4\\d\\d',
         '(?i)bad response.*4\\d\\d',
         '(?i)goexception.*4\\d\\d',
+        '(?i)dioexception \\[(connection|send|receive) timeout\\]',
+        '(?i)dioexception \\[connection error\\]',
         '(?i)flutterCanvasKit.*is not a constructor',
         '(?i)messaging/unsupported-browser',
         '(?i)watchdogtermination',
@@ -244,6 +246,10 @@ class SentryService {
       return true;
     }
 
+    if (_isDioConnectivityFailure(combined)) {
+      return true;
+    }
+
     // Expected when device goes offline in background
     if (_looksLikeNetworkError(combined) &&
         (combined.contains('/auth/token/refresh/') ||
@@ -324,9 +330,22 @@ class SentryService {
         text.contains('forbidden');
   }
 
+  /// Matched as text because AOT and dart2js minify the DioException type name.
+  static final _dioConnectivityFailurePattern = RegExp(
+    r'dioexception \[(connection timeout|send timeout|receive timeout|connection error)\]',
+  );
+
+  bool _isDioConnectivityFailure(String text) {
+    return _dioConnectivityFailurePattern.hasMatch(text);
+  }
+
   /// Check if text looks like a network/connection error
   bool _looksLikeNetworkError(String text) {
     return text.contains('connection abort') ||
+        text.contains('connection timeout') ||
+        text.contains('connection error') ||
+        text.contains('send timeout') ||
+        text.contains('receive timeout') ||
         text.contains('connection refused') ||
         text.contains('connection reset') ||
         text.contains('connection closed') ||
