@@ -95,6 +95,8 @@ class DioClient {
           _clientPlatform ??= _resolveClientPlatform();
           options.headers['X-Client-Platform'] = _clientPlatform;
 
+          _HeliumRetryEvaluator.deadlineFor(options);
+
           final requestId = const Uuid().v4();
           options.headers['X-Request-ID'] = requestId;
           _addRequestBreadcrumb(requestId, options);
@@ -584,8 +586,16 @@ class DioClient {
 
 class _HeliumRetryEvaluator {
   static const Set<String> _retryableMethods = {'GET', 'HEAD', 'OPTIONS'};
-  static const Duration _maxTotalWait = Duration(seconds: 30);
-  static const String _deadlineKey = 'helium_retry_deadline';
+
+  static const Duration maxTotalWait = Duration(seconds: 30);
+  static const String deadlineKey = 'helium_retry_deadline';
+
+  static DateTime deadlineFor(RequestOptions options) =>
+      options.extra.putIfAbsent(
+            deadlineKey,
+            () => DateTime.now().add(maxTotalWait),
+          )
+          as DateTime;
 
   static const Set<int> retryableStatuses = {
     HttpStatus.requestTimeout,
@@ -606,14 +616,14 @@ class _HeliumRetryEvaluator {
       return false;
     }
 
-    final deadline =
-        options.extra[_deadlineKey] as DateTime? ??
-        DateTime.now().add(_maxTotalWait);
-    options.extra[_deadlineKey] = deadline;
-
-    if (!DateTime.now().isBefore(deadline)) {
+    final remaining = deadlineFor(options).difference(DateTime.now());
+    if (remaining <= Duration.zero) {
       return false;
     }
+
+    options.connectTimeout = remaining;
+    options.sendTimeout = remaining;
+    options.receiveTimeout = remaining;
 
     return _delegate.evaluate(error, attempt);
   }
