@@ -1,3 +1,6 @@
+import 'package:logging/logging.dart';
+import 'package:package_info_plus/package_info_plus.dart';
+import 'package:pretty_dio_logger/pretty_dio_logger.dart';
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
@@ -14,17 +17,16 @@ import 'package:heliumapp/config/theme_notifier.dart';
 import 'package:heliumapp/core/analytics_service.dart';
 import 'package:heliumapp/core/api_url.dart';
 import 'package:heliumapp/core/cache_service.dart';
+import 'package:heliumapp/core/retry_evaluator.dart';
+import 'package:heliumapp/core/sentry_service.dart';
 import 'package:heliumapp/data/models/auth/request/refresh_token_request_model.dart';
 import 'package:heliumapp/data/models/auth/request/update_settings_request_model.dart';
 import 'package:heliumapp/data/models/auth/token_response_model.dart';
 import 'package:heliumapp/data/models/auth/user_model.dart';
+import 'package:heliumapp/data/models/auth/user_settings_model.dart';
 import 'package:heliumapp/utils/color_helpers.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:heliumapp/utils/snack_bar_helpers.dart';
-import 'package:logging/logging.dart';
-import 'package:package_info_plus/package_info_plus.dart';
-import 'package:pretty_dio_logger/pretty_dio_logger.dart';
-import 'package:heliumapp/core/sentry_service.dart';
 import 'package:sentry_dio/sentry_dio.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:uuid/uuid.dart';
@@ -94,6 +96,8 @@ class DioClient {
 
           _clientPlatform ??= _resolveClientPlatform();
           options.headers['X-Client-Platform'] = _clientPlatform;
+
+          HeliumRetryEvaluator.deadlineFor(options);
 
           final requestId = const Uuid().v4();
           options.headers['X-Request-ID'] = requestId;
@@ -196,13 +200,7 @@ class DioClient {
                     Duration(seconds: 2),
                     Duration(seconds: 3),
                   ],
-                  retryEvaluator: DefaultRetryEvaluator({
-                    HttpStatus.requestTimeout,
-                    HttpStatus.internalServerError,
-                    HttpStatus.badGateway,
-                    HttpStatus.serviceUnavailable,
-                    HttpStatus.gatewayTimeout,
-                  }).evaluate,
+                  retryEvaluator: HeliumRetryEvaluator().evaluate,
                 ),
               );
 
@@ -312,13 +310,7 @@ class DioClient {
           Duration(seconds: 2),
           Duration(seconds: 3),
         ],
-        retryEvaluator: DefaultRetryEvaluator({
-          HttpStatus.requestTimeout,
-          HttpStatus.internalServerError,
-          HttpStatus.badGateway,
-          HttpStatus.serviceUnavailable,
-          HttpStatus.gatewayTimeout,
-        }).evaluate,
+        retryEvaluator: HeliumRetryEvaluator().evaluate,
       ),
     );
 

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:heliumapp/config/analytics_event.dart';
 import 'package:heliumapp/config/app_theme.dart';
-import 'package:heliumapp/data/models/auth/user_model.dart';
+import 'package:heliumapp/data/models/auth/user_settings_model.dart';
 import 'package:heliumapp/data/models/planner/grade_category_model.dart';
 import 'package:heliumapp/presentation/ui/components/course_title_label.dart';
 import 'package:heliumapp/presentation/ui/feedback/empty_card.dart';

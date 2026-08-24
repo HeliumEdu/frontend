@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:heliumapp/data/models/auth/user_model.dart';
+import 'package:heliumapp/data/models/auth/user_settings_model.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/color_helpers.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';

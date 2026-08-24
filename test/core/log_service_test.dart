@@ -57,7 +57,7 @@ void main() {
 
         expect(
           LogService.classifyRecord(record),
-          LogSentryAction.breadcrumb,
+          LogSentryAction.log,
           reason: 'Handled offline errors must not create Sentry events',
         );
       });
@@ -71,7 +71,7 @@ void main() {
 
           expect(
             LogService.classifyRecord(record),
-            LogSentryAction.breadcrumb,
+            LogSentryAction.log,
             reason: 'NetworkException($code) should not be an event',
           );
         }
@@ -95,7 +95,7 @@ void main() {
       test('WARNING becomes a breadcrumb', () {
         expect(
           LogService.classifyRecord(_record(Level.WARNING)),
-          LogSentryAction.breadcrumb,
+          LogSentryAction.log,
         );
       });
 
@@ -104,7 +104,7 @@ void main() {
 
         expect(
           LogService.classifyRecord(record),
-          LogSentryAction.breadcrumb,
+          LogSentryAction.log,
         );
       });
     });
@@ -113,7 +113,7 @@ void main() {
       test('INFO becomes a breadcrumb', () {
         expect(
           LogService.classifyRecord(_record(Level.INFO)),
-          LogSentryAction.breadcrumb,
+          LogSentryAction.log,
         );
       });
 
@@ -122,7 +122,7 @@ void main() {
 
         expect(
           LogService.classifyRecord(record),
-          LogSentryAction.breadcrumb,
+          LogSentryAction.log,
           reason: 'INFO must never create an event regardless of attached error',
         );
       });

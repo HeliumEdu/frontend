@@ -1,21 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:heliumapp/config/app_theme.dart';
+import 'package:heliumapp/data/models/auth/user_settings_model.dart';
 import 'package:heliumapp/data/models/planner/category_model.dart';
 import 'package:heliumapp/presentation/features/courses/bloc/category_bloc.dart';
-import 'package:heliumapp/presentation/features/courses/bloc/category_event.dart'
-    show FetchCategoriesEvent, DeleteCategoryEvent;
 import 'package:heliumapp/presentation/features/courses/bloc/category_state.dart';
 import 'package:heliumapp/presentation/features/courses/dialogs/category_dialog.dart';
 import 'package:heliumapp/presentation/features/planner/dialogs/confirm_delete_dialog.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/core/base_event.dart';
 import 'package:heliumapp/presentation/features/shared/widgets/flow/multi_step_container.dart';
 import 'package:heliumapp/presentation/ui/components/category_title_label.dart';
-import 'package:heliumapp/presentation/ui/layout/helium_full_screen_scroll_view.dart';
 import 'package:heliumapp/presentation/ui/components/helium_icon_button.dart';
 import 'package:heliumapp/presentation/ui/feedback/empty_card.dart';
 import 'package:heliumapp/presentation/ui/feedback/error_card.dart';
 import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
+import 'package:heliumapp/presentation/ui/layout/helium_full_screen_scroll_view.dart';
+import 'package:heliumapp/presentation/features/courses/bloc/category_event.dart'
+    show FetchCategoriesEvent, DeleteCategoryEvent;
 import 'package:heliumapp/presentation/ui/layout/mobile_gesture_detector.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/grade_helpers.dart';

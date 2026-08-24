@@ -9,7 +9,7 @@ import 'package:heliumapp/config/pref_service.dart';
 import 'package:heliumapp/core/analytics_service.dart';
 import 'package:heliumapp/core/dio_client.dart';
 import 'package:heliumapp/utils/color_helpers.dart';
-import 'package:heliumapp/data/models/auth/user_model.dart';
+import 'package:heliumapp/data/models/auth/user_settings_model.dart';
 import 'package:heliumapp/data/models/base_model.dart';
 import 'package:heliumapp/data/models/planner/course_group_model.dart';
 import 'package:heliumapp/data/models/planner/course_model.dart';

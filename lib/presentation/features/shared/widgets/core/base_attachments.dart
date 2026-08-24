@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/data/models/attachment_file.dart';
+import 'package:heliumapp/data/models/auth/user_settings_model.dart';
 import 'package:heliumapp/data/models/planner/attachment_model.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/attachment_bloc.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/attachment_event.dart';
@@ -18,11 +19,11 @@ import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/format_helpers.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
-import 'package:heliumapp/utils/snack_bar_helpers.dart'
-    show SnackBarHelper, SnackType;
 import 'package:heliumapp/utils/sort_helpers.dart';
 import 'package:heliumapp/utils/storage_helpers.dart';
 import 'package:meta/meta.dart';
+import 'package:heliumapp/utils/snack_bar_helpers.dart'
+    show SnackBarHelper, SnackType;
 
 abstract class BaseAttachments extends StatelessWidget {
   final int entityId;

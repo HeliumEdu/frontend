@@ -17,11 +17,11 @@ import 'package:heliumapp/presentation/ui/feedback/error_card.dart';
 import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
 import 'package:heliumapp/presentation/ui/layout/helium_full_screen_scroll_view.dart';
 import 'package:heliumapp/config/app_theme.dart';
-import 'package:heliumapp/data/models/auth/user_model.dart' show UserSettingsModel;
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:heliumapp/utils/snack_bar_helpers.dart' show SnackBarHelper;
 import 'package:heliumapp/utils/sort_helpers.dart';
+import 'package:heliumapp/data/models/auth/user_settings_model.dart';
 
 /// Schedule step of the course add/edit flow: a list of [ScheduleCard]s. Each
 /// schedule saves per-item through [CourseBloc], so there's no batched save here.

@@ -5,7 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:heliumapp/config/pref_service.dart';
 import 'package:heliumapp/core/dio_client.dart';
-import 'package:heliumapp/data/models/auth/user_model.dart';
+import 'package:heliumapp/data/models/auth/user_settings_model.dart';
 import 'package:heliumapp/utils/error_helpers.dart';
 import 'package:in_app_review/in_app_review.dart';
 import 'package:logging/logging.dart';

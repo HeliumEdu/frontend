@@ -4,7 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/core/api_url.dart';
 import 'package:heliumapp/data/models/auth/private_feed_model.dart';
-import 'package:heliumapp/data/models/auth/user_model.dart';
+import 'package:heliumapp/data/models/auth/user_settings_model.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_bloc.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_event.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_state.dart';

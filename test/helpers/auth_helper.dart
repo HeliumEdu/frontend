@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:heliumapp/data/models/auth/private_feed_model.dart';
 import 'package:heliumapp/data/models/auth/token_response_model.dart';
 import 'package:heliumapp/data/models/auth/user_model.dart';
+import 'package:heliumapp/data/models/auth/user_settings_model.dart';
 
 /// Creates JSON data representing a user settings object.
 Map<String, dynamic> givenUserSettingsJson({

@@ -5,7 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/config/pref_service.dart';
-import 'package:heliumapp/data/models/auth/user_model.dart';
+import 'package:heliumapp/data/models/auth/user_settings_model.dart';
 import 'package:heliumapp/data/models/planner/note_model.dart';
 import 'package:heliumapp/presentation/core/views/base_page_screen_state.dart';
 import 'package:heliumapp/presentation/core/views/deep_link_mixin.dart';

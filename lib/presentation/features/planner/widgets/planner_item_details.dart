@@ -46,6 +46,7 @@ import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:heliumapp/utils/snack_bar_helpers.dart';
 import 'package:logging/logging.dart';
 import 'package:timezone/standalone.dart' as tz;
+import 'package:heliumapp/data/models/auth/user_settings_model.dart';
 
 final _log = Logger('presentation.widgets');
 
