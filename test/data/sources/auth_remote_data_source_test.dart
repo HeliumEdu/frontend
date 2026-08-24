@@ -7,7 +7,7 @@ import 'package:heliumapp/data/models/auth/request/forgot_password_request_model
 import 'package:heliumapp/data/models/auth/request/reset_password_request_model.dart';
 import 'package:heliumapp/data/models/auth/request/refresh_token_request_model.dart';
 import 'package:heliumapp/data/models/auth/register_request_model.dart';
-import 'package:heliumapp/data/models/auth/user_model.dart';
+import 'package:heliumapp/data/models/auth/user_settings_model.dart';
 import 'package:heliumapp/data/sources/auth_remote_data_source.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:timezone/data/latest_all.dart' as tz_data;

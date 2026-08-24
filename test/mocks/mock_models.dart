@@ -5,6 +5,7 @@ import 'package:heliumapp/data/models/attachment_file.dart';
 import 'package:heliumapp/data/models/auth/private_feed_model.dart';
 import 'package:heliumapp/data/models/auth/token_response_model.dart';
 import 'package:heliumapp/data/models/auth/user_model.dart';
+import 'package:heliumapp/data/models/auth/user_settings_model.dart';
 import 'package:heliumapp/data/models/id_or_entity.dart';
 import 'package:heliumapp/data/models/no_content_response_model.dart';
 import 'package:heliumapp/data/models/planner/attachment_model.dart';

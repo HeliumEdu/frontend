@@ -8,7 +8,7 @@ import 'package:heliumapp/data/models/auth/login_request_model.dart';
 import 'package:heliumapp/data/models/auth/request/refresh_token_request_model.dart';
 import 'package:heliumapp/data/models/auth/register_request_model.dart';
 import 'package:heliumapp/data/models/auth/request/update_settings_request_model.dart';
-import 'package:heliumapp/data/models/auth/user_model.dart';
+import 'package:heliumapp/data/models/auth/user_settings_model.dart';
 import 'package:heliumapp/data/models/planner/request/category_request_model.dart';
 import 'package:heliumapp/data/models/planner/request/course_group_request_model.dart';
 import 'package:heliumapp/data/models/planner/request/course_request_model.dart';
