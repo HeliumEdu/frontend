@@ -4,36 +4,6 @@ import 'package:heliumapp/presentation/ui/components/helium_elevated_button.dart
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 
-class DiscardChangesScope extends StatelessWidget {
-  final bool isDirty;
-  final Widget child;
-
-  const DiscardChangesScope({
-    super.key,
-    required this.isDirty,
-    required this.child,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return PopScope(
-      canPop: !isDirty,
-      onPopInvokedWithResult: (didPop, _) async {
-        if (didPop) return;
-        // onPopInvoked fires on every PopScope on the route, not just the one
-        // that blocked. Bail if we weren't the one blocking (i.e., not dirty).
-        if (!isDirty) return;
-        if (!context.mounted) return;
-        final shouldDiscard = await confirmDiscardChanges(context);
-        if (shouldDiscard && context.mounted) {
-          Navigator.of(context).pop();
-        }
-      },
-      child: child,
-    );
-  }
-}
-
 Future<bool> confirmDiscardChanges(BuildContext context) async {
   final result = await showDialog<bool>(
     context: context,
