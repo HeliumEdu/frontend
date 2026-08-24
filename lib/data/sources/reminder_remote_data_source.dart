@@ -102,6 +102,9 @@ class ReminderRemoteDataSourceImpl extends ReminderRemoteDataSource {
       }
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
+    } on HeliumException catch (e, s) {
+      _log.severe('Data source error', e, s);
+      rethrow;
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
       throw HeliumException(message: HeliumException.unexpectedError);
@@ -144,6 +147,9 @@ class ReminderRemoteDataSourceImpl extends ReminderRemoteDataSource {
       }
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
+    } on HeliumException catch (e, s) {
+      _log.severe('Data source error', e, s);
+      rethrow;
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
       throw HeliumException(message: HeliumException.unexpectedError);
@@ -173,6 +179,9 @@ class ReminderRemoteDataSourceImpl extends ReminderRemoteDataSource {
       }
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
+    } on HeliumException catch (e, s) {
+      _log.severe('Data source error', e, s);
+      rethrow;
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
       throw HeliumException(message: HeliumException.unexpectedError);
@@ -202,6 +211,9 @@ class ReminderRemoteDataSourceImpl extends ReminderRemoteDataSource {
       }
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
+    } on HeliumException catch (e, s) {
+      _log.severe('Data source error', e, s);
+      rethrow;
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
       throw HeliumException(message: HeliumException.unexpectedError);
@@ -226,6 +238,9 @@ class ReminderRemoteDataSourceImpl extends ReminderRemoteDataSource {
       }
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
+    } on HeliumException catch (e, s) {
+      _log.severe('Data source error', e, s);
+      rethrow;
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
       throw HeliumException(message: HeliumException.unexpectedError);
@@ -264,6 +279,9 @@ class ReminderRemoteDataSourceImpl extends ReminderRemoteDataSource {
       }
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
+    } on HeliumException catch (e, s) {
+      _log.severe('Data source error', e, s);
+      rethrow;
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
       throw HeliumException(message: HeliumException.unexpectedError);

@@ -3,7 +3,7 @@ import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
 import 'package:heliumapp/utils/app_style.dart';
 
-class HeliumElevatedButton extends StatelessWidget {
+class HeliumElevatedButton extends StatefulWidget {
   static const _buttonBorderRadius = 6.0;
   static const _buttonMinHeight = 44.0;
   static const _buttonHorizontalPadding = 12.0;
@@ -58,40 +58,67 @@ class HeliumElevatedButton extends StatelessWidget {
   }
 
   @override
+  State<HeliumElevatedButton> createState() => _HeliumElevatedButtonState();
+}
+
+class _HeliumElevatedButtonState extends State<HeliumElevatedButton> {
+  bool _pressInFlight = false;
+
+  /// Only an async [HeliumElevatedButton.onPressed] is gated, where a dialog,
+  /// picker or route stays in flight long enough for a second tap to duplicate it.
+  void _handlePress() {
+    if (_pressInFlight) {
+      return;
+    }
+
+    final result = widget.onPressed();
+    if (result is! Future<dynamic>) {
+      return;
+    }
+
+    _pressInFlight = true;
+    result.whenComplete(() => _pressInFlight = false);
+  }
+
+  @override
   Widget build(BuildContext context) {
     // When disabled, dim the icon to match the disabled label rather than leaving it the
     // enabled `onPrimary`, which is illegible on the dimmed background (notably in dark mode).
-    final effectiveIconColor = enabled
-        ? (iconColor ?? context.colorScheme.onPrimary)
+    final effectiveIconColor = widget.enabled
+        ? (widget.iconColor ?? context.colorScheme.onPrimary)
         : context.colorScheme.onSurface.withValues(alpha: 0.38);
-    final effectiveBg = !isLoading && enabled
-        ? backgroundColor ?? context.colorScheme.primary
+    final effectiveBg = !widget.isLoading && widget.enabled
+        ? widget.backgroundColor ?? context.colorScheme.primary
         : context.colorScheme.onSurface.withValues(alpha: 0.12);
 
     return ElevatedButton.icon(
-      onPressed: isLoading || !enabled ? null : () => {onPressed()},
-      icon: !isLoading && icon != null
-          ? Icon(icon, size: _iconSize, color: effectiveIconColor)
+      onPressed: widget.isLoading || !widget.enabled ? null : _handlePress,
+      icon: !widget.isLoading && widget.icon != null
+          ? Icon(
+              widget.icon,
+              size: HeliumElevatedButton._iconSize,
+              color: effectiveIconColor,
+            )
           : null,
-      style: baseStyle(
+      style: HeliumElevatedButton.baseStyle(
         context.colorScheme,
         backgroundColor: effectiveBg,
-        minimumWidth: fullWidth ? double.infinity : 0,
-        minimumHeight: minHeight ?? _buttonMinHeight,
+        minimumWidth: widget.fullWidth ? double.infinity : 0,
+        minimumHeight: widget.minHeight ?? HeliumElevatedButton._buttonMinHeight,
       ).copyWith(
         tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-        visualDensity: visualDensity,
+        visualDensity: widget.visualDensity,
       ),
-      label: isLoading
+      label: widget.isLoading
           ? LoadingIndicator(
-              size: _loadingIndicatorSize,
-              strokeWidth: _loadingIndicatorStrokeWidth,
+              size: HeliumElevatedButton._loadingIndicatorSize,
+              strokeWidth: HeliumElevatedButton._loadingIndicatorStrokeWidth,
               expanded: false,
               color: context.colorScheme.onSurface.withValues(alpha: 0.38),
             )
           : Text(
-              buttonText,
-              style: enabled
+              widget.buttonText,
+              style: widget.enabled
                   ? AppStyles.buttonText(context)
                   : AppStyles.buttonText(context).copyWith(
                       color: context.colorScheme.onSurface.withValues(

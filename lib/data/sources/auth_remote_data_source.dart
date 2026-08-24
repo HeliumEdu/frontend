@@ -101,6 +101,9 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
       }
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
+    } on HeliumException catch (e, s) {
+      _log.severe('Data source error', e, s);
+      rethrow;
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
       throw HeliumException(message: HeliumException.unexpectedError);
@@ -155,6 +158,9 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
       }
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
+    } on HeliumException catch (e, s) {
+      _log.severe('Data source error', e, s);
+      rethrow;
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
       throw HeliumException(message: HeliumException.unexpectedError);
@@ -182,6 +188,9 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
       }
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
+    } on HeliumException catch (e, s) {
+      _log.severe('Data source error', e, s);
+      rethrow;
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
       throw HeliumException(message: HeliumException.unexpectedError);
@@ -236,6 +245,9 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
       }
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
+    } on HeliumException catch (e, s) {
+      _log.severe('Data source error', e, s);
+      rethrow;
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
       throw HeliumException(message: HeliumException.unexpectedError);
@@ -304,6 +316,9 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
       }
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
+    } on HeliumException catch (e, s) {
+      _log.severe('Data source error', e, s);
+      rethrow;
     } catch (e, s) {
       _log.severe('An unexpected error occurred during $provider login', e, s);
       throw HeliumException(message: 'Sign in failed.');
@@ -343,6 +358,9 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
       }
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
+    } on HeliumException catch (e, s) {
+      _log.severe('Data source error', e, s);
+      rethrow;
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
       throw HeliumException(message: HeliumException.unexpectedError);
@@ -374,6 +392,9 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
           _log.warning('Failed to blacklist token on server', e);
         }
       }
+    } on HeliumException catch (e, s) {
+      _log.severe('Data source error', e, s);
+      rethrow;
     } catch (e, s) {
       _log.severe('An unexpected error occurred during sign-out', e, s);
       // Even if something fails, always clear storage
@@ -397,6 +418,9 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
       }
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
+    } on HeliumException catch (e, s) {
+      _log.severe('Data source error', e, s);
+      rethrow;
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
       throw HeliumException(message: HeliumException.unexpectedError);
@@ -419,6 +443,9 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
       }
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
+    } on HeliumException catch (e, s) {
+      _log.severe('Data source error', e, s);
+      rethrow;
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
       throw HeliumException(message: HeliumException.unexpectedError);
@@ -439,6 +466,9 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
       unawaited(AnalyticsService().logEvent(name: AnalyticsEvent.feedsDisable, parameters: {'category': AnalyticsCategory.featureInteraction.value}));
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
+    } on HeliumException catch (e, s) {
+      _log.severe('Data source error', e, s);
+      rethrow;
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
       throw HeliumException(message: HeliumException.unexpectedError);
@@ -468,6 +498,9 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
       }
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
+    } on HeliumException catch (e, s) {
+      _log.severe('Data source error', e, s);
+      rethrow;
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
       throw HeliumException(message: HeliumException.unexpectedError);
@@ -502,6 +535,9 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
       }
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
+    } on HeliumException catch (e, s) {
+      _log.severe('Data source error', e, s);
+      rethrow;
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
       throw HeliumException(message: HeliumException.unexpectedError);
@@ -526,6 +562,9 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
       }
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
+    } on HeliumException catch (e, s) {
+      _log.severe('Data source error', e, s);
+      rethrow;
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
       throw HeliumException(message: HeliumException.unexpectedError);
@@ -556,6 +595,9 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
       }
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
+    } on HeliumException catch (e, s) {
+      _log.severe('Data source error', e, s);
+      rethrow;
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
       throw HeliumException(message: HeliumException.unexpectedError);
@@ -582,6 +624,9 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
       }
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
+    } on HeliumException catch (e, s) {
+      _log.severe('Data source error', e, s);
+      rethrow;
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
       throw HeliumException(message: HeliumException.unexpectedError);
@@ -619,6 +664,9 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
       }
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
+    } on HeliumException catch (e, s) {
+      _log.severe('Data source error', e, s);
+      rethrow;
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
       throw HeliumException(message: HeliumException.unexpectedError);
@@ -645,6 +693,9 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
       unawaited(AnalyticsService().setUserProperty(name: 'onboarding_complete', value: 'true'));
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
+    } on HeliumException catch (e, s) {
+      _log.severe('Data source error', e, s);
+      rethrow;
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
       throw HeliumException(message: HeliumException.unexpectedError);
@@ -668,6 +719,9 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
       }
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
+    } on HeliumException catch (e, s) {
+      _log.severe('Data source error', e, s);
+      rethrow;
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
       throw HeliumException(message: HeliumException.unexpectedError);

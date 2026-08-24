@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:heliumapp/core/helium_exception.dart';
 import 'package:heliumapp/core/log_formatter.dart';
@@ -51,11 +52,14 @@ class LogService {
   @visibleForTesting
   static LogSentryAction classifyRecord(LogRecord record) {
     if (record.level >= Level.SEVERE) {
-      // Handled connectivity and 401/403 auth failures are non-actionable, so
-      // keep them as breadcrumbs. This type check works where the string-based
-      // filters in sentry_service._beforeSend can't: AOT minifies type names.
+      // Mirrors the sentry_service._beforeSend carve-outs, which match on type
+      // names that AOT minifies out of their reach. ServerException and the
+      // HeliumException base stay reportable.
       if (record.error is NetworkException ||
-          record.error is UnauthorizedException) {
+          record.error is UnauthorizedException ||
+          record.error is NotFoundException ||
+          record.error is ValidationException ||
+          _isConnectivityFailure(record.error)) {
         return LogSentryAction.breadcrumb;
       }
       if (record.error != null) {
@@ -67,6 +71,27 @@ class LogService {
       return LogSentryAction.breadcrumb;
     }
     return LogSentryAction.drop;
+  }
+
+  /// Connectivity failures that outlived DioClient's retries: the network path
+  /// is at fault, and a real API outage surfaces in server-side monitoring.
+  static bool _isConnectivityFailure(Object? error) {
+    if (error is! DioException) {
+      return false;
+    }
+
+    return switch (error.type) {
+      DioExceptionType.connectionTimeout ||
+      DioExceptionType.sendTimeout ||
+      DioExceptionType.receiveTimeout ||
+      DioExceptionType.connectionError ||
+      DioExceptionType.cancel =>
+        true,
+      DioExceptionType.badCertificate ||
+      DioExceptionType.badResponse ||
+      DioExceptionType.unknown =>
+        false,
+    };
   }
 
   static SentryLevel _breadcrumbLevelFor(LogRecord record) {

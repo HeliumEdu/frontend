@@ -77,7 +77,7 @@ class AttachmentRemoteDataSourceImpl extends AttachmentRemoteDataSource {
 
       if (response.statusCode == 201) {
         if (response.data.isEmpty) {
-          throw ValidationException(message: 'Attachment not found in response.');
+          throw ServerException(message: 'Attachment not found in response.');
         }
 
         final attachment = AttachmentModel.fromJson(response.data[0]);
@@ -93,6 +93,9 @@ class AttachmentRemoteDataSourceImpl extends AttachmentRemoteDataSource {
       }
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
+    } on HeliumException catch (e, s) {
+      _log.severe('Data source error', e, s);
+      rethrow;
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
       throw HeliumException(message: HeliumException.unexpectedError);
@@ -140,6 +143,9 @@ class AttachmentRemoteDataSourceImpl extends AttachmentRemoteDataSource {
       }
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
+    } on HeliumException catch (e, s) {
+      _log.severe('Data source error', e, s);
+      rethrow;
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
       throw HeliumException(message: HeliumException.unexpectedError);
@@ -164,6 +170,9 @@ class AttachmentRemoteDataSourceImpl extends AttachmentRemoteDataSource {
       }
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
+    } on HeliumException catch (e, s) {
+      _log.severe('Data source error', e, s);
+      rethrow;
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
       throw HeliumException(message: HeliumException.unexpectedError);
