@@ -52,13 +52,6 @@ class PreferencesScreenState extends State<PreferencesScreen> {
   bool _isChanged = false;
   bool _changeTrackingActive = false;
 
-  bool get isChanged => _isChanged;
-
-  void _markChanged() {
-    if (_isChanged || !_changeTrackingActive) return;
-    setState(() => _isChanged = true);
-  }
-
   Color _selectedEventColor = FallbackConstants.defaultEventsColor;
   Color _selectedResourceColor = FallbackConstants.defaultResourceColor;
   Color _selectedGradeColor = FallbackConstants.defaultGradeColor;
@@ -79,6 +72,13 @@ class PreferencesScreenState extends State<PreferencesScreen> {
       FallbackConstants.defaultRememberFilterState;
   bool _isCollapseBusyDays = FallbackConstants.defaultCollapseBusyDays;
   bool _isShowWeekNumbers = FallbackConstants.defaultShowWeekNumbers;
+
+  bool get isChanged => _isChanged;
+
+  void _markChanged() {
+    if (_isChanged || !_changeTrackingActive) return;
+    setState(() => _isChanged = true);
+  }
 
   @override
   void initState() {

@@ -63,97 +63,19 @@ class DialogModeProvider extends InheritedWidget {
   }
 }
 
-/// Listens to router changes and closes the dialog when browser navigation
-/// (back/forward) causes a route change. Can be eliminated if we transition
-/// to go_router's dialog navigation in the future.
-class _DialogRouteListener extends StatefulWidget {
-  final String initialLocation;
-  final Widget child;
-
-  const _DialogRouteListener({
-    required this.initialLocation,
-    required this.child,
-  });
-
-  @override
-  State<_DialogRouteListener> createState() => _DialogRouteListenerState();
-}
-
-class _DialogRouteListenerState extends State<_DialogRouteListener> {
-  VoidCallback? _routeListener;
-  late Uri _initialUri;
-
-  @override
-  void initState() {
-    super.initState();
-    _initialUri = Uri.parse(widget.initialLocation);
-    _routeListener = _onRouteChanged;
-    router.routerDelegate.addListener(_routeListener!);
-  }
-
-  @override
-  void dispose() {
-    if (_routeListener != null) {
-      router.routerDelegate.removeListener(_routeListener!);
-    }
-    super.dispose();
-  }
-
-  void _onRouteChanged() {
-    final currentUri = router.routerDelegate.currentConfiguration.uri;
-
-    // If params were added after dialog opened, update our reference.
-    // This handles the case where the dialog is shown before the URL is
-    // updated with entity params (e.g., showScreenAsDialog called, then
-    // router.replace adds ?id=123).
-    if (currentUri.path == _initialUri.path &&
-        _initialUri.queryParameters.isEmpty &&
-        currentUri.queryParameters.isNotEmpty) {
-      _initialUri = currentUri;
-      return;
-    }
-
-    // Close on path change (e.g., navigated to different tab)
-    if (currentUri.path != _initialUri.path && mounted) {
-      _log.info(
-        'Browser navigation detected, closing dialog: '
-        '${widget.initialLocation} --> ${currentUri.toString()}',
-      );
-      _deferredPop();
-      return;
-    }
-
-    // Close when query params are cleared (e.g., browser back from ?id=123 to /)
-    // but not on param updates within the dialog (e.g., id=new  -->  id=123)
-    if (_initialUri.queryParameters.isNotEmpty &&
-        currentUri.queryParameters.isEmpty &&
-        mounted) {
-      _log.info(
-        'Browser back detected (params cleared), closing dialog: '
-        '${widget.initialLocation} --> ${currentUri.toString()}',
-      );
-      _deferredPop();
-    }
-  }
-
-  void _deferredPop() {
-    // Defer pop() to avoid calling it while Navigator is locked during
-    // GoRouter's route change notification.
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
-      final nav = Navigator.of(context, rootNavigator: true);
-      if (nav.canPop()) {
-        nav.pop();
-      }
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) => widget.child;
-}
-
 abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
   final DioClient dioClient = DioClient();
+
+  UserSettingsModel? userSettings;
+  bool settingsLoaded = false;
+  bool settingsError = false;
+  // Default true so authenticated screens never flash unloaded content
+  // between mount and the first BLoC fetch completing. Subclasses flip this
+  // to false from their own BLoC listeners when their data is ready, since
+  // user-settings loading and screen-data loading are independent and the
+  // latter is what gates UI readiness.
+  bool isLoading = true;
+  bool isSubmitting = false;
 
   bool get isAuthenticatedScreen => true;
 
@@ -197,17 +119,6 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
     top: 8,
     bottom: 0,
   );
-
-  UserSettingsModel? userSettings;
-  bool settingsLoaded = false;
-  bool settingsError = false;
-  // Default true so authenticated screens never flash unloaded content
-  // between mount and the first BLoC fetch completing. Subclasses flip this
-  // to false from their own BLoC listeners when their data is ready, since
-  // user-settings loading and screen-data loading are independent and the
-  // latter is what gates UI readiness.
-  bool isLoading = true;
-  bool isSubmitting = false;
 
   @override
   @protected
@@ -592,4 +503,93 @@ Future<void> showScreenAsDialog(
       );
     },
   );
+}
+
+/// Listens to router changes and closes the dialog when browser navigation
+/// (back/forward) causes a route change. Can be eliminated if we transition
+/// to go_router's dialog navigation in the future.
+class _DialogRouteListener extends StatefulWidget {
+  final String initialLocation;
+  final Widget child;
+
+  const _DialogRouteListener({
+    required this.initialLocation,
+    required this.child,
+  });
+
+  @override
+  State<_DialogRouteListener> createState() => _DialogRouteListenerState();
+}
+
+class _DialogRouteListenerState extends State<_DialogRouteListener> {
+  VoidCallback? _routeListener;
+  late Uri _initialUri;
+
+  @override
+  void initState() {
+    super.initState();
+    _initialUri = Uri.parse(widget.initialLocation);
+    _routeListener = _onRouteChanged;
+    router.routerDelegate.addListener(_routeListener!);
+  }
+
+  @override
+  void dispose() {
+    if (_routeListener != null) {
+      router.routerDelegate.removeListener(_routeListener!);
+    }
+    super.dispose();
+  }
+
+  void _onRouteChanged() {
+    final currentUri = router.routerDelegate.currentConfiguration.uri;
+
+    // If params were added after dialog opened, update our reference.
+    // This handles the case where the dialog is shown before the URL is
+    // updated with entity params (e.g., showScreenAsDialog called, then
+    // router.replace adds ?id=123).
+    if (currentUri.path == _initialUri.path &&
+        _initialUri.queryParameters.isEmpty &&
+        currentUri.queryParameters.isNotEmpty) {
+      _initialUri = currentUri;
+      return;
+    }
+
+    // Close on path change (e.g., navigated to different tab)
+    if (currentUri.path != _initialUri.path && mounted) {
+      _log.info(
+        'Browser navigation detected, closing dialog: '
+        '${widget.initialLocation} --> ${currentUri.toString()}',
+      );
+      _deferredPop();
+      return;
+    }
+
+    // Close when query params are cleared (e.g., browser back from ?id=123 to /)
+    // but not on param updates within the dialog (e.g., id=new  -->  id=123)
+    if (_initialUri.queryParameters.isNotEmpty &&
+        currentUri.queryParameters.isEmpty &&
+        mounted) {
+      _log.info(
+        'Browser back detected (params cleared), closing dialog: '
+        '${widget.initialLocation} --> ${currentUri.toString()}',
+      );
+      _deferredPop();
+    }
+  }
+
+  void _deferredPop() {
+    // Defer pop() to avoid calling it while Navigator is locked during
+    // GoRouter's route change notification.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final nav = Navigator.of(context, rootNavigator: true);
+      if (nav.canPop()) {
+        nav.pop();
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) => widget.child;
 }

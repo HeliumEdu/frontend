@@ -10,13 +10,6 @@ class HeliumRetryEvaluator {
   static const Duration maxTotalWait = Duration(seconds: 30);
   static const String deadlineKey = 'helium_retry_deadline';
 
-  static DateTime deadlineFor(RequestOptions options) =>
-      options.extra.putIfAbsent(
-            deadlineKey,
-            () => DateTime.now().add(maxTotalWait),
-          )
-          as DateTime;
-
   static const Set<int> retryableStatuses = {
     HttpStatus.requestTimeout,
     HttpStatus.internalServerError,
@@ -28,6 +21,13 @@ class HeliumRetryEvaluator {
   final DefaultRetryEvaluator _delegate = DefaultRetryEvaluator(
     retryableStatuses,
   );
+
+  static DateTime deadlineFor(RequestOptions options) =>
+      options.extra.putIfAbsent(
+            deadlineKey,
+            () => DateTime.now().add(maxTotalWait),
+          )
+          as DateTime;
 
   FutureOr<bool> evaluate(DioException error, int attempt) {
     final options = error.requestOptions;

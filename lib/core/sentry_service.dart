@@ -17,6 +17,20 @@ class SentryService {
 
   static const _nativeChannel = MethodChannel('com.heliumedu.heliumapp/native');
 
+  /// Matches any HTTP 4xx (client error) status code in free text.
+  static final _clientErrorStatusPattern = RegExp(r'\b4\d\d\b');
+
+  /// Polled in the background; a failure here is invisible to the user.
+  static const _backgroundEndpoints = [
+    '/auth/token/refresh/',
+    '/auth/user/pushtoken/',
+  ];
+
+  /// Matched as text because AOT and dart2js minify the DioException type name.
+  static final _dioConnectivityFailurePattern = RegExp(
+    r'dioexception \[(connection timeout|send timeout|receive timeout|connection error)\]',
+  );
+
   /// Exposed for testing - returns true if the event should be filtered (dropped)
   @visibleForTesting
   static bool shouldFilterEvent(SentryEvent event) {
@@ -88,6 +102,8 @@ class SentryService {
         '(?i)goexception.*4\\d\\d',
         '(?i)dioexception \\[(connection|send|receive) timeout\\]',
         '(?i)dioexception \\[connection error\\]',
+        '(?i)(handshake|tls)exception',
+        '(?i)certificate_verify_failed',
         '(?i)flutterCanvasKit.*is not a constructor',
         '(?i)messaging/unsupported-browser',
         '(?i)watchdogtermination',
@@ -182,8 +198,10 @@ class SentryService {
     }
 
     if (event.exceptions != null) {
+      final backgroundEndpoint = _isBackgroundEndpoint(event.request?.url);
       for (final exception in event.exceptions!) {
-        if (_shouldFilterSentryException(exception)) {
+        if (_shouldFilterSentryException(exception,
+            backgroundEndpoint: backgroundEndpoint)) {
           _log.fine('Filtered event from Sentry (via SentryException)');
           return true;
         }
@@ -199,7 +217,8 @@ class SentryService {
   }
 
   /// Check SentryException type and value
-  bool _shouldFilterSentryException(SentryException exception) {
+  bool _shouldFilterSentryException(SentryException exception,
+      {bool backgroundEndpoint = false}) {
     if (_shouldFilterByStackFrames(exception)) {
       return true;
     }
@@ -251,10 +270,14 @@ class SentryService {
       return true;
     }
 
+    // Captive portals and intercepting proxies; real faults surface in infra monitoring.
+    if (_isTlsFailure(combined)) {
+      return true;
+    }
+
     // Expected when device goes offline in background
     if (_looksLikeNetworkError(combined) &&
-        (combined.contains('/auth/token/refresh/') ||
-            combined.contains('/auth/user/pushtoken/'))) {
+        (backgroundEndpoint || _isBackgroundEndpoint(combined))) {
       return true;
     }
 
@@ -264,8 +287,8 @@ class SentryService {
   /// Filter exceptions originating entirely within known third-party packages
   bool _shouldFilterByStackFrames(SentryException exception) {
     final frames = exception.stackTrace?.frames ?? [];
-    return frames.any((f) =>
-        (f.absPath ?? f.module ?? '').toLowerCase().contains('syncfusion_flutter'));
+    return frames.any((f) => [f.absPath, f.module, f.fileName, f.package].any(
+        (path) => (path ?? '').toLowerCase().contains('syncfusion_flutter')));
   }
 
   /// Native signal crashes (e.g. SIGABRT, SIGSEGV) with only system-level
@@ -312,9 +335,6 @@ class SentryService {
     return false;
   }
 
-  /// Matches any HTTP 4xx (client error) status code in free text.
-  static final _clientErrorStatusPattern = RegExp(r'\b4\d\d\b');
-
   bool _containsClientErrorStatusCode(String text) {
     return _clientErrorStatusPattern.hasMatch(text);
   }
@@ -331,10 +351,17 @@ class SentryService {
         text.contains('forbidden');
   }
 
-  /// Matched as text because AOT and dart2js minify the DioException type name.
-  static final _dioConnectivityFailurePattern = RegExp(
-    r'dioexception \[(connection timeout|send timeout|receive timeout|connection error)\]',
-  );
+  bool _isBackgroundEndpoint(String? text) {
+    final value = text?.toLowerCase() ?? '';
+    return _backgroundEndpoints.any(value.contains);
+  }
+
+  /// Matched on message text, which dart:io writes literally and neither compiler minifies.
+  bool _isTlsFailure(String text) {
+    return text.contains('handshakeexception') ||
+        text.contains('tlsexception') ||
+        text.contains('certificate_verify_failed');
+  }
 
   bool _isDioConnectivityFailure(String text) {
     return _dioConnectivityFailurePattern.hasMatch(text);

@@ -71,6 +71,11 @@ Set<String> get _sharedPrefsAllowList => {
 
 class PrefService {
   FlutterSecureStorage? _secureStorageOverride;
+  SharedPreferencesWithCache? _sharedStorage;
+
+  bool _isInitialized = false;
+  Completer<void>? _initCompleter;
+
   FlutterSecureStorage get _secureStorage =>
       _secureStorageOverride ??
       const FlutterSecureStorage(
@@ -78,11 +83,6 @@ class PrefService {
           accessibility: KeychainAccessibility.unlocked,
         ),
       );
-
-  SharedPreferencesWithCache? _sharedStorage;
-
-  bool _isInitialized = false;
-  Completer<void>? _initCompleter;
 
   static PrefService _instance = PrefService._internal();
 

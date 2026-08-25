@@ -35,8 +35,6 @@ import 'package:logging/logging.dart';
 
 final _log = Logger('presentation.settings');
 
-/// Where an imported `.ics` lands. `header` is a non-selectable group label in the picker.
-enum _TargetKind { header, newCourse, existingCourse, events }
 class ImportExportScreen extends StatefulWidget {
   final UserSettingsModel? userSettings;
   final void Function(String route)? onNavigateRequested;
@@ -769,6 +767,9 @@ class _ImportExportScreenState extends State<ImportExportScreen> {
     return null;
   }
 }
+
+/// Where an imported `.ics` lands. `header` is a non-selectable group label in the picker.
+enum _TargetKind { header, newCourse, existingCourse, events }
 
 /// A picker destination. `id` is a course-group id for `newCourse`/`header`, a course
 /// id for `existingCourse`, and null for `events`.

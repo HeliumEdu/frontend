@@ -51,6 +51,11 @@ class DioClient {
        _prefService = prefService,
        _cacheService = cacheService ?? CacheService();
 
+  bool _isRefreshing = false;
+  Completer<void>? _refreshCompleter;
+  String? _clientVersion;
+  String? _clientPlatform;
+
   @visibleForTesting
   static void resetForTesting() {
     _instance = DioClient._internal();
@@ -66,11 +71,6 @@ class DioClient {
 
   @visibleForTesting
   void refreshReplayBody(RequestOptions options) => _refreshReplayBody(options);
-
-  bool _isRefreshing = false;
-  Completer<void>? _refreshCompleter;
-  String? _clientVersion;
-  String? _clientPlatform;
 
   Dio get dio => _dio;
 
