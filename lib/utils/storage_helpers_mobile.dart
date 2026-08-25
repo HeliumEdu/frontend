@@ -16,21 +16,18 @@ final _log = Logger('utils');
 ///
 /// Prefers [PlatformFile.path] (the locally cached file path that file_picker
 /// always provides on iOS/Android) for a direct [File.readAsBytes] call.
-/// Falls back to consuming [PlatformFile.readStream] if path is unexpectedly
-/// absent, which also exercises the same stream path used by the web
-/// implementation for test parity.
+/// Falls back to consuming [PlatformFile.readAsByteStream] if path is
+/// unexpectedly absent, which also exercises the same stream path used by the
+/// web implementation for test parity.
 Future<Uint8List?> readPickedFileBytes(PlatformFile platFile) async {
   if (platFile.path != null) {
     return await File(platFile.path!).readAsBytes();
   }
-  if (platFile.readStream != null) {
-    final builder = BytesBuilder(copy: false);
-    await for (final chunk in platFile.readStream!) {
-      builder.add(chunk);
-    }
-    return builder.takeBytes();
+  final builder = BytesBuilder(copy: false);
+  await for (final chunk in platFile.readAsByteStream()) {
+    builder.add(chunk);
   }
-  return null;
+  return builder.takeBytes();
 }
 
 /// Mobile download with platform-specific behavior:

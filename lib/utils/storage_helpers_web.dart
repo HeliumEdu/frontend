@@ -8,16 +8,14 @@ import 'package:web/web.dart' as web;
 
 final _log = Logger('utils');
 
-/// Reads bytes from a picked file on web by consuming [PlatformFile.readStream]
-/// in 1 MB chunks. The stream is created lazily by the file_picker plugin using
-/// the browser File API (file.slice), so bytes are only allocated here, after
-/// the size check in [HeliumStorage.pickFiles] has already passed.
+/// Reads bytes from a picked file on web by consuming
+/// [PlatformFile.readAsByteStream]. The stream is created lazily by the
+/// file_picker plugin using the browser File API (file.slice), so bytes are
+/// only allocated here, after the size check in [HeliumStorage.pickFiles] has
+/// already passed.
 Future<Uint8List?> readPickedFileBytes(PlatformFile platFile) async {
-  if (platFile.readStream == null) {
-    return null;
-  }
   final builder = BytesBuilder(copy: false);
-  await for (final chunk in platFile.readStream!) {
+  await for (final chunk in platFile.readAsByteStream()) {
     builder.add(chunk);
   }
   return builder.takeBytes();

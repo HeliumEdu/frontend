@@ -104,15 +104,17 @@ class HeliumStorage {
     final bool useCustomType =
         kIsWeb && allowedExtensions != null && allowedExtensions.isNotEmpty;
 
-    FilePickerResult? result;
+    List<PlatformFile> picked;
     try {
-      result = await FilePicker.platform.pickFiles(
-        type: useCustomType ? FileType.custom : FileType.any,
-        allowedExtensions: useCustomType ? allowedExtensions : null,
-        allowMultiple: allowMultiple,
-        withData: false,
-        withReadStream: true,
-      );
+      picked = allowMultiple
+          ? await FilePicker.pickFiles(
+              type: useCustomType ? FileType.custom : FileType.any,
+              allowedExtensions: useCustomType ? allowedExtensions : null,
+            )
+          : await _pickSingle(
+              useCustomType ? FileType.custom : FileType.any,
+              useCustomType ? allowedExtensions : null,
+            );
     } on PlatformException catch (e) {
       if (e.code == 'already_active') {
         _log.warning('File picker reported an active session');
@@ -126,14 +128,16 @@ class HeliumStorage {
       return const PickFilesResult(files: []);
     }
 
-    if (result == null) {
+    // file_picker 12 collapsed "cancelled" and "picked nothing" into a single
+    // empty list; both consumers of [cancelled] already return silently.
+    if (picked.isEmpty) {
       return const PickFilesResult(files: [], cancelled: true);
     }
 
     final files = <PickedFile>[];
     final errors = <PickedFileError>[];
 
-    for (final platFile in result.files) {
+    for (final platFile in picked) {
       // Extension check on mobile (web enforces this via FileType.custom above)
       if (allowedExtensions != null && allowedExtensions.isNotEmpty && !kIsWeb) {
         final ext = platFile.extension?.toLowerCase();
@@ -149,7 +153,8 @@ class HeliumStorage {
       }
 
       // Size check via OS/browser metadata — no bytes loaded at this point
-      if (platFile.size > maxUploadSize) {
+      final reportedSize = await platFile.length();
+      if (reportedSize > maxUploadSize) {
         errors.add(PickedFileError(
           name: platFile.name,
           reason: PickedFileErrorReason.fileTooLarge,
@@ -167,6 +172,14 @@ class HeliumStorage {
           ));
           continue;
         }
+        if (bytes.length > maxUploadSize) {
+          errors.add(PickedFileError(
+            name: platFile.name,
+            reason: PickedFileErrorReason.fileTooLarge,
+            maxUploadSize: maxUploadSize,
+          ));
+          continue;
+        }
         files.add(PickedFile(name: platFile.name, bytes: bytes));
       } catch (e) {
         _log.warning('Failed to read picked file', e);
@@ -178,6 +191,19 @@ class HeliumStorage {
     }
 
     return PickFilesResult(files: files, errors: errors);
+  }
+
+  /// Single-file pick normalised to a list, so [pickFiles] has one shape to
+  /// validate regardless of how many files the caller asked for.
+  static Future<List<PlatformFile>> _pickSingle(
+    FileType type,
+    List<String>? allowedExtensions,
+  ) async {
+    final file = await FilePicker.pickFile(
+      type: type,
+      allowedExtensions: allowedExtensions,
+    );
+    return file == null ? <PlatformFile>[] : <PlatformFile>[file];
   }
 
   /// Downloads a remote file. Returns null on success or an error message string on failure.
