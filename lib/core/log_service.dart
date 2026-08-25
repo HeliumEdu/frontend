@@ -90,11 +90,18 @@ class LogService {
       DioExceptionType.connectionError ||
       DioExceptionType.cancel =>
         true,
-      DioExceptionType.badCertificate ||
-      DioExceptionType.badResponse ||
-      DioExceptionType.unknown =>
-        false,
+      DioExceptionType.unknown => _isTlsFailure(error),
+      DioExceptionType.badCertificate || DioExceptionType.badResponse => false,
     };
+  }
+
+  /// TLS failures arrive as `unknown`, which otherwise stays reportable: it wraps real bugs.
+  static bool _isTlsFailure(DioException error) {
+    final text = '${error.message ?? ''} ${error.error ?? ''}'.toLowerCase();
+
+    return text.contains('handshakeexception') ||
+        text.contains('tlsexception') ||
+        text.contains('certificate_verify_failed');
   }
 
   static SentryLevel _breadcrumbLevelFor(LogRecord record) {
@@ -106,10 +113,7 @@ class LogService {
 
   void _sendLog(LogRecord record) {
     final logger = Sentry.logger;
-    final body = record.error == null
-        ? record.message
-        : '${record.message}: ${record.error}';
-
+    final body = record.message;
     final attributes = _logAttributes(record);
     if (record.level >= Level.SEVERE) {
       logger.error(body, attributes: attributes);

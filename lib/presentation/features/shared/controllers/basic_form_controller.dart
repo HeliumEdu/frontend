@@ -13,15 +13,15 @@ class BasicFormController {
   /// unsaved-changes prompt that should fire only on real user edits.
   bool isUserDirty = false;
 
-  void markChanged({bool userInitiated = true}) {
-    isChanged = true;
-    if (userInitiated) isUserDirty = true;
-  }
-
   /// Map of field names to their GlobalKeys for scroll-to-error functionality.
   /// Fields are registered in order, so iteration preserves form field order.
   final Map<String, GlobalKey<FormFieldState<String>>> _fieldKeys =
       <String, GlobalKey<FormFieldState<String>>>{};
+
+  void markChanged({bool userInitiated = true}) {
+    isChanged = true;
+    if (userInitiated) isUserDirty = true;
+  }
 
   /// Register and return a GlobalKey for a form field.
   /// Call this for each field that has a validator to enable scroll-to-error.

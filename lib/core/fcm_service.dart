@@ -6,6 +6,7 @@ import 'dart:io'
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:heliumapp/config/analytics_event.dart';
 import 'package:heliumapp/config/app_router.dart';
@@ -27,7 +28,7 @@ import 'package:logging/logging.dart';
 
 final _log = Logger('core');
 
-class FcmService {
+class FcmService with WidgetsBindingObserver {
   late final DioClient _dioClient;
   FirebaseMessaging? _firebaseMessaging;
   late final FlutterLocalNotificationsPlugin _localNotifications;
@@ -42,6 +43,8 @@ class FcmService {
   bool _isSupported = true;
 
   bool _handlersConfigured = false;
+  bool _tokenRegistered = false;
+  bool _observingLifecycle = false;
   String? _fcmToken;
 
   String? _deviceId;
@@ -71,6 +74,7 @@ class FcmService {
 
   @visibleForTesting
   static void resetForTesting() {
+    _instance._stopObservingLifecycle();
     _instance = FcmService._internal();
   }
 
@@ -138,12 +142,36 @@ class FcmService {
 
       await _handleInitialMessage();
 
-      await _registerToken();
-
       _isInitialized = true;
       _log.info('FCM initialized successfully');
+
+      _observeLifecycle();
+      unawaited(_registerToken());
     } catch (_) {
       rethrow;
+    }
+  }
+
+  /// A device that cold-starts without a usable network would otherwise stay
+  /// unregistered until the OS restarts the app, which can be days.
+  void _observeLifecycle() {
+    if (_observingLifecycle) return;
+    _observingLifecycle = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      WidgetsBinding.instance.addObserver(this);
+    });
+  }
+
+  void _stopObservingLifecycle() {
+    if (!_observingLifecycle) return;
+    _observingLifecycle = false;
+    WidgetsBinding.instance.removeObserver(this);
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed && _isSupported && !_tokenRegistered) {
+      unawaited(_registerToken());
     }
   }
 
@@ -333,6 +361,7 @@ class FcmService {
         final hasCurrentToken = await cleanExistingTokens();
         if (hasCurrentToken && !force) {
           _log.info('FCM token unchanged; skipping push token registration');
+          _tokenRegistered = true;
           return;
         }
         if (hasCurrentToken && force) {
@@ -355,8 +384,11 @@ class FcmService {
 
       await _prefService.setSecure('pushtoken_device_id', _deviceId!);
       await _prefService.setSecure('last_pushtoken', _fcmToken!);
+
+      _tokenRegistered = true;
     } catch (e, s) {
-      _log.severe('Failed to register FCM token', e, s);
+      // Retried on the next resume, so a single failure isn't actionable.
+      _log.warning('Failed to register FCM token', e, s);
     }
   }
 
