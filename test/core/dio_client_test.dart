@@ -8,6 +8,7 @@ import 'package:timezone/data/latest_all.dart' as tz_data;
 import '../mocks/mock_services.dart';
 
 void main() {
+  _formDataReplayTests();
   TestWidgetsFlutterBinding.ensureInitialized();
 
   setUpAll(() {
@@ -266,6 +267,82 @@ void main() {
         verify(() => mockCacheService.clearAll()).called(1);
         verify(() => mockPrefService.clear()).called(1);
       });
+    });
+  });
+}
+
+void _formDataReplayTests() {
+  group('refreshReplayBody', () {
+    RequestOptions optionsWith(dynamic data) =>
+        RequestOptions(path: '/importexport/import/', method: 'POST', data: data);
+
+    FormData multipartBody() => FormData.fromMap({
+      'file[]': MultipartFile.fromBytes([1, 2, 3], filename: 'schedule.json'),
+      'course': '42',
+    });
+
+    late DioClient client;
+
+    setUp(() {
+      client = DioClient.forTesting(dio: Dio(), prefService: MockPrefService());
+    });
+
+    test('replaces a finalized FormData so the replay can send it again', () {
+      // GIVEN
+      final sent = multipartBody();
+      sent.finalize();
+      final options = optionsWith(sent);
+
+      // WHEN
+      client.refreshReplayBody(options);
+
+      // THEN
+      final replayed = options.data as FormData;
+      expect(identical(replayed, sent), isFalse);
+      expect(replayed.isFinalized, isFalse);
+      expect(() => replayed.finalize(), returnsNormally);
+      // the original is what FRONTEND-96 tripped over on the second send
+      expect(() => sent.finalize(), throwsStateError);
+    });
+
+    test('preserves the boundary so the existing content-type still matches', () {
+      // GIVEN
+      final sent = multipartBody();
+      sent.finalize();
+      final options = optionsWith(sent);
+
+      // WHEN
+      client.refreshReplayBody(options);
+
+      // THEN
+      final replayed = options.data as FormData;
+      expect(replayed.boundary, sent.boundary);
+      expect(replayed.fields, sent.fields);
+      expect(replayed.files.map((f) => f.key), sent.files.map((f) => f.key));
+    });
+
+    test('leaves an unsent FormData untouched', () {
+      // GIVEN
+      final unsent = multipartBody();
+      final options = optionsWith(unsent);
+
+      // WHEN
+      client.refreshReplayBody(options);
+
+      // THEN
+      expect(identical(options.data, unsent), isTrue);
+    });
+
+    test('leaves a JSON body untouched', () {
+      // GIVEN
+      final json = {'title': 'Chemistry'};
+      final options = optionsWith(json);
+
+      // WHEN
+      client.refreshReplayBody(options);
+
+      // THEN
+      expect(identical(options.data, json), isTrue);
     });
   });
 }

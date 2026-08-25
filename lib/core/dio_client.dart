@@ -64,6 +64,9 @@ class DioClient {
   @visibleForTesting
   bool isInvalidTokenError(dynamic data) => _isInvalidTokenError(data);
 
+  @visibleForTesting
+  void refreshReplayBody(RequestOptions options) => _refreshReplayBody(options);
+
   bool _isRefreshing = false;
   Completer<void>? _refreshCompleter;
   String? _clientVersion;
@@ -140,6 +143,7 @@ class DioClient {
                 if (newToken?.isNotEmpty ?? false) {
                   error.requestOptions.headers['Authorization'] =
                       'Bearer $newToken';
+                  _refreshReplayBody(error.requestOptions);
                   final retryResponse = await _dio.fetch(error.requestOptions);
                   return handler.resolve(retryResponse);
                 } else {
@@ -239,6 +243,7 @@ class DioClient {
                 error.requestOptions.headers['Authorization'] =
                     'Bearer ${refreshResponse.access}';
 
+                _refreshReplayBody(error.requestOptions);
                 final retryResponse = await _dio.fetch(error.requestOptions);
                 return handler.resolve(retryResponse);
               } else {
@@ -536,6 +541,16 @@ class DioClient {
     if (Platform.isIOS) return 'ios';
     if (Platform.isAndroid) return 'android';
     return 'unknown';
+  }
+
+  /// A [FormData] body is consumed when the request is sent, so replaying the
+  /// original [RequestOptions] after a token refresh would finalize it twice.
+  /// Cloning preserves the boundary, so the already-set content-type still matches.
+  void _refreshReplayBody(RequestOptions options) {
+    final data = options.data;
+    if (data is FormData && data.isFinalized) {
+      options.data = data.clone();
+    }
   }
 
   void _addRequestBreadcrumb(String requestId, RequestOptions options) {
