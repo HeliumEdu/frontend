@@ -110,13 +110,15 @@ class HeliumStorage {
           ? await FilePicker.pickFiles(
               type: useCustomType ? FileType.custom : FileType.any,
               allowedExtensions: useCustomType ? allowedExtensions : null,
+              webOptions: pickerWebOptions,
             )
           : await _pickSingle(
               useCustomType ? FileType.custom : FileType.any,
               useCustomType ? allowedExtensions : null,
             );
     } on PlatformException catch (e) {
-      if (e.code == 'already_active') {
+      // Platform codes for a pick already in progress.
+      if (e.code == 'already_active' || e.code == 'multiple_request') {
         _log.warning('File picker reported an active session');
         return const PickFilesResult(files: [], cancelled: true);
       }
@@ -128,8 +130,6 @@ class HeliumStorage {
       return const PickFilesResult(files: []);
     }
 
-    // file_picker 12 collapsed "cancelled" and "picked nothing" into a single
-    // empty list; both consumers of [cancelled] already return silently.
     if (picked.isEmpty) {
       return const PickFilesResult(files: [], cancelled: true);
     }
@@ -193,8 +193,7 @@ class HeliumStorage {
     return PickFilesResult(files: files, errors: errors);
   }
 
-  /// Single-file pick normalised to a list, so [pickFiles] has one shape to
-  /// validate regardless of how many files the caller asked for.
+  /// Normalises a single-file pick to a list so [pickFiles] validates one shape.
   static Future<List<PlatformFile>> _pickSingle(
     FileType type,
     List<String>? allowedExtensions,
@@ -202,6 +201,7 @@ class HeliumStorage {
     final file = await FilePicker.pickFile(
       type: type,
       allowedExtensions: allowedExtensions,
+      webOptions: pickerWebOptions,
     );
     return file == null ? <PlatformFile>[] : <PlatformFile>[file];
   }

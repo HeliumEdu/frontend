@@ -24,8 +24,7 @@ class _MockFilePicker extends Mock
     with MockPlatformInterfaceMixin
     implements FilePickerPlatform {}
 
-/// Concrete [PlatformFile] for tests. file_picker 12 made [PlatformFile] an
-/// abstract base class, so fakes must extend it rather than construct it.
+/// Concrete [PlatformFile] for tests; the base class is abstract.
 final class _FakePlatformFile extends PlatformFile {
   _FakePlatformFile({
     required this.name,
@@ -95,8 +94,7 @@ void main() {
 
   setUpAll(() {
     registerFallbackValue(FileType.any);
-    // file_picker 12 gives pickFiles per-platform option objects with defaults;
-    // mocktail needs a fallback for each before any(named:) can match them.
+    // mocktail needs a fallback per option type before any(named:) matches.
     registerFallbackValue(const AndroidOptions());
     registerFallbackValue(const WindowsOptions());
     registerFallbackValue(const LinuxOptions());
@@ -128,9 +126,6 @@ void main() {
 
   group('HeliumStorage.pickFiles', () {
     group('cancelled / empty result', () {
-      // file_picker 12 returns an empty list for both "user cancelled" and
-      // "picked nothing", so the two are no longer distinguishable. Both
-      // consumers of [cancelled] return silently, so they behave identically.
       test('returns cancelled=true when the picker returns no files', () async {
         stubPickFiles(const <PlatformFile>[]);
 
@@ -256,8 +251,6 @@ void main() {
 
       test('returns readError when the byte stream fails', () async {
         stubPickFiles([
-          // file_picker 12 always supplies a stream, so the readError branch is
-          // now reached by the stream erroring rather than by a null stream.
           _FakePlatformFile(name: 'unreadable.bin', size: 100, failRead: true),
         ]);
 

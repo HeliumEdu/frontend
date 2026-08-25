@@ -3,10 +3,18 @@ import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:file_picker_web/file_picker_web.dart';
 import 'package:logging/logging.dart';
 import 'package:web/web.dart' as web;
 
 final _log = Logger('utils');
+
+/// Streams picked files rather than allocating them during the pick.
+/// [FilePickerWebOptions] defaults to `withData: true`, which would defeat the
+/// size check in [HeliumStorage.pickFiles]. The equivalent arguments on
+/// [FilePicker] are deprecated and never reach the platform.
+WebOptions get pickerWebOptions =>
+    const FilePickerWebOptions(withData: false, withReadStream: true);
 
 /// Reads bytes from a picked file on web by consuming
 /// [PlatformFile.readAsByteStream]. The stream is created lazily by the

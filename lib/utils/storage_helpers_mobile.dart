@@ -12,6 +12,9 @@ import 'package:share_plus/share_plus.dart';
 
 final _log = Logger('utils');
 
+/// Inert on mobile; the web implementation supplies the real options.
+WebOptions get pickerWebOptions => const WebOptions();
+
 /// Reads bytes from a picked file on mobile.
 ///
 /// Prefers [PlatformFile.path] (the locally cached file path that file_picker
