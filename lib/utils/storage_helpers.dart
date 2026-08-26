@@ -75,6 +75,22 @@ class PickFilesResult {
   });
 }
 
+/// Whether a download reached disk, was dismissed by the user, or failed.
+enum DownloadStatus { saved, cancelled, failed }
+
+/// Outcome of a download. [errorMessage] is set only when [status] is
+/// [DownloadStatus.failed].
+class DownloadResult {
+  final DownloadStatus status;
+  final String? errorMessage;
+
+  const DownloadResult({required this.status, this.errorMessage});
+
+  bool get saved => status == DownloadStatus.saved;
+
+  bool get cancelled => status == DownloadStatus.cancelled;
+}
+
 class HeliumStorage {
   /// Presents the OS file picker and returns validated files.
   ///
@@ -180,39 +196,51 @@ class HeliumStorage {
     return PickFilesResult(files: files, errors: errors);
   }
 
-  /// Downloads a remote file. Returns null on success or an error message string on failure.
-  static Future<String?> downloadFile(String url, String filename) async {
+  /// Downloads a remote file.
+  static Future<DownloadResult> downloadFile(String url, String filename) async {
     try {
-      final success = await downloadFilePlatform(url, filename);
-      return success ? null : 'Failed to download "$filename".';
+      return _resultFor(await downloadFilePlatform(url, filename), filename);
     } on DioException catch (e) {
       if (_isTransientConnectionError(e)) {
         _log.warning('Transient network error during file download', e);
       } else {
         _log.severe('An error occurred during file download', e);
       }
-      final data = e.response?.data;
-      if (data is Map<String, dynamic>) {
-        if (data.containsKey('details')) return data['details'].toString();
-        if (data.containsKey('detail')) return data['detail'].toString();
-      }
-      return 'Failed to download "$filename".';
+      return _failed(_messageFromResponse(e) ?? 'Failed to download "$filename".');
     } catch (e) {
       _log.severe('An error occurred during file download', e);
-      return 'Failed to download "$filename".';
+      return _failed('Failed to download "$filename".');
     }
   }
 
+  static DownloadResult _failed(String message) =>
+      DownloadResult(status: DownloadStatus.failed, errorMessage: message);
+
+  static DownloadResult _resultFor(DownloadStatus status, String filename) {
+    return status == DownloadStatus.failed
+        ? _failed('Failed to download "$filename".')
+        : DownloadResult(status: status);
+  }
+
+  static String? _messageFromResponse(DioException e) {
+    final data = e.response?.data;
+    if (data is Map<String, dynamic>) {
+      if (data.containsKey('details')) return data['details'].toString();
+      if (data.containsKey('detail')) return data['detail'].toString();
+    }
+    return null;
+  }
+
   /// Downloads bytes directly to a file (for in-memory data like API responses)
-  static Future<bool> downloadBytes(
+  static Future<DownloadResult> downloadBytes(
     Uint8List bytes,
     String filename,
   ) async {
     try {
-      return await downloadBytesPlatform(bytes, filename);
+      return _resultFor(await downloadBytesPlatform(bytes, filename), filename);
     } catch (e) {
       _log.severe('An error occurred during bytes download', e);
-      return false;
+      return _failed('Failed to download "$filename".');
     }
   }
 }

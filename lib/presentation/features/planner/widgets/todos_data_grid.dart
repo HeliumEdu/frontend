@@ -245,21 +245,22 @@ class TodosDataGridState extends BaseDataGridState<TodosDataGrid> {
                           setState(() => _isExporting = true);
                           try {
                             final export = buildExportCsv();
-                            final success = await HeliumStorage.downloadBytes(
+                            final result = await HeliumStorage.downloadBytes(
                               export.bytes,
                               export.filename,
                             );
-                            if (success) {
+                            if (result.saved) {
                               unawaited(AnalyticsService().logEvent(name: AnalyticsEvent.todosExportCsv, parameters: {'category': 'feature_interaction'}));
                             }
-                            if (context.mounted) {
+                            if (context.mounted && !result.cancelled) {
                               SnackBarHelper.show(
                                 context,
-                                success
+                                result.saved
                                     ? 'Exported ${export.filename}'
-                                    : 'Nothing exported',
-                                type:
-                                    success ? SnackType.success : SnackType.error,
+                                    : result.errorMessage ?? 'Nothing exported',
+                                type: result.saved
+                                    ? SnackType.success
+                                    : SnackType.error,
                               );
                             }
                           } finally {

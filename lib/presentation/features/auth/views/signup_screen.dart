@@ -94,8 +94,6 @@ class _SignupScreenState extends BasePageScreenState<SignupScreen> {
 
             if (!context.mounted) return;
 
-            showSnackBar(context, 'Welcome to Helium!', seconds: 3);
-
             // Check if account setup is complete. Default to false for OAuth
             // (new users won't have the pref yet, and the setup screen handles
             // the already-complete case by redirecting immediately).

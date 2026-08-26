@@ -1348,7 +1348,7 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
                       ),
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(8),
-                        child: TapRegion(
+                        child: TextFieldTapRegion(
                           onTapOutside: Responsive.isMobile(context)
                               ? (_) => FocusScope.of(context).unfocus()
                               : null,

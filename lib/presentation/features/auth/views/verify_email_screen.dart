@@ -95,12 +95,6 @@ class _VerifyEmailScreenState extends BasePageScreenState<VerifyEmailScreen> {
       BlocListener<AuthBloc, AuthState>(
         listener: (context, state) {
           if (state is AuthLoggedIn) {
-            showSnackBar(
-              context,
-              'Email verified. Welcome to Helium!',
-              seconds: 4,
-            );
-
             if (!context.mounted) return;
             context.go(AppRoute.setupAccountScreen);
           } else if (state is AuthVerificationResent) {

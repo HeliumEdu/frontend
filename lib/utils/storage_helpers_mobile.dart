@@ -2,12 +2,11 @@ import 'dart:io';
 import 'dart:typed_data';
 import 'dart:ui';
 
-import 'package:device_info_plus/device_info_plus.dart';
 import 'package:dio/dio.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:heliumapp/utils/storage_helpers.dart';
 import 'package:logging/logging.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:permission_handler/permission_handler.dart';
 import 'package:share_plus/share_plus.dart';
 
 final _log = Logger('utils');
@@ -33,10 +32,30 @@ Future<Uint8List?> readPickedFileBytes(PlatformFile platFile) async {
   return null;
 }
 
+/// Saves [bytes] to a location the user chooses, via the system document
+/// creator, which needs no storage permission on any API level.
+Future<DownloadStatus> _saveBytesToChosenLocation(
+  Uint8List bytes,
+  String filename,
+) async {
+  final savedPath = await FilePicker.platform.saveFile(
+    fileName: filename,
+    bytes: bytes,
+  );
+
+  if (savedPath == null) {
+    _log.info('Save location not chosen');
+    return DownloadStatus.cancelled;
+  }
+
+  _log.info('Saved ${bytes.length} bytes via the document creator');
+  return DownloadStatus.saved;
+}
+
 /// Mobile download with platform-specific behavior:
-/// - Android: Saves to Downloads folder (accessible to user)
+/// - Android: Prompts for a save location and writes there
 /// - iOS: Saves to app Documents directory and opens share sheet (iOS doesn't have public Downloads)
-Future<bool> downloadFilePlatform(String url, String filename) async {
+Future<DownloadStatus> downloadFilePlatform(String url, String filename) async {
   try {
     if (Platform.isAndroid) {
       return await _downloadFileAndroid(url, filename);
@@ -44,57 +63,19 @@ Future<bool> downloadFilePlatform(String url, String filename) async {
       return await _downloadFileIOS(url, filename);
     } else {
       _log.warning('Unsupported platform for download');
-      return false;
+      return DownloadStatus.failed;
     }
-  } on DioException {
-    rethrow;
   } catch (e) {
     _log.severe('Mobile download failed', e);
-    return false;
+    return DownloadStatus.failed;
   }
 }
 
-/// Android: Download directly to public Downloads folder
-Future<bool> _downloadFileAndroid(String url, String filename) async {
+Future<DownloadStatus> _downloadFileAndroid(String url, String filename) async {
   try {
-    final DeviceInfoPlugin plugin = DeviceInfoPlugin();
-    final AndroidDeviceInfo androidInfo = await plugin.androidInfo;
-    final int sdkVersion = androidInfo.version.sdkInt;
-
-    _log.info('Android SDK version: $sdkVersion');
-
-    // Request permission for older Android versions
-    if (sdkVersion < 29) {
-      final status = await Permission.storage.request();
-      if (!status.isGranted) {
-        _log.warning('Storage permission denied for downloads');
-        return false;
-      }
-    }
-
-    // Use the PUBLIC Downloads directory
-    // Works on all Android versions with requestLegacyExternalStorage flag
-    final downloadsDir = Directory('/storage/emulated/0/Download');
-    _log.info('Public Downloads directory: ${downloadsDir.path}');
-
-    // Create Downloads directory if it doesn't exist
-    if (!await downloadsDir.exists()) {
-      _log.info('Public Downloads directory does not exist, creating ...');
-      try {
-        await downloadsDir.create(recursive: true);
-      } catch (e) {
-        _log.warning('Could not create public Downloads directory', e);
-        _log.warning('This may require storage permissions');
-        return false;
-      }
-    }
-
-    final filePath = '${downloadsDir.path}/$filename';
-    _log.info('Attempting download to PUBLIC Downloads: ${downloadsDir.path}');
-
-    final response = await Dio().download(
+    final response = await Dio().get<Uint8List>(
       url,
-      filePath,
+      options: Options(responseType: ResponseType.bytes),
       onReceiveProgress: (received, total) {
         if (total != -1) {
           _log.info(
@@ -104,33 +85,23 @@ Future<bool> _downloadFileAndroid(String url, String filename) async {
       },
     );
 
-    if (response.statusCode != 200) {
+    if (response.statusCode != 200 || response.data == null) {
       _log.warning('Download failed with status: ${response.statusCode}');
-      return false;
+      return DownloadStatus.failed;
     }
 
-    // Verify the file was created
-    final file = File(filePath);
-    final exists = await file.exists();
-    final size = exists ? await file.length() : 0;
-
-    _log.info('Download complete:');
-    _log.info('  Dir: ${downloadsDir.path}');
-    _log.info('  File exists: $exists');
-    _log.info('  File size: $size bytes');
-
-    return exists;
+    return await _saveBytesToChosenLocation(response.data!, filename);
   } on DioException {
     rethrow;
   } catch (e) {
     _log.severe('Android download failed', e);
-    return false;
+    return DownloadStatus.failed;
   }
 }
 
 /// iOS: Download to app Documents and open share sheet
 /// (iOS doesn't have a user-accessible Downloads folder)
-Future<bool> _downloadFileIOS(String url, String filename) async {
+Future<DownloadStatus> _downloadFileIOS(String url, String filename) async {
   try {
     // Download to app's Documents directory (accessible via Files app)
     final Directory appDocDir = await getApplicationDocumentsDirectory();
@@ -152,7 +123,7 @@ Future<bool> _downloadFileIOS(String url, String filename) async {
 
     if (response.statusCode != 200) {
       _log.warning('Download failed with status: ${response.statusCode}');
-      return false;
+      return DownloadStatus.failed;
     }
 
     // On iOS, open share sheet so user can save to Files or share
@@ -166,19 +137,21 @@ Future<bool> _downloadFileIOS(String url, String filename) async {
     );
 
     _log.info('iOS share sheet result: ${result.status}');
-    return result.status != ShareResultStatus.dismissed;
+    return result.status == ShareResultStatus.dismissed
+        ? DownloadStatus.cancelled
+        : DownloadStatus.saved;
   } on DioException {
     rethrow;
   } catch (e) {
     _log.severe('iOS download failed', e);
-    return false;
+    return DownloadStatus.failed;
   }
 }
 
 /// Downloads bytes directly to a file on mobile.
 /// - Android: Saves to Downloads folder
 /// - iOS: Saves to app Documents and opens share sheet
-Future<bool> downloadBytesPlatform(Uint8List bytes, String filename) async {
+Future<DownloadStatus> downloadBytesPlatform(Uint8List bytes, String filename) async {
   try {
     if (Platform.isAndroid) {
       return await _downloadBytesAndroid(bytes, filename);
@@ -186,47 +159,24 @@ Future<bool> downloadBytesPlatform(Uint8List bytes, String filename) async {
       return await _downloadBytesIOS(bytes, filename);
     } else {
       _log.warning('Unsupported platform for bytes download');
-      return false;
+      return DownloadStatus.failed;
     }
   } catch (e) {
     _log.severe('Mobile bytes download failed', e);
-    return false;
+    return DownloadStatus.failed;
   }
 }
 
-Future<bool> _downloadBytesAndroid(Uint8List bytes, String filename) async {
+Future<DownloadStatus> _downloadBytesAndroid(Uint8List bytes, String filename) async {
   try {
-    final DeviceInfoPlugin plugin = DeviceInfoPlugin();
-    final AndroidDeviceInfo androidInfo = await plugin.androidInfo;
-    final int sdkVersion = androidInfo.version.sdkInt;
-
-    // Request permission for older Android versions
-    if (sdkVersion < 29) {
-      final status = await Permission.storage.request();
-      if (!status.isGranted) {
-        _log.warning('Storage permission denied for downloads');
-        return false;
-      }
-    }
-
-    final downloadsDir = Directory('/storage/emulated/0/Download');
-    if (!await downloadsDir.exists()) {
-      await downloadsDir.create(recursive: true);
-    }
-
-    final filePath = '${downloadsDir.path}/$filename';
-    final file = File(filePath);
-    await file.writeAsBytes(bytes);
-
-    _log.info('Bytes saved to: ${downloadsDir.path}');
-    return await file.exists();
+    return await _saveBytesToChosenLocation(bytes, filename);
   } catch (e) {
     _log.severe('Android bytes download failed', e);
-    return false;
+    return DownloadStatus.failed;
   }
 }
 
-Future<bool> _downloadBytesIOS(Uint8List bytes, String filename) async {
+Future<DownloadStatus> _downloadBytesIOS(Uint8List bytes, String filename) async {
   try {
     final Directory appDocDir = await getApplicationDocumentsDirectory();
     final filePath = '${appDocDir.path}/$filename';
@@ -245,9 +195,11 @@ Future<bool> _downloadBytesIOS(Uint8List bytes, String filename) async {
     );
 
     _log.info('iOS share sheet result: ${result.status}');
-    return result.status != ShareResultStatus.dismissed;
+    return result.status == ShareResultStatus.dismissed
+        ? DownloadStatus.cancelled
+        : DownloadStatus.saved;
   } catch (e) {
     _log.severe('iOS bytes download failed', e);
-    return false;
+    return DownloadStatus.failed;
   }
 }

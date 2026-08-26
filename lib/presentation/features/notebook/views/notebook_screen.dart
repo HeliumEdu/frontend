@@ -247,7 +247,7 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen>
                       ),
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(8),
-                        child: TapRegion(
+                        child: TextFieldTapRegion(
                           onTapOutside: Responsive.isMobile(context)
                               ? (_) => _searchFocusNode.unfocus()
                               : null,
