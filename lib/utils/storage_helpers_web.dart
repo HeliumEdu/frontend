@@ -1,8 +1,8 @@
 import 'dart:js_interop';
 import 'dart:typed_data';
 
-import 'package:dio/dio.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:heliumapp/utils/storage_helpers.dart';
 import 'package:logging/logging.dart';
 import 'package:web/web.dart' as web;
 
@@ -23,30 +23,32 @@ Future<Uint8List?> readPickedFileBytes(PlatformFile platFile) async {
   return builder.takeBytes();
 }
 
-Future<bool> downloadFilePlatform(String url, String filename) async {
+/// Hands the signed URL to the browser to download.
+///
+/// Signed URLs carry a download disposition, so the browser saves rather than
+/// navigates and names the file from the object key.
+Future<DownloadStatus> downloadFilePlatform(String url, String filename) async {
   try {
-    // Download the file to memory first
-    final response = await Dio().get<Uint8List>(
-      url,
-      options: Options(responseType: ResponseType.bytes),
-    );
+    final anchor = web.document.createElement('a') as web.HTMLAnchorElement
+      ..href = url
+      ..download = filename
+      ..target = '_blank'
+      ..style.display = 'none';
 
-    if (response.data == null) {
-      _log.warning('No data received from download URL');
-      return false;
-    }
+    web.document.body?.appendChild(anchor);
+    anchor.click();
+    anchor.remove();
 
-    return downloadBytesPlatform(response.data!, filename);
-  } on DioException {
-    rethrow;
+    _log.info('Web download handed to the browser');
+    return DownloadStatus.saved;
   } catch (e) {
     _log.severe('Web download failed', e);
-    return false;
+    return DownloadStatus.failed;
   }
 }
 
 /// Downloads bytes directly to a file on web (creates blob and triggers download)
-Future<bool> downloadBytesPlatform(Uint8List bytes, String filename) async {
+Future<DownloadStatus> downloadBytesPlatform(Uint8List bytes, String filename) async {
   try {
     final jsUint8Array = bytes.toJS;
     final blob = web.Blob(
@@ -68,9 +70,9 @@ Future<bool> downloadBytesPlatform(Uint8List bytes, String filename) async {
     web.URL.revokeObjectURL(blobUrl);
 
     _log.info('Web download triggered');
-    return true;
+    return DownloadStatus.saved;
   } catch (e) {
     _log.severe('Web bytes download failed', e);
-    return false;
+    return DownloadStatus.failed;
   }
 }

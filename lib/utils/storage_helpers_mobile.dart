@@ -4,6 +4,7 @@ import 'dart:ui';
 
 import 'package:dio/dio.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:heliumapp/utils/storage_helpers.dart';
 import 'package:logging/logging.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
@@ -31,12 +32,9 @@ Future<Uint8List?> readPickedFileBytes(PlatformFile platFile) async {
   return null;
 }
 
-/// Saves [bytes] to a location the user chooses.
-///
-/// Scoped storage denies direct writes to the public Downloads directory, so
-/// the file goes through the system document creator instead, which needs no
-/// storage permission on any API level.
-Future<bool> _saveBytesToChosenLocation(
+/// Saves [bytes] to a location the user chooses, via the system document
+/// creator, which needs no storage permission on any API level.
+Future<DownloadStatus> _saveBytesToChosenLocation(
   Uint8List bytes,
   String filename,
 ) async {
@@ -47,17 +45,17 @@ Future<bool> _saveBytesToChosenLocation(
 
   if (savedPath == null) {
     _log.info('Save location not chosen');
-    return false;
+    return DownloadStatus.cancelled;
   }
 
   _log.info('Saved ${bytes.length} bytes via the document creator');
-  return true;
+  return DownloadStatus.saved;
 }
 
 /// Mobile download with platform-specific behavior:
 /// - Android: Prompts for a save location and writes there
 /// - iOS: Saves to app Documents directory and opens share sheet (iOS doesn't have public Downloads)
-Future<bool> downloadFilePlatform(String url, String filename) async {
+Future<DownloadStatus> downloadFilePlatform(String url, String filename) async {
   try {
     if (Platform.isAndroid) {
       return await _downloadFileAndroid(url, filename);
@@ -65,15 +63,15 @@ Future<bool> downloadFilePlatform(String url, String filename) async {
       return await _downloadFileIOS(url, filename);
     } else {
       _log.warning('Unsupported platform for download');
-      return false;
+      return DownloadStatus.failed;
     }
   } catch (e) {
     _log.severe('Mobile download failed', e);
-    return false;
+    return DownloadStatus.failed;
   }
 }
 
-Future<bool> _downloadFileAndroid(String url, String filename) async {
+Future<DownloadStatus> _downloadFileAndroid(String url, String filename) async {
   try {
     final response = await Dio().get<Uint8List>(
       url,
@@ -89,7 +87,7 @@ Future<bool> _downloadFileAndroid(String url, String filename) async {
 
     if (response.statusCode != 200 || response.data == null) {
       _log.warning('Download failed with status: ${response.statusCode}');
-      return false;
+      return DownloadStatus.failed;
     }
 
     return await _saveBytesToChosenLocation(response.data!, filename);
@@ -97,13 +95,13 @@ Future<bool> _downloadFileAndroid(String url, String filename) async {
     rethrow;
   } catch (e) {
     _log.severe('Android download failed', e);
-    return false;
+    return DownloadStatus.failed;
   }
 }
 
 /// iOS: Download to app Documents and open share sheet
 /// (iOS doesn't have a user-accessible Downloads folder)
-Future<bool> _downloadFileIOS(String url, String filename) async {
+Future<DownloadStatus> _downloadFileIOS(String url, String filename) async {
   try {
     // Download to app's Documents directory (accessible via Files app)
     final Directory appDocDir = await getApplicationDocumentsDirectory();
@@ -125,7 +123,7 @@ Future<bool> _downloadFileIOS(String url, String filename) async {
 
     if (response.statusCode != 200) {
       _log.warning('Download failed with status: ${response.statusCode}');
-      return false;
+      return DownloadStatus.failed;
     }
 
     // On iOS, open share sheet so user can save to Files or share
@@ -139,19 +137,21 @@ Future<bool> _downloadFileIOS(String url, String filename) async {
     );
 
     _log.info('iOS share sheet result: ${result.status}');
-    return result.status != ShareResultStatus.dismissed;
+    return result.status == ShareResultStatus.dismissed
+        ? DownloadStatus.cancelled
+        : DownloadStatus.saved;
   } on DioException {
     rethrow;
   } catch (e) {
     _log.severe('iOS download failed', e);
-    return false;
+    return DownloadStatus.failed;
   }
 }
 
 /// Downloads bytes directly to a file on mobile.
 /// - Android: Saves to Downloads folder
 /// - iOS: Saves to app Documents and opens share sheet
-Future<bool> downloadBytesPlatform(Uint8List bytes, String filename) async {
+Future<DownloadStatus> downloadBytesPlatform(Uint8List bytes, String filename) async {
   try {
     if (Platform.isAndroid) {
       return await _downloadBytesAndroid(bytes, filename);
@@ -159,24 +159,24 @@ Future<bool> downloadBytesPlatform(Uint8List bytes, String filename) async {
       return await _downloadBytesIOS(bytes, filename);
     } else {
       _log.warning('Unsupported platform for bytes download');
-      return false;
+      return DownloadStatus.failed;
     }
   } catch (e) {
     _log.severe('Mobile bytes download failed', e);
-    return false;
+    return DownloadStatus.failed;
   }
 }
 
-Future<bool> _downloadBytesAndroid(Uint8List bytes, String filename) async {
+Future<DownloadStatus> _downloadBytesAndroid(Uint8List bytes, String filename) async {
   try {
     return await _saveBytesToChosenLocation(bytes, filename);
   } catch (e) {
     _log.severe('Android bytes download failed', e);
-    return false;
+    return DownloadStatus.failed;
   }
 }
 
-Future<bool> _downloadBytesIOS(Uint8List bytes, String filename) async {
+Future<DownloadStatus> _downloadBytesIOS(Uint8List bytes, String filename) async {
   try {
     final Directory appDocDir = await getApplicationDocumentsDirectory();
     final filePath = '${appDocDir.path}/$filename';
@@ -195,9 +195,11 @@ Future<bool> _downloadBytesIOS(Uint8List bytes, String filename) async {
     );
 
     _log.info('iOS share sheet result: ${result.status}');
-    return result.status != ShareResultStatus.dismissed;
+    return result.status == ShareResultStatus.dismissed
+        ? DownloadStatus.cancelled
+        : DownloadStatus.saved;
   } catch (e) {
     _log.severe('iOS bytes download failed', e);
-    return false;
+    return DownloadStatus.failed;
   }
 }

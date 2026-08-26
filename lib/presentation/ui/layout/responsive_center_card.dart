@@ -43,12 +43,18 @@ class ResponsiveCenterCard extends StatelessWidget {
         ? Responsive.bottomSafeAreaInset(context)
         : 0.0;
 
+    // Center against the keyboard-free height so content holds still under the
+    // keyboard. The scaffold still resizes, which keeps scroll-into-view accurate.
+    final keyboardInset = MediaQuery.viewInsetsOf(context).bottom;
+
     return LayoutBuilder(
       builder: (context, constraints) {
         return SingleChildScrollView(
           keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
           child: ConstrainedBox(
-            constraints: BoxConstraints(minHeight: constraints.maxHeight),
+            constraints: BoxConstraints(
+              minHeight: constraints.maxHeight + keyboardInset,
+            ),
             child: Padding(
               padding: EdgeInsets.only(bottom: inset),
               child: Center(child: content),
