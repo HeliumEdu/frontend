@@ -30,7 +30,7 @@ void main() {
           // THEN
           expect(result, isA<NetworkException>());
           expect(result.code, equals('TIMEOUT'));
-          expect(result.message, contains('timeout'));
+          expect(result.message, contains('Took too long'));
         });
 
         test('returns NetworkException for sendTimeout', () {
@@ -353,13 +353,13 @@ void main() {
           // THEN
           expect(result, isA<NetworkException>());
           expect(result.code, equals('CANCELLED'));
-          expect(result.message, contains('cancelled'));
+          expect(result.message, contains('Reload'));
         });
       });
 
       group('unknown errors', () {
         test(
-          'returns NetworkException with NO_INTERNET for SocketException',
+          'returns NetworkException with NETWORK_ERROR for SocketException',
           () {
             // GIVEN
             final error = givenDioException(
@@ -372,8 +372,8 @@ void main() {
 
             // THEN
             expect(result, isA<NetworkException>());
-            expect(result.code, equals('NO_INTERNET'));
-            expect(result.message, contains('No internet'));
+            expect(result.code, equals('NETWORK_ERROR'));
+            expect(result.message, contains('Reload'));
           },
         );
 

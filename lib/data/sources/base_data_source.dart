@@ -6,6 +6,10 @@ import 'package:logging/logging.dart';
 final _log = Logger('data.sources');
 
 abstract class BaseDataSource {
+  static const _reloadHint = 'Check your connection, then click "Reload".';
+  static const _unreachableMessage = 'Couldn\'t reach Helium. $_reloadHint';
+  static const _timedOutMessage = 'Took too long to reach Helium. $_reloadHint';
+
   HeliumException handleDioError(
     DioException e,
     StackTrace s, {
@@ -15,10 +19,10 @@ abstract class BaseDataSource {
       case DioExceptionType.connectionTimeout:
       case DioExceptionType.sendTimeout:
       case DioExceptionType.receiveTimeout:
-        _log.severe('DioException occurred', e, s);
+        _log.warning('DioException occurred, timeout', e, s);
 
         return NetworkException(
-          message: 'Connection timeout. Check your internet connection.',
+          message: _timedOutMessage,
           code: 'TIMEOUT',
         );
 
@@ -111,25 +115,26 @@ abstract class BaseDataSource {
         }
 
       case DioExceptionType.cancel:
-        _log.severe('DioException occurred, cancelled', e, s);
+        _log.info('DioException occurred, request cancelled', e, s);
 
         return NetworkException(
-          message: 'Request was cancelled.',
+          message: _unreachableMessage,
           code: 'CANCELLED',
         );
 
       case DioExceptionType.connectionError:
-      case DioExceptionType.unknown:
-        _log.severe('DioException occurred, connection/network error', e, s);
+        _log.warning('DioException occurred, connection error', e, s);
 
-        if (e.message?.contains('SocketException') ?? false) {
-          return NetworkException(
-            message: 'No internet connection.',
-            code: 'NO_INTERNET',
-          );
-        }
         return NetworkException(
-          message: 'Network error. Check your connection or try again later.',
+          message: _unreachableMessage,
+          code: 'NETWORK_ERROR',
+        );
+
+      case DioExceptionType.unknown:
+        _log.severe('DioException occurred, unknown error', e, s);
+
+        return NetworkException(
+          message: _unreachableMessage,
           code: 'NETWORK_ERROR',
         );
 
@@ -137,7 +142,7 @@ abstract class BaseDataSource {
         _log.severe('DioException occurred, unhandled type: ${e.type}', e, s);
 
         return NetworkException(
-          message: 'Network error. Check your connection or try again later.',
+          message: _unreachableMessage,
           code: 'NETWORK_ERROR',
         );
     }
