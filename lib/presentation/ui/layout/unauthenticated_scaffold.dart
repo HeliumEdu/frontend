@@ -31,6 +31,7 @@ class UnauthenticatedScaffold extends StatelessWidget {
     final keyboardInset = MediaQuery.viewInsetsOf(context).bottom;
 
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       body: SafeArea(
         bottom: false,
         child: ResponsiveCenterCard(
