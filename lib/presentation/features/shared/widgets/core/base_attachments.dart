@@ -453,7 +453,7 @@ abstract class BaseAttachmentsState extends State<BaseAttachmentsContent> {
       isLoading = true;
     });
 
-    final errorMessage = await HeliumStorage.downloadFile(
+    final result = await HeliumStorage.downloadFile(
       attachment.attachment,
       attachment.title,
     );
@@ -464,10 +464,16 @@ abstract class BaseAttachmentsState extends State<BaseAttachmentsContent> {
       isLoading = false;
     });
 
-    if (errorMessage == null) {
+    if (result.cancelled) return;
+
+    if (result.saved) {
       SnackBarHelper.show(context, '"${attachment.title}" downloaded.');
     } else {
-      SnackBarHelper.show(context, errorMessage, type: SnackType.error);
+      SnackBarHelper.show(
+        context,
+        result.errorMessage!,
+        type: SnackType.error,
+      );
     }
   }
 }

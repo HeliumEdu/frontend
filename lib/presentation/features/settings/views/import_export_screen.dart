@@ -652,18 +652,18 @@ class _ImportExportScreenState extends State<ImportExportScreen> {
           }
         }
 
-        final success = await HeliumStorage.downloadBytes(
+        final result = await HeliumStorage.downloadBytes(
           response.data!,
           filename,
         );
 
-        if (mounted) {
-          if (success) {
+        if (mounted && !result.cancelled) {
+          if (result.saved) {
             SnackBarHelper.show(context, '"$filename" downloaded.');
           } else {
             SnackBarHelper.show(
               context,
-              'Nothing exported.',
+              result.errorMessage ?? 'Nothing exported.',
               type: SnackType.error,
             );
           }
