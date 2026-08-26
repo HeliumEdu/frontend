@@ -12,12 +12,15 @@ class ResponsiveCenterCard extends StatelessWidget {
   /// uses `SafeArea(bottom: false)`, else the inset double-counts.
   final bool flowIntoBottomInset;
 
+  final double keyboardInset;
+
   const ResponsiveCenterCard({
     super.key,
     required this.child,
     this.maxWidth = 450,
     this.showCard = true,
     this.flowIntoBottomInset = false,
+    this.keyboardInset = 0,
   });
 
   @override
@@ -42,10 +45,6 @@ class ResponsiveCenterCard extends StatelessWidget {
     final inset = flowIntoBottomInset
         ? Responsive.bottomSafeAreaInset(context)
         : 0.0;
-
-    // Center against the keyboard-free height so content holds still under the
-    // keyboard. The scaffold still resizes, which keeps scroll-into-view accurate.
-    final keyboardInset = MediaQuery.viewInsetsOf(context).bottom;
 
     return LayoutBuilder(
       builder: (context, constraints) {

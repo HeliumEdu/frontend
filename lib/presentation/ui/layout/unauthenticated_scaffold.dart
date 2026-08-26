@@ -28,11 +28,14 @@ class UnauthenticatedScaffold extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final keyboardInset = MediaQuery.viewInsetsOf(context).bottom;
+
     return Scaffold(
       body: SafeArea(
         bottom: false,
         child: ResponsiveCenterCard(
           flowIntoBottomInset: true,
+          keyboardInset: keyboardInset,
           maxWidth: maxWidth,
           showCard: showCard,
           child: child,
