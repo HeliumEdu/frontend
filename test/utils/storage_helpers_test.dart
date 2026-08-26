@@ -4,8 +4,8 @@
 // Platform coverage:
 //   - Shared logic (size check, extension check, error types): tested here on VM
 //   - Mobile byte-reading via File.path: tested in 'mobile path-based reading' group
-//   - Stream byte assembly (BytesBuilder path): tested via the mobile
-//     readAsByteStream fallback, which is identical to the web implementation
+//   - Stream byte assembly (BytesBuilder path): tested via the mobile readStream
+//     fallback, which is identical to the web implementation
 //   - Web-specific picker invocation (FileType.custom): verified in
 //     'extension validation' group via kIsWeb=false branch; the web branch is
 //     exercised by integration tests on Chrome
@@ -13,72 +13,20 @@
 import 'dart:io';
 import 'dart:typed_data';
 
-import 'package:cross_file/cross_file.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 import 'package:heliumapp/utils/storage_helpers.dart';
 
-class _MockFilePicker extends Mock
-    with MockPlatformInterfaceMixin
-    implements FilePickerPlatform {}
-
-/// Concrete [PlatformFile] for tests; the base class is abstract.
-final class _FakePlatformFile extends PlatformFile {
-  _FakePlatformFile({
-    required this.name,
-    required int size,
-    List<int> bytes = const [],
-    List<List<int>>? chunks,
-    String? filePath,
-    bool failRead = false,
-  })  : _size = size,
-        _chunks = chunks ?? [bytes],
-        _filePath = filePath,
-        _failRead = failRead;
-
-  @override
-  final String name;
-
-  final int _size;
-  final List<List<int>> _chunks;
-  final String? _filePath;
-  final bool _failRead;
-
-  List<int> get _bytes => _chunks.expand((c) => c).toList();
-
-  @override
-  Uri get uri =>
-      _filePath != null ? Uri.file(_filePath) : Uri.parse('memory:$name');
-
-  @override
-  String? get path => _filePath;
-
-  @override
-  XFile get xFile => XFile.fromData(Uint8List.fromList(_bytes), name: name);
-
-  @override
-  Future<int> length() async => _size;
-
-  @override
-  Future<Uint8List> readAsBytes() async => Uint8List.fromList(_bytes);
-
-  @override
-  Stream<Uint8List> readAsByteStream() {
-    if (_failRead) {
-      return Stream.error(StateError('unreadable'));
-    }
-    return Stream.fromIterable(_chunks.map(Uint8List.fromList));
-  }
-}
+class _MockFilePicker extends Mock with MockPlatformInterfaceMixin implements FilePicker {}
 
 /// Test stand-in for the value `/info/` would supply at runtime — chosen to
 /// match the previous hardcoded cap so the messages and edge cases below stay
 /// stable.
 const int _testMaxUploadSize = 10 * 1024 * 1024;
 
-/// Builds a [PlatformFile] backed by a single-chunk byte stream and no path.
+/// Builds a [PlatformFile] backed by a single-chunk [readStream] and no path.
 /// On mobile (VM), [readPickedFileBytes] falls back to the stream when path is
 /// null, so this exercises the [BytesBuilder] assembly path used on web.
 PlatformFile _streamFile({
@@ -86,7 +34,11 @@ PlatformFile _streamFile({
   required int size,
   required List<int> bytes,
 }) {
-  return _FakePlatformFile(name: name, size: size, bytes: bytes);
+  return PlatformFile(
+    name: name,
+    size: size,
+    readStream: Stream.fromIterable([bytes]),
+  );
 }
 
 void main() {
@@ -94,44 +46,50 @@ void main() {
 
   setUpAll(() {
     registerFallbackValue(FileType.any);
-    // mocktail needs a fallback per option type before any(named:) matches.
-    registerFallbackValue(const AndroidOptions());
-    registerFallbackValue(const WindowsOptions());
-    registerFallbackValue(const LinuxOptions());
-    registerFallbackValue(const WebOptions());
   });
 
   setUp(() {
     mockFilePicker = _MockFilePicker();
-    FilePickerPlatform.instance = mockFilePicker;
+    FilePicker.platform = mockFilePicker;
   });
 
-  /// Stubs [FilePickerPlatform.instance.pickFiles] to return [files].
-  void stubPickFiles(List<PlatformFile> files) {
+  /// Stubs [FilePicker.platform.pickFiles] to return [result].
+  void stubPickFiles(FilePickerResult? result) {
     when(
       () => mockFilePicker.pickFiles(
         type: any(named: 'type'),
         allowedExtensions: any(named: 'allowedExtensions'),
+        allowMultiple: any(named: 'allowMultiple'),
+        withData: any(named: 'withData'),
+        withReadStream: any(named: 'withReadStream'),
         onFileLoading: any(named: 'onFileLoading'),
         compressionQuality: any(named: 'compressionQuality'),
+        lockParentWindow: any(named: 'lockParentWindow'),
+        readSequential: any(named: 'readSequential'),
         initialDirectory: any(named: 'initialDirectory'),
         dialogTitle: any(named: 'dialogTitle'),
-        androidOptions: any(named: 'androidOptions'),
-        windowsOptions: any(named: 'windowsOptions'),
-        linuxOptions: any(named: 'linuxOptions'),
-        webOptions: any(named: 'webOptions'),
       ),
-    ).thenAnswer((_) async => files);
+    ).thenAnswer((_) async => result);
   }
 
   group('HeliumStorage.pickFiles', () {
     group('cancelled / empty result', () {
-      test('returns cancelled=true when the picker returns no files', () async {
-        stubPickFiles(const <PlatformFile>[]);
+      test('returns cancelled=true when picker returns null', () async {
+        stubPickFiles(null);
 
         final result = await HeliumStorage.pickFiles(maxUploadSize: _testMaxUploadSize);
 
         expect(result.cancelled, isTrue);
+        expect(result.files, isEmpty);
+        expect(result.errors, isEmpty);
+      });
+
+      test('cancelled=false and no errors when picker returns empty list', () async {
+        stubPickFiles(const FilePickerResult([]));
+
+        final result = await HeliumStorage.pickFiles(maxUploadSize: _testMaxUploadSize);
+
+        expect(result.cancelled, isFalse);
         expect(result.files, isEmpty);
         expect(result.errors, isEmpty);
       });
@@ -140,9 +98,9 @@ void main() {
     group('size validation', () {
       test('accepts file exactly at the 10 MB limit', () async {
         final bytes = List.filled(_testMaxUploadSize, 0);
-        stubPickFiles([
+        stubPickFiles(FilePickerResult([
           _streamFile(name: 'exact.bin', size: _testMaxUploadSize, bytes: bytes),
-        ]);
+        ]));
 
         final result = await HeliumStorage.pickFiles(maxUploadSize: _testMaxUploadSize);
 
@@ -153,9 +111,9 @@ void main() {
 
       test('accepts file 1 byte under the limit', () async {
         const size = _testMaxUploadSize - 1;
-        stubPickFiles([
+        stubPickFiles(FilePickerResult([
           _streamFile(name: 'small.bin', size: size, bytes: List.filled(size, 0)),
-        ]);
+        ]));
 
         final result = await HeliumStorage.pickFiles(maxUploadSize: _testMaxUploadSize);
 
@@ -166,12 +124,13 @@ void main() {
       test('rejects file 1 byte over the limit without consuming stream', () async {
         // The stream contains no bytes; if it were consumed, the assembled
         // Uint8List would be empty — proving we never reached stream reading.
-        stubPickFiles([
-          _FakePlatformFile(
+        stubPickFiles(FilePickerResult([
+          PlatformFile(
             name: 'huge.bin',
             size: _testMaxUploadSize + 1,
+            readStream: Stream<List<int>>.fromIterable([]),
           ),
-        ]);
+        ]));
 
         final result = await HeliumStorage.pickFiles(maxUploadSize: _testMaxUploadSize);
 
@@ -184,10 +143,10 @@ void main() {
 
       test('produces one fileTooLarge error per oversized file', () async {
         const overSize = _testMaxUploadSize + 1;
-        stubPickFiles([
-          _FakePlatformFile(name: 'a.bin', size: overSize),
-          _FakePlatformFile(name: 'b.bin', size: overSize),
-        ]);
+        stubPickFiles(FilePickerResult([
+          PlatformFile(name: 'a.bin', size: overSize),
+          PlatformFile(name: 'b.bin', size: overSize),
+        ]));
 
         final result = await HeliumStorage.pickFiles(maxUploadSize: _testMaxUploadSize, allowMultiple: true);
 
@@ -202,10 +161,10 @@ void main() {
 
     group('mixed valid and invalid files', () {
       test('separates accepted files from oversized files', () async {
-        stubPickFiles([
+        stubPickFiles(FilePickerResult([
           _streamFile(name: 'valid.txt', size: 3, bytes: [1, 2, 3]),
-          _FakePlatformFile(name: 'too_big.bin', size: _testMaxUploadSize + 1),
-        ]);
+          PlatformFile(name: 'too_big.bin', size: _testMaxUploadSize + 1),
+        ]));
 
         final result = await HeliumStorage.pickFiles(maxUploadSize: _testMaxUploadSize, allowMultiple: true);
 
@@ -220,9 +179,9 @@ void main() {
     group('byte assembly via stream (web implementation + mobile fallback)', () {
       test('assembles single-chunk stream into correct Uint8List', () async {
         final bytes = [10, 20, 30, 40, 50];
-        stubPickFiles([
+        stubPickFiles(FilePickerResult([
           _streamFile(name: 'file.bin', size: bytes.length, bytes: bytes),
-        ]);
+        ]));
 
         final result = await HeliumStorage.pickFiles(maxUploadSize: _testMaxUploadSize);
 
@@ -236,23 +195,24 @@ void main() {
         final chunk2 = List<int>.generate(5, (i) => i + 5);
         final expected = Uint8List.fromList([...chunk1, ...chunk2]);
 
-        stubPickFiles([
-          _FakePlatformFile(
+        stubPickFiles(FilePickerResult([
+          PlatformFile(
             name: 'multi.bin',
             size: 10,
-            chunks: [chunk1, chunk2],
+            readStream: Stream.fromIterable([chunk1, chunk2]),
           ),
-        ]);
+        ]));
 
         final result = await HeliumStorage.pickFiles(maxUploadSize: _testMaxUploadSize);
 
         expect(result.files.first.bytes, equals(expected));
       });
 
-      test('returns readError when the byte stream fails', () async {
-        stubPickFiles([
-          _FakePlatformFile(name: 'unreadable.bin', size: 100, failRead: true),
-        ]);
+      test('returns readError when path is null and readStream is null', () async {
+        stubPickFiles(FilePickerResult([
+          // No path, no readStream  -->  readPickedFileBytes returns null on mobile
+          PlatformFile(name: 'unreadable.bin', size: 100),
+        ]));
 
         final result = await HeliumStorage.pickFiles(maxUploadSize: _testMaxUploadSize);
 
@@ -272,13 +232,13 @@ void main() {
 
         addTearDown(() => tmpDir.deleteSync(recursive: true));
 
-        stubPickFiles([
-          _FakePlatformFile(
+        stubPickFiles(FilePickerResult([
+          PlatformFile(
             name: 'test.bin',
             size: expectedBytes.length,
-            filePath: tmpFile.path,
+            path: tmpFile.path,
           ),
-        ]);
+        ]));
 
         final result = await HeliumStorage.pickFiles(maxUploadSize: _testMaxUploadSize);
 
@@ -286,7 +246,7 @@ void main() {
         expect(result.files.first.bytes, equals(expectedBytes));
       });
 
-      test('path takes precedence over the byte stream on mobile', () async {
+      test('path takes precedence over readStream on mobile', () async {
         final tmpDir = Directory.systemTemp.createTempSync('helium_test_');
         final tmpFile = File('${tmpDir.path}/priority.bin');
         final fileBytes = Uint8List.fromList([1, 2, 3]);
@@ -295,14 +255,14 @@ void main() {
 
         addTearDown(() => tmpDir.deleteSync(recursive: true));
 
-        stubPickFiles([
-          _FakePlatformFile(
+        stubPickFiles(FilePickerResult([
+          PlatformFile(
             name: 'priority.bin',
             size: fileBytes.length,
-            filePath: tmpFile.path,
-            bytes: streamBytes,
+            path: tmpFile.path,
+            readStream: Stream.fromIterable([streamBytes]),
           ),
-        ]);
+        ]));
 
         final result = await HeliumStorage.pickFiles(maxUploadSize: _testMaxUploadSize);
 
@@ -312,9 +272,9 @@ void main() {
 
     group('extension validation (kIsWeb=false — mobile branch)', () {
       test('rejects file whose extension does not match allowedExtension', () async {
-        stubPickFiles([
+        stubPickFiles(FilePickerResult([
           _streamFile(name: 'backup.csv', size: 3, bytes: [1, 2, 3]),
-        ]);
+        ]));
 
         final result = await HeliumStorage.pickFiles(maxUploadSize: _testMaxUploadSize, allowedExtensions: ['json']);
 
@@ -325,9 +285,9 @@ void main() {
       });
 
       test('accepts file whose extension matches allowedExtension', () async {
-        stubPickFiles([
+        stubPickFiles(FilePickerResult([
           _streamFile(name: 'backup.json', size: 4, bytes: [1, 2, 3, 4]),
-        ]);
+        ]));
 
         final result = await HeliumStorage.pickFiles(maxUploadSize: _testMaxUploadSize, allowedExtensions: ['json']);
 
@@ -338,9 +298,9 @@ void main() {
       test('extension check is case-insensitive', () async {
         // file_picker returns extension as-is from the filename; our code
         // lowercases both sides before comparing.
-        stubPickFiles([
+        stubPickFiles(FilePickerResult([
           _streamFile(name: 'backup.JSON', size: 2, bytes: [1, 2]),
-        ]);
+        ]));
 
         final result = await HeliumStorage.pickFiles(maxUploadSize: _testMaxUploadSize, allowedExtensions: ['json']);
 
@@ -349,9 +309,9 @@ void main() {
       });
 
       test('skips extension check when allowedExtension is null', () async {
-        stubPickFiles([
+        stubPickFiles(FilePickerResult([
           _streamFile(name: 'anything.xyz', size: 3, bytes: [1, 2, 3]),
-        ]);
+        ]));
 
         final result = await HeliumStorage.pickFiles(maxUploadSize: _testMaxUploadSize);
 
@@ -361,12 +321,12 @@ void main() {
 
       test('extension check applies before size check', () async {
         // Wrong extension + oversized: should get wrongFileType, not fileTooLarge
-        stubPickFiles([
-          _FakePlatformFile(
+        stubPickFiles(FilePickerResult([
+          PlatformFile(
             name: 'wrong.csv',
             size: _testMaxUploadSize + 1,
           ),
-        ]);
+        ]));
 
         final result = await HeliumStorage.pickFiles(maxUploadSize: _testMaxUploadSize, allowedExtensions: ['json']);
 

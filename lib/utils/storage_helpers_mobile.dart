@@ -2,39 +2,60 @@ import 'dart:io';
 import 'dart:typed_data';
 import 'dart:ui';
 
-import 'package:device_info_plus/device_info_plus.dart';
 import 'package:dio/dio.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:logging/logging.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:permission_handler/permission_handler.dart';
 import 'package:share_plus/share_plus.dart';
 
 final _log = Logger('utils');
-
-/// Inert on mobile; the web implementation supplies the real options.
-WebOptions get pickerWebOptions => const WebOptions();
 
 /// Reads bytes from a picked file on mobile.
 ///
 /// Prefers [PlatformFile.path] (the locally cached file path that file_picker
 /// always provides on iOS/Android) for a direct [File.readAsBytes] call.
-/// Falls back to consuming [PlatformFile.readAsByteStream] if path is
-/// unexpectedly absent, which also exercises the same stream path used by the
-/// web implementation for test parity.
+/// Falls back to consuming [PlatformFile.readStream] if path is unexpectedly
+/// absent, which also exercises the same stream path used by the web
+/// implementation for test parity.
 Future<Uint8List?> readPickedFileBytes(PlatformFile platFile) async {
   if (platFile.path != null) {
     return await File(platFile.path!).readAsBytes();
   }
-  final builder = BytesBuilder(copy: false);
-  await for (final chunk in platFile.readAsByteStream()) {
-    builder.add(chunk);
+  if (platFile.readStream != null) {
+    final builder = BytesBuilder(copy: false);
+    await for (final chunk in platFile.readStream!) {
+      builder.add(chunk);
+    }
+    return builder.takeBytes();
   }
-  return builder.takeBytes();
+  return null;
+}
+
+/// Saves [bytes] to a location the user chooses.
+///
+/// Scoped storage denies direct writes to the public Downloads directory, so
+/// the file goes through the system document creator instead, which needs no
+/// storage permission on any API level.
+Future<bool> _saveBytesToChosenLocation(
+  Uint8List bytes,
+  String filename,
+) async {
+  final savedPath = await FilePicker.platform.saveFile(
+    fileName: filename,
+    bytes: bytes,
+  );
+
+  if (savedPath == null) {
+    _log.info('Save location not chosen');
+    return false;
+  }
+
+  _log.info('Saved ${bytes.length} bytes via the document creator');
+  return true;
 }
 
 /// Mobile download with platform-specific behavior:
-/// - Android: Saves to Downloads folder (accessible to user)
+/// - Android: Prompts for a save location and writes there
 /// - iOS: Saves to app Documents directory and opens share sheet (iOS doesn't have public Downloads)
 Future<bool> downloadFilePlatform(String url, String filename) async {
   try {
@@ -46,55 +67,17 @@ Future<bool> downloadFilePlatform(String url, String filename) async {
       _log.warning('Unsupported platform for download');
       return false;
     }
-  } on DioException {
-    rethrow;
   } catch (e) {
     _log.severe('Mobile download failed', e);
     return false;
   }
 }
 
-/// Android: Download directly to public Downloads folder
 Future<bool> _downloadFileAndroid(String url, String filename) async {
   try {
-    final DeviceInfoPlugin plugin = DeviceInfoPlugin();
-    final AndroidDeviceInfo androidInfo = await plugin.androidInfo;
-    final int sdkVersion = androidInfo.version.sdkInt;
-
-    _log.info('Android SDK version: $sdkVersion');
-
-    // Request permission for older Android versions
-    if (sdkVersion < 29) {
-      final status = await Permission.storage.request();
-      if (!status.isGranted) {
-        _log.warning('Storage permission denied for downloads');
-        return false;
-      }
-    }
-
-    // Use the PUBLIC Downloads directory
-    // Works on all Android versions with requestLegacyExternalStorage flag
-    final downloadsDir = Directory('/storage/emulated/0/Download');
-    _log.info('Public Downloads directory: ${downloadsDir.path}');
-
-    // Create Downloads directory if it doesn't exist
-    if (!await downloadsDir.exists()) {
-      _log.info('Public Downloads directory does not exist, creating ...');
-      try {
-        await downloadsDir.create(recursive: true);
-      } catch (e) {
-        _log.warning('Could not create public Downloads directory', e);
-        _log.warning('This may require storage permissions');
-        return false;
-      }
-    }
-
-    final filePath = '${downloadsDir.path}/$filename';
-    _log.info('Attempting download to PUBLIC Downloads: ${downloadsDir.path}');
-
-    final response = await Dio().download(
+    final response = await Dio().get<Uint8List>(
       url,
-      filePath,
+      options: Options(responseType: ResponseType.bytes),
       onReceiveProgress: (received, total) {
         if (total != -1) {
           _log.info(
@@ -104,22 +87,12 @@ Future<bool> _downloadFileAndroid(String url, String filename) async {
       },
     );
 
-    if (response.statusCode != 200) {
+    if (response.statusCode != 200 || response.data == null) {
       _log.warning('Download failed with status: ${response.statusCode}');
       return false;
     }
 
-    // Verify the file was created
-    final file = File(filePath);
-    final exists = await file.exists();
-    final size = exists ? await file.length() : 0;
-
-    _log.info('Download complete:');
-    _log.info('  Dir: ${downloadsDir.path}');
-    _log.info('  File exists: $exists');
-    _log.info('  File size: $size bytes');
-
-    return exists;
+    return await _saveBytesToChosenLocation(response.data!, filename);
   } on DioException {
     rethrow;
   } catch (e) {
@@ -196,30 +169,7 @@ Future<bool> downloadBytesPlatform(Uint8List bytes, String filename) async {
 
 Future<bool> _downloadBytesAndroid(Uint8List bytes, String filename) async {
   try {
-    final DeviceInfoPlugin plugin = DeviceInfoPlugin();
-    final AndroidDeviceInfo androidInfo = await plugin.androidInfo;
-    final int sdkVersion = androidInfo.version.sdkInt;
-
-    // Request permission for older Android versions
-    if (sdkVersion < 29) {
-      final status = await Permission.storage.request();
-      if (!status.isGranted) {
-        _log.warning('Storage permission denied for downloads');
-        return false;
-      }
-    }
-
-    final downloadsDir = Directory('/storage/emulated/0/Download');
-    if (!await downloadsDir.exists()) {
-      await downloadsDir.create(recursive: true);
-    }
-
-    final filePath = '${downloadsDir.path}/$filename';
-    final file = File(filePath);
-    await file.writeAsBytes(bytes);
-
-    _log.info('Bytes saved to: ${downloadsDir.path}');
-    return await file.exists();
+    return await _saveBytesToChosenLocation(bytes, filename);
   } catch (e) {
     _log.severe('Android bytes download failed', e);
     return false;

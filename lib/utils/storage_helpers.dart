@@ -104,21 +104,17 @@ class HeliumStorage {
     final bool useCustomType =
         kIsWeb && allowedExtensions != null && allowedExtensions.isNotEmpty;
 
-    List<PlatformFile> picked;
+    FilePickerResult? result;
     try {
-      picked = allowMultiple
-          ? await FilePicker.pickFiles(
-              type: useCustomType ? FileType.custom : FileType.any,
-              allowedExtensions: useCustomType ? allowedExtensions : null,
-              webOptions: pickerWebOptions,
-            )
-          : await _pickSingle(
-              useCustomType ? FileType.custom : FileType.any,
-              useCustomType ? allowedExtensions : null,
-            );
+      result = await FilePicker.platform.pickFiles(
+        type: useCustomType ? FileType.custom : FileType.any,
+        allowedExtensions: useCustomType ? allowedExtensions : null,
+        allowMultiple: allowMultiple,
+        withData: false,
+        withReadStream: true,
+      );
     } on PlatformException catch (e) {
-      // Platform codes for a pick already in progress.
-      if (e.code == 'already_active' || e.code == 'multiple_request') {
+      if (e.code == 'already_active') {
         _log.warning('File picker reported an active session');
         return const PickFilesResult(files: [], cancelled: true);
       }
@@ -130,14 +126,14 @@ class HeliumStorage {
       return const PickFilesResult(files: []);
     }
 
-    if (picked.isEmpty) {
+    if (result == null) {
       return const PickFilesResult(files: [], cancelled: true);
     }
 
     final files = <PickedFile>[];
     final errors = <PickedFileError>[];
 
-    for (final platFile in picked) {
+    for (final platFile in result.files) {
       // Extension check on mobile (web enforces this via FileType.custom above)
       if (allowedExtensions != null && allowedExtensions.isNotEmpty && !kIsWeb) {
         final ext = platFile.extension?.toLowerCase();
@@ -153,8 +149,7 @@ class HeliumStorage {
       }
 
       // Size check via OS/browser metadata — no bytes loaded at this point
-      final reportedSize = await platFile.length();
-      if (reportedSize > maxUploadSize) {
+      if (platFile.size > maxUploadSize) {
         errors.add(PickedFileError(
           name: platFile.name,
           reason: PickedFileErrorReason.fileTooLarge,
@@ -172,14 +167,6 @@ class HeliumStorage {
           ));
           continue;
         }
-        if (bytes.length > maxUploadSize) {
-          errors.add(PickedFileError(
-            name: platFile.name,
-            reason: PickedFileErrorReason.fileTooLarge,
-            maxUploadSize: maxUploadSize,
-          ));
-          continue;
-        }
         files.add(PickedFile(name: platFile.name, bytes: bytes));
       } catch (e) {
         _log.warning('Failed to read picked file', e);
@@ -191,19 +178,6 @@ class HeliumStorage {
     }
 
     return PickFilesResult(files: files, errors: errors);
-  }
-
-  /// Normalises a single-file pick to a list so [pickFiles] validates one shape.
-  static Future<List<PlatformFile>> _pickSingle(
-    FileType type,
-    List<String>? allowedExtensions,
-  ) async {
-    final file = await FilePicker.pickFile(
-      type: type,
-      allowedExtensions: allowedExtensions,
-      webOptions: pickerWebOptions,
-    );
-    return file == null ? <PlatformFile>[] : <PlatformFile>[file];
   }
 
   /// Downloads a remote file. Returns null on success or an error message string on failure.

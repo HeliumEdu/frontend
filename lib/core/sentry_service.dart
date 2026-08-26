@@ -246,6 +246,11 @@ class SentryService {
       return true;
     }
 
+    // Browser storage writes that fail on a full disk or exhausted quota.
+    if (_isDeviceStorageExhausted(combined)) {
+      return true;
+    }
+
     if (type.contains('unauthorizedexception') ||
         type.contains('validationexception') ||
         type.contains('notfoundexception')) {
@@ -357,6 +362,12 @@ class SentryService {
   }
 
   /// Matched on message text, which dart:io writes literally and neither compiler minifies.
+  bool _isDeviceStorageExhausted(String text) {
+    return text.contains('file_error_no_space') ||
+        text.contains('quotaexceedederror') ||
+        text.contains('no space left on device');
+  }
+
   bool _isTlsFailure(String text) {
     return text.contains('handshakeexception') ||
         text.contains('tlsexception') ||
