@@ -282,7 +282,7 @@ class ExternalCalendarsScreenState extends State<ExternalCalendarsScreen> {
                       onDelete: (ec) {
                         context.read<ExternalCalendarBloc>().add(
                           DeleteExternalCalendarEvent(
-                            origin: EventOrigin.screen,
+                            origin: EventOrigin.subScreen,
                             id: ec.id,
                           ),
                         );
