@@ -15,8 +15,8 @@ final _log = Logger('data.sources');
 
 abstract class HomeworkRemoteDataSource extends BaseDataSource {
   Future<List<HomeworkModel>> getHomeworks({
-    required DateTime from,
-    required DateTime to,
+    DateTime? from,
+    DateTime? to,
     List<String>? categoryTitles,
     String? search,
     String? title,
@@ -62,8 +62,8 @@ class HomeworkRemoteDataSourceImpl extends HomeworkRemoteDataSource {
 
   @override
   Future<List<HomeworkModel>> getHomeworks({
-    required DateTime from,
-    required DateTime to,
+    DateTime? from,
+    DateTime? to,
     List<String>? categoryTitles,
     String? search,
     String? title,
@@ -73,10 +73,9 @@ class HomeworkRemoteDataSourceImpl extends HomeworkRemoteDataSource {
     try {
       // Use toIso8601String() which includes timezone offset for TZDateTime.
       // This ensures the backend interprets date boundaries consistently.
-      final Map<String, dynamic> queryParameters = {
-        'from': from.toIso8601String(),
-        'to': to.toIso8601String(),
-      };
+      final Map<String, dynamic> queryParameters = {};
+      if (from != null) queryParameters['from'] = from.toIso8601String();
+      if (to != null) queryParameters['to'] = to.toIso8601String();
       if (categoryTitles?.isNotEmpty ?? false) {
         final sanitizedTitles = categoryTitles
             ?.map((title) => title.trim())

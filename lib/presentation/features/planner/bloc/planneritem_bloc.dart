@@ -72,6 +72,7 @@ class PlannerItemBloc extends Bloc<PlannerItemEvent, PlannerItemState> {
       final List<CategoryModel> categories;
       final List<ResourceModel> resources;
       NoteModel? linkedNote;
+      CourseModel? itemCourse;
 
       if (event.eventId != null) {
         final results = await Future.wait([
@@ -93,7 +94,7 @@ class PlannerItemBloc extends Bloc<PlannerItemEvent, PlannerItemState> {
               : Future.value(null),
           courseRepository.getCourseGroups(shownOnCalendar: true),
           courseRepository.getCourses(shownOnCalendar: true),
-          courseScheduleRepository.getCourseSchedules(),
+          courseScheduleRepository.getCourseSchedules(shownOnCalendar: true),
           categoryRepository.getCategories(shownOnCalendar: true),
           resourceRepository.getResources(shownOnCalendar: true),
           event.homeworkId != null
@@ -108,6 +109,7 @@ class PlannerItemBloc extends Bloc<PlannerItemEvent, PlannerItemState> {
         resources = results[5] as List<ResourceModel>;
         final notes = results[6] as List<NoteModel>;
         linkedNote = notes.isNotEmpty ? notes.first : null;
+        itemCourse = await _resolveItemCourse(plannerItem, courses);
       }
 
       emit(
@@ -120,6 +122,7 @@ class PlannerItemBloc extends Bloc<PlannerItemEvent, PlannerItemState> {
           categories: categories,
           resources: resources,
           linkedNote: linkedNote,
+          itemCourse: itemCourse,
         ),
       );
     } on HeliumException catch (e) {
@@ -132,6 +135,19 @@ class PlannerItemBloc extends Bloc<PlannerItemEvent, PlannerItemState> {
         ),
       );
     }
+  }
+
+  Future<CourseModel?> _resolveItemCourse(
+    PlannerItemBaseModel? plannerItem,
+    List<CourseModel> courses,
+  ) async {
+    if (plannerItem is! HomeworkModel) return null;
+
+    final courseId = plannerItem.course.id;
+    if (courses.any((course) => course.id == courseId)) return null;
+
+    final resolved = await courseRepository.getCourses(id: courseId);
+    return resolved.isNotEmpty ? resolved.first : null;
   }
 
   Future<void> _onFetchEvent(

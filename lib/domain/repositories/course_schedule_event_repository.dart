@@ -12,6 +12,7 @@ abstract class CourseScheduleRepository {
   });
 
   Future<List<CourseScheduleModel>> getCourseSchedules({
+    bool? shownOnCalendar,
     bool forceRefresh = false,
   });
 

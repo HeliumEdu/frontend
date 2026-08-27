@@ -71,6 +71,8 @@ class PlannerItemScreenDataFetched extends PlannerItemState {
   final List<ResourceModel> resources;
   final NoteModel? linkedNote;
 
+  final CourseModel? itemCourse;
+
   PlannerItemScreenDataFetched({
     required super.origin,
     required this.plannerItem,
@@ -80,6 +82,7 @@ class PlannerItemScreenDataFetched extends PlannerItemState {
     required this.categories,
     required this.resources,
     this.linkedNote,
+    this.itemCourse,
   });
 }
 

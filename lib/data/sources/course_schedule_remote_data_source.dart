@@ -11,6 +11,7 @@ final _log = Logger('data.sources');
 
 abstract class CourseScheduleRemoteDataSource extends BaseDataSource {
   Future<List<CourseScheduleModel>> getCourseSchedules({
+    bool? shownOnCalendar,
     bool forceRefresh = false,
   });
 
@@ -50,13 +51,20 @@ class CourseScheduleRemoteDataSourceImpl
 
   @override
   Future<List<CourseScheduleModel>> getCourseSchedules({
+    bool? shownOnCalendar,
     bool forceRefresh = false,
   }) async {
     try {
       _log.info('Fetching CourseSchedules ...');
 
+      final Map<String, dynamic> queryParameters = {};
+      if (shownOnCalendar != null) {
+        queryParameters['shown_on_calendar'] = shownOnCalendar;
+      }
+
       final response = await dioClient.dio.get(
         ApiUrl.plannerCourseSchedulesUrl,
+        queryParameters: queryParameters.isNotEmpty ? queryParameters : null,
         options: forceRefresh ? dioClient.cacheService.forceRefreshOptions() : null,
       );
 

@@ -1,7 +1,6 @@
 import 'package:bloc/bloc.dart';
 import 'package:heliumapp/core/helium_exception.dart';
 import 'package:heliumapp/data/models/id_or_entity.dart';
-import 'package:heliumapp/data/models/planner/course_group_model.dart';
 import 'package:heliumapp/data/models/planner/category_model.dart';
 import 'package:heliumapp/data/models/planner/course_model.dart';
 import 'package:heliumapp/data/models/planner/event_model.dart';
@@ -9,7 +8,6 @@ import 'package:heliumapp/data/models/planner/homework_model.dart';
 import 'package:heliumapp/data/models/planner/note_model.dart';
 import 'package:heliumapp/data/models/planner/resource_group_model.dart';
 import 'package:heliumapp/data/models/planner/resource_model.dart';
-import 'package:heliumapp/utils/planner_helper.dart';
 import 'package:heliumapp/domain/repositories/category_repository.dart';
 import 'package:heliumapp/domain/repositories/course_repository.dart';
 import 'package:heliumapp/domain/repositories/event_repository.dart';
@@ -189,29 +187,14 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
       Emitter<NoteState> emit,
       ) async {
     try {
-      final List<CourseGroupModel> courseGroups =
-      await courseRepository.getCourseGroups();
-      final window = PlannerHelper.courseGroupDateWindow(courseGroups);
-
       final results = await Future.wait([
-        window != null
-            ? homeworkRepository.getHomeworks(
-          from: window.from,
-          to: window.to,
-        )
-            : Future.value(<HomeworkModel>[]),
+        homeworkRepository.getHomeworks(),
         eventRepository.getEvents(),
         resourceRepository.getResources(),
         resourceRepository.getResourceGroups(),
         courseRepository.getCourses(),
         categoryRepository.getCategories(),
       ]);
-
-      final courses = results[4] as List<CourseModel>;
-      final visibleCourseIds = courses
-          .where((c) => c.shownOnCalendar != false)
-          .map((c) => c.id)
-          .toSet();
 
       final resourceGroups = results[3] as List<ResourceGroupModel>;
       final visibleGroupIds = resourceGroups
@@ -224,9 +207,7 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
       emit(LinkableEntitiesFetched(
         origin: event.origin,
         homework: (results[0] as List<HomeworkModel>)
-            .where((h) =>
-                _isLinkableEntity(h.notes, currentNoteId) &&
-                visibleCourseIds.contains(h.course.id))
+            .where((h) => _isLinkableEntity(h.notes, currentNoteId))
             .toList(),
         events: (results[1] as List<EventModel>)
             .where((e) => _isLinkableEntity(e.notes, currentNoteId))
@@ -236,7 +217,7 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
                 _isLinkableResource(r.notes, currentNoteId) &&
                 visibleGroupIds.contains(r.resourceGroup))
             .toList(),
-        courses: courses,
+        courses: results[4] as List<CourseModel>,
         resourceGroups: resourceGroups,
         categories: results[5] as List<CategoryModel>,
       ));

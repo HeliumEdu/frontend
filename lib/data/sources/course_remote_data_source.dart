@@ -34,6 +34,7 @@ abstract class CourseRemoteDataSource extends BaseDataSource {
   Future<void> deleteCourseGroup(int groupId);
 
   Future<List<CourseModel>> getCourses({
+    int? id,
     int? groupId,
     bool? shownOnCalendar,
     bool forceRefresh = false,
@@ -70,6 +71,7 @@ class CourseRemoteDataSourceImpl extends CourseRemoteDataSource {
 
   @override
   Future<List<CourseModel>> getCourses({
+    int? id,
     int? groupId,
     bool? shownOnCalendar,
     bool forceRefresh = false,
@@ -80,6 +82,9 @@ class CourseRemoteDataSourceImpl extends CourseRemoteDataSource {
 
       // shownOnCalendar requires server-side filtering (hierarchical check on parent groups)
       final Map<String, dynamic> queryParameters = {};
+      if (id != null) {
+        queryParameters['id'] = id;
+      }
       if (shownOnCalendar != null) {
         queryParameters['shown_on_calendar'] = shownOnCalendar;
       }
