@@ -186,7 +186,7 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
           });
           return settings;
         })
-        .catchError((error) {
+        .catchError((Object error) {
           if (mounted) {
             setState(() {
               settingsError = true;
@@ -194,7 +194,7 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
                   error is HeliumException ? error.displayMessage : null;
             });
           }
-          throw error;
+          return null;
         });
   }
 
