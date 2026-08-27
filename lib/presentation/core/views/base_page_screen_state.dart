@@ -4,6 +4,7 @@ import 'package:heliumapp/config/app_router.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/core/app_version_service.dart';
 import 'package:heliumapp/core/dio_client.dart';
+import 'package:heliumapp/core/helium_exception.dart';
 import 'package:heliumapp/data/models/auth/user_settings_model.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/info/info_bloc.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/info/info_event.dart';
@@ -69,6 +70,7 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
   UserSettingsModel? userSettings;
   bool settingsLoaded = false;
   bool settingsError = false;
+  String? settingsErrorMessage;
   // Default true so authenticated screens never flash unloaded content
   // between mount and the first BLoC fetch completing. Subclasses flip this
   // to false from their own BLoC listeners when their data is ready, since
@@ -160,6 +162,7 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
   void _reloadSettings() {
     setState(() {
       settingsError = false;
+      settingsErrorMessage = null;
       isLoading = true;
     });
     loadSettings();
@@ -178,6 +181,7 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
               settingsError = false;
             } else {
               settingsError = true;
+              settingsErrorMessage = null;
             }
           });
           return settings;
@@ -186,6 +190,8 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
           if (mounted) {
             setState(() {
               settingsError = true;
+              settingsErrorMessage =
+                  error is HeliumException ? error.displayMessage : null;
             });
           }
           throw error;
@@ -227,7 +233,7 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
       children: [
         if (settingsError)
           ErrorCard(
-            message: 'An unknown error occurred',
+            message: settingsErrorMessage ?? HeliumException.unexpectedError,
             source: 'settings',
             onReload: _reloadSettings,
           )
@@ -244,7 +250,8 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
           ? BlocBuilder<InfoBloc, InfoState>(
               builder: (context, infoState) {
                 final infoReady = infoState is InfoLoaded;
-                final infoFailed = infoState is InfoLoadFailed;
+                final infoFailure =
+                    infoState is InfoLoadFailed ? infoState : null;
                 final version = AppVersionService().version;
                 final updateRequired = infoReady &&
                     version != null &&
@@ -258,13 +265,17 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
                       const UpdateRequiredCard()
                     else if (settingsError)
                       ErrorCard(
-                        message: 'An unknown error occurred',
+                        message:
+                            settingsErrorMessage ??
+                            HeliumException.unexpectedError,
                         source: 'settings',
                         onReload: _reloadSettings,
                       )
-                    else if (infoFailed)
+                    else if (infoFailure != null)
                       ErrorCard(
-                        message: 'An unknown error occurred',
+                        message:
+                            infoFailure.message ??
+                            HeliumException.unexpectedError,
                         source: '/info/',
                         onReload: () =>
                             context.read<InfoBloc>().add(LoadInfoEvent()),

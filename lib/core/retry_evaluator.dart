@@ -44,6 +44,12 @@ class HeliumRetryEvaluator {
       return false;
     }
 
+    // No route to the host. One retry covers a reset or a network handoff;
+    // beyond that the caller is only kept waiting.
+    if (error.type == DioExceptionType.connectionError && attempt >= 1) {
+      return false;
+    }
+
     final remaining = deadlineFor(options).difference(DateTime.now());
     if (remaining <= Duration.zero) {
       return false;
