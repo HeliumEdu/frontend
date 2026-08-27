@@ -78,12 +78,6 @@ Future<void> _bootstrap() async {
 
   initializeRouter();
 
-  try {
-    await FcmService().init();
-  } catch (e, s) {
-    _log.severe('FCM initialization failed', e, s);
-  }
-
   FcmService.setForegroundTapCallback((route) {
     router.go(route);
   });
@@ -103,8 +97,15 @@ Future<void> _bootstrap() async {
     _log.severe('FeedbackService initialization failed', e);
   }
 
-  // Handle pending notification navigation after first frame renders
-  WidgetsBinding.instance.addPostFrameCallback((_) {
+  // FCM registration reaches the network, so it runs after the first frame:
+  // on a slow or absent connection it would otherwise hold the app on a blank
+  // screen. Pending notification navigation follows once it settles.
+  WidgetsBinding.instance.addPostFrameCallback((_) async {
+    try {
+      await FcmService().init();
+    } catch (e, s) {
+      _log.severe('FCM initialization failed', e, s);
+    }
     FcmService.handlePendingRoute();
   });
 

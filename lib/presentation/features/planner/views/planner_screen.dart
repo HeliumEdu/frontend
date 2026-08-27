@@ -485,7 +485,9 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
           } else if (state is PlannerError) {
             setState(() => isLoading = false);
             if (state.origin != EventOrigin.screen) {
-              showSnackBar(context, state.message!, type: SnackType.error);
+              if (!isShowingErrorCard) {
+                showSnackBar(context, state.message!, type: SnackType.error);
+              }
             }
           }
         },
@@ -520,7 +522,9 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
           } else if (state is HomeworkCreated) {
             _plannerItemDataSource!.addPlannerItem(state.homework);
           } else if (state is PlannerItemsError) {
-            showSnackBar(context, state.message!, type: SnackType.error);
+            if (!isShowingErrorCard) {
+              showSnackBar(context, state.message!, type: SnackType.error);
+            }
             for (final id in _inFlightCompletionIds) {
               _plannerItemDataSource!.clearCompletedOverride(id);
             }

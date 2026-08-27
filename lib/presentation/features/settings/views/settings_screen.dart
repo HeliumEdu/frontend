@@ -321,7 +321,9 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
             setState(() {
               isLoading = false;
             });
-            showSnackBar(context, state.message!, type: SnackType.error);
+            if (!isShowingErrorCard) {
+              showSnackBar(context, state.message!, type: SnackType.error);
+            }
           }
         },
       ),
@@ -331,7 +333,9 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
             // Only handle on the main settings page; sub-screens handle their own errors.
             if (_activeSubScreen == null) {
               setState(() => isLoading = false);
-              showSnackBar(context, state.message!, type: SnackType.error);
+              if (!isShowingErrorCard) {
+                showSnackBar(context, state.message!, type: SnackType.error);
+              }
             }
           } else if (state is AuthProfileFetched) {
             final platform = await PackageInfo.fromPlatform();

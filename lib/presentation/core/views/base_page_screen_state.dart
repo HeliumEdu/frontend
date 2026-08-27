@@ -168,6 +168,14 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
     loadSettings();
   }
 
+  /// Whether a blocking error card is already on screen. Screens check this
+  /// before an error snackbar so the same failure is not reported twice.
+  bool get isShowingErrorCard {
+    if (settingsError) return true;
+    if (!mounted || !isAuthenticatedScreen) return false;
+    return context.read<InfoBloc>().state is InfoLoadFailed;
+  }
+
   @mustCallSuper
   Future<UserSettingsModel?> loadSettings() {
     return dioClient

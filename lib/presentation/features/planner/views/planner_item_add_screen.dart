@@ -362,7 +362,9 @@ class _PlannerItemAddScreenState
       BlocListener<PlannerItemBloc, PlannerItemState>(
         listener: (context, state) {
           if (state is PlannerItemsError) {
-            showSnackBar(context, state.message!, type: SnackType.error);
+            if (!isShowingErrorCard) {
+              showSnackBar(context, state.message!, type: SnackType.error);
+            }
             _detailsKey.currentState?.resetSubmitting();
             setState(() => isSubmitting = false);
           } else if (state is EventDeleted || state is HomeworkDeleted) {

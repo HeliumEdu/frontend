@@ -195,7 +195,9 @@ class _NotificationsScreenState
               if (state.origin == EventOrigin.screen) isLoading = false;
             });
             if (state.origin != EventOrigin.screen) {
-              showSnackBar(context, state.message!, type: SnackType.error);
+              if (!isShowingErrorCard) {
+                showSnackBar(context, state.message!, type: SnackType.error);
+              }
             }
           } else if (state is RemindersFetched &&
               state.origin == EventOrigin.screen) {

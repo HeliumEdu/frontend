@@ -236,7 +236,9 @@ class _ResourceAddScreenState
       BlocListener<ResourceBloc, ResourceState>(
         listener: (context, state) {
           if (state is ResourcesError) {
-            showSnackBar(context, state.message!, type: SnackType.error);
+            if (!isShowingErrorCard) {
+              showSnackBar(context, state.message!, type: SnackType.error);
+            }
             _detailsKey.currentState?.resetSubmitting();
             setState(() { isLoading = false; isSubmitting = false; });
           } else if (state is ResourcesScreenDataFetched &&
@@ -340,7 +342,9 @@ class _ResourceAddScreenState
       BlocListener<NoteBloc, NoteState>(
         listener: (context, state) {
           if (state is NotesError) {
-            showSnackBar(context, state.message!, type: SnackType.error);
+            if (!isShowingErrorCard) {
+              showSnackBar(context, state.message!, type: SnackType.error);
+            }
             _detailsKey.currentState?.resetSubmitting();
             setState(() => isSubmitting = false);
           } else if (state is NoteCreated && _pendingRedirectToNotebook) {

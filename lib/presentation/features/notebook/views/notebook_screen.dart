@@ -111,7 +111,9 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen>
           if (state is NotesError && state.origin == EventOrigin.screen) {
             setState(() => isLoading = false);
           } else if (state is NotesError && state.origin != EventOrigin.screen && state.origin != EventOrigin.subScreen) {
-            showSnackBar(context, state.message!, type: SnackType.error);
+            if (!isShowingErrorCard) {
+              showSnackBar(context, state.message!, type: SnackType.error);
+            }
           } else if (state is NotesFetched) {
             setState(() {
               _notes = state.notes;

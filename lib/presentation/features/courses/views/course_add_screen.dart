@@ -276,7 +276,9 @@ class _CourseAddScreenState extends MultiStepContainerState<CourseAddScreen> {
       BlocListener<CourseBloc, CourseState>(
         listener: (context, state) {
           if (state is CoursesError && state.origin != EventOrigin.dialog) {
-            showSnackBar(context, state.message!, type: SnackType.error);
+            if (!isShowingErrorCard) {
+              showSnackBar(context, state.message!, type: SnackType.error);
+            }
             _detailsKey.currentState?.resetSubmitting();
             setState(() { isLoading = false; isSubmitting = false; });
           } else if (state is CoursesScreenDataFetched &&

@@ -434,7 +434,9 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
                 _isPickerLoading = false;
                 _showLinkPicker = false;
               });
-              showSnackBar(context, state.message!, type: SnackType.error);
+              if (!isShowingErrorCard) {
+                showSnackBar(context, state.message!, type: SnackType.error);
+              }
             } else if (_isAutoSaving) {
               if (_isLinking) {
                 setState(() { _isLinking = false; isSubmitting = false; });
@@ -442,14 +444,18 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
                 setState(() => isSubmitting = false);
               }
               if (_autoSaveErrorCount == 0) {
-                showSnackBar(context, state.message!, type: SnackType.error);
+                if (!isShowingErrorCard) {
+                  showSnackBar(context, state.message!, type: SnackType.error);
+                }
               }
               _handleAutoSaveError(state.message!);
               _isAutoSaving = false;
             } else {
               setState(() => isSubmitting = false);
               if (_autoSaveErrorCount == 0) {
-                showSnackBar(context, state.message!, type: SnackType.error);
+                if (!isShowingErrorCard) {
+                  showSnackBar(context, state.message!, type: SnackType.error);
+                }
               }
               _handleAutoSaveError('Manual save failed');
             }
