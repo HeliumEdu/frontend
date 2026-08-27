@@ -62,6 +62,17 @@ class UpdateRequiredCard extends StatelessWidget {
               onPressed: _update,
             ),
           ),
+          const SizedBox(height: 12),
+          ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 200),
+            child: HeliumElevatedButton(
+              buttonText: 'Support Portal',
+              icon: Icons.menu_book_outlined,
+              backgroundColor: context.colorScheme.onSurfaceVariant,
+              onPressed: () =>
+                  UrlHelpers.launchWebUrl(AppConstants.supportPortalUrl),
+            ),
+          ),
         ],
       ),
     );
