@@ -295,8 +295,10 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
                             infoFailure.message ??
                             HeliumException.unexpectedError,
                         source: '/info/',
-                        onReload: () =>
-                            context.read<InfoBloc>().add(LoadInfoEvent()),
+                        onReload: () {
+                          context.read<InfoBloc>().add(LoadInfoEvent());
+                          _reloadSettings();
+                        },
                       )
                     else if (isLoading || !settingsLoaded || !infoReady)
                       const LoadingIndicator()
