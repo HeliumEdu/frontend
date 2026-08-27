@@ -205,12 +205,14 @@ class _CourseScheduleContentState extends State<_CourseScheduleContent> {
       return ErrorCard(
         message: _error!,
         source: 'course_schedule',
+        expanded: false,
         onReload: _fetchSchedules,
       );
     }
 
     if (_schedules.isEmpty) {
       return const EmptyCard(
+        expanded: false,
         icon: Icons.date_range_outlined,
         message: 'Click "+" to add a schedule',
       );

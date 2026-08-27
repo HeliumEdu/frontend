@@ -714,6 +714,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
             return ErrorCard(
               message: state.message!,
               source: 'planner_screen',
+              expanded: false,
               onReload: () {
                 context.read<PlannerBloc>().add(
                   FetchPlannerScreenDataEvent(

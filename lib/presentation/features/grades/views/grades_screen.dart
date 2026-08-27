@@ -358,6 +358,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
                   return ErrorCard(
                     message: 'An unknown error occurred loading the graph',
                     source: 'grades_screen',
+                    expanded: false,
                     onReload: () {
                       context.read<GradeBloc>().add(
                         FetchGradeScreenDataEvent(forceRefresh: true),
