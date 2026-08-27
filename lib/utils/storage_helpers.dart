@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
+import 'package:heliumapp/core/dio_error_mapper.dart';
 import 'package:heliumapp/utils/format_helpers.dart';
 import 'package:logging/logging.dart';
 // Conditional import - uses web implementation on web, mobile on native platforms
@@ -9,18 +10,6 @@ import 'package:heliumapp/utils/storage_helpers_mobile.dart'
     if (dart.library.js_interop) 'package:heliumapp/utils/storage_helpers_web.dart';
 
 final _log = Logger('utils');
-
-bool _isTransientConnectionError(DioException e) {
-  switch (e.type) {
-    case DioExceptionType.connectionError:
-    case DioExceptionType.connectionTimeout:
-    case DioExceptionType.sendTimeout:
-    case DioExceptionType.receiveTimeout:
-      return true;
-    default:
-      return false;
-  }
-}
 
 /// A file that was successfully picked and validated by [HeliumStorage.pickFiles].
 class PickedFile {
@@ -200,13 +189,12 @@ class HeliumStorage {
   static Future<DownloadResult> downloadFile(String url, String filename) async {
     try {
       return _resultFor(await downloadFilePlatform(url, filename), filename);
-    } on DioException catch (e) {
-      if (_isTransientConnectionError(e)) {
-        _log.warning('Transient network error during file download', e);
-      } else {
-        _log.severe('An error occurred during file download', e);
-      }
-      return _failed(_messageFromResponse(e) ?? 'Failed to download "$filename".');
+    } on DioException catch (e, s) {
+      DioErrorMapper.map(e, s);
+      return _failed(
+        DioErrorMapper.clientErrorMessage(e) ??
+            'Failed to download "$filename".',
+      );
     } catch (e) {
       _log.severe('An error occurred during file download', e);
       return _failed('Failed to download "$filename".');
@@ -220,15 +208,6 @@ class HeliumStorage {
     return status == DownloadStatus.failed
         ? _failed('Failed to download "$filename".')
         : DownloadResult(status: status);
-  }
-
-  static String? _messageFromResponse(DioException e) {
-    final data = e.response?.data;
-    if (data is Map<String, dynamic>) {
-      if (data.containsKey('details')) return data['details'].toString();
-      if (data.containsKey('detail')) return data['detail'].toString();
-    }
-    return null;
   }
 
   /// Downloads bytes directly to a file (for in-memory data like API responses)

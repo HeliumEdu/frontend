@@ -1,4 +1,3 @@
-import 'package:heliumapp/data/models/planner/course_group_model.dart';
 import 'package:heliumapp/data/models/planner/course_model.dart';
 import 'package:heliumapp/data/models/planner/course_schedule_event_model.dart';
 import 'package:heliumapp/data/models/planner/course_schedule_model.dart';
@@ -21,18 +20,13 @@ class CourseScheduleRepositoryImpl implements CourseScheduleRepository {
     required List<CourseModel> courses,
     required DateTime from,
     required DateTime to,
-    Map<int, CourseGroupModel>? courseGroupsById,
     String? search,
-    bool? shownOnCalendar,
-    bool forceRefresh = false,
   }) async {
     return builderSource.buildCourseScheduleEvents(
       courses: courses,
       from: from,
       to: to,
-      courseGroupsById: courseGroupsById,
       search: search,
-      shownOnCalendar: shownOnCalendar,
     );
   }
 

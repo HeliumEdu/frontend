@@ -3,8 +3,8 @@ import 'package:heliumapp/data/models/planner/request/homework_request_model.dar
 
 abstract class HomeworkRepository {
   Future<List<HomeworkModel>> getHomeworks({
-    required DateTime from,
-    required DateTime to,
+    DateTime? from,
+    DateTime? to,
     List<String>? categoryTitles,
     String? search,
     String? title,

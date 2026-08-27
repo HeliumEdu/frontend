@@ -70,7 +70,6 @@ class OAuthSignInService {
     return _signInWithOAuth(OAuthProvider.microsoft);
   }
 
-
   Future<String?> _signInWithOAuth(
     OAuthProvider provider, {
     Future<bool?> Function(RememberedGoogleAccount)? onChooseGoogleAccount,
@@ -327,9 +326,5 @@ class OAuthSignInService {
     } catch (e, s) {
       _log.warning('Error signing out from OAuth/Firebase', e, s);
     }
-  }
-
-  bool get isSignedIn {
-    return _firebaseAuth.currentUser != null;
   }
 }

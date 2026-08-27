@@ -191,13 +191,14 @@ class _NotificationsScreenState
         listener: (context, state) {
           if (state is RemindersError) {
             setState(() {
-              isLoading = false;
               _isDismissingAll = false;
+              if (state.origin == EventOrigin.screen) isLoading = false;
             });
             if (state.origin != EventOrigin.screen) {
               showSnackBar(context, state.message!, type: SnackType.error);
             }
-          } else if (state is RemindersFetched) {
+          } else if (state is RemindersFetched &&
+              state.origin == EventOrigin.screen) {
             _populateInitialStateData(state);
           } else if (state is ReminderUpdated) {
             final reminder = state.reminder;
@@ -366,7 +367,6 @@ class _NotificationsScreenState
         'Skipping reminder ${r.id} with null startOfRange',
         Exception('Reminder ${r.id} has null startOfRange'),
         StackTrace.current,
-        hints: {'reminder_id': r.id},
       );
     }
     reminders.removeWhere((r) => r.startOfRange == null);
@@ -382,7 +382,6 @@ class _NotificationsScreenState
           'Failed to map reminder ${r.id} to notification',
           e,
           st,
-          hints: {'reminder_id': r.id},
         );
       }
     }

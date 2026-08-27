@@ -108,6 +108,9 @@ class _LabelAndTextFormFieldState extends State<LabelAndTextFormField> {
       autofillHints: widget.autofillHints,
       style: AppStyles.formText(context),
       onFieldSubmitted: widget.onFieldSubmitted,
+      scrollPadding: const EdgeInsets.all(20).copyWith(
+        bottom: 20 + MediaQuery.viewInsetsOf(context).bottom,
+      ),
       decoration: InputDecoration(
         prefixIcon: widget.prefixIcon != null
             ? Icon(

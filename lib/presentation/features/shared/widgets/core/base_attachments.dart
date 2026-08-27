@@ -34,12 +34,15 @@ abstract class BaseAttachments extends StatelessWidget {
   /// can query the live [BaseAttachmentsState] (e.g. for `hasUnsavedFiles`).
   final GlobalKey<BaseAttachmentsState>? contentKey;
 
+  final VoidCallback? onUploadsSettled;
+
   const BaseAttachments({
     super.key,
     required this.entityId,
     required this.isEdit,
     this.userSettings,
     this.contentKey,
+    this.onUploadsSettled,
   });
 
   BaseAttachmentsContent buildContent();
@@ -52,12 +55,14 @@ abstract class BaseAttachmentsContent extends StatefulWidget {
   final int entityId;
   final bool isEdit;
   final UserSettingsModel? userSettings;
+  final VoidCallback? onUploadsSettled;
 
   const BaseAttachmentsContent({
     super.key,
     required this.entityId,
     required this.isEdit,
     this.userSettings,
+    this.onUploadsSettled,
   });
 
   @override
@@ -73,6 +78,7 @@ abstract class BaseAttachmentsState extends State<BaseAttachmentsContent> {
   bool isLoading = true;
   bool isSubmitting = false;
   bool _initialFetchComplete = false;
+  FetchAttachmentsEvent? _pendingFetch;
 
   @mustBeOverridden
   FetchAttachmentsEvent createFetchAttachmentsEvent({
@@ -82,16 +88,29 @@ abstract class BaseAttachmentsState extends State<BaseAttachmentsContent> {
   @mustBeOverridden
   CreateAttachmentEvent createCreateAttachmentsEvent();
 
+  void _dispatchFetch({bool forceRefresh = false}) {
+    final fetch = createFetchAttachmentsEvent(forceRefresh: forceRefresh);
+    _pendingFetch = fetch;
+    context.read<AttachmentBloc>().add(fetch);
+  }
+
+  bool _isOwnFetch(AttachmentsFetchIdentity state) => state.matches(
+        eventId: _pendingFetch?.eventId,
+        homeworkId: _pendingFetch?.homeworkId,
+        courseId: _pendingFetch?.courseId,
+      );
+
   /// True when the user has staged files for upload but not yet uploaded.
   /// Used by multi-step parents to drive the unsaved-changes prompt.
   bool get hasUnsavedFiles => filesToUpload.isNotEmpty;
+
 
   @override
   void initState() {
     super.initState();
 
     if (widget.isEdit) {
-      context.read<AttachmentBloc>().add(createFetchAttachmentsEvent());
+      _dispatchFetch();
     } else {
       setState(() {
         isLoading = false;
@@ -108,14 +127,18 @@ abstract class BaseAttachmentsState extends State<BaseAttachmentsContent> {
   Widget _buildContent(BuildContext context) {
     return BlocListener<AttachmentBloc, AttachmentState>(
       listener: (context, state) {
-        if (state is AttachmentsError) {
+        if (state is AttachmentsFetchFailed) {
+          if (_isOwnFetch(state)) {
+            setState(() => isLoading = false);
+          }
+        } else if (state is AttachmentsError) {
           if (!_initialFetchComplete) {
             setState(() => isLoading = false);
           } else {
             setState(() => _failedFileTitles = state.failedFilenames);
             SnackBarHelper.show(context, state.message!, type: SnackType.error, seconds: 4);
           }
-        } else if (state is AttachmentsFetched) {
+        } else if (state is AttachmentsFetched && _isOwnFetch(state)) {
           setState(() {
             attachments = state.attachments;
             Sort.byTitle(attachments);
@@ -143,9 +166,11 @@ abstract class BaseAttachmentsState extends State<BaseAttachmentsContent> {
         }
 
         if (state is! AttachmentsLoading) {
+          final wasSubmitting = isSubmitting;
           setState(() {
             isSubmitting = false;
           });
+          if (wasSubmitting) widget.onUploadsSettled?.call();
         }
       },
       // Bottom-pin the buttons clear of the home indicator: the enclosing
@@ -176,9 +201,7 @@ abstract class BaseAttachmentsState extends State<BaseAttachmentsContent> {
                           message: state.message!,
                           source: 'attachments_widget',
                           onReload: () {
-                            context.read<AttachmentBloc>().add(
-                              createFetchAttachmentsEvent(forceRefresh: true),
-                            );
+                            _dispatchFetch(forceRefresh: true);
                           },
                           expanded: false,
                         );

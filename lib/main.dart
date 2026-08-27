@@ -14,11 +14,14 @@ import 'package:heliumapp/core/feedback_service.dart';
 import 'package:heliumapp/core/log_service.dart';
 import 'package:heliumapp/core/motion_service.dart';
 import 'package:heliumapp/core/sentry_service.dart';
+import 'package:heliumapp/core/system_proxy_io.dart'
+    if (dart.library.js_interop) 'package:heliumapp/core/system_proxy_stub.dart';
 import 'package:heliumapp/firebase_environment.dart';
 import 'package:heliumapp/helium_app.dart';
 import 'package:heliumapp/utils/web_helpers_stub.dart'
     if (dart.library.js_interop) 'package:heliumapp/utils/web_helpers_web.dart';
 import 'package:logging/logging.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
 
 final _log = Logger('main');
@@ -28,21 +31,34 @@ void main() async {
   // web locks the URL strategy during binding initialization.
   usePathUrlStrategy();
 
-  // Always ensure this is the first thing initialized
-  WidgetsFlutterBinding.ensureInitialized();
-
   // Initialize logging (log level can be set via --dart-define=LOG_LEVEL=FINE)
   // In release mode, also initialize Sentry for error reporting
   LogService().init();
+
   try {
-    await SentryService().init();
+    await SentryService().run(_bootstrap);
   } catch (e) {
     _log.severe('Sentry initialization failed', e);
+    await _bootstrap();
   }
+}
+
+var _bootstrapped = false;
+
+Future<void> _bootstrap() async {
+  // Sentry throwing after it hands off must not start the app twice.
+  if (_bootstrapped) return;
+  _bootstrapped = true;
+
+  // First thing initialized, and inside the runner: a binding initialized
+  // outside the app's zone routes its callbacks' errors to the wrong one.
+  WidgetsFlutterBinding.ensureInitialized();
 
   GoogleFonts.config.allowRuntimeFetching = false;
 
   tz.initializeTimeZones();
+
+  await refreshSystemProxy();
 
   try {
     await Firebase.initializeApp(options: firebaseOptionsWithOverrides());
@@ -92,5 +108,5 @@ void main() async {
     FcmService.handlePendingRoute();
   });
 
-  runApp(const AppProviders(child: HeliumApp()));
+  runApp(SentryWidget(child: const AppProviders(child: HeliumApp())));
 }

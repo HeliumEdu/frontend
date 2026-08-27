@@ -48,11 +48,13 @@ class CourseRepositoryImpl implements CourseRepository {
 
   @override
   Future<List<CourseModel>> getCourses({
+    int? id,
     int? groupId,
     bool? shownOnCalendar,
     bool forceRefresh = false,
   }) async {
     return remoteDataSource.getCourses(
+      id: id,
       groupId: groupId,
       shownOnCalendar: shownOnCalendar,
       forceRefresh: forceRefresh,

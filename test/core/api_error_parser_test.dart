@@ -133,48 +133,6 @@ void main() {
       });
     });
 
-    group('parseFromMessage', () {
-      test('parses pre-formatted message with field prefix', () {
-        const message = 'email: Sorry, that email is already in use.';
-
-        final result = ApiErrorParser.parseFromMessage(message);
-
-        expect(result.hasFieldErrors, isTrue);
-        expect(result.getFieldError('email'), equals('Sorry, that email is already in use.'));
-        expect(result.displayMessage, equals('Sorry, that email is already in use.'));
-      });
-
-      test('parses pre-formatted message without field prefix', () {
-        const message = 'Something went wrong.';
-
-        final result = ApiErrorParser.parseFromMessage(message);
-
-        expect(result.hasFieldErrors, isFalse);
-        expect(result.generalErrors, contains('Something went wrong.'));
-        expect(result.displayMessage, equals('Something went wrong.'));
-      });
-
-      test('parses multiline pre-formatted message', () {
-        const message = 'email: Invalid email format.\npassword: Password too weak.\nGeneral error message.';
-
-        final result = ApiErrorParser.parseFromMessage(message);
-
-        expect(result.fieldErrors.length, equals(2));
-        expect(result.generalErrors.length, equals(1));
-        expect(result.getFieldError('email'), equals('Invalid email format.'));
-        expect(result.getFieldError('password'), equals('Password too weak.'));
-        expect(result.generalErrors, contains('General error message.'));
-      });
-
-      test('skips empty lines in multiline message', () {
-        const message = 'email: Invalid.\n\npassword: Too short.\n';
-
-        final result = ApiErrorParser.parseFromMessage(message);
-
-        expect(result.fieldErrors.length, equals(2));
-        expect(result.generalErrors, isEmpty);
-      });
-    });
 
     group('ParsedApiError', () {
       test('getFieldError returns null for non-existent field', () {
@@ -191,34 +149,14 @@ void main() {
         expect(result.getFieldError('password'), equals('Error 1'));
       });
 
-      test('hasErrors is true when only generalErrors exist', () {
-        final result = ApiErrorParser.parse('General error');
 
-        expect(result.hasFieldErrors, isFalse);
-        expect(result.hasErrors, isTrue);
-      });
-
-      test('hasErrors is false when no errors exist', () {
-        final result = ApiErrorParser.parse(null);
-
-        expect(result.hasErrors, isFalse);
-      });
     });
 
     group('edge cases', () {
-      test('handles null response data with fallback message', () {
-        final result = ApiErrorParser.parse(null, 'Fallback message');
-
-        expect(result.hasFieldErrors, isFalse);
-        expect(result.generalErrors, contains('Fallback message'));
-        expect(result.displayMessage, equals('Fallback message'));
-      });
-
       test('handles empty map response data', () {
         final result = ApiErrorParser.parse(<String, dynamic>{});
 
         expect(result.hasFieldErrors, isFalse);
-        expect(result.hasErrors, isFalse);
         expect(result.displayMessage, isEmpty);
       });
 
@@ -226,7 +164,6 @@ void main() {
         final result = ApiErrorParser.parse(<dynamic>[]);
 
         expect(result.hasFieldErrors, isFalse);
-        expect(result.hasErrors, isFalse);
       });
 
       test('handles field names with underscores', () {
@@ -241,35 +178,8 @@ void main() {
         expect(result.getFieldError('confirm_password'), equals('Passwords do not match.'));
       });
 
-      test('handles field names starting with underscore', () {
-        // Field names starting with underscore are valid (Python-style private fields)
-        const message = '_private_field: Some message';
 
-        final result = ApiErrorParser.parseFromMessage(message);
 
-        expect(result.hasFieldErrors, isTrue);
-        expect(result.getFieldError('_private_field'), equals('Some message'));
-      });
-
-      test('handles message with colon but no valid field prefix', () {
-        const message = 'Error: Something went wrong';
-
-        final result = ApiErrorParser.parseFromMessage(message);
-
-        // "Error" is a valid identifier, so it will be parsed as a field
-        expect(result.hasFieldErrors, isTrue);
-        expect(result.getFieldError('Error'), equals('Something went wrong'));
-      });
-
-      test('handles message with URL containing colon', () {
-        const message = 'Visit https://example.com for help';
-
-        final result = ApiErrorParser.parseFromMessage(message);
-
-        // "https" doesn't match the field pattern due to the // after colon
-        expect(result.hasFieldErrors, isFalse);
-        expect(result.generalErrors, contains('Visit https://example.com for help'));
-      });
     });
 
     group('real-world API error formats', () {

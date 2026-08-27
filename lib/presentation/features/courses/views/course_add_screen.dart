@@ -161,7 +161,7 @@ class _CourseAddScreenState extends MultiStepContainerState<CourseAddScreen> {
     DirtyDialogRegistry.register(
       prefix: prefix,
       fullPath: fullPath,
-      isDirty: () => isDirty,
+      isDirty: () => isDirty || deferDismissal,
     );
     _registeredPrefix = prefix;
   }
@@ -224,6 +224,10 @@ class _CourseAddScreenState extends MultiStepContainerState<CourseAddScreen> {
 
   @override
   IconData? get icon => Icons.school;
+
+  @override
+  bool get deferDismissal =>
+      _attachmentsKey.currentState?.isSubmitting ?? false;
 
   @override
   bool get isDirty {
@@ -416,6 +420,7 @@ class _CourseAddScreenState extends MultiStepContainerState<CourseAddScreen> {
         entityId: _currentCourseId!,
         isEdit: widget.isEdit || _currentCourseId != null,
         userSettings: userSettings,
+        onUploadsSettled: resumeDeferredDismissal,
       ),
     ),
   ];

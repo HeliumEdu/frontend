@@ -78,7 +78,6 @@ void main() {
         courses: any(named: 'courses'),
         from: any(named: 'from'),
         to: any(named: 'to'),
-        shownOnCalendar: any(named: 'shownOnCalendar'),
       ),
     ).thenAnswer((_) async => []);
     when(
@@ -1193,7 +1192,6 @@ void main() {
             courses: any(named: 'courses'),
             from: any(named: 'from'),
             to: any(named: 'to'),
-            shownOnCalendar: any(named: 'shownOnCalendar'),
           ),
         ).thenAnswer((_) async => []);
         when(
@@ -1255,7 +1253,6 @@ void main() {
             courses: any(named: 'courses'),
             from: any(named: 'from'),
             to: any(named: 'to'),
-            shownOnCalendar: any(named: 'shownOnCalendar'),
           ),
         ).thenAnswer((_) async => []);
         when(
@@ -1326,7 +1323,6 @@ void main() {
             courses: any(named: 'courses'),
             from: any(named: 'from'),
             to: any(named: 'to'),
-            shownOnCalendar: any(named: 'shownOnCalendar'),
           ),
         ).thenAnswer((_) async => [scheduleEvent]);
         when(

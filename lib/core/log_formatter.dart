@@ -8,7 +8,6 @@ class LogColors {
   static const String info = '\x1B[36m'; // Cyan
   static const String debug = '\x1B[90m'; // Grey
   static const String reset = '\x1B[0m';
-  static const String green = '\x1B[32m'; // Green
 
   static String forLevel(Level level) {
     if (level >= Level.SHOUT) {
@@ -48,15 +47,9 @@ class LogFormatter {
       }
     }
 
-    if (includeLoggerName) {
-      buffer.write(
-        '$colorCode${record.level.name}$resetCode: ${record.time}: [${record.loggerName}] ${record.message}',
-      );
-    } else {
-      buffer.write(
-        '$colorCode${record.level.name}$resetCode: ${record.time}: ${record.message}',
-      );
-    }
+    buffer.write(
+      '$colorCode${record.level.name}$resetCode: ${record.time}: [${record.loggerName}] ${record.message}',
+    );
 
     if (record.error != null) {
       buffer.write('\n${colorCode}Error$resetCode: ${record.error}');
@@ -66,10 +59,5 @@ class LogFormatter {
     }
 
     return buffer.toString();
-  }
-
-  /// Format a simple message with a color
-  static String colorize(String message, String colorCode) {
-    return '$colorCode$message${LogColors.reset}';
   }
 }

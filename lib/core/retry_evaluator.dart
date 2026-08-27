@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:dio/dio.dart';
 import 'package:dio_smart_retry/dio_smart_retry.dart';
+import 'package:heliumapp/core/api_url.dart';
 
 class HeliumRetryEvaluator {
   static const Set<String> _retryableMethods = {'GET', 'HEAD', 'OPTIONS'};
@@ -29,10 +30,17 @@ class HeliumRetryEvaluator {
           )
           as DateTime;
 
+  /// Refresh tokens rotate, so retrying only helps when the request never
+  /// reached the app.
+  static bool _isRetryableTokenRefresh(DioException error) =>
+      error.response == null &&
+      error.requestOptions.path.contains(ApiUrl.authTokenRefreshUrl);
+
   FutureOr<bool> evaluate(DioException error, int attempt) {
     final options = error.requestOptions;
 
-    if (!_retryableMethods.contains(options.method.toUpperCase())) {
+    if (!_retryableMethods.contains(options.method.toUpperCase()) &&
+        !_isRetryableTokenRefresh(error)) {
       return false;
     }
 

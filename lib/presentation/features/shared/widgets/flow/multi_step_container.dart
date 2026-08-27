@@ -139,6 +139,21 @@ abstract class MultiStepContainerState<T extends MultiStepContainer>
   /// query the active step's form controller; default is false (no prompt).
   bool get isDirty => false;
 
+  /// Whether the active step has work in flight that would complete invisibly
+  /// after a dismissal. Distinct from [isDirty]: there is nothing to discard,
+  /// only to wait for, so the dismiss is queued rather than refused.
+  bool get deferDismissal => false;
+
+  bool _dismissDeferred = false;
+
+  /// Runs a dismiss that [deferDismissal] postponed, once the work settled.
+  @protected
+  void resumeDeferredDismissal() {
+    if (!_dismissDeferred) return;
+    _dismissDeferred = false;
+    _attemptDismiss();
+  }
+
   /// Pops without consulting [isDirty]. Use from bloc listeners after a
   /// successful save where the form is logically clean even if isChanged
   /// hasn't been reset.
@@ -162,6 +177,10 @@ abstract class MultiStepContainerState<T extends MultiStepContainer>
 
   Future<void> _attemptDismiss() async {
     if (!mounted) return;
+    if (deferDismissal) {
+      _dismissDeferred = true;
+      return;
+    }
     if (!isDirty) {
       closeWithoutPrompt();
       return;

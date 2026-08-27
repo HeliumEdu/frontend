@@ -43,12 +43,61 @@ class NoteFetched extends NoteState {
   });
 }
 
-class NoteScreenDataFetched extends NoteState {
+mixin NoteScreenDataIdentity {
+  int? get noteId;
+
+  int? get linkHomeworkId;
+
+  int? get linkEventId;
+
+  int? get linkResourceId;
+
+  bool matches({
+    int? noteId,
+    int? linkHomeworkId,
+    int? linkEventId,
+    int? linkResourceId,
+  }) =>
+      this.noteId == noteId &&
+      this.linkHomeworkId == linkHomeworkId &&
+      this.linkEventId == linkEventId &&
+      this.linkResourceId == linkResourceId;
+}
+
+class NoteScreenDataFailed extends NotesError with NoteScreenDataIdentity {
+  @override
+  final int? noteId;
+  @override
+  final int? linkHomeworkId;
+  @override
+  final int? linkEventId;
+  @override
+  final int? linkResourceId;
+
+  NoteScreenDataFailed({
+    required super.origin,
+    required super.message,
+    this.noteId,
+    this.linkHomeworkId,
+    this.linkEventId,
+    this.linkResourceId,
+  });
+}
+
+class NoteScreenDataFetched extends NoteState with NoteScreenDataIdentity {
   final NoteModel? note;
   final String? linkedEntityType;
   final String? linkedEntityTitle;
   final Color? linkedEntityColor;
   final bool? linkedEntityCompleted;
+  @override
+  final int? noteId;
+  @override
+  final int? linkHomeworkId;
+  @override
+  final int? linkEventId;
+  @override
+  final int? linkResourceId;
 
   NoteScreenDataFetched({
     required super.origin,
@@ -57,6 +106,10 @@ class NoteScreenDataFetched extends NoteState {
     this.linkedEntityTitle,
     this.linkedEntityColor,
     this.linkedEntityCompleted,
+    this.noteId,
+    this.linkHomeworkId,
+    this.linkEventId,
+    this.linkResourceId,
   });
 }
 

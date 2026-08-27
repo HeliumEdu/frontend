@@ -21,6 +21,7 @@ abstract class CourseRepository {
   Future<void> deleteCourseGroup(int groupId);
 
   Future<List<CourseModel>> getCourses({
+    int? id,
     int? groupId,
     bool? shownOnCalendar,
     bool forceRefresh = false,

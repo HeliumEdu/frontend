@@ -95,15 +95,11 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
           email: response.data['email'],
         );
       } else {
-        throw ServerException(
-          message: 'Registration failed.',
-          code: response.statusCode.toString(),
-        );
+        throw unexpectedStatus(response, 'Registration failed.');
       }
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
-    } on HeliumException catch (e, s) {
-      _log.severe('Data source error', e, s);
+    } on HeliumException {
       rethrow;
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
@@ -152,15 +148,11 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
 
         return tokenResponse;
       } else {
-        throw ServerException(
-          message: 'Email verification failed.',
-          code: response.statusCode.toString(),
-        );
+        throw unexpectedStatus(response, 'Email verification failed.');
       }
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
-    } on HeliumException catch (e, s) {
-      _log.severe('Data source error', e, s);
+    } on HeliumException {
       rethrow;
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
@@ -182,15 +174,11 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
         _log.info('Verification email resend succeeded');
         return NoContentResponseModel(message: 'Verification email sent');
       } else {
-        throw ServerException(
-          message: 'Failed to resend verification email.',
-          code: response.statusCode.toString(),
-        );
+        throw unexpectedStatus(response, 'Failed to resend verification email.');
       }
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
-    } on HeliumException catch (e, s) {
-      _log.severe('Data source error', e, s);
+    } on HeliumException {
       rethrow;
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
@@ -239,15 +227,11 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
 
         return loginResponse;
       } else {
-        throw ServerException(
-          message: 'Login failed.',
-          code: response.statusCode.toString(),
-        );
+        throw unexpectedStatus(response, 'Login failed.');
       }
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
-    } on HeliumException catch (e, s) {
-      _log.severe('Data source error', e, s);
+    } on HeliumException {
       rethrow;
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
@@ -310,15 +294,11 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
 
         return loginResponse;
       } else {
-        throw ServerException(
-          message: 'OAuth login failed.',
-          code: response.statusCode.toString(),
-        );
+        throw unexpectedStatus(response, 'OAuth login failed.');
       }
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
-    } on HeliumException catch (e, s) {
-      _log.severe('Data source error', e, s);
+    } on HeliumException {
       rethrow;
     } catch (e, s) {
       _log.severe('An unexpected error occurred during $provider login', e, s);
@@ -352,15 +332,11 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
 
         return refreshResponse;
       } else {
-        throw ServerException(
-          message: 'Token refresh failed.',
-          code: response.statusCode.toString(),
-        );
+        throw unexpectedStatus(response, 'Token refresh failed.');
       }
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
-    } on HeliumException catch (e, s) {
-      _log.severe('Data source error', e, s);
+    } on HeliumException {
       rethrow;
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
@@ -393,8 +369,7 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
           _log.warning('Failed to blacklist token on server', e);
         }
       }
-    } on HeliumException catch (e, s) {
-      _log.severe('Data source error', e, s);
+    } on HeliumException {
       rethrow;
     } catch (e, s) {
       _log.severe('An unexpected error occurred during sign-out', e, s);
@@ -412,15 +387,11 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
       if (response.statusCode == 200) {
         return UserModel.fromJson(response.data);
       } else {
-        throw ServerException(
-          message: 'Failed to fetch profile.',
-          code: response.statusCode.toString(),
-        );
+        throw unexpectedStatus(response, 'Failed to fetch profile.');
       }
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
-    } on HeliumException catch (e, s) {
-      _log.severe('Data source error', e, s);
+    } on HeliumException {
       rethrow;
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
@@ -437,15 +408,11 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
         unawaited(AnalyticsService().logEvent(name: AnalyticsEvent.feedsEnable, parameters: {'category': AnalyticsCategory.featureInteraction.value}));
         return PrivateFeedModel.fromJson(response.data);
       } else {
-        throw ServerException(
-          message: 'Failed to enable feeds.',
-          code: response.statusCode.toString(),
-        );
+        throw unexpectedStatus(response, 'Failed to enable feeds.');
       }
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
-    } on HeliumException catch (e, s) {
-      _log.severe('Data source error', e, s);
+    } on HeliumException {
       rethrow;
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
@@ -459,16 +426,12 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
       final response = await dioClient.dio.put(ApiUrl.feedPrivateDisableUrl);
 
       if (response.statusCode != 204) {
-        throw ServerException(
-          message: 'Failed to enable feeds.',
-          code: response.statusCode.toString(),
-        );
+        throw unexpectedStatus(response, 'Failed to enable feeds.');
       }
       unawaited(AnalyticsService().logEvent(name: AnalyticsEvent.feedsDisable, parameters: {'category': AnalyticsCategory.featureInteraction.value}));
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
-    } on HeliumException catch (e, s) {
-      _log.severe('Data source error', e, s);
+    } on HeliumException {
       rethrow;
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
@@ -492,15 +455,11 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
 
         return NoContentResponseModel(message: 'Account deleted');
       } else {
-        throw ServerException(
-          message: 'Failed to delete account.',
-          code: response.statusCode.toString(),
-        );
+        throw unexpectedStatus(response, 'Failed to delete account.');
       }
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
-    } on HeliumException catch (e, s) {
-      _log.severe('Data source error', e, s);
+    } on HeliumException {
       rethrow;
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
@@ -529,15 +488,11 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
 
         return UserModel.fromJson(response.data);
       } else {
-        throw ServerException(
-          message: 'Failed to change password.',
-          code: response.statusCode.toString(),
-        );
+        throw unexpectedStatus(response, 'Failed to change password.');
       }
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
-    } on HeliumException catch (e, s) {
-      _log.severe('Data source error', e, s);
+    } on HeliumException {
       rethrow;
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
@@ -556,15 +511,11 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
       if (response.statusCode == 200) {
         return UserModel.fromJson(response.data);
       } else {
-        throw ServerException(
-          message: 'Failed to change email.',
-          code: response.statusCode.toString(),
-        );
+        throw unexpectedStatus(response, 'Failed to change email.');
       }
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
-    } on HeliumException catch (e, s) {
-      _log.severe('Data source error', e, s);
+    } on HeliumException {
       rethrow;
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
@@ -589,15 +540,11 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
 
         return responseModel;
       } else {
-        throw ServerException(
-          message: 'Failed to update user settings.',
-          code: response.statusCode.toString(),
-        );
+        throw unexpectedStatus(response, 'Failed to update user settings.');
       }
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
-    } on HeliumException catch (e, s) {
-      _log.severe('Data source error', e, s);
+    } on HeliumException {
       rethrow;
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
@@ -618,15 +565,11 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
       if (response.statusCode == 202) {
         return NoContentResponseModel(message: 'Password reset email sent');
       } else {
-        throw ServerException(
-          message: 'Failed to send reset email.',
-          code: response.statusCode.toString(),
-        );
+        throw unexpectedStatus(response, 'Failed to send reset email.');
       }
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
-    } on HeliumException catch (e, s) {
-      _log.severe('Data source error', e, s);
+    } on HeliumException {
       rethrow;
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
@@ -658,15 +601,11 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
 
         return tokenResponse;
       } else {
-        throw ServerException(
-          message: 'Failed to reset password.',
-          code: response.statusCode.toString(),
-        );
+        throw unexpectedStatus(response, 'Failed to reset password.');
       }
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
-    } on HeliumException catch (e, s) {
-      _log.severe('Data source error', e, s);
+    } on HeliumException {
       rethrow;
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
@@ -682,10 +621,7 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
       );
 
       if (response.statusCode != 204) {
-        throw ServerException(
-          message: 'Failed to delete example schedule.',
-          code: response.statusCode.toString(),
-        );
+        throw unexpectedStatus(response, 'Failed to delete example schedule.');
       }
 
       // Clear all cached data since the example data is now deleted
@@ -694,8 +630,7 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
       unawaited(AnalyticsService().setUserProperty(name: 'onboarding_complete', value: 'true'));
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
-    } on HeliumException catch (e, s) {
-      _log.severe('Data source error', e, s);
+    } on HeliumException {
       rethrow;
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
@@ -713,15 +648,11 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
       if (response.statusCode == 200) {
         _log.info('Token blacklisted successfully');
       } else {
-        throw ServerException(
-          message: 'Failed to blacklist token.',
-          code: response.statusCode.toString(),
-        );
+        throw unexpectedStatus(response, 'Failed to blacklist token.');
       }
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
-    } on HeliumException catch (e, s) {
-      _log.severe('Data source error', e, s);
+    } on HeliumException {
       rethrow;
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);

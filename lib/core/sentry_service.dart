@@ -2,6 +2,7 @@ import 'dart:io' show Platform;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/widgets.dart';
 import 'package:logging/logging.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
@@ -39,17 +40,31 @@ class SentryService {
 
   bool get isEnabled => !kDebugMode && !kProfileMode;
 
-  Future<void> init() async {
-    if (!isEnabled) return;
+  /// Initializes Sentry, then runs [appRunner] under it.
+  ///
+  /// [appRunner] must be the app's only entry point — on web the SDK guards it
+  /// with `runZonedGuarded`, which it can only install around a runner it owns —
+  /// and is responsible for initializing the Flutter binding.
+  Future<void> run(AppRunner appRunner) async {
+    if (!isEnabled) {
+      await appRunner();
+      return;
+    }
+
+    // The test farm channel and PackageInfo below both need a binding. Web
+    // needs neither, and initializing there would take the zone from the SDK.
+    if (!kIsWeb) {
+      WidgetsFlutterBinding.ensureInitialized();
+    }
 
     // Skip Sentry entirely on Google Play pre-launch test farm devices.
     // Native crashes bypass Dart-level filters (sent via captureEnvelope),
     // so we must prevent initialization at the source.
     if (await _isTestFarmDevice()) {
       _log.info('Skipping Sentry initialization (test farm device)');
+      await appRunner();
       return;
     }
-
 
     const environment = String.fromEnvironment('SENTRY_ENVIRONMENT');
     String release = const String.fromEnvironment('RELEASE_VERSION');
@@ -80,8 +95,6 @@ class SentryService {
       options.enableLogs = true;
       options.maxBreadcrumbs = 200;
       options.tracesSampleRate = 0.1;
-      // ignore: experimental_member_use
-      options.profilesSampleRate = 0.1;
       options.enableAutoPerformanceTracing = true;
       options.enableUserInteractionTracing = true;
 
@@ -119,7 +132,7 @@ class SentryService {
       ];
 
       options.beforeSend = _beforeSend;
-    });
+    }, appRunner: appRunner);
 
     _log.info('Sentry initialized successfully');
   }
@@ -160,27 +173,10 @@ class SentryService {
     }
   }
 
-  SentryEvent? _beforeSend(SentryEvent event, Hint? hint) {
-    if (_shouldFilter(event)) {
-      return null;
-    }
-
-    // Check hint for original exception - catches browser onerror cases where
-    // the exception value may be null after deserialization
-    if (hint != null) {
-      final originalError = hint.get('originalError');
-      if (originalError != null) {
-        final errorString = originalError.toString().toLowerCase();
-        if (_containsClientErrorStatusCode(errorString) &&
-            _looksLikeHttpError(errorString)) {
-          _log.fine('Filtered event from Sentry (via hint originalError)');
-          return null;
-        }
-      }
-    }
-
-    return event;
-  }
+  /// [hint] is required by `BeforeSendCallback` but carries nothing we act on:
+  /// the SDK only populates the well-known `TypeCheckHint` keys.
+  SentryEvent? _beforeSend(SentryEvent event, Hint hint) =>
+      _shouldFilter(event) ? null : event;
 
   bool _shouldFilter(SentryEvent event) {
     // Note: Emulator/test farm detection is handled natively on Android
@@ -248,12 +244,6 @@ class SentryService {
 
     // Browser storage writes that fail on a full disk or exhausted quota.
     if (_isDeviceStorageExhausted(combined)) {
-      return true;
-    }
-
-    if (type.contains('unauthorizedexception') ||
-        type.contains('validationexception') ||
-        type.contains('notfoundexception')) {
       return true;
     }
 

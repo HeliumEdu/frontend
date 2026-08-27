@@ -1,5 +1,3 @@
-import 'dart:io'
-    if (dart.library.html) 'package:heliumapp/core/platform_stub.dart';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
@@ -84,7 +82,6 @@ class FeedbackService with WidgetsBindingObserver {
 
   Future<void> triggerReviewRequest() async {
     if (kIsWeb) return;
-    if (!Platform.isIOS && !Platform.isAndroid) return;
 
     final cleanSessions = _prefService.getInt(_keyCleanSessionCount) ?? 0;
     if (cleanSessions < _cleanSessionThreshold) return;

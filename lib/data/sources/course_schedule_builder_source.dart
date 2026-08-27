@@ -1,4 +1,3 @@
-import 'package:heliumapp/data/models/planner/course_group_model.dart';
 import 'package:heliumapp/data/models/planner/course_model.dart';
 import 'package:heliumapp/data/models/planner/course_schedule_event_model.dart';
 import 'package:heliumapp/data/models/planner/course_schedule_model.dart';
@@ -20,9 +19,7 @@ class CourseScheduleBuilderSource {
     required List<CourseModel> courses,
     required DateTime from,
     required DateTime to,
-    Map<int, CourseGroupModel>? courseGroupsById,
     String? search,
-    bool? shownOnCalendar,
   }) {
     _log.info('Building CourseScheduleEvents for ${courses.length} course(s)');
 

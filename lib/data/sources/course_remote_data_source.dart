@@ -34,6 +34,7 @@ abstract class CourseRemoteDataSource extends BaseDataSource {
   Future<void> deleteCourseGroup(int groupId);
 
   Future<List<CourseModel>> getCourses({
+    int? id,
     int? groupId,
     bool? shownOnCalendar,
     bool forceRefresh = false,
@@ -70,6 +71,7 @@ class CourseRemoteDataSourceImpl extends CourseRemoteDataSource {
 
   @override
   Future<List<CourseModel>> getCourses({
+    int? id,
     int? groupId,
     bool? shownOnCalendar,
     bool forceRefresh = false,
@@ -80,6 +82,9 @@ class CourseRemoteDataSourceImpl extends CourseRemoteDataSource {
 
       // shownOnCalendar requires server-side filtering (hierarchical check on parent groups)
       final Map<String, dynamic> queryParameters = {};
+      if (id != null) {
+        queryParameters['id'] = id;
+      }
       if (shownOnCalendar != null) {
         queryParameters['shown_on_calendar'] = shownOnCalendar;
       }
@@ -110,15 +115,11 @@ class CourseRemoteDataSourceImpl extends CourseRemoteDataSource {
           );
         }
       } else {
-        throw ServerException(
-          message: 'Failed to fetch classes.',
-          code: response.statusCode.toString(),
-        );
+        throw unexpectedStatus(response, 'Failed to fetch classes.');
       }
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
-    } on HeliumException catch (e, s) {
-      _log.severe('Data source error', e, s);
+    } on HeliumException {
       rethrow;
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
@@ -140,15 +141,11 @@ class CourseRemoteDataSourceImpl extends CourseRemoteDataSource {
         _log.info('... Course $courseId fetched');
         return CourseModel.fromJson(response.data);
       } else {
-        throw ServerException(
-          message: 'Failed to fetch class details.',
-          code: response.statusCode.toString(),
-        );
+        throw unexpectedStatus(response, 'Failed to fetch class details.');
       }
     } on DioException catch (e, s) {
       throw handleDioError(e, s, notFoundEntity: 'Class');
-    } on HeliumException catch (e, s) {
-      _log.severe('Data source error', e, s);
+    } on HeliumException {
       rethrow;
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
@@ -175,15 +172,11 @@ class CourseRemoteDataSourceImpl extends CourseRemoteDataSource {
         unawaited(AnalyticsService().logEvent(name: AnalyticsEvent.courseCreate, parameters: {'category': AnalyticsCategory.featureInteraction.value}));
         return course;
       } else {
-        throw ServerException(
-          message: 'Failed to create class.',
-          code: response.statusCode.toString(),
-        );
+        throw unexpectedStatus(response, 'Failed to create class.');
       }
     } on DioException catch (e, s) {
       throw handleDioError(e, s, notFoundEntity: 'Group');
-    } on HeliumException catch (e, s) {
-      _log.severe('Data source error', e, s);
+    } on HeliumException {
       rethrow;
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
@@ -210,15 +203,11 @@ class CourseRemoteDataSourceImpl extends CourseRemoteDataSource {
         await dioClient.cacheService.invalidateAll();
         return CourseModel.fromJson(response.data);
       } else {
-        throw ServerException(
-          message: 'Failed to update class.',
-          code: response.statusCode.toString(),
-        );
+        throw unexpectedStatus(response, 'Failed to update class.');
       }
     } on DioException catch (e, s) {
       throw handleDioError(e, s, notFoundEntity: 'Class');
-    } on HeliumException catch (e, s) {
-      _log.severe('Data source error', e, s);
+    } on HeliumException {
       rethrow;
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
@@ -239,15 +228,11 @@ class CourseRemoteDataSourceImpl extends CourseRemoteDataSource {
         await dioClient.cacheService.invalidateAll();
         return;
       } else {
-        throw ServerException(
-          message: 'Failed to delete class.',
-          code: response.statusCode.toString(),
-        );
+        throw unexpectedStatus(response, 'Failed to delete class.');
       }
     } on DioException catch (e, s) {
       throw handleDioError(e, s, notFoundEntity: 'Class');
-    } on HeliumException catch (e, s) {
-      _log.severe('Data source error', e, s);
+    } on HeliumException {
       rethrow;
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
@@ -289,15 +274,11 @@ class CourseRemoteDataSourceImpl extends CourseRemoteDataSource {
           );
         }
       } else {
-        throw ServerException(
-          message: 'Failed to fetch groups.',
-          code: response.statusCode.toString(),
-        );
+        throw unexpectedStatus(response, 'Failed to fetch groups.');
       }
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
-    } on HeliumException catch (e, s) {
-      _log.severe('Data source error', e, s);
+    } on HeliumException {
       rethrow;
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
@@ -318,15 +299,11 @@ class CourseRemoteDataSourceImpl extends CourseRemoteDataSource {
         _log.info('... CourseGroup $id fetched');
         return CourseGroupModel.fromJson(response.data);
       } else {
-        throw ServerException(
-          message: 'Failed to fetch group.',
-          code: response.statusCode.toString(),
-        );
+        throw unexpectedStatus(response, 'Failed to fetch group.');
       }
     } on DioException catch (e, s) {
       throw handleDioError(e, s, notFoundEntity: 'Group');
-    } on HeliumException catch (e, s) {
-      _log.severe('Data source error', e, s);
+    } on HeliumException {
       rethrow;
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
@@ -358,15 +335,11 @@ class CourseRemoteDataSourceImpl extends CourseRemoteDataSource {
         ));
         return group;
       } else {
-        throw ServerException(
-          message: 'Failed to create group.',
-          code: response.statusCode.toString(),
-        );
+        throw unexpectedStatus(response, 'Failed to create group.');
       }
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
-    } on HeliumException catch (e, s) {
-      _log.severe('Data source error', e, s);
+    } on HeliumException {
       rethrow;
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
@@ -391,15 +364,11 @@ class CourseRemoteDataSourceImpl extends CourseRemoteDataSource {
         await dioClient.cacheService.invalidateAll();
         return CourseGroupModel.fromJson(response.data);
       } else {
-        throw ServerException(
-          message: 'Failed to update group.',
-          code: response.statusCode.toString(),
-        );
+        throw unexpectedStatus(response, 'Failed to update group.');
       }
     } on DioException catch (e, s) {
       throw handleDioError(e, s, notFoundEntity: 'Group');
-    } on HeliumException catch (e, s) {
-      _log.severe('Data source error', e, s);
+    } on HeliumException {
       rethrow;
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
@@ -420,15 +389,11 @@ class CourseRemoteDataSourceImpl extends CourseRemoteDataSource {
         await dioClient.cacheService.invalidateAll();
         return;
       } else {
-        throw ServerException(
-          message: 'Failed to delete group.',
-          code: response.statusCode.toString(),
-        );
+        throw unexpectedStatus(response, 'Failed to delete group.');
       }
     } on DioException catch (e, s) {
       throw handleDioError(e, s, notFoundEntity: 'Group');
-    } on HeliumException catch (e, s) {
-      _log.severe('Data source error', e, s);
+    } on HeliumException {
       rethrow;
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
@@ -455,15 +420,11 @@ class CourseRemoteDataSourceImpl extends CourseRemoteDataSource {
         await dioClient.cacheService.invalidateAll();
         return CourseModel.fromJson(response.data);
       } else {
-        throw ServerException(
-          message: 'Failed to update exceptions.',
-          code: response.statusCode.toString(),
-        );
+        throw unexpectedStatus(response, 'Failed to update exceptions.');
       }
     } on DioException catch (e, s) {
       throw handleDioError(e, s, notFoundEntity: 'Class');
-    } on HeliumException catch (e, s) {
-      _log.severe('Data source error', e, s);
+    } on HeliumException {
       rethrow;
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
@@ -488,15 +449,11 @@ class CourseRemoteDataSourceImpl extends CourseRemoteDataSource {
         _log.info('... exceptions for CourseGroup $groupId updated');
         await dioClient.cacheService.invalidateAll();
       } else {
-        throw ServerException(
-          message: 'Failed to update group exceptions.',
-          code: response.statusCode.toString(),
-        );
+        throw unexpectedStatus(response, 'Failed to update group exceptions.');
       }
     } on DioException catch (e, s) {
       throw handleDioError(e, s, notFoundEntity: 'Group');
-    } on HeliumException catch (e, s) {
-      _log.severe('Data source error', e, s);
+    } on HeliumException {
       rethrow;
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);

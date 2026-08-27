@@ -2,7 +2,6 @@ import 'package:heliumapp/data/models/planner/attachment_model.dart';
 import 'package:heliumapp/data/models/planner/category_model.dart';
 import 'package:heliumapp/data/models/planner/course_group_model.dart';
 import 'package:heliumapp/data/models/planner/course_model.dart';
-import 'package:heliumapp/data/models/planner/course_schedule_event_model.dart';
 import 'package:heliumapp/data/models/planner/course_schedule_model.dart';
 import 'package:heliumapp/data/models/planner/reminder_model.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/core/base_state.dart';
@@ -58,14 +57,44 @@ class CoursesScreenDataFetched extends CourseState {
   });
 }
 
-class CourseScreenDataFetched extends CourseState {
+mixin CourseScreenDataIdentity {
+  int get courseGroupId;
+
+  int? get courseId;
+
+  bool matches({required int courseGroupId, int? courseId}) =>
+      this.courseGroupId == courseGroupId && this.courseId == courseId;
+}
+
+class CourseScreenDataFailed extends CoursesError
+    with CourseScreenDataIdentity {
+  @override
+  final int courseGroupId;
+  @override
+  final int? courseId;
+
+  CourseScreenDataFailed({
+    required super.origin,
+    required super.message,
+    required this.courseGroupId,
+    this.courseId,
+  });
+}
+
+class CourseScreenDataFetched extends CourseState with CourseScreenDataIdentity {
   final CourseGroupModel courseGroup;
   final CourseModel? course;
+  @override
+  final int courseGroupId;
+  @override
+  final int? courseId;
 
   CourseScreenDataFetched({
     required super.origin,
     required this.courseGroup,
+    required this.courseGroupId,
     this.course,
+    this.courseId,
   });
 }
 
@@ -117,12 +146,6 @@ class CourseDeleted extends CourseState {
   final int id;
 
   CourseDeleted({required super.origin, required this.id});
-}
-
-class CourseScheduleEventsFetched extends CourseState {
-  final List<CourseScheduleEventModel> events;
-
-  CourseScheduleEventsFetched({required super.origin, required this.events});
 }
 
 class CourseScheduleUpdated extends CourseState {

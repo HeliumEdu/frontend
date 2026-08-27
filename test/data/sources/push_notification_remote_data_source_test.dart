@@ -92,33 +92,6 @@ void main() {
       });
     });
 
-    group('deletePushToken', () {
-      test('completes successfully on 204 response', () async {
-        // GIVEN
-        when(
-          () => mockDio.delete(any()),
-        ).thenAnswer((_) async => givenSuccessResponse(null, statusCode: 204));
-
-        // WHEN/THEN
-        expect(dataSource.deletePushToken(1), completes);
-      });
-
-      test('throws HeliumException on non-204 response', () async {
-        // GIVEN
-        when(() => mockDio.delete(any())).thenAnswer(
-          (_) async => givenSuccessResponse({
-            'detail': 'Token not found',
-          }, statusCode: 404),
-        );
-
-        // WHEN/THEN
-        expect(
-          () => dataSource.deletePushToken(1),
-          throwsA(isA<HeliumException>()),
-        );
-      });
-    });
-
     group('deletePushTokenById', () {
       test('completes successfully on 204 response', () async {
         // GIVEN

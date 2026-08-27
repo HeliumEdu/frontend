@@ -453,7 +453,11 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
               }
               _handleAutoSaveError('Manual save failed');
             }
-          } else if (state is NoteScreenDataFetched) {
+          } else if (state is NoteScreenDataFailed &&
+              _isOwnScreenDataRequest(state)) {
+            setState(() => isLoading = false);
+          } else if (state is NoteScreenDataFetched &&
+              _isOwnScreenDataRequest(state)) {
             setState(() {
               _linkedEntityType = state.linkedEntityType;
               _linkedEntityTitle = state.linkedEntityTitle;
@@ -701,6 +705,13 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
       _onContentChanged();
     });
   }
+
+  bool _isOwnScreenDataRequest(NoteScreenDataIdentity state) => state.matches(
+        noteId: widget.noteId,
+        linkHomeworkId: widget.linkHomeworkId,
+        linkEventId: widget.linkEventId,
+        linkResourceId: widget.linkResourceId,
+      );
 
   void _populateNoteData(NoteModel note) {
     _note = note;

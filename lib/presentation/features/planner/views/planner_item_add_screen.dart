@@ -190,7 +190,7 @@ class _PlannerItemAddScreenState
     DirtyDialogRegistry.register(
       prefix: prefix,
       fullPath: fullPath,
-      isDirty: () => isDirty,
+      isDirty: () => isDirty || deferDismissal,
     );
     _registeredPrefix = prefix;
   }
@@ -295,6 +295,10 @@ class _PlannerItemAddScreenState
 
   @override
   IconData? get icon => _currentIsEvent == null ? null : Icons.calendar_month;
+
+  @override
+  bool get deferDismissal =>
+      _attachmentsKey.currentState?.isSubmitting ?? false;
 
   @override
   bool get isDirty {
@@ -583,6 +587,7 @@ class _PlannerItemAddScreenState
         entityId: _currentEntityId!,
         isEdit: widget.isEdit || _currentEntityId != null,
         userSettings: userSettings,
+        onUploadsSettled: resumeDeferredDismissal,
       ),
     ),
   ];
