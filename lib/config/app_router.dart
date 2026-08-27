@@ -49,7 +49,7 @@ void initializeRouter() {
     navigatorKey: rootNavigatorKey,
     initialLocation: AppRoute.landingScreen,
     redirect: _authRedirect,
-    observers: [AnalyticsService().observer],
+    observers: [AnalyticsService().observer, SentryNavigatorObserver()],
     errorBuilder: (context, state) =>
         const _RouteRedirect(redirectTo: AppRoute.plannerScreen),
     routes: [

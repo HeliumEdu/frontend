@@ -2,6 +2,7 @@ import 'dart:io' show Platform;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/widgets.dart';
 import 'package:logging/logging.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
@@ -39,17 +40,31 @@ class SentryService {
 
   bool get isEnabled => !kDebugMode && !kProfileMode;
 
-  Future<void> init() async {
-    if (!isEnabled) return;
+  /// Initializes Sentry, then runs [appRunner] under it.
+  ///
+  /// [appRunner] must be the app's only entry point — on web the SDK guards it
+  /// with `runZonedGuarded`, which it can only install around a runner it owns —
+  /// and is responsible for initializing the Flutter binding.
+  Future<void> run(AppRunner appRunner) async {
+    if (!isEnabled) {
+      await appRunner();
+      return;
+    }
+
+    // The test farm channel and PackageInfo below both need a binding. Web
+    // needs neither, and initializing there would take the zone from the SDK.
+    if (!kIsWeb) {
+      WidgetsFlutterBinding.ensureInitialized();
+    }
 
     // Skip Sentry entirely on Google Play pre-launch test farm devices.
     // Native crashes bypass Dart-level filters (sent via captureEnvelope),
     // so we must prevent initialization at the source.
     if (await _isTestFarmDevice()) {
       _log.info('Skipping Sentry initialization (test farm device)');
+      await appRunner();
       return;
     }
-
 
     const environment = String.fromEnvironment('SENTRY_ENVIRONMENT');
     String release = const String.fromEnvironment('RELEASE_VERSION');
@@ -80,8 +95,6 @@ class SentryService {
       options.enableLogs = true;
       options.maxBreadcrumbs = 200;
       options.tracesSampleRate = 0.1;
-      // ignore: experimental_member_use
-      options.profilesSampleRate = 0.1;
       options.enableAutoPerformanceTracing = true;
       options.enableUserInteractionTracing = true;
 
@@ -119,7 +132,7 @@ class SentryService {
       ];
 
       options.beforeSend = _beforeSend;
-    });
+    }, appRunner: appRunner);
 
     _log.info('Sentry initialized successfully');
   }
