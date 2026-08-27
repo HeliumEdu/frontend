@@ -14,6 +14,8 @@ import 'package:heliumapp/core/feedback_service.dart';
 import 'package:heliumapp/core/log_service.dart';
 import 'package:heliumapp/core/motion_service.dart';
 import 'package:heliumapp/core/sentry_service.dart';
+import 'package:heliumapp/core/system_proxy_io.dart'
+    if (dart.library.js_interop) 'package:heliumapp/core/system_proxy_stub.dart';
 import 'package:heliumapp/firebase_environment.dart';
 import 'package:heliumapp/helium_app.dart';
 import 'package:heliumapp/utils/web_helpers_stub.dart'
@@ -55,6 +57,8 @@ Future<void> _bootstrap() async {
   GoogleFonts.config.allowRuntimeFetching = false;
 
   tz.initializeTimeZones();
+
+  await refreshSystemProxy();
 
   try {
     await Firebase.initializeApp(options: firebaseOptionsWithOverrides());

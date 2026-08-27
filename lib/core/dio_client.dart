@@ -17,6 +17,8 @@ import 'package:heliumapp/config/theme_notifier.dart';
 import 'package:heliumapp/core/analytics_service.dart';
 import 'package:heliumapp/core/api_url.dart';
 import 'package:heliumapp/core/cache_service.dart';
+import 'package:heliumapp/core/system_proxy_io.dart'
+    if (dart.library.js_interop) 'package:heliumapp/core/system_proxy_stub.dart';
 import 'package:heliumapp/core/retry_evaluator.dart';
 import 'package:heliumapp/core/sentry_service.dart';
 import 'package:heliumapp/data/models/auth/request/refresh_token_request_model.dart';
@@ -319,8 +321,11 @@ class DioClient {
       ),
     );
 
+    applySystemProxy(_dio);
+
     _cacheService = CacheService();
     _cacheService.onInactivityResume = () => fetchSettings();
+    _cacheService.addQuickResumeListener(refreshSystemProxy);
     _dio.interceptors.add(_cacheService.interceptor);
     _dio.interceptors.add(_cacheService.loggingInterceptor);
 
