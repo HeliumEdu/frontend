@@ -109,15 +109,26 @@ class CourseBloc extends Bloc<CourseEvent, CourseState> {
           origin: event.origin,
           courseGroup: courseGroup,
           course: course,
+          courseGroupId: event.courseGroupId,
+          courseId: event.courseId,
         ),
       );
     } on HeliumException catch (e) {
-      emit(CoursesError(origin: event.origin, message: e.message));
+      emit(
+        CourseScreenDataFailed(
+          origin: event.origin,
+          message: e.message,
+          courseGroupId: event.courseGroupId,
+          courseId: event.courseId,
+        ),
+      );
     } catch (e) {
       emit(
-        CoursesError(
+        CourseScreenDataFailed(
           origin: event.origin,
           message: HeliumException.unexpectedError,
+          courseGroupId: event.courseGroupId,
+          courseId: event.courseId,
         ),
       );
     }

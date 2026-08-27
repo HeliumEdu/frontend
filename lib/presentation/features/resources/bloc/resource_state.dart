@@ -55,7 +55,36 @@ class ResourcesScreenDataFetched extends ResourceState {
   });
 }
 
-class ResourceScreenDataFetched extends ResourceState {
+mixin ResourceScreenDataIdentity {
+  int? get resourceGroupId;
+
+  int? get resourceId;
+
+  bool matches({int? resourceGroupId, int? resourceId}) =>
+      this.resourceGroupId == resourceGroupId && this.resourceId == resourceId;
+}
+
+class ResourceScreenDataFailed extends ResourcesError
+    with ResourceScreenDataIdentity {
+  @override
+  final int? resourceGroupId;
+  @override
+  final int? resourceId;
+
+  ResourceScreenDataFailed({
+    required super.origin,
+    required super.message,
+    this.resourceGroupId,
+    this.resourceId,
+  });
+}
+
+class ResourceScreenDataFetched extends ResourceState
+    with ResourceScreenDataIdentity {
+  @override
+  final int? resourceGroupId;
+  @override
+  final int? resourceId;
   final ResourceModel? resource;
   final List<CourseModel> courses;
   final List<ResourceGroupModel> resourceGroups;
@@ -64,6 +93,8 @@ class ResourceScreenDataFetched extends ResourceState {
   ResourceScreenDataFetched({
     required super.origin,
     required this.resource,
+    this.resourceGroupId,
+    this.resourceId,
     required this.courses,
     required this.resourceGroups,
     this.linkedNote,

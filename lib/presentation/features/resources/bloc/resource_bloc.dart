@@ -109,18 +109,29 @@ class ResourceBloc extends Bloc<ResourceEvent, ResourceState> {
         ResourceScreenDataFetched(
           origin: event.origin,
           resource: resource,
+          resourceGroupId: event.resourceGroupId,
+          resourceId: event.resourceId,
           courses: courses,
           resourceGroups: resourceGroups,
           linkedNote: linkedNote,
         ),
       );
     } on HeliumException catch (e) {
-      emit(ResourcesError(origin: event.origin, message: e.message));
+      emit(
+        ResourceScreenDataFailed(
+          origin: event.origin,
+          message: e.message,
+          resourceGroupId: event.resourceGroupId,
+          resourceId: event.resourceId,
+        ),
+      );
     } catch (e) {
       emit(
-        ResourcesError(
+        ResourceScreenDataFailed(
           origin: event.origin,
           message: HeliumException.unexpectedError,
+          resourceGroupId: event.resourceGroupId,
+          resourceId: event.resourceId,
         ),
       );
     }

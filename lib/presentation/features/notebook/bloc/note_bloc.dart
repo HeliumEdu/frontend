@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:bloc/bloc.dart';
 import 'package:heliumapp/core/helium_exception.dart';
 import 'package:heliumapp/data/models/id_or_entity.dart';
@@ -114,8 +115,8 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
           id: event.noteId!,
           forceRefresh: true,
         );
-        emit(NoteScreenDataFetched(
-          origin: event.origin,
+        emit(_screenData(
+          event,
           note: note,
           linkedEntityType: note.linkedEntityType.isEmpty ? null : note.linkedEntityType,
           linkedEntityTitle: note.linkedEntityTitle,
@@ -135,8 +136,8 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
           (c) => c?.id == homework.course.id,
           orElse: () => null,
         );
-        emit(NoteScreenDataFetched(
-          origin: event.origin,
+        emit(_screenData(
+          event,
           linkedEntityType: 'homework',
           linkedEntityTitle: homework.title,
           linkedEntityColor: course?.color,
@@ -147,8 +148,8 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
 
       if (event.linkEventId != null) {
         final entity = await eventRepository.getEvent(id: event.linkEventId!);
-        emit(NoteScreenDataFetched(
-          origin: event.origin,
+        emit(_screenData(
+          event,
           linkedEntityType: 'event',
           linkedEntityTitle: entity.title,
         ));
@@ -160,8 +161,8 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
           id: event.linkResourceId!,
         );
         if (resources.isNotEmpty) {
-          emit(NoteScreenDataFetched(
-            origin: event.origin,
+          emit(_screenData(
+            event,
             linkedEntityType: 'resource',
             linkedEntityTitle: resources.first.title,
           ));
@@ -169,16 +170,45 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
         }
       }
 
-      emit(NoteScreenDataFetched(origin: event.origin));
+      emit(_screenData(event));
     } on HeliumException catch (e) {
-      emit(NotesError(origin: event.origin, message: e.message));
+      emit(_screenDataFailed(event, e.message));
     } catch (e) {
-      emit(NotesError(
-        origin: event.origin,
-        message: HeliumException.unexpectedError,
-      ));
+      emit(_screenDataFailed(event, HeliumException.unexpectedError));
     }
   }
+
+  NoteScreenDataFetched _screenData(
+    FetchNoteScreenDataEvent event, {
+    NoteModel? note,
+    String? linkedEntityType,
+    String? linkedEntityTitle,
+    Color? linkedEntityColor,
+    bool? linkedEntityCompleted,
+  }) => NoteScreenDataFetched(
+    origin: event.origin,
+    note: note,
+    linkedEntityType: linkedEntityType,
+    linkedEntityTitle: linkedEntityTitle,
+    linkedEntityColor: linkedEntityColor,
+    linkedEntityCompleted: linkedEntityCompleted,
+    noteId: event.noteId,
+    linkHomeworkId: event.linkHomeworkId,
+    linkEventId: event.linkEventId,
+    linkResourceId: event.linkResourceId,
+  );
+
+  NoteScreenDataFailed _screenDataFailed(
+    FetchNoteScreenDataEvent event,
+    String? message,
+  ) => NoteScreenDataFailed(
+    origin: event.origin,
+    message: message,
+    noteId: event.noteId,
+    linkHomeworkId: event.linkHomeworkId,
+    linkEventId: event.linkEventId,
+    linkResourceId: event.linkResourceId,
+  );
 
 
 

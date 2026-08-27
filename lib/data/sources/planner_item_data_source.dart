@@ -67,7 +67,8 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
   final Map<int, PlannerItemTimeOverride> _timeOverrides = {};
   bool _isMonthView = false;
   Timer? _filterDebounceTimer;
-  bool _isFilteringInProgress = false;
+  bool _filterRerunRequested = false;
+  Future<void>? _filterPass;
   Completer<void>? _filterCompleter;
   bool _isRefreshing = false;
   // SfCalendar has two independent notification channels that must both be
@@ -1252,15 +1253,25 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
     if (_filterCompleter != null && !_filterCompleter!.isCompleted) {
       await _applyFiltersAsync();
     }
+    await _filterPass;
   }
 
   /// [showOverlay] drives the screen's full-area refresh scrim via
   /// [isRefreshing]. It's suppressed when called from [handleLoadMore], where
   /// SfCalendar already shows its own built-in loader — avoiding two
   /// overlapping spinners on calendar-driven loads.
-  Future<void> _applyFiltersAsync({bool showOverlay = true}) async {
-    if (_isFilteringInProgress) return;
-    _isFilteringInProgress = true;
+  Future<void> _applyFiltersAsync({bool showOverlay = true}) {
+    final active = _filterPass;
+    if (active != null) {
+      _filterRerunRequested = true;
+      return active;
+    }
+    final pass = _runFilterPass(showOverlay: showOverlay);
+    _filterPass = pass;
+    return pass;
+  }
+
+  Future<void> _runFilterPass({required bool showOverlay}) async {
     if (showOverlay) _isRefreshing = true;
     // Defer notification to avoid triggering rebuild during build phase
     // (handleLoadMore can be called during SfCalendar's layout)
@@ -1309,8 +1320,14 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
       completer?.completeError(e);
       rethrow;
     } finally {
-      _isFilteringInProgress = false;
       if (showOverlay) _isRefreshing = false;
+    }
+
+    if (_filterRerunRequested) {
+      _filterRerunRequested = false;
+      await _runFilterPass(showOverlay: showOverlay);
+    } else {
+      _filterPass = null;
     }
   }
 

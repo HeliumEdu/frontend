@@ -147,8 +147,12 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
   Widget build(BuildContext context) {
     return BlocListener<PlannerItemBloc, PlannerItemState>(
       listener: (context, state) {
-        if (state is PlannerItemScreenDataFetched) {
+        if (state is PlannerItemScreenDataFetched &&
+            state.matches(homeworkId: _homeworkId, eventId: _eventId)) {
           _populateInitialPlannerItemStateData(state);
+        } else if (state is PlannerItemScreenDataFailed &&
+            state.matches(homeworkId: _homeworkId, eventId: _eventId)) {
+          setState(() => isLoading = false);
         }
       },
       child: _buildContent(context),

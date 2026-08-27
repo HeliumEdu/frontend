@@ -62,7 +62,32 @@ class PlannerItemsError extends PlannerItemState {
   PlannerItemsError({required super.origin, required super.message});
 }
 
-class PlannerItemScreenDataFetched extends PlannerItemState {
+mixin PlannerItemScreenDataIdentity {
+  int? get homeworkId;
+
+  int? get eventId;
+
+  bool matches({int? homeworkId, int? eventId}) =>
+      this.homeworkId == homeworkId && this.eventId == eventId;
+}
+
+class PlannerItemScreenDataFailed extends PlannerItemsError
+    with PlannerItemScreenDataIdentity {
+  @override
+  final int? homeworkId;
+  @override
+  final int? eventId;
+
+  PlannerItemScreenDataFailed({
+    required super.origin,
+    required super.message,
+    this.homeworkId,
+    this.eventId,
+  });
+}
+
+class PlannerItemScreenDataFetched extends PlannerItemState
+    with PlannerItemScreenDataIdentity {
   final PlannerItemBaseModel? plannerItem;
   final List<CourseGroupModel> courseGroups;
   final List<CourseModel> courses;
@@ -72,10 +97,16 @@ class PlannerItemScreenDataFetched extends PlannerItemState {
   final NoteModel? linkedNote;
 
   final CourseModel? itemCourse;
+  @override
+  final int? homeworkId;
+  @override
+  final int? eventId;
 
   PlannerItemScreenDataFetched({
     required super.origin,
     required this.plannerItem,
+    this.homeworkId,
+    this.eventId,
     required this.courseGroups,
     required this.courses,
     required this.courseSchedules,

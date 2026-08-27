@@ -84,6 +84,7 @@ class DioClient {
           baseUrl: ApiUrl.baseUrl,
           connectTimeout: const Duration(seconds: 30),
           receiveTimeout: const Duration(seconds: 30),
+          sendTimeout: const Duration(seconds: 120),
           headers: {
             'Content-Type': 'application/json',
             'Accept': 'application/json',
@@ -195,7 +196,7 @@ class DioClient {
                 ),
               );
 
-              // Mirror _dio's retry so a transient connection blip self-heals.
+              // Retries only when no response came back; see HeliumRetryEvaluator.
               refreshDio.interceptors.add(
                 RetryInterceptor(
                   dio: refreshDio,

@@ -191,13 +191,14 @@ class _NotificationsScreenState
         listener: (context, state) {
           if (state is RemindersError) {
             setState(() {
-              isLoading = false;
               _isDismissingAll = false;
+              if (state.origin == EventOrigin.screen) isLoading = false;
             });
             if (state.origin != EventOrigin.screen) {
               showSnackBar(context, state.message!, type: SnackType.error);
             }
-          } else if (state is RemindersFetched) {
+          } else if (state is RemindersFetched &&
+              state.origin == EventOrigin.screen) {
             _populateInitialStateData(state);
           } else if (state is ReminderUpdated) {
             final reminder = state.reminder;

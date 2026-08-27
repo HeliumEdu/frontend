@@ -116,6 +116,8 @@ class PlannerItemBloc extends Bloc<PlannerItemEvent, PlannerItemState> {
         PlannerItemScreenDataFetched(
           origin: event.origin,
           plannerItem: plannerItem,
+          homeworkId: event.homeworkId,
+          eventId: event.eventId,
           courseGroups: courseGroups,
           courses: courses,
           courseSchedules: courseSchedules,
@@ -126,12 +128,21 @@ class PlannerItemBloc extends Bloc<PlannerItemEvent, PlannerItemState> {
         ),
       );
     } on HeliumException catch (e) {
-      emit(PlannerItemsError(origin: event.origin, message: e.message));
+      emit(
+        PlannerItemScreenDataFailed(
+          origin: event.origin,
+          message: e.message,
+          homeworkId: event.homeworkId,
+          eventId: event.eventId,
+        ),
+      );
     } catch (e) {
       emit(
-        PlannerItemsError(
+        PlannerItemScreenDataFailed(
           origin: event.origin,
           message: HeliumException.unexpectedError,
+          homeworkId: event.homeworkId,
+          eventId: event.eventId,
         ),
       );
     }
