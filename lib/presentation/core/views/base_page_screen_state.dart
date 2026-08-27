@@ -77,6 +77,7 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
   // user-settings loading and screen-data loading are independent and the
   // latter is what gates UI readiness.
   bool isLoading = true;
+  bool _reloadRequested = false;
   bool isSubmitting = false;
 
   bool get isAuthenticatedScreen => true;
@@ -164,6 +165,7 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
       settingsError = false;
       settingsErrorMessage = null;
       isLoading = true;
+      _reloadRequested = true;
     });
     loadSettings();
   }
@@ -191,6 +193,10 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
               settingsError = true;
               settingsErrorMessage = null;
             }
+            if (_reloadRequested) {
+              _reloadRequested = false;
+              isLoading = false;
+            }
           });
           return settings;
         })
@@ -200,6 +206,10 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
               settingsError = true;
               settingsErrorMessage =
                   error is HeliumException ? error.displayMessage : null;
+              if (_reloadRequested) {
+                _reloadRequested = false;
+                isLoading = false;
+              }
             });
           }
           return null;
