@@ -1,3 +1,4 @@
+import 'package:heliumapp/core/session_health.dart';
 import 'package:logging/logging.dart';
 
 final _log = Logger('utils');
@@ -14,6 +15,8 @@ class ErrorHelpers {
     Object exception,
     StackTrace stackTrace,
   ) {
+    SessionHealth.markTroubled();
+
     _log.severe(message, exception, stackTrace);
   }
 }

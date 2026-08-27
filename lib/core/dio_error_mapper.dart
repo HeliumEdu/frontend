@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:heliumapp/core/api_error_parser.dart';
 import 'package:heliumapp/core/helium_exception.dart';
+import 'package:heliumapp/core/session_health.dart';
 import 'package:logging/logging.dart';
 
 final _log = Logger('core.dio');
@@ -17,6 +18,8 @@ class DioErrorMapper {
     StackTrace s, {
     String? notFoundEntity,
   }) {
+    SessionHealth.markTroubled();
+
     switch (e.type) {
       case DioExceptionType.connectionTimeout:
       case DioExceptionType.sendTimeout:

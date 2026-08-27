@@ -44,9 +44,9 @@ class HeliumRetryEvaluator {
       return false;
     }
 
-    // No route to the host. One retry covers a reset or a network handoff;
-    // beyond that the caller is only kept waiting.
-    if (error.type == DioExceptionType.connectionError && attempt >= 1) {
+    // No route to the host. Two retries cover a reset, a handoff, or a network
+    // that has just come back; beyond that the caller is only kept waiting.
+    if (error.type == DioExceptionType.connectionError && attempt > 2) {
       return false;
     }
 
