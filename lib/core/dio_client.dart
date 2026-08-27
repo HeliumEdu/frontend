@@ -16,6 +16,8 @@ import 'package:heliumapp/config/pref_service.dart';
 import 'package:heliumapp/config/theme_notifier.dart';
 import 'package:heliumapp/core/analytics_service.dart';
 import 'package:heliumapp/core/api_url.dart';
+import 'package:heliumapp/core/dio_error_mapper.dart';
+import 'package:heliumapp/core/helium_exception.dart';
 import 'package:heliumapp/core/cache_service.dart';
 import 'package:heliumapp/core/system_proxy_io.dart'
     if (dart.library.js_interop) 'package:heliumapp/core/system_proxy_stub.dart';
@@ -381,7 +383,12 @@ class DioClient {
     return token?.isNotEmpty ?? false;
   }
 
-  Future<UserSettingsModel?> fetchSettings({bool forceRefresh = false}) async {
+  /// Set [rethrowErrors] to surface a mapped [HeliumException] instead of
+  /// returning null, so callers can show why the fetch failed.
+  Future<UserSettingsModel?> fetchSettings({
+    bool forceRefresh = false,
+    bool rethrowErrors = false,
+  }) async {
     try {
       _log.info('Fetching settings from API ...');
       final response = await _dio.get(
@@ -403,14 +410,18 @@ class DioClient {
         );
         return null;
       }
-    } catch (apiError) {
+    } catch (apiError, stackTrace) {
       _log.severe('Error fetching settings from API: ${apiError.runtimeType}');
+
+      if (rethrowErrors && apiError is DioException) {
+        throw DioErrorMapper.map(apiError, stackTrace);
+      }
 
       return null;
     }
   }
 
-  Future<UserSettingsModel?> getSettings() async {
+  Future<UserSettingsModel?> getSettings({bool rethrowErrors = false}) async {
     await _prefService.init();
 
     try {
@@ -442,7 +453,9 @@ class DioClient {
 
       if (cachedJson.values.any((v) => v == null)) {
         _log.info('Fetching settings from API ...');
-        final fetchedSettings = await fetchSettings();
+        final fetchedSettings = await fetchSettings(
+          rethrowErrors: rethrowErrors,
+        );
         if (fetchedSettings != null) {
           return fetchedSettings;
         }
@@ -451,9 +464,11 @@ class DioClient {
       }
 
       return UserSettingsModel.fromJson(cachedJson);
+    } on HeliumException {
+      rethrow;
     } catch (parseError) {
       _log.info('Failed to parse cached settings: $parseError');
-      return await fetchSettings();
+      return await fetchSettings(rethrowErrors: rethrowErrors);
     }
   }
 

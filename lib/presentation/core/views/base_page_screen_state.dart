@@ -171,7 +171,7 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
   @mustCallSuper
   Future<UserSettingsModel?> loadSettings() {
     return dioClient
-        .getSettings()
+        .getSettings(rethrowErrors: true)
         .then((settings) {
           if (!mounted) return settings;
           setState(() {

@@ -33,47 +33,52 @@ class UpdateRequiredCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final content = Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.system_update,
-            color: context.colorScheme.primary,
-            size: Responsive.getIconSize(
-              context,
-              mobile: 60,
-              tablet: 64,
-              desktop: 68,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppConstants.basicCardInset,
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.system_update,
+              color: context.colorScheme.primary,
+              size: Responsive.getIconSize(
+                context,
+                mobile: 60,
+                tablet: 64,
+                desktop: 68,
+              ),
             ),
-          ),
-          const SizedBox(height: 16),
-          Text(
-            "Time for an update! You'll need the latest version of "
-            '${AppConstants.appName} to keep using it.',
-            textAlign: TextAlign.center,
-            style: AppStyles.headingText(context),
-          ),
-          const SizedBox(height: 16),
-          ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 200),
-            child: HeliumElevatedButton(
-              buttonText: kIsWeb ? 'Reload' : 'Update',
-              icon: kIsWeb ? Icons.refresh : Icons.system_update,
-              onPressed: _update,
+            const SizedBox(height: 16),
+            Text(
+              "Time for an update! You'll need the latest version of "
+              '${AppConstants.appName} to keep using it.',
+              textAlign: TextAlign.center,
+              style: AppStyles.headingText(context),
             ),
-          ),
-          const SizedBox(height: 12),
-          ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 200),
-            child: HeliumElevatedButton(
-              buttonText: 'Support Portal',
-              icon: Icons.menu_book_outlined,
-              backgroundColor: context.colorScheme.onSurfaceVariant,
-              onPressed: () =>
-                  UrlHelpers.launchWebUrl(AppConstants.supportPortalUrl),
+            const SizedBox(height: 16),
+            ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 200),
+              child: HeliumElevatedButton(
+                buttonText: kIsWeb ? 'Reload' : 'Update',
+                icon: kIsWeb ? Icons.refresh : Icons.system_update,
+                onPressed: _update,
+              ),
             ),
-          ),
-        ],
+            const SizedBox(height: 12),
+            ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 200),
+              child: HeliumElevatedButton(
+                buttonText: 'Support Portal',
+                icon: Icons.menu_book_outlined,
+                backgroundColor: context.colorScheme.onSurfaceVariant,
+                onPressed: () =>
+                    UrlHelpers.launchWebUrl(AppConstants.supportPortalUrl),
+              ),
+            ),
+          ],
+        ),
       ),
     );
 

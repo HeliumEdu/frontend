@@ -36,6 +36,7 @@ class AppConstants {
   static const leftPanelDialogWidth = 500.0;
   static const notificationsDialogWidth = 420.0;
   static const centeredDialogWidth = 550.0;
+  static const basicCardInset = 12.0;
 }
 
 class FallbackConstants {
