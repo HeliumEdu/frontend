@@ -40,8 +40,6 @@ class LogService {
         Sentry.captureException(record.error, stackTrace: record.stackTrace);
       case LogSentryAction.captureMessage:
         Sentry.captureMessage(record.message, level: SentryLevel.error);
-      case LogSentryAction.breadcrumb:
-        _addBreadcrumb(record, _breadcrumbLevelFor(record));
       case LogSentryAction.log:
         _sendLog(record);
         _addBreadcrumb(record, _breadcrumbLevelFor(record));
@@ -55,9 +53,9 @@ class LogService {
   @visibleForTesting
   static LogSentryAction classifyRecord(LogRecord record) {
     if (record.level >= Level.SEVERE) {
-      // Mirrors the sentry_service._beforeSend carve-outs, which match on type
-      // names that AOT minifies out of their reach. ServerException and the
-      // HeliumException base stay reportable.
+      // Downgraded by type, which survives AOT minification — sentry_service no
+      // longer carries a peer filter for these, since matching on type names
+      // does not. ServerException and the HeliumException base stay reportable.
       if (record.error is NetworkException ||
           record.error is UnauthorizedException ||
           record.error is NotFoundException ||
@@ -124,12 +122,51 @@ class LogService {
     }
   }
 
-  Map<String, SentryAttribute> _logAttributes(LogRecord record) => {
-    'logger': SentryAttribute.string(record.loggerName),
-    'level': SentryAttribute.string(record.level.name),
-    if (record.error != null)
-      'error_type': SentryAttribute.string(record.error.runtimeType.toString()),
-  };
+  Map<String, SentryAttribute> _logAttributes(LogRecord record) {
+    final tlsFailureReason = tlsFailureReasonOf(record.error);
+
+    return {
+      'logger': SentryAttribute.string(record.loggerName),
+      'level': SentryAttribute.string(record.level.name),
+      if (record.error != null)
+        'error_type': SentryAttribute.string(
+          record.error.runtimeType.toString(),
+        ),
+      if (tlsFailureReason != null)
+        'tls_failure_reason': SentryAttribute.string(tlsFailureReason),
+    };
+  }
+
+  /// Normalized reason a TLS handshake was rejected, so a genuine certificate
+  /// regression stays distinguishable from a network intercepting the
+  /// connection — these never become events, and the reason is absent from the
+  /// log body, so without this they are all one indistinguishable line.
+  ///
+  /// Returns a fixed token, never text from the exception.
+  @visibleForTesting
+  static String? tlsFailureReasonOf(Object? error) {
+    if (error is! DioException || !_isTlsFailure(error)) {
+      return null;
+    }
+
+    final text = '${error.message ?? ''} ${error.error ?? ''}'.toLowerCase();
+    if (text.contains('hostname mismatch')) {
+      return 'hostname_mismatch';
+    }
+    if (text.contains('application verification failure')) {
+      return 'application_verification';
+    }
+    if (text.contains('certificate has expired')) {
+      return 'certificate_expired';
+    }
+    if (text.contains('self signed certificate')) {
+      return 'self_signed';
+    }
+    if (text.contains('unable to get local issuer')) {
+      return 'unknown_issuer';
+    }
+    return 'other';
+  }
 
   void _addBreadcrumb(LogRecord record, SentryLevel level) {
     Sentry.addBreadcrumb(
@@ -150,9 +187,6 @@ enum LogSentryAction {
 
   /// Captured as an error-level message event (no attached error).
   captureMessage,
-
-  /// Attached as a breadcrumb (not its own event).
-  breadcrumb,
 
   /// Sent to Sentry Logs *and* kept as a breadcrumb — queryable later, without
   /// raising an issue.

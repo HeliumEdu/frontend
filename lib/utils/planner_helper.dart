@@ -59,10 +59,6 @@ class PlannerHelper {
       msg,
       Exception(msg),
       StackTrace.current,
-      hints: {
-        'reminder_id': reminderId,
-        '${entityType.toLowerCase()}_id': entityId,
-      },
     );
   }
 

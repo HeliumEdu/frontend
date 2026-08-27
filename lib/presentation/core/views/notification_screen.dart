@@ -366,7 +366,6 @@ class _NotificationsScreenState
         'Skipping reminder ${r.id} with null startOfRange',
         Exception('Reminder ${r.id} has null startOfRange'),
         StackTrace.current,
-        hints: {'reminder_id': r.id},
       );
     }
     reminders.removeWhere((r) => r.startOfRange == null);
@@ -382,7 +381,6 @@ class _NotificationsScreenState
           'Failed to map reminder ${r.id} to notification',
           e,
           st,
-          hints: {'reminder_id': r.id},
         );
       }
     }

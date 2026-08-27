@@ -83,15 +83,11 @@ class EventRemoteDataSourceImpl extends EventRemoteDataSource {
           );
         }
       } else {
-        throw ServerException(
-          message: 'Failed to fetch events: ${response.statusCode}.',
-          code: response.statusCode.toString(),
-        );
+        throw unexpectedStatus(response, 'Failed to fetch events: ${response.statusCode}.');
       }
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
-    } on HeliumException catch (e, s) {
-      _log.severe('Data source error', e, s);
+    } on HeliumException {
       rethrow;
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
@@ -123,8 +119,7 @@ class EventRemoteDataSourceImpl extends EventRemoteDataSource {
       }
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
-    } on HeliumException catch (e, s) {
-      _log.severe('Data source error', e, s);
+    } on HeliumException {
       rethrow;
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
@@ -154,8 +149,7 @@ class EventRemoteDataSourceImpl extends EventRemoteDataSource {
       }
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
-    } on HeliumException catch (e, s) {
-      _log.severe('Data source error', e, s);
+    } on HeliumException {
       rethrow;
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
@@ -184,8 +178,7 @@ class EventRemoteDataSourceImpl extends EventRemoteDataSource {
       }
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
-    } on HeliumException catch (e, s) {
-      _log.severe('Data source error', e, s);
+    } on HeliumException {
       rethrow;
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
@@ -216,8 +209,7 @@ class EventRemoteDataSourceImpl extends EventRemoteDataSource {
       }
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
-    } on HeliumException catch (e, s) {
-      _log.severe('Data source error', e, s);
+    } on HeliumException {
       rethrow;
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
@@ -243,8 +235,7 @@ class EventRemoteDataSourceImpl extends EventRemoteDataSource {
       }
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
-    } on HeliumException catch (e, s) {
-      _log.severe('Data source error', e, s);
+    } on HeliumException {
       rethrow;
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
@@ -270,8 +261,7 @@ class EventRemoteDataSourceImpl extends EventRemoteDataSource {
       }
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
-    } on HeliumException catch (e, s) {
-      _log.severe('Data source error', e, s);
+    } on HeliumException {
       rethrow;
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);

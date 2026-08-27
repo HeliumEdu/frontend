@@ -48,13 +48,9 @@ class AnalyticsService {
   Future<void> init() async {
     if (_isInitialized || !isEnabled) return;
 
-    try {
-      await analytics.setAnalyticsCollectionEnabled(true);
-      _isInitialized = true;
-      _log.info('Analytics initialized successfully');
-    } catch (_) {
-      rethrow;
-    }
+    await analytics.setAnalyticsCollectionEnabled(true);
+    _isInitialized = true;
+    _log.info('Analytics initialized successfully');
   }
 
   Future<void> logScreenView({required String screenName}) async {

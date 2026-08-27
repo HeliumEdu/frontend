@@ -30,15 +30,11 @@ class InfoRemoteDataSourceImpl extends InfoRemoteDataSource {
         _log.info('... fetched /info/');
         return InfoModel.fromJson(response.data);
       } else {
-        throw ServerException(
-          message: 'Failed to fetch /info/.',
-          code: response.statusCode.toString(),
-        );
+        throw unexpectedStatus(response, 'Failed to fetch /info/.');
       }
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
-    } on HeliumException catch (e, s) {
-      _log.severe('Data source error', e, s);
+    } on HeliumException {
       rethrow;
     } catch (e, s) {
       _log.severe('An unexpected error occurred fetching /info/', e, s);

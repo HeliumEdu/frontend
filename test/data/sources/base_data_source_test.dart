@@ -343,7 +343,7 @@ void main() {
       });
 
       group('cancel errors', () {
-        test('returns NetworkException for cancelled request', () {
+        test('falls through to the generic network error', () {
           // GIVEN
           final error = givenDioException(type: DioExceptionType.cancel);
 
@@ -352,7 +352,7 @@ void main() {
 
           // THEN
           expect(result, isA<NetworkException>());
-          expect(result.code, equals('CANCELLED'));
+          expect(result.code, equals('NETWORK_ERROR'));
           expect(result.message, contains('Reload'));
         });
       });

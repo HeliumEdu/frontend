@@ -11,7 +11,6 @@ final _log = Logger('data.sources');
 
 abstract class CourseScheduleRemoteDataSource extends BaseDataSource {
   Future<List<CourseScheduleModel>> getCourseSchedules({
-    bool? shownOnCalendar,
     bool forceRefresh = false,
   });
 
@@ -51,16 +50,10 @@ class CourseScheduleRemoteDataSourceImpl
 
   @override
   Future<List<CourseScheduleModel>> getCourseSchedules({
-    bool? shownOnCalendar,
     bool forceRefresh = false,
   }) async {
     try {
       _log.info('Fetching CourseSchedules ...');
-
-      final Map<String, dynamic> queryParameters = {};
-      if (shownOnCalendar != null) {
-        queryParameters['shown_on_calendar'] = shownOnCalendar;
-      }
 
       final response = await dioClient.dio.get(
         ApiUrl.plannerCourseSchedulesUrl,
@@ -81,15 +74,11 @@ class CourseScheduleRemoteDataSourceImpl
           );
         }
       } else {
-        throw ServerException(
-          message: 'Failed to fetch schedules.',
-          code: response.statusCode.toString(),
-        );
+        throw unexpectedStatus(response, 'Failed to fetch schedules.');
       }
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
-    } on HeliumException catch (e, s) {
-      _log.severe('Data source error', e, s);
+    } on HeliumException {
       rethrow;
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
@@ -131,15 +120,11 @@ class CourseScheduleRemoteDataSourceImpl
         );
         return CourseScheduleModel.fromJson(response.data);
       } else {
-        throw ServerException(
-          message: 'Failed to fetch schedule details.',
-          code: response.statusCode.toString(),
-        );
+        throw unexpectedStatus(response, 'Failed to fetch schedule details.');
       }
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
-    } on HeliumException catch (e, s) {
-      _log.severe('Data source error', e, s);
+    } on HeliumException {
       rethrow;
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
@@ -168,15 +153,11 @@ class CourseScheduleRemoteDataSourceImpl
         await dioClient.cacheService.invalidateAll();
         return schedule;
       } else {
-        throw ServerException(
-          message: 'Failed to create class schedule.',
-          code: response.statusCode.toString(),
-        );
+        throw unexpectedStatus(response, 'Failed to create class schedule.');
       }
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
-    } on HeliumException catch (e, s) {
-      _log.severe('Data source error', e, s);
+    } on HeliumException {
       rethrow;
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
@@ -208,15 +189,11 @@ class CourseScheduleRemoteDataSourceImpl
         await dioClient.cacheService.invalidateAll();
         return CourseScheduleModel.fromJson(response.data);
       } else {
-        throw ServerException(
-          message: 'Failed to update class schedule.',
-          code: response.statusCode.toString(),
-        );
+        throw unexpectedStatus(response, 'Failed to update class schedule.');
       }
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
-    } on HeliumException catch (e, s) {
-      _log.severe('Data source error', e, s);
+    } on HeliumException {
       rethrow;
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
@@ -249,15 +226,11 @@ class CourseScheduleRemoteDataSourceImpl
         );
         return schedules;
       } else {
-        throw ServerException(
-          message: 'Failed to fetch schedules.',
-          code: response.statusCode.toString(),
-        );
+        throw unexpectedStatus(response, 'Failed to fetch schedules.');
       }
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
-    } on HeliumException catch (e, s) {
-      _log.severe('Data source error', e, s);
+    } on HeliumException {
       rethrow;
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
@@ -286,15 +259,11 @@ class CourseScheduleRemoteDataSourceImpl
         _log.info('... CourseSchedule $scheduleId deleted');
         await dioClient.cacheService.invalidateAll();
       } else {
-        throw ServerException(
-          message: 'Failed to delete class schedule.',
-          code: response.statusCode.toString(),
-        );
+        throw unexpectedStatus(response, 'Failed to delete class schedule.');
       }
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
-    } on HeliumException catch (e, s) {
-      _log.severe('Data source error', e, s);
+    } on HeliumException {
       rethrow;
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);

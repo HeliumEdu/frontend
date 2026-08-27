@@ -2,7 +2,6 @@ import 'package:heliumapp/data/models/planner/attachment_model.dart';
 import 'package:heliumapp/data/models/planner/category_model.dart';
 import 'package:heliumapp/data/models/planner/course_group_model.dart';
 import 'package:heliumapp/data/models/planner/course_model.dart';
-import 'package:heliumapp/data/models/planner/course_schedule_event_model.dart';
 import 'package:heliumapp/data/models/planner/course_schedule_model.dart';
 import 'package:heliumapp/data/models/planner/reminder_model.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/core/base_state.dart';
@@ -117,12 +116,6 @@ class CourseDeleted extends CourseState {
   final int id;
 
   CourseDeleted({required super.origin, required this.id});
-}
-
-class CourseScheduleEventsFetched extends CourseState {
-  final List<CourseScheduleEventModel> events;
-
-  CourseScheduleEventsFetched({required super.origin, required this.events});
 }
 
 class CourseScheduleUpdated extends CourseState {

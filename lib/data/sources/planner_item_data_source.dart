@@ -707,9 +707,6 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
             courses: courses ?? [],
             from: startDate,
             to: endDate,
-            courseGroupsById: courseGroupsById,
-            shownOnCalendar: true,
-            forceRefresh: forceRefresh,
           ),
           externalCalendarRepository.getExternalCalendarEvents(
             from: startDate,

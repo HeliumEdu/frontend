@@ -17,8 +17,6 @@ class ParsedApiError {
 
   bool get hasFieldErrors => fieldErrors.isNotEmpty;
 
-  bool get hasErrors => fieldErrors.isNotEmpty || generalErrors.isNotEmpty;
-
   /// Get the first error for a specific field, or null if none
   String? getFieldError(String fieldName) {
     final errors = fieldErrors[fieldName];
@@ -37,45 +35,18 @@ class ApiErrorParser {
   /// - A Map with field names as keys and error messages as values
   /// - A List of error strings
   /// - A String error message
-  ///
-  /// The [rawMessage] is the pre-formatted error message (e.g., "email: error\npassword: error")
-  static ParsedApiError parse(dynamic responseData, [String? rawMessage]) {
+  static ParsedApiError parse(dynamic responseData) {
     final fieldErrors = <String, List<String>>{};
     final generalErrors = <String>[];
     final displayMessages = <String>[];
 
     if (responseData is Map<String, dynamic>) {
-      _parseMap(responseData, fieldErrors, generalErrors, displayMessages);
+      _parseMap(responseData, fieldErrors, displayMessages);
     } else if (responseData is List) {
       _parseList(responseData, fieldErrors, generalErrors, displayMessages);
     } else if (responseData is String) {
       _parseRawMessage(responseData, fieldErrors, generalErrors, displayMessages);
-    } else if (rawMessage != null) {
-      // Fall back to parsing the raw message if responseData is unusable
-      _parseRawMessage(rawMessage, fieldErrors, generalErrors, displayMessages);
     }
-
-    // If nothing was parsed, use the raw message as a general error
-    if (fieldErrors.isEmpty && generalErrors.isEmpty && rawMessage != null) {
-      generalErrors.add(rawMessage);
-      displayMessages.add(rawMessage);
-    }
-
-    return ParsedApiError(
-      fieldErrors: fieldErrors,
-      generalErrors: generalErrors,
-      displayMessage: displayMessages.join('\n'),
-    );
-  }
-
-  /// Parses a pre-formatted error string (e.g., "field: message\nfield2: message2")
-  /// into a structured [ParsedApiError].
-  static ParsedApiError parseFromMessage(String message) {
-    final fieldErrors = <String, List<String>>{};
-    final generalErrors = <String>[];
-    final displayMessages = <String>[];
-
-    _parseRawMessage(message, fieldErrors, generalErrors, displayMessages);
 
     return ParsedApiError(
       fieldErrors: fieldErrors,
@@ -87,7 +58,6 @@ class ApiErrorParser {
   static void _parseMap(
     Map<String, dynamic> data,
     Map<String, List<String>> fieldErrors,
-    List<String> generalErrors,
     List<String> displayMessages,
   ) {
     data.forEach((key, value) {
@@ -133,7 +103,7 @@ class ApiErrorParser {
   ) {
     for (final item in data) {
       if (item is Map<String, dynamic>) {
-        _parseMap(item, fieldErrors, generalErrors, displayMessages);
+        _parseMap(item, fieldErrors, displayMessages);
       } else if (item is String) {
         final match = _fieldPrefixPattern.firstMatch(item.trim());
         if (match != null) {

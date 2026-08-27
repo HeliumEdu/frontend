@@ -423,7 +423,6 @@ class _ResourcesScreenState
         'Failed to render resource card ${resource.id}',
         e,
         st,
-        hints: {'resource_id': resource.id},
       );
       return const SizedBox.shrink();
     }

@@ -94,7 +94,6 @@ void main() {
           ).thenAnswer((_) async => MockModels.createCourses());
           when(
             () => mockCourseScheduleRepository.getCourseSchedules(
-              shownOnCalendar: true,
             ),
           ).thenAnswer((_) async => [MockModels.createCourseSchedule()]);
           when(
@@ -138,7 +137,6 @@ void main() {
           ).thenAnswer((_) async => MockModels.createCourses());
           when(
             () => mockCourseScheduleRepository.getCourseSchedules(
-              shownOnCalendar: true,
             ),
           ).thenAnswer((_) async => [MockModels.createCourseSchedule()]);
           when(

@@ -160,27 +160,10 @@ class SentryService {
     }
   }
 
-  SentryEvent? _beforeSend(SentryEvent event, Hint? hint) {
-    if (_shouldFilter(event)) {
-      return null;
-    }
-
-    // Check hint for original exception - catches browser onerror cases where
-    // the exception value may be null after deserialization
-    if (hint != null) {
-      final originalError = hint.get('originalError');
-      if (originalError != null) {
-        final errorString = originalError.toString().toLowerCase();
-        if (_containsClientErrorStatusCode(errorString) &&
-            _looksLikeHttpError(errorString)) {
-          _log.fine('Filtered event from Sentry (via hint originalError)');
-          return null;
-        }
-      }
-    }
-
-    return event;
-  }
+  /// [hint] is required by `BeforeSendCallback` but carries nothing we act on:
+  /// the SDK only populates the well-known `TypeCheckHint` keys.
+  SentryEvent? _beforeSend(SentryEvent event, Hint hint) =>
+      _shouldFilter(event) ? null : event;
 
   bool _shouldFilter(SentryEvent event) {
     // Note: Emulator/test farm detection is handled natively on Android
@@ -248,12 +231,6 @@ class SentryService {
 
     // Browser storage writes that fail on a full disk or exhausted quota.
     if (_isDeviceStorageExhausted(combined)) {
-      return true;
-    }
-
-    if (type.contains('unauthorizedexception') ||
-        type.contains('validationexception') ||
-        type.contains('notfoundexception')) {
       return true;
     }
 

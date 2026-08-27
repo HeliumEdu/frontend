@@ -979,7 +979,6 @@ class TodosDataSource extends BaseDataGridSource {
           'Failed to build row for homework ${homework.id}',
           e,
           st,
-          hints: {'homework_id': homework.id},
         );
       }
     }

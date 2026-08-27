@@ -9,9 +9,10 @@ import 'package:heliumapp/config/analytics_event.dart';
 import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/core/analytics_service.dart';
-import 'package:heliumapp/core/api_error_parser.dart';
 import 'package:heliumapp/core/api_url.dart';
 import 'package:heliumapp/core/dio_client.dart';
+import 'package:heliumapp/core/dio_error_mapper.dart';
+import 'package:heliumapp/core/helium_exception.dart';
 import 'package:heliumapp/core/notification_count_service.dart';
 import 'package:heliumapp/data/models/auth/user_settings_model.dart';
 import 'package:heliumapp/data/models/planner/course_group_model.dart';
@@ -460,18 +461,27 @@ class _ImportExportScreenState extends State<ImportExportScreen> {
             : null;
         _isLoadingTargets = false;
       });
+    } on HeliumException catch (e) {
+      _log.warning(
+        'Failed to load import targets: ${e.runtimeType} code=${e.code}',
+      );
+      _failImportTargetsLoad();
     } catch (e) {
       _log.severe('Failed to load import targets.', e);
-      if (!mounted) return;
-      setState(() {
-        _isLoadingTargets = false;
-      });
-      SnackBarHelper.show(
-        context,
-        'Could not load your classes.',
-        type: SnackType.error,
-      );
+      _failImportTargetsLoad();
     }
+  }
+
+  void _failImportTargetsLoad() {
+    if (!mounted) return;
+    setState(() {
+      _isLoadingTargets = false;
+    });
+    SnackBarHelper.show(
+      context,
+      'Could not load your classes.',
+      type: SnackType.error,
+    );
   }
 
   Future<void> _importData() async {
@@ -530,20 +540,12 @@ class _ImportExportScreenState extends State<ImportExportScreen> {
       } else {
         SnackBarHelper.show(context, 'Import failed.', type: SnackType.error);
       }
-    } on DioException catch (e) {
-      final parsedError = ApiErrorParser.parse(e.response?.data);
-      final message = parsedError.displayMessage.isNotEmpty
-          ? parsedError.displayMessage
-          : null;
-      if (e.response?.statusCode == 400 && message != null) {
-        _log.info('Import rejected: $message');
-      } else {
-        _log.severe('Import failed.', e);
-      }
+    } on DioException catch (e, s) {
+      DioErrorMapper.map(e, s);
       if (mounted) {
         SnackBarHelper.show(
           context,
-          message ?? 'Failed to import file.',
+          DioErrorMapper.clientErrorMessage(e) ?? 'Failed to import file.',
           type: SnackType.error,
         );
       }
@@ -671,8 +673,8 @@ class _ImportExportScreenState extends State<ImportExportScreen> {
       } else {
         SnackBarHelper.show(context, 'Export failed.', type: SnackType.error);
       }
-    } on DioException catch (e) {
-      _log.severe('Export failed.', e);
+    } on DioException catch (e, s) {
+      DioErrorMapper.map(e, s);
       if (mounted) {
         SnackBarHelper.show(context, 'Export failed.', type: SnackType.error);
       }
@@ -735,12 +737,12 @@ class _ImportExportScreenState extends State<ImportExportScreen> {
           type: SnackType.error,
         );
       }
-    } on DioException catch (e) {
-      _log.severe('Example schedule import failed', e);
+    } on DioException catch (e, s) {
+      DioErrorMapper.map(e, s);
       if (mounted) {
         SnackBarHelper.show(
           context,
-          _extractErrorMessage(e) ?? 'Failed to import example schedule.',
+          DioErrorMapper.clientErrorMessage(e) ?? 'Failed to import example schedule.',
           type: SnackType.error,
         );
       }
@@ -752,19 +754,6 @@ class _ImportExportScreenState extends State<ImportExportScreen> {
         widget.onCompleted?.call();
       }
     }
-  }
-
-  String? _extractErrorMessage(DioException e) {
-    final data = e.response?.data;
-    if (data is Map<String, dynamic>) {
-      if (data.containsKey('details')) {
-        return data['details'].toString();
-      }
-      if (data.containsKey('detail')) {
-        return data['detail'].toString();
-      }
-    }
-    return null;
   }
 }
 

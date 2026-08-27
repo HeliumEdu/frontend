@@ -215,8 +215,8 @@ void main() {
       });
     });
 
-    group('UnauthorizedException type filtering', () {
-      test('Filters UnauthorizedException type', () {
+    group('Expected HeliumException types are not suppressed', () {
+      test('Does not filter UnauthorizedException type', () {
         final event = SentryEvent(
           exceptions: [
             SentryException(
@@ -226,7 +226,14 @@ void main() {
           ],
         );
 
-        expect(SentryService.shouldFilterEvent(event), isTrue);
+        expect(
+          SentryService.shouldFilterEvent(event),
+          isFalse,
+          reason:
+              'Expected API failures are logged at warning and never become '
+              'events, so an event carrying one means an unknown producer we '
+              'want to see rather than suppress',
+        );
       });
     });
 

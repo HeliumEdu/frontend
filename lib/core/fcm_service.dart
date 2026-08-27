@@ -125,31 +125,27 @@ class FcmService with WidgetsBindingObserver {
       }
     }
 
-    try {
-      await _initializeNotifications();
+    await _initializeNotifications();
 
-      if (!await _requestPermission()) {
-        _log.info(
-          'FCM not supported in this browser (permission API unavailable), skipping initialization',
-        );
-        _isSupported = false;
-        return;
-      }
-
-      await _getFCMToken();
-
-      _configureMessageHandlers();
-
-      await _handleInitialMessage();
-
-      _isInitialized = true;
-      _log.info('FCM initialized successfully');
-
-      _observeLifecycle();
-      unawaited(_registerToken());
-    } catch (_) {
-      rethrow;
+    if (!await _requestPermission()) {
+      _log.info(
+        'FCM not supported in this browser (permission API unavailable), skipping initialization',
+      );
+      _isSupported = false;
+      return;
     }
+
+    await _getFCMToken();
+
+    _configureMessageHandlers();
+
+    await _handleInitialMessage();
+
+    _isInitialized = true;
+    _log.info('FCM initialized successfully');
+
+    _observeLifecycle();
+    unawaited(_registerToken());
   }
 
   /// A device that cold-starts without a usable network would otherwise stay

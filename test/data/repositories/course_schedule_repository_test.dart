@@ -58,7 +58,6 @@ void main() {
             from: any(named: 'from'),
             to: any(named: 'to'),
             search: any(named: 'search'),
-            shownOnCalendar: any(named: 'shownOnCalendar'),
           ),
         ).thenReturn(expectedEvents);
 
@@ -78,7 +77,6 @@ void main() {
             from: from,
             to: to,
             search: null,
-            shownOnCalendar: null,
           ),
         ).called(1);
       });
@@ -96,7 +94,6 @@ void main() {
             from: any(named: 'from'),
             to: any(named: 'to'),
             search: any(named: 'search'),
-            shownOnCalendar: any(named: 'shownOnCalendar'),
           ),
         ).thenReturn([]);
 
@@ -115,7 +112,6 @@ void main() {
             from: from,
             to: to,
             search: search,
-            shownOnCalendar: null,
           ),
         ).called(1);
       });
@@ -132,7 +128,6 @@ void main() {
             from: any(named: 'from'),
             to: any(named: 'to'),
             search: any(named: 'search'),
-            shownOnCalendar: any(named: 'shownOnCalendar'),
           ),
         ).thenReturn([]);
 
@@ -141,7 +136,6 @@ void main() {
           courses: courses,
           from: from,
           to: to,
-          shownOnCalendar: true,
         );
 
         // THEN
@@ -151,7 +145,6 @@ void main() {
             from: from,
             to: to,
             search: null,
-            shownOnCalendar: true,
           ),
         ).called(1);
       });
@@ -164,7 +157,6 @@ void main() {
             from: any(named: 'from'),
             to: any(named: 'to'),
             search: any(named: 'search'),
-            shownOnCalendar: any(named: 'shownOnCalendar'),
           ),
         ).thenReturn([]);
 
@@ -191,7 +183,6 @@ void main() {
 
         when(
           () => mockRemoteDataSource.getCourseSchedules(
-            shownOnCalendar: any(named: 'shownOnCalendar'),
           ),
         ).thenAnswer((_) async => expectedSchedules);
 

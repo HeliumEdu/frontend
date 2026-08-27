@@ -458,7 +458,6 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen>
               'Failed to render course card ${course.id}',
               e,
               st,
-              hints: {'course_id': course.id},
             );
             return const SizedBox.shrink();
           }

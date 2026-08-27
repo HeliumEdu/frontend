@@ -93,7 +93,7 @@ class PlannerItemBloc extends Bloc<PlannerItemEvent, PlannerItemState> {
               : Future.value(null),
           courseRepository.getCourseGroups(shownOnCalendar: true),
           courseRepository.getCourses(shownOnCalendar: true),
-          courseScheduleRepository.getCourseSchedules(shownOnCalendar: true),
+          courseScheduleRepository.getCourseSchedules(),
           categoryRepository.getCategories(shownOnCalendar: true),
           resourceRepository.getResources(shownOnCalendar: true),
           event.homeworkId != null
