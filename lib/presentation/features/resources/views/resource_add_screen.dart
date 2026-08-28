@@ -96,6 +96,7 @@ class ResourceAddScreen extends MultiStepContainer {
 class _ResourceAddScreenState
     extends MultiStepContainerState<ResourceAddScreen> {
   final _detailsKey = GlobalKey<ResourceDetailsState>();
+  bool _dataLoaded = false;
 
   int? _currentResourceId;
   int? _currentResourceGroupId;
@@ -235,8 +236,24 @@ class _ResourceAddScreenState
     return [
       BlocListener<ResourceBloc, ResourceState>(
         listener: (context, state) {
+          if (state is ResourceScreenDataFetched) {
+            _dataLoaded = true;
+          }
+
           if (state is ResourcesError) {
-            showSnackBar(context, state.message!, type: SnackType.error);
+            if (!_dataLoaded) {
+              showSnackBar(
+                context,
+                state.message!,
+                type: SnackType.error,
+                useRootMessenger: true,
+              );
+              closeWithoutPrompt();
+              return;
+            }
+            if (!isShowingErrorCard) {
+              showSnackBar(context, state.message!, type: SnackType.error);
+            }
             _detailsKey.currentState?.resetSubmitting();
             setState(() { isLoading = false; isSubmitting = false; });
           } else if (state is ResourcesScreenDataFetched &&
@@ -340,7 +357,9 @@ class _ResourceAddScreenState
       BlocListener<NoteBloc, NoteState>(
         listener: (context, state) {
           if (state is NotesError) {
-            showSnackBar(context, state.message!, type: SnackType.error);
+            if (!isShowingErrorCard) {
+              showSnackBar(context, state.message!, type: SnackType.error);
+            }
             _detailsKey.currentState?.resetSubmitting();
             setState(() => isSubmitting = false);
           } else if (state is NoteCreated && _pendingRedirectToNotebook) {

@@ -1,10 +1,9 @@
-import 'dart:io'
-    if (dart.library.html) 'package:heliumapp/core/platform_stub.dart';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:heliumapp/config/pref_service.dart';
 import 'package:heliumapp/core/dio_client.dart';
+import 'package:heliumapp/core/session_health.dart';
 import 'package:heliumapp/data/models/auth/user_settings_model.dart';
 import 'package:heliumapp/utils/error_helpers.dart';
 import 'package:in_app_review/in_app_review.dart';
@@ -79,12 +78,15 @@ class FeedbackService with WidgetsBindingObserver {
     if (state == AppLifecycleState.paused ||
         state == AppLifecycleState.detached) {
       _prefService.setBool(_keySessionEndedClean, true);
+    } else if (state == AppLifecycleState.resumed) {
+      _prefService.setBool(_keySessionEndedClean, false);
     }
   }
 
   Future<void> triggerReviewRequest() async {
     if (kIsWeb) return;
-    if (!Platform.isIOS && !Platform.isAndroid) return;
+
+    if (SessionHealth.isTroubled) return;
 
     final cleanSessions = _prefService.getInt(_keyCleanSessionCount) ?? 0;
     if (cleanSessions < _cleanSessionThreshold) return;

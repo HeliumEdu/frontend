@@ -4,8 +4,10 @@ import 'package:heliumapp/config/app_router.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/core/app_version_service.dart';
 import 'package:heliumapp/core/dio_client.dart';
+import 'package:heliumapp/core/helium_exception.dart';
 import 'package:heliumapp/data/models/auth/user_settings_model.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/info/info_bloc.dart';
+import 'package:heliumapp/presentation/core/views/reload_scope.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/info/info_event.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/info/info_state.dart';
 import 'package:heliumapp/presentation/navigation/shell/navigation_shell.dart';
@@ -68,13 +70,21 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
 
   UserSettingsModel? userSettings;
   bool settingsLoaded = false;
-  bool settingsError = false;
+
+  String? settingsError;
+
+  @protected
+  String? screenError;
+
   // Default true so authenticated screens never flash unloaded content
   // between mount and the first BLoC fetch completing. Subclasses flip this
   // to false from their own BLoC listeners when their data is ready, since
   // user-settings loading and screen-data loading are independent and the
   // latter is what gates UI readiness.
   bool isLoading = true;
+
+  late final VoidCallback _resumeReload = reloadPage;
+  bool _reloadRequested = false;
   bool isSubmitting = false;
 
   bool get isAuthenticatedScreen => true;
@@ -126,8 +136,13 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
   void initState() {
     super.initState();
 
+    dioClient.cacheService.addInactivityResumeListener(_resumeReload);
+
     if (isAuthenticatedScreen) {
       loadSettings();
+      if (context.read<InfoBloc>().state is InfoLoadFailed) {
+        context.read<InfoBloc>().add(LoadInfoEvent());
+      }
     } else {
       isLoading = false;
     }
@@ -157,38 +172,92 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
     }
   }
 
+  @override
+  @protected
+  @mustCallSuper
+  void dispose() {
+    dioClient.cacheService.removeInactivityResumeListener(_resumeReload);
+    super.dispose();
+  }
+
+  String _blockingErrorSource({
+    required bool settingsFailed,
+    required bool infoFailed,
+  }) {
+    if (settingsFailed && infoFailed) return 'settings+/info/';
+    return settingsFailed ? 'settings' : '/info/';
+  }
+
+  /// Returns the screen to how it looks when first opened, so one tap clears
+  /// every failure rather than revealing the next.
+  @protected
+  void reloadPage() {
+    // App-scoped, so a rebuild leaves its failure in place.
+    context.read<InfoBloc>().add(LoadInfoEvent());
+
+    final scope = ReloadScope.maybeOf(context);
+    if (scope != null) {
+      scope.reload();
+      return;
+    }
+
+    // Screens opened as dialogs sit outside a scope, so retry in place.
+    _reloadSettings();
+  }
+
   void _reloadSettings() {
     setState(() {
-      settingsError = false;
+      settingsError = null;
       isLoading = true;
+      _reloadRequested = true;
     });
     loadSettings();
+  }
+
+  /// Whether a blocking error card is already on screen. Screens check this
+  /// before an error snackbar so the same failure is not reported twice.
+  bool get isShowingErrorCard {
+    if (settingsError != null) return true;
+    if (!mounted || !isAuthenticatedScreen) return false;
+    return context.read<InfoBloc>().state is InfoLoadFailed;
   }
 
   @mustCallSuper
   Future<UserSettingsModel?> loadSettings() {
     return dioClient
-        .getSettings()
+        .getSettings(rethrowErrors: true)
         .then((settings) {
           if (!mounted) return settings;
           setState(() {
             userSettings = settings;
             if (userSettings != null) {
               settingsLoaded = true;
-              settingsError = false;
+              settingsError = null;
             } else {
-              settingsError = true;
+              settingsLoaded = false;
+              settingsError = HeliumException.unexpectedError;
+            }
+            if (_reloadRequested) {
+              _reloadRequested = false;
+              isLoading = false;
             }
           });
           return settings;
         })
-        .catchError((error) {
+        .catchError((Object error) {
           if (mounted) {
             setState(() {
-              settingsError = true;
+              settingsLoaded = false;
+              settingsError = error is HeliumException
+                  ? error.displayMessage
+                  : HeliumException.unexpectedError;
+              if (_reloadRequested) {
+                _reloadRequested = false;
+                isLoading = false;
+              }
             });
           }
-          throw error;
+          return null;
         });
   }
 
@@ -225,9 +294,9 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
 
     final Widget unauthenticatedColumn = Column(
       children: [
-        if (settingsError)
+        if (settingsError != null)
           ErrorCard(
-            message: 'An unknown error occurred',
+            message: settingsError!,
             source: 'settings',
             onReload: _reloadSettings,
           )
@@ -244,7 +313,8 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
           ? BlocBuilder<InfoBloc, InfoState>(
               builder: (context, infoState) {
                 final infoReady = infoState is InfoLoaded;
-                final infoFailed = infoState is InfoLoadFailed;
+                final infoFailure =
+                    infoState is InfoLoadFailed ? infoState : null;
                 final version = AppVersionService().version;
                 final updateRequired = infoReady &&
                     version != null &&
@@ -256,18 +326,17 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
                   children: [
                     if (updateRequired)
                       const UpdateRequiredCard()
-                    else if (settingsError)
+                    else if (settingsError != null || infoFailure != null)
                       ErrorCard(
-                        message: 'An unknown error occurred',
-                        source: 'settings',
-                        onReload: _reloadSettings,
-                      )
-                    else if (infoFailed)
-                      ErrorCard(
-                        message: 'An unknown error occurred',
-                        source: '/info/',
-                        onReload: () =>
-                            context.read<InfoBloc>().add(LoadInfoEvent()),
+                        message:
+                            settingsError ??
+                            infoFailure?.message ??
+                            HeliumException.unexpectedError,
+                        source: _blockingErrorSource(
+                          settingsFailed: settingsError != null,
+                          infoFailed: infoFailure != null,
+                        ),
+                        onReload: reloadPage,
                       )
                     else if (isLoading || !settingsLoaded || !infoReady)
                       const LoadingIndicator()
@@ -308,7 +377,14 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
             Positioned(
               right: 16,
               bottom: 12,
-              child: buildFloatingActionButton(),
+              child: BlocBuilder<InfoBloc, InfoState>(
+                builder: (context, infoState) =>
+                    settingsLoaded &&
+                        screenError == null &&
+                        infoState is! InfoLoadFailed
+                    ? buildFloatingActionButton()
+                    : const SizedBox.shrink(),
+              ),
             ),
         ],
       );
@@ -410,7 +486,10 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
 
   List<Widget> _buildContent(BuildContext context) {
     if (!enablePrint) {
-      return [buildHeaderArea(context), buildMainArea(context)];
+      return [
+        if (screenError == null) buildHeaderArea(context),
+        buildMainArea(context),
+      ];
     }
     final printTitle = screenTitle.isNotEmpty
         ? screenTitle
@@ -420,7 +499,9 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
         child: PrintableArea(
           title: printTitle,
           flexColumn: enablePrintFlexColumn,
-          header: buildHeaderArea,
+          header: screenError != null
+              ? (_) => const SizedBox.shrink()
+              : buildHeaderArea,
           body: buildMainArea,
         ),
       ),

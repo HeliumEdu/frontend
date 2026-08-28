@@ -1,10 +1,3 @@
-// Copyright (c) 2025 Helium Edu
-//
-// This source code is licensed under the MIT license found in the
-// LICENSE file in the root directory of this source tree.
-//
-// For details regarding the license, please refer to the LICENSE file.
-
 import Flutter
 import UIKit
 import FirebaseCore
@@ -24,6 +17,8 @@ import FirebaseMessaging
   }
 
   func didInitializeImplicitFlutterEngine(_ engineBridge: FlutterImplicitEngineBridge) {
+    KeyboardFlickerFix.install()
+
     GeneratedPluginRegistrant.register(with: engineBridge.pluginRegistry)
 
     let channel = FlutterMethodChannel(
@@ -44,6 +39,8 @@ import FirebaseMessaging
             .removeDeliveredNotifications(withIdentifiers: identifiers)
         }
         result(nil)
+      case "getSystemProxy":
+        result(AppDelegate.systemProxy())
       default:
         result(FlutterMethodNotImplemented)
       }
@@ -72,5 +69,21 @@ import FirebaseMessaging
       didReceiveRemoteNotification: userInfo,
       fetchCompletionHandler: completionHandler
     )
+  }
+
+  /// Manually configured Wi-Fi proxy, or nil when none is set.
+  private static func systemProxy() -> [String: Any]? {
+    guard let settings = CFNetworkCopySystemProxySettings()?.takeRetainedValue()
+      as? [String: Any],
+      (settings[kCFNetworkProxiesHTTPEnable as String] as? NSNumber)?.boolValue == true,
+      let host = settings[kCFNetworkProxiesHTTPProxy as String] as? String,
+      !host.isEmpty,
+      let port = (settings[kCFNetworkProxiesHTTPPort as String] as? NSNumber)?.intValue,
+      port > 0
+    else {
+      return nil
+    }
+
+    return ["host": host, "port": port]
   }
 }

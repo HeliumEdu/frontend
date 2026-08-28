@@ -87,6 +87,7 @@ class CourseAddScreen extends MultiStepContainer {
 }
 
 class _CourseAddScreenState extends MultiStepContainerState<CourseAddScreen> {
+  bool _dataLoaded = false;
   final _detailsKey = GlobalKey<CourseDetailsState>();
   final _attachmentsKey = GlobalKey<BaseAttachmentsState>();
 
@@ -161,7 +162,7 @@ class _CourseAddScreenState extends MultiStepContainerState<CourseAddScreen> {
     DirtyDialogRegistry.register(
       prefix: prefix,
       fullPath: fullPath,
-      isDirty: () => isDirty,
+      isDirty: () => isDirty || deferDismissal,
     );
     _registeredPrefix = prefix;
   }
@@ -226,6 +227,10 @@ class _CourseAddScreenState extends MultiStepContainerState<CourseAddScreen> {
   IconData? get icon => Icons.school;
 
   @override
+  bool get deferDismissal =>
+      _attachmentsKey.currentState?.isSubmitting ?? false;
+
+  @override
   bool get isDirty {
     switch (currentStep) {
       case 0:
@@ -271,8 +276,24 @@ class _CourseAddScreenState extends MultiStepContainerState<CourseAddScreen> {
     return [
       BlocListener<CourseBloc, CourseState>(
         listener: (context, state) {
+          if (state is CourseScreenDataFetched) {
+            _dataLoaded = true;
+          }
+
           if (state is CoursesError && state.origin != EventOrigin.dialog) {
-            showSnackBar(context, state.message!, type: SnackType.error);
+            if (!_dataLoaded) {
+              showSnackBar(
+                context,
+                state.message!,
+                type: SnackType.error,
+                useRootMessenger: true,
+              );
+              closeWithoutPrompt();
+              return;
+            }
+            if (!isShowingErrorCard) {
+              showSnackBar(context, state.message!, type: SnackType.error);
+            }
             _detailsKey.currentState?.resetSubmitting();
             setState(() { isLoading = false; isSubmitting = false; });
           } else if (state is CoursesScreenDataFetched &&
@@ -416,6 +437,7 @@ class _CourseAddScreenState extends MultiStepContainerState<CourseAddScreen> {
         entityId: _currentCourseId!,
         isEdit: widget.isEdit || _currentCourseId != null,
         userSettings: userSettings,
+        onUploadsSettled: resumeDeferredDismissal,
       ),
     ),
   ];

@@ -105,9 +105,6 @@ class _NotificationsScreenState
   ScreenType get screenType => ScreenType.subPage;
 
   @override
-  EdgeInsets get scaffoldInsets => const EdgeInsets.all(0);
-
-  @override
   List<Widget> get additionalRightHeaderButtons {
     final isEnabled = _notifications.isNotEmpty && !_isDismissingAll;
 
@@ -191,13 +188,16 @@ class _NotificationsScreenState
         listener: (context, state) {
           if (state is RemindersError) {
             setState(() {
-              isLoading = false;
               _isDismissingAll = false;
+              if (state.origin == EventOrigin.screen) isLoading = false;
             });
             if (state.origin != EventOrigin.screen) {
-              showSnackBar(context, state.message!, type: SnackType.error);
+              if (!isShowingErrorCard) {
+                showSnackBar(context, state.message!, type: SnackType.error);
+              }
             }
-          } else if (state is RemindersFetched) {
+          } else if (state is RemindersFetched &&
+              state.origin == EventOrigin.screen) {
             _populateInitialStateData(state);
           } else if (state is ReminderUpdated) {
             final reminder = state.reminder;
@@ -273,16 +273,11 @@ class _NotificationsScreenState
         }
 
         if (state is RemindersError && state.origin == EventOrigin.screen) {
-          return Expanded(
-            child: Padding(
-              padding: const EdgeInsets.all(8),
-              child: ErrorCard(
-                message: state.message!,
-                source: 'notification_screen',
-                onReload: () => _fetchReminders(forceRefresh: true),
-                expanded: false,
-              ),
-            ),
+          return ErrorCard(
+            message: state.message!,
+            source: 'notification_screen',
+            onReload: () => _fetchReminders(forceRefresh: true),
+            expanded: true,
           );
         }
 
@@ -366,7 +361,6 @@ class _NotificationsScreenState
         'Skipping reminder ${r.id} with null startOfRange',
         Exception('Reminder ${r.id} has null startOfRange'),
         StackTrace.current,
-        hints: {'reminder_id': r.id},
       );
     }
     reminders.removeWhere((r) => r.startOfRange == null);
@@ -382,7 +376,6 @@ class _NotificationsScreenState
           'Failed to map reminder ${r.id} to notification',
           e,
           st,
-          hints: {'reminder_id': r.id},
         );
       }
     }

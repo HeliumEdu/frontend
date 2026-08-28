@@ -29,11 +29,32 @@ class AttachmentBloc extends Bloc<AttachmentEvent, AttachmentState> {
         courseId: event.courseId,
         forceRefresh: event.forceRefresh,
       );
-      emit(AttachmentsFetched(attachments: attachments));
+      emit(
+        AttachmentsFetched(
+          attachments: attachments,
+          eventId: event.eventId,
+          homeworkId: event.homeworkId,
+          courseId: event.courseId,
+        ),
+      );
     } on HeliumException catch (e) {
-      emit(AttachmentsError(message: e.message));
+      emit(
+        AttachmentsFetchFailed(
+          message: e.message,
+          eventId: event.eventId,
+          homeworkId: event.homeworkId,
+          courseId: event.courseId,
+        ),
+      );
     } catch (e) {
-      emit(AttachmentsError(message: HeliumException.unexpectedError));
+      emit(
+        AttachmentsFetchFailed(
+          message: HeliumException.unexpectedError,
+          eventId: event.eventId,
+          homeworkId: event.homeworkId,
+          courseId: event.courseId,
+        ),
+      );
     }
   }
 

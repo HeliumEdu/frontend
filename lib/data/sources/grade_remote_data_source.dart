@@ -56,15 +56,11 @@ class GradeRemoteDataSourceImpl extends GradeRemoteDataSource {
           );
         }
       } else {
-        throw ServerException(
-          message: 'Failed to fetch grades.',
-          code: response.statusCode.toString(),
-        );
+        throw unexpectedStatus(response, 'Failed to fetch grades.');
       }
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
-    } on HeliumException catch (e, s) {
-      _log.severe('Data source error', e, s);
+    } on HeliumException {
       rethrow;
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);

@@ -10,8 +10,8 @@ class HomeworkRepositoryImpl implements HomeworkRepository {
 
   @override
   Future<List<HomeworkModel>> getHomeworks({
-    required DateTime from,
-    required DateTime to,
+    DateTime? from,
+    DateTime? to,
     List<String>? categoryTitles,
     String? search,
     String? title,

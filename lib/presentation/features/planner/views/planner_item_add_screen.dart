@@ -140,6 +140,7 @@ class PlannerItemAddScreen extends MultiStepContainer {
 class _PlannerItemAddScreenState
     extends MultiStepContainerState<PlannerItemAddScreen> {
   final _detailsKey = GlobalKey<PlannerItemDetailsState>();
+  bool _dataLoaded = false;
   final _attachmentsKey = GlobalKey<BaseAttachmentsState>();
 
   int? _currentEntityId;
@@ -190,7 +191,7 @@ class _PlannerItemAddScreenState
     DirtyDialogRegistry.register(
       prefix: prefix,
       fullPath: fullPath,
-      isDirty: () => isDirty,
+      isDirty: () => isDirty || deferDismissal,
     );
     _registeredPrefix = prefix;
   }
@@ -297,6 +298,10 @@ class _PlannerItemAddScreenState
   IconData? get icon => _currentIsEvent == null ? null : Icons.calendar_month;
 
   @override
+  bool get deferDismissal =>
+      _attachmentsKey.currentState?.isSubmitting ?? false;
+
+  @override
   bool get isDirty {
     switch (currentStep) {
       case 0:
@@ -357,8 +362,24 @@ class _PlannerItemAddScreenState
     return [
       BlocListener<PlannerItemBloc, PlannerItemState>(
         listener: (context, state) {
+          if (state is PlannerItemScreenDataFetched) {
+            _dataLoaded = true;
+          }
+
           if (state is PlannerItemsError) {
-            showSnackBar(context, state.message!, type: SnackType.error);
+            if (!_dataLoaded) {
+              showSnackBar(
+                context,
+                state.message!,
+                type: SnackType.error,
+                useRootMessenger: true,
+              );
+              closeWithoutPrompt();
+              return;
+            }
+            if (!isShowingErrorCard) {
+              showSnackBar(context, state.message!, type: SnackType.error);
+            }
             _detailsKey.currentState?.resetSubmitting();
             setState(() => isSubmitting = false);
           } else if (state is EventDeleted || state is HomeworkDeleted) {
@@ -583,6 +604,7 @@ class _PlannerItemAddScreenState
         entityId: _currentEntityId!,
         isEdit: widget.isEdit || _currentEntityId != null,
         userSettings: userSettings,
+        onUploadsSettled: resumeDeferredDismissal,
       ),
     ),
   ];

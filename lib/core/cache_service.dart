@@ -109,11 +109,11 @@ class CacheService with WidgetsBindingObserver {
         _log.info(
           'App resumed after ${inactiveDuration.inMinutes} minutes, invalidating cache',
         );
-        invalidateAll();
         final resume = onInactivityResume;
         if (resume != null) {
           resume().whenComplete(_notifyInactivityResume);
         } else {
+          invalidateAll();
           _notifyInactivityResume();
         }
       } else {
@@ -169,23 +169,6 @@ class CacheService with WidgetsBindingObserver {
         handler.next(response);
       },
     );
-  }
-
-  /// Returns cache options configured for the given request.
-  /// Returns options with noCache policy for excluded paths.
-  CacheOptions optionsForRequest(RequestOptions request) {
-    if (!shouldCache(request.path)) {
-      return _options.copyWith(policy: CachePolicy.noCache);
-    }
-    return _options;
-  }
-
-  /// Determines if a path should be cached.
-  /// Returns false for paths that should be excluded from caching.
-  @visibleForTesting
-  bool shouldCache(String path) {
-    // All paths are cached; full invalidation on any mutation ensures correctness
-    return true;
   }
 
   /// Returns options that force a refresh from the network.

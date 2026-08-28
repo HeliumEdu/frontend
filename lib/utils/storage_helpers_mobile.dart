@@ -4,6 +4,7 @@ import 'dart:ui';
 
 import 'package:dio/dio.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:heliumapp/core/dio_client.dart';
 import 'package:heliumapp/utils/storage_helpers.dart';
 import 'package:logging/logging.dart';
 import 'package:path_provider/path_provider.dart';
@@ -73,7 +74,7 @@ Future<DownloadStatus> downloadFilePlatform(String url, String filename) async {
 
 Future<DownloadStatus> _downloadFileAndroid(String url, String filename) async {
   try {
-    final response = await Dio().get<Uint8List>(
+    final response = await DioClient.createDio().get<Uint8List>(
       url,
       options: Options(responseType: ResponseType.bytes),
       onReceiveProgress: (received, total) {
@@ -109,7 +110,7 @@ Future<DownloadStatus> _downloadFileIOS(String url, String filename) async {
 
     _log.info('Downloading to app documents: ${appDocDir.path}');
 
-    final response = await Dio().download(
+    final response = await DioClient.createDio().download(
       url,
       filePath,
       onReceiveProgress: (received, total) {

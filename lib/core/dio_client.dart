@@ -16,7 +16,11 @@ import 'package:heliumapp/config/pref_service.dart';
 import 'package:heliumapp/config/theme_notifier.dart';
 import 'package:heliumapp/core/analytics_service.dart';
 import 'package:heliumapp/core/api_url.dart';
+import 'package:heliumapp/core/dio_error_mapper.dart';
+import 'package:heliumapp/core/helium_exception.dart';
 import 'package:heliumapp/core/cache_service.dart';
+import 'package:heliumapp/core/system_proxy_io.dart'
+    if (dart.library.js_interop) 'package:heliumapp/core/system_proxy_stub.dart';
 import 'package:heliumapp/core/retry_evaluator.dart';
 import 'package:heliumapp/core/sentry_service.dart';
 import 'package:heliumapp/data/models/auth/request/refresh_token_request_model.dart';
@@ -76,17 +80,39 @@ class DioClient {
 
   CacheService get cacheService => _cacheService;
 
+  /// Builds every HTTP client in the app. Never construct `Dio()` directly —
+  /// an unset timeout means no limit, so a bare client can hang forever on a
+  /// socket that stops responding. Also applies the OS proxy, which base
+  /// options alone cannot do.
+  static Dio createDio({
+    String? baseUrl,
+    Map<String, dynamic>? headers,
+    ValidateStatus? validateStatus,
+    Duration connectTimeout = const Duration(seconds: 15),
+    Duration receiveTimeout = const Duration(seconds: 30),
+    Duration sendTimeout = const Duration(seconds: 120),
+  }) {
+    final dio = Dio(
+      BaseOptions(
+        baseUrl: baseUrl ?? '',
+        connectTimeout: connectTimeout,
+        receiveTimeout: receiveTimeout,
+        sendTimeout: sendTimeout,
+        headers: headers,
+        validateStatus: validateStatus,
+      ),
+    );
+    applySystemProxy(dio);
+    return dio;
+  }
+
   DioClient._internal()
-    : _dio = Dio(
-        BaseOptions(
-          baseUrl: ApiUrl.baseUrl,
-          connectTimeout: const Duration(seconds: 30),
-          receiveTimeout: const Duration(seconds: 30),
-          headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
-          },
-        ),
+    : _dio = createDio(
+        baseUrl: ApiUrl.baseUrl,
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
       ),
       _prefService = PrefService() {
     _dio.interceptors.add(
@@ -179,21 +205,19 @@ class DioClient {
               }
 
               // Create a new Dio instance for refresh to avoid recursion
-              final refreshDio = Dio(
-                BaseOptions(
-                  baseUrl: ApiUrl.baseUrl,
-                  headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json',
-                    if (_clientVersion != null) 'X-Client-Version': _clientVersion,
-                    'X-Client-Platform':
-                        _clientPlatform ??= _resolveClientPlatform(),
-                  },
-                  validateStatus: (status) => status != null && status < 500,
-                ),
+              final refreshDio = DioClient.createDio(
+                baseUrl: ApiUrl.baseUrl,
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Accept': 'application/json',
+                  if (_clientVersion != null) 'X-Client-Version': _clientVersion,
+                  'X-Client-Platform':
+                      _clientPlatform ??= _resolveClientPlatform(),
+                },
+                validateStatus: (status) => status != null && status < 500,
               );
 
-              // Mirror _dio's retry so a transient connection blip self-heals.
+              // Retries only when no response came back; see HeliumRetryEvaluator.
               refreshDio.interceptors.add(
                 RetryInterceptor(
                   dio: refreshDio,
@@ -319,8 +343,15 @@ class DioClient {
       ),
     );
 
+    applySystemProxy(_dio);
+
     _cacheService = CacheService();
-    _cacheService.onInactivityResume = () => fetchSettings();
+    _cacheService.onInactivityResume = () async {
+      if (await fetchSettings(forceRefresh: true) != null) {
+        await _cacheService.invalidateAll();
+      }
+    };
+    _cacheService.addQuickResumeListener(refreshSystemProxy);
     _dio.interceptors.add(_cacheService.interceptor);
     _dio.interceptors.add(_cacheService.loggingInterceptor);
 
@@ -375,7 +406,12 @@ class DioClient {
     return token?.isNotEmpty ?? false;
   }
 
-  Future<UserSettingsModel?> fetchSettings({bool forceRefresh = false}) async {
+  /// Set [rethrowErrors] to surface a mapped [HeliumException] instead of
+  /// returning null, so callers can show why the fetch failed.
+  Future<UserSettingsModel?> fetchSettings({
+    bool forceRefresh = false,
+    bool rethrowErrors = false,
+  }) async {
     try {
       _log.info('Fetching settings from API ...');
       final response = await _dio.get(
@@ -397,14 +433,18 @@ class DioClient {
         );
         return null;
       }
-    } catch (apiError) {
+    } catch (apiError, stackTrace) {
       _log.severe('Error fetching settings from API: ${apiError.runtimeType}');
+
+      if (rethrowErrors && apiError is DioException) {
+        throw DioErrorMapper.map(apiError, stackTrace);
+      }
 
       return null;
     }
   }
 
-  Future<UserSettingsModel?> getSettings() async {
+  Future<UserSettingsModel?> getSettings({bool rethrowErrors = false}) async {
     await _prefService.init();
 
     try {
@@ -436,7 +476,9 @@ class DioClient {
 
       if (cachedJson.values.any((v) => v == null)) {
         _log.info('Fetching settings from API ...');
-        final fetchedSettings = await fetchSettings();
+        final fetchedSettings = await fetchSettings(
+          rethrowErrors: rethrowErrors,
+        );
         if (fetchedSettings != null) {
           return fetchedSettings;
         }
@@ -445,9 +487,11 @@ class DioClient {
       }
 
       return UserSettingsModel.fromJson(cachedJson);
+    } on HeliumException {
+      rethrow;
     } catch (parseError) {
       _log.info('Failed to parse cached settings: $parseError');
-      return await fetchSettings();
+      return await fetchSettings(rethrowErrors: rethrowErrors);
     }
   }
 

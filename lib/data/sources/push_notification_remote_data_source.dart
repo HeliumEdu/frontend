@@ -12,8 +12,6 @@ final _log = Logger('data.sources');
 abstract class PushNotificationRemoteDataSource extends BaseDataSource {
   Future<PushTokenModel> registerPushToken(PushTokenRequestModel request);
 
-  Future<void> deletePushToken(int tokenId);
-
   Future<void> deletePushTokenById(int tokenId);
 
   Future<List<PushTokenModel>> retrievePushTokens();
@@ -41,76 +39,11 @@ class PushTokenRemoteDataSourceImpl extends PushNotificationRemoteDataSource {
         _log.info('... PushToken ${pushToken.id} registered');
         return pushToken;
       } else {
-        throw ServerException(
-          message: 'Failed to register push token.',
-          code: response.statusCode.toString(),
-        );
+        throw unexpectedStatus(response, 'Failed to register push token.');
       }
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
-    } on HeliumException catch (e, s) {
-      _log.severe('Data source error', e, s);
-      rethrow;
-    } catch (e, s) {
-      _log.severe('An unexpected error occurred', e, s);
-      throw HeliumException(message: HeliumException.unexpectedError);
-    }
-  }
-
-  @override
-  Future<void> deletePushToken(int tokenId) async {
-    try {
-      _log.info('Deleting PushToken $tokenId ...');
-
-      final response = await dioClient.dio.delete(
-        '${ApiUrl.authUserPushTokenUrl}$tokenId/',
-      );
-
-      if (response.statusCode == 204) {
-        _log.info('... PushToken $tokenId deleted');
-      } else {
-        String errorMessage = 'Failed to delete push token';
-        if (response.data != null) {
-          if (response.data is Map<String, dynamic>) {
-            final errorData = response.data as Map<String, dynamic>;
-            errorMessage =
-                errorData['detail'] ??
-                errorData['message'] ??
-                errorData['error'] ??
-                errorMessage;
-          } else if (response.data is String) {
-            errorMessage = response.data as String;
-          }
-        }
-        _log.severe('Failed to delete push token, status: ${response.statusCode}');
-        throw ServerException(
-          message: errorMessage,
-          code: response.statusCode.toString(),
-        );
-      }
-    } on DioException catch (e) {
-      String errorMessage = 'Network error occurred';
-      if (e.response?.data != null) {
-        if (e.response!.data is Map<String, dynamic>) {
-          final errorData = e.response!.data as Map<String, dynamic>;
-          errorMessage =
-              errorData['detail'] ??
-              errorData['message'] ??
-              errorData['error'] ??
-              e.message ??
-              errorMessage;
-        } else if (e.response!.data is String) {
-          errorMessage = e.response!.data as String;
-        }
-      } else {
-        errorMessage = e.message ?? errorMessage;
-      }
-      _log.severe(
-        'DioException deleting push token, status: ${e.response?.statusCode}',
-      );
-      throw HeliumException(message: errorMessage);
-    } on HeliumException catch (e, s) {
-      _log.severe('Data source error', e, s);
+    } on HeliumException {
       rethrow;
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
@@ -132,15 +65,11 @@ class PushTokenRemoteDataSourceImpl extends PushNotificationRemoteDataSource {
         final message = response.data is Map<String, dynamic>
             ? (response.data['detail'] ?? 'Failed to delete push token')
             : 'Failed to delete push token';
-        throw ServerException(
-          message: message,
-          code: response.statusCode.toString(),
-        );
+        throw unexpectedStatus(response, message);
       }
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
-    } on HeliumException catch (e, s) {
-      _log.severe('Data source error', e, s);
+    } on HeliumException {
       rethrow;
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
@@ -162,15 +91,11 @@ class PushTokenRemoteDataSourceImpl extends PushNotificationRemoteDataSource {
         _log.info('... fetched ${tokens.length} PushToken(s)');
         return tokens;
       } else {
-        throw ServerException(
-          message: 'Failed to retrieve push tokens.',
-          code: response.statusCode.toString(),
-        );
+        throw unexpectedStatus(response, 'Failed to retrieve push tokens.');
       }
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
-    } on HeliumException catch (e, s) {
-      _log.severe('Data source error', e, s);
+    } on HeliumException {
       rethrow;
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);

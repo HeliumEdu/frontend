@@ -24,14 +24,12 @@ class HeliumException implements Exception {
   });
 
   /// Returns the user-friendly display message (without field prefixes).
-  /// Falls back to [message] if no parsed error is available.
-  String get displayMessage => parsedError?.displayMessage ?? message;
-
-  /// Returns the error message for a specific field, or null if none
-  String? getFieldError(String fieldName) => parsedError?.getFieldError(fieldName);
-
-  /// Whether this exception has field-specific errors
-  bool get hasFieldErrors => parsedError?.hasFieldErrors ?? false;
+  /// Falls back to [message] when the parser produced nothing usable, so a
+  /// response it cannot read never renders as empty text.
+  String get displayMessage {
+    final parsed = parsedError?.displayMessage;
+    return parsed == null || parsed.isEmpty ? message : parsed;
+  }
 
   @override
   String toString() => message;

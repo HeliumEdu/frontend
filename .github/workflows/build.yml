@@ -14,6 +14,14 @@ on:
         required: true
         type: boolean
         default: true
+      deploy_web:
+        description: 'Deploy the web build (manual runs only)'
+        required: true
+        type: choice
+        default: none
+        options:
+          - none
+          - dev
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -84,6 +92,7 @@ jobs:
 
   build-android:
     name: Build Android
+    if: ${{ !(github.event_name == 'workflow_dispatch' && inputs.deploy_web == 'dev') }}
 
     runs-on: ubuntu-latest
 
@@ -122,6 +131,7 @@ jobs:
 
   build-ios:
     name: Build iOS
+    if: ${{ !(github.event_name == 'workflow_dispatch' && inputs.deploy_web == 'dev') }}
 
     runs-on: macos-latest
 
@@ -187,10 +197,11 @@ jobs:
 
       - name: Build web
         run: make build-web
-
-  deploy-web-ci:
-    name: Deploy web (CI preview)
-    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/develop' }}
+  deploy-web:
+    name: Deploy web
+    if: >-
+      ${{ (github.event_name == 'push' && github.ref == 'refs/heads/develop') ||
+      (github.event_name == 'workflow_dispatch' && inputs.deploy_web == 'dev') }}
 
     runs-on: ubuntu-latest
 
@@ -204,6 +215,35 @@ jobs:
           skip-token-revoke: true
 
       - uses: actions/checkout@v6
+
+      - name: Resolve deploy target
+        id: target
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            {
+              echo "label=Dev"
+              echo "bucket=heliumedu.dev.frontend-app.static"
+              echo "environment=dev"
+              echo "sentry_environment=dev"
+              echo "firebase_auth_domain="
+              echo "cf_comment=app.dev.heliumedu.com"
+              echo "canary_env="
+              echo "url=https://app.dev.heliumedu.com"
+              echo "api=https://api.dev.heliumedu.com"
+            } >> $GITHUB_OUTPUT
+          else
+            {
+              echo "label=CI Preview"
+              echo "bucket=heliumedu.ci.frontend-app.static"
+              echo "environment=prod"
+              echo "sentry_environment=ci"
+              echo "firebase_auth_domain=auth.heliumedu.com"
+              echo "cf_comment=heliumedu-ci-frontend-app"
+              echo "canary_env=ci"
+              echo "url="
+              echo "api=https://api.heliumedu.com"
+            } >> $GITHUB_OUTPUT
+          fi
 
       - name: Read Flutter version
         id: flutter-version
@@ -239,7 +279,25 @@ jobs:
           echo "CI build: ${CI_VERSION}+${BUILD}"
 
       - name: Build web
-        run: make build-web ENVIRONMENT=prod FIREBASE_AUTH_DOMAIN=auth.heliumedu.com
+        env:
+          ENVIRONMENT: ${{ steps.target.outputs.environment }}
+          SENTRY_ENVIRONMENT: ${{ steps.target.outputs.sentry_environment }}
+          FIREBASE_AUTH_DOMAIN: ${{ steps.target.outputs.firebase_auth_domain }}
+        run: |
+          ARGS="ENVIRONMENT=${ENVIRONMENT} SENTRY_ENVIRONMENT=${SENTRY_ENVIRONMENT}"
+          if [ -n "$FIREBASE_AUTH_DOMAIN" ]; then
+            ARGS="$ARGS FIREBASE_AUTH_DOMAIN=${FIREBASE_AUTH_DOMAIN}"
+          fi
+          make build-web $ARGS
+
+      - name: Upload source maps to Sentry
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          RELEASE_VERSION: ${{ steps.ci-version.outputs.version }}
+        run: |
+          npm install -g @sentry/cli@3.6.2
+          SENTRY_DIST="${RELEASE_VERSION##*+}"
+          make upload-web-symbols RELEASE_VERSION="$RELEASE_VERSION" SENTRY_DIST="$SENTRY_DIST"
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v6
@@ -249,9 +307,9 @@ jobs:
           aws-region: us-east-1
 
       - name: Deploy to S3
+        env:
+          BUCKET_NAME: ${{ steps.target.outputs.bucket }}
         run: |
-          BUCKET_NAME="heliumedu.ci.frontend-app.static"
-
           aws s3 sync ./build/web "s3://${BUCKET_NAME}" \
             --delete \
             --cache-control "public, max-age=2592000" \
@@ -285,9 +343,11 @@ jobs:
 
       - name: Invalidate CloudFront cache
         id: cloudfront
+        env:
+          CF_COMMENT: ${{ steps.target.outputs.cf_comment }}
         run: |
           DISTRIBUTION=$(aws cloudfront list-distributions \
-            --query "DistributionList.Items[?Comment=='heliumedu-ci-frontend-app'] | [0].{Id: Id, Domain: DomainName}" \
+            --query "DistributionList.Items[?Comment=='${CF_COMMENT}'] | [0].{Id: Id, Domain: DomainName}" \
             --output json)
 
           DISTRIBUTION_ID=$(echo "$DISTRIBUTION" | jq -r '.Id // empty')
@@ -298,24 +358,36 @@ jobs:
               --distribution-id "$DISTRIBUTION_ID" \
               --paths "/*"
             echo "domain=${DOMAIN_NAME}" >> $GITHUB_OUTPUT
+          else
+            echo "Warning: no CloudFront distribution found with comment '${CF_COMMENT}'"
           fi
 
       - name: Trigger canary tests
+        if: ${{ steps.target.outputs.canary_env != '' }}
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          CANARY_ENV: ${{ steps.target.outputs.canary_env }}
         run: |
           gh workflow run canary.yml \
             --repo ${{ github.repository }} \
-            -f environment=ci
+            -f environment="$CANARY_ENV"
 
       - name: Deployment summary
+        env:
+          LABEL: ${{ steps.target.outputs.label }}
+          API: ${{ steps.target.outputs.api }}
+          URL: ${{ steps.target.outputs.url }}
+          DISCOVERED: ${{ steps.cloudfront.outputs.domain }}
         run: |
-          echo "### CI Preview Deployment Complete" >> $GITHUB_STEP_SUMMARY
+          echo "### ${LABEL} Deployment Complete" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "- **Commit**: ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
           echo "- **Version**: ${{ steps.ci-version.outputs.version }}" >> $GITHUB_STEP_SUMMARY
-          if [ -n "${{ steps.cloudfront.outputs.domain }}" ]; then
-            echo "- **URL**: https://${{ steps.cloudfront.outputs.domain }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **API**: ${API}" >> $GITHUB_STEP_SUMMARY
+          if [ -n "$URL" ]; then
+            echo "- **URL**: ${URL}" >> $GITHUB_STEP_SUMMARY
+          elif [ -n "$DISCOVERED" ]; then
+            echo "- **URL**: https://${DISCOVERED}" >> $GITHUB_STEP_SUMMARY
           fi
 
   deploy-ios-ci:
@@ -437,7 +509,7 @@ jobs:
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
         run: |
           npm install -g @sentry/cli@3.6.2
-          SENTRY_PROPERTIES=sentry.properties sentry-cli debug-files upload build/symbols/ build/ios/archive/Runner.xcarchive/dSYMs/
+          make upload-ios-symbols
 
       - name: Deploy to TestFlight
         env:
@@ -462,3 +534,119 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "- **Commit**: ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
           echo "- **Version**: ${{ steps.ci-version.outputs.build-name }}+${{ steps.ci-version.outputs.build-number }}" >> $GITHUB_STEP_SUMMARY
+
+  deploy-android-ci:
+    name: Deploy Android (CI preview)
+    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/develop' }}
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Setup Java 17
+        uses: actions/setup-java@v5
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+          cache: 'gradle'
+          cache-dependency-path: android/*.gradle*
+
+      - name: Read Flutter version
+        id: flutter-version
+        run: echo "version=$(tr -d '[:space:]' < .flutter-version)" >> $GITHUB_OUTPUT
+
+      - name: Setup Flutter SDK
+        uses: flutter-actions/setup-flutter@v4
+        with:
+          channel: stable
+          version: ${{ steps.flutter-version.outputs.version }}
+          cache: true
+
+      - name: Cache pub dependencies
+        uses: actions/cache@v5
+        with:
+          path: ~/.pub-cache
+          key: ${{ runner.os }}-pub-${{ hashFiles('**/pubspec.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-pub-
+
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.3'
+          bundler: 'Gemfile.lock'
+          bundler-cache: false
+
+      - name: Install Fastlane
+        run: |
+          cd android && bundle install
+
+      - name: Decode Google Play service account key
+        env:
+          GOOGLE_PLAY_SERVICE_ACCOUNT_KEY: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_KEY }}
+        run: |
+          echo "$GOOGLE_PLAY_SERVICE_ACCOUNT_KEY" > android/service-account-key.json
+
+      - name: Compute CI build version
+        id: ci-version
+        run: |
+          CURRENT=$(grep '^version:' pubspec.yaml | cut -d' ' -f2)
+          SEMVER="${CURRENT%%+*}"
+          IFS='.' read -r MAJOR MINOR PATCH <<< "$SEMVER"
+          CI_VERSION="${MAJOR}.${MINOR}.$((PATCH + 1))"
+
+          CODE=$(cd android && bundle exec fastlane next_version_code 2>&1 \
+            | sed -n 's/.*Next version code: \([0-9]*\)/\1/p' | tail -1)
+          if [ -z "$CODE" ]; then
+            echo "Could not read the next version code from Play" >&2
+            exit 1
+          fi
+
+          echo "build-name=${CI_VERSION}" >> $GITHUB_OUTPUT
+          echo "build-number=${CODE}" >> $GITHUB_OUTPUT
+          echo "CI build: ${CI_VERSION}+${CODE}"
+
+      - name: Decode keystore
+        run: |
+          echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 --decode > $GITHUB_WORKSPACE/android/helium-release-key.jks
+
+      - name: Build Android release AAB
+        env:
+          SIGNING_KEY_ALIAS: ${{ secrets.ANDROID_SIGNING_KEY_ALIAS }}
+          SIGNING_KEY_PASSWORD: ${{ secrets.ANDROID_SIGNING_KEY_PASSWORD }}
+          SIGNING_STORE_FILE: ${{ github.workspace }}/android/helium-release-key.jks
+          SIGNING_STORE_PASSWORD: ${{ secrets.ANDROID_SIGNING_STORE_PASSWORD }}
+          RELEASE_VERSION: ${{ steps.ci-version.outputs.build-name }}+${{ steps.ci-version.outputs.build-number }}
+        run: |
+          SENTRY_DIST="${RELEASE_VERSION##*+}"
+          make build-android-release ENVIRONMENT=prod \
+            RELEASE_VERSION="$RELEASE_VERSION" SENTRY_DIST="$SENTRY_DIST" \
+            BUILD_NAME=${{ steps.ci-version.outputs.build-name }} \
+            BUILD_NUMBER=${{ steps.ci-version.outputs.build-number }}
+
+      - name: Upload debug symbols to Sentry
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+        run: |
+          npm install -g @sentry/cli@3.6.2
+          make upload-android-symbols
+
+      - name: Deploy to Google Play Internal Track
+        env:
+          CI_VERSION: ${{ steps.ci-version.outputs.build-name }}
+        run: |
+          cd android
+          bundle exec fastlane deploy_internal aab_path:../build/app/outputs/bundle/release/app-release.aab version:$CI_VERSION
+
+      - name: Cleanup service account key
+        if: always()
+        run: rm -f android/service-account-key.json
+
+      - name: Deployment summary
+        run: |
+          echo "### Android CI Preview Deployment Complete" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **Commit**: ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Version**: ${{ steps.ci-version.outputs.build-name }}+${{ steps.ci-version.outputs.build-number }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Track**: Internal" >> $GITHUB_STEP_SUMMARY

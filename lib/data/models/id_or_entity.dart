@@ -12,11 +12,9 @@ class IdOrEntity<T extends BaseModel> {
 
   factory IdOrEntity.from(dynamic data, Function fromJson) {
     dynamic value = data;
-    try {
-      if (value is String) {
-        value = int.tryParse(value);
-      }
-    } catch (_) {}
+    if (value is String) {
+      value = int.tryParse(value);
+    }
 
     if (value is int) return IdOrEntity(id: value);
     try {

@@ -5,6 +5,7 @@ import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:heliumapp/config/pref_service.dart';
+import 'package:heliumapp/core/helium_exception.dart';
 import 'package:heliumapp/data/models/auth/user_settings_model.dart';
 import 'package:heliumapp/data/models/planner/planner_item_base_model.dart';
 import 'package:heliumapp/data/models/planner/category_model.dart';
@@ -67,7 +68,10 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
   final Map<int, PlannerItemTimeOverride> _timeOverrides = {};
   bool _isMonthView = false;
   Timer? _filterDebounceTimer;
-  bool _isFilteringInProgress = false;
+  bool _filterRerunRequested = false;
+
+  void Function(String message)? onLoadError;
+  Future<void>? _filterPass;
   Completer<void>? _filterCompleter;
   bool _isRefreshing = false;
   // SfCalendar has two independent notification channels that must both be
@@ -707,9 +711,6 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
             courses: courses ?? [],
             from: startDate,
             to: endDate,
-            courseGroupsById: courseGroupsById,
-            shownOnCalendar: true,
-            forceRefresh: forceRefresh,
           ),
           externalCalendarRepository.getExternalCalendarEvents(
             from: startDate,
@@ -718,12 +719,17 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
             forceRefresh: forceRefresh,
           ),
         ]);
-      } catch (_) {
-        // The range stays uncached (retried on next view). Dismiss SfCalendar's
-        // load-more overlay by notifying with the data we already have, else it
-        // spins forever; rethrow so loadMoreWidgetBuilder can surface the error.
+      } catch (error) {
+        // Throwing leaves SfCalendar's load-more state stuck, so it never
+        // requests another range. Return instead; the range stays uncached and
+        // is retried when the view comes back to it.
         _notifyCalendarReset();
-        rethrow;
+        onLoadError?.call(
+          error is HeliumException
+              ? error.displayMessage
+              : HeliumException.unexpectedError,
+        );
+        return;
       }
       final homeworks = results[0] as List<HomeworkModel>;
       final events = results[1] as List<EventModel>;
@@ -1255,15 +1261,25 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
     if (_filterCompleter != null && !_filterCompleter!.isCompleted) {
       await _applyFiltersAsync();
     }
+    await _filterPass;
   }
 
   /// [showOverlay] drives the screen's full-area refresh scrim via
   /// [isRefreshing]. It's suppressed when called from [handleLoadMore], where
   /// SfCalendar already shows its own built-in loader — avoiding two
   /// overlapping spinners on calendar-driven loads.
-  Future<void> _applyFiltersAsync({bool showOverlay = true}) async {
-    if (_isFilteringInProgress) return;
-    _isFilteringInProgress = true;
+  Future<void> _applyFiltersAsync({bool showOverlay = true}) {
+    final active = _filterPass;
+    if (active != null) {
+      _filterRerunRequested = true;
+      return active;
+    }
+    final pass = _runFilterPass(showOverlay: showOverlay);
+    _filterPass = pass;
+    return pass;
+  }
+
+  Future<void> _runFilterPass({required bool showOverlay}) async {
     if (showOverlay) _isRefreshing = true;
     // Defer notification to avoid triggering rebuild during build phase
     // (handleLoadMore can be called during SfCalendar's layout)
@@ -1309,11 +1325,18 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
       _notifyChangeListeners();
       completer?.complete();
     } catch (e) {
+      _filterPass = null;
       completer?.completeError(e);
       rethrow;
     } finally {
-      _isFilteringInProgress = false;
       if (showOverlay) _isRefreshing = false;
+    }
+
+    if (_filterRerunRequested) {
+      _filterRerunRequested = false;
+      await _runFilterPass(showOverlay: showOverlay);
+    } else {
+      _filterPass = null;
     }
   }
 

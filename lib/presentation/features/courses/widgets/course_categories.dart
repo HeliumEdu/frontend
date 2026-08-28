@@ -174,6 +174,7 @@ class _CourseCategoriesContentState extends State<_CourseCategoriesContent> {
                 return ErrorCard(
                   message: state.message!,
                   source: 'course_categories',
+                  expanded: false,
                   onReload: () {
                     context.read<CategoryBloc>().add(
                       FetchCategoriesEvent(
@@ -188,6 +189,7 @@ class _CourseCategoriesContentState extends State<_CourseCategoriesContent> {
 
               if (_categories.isEmpty) {
                 return const EmptyCard(
+                  expanded: false,
                   icon: Icons.category_outlined,
                   message: 'Click "+" to add a category',
                 );

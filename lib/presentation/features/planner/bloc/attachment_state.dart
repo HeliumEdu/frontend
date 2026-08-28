@@ -16,10 +16,51 @@ class AttachmentsError extends AttachmentState {
   AttachmentsError({required super.message, this.failedFilenames = const {}});
 }
 
-class AttachmentsFetched extends AttachmentState {
-  final List<AttachmentModel> attachments;
+mixin AttachmentsFetchIdentity {
+  int? get eventId;
 
-  AttachmentsFetched({required this.attachments});
+  int? get homeworkId;
+
+  int? get courseId;
+
+  bool matches({int? eventId, int? homeworkId, int? courseId}) =>
+      this.eventId == eventId &&
+      this.homeworkId == homeworkId &&
+      this.courseId == courseId;
+}
+
+class AttachmentsFetchFailed extends AttachmentsError
+    with AttachmentsFetchIdentity {
+  @override
+  final int? eventId;
+  @override
+  final int? homeworkId;
+  @override
+  final int? courseId;
+
+  AttachmentsFetchFailed({
+    required super.message,
+    this.eventId,
+    this.homeworkId,
+    this.courseId,
+  });
+}
+
+class AttachmentsFetched extends AttachmentState with AttachmentsFetchIdentity {
+  final List<AttachmentModel> attachments;
+  @override
+  final int? eventId;
+  @override
+  final int? homeworkId;
+  @override
+  final int? courseId;
+
+  AttachmentsFetched({
+    required this.attachments,
+    this.eventId,
+    this.homeworkId,
+    this.courseId,
+  });
 }
 
 class AttachmentsCreated extends AttachmentState {

@@ -92,15 +92,11 @@ class ResourceRemoteDataSourceImpl extends ResourceRemoteDataSource {
           );
         }
       } else {
-        throw ServerException(
-          message: 'Failed to fetch groups.',
-          code: response.statusCode.toString(),
-        );
+        throw unexpectedStatus(response, 'Failed to fetch groups.');
       }
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
-    } on HeliumException catch (e, s) {
-      _log.severe('Data source error', e, s);
+    } on HeliumException {
       rethrow;
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
@@ -124,15 +120,11 @@ class ResourceRemoteDataSourceImpl extends ResourceRemoteDataSource {
         _log.info('... ResourceGroup $groupId fetched');
         return ResourceGroupModel.fromJson(response.data);
       } else {
-        throw ServerException(
-          message: 'Failed to fetch group.',
-          code: response.statusCode.toString(),
-        );
+        throw unexpectedStatus(response, 'Failed to fetch group.');
       }
     } on DioException catch (e, s) {
       throw handleDioError(e, s, notFoundEntity: 'Group');
-    } on HeliumException catch (e, s) {
-      _log.severe('Data source error', e, s);
+    } on HeliumException {
       rethrow;
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
@@ -158,15 +150,11 @@ class ResourceRemoteDataSourceImpl extends ResourceRemoteDataSource {
         await dioClient.cacheService.invalidateAll();
         return group;
       } else {
-        throw ServerException(
-          message: 'Failed to create group.',
-          code: response.statusCode.toString(),
-        );
+        throw unexpectedStatus(response, 'Failed to create group.');
       }
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
-    } on HeliumException catch (e, s) {
-      _log.severe('Data source error', e, s);
+    } on HeliumException {
       rethrow;
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
@@ -192,15 +180,11 @@ class ResourceRemoteDataSourceImpl extends ResourceRemoteDataSource {
         await dioClient.cacheService.invalidateAll();
         return ResourceGroupModel.fromJson(response.data);
       } else {
-        throw ServerException(
-          message: 'Failed to update group.',
-          code: response.statusCode.toString(),
-        );
+        throw unexpectedStatus(response, 'Failed to update group.');
       }
     } on DioException catch (e, s) {
       throw handleDioError(e, s, notFoundEntity: 'Group');
-    } on HeliumException catch (e, s) {
-      _log.severe('Data source error', e, s);
+    } on HeliumException {
       rethrow;
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
@@ -221,15 +205,11 @@ class ResourceRemoteDataSourceImpl extends ResourceRemoteDataSource {
         await dioClient.cacheService.invalidateAll();
         return;
       } else {
-        throw ServerException(
-          message: 'Failed to delete group.',
-          code: response.statusCode.toString(),
-        );
+        throw unexpectedStatus(response, 'Failed to delete group.');
       }
     } on DioException catch (e, s) {
       throw handleDioError(e, s, notFoundEntity: 'Group');
-    } on HeliumException catch (e, s) {
-      _log.severe('Data source error', e, s);
+    } on HeliumException {
       rethrow;
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
@@ -283,15 +263,11 @@ class ResourceRemoteDataSourceImpl extends ResourceRemoteDataSource {
           );
         }
       } else {
-        throw ServerException(
-          message: 'Failed to fetch resources.',
-          code: response.statusCode.toString(),
-        );
+        throw unexpectedStatus(response, 'Failed to fetch resources.');
       }
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
-    } on HeliumException catch (e, s) {
-      _log.severe('Data source error', e, s);
+    } on HeliumException {
       rethrow;
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
@@ -316,15 +292,11 @@ class ResourceRemoteDataSourceImpl extends ResourceRemoteDataSource {
         _log.info('... Resource $resourceId fetched');
         return ResourceModel.fromJson(response.data);
       } else {
-        throw ServerException(
-          message: 'Failed to fetch resource.',
-          code: response.statusCode.toString(),
-        );
+        throw unexpectedStatus(response, 'Failed to fetch resource.');
       }
     } on DioException catch (e, s) {
       throw handleDioError(e, s, notFoundEntity: 'Resource');
-    } on HeliumException catch (e, s) {
-      _log.severe('Data source error', e, s);
+    } on HeliumException {
       rethrow;
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
@@ -352,15 +324,11 @@ class ResourceRemoteDataSourceImpl extends ResourceRemoteDataSource {
         unawaited(AnalyticsService().logEvent(name: AnalyticsEvent.resourceCreate, parameters: {'category': AnalyticsCategory.featureInteraction.value}));
         return resource;
       } else {
-        throw ServerException(
-          message: 'Failed to create resource.',
-          code: response.statusCode.toString(),
-        );
+        throw unexpectedStatus(response, 'Failed to create resource.');
       }
     } on DioException catch (e, s) {
       throw handleDioError(e, s, notFoundEntity: 'Group');
-    } on HeliumException catch (e, s) {
-      _log.severe('Data source error', e, s);
+    } on HeliumException {
       rethrow;
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
@@ -386,15 +354,11 @@ class ResourceRemoteDataSourceImpl extends ResourceRemoteDataSource {
         await dioClient.cacheService.invalidateAll();
         return ResourceModel.fromJson(response.data);
       } else {
-        throw ServerException(
-          message: 'Failed to update resource.',
-          code: response.statusCode.toString(),
-        );
+        throw unexpectedStatus(response, 'Failed to update resource.');
       }
     } on DioException catch (e, s) {
       throw handleDioError(e, s, notFoundEntity: 'Resource');
-    } on HeliumException catch (e, s) {
-      _log.severe('Data source error', e, s);
+    } on HeliumException {
       rethrow;
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
@@ -418,15 +382,11 @@ class ResourceRemoteDataSourceImpl extends ResourceRemoteDataSource {
         await dioClient.cacheService.invalidateAll();
         return;
       } else {
-        throw ServerException(
-          message: 'Failed to delete resource.',
-          code: response.statusCode.toString(),
-        );
+        throw unexpectedStatus(response, 'Failed to delete resource.');
       }
     } on DioException catch (e, s) {
       throw handleDioError(e, s, notFoundEntity: 'Resource');
-    } on HeliumException catch (e, s) {
-      _log.severe('Data source error', e, s);
+    } on HeliumException {
       rethrow;
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);

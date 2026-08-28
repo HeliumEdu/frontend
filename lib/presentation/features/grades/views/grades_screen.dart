@@ -7,6 +7,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:heliumapp/config/analytics_event.dart';
 import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/config/app_theme.dart';
+import 'package:heliumapp/core/helium_exception.dart';
 import 'package:heliumapp/config/pref_service.dart';
 import 'package:heliumapp/core/analytics_service.dart';
 import 'package:heliumapp/core/dio_client.dart';
@@ -198,8 +199,12 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
       BlocListener<GradeBloc, GradeState>(
         listener: (context, state) {
           if (state is GradesError) {
-            setState(() => isLoading = false);
+            setState(() {
+              isLoading = false;
+              screenError = state.message ?? HeliumException.unexpectedError;
+            });
           } else if (state is GradeScreenDataFetched) {
+            setState(() => screenError = null);
             _populateInitiateStateData(state);
             openFromQueryParams();
           }
@@ -281,6 +286,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
     );
   }
 
+
   @override
   Widget buildMainArea(BuildContext context) {
     return BlocBuilder<GradeBloc, GradeState>(
@@ -293,11 +299,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
           return ErrorCard(
             message: state.message!,
             source: 'grades_screen',
-            onReload: () {
-              return context.read<GradeBloc>().add(
-                FetchGradeScreenDataEvent(forceRefresh: true),
-              );
-            },
+            onReload: reloadPage,
           );
         }
 
@@ -358,6 +360,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
                   return ErrorCard(
                     message: 'An unknown error occurred loading the graph',
                     source: 'grades_screen',
+                    expanded: false,
                     onReload: () {
                       context.read<GradeBloc>().add(
                         FetchGradeScreenDataEvent(forceRefresh: true),

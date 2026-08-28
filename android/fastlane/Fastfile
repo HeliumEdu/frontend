@@ -3,6 +3,23 @@
 default_platform(:android)
 
 platform :android do
+  desc "Print the next available Play version code, taken across every track"
+  lane :next_version_code do
+    codes = %w[production beta alpha internal].flat_map do |track|
+      begin
+        google_play_track_version_codes(track: track)
+      rescue StandardError => e
+        # A track with no releases raises rather than returning empty.
+        UI.message("No version codes on track '#{track}' (#{e.class})")
+        []
+      end
+    end
+
+    next_code = (codes.flatten.map(&:to_i).max || 0) + 1
+    UI.message("Next version code: #{next_code}")
+    next_code
+  end
+
   desc "Deploy AAB to Google Play Internal Track"
   lane :deploy_internal do |options|
     aab_path = options[:aab_path] || "../build/app/outputs/bundle/release/app-release.aab"
@@ -20,8 +37,9 @@ platform :android do
     )
   end
 
-  desc "Promote internal-track AAB to Production, pushing metadata text every time and store-listing assets (icon, feature graphic, screenshots) only when push_store_assets:true. Defaults to draft status (operator manually sends for review); set submit_for_review:true to release status 'completed' (auto-sent for review — Managed Publishing in Play Console then gates post-review publish on a manual click)."
-  lane :promote_to_production_draft do |options|
+  desc "Upload the AAB straight to Production, pushing metadata text every time and store-listing assets (icon, feature graphic, screenshots) only when push_store_assets:true. Defaults to draft status (operator manually sends for review); set submit_for_review:true to release status 'completed' (auto-sent for review — Managed Publishing in Play Console then gates post-review publish on a manual click)."
+  lane :deploy_production do |options|
+    aab_path = options[:aab_path] || "../build/app/outputs/bundle/release/app-release.aab"
     version = options[:version]
     version_code = options[:version_code]
     # Fastlane CLI args arrive as strings; coerce to a real boolean.
@@ -47,17 +65,18 @@ platform :android do
     FileUtils.mkdir_p(changelog_dir)
     FileUtils.cp(template, changelog)
 
+    # version_code is deliberately not passed: supply reads it from the AAB.
+    # It is used above only to name the changelog, and matches by construction
+    # because the same value was passed to the build as --build-number.
     upload_to_play_store(
+      aab: aab_path,
       metadata_path: metadata_dir,
-      track: 'internal',
-      track_promote_to: 'production',
+      track: 'production',
       # 'completed' = auto-submit for review (Managed Publishing then holds
       # the approved release for manual publish). 'draft' = release sits in
       # Play Console awaiting manual 'Send for review' click.
-      track_promote_release_status: submit_for_review ? 'completed' : 'draft',
+      release_status: submit_for_review ? 'completed' : 'draft',
       version_name: version,
-      version_code: version_code.to_i,
-      skip_upload_aab: true,
       skip_upload_apk: true,
       skip_upload_metadata: false,
       skip_upload_images: !push_store_assets,
@@ -66,9 +85,9 @@ platform :android do
 
     assets_note = push_store_assets ? "with store-listing assets re-uploaded" : "with store-listing assets unchanged"
     if submit_for_review
-      UI.success("Promoted #{version} (#{version_code}) to Production with release status 'completed' (#{assets_note}). Google's review is async; once approved Play will hold the release for a manual 'Publish' click in Play Console (Managed Publishing).")
+      UI.success("Submitted #{version} (#{version_code}) to Production for review (#{assets_note}). Google's review is async; once approved Play will hold the release for a manual 'Publish' click in Play Console (Managed Publishing).")
     else
-      UI.success("Promoted #{version} (#{version_code}) to Production as a draft (#{assets_note}). Click 'Send for review' in Play Console when ready.")
+      UI.success("Staged #{version} (#{version_code}) on Production as a draft (#{assets_note}). Click 'Send for review' in Play Console when ready.")
     end
   end
 end

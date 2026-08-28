@@ -84,6 +84,12 @@ class ExternalCalendarsScreenState extends State<ExternalCalendarsScreen> {
           setState(() {
             _externalCalendars.removeWhere((g) => g.id == state.id);
           });
+        } else if (state is ExternalCalendarsError &&
+            state.origin == EventOrigin.subScreen) {
+          SnackBarHelper.show(context, state.message!, type: SnackType.error);
+          setState(() {
+            _updatingCalendarIds.clear();
+          });
         }
       },
       child: Column(
@@ -197,7 +203,7 @@ class ExternalCalendarsScreenState extends State<ExternalCalendarsScreen> {
 
     context.read<ExternalCalendarBloc>().add(
       UpdateExternalCalendarEvent(
-        origin: EventOrigin.screen,
+        origin: EventOrigin.subScreen,
         id: externalCalendar.id,
         request: request,
       ),
@@ -276,7 +282,7 @@ class ExternalCalendarsScreenState extends State<ExternalCalendarsScreen> {
                       onDelete: (ec) {
                         context.read<ExternalCalendarBloc>().add(
                           DeleteExternalCalendarEvent(
-                            origin: EventOrigin.screen,
+                            origin: EventOrigin.subScreen,
                             id: ec.id,
                           ),
                         );

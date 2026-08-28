@@ -20,14 +20,6 @@ on:
         required: true
         type: boolean
         default: true
-      environment:
-        description: 'Environment to deploy to'
-        required: true
-        type: choice
-        default: prod
-        options:
-          - dev
-          - prod
       platforms:
         description: 'Platforms to deploy'
         required: true
@@ -185,6 +177,35 @@ jobs:
         run: |
           echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 --decode > $GITHUB_WORKSPACE/android/helium-release-key.jks
 
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.3'
+          bundler: 'Gemfile.lock'
+          bundler-cache: false
+
+      - name: Install Fastlane
+        run: |
+          cd android && bundle install
+
+      - name: Decode Google Play service account key
+        env:
+          GOOGLE_PLAY_SERVICE_ACCOUNT_KEY: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_KEY }}
+        run: |
+          echo "$GOOGLE_PLAY_SERVICE_ACCOUNT_KEY" > android/service-account-key.json
+
+      - name: Compute Play version code
+        id: version-code
+        run: |
+          CODE=$(cd android && bundle exec fastlane next_version_code 2>&1 \
+            | sed -n 's/.*Next version code: \([0-9]*\)/\1/p' | tail -1)
+          if [ -z "$CODE" ]; then
+            echo "Could not read the next version code from Play" >&2
+            exit 1
+          fi
+          echo "code=${CODE}" >> $GITHUB_OUTPUT
+          echo "Play version code: ${CODE}"
+
       - name: Clean build artifacts
         run: flutter clean
 
@@ -197,20 +218,29 @@ jobs:
           RELEASE_VERSION: ${{ needs.prereq.outputs.version }}
         run: |
           SENTRY_DIST="${RELEASE_VERSION##*+}"
-          make build-android-release RELEASE_VERSION="$RELEASE_VERSION" SENTRY_DIST="$SENTRY_DIST"
+          make build-android-release RELEASE_VERSION="$RELEASE_VERSION" SENTRY_DIST="$SENTRY_DIST" \
+            BUILD_NUMBER="${{ steps.version-code.outputs.code }}"
+          echo "${{ steps.version-code.outputs.code }}" \
+            > build/app/outputs/bundle/release/version_code.txt
 
       - name: Upload debug symbols to Sentry
         env:
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
         run: |
           npm install -g @sentry/cli@3.6.2
-          SENTRY_PROPERTIES=sentry.properties sentry-cli debug-files upload build/symbols/
+          make upload-android-symbols
+
+      - name: Cleanup service account key
+        if: always()
+        run: rm -f android/service-account-key.json
 
       - name: Upload AAB artifact
         uses: actions/upload-artifact@v7
         with:
           name: helium-${{ needs.prereq.outputs.version }}-android.aab
-          path: build/app/outputs/bundle/release/app-release.aab
+          path: |
+            build/app/outputs/bundle/release/app-release.aab
+            build/app/outputs/bundle/release/version_code.txt
           retention-days: 30
 
       - name: Cleanup keystore
@@ -306,7 +336,7 @@ jobs:
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
         run: |
           npm install -g @sentry/cli@3.6.2
-          SENTRY_PROPERTIES=sentry.properties sentry-cli debug-files upload build/symbols/ build/ios/archive/Runner.xcarchive/dSYMs/
+          make upload-ios-symbols
 
       - name: Upload IPA artifact
         uses: actions/upload-artifact@v7
@@ -368,16 +398,8 @@ jobs:
         run: |
           npm install -g @sentry/cli@3.6.2
           SENTRY_DIST="${RELEASE_VERSION##*+}"
-          test -f build/web/main.dart.js.map
           SENTRY_PROPERTIES=sentry.properties sentry-cli releases new "$RELEASE_VERSION"
-          SENTRY_PROPERTIES=sentry.properties sentry-cli sourcemaps inject build/web
-          SENTRY_PROPERTIES=sentry.properties sentry-cli sourcemaps upload \
-            --release "$RELEASE_VERSION" \
-            --dist "$SENTRY_DIST" \
-            --no-rewrite \
-            --validate \
-            --url-prefix "~/" \
-            build/web
+          make upload-web-symbols RELEASE_VERSION="$RELEASE_VERSION" SENTRY_DIST="$SENTRY_DIST"
 
       - name: Upload web artifact
         uses: actions/upload-artifact@v7
@@ -497,7 +519,6 @@ jobs:
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
           VERSION: ${{ needs.prereq.outputs.version }}
-          ENVIRONMENT: ${{ inputs.environment }}
           PLATFORMS: ${{ inputs.platforms }}
           AUTO_SUBMIT_FOR_REVIEW: ${{ inputs.auto_submit_for_review }}
           PUSH_STORE_ASSETS: ${{ inputs.push_store_assets }}
@@ -506,7 +527,6 @@ jobs:
             --repo ${{ github.repository }} \
             -f version_type=specific \
             -f specific_version="$VERSION" \
-            -f environment="$ENVIRONMENT" \
             -f platforms="$PLATFORMS" \
             -f auto_submit_for_review="$AUTO_SUBMIT_FOR_REVIEW" \
             -f push_store_assets="$PUSH_STORE_ASSETS"
@@ -514,13 +534,11 @@ jobs:
       - name: Deployment trigger summary
         env:
           VERSION: ${{ needs.prereq.outputs.version }}
-          ENVIRONMENT: ${{ inputs.environment }}
           PLATFORMS: ${{ inputs.platforms }}
         run: |
           echo "### Deploy Workflow Triggered" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "- **Version**: $VERSION" >> $GITHUB_STEP_SUMMARY
-          echo "- **Environment**: $ENVIRONMENT" >> $GITHUB_STEP_SUMMARY
           echo "- **Platforms**: $PLATFORMS" >> $GITHUB_STEP_SUMMARY
 
   cleanup:

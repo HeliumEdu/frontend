@@ -12,12 +12,15 @@ class ResponsiveCenterCard extends StatelessWidget {
   /// uses `SafeArea(bottom: false)`, else the inset double-counts.
   final bool flowIntoBottomInset;
 
+  final double keyboardInset;
+
   const ResponsiveCenterCard({
     super.key,
     required this.child,
     this.maxWidth = 450,
     this.showCard = true,
     this.flowIntoBottomInset = false,
+    this.keyboardInset = 0,
   });
 
   @override
@@ -50,7 +53,7 @@ class ResponsiveCenterCard extends StatelessWidget {
           child: ConstrainedBox(
             constraints: BoxConstraints(minHeight: constraints.maxHeight),
             child: Padding(
-              padding: EdgeInsets.only(bottom: inset),
+              padding: EdgeInsets.only(bottom: inset + keyboardInset),
               child: Center(child: content),
             ),
           ),

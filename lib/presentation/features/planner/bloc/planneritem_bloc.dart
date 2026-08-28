@@ -72,6 +72,7 @@ class PlannerItemBloc extends Bloc<PlannerItemEvent, PlannerItemState> {
       final List<CategoryModel> categories;
       final List<ResourceModel> resources;
       NoteModel? linkedNote;
+      CourseModel? itemCourse;
 
       if (event.eventId != null) {
         final results = await Future.wait([
@@ -108,30 +109,56 @@ class PlannerItemBloc extends Bloc<PlannerItemEvent, PlannerItemState> {
         resources = results[5] as List<ResourceModel>;
         final notes = results[6] as List<NoteModel>;
         linkedNote = notes.isNotEmpty ? notes.first : null;
+        itemCourse = await _resolveItemCourse(plannerItem, courses);
       }
 
       emit(
         PlannerItemScreenDataFetched(
           origin: event.origin,
           plannerItem: plannerItem,
+          homeworkId: event.homeworkId,
+          eventId: event.eventId,
           courseGroups: courseGroups,
           courses: courses,
           courseSchedules: courseSchedules,
           categories: categories,
           resources: resources,
           linkedNote: linkedNote,
+          itemCourse: itemCourse,
         ),
       );
     } on HeliumException catch (e) {
-      emit(PlannerItemsError(origin: event.origin, message: e.message));
+      emit(
+        PlannerItemScreenDataFailed(
+          origin: event.origin,
+          message: e.message,
+          homeworkId: event.homeworkId,
+          eventId: event.eventId,
+        ),
+      );
     } catch (e) {
       emit(
-        PlannerItemsError(
+        PlannerItemScreenDataFailed(
           origin: event.origin,
           message: HeliumException.unexpectedError,
+          homeworkId: event.homeworkId,
+          eventId: event.eventId,
         ),
       );
     }
+  }
+
+  Future<CourseModel?> _resolveItemCourse(
+    PlannerItemBaseModel? plannerItem,
+    List<CourseModel> courses,
+  ) async {
+    if (plannerItem is! HomeworkModel) return null;
+
+    final courseId = plannerItem.course.id;
+    if (courses.any((course) => course.id == courseId)) return null;
+
+    final resolved = await courseRepository.getCourses(id: courseId);
+    return resolved.isNotEmpty ? resolved.first : null;
   }
 
   Future<void> _onFetchEvent(

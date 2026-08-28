@@ -88,8 +88,18 @@ class CourseDetailsState extends State<CourseDetails> {
   Widget build(BuildContext context) {
     return BlocListener<CourseBloc, CourseState>(
       listener: (context, state) {
-        if (state is CourseScreenDataFetched) {
+        if (state is CourseScreenDataFetched &&
+            state.matches(
+              courseGroupId: widget.courseGroupId,
+              courseId: widget.courseId,
+            )) {
           _populateInitialStateData(state);
+        } else if (state is CourseScreenDataFailed &&
+            state.matches(
+              courseGroupId: widget.courseGroupId,
+              courseId: widget.courseId,
+            )) {
+          setState(() => isLoading = false);
         }
       },
       child: _buildContent(context),

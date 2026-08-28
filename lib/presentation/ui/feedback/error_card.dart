@@ -43,47 +43,52 @@ class _ErrorCardState extends State<ErrorCard> {
   @override
   Widget build(BuildContext context) {
     final content = Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.cloud_off,
-            color: context.colorScheme.error.withValues(alpha: 0.9),
-            size: Responsive.getIconSize(
-              context,
-              mobile: 60,
-              tablet: 64,
-              desktop: 68,
-            ),
-          ),
-          const SizedBox(height: 16),
-          Text(
-            widget.message,
-            textAlign: TextAlign.center,
-            style: AppStyles.headingText(context).copyWith(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppConstants.basicCardInset,
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.cloud_off,
               color: context.colorScheme.error.withValues(alpha: 0.9),
+              size: Responsive.getIconSize(
+                context,
+                mobile: 60,
+                tablet: 64,
+                desktop: 68,
+              ),
             ),
-          ),
-          const SizedBox(height: 16),
-          ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 200),
-            child: HeliumElevatedButton(
-              buttonText: 'Reload',
-              onPressed: widget.onReload,
+            const SizedBox(height: 16),
+            Text(
+              widget.message,
+              textAlign: TextAlign.center,
+              style: AppStyles.headingText(context).copyWith(
+                color: context.colorScheme.error.withValues(alpha: 0.9),
+              ),
             ),
-          ),
-          const SizedBox(height: 12),
-          ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 200),
-            child: HeliumElevatedButton(
-              buttonText: 'Support Portal',
-              icon: Icons.menu_book_outlined,
-              backgroundColor: context.colorScheme.onSurfaceVariant,
-              onPressed: () =>
-                  UrlHelpers.launchWebUrl(AppConstants.supportPortalUrl),
+            const SizedBox(height: 16),
+            ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 200),
+              child: HeliumElevatedButton(
+                buttonText: 'Reload',
+                onPressed: widget.onReload,
+              ),
             ),
-          ),
-        ],
+            const SizedBox(height: 12),
+            ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 200),
+              child: HeliumElevatedButton(
+                buttonText: 'Support Portal',
+                icon: Icons.menu_book_outlined,
+                backgroundColor: context.colorScheme.onSurfaceVariant,
+                onPressed: () =>
+                    UrlHelpers.launchWebUrl(AppConstants.supportPortalUrl),
+              ),
+            ),
+          ],
+        ),
       ),
     );
 

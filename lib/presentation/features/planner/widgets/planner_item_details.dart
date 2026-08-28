@@ -101,6 +101,7 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
   List<CourseGroupModel> _courseGroups = [];
   List<CourseModel> _courses = [];
   List<DropDownItem<CourseModel>> _courseItems = [];
+  CourseModel? _itemCourse;
   List<CourseScheduleModel> _courseSchedules = [];
   List<CategoryModel> _categories = [];
   List<DropDownItem<CategoryModel>> _categoryItems = [];
@@ -146,8 +147,12 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
   Widget build(BuildContext context) {
     return BlocListener<PlannerItemBloc, PlannerItemState>(
       listener: (context, state) {
-        if (state is PlannerItemScreenDataFetched) {
+        if (state is PlannerItemScreenDataFetched &&
+            state.matches(homeworkId: _homeworkId, eventId: _eventId)) {
           _populateInitialPlannerItemStateData(state);
+        } else if (state is PlannerItemScreenDataFailed &&
+            state.matches(homeworkId: _homeworkId, eventId: _eventId)) {
+          setState(() => isLoading = false);
         }
       },
       child: _buildContent(context),
@@ -556,12 +561,20 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
     if (isLoading || _isSubmitting) return;
     _log.info('Submitting planner item (isEvent=$_isEvent, isEdit=${widget.isEdit}, redirectToNotebook=$redirectToNotebook)');
     if (formController.validateAndScrollToError()) {
-      // Warn if homework dates fall outside the course's date range
-      if (!_isEvent && formController.selectedCourse != null) {
-        final selectedCourse = _courses.firstWhere(
-          (c) => c.id == formController.selectedCourse,
-        );
+      final selectedCourse = _courseById(formController.selectedCourse);
+      final originalCourse = _plannerItem is HomeworkModel
+          ? _courseById((_plannerItem as HomeworkModel).course.id)
+          : null;
 
+      if (!_isEvent &&
+          (selectedCourse == null ||
+              (widget.isEdit && widget.homeworkId != null && originalCourse == null))) {
+        _showMissingCourseError();
+        return;
+      }
+
+      // Warn if homework dates fall outside the course's date range
+      if (!_isEvent && selectedCourse != null) {
         final courseStart = HeliumDateTime.dateOnly(selectedCourse.startDate);
         final courseEnd = HeliumDateTime.dateOnly(selectedCourse.endDate);
         final homeworkStart = HeliumDateTime.dateOnly(formController.startDate);
@@ -650,10 +663,6 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
           );
         }
       } else {
-        final selectedCourse = _courses.firstWhere(
-          (c) => c.id == formController.selectedCourse,
-        );
-
         String gradeValue;
         if (!formController.isCompleted) {
           gradeValue = '-1/100';
@@ -679,14 +688,10 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
         if (!mounted) return;
         if (widget.isEdit && widget.homeworkId != null) {
           // Use original course for URL path (backend filters by URL course_id)
-          final originalHomework = _plannerItem as HomeworkModel;
-          final originalCourse = _courses.firstWhere(
-            (c) => c.id == originalHomework.course.id,
-          );
           context.read<PlannerItemBloc>().add(
             UpdateHomeworkEvent(
               origin: EventOrigin.subScreen,
-              courseGroupId: originalCourse.courseGroup,
+              courseGroupId: originalCourse!.courseGroup,
               courseId: originalCourse.id,
               homeworkId: widget.homeworkId!,
               request: request,
@@ -699,7 +704,7 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
           context.read<PlannerItemBloc>().add(
             CreateHomeworkEvent(
               origin: EventOrigin.subScreen,
-              courseGroupId: selectedCourse.courseGroup,
+              courseGroupId: selectedCourse!.courseGroup,
               courseId: selectedCourse.id,
               request: request,
               noteContent: noteContent,
@@ -749,6 +754,7 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
           ),
         );
       }
+      _itemCourse = state.itemCourse;
       _courseSchedules = state.courseSchedules;
       _categories = state.categories;
       final weightedCourseIds = _categories
@@ -830,14 +836,10 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
 
           formController.selectedCategory = plannerItem.category.id;
 
-          if (plannerItem.resources.isNotEmpty) {
-            formController.selectedResources = plannerItem.resources
-                .where((e) => _resources.any((m) => m.id == e.id))
-                .map((e) => e.id)
-                .toList();
-          } else {
-            formController.selectedResources = [];
-          }
+          // Hidden-group resources aren't rendered, but stay selected so
+          // saving can't drop their links.
+          formController.selectedResources =
+              plannerItem.resources.map((e) => e.id).toList();
         }
       });
 
@@ -1010,8 +1012,19 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
     }
   }
 
-  String _resourceTitleById(int id) {
-    return _resources.firstWhere((m) => m.id == id).title;
+  CourseModel? _courseById(int? id) {
+    if (id == null) return null;
+    return _courses.where((c) => c.id == id).firstOrNull ??
+        (_itemCourse?.id == id ? _itemCourse : null);
+  }
+
+  void _showMissingCourseError() {
+    _log.warning('Planner item class could not be resolved; action aborted');
+    SnackBarHelper.show(
+      context,
+      'This class is no longer available. Close and reopen this assignment.',
+      type: SnackType.error,
+    );
   }
 
   int _getPriorityValue() {
@@ -1134,7 +1147,8 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
     setState(() {
       formController.selectedResources = resourceIds;
       _preferredResourceNames = resourceIds
-          .map((id) => _resourceTitleById(id))
+          .map((id) => _resources.where((m) => m.id == id).firstOrNull?.title)
+          .whereType<String>()
           .toList();
     });
   }
@@ -1144,9 +1158,11 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
 
     final CourseModel? course;
     if (_plannerItem is HomeworkModel) {
-      course = _courses.firstWhere(
-        (c) => c.id == (_plannerItem as HomeworkModel).course.id,
-      );
+      course = _courseById((_plannerItem as HomeworkModel).course.id);
+      if (course == null) {
+        _showMissingCourseError();
+        return;
+      }
     } else {
       course = null;
     }
@@ -1186,6 +1202,15 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
   Future<void> onClone() async {
     if (_plannerItem == null) return;
 
+    final homework =
+        _plannerItem is HomeworkModel ? _plannerItem as HomeworkModel : null;
+    final selectedCourse =
+        homework != null ? _courseById(homework.course.id) : null;
+    if (homework != null && selectedCourse == null) {
+      _showMissingCourseError();
+      return;
+    }
+
     widget.onActionStarted?.call();
 
     if (_plannerItem is EventModel) {
@@ -1195,16 +1220,11 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
           eventId: _plannerItem!.id,
         ),
       );
-    } else if (_plannerItem is HomeworkModel) {
-      final homework = _plannerItem as HomeworkModel;
-      final selectedCourse = _courses.firstWhere(
-        (c) => c.id == homework.course.id,
-      );
-
+    } else if (homework != null) {
       context.read<PlannerItemBloc>().add(
         CloneHomeworkEvent(
           origin: EventOrigin.subScreen,
-          courseGroupId: selectedCourse.courseGroup,
+          courseGroupId: selectedCourse!.courseGroup,
           courseId: selectedCourse.id,
           homeworkId: homework.id,
         ),

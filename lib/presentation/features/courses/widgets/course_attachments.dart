@@ -11,6 +11,7 @@ class CourseAttachments extends BaseAttachments {
     required super.isEdit,
     super.userSettings,
     super.contentKey,
+    super.onUploadsSettled,
   });
 
   @override
@@ -21,6 +22,7 @@ class CourseAttachments extends BaseAttachments {
       entityId: entityId,
       isEdit: isEdit,
       userSettings: userSettings,
+      onUploadsSettled: onUploadsSettled,
     );
   }
 }
@@ -34,6 +36,7 @@ class _CourseAttachmentsContent extends BaseAttachmentsContent {
     required super.entityId,
     required super.isEdit,
     super.userSettings,
+    super.onUploadsSettled,
   });
 
   @override

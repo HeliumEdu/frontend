@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:heliumapp/config/app_theme.dart';
+import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 
@@ -23,39 +24,45 @@ class EmptyCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final onSurface = context.colorScheme.onSurface.withValues(alpha: 0.5);
     final content = Center(
-      child: SingleChildScrollView(
-        child: SizedBox(
-          width: double.infinity,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-          Icon(
-            icon,
-            size: Responsive.getIconSize(
-              context,
-              mobile: 60,
-              tablet: 64,
-              desktop: 68,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppConstants.basicCardInset,
+        ),
+        child: SingleChildScrollView(
+          child: SizedBox(
+            width: double.infinity,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  icon,
+                  size: Responsive.getIconSize(
+                    context,
+                    mobile: 60,
+                    tablet: 64,
+                    desktop: 68,
+                  ),
+                  color: onSurface,
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  title,
+                  textAlign: TextAlign.center,
+                  style: AppStyles.headingText(
+                    context,
+                  ).copyWith(color: onSurface),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  message,
+                  textAlign: TextAlign.center,
+                  style: AppStyles.standardBodyTextLight(
+                    context,
+                  ).copyWith(color: onSurface),
+                ),
+                if (action != null) ...[const SizedBox(height: 20), action!],
+              ],
             ),
-            color: onSurface,
-          ),
-          const SizedBox(height: 16),
-          Text(
-            title,
-            textAlign: TextAlign.center,
-            style: AppStyles.headingText(context).copyWith(color: onSurface),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            message,
-            textAlign: TextAlign.center,
-            style: AppStyles.standardBodyTextLight(context).copyWith(color: onSurface),
-          ),
-          if (action != null) ...[
-            const SizedBox(height: 20),
-            action!,
-          ],
-            ],
           ),
         ),
       ),

@@ -434,7 +434,9 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
                 _isPickerLoading = false;
                 _showLinkPicker = false;
               });
-              showSnackBar(context, state.message!, type: SnackType.error);
+              if (!isShowingErrorCard) {
+                showSnackBar(context, state.message!, type: SnackType.error);
+              }
             } else if (_isAutoSaving) {
               if (_isLinking) {
                 setState(() { _isLinking = false; isSubmitting = false; });
@@ -442,18 +444,26 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
                 setState(() => isSubmitting = false);
               }
               if (_autoSaveErrorCount == 0) {
-                showSnackBar(context, state.message!, type: SnackType.error);
+                if (!isShowingErrorCard) {
+                  showSnackBar(context, state.message!, type: SnackType.error);
+                }
               }
               _handleAutoSaveError(state.message!);
               _isAutoSaving = false;
             } else {
               setState(() => isSubmitting = false);
               if (_autoSaveErrorCount == 0) {
-                showSnackBar(context, state.message!, type: SnackType.error);
+                if (!isShowingErrorCard) {
+                  showSnackBar(context, state.message!, type: SnackType.error);
+                }
               }
               _handleAutoSaveError('Manual save failed');
             }
-          } else if (state is NoteScreenDataFetched) {
+          } else if (state is NoteScreenDataFailed &&
+              _isOwnScreenDataRequest(state)) {
+            setState(() => isLoading = false);
+          } else if (state is NoteScreenDataFetched &&
+              _isOwnScreenDataRequest(state)) {
             setState(() {
               _linkedEntityType = state.linkedEntityType;
               _linkedEntityTitle = state.linkedEntityTitle;
@@ -701,6 +711,13 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
       _onContentChanged();
     });
   }
+
+  bool _isOwnScreenDataRequest(NoteScreenDataIdentity state) => state.matches(
+        noteId: widget.noteId,
+        linkHomeworkId: widget.linkHomeworkId,
+        linkEventId: widget.linkEventId,
+        linkResourceId: widget.linkResourceId,
+      );
 
   void _populateNoteData(NoteModel note) {
     _note = note;

@@ -117,7 +117,8 @@ abstract class BaseReminderWidgetState<T extends BaseRemindersContent>
   Widget build(BuildContext context) {
     return BlocListener<ReminderBloc, ReminderState>(
       listener: (context, state) {
-        if (state is RemindersFetched) {
+        if (state is RemindersFetched &&
+            state.origin != EventOrigin.screen) {
           setState(() {
             reminders = state.reminders;
             Sort.byTitle(reminders);
@@ -145,7 +146,7 @@ abstract class BaseReminderWidgetState<T extends BaseRemindersContent>
             reminders.removeWhere((c) => c.id == state.id);
           });
         } else if (state is RemindersError) {
-          if (reminders.isEmpty) {
+          if (reminders.isEmpty && state.origin != EventOrigin.screen) {
             setState(() => isLoading = false);
           } else if (state.origin != EventOrigin.dialog) {
             SnackBarHelper.show(context, state.message!, type: SnackType.error);

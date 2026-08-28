@@ -724,7 +724,6 @@ class NotesDataSource extends BaseDataGridSource {
           'Failed to build row for note ${note.id}',
           e,
           st,
-          hints: {'note_id': note.id},
         );
       }
     }

@@ -1,4 +1,3 @@
-import 'package:heliumapp/core/helium_exception.dart';
 import 'package:heliumapp/data/models/notification/push_token_model.dart';
 import 'package:heliumapp/data/models/notification/request/push_token_request_model.dart';
 import 'package:heliumapp/data/sources/push_notification_remote_data_source.dart';
@@ -13,45 +12,16 @@ class PushTokenRepositoryImpl implements PushNotificationRepository {
   Future<PushTokenModel> registerPushToken(
     PushTokenRequestModel request,
   ) async {
-    try {
-      return await remoteDataSource.registerPushToken(request);
-    } on HeliumException {
-      rethrow;
-    } catch (e) {
-      throw HeliumException(message: 'Failed to register push token: $e.');
-    }
-  }
-
-  @override
-  Future<void> deletePushToken(int tokenId) async {
-    try {
-      await remoteDataSource.deletePushToken(tokenId);
-    } on HeliumException {
-      rethrow;
-    } catch (e) {
-      throw HeliumException(message: 'Failed to delete push token: $e.');
-    }
+    return remoteDataSource.registerPushToken(request);
   }
 
   @override
   Future<void> deletePushTokenById(int tokenId) async {
-    try {
-      await remoteDataSource.deletePushTokenById(tokenId);
-    } on HeliumException {
-      rethrow;
-    } catch (e) {
-      throw HeliumException(message: 'Failed to delete push token: $e.');
-    }
+    return remoteDataSource.deletePushTokenById(tokenId);
   }
 
   @override
   Future<List<PushTokenModel>> retrievePushTokens() async {
-    try {
-      return await remoteDataSource.retrievePushTokens();
-    } on HeliumException {
-      rethrow;
-    } catch (e) {
-      throw HeliumException(message: 'Failed to retrieve push tokens: $e.');
-    }
+    return remoteDataSource.retrievePushTokens();
   }
 }

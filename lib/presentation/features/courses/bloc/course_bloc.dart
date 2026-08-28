@@ -33,7 +33,6 @@ class CourseBloc extends Bloc<CourseEvent, CourseState> {
     on<FetchCourseScreenDataEvent>(_onFetchCourseScreenDataEvent);
     on<FetchCoursesEvent>(_onFetchCourses);
     on<FetchCourseEvent>(_onFetchCourse);
-    on<FetchAllCourseSchedulesEventsEvent>(_onFetchAllCourseScheduleEvents);
     on<CreateCourseGroupEvent>(_onCreateCourseGroup);
     on<UpdateCourseGroupEvent>(_onUpdateCourseGroup);
     on<DeleteCourseGroupEvent>(_onDeleteCourseGroup);
@@ -110,15 +109,26 @@ class CourseBloc extends Bloc<CourseEvent, CourseState> {
           origin: event.origin,
           courseGroup: courseGroup,
           course: course,
+          courseGroupId: event.courseGroupId,
+          courseId: event.courseId,
         ),
       );
     } on HeliumException catch (e) {
-      emit(CoursesError(origin: event.origin, message: e.message));
+      emit(
+        CourseScreenDataFailed(
+          origin: event.origin,
+          message: e.message,
+          courseGroupId: event.courseGroupId,
+          courseId: event.courseId,
+        ),
+      );
     } catch (e) {
       emit(
-        CoursesError(
+        CourseScreenDataFailed(
           origin: event.origin,
           message: HeliumException.unexpectedError,
+          courseGroupId: event.courseGroupId,
+          courseId: event.courseId,
         ),
       );
     }
@@ -230,31 +240,6 @@ class CourseBloc extends Bloc<CourseEvent, CourseState> {
         event.scheduleId,
       );
       emit(CourseScheduleDeleted(origin: event.origin, id: event.scheduleId));
-    } on HeliumException catch (e) {
-      emit(CoursesError(origin: event.origin, message: e.message));
-    } catch (e) {
-      emit(
-        CoursesError(
-          origin: event.origin,
-          message: HeliumException.unexpectedError,
-        ),
-      );
-    }
-  }
-
-  Future<void> _onFetchAllCourseScheduleEvents(
-    FetchAllCourseSchedulesEventsEvent event,
-    Emitter<CourseState> emit,
-  ) async {
-    emit(CoursesLoading(origin: event.origin));
-    try {
-      final events = await courseScheduleRepository.getCourseScheduleEvents(
-        courses: event.courses,
-        from: event.from,
-        to: event.to,
-      );
-
-      emit(CourseScheduleEventsFetched(origin: event.origin, events: events));
     } on HeliumException catch (e) {
       emit(CoursesError(origin: event.origin, message: e.message));
     } catch (e) {

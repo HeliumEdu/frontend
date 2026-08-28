@@ -434,6 +434,14 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
             userSettings: settings,
           );
 
+          _plannerItemDataSource!.onLoadError = (message) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (mounted && !isShowingErrorCard) {
+                showSnackBar(context, message, type: SnackType.error);
+              }
+            });
+          };
+
           _plannerItemDataSource!.isMonthView =
               _currentView == PlannerView.month;
 
@@ -459,6 +467,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
       BlocListener<PlannerBloc, PlannerState>(
         listener: (context, state) {
           if (state is PlannerScreenDataFetched) {
+            setState(() => screenError = null);
             _populateInitialCalendarStateData(state);
             openFromQueryParams();
           } else if (state is CourseOccurrenceSkipped) {
@@ -483,9 +492,16 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
               ),
             );
           } else if (state is PlannerError) {
-            setState(() => isLoading = false);
+            setState(() {
+              isLoading = false;
+              if (state.origin == EventOrigin.screen) {
+                screenError = state.message ?? HeliumException.unexpectedError;
+              }
+            });
             if (state.origin != EventOrigin.screen) {
-              showSnackBar(context, state.message!, type: SnackType.error);
+              if (!isShowingErrorCard) {
+                showSnackBar(context, state.message!, type: SnackType.error);
+              }
             }
           }
         },
@@ -520,7 +536,9 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
           } else if (state is HomeworkCreated) {
             _plannerItemDataSource!.addPlannerItem(state.homework);
           } else if (state is PlannerItemsError) {
-            showSnackBar(context, state.message!, type: SnackType.error);
+            if (!isShowingErrorCard) {
+              showSnackBar(context, state.message!, type: SnackType.error);
+            }
             for (final id in _inFlightCompletionIds) {
               _plannerItemDataSource!.clearCompletedOverride(id);
             }
@@ -688,6 +706,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
     ];
   }
 
+
   @override
   Widget buildMainArea(BuildContext context) {
     return Listener(
@@ -714,14 +733,8 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
             return ErrorCard(
               message: state.message!,
               source: 'planner_screen',
-              onReload: () {
-                context.read<PlannerBloc>().add(
-                  FetchPlannerScreenDataEvent(
-                    origin: EventOrigin.screen,
-                    forceRefresh: true,
-                  ),
-                );
-              },
+              expanded: false,
+              onReload: reloadPage,
             );
           }
 

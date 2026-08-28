@@ -99,8 +99,18 @@ class ResourceDetailsState extends State<ResourceDetails> {
   Widget build(BuildContext context) {
     return BlocListener<ResourceBloc, ResourceState>(
       listener: (context, state) {
-        if (state is ResourceScreenDataFetched) {
+        if (state is ResourceScreenDataFetched &&
+            state.matches(
+              resourceGroupId: widget.resourceGroupId,
+              resourceId: widget.resourceId,
+            )) {
           _populateInitialStateData(state);
+        } else if (state is ResourceScreenDataFailed &&
+            state.matches(
+              resourceGroupId: widget.resourceGroupId,
+              resourceId: widget.resourceId,
+            )) {
+          setState(() => isLoading = false);
         }
       },
       child: _buildContent(context),

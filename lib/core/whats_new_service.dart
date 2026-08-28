@@ -1,6 +1,5 @@
 import 'package:heliumapp/core/dio_client.dart';
 import 'package:heliumapp/data/models/auth/request/update_settings_request_model.dart';
-import 'package:heliumapp/utils/app_globals.dart';
 import 'package:logging/logging.dart';
 
 final _log = Logger('core');
@@ -20,10 +19,10 @@ class WhatsNewService {
   Future<bool> shouldShowWhatsNew() async {
     try {
       final settings = await _dioClient.getSettings();
-      final seenVersion =
-          settings?.whatsNewVersionSeen ??
-          FallbackConstants.defaultWhatsNewVersionSeen;
-      return seenVersion < currentWhatsNewVersion;
+      if (settings == null) {
+        return false;
+      }
+      return settings.whatsNewVersionSeen < currentWhatsNewVersion;
     } catch (e) {
       _log.warning('Failed to evaluate What\'s New visibility: $e');
       return false;
