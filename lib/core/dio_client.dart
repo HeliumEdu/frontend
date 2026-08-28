@@ -80,18 +80,39 @@ class DioClient {
 
   CacheService get cacheService => _cacheService;
 
+  /// Builds every HTTP client in the app. Never construct `Dio()` directly —
+  /// an unset timeout means no limit, so a bare client can hang forever on a
+  /// socket that stops responding. Also applies the OS proxy, which base
+  /// options alone cannot do.
+  static Dio createDio({
+    String? baseUrl,
+    Map<String, dynamic>? headers,
+    ValidateStatus? validateStatus,
+    Duration connectTimeout = const Duration(seconds: 15),
+    Duration receiveTimeout = const Duration(seconds: 30),
+    Duration sendTimeout = const Duration(seconds: 120),
+  }) {
+    final dio = Dio(
+      BaseOptions(
+        baseUrl: baseUrl ?? '',
+        connectTimeout: connectTimeout,
+        receiveTimeout: receiveTimeout,
+        sendTimeout: sendTimeout,
+        headers: headers,
+        validateStatus: validateStatus,
+      ),
+    );
+    applySystemProxy(dio);
+    return dio;
+  }
+
   DioClient._internal()
-    : _dio = Dio(
-        BaseOptions(
-          baseUrl: ApiUrl.baseUrl,
-          connectTimeout: const Duration(seconds: 30),
-          receiveTimeout: const Duration(seconds: 30),
-          sendTimeout: const Duration(seconds: 120),
-          headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
-          },
-        ),
+    : _dio = createDio(
+        baseUrl: ApiUrl.baseUrl,
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
       ),
       _prefService = PrefService() {
     _dio.interceptors.add(
@@ -184,18 +205,16 @@ class DioClient {
               }
 
               // Create a new Dio instance for refresh to avoid recursion
-              final refreshDio = Dio(
-                BaseOptions(
-                  baseUrl: ApiUrl.baseUrl,
-                  headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json',
-                    if (_clientVersion != null) 'X-Client-Version': _clientVersion,
-                    'X-Client-Platform':
-                        _clientPlatform ??= _resolveClientPlatform(),
-                  },
-                  validateStatus: (status) => status != null && status < 500,
-                ),
+              final refreshDio = DioClient.createDio(
+                baseUrl: ApiUrl.baseUrl,
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Accept': 'application/json',
+                  if (_clientVersion != null) 'X-Client-Version': _clientVersion,
+                  'X-Client-Platform':
+                      _clientPlatform ??= _resolveClientPlatform(),
+                },
+                validateStatus: (status) => status != null && status < 500,
               );
 
               // Retries only when no response came back; see HeliumRetryEvaluator.
