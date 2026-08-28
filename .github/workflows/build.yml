@@ -471,3 +471,119 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "- **Commit**: ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
           echo "- **Version**: ${{ steps.ci-version.outputs.build-name }}+${{ steps.ci-version.outputs.build-number }}" >> $GITHUB_STEP_SUMMARY
+
+  deploy-android-ci:
+    name: Deploy Android (CI preview)
+    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/develop' }}
+    needs: [test]
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Setup Java 17
+        uses: actions/setup-java@v5
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+          cache: 'gradle'
+          cache-dependency-path: android/*.gradle*
+
+      - name: Read Flutter version
+        id: flutter-version
+        run: echo "version=$(tr -d '[:space:]' < .flutter-version)" >> $GITHUB_OUTPUT
+
+      - name: Setup Flutter SDK
+        uses: flutter-actions/setup-flutter@v4
+        with:
+          channel: stable
+          version: ${{ steps.flutter-version.outputs.version }}
+          cache: true
+
+      - name: Cache pub dependencies
+        uses: actions/cache@v5
+        with:
+          path: ~/.pub-cache
+          key: ${{ runner.os }}-pub-${{ hashFiles('**/pubspec.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-pub-
+
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.3'
+          bundler: 'Gemfile.lock'
+          bundler-cache: false
+
+      - name: Install Fastlane
+        run: |
+          cd android && bundle install
+
+      - name: Decode Google Play service account key
+        env:
+          GOOGLE_PLAY_SERVICE_ACCOUNT_KEY: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_KEY }}
+        run: |
+          echo "$GOOGLE_PLAY_SERVICE_ACCOUNT_KEY" > android/service-account-key.json
+
+      - name: Compute CI build version
+        id: ci-version
+        run: |
+          CURRENT=$(grep '^version:' pubspec.yaml | cut -d' ' -f2)
+          SEMVER="${CURRENT%%+*}"
+          IFS='.' read -r MAJOR MINOR PATCH <<< "$SEMVER"
+          CI_VERSION="${MAJOR}.${MINOR}.$((PATCH + 1))"
+
+          CODE=$(cd android && bundle exec fastlane next_version_code 2>&1 \
+            | sed -n 's/.*Next version code: \([0-9]*\)/\1/p' | tail -1)
+          if [ -z "$CODE" ]; then
+            echo "Could not read the next version code from Play" >&2
+            exit 1
+          fi
+
+          echo "build-name=${CI_VERSION}" >> $GITHUB_OUTPUT
+          echo "build-number=${CODE}" >> $GITHUB_OUTPUT
+          echo "CI build: ${CI_VERSION}+${CODE}"
+
+      - name: Decode keystore
+        run: |
+          echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 --decode > $GITHUB_WORKSPACE/android/helium-release-key.jks
+
+      - name: Build Android release AAB
+        env:
+          SIGNING_KEY_ALIAS: ${{ secrets.ANDROID_SIGNING_KEY_ALIAS }}
+          SIGNING_KEY_PASSWORD: ${{ secrets.ANDROID_SIGNING_KEY_PASSWORD }}
+          SIGNING_STORE_FILE: ${{ github.workspace }}/android/helium-release-key.jks
+          SIGNING_STORE_PASSWORD: ${{ secrets.ANDROID_SIGNING_STORE_PASSWORD }}
+          RELEASE_VERSION: ${{ steps.ci-version.outputs.build-name }}+${{ steps.ci-version.outputs.build-number }}
+        run: |
+          SENTRY_DIST="${RELEASE_VERSION##*+}"
+          make build-android-release ENVIRONMENT=prod \
+            RELEASE_VERSION="$RELEASE_VERSION" SENTRY_DIST="$SENTRY_DIST" \
+            BUILD_NUMBER=${{ steps.ci-version.outputs.build-number }}
+
+      - name: Upload debug symbols to Sentry
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+        run: |
+          npm install -g @sentry/cli@3.6.2
+          make upload-android-symbols
+
+      - name: Deploy to Google Play Internal Track
+        env:
+          CI_VERSION: ${{ steps.ci-version.outputs.build-name }}
+        run: |
+          cd android
+          bundle exec fastlane deploy_internal aab_path:../build/app/outputs/bundle/release/app-release.aab version:$CI_VERSION
+
+      - name: Cleanup service account key
+        if: always()
+        run: rm -f android/service-account-key.json
+
+      - name: Deployment summary
+        run: |
+          echo "### Android CI Preview Deployment Complete" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **Commit**: ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Version**: ${{ steps.ci-version.outputs.build-name }}+${{ steps.ci-version.outputs.build-number }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Track**: Internal" >> $GITHUB_STEP_SUMMARY

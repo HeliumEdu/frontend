@@ -327,7 +327,7 @@ jobs:
 
   deploy-android:
     name: Deploy Android
-    if: inputs.platforms == 'android' || inputs.platforms == 'all'
+    if: (inputs.platforms == 'android' || inputs.platforms == 'all') && inputs.environment == 'prod'
     runs-on: ubuntu-latest
 
     steps:
@@ -439,27 +439,17 @@ jobs:
         run: |
           echo "$GOOGLE_PLAY_SERVICE_ACCOUNT_KEY" > android/service-account-key.json
 
-      - name: Deploy to Google Play Internal Track
-        env:
-          FULL_VERSION: ${{ inputs.artifact_run_id != '' && inputs.specific_version || steps.find_run.outputs.full_version }}
-        run: |
-          cd android
-          echo "Deploying to Google Play Internal Track ..."
-          SEMVER="${FULL_VERSION%%+*}"
-          bundle exec fastlane deploy_internal aab_path:../android-build/app-release.aab version:$SEMVER
-
-      - name: Promote to Google Play Production
-        if: inputs.environment == 'prod'
+      - name: Stage Google Play release
         env:
           FULL_VERSION: ${{ inputs.artifact_run_id != '' && inputs.specific_version || steps.find_run.outputs.full_version }}
           AUTO_SUBMIT_FOR_REVIEW: ${{ inputs.auto_submit_for_review }}
           PUSH_STORE_ASSETS: ${{ inputs.push_store_assets }}
         run: |
-          cd android
           SEMVER="${FULL_VERSION%%+*}"
-          VERSION_CODE="${FULL_VERSION##*+}"
-          echo "Promoting $SEMVER ($VERSION_CODE) to Production ..."
-          bundle exec fastlane promote_to_production_draft version:$SEMVER version_code:$VERSION_CODE submit_for_review:$AUTO_SUBMIT_FOR_REVIEW push_store_assets:$PUSH_STORE_ASSETS
+          VERSION_CODE=$(cat ./android-build/version_code.txt)
+          echo "Staging Google Play release $SEMVER ($VERSION_CODE) ..."
+          cd android
+          bundle exec fastlane deploy_production aab_path:../android-build/app-release.aab version:$SEMVER version_code:$VERSION_CODE submit_for_review:$AUTO_SUBMIT_FOR_REVIEW push_store_assets:$PUSH_STORE_ASSETS
 
       - name: Cleanup service account key
         if: always()
@@ -469,12 +459,20 @@ jobs:
         env:
           VERSION: ${{ inputs.artifact_run_id != '' && inputs.specific_version || steps.version.outputs.version }}
           FULL_VERSION: ${{ inputs.artifact_run_id != '' && inputs.specific_version || steps.find_run.outputs.full_version }}
+          AUTO_SUBMIT_FOR_REVIEW: ${{ inputs.auto_submit_for_review }}
         run: |
+          if [ "$AUTO_SUBMIT_FOR_REVIEW" = "true" ]; then
+            STATUS="Submitted for review. Once Google approves, Managed Publishing holds the release for a manual **Publish** click."
+          else
+            STATUS="Staged as a draft. Click **Send for review** in Play Console when ready."
+          fi
+
           echo "### Android Deployment Complete" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "- **Version**: ${FULL_VERSION}" >> $GITHUB_STEP_SUMMARY
-          echo "- **Track**: Internal" >> $GITHUB_STEP_SUMMARY
-          echo "- **Console**: [Google Play Console](https://play.google.com/console/developers/5225481146664498498/app/4975537823503737498/tracks/internal-testing)" >> $GITHUB_STEP_SUMMARY
+          echo "- **Track**: Production" >> $GITHUB_STEP_SUMMARY
+          echo "- **Status**: ${STATUS}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Console**: [Google Play Console](https://play.google.com/console/developers/5225481146664498498/app/4975537823503737498/tracks/production)" >> $GITHUB_STEP_SUMMARY
 
   deploy-ios:
     name: Deploy iOS
@@ -628,9 +626,23 @@ jobs:
         env:
           VERSION: ${{ inputs.artifact_run_id != '' && inputs.specific_version || steps.version.outputs.version }}
           FULL_VERSION: ${{ inputs.artifact_run_id != '' && inputs.specific_version || steps.find_run.outputs.full_version }}
+          ENVIRONMENT: ${{ inputs.environment }}
+          AUTO_SUBMIT_FOR_REVIEW: ${{ inputs.auto_submit_for_review }}
         run: |
+          if [ "$ENVIRONMENT" != "prod" ]; then
+            DESTINATION="TestFlight"
+            STATUS="TestFlight only. No App Store version was staged."
+          elif [ "$AUTO_SUBMIT_FOR_REVIEW" = "true" ]; then
+            DESTINATION="TestFlight and App Store"
+            STATUS="Submitted for review. Once Apple approves, the version sits in PENDING_DEVELOPER_RELEASE awaiting a manual **Release this version** click."
+          else
+            DESTINATION="TestFlight and App Store"
+            STATUS="Staged as a draft. Click **Submit for Review** in App Store Connect when ready."
+          fi
+
           echo "### iOS Deployment Complete" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "- **Version**: ${FULL_VERSION}" >> $GITHUB_STEP_SUMMARY
-          echo "- **Destination**: TestFlight" >> $GITHUB_STEP_SUMMARY
+          echo "- **Destination**: ${DESTINATION}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Status**: ${STATUS}" >> $GITHUB_STEP_SUMMARY
           echo "- **Console**: [App Store Connect](https://appstoreconnect.apple.com/apps/6758323154/distribution/ios/version/deliverable)" >> $GITHUB_STEP_SUMMARY

@@ -185,6 +185,35 @@ jobs:
         run: |
           echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 --decode > $GITHUB_WORKSPACE/android/helium-release-key.jks
 
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.3'
+          bundler: 'Gemfile.lock'
+          bundler-cache: false
+
+      - name: Install Fastlane
+        run: |
+          cd android && bundle install
+
+      - name: Decode Google Play service account key
+        env:
+          GOOGLE_PLAY_SERVICE_ACCOUNT_KEY: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_KEY }}
+        run: |
+          echo "$GOOGLE_PLAY_SERVICE_ACCOUNT_KEY" > android/service-account-key.json
+
+      - name: Compute Play version code
+        id: version-code
+        run: |
+          CODE=$(cd android && bundle exec fastlane next_version_code 2>&1 \
+            | sed -n 's/.*Next version code: \([0-9]*\)/\1/p' | tail -1)
+          if [ -z "$CODE" ]; then
+            echo "Could not read the next version code from Play" >&2
+            exit 1
+          fi
+          echo "code=${CODE}" >> $GITHUB_OUTPUT
+          echo "Play version code: ${CODE}"
+
       - name: Clean build artifacts
         run: flutter clean
 
@@ -197,7 +226,10 @@ jobs:
           RELEASE_VERSION: ${{ needs.prereq.outputs.version }}
         run: |
           SENTRY_DIST="${RELEASE_VERSION##*+}"
-          make build-android-release RELEASE_VERSION="$RELEASE_VERSION" SENTRY_DIST="$SENTRY_DIST"
+          make build-android-release RELEASE_VERSION="$RELEASE_VERSION" SENTRY_DIST="$SENTRY_DIST" \
+            BUILD_NUMBER="${{ steps.version-code.outputs.code }}"
+          echo "${{ steps.version-code.outputs.code }}" \
+            > build/app/outputs/bundle/release/version_code.txt
 
       - name: Upload debug symbols to Sentry
         env:
@@ -206,11 +238,17 @@ jobs:
           npm install -g @sentry/cli@3.6.2
           make upload-android-symbols
 
+      - name: Cleanup service account key
+        if: always()
+        run: rm -f android/service-account-key.json
+
       - name: Upload AAB artifact
         uses: actions/upload-artifact@v7
         with:
           name: helium-${{ needs.prereq.outputs.version }}-android.aab
-          path: build/app/outputs/bundle/release/app-release.aab
+          path: |
+            build/app/outputs/bundle/release/app-release.aab
+            build/app/outputs/bundle/release/version_code.txt
           retention-days: 30
 
       - name: Cleanup keystore

@@ -346,6 +346,16 @@ class _NavigationShellState extends State<NavigationShell> {
     );
   }
 
+  /// Whether the user is sitting on a plain shell tab rather than somewhere
+  /// specific. Covers path-based dialog routes (e.g. /planner/settings,
+  /// /classes/25/details, /planner/homework/5/details) and remaining
+  /// query-param deep links on the shell screens.
+  bool get _isOnBareShellTab {
+    final uri = router.routerDelegate.currentConfiguration.uri;
+    return NavigationPage.values.any((p) => p.route == uri.path) &&
+        !uri.queryParameters.containsKey(DeepLinkParam.id);
+  }
+
   Future<void> _checkGettingStartedDialog() async {
     if (_isShowingGettingStarted || !mounted || _isLoggingOut) return;
 
@@ -355,7 +365,7 @@ class _NavigationShellState extends State<NavigationShell> {
           settings?.showGettingStarted ??
           FallbackConstants.defaultShowGettingStarted;
 
-      if (!mounted || !showGettingStarted) return;
+      if (!mounted || !showGettingStarted || !_isOnBareShellTab) return;
       await _showGettingStartedDialogSafely();
     } catch (e) {
       _log.warning('Failed to check getting started dialog state: ${e.runtimeType}');
@@ -386,16 +396,7 @@ class _NavigationShellState extends State<NavigationShell> {
         return;
       }
 
-      // Skip startup dialogs whenever the user lands on anything other than
-      // a bare shell tab — covers path-based dialog routes (e.g.
-      // /planner/settings, /classes/25/details, /planner/homework/5/details)
-      // and remaining query-param deep links on the shell screens.
-      final uri = router.routerDelegate.currentConfiguration.uri;
-      final onShellTab =
-          NavigationPage.values.any((p) => p.route == uri.path);
-      final params = uri.queryParameters;
-      final hasDeepLinkParams = params.containsKey(DeepLinkParam.id);
-      if (!onShellTab || hasDeepLinkParams) return;
+      if (!_isOnBareShellTab) return;
 
       if (showGettingStarted) {
         // Re-check from the server: the value captured above may be stale if
@@ -405,7 +406,11 @@ class _NavigationShellState extends State<NavigationShell> {
       }
 
       if (showWhatsNew) {
-        if (!await DioClient().isAuthenticated() || !mounted) return;
+        if (!await DioClient().isAuthenticated() ||
+            !mounted ||
+            !_isOnBareShellTab) {
+          return;
+        }
         try {
           await showWhatsNewDialog(context);
         } catch (e) {

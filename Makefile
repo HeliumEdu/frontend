@@ -136,7 +136,7 @@ build-android: install
 	flutter build apk --debug
 
 build-android-release: install
-	flutter build appbundle --release --obfuscate --split-debug-info=$(SYMBOLS_DIR) $(RELEASE_ARGS)
+	flutter build appbundle --release --obfuscate --split-debug-info=$(SYMBOLS_DIR) $(RELEASE_ARGS) $(BUILD_OVERRIDE_ARGS)
 
 build-ios-dev: install
 	flutter build ios
