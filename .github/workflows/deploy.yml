@@ -1,6 +1,6 @@
 name: "Deploy"
 
-run-name: "Deploy `${{ inputs.version_type == 'latest' && 'latest' || inputs.specific_version }}` to `${{ inputs.environment }}` (`${{ inputs.platforms }}`)"
+run-name: "Deploy `${{ inputs.version_type == 'latest' && 'latest' || inputs.specific_version }}` (`${{ inputs.platforms }}`)"
 
 on:
   workflow_dispatch:
@@ -17,14 +17,6 @@ on:
         description: 'Specific version tag (only used if version_type is "specific", ex: 1.2.3+45)'
         required: false
         type: string
-      environment:
-        description: 'Environment to deploy to'
-        required: true
-        type: choice
-        default: prod
-        options:
-          - dev
-          - prod
       platforms:
         description: 'Platforms to deploy'
         required: true
@@ -85,7 +77,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: "helium-frontend-deploy-${{ inputs.environment }}"
+  group: "helium-frontend-deploy"
 
 jobs:
   deploy-web:
@@ -194,10 +186,9 @@ jobs:
 
       - name: Deploy to S3
         env:
-          ENVIRONMENT: ${{ inputs.environment }}
           VERSION: ${{ inputs.artifact_run_id != '' && inputs.specific_version || steps.find_run.outputs.full_version }}
         run: |
-          BUCKET_NAME="heliumedu.${ENVIRONMENT}.frontend-app.static"
+          BUCKET_NAME="heliumedu.prod.frontend-app.static"
 
           echo "Deploying version ${VERSION} to s3://${BUCKET_NAME} ..."
 
@@ -264,15 +255,8 @@ jobs:
           echo "Deployment complete!"
 
       - name: Invalidate CloudFront cache
-        env:
-          ENVIRONMENT: ${{ inputs.environment }}
         run: |
-          ENVIRONMENT_PREFIX=""
-          if [ "$ENVIRONMENT" != "prod" ]; then
-            ENVIRONMENT_PREFIX="${ENVIRONMENT}."
-          fi
-
-          DOMAIN="app.${ENVIRONMENT_PREFIX}heliumedu.com"
+          DOMAIN="app.heliumedu.com"
 
           DISTRIBUTION_ID=$(aws cloudfront list-distributions \
             --query "DistributionList.Items[?contains(not_null(Aliases.Items, \`[]\`), '${DOMAIN}')].Id" \
@@ -295,7 +279,7 @@ jobs:
           npm install -g @sentry/cli@3.6.2
           SENTRY_DIST="${RELEASE_VERSION##*+}"
           SENTRY_PROPERTIES=sentry.properties sentry-cli releases deploys "$RELEASE_VERSION" new \
-            --env "${{ inputs.environment }}" \
+            --env prod \
             --name "dist-${SENTRY_DIST}"
 
       - name: Trigger canary tests
@@ -304,30 +288,23 @@ jobs:
         run: |
           gh workflow run canary.yml \
             --repo HeliumEdu/frontend \
-            -f environment=${{ inputs.environment }}
+            -f environment=prod
 
       - name: Deployment summary
         env:
-          ENVIRONMENT: ${{ inputs.environment }}
           VERSION: ${{ inputs.artifact_run_id != '' && inputs.specific_version || steps.version.outputs.version }}
           FULL_VERSION: ${{ inputs.artifact_run_id != '' && inputs.specific_version || steps.find_run.outputs.full_version }}
         run: |
-          ENVIRONMENT_PREFIX=""
-          if [ "$ENVIRONMENT" != "prod" ]; then
-            ENVIRONMENT_PREFIX="${ENVIRONMENT}."
-          fi
-
-          URL="https://app.${ENVIRONMENT_PREFIX}heliumedu.com"
+          URL="https://app.heliumedu.com"
 
           echo "### Web Deployment Complete" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "- **Version**: ${FULL_VERSION}" >> $GITHUB_STEP_SUMMARY
-          echo "- **Environment**: ${ENVIRONMENT}" >> $GITHUB_STEP_SUMMARY
           echo "- **URL**: ${URL}" >> $GITHUB_STEP_SUMMARY
 
   deploy-android:
     name: Deploy Android
-    if: (inputs.platforms == 'android' || inputs.platforms == 'all') && inputs.environment == 'prod'
+    if: inputs.platforms == 'android' || inputs.platforms == 'all'
     runs-on: ubuntu-latest
 
     steps:
@@ -476,7 +453,7 @@ jobs:
 
   deploy-ios:
     name: Deploy iOS
-    if: (inputs.platforms == 'ios' || inputs.platforms == 'all') && inputs.environment == 'prod'
+    if: inputs.platforms == 'ios' || inputs.platforms == 'all'
     runs-on: macos-latest
 
     steps:

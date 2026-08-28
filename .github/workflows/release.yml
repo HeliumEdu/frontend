@@ -20,14 +20,6 @@ on:
         required: true
         type: boolean
         default: true
-      environment:
-        description: 'Environment to deploy to'
-        required: true
-        type: choice
-        default: prod
-        options:
-          - dev
-          - prod
       platforms:
         description: 'Platforms to deploy'
         required: true
@@ -527,7 +519,6 @@ jobs:
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
           VERSION: ${{ needs.prereq.outputs.version }}
-          ENVIRONMENT: ${{ inputs.environment }}
           PLATFORMS: ${{ inputs.platforms }}
           AUTO_SUBMIT_FOR_REVIEW: ${{ inputs.auto_submit_for_review }}
           PUSH_STORE_ASSETS: ${{ inputs.push_store_assets }}
@@ -536,7 +527,6 @@ jobs:
             --repo ${{ github.repository }} \
             -f version_type=specific \
             -f specific_version="$VERSION" \
-            -f environment="$ENVIRONMENT" \
             -f platforms="$PLATFORMS" \
             -f auto_submit_for_review="$AUTO_SUBMIT_FOR_REVIEW" \
             -f push_store_assets="$PUSH_STORE_ASSETS"
@@ -544,13 +534,11 @@ jobs:
       - name: Deployment trigger summary
         env:
           VERSION: ${{ needs.prereq.outputs.version }}
-          ENVIRONMENT: ${{ inputs.environment }}
           PLATFORMS: ${{ inputs.platforms }}
         run: |
           echo "### Deploy Workflow Triggered" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "- **Version**: $VERSION" >> $GITHUB_STEP_SUMMARY
-          echo "- **Environment**: $ENVIRONMENT" >> $GITHUB_STEP_SUMMARY
           echo "- **Platforms**: $PLATFORMS" >> $GITHUB_STEP_SUMMARY
 
   cleanup:

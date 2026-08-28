@@ -14,6 +14,14 @@ on:
         required: true
         type: boolean
         default: true
+      deploy_web:
+        description: 'Deploy the web build (manual runs only)'
+        required: true
+        type: choice
+        default: none
+        options:
+          - none
+          - dev
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -239,7 +247,7 @@ jobs:
           echo "CI build: ${CI_VERSION}+${BUILD}"
 
       - name: Build web
-        run: make build-web ENVIRONMENT=prod FIREBASE_AUTH_DOMAIN=auth.heliumedu.com
+        run: make build-web ENVIRONMENT=prod SENTRY_ENVIRONMENT=ci FIREBASE_AUTH_DOMAIN=auth.heliumedu.com
 
       - name: Upload source maps to Sentry
         env:
@@ -586,3 +594,125 @@ jobs:
           echo "- **Commit**: ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
           echo "- **Version**: ${{ steps.ci-version.outputs.build-name }}+${{ steps.ci-version.outputs.build-number }}" >> $GITHUB_STEP_SUMMARY
           echo "- **Track**: Internal" >> $GITHUB_STEP_SUMMARY
+
+  deploy-web-dev:
+    name: Deploy web (dev)
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.deploy_web == 'dev' }}
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Read Flutter version
+        id: flutter-version
+        run: echo "version=$(tr -d '[:space:]' < .flutter-version)" >> $GITHUB_OUTPUT
+
+      - name: Setup Flutter SDK
+        uses: flutter-actions/setup-flutter@v4
+        with:
+          channel: stable
+          version: ${{ steps.flutter-version.outputs.version }}
+          cache: true
+
+      - name: Cache pub dependencies
+        uses: actions/cache@v5
+        with:
+          path: ~/.pub-cache
+          key: ${{ runner.os }}-pub-${{ hashFiles('**/pubspec.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-pub-
+
+      - name: Compute CI build version
+        id: ci-version
+        run: |
+          CURRENT=$(grep '^version:' pubspec.yaml | cut -d' ' -f2)
+          SEMVER="${CURRENT%%+*}"
+          IFS='.' read -r MAJOR MINOR PATCH <<< "$SEMVER"
+          CI_VERSION="${MAJOR}.${MINOR}.$((PATCH + 1))"
+          BUILD="${CURRENT##*+}"
+
+          sed -i "s/^version:.*/version: ${CI_VERSION}+${BUILD}/" pubspec.yaml
+
+          echo "version=${CI_VERSION}+${BUILD}" >> $GITHUB_OUTPUT
+          echo "CI build: ${CI_VERSION}+${BUILD}"
+
+      - name: Build web
+        run: make build-web ENVIRONMENT=dev SENTRY_ENVIRONMENT=dev
+
+      - name: Upload source maps to Sentry
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          RELEASE_VERSION: ${{ steps.ci-version.outputs.version }}
+        run: |
+          npm install -g @sentry/cli@3.6.2
+          SENTRY_DIST="${RELEASE_VERSION##*+}"
+          make upload-web-symbols RELEASE_VERSION="$RELEASE_VERSION" SENTRY_DIST="$SENTRY_DIST"
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v6
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - name: Deploy to S3
+        run: |
+          BUCKET_NAME="heliumedu.dev.frontend-app.static"
+
+          aws s3 sync ./build/web "s3://${BUCKET_NAME}" \
+            --delete \
+            --cache-control "public, max-age=2592000" \
+            --exclude "index.html" \
+            --exclude "*.json" \
+            --exclude "main.dart.js" \
+            --exclude "flutter.js" \
+            --exclude "flutter_bootstrap.js" \
+            --exclude "canvaskit/*"
+
+          aws s3 cp ./build/web/index.html "s3://${BUCKET_NAME}/index.html" \
+            --cache-control "no-cache, no-store, must-revalidate"
+
+          for FILE in main.dart.js flutter.js flutter_bootstrap.js; do
+            if [ -f "./build/web/${FILE}" ]; then
+              aws s3 cp "./build/web/${FILE}" "s3://${BUCKET_NAME}/${FILE}" \
+                --cache-control "no-cache, no-store, must-revalidate" \
+                --content-type "application/javascript"
+            fi
+          done
+
+          find ./build/web -name "*.json" ! -path "./build/web/.well-known/*" -exec sh -c 'RELPATH="${1#./build/web/}"; aws s3 cp "$1" "s3://'"${BUCKET_NAME}"'/${RELPATH}" --cache-control "no-cache, no-store, must-revalidate" --content-type "application/json"' _ {} \;
+
+          if [ -d ./build/web/canvaskit ]; then
+            find ./build/web/canvaskit -type f -exec sh -c 'RELPATH="${1#./build/web/}"; aws s3 cp "$1" "s3://'"${BUCKET_NAME}"'/${RELPATH}" --cache-control "no-cache, no-store, must-revalidate"' _ {} \;
+          fi
+
+          if [ -d ./build/web/.well-known ]; then
+            find ./build/web/.well-known -type f -exec sh -c 'RELPATH="${1#./build/web/}"; aws s3 cp "$1" "s3://'"${BUCKET_NAME}"'/${RELPATH}" --content-type "application/json" --cache-control "public, max-age=86400"' _ {} \;
+          fi
+
+      - name: Invalidate CloudFront cache
+        run: |
+          DOMAIN="app.dev.heliumedu.com"
+
+          DISTRIBUTION_ID=$(aws cloudfront list-distributions \
+            --query "DistributionList.Items[?contains(not_null(Aliases.Items, \`[]\`), '${DOMAIN}')].Id" \
+            --output text)
+
+          if [ -n "$DISTRIBUTION_ID" ] && [ "$DISTRIBUTION_ID" != "None" ]; then
+            echo "Invalidating CloudFront distribution ${DISTRIBUTION_ID} for ${DOMAIN} ..."
+            aws cloudfront create-invalidation \
+              --distribution-id "$DISTRIBUTION_ID" \
+              --paths "/*"
+          else
+            echo "Warning: Could not find CloudFront distribution for ${DOMAIN}"
+          fi
+
+      - name: Deployment summary
+        run: |
+          echo "### Dev Deployment Complete" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **Commit**: ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Version**: ${{ steps.ci-version.outputs.version }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **API**: https://api.dev.heliumedu.com" >> $GITHUB_STEP_SUMMARY
+          echo "- **URL**: https://app.dev.heliumedu.com" >> $GITHUB_STEP_SUMMARY

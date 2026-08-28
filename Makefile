@@ -34,6 +34,9 @@ endif
 ifndef RELEASE_VERSION
     RELEASE_ARGS += --dart-define=PROJECT_API_HOST=$(PROJECT_API_HOST)
 endif
+ifdef SENTRY_ENVIRONMENT
+    RELEASE_ARGS += --dart-define=SENTRY_ENVIRONMENT=$(SENTRY_ENVIRONMENT)
+endif
 
 SYMBOLS_DIR := build/symbols
 IOS_DSYMS_DIR := build/ios/archive/Runner.xcarchive/dSYMs
