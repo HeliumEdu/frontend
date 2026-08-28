@@ -475,7 +475,6 @@ jobs:
   deploy-android-ci:
     name: Deploy Android (CI preview)
     if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/develop' }}
-    needs: [test]
 
     runs-on: ubuntu-latest
 
