@@ -96,6 +96,7 @@ class ResourceAddScreen extends MultiStepContainer {
 class _ResourceAddScreenState
     extends MultiStepContainerState<ResourceAddScreen> {
   final _detailsKey = GlobalKey<ResourceDetailsState>();
+  bool _dataLoaded = false;
 
   int? _currentResourceId;
   int? _currentResourceGroupId;
@@ -235,8 +236,12 @@ class _ResourceAddScreenState
     return [
       BlocListener<ResourceBloc, ResourceState>(
         listener: (context, state) {
+          if (state is ResourceScreenDataFetched) {
+            _dataLoaded = true;
+          }
+
           if (state is ResourcesError) {
-            if (isLoading) {
+            if (!_dataLoaded) {
               showSnackBar(
                 context,
                 state.message!,

@@ -87,6 +87,7 @@ class CourseAddScreen extends MultiStepContainer {
 }
 
 class _CourseAddScreenState extends MultiStepContainerState<CourseAddScreen> {
+  bool _dataLoaded = false;
   final _detailsKey = GlobalKey<CourseDetailsState>();
   final _attachmentsKey = GlobalKey<BaseAttachmentsState>();
 
@@ -275,8 +276,12 @@ class _CourseAddScreenState extends MultiStepContainerState<CourseAddScreen> {
     return [
       BlocListener<CourseBloc, CourseState>(
         listener: (context, state) {
+          if (state is CourseScreenDataFetched) {
+            _dataLoaded = true;
+          }
+
           if (state is CoursesError && state.origin != EventOrigin.dialog) {
-            if (isLoading) {
+            if (!_dataLoaded) {
               showSnackBar(
                 context,
                 state.message!,

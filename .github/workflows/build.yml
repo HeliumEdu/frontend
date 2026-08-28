@@ -622,6 +622,7 @@ jobs:
           SENTRY_DIST="${RELEASE_VERSION##*+}"
           make build-android-release ENVIRONMENT=prod \
             RELEASE_VERSION="$RELEASE_VERSION" SENTRY_DIST="$SENTRY_DIST" \
+            BUILD_NAME=${{ steps.ci-version.outputs.build-name }} \
             BUILD_NUMBER=${{ steps.ci-version.outputs.build-number }}
 
       - name: Upload debug symbols to Sentry

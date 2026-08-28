@@ -140,6 +140,7 @@ class PlannerItemAddScreen extends MultiStepContainer {
 class _PlannerItemAddScreenState
     extends MultiStepContainerState<PlannerItemAddScreen> {
   final _detailsKey = GlobalKey<PlannerItemDetailsState>();
+  bool _dataLoaded = false;
   final _attachmentsKey = GlobalKey<BaseAttachmentsState>();
 
   int? _currentEntityId;
@@ -361,8 +362,12 @@ class _PlannerItemAddScreenState
     return [
       BlocListener<PlannerItemBloc, PlannerItemState>(
         listener: (context, state) {
+          if (state is PlannerItemScreenDataFetched) {
+            _dataLoaded = true;
+          }
+
           if (state is PlannerItemsError) {
-            if (isLoading) {
+            if (!_dataLoaded) {
               showSnackBar(
                 context,
                 state.message!,
