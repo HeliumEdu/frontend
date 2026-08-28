@@ -204,7 +204,7 @@ jobs:
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
         run: |
           npm install -g @sentry/cli@3.6.2
-          SENTRY_PROPERTIES=sentry.properties sentry-cli debug-files upload build/symbols/
+          make upload-android-symbols
 
       - name: Upload AAB artifact
         uses: actions/upload-artifact@v7
@@ -306,7 +306,7 @@ jobs:
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
         run: |
           npm install -g @sentry/cli@3.6.2
-          SENTRY_PROPERTIES=sentry.properties sentry-cli debug-files upload build/symbols/ build/ios/archive/Runner.xcarchive/dSYMs/
+          make upload-ios-symbols
 
       - name: Upload IPA artifact
         uses: actions/upload-artifact@v7
@@ -368,16 +368,8 @@ jobs:
         run: |
           npm install -g @sentry/cli@3.6.2
           SENTRY_DIST="${RELEASE_VERSION##*+}"
-          test -f build/web/main.dart.js.map
           SENTRY_PROPERTIES=sentry.properties sentry-cli releases new "$RELEASE_VERSION"
-          SENTRY_PROPERTIES=sentry.properties sentry-cli sourcemaps inject build/web
-          SENTRY_PROPERTIES=sentry.properties sentry-cli sourcemaps upload \
-            --release "$RELEASE_VERSION" \
-            --dist "$SENTRY_DIST" \
-            --no-rewrite \
-            --validate \
-            --url-prefix "~/" \
-            build/web
+          make upload-web-symbols RELEASE_VERSION="$RELEASE_VERSION" SENTRY_DIST="$SENTRY_DIST"
 
       - name: Upload web artifact
         uses: actions/upload-artifact@v7

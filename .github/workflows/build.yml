@@ -241,6 +241,15 @@ jobs:
       - name: Build web
         run: make build-web ENVIRONMENT=prod FIREBASE_AUTH_DOMAIN=auth.heliumedu.com
 
+      - name: Upload source maps to Sentry
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          RELEASE_VERSION: ${{ steps.ci-version.outputs.version }}
+        run: |
+          npm install -g @sentry/cli@3.6.2
+          SENTRY_DIST="${RELEASE_VERSION##*+}"
+          make upload-web-symbols RELEASE_VERSION="$RELEASE_VERSION" SENTRY_DIST="$SENTRY_DIST"
+
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v6
         with:
@@ -437,7 +446,7 @@ jobs:
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
         run: |
           npm install -g @sentry/cli@3.6.2
-          SENTRY_PROPERTIES=sentry.properties sentry-cli debug-files upload build/symbols/ build/ios/archive/Runner.xcarchive/dSYMs/
+          make upload-ios-symbols
 
       - name: Deploy to TestFlight
         env:
