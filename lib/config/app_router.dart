@@ -14,6 +14,7 @@ import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:heliumapp/presentation/core/views/landing_screen.dart';
 import 'package:heliumapp/presentation/core/views/mobile_web_screen.dart';
 import 'package:heliumapp/presentation/core/views/notification_screen.dart';
+import 'package:heliumapp/presentation/core/views/reload_scope.dart';
 import 'package:heliumapp/presentation/features/auth/views/forgot_password_screen.dart';
 import 'package:heliumapp/presentation/features/auth/views/login_screen.dart';
 import 'package:heliumapp/presentation/features/auth/views/reset_password_screen.dart';
@@ -163,8 +164,9 @@ void initializeRouter() {
             routes: [
               GoRoute(
                 path: AppRoute.plannerScreen,
-                pageBuilder: (context, state) =>
-                    NoTransitionPage(child: PlannerScreen()),
+                pageBuilder: (context, state) => NoTransitionPage(
+                  child: ReloadScope(child: PlannerScreen()),
+                ),
                 routes: [
                   ..._shellOverlayRoutes(),
                   ..._plannerItemEntityRoutes(),
@@ -176,8 +178,9 @@ void initializeRouter() {
             routes: [
               GoRoute(
                 path: AppRoute.notebookScreen,
-                pageBuilder: (context, state) =>
-                    const NoTransitionPage(child: NotebookScreen()),
+                pageBuilder: (context, state) => const NoTransitionPage(
+                  child: ReloadScope(child: NotebookScreen()),
+                ),
                 routes: [
                   ..._shellOverlayRoutes(),
                   ..._noteEntityRoutes(),
@@ -190,8 +193,9 @@ void initializeRouter() {
             routes: [
               GoRoute(
                 path: AppRoute.coursesScreen,
-                pageBuilder: (context, state) =>
-                    const NoTransitionPage(child: CoursesScreen()),
+                pageBuilder: (context, state) => const NoTransitionPage(
+                  child: ReloadScope(child: CoursesScreen()),
+                ),
                 routes: [
                   ..._shellOverlayRoutes(),
                   ..._courseEntityRoutes(),
@@ -204,8 +208,9 @@ void initializeRouter() {
             routes: [
               GoRoute(
                 path: AppRoute.resourcesScreen,
-                pageBuilder: (context, state) =>
-                    const NoTransitionPage(child: ResourcesScreen()),
+                pageBuilder: (context, state) => const NoTransitionPage(
+                  child: ReloadScope(child: ResourcesScreen()),
+                ),
                 routes: [
                   ..._shellOverlayRoutes(),
                   ..._resourceEntityRoutes(),
@@ -218,8 +223,9 @@ void initializeRouter() {
             routes: [
               GoRoute(
                 path: AppRoute.gradesScreen,
-                pageBuilder: (context, state) =>
-                    const NoTransitionPage(child: GradesScreen()),
+                pageBuilder: (context, state) => const NoTransitionPage(
+                  child: ReloadScope(child: GradesScreen()),
+                ),
                 routes: [
                   ..._shellOverlayRoutes(),
                   ..._plannerItemEntityRoutes(),
@@ -813,19 +819,23 @@ Future<String?> _authRedirect(BuildContext context, GoRouterState state) async {
 
   // If logged in, check setup status for routing
   if (isLoggedIn) {
-    try {
-      await DioClient().fetchSettings();
-    } on DioException catch (e) {
-      // On web, a 401 --> refresh --> 403 path can escape fetchSettings()'s own
-      // try-catch due to async zone isolation. Treat auth failures here as
-      // "session gone" and redirect to login rather than letting the exception
-      // propagate into GoRouter (which wraps it as a GoException).
-      final statusCode = e.response?.statusCode;
-      if (statusCode == 401 || statusCode == 403) {
-        await DioClient().clearStorage();
-        return AppRoute.signinScreen;
+    // Runs on every navigation, and screens refresh settings once they mount,
+    // so only reach for the network when the flag has never been stored.
+    if (PrefService().getBool(SettingsPrefKey.isSetupComplete.key) == null) {
+      try {
+        await DioClient().fetchSettings();
+      } on DioException catch (e) {
+        // On web, a 401 --> refresh --> 403 path can escape fetchSettings()'s
+        // own try-catch due to async zone isolation. Treat auth failures as
+        // "session gone" and redirect to login rather than letting the
+        // exception propagate into GoRouter (which wraps it as a GoException).
+        final statusCode = e.response?.statusCode;
+        if (statusCode == 401 || statusCode == 403) {
+          await DioClient().clearStorage();
+          return AppRoute.signinScreen;
+        }
+        rethrow;
       }
-      rethrow;
     }
 
     final isSetupComplete = PrefService().getBool(SettingsPrefKey.isSetupComplete.key);

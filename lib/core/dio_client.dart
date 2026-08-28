@@ -327,7 +327,11 @@ class DioClient {
     applySystemProxy(_dio);
 
     _cacheService = CacheService();
-    _cacheService.onInactivityResume = () => fetchSettings();
+    _cacheService.onInactivityResume = () async {
+      if (await fetchSettings(forceRefresh: true) != null) {
+        await _cacheService.invalidateAll();
+      }
+    };
     _cacheService.addQuickResumeListener(refreshSystemProxy);
     _dio.interceptors.add(_cacheService.interceptor);
     _dio.interceptors.add(_cacheService.loggingInterceptor);

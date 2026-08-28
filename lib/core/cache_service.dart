@@ -109,11 +109,11 @@ class CacheService with WidgetsBindingObserver {
         _log.info(
           'App resumed after ${inactiveDuration.inMinutes} minutes, invalidating cache',
         );
-        invalidateAll();
         final resume = onInactivityResume;
         if (resume != null) {
           resume().whenComplete(_notifyInactivityResume);
         } else {
+          invalidateAll();
           _notifyInactivityResume();
         }
       } else {

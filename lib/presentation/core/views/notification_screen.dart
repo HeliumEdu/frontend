@@ -105,9 +105,6 @@ class _NotificationsScreenState
   ScreenType get screenType => ScreenType.subPage;
 
   @override
-  EdgeInsets get scaffoldInsets => const EdgeInsets.all(0);
-
-  @override
   List<Widget> get additionalRightHeaderButtons {
     final isEnabled = _notifications.isNotEmpty && !_isDismissingAll;
 
@@ -276,16 +273,11 @@ class _NotificationsScreenState
         }
 
         if (state is RemindersError && state.origin == EventOrigin.screen) {
-          return Expanded(
-            child: Padding(
-              padding: const EdgeInsets.all(8),
-              child: ErrorCard(
-                message: state.message!,
-                source: 'notification_screen',
-                onReload: () => _fetchReminders(forceRefresh: true),
-                expanded: false,
-              ),
-            ),
+          return ErrorCard(
+            message: state.message!,
+            source: 'notification_screen',
+            onReload: () => _fetchReminders(forceRefresh: true),
+            expanded: true,
           );
         }
 

@@ -92,7 +92,6 @@ class _ResourcesScreenState
   Map<int, CourseModel> _coursesMap = {};
   Map<int, NoteModel> _notesMap = {}; // resourceId -> Note
   int? _selectedGroupId;
-  String? _screenError;
 
   ResourceGroupModel get _showAllGroup => ResourceGroupModel(
     id: _showAllGroupId,
@@ -163,7 +162,7 @@ class _ResourcesScreenState
       BlocListener<ResourceBloc, ResourceState>(
         listener: (context, state) {
           if (state is ResourcesError && state.origin == EventOrigin.screen) {
-            setState(() { isLoading = false; _screenError = state.message; });
+            setState(() { isLoading = false; screenError = state.message; });
           } else if (state is ResourcesScreenDataFetched) {
             _populateInitialStateData(state);
           } else if (state is ResourceGroupCreated) {
@@ -284,6 +283,7 @@ class _ResourcesScreenState
     );
   }
 
+
   @override
   Widget buildMainArea(BuildContext context) {
     return BlocBuilder<ResourceBloc, ResourceState>(
@@ -292,15 +292,11 @@ class _ResourcesScreenState
           return const Center(child: LoadingIndicator(expanded: false));
         }
 
-        if (_screenError != null) {
+        if (screenError != null) {
           return ErrorCard(
-            message: _screenError!,
+            message: screenError!,
             source: 'resources_screen',
-            onReload: () {
-              context.read<ResourceBloc>().add(
-                FetchResourcesScreenDataEvent(origin: EventOrigin.screen, forceRefresh: true),
-              );
-            },
+            onReload: reloadPage,
           );
         }
 
@@ -461,7 +457,7 @@ class _ResourcesScreenState
       }
 
       isLoading = false;
-      _screenError = null;
+      screenError = null;
     });
 
     openFromQueryParams();

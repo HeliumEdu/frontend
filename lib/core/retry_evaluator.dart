@@ -44,9 +44,11 @@ class HeliumRetryEvaluator {
       return false;
     }
 
-    // No route to the host. Two retries cover a reset, a handoff, or a network
-    // that has just come back; beyond that the caller is only kept waiting.
-    if (error.type == DioExceptionType.connectionError && attempt > 2) {
+    // No route to the host, so another attempt only delays the failure. Token
+    // refresh keeps its retries: one that never reached the server is worth
+    // repeating.
+    if (error.type == DioExceptionType.connectionError &&
+        !_isRetryableTokenRefresh(error)) {
       return false;
     }
 

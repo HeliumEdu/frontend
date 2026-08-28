@@ -56,6 +56,17 @@ Future<void> _bootstrap() async {
 
   GoogleFonts.config.allowRuntimeFetching = false;
 
+  // Text laid out before its face resolves renders in a fallback, then
+  // reflows a frame later. Mirrors the weights bundled in pubspec.yaml.
+  await GoogleFonts.pendingFonts([
+    GoogleFonts.poppins(fontWeight: FontWeight.w300),
+    GoogleFonts.poppins(fontWeight: FontWeight.w400),
+    GoogleFonts.poppins(fontWeight: FontWeight.w500),
+    GoogleFonts.poppins(fontWeight: FontWeight.w600),
+    GoogleFonts.dmSerifDisplay(fontWeight: FontWeight.w400),
+    GoogleFonts.notoSans(fontWeight: FontWeight.w400),
+  ]);
+
   tz.initializeTimeZones();
 
   await refreshSystemProxy();

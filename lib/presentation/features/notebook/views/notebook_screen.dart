@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/config/app_theme.dart';
+import 'package:heliumapp/core/helium_exception.dart';
 import 'package:heliumapp/config/pref_service.dart';
 import 'package:heliumapp/data/models/auth/user_settings_model.dart';
 import 'package:heliumapp/data/models/planner/note_model.dart';
@@ -109,7 +110,10 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen>
       BlocListener<NoteBloc, NoteState>(
         listener: (context, state) {
           if (state is NotesError && state.origin == EventOrigin.screen) {
-            setState(() => isLoading = false);
+            setState(() {
+              isLoading = false;
+              screenError = state.message ?? HeliumException.unexpectedError;
+            });
           } else if (state is NotesError && state.origin != EventOrigin.screen && state.origin != EventOrigin.subScreen) {
             if (!isShowingErrorCard) {
               showSnackBar(context, state.message!, type: SnackType.error);
@@ -118,6 +122,7 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen>
             setState(() {
               _notes = state.notes;
               _notesReady = true;
+              screenError = null;
             });
             openFromQueryParams();
           } else if (state is NoteCreated) {
@@ -337,6 +342,7 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen>
     );
   }
 
+
   @override
   Widget buildMainArea(BuildContext context) {
     return BlocBuilder<NoteBloc, NoteState>(
@@ -345,7 +351,7 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen>
           return ErrorCard(
             message: state.message!,
             source: 'notes_screen',
-            onReload: _fetchNotes,
+            onReload: reloadPage,
           );
         }
 
@@ -379,7 +385,6 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen>
     context.read<NoteBloc>().add(
       FetchNotesEvent(
         origin: EventOrigin.screen,
-        forceRefresh: true,
         shownOnCalendar: _shownOnCalendar,
       ),
     );
