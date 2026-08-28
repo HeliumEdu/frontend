@@ -236,6 +236,16 @@ class _ResourceAddScreenState
       BlocListener<ResourceBloc, ResourceState>(
         listener: (context, state) {
           if (state is ResourcesError) {
+            if (isLoading) {
+              showSnackBar(
+                context,
+                state.message!,
+                type: SnackType.error,
+                useRootMessenger: true,
+              );
+              closeWithoutPrompt();
+              return;
+            }
             if (!isShowingErrorCard) {
               showSnackBar(context, state.message!, type: SnackType.error);
             }

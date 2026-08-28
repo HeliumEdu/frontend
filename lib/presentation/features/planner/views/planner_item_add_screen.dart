@@ -362,6 +362,16 @@ class _PlannerItemAddScreenState
       BlocListener<PlannerItemBloc, PlannerItemState>(
         listener: (context, state) {
           if (state is PlannerItemsError) {
+            if (isLoading) {
+              showSnackBar(
+                context,
+                state.message!,
+                type: SnackType.error,
+                useRootMessenger: true,
+              );
+              closeWithoutPrompt();
+              return;
+            }
             if (!isShowingErrorCard) {
               showSnackBar(context, state.message!, type: SnackType.error);
             }

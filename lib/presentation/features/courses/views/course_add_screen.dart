@@ -276,6 +276,16 @@ class _CourseAddScreenState extends MultiStepContainerState<CourseAddScreen> {
       BlocListener<CourseBloc, CourseState>(
         listener: (context, state) {
           if (state is CoursesError && state.origin != EventOrigin.dialog) {
+            if (isLoading) {
+              showSnackBar(
+                context,
+                state.message!,
+                type: SnackType.error,
+                useRootMessenger: true,
+              );
+              closeWithoutPrompt();
+              return;
+            }
             if (!isShowingErrorCard) {
               showSnackBar(context, state.message!, type: SnackType.error);
             }
