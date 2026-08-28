@@ -476,7 +476,7 @@ jobs:
 
   deploy-ios:
     name: Deploy iOS
-    if: inputs.platforms == 'ios' || inputs.platforms == 'all'
+    if: (inputs.platforms == 'ios' || inputs.platforms == 'all') && inputs.environment == 'prod'
     runs-on: macos-latest
 
     steps:
@@ -602,7 +602,6 @@ jobs:
           bundle exec fastlane deploy_testflight ipa_path:../ios-build/Helium.ipa build_number:$BUILD
 
       - name: Stage App Store version
-        if: inputs.environment == 'prod'
         env:
           APPLE_ID: ${{ secrets.APPLE_ID }}
           APP_STORE_CONNECT_API_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
@@ -626,23 +625,17 @@ jobs:
         env:
           VERSION: ${{ inputs.artifact_run_id != '' && inputs.specific_version || steps.version.outputs.version }}
           FULL_VERSION: ${{ inputs.artifact_run_id != '' && inputs.specific_version || steps.find_run.outputs.full_version }}
-          ENVIRONMENT: ${{ inputs.environment }}
           AUTO_SUBMIT_FOR_REVIEW: ${{ inputs.auto_submit_for_review }}
         run: |
-          if [ "$ENVIRONMENT" != "prod" ]; then
-            DESTINATION="TestFlight"
-            STATUS="TestFlight only. No App Store version was staged."
-          elif [ "$AUTO_SUBMIT_FOR_REVIEW" = "true" ]; then
-            DESTINATION="TestFlight and App Store"
+          if [ "$AUTO_SUBMIT_FOR_REVIEW" = "true" ]; then
             STATUS="Submitted for review. Once Apple approves, the version sits in PENDING_DEVELOPER_RELEASE awaiting a manual **Release this version** click."
           else
-            DESTINATION="TestFlight and App Store"
             STATUS="Staged as a draft. Click **Submit for Review** in App Store Connect when ready."
           fi
 
           echo "### iOS Deployment Complete" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "- **Version**: ${FULL_VERSION}" >> $GITHUB_STEP_SUMMARY
-          echo "- **Destination**: ${DESTINATION}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Destination**: TestFlight and App Store" >> $GITHUB_STEP_SUMMARY
           echo "- **Status**: ${STATUS}" >> $GITHUB_STEP_SUMMARY
           echo "- **Console**: [App Store Connect](https://appstoreconnect.apple.com/apps/6758323154/distribution/ios/version/deliverable)" >> $GITHUB_STEP_SUMMARY
