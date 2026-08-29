@@ -230,6 +230,15 @@ jobs:
           npm install -g @sentry/cli@3.6.2
           make upload-android-symbols
 
+      - name: Stage release candidate on Internal track
+        env:
+          RELEASE_VERSION: ${{ needs.prereq.outputs.version }}
+        run: |
+          cd android
+          bundle exec fastlane deploy_internal \
+            aab_path:../build/app/outputs/bundle/release/app-release.aab \
+            version:"${RELEASE_VERSION%%+*}"
+
       - name: Cleanup service account key
         if: always()
         run: rm -f android/service-account-key.json

@@ -426,7 +426,7 @@ jobs:
           VERSION_CODE=$(cat ./android-build/version_code.txt)
           echo "Staging Google Play release $SEMVER ($VERSION_CODE) ..."
           cd android
-          bundle exec fastlane deploy_production aab_path:../android-build/app-release.aab version:$SEMVER version_code:$VERSION_CODE submit_for_review:$AUTO_SUBMIT_FOR_REVIEW push_store_assets:$PUSH_STORE_ASSETS
+          bundle exec fastlane deploy_production version:$SEMVER version_code:$VERSION_CODE submit_for_review:$AUTO_SUBMIT_FOR_REVIEW push_store_assets:$PUSH_STORE_ASSETS
 
       - name: Cleanup service account key
         if: always()
