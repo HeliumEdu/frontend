@@ -20,7 +20,16 @@ platform :android do
     next_code
   end
 
-  desc "Deploy AAB to Google Play Internal Track"
+  desc "Upload an AAB to Internal App Sharing and print the share link. Play holds these artifacts outside the release tracks, so the version code they carry stays available for a real release."
+  lane :upload_internal_app_sharing do |options|
+    aab_path = options[:aab_path] || "../build/app/outputs/bundle/release/app-release.aab"
+
+    url = upload_to_play_store_internal_app_sharing(aab: aab_path)
+    UI.success("Internal App Sharing link: #{url}")
+    url
+  end
+
+  desc "Stage a release candidate on the Internal track. Uploading is what claims a version code with Play, so this runs at build time to hold the code until the operator promotes it to Production."
   lane :deploy_internal do |options|
     aab_path = options[:aab_path] || "../build/app/outputs/bundle/release/app-release.aab"
     version = options[:version]
@@ -37,9 +46,8 @@ platform :android do
     )
   end
 
-  desc "Upload the AAB straight to Production, pushing metadata text every time and store-listing assets (icon, feature graphic, screenshots) only when push_store_assets:true. Defaults to draft status (operator manually sends for review); set submit_for_review:true to release status 'completed' (auto-sent for review — Managed Publishing in Play Console then gates post-review publish on a manual click)."
+  desc "Promote the release candidate staged on the Internal track to Production, pushing metadata text every time and store-listing assets (icon, feature graphic, screenshots) only when push_store_assets:true. Defaults to draft status (operator manually sends for review); set submit_for_review:true to release status 'completed' (auto-sent for review — Managed Publishing in Play Console then gates post-review publish on a manual click)."
   lane :deploy_production do |options|
-    aab_path = options[:aab_path] || "../build/app/outputs/bundle/release/app-release.aab"
     version = options[:version]
     version_code = options[:version_code]
     # Fastlane CLI args arrive as strings; coerce to a real boolean.
@@ -65,19 +73,22 @@ platform :android do
     FileUtils.mkdir_p(changelog_dir)
     FileUtils.cp(template, changelog)
 
-    # version_code is deliberately not passed: supply reads it from the AAB.
-    # It is used above only to name the changelog, and matches by construction
-    # because the same value was passed to the build as --build-number.
+    # supply promotes only on a run that uploads no binary of its own, so both
+    # skip flags are load-bearing. The promoted release keeps the name stamped
+    # on the Internal release at build time, which leaves version_name inert
+    # here; version_code picks which Internal release carries over, and names
+    # the changelog supply looks for.
     upload_to_play_store(
-      aab: aab_path,
       metadata_path: metadata_dir,
-      track: 'production',
+      track: 'internal',
+      track_promote_to: 'production',
+      version_code: version_code,
       # 'completed' = auto-submit for review (Managed Publishing then holds
       # the approved release for manual publish). 'draft' = release sits in
       # Play Console awaiting manual 'Send for review' click.
-      release_status: submit_for_review ? 'completed' : 'draft',
-      version_name: version,
+      track_promote_release_status: submit_for_review ? 'completed' : 'draft',
       skip_upload_apk: true,
+      skip_upload_aab: true,
       skip_upload_metadata: false,
       skip_upload_images: !push_store_assets,
       skip_upload_screenshots: !push_store_assets

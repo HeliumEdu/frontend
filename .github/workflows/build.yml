@@ -596,12 +596,10 @@ jobs:
           IFS='.' read -r MAJOR MINOR PATCH <<< "$SEMVER"
           CI_VERSION="${MAJOR}.${MINOR}.$((PATCH + 1))"
 
-          CODE=$(cd android && bundle exec fastlane next_version_code 2>&1 \
-            | sed -n 's/.*Next version code: \([0-9]*\)/\1/p' | tail -1)
-          if [ -z "$CODE" ]; then
-            echo "Could not read the next version code from Play" >&2
-            exit 1
-          fi
+          # Internal App Sharing accepts repeated version codes, so previews
+          # number themselves off the run counter and leave Play's release
+          # codes for the release workflow to claim.
+          CODE="${{ github.run_number }}"
 
           echo "build-name=${CI_VERSION}" >> $GITHUB_OUTPUT
           echo "build-number=${CODE}" >> $GITHUB_OUTPUT
@@ -632,12 +630,18 @@ jobs:
           npm install -g @sentry/cli@3.6.2
           make upload-android-symbols
 
-      - name: Deploy to Google Play Internal Track
-        env:
-          CI_VERSION: ${{ steps.ci-version.outputs.build-name }}
+      - name: Upload to Google Play Internal App Sharing
+        id: internal-app-sharing
         run: |
           cd android
-          bundle exec fastlane deploy_internal aab_path:../build/app/outputs/bundle/release/app-release.aab version:$CI_VERSION
+          URL=$(bundle exec fastlane upload_internal_app_sharing \
+            aab_path:../build/app/outputs/bundle/release/app-release.aab 2>&1 \
+            | sed -n 's|.*Internal App Sharing link: \(https://[^ ]*\).*|\1|p' | tail -1)
+          if [ -z "$URL" ]; then
+            echo "Could not read the Internal App Sharing link from fastlane" >&2
+            exit 1
+          fi
+          echo "url=${URL}" >> $GITHUB_OUTPUT
 
       - name: Cleanup service account key
         if: always()
@@ -649,4 +653,4 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "- **Commit**: ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
           echo "- **Version**: ${{ steps.ci-version.outputs.build-name }}+${{ steps.ci-version.outputs.build-number }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **Track**: Internal" >> $GITHUB_STEP_SUMMARY
+          echo "- **Install**: [Internal App Sharing](${{ steps.internal-app-sharing.outputs.url }})" >> $GITHUB_STEP_SUMMARY
