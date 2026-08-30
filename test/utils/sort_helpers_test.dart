@@ -466,7 +466,6 @@ ReminderModel _createReminder({
 }) {
   return ReminderModel(
     id: id,
-    title: 'Reminder $id',
     message: 'Test message',
     startOfRange: startOfRange,
     offset: 15,

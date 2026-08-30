@@ -1,5 +1,4 @@
 class ReminderRequestModel {
-  final String? title;
   final String? message;
   final int? offset;
   final int? offsetType;
@@ -11,7 +10,6 @@ class ReminderRequestModel {
   final int? course;
 
   ReminderRequestModel({
-    this.title,
     this.message,
     this.offset,
     this.offsetType,
@@ -26,7 +24,6 @@ class ReminderRequestModel {
   Map<String, dynamic> toJson() {
     final data = <String, dynamic>{};
 
-    if (title != null) data['title'] = title;
     if (message != null) data['message'] = message;
     if (offset != null) data['offset'] = offset;
     if (offsetType != null) data['offset_type'] = offsetType;

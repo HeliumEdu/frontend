@@ -279,6 +279,7 @@ class ExternalCalendarsScreenState extends State<ExternalCalendarsScreen> {
                     showConfirmDeleteDialog(
                       parentContext: context,
                       item: externalCalendar,
+                      label: externalCalendar.title,
                       onDelete: (ec) {
                         context.read<ExternalCalendarBloc>().add(
                           DeleteExternalCalendarEvent(

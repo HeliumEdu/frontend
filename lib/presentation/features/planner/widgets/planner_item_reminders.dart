@@ -68,7 +68,6 @@ class _PlannerItemRemindersState
   ) {
     if (widget.isEvent) {
       return ReminderRequestModel(
-        title: message,
         message: message,
         offset: offset,
         offsetType: offsetType,
@@ -79,7 +78,6 @@ class _PlannerItemRemindersState
       );
     } else {
       return ReminderRequestModel(
-        title: message,
         message: message,
         offset: offset,
         offsetType: offsetType,

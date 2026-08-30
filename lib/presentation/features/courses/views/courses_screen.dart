@@ -580,6 +580,7 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen>
                         showConfirmDeleteDialog(
                           parentContext: context,
                           item: course,
+                          label: course.title,
                           additionalWarning:
                               'Any assignments associated with this class, including attachments and other data, will also be deleted.',
                           onDelete: (c) {

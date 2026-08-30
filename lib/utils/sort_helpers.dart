@@ -134,6 +134,10 @@ class Sort {
     list.sort((a, b) => compareNatural(a.title, b.title));
   }
 
+  static void byMessage(List<ReminderModel> list) {
+    list.sort((a, b) => compareNatural(a.message, b.message));
+  }
+
   static void byUpdatedAt(List<NoteModel> list) {
     list.sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
   }

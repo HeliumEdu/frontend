@@ -34,8 +34,8 @@ void main() {
       test('returns list of ReminderModel on successful response', () async {
         // GIVEN
         final remindersJson = [
-          givenReminderJson(id: 1, title: 'Homework Due'),
-          givenReminderJson(id: 2, title: 'Exam Tomorrow'),
+          givenReminderJson(id: 1, message: 'Homework Due'),
+          givenReminderJson(id: 2, message: 'Exam Tomorrow'),
         ];
         when(
           () => mockDio.get(
@@ -49,8 +49,8 @@ void main() {
 
         // THEN
         expect(result.length, equals(2));
-        expect(result[0].title, equals('Homework Due'));
-        expect(result[1].title, equals('Exam Tomorrow'));
+        expect(result[0].message, equals('Homework Due'));
+        expect(result[1].message, equals('Exam Tomorrow'));
       });
 
       test('returns empty list when API returns empty array', () async {
@@ -186,13 +186,12 @@ void main() {
     group('createReminder', () {
       test('returns created ReminderModel on 201 response', () async {
         // GIVEN
-        final json = givenReminderJson(id: 1, title: 'New Reminder');
+        final json = givenReminderJson(id: 1, message: 'New Reminder');
         when(
           () => mockDio.post(any(), data: any(named: 'data')),
         ).thenAnswer((_) async => givenSuccessResponse(json, statusCode: 201));
 
         final request = ReminderRequestModel(
-          title: 'New Reminder',
           message: 'Test message',
           offset: 15,
           offsetType: 0,
@@ -206,7 +205,7 @@ void main() {
         final result = await dataSource.createReminder(request);
 
         // THEN
-        expect(result.title, equals('New Reminder'));
+        expect(result.message, equals('New Reminder'));
       });
 
       test('throws ValidationException on 400 response', () async {
@@ -218,7 +217,6 @@ void main() {
         );
 
         final request = ReminderRequestModel(
-          title: '',
           message: 'Test message',
           offset: 15,
           offsetType: 0,
@@ -240,7 +238,7 @@ void main() {
         // GIVEN
         final json = givenReminderJson(
           id: 1,
-          title: 'Updated Reminder',
+          message: 'Updated Reminder',
           dismissed: true,
         );
         when(
@@ -248,7 +246,6 @@ void main() {
         ).thenAnswer((_) async => givenSuccessResponse(json));
 
         final request = ReminderRequestModel(
-          title: 'Updated Reminder',
           message: 'Updated message',
           offset: 30,
           offsetType: 1,
@@ -261,7 +258,7 @@ void main() {
         final result = await dataSource.updateReminder(1, request);
 
         // THEN
-        expect(result.title, equals('Updated Reminder'));
+        expect(result.message, equals('Updated Reminder'));
       });
     });
 

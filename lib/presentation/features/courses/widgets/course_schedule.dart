@@ -5,7 +5,6 @@ import 'package:heliumapp/presentation/features/courses/bloc/course_bloc.dart';
 import 'package:heliumapp/presentation/features/courses/bloc/course_event.dart';
 import 'package:heliumapp/presentation/features/courses/bloc/course_state.dart';
 import 'package:heliumapp/presentation/features/courses/dialogs/course_exceptions_dialog.dart';
-import 'package:heliumapp/data/models/base_model.dart';
 import 'package:heliumapp/presentation/features/planner/dialogs/confirm_delete_dialog.dart';
 import 'package:heliumapp/presentation/features/courses/widgets/schedule_card.dart';
 import 'package:heliumapp/presentation/features/courses/widgets/schedule_editor_screen.dart';
@@ -259,9 +258,10 @@ class _CourseScheduleContentState extends State<_CourseScheduleContent> {
   }
 
   void _onDelete(CourseScheduleModel schedule) {
-    showConfirmDeleteDialog<_DeletableSchedule>(
+    showConfirmDeleteDialog(
       parentContext: context,
-      item: _DeletableSchedule(id: schedule.id),
+      item: schedule,
+      label: '',
       onDelete: (_) {
         context.read<CourseBloc>().add(
           DeleteCourseScheduleEvent(
@@ -313,10 +313,4 @@ class _CourseScheduleContentState extends State<_CourseScheduleContent> {
       lastDate: _courseEndDate,
     );
   }
-}
-
-/// [BaseTitledModel] adapter letting a title-less schedule reuse
-/// [showConfirmDeleteDialog]; the empty title yields its generic "this item" copy.
-class _DeletableSchedule extends BaseTitledModel {
-  _DeletableSchedule({required super.id}) : super(title: '');
 }

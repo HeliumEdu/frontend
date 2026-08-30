@@ -72,7 +72,6 @@ void main() {
         // GIVEN
         final reminder = ReminderModel(
           id: 1,
-          title: 'Test Reminder',
           message: 'Reminder message',
           startOfRange: DateTime.parse('2025-01-15T10:00:00Z'),
           type: 0,

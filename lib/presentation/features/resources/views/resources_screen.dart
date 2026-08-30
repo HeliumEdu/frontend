@@ -519,6 +519,7 @@ class _ResourcesScreenState
                           showConfirmDeleteDialog(
                             parentContext: context,
                             item: resource,
+                            label: resource.title,
                             additionalWarning:
                                 'Its associated attachments and note will also be deleted.',
                             onDelete: (m) {

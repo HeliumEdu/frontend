@@ -5,14 +5,16 @@ import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/config/app_theme.dart';
 
-class _ConfirmDeleteWidget<T extends BaseTitledModel> extends StatefulWidget {
+class _ConfirmDeleteWidget<T extends BaseModel> extends StatefulWidget {
   final T item;
+  final String label;
   final Function(T) onDelete;
   final String? additionalWarning;
 
   const _ConfirmDeleteWidget({
     super.key,
     required this.item,
+    required this.label,
     required this.onDelete,
     this.additionalWarning,
   });
@@ -21,13 +23,13 @@ class _ConfirmDeleteWidget<T extends BaseTitledModel> extends StatefulWidget {
   State<_ConfirmDeleteWidget<T>> createState() => _ConfirmDeleteWidgetState<T>();
 }
 
-class _ConfirmDeleteWidgetState<T extends BaseTitledModel> extends State<_ConfirmDeleteWidget<T>> {
+class _ConfirmDeleteWidgetState<T extends BaseModel> extends State<_ConfirmDeleteWidget<T>> {
   bool _isSubmitting = false;
 
   @override
   Widget build(BuildContext context) {
-    final title = widget.item.title.trim();
-    final label = title.isEmpty ? 'this item' : '"$title"';
+    final trimmed = widget.label.trim();
+    final label = trimmed.isEmpty ? 'this item' : '"$trimmed"';
     return AlertDialog(
       title: Text('Confirm Delete', style: AppStyles.pageTitle(context)),
       content: SizedBox(
@@ -83,9 +85,10 @@ class _ConfirmDeleteWidgetState<T extends BaseTitledModel> extends State<_Confir
   }
 }
 
-Future<void> showConfirmDeleteDialog<T extends BaseTitledModel>({
+Future<void> showConfirmDeleteDialog<T extends BaseModel>({
   required BuildContext parentContext,
   required T item,
+  required String label,
   required Function(T) onDelete,
   String? additionalWarning,
 }) {
@@ -94,6 +97,7 @@ Future<void> showConfirmDeleteDialog<T extends BaseTitledModel>({
     builder: (BuildContext dialogContext) {
       return _ConfirmDeleteWidget<T>(
         item: item,
+        label: label,
         onDelete: onDelete,
         additionalWarning: additionalWarning,
       );

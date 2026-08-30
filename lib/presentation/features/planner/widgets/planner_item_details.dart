@@ -663,12 +663,12 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
           );
         }
       } else {
-        String gradeValue;
-        if (!formController.isCompleted) {
-          gradeValue = '-1/100';
-        } else {
+        String? gradeValue;
+        if (formController.isCompleted) {
           final gradeText = formController.gradeController.text.trim();
           gradeValue = gradeText.isEmpty ? '-1/100' : gradeText;
+        } else if (!widget.isEdit) {
+          gradeValue = '-1/100';
         }
 
         final request = HomeworkRequestModel(
@@ -1194,6 +1194,7 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
     showConfirmDeleteDialog(
       parentContext: context,
       item: _plannerItem!,
+      label: _plannerItem!.title,
       additionalWarning: 'Its attachments and note will also be deleted.',
       onDelete: onDelete,
     );
