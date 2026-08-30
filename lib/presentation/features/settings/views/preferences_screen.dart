@@ -394,7 +394,10 @@ class PreferencesScreenState extends State<PreferencesScreen> {
               children: [
                 SizedBox(
                   width: 120,
-                  child: SpinnerField(controller: _reminderOffsetController),
+                  child: SpinnerField(
+                    controller: _reminderOffsetController,
+                    maxValue: 100,
+                  ),
                 ),
                 const SizedBox(width: 8),
                 Expanded(

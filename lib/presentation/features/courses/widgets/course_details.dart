@@ -273,6 +273,7 @@ class CourseDetailsState extends State<CourseDetails> {
                               child: SpinnerField(
                                 label: 'Credits',
                                 controller: formController.creditsController,
+                                maxValue: 99,
                                 step: 0.5,
                                 allowDecimal: true,
                                 onChanged: (_) => formController.markChanged(),
