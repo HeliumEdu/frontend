@@ -101,8 +101,15 @@ class _HeliumQuillEditorState extends State<HeliumQuillEditor> {
 
   void _handleWebPaste(String? html, String? plainText) {
     final sel = widget.controller.selection;
-    final start = sel.start;
-    final len = sel.end - sel.start;
+
+    // The document listener fires whenever the editor has focus, which can precede the controller
+    // having a selection. An empty document leaves only one place to put the text; anywhere else
+    // would be a guess at where the caret belongs.
+    if (!sel.isValid && !widget.controller.document.isEmpty()) return;
+
+    final start = sel.isValid ? sel.start : 0;
+    final len = sel.isValid ? sel.end - sel.start : 0;
+    final end = start + len;
 
     // Within-app copy: match against our own browser-copy cache. Flutter web
     // never calls clipboardSelection(), so Quill's static cache is always
@@ -115,7 +122,7 @@ class _HeliumQuillEditorState extends State<HeliumQuillEditor> {
         start,
         len,
         _webCopiedDelta,
-        TextSelection.collapsed(offset: sel.end),
+        TextSelection.collapsed(offset: end),
       );
       return;
     }
@@ -141,7 +148,7 @@ class _HeliumQuillEditorState extends State<HeliumQuillEditor> {
             start,
             len,
             delta,
-            TextSelection.collapsed(offset: sel.end),
+            TextSelection.collapsed(offset: end),
           );
           return;
         }
