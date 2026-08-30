@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/utils/app_style.dart';
+import 'package:heliumapp/utils/spell_check_helpers.dart';
 
 class LabelAndTextFormField extends StatefulWidget {
   final String? label;
@@ -28,6 +29,8 @@ class LabelAndTextFormField extends StatefulWidget {
 
   final Widget? inlineSuffix;
 
+  final bool? spellCheck;
+
   const LabelAndTextFormField({
     super.key,
     this.label,
@@ -46,6 +49,7 @@ class LabelAndTextFormField extends StatefulWidget {
     this.focusNode,
     this.readOnly = false,
     this.maxLines = 1,
+    this.spellCheck,
     this.onFieldSubmitted,
     this.fieldKey,
     this.autofillHints,
@@ -102,6 +106,7 @@ class _LabelAndTextFormFieldState extends State<LabelAndTextFormField> {
       readOnly: widget.readOnly,
       maxLines: widget.maxLines,
       obscureText: widget.obscureText,
+      spellCheckConfiguration: _spellCheckConfiguration,
       onChanged: widget.onChanged,
       keyboardType: widget.keyboardType,
       inputFormatters: widget.inputFormatters,
@@ -204,6 +209,12 @@ class _LabelAndTextFormFieldState extends State<LabelAndTextFormField> {
     }
 
     return formField;
+  }
+
+  SpellCheckConfiguration? get _spellCheckConfiguration {
+    final enabled =
+        widget.spellCheck ?? (widget.maxLines > 1 && !widget.obscureText);
+    return enabled ? proseSpellCheck : null;
   }
 
   double _verticalPadding() {

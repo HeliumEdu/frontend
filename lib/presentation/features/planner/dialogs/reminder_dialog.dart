@@ -107,6 +107,7 @@ class _ReminderWidgetState extends BaseDialogState<_ReminderProvidedWidget> {
           label: 'Message',
           autofocus: kIsWeb || !widget.isEdit,
           maxLines: Responsive.isCompactDialogHeight(context) ? 1 : 3,
+          spellCheck: true,
           controller: _formController.messageController,
           validator: BasicFormController.validateRequiredField,
           onChanged: (_) => _formController.markChanged(),
