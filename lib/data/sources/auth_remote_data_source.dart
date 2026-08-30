@@ -595,6 +595,17 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
         await dioClient.saveTokens(tokenResponse.access, tokenResponse.refresh);
         await dioClient.fetchSettings();
 
+        try {
+          await FcmService().registerToken(force: true);
+          if (FcmService().fcmToken != null) {
+            _log.info('FCM token registered after password reset');
+          } else {
+            _log.warning('FCM token not yet available after password reset');
+          }
+        } catch (e) {
+          _log.warning('Failed to register FCM token after password reset', e);
+        }
+
         final resetUserId = JwtUtils.getUserId(tokenResponse.access);
         unawaited(AnalyticsService().setUserId(resetUserId?.toString()));
         SentryService().setUser(resetUserId?.toString());

@@ -37,6 +37,10 @@ class FcmService with WidgetsBindingObserver {
   final Map<String, DateTime> _recentMessageIds = {};
   static const Duration _dedupeWindow = Duration(seconds: 30);
 
+  /// How long a registration stands before the next launch re-posts it, keeping the server's
+  /// purge window measured from the last app open rather than the last sign-in.
+  static const Duration _registrationHeartbeat = Duration(hours: 24);
+
   static void Function(String route)? _onForegroundTap;
 
   bool _isInitialized = false;
@@ -355,7 +359,8 @@ class FcmService with WidgetsBindingObserver {
 
       if (tokenUnchanged) {
         final hasCurrentToken = await cleanExistingTokens();
-        if (hasCurrentToken && !force) {
+        final heartbeatDue = await _registrationHeartbeatIsDue();
+        if (hasCurrentToken && !force && !heartbeatDue) {
           _log.info('FCM token unchanged; skipping push token registration');
           _tokenRegistered = true;
           return;
@@ -363,6 +368,10 @@ class FcmService with WidgetsBindingObserver {
         if (hasCurrentToken && force) {
           _log.info(
             'FCM token unchanged; forced re-registration will refresh token',
+          );
+        } else if (hasCurrentToken && heartbeatDue) {
+          _log.info(
+            'FCM token unchanged; re-registering to keep the server registration alive',
           );
         }
       }
@@ -380,12 +389,34 @@ class FcmService with WidgetsBindingObserver {
 
       await _prefService.setSecure('pushtoken_device_id', _deviceId!);
       await _prefService.setSecure('last_pushtoken', _fcmToken!);
+      await _prefService.setSecure(
+        'last_pushtoken_registered_at',
+        DateTime.now().toUtc().toIso8601String(),
+      );
 
       _tokenRegistered = true;
     } catch (e, s) {
       // Retried on the next resume, so a single failure isn't actionable.
       _log.warning('Failed to register FCM token', e, s);
     }
+  }
+
+  /// A registration with no readable timestamp is due, establishing one on the next post.
+  Future<bool> _registrationHeartbeatIsDue() async {
+    final registeredAt = await _prefService.getSecure(
+      'last_pushtoken_registered_at',
+    );
+    if (registeredAt == null || registeredAt.isEmpty) {
+      return true;
+    }
+
+    final lastRegistered = DateTime.tryParse(registeredAt);
+    if (lastRegistered == null) {
+      return true;
+    }
+
+    return DateTime.now().toUtc().difference(lastRegistered) >=
+        _registrationHeartbeat;
   }
 
   void _configureMessageHandlers() {
@@ -630,6 +661,7 @@ class FcmService with WidgetsBindingObserver {
 
     await _prefService.setSecure('pushtoken_device_id', '');
     await _prefService.setSecure('last_pushtoken', '');
+    await _prefService.setSecure('last_pushtoken_registered_at', '');
     _fcmToken = null;
     _deviceId = null;
 
