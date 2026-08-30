@@ -157,7 +157,6 @@ void main() {
 
     group('CreateReminderEvent', () {
       final request = ReminderRequestModel(
-        title: 'New Reminder',
         message: 'Reminder message',
         offset: 15,
         offsetType: 0,
@@ -237,7 +236,6 @@ void main() {
     group('UpdateReminderEvent', () {
       const reminderId = 1;
       final request = ReminderRequestModel(
-        title: 'Updated Reminder',
         message: 'Updated message',
         offset: 30,
         offsetType: 1,
@@ -255,7 +253,7 @@ void main() {
           ).thenAnswer(
             (_) async => MockModels.createReminder(
               id: reminderId,
-              title: 'Updated Reminder',
+              message: 'Updated Reminder',
             ),
           );
           return reminderBloc;
@@ -271,7 +269,7 @@ void main() {
           isA<RemindersLoading>(),
           isA<ReminderUpdated>()
               .having((s) => s.reminder.id, 'reminder id', reminderId)
-              .having((s) => s.reminder.title, 'title', 'Updated Reminder'),
+              .having((s) => s.reminder.message, 'message', 'Updated Reminder'),
         ],
         verify: (_) {
           verify(

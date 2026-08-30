@@ -121,7 +121,7 @@ abstract class BaseReminderWidgetState<T extends BaseRemindersContent>
             state.origin != EventOrigin.screen) {
           setState(() {
             reminders = state.reminders;
-            Sort.byTitle(reminders);
+            Sort.byMessage(reminders);
             isLoading = false;
           });
         } else if (state is ReminderCreated) {
@@ -129,7 +129,7 @@ abstract class BaseReminderWidgetState<T extends BaseRemindersContent>
 
           setState(() {
             reminders.add(state.reminder);
-            Sort.byTitle(reminders);
+            Sort.byMessage(reminders);
           });
         } else if (state is ReminderUpdated) {
           SnackBarHelper.show(context, 'Reminder saved.');
@@ -137,7 +137,7 @@ abstract class BaseReminderWidgetState<T extends BaseRemindersContent>
           setState(() {
             reminders[reminders.indexWhere((c) => c.id == state.reminder.id)] =
                 state.reminder;
-            Sort.byTitle(reminders);
+            Sort.byMessage(reminders);
           });
         } else if (state is ReminderDeleted) {
           SnackBarHelper.show(context, 'Reminder deleted.');
@@ -300,6 +300,7 @@ abstract class BaseReminderWidgetState<T extends BaseRemindersContent>
                     showConfirmDeleteDialog(
                       parentContext: context,
                       item: reminder,
+                      label: reminder.message,
                       onDelete: (r) async {
                         context.read<ReminderBloc>().add(
                           DeleteReminderEvent(

@@ -69,7 +69,6 @@ void main() {
 ReminderModel _createReminder({required int offset, required int offsetType}) {
   return ReminderModel(
     id: 1,
-    title: 'Test Reminder',
     message: 'Test message',
     startOfRange: DateTime.parse('2025-01-01T10:00:00Z'),
     offset: offset,

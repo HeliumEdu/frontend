@@ -135,6 +135,7 @@ class _ReminderWidgetState extends BaseDialogState<_ReminderProvidedWidget> {
               width: 120,
               child: SpinnerField(
                 controller: _formController.offsetController,
+                maxValue: 100,
                 onChanged: (_) => _formController.markChanged(),
               ),
             ),

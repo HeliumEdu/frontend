@@ -336,6 +336,7 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
     showConfirmDeleteDialog<NoteModel>(
       parentContext: context,
       item: _note!,
+      label: _note!.title,
       onDelete: (note) {
         setState(() {
           isSubmitting = true;

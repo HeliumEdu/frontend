@@ -315,6 +315,7 @@ class _CourseCategoriesContentState extends State<_CourseCategoriesContent> {
                     showConfirmDeleteDialog(
                       parentContext: context,
                       item: category,
+                      label: category.title,
                       additionalWarning:
                           'Any assignments associated with this category will be moved to "Uncategorized".',
                       onDelete: (c) {

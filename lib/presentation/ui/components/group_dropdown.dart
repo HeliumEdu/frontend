@@ -137,6 +137,7 @@ class GroupDropdown<T extends BaseTitledModel> extends StatelessWidget {
                   showConfirmDeleteDialog(
                     parentContext: context,
                     item: item,
+                    label: item.title,
                     additionalWarning:
                         'Anything in this group, including attachments and other data, will also be deleted.',
                     onDelete: (value) {

@@ -2306,6 +2306,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
     showConfirmDeleteDialog(
       parentContext: context,
       item: plannerItem,
+      label: plannerItem.title,
       additionalWarning: 'Its attachments and note will also be deleted.',
       onDelete: onDelete,
     );

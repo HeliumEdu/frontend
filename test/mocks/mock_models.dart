@@ -422,7 +422,6 @@ class MockModels {
   /// Creates a mock [ReminderModel] with default or custom values.
   static ReminderModel createReminder({
     int id = 1,
-    String title = 'Test Reminder',
     String message = 'This is a test reminder',
     DateTime? startOfRange,
     int offset = 15,
@@ -435,7 +434,6 @@ class MockModels {
   }) {
     return ReminderModel(
       id: id,
-      title: title,
       message: message,
       startOfRange: startOfRange ?? DateTime.parse('2025-01-15T10:00:00Z'),
       offset: offset,
@@ -452,7 +450,7 @@ class MockModels {
       count,
       (index) => createReminder(
         id: index + 1,
-        title: 'Reminder ${index + 1}',
+        message: 'Reminder ${index + 1}',
         offset: (index + 1) * 15,
       ),
     );

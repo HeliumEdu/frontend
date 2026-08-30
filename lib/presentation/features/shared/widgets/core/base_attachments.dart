@@ -449,6 +449,7 @@ abstract class BaseAttachmentsState extends State<BaseAttachmentsContent> {
                   showConfirmDeleteDialog(
                     parentContext: context,
                     item: attachment,
+                    label: attachment.title,
                     onDelete: (a) {
                       context.read<AttachmentBloc>().add(
                         DeleteAttachmentEvent(

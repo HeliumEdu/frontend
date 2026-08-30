@@ -56,7 +56,6 @@ class _CourseRemindersState
     int type,
   ) {
     return ReminderRequestModel(
-      title: message,
       message: message,
       offset: offset,
       offsetType: offsetType,

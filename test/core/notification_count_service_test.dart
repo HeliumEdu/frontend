@@ -12,7 +12,6 @@ NotificationModel _notification(int id) => NotificationModel(
   timestamp: '2025-01-15T10:00:00Z',
   reminder: ReminderModel(
     id: id,
-    title: 'Reminder $id',
     message: 'body',
     startOfRange: DateTime.parse('2025-01-15T10:00:00Z'),
     type: 3,

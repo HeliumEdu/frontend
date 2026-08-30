@@ -494,7 +494,7 @@ class _NotificationsScreenState
       color = existingColor ?? course?.color ?? FallbackConstants.fallbackColor;
       timestamp = reminder.startOfRange!.toIso8601String();
     } else {
-      title = reminder.title;
+      title = reminder.message;
       color = existingColor ?? FallbackConstants.fallbackColor;
       timestamp = reminder.startOfRange!.toIso8601String();
     }
@@ -502,7 +502,7 @@ class _NotificationsScreenState
     return NotificationModel(
       id: reminder.id,
       title: title,
-      body: reminder.title,
+      body: reminder.message,
       color: color,
       timestamp: timestamp,
       reminder: reminder,

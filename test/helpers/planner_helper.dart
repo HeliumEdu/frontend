@@ -317,7 +317,6 @@ void verifyAttachmentMatchesJson(
 /// Creates JSON data representing a reminder.
 Map<String, dynamic> givenReminderJson({
   int id = 1,
-  String title = '⏰ Homework Due',
   String message = 'Remember to submit your homework!',
   String startOfRange = '2025-08-25T09:00:00Z',
   int offset = 15,
@@ -330,7 +329,6 @@ Map<String, dynamic> givenReminderJson({
 }) {
   return {
     'id': id,
-    'title': title,
     'message': message,
     'start_of_range': startOfRange,
     'offset': offset,
@@ -349,7 +347,6 @@ void verifyReminderMatchesJson(
   Map<String, dynamic> json,
 ) {
   expect(reminder.id, equals(json['id']));
-  expect(reminder.title, equals(json['title']));
   expect(reminder.message, equals(json['message']));
   expect(reminder.startOfRange, equals(DateTime.parse(json['start_of_range'] as String)));
   expect(reminder.offset, equals(json['offset']));

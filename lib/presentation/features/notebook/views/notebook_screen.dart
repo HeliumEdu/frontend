@@ -700,6 +700,7 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen>
     showConfirmDeleteDialog(
       parentContext: context,
       item: note,
+      label: note.title,
       onDelete: (deletedNote) {
         this.context.read<NoteBloc>().add(
           DeleteNoteEvent(

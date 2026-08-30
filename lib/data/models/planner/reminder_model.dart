@@ -5,7 +5,7 @@ import 'package:heliumapp/data/models/planner/event_model.dart';
 import 'package:heliumapp/data/models/planner/homework_model.dart';
 import 'package:heliumapp/utils/conversion_helpers.dart';
 
-class ReminderModel extends BaseTitledModel {
+class ReminderModel extends BaseModel {
   final String message;
   final DateTime? startOfRange;
   final int offset;
@@ -19,7 +19,6 @@ class ReminderModel extends BaseTitledModel {
 
   ReminderModel({
     required super.id,
-    required super.title,
     required this.message,
     this.startOfRange,
     required this.offset,
@@ -35,7 +34,6 @@ class ReminderModel extends BaseTitledModel {
   factory ReminderModel.fromJson(Map<String, dynamic> json) {
     return ReminderModel(
       id: json['id'],
-      title: json['title'],
       message: json['message'],
       startOfRange: json['start_of_range'] != null
           ? DateTime.parse(json['start_of_range'])
@@ -60,7 +58,6 @@ class ReminderModel extends BaseTitledModel {
   Map<String, dynamic> toJson() {
     return {
       'id': id,
-      'title': title,
       'message': message,
       'start_of_range': startOfRange?.toIso8601String(),
       'offset': offset,
@@ -76,7 +73,6 @@ class ReminderModel extends BaseTitledModel {
 
   ReminderModel copyWith({
     int? id,
-    String? title,
     String? message,
     DateTime? startOfRange,
     int? offset,
@@ -90,7 +86,6 @@ class ReminderModel extends BaseTitledModel {
   }) {
     return ReminderModel(
       id: id ?? this.id,
-      title: title ?? this.title,
       message: message ?? this.message,
       startOfRange: startOfRange ?? this.startOfRange,
       offset: offset ?? this.offset,
