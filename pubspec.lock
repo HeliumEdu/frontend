@@ -105,14 +105,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.2.3"
-  change:
-    dependency: transitive
-    description:
-      name: change
-      sha256: "3bda1ce98526b21927cdea05688563c7065fd7e66d1abbe176c354fef3b2057b"
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.7.5"
   characters:
     dependency: transitive
     description:
@@ -137,14 +129,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.0.4"
-  cider:
-    dependency: "direct dev"
-    description:
-      name: cider
-      sha256: "27b9cd9526c70d6cd47299cd644cddaac8102e5f9783ef4bb440840743271883"
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.2.10"
   cli_config:
     dependency: transitive
     description:
@@ -475,14 +459,6 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.0"
-  flutter_html:
-    dependency: "direct main"
-    description:
-      name: flutter_html
-      sha256: "38a2fd702ffdf3243fb7441ab58aa1bc7e6922d95a50db76534de8260638558d"
-      url: "https://pub.dev"
-    source: hosted
-    version: "3.0.0"
   flutter_keyboard_visibility_linux:
     dependency: transitive
     description:
@@ -800,7 +776,7 @@ packages:
     source: hosted
     version: "1.0.2"
   html:
-    dependency: "direct main"
+    dependency: transitive
     description:
       name: html
       sha256: "6d1264f2dffa1b1101c25a91dff0dc2daee4c18e87cd8538729773c073dbf602"
@@ -940,14 +916,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "6.1.0"
-  list_counter:
-    dependency: transitive
-    description:
-      name: list_counter
-      sha256: c447ae3dfcd1c55f0152867090e67e219d42fe6d4f2807db4bbe8b8d69912237
-      url: "https://pub.dev"
-    source: hosted
-    version: "1.0.2"
   logging:
     dependency: "direct main"
     description:
@@ -964,14 +932,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "7.3.0"
-  marker:
-    dependency: transitive
-    description:
-      name: marker
-      sha256: "3dadd01f3b0ffae148ffb3b1bc04290a98e54a465cddbab59727bd2a9fe57750"
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.6.0"
   matcher:
     dependency: transitive
     description:
@@ -1244,14 +1204,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.2.0"
-  pubspec_parse:
-    dependency: transitive
-    description:
-      name: pubspec_parse
-      sha256: "0560ba233314abbed0a48a2956f7f022cce7c3e1e73df540277da7544cad4082"
-      url: "https://pub.dev"
-    source: hosted
-    version: "1.5.0"
   qr:
     dependency: transitive
     description:
@@ -1324,14 +1276,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.2.2"
-  rfc_6901:
-    dependency: transitive
-    description:
-      name: rfc_6901
-      sha256: "6a43b1858dca2febaf93e15639aa6b0c49ccdfd7647775f15a499f872b018154"
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.2.1"
   sentry:
     dependency: transitive
     description:
@@ -1602,7 +1546,7 @@ packages:
     source: hosted
     version: "1.30.0"
   test_api:
-    dependency: "direct dev"
+    dependency: transitive
     description:
       name: test_api
       sha256: "8161c84903fd860b26bfdefb7963b3f0b68fee7adea0f59ef805ecca346f0c7a"
@@ -1721,14 +1665,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.2.0"
-  version_manipulation:
-    dependency: transitive
-    description:
-      name: version_manipulation
-      sha256: e90782d610bde19765d2808ec06bc8ed9e04640a4dd07d1a3d370728ce9dae7f
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.2.0"
   vm_service:
     dependency: transitive
     description:
@@ -1778,7 +1714,7 @@ packages:
     source: hosted
     version: "3.0.3"
   webdriver:
-    dependency: "direct dev"
+    dependency: transitive
     description:
       name: webdriver
       sha256: "2f3a14ca026957870cfd9c635b83507e0e51d8091568e90129fbf805aba7cade"
