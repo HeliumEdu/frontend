@@ -103,11 +103,14 @@ class SentryService {
       // FCM) we don't control and can't act on, so turn it off.
       options.captureNativeFailedRequests = false;
 
-      // In sentry_flutter, ignoreErrors is a Dart-side filter that runs on the
-      // deserialized SentryEvent; same as beforeSend. For onerror events where
-      // exception.value is null after deserialization, neither filter can match;
-      // those cases are prevented at the source (see _authRedirect in
-      // app_router.dart).
+      // ignoreErrors and beforeSend are both Dart-side filters, applied to the
+      // deserialized SentryEvent. Two things never reach them: onerror events
+      // whose exception.value deserializes to null (prevented at the source, see
+      // _authRedirect in app_router.dart), and, on web, everything the JavaScript
+      // SDK captures through its own global handlers. An error or unhandled
+      // rejection thrown outside Dart is reported without passing through here,
+      // so the browser entries below only match when the same text also surfaces
+      // as a Dart error. Suppressing them otherwise needs a Sentry inbound filter.
       options.ignoreErrors = [
         '(?i)(status code of|http status error \\[)4\\d\\d',
         '(?i)dioexception.*bad response.*4\\d\\d',
@@ -117,10 +120,10 @@ class SentryService {
         '(?i)dioexception \\[connection error\\]',
         '(?i)(handshake|tls)exception',
         '(?i)certificate_verify_failed',
-        '(?i)flutterCanvasKit.*is not a constructor',
-        '(?i)messaging/unsupported-browser',
         '(?i)watchdogtermination',
         '(?i)database deleted by request of the user',
+        // Browser-level, see above.
+        '(?i)flutterCanvasKit.*is not a constructor',
         '(?i)script error',
         '(?i)importing a module script failed',
         '(?i)failed to fetch dynamically imported module',
@@ -233,12 +236,6 @@ class SentryService {
     // CanvasKit failures are Flutter runtime issues we can't fix
     if (value.contains('fluttercanvaskit') &&
         value.contains('is not a constructor')) {
-      return true;
-    }
-
-    // Firebase Messaging on browsers missing IndexedDB / Push APIs (private
-    // mode, older browsers) — user-side capability gap, not actionable.
-    if (value.contains('messaging/unsupported-browser')) {
       return true;
     }
 

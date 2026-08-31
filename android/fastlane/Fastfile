@@ -84,10 +84,11 @@ platform :android do
       track_promote_to: 'production',
       version_code: version_code,
       # A draft release also forces the commit to be held back from review, costing two
-      # clicks; holding review alone costs one. The rescue would send it anyway.
+      # clicks; holding review alone costs one. Play refuses to hold review on apps it
+      # reviews automatically, so the rescue commits without the flag rather than failing.
       track_promote_release_status: 'completed',
       changes_not_sent_for_review: !submit_for_review,
-      rescue_changes_not_sent_for_review: false,
+      rescue_changes_not_sent_for_review: true,
       skip_upload_apk: true,
       skip_upload_aab: true,
       skip_upload_metadata: false,

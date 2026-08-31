@@ -258,7 +258,7 @@ class FcmService with WidgetsBindingObserver {
   }
 
   Future<void> _getFCMToken() async {
-    if (_firebaseMessaging == null) return;
+    if (_firebaseMessaging == null || !_isSupported) return;
 
     try {
       // On iOS, ensure APN token is available before getting FCM token

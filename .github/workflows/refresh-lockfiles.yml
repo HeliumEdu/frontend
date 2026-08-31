@@ -91,6 +91,8 @@ jobs:
           cd ios
           bundle install
           ${{ inputs.pod_update && 'bundle exec pod update' || 'bundle exec pod install' }}
+          cd ../android
+          bundle install
 
       - name: Get GitHub App bot user ID
         id: get-bot-user-id
@@ -105,9 +107,9 @@ jobs:
           git config --global user.name "${{ steps.app-token.outputs.app-slug }}[bot]"
           git config --global user.email "${{ steps.get-bot-user-id.outputs.user-id }}+${{ steps.app-token.outputs.app-slug }}[bot]@users.noreply.github.com"
 
-          git add pubspec.lock ios/Podfile.lock ios/Gemfile.lock
+          git add pubspec.lock ios/Podfile.lock ios/Gemfile.lock android/Gemfile.lock
 
-          UNEXPECTED_FILES=$(git status --porcelain | awk '{print $2}' | grep -Ev '^(pubspec.lock|ios/Podfile.lock|ios/Gemfile.lock)$' || true)
+          UNEXPECTED_FILES=$(git status --porcelain | awk '{print $2}' | grep -Ev '^(pubspec.lock|ios/Podfile.lock|ios/Gemfile.lock|android/Gemfile.lock)$' || true)
           if [ -n "$UNEXPECTED_FILES" ]; then
             echo "Unexpected file changes detected:"
             echo "$UNEXPECTED_FILES"
