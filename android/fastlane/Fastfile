@@ -46,7 +46,7 @@ platform :android do
     )
   end
 
-  desc "Promote the Internal-track release candidate to Production, pushing metadata text every time and store-listing assets only when push_store_assets:true. Holds the release for a single 'Send for review' click; set submit_for_review:true to send it from CI. Managed Publishing gates the post-review publish either way."
+  desc "Promote the Internal-track release candidate to Production, pushing metadata text every time and store-listing assets only when push_store_assets:true. Leaves the release as a draft for the operator to send for review; set submit_for_review:true to send it from CI. Managed Publishing gates the post-review publish either way."
   lane :deploy_production do |options|
     version = options[:version]
     version_code = options[:version_code]
@@ -83,12 +83,10 @@ platform :android do
       track: 'internal',
       track_promote_to: 'production',
       version_code: version_code,
-      # A draft release also forces the commit to be held back from review, costing two
-      # clicks; holding review alone costs one. Play refuses to hold review on apps it
-      # reviews automatically, so the rescue commits without the flag rather than failing.
-      track_promote_release_status: 'completed',
-      changes_not_sent_for_review: !submit_for_review,
-      rescue_changes_not_sent_for_review: true,
+      # Draft is the only way to reach Production without submitting: Play reviews this app
+      # automatically and rejects changes_not_sent_for_review, so a 'completed' release is a
+      # submitted one. 'completed' = auto-submit, then Managed Publishing holds for publish.
+      track_promote_release_status: submit_for_review ? 'completed' : 'draft',
       skip_upload_apk: true,
       skip_upload_aab: true,
       skip_upload_metadata: false,
@@ -100,7 +98,7 @@ platform :android do
     if submit_for_review
       UI.success("Submitted #{version} (#{version_code}) to Production for review (#{assets_note}). Google's review is async; once approved Play will hold the release for a manual 'Publish' click in Play Console (Managed Publishing).")
     else
-      UI.success("Staged #{version} (#{version_code}) on Production (#{assets_note}). Click 'Send for review' in Play Console's Publishing overview when ready.")
+      UI.success("Staged #{version} (#{version_code}) on Production as a draft (#{assets_note}). Click 'Send for review' in Play Console when ready.")
     end
   end
 end

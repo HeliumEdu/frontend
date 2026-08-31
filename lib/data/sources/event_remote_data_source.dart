@@ -83,7 +83,7 @@ class EventRemoteDataSourceImpl extends EventRemoteDataSource {
           );
         }
       } else {
-        throw unexpectedStatus(response, 'Failed to fetch events: ${response.statusCode}.');
+        throw unexpectedStatus(response, 'Failed to fetch events.');
       }
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
@@ -113,9 +113,7 @@ class EventRemoteDataSourceImpl extends EventRemoteDataSource {
         _log.info('... Event $id fetched');
         return EventModel.fromJson(response.data);
       } else {
-        throw ServerException(
-          message: 'Failed to fetch event: ${response.statusCode}.',
-        );
+        throw unexpectedStatus(response, 'Failed to fetch event.');
       }
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
@@ -143,9 +141,7 @@ class EventRemoteDataSourceImpl extends EventRemoteDataSource {
         unawaited(AnalyticsService().logEvent(name: AnalyticsEvent.eventCreate, parameters: {'category': AnalyticsCategory.featureInteraction.value}));
         return event;
       } else {
-        throw ServerException(
-          message: 'Failed to create event: ${response.statusCode}.',
-        );
+        throw unexpectedStatus(response, 'Failed to create event.');
       }
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
@@ -172,9 +168,7 @@ class EventRemoteDataSourceImpl extends EventRemoteDataSource {
         unawaited(AnalyticsService().logEvent(name: AnalyticsEvent.eventCreate, parameters: {'category': AnalyticsCategory.featureInteraction.value}));
         return event;
       } else {
-        throw ServerException(
-          message: 'Failed to clone event: ${response.statusCode}.',
-        );
+        throw unexpectedStatus(response, 'Failed to clone event.');
       }
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
@@ -203,9 +197,7 @@ class EventRemoteDataSourceImpl extends EventRemoteDataSource {
         await dioClient.cacheService.invalidateAll();
         return EventModel.fromJson(response.data);
       } else {
-        throw ServerException(
-          message: 'Failed to update event: ${response.statusCode}.',
-        );
+        throw unexpectedStatus(response, 'Failed to update event.');
       }
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
@@ -229,9 +221,7 @@ class EventRemoteDataSourceImpl extends EventRemoteDataSource {
         _log.info('... Event $eventId deleted');
         await dioClient.cacheService.invalidateAll();
       } else {
-        throw ServerException(
-          message: 'Failed to delete event: ${response.statusCode}.',
-        );
+        throw unexpectedStatus(response, 'Failed to delete event.');
       }
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
@@ -255,9 +245,7 @@ class EventRemoteDataSourceImpl extends EventRemoteDataSource {
         _log.info('... all Events deleted');
         await dioClient.cacheService.invalidateAll();
       } else {
-        throw ServerException(
-          message: 'Failed to delete all events: ${response.statusCode}.',
-        );
+        throw unexpectedStatus(response, 'Failed to delete all events.');
       }
     } on DioException catch (e, s) {
       throw handleDioError(e, s);

@@ -95,7 +95,7 @@ class NoteRemoteDataSourceImpl extends NoteRemoteDataSource {
           );
         }
       } else {
-        throw unexpectedStatus(response, 'Failed to fetch notes: ${response.statusCode}.');
+        throw unexpectedStatus(response, 'Failed to fetch notes.');
       }
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
@@ -125,9 +125,7 @@ class NoteRemoteDataSourceImpl extends NoteRemoteDataSource {
         _log.info('... Note $id fetched');
         return NoteModel.fromJson(response.data);
       } else {
-        throw ServerException(
-          message: 'Failed to fetch note: ${response.statusCode}.',
-        );
+        throw unexpectedStatus(response, 'Failed to fetch note.');
       }
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
@@ -155,9 +153,7 @@ class NoteRemoteDataSourceImpl extends NoteRemoteDataSource {
         unawaited(AnalyticsService().logEvent(name: AnalyticsEvent.noteCreate, parameters: {'category': AnalyticsCategory.featureInteraction.value}));
         return note;
       } else {
-        throw ServerException(
-          message: 'Failed to create note: ${response.statusCode}.',
-        );
+        throw unexpectedStatus(response, 'Failed to create note.');
       }
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
@@ -191,9 +187,7 @@ class NoteRemoteDataSourceImpl extends NoteRemoteDataSource {
         await dioClient.cacheService.invalidateAll();
         return null;
       } else {
-        throw ServerException(
-          message: 'Failed to update note: ${response.statusCode}.',
-        );
+        throw unexpectedStatus(response, 'Failed to update note.');
       }
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
@@ -217,9 +211,7 @@ class NoteRemoteDataSourceImpl extends NoteRemoteDataSource {
         _log.info('... Note $noteId deleted');
         await dioClient.cacheService.invalidateAll();
       } else {
-        throw ServerException(
-          message: 'Failed to delete note: ${response.statusCode}.',
-        );
+        throw unexpectedStatus(response, 'Failed to delete note.');
       }
     } on DioException catch (e, s) {
       throw handleDioError(e, s);

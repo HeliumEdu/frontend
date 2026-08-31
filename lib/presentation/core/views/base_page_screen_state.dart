@@ -5,6 +5,7 @@ import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/core/app_version_service.dart';
 import 'package:heliumapp/core/dio_client.dart';
 import 'package:heliumapp/core/helium_exception.dart';
+import 'package:heliumapp/core/time_zone_database_service.dart';
 import 'package:heliumapp/data/models/auth/user_settings_model.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/info/info_bloc.dart';
 import 'package:heliumapp/presentation/core/views/reload_scope.dart';
@@ -222,20 +223,25 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
     return context.read<InfoBloc>().state is InfoLoadFailed;
   }
 
+  /// Warms the time zone database here so a failure lands in [settingsError],
+  /// whose error card unmounts screen content, remounting consumers on retry.
   @mustCallSuper
   Future<UserSettingsModel?> loadSettings() {
+    final timeZoneDatabaseLoaded = TimeZoneDatabaseService().ensureLoaded();
+
     return dioClient
         .getSettings(rethrowErrors: true)
-        .then((settings) {
+        .then((settings) async {
+          final timeZoneDatabaseReady = await timeZoneDatabaseLoaded;
           if (!mounted) return settings;
           setState(() {
             userSettings = settings;
-            if (userSettings != null) {
-              settingsLoaded = true;
-              settingsError = null;
-            } else {
+            if (userSettings == null || !timeZoneDatabaseReady) {
               settingsLoaded = false;
               settingsError = HeliumException.unexpectedError;
+            } else {
+              settingsLoaded = true;
+              settingsError = null;
             }
             if (_reloadRequested) {
               _reloadRequested = false;

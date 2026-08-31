@@ -25,7 +25,7 @@ class OAuthSignInService {
   OAuthSignInService._internal();
 
   final GoogleSignIn _googleSignIn = GoogleSignIn.instance;
-  final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
+  late final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
   final GoogleAccountStore _googleAccountStore = GoogleAccountStore();
   final LastOAuthProviderStore _lastOAuthProviderStore = LastOAuthProviderStore();
   bool _initialized = false;
@@ -134,6 +134,12 @@ class OAuthSignInService {
       _log.warning('Firebase Auth exception: ${e.code}');
       throw HeliumException(
         message: 'Sign in with $providerName failed.',
+      );
+    } on FirebaseException catch (e) {
+      // Reached only when Firebase failed to initialize during app boot
+      _log.warning('Firebase exception: ${e.code}');
+      throw HeliumException(
+        message: 'Sign in with $providerName is temporarily unavailable.',
       );
     } on GoogleSignInException catch (e) {
       _log.warning('GoogleSignInException caught - code: ${e.code}');

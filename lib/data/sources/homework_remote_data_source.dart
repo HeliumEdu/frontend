@@ -113,7 +113,7 @@ class HomeworkRemoteDataSourceImpl extends HomeworkRemoteDataSource {
           );
         }
       } else {
-        throw unexpectedStatus(response, 'Failed to fetch homework: ${response.statusCode}.');
+        throw unexpectedStatus(response, 'Failed to fetch homework.');
       }
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
@@ -145,9 +145,7 @@ class HomeworkRemoteDataSourceImpl extends HomeworkRemoteDataSource {
         _log.info('... Homework $id fetched');
         return HomeworkModel.fromJson(response.data[0]);
       } else {
-        throw ServerException(
-          message: 'Failed to fetch homework: ${response.statusCode}.',
-        );
+        throw unexpectedStatus(response, 'Failed to fetch homework.');
       }
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
@@ -179,9 +177,7 @@ class HomeworkRemoteDataSourceImpl extends HomeworkRemoteDataSource {
         unawaited(AnalyticsService().logEvent(name: AnalyticsEvent.homeworkCreate, parameters: {'category': AnalyticsCategory.featureInteraction.value}));
         return homework;
       } else {
-        throw ServerException(
-          message: 'Failed to create homework: ${response.statusCode}.',
-        );
+        throw unexpectedStatus(response, 'Failed to create homework.');
       }
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
@@ -212,9 +208,7 @@ class HomeworkRemoteDataSourceImpl extends HomeworkRemoteDataSource {
         unawaited(AnalyticsService().logEvent(name: AnalyticsEvent.homeworkCreate, parameters: {'category': AnalyticsCategory.featureInteraction.value}));
         return homework;
       } else {
-        throw ServerException(
-          message: 'Failed to clone homework: ${response.statusCode}.',
-        );
+        throw unexpectedStatus(response, 'Failed to clone homework.');
       }
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
@@ -249,9 +243,7 @@ class HomeworkRemoteDataSourceImpl extends HomeworkRemoteDataSource {
         await dioClient.cacheService.invalidateAll();
         return HomeworkModel.fromJson(response.data);
       } else {
-        throw ServerException(
-          message: 'Failed to update homework: ${response.statusCode}.',
-        );
+        throw unexpectedStatus(response, 'Failed to update homework.');
       }
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
@@ -283,9 +275,7 @@ class HomeworkRemoteDataSourceImpl extends HomeworkRemoteDataSource {
         _log.info('... Homework $homeworkId deleted');
         await dioClient.cacheService.invalidateAll();
       } else {
-        throw ServerException(
-          message: 'Failed to delete homework: ${response.statusCode}.',
-        );
+        throw unexpectedStatus(response, 'Failed to delete homework.');
       }
     } on DioException catch (e, s) {
       throw handleDioError(e, s);

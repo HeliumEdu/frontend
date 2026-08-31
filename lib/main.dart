@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
@@ -16,8 +18,10 @@ import 'package:heliumapp/core/motion_service.dart';
 import 'package:heliumapp/core/sentry_service.dart';
 import 'package:heliumapp/core/system_proxy_io.dart'
     if (dart.library.js_interop) 'package:heliumapp/core/system_proxy_stub.dart';
+import 'package:heliumapp/core/time_zone_database_service.dart';
 import 'package:heliumapp/firebase_environment.dart';
 import 'package:heliumapp/helium_app.dart';
+import 'package:heliumapp/startup_failure_app.dart';
 import 'package:heliumapp/utils/web_helpers_stub.dart'
     if (dart.library.js_interop) 'package:heliumapp/utils/web_helpers_web.dart';
 import 'package:logging/logging.dart';
@@ -45,6 +49,23 @@ void main() async {
 
 var _bootstrapped = false;
 
+/// Swallows failures: `pendingFonts` rejects on the first face that will not
+/// load, which would otherwise abort bootstrap short of [runApp].
+Future<void> _preloadBundledFonts() async {
+  try {
+    await GoogleFonts.pendingFonts([
+      GoogleFonts.poppins(fontWeight: FontWeight.w300),
+      GoogleFonts.poppins(fontWeight: FontWeight.w400),
+      GoogleFonts.poppins(fontWeight: FontWeight.w500),
+      GoogleFonts.poppins(fontWeight: FontWeight.w600),
+      GoogleFonts.dmSerifDisplay(fontWeight: FontWeight.w400),
+      GoogleFonts.notoSans(fontWeight: FontWeight.w400),
+    ]);
+  } catch (e) {
+    _log.warning('Bundled font preload failed', e);
+  }
+}
+
 Future<void> _bootstrap() async {
   // Sentry throwing after it hands off must not start the app twice.
   if (_bootstrapped) return;
@@ -56,18 +77,11 @@ Future<void> _bootstrap() async {
 
   GoogleFonts.config.allowRuntimeFetching = false;
 
-  // Text laid out before its face resolves renders in a fallback, then
-  // reflows a frame later. Mirrors the weights bundled in pubspec.yaml.
-  await GoogleFonts.pendingFonts([
-    GoogleFonts.poppins(fontWeight: FontWeight.w300),
-    GoogleFonts.poppins(fontWeight: FontWeight.w400),
-    GoogleFonts.poppins(fontWeight: FontWeight.w500),
-    GoogleFonts.poppins(fontWeight: FontWeight.w600),
-    GoogleFonts.dmSerifDisplay(fontWeight: FontWeight.w400),
-    GoogleFonts.notoSans(fontWeight: FontWeight.w400),
-  ]);
+  await _preloadBundledFonts();
 
   tz.initializeTimeZones();
+  // Awaited by the first screen that needs it.
+  unawaited(TimeZoneDatabaseService().ensureLoaded());
 
   await refreshSystemProxy();
 
@@ -77,7 +91,7 @@ Future<void> _bootstrap() async {
     _log.severe('Firebase initialization failed', e);
   }
 
-  if (!kIsWeb) {
+  if (!kIsWeb && Firebase.apps.isNotEmpty) {
     FirebaseAuth.instance.customAuthDomain = firebaseAuthDomain;
   }
 
@@ -93,7 +107,13 @@ Future<void> _bootstrap() async {
     router.go(route);
   });
 
-  await PrefService().init();
+  try {
+    await PrefService().init();
+  } catch (e) {
+    _log.severe('Preferences initialization failed', e);
+    runApp(const StartupFailureApp(onReload: reloadPage));
+    return;
+  }
 
   await AppVersionService().init();
 

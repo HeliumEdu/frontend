@@ -3,8 +3,16 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 
 extension AppStyles on BuildContext {
-  // Fallback font for characters not in Poppins
+  // Fallback font for characters missing from the primary family
   static const fallbackFonts = ['Noto Sans'];
+
+  // google_fonts names faces by family+variant (`Poppins_regular`), so the
+  // pubspec family goes first: a failed registration keeps the same typeface.
+  static const poppinsFallbackFonts = ['Poppins', ...fallbackFonts];
+  static const dmSerifDisplayFallbackFonts = [
+    'DM Serif Display',
+    ...fallbackFonts,
+  ];
 
   static TextStyle poppins({
     FontWeight? fontWeight,
@@ -17,7 +25,7 @@ extension AppStyles on BuildContext {
       fontSize: fontSize,
       color: color,
       fontFeatures: fontFeatures,
-    ).copyWith(fontFamilyFallback: fallbackFonts);
+    ).copyWith(fontFamilyFallback: poppinsFallbackFonts);
   }
 
   static TextTheme defaultTextTheme(ColorScheme colorScheme) {
@@ -25,7 +33,7 @@ extension AppStyles on BuildContext {
     return base.apply(
       bodyColor: colorScheme.onSurface,
       displayColor: colorScheme.onSurface,
-      fontFamilyFallback: fallbackFonts,
+      fontFamilyFallback: poppinsFallbackFonts,
     );
   }
 
@@ -72,7 +80,7 @@ extension AppStyles on BuildContext {
         fontSize: Responsive.getFontSize(context, mobile: 18, desktop: 19),
         color: Theme.of(context).colorScheme.onSurface,
         fontFeatures: [const FontFeature.tabularFigures()],
-      ).copyWith(fontFamilyFallback: fallbackFonts);
+      ).copyWith(fontFamilyFallback: dmSerifDisplayFallbackFonts);
 
   // Used for smaller labels, counts, tertiary info
   static TextStyle smallSecondaryText(BuildContext context) => poppins(
@@ -122,7 +130,7 @@ extension AppStyles on BuildContext {
         ),
         color: Theme.of(context).colorScheme.onSurface,
         fontFeatures: [const FontFeature.tabularFigures()],
-      ).copyWith(fontFamilyFallback: fallbackFonts);
+      ).copyWith(fontFamilyFallback: dmSerifDisplayFallbackFonts);
 
   // Used for dropdowns, text fields, and form elements
   static TextStyle formText(BuildContext context) => poppins(

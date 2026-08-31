@@ -87,9 +87,7 @@ class AttachmentRemoteDataSourceImpl extends AttachmentRemoteDataSource {
         unawaited(AnalyticsService().setUserProperty(name: 'uses_attachments', value: 'true'));
         return attachment;
       } else {
-        throw ServerException(
-          message: 'Failed to create attachment: ${response.statusCode}.',
-        );
+        throw unexpectedStatus(response, 'Failed to create attachment.');
       }
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
@@ -136,9 +134,7 @@ class AttachmentRemoteDataSourceImpl extends AttachmentRemoteDataSource {
         _log.info('... fetched ${attachments.length} Attachment(s)');
         return attachments;
       } else {
-        throw ServerException(
-          message: 'Failed to fetch attachments: ${response.statusCode}.',
-        );
+        throw unexpectedStatus(response, 'Failed to fetch attachments.');
       }
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
@@ -162,9 +158,7 @@ class AttachmentRemoteDataSourceImpl extends AttachmentRemoteDataSource {
         _log.info('... Attachment $attachmentId deleted');
         await dioClient.cacheService.invalidateAll();
       } else {
-        throw ServerException(
-          message: 'Failed to delete attachment: ${response.statusCode}.',
-        );
+        throw unexpectedStatus(response, 'Failed to delete attachment.');
       }
     } on DioException catch (e, s) {
       throw handleDioError(e, s);

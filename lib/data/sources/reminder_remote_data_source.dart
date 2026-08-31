@@ -96,9 +96,7 @@ class ReminderRemoteDataSourceImpl extends ReminderRemoteDataSource {
         _log.info('... fetched ${reminders.length} Reminder(s)');
         return reminders;
       } else {
-        throw ServerException(
-          message: 'Failed to fetch reminders: ${response.statusCode}.',
-        );
+        throw unexpectedStatus(response, 'Failed to fetch reminders.');
       }
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
@@ -140,9 +138,7 @@ class ReminderRemoteDataSourceImpl extends ReminderRemoteDataSource {
         _log.info('... fetched Reminders count: $count');
         return count;
       } else {
-        throw ServerException(
-          message: 'Failed to fetch reminders count: ${response.statusCode}.',
-        );
+        throw unexpectedStatus(response, 'Failed to fetch reminders count.');
       }
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
@@ -171,9 +167,7 @@ class ReminderRemoteDataSourceImpl extends ReminderRemoteDataSource {
         unawaited(AnalyticsService().setUserProperty(name: 'uses_reminders', value: 'true'));
         return reminder;
       } else {
-        throw ServerException(
-          message: 'Failed to create reminder: ${response.statusCode}.',
-        );
+        throw unexpectedStatus(response, 'Failed to create reminder.');
       }
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
@@ -202,9 +196,7 @@ class ReminderRemoteDataSourceImpl extends ReminderRemoteDataSource {
         await dioClient.cacheService.invalidateAll();
         return ReminderModel.fromJson(response.data);
       } else {
-        throw ServerException(
-          message: 'Failed to update reminder: ${response.statusCode}.',
-        );
+        throw unexpectedStatus(response, 'Failed to update reminder.');
       }
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
@@ -228,9 +220,7 @@ class ReminderRemoteDataSourceImpl extends ReminderRemoteDataSource {
         _log.info('... Reminder $id deleted');
         await dioClient.cacheService.invalidateAll();
       } else {
-        throw ServerException(
-          message: 'Failed to delete reminder: ${response.statusCode}.',
-        );
+        throw unexpectedStatus(response, 'Failed to delete reminder.');
       }
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
@@ -268,9 +258,7 @@ class ReminderRemoteDataSourceImpl extends ReminderRemoteDataSource {
         _log.info('... all Reminders dismissed');
         await dioClient.cacheService.invalidateAll();
       } else {
-        throw ServerException(
-          message: 'Failed to dismiss all reminders: ${response.statusCode}.',
-        );
+        throw unexpectedStatus(response, 'Failed to dismiss all reminders.');
       }
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
