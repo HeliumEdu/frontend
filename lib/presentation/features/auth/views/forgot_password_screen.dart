@@ -208,6 +208,7 @@ class _ForgotPasswordScreenState
 
   Future<void> _onSubmit() async {
     if (_formController.formKey.currentState?.validate() ?? false) {
+      FocusManager.instance.primaryFocus?.unfocus();
       setState(() {
         isSubmitting = true;
       });

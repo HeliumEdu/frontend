@@ -326,6 +326,7 @@ class _VerifyEmailScreenState extends BasePageScreenState<VerifyEmailScreen> {
 
   void _onSubmit() {
     if (_formController.formKey.currentState?.validate() ?? false) {
+      FocusManager.instance.primaryFocus?.unfocus();
       setState(() {
         isSubmitting = true;
       });

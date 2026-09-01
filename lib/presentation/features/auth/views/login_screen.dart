@@ -444,6 +444,7 @@ class _LoginScreenViewState extends BasePageScreenState<LoginScreen> {
 
   void _onSubmit() {
     if (_formController.formKey.currentState!.validate()) {
+      FocusManager.instance.primaryFocus?.unfocus();
       setState(() {
         isSubmitting = true;
       });

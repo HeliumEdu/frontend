@@ -37,6 +37,7 @@ class BasicFormController {
   /// Returns true if valid, false otherwise.
   bool validateAndScrollToError() {
     if (formKey.currentState!.validate()) {
+      FocusManager.instance.primaryFocus?.unfocus();
       return true;
     }
 

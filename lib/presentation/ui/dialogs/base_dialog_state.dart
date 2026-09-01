@@ -132,6 +132,7 @@ abstract class BaseDialogState<T extends StatefulWidget> extends State<T> {
   @mustCallSuper
   void handleSubmit() {
     if (formController.formKey.currentState!.validate()) {
+      FocusManager.instance.primaryFocus?.unfocus();
       setState(() {
         isSubmitting = true;
       });

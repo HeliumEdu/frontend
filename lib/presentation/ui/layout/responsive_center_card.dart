@@ -50,12 +50,10 @@ class ResponsiveCenterCard extends StatelessWidget {
       builder: (context, constraints) {
         return SingleChildScrollView(
           keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+          padding: EdgeInsets.only(bottom: inset + keyboardInset),
           child: ConstrainedBox(
             constraints: BoxConstraints(minHeight: constraints.maxHeight),
-            child: Padding(
-              padding: EdgeInsets.only(bottom: inset + keyboardInset),
-              child: Center(child: content),
-            ),
+            child: Center(child: content),
           ),
         );
       },

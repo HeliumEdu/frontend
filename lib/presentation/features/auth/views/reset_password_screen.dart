@@ -220,6 +220,7 @@ class _ResetPasswordScreenState
 
   void _onSubmit() {
     if (_formController.formKey.currentState?.validate() ?? false) {
+      FocusManager.instance.primaryFocus?.unfocus();
       setState(() {
         isSubmitting = true;
       });

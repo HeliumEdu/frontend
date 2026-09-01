@@ -857,9 +857,19 @@ Future<String?> _authRedirect(BuildContext context, GoRouterState state) async {
     if (publicRoutes.contains(matchedLocation) &&
         matchedLocation != AppRoute.verifyEmailScreen &&
         matchedLocation != AppRoute.resetPasswordScreen) {
-      return isSetupComplete
-          ? AppRoute.plannerScreen
-          : AppRoute.setupAccountScreen;
+      if (!isSetupComplete) return AppRoute.setupAccountScreen;
+
+      // A shared link opened while already signed in still names where it meant
+      // to go. Path-only, so it cannot redirect off-origin.
+      final next = state.uri.queryParameters['next'];
+      final nextUri = next == null ? null : Uri.tryParse(next);
+      final isSafe = nextUri != null &&
+          nextUri.scheme.isEmpty &&
+          nextUri.host.isEmpty &&
+          nextUri.path.startsWith('/') &&
+          !publicRoutes.contains(nextUri.path);
+
+      return isSafe ? next : AppRoute.plannerScreen;
     }
 
     // On setup screen: redirect to planner if setup is complete

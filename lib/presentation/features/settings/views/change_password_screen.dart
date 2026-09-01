@@ -155,6 +155,7 @@ class ChangePasswordScreenState extends State<ChangePasswordScreen> {
   void onSubmit() {
     if (_isSubmitting) return;
     if (_formController.formKey.currentState?.validate() ?? false) {
+      FocusManager.instance.primaryFocus?.unfocus();
       setState(() => _isSubmitting = true);
       widget.onActionStarted?.call();
 

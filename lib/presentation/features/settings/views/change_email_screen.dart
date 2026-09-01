@@ -164,6 +164,7 @@ class ChangeEmailScreenState extends State<ChangeEmailScreen> {
   void onSubmit() {
     if (_isSubmitting) return;
     if (_formController.formKey.currentState?.validate() ?? false) {
+      FocusManager.instance.primaryFocus?.unfocus();
       setState(() => _isSubmitting = true);
       widget.onActionStarted?.call();
 

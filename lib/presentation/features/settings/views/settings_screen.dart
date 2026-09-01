@@ -1184,6 +1184,7 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
         builder: (context, setState) {
           void handleSubmit() {
             if (_deleteAccountFormController.formKey.currentState!.validate()) {
+              FocusManager.instance.primaryFocus?.unfocus();
               setState(() {
                 isSubmitting = true;
               });

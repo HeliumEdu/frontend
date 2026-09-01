@@ -424,6 +424,7 @@ class _SignupScreenState extends BasePageScreenState<SignupScreen> {
 
   void _onSubmit() {
     if (_formController.formKey.currentState!.validate()) {
+      FocusManager.instance.primaryFocus?.unfocus();
       setState(() {
         isSubmitting = true;
       });
