@@ -9,9 +9,9 @@ final _log = Logger('core.dio');
 class DioErrorMapper {
   DioErrorMapper._();
 
-  static const _reloadHint = 'Check your connection, then click "Reload".';
-  static const _unreachableMessage = 'Couldn\'t reach Helium. $_reloadHint';
-  static const _timedOutMessage = 'Took too long to reach Helium. $_reloadHint';
+  static const _retryHint = 'Check your connection and try again.';
+  static const _unreachableMessage = 'Couldn\'t reach Helium. $_retryHint';
+  static const _timedOutMessage = 'Took too long to reach Helium. $_retryHint';
 
   static HeliumException map(
     DioException e,

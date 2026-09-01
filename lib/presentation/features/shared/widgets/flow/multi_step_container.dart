@@ -146,6 +146,16 @@ abstract class MultiStepContainerState<T extends MultiStepContainer>
 
   bool _dismissDeferred = false;
 
+  /// The URL-driven counterpart to [_attemptDismiss]'s deferral, for dismissals
+  /// that never reach it: browser back, address-bar edits. Returns whether the
+  /// navigation was deferred rather than allowed to proceed.
+  @protected
+  bool deferNavigationDismissal() {
+    if (!deferDismissal) return false;
+    _dismissDeferred = true;
+    return true;
+  }
+
   /// Runs a dismiss that [deferDismissal] postponed, once the work settled.
   @protected
   void resumeDeferredDismissal() {

@@ -98,6 +98,7 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen>
   final Map<int, int> _attachmentCounts = {};
   final Map<int, int> _reminderCounts = {};
   final Map<int, int> _reminderToCourse = {};
+  final Map<int, int> _scheduleToCourse = {};
   int? _selectedGroupId;
 
   @override
@@ -223,30 +224,48 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen>
               name: 'course_load_bucket',
               value: _courseLoadBucket(totalCourses),
             ));
-          } else if (state is CourseScheduleUpdated) {
+          } else if (state case CourseScheduleCreated(:final schedule) ||
+              CourseScheduleUpdated(:final schedule)) {
             // Find the schedule's course across loaded groups (its group may
             // differ from the active filter) and replace that schedule by id
             // rather than assuming a single schedule at index 0.
             setState(() {
+              _scheduleToCourse[schedule.id] = schedule.course;
+
               for (final courses in _coursesMap.values) {
                 final courseIndex = courses.indexWhere(
-                  (c) => c.id == state.schedule.course,
+                  (c) => c.id == schedule.course,
                 );
                 if (courseIndex == -1) continue;
 
                 final schedules = courses[courseIndex].schedules;
                 final scheduleIndex = schedules.indexWhere(
-                  (s) => s.id == state.schedule.id,
+                  (s) => s.id == schedule.id,
                 );
                 if (scheduleIndex >= 0) {
-                  schedules[scheduleIndex] = state.schedule;
+                  schedules[scheduleIndex] = schedule;
                 } else {
-                  schedules.add(state.schedule);
+                  schedules.add(schedule);
                 }
                 Sort.byTitle(courses);
                 break;
               }
             });
+          } else if (state is CourseScheduleDeleted) {
+            final courseId = _scheduleToCourse.remove(state.id);
+            if (courseId != null) {
+              setState(() {
+                for (final courses in _coursesMap.values) {
+                  final courseIndex = courses.indexWhere((c) => c.id == courseId);
+                  if (courseIndex == -1) continue;
+
+                  courses[courseIndex].schedules.removeWhere(
+                    (s) => s.id == state.id,
+                  );
+                  break;
+                }
+              });
+            }
           }
         },
       ),
@@ -472,6 +491,13 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen>
             .where((c) => c.courseGroup == group.id)
             .toList();
         Sort.byTitle(_coursesMap[group.id]!);
+      }
+
+      _scheduleToCourse.clear();
+      for (final course in state.courses) {
+        for (final schedule in course.schedules) {
+          _scheduleToCourse[schedule.id] = course.id;
+        }
       }
 
       _categoryCounts.clear();

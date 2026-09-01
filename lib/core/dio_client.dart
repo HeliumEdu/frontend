@@ -347,6 +347,8 @@ class DioClient {
 
     _cacheService = CacheService();
     _cacheService.onInactivityResume = () async {
+      if (!await isAuthenticated()) return;
+
       if (await fetchSettings(forceRefresh: true) != null) {
         await _cacheService.invalidateAll();
       }

@@ -101,7 +101,7 @@ Future<void> _bootstrap() async {
     _log.severe('Analytics initialization failed', e, s);
   }
 
-  initializeRouter();
+  initializeRouter(initialLocation: await FcmService().coldStartRoute());
 
   FcmService.setForegroundTapCallback((route) {
     router.go(route);
@@ -130,14 +130,13 @@ Future<void> _bootstrap() async {
 
   // FCM registration reaches the network, so it runs after the first frame:
   // on a slow or absent connection it would otherwise hold the app on a blank
-  // screen. Pending notification navigation follows once it settles.
+  // screen.
   WidgetsBinding.instance.addPostFrameCallback((_) async {
     try {
       await FcmService().init();
     } catch (e, s) {
       _log.severe('FCM initialization failed', e, s);
     }
-    FcmService.handlePendingRoute();
   });
 
   runApp(SentryWidget(child: const AppProviders(child: HeliumApp())));

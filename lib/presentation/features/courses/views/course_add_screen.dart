@@ -162,7 +162,8 @@ class _CourseAddScreenState extends MultiStepContainerState<CourseAddScreen> {
     DirtyDialogRegistry.register(
       prefix: prefix,
       fullPath: fullPath,
-      isDirty: () => isDirty || deferDismissal,
+      isDirty: () => isDirty,
+      deferNavigation: deferNavigationDismissal,
     );
     _registeredPrefix = prefix;
   }

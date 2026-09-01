@@ -25,11 +25,14 @@ class StartupFailureApp extends StatelessWidget {
       themeMode: ThemeMode.system,
       home: Scaffold(
         body: SafeArea(
-          child: ErrorCard(
-            message: HeliumException.unexpectedError,
-            source: 'startup',
-            expanded: false,
-            onReload: onReload,
+          child: Padding(
+            padding: const EdgeInsets.all(12),
+            child: ErrorCard(
+              message: HeliumException.unexpectedError,
+              source: 'startup',
+              expanded: false,
+              onReload: onReload,
+            ),
           ),
         ),
       ),

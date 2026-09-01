@@ -513,11 +513,22 @@ class _ImportExportScreenState extends State<ImportExportScreen> {
       if (!mounted) return;
 
       if (response.statusCode == 200) {
+        final summary = _summarizeImport(
+          response.data as Map<String, dynamic>,
+        );
+
+        // The API answers 200 with zero counts when it recognized nothing.
+        if (summary.importedNothing) {
+          SnackBarHelper.show(
+            context,
+            'Nothing to import from this file.',
+            type: SnackType.error,
+          );
+          return;
+        }
+
         await _dioClient.cacheService.invalidateAll();
         unawaited(NotificationCountService().refresh());
-
-        final data = response.data as Map<String, dynamic>;
-        final counts = _formatImportCounts(data);
 
         if (mounted) {
           context.read<AuthBloc>().add(RefreshScheduleDataEvent());
@@ -531,8 +542,8 @@ class _ImportExportScreenState extends State<ImportExportScreen> {
           );
           SnackBarHelper.show(
             context,
-            'Imported: $counts.',
-            seconds: counts == 'nothing' ? 2 : 7,
+            summary.message,
+            seconds: 7,
             useRootMessenger: true,
           );
           widget.onNavigateRequested?.call(AppRoute.coursesScreen);
@@ -571,51 +582,23 @@ class _ImportExportScreenState extends State<ImportExportScreen> {
     }
   }
 
-  String _formatImportCounts(Map<String, dynamic> data) {
+  _ImportSummary _summarizeImport(Map<String, dynamic> data) {
+    var total = 0;
     final parts = <String>[];
 
-    final courses = data['courses'] as int? ?? 0;
-    if (courses > 0) {
-      parts.add('$courses ${courses.plural('class', 'classes')}');
+    for (final entity in _importedEntities) {
+      final count = data[entity.key] as int? ?? 0;
+      if (count == 0) continue;
+
+      total += count;
+
+      final singular = entity.singular;
+      if (singular != null) {
+        parts.add('$count ${count.plural(singular, entity.plural)}');
+      }
     }
 
-    final categories = data['categories'] as int? ?? 0;
-    if (categories > 0) {
-      parts.add('$categories ${categories.plural('category', 'categories')}');
-    }
-
-    final homework = data['homework'] as int? ?? 0;
-    if (homework > 0) {
-      parts.add('$homework ${homework.plural('assignment')}');
-    }
-
-    final events = data['events'] as int? ?? 0;
-    if (events > 0) {
-      parts.add('$events ${events.plural('event')}');
-    }
-
-    final materials = data['materials'] as int? ?? 0;
-    if (materials > 0) {
-      parts.add('$materials ${materials.plural('resource')}');
-    }
-
-    final reminders = data['reminders'] as int? ?? 0;
-    if (reminders > 0) {
-      parts.add('$reminders ${reminders.plural('reminder')}');
-    }
-
-    final externalCalendars = data['external_calendars'] as int? ?? 0;
-    if (externalCalendars > 0) {
-      parts.add(
-        '$externalCalendars ${externalCalendars.plural('external calendar')}',
-      );
-    }
-
-    if (parts.isEmpty) {
-      return 'nothing';
-    }
-
-    return parts.join(', ');
+    return _ImportSummary(total: total, description: parts.join(', '));
   }
 
   Future<void> _exportData() async {
@@ -774,4 +757,41 @@ class _ImportTarget {
 
   @override
   int get hashCode => Object.hash(kind, id);
+}
+
+/// Every count the import API returns. Omitting one lets an import that landed
+/// rows summarize as empty.
+const _importedEntities = <_ImportedEntity>[
+  _ImportedEntity('course_groups'),
+  _ImportedEntity('courses', 'class', 'classes'),
+  _ImportedEntity('course_schedules'),
+  _ImportedEntity('categories', 'category', 'categories'),
+  _ImportedEntity('homework', 'assignment'),
+  _ImportedEntity('events', 'event'),
+  _ImportedEntity('resource_groups'),
+  _ImportedEntity('resources', 'resource'),
+  _ImportedEntity('reminders', 'reminder'),
+  _ImportedEntity('notes', 'note'),
+  _ImportedEntity('external_calendars', 'external calendar'),
+];
+
+/// A null [singular] counts toward the total without being named.
+class _ImportedEntity {
+  final String key;
+  final String? singular;
+  final String? plural;
+
+  const _ImportedEntity(this.key, [this.singular, this.plural]);
+}
+
+class _ImportSummary {
+  final int total;
+  final String description;
+
+  const _ImportSummary({required this.total, required this.description});
+
+  bool get importedNothing => total == 0;
+
+  String get message =>
+      description.isEmpty ? 'Import complete.' : 'Imported: $description.';
 }

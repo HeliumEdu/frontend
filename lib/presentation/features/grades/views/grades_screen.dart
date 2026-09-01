@@ -212,45 +212,12 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
       ),
       BlocListener<PlannerItemBloc, PlannerItemState>(
         listener: (context, state) {
-          if (state is HomeworkDeleted) {
+          if (state is HomeworkCreated ||
+              state is HomeworkDeleted ||
+              state is HomeworkUpdated) {
             context.read<GradeBloc>().add(
               FetchGradeScreenDataEvent(forceRefresh: true),
             );
-          } else if (state is HomeworkUpdated) {
-            final homework = state.homework;
-
-            HomeworkSeriesItemModel? matched;
-            outer:
-            for (final group in _grades) {
-              for (final course in group.courses) {
-                for (final item in course.homeworkSeries) {
-                  if (item.id == homework.id) {
-                    matched = item;
-                    break outer;
-                  }
-                }
-              }
-            }
-
-            if (matched == null) {
-              context.read<GradeBloc>().add(
-                FetchGradeScreenDataEvent(forceRefresh: true),
-              );
-              return;
-            }
-
-            final newGradePercent = GradeHelper.parseGrade(
-              homework.currentGrade,
-            );
-
-            if (matched.homeworkGrade != newGradePercent ||
-                matched.categoryId != homework.category.id ||
-                matched.courseId != homework.course.id ||
-                matched.title != homework.title) {
-              context.read<GradeBloc>().add(
-                FetchGradeScreenDataEvent(forceRefresh: true),
-              );
-            }
           }
         },
       ),

@@ -353,7 +353,7 @@ void main() {
           // THEN
           expect(result, isA<NetworkException>());
           expect(result.code, equals('NETWORK_ERROR'));
-          expect(result.message, contains('Reload'));
+          expect(result.message, contains('try again'));
         });
       });
 
@@ -373,7 +373,7 @@ void main() {
             // THEN
             expect(result, isA<NetworkException>());
             expect(result.code, equals('NETWORK_ERROR'));
-            expect(result.message, contains('Reload'));
+            expect(result.message, contains('try again'));
           },
         );
 

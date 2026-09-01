@@ -143,8 +143,6 @@ class FcmService with WidgetsBindingObserver {
 
     _configureMessageHandlers();
 
-    await _handleInitialMessage();
-
     _isInitialized = true;
     _log.info('FCM initialized successfully');
 
@@ -287,7 +285,30 @@ class FcmService with WidgetsBindingObserver {
     }
   }
 
-  Future<void> _registerToken({bool force = false}) async {
+  Future<void>? _registrationInFlight;
+
+  Future<void> _registerToken({bool force = false}) {
+    final inFlight = _registrationInFlight;
+    if (inFlight != null && !force) return inFlight;
+
+    final next = inFlight == null
+        ? _runRegisterToken(force: force)
+        : inFlight.then<void>(
+            (_) => _runRegisterToken(force: true),
+            onError: (_) => _runRegisterToken(force: true),
+          );
+
+    late final Future<void> tracked;
+    tracked = next.whenComplete(() {
+      if (identical(_registrationInFlight, tracked)) {
+        _registrationInFlight = null;
+      }
+    });
+    _registrationInFlight = tracked;
+    return tracked;
+  }
+
+  Future<void> _runRegisterToken({bool force = false}) async {
     // If token is null, try to get it (especially important on iOS where APN may be delayed)
     if (_fcmToken?.isEmpty ?? true) {
       _log.info('FCM token not available, attempting to retrieve it now ...');
@@ -502,10 +523,20 @@ class FcmService with WidgetsBindingObserver {
     }
   }
 
+  /// The route a tapped notification is opening, until that route is popped.
+  static String? tappedDestination;
+
   Future<void> _onNotificationTap(RemoteMessage message) async {
     final messageId = message.messageId;
     _log.info('Notification $messageId tapped');
-    await router.push(_routeForMessage(message));
+
+    final route = _routeForMessage(message);
+    tappedDestination = route;
+    try {
+      await router.push(route);
+    } finally {
+      tappedDestination = null;
+    }
   }
 
   /// Resolves the deep-link route for a tapped push: the specific entity the
@@ -530,53 +561,22 @@ class FcmService with WidgetsBindingObserver {
         notificationsRoute;
   }
 
-  /// Pending route to navigate to once the router is initialized.
-  /// Set when app opens from terminated state via notification.
-  static String? pendingRoute;
+  /// Read before the router is built, so a tapped notification is the initial location rather
+  /// than a navigation applied over whatever rendered first. Web resolves its own from the URL.
+  Future<String?> coldStartRoute() async {
+    if (kIsWeb) return null;
 
-  Future<void> _handleInitialMessage() async {
-    if (_firebaseMessaging == null) return;
+    try {
+      _firebaseMessaging ??= FirebaseMessaging.instance;
 
-    // On web, cold-start URL is set by the service worker (openWindow) or
-    // external deep link. Capture it generically — getInitialMessage() is not
-    // reliable on web.
-    if (kIsWeb) {
-      final initialUri = Uri.base;
-      if (initialUri.queryParameters.isNotEmpty) {
-        _log.info('App cold-started at $initialUri');
-        pendingRoute = Uri(
-          path: initialUri.path,
-          queryParameters: initialUri.queryParameters,
-        ).toString();
-      }
-      return;
-    }
+      final RemoteMessage? initialMessage = await _firebaseMessaging!.getInitialMessage();
+      if (initialMessage == null) return null;
 
-    final RemoteMessage? initialMessage = await _firebaseMessaging!
-        .getInitialMessage();
-
-    if (initialMessage != null) {
       _log.info('App opened from terminated state via notification');
-      // Defer navigation - router may not be initialized yet during cold start.
-      // The app's main widget should check pendingRoute after router is ready.
-      pendingRoute = _routeForMessage(initialMessage);
-    }
-  }
-
-  /// Navigates to pending route if one exists, then clears it.
-  /// Call this after the router is initialized.
-  static void handlePendingRoute() {
-    if (pendingRoute != null) {
-      final route = pendingRoute!;
-      pendingRoute = null;
-      // On web, go() re-establishes the full intended URL after auth may have
-      // cleared query params during initialization. On mobile, push() preserves
-      // the back stack for the cold-start FCM tap case.
-      if (kIsWeb) {
-        router.go(route);
-      } else {
-        router.push(route);
-      }
+      return _routeForMessage(initialMessage);
+    } catch (e, s) {
+      _log.warning('Failed to resolve cold-start route: ${e.runtimeType}', e, s);
+      return null;
     }
   }
 
@@ -630,10 +630,17 @@ class FcmService with WidgetsBindingObserver {
     );
   }
 
-  void _onNotificationTapped(NotificationResponse response) {
+  Future<void> _onNotificationTapped(NotificationResponse response) async {
     _log.info('Local notification tapped: ${response.id}');
-    final route = response.payload;
-    router.push(route != null && route.isNotEmpty ? route : notificationsRoute);
+
+    final payload = response.payload;
+    final route = payload != null && payload.isNotEmpty ? payload : notificationsRoute;
+    tappedDestination = route;
+    try {
+      await router.push(route);
+    } finally {
+      tappedDestination = null;
+    }
   }
 
   Future<void> registerToken({bool force = false}) async {

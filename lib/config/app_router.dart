@@ -41,14 +41,14 @@ final rootNavigatorKey = GlobalKey<NavigatorState>();
 late final GoRouter router;
 final _log = Logger('config.router');
 
-void initializeRouter() {
+void initializeRouter({String? initialLocation}) {
   // Enable URL updates for push/pop on web. Direct URL access to sub-sub pages
   // and edit screens is guarded by redirect checks in the route definitions.
   GoRouter.optionURLReflectsImperativeAPIs = true;
 
   router = GoRouter(
     navigatorKey: rootNavigatorKey,
-    initialLocation: AppRoute.landingScreen,
+    initialLocation: initialLocation ?? AppRoute.landingScreen,
     redirect: _authRedirect,
     observers: [AnalyticsService().observer, SentryNavigatorObserver()],
     errorBuilder: (context, state) =>

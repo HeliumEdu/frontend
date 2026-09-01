@@ -191,7 +191,8 @@ class _PlannerItemAddScreenState
     DirtyDialogRegistry.register(
       prefix: prefix,
       fullPath: fullPath,
-      isDirty: () => isDirty || deferDismissal,
+      isDirty: () => isDirty,
+      deferNavigation: deferNavigationDismissal,
     );
     _registeredPrefix = prefix;
   }

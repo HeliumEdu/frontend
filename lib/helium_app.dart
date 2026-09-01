@@ -15,8 +15,15 @@ import 'package:heliumapp/utils/quill_helpers.dart';
 import 'package:heliumapp/utils/sf_calendar_helpers.dart';
 import 'package:heliumapp/utils/snack_bar_helpers.dart';
 import 'package:heliumapp/config/app_theme.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:heliumapp/core/app_version_service.dart';
+import 'package:heliumapp/presentation/features/shared/bloc/info/info_bloc.dart';
+import 'package:heliumapp/presentation/features/shared/bloc/info/info_state.dart';
+import 'package:heliumapp/update_required_app.dart';
+import 'package:heliumapp/utils/version_helpers.dart';
 import 'package:logging/logging.dart';
 import 'package:url_launcher/url_launcher.dart';
+
 
 final _log = Logger('app');
 
@@ -107,6 +114,23 @@ class _HeliumAppState extends State<HeliumApp> with WidgetsBindingObserver {
 
   @override
   Widget build(BuildContext context) {
+    return BlocBuilder<InfoBloc, InfoState>(
+      buildWhen: (previous, current) =>
+          _updateRequired(previous) != _updateRequired(current),
+      builder: (context, infoState) => _updateRequired(infoState)
+          ? const UpdateRequiredApp()
+          : _buildRoutedApp(context),
+    );
+  }
+
+  bool _updateRequired(InfoState state) {
+    final version = AppVersionService().version;
+    return state is InfoLoaded &&
+        version != null &&
+        VersionHelpers.isBelow(version, state.info.minimumSupportedVersion);
+  }
+
+  Widget _buildRoutedApp(BuildContext context) {
     return MaterialApp.router(
       scaffoldMessengerKey: rootScaffoldMessengerKey,
       routerConfig: router,

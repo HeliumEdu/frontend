@@ -258,6 +258,8 @@ class _NotificationsScreenState
             _removeNotificationByPlannerItemId(homeworkId: state.homework.id);
           } else if (state is HomeworkDeleted) {
             _removeNotificationByPlannerItemId(homeworkId: state.id);
+          } else if (state is AllEventsDeleted) {
+            _removeEventNotifications();
           }
         },
       ),
@@ -390,6 +392,13 @@ class _NotificationsScreenState
     // list so a reopen with an unchanged count can skip the fetch.
     NotificationCountService().count.value = notifications.length;
     NotificationCountService().cacheNotifications(notifications);
+  }
+
+  void _removeEventNotifications() {
+    NotificationCountService().invalidateCachedNotifications();
+    setState(() {
+      _notifications.removeWhere((n) => n.reminder.event != null);
+    });
   }
 
   void _removeNotificationByPlannerItemId({int? eventId, int? homeworkId}) {

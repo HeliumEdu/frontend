@@ -9,6 +9,7 @@ import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/config/donation_config.dart';
 import 'package:heliumapp/config/pref_service.dart';
 import 'package:heliumapp/core/dio_client.dart';
+import 'package:heliumapp/core/fcm_service.dart';
 import 'package:heliumapp/core/notification_count_service.dart';
 import 'package:heliumapp/core/notification_reconciler.dart';
 import 'package:heliumapp/core/whats_new_service.dart';
@@ -346,14 +347,13 @@ class _NavigationShellState extends State<NavigationShell> {
     );
   }
 
-  /// Whether the user is sitting on a plain shell tab rather than somewhere
-  /// specific. Covers path-based dialog routes (e.g. /planner/settings,
-  /// /classes/25/details, /planner/homework/5/details) and remaining
-  /// query-param deep links on the shell screens.
-  bool get _isOnBareShellTab {
-    final uri = router.routerDelegate.currentConfiguration.uri;
-    return NavigationPage.values.any((p) => p.route == uri.path) &&
-        !uri.queryParameters.containsKey(DeepLinkParam.id);
+
+  /// An imperative push leaves the URI on the base location, so a tapped
+  /// notification's destination has to be asked for rather than read off it.
+  bool get _destinationIsTopLevelPage {
+    final destination = FcmService.tappedDestination ??
+        router.routerDelegate.currentConfiguration.uri.path;
+    return NavigationPage.values.any((page) => page.route == destination);
   }
 
   Future<void> _checkGettingStartedDialog() async {
@@ -365,7 +365,7 @@ class _NavigationShellState extends State<NavigationShell> {
           settings?.showGettingStarted ??
           FallbackConstants.defaultShowGettingStarted;
 
-      if (!mounted || !showGettingStarted || !_isOnBareShellTab) return;
+      if (!mounted || !showGettingStarted || !_destinationIsTopLevelPage) return;
       await _showGettingStartedDialogSafely();
     } catch (e) {
       _log.warning('Failed to check getting started dialog state: ${e.runtimeType}');
@@ -396,7 +396,7 @@ class _NavigationShellState extends State<NavigationShell> {
         return;
       }
 
-      if (!_isOnBareShellTab) return;
+      if (!_destinationIsTopLevelPage) return;
 
       if (showGettingStarted) {
         // Re-check from the server: the value captured above may be stale if
@@ -408,7 +408,7 @@ class _NavigationShellState extends State<NavigationShell> {
       if (showWhatsNew) {
         if (!await DioClient().isAuthenticated() ||
             !mounted ||
-            !_isOnBareShellTab) {
+            !_destinationIsTopLevelPage) {
           return;
         }
         try {

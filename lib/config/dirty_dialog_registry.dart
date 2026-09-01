@@ -19,6 +19,7 @@ class DirtyDialogRegistry {
   static String? _activePrefix;
   static String? _activeFullPath;
   static bool Function()? _dirtyCheck;
+  static bool Function()? _deferNavigation;
   static String? _pendingTargetPath;
   static bool _promptInFlight = false;
 
@@ -29,10 +30,12 @@ class DirtyDialogRegistry {
     required String prefix,
     required String fullPath,
     required bool Function() isDirty,
+    bool Function()? deferNavigation,
   }) {
     _activePrefix = prefix;
     _activeFullPath = fullPath;
     _dirtyCheck = isDirty;
+    _deferNavigation = deferNavigation;
   }
 
   /// Updates the tracked full URL — call from the dialog's router listener
@@ -54,6 +57,7 @@ class DirtyDialogRegistry {
     _activePrefix = null;
     _activeFullPath = null;
     _dirtyCheck = null;
+    _deferNavigation = null;
   }
 
   /// Releases the slot unconditionally. Call from the dialog's intentional
@@ -63,6 +67,7 @@ class DirtyDialogRegistry {
     _activePrefix = null;
     _activeFullPath = null;
     _dirtyCheck = null;
+    _deferNavigation = null;
   }
 
   /// Returns the URL to revert [targetPath] to when the navigation would
@@ -72,6 +77,9 @@ class DirtyDialogRegistry {
     final fullPath = _activeFullPath;
     if (prefix == null || fullPath == null) return null;
     if (targetPath.startsWith(prefix)) return null;
+    // Work already in flight cannot be discarded, so a prompt would offer a
+    // choice the app can't honor.
+    if (_deferNavigation?.call() == true) return fullPath;
     if (_dirtyCheck?.call() != true) return null;
     if (!_promptInFlight) {
       _promptInFlight = true;

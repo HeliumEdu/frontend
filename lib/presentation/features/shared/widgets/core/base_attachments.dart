@@ -431,6 +431,7 @@ abstract class BaseAttachmentsState extends State<BaseAttachmentsContent> {
                 maxLines: 1,
               ),
             ),
+            const SizedBox(width: 8),
             Semantics(
               label: 'Download',
               button: true,

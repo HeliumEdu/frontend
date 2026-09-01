@@ -755,6 +755,18 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
         );
       }
       _itemCourse = state.itemCourse;
+      final itemCourse = _itemCourse;
+      if (itemCourse != null &&
+          !_courseItems.any((item) => item.id == itemCourse.id)) {
+        _courseItems.add(
+          DropDownItem(
+            id: itemCourse.id,
+            value: itemCourse,
+            iconData: Icons.school_outlined,
+            iconColor: itemCourse.color,
+          ),
+        );
+      }
       _courseSchedules = state.courseSchedules;
       _categories = state.categories;
       final weightedCourseIds = _categories

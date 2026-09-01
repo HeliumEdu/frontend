@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:heliumapp/config/app_router.dart';
 import 'package:heliumapp/config/app_theme.dart';
-import 'package:heliumapp/core/app_version_service.dart';
 import 'package:heliumapp/core/dio_client.dart';
 import 'package:heliumapp/core/helium_exception.dart';
 import 'package:heliumapp/core/time_zone_database_service.dart';
@@ -17,13 +16,11 @@ import 'package:heliumapp/presentation/navigation/shell/navigation_shell_title_s
     as title_helper;
 import 'package:heliumapp/presentation/ui/feedback/error_card.dart';
 import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
-import 'package:heliumapp/presentation/ui/feedback/update_required_card.dart';
 import 'package:heliumapp/presentation/ui/layout/page_header.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/print_helpers.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:heliumapp/utils/snack_bar_helpers.dart';
-import 'package:heliumapp/utils/version_helpers.dart';
 import 'package:logging/logging.dart';
 
 export 'package:heliumapp/utils/snack_bar_helpers.dart' show SnackType;
@@ -137,9 +134,8 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
   void initState() {
     super.initState();
 
-    dioClient.cacheService.addInactivityResumeListener(_resumeReload);
-
     if (isAuthenticatedScreen) {
+      dioClient.cacheService.addInactivityResumeListener(_resumeReload);
       loadSettings();
       if (context.read<InfoBloc>().state is InfoLoadFailed) {
         context.read<InfoBloc>().add(LoadInfoEvent());
@@ -321,18 +317,9 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
                 final infoReady = infoState is InfoLoaded;
                 final infoFailure =
                     infoState is InfoLoadFailed ? infoState : null;
-                final version = AppVersionService().version;
-                final updateRequired = infoReady &&
-                    version != null &&
-                    VersionHelpers.isBelow(
-                      version,
-                      infoState.info.minimumSupportedVersion,
-                    );
                 return Column(
                   children: [
-                    if (updateRequired)
-                      const UpdateRequiredCard()
-                    else if (settingsError != null || infoFailure != null)
+                    if (settingsError != null || infoFailure != null)
                       ErrorCard(
                         message:
                             settingsError ??
