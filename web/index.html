@@ -33,11 +33,16 @@
   <link rel="canonical" href="https://app.heliumedu.com">
 
   <!-- Viewport for responsive design -->
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 
   <!-- iOS meta tags & icons -->
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <!-- ColorScheme.fromSeed(#418eb9) surface. Safari 26+ ignores theme-color and
+       samples the page background instead, which the body rule below covers. -->
+  <meta name="theme-color" content="#f6fafe" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#0f1417" media="(prefers-color-scheme: dark)">
+  <meta name="color-scheme" content="light dark">
   <meta name="apple-mobile-web-app-title" content="Helium">
   <link rel="apple-touch-icon" href="icons/Icon-192.png">
 
@@ -53,12 +58,12 @@
       overflow: hidden;
     }
     .loading {
-      position: fixed;
+      position: absolute;
       top: 0;
       left: 0;
       width: 100%;
       height: 100%;
-      background: #ffffff;
+      background: #418eb9;
       z-index: 999999;
       opacity: 1;
       transition: opacity 0.3s;
@@ -66,6 +71,22 @@
     .loading.fade-out {
       opacity: 0;
       pointer-events: none;
+    }
+    /* Safari 26+ tints its bars from a fixed or sticky element at the top of
+       the viewport, falling back to the body, so the splash layers stay
+       absolute and the body carries the scaffold colour. */
+    html body {
+      background-color: #f6fafe;
+    }
+    #splash-backdrop {
+      position: absolute;
+      inset: 0;
+      background-color: #418eb9;
+    }
+    @media (prefers-color-scheme: dark) {
+      html body {
+        background-color: #0f1417;
+      }
     }
     /* Preload emoji font by rendering emojis off-screen during page load */
     .emoji-preload {
@@ -76,7 +97,6 @@
   </style>
   
   
-  <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport">
   
   
   
@@ -89,12 +109,14 @@
   
   <style id="splash-screen-style">
     html {
-      height: 100%
+      height: 100%;
+      height: 100dvh;
     }
 
     body {
       margin: 0;
       min-height: 100%;
+      min-height: 100dvh;
       background-color: #418eb9;
           background-size: 100% 100%;
     }
@@ -183,6 +205,7 @@
   </script>
 </head>
 <body>
+  <div id="splash-backdrop"></div>
   <picture id="splash">
       <source srcset="splash/img/light-1x.png 1x, splash/img/light-2x.png 2x, splash/img/light-3x.png 3x, splash/img/light-4x.png 4x" media="(prefers-color-scheme: light)">
       <source srcset="splash/img/dark-1x.png 1x, splash/img/dark-2x.png 2x, splash/img/dark-3x.png 3x, splash/img/dark-4x.png 4x" media="(prefers-color-scheme: dark)">

@@ -70,6 +70,7 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
   bool settingsLoaded = false;
 
   String? settingsError;
+  bool _sessionEnded = false;
 
   @protected
   String? screenError;
@@ -211,10 +212,11 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
     loadSettings();
   }
 
-  /// Whether a blocking error card is already on screen. Screens check this
-  /// before an error snackbar so the same failure is not reported twice.
+  /// Whether this screen's failure is already handled. Screens check it before
+  /// an error snackbar so the same failure is not reported twice, and so an
+  /// ending session reports nothing at all.
   bool get isShowingErrorCard {
-    if (settingsError != null) return true;
+    if (_sessionEnded || settingsError != null) return true;
     if (!mounted || !isAuthenticatedScreen) return false;
     return context.read<InfoBloc>().state is InfoLoadFailed;
   }
@@ -250,9 +252,12 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
           if (mounted) {
             setState(() {
               settingsLoaded = false;
-              settingsError = error is HeliumException
-                  ? error.displayMessage
-                  : HeliumException.unexpectedError;
+              _sessionEnded = error is UnauthorizedException;
+              if (!_sessionEnded) {
+                settingsError = error is HeliumException
+                    ? error.displayMessage
+                    : HeliumException.unexpectedError;
+              }
               if (_reloadRequested) {
                 _reloadRequested = false;
                 isLoading = false;

@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:heliumapp/presentation/ui/layout/responsive_center_card.dart';
 
@@ -28,7 +29,8 @@ class UnauthenticatedScaffold extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final keyboardInset = MediaQuery.viewInsetsOf(context).bottom;
+    final keyboardInset =
+        kIsWeb ? 0.0 : MediaQuery.viewInsetsOf(context).bottom;
 
     return Scaffold(
       resizeToAvoidBottomInset: false,

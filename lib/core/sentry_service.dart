@@ -104,13 +104,15 @@ class SentryService {
       options.captureNativeFailedRequests = false;
 
       // ignoreErrors and beforeSend are both Dart-side filters, applied to the
-      // deserialized SentryEvent. Two things never reach them: onerror events
+      // deserialized SentryEvent. Three things never reach them: onerror events
       // whose exception.value deserializes to null (prevented at the source, see
-      // _authRedirect in app_router.dart), and, on web, everything the JavaScript
-      // SDK captures through its own global handlers. An error or unhandled
-      // rejection thrown outside Dart is reported without passing through here,
-      // so the browser entries below only match when the same text also surfaces
-      // as a Dart error. Suppressing them otherwise needs a Sentry inbound filter.
+      // _authRedirect in app_router.dart), on web everything the JavaScript SDK
+      // captures through its own global handlers, and native iOS/Android events,
+      // which the SDK delivers on a separate path (getsentry/sentry-dart#3241).
+      // An error or unhandled rejection thrown outside Dart is reported without
+      // passing through here, so the browser entry below only matches when the
+      // same text also surfaces as a Dart error. Noise that never reaches Dart is
+      // consolidated with a server-side fingerprint rule and archived in Sentry.
       options.ignoreErrors = [
         '(?i)(status code of|http status error \\[)4\\d\\d',
         '(?i)dioexception.*bad response.*4\\d\\d',
@@ -119,13 +121,8 @@ class SentryService {
         '(?i)dioexception \\[(connection|send|receive) timeout\\]',
         '(?i)dioexception \\[connection error\\]',
         '(?i)(handshake|tls)exception',
-        '(?i)certificate_verify_failed',
-        '(?i)watchdogtermination',
         '(?i)database deleted by request of the user',
         // Browser-level, see above.
-        '(?i)flutterCanvasKit.*is not a constructor',
-        '(?i)script error',
-        '(?i)importing a module script failed',
         '(?i)failed to fetch dynamically imported module',
       ];
 
@@ -222,22 +219,9 @@ class SentryService {
       return true;
     }
 
-    // Native signal crashes (SIGABRT, SIGSEGV, etc.) with no app code in the
-    // stacktrace are OS/driver-level kills we can't act on (OOM, GPU driver,
-    // ANR). Filter them to reduce noise from low-end devices.
-    if (_isBarNativeSignalCrash(exception)) {
-      return true;
-    }
-
     final type = exception.type?.toLowerCase() ?? '';
     final value = exception.value?.toLowerCase() ?? '';
     final combined = '$type $value';
-
-    // CanvasKit failures are Flutter runtime issues we can't fix
-    if (value.contains('fluttercanvaskit') &&
-        value.contains('is not a constructor')) {
-      return true;
-    }
 
     // Browser storage writes that fail on a full disk or exhausted quota.
     if (_isDeviceStorageExhausted(combined)) {
@@ -281,33 +265,6 @@ class SentryService {
     final frames = exception.stackTrace?.frames ?? [];
     return frames.any((f) => [f.absPath, f.module, f.fileName, f.package].any(
         (path) => (path ?? '').toLowerCase().contains('syncfusion_flutter')));
-  }
-
-  /// Native signal crashes (e.g. SIGABRT, SIGSEGV) with only system-level
-  /// frames and no app code are not actionable.
-  bool _isBarNativeSignalCrash(SentryException exception) {
-    final type = exception.type?.toUpperCase() ?? '';
-    if (!type.startsWith('SIG')) {
-      return false;
-    }
-
-    final frames = exception.stackTrace?.frames ?? [];
-    if (frames.isEmpty) {
-      return true;
-    }
-
-    return frames.every((f) {
-      final path = (f.absPath ?? f.module ?? f.fileName ?? '').toLowerCase();
-      return path.isEmpty ||
-          path == '<unknown>' ||
-          path.startsWith('libc.') ||
-          path.startsWith('libc++') ||
-          path.startsWith('libsystem_') ||
-          path.startsWith('/system/') ||
-          path.startsWith('/apex/') ||
-          path.startsWith('/usr/lib/') ||
-          path.startsWith('/system/library/');
-    });
   }
 
   /// Text-based filtering as a fallback

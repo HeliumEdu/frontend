@@ -20,16 +20,7 @@ platform :android do
     next_code
   end
 
-  desc "Upload an AAB to Internal App Sharing and print the share link. Play holds these artifacts outside the release tracks, so the version code they carry stays available for a real release."
-  lane :upload_internal_app_sharing do |options|
-    aab_path = options[:aab_path] || "../build/app/outputs/bundle/release/app-release.aab"
-
-    url = upload_to_play_store_internal_app_sharing(aab: aab_path)
-    UI.success("Internal App Sharing link: #{url}")
-    url
-  end
-
-  desc "Stage a release candidate on the Internal track. Uploading is what claims a version code with Play, so this runs at build time to hold the code until the operator promotes it to Production."
+  desc "Upload an AAB to the Internal track. Every CI build lands here so testers run the newest code, and the release workflow stages its candidate the same way before promoting it to Production."
   lane :deploy_internal do |options|
     aab_path = options[:aab_path] || "../build/app/outputs/bundle/release/app-release.aab"
     version = options[:version]

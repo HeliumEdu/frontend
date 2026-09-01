@@ -40,6 +40,11 @@ on:
         required: false
         type: boolean
         default: false
+      consolidate_history:
+        description: 'Reset develop to main after release (force-push).'
+        required: false
+        type: boolean
+        default: false
   workflow_call:
     inputs:
       bump_type:
@@ -69,6 +74,11 @@ on:
         default: false
       push_store_assets:
         description: "Re-upload store-listing assets"
+        required: false
+        type: boolean
+        default: false
+      consolidate_history:
+        description: "Reset develop to main after release (force-push)"
         required: false
         type: boolean
         default: false
@@ -551,9 +561,14 @@ jobs:
           echo "- **Platforms**: $PLATFORMS" >> $GITHUB_STEP_SUMMARY
 
   cleanup:
-    needs: [prereq, deploy]
+    needs: [prereq, create-release-tag, deploy]
     if: always() && needs.prereq.result == 'success'
     uses: HeliumEdu/.github/.github/workflows/release-cleanup.yml@main
+    with:
+      # Consolidation is honoured only when the release actually shipped. Any
+      # earlier failure leaves the merge path, which keeps the granular history.
+      consolidate_history: ${{ (inputs.consolidate_history == true || inputs.consolidate_history == 'true') && needs['create-release-tag'].result == 'success' }}
+      squash_boundary_sha: ${{ needs.prereq.outputs.squash_boundary_sha }}
     secrets:
       bot_app_id: ${{ secrets.HELIUM_BOT_APP_ID }}
       bot_private_key: ${{ secrets.HELIUM_BOT_PRIVATE_KEY }}
