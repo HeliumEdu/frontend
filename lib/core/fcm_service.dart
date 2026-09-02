@@ -473,9 +473,7 @@ class FcmService with WidgetsBindingObserver {
       return;
     }
 
-    if (kDebugMode) {
-      if (await _handleTestMessages(message, messageId)) return;
-    }
+    if (await _handlePayloadlessMessage(message)) return;
 
     final notification = _messageToNotification(message);
 
@@ -713,48 +711,45 @@ class FcmService with WidgetsBindingObserver {
     return PlannerHelper.mapPayloadToNotification(payload);
   }
 
-  Future<bool> _handleTestMessages(
-    RemoteMessage message,
-    String messageId,
-  ) async {
-    // Handle Firebase Console test messages, which never have a payload
-    if (message.data['json_payload'] == null) {
-      if (message.notification != null) {
-        _log.info(
-          'Displaying notification from Firebase console: ${message.toMap()}',
-        );
+  /// Debug builds show these so console test messages work; every other build
+  /// reports the origin and drops them.
+  Future<bool> _handlePayloadlessMessage(RemoteMessage message) async {
+    if (message.data['json_payload'] != null) return false;
 
-        final title = message.notification?.title ??
-                      message.notification?.body ??
-                      'Notification';
+    if (kDebugMode && message.notification != null) {
+      _log.info(
+        'Displaying notification from Firebase console: ${message.toMap()}',
+      );
 
-        final body = message.notification?.body ?? '';
+      final title = message.notification?.title ??
+                    message.notification?.body ??
+                    'Notification';
 
-        final payload = {
-          'id': 1,
-          'notification_title': title,
-          'notification_body': body,
-          'start_of_range': DateTime.now().toString(),
-          'offset': 30,
-          'offset_type': 0,
-          'type': 0,
-          'sent': true,
-          'dismissed': false,
-        };
+      final body = message.notification?.body ?? '';
 
-        await showLocalNotification(
-          PlannerHelper.mapPayloadToNotification(payload),
-        );
-      } else {
-        _log.warning(
-          'Message $messageId has no payloads, so it will be dropped',
-        );
-      }
+      final payload = {
+        'id': 1,
+        'message': body,
+        'notification_title': title,
+        'notification_body': body,
+        'start_of_range': DateTime.now().toString(),
+        'offset': 30,
+        'offset_type': 0,
+        'type': 0,
+        'sent': true,
+        'dismissed': false,
+      };
+
+      await showLocalNotification(
+        PlannerHelper.mapPayloadToNotification(payload),
+      );
 
       return true;
     }
 
-    return false;
+    _log.warning('Dropped push with no payload: ${message.toMap()}');
+
+    return true;
   }
 }
 
