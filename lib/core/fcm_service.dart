@@ -28,6 +28,13 @@ import 'package:logging/logging.dart';
 
 final _log = Logger('core');
 
+/// The tray slot the FCM SDK posts a reminder under on Android. Foreground
+/// posts and dismiss cancels address that same slot, so a redelivery replaces
+/// rather than stacks and a dismiss reaches a notification this app posted.
+const int _reminderNotificationId = 0;
+
+String _reminderTag(Object reminderId) => 'reminder_$reminderId';
+
 class FcmService with WidgetsBindingObserver {
   late final DioClient _dioClient;
   FirebaseMessaging? _firebaseMessaging;
@@ -491,9 +498,9 @@ class FcmService with WidgetsBindingObserver {
 
   /// Clears a reminder's notification in response to a silent
   /// `{action: dismiss, reminder_id}` push (dismissed on another device).
-  /// Android cancels by the tag the FCM SDK posts under, `reminder_{id}` at the
-  /// hardcoded id 0. iOS clears natively in AppDelegate and web in the service
-  /// worker, so this only touches the tray on those platforms.
+  /// Android cancels the shared reminder tray slot. iOS clears natively in
+  /// AppDelegate and web in the service worker, so this only touches the tray
+  /// on those platforms.
   ///
   /// The bell count is NOT decremented here: the dismiss push fans out to ALL
   /// devices including the originator, so this handler fires both for cross-device
@@ -516,7 +523,10 @@ class FcmService with WidgetsBindingObserver {
       web_notifications.dismissWebNotification(reminderId);
     } else if (Platform.isAndroid) {
       try {
-        await _localNotifications.cancel(id: 0, tag: 'reminder_$reminderId');
+        await _localNotifications.cancel(
+          id: _reminderNotificationId,
+          tag: _reminderTag(reminderId),
+        );
       } catch (e, s) {
         _log.warning('Failed to clear notification for reminder $reminderId', e, s);
       }
@@ -580,6 +590,10 @@ class FcmService with WidgetsBindingObserver {
     }
   }
 
+  /// Posts a reminder to the tray for a push that arrived while the app was
+  /// foregrounded. No-op on iOS, where the system presents the notification
+  /// itself, filed under the identifier the dismiss handler and the resume
+  /// reconciler address.
   Future<void> showLocalNotification(NotificationModel notification) async {
     if (kIsWeb) {
       if (await web_notifications.requestWebNotificationPermission()) {
@@ -598,31 +612,23 @@ class FcmService with WidgetsBindingObserver {
       return;
     }
 
-    const AndroidNotificationDetails androidDetails =
-        AndroidNotificationDetails(
-          'helium',
-          'Helium App',
-          channelDescription: 'Notifications for Helium',
-          importance: Importance.high,
-          priority: Priority.high,
-          showWhen: true,
-          enableVibration: true,
-        );
+    if (Platform.isIOS) return;
 
-    const DarwinNotificationDetails iosDetails = DarwinNotificationDetails(
-      presentAlert: true,
-      presentBadge: true,
-      presentSound: true,
-      interruptionLevel: InterruptionLevel.active,
-    );
-
-    const NotificationDetails platformDetails = NotificationDetails(
-      android: androidDetails,
-      iOS: iosDetails,
+    final NotificationDetails platformDetails = NotificationDetails(
+      android: AndroidNotificationDetails(
+        'helium',
+        'Helium App',
+        channelDescription: 'Notifications for Helium',
+        importance: Importance.high,
+        priority: Priority.high,
+        showWhen: true,
+        enableVibration: true,
+        tag: _reminderTag(notification.id),
+      ),
     );
 
     await _localNotifications.show(
-      id: notification.id.hashCode,
+      id: _reminderNotificationId,
       title: notification.title,
       body: notification.body,
       notificationDetails: platformDetails,
@@ -645,6 +651,24 @@ class FcmService with WidgetsBindingObserver {
 
   Future<void> registerToken({bool force = false}) async {
     await _registerToken(force: force);
+  }
+
+  /// Invalidates this device's registration token so the server retires the
+  /// registration, for the sign-out paths where [unregisterToken] has no
+  /// authenticated channel to reach the API with.
+  Future<void> discardToken() async {
+    if (_fcmToken == null) return;
+
+    try {
+      await _firebaseMessaging?.deleteToken();
+      _log.info('Discarded FCM token after forced sign-out');
+    } catch (e, s) {
+      _log.warning('Failed to discard FCM token', e, s);
+    }
+
+    _fcmToken = null;
+    _deviceId = null;
+    _tokenRegistered = false;
   }
 
   Future<void> unregisterToken() async {
@@ -754,8 +778,8 @@ Future<void> _onBackgroundMessage(RemoteMessage message) async {
 
     try {
       await FlutterLocalNotificationsPlugin().cancel(
-        id: 0,
-        tag: 'reminder_$reminderId',
+        id: _reminderNotificationId,
+        tag: _reminderTag(reminderId),
       );
     } catch (e, s) {
       // Method channels aren't guaranteed in the background isolate; a failure

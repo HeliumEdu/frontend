@@ -15,6 +15,7 @@ import 'package:heliumapp/config/app_router.dart';
 import 'package:heliumapp/config/pref_service.dart';
 import 'package:heliumapp/config/theme_notifier.dart';
 import 'package:heliumapp/core/analytics_service.dart';
+import 'package:heliumapp/core/fcm_service.dart';
 import 'package:heliumapp/core/api_url.dart';
 import 'package:heliumapp/core/dio_error_mapper.dart';
 import 'package:heliumapp/core/helium_exception.dart';
@@ -628,6 +629,8 @@ class DioClient {
   Future<void> forceLogout([
     String message = 'Please sign in to continue.',
   ]) async {
+    await FcmService().discardToken();
+
     try {
       await clearStorage();
       final context = rootNavigatorKey.currentContext;
