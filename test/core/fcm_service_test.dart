@@ -105,7 +105,7 @@ void main() {
         // THEN
         verify(
           () => mockLocalNotifications.show(
-            id: 42.hashCode,
+            id: 0,
             title: 'Test Title',
             body: 'Test Body',
             notificationDetails: any(named: 'notificationDetails', that: isA<NotificationDetails>()),
