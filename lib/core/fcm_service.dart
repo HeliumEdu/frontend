@@ -653,6 +653,24 @@ class FcmService with WidgetsBindingObserver {
     await _registerToken(force: force);
   }
 
+  /// Invalidates this device's registration token so the server retires the
+  /// registration, for the sign-out paths where [unregisterToken] has no
+  /// authenticated channel to reach the API with.
+  Future<void> discardToken() async {
+    if (_fcmToken == null) return;
+
+    try {
+      await _firebaseMessaging?.deleteToken();
+      _log.info('Discarded FCM token after forced sign-out');
+    } catch (e, s) {
+      _log.warning('Failed to discard FCM token', e, s);
+    }
+
+    _fcmToken = null;
+    _deviceId = null;
+    _tokenRegistered = false;
+  }
+
   Future<void> unregisterToken() async {
     if (_deviceId == null) {
       _log.info('No device ID available, skipping token unregistration');
