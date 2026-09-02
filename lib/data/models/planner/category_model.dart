@@ -8,7 +8,7 @@ class CategoryModel extends BaseTitledModel {
   final Color color;
   final int course;
   final double weight;
-  final double? overallGrade;
+  final double? averageGrade;
   final double? gradeByWeight;
   final double? trend;
   final int? numHomework;
@@ -20,7 +20,7 @@ class CategoryModel extends BaseTitledModel {
     required this.color,
     required this.course,
     required this.weight,
-    this.overallGrade,
+    this.averageGrade,
     this.gradeByWeight,
     this.trend,
     this.numHomework,
@@ -34,7 +34,7 @@ class CategoryModel extends BaseTitledModel {
       color: HeliumColors.hexToColor(json['color']),
       course: json['course'],
       weight: toDouble(json['weight'])!,
-      overallGrade: toDouble(json['overall_grade']),
+      averageGrade: toDouble(json['average_grade']),
       gradeByWeight: toDouble(json['grade_by_weight']),
       trend: toDouble(json['trend']),
       numHomework: toInt(json['num_homework']),
@@ -48,7 +48,7 @@ class CategoryModel extends BaseTitledModel {
       'color': color,
       'course': course,
       'weight': weight,
-      'overall_grade': overallGrade,
+      'average_grade': averageGrade,
       'grade_by_weight': gradeByWeight,
       'trend': trend,
       'num_homework': numHomework,

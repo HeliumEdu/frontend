@@ -486,7 +486,7 @@ CourseGroupModel _createCourseGroup({
     shownOnCalendar: true,
     startDate: startDate,
     endDate: DateTime.parse('2025-12-31'),
-    averageGrade: null,
+    overallGrade: null,
     exceptions: const [],
   );
 }

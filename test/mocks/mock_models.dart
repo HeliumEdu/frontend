@@ -145,7 +145,7 @@ class MockModels {
     DateTime? startDate,
     DateTime? endDate,
     bool shownOnCalendar = true,
-    double? averageGrade,
+    double? overallGrade,
     int? numDays = 112,
     int? numDaysCompleted = 50,
   }) {
@@ -156,7 +156,7 @@ class MockModels {
       endDate: endDate ?? DateTime.parse('2025-12-15'),
       shownOnCalendar: shownOnCalendar,
       exceptions: const [],
-      averageGrade: averageGrade,
+      overallGrade: overallGrade,
       numDays: numDays,
       numDaysCompleted: numDaysCompleted,
     );
@@ -272,7 +272,7 @@ class MockModels {
     Color color = const Color(0xFFE21D55),
     int course = 1,
     double weight = 30.0,
-    double? overallGrade,
+    double? averageGrade,
     double? gradeByWeight,
   }) {
     return CategoryModel(
@@ -281,7 +281,7 @@ class MockModels {
       color: color,
       course: course,
       weight: weight,
-      overallGrade: overallGrade,
+      averageGrade: averageGrade,
       gradeByWeight: gradeByWeight,
     );
   }
