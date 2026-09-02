@@ -695,6 +695,7 @@ class FcmService with WidgetsBindingObserver {
     await _prefService.setSecure('last_pushtoken_registered_at', '');
     _fcmToken = null;
     _deviceId = null;
+    _tokenRegistered = false;
 
     _log.info('Successfully unregistered push tokens for this device');
   }
