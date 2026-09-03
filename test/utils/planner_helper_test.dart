@@ -298,6 +298,58 @@ void main() {
     });
   });
 
+  group('initialDateForNewItem', () {
+    final amsterdam = tz.getLocation('Europe/Amsterdam');
+
+    test('todos prefills the account-timezone hour, not the device one', () {
+      // GIVEN
+      final now = tz.TZDateTime(amsterdam, 2025, 9, 4, 14, 30);
+
+      // WHEN
+      final result = PlannerHelper.initialDateForNewItem(
+        view: PlannerView.todos,
+        selectedDate: null,
+        now: now,
+        timeZone: amsterdam,
+      );
+
+      // THEN
+      expect(tz.TZDateTime.from(result!, amsterdam),
+          tz.TZDateTime(amsterdam, 2025, 9, 4, 14));
+    });
+
+    test('a grid tap keeps the account-timezone wall clock it was made in', () {
+      // GIVEN
+      final tapped = DateTime(2025, 9, 4, 14, 0);
+
+      // WHEN
+      final result = PlannerHelper.initialDateForNewItem(
+        view: PlannerView.week,
+        selectedDate: tapped,
+        now: tz.TZDateTime(amsterdam, 2025, 9, 4, 9),
+        timeZone: amsterdam,
+      );
+
+      // THEN
+      expect(tz.TZDateTime.from(result!, amsterdam),
+          tz.TZDateTime(amsterdam, 2025, 9, 4, 14),
+          reason: 'the tapped 14:00 slot must survive as 14:00 in the account zone');
+    });
+
+    test('no selection on a calendar view yields null', () {
+      // GIVEN / WHEN
+      final result = PlannerHelper.initialDateForNewItem(
+        view: PlannerView.week,
+        selectedDate: null,
+        now: tz.TZDateTime(amsterdam, 2025, 9, 4, 9),
+        timeZone: amsterdam,
+      );
+
+      // THEN
+      expect(result, isNull);
+    });
+  });
+
   group('firstIndexDueOnOrAfter', () {
     final amsterdam = tz.getLocation('Europe/Amsterdam');
     final nowInAmsterdam = tz.TZDateTime(amsterdam, 2025, 9, 4, 10, 0);

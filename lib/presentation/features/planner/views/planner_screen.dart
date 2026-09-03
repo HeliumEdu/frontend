@@ -175,15 +175,12 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
 
   @override
   VoidCallback get actionButtonCallback => () {
-    // For Todos and Schedule views, use today as initial date since we don't
-    // have a confident selection. For calendar views, use the selected date.
-    final now = DateTime.now();
-    final truncatedNow = DateTime(now.year, now.month, now.day, now.hour);
-    final initialDate =
-        (_currentView == PlannerView.todos ||
-            _currentView == PlannerView.agenda)
-        ? truncatedNow
-        : _calendarController.selectedDate;
+    final initialDate = PlannerHelper.initialDateForNewItem(
+      view: _currentView,
+      selectedDate: _calendarController.selectedDate,
+      now: DateTime.now(),
+      timeZone: userSettings!.timeZone,
+    );
 
     showPlannerItemAdd(
       context,

@@ -46,6 +46,33 @@ enum PlannerFilterStatus {
 class PlannerHelper {
   static final List<int> weekStartsOnRemap = [7, 1, 2, 3, 4, 5, 6];
 
+  /// Start value to prefill a new planner item with, in [timeZone].
+  ///
+  /// Todos and agenda have no confident selection, so they use now; calendar
+  /// views use the tapped cell. Returned zoned so the add form can read it as
+  /// wall clock without re-resolving it against the device.
+  static DateTime? initialDateForNewItem({
+    required PlannerView view,
+    required DateTime? selectedDate,
+    required DateTime now,
+    required tz.Location timeZone,
+  }) {
+    if (view == PlannerView.todos || view == PlannerView.agenda) {
+      final local = tz.TZDateTime.from(now, timeZone);
+      return tz.TZDateTime(
+        timeZone,
+        local.year,
+        local.month,
+        local.day,
+        local.hour,
+      );
+    }
+    if (selectedDate == null) {
+      return null;
+    }
+    return HeliumDateTime.wallClockIn(selectedDate, timeZone);
+  }
+
   /// Index of the first item in [sorted] due on or after today in [timeZone],
   /// or -1 when every item is in the past. [sorted] must be ordered by `start`.
   static int firstIndexDueOnOrAfter(
