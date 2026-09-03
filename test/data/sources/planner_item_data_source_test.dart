@@ -18,7 +18,7 @@ import 'package:heliumapp/domain/repositories/external_calendar_repository.dart'
 import 'package:heliumapp/domain/repositories/homework_repository.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';
-import 'package:timezone/data/latest.dart' as tz;
+import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:timezone/standalone.dart' as tz;
 
 class MockEventRepository extends Mock implements EventRepository {}
@@ -88,28 +88,8 @@ void main() {
       ),
     ).thenAnswer((_) async => []);
 
-    userSettings = UserSettingsModel(
+    userSettings = _createUserSettings(
       timeZone: tz.getLocation('America/Los_Angeles'),
-      defaultView: 0,
-      colorSchemeTheme: 0,
-      weekStartsOn: 0,
-      whatsNewVersionSeen: 0,
-      showGettingStarted: false,
-      eventsColor: const Color(0xFF4CAF50),
-      resourceColor: const Color(0xFF2196F3),
-      gradeColor: const Color(0xFFF44336),
-      defaultReminderType: 3,
-      defaultReminderOffset: 0,
-      defaultReminderOffsetType: 0,
-      colorByCategory: false,
-      showPlannerTooltips: true,
-      rememberFilterState: false,
-      collapseBusyDays: true,
-      isSetupComplete: true,
-      dragAndDropOnMobile: true,
-      atRiskThreshold: 70,
-      showWeekNumbers: false,
-      onTrackTolerance: 10,
     );
 
     dataSource = PlannerItemDataSource(
@@ -222,18 +202,219 @@ void main() {
         final allDayHomework = _createHomeworkModel(
           id: 3,
           title: 'All Day',
-          start: DateTime.parse('2025-01-15T00:00:00Z'),
-          end: DateTime.parse('2025-01-16T00:00:00Z'),
+          start: DateTime.parse('2025-01-15T08:00:00Z'),
+          end: DateTime.parse('2025-01-16T08:00:00Z'),
           allDay: true,
         );
         dataSource.appointments!.insert(0, allDayHomework);
 
         final endTime = dataSource.getEndTime(0);
-        // All-day uses UTC date anchored to midnight in user's timezone,
-        // then subtracts 1 day for SfCalendar's exclusive end convention.
+        // All-day anchors on the date the instant falls on in the user's
+        // timezone, then subtracts 1 day for SfCalendar's exclusive end
+        // convention. Fixtures are local midnight expressed in UTC, which is
+        // what the write path actually sends.
         final expected = tz.TZDateTime(userSettings.timeZone, 2025, 1, 15);
         expect(endTime, expected);
       });
+
+      test(
+        'all-day item at a positive UTC offset anchors on the user-local date',
+        () {
+          // Europe/Amsterdam is UTC+2 in September, so local midnight on the
+          // 4th is 22:00Z on the 3rd. Anchoring on the UTC date would render
+          // the item a day early.
+          final amsterdam = tz.getLocation('Europe/Amsterdam');
+          dataSource.userSettings = _createUserSettings(timeZone: amsterdam);
+
+          final allDayHomework = _createHomeworkModel(
+            id: 4,
+            title: 'Amsterdam All Day',
+            start: DateTime.parse('2025-09-03T22:00:00Z'),
+            end: DateTime.parse('2025-09-04T22:00:00Z'),
+            allDay: true,
+          );
+          dataSource.appointments!.insert(0, allDayHomework);
+
+          expect(
+            dataSource.getStartTime(0),
+            tz.TZDateTime(amsterdam, 2025, 9, 4),
+          );
+          // Week/day view: exclusive end is rolled back a day, so a
+          // single-day all-day item starts and ends on the 4th.
+          expect(
+            dataSource.getEndTime(0),
+            tz.TZDateTime(amsterdam, 2025, 9, 4),
+          );
+          // The reporter's default view is week, where all-day items render in
+          // the band rather than the timeline.
+          expect(dataSource.isAllDay(0), isTrue);
+
+          // SfCalendar re-resolves both ends through
+          // convertTimeToAppointmentTimeZone before laying them out. We don't
+          // override getStartTimeZone, so that reduces to TZDateTime.from
+          // against the calendar's zone, then naive wall-clock components.
+          DateTime asRendered(DateTime value) {
+            final converted = tz.TZDateTime.from(value, amsterdam);
+            return DateTime(converted.year, converted.month, converted.day);
+          }
+
+          expect(asRendered(dataSource.getStartTime(0)), DateTime(2025, 9, 4));
+          expect(asRendered(dataSource.getEndTime(0)), DateTime(2025, 9, 4));
+        },
+      );
+
+      test(
+        'a recurring occurrence resolves to the same day the grid renders it',
+        () {
+          // A class at 00:30 Amsterdam is stored 22:30Z the previous day, so
+          // the UTC instant lands on a different weekday than the local time.
+          // Expanding from the raw UTC instant makes BYDAY snap differently
+          // than SfCalendar's own grid, which anchors on getStartTime().
+          final amsterdam = tz.getLocation('Europe/Amsterdam');
+          dataSource.userSettings = _createUserSettings(timeZone: amsterdam);
+          dataSource.appointments!.clear();
+
+          dataSource.addPlannerItem(
+            CourseScheduleEventModel(
+              id: 900,
+              title: 'Late Seminar',
+              allDay: false,
+              showEndTime: true,
+              start: DateTime.parse('2025-09-10T22:30:00Z'),
+              end: DateTime.parse('2025-09-10T23:30:00Z'),
+              priority: 50,
+              url: null,
+              comments: '',
+              attachments: [],
+              reminders: [],
+              ownerId: '1',
+              color: const Color(0xFFFF5722),
+              recurrenceRule: 'FREQ=WEEKLY;BYDAY=TH;UNTIL=20251009T000000Z',
+              exceptionDates: const [],
+            ),
+          );
+
+          final onOccurrence = dataSource.getItemsForDay(
+            DateTime(2025, 9, 18),
+          );
+          expect(
+            onOccurrence.map((e) => e.id),
+            contains(900),
+            reason: 'the 18th is a local Thursday occurrence',
+          );
+
+          final offOccurrence = dataSource.getItemsForDay(
+            DateTime(2025, 9, 19),
+          );
+          expect(
+            offOccurrence.map((e) => e.id),
+            isNot(contains(900)),
+            reason: 'the 19th is only an occurrence in the UTC frame',
+          );
+
+          // The occurrence must carry the local clock (00:30), not the UTC
+          // clock (22:30) the raw instant would expand from.
+          final occurrence = onOccurrence.firstWhere((e) => e.id == 900);
+          final localStart = tz.TZDateTime.from(occurrence.start, amsterdam);
+          expect(localStart.hour, 0);
+          expect(localStart.minute, 30);
+        },
+      );
+
+      test(
+        'an EXDATE suppresses its occurrence through SfCalendar\'s pipeline',
+        () {
+          // SfCalendar runs both the appointment anchor and every exception date
+          // through convertTimeToAppointmentTimeZone(date, \'\', timeZone), then
+          // matches them with isSameDate (y/m/d). This replicates that exactly so
+          // the two representations reaching getRecurrenceExceptionDates are
+          // checked against the real matching rule.
+          final amsterdam = tz.getLocation('Europe/Amsterdam');
+          dataSource.userSettings = _createUserSettings(timeZone: amsterdam);
+          dataSource.appointments!.clear();
+
+          // External calendars are the live recurring path carrying UTC EXDATEs
+          // (recurring EventModels are gated behind HE-184). 09:00 local Thu 4
+          // Sep, weekly, with Thu 18 Sep skipped.
+          dataSource.appointments!.insert(
+            0,
+            _createExternalCalendarEventModel(
+              id: 901,
+              start: DateTime.parse('2025-09-04T07:00:00Z'),
+              end: DateTime.parse('2025-09-04T08:00:00Z'),
+              recurrenceRule: 'FREQ=WEEKLY;BYDAY=TH;UNTIL=20251002T000000Z',
+              exceptionDates: [DateTime.parse('2025-09-18T07:00:00Z')],
+            ),
+          );
+
+          DateTime sfConvert(DateTime value) {
+            final converted = tz.TZDateTime.from(value, amsterdam);
+            return DateTime(
+              converted.year,
+              converted.month,
+              converted.day,
+              converted.hour,
+              converted.minute,
+              converted.second,
+            );
+          }
+
+          bool isSameDate(DateTime a, DateTime b) =>
+              a.year == b.year && a.month == b.month && a.day == b.day;
+
+          final occurrences = SfCalendar.getRecurrenceDateTimeCollection(
+            dataSource.getRecurrenceRule(0)!,
+            sfConvert(dataSource.getStartTime(0)),
+          );
+          final exceptions =
+              dataSource.getRecurrenceExceptionDates(0)!.map(sfConvert).toList();
+
+          final rendered = occurrences
+              .where((o) => !exceptions.any((e) => isSameDate(o, e)))
+              .map((o) => '${o.year}-${o.month}-${o.day}')
+              .toList();
+
+          expect(rendered, contains('2025-9-11'));
+          expect(rendered, contains('2025-9-25'));
+          expect(
+            rendered,
+            isNot(contains('2025-9-18')),
+            reason: 'the EXDATE must suppress the 18th',
+          );
+        },
+      );
+
+      test(
+        'a UTC EXDATE suppresses its occurrence in the day list',
+        () {
+          // External-calendar EXDATEs arrive as UTC instants. Comparing their
+          // raw components against a user-local occurrence date misses the
+          // match at a positive offset, so the skipped class still renders.
+          final amsterdam = tz.getLocation('Europe/Amsterdam');
+          dataSource.userSettings = _createUserSettings(timeZone: amsterdam);
+          dataSource.appointments!.clear();
+          dataSource.appointments!.insert(
+            0,
+            _createExternalCalendarEventModel(
+              id: 902,
+              start: DateTime.parse('2025-09-10T22:30:00Z'),
+              end: DateTime.parse('2025-09-10T23:30:00Z'),
+              recurrenceRule: 'FREQ=WEEKLY;BYDAY=TH;UNTIL=20251009T000000Z',
+              exceptionDates: [DateTime.parse('2025-09-17T22:30:00Z')],
+            ),
+          );
+
+          expect(
+            dataSource.getItemsForDay(DateTime(2025, 9, 11)).map((e) => e.id),
+            contains(902),
+          );
+          expect(
+            dataSource.getItemsForDay(DateTime(2025, 9, 18)).map((e) => e.id),
+            isNot(contains(902)),
+            reason: 'the EXDATE lands on the 18th once resolved to Amsterdam',
+          );
+        },
+      );
 
       test('isAllDay returns correct value', () {
         expect(dataSource.isAllDay(0), isFalse);
@@ -241,8 +422,8 @@ void main() {
         final allDayHomework = _createHomeworkModel(
           id: 3,
           title: 'All Day',
-          start: DateTime.parse('2025-01-15T00:00:00Z'),
-          end: DateTime.parse('2025-01-16T00:00:00Z'),
+          start: DateTime.parse('2025-01-15T08:00:00Z'),
+          end: DateTime.parse('2025-01-16T08:00:00Z'),
           allDay: true,
         );
         dataSource.appointments!.insert(0, allDayHomework);
@@ -1057,14 +1238,14 @@ void main() {
       test('single all-day homework has no offset (priority 0, position 0)', () {
         final allDayHomework = _createHomeworkModel(
           id: 1,
-          start: DateTime.parse('2025-01-15T00:00:00Z'),
-          end: DateTime.parse('2025-01-16T00:00:00Z'),
+          start: DateTime.parse('2025-01-15T08:00:00Z'),
+          end: DateTime.parse('2025-01-16T08:00:00Z'),
           allDay: true,
         );
         dataSource.addPlannerItem(allDayHomework);
 
         final startTime = dataSource.getStartTime(0);
-        // All-day uses UTC date anchored to midnight in user's timezone
+        // All-day anchors on the date the instant falls on in the user's timezone
         final expected = tz.TZDateTime(userSettings.timeZone, 2025, 1, 15);
         expect(startTime, expected);
       });
@@ -1073,15 +1254,15 @@ void main() {
         final hw1 = _createHomeworkModel(
           id: 1,
           title: 'Quiz 4',
-          start: DateTime.parse('2025-01-15T00:00:00Z'),
-          end: DateTime.parse('2025-01-16T00:00:00Z'),
+          start: DateTime.parse('2025-01-15T08:00:00Z'),
+          end: DateTime.parse('2025-01-16T08:00:00Z'),
           allDay: true,
         );
         final hw2 = _createHomeworkModel(
           id: 2,
           title: 'Quiz 5',
-          start: DateTime.parse('2025-01-15T00:00:00Z'),
-          end: DateTime.parse('2025-01-16T00:00:00Z'),
+          start: DateTime.parse('2025-01-15T08:00:00Z'),
+          end: DateTime.parse('2025-01-16T08:00:00Z'),
           allDay: true,
         );
         dataSource.addPlannerItem(hw2);
@@ -1453,6 +1634,32 @@ void main() {
   });
 }
 
+UserSettingsModel _createUserSettings({required tz.Location timeZone}) {
+  return UserSettingsModel(
+    timeZone: timeZone,
+    defaultView: 0,
+    colorSchemeTheme: 0,
+    weekStartsOn: 0,
+    whatsNewVersionSeen: 0,
+    showGettingStarted: false,
+    eventsColor: const Color(0xFF4CAF50),
+    resourceColor: const Color(0xFF2196F3),
+    gradeColor: const Color(0xFFF44336),
+    defaultReminderType: 3,
+    defaultReminderOffset: 0,
+    defaultReminderOffsetType: 0,
+    colorByCategory: false,
+    showPlannerTooltips: true,
+    rememberFilterState: false,
+    collapseBusyDays: true,
+    isSetupComplete: true,
+    dragAndDropOnMobile: true,
+    atRiskThreshold: 70,
+    showWeekNumbers: false,
+    onTrackTolerance: 10,
+  );
+}
+
 // Helper functions to create test models
 
 HomeworkModel _createHomeworkModel({
@@ -1542,14 +1749,18 @@ ExternalCalendarEventModel _createExternalCalendarEventModel({
   int id = 1,
   String title = 'External Event',
   Color color = const Color(0xFF9C27B0),
+  DateTime? start,
+  DateTime? end,
+  String? recurrenceRule,
+  List<DateTime> exceptionDates = const [],
 }) {
   return ExternalCalendarEventModel(
     id: id,
     title: title,
     allDay: false,
     showEndTime: true,
-    start: DateTime.parse('2025-01-15T10:00:00Z'),
-    end: DateTime.parse('2025-01-15T11:00:00Z'),
+    start: start ?? DateTime.parse('2025-01-15T10:00:00Z'),
+    end: end ?? DateTime.parse('2025-01-15T11:00:00Z'),
     priority: 50,
     url: null,
     comments: '',
@@ -1557,6 +1768,8 @@ ExternalCalendarEventModel _createExternalCalendarEventModel({
     reminders: [],
     ownerId: '1',
     color: color,
+    recurrenceRule: recurrenceRule,
+    exceptionDates: exceptionDates,
   );
 }
 

@@ -71,14 +71,13 @@ void main() {
     group('byStartOfRange', () {
       test('sorts reminders by startOfRange in descending order (newest first)',
           () {
-        final timeZone = tz.getLocation('America/New_York');
         final reminders = [
           _createReminder(id: 1, startOfRange: DateTime.parse('2025-01-01T10:00:00Z')),
           _createReminder(id: 2, startOfRange: DateTime.parse('2025-01-15T10:00:00Z')),
           _createReminder(id: 3, startOfRange: DateTime.parse('2025-01-10T10:00:00Z')),
         ];
 
-        Sort.byStartOfRange(reminders, timeZone);
+        Sort.byStartOfRange(reminders);
 
         expect(reminders[0].id, 2); // Jan 15 (newest)
         expect(reminders[1].id, 3); // Jan 10
@@ -86,25 +85,23 @@ void main() {
       });
 
       test('handles same date reminders', () {
-        final timeZone = tz.getLocation('America/New_York');
         final reminders = [
           _createReminder(id: 1, startOfRange: DateTime.parse('2025-01-10T10:00:00Z')),
           _createReminder(id: 2, startOfRange: DateTime.parse('2025-01-10T10:00:00Z')),
         ];
 
-        Sort.byStartOfRange(reminders, timeZone);
+        Sort.byStartOfRange(reminders);
 
         expect(reminders.length, 2);
       });
 
-      test('works with different time zones', () {
-        final utcZone = tz.getLocation('UTC');
+      test('orders by absolute instant, independent of any timezone', () {
         final reminders = [
           _createReminder(id: 1, startOfRange: DateTime.parse('2025-01-01T00:00:00Z')),
           _createReminder(id: 2, startOfRange: DateTime.parse('2025-01-02T00:00:00Z')),
         ];
 
-        Sort.byStartOfRange(reminders, utcZone);
+        Sort.byStartOfRange(reminders);
 
         expect(reminders[0].id, 2); // Jan 2 first
         expect(reminders[1].id, 1); // Jan 1 second
@@ -457,6 +454,42 @@ void main() {
         expect(items[3].title, 'Zebra');
       });
     });
+
+    group('byStartThenTitleForDay', () {
+      test('a recurring occurrence sorts by its user-timezone time of day', () {
+        // Amsterdam is UTC+2 in September, so the class anchored at 07:00Z is
+        // 09:00 local. Re-dating the occurrence off its raw UTC clock would
+        // place it at 07:00 and sort it ahead of the 08:00-local homework.
+        final amsterdam = tz.getLocation('Europe/Amsterdam');
+        final day = tz.TZDateTime(amsterdam, 2025, 9, 4);
+
+        final schedule = _createCourseScheduleEvent(
+          id: 1,
+          start: DateTime.parse('2025-09-04T07:00:00Z'),
+          end: DateTime.parse('2025-09-04T08:00:00Z'),
+          recurrenceRule: 'FREQ=WEEKLY;BYDAY=TH',
+        );
+        final earlier = _createHomework(
+          id: 2,
+          start: DateTime.parse('2025-09-04T06:00:00Z'),
+          end: DateTime.parse('2025-09-04T06:30:00Z'),
+        );
+        final later = _createHomework(
+          id: 3,
+          start: DateTime.parse('2025-09-04T08:00:00Z'),
+          end: DateTime.parse('2025-09-04T08:30:00Z'),
+        );
+
+        final list = [later, schedule, earlier];
+        Sort.byStartThenTitleForDay(list, day);
+
+        expect(
+          list.map((e) => e.id).toList(),
+          [2, 1, 3],
+          reason: '08:00 local, then the 09:00 class, then 10:00 local',
+        );
+      });
+    });
   });
 }
 
@@ -546,6 +579,7 @@ CourseScheduleEventModel _createCourseScheduleEvent({
   required int id,
   DateTime? start,
   DateTime? end,
+  String? recurrenceRule,
 }) {
   return CourseScheduleEventModel(
     id: id,
@@ -561,6 +595,7 @@ CourseScheduleEventModel _createCourseScheduleEvent({
     reminders: [],
     ownerId: '1',
     color: const Color(0xFFFF5722),
+    recurrenceRule: recurrenceRule,
     exceptionDates: const [],
   );
 }

@@ -1,6 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:heliumapp/utils/time_zone_aliases.dart';
+import 'package:heliumapp/utils/time_zone_constants.dart';
 import 'package:intl/intl.dart';
+import 'package:logging/logging.dart';
 import 'package:timezone/standalone.dart' as tz;
+
+final _log = Logger('utils');
 
 class HeliumTime {
   static TimeOfDay? parse(String time) {
@@ -100,8 +105,49 @@ class HeliumDateTime {
     return tz.TZDateTime.from(DateTime.parse(isoString), timeZone);
   }
 
+  /// Resolves a device-reported identifier into one the API accepts, or `'UTC'`.
+  ///
+  /// Neither allow-list carries IANA link names, and device APIs report whatever
+  /// the device is set to without canonicalizing.
+  static String resolveTimeZone(String reported) {
+    if (TimeZoneConstants.all.contains(reported)) {
+      return reported;
+    }
+
+    final canonical = TimeZoneAliases.all[reported];
+    if (canonical != null) {
+      return canonical;
+    }
+
+    // The OAuth setup path shows no timezone, so a silent fallback sticks.
+    _log.warning('Unmappable device timezone reported, defaulting to UTC');
+    return 'UTC';
+  }
+
   static DateTime toLocal(DateTime utc, tz.Location timeZone) {
     return tz.TZDateTime.from(utc, timeZone);
+  }
+
+  /// Midnight on the date [instant] falls on in [timeZone]. The UTC date would
+  /// be a day early for any positive offset.
+  static tz.TZDateTime midnightIn(DateTime instant, tz.Location timeZone) {
+    final local = tz.TZDateTime.from(instant, timeZone);
+    return tz.TZDateTime(timeZone, local.year, local.month, local.day);
+  }
+
+  /// Anchors [value] to [timeZone], reading a naive value as wall clock already
+  /// in that zone and a UTC one as an instant. SfCalendar returns both forms.
+  static tz.TZDateTime wallClockIn(DateTime value, tz.Location timeZone) {
+    final local = value.isUtc ? tz.TZDateTime.from(value, timeZone) : value;
+    return tz.TZDateTime(
+      timeZone,
+      local.year,
+      local.month,
+      local.day,
+      local.hour,
+      local.minute,
+      local.second,
+    );
   }
 
   static String formatDayNameShort(DateTime date) {

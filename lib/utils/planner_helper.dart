@@ -8,11 +8,13 @@ import 'package:heliumapp/data/models/planner/course_schedule_event_model.dart';
 import 'package:heliumapp/data/models/planner/event_model.dart';
 import 'package:heliumapp/data/models/planner/homework_model.dart';
 import 'package:heliumapp/data/models/planner/reminder_model.dart';
+import 'package:heliumapp/utils/date_time_helpers.dart';
 import 'package:heliumapp/utils/error_helpers.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:heliumapp/utils/sort_helpers.dart';
 import 'package:logging/logging.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';
+import 'package:timezone/standalone.dart' as tz;
 
 final _log = Logger('utils');
 
@@ -43,6 +45,23 @@ enum PlannerFilterStatus {
 
 class PlannerHelper {
   static final List<int> weekStartsOnRemap = [7, 1, 2, 3, 4, 5, 6];
+
+  /// Index of the first item in [sorted] due on or after today in [timeZone],
+  /// or -1 when every item is in the past. [sorted] must be ordered by `start`.
+  static int firstIndexDueOnOrAfter(
+    List<HomeworkModel> sorted,
+    DateTime now,
+    tz.Location timeZone,
+  ) {
+    // `now` need only be a correct instant, so the device's own zone is moot.
+    final startOfToday = HeliumDateTime.midnightIn(now, timeZone);
+    for (int i = 0; i < sorted.length; i++) {
+      if (!sorted[i].start.isBefore(startOfToday)) {
+        return i;
+      }
+    }
+    return -1;
+  }
 
   /// Layout width of the completion checkbox on a planner calendar item.
   /// Kept in sync with the [SizedBox] in `_buildCheckboxWidget`.

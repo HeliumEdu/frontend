@@ -561,4 +561,36 @@ void main() {
       });
     });
   });
+
+  group('unresolved UTC instants', () {
+    // An all-day item on Sep 4 in Amsterdam (UTC+2) is stored 2025-09-03T22:00Z.
+    final storedInstant = DateTime.parse('2025-09-03T22:00:00Z');
+
+    test('midnightIn resolves before truncating', () {
+      final amsterdam = tz.getLocation('Europe/Amsterdam');
+      final losAngeles = tz.getLocation('America/Los_Angeles');
+      expect(HeliumDateTime.midnightIn(storedInstant, amsterdam),
+          tz.TZDateTime(amsterdam, 2025, 9, 4));
+      // Negative offsets were always correct; this pins that nothing changed.
+      expect(
+        HeliumDateTime.midnightIn(
+            DateTime.parse('2025-01-15T08:00:00Z'), losAngeles),
+        tz.TZDateTime(losAngeles, 2025, 1, 15),
+      );
+    });
+
+    test('wallClockIn reads a naive value as already in the zone', () {
+      final amsterdam = tz.getLocation('Europe/Amsterdam');
+      // toLocal would resolve this against the device; wallClockIn must not.
+      expect(
+        HeliumDateTime.wallClockIn(DateTime(2025, 9, 18, 9, 0), amsterdam),
+        tz.TZDateTime(amsterdam, 2025, 9, 18, 9, 0),
+      );
+      // A UTC value is still treated as an instant.
+      expect(
+        HeliumDateTime.wallClockIn(storedInstant, amsterdam),
+        tz.TZDateTime(amsterdam, 2025, 9, 4),
+      );
+    });
+  });
 }

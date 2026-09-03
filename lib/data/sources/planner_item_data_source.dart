@@ -321,11 +321,38 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
     return items;
   }
 
+  /// `exceptionDates` mixes forms: course-schedule exceptions are naive local
+  /// midnight, event and external EXDATEs are UTC instants.
+  bool _isExceptionOn(List<DateTime> exceptionDates, tz.TZDateTime occurrence) {
+    return exceptionDates.any((e) {
+      final local = HeliumDateTime.wallClockIn(e, userSettings.timeZone);
+      return local.year == occurrence.year &&
+          local.month == occurrence.month &&
+          local.day == occurrence.day;
+    });
+  }
+
   /// Returns items that occur on [day] from the current filtered appointments.
   /// Recurring schedule items are expanded into day-specific occurrences.
   List<PlannerItemBaseModel> getItemsForDay(DateTime day) {
-    final dayStart = HeliumDateTime.dateOnly(day);
-    final dayEnd = dayStart.add(const Duration(days: 1));
+    // [day] is naive wall clock from SfCalendar.
+    final dayStart = tz.TZDateTime(
+      userSettings.timeZone,
+      day.year,
+      day.month,
+      day.day,
+    );
+    final dayEnd = tz.TZDateTime(
+      userSettings.timeZone,
+      day.year,
+      day.month,
+      day.day + 1,
+    );
+    // Bounded generously; the precise filter is the isSameDay check below.
+    final expandFrom = HeliumDateTime.dateOnly(day).subtract(
+      const Duration(days: 1),
+    );
+    final expandTo = expandFrom.add(const Duration(days: 3));
     final itemsForDay = <PlannerItemBaseModel>[];
 
     for (final appointment in appointments ?? const <Object>[]) {
@@ -337,27 +364,22 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
           (appointment.recurrenceRule?.isNotEmpty ?? false)) {
         final occurrences = SfCalendar.getRecurrenceDateTimeCollection(
           appointment.recurrenceRule!,
-          appointment.start,
-          specificStartDate: dayStart,
-          specificEndDate: dayEnd,
+          tz.TZDateTime.from(appointment.start, userSettings.timeZone),
+          specificStartDate: expandFrom,
+          specificEndDate: expandTo,
         );
 
         for (final occurrenceStart in occurrences) {
+          final occurrenceLocal = HeliumDateTime.wallClockIn(occurrenceStart, userSettings.timeZone);
           final isSameDay =
-              occurrenceStart.year == dayStart.year &&
-              occurrenceStart.month == dayStart.month &&
-              occurrenceStart.day == dayStart.day;
+              occurrenceLocal.year == dayStart.year &&
+              occurrenceLocal.month == dayStart.month &&
+              occurrenceLocal.day == dayStart.day;
           if (!isSameDay) {
             continue;
           }
 
-          final isException = appointment.exceptionDates.any(
-            (e) =>
-                e.year == occurrenceStart.year &&
-                e.month == occurrenceStart.month &&
-                e.day == occurrenceStart.day,
-          );
-          if (isException) {
+          if (_isExceptionOn(appointment.exceptionDates, occurrenceLocal)) {
             continue;
           }
 
@@ -368,8 +390,8 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
               title: appointment.title,
               allDay: appointment.allDay,
               showEndTime: appointment.showEndTime,
-              start: occurrenceStart,
-              end: occurrenceStart.add(duration),
+              start: occurrenceLocal,
+              end: occurrenceLocal.add(duration),
               priority: appointment.priority,
               url: appointment.url,
               comments: appointment.comments,
@@ -390,35 +412,30 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
           (appointment.recurrenceRule?.isNotEmpty ?? false)) {
         final occurrences = SfCalendar.getRecurrenceDateTimeCollection(
           appointment.recurrenceRule!,
-          appointment.start,
-          specificStartDate: dayStart,
-          specificEndDate: dayEnd,
+          tz.TZDateTime.from(appointment.start, userSettings.timeZone),
+          specificStartDate: expandFrom,
+          specificEndDate: expandTo,
         );
 
         for (final occurrenceStart in occurrences) {
+          final occurrenceLocal = HeliumDateTime.wallClockIn(occurrenceStart, userSettings.timeZone);
           final isSameDay =
-              occurrenceStart.year == dayStart.year &&
-              occurrenceStart.month == dayStart.month &&
-              occurrenceStart.day == dayStart.day;
+              occurrenceLocal.year == dayStart.year &&
+              occurrenceLocal.month == dayStart.month &&
+              occurrenceLocal.day == dayStart.day;
           if (!isSameDay) {
             continue;
           }
 
-          final isException = appointment.exceptionDates.any(
-            (e) =>
-                e.year == occurrenceStart.year &&
-                e.month == occurrenceStart.month &&
-                e.day == occurrenceStart.day,
-          );
-          if (isException) {
+          if (_isExceptionOn(appointment.exceptionDates, occurrenceLocal)) {
             continue;
           }
 
           final duration = appointment.end.difference(appointment.start);
           itemsForDay.add(
             appointment.copyAtOccurrence(
-              occurrenceStart,
-              occurrenceStart.add(duration),
+              occurrenceLocal,
+              occurrenceLocal.add(duration),
             ),
           );
         }
@@ -506,11 +523,6 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
     return position;
   }
 
-  tz.TZDateTime _midnightOnUtcDate(DateTime utcTime) {
-    final d = utcTime.toUtc();
-    return tz.TZDateTime(userSettings.timeZone, d.year, d.month, d.day);
-  }
-
   @override
   DateTime getStartTime(int index) {
     final item = _getData(index);
@@ -518,7 +530,7 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
     final rawStart = override != null ? DateTime.parse(override.start) : item.start;
     final priority = Sort.typeSortPriority[item.plannerItemType] ?? 0;
     if (item.allDay) {
-      final midnight = _midnightOnUtcDate(rawStart);
+      final midnight = HeliumDateTime.midnightIn(rawStart, userSettings.timeZone);
       final position = _allDayPositionInGroup(index, item);
       return midnight.add(Duration(minutes: priority, seconds: position));
     }
@@ -540,8 +552,8 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
       final priority = Sort.typeSortPriority[plannerItem.plannerItemType] ?? 0;
       final position = _allDayPositionInGroup(index, plannerItem);
       final offset = Duration(minutes: priority, seconds: position);
-      final startMidnight = _midnightOnUtcDate(rawStart);
-      final endMidnight = _midnightOnUtcDate(rawEnd);
+      final startMidnight = HeliumDateTime.midnightIn(rawStart, userSettings.timeZone);
+      final endMidnight = HeliumDateTime.midnightIn(rawEnd, userSettings.timeZone);
       if (_isMonthView) {
         // Month view: isAllDay returns false so SfCalendar treats these as timed.
         // Subtract 1 second to convert exclusive end (next day 00:00) to
