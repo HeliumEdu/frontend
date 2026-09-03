@@ -42,12 +42,10 @@ void main() {
   setUpAll(() {
     TestWidgetsFlutterBinding.ensureInitialized();
     tz.initializeTimeZones();
-    // Use synchronous filtering in tests
     PlannerItemDataSource.filterDebounceDuration = Duration.zero;
   });
 
   tearDownAll(() {
-    // Restore default debounce duration
     PlannerItemDataSource.filterDebounceDuration = const Duration(
       milliseconds: 16,
     );
@@ -59,7 +57,6 @@ void main() {
     mockCourseScheduleRepository = MockCourseScheduleRepository();
     mockExternalCalendarRepository = MockExternalCalendarRepository();
 
-    // Default mocks for handleLoadMore
     when(
       () => mockHomeworkRepository.getHomeworks(
         from: any(named: 'from'),
@@ -100,7 +97,6 @@ void main() {
       userSettings: userSettings,
     );
 
-    // Initialize cache with a wide date range so addPlannerItem works
     await dataSource.handleLoadMore(
       DateTime(2024, 1, 1),
       DateTime(2026, 12, 31),
@@ -110,7 +106,6 @@ void main() {
   group('PlannerItemDataSource', () {
     group('initialization', () {
       test('initializes with empty appointments', () {
-        // Create a fresh data source without setUp's handleLoadMore call
         final freshDataSource = PlannerItemDataSource(
           eventRepository: mockEventRepository,
           homeworkRepository: mockHomeworkRepository,
@@ -125,7 +120,6 @@ void main() {
       });
 
       test('initializes with empty filter state', () {
-        // Create a fresh data source without setUp's handleLoadMore call
         final freshDataSource = PlannerItemDataSource(
           eventRepository: mockEventRepository,
           homeworkRepository: mockHomeworkRepository,
@@ -169,8 +163,6 @@ void main() {
 
       test('getStartTime returns DateTime with priority adjustment', () {
         final startTime = dataSource.getStartTime(0);
-        // Homework: (3-0) + (100-0) = 103 seconds subtracted
-        // Time is converted to user's timezone before adjustment
         final expectedBase = tz.TZDateTime.from(
           DateTime.parse('2025-01-15T10:00:00Z'),
           userSettings.timeZone,
@@ -185,8 +177,6 @@ void main() {
         'getEndTime returns DateTime with priority adjustment for non-allDay events',
         () {
           final endTime = dataSource.getEndTime(0);
-          // Homework: (3-0) + (100-0) = 103 seconds subtracted
-          // Time is converted to user's timezone before adjustment
           final expectedBase = tz.TZDateTime.from(
             DateTime.parse('2025-01-15T11:00:00Z'),
             userSettings.timeZone,
@@ -209,10 +199,6 @@ void main() {
         dataSource.appointments!.insert(0, allDayHomework);
 
         final endTime = dataSource.getEndTime(0);
-        // All-day anchors on the date the instant falls on in the user's
-        // timezone, then subtracts 1 day for SfCalendar's exclusive end
-        // convention. Fixtures are local midnight expressed in UTC, which is
-        // what the write path actually sends.
         final expected = tz.TZDateTime(userSettings.timeZone, 2025, 1, 15);
         expect(endTime, expected);
       });
@@ -220,9 +206,6 @@ void main() {
       test(
         'all-day item at a positive UTC offset anchors on the user-local date',
         () {
-          // Europe/Amsterdam is UTC+2 in September, so local midnight on the
-          // 4th is 22:00Z on the 3rd. Anchoring on the UTC date would render
-          // the item a day early.
           final amsterdam = tz.getLocation('Europe/Amsterdam');
           dataSource.userSettings = _createUserSettings(timeZone: amsterdam);
 
@@ -239,20 +222,12 @@ void main() {
             dataSource.getStartTime(0),
             tz.TZDateTime(amsterdam, 2025, 9, 4),
           );
-          // Week/day view: exclusive end is rolled back a day, so a
-          // single-day all-day item starts and ends on the 4th.
           expect(
             dataSource.getEndTime(0),
             tz.TZDateTime(amsterdam, 2025, 9, 4),
           );
-          // The reporter's default view is week, where all-day items render in
-          // the band rather than the timeline.
           expect(dataSource.isAllDay(0), isTrue);
 
-          // SfCalendar re-resolves both ends through
-          // convertTimeToAppointmentTimeZone before laying them out. We don't
-          // override getStartTimeZone, so that reduces to TZDateTime.from
-          // against the calendar's zone, then naive wall-clock components.
           DateTime asRendered(DateTime value) {
             final converted = tz.TZDateTime.from(value, amsterdam);
             return DateTime(converted.year, converted.month, converted.day);
@@ -266,10 +241,6 @@ void main() {
       test(
         'a recurring occurrence resolves to the same day the grid renders it',
         () {
-          // A class at 00:30 Amsterdam is stored 22:30Z the previous day, so
-          // the UTC instant lands on a different weekday than the local time.
-          // Expanding from the raw UTC instant makes BYDAY snap differently
-          // than SfCalendar's own grid, which anchors on getStartTime().
           final amsterdam = tz.getLocation('Europe/Amsterdam');
           dataSource.userSettings = _createUserSettings(timeZone: amsterdam);
           dataSource.appointments!.clear();
@@ -312,8 +283,6 @@ void main() {
             reason: 'the 19th is only an occurrence in the UTC frame',
           );
 
-          // The occurrence must carry the local clock (00:30), not the UTC
-          // clock (22:30) the raw instant would expand from.
           final occurrence = onOccurrence.firstWhere((e) => e.id == 900);
           final localStart = tz.TZDateTime.from(occurrence.start, amsterdam);
           expect(localStart.hour, 0);
@@ -324,18 +293,10 @@ void main() {
       test(
         'an EXDATE suppresses its occurrence through SfCalendar\'s pipeline',
         () {
-          // SfCalendar runs both the appointment anchor and every exception date
-          // through convertTimeToAppointmentTimeZone(date, \'\', timeZone), then
-          // matches them with isSameDate (y/m/d). This replicates that exactly so
-          // the two representations reaching getRecurrenceExceptionDates are
-          // checked against the real matching rule.
           final amsterdam = tz.getLocation('Europe/Amsterdam');
           dataSource.userSettings = _createUserSettings(timeZone: amsterdam);
           dataSource.appointments!.clear();
 
-          // External calendars are the live recurring path carrying UTC EXDATEs
-          // (recurring EventModels are gated behind HE-184). 09:00 local Thu 4
-          // Sep, weekly, with Thu 18 Sep skipped.
           dataSource.appointments!.insert(
             0,
             _createExternalCalendarEventModel(
@@ -387,9 +348,6 @@ void main() {
       test(
         'a UTC EXDATE suppresses its occurrence in the day list',
         () {
-          // External-calendar EXDATEs arrive as UTC instants. Comparing their
-          // raw components against a user-local occurrence date misses the
-          // match at a positive offset, so the skipped class still renders.
           final amsterdam = tz.getLocation('Europe/Amsterdam');
           dataSource.userSettings = _createUserSettings(timeZone: amsterdam);
           dataSource.appointments!.clear();
@@ -419,10 +377,6 @@ void main() {
       test(
         'an all-day item ending across a DST transition ends at local midnight',
         () {
-          // Amsterdam falls back on 26 Oct 2025. A single-day all-day item on
-          // the 26th is stored 2025-10-25T22:00Z (CEST) with an exclusive end
-          // of 2025-10-27T00:00 CET. Rolling that back by an absolute 24h lands
-          // on 01:00, not midnight.
           final amsterdam = tz.getLocation('Europe/Amsterdam');
           dataSource.userSettings = _createUserSettings(timeZone: amsterdam);
           dataSource.appointments!.insert(
@@ -812,7 +766,6 @@ void main() {
         dataSource.setFilterStatuses({'Complete'});
         final filtered = dataSource.filteredHomeworks;
 
-        // Item with override should always be visible
         expect(filtered, hasLength(2));
         expect(filtered.map((h) => h.id), containsAll([1, 2]));
       });
@@ -1113,8 +1066,6 @@ void main() {
           '2025-01-20T10:00:00Z',
         );
 
-        // getStartTime subtracts a sort-order adjustment (priority 0, position 0
-        // → 103 s) so SfCalendar sees distinct times that encode our sort order.
         final adjustment = Sort.getTimedEventStartTimeAdjustmentSeconds(0, 0);
         final expected = tz.TZDateTime.from(
           DateTime.parse('2025-01-20T09:00:00Z'),
@@ -1130,8 +1081,6 @@ void main() {
           '2025-01-20T10:00:00Z',
         );
 
-        // getEndTime applies the same adjustment as getStartTime so the visual
-        // duration is preserved.
         final adjustment = Sort.getTimedEventStartTimeAdjustmentSeconds(0, 0);
         final expected = tz.TZDateTime.from(
           DateTime.parse('2025-01-20T10:00:00Z'),
@@ -1154,8 +1103,6 @@ void main() {
         );
         dataSource.updatePlannerItem(updated);
 
-        // After the override is cleared, getStartTime returns the model's real
-        // start minus the sort-order adjustment (priority 0, position 0 → 103 s).
         final adjustment = Sort.getTimedEventStartTimeAdjustmentSeconds(0, 0);
         final expected = tz.TZDateTime.from(
           DateTime.parse('2025-01-16T14:00:00Z'),
@@ -1271,7 +1218,6 @@ void main() {
         dataSource.addPlannerItem(allDayHomework);
 
         final startTime = dataSource.getStartTime(0);
-        // All-day anchors on the date the instant falls on in the user's timezone
         final expected = tz.TZDateTime(userSettings.timeZone, 2025, 1, 15);
         expect(startTime, expected);
       });
@@ -1301,7 +1247,6 @@ void main() {
           (a) => (a as PlannerItemBaseModel).id == 2,
         );
 
-        // Quiz 4 sorts before Quiz 5 alphabetically — must get earlier start time
         expect(
           dataSource.getStartTime(hw1Index).isBefore(
             dataSource.getStartTime(hw2Index),
@@ -1337,9 +1282,7 @@ void main() {
         final hw1Start = dataSource.getStartTime(hw1Index);
         final hw2Start = dataSource.getStartTime(hw2Index);
 
-        // Alpha sorts before Beta, so Alpha gets the earlier adjusted time
         expect(hw1Start.isBefore(hw2Start), isTrue);
-        // Both still within the same minute
         expect(hw2Start.difference(hw1Start).inMinutes, 0);
       });
     });
@@ -1374,13 +1317,11 @@ void main() {
       late PlannerItemDataSource freshDataSource;
 
       setUp(() {
-        // Reset mocks to clear calls from outer setUp
         reset(mockHomeworkRepository);
         reset(mockEventRepository);
         reset(mockCourseScheduleRepository);
         reset(mockExternalCalendarRepository);
 
-        // Re-setup default mocks
         when(
           () => mockHomeworkRepository.getHomeworks(
             from: any(named: 'from'),
@@ -1409,7 +1350,6 @@ void main() {
           ),
         ).thenAnswer((_) async => []);
 
-        // Create a fresh data source without the pre-loaded cache
         freshDataSource = PlannerItemDataSource(
           eventRepository: mockEventRepository,
           homeworkRepository: mockHomeworkRepository,
@@ -1436,7 +1376,6 @@ void main() {
           DateTime(2025, 1, 31),
         );
 
-        // Reset mocks to track new calls
         reset(mockHomeworkRepository);
         reset(mockEventRepository);
         reset(mockCourseScheduleRepository);
@@ -1470,7 +1409,6 @@ void main() {
           ),
         ).thenAnswer((_) async => []);
 
-        // Same range should use cache
         await freshDataSource.handleLoadMore(
           DateTime(2025, 1, 1),
           DateTime(2025, 1, 31),
@@ -1491,7 +1429,6 @@ void main() {
           DateTime(2025, 1, 31),
         );
 
-        // Different range should fetch
         await freshDataSource.handleLoadMore(
           DateTime(2025, 2, 1),
           DateTime(2025, 2, 28),
@@ -1560,7 +1497,6 @@ void main() {
           ),
         ).thenAnswer((_) async => [homework]);
 
-        // Load two different ranges that both return the same item
         await freshDataSource.handleLoadMore(
           DateTime(2025, 1, 1),
           DateTime(2025, 1, 31),
@@ -1570,7 +1506,6 @@ void main() {
           DateTime(2025, 2, 15),
         );
 
-        // allPlannerItems should deduplicate
         expect(freshDataSource.allPlannerItems, hasLength(1));
       });
 
@@ -1685,8 +1620,6 @@ UserSettingsModel _createUserSettings({required tz.Location timeZone}) {
     onTrackTolerance: 10,
   );
 }
-
-// Helper functions to create test models
 
 HomeworkModel _createHomeworkModel({
   int id = 1,

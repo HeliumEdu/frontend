@@ -302,9 +302,6 @@ void main() {
     final amsterdam = tz.getLocation('Europe/Amsterdam');
     final nowInAmsterdam = tz.TZDateTime(amsterdam, 2025, 9, 4, 10, 0);
 
-    // An all-day task is stored as local midnight expressed in UTC, so at a
-    // positive offset its instant falls on the previous UTC day. Reading the
-    // UTC calendar date walks straight past everything due today.
     test('finds an all-day task due today at a positive UTC offset', () {
       final sorted = [
         _createHomeworkModel(

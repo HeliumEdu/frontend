@@ -15,9 +15,6 @@ void main() {
       expect(HeliumDateTime.resolveTimeZone('UTC'), 'UTC');
     });
 
-    // Android reports ZoneId.systemDefault().id verbatim, which is still a
-    // legacy alias on plenty of devices. Falling back to UTC silently pins the
-    // account 5.5 hours off for an Indian user.
     test('legacy aliases resolve to their canonical zone, not UTC', () {
       expect(HeliumDateTime.resolveTimeZone('Asia/Calcutta'), 'Asia/Kolkata');
       expect(HeliumDateTime.resolveTimeZone('Asia/Saigon'), 'Asia/Ho_Chi_Minh');

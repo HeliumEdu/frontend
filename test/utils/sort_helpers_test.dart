@@ -61,7 +61,6 @@ void main() {
 
         Sort.byTitle(courses);
 
-        // Uppercase letters come before lowercase in ASCII
         expect(courses[0].title, 'Apple');
         expect(courses[1].title, 'banana');
         expect(courses[2].title, 'cherry');
@@ -216,7 +215,6 @@ void main() {
       });
 
       test('all-day events appear before timed events when end dates match', () {
-        // All-day priority only applies when end dates are the same day
         final items = [
           _createHomework(
             id: 1,
@@ -347,7 +345,6 @@ void main() {
 
         Sort.byStartThenTitle(items);
 
-        // Should group by course: 1, 1, 2, 3
         expect(items[0].course.id, 1);
         expect(items[1].course.id, 1);
         expect(items[2].course.id, 2);
@@ -377,11 +374,9 @@ void main() {
           _createHomework(id: 3, start: sameTime, courseId: 1, title: 'Assignment C'),
         ];
 
-        // Sort once
         Sort.byStartThenTitle(items);
         final firstSortIds = items.map((item) => item.id).toList();
 
-        // Sort again - order should be identical (stable)
         Sort.byStartThenTitle(items);
         final secondSortIds = items.map((item) => item.id).toList();
 
@@ -394,7 +389,6 @@ void main() {
           _createEvent(id: 1, start: sameTime),
           _createEvent(id: 2, start: sameTime),
         ];
-        // Manually set titles to test alphabetical sorting
         items[0] = EventModel(
           id: 1,
           title: 'Zebra Event',
@@ -443,7 +437,6 @@ void main() {
 
         Sort.byStartThenTitle(items);
 
-        // Course 1 items should come first (sorted by title), then course 2 items (sorted by title)
         expect(items[0].course.id, 1);
         expect(items[0].title, 'Apple');
         expect(items[1].course.id, 1);
@@ -457,9 +450,6 @@ void main() {
 
     group('byStartThenTitleForDay', () {
       test('a recurring occurrence sorts by its user-timezone time of day', () {
-        // Amsterdam is UTC+2 in September, so the class anchored at 07:00Z is
-        // 09:00 local. Re-dating the occurrence off its raw UTC clock would
-        // place it at 07:00 and sort it ahead of the 08:00-local homework.
         final amsterdam = tz.getLocation('Europe/Amsterdam');
         final day = tz.TZDateTime(amsterdam, 2025, 9, 4);
 
