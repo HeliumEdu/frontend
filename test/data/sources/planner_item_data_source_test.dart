@@ -416,6 +416,32 @@ void main() {
         },
       );
 
+      test(
+        'an all-day item ending across a DST transition ends at local midnight',
+        () {
+          // Amsterdam falls back on 26 Oct 2025. A single-day all-day item on
+          // the 26th is stored 2025-10-25T22:00Z (CEST) with an exclusive end
+          // of 2025-10-27T00:00 CET. Rolling that back by an absolute 24h lands
+          // on 01:00, not midnight.
+          final amsterdam = tz.getLocation('Europe/Amsterdam');
+          dataSource.userSettings = _createUserSettings(timeZone: amsterdam);
+          dataSource.appointments!.insert(
+            0,
+            _createHomeworkModel(
+              id: 7,
+              allDay: true,
+              start: DateTime.parse('2025-10-25T22:00:00Z'),
+              end: DateTime.parse('2025-10-26T23:00:00Z'),
+            ),
+          );
+
+          expect(
+            dataSource.getEndTime(0),
+            tz.TZDateTime(amsterdam, 2025, 10, 26),
+          );
+        },
+      );
+
       test('isAllDay returns correct value', () {
         expect(dataSource.isAllDay(0), isFalse);
 

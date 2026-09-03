@@ -349,10 +349,8 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
       day.day + 1,
     );
     // Bounded generously; the precise filter is the isSameDay check below.
-    final expandFrom = HeliumDateTime.dateOnly(day).subtract(
-      const Duration(days: 1),
-    );
-    final expandTo = expandFrom.add(const Duration(days: 3));
+    final expandFrom = DateTime(day.year, day.month, day.day - 1);
+    final expandTo = DateTime(day.year, day.month, day.day + 2);
     final itemsForDay = <PlannerItemBaseModel>[];
 
     for (final appointment in appointments ?? const <Object>[]) {
@@ -565,7 +563,12 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
       // Week/day view: isAllDay returns true; subtract 1 day for SfCalendar's
       // exclusive end convention for all-day items.
       final adjustedStart = startMidnight.add(offset);
-      final adjustedEnd = endMidnight.subtract(const Duration(days: 1)).add(offset);
+      final adjustedEnd = tz.TZDateTime(
+        userSettings.timeZone,
+        endMidnight.year,
+        endMidnight.month,
+        endMidnight.day - 1,
+      ).add(offset);
       return adjustedEnd.isBefore(adjustedStart) ? adjustedStart : adjustedEnd;
     }
     // Timed: apply same adjustment as getStartTime so visual duration is preserved.
