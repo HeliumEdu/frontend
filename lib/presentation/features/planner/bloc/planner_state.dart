@@ -25,6 +25,7 @@ class PlannerScreenDataFetched extends PlannerState {
   final List<CourseModel> courses;
   final List<CategoryModel> categories;
   final List<ResourceModel> resources;
+  final bool forceRefresh;
 
   PlannerScreenDataFetched({
     required super.origin,
@@ -32,7 +33,8 @@ class PlannerScreenDataFetched extends PlannerState {
     required this.courseGroups,
     required this.courses,
     required this.categories,
-    required this.resources
+    required this.resources,
+    this.forceRefresh = false,
   });
 }
 

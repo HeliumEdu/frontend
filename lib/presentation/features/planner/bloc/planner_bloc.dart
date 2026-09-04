@@ -90,6 +90,7 @@ class PlannerBloc extends Bloc<PlannerEvent, PlannerState> {
           courses: courses,
           categories: categories,
           resources: resources,
+          forceRefresh: event.forceRefresh,
         ),
       );
     } on HeliumException catch (e) {

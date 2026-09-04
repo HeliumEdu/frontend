@@ -110,7 +110,7 @@ void main() {
           eventRepository: mockEventRepository,
           homeworkRepository: mockHomeworkRepository,
           courseScheduleRepository: mockCourseScheduleRepository,
-          externalCalendarRepository: mockExternalCalendarRepository,
+              externalCalendarRepository: mockExternalCalendarRepository,
           userSettings: userSettings,
         );
 
@@ -124,7 +124,7 @@ void main() {
           eventRepository: mockEventRepository,
           homeworkRepository: mockHomeworkRepository,
           courseScheduleRepository: mockCourseScheduleRepository,
-          externalCalendarRepository: mockExternalCalendarRepository,
+              externalCalendarRepository: mockExternalCalendarRepository,
           userSettings: userSettings,
         );
 
@@ -468,7 +468,7 @@ void main() {
           eventRepository: mockEventRepository,
           homeworkRepository: mockHomeworkRepository,
           courseScheduleRepository: mockCourseScheduleRepository,
-          externalCalendarRepository: mockExternalCalendarRepository,
+              externalCalendarRepository: mockExternalCalendarRepository,
           userSettings: colorByCategorySettings,
         );
         colorByCategoryDataSource.courses = [course];
@@ -1313,6 +1313,109 @@ void main() {
       });
     });
 
+    group('refreshCalendarSources', () {
+      late PlannerItemDataSource freshDataSource;
+
+      void stubEmptySources() {
+        when(
+          () => mockHomeworkRepository.getHomeworks(
+            from: any(named: 'from'),
+            to: any(named: 'to'),
+            shownOnCalendar: any(named: 'shownOnCalendar'),
+            forceRefresh: any(named: 'forceRefresh'),
+          ),
+        ).thenAnswer((_) async => []);
+        when(
+          () => mockEventRepository.getEvents(
+            from: any(named: 'from'),
+            to: any(named: 'to'),
+            forceRefresh: any(named: 'forceRefresh'),
+          ),
+        ).thenAnswer((_) async => []);
+        when(
+          () => mockCourseScheduleRepository.getCourseScheduleEvents(
+            courses: any(named: 'courses'),
+            from: any(named: 'from'),
+            to: any(named: 'to'),
+          ),
+        ).thenAnswer((_) async => []);
+        when(
+          () => mockExternalCalendarRepository.getExternalCalendarEvents(
+            from: any(named: 'from'),
+            to: any(named: 'to'),
+            shownOnCalendar: any(named: 'shownOnCalendar'),
+            forceRefresh: any(named: 'forceRefresh'),
+          ),
+        ).thenAnswer((_) async => []);
+      }
+
+      setUp(() {
+        reset(mockHomeworkRepository);
+        reset(mockEventRepository);
+        reset(mockCourseScheduleRepository);
+        reset(mockExternalCalendarRepository);
+        stubEmptySources();
+
+        freshDataSource = PlannerItemDataSource(
+          eventRepository: mockEventRepository,
+          homeworkRepository: mockHomeworkRepository,
+          courseScheduleRepository: mockCourseScheduleRepository,
+              externalCalendarRepository: mockExternalCalendarRepository,
+          userSettings: userSettings,
+        );
+      });
+
+      test('refetches an already-cached range the range cache would skip', () async {
+        await freshDataSource.handleLoadMore(
+          DateTime(2025, 1, 1),
+          DateTime(2025, 1, 31),
+        );
+
+        reset(mockHomeworkRepository);
+        reset(mockEventRepository);
+        reset(mockCourseScheduleRepository);
+        reset(mockExternalCalendarRepository);
+        stubEmptySources();
+
+        await freshDataSource.refreshCalendarSources(
+          visibleStart: DateTime(2025, 1, 1),
+          visibleEnd: DateTime(2025, 1, 31),
+        );
+
+        verify(
+          () => mockHomeworkRepository.getHomeworks(
+            from: any(named: 'from'),
+            to: any(named: 'to'),
+            shownOnCalendar: any(named: 'shownOnCalendar'),
+            forceRefresh: any(named: 'forceRefresh'),
+          ),
+        ).called(1);
+        verify(
+          () => mockEventRepository.getEvents(
+            from: any(named: 'from'),
+            to: any(named: 'to'),
+            forceRefresh: any(named: 'forceRefresh'),
+          ),
+        ).called(1);
+        verify(
+          () => mockCourseScheduleRepository.getCourseScheduleEvents(
+            courses: any(named: 'courses'),
+            from: any(named: 'from'),
+            to: any(named: 'to'),
+          ),
+        ).called(1);
+        verify(
+          () => mockExternalCalendarRepository.getExternalCalendarEvents(
+            from: any(named: 'from'),
+            to: any(named: 'to'),
+            shownOnCalendar: any(named: 'shownOnCalendar'),
+            forceRefresh: any(named: 'forceRefresh'),
+          ),
+        ).called(1);
+      });
+
+    });
+
     group('handleLoadMore', () {
       late PlannerItemDataSource freshDataSource;
 
@@ -1354,7 +1457,7 @@ void main() {
           eventRepository: mockEventRepository,
           homeworkRepository: mockHomeworkRepository,
           courseScheduleRepository: mockCourseScheduleRepository,
-          externalCalendarRepository: mockExternalCalendarRepository,
+              externalCalendarRepository: mockExternalCalendarRepository,
           userSettings: userSettings,
         );
       });

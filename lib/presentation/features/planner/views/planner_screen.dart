@@ -467,6 +467,21 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
             setState(() => screenError = null);
             _populateInitialCalendarStateData(state);
             openFromQueryParams();
+
+            // The range cache short-circuits handleLoadMore, so an
+            // invalidated Dio cache alone refetches nothing.
+            if (state.forceRefresh) {
+              unawaited(
+                _plannerItemDataSource?.refreshCalendarSources(
+                  visibleStart: _visibleDates.isNotEmpty
+                      ? _visibleDates.first
+                      : null,
+                  visibleEnd: _visibleDates.isNotEmpty
+                      ? _visibleDates.last
+                      : null,
+                ),
+              );
+            }
           } else if (state is CourseOccurrenceSkipped) {
             setState(() {
               _courses = [
