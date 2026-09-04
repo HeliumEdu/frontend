@@ -31,6 +31,17 @@ class CourseScheduleRepositoryImpl implements CourseScheduleRepository {
   }
 
   @override
+  Future<bool> hasCourseSchedules({
+    bool? shownOnCalendar,
+    bool forceRefresh = false,
+  }) async {
+    return remoteDataSource.hasCourseSchedules(
+      shownOnCalendar: shownOnCalendar,
+      forceRefresh: forceRefresh,
+    );
+  }
+
+  @override
   Future<List<CourseScheduleModel>> getCourseSchedules({
     bool? shownOnCalendar,
     bool forceRefresh = false,

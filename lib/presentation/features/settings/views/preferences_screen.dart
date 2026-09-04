@@ -1,3 +1,4 @@
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:heliumapp/config/pref_service.dart';
@@ -6,20 +7,28 @@ import 'package:heliumapp/data/models/auth/user_settings_model.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_bloc.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_event.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_state.dart';
+import 'package:heliumapp/presentation/features/courses/bloc/course_bloc.dart';
+import 'package:heliumapp/presentation/features/courses/bloc/course_event.dart';
+import 'package:heliumapp/presentation/features/courses/bloc/course_state.dart';
 import 'package:heliumapp/presentation/ui/components/drop_down.dart';
 import 'package:heliumapp/presentation/ui/components/helium_checkbox_list_tile.dart';
+import 'package:heliumapp/presentation/ui/feedback/warning_container.dart';
 import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
 import 'package:heliumapp/presentation/ui/layout/helium_full_screen_scroll_view.dart';
 import 'package:heliumapp/presentation/ui/components/searchable_dropdown.dart';
 import 'package:heliumapp/presentation/ui/components/spinner_field.dart';
 import 'package:heliumapp/presentation/ui/components/color_selector.dart';
 import 'package:heliumapp/presentation/features/planner/constants/reminder_constants.dart';
+import 'package:heliumapp/presentation/features/shared/bloc/core/base_event.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/color_helpers.dart';
 import 'package:heliumapp/utils/snack_bar_helpers.dart';
 import 'package:heliumapp/utils/time_zone_constants.dart';
+import 'package:logging/logging.dart';
+
+final _log = Logger('presentation.views');
 
 class PreferencesScreen extends StatefulWidget {
   final UserSettingsModel? userSettings;
@@ -73,6 +82,9 @@ class PreferencesScreenState extends State<PreferencesScreen> {
   bool _isCollapseBusyDays = FallbackConstants.defaultCollapseBusyDays;
   bool _isShowWeekNumbers = FallbackConstants.defaultShowWeekNumbers;
 
+  String? _savedTimeZone;
+  bool? _hasCourseSchedules;
+
   bool get isChanged => _isChanged;
 
   void _markChanged() {
@@ -85,6 +97,9 @@ class PreferencesScreenState extends State<PreferencesScreen> {
     super.initState();
 
     context.read<AuthBloc>().add(FetchProfileEvent());
+    context.read<CourseBloc>().add(
+      FetchHasCourseSchedulesEvent(origin: EventOrigin.subScreen),
+    );
   }
 
   @override
@@ -100,26 +115,37 @@ class PreferencesScreenState extends State<PreferencesScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocListener<AuthBloc, AuthState>(
-      listener: (context, state) {
-        if (state is AuthError) {
-          SnackBarHelper.show(context, state.message!, type: SnackType.error);
-          setState(() => _isSubmitting = false);
-          widget.onFailed?.call();
-        } else if (state is AuthProfileFetched) {
-          setState(() => _isLoading = false);
-          _populateInitialStateData(state);
-        } else if (state is AuthProfileUpdated) {
-          if (!_isRememberFilterSelection) {
-            PrefService().setString('saved_filter_state', '');
-          }
-          setState(() {
-            _isChanged = false;
-            _isSubmitting = false;
-          });
-          widget.onCompleted?.call();
-        }
-      },
+    return MultiBlocListener(
+      listeners: [
+        BlocListener<CourseBloc, CourseState>(
+          listener: (context, state) {
+            if (state is HasCourseSchedulesFetched) {
+              setState(() => _hasCourseSchedules = state.hasCourseSchedules);
+            }
+          },
+        ),
+        BlocListener<AuthBloc, AuthState>(
+          listener: (context, state) {
+            if (state is AuthError) {
+              SnackBarHelper.show(context, state.message!, type: SnackType.error);
+              setState(() => _isSubmitting = false);
+              widget.onFailed?.call();
+            } else if (state is AuthProfileFetched) {
+              setState(() => _isLoading = false);
+              _populateInitialStateData(state);
+            } else if (state is AuthProfileUpdated) {
+              if (!_isRememberFilterSelection) {
+                PrefService().setString('saved_filter_state', '');
+              }
+              setState(() {
+                _isChanged = false;
+                _isSubmitting = false;
+              });
+              widget.onCompleted?.call();
+            }
+          },
+        ),
+      ],
       child: _isLoading
           ? const Center(child: LoadingIndicator(expanded: false))
           : HeliumFullScreenScrollView(
@@ -144,6 +170,8 @@ class PreferencesScreenState extends State<PreferencesScreen> {
                 });
               },
             ),
+
+            ?_buildTimeZoneChangeNotice(),
 
             _buildSectionHeader('PLANNER'),
             DropDown(
@@ -494,6 +522,35 @@ class PreferencesScreenState extends State<PreferencesScreen> {
     setState(() => _isSubmitting = false);
   }
 
+  Widget? _buildTimeZoneChangeNotice() {
+    if (_hasCourseSchedules == false ||
+        _isSubmitting ||
+        _savedTimeZone == null ||
+        _selectedTimeZone == _savedTimeZone) {
+      return null;
+    }
+
+    final newLabel = _timeZoneLabel(_selectedTimeZone);
+    if (newLabel == null) {
+      _log.warning('Unknown time zone label, skipping the change notice');
+      return null;
+    }
+
+    return Padding(
+      padding: const EdgeInsets.only(top: 12),
+      child: WarningContainer(
+        text:
+            'Assignments and Events will shift to $newLabel time. Class '
+            'Schedules stay as entered.',
+        icon: Icons.access_time,
+      ),
+    );
+  }
+
+  String? _timeZoneLabel(String? timeZone) => TimeZoneConstants.items
+      .firstWhereOrNull((item) => item.value == timeZone)
+      ?.label;
+
   Widget _buildSectionHeader(String title) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 16),
@@ -517,6 +574,7 @@ class PreferencesScreenState extends State<PreferencesScreen> {
       _selectedWeekStartsOn =
           CalendarConstants.dayNames[state.user.settings.weekStartsOn];
       _selectedTimeZone = state.user.settings.timeZone.toString();
+      _savedTimeZone = _selectedTimeZone;
       _selectedReminderOffsetType = ReminderConstants
           .offsetTypes[state.user.settings.defaultReminderOffsetType];
       _selectedReminderType = ReminderConstants.itemForType(

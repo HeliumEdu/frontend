@@ -159,6 +159,15 @@ class CourseScheduleUpdated extends CourseState {
   });
 }
 
+class HasCourseSchedulesFetched extends CourseState {
+  final bool hasCourseSchedules;
+
+  HasCourseSchedulesFetched({
+    required super.origin,
+    required this.hasCourseSchedules,
+  });
+}
+
 class CourseSchedulesFetched extends CourseState {
   final List<CourseScheduleModel> schedules;
 

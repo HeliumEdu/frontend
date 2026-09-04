@@ -15,6 +15,11 @@ abstract class CourseScheduleRemoteDataSource extends BaseDataSource {
     bool forceRefresh = false,
   });
 
+  Future<bool> hasCourseSchedules({
+    bool? shownOnCalendar,
+    bool forceRefresh = false,
+  });
+
   Future<CourseScheduleModel> getCourseScheduleForCourse(
     int groupId,
     int courseId, {
@@ -48,6 +53,42 @@ class CourseScheduleRemoteDataSourceImpl
   final DioClient dioClient;
 
   CourseScheduleRemoteDataSourceImpl({required this.dioClient});
+
+  @override
+  Future<bool> hasCourseSchedules({
+    bool? shownOnCalendar,
+    bool forceRefresh = false,
+  }) async {
+    try {
+      _log.info('Fetching CourseSchedules count ...');
+
+      final Map<String, dynamic> queryParameters = {'page_size': 1};
+      if (shownOnCalendar != null) {
+        queryParameters['shown_on_calendar'] = shownOnCalendar;
+      }
+
+      final response = await dioClient.dio.get(
+        ApiUrl.plannerCourseSchedulesUrl,
+        queryParameters: queryParameters,
+        options: forceRefresh ? dioClient.cacheService.forceRefreshOptions() : null,
+      );
+
+      if (response.statusCode == 200) {
+        final count = response.data['count'] as int;
+        _log.info('... fetched CourseSchedules count: $count');
+        return count > 0;
+      } else {
+        throw unexpectedStatus(
+          response,
+          'Failed to fetch CourseSchedules count.',
+        );
+      }
+    } on DioException catch (e, s) {
+      throw handleDioError(e, s);
+    } on HeliumException {
+      rethrow;
+    }
+  }
 
   @override
   Future<List<CourseScheduleModel>> getCourseSchedules({

@@ -99,9 +99,7 @@ class PlannerScreen extends StatelessWidget {
   static const String calendarPrevButtonKey = 'planner_calendar_prev_button';
   static const String calendarNextButtonKey = 'planner_calendar_next_button';
 
-  final DioClient _dioClient = DioClient();
-
-  PlannerScreen({super.key});
+  const PlannerScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -111,17 +109,17 @@ class PlannerScreen extends StatelessWidget {
           create: (context) => PlannerBloc(
             courseRepository: CourseRepositoryImpl(
               remoteDataSource: CourseRemoteDataSourceImpl(
-                dioClient: _dioClient,
+                dioClient: DioClient(),
               ),
             ),
             categoryRepository: CategoryRepositoryImpl(
               remoteDataSource: CategoryRemoteDataSourceImpl(
-                dioClient: _dioClient,
+                dioClient: DioClient(),
               ),
             ),
             resourceRepository: ResourceRepositoryImpl(
               remoteDataSource: ResourceRemoteDataSourceImpl(
-                dioClient: _dioClient,
+                dioClient: DioClient(),
               ),
             ),
           ),

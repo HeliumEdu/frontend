@@ -54,8 +54,6 @@ class NotificationsScreen extends StatelessWidget {
   /// instead of always on /planner.
   final String shellPath;
 
-  final DioClient _dioClient = DioClient();
-
   NotificationsScreen({
     super.key,
     this.shellPath = AppRoute.plannerScreen,
@@ -72,7 +70,7 @@ class NotificationsScreen extends StatelessWidget {
           create: (context) => ReminderBloc(
             reminderRepository: ReminderRepositoryImpl(
               remoteDataSource: ReminderRemoteDataSourceImpl(
-                dioClient: _dioClient,
+                dioClient: DioClient(),
               ),
             ),
           ),
