@@ -8,11 +8,13 @@ import 'package:heliumapp/data/models/planner/course_schedule_event_model.dart';
 import 'package:heliumapp/data/models/planner/event_model.dart';
 import 'package:heliumapp/data/models/planner/homework_model.dart';
 import 'package:heliumapp/data/models/planner/reminder_model.dart';
+import 'package:heliumapp/utils/date_time_helpers.dart';
 import 'package:heliumapp/utils/error_helpers.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:heliumapp/utils/sort_helpers.dart';
 import 'package:logging/logging.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';
+import 'package:timezone/standalone.dart' as tz;
 
 final _log = Logger('utils');
 
@@ -43,6 +45,62 @@ enum PlannerFilterStatus {
 
 class PlannerHelper {
   static final List<int> weekStartsOnRemap = [7, 1, 2, 3, 4, 5, 6];
+
+  /// Start value to prefill a new planner item with, in [timeZone].
+  ///
+  /// Todos and agenda have no confident selection, so they use now; calendar
+  /// views use the tapped cell. Returned zoned so the add form can read it as
+  /// wall clock without re-resolving it against the device.
+  static DateTime? initialDateForNewItem({
+    required PlannerView view,
+    required DateTime? selectedDate,
+    required DateTime now,
+    required tz.Location timeZone,
+  }) {
+    if (view == PlannerView.todos || view == PlannerView.agenda) {
+      final local = tz.TZDateTime.from(now, timeZone);
+      return tz.TZDateTime(
+        timeZone,
+        local.year,
+        local.month,
+        local.day,
+        local.hour,
+      );
+    }
+    if (selectedDate == null) {
+      return null;
+    }
+    return HeliumDateTime.wallClockIn(selectedDate, timeZone);
+  }
+
+  /// Selection for a region carrying a date but no hour — a month cell, or the
+  /// all-day panel. The current [timeZone] hour stands in so new items do not
+  /// prefill at midnight. Naive, because SfCalendar is handed it back.
+  static DateTime selectionWithCurrentHour({
+    required DateTime date,
+    required DateTime now,
+    required tz.Location timeZone,
+  }) {
+    final local = tz.TZDateTime.from(now, timeZone);
+    return DateTime(date.year, date.month, date.day, local.hour);
+  }
+
+  /// Index of the first item in [sorted] due on or after today in [timeZone],
+  /// or -1 when every item is in the past. [sorted] must be ordered by `start`.
+  static int firstIndexDueOnOrAfter(
+    List<HomeworkModel> sorted,
+    DateTime now,
+    tz.Location timeZone,
+  ) {
+    // `now` need only be a correct instant, so the device's own zone is moot.
+    final startOfToday = HeliumDateTime.midnightIn(now, timeZone);
+    for (int i = 0; i < sorted.length; i++) {
+      if (!sorted[i].start.isBefore(startOfToday)) {
+        return i;
+      }
+    }
+    return -1;
+  }
 
   /// Layout width of the completion checkbox on a planner calendar item.
   /// Kept in sync with the [SizedBox] in `_buildCheckboxWidget`.

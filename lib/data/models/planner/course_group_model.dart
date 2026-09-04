@@ -6,7 +6,7 @@ class CourseGroupModel extends BaseTitledModel {
   final DateTime startDate;
   final DateTime endDate;
   final List<DateTime> exceptions;
-  final double? averageGrade;
+  final double? overallGrade;
   final int? numDays;
   final int? numDaysCompleted;
 
@@ -17,7 +17,7 @@ class CourseGroupModel extends BaseTitledModel {
     required this.startDate,
     required this.endDate,
     required this.exceptions,
-    this.averageGrade,
+    this.overallGrade,
     this.numDays,
     this.numDaysCompleted,
   });
@@ -32,7 +32,7 @@ class CourseGroupModel extends BaseTitledModel {
       exceptions: CourseExceptionHelpers.parseCsvExceptions(
         json['exceptions'] as String,
       ),
-      averageGrade: toDouble(json['average_grade']),
+      overallGrade: toDouble(json['overall_grade']),
       numDays: json['num_days'],
       numDaysCompleted: json['num_days_completed'],
     );
@@ -45,7 +45,7 @@ class CourseGroupModel extends BaseTitledModel {
       'start_date': startDate.toIso8601String(),
       'end_date': endDate.toIso8601String(),
       'shown_on_calendar': shownOnCalendar,
-      'average_grade': averageGrade,
+      'overall_grade': overallGrade,
       'num_days': numDays,
       'num_days_completed': numDaysCompleted,
     };

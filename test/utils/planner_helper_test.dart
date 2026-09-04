@@ -8,8 +8,12 @@ import 'package:heliumapp/data/models/planner/event_model.dart';
 import 'package:heliumapp/data/models/planner/homework_model.dart';
 import 'package:heliumapp/utils/planner_helper.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';
+import 'package:timezone/data/latest_all.dart' as tz_data;
+import 'package:timezone/standalone.dart' as tz;
 
 void main() {
+  tz_data.initializeTimeZones();
+
   group('PlannerHelper', () {
     group('mapHeliumViewToSfCalendarView', () {
       test('maps view types correctly', () {
@@ -293,6 +297,200 @@ void main() {
       });
     });
   });
+
+  group('selectionWithCurrentHour', () {
+    final amsterdam = tz.getLocation('Europe/Amsterdam');
+    final losAngeles = tz.getLocation('America/Los_Angeles');
+
+    test('stands in the account-timezone hour, not the device one', () {
+      // GIVEN
+      final now = tz.TZDateTime(amsterdam, 2025, 9, 4, 14, 30);
+
+      // WHEN
+      final result = PlannerHelper.selectionWithCurrentHour(
+        date: DateTime(2025, 9, 11),
+        now: now,
+        timeZone: amsterdam,
+      );
+
+      // THEN
+      expect(result, DateTime(2025, 9, 11, 14));
+    });
+
+    test('keeps the tapped day and discards the hour the date arrived with', () {
+      // GIVEN
+      final now = tz.TZDateTime(losAngeles, 2025, 9, 4, 9);
+
+      // WHEN
+      final result = PlannerHelper.selectionWithCurrentHour(
+        date: DateTime(2025, 9, 11, 23, 59),
+        now: now,
+        timeZone: losAngeles,
+      );
+
+      // THEN
+      expect(result, DateTime(2025, 9, 11, 9),
+          reason: 'an all-day panel or month cell carries a date but no hour');
+    });
+
+    test('result is naive so it can be handed back to SfCalendar', () {
+      // GIVEN / WHEN
+      final result = PlannerHelper.selectionWithCurrentHour(
+        date: DateTime(2025, 9, 11),
+        now: tz.TZDateTime(amsterdam, 2025, 9, 4, 14),
+        timeZone: amsterdam,
+      );
+
+      // THEN
+      expect(result, isNot(isA<tz.TZDateTime>()));
+      expect(result.isUtc, isFalse);
+    });
+
+    test('feeds initialDateForNewItem the account hour end to end', () {
+      // GIVEN
+      final now = tz.TZDateTime(amsterdam, 2025, 9, 4, 14, 30);
+
+      // WHEN
+      final selected = PlannerHelper.selectionWithCurrentHour(
+        date: DateTime(2025, 9, 11),
+        now: now,
+        timeZone: amsterdam,
+      );
+      final result = PlannerHelper.initialDateForNewItem(
+        view: PlannerView.week,
+        selectedDate: selected,
+        now: now,
+        timeZone: amsterdam,
+      );
+
+      // THEN
+      expect(tz.TZDateTime.from(result!, amsterdam),
+          tz.TZDateTime(amsterdam, 2025, 9, 11, 14));
+    });
+  });
+
+  group('initialDateForNewItem', () {
+    final amsterdam = tz.getLocation('Europe/Amsterdam');
+
+    test('todos prefills the account-timezone hour, not the device one', () {
+      // GIVEN
+      final now = tz.TZDateTime(amsterdam, 2025, 9, 4, 14, 30);
+
+      // WHEN
+      final result = PlannerHelper.initialDateForNewItem(
+        view: PlannerView.todos,
+        selectedDate: null,
+        now: now,
+        timeZone: amsterdam,
+      );
+
+      // THEN
+      expect(tz.TZDateTime.from(result!, amsterdam),
+          tz.TZDateTime(amsterdam, 2025, 9, 4, 14));
+    });
+
+    test('a grid tap keeps the account-timezone wall clock it was made in', () {
+      // GIVEN
+      final tapped = DateTime(2025, 9, 4, 14, 0);
+
+      // WHEN
+      final result = PlannerHelper.initialDateForNewItem(
+        view: PlannerView.week,
+        selectedDate: tapped,
+        now: tz.TZDateTime(amsterdam, 2025, 9, 4, 9),
+        timeZone: amsterdam,
+      );
+
+      // THEN
+      expect(tz.TZDateTime.from(result!, amsterdam),
+          tz.TZDateTime(amsterdam, 2025, 9, 4, 14),
+          reason: 'the tapped 14:00 slot must survive as 14:00 in the account zone');
+    });
+
+    test('no selection on a calendar view yields null', () {
+      // GIVEN / WHEN
+      final result = PlannerHelper.initialDateForNewItem(
+        view: PlannerView.week,
+        selectedDate: null,
+        now: tz.TZDateTime(amsterdam, 2025, 9, 4, 9),
+        timeZone: amsterdam,
+      );
+
+      // THEN
+      expect(result, isNull);
+    });
+  });
+
+  group('firstIndexDueOnOrAfter', () {
+    final amsterdam = tz.getLocation('Europe/Amsterdam');
+    final nowInAmsterdam = tz.TZDateTime(amsterdam, 2025, 9, 4, 10, 0);
+
+    test('finds an all-day task due today at a positive UTC offset', () {
+      final sorted = [
+        _createHomeworkModel(
+            id: 1, allDay: true, start: DateTime.parse('2025-09-03T22:00:00Z')),
+        _createHomeworkModel(
+            id: 2, allDay: true, start: DateTime.parse('2025-09-04T22:00:00Z')),
+      ];
+
+      expect(
+        PlannerHelper.firstIndexDueOnOrAfter(sorted, nowInAmsterdam, amsterdam),
+        0,
+        reason: "the task due today must win, not tomorrow's",
+      );
+    });
+
+    test('skips a task that is genuinely in the past', () {
+      final sorted = [
+        _createHomeworkModel(
+            id: 1, allDay: true, start: DateTime.parse('2025-09-02T22:00:00Z')),
+        _createHomeworkModel(
+            id: 2, allDay: true, start: DateTime.parse('2025-09-03T22:00:00Z')),
+      ];
+
+      expect(
+        PlannerHelper.firstIndexDueOnOrAfter(sorted, nowInAmsterdam, amsterdam),
+        1,
+      );
+    });
+
+    test('returns -1 when every task is in the past', () {
+      final sorted = [
+        _createHomeworkModel(
+            id: 1, allDay: true, start: DateTime.parse('2025-09-01T22:00:00Z')),
+      ];
+
+      expect(
+        PlannerHelper.firstIndexDueOnOrAfter(sorted, nowInAmsterdam, amsterdam),
+        -1,
+      );
+    });
+
+    test('a timed task due later today is still selected', () {
+      final sorted = [
+        _createHomeworkModel(
+            id: 1, start: DateTime.parse('2025-09-04T14:00:00Z')),
+      ];
+
+      expect(
+        PlannerHelper.firstIndexDueOnOrAfter(sorted, nowInAmsterdam, amsterdam),
+        0,
+      );
+    });
+
+    test('a negative UTC offset is unaffected', () {
+      final losAngeles = tz.getLocation('America/Los_Angeles');
+      final now = tz.TZDateTime(losAngeles, 2025, 1, 15, 10, 0);
+      final sorted = [
+        _createHomeworkModel(
+            id: 1, allDay: true, start: DateTime.parse('2025-01-14T08:00:00Z')),
+        _createHomeworkModel(
+            id: 2, allDay: true, start: DateTime.parse('2025-01-15T08:00:00Z')),
+      ];
+
+      expect(PlannerHelper.firstIndexDueOnOrAfter(sorted, now, losAngeles), 1);
+    });
+  });
 }
 
 EventModel _createEventModel({bool allDay = false}) {
@@ -313,13 +511,17 @@ EventModel _createEventModel({bool allDay = false}) {
   );
 }
 
-HomeworkModel _createHomeworkModel({bool allDay = false}) {
+HomeworkModel _createHomeworkModel({
+  bool allDay = false,
+  int id = 1,
+  DateTime? start,
+}) {
   return HomeworkModel(
-    id: 1,
+    id: id,
     title: 'Test Homework',
     allDay: allDay,
     showEndTime: true,
-    start: DateTime.parse('2025-01-15T10:00:00Z'),
+    start: start ?? DateTime.parse('2025-01-15T10:00:00Z'),
     end: DateTime.parse('2025-01-15T11:00:00Z'),
     priority: 50,
     comments: '',

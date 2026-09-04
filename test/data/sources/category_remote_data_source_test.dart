@@ -115,7 +115,7 @@ void main() {
           givenCategoryJson(
             id: 1,
             weight: 30.0,
-            overallGrade: 92.5,
+            averageGrade: 92.5,
             gradeByWeight: 27.75,
           ),
         ];
@@ -131,7 +131,7 @@ void main() {
 
         // THEN
         expect(result[0].weight, equals(30.0));
-        expect(result[0].overallGrade, equals(92.5));
+        expect(result[0].averageGrade, equals(92.5));
         expect(result[0].gradeByWeight, equals(27.75));
       });
 

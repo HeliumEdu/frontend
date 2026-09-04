@@ -7,6 +7,7 @@ import 'package:heliumapp/data/models/planner/note_model.dart';
 import 'package:heliumapp/data/models/planner/planner_item_base_model.dart';
 import 'package:heliumapp/data/models/planner/reminder_model.dart';
 import 'package:heliumapp/utils/planner_helper.dart';
+import 'package:timezone/standalone.dart' as tz;
 
 class Sort {
   /// Priority order for calendar item types when times are equal.
@@ -157,7 +158,7 @@ class Sort {
     ];
   }
 
-  static void byStartOfRange(List<ReminderModel> list, timeZone) {
+  static void byStartOfRange(List<ReminderModel> list) {
     list.sort((a, b) => b.startOfRange!.compareTo(a.startOfRange!));
   }
 
@@ -184,7 +185,7 @@ class Sort {
   /// as occurrences on [day] (while preserving their time-of-day).
   static void byStartThenTitleForDay(
     List<PlannerItemBaseModel> list,
-    DateTime day,
+    tz.TZDateTime day,
   ) {
     list.sort((a, b) {
       final aStart = _effectiveDateForDay(a, day, isEnd: false);
@@ -209,9 +210,11 @@ class Sort {
     });
   }
 
+  /// Recurring items carry the series anchor's date, so they re-date onto [day].
+  /// Read the anchor's time in [day]'s zone, not off the raw UTC instant.
   static DateTime _effectiveDateForDay(
     PlannerItemBaseModel item,
-    DateTime day, {
+    tz.TZDateTime day, {
     required bool isEnd,
   }) {
     final source = isEnd ? item.end : item.start;
@@ -222,15 +225,17 @@ class Sort {
       return source;
     }
 
-    return DateTime(
+    final local = tz.TZDateTime.from(source, day.location);
+    return tz.TZDateTime(
+      day.location,
       day.year,
       day.month,
       day.day,
-      source.hour,
-      source.minute,
-      source.second,
-      source.millisecond,
-      source.microsecond,
+      local.hour,
+      local.minute,
+      local.second,
+      local.millisecond,
+      local.microsecond,
     );
   }
 }

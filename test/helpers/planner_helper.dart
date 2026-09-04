@@ -27,7 +27,7 @@ Map<String, dynamic> givenCourseGroupJson({
   String startDate = '2025-08-25',
   String endDate = '2025-12-15',
   bool shownOnCalendar = true,
-  double? averageGrade,
+  double? overallGrade,
   int? numDays = 112,
   int? numDaysCompleted = 50,
   String exceptions = '',
@@ -38,7 +38,7 @@ Map<String, dynamic> givenCourseGroupJson({
     'start_date': startDate,
     'end_date': endDate,
     'shown_on_calendar': shownOnCalendar,
-    'average_grade': averageGrade,
+    'overall_grade': overallGrade,
     'num_days': numDays,
     'num_days_completed': numDaysCompleted,
     'exceptions': exceptions,
@@ -55,7 +55,7 @@ void verifyCourseGroupMatchesJson(
   expect(courseGroup.startDate, equals(DateTime.parse(json['start_date'] as String)));
   expect(courseGroup.endDate, equals(DateTime.parse(json['end_date'] as String)));
   expect(courseGroup.shownOnCalendar, equals(json['shown_on_calendar']));
-  expect(courseGroup.averageGrade, equals(json['average_grade']));
+  expect(courseGroup.overallGrade, equals(json['overall_grade']));
   expect(courseGroup.numDays, equals(json['num_days']));
   expect(courseGroup.numDaysCompleted, equals(json['num_days_completed']));
 }
@@ -228,7 +228,7 @@ Map<String, dynamic> givenCategoryJson({
   String color = '#E21D55',
   int course = 1,
   double weight = 30.0,
-  double? overallGrade,
+  double? averageGrade,
   double? gradeByWeight,
   double? trend,
   int? numHomework,
@@ -241,7 +241,7 @@ Map<String, dynamic> givenCategoryJson({
     'color': color,
     'course': course,
     'weight': weight,
-    'overall_grade': overallGrade,
+    'average_grade': averageGrade,
     'grade_by_weight': gradeByWeight,
     'trend': trend,
     'num_homework': numHomework,
@@ -261,7 +261,7 @@ void verifyCategoryMatchesJson(
   );
   expect(category.course, equals(json['course']));
   expect(category.weight, equals(json['weight']));
-  expect(category.overallGrade, equals(json['overall_grade']));
+  expect(category.averageGrade, equals(json['average_grade']));
   expect(category.gradeByWeight, equals(json['grade_by_weight']));
   expect(category.trend, equals(json['trend']));
   expect(category.numHomework, equals(json['num_homework']));

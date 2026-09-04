@@ -426,17 +426,11 @@ class TodosDataGridState extends BaseDataGridState<TodosDataGrid> {
       return;
     }
 
-    final now = DateTime.now();
-    final today = HeliumDateTime.dateOnly(now);
-
-    int targetIndex = -1;
-    for (int i = 0; i < sorted.length; i++) {
-      final dueOnly = HeliumDateTime.dateOnly(sorted[i].start);
-      if (dueOnly.isAtSameMomentAs(today) || dueOnly.isAfter(today)) {
-        targetIndex = i;
-        break;
-      }
-    }
+    final targetIndex = PlannerHelper.firstIndexDueOnOrAfter(
+      sorted,
+      DateTime.now(),
+      widget.dataSource.userSettings.timeZone,
+    );
 
     final effectiveItemsPerPage =
         _itemsPerPage == -1 ? sorted.length : _itemsPerPage;

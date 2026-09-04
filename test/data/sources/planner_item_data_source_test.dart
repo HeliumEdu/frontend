@@ -18,7 +18,7 @@ import 'package:heliumapp/domain/repositories/external_calendar_repository.dart'
 import 'package:heliumapp/domain/repositories/homework_repository.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';
-import 'package:timezone/data/latest.dart' as tz;
+import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:timezone/standalone.dart' as tz;
 
 class MockEventRepository extends Mock implements EventRepository {}
@@ -42,12 +42,10 @@ void main() {
   setUpAll(() {
     TestWidgetsFlutterBinding.ensureInitialized();
     tz.initializeTimeZones();
-    // Use synchronous filtering in tests
     PlannerItemDataSource.filterDebounceDuration = Duration.zero;
   });
 
   tearDownAll(() {
-    // Restore default debounce duration
     PlannerItemDataSource.filterDebounceDuration = const Duration(
       milliseconds: 16,
     );
@@ -59,7 +57,6 @@ void main() {
     mockCourseScheduleRepository = MockCourseScheduleRepository();
     mockExternalCalendarRepository = MockExternalCalendarRepository();
 
-    // Default mocks for handleLoadMore
     when(
       () => mockHomeworkRepository.getHomeworks(
         from: any(named: 'from'),
@@ -88,28 +85,8 @@ void main() {
       ),
     ).thenAnswer((_) async => []);
 
-    userSettings = UserSettingsModel(
+    userSettings = _createUserSettings(
       timeZone: tz.getLocation('America/Los_Angeles'),
-      defaultView: 0,
-      colorSchemeTheme: 0,
-      weekStartsOn: 0,
-      whatsNewVersionSeen: 0,
-      showGettingStarted: false,
-      eventsColor: const Color(0xFF4CAF50),
-      resourceColor: const Color(0xFF2196F3),
-      gradeColor: const Color(0xFFF44336),
-      defaultReminderType: 3,
-      defaultReminderOffset: 0,
-      defaultReminderOffsetType: 0,
-      colorByCategory: false,
-      showPlannerTooltips: true,
-      rememberFilterState: false,
-      collapseBusyDays: true,
-      isSetupComplete: true,
-      dragAndDropOnMobile: true,
-      atRiskThreshold: 70,
-      showWeekNumbers: false,
-      onTrackTolerance: 10,
     );
 
     dataSource = PlannerItemDataSource(
@@ -120,7 +97,6 @@ void main() {
       userSettings: userSettings,
     );
 
-    // Initialize cache with a wide date range so addPlannerItem works
     await dataSource.handleLoadMore(
       DateTime(2024, 1, 1),
       DateTime(2026, 12, 31),
@@ -130,12 +106,11 @@ void main() {
   group('PlannerItemDataSource', () {
     group('initialization', () {
       test('initializes with empty appointments', () {
-        // Create a fresh data source without setUp's handleLoadMore call
         final freshDataSource = PlannerItemDataSource(
           eventRepository: mockEventRepository,
           homeworkRepository: mockHomeworkRepository,
           courseScheduleRepository: mockCourseScheduleRepository,
-          externalCalendarRepository: mockExternalCalendarRepository,
+              externalCalendarRepository: mockExternalCalendarRepository,
           userSettings: userSettings,
         );
 
@@ -145,12 +120,11 @@ void main() {
       });
 
       test('initializes with empty filter state', () {
-        // Create a fresh data source without setUp's handleLoadMore call
         final freshDataSource = PlannerItemDataSource(
           eventRepository: mockEventRepository,
           homeworkRepository: mockHomeworkRepository,
           courseScheduleRepository: mockCourseScheduleRepository,
-          externalCalendarRepository: mockExternalCalendarRepository,
+              externalCalendarRepository: mockExternalCalendarRepository,
           userSettings: userSettings,
         );
 
@@ -189,8 +163,6 @@ void main() {
 
       test('getStartTime returns DateTime with priority adjustment', () {
         final startTime = dataSource.getStartTime(0);
-        // Homework: (3-0) + (100-0) = 103 seconds subtracted
-        // Time is converted to user's timezone before adjustment
         final expectedBase = tz.TZDateTime.from(
           DateTime.parse('2025-01-15T10:00:00Z'),
           userSettings.timeZone,
@@ -205,8 +177,6 @@ void main() {
         'getEndTime returns DateTime with priority adjustment for non-allDay events',
         () {
           final endTime = dataSource.getEndTime(0);
-          // Homework: (3-0) + (100-0) = 103 seconds subtracted
-          // Time is converted to user's timezone before adjustment
           final expectedBase = tz.TZDateTime.from(
             DateTime.parse('2025-01-15T11:00:00Z'),
             userSettings.timeZone,
@@ -222,18 +192,209 @@ void main() {
         final allDayHomework = _createHomeworkModel(
           id: 3,
           title: 'All Day',
-          start: DateTime.parse('2025-01-15T00:00:00Z'),
-          end: DateTime.parse('2025-01-16T00:00:00Z'),
+          start: DateTime.parse('2025-01-15T08:00:00Z'),
+          end: DateTime.parse('2025-01-16T08:00:00Z'),
           allDay: true,
         );
         dataSource.appointments!.insert(0, allDayHomework);
 
         final endTime = dataSource.getEndTime(0);
-        // All-day uses UTC date anchored to midnight in user's timezone,
-        // then subtracts 1 day for SfCalendar's exclusive end convention.
         final expected = tz.TZDateTime(userSettings.timeZone, 2025, 1, 15);
         expect(endTime, expected);
       });
+
+      test(
+        'all-day item at a positive UTC offset anchors on the user-local date',
+        () {
+          final amsterdam = tz.getLocation('Europe/Amsterdam');
+          dataSource.userSettings = _createUserSettings(timeZone: amsterdam);
+
+          final allDayHomework = _createHomeworkModel(
+            id: 4,
+            title: 'Amsterdam All Day',
+            start: DateTime.parse('2025-09-03T22:00:00Z'),
+            end: DateTime.parse('2025-09-04T22:00:00Z'),
+            allDay: true,
+          );
+          dataSource.appointments!.insert(0, allDayHomework);
+
+          expect(
+            dataSource.getStartTime(0),
+            tz.TZDateTime(amsterdam, 2025, 9, 4),
+          );
+          expect(
+            dataSource.getEndTime(0),
+            tz.TZDateTime(amsterdam, 2025, 9, 4),
+          );
+          expect(dataSource.isAllDay(0), isTrue);
+
+          DateTime asRendered(DateTime value) {
+            final converted = tz.TZDateTime.from(value, amsterdam);
+            return DateTime(converted.year, converted.month, converted.day);
+          }
+
+          expect(asRendered(dataSource.getStartTime(0)), DateTime(2025, 9, 4));
+          expect(asRendered(dataSource.getEndTime(0)), DateTime(2025, 9, 4));
+        },
+      );
+
+      test(
+        'a recurring occurrence resolves to the same day the grid renders it',
+        () {
+          final amsterdam = tz.getLocation('Europe/Amsterdam');
+          dataSource.userSettings = _createUserSettings(timeZone: amsterdam);
+          dataSource.appointments!.clear();
+
+          dataSource.addPlannerItem(
+            CourseScheduleEventModel(
+              id: 900,
+              title: 'Late Seminar',
+              allDay: false,
+              showEndTime: true,
+              start: DateTime.parse('2025-09-10T22:30:00Z'),
+              end: DateTime.parse('2025-09-10T23:30:00Z'),
+              priority: 50,
+              url: null,
+              comments: '',
+              attachments: [],
+              reminders: [],
+              ownerId: '1',
+              color: const Color(0xFFFF5722),
+              recurrenceRule: 'FREQ=WEEKLY;BYDAY=TH;UNTIL=20251009T000000Z',
+              exceptionDates: const [],
+            ),
+          );
+
+          final onOccurrence = dataSource.getItemsForDay(
+            DateTime(2025, 9, 18),
+          );
+          expect(
+            onOccurrence.map((e) => e.id),
+            contains(900),
+            reason: 'the 18th is a local Thursday occurrence',
+          );
+
+          final offOccurrence = dataSource.getItemsForDay(
+            DateTime(2025, 9, 19),
+          );
+          expect(
+            offOccurrence.map((e) => e.id),
+            isNot(contains(900)),
+            reason: 'the 19th is only an occurrence in the UTC frame',
+          );
+
+          final occurrence = onOccurrence.firstWhere((e) => e.id == 900);
+          final localStart = tz.TZDateTime.from(occurrence.start, amsterdam);
+          expect(localStart.hour, 0);
+          expect(localStart.minute, 30);
+        },
+      );
+
+      test(
+        'an EXDATE suppresses its occurrence through SfCalendar\'s pipeline',
+        () {
+          final amsterdam = tz.getLocation('Europe/Amsterdam');
+          dataSource.userSettings = _createUserSettings(timeZone: amsterdam);
+          dataSource.appointments!.clear();
+
+          dataSource.appointments!.insert(
+            0,
+            _createExternalCalendarEventModel(
+              id: 901,
+              start: DateTime.parse('2025-09-04T07:00:00Z'),
+              end: DateTime.parse('2025-09-04T08:00:00Z'),
+              recurrenceRule: 'FREQ=WEEKLY;BYDAY=TH;UNTIL=20251002T000000Z',
+              exceptionDates: [DateTime.parse('2025-09-18T07:00:00Z')],
+            ),
+          );
+
+          DateTime sfConvert(DateTime value) {
+            final converted = tz.TZDateTime.from(value, amsterdam);
+            return DateTime(
+              converted.year,
+              converted.month,
+              converted.day,
+              converted.hour,
+              converted.minute,
+              converted.second,
+            );
+          }
+
+          bool isSameDate(DateTime a, DateTime b) =>
+              a.year == b.year && a.month == b.month && a.day == b.day;
+
+          final occurrences = SfCalendar.getRecurrenceDateTimeCollection(
+            dataSource.getRecurrenceRule(0)!,
+            sfConvert(dataSource.getStartTime(0)),
+          );
+          final exceptions =
+              dataSource.getRecurrenceExceptionDates(0)!.map(sfConvert).toList();
+
+          final rendered = occurrences
+              .where((o) => !exceptions.any((e) => isSameDate(o, e)))
+              .map((o) => '${o.year}-${o.month}-${o.day}')
+              .toList();
+
+          expect(rendered, contains('2025-9-11'));
+          expect(rendered, contains('2025-9-25'));
+          expect(
+            rendered,
+            isNot(contains('2025-9-18')),
+            reason: 'the EXDATE must suppress the 18th',
+          );
+        },
+      );
+
+      test(
+        'a UTC EXDATE suppresses its occurrence in the day list',
+        () {
+          final amsterdam = tz.getLocation('Europe/Amsterdam');
+          dataSource.userSettings = _createUserSettings(timeZone: amsterdam);
+          dataSource.appointments!.clear();
+          dataSource.appointments!.insert(
+            0,
+            _createExternalCalendarEventModel(
+              id: 902,
+              start: DateTime.parse('2025-09-10T22:30:00Z'),
+              end: DateTime.parse('2025-09-10T23:30:00Z'),
+              recurrenceRule: 'FREQ=WEEKLY;BYDAY=TH;UNTIL=20251009T000000Z',
+              exceptionDates: [DateTime.parse('2025-09-17T22:30:00Z')],
+            ),
+          );
+
+          expect(
+            dataSource.getItemsForDay(DateTime(2025, 9, 11)).map((e) => e.id),
+            contains(902),
+          );
+          expect(
+            dataSource.getItemsForDay(DateTime(2025, 9, 18)).map((e) => e.id),
+            isNot(contains(902)),
+            reason: 'the EXDATE lands on the 18th once resolved to Amsterdam',
+          );
+        },
+      );
+
+      test(
+        'an all-day item ending across a DST transition ends at local midnight',
+        () {
+          final amsterdam = tz.getLocation('Europe/Amsterdam');
+          dataSource.userSettings = _createUserSettings(timeZone: amsterdam);
+          dataSource.appointments!.insert(
+            0,
+            _createHomeworkModel(
+              id: 7,
+              allDay: true,
+              start: DateTime.parse('2025-10-25T22:00:00Z'),
+              end: DateTime.parse('2025-10-26T23:00:00Z'),
+            ),
+          );
+
+          expect(
+            dataSource.getEndTime(0),
+            tz.TZDateTime(amsterdam, 2025, 10, 26),
+          );
+        },
+      );
 
       test('isAllDay returns correct value', () {
         expect(dataSource.isAllDay(0), isFalse);
@@ -241,8 +402,8 @@ void main() {
         final allDayHomework = _createHomeworkModel(
           id: 3,
           title: 'All Day',
-          start: DateTime.parse('2025-01-15T00:00:00Z'),
-          end: DateTime.parse('2025-01-16T00:00:00Z'),
+          start: DateTime.parse('2025-01-15T08:00:00Z'),
+          end: DateTime.parse('2025-01-16T08:00:00Z'),
           allDay: true,
         );
         dataSource.appointments!.insert(0, allDayHomework);
@@ -307,7 +468,7 @@ void main() {
           eventRepository: mockEventRepository,
           homeworkRepository: mockHomeworkRepository,
           courseScheduleRepository: mockCourseScheduleRepository,
-          externalCalendarRepository: mockExternalCalendarRepository,
+              externalCalendarRepository: mockExternalCalendarRepository,
           userSettings: colorByCategorySettings,
         );
         colorByCategoryDataSource.courses = [course];
@@ -605,7 +766,6 @@ void main() {
         dataSource.setFilterStatuses({'Complete'});
         final filtered = dataSource.filteredHomeworks;
 
-        // Item with override should always be visible
         expect(filtered, hasLength(2));
         expect(filtered.map((h) => h.id), containsAll([1, 2]));
       });
@@ -906,8 +1066,6 @@ void main() {
           '2025-01-20T10:00:00Z',
         );
 
-        // getStartTime subtracts a sort-order adjustment (priority 0, position 0
-        // → 103 s) so SfCalendar sees distinct times that encode our sort order.
         final adjustment = Sort.getTimedEventStartTimeAdjustmentSeconds(0, 0);
         final expected = tz.TZDateTime.from(
           DateTime.parse('2025-01-20T09:00:00Z'),
@@ -923,8 +1081,6 @@ void main() {
           '2025-01-20T10:00:00Z',
         );
 
-        // getEndTime applies the same adjustment as getStartTime so the visual
-        // duration is preserved.
         final adjustment = Sort.getTimedEventStartTimeAdjustmentSeconds(0, 0);
         final expected = tz.TZDateTime.from(
           DateTime.parse('2025-01-20T10:00:00Z'),
@@ -947,8 +1103,6 @@ void main() {
         );
         dataSource.updatePlannerItem(updated);
 
-        // After the override is cleared, getStartTime returns the model's real
-        // start minus the sort-order adjustment (priority 0, position 0 → 103 s).
         final adjustment = Sort.getTimedEventStartTimeAdjustmentSeconds(0, 0);
         final expected = tz.TZDateTime.from(
           DateTime.parse('2025-01-16T14:00:00Z'),
@@ -1057,14 +1211,13 @@ void main() {
       test('single all-day homework has no offset (priority 0, position 0)', () {
         final allDayHomework = _createHomeworkModel(
           id: 1,
-          start: DateTime.parse('2025-01-15T00:00:00Z'),
-          end: DateTime.parse('2025-01-16T00:00:00Z'),
+          start: DateTime.parse('2025-01-15T08:00:00Z'),
+          end: DateTime.parse('2025-01-16T08:00:00Z'),
           allDay: true,
         );
         dataSource.addPlannerItem(allDayHomework);
 
         final startTime = dataSource.getStartTime(0);
-        // All-day uses UTC date anchored to midnight in user's timezone
         final expected = tz.TZDateTime(userSettings.timeZone, 2025, 1, 15);
         expect(startTime, expected);
       });
@@ -1073,15 +1226,15 @@ void main() {
         final hw1 = _createHomeworkModel(
           id: 1,
           title: 'Quiz 4',
-          start: DateTime.parse('2025-01-15T00:00:00Z'),
-          end: DateTime.parse('2025-01-16T00:00:00Z'),
+          start: DateTime.parse('2025-01-15T08:00:00Z'),
+          end: DateTime.parse('2025-01-16T08:00:00Z'),
           allDay: true,
         );
         final hw2 = _createHomeworkModel(
           id: 2,
           title: 'Quiz 5',
-          start: DateTime.parse('2025-01-15T00:00:00Z'),
-          end: DateTime.parse('2025-01-16T00:00:00Z'),
+          start: DateTime.parse('2025-01-15T08:00:00Z'),
+          end: DateTime.parse('2025-01-16T08:00:00Z'),
           allDay: true,
         );
         dataSource.addPlannerItem(hw2);
@@ -1094,7 +1247,6 @@ void main() {
           (a) => (a as PlannerItemBaseModel).id == 2,
         );
 
-        // Quiz 4 sorts before Quiz 5 alphabetically — must get earlier start time
         expect(
           dataSource.getStartTime(hw1Index).isBefore(
             dataSource.getStartTime(hw2Index),
@@ -1130,9 +1282,7 @@ void main() {
         final hw1Start = dataSource.getStartTime(hw1Index);
         final hw2Start = dataSource.getStartTime(hw2Index);
 
-        // Alpha sorts before Beta, so Alpha gets the earlier adjusted time
         expect(hw1Start.isBefore(hw2Start), isTrue);
-        // Both still within the same minute
         expect(hw2Start.difference(hw1Start).inMinutes, 0);
       });
     });
@@ -1163,17 +1313,118 @@ void main() {
       });
     });
 
+    group('refreshCalendarSources', () {
+      late PlannerItemDataSource freshDataSource;
+
+      void stubEmptySources() {
+        when(
+          () => mockHomeworkRepository.getHomeworks(
+            from: any(named: 'from'),
+            to: any(named: 'to'),
+            shownOnCalendar: any(named: 'shownOnCalendar'),
+            forceRefresh: any(named: 'forceRefresh'),
+          ),
+        ).thenAnswer((_) async => []);
+        when(
+          () => mockEventRepository.getEvents(
+            from: any(named: 'from'),
+            to: any(named: 'to'),
+            forceRefresh: any(named: 'forceRefresh'),
+          ),
+        ).thenAnswer((_) async => []);
+        when(
+          () => mockCourseScheduleRepository.getCourseScheduleEvents(
+            courses: any(named: 'courses'),
+            from: any(named: 'from'),
+            to: any(named: 'to'),
+          ),
+        ).thenAnswer((_) async => []);
+        when(
+          () => mockExternalCalendarRepository.getExternalCalendarEvents(
+            from: any(named: 'from'),
+            to: any(named: 'to'),
+            shownOnCalendar: any(named: 'shownOnCalendar'),
+            forceRefresh: any(named: 'forceRefresh'),
+          ),
+        ).thenAnswer((_) async => []);
+      }
+
+      setUp(() {
+        reset(mockHomeworkRepository);
+        reset(mockEventRepository);
+        reset(mockCourseScheduleRepository);
+        reset(mockExternalCalendarRepository);
+        stubEmptySources();
+
+        freshDataSource = PlannerItemDataSource(
+          eventRepository: mockEventRepository,
+          homeworkRepository: mockHomeworkRepository,
+          courseScheduleRepository: mockCourseScheduleRepository,
+              externalCalendarRepository: mockExternalCalendarRepository,
+          userSettings: userSettings,
+        );
+      });
+
+      test('refetches an already-cached range the range cache would skip', () async {
+        await freshDataSource.handleLoadMore(
+          DateTime(2025, 1, 1),
+          DateTime(2025, 1, 31),
+        );
+
+        reset(mockHomeworkRepository);
+        reset(mockEventRepository);
+        reset(mockCourseScheduleRepository);
+        reset(mockExternalCalendarRepository);
+        stubEmptySources();
+
+        await freshDataSource.refreshCalendarSources(
+          visibleStart: DateTime(2025, 1, 1),
+          visibleEnd: DateTime(2025, 1, 31),
+        );
+
+        verify(
+          () => mockHomeworkRepository.getHomeworks(
+            from: any(named: 'from'),
+            to: any(named: 'to'),
+            shownOnCalendar: any(named: 'shownOnCalendar'),
+            forceRefresh: any(named: 'forceRefresh'),
+          ),
+        ).called(1);
+        verify(
+          () => mockEventRepository.getEvents(
+            from: any(named: 'from'),
+            to: any(named: 'to'),
+            forceRefresh: any(named: 'forceRefresh'),
+          ),
+        ).called(1);
+        verify(
+          () => mockCourseScheduleRepository.getCourseScheduleEvents(
+            courses: any(named: 'courses'),
+            from: any(named: 'from'),
+            to: any(named: 'to'),
+          ),
+        ).called(1);
+        verify(
+          () => mockExternalCalendarRepository.getExternalCalendarEvents(
+            from: any(named: 'from'),
+            to: any(named: 'to'),
+            shownOnCalendar: any(named: 'shownOnCalendar'),
+            forceRefresh: any(named: 'forceRefresh'),
+          ),
+        ).called(1);
+      });
+
+    });
+
     group('handleLoadMore', () {
       late PlannerItemDataSource freshDataSource;
 
       setUp(() {
-        // Reset mocks to clear calls from outer setUp
         reset(mockHomeworkRepository);
         reset(mockEventRepository);
         reset(mockCourseScheduleRepository);
         reset(mockExternalCalendarRepository);
 
-        // Re-setup default mocks
         when(
           () => mockHomeworkRepository.getHomeworks(
             from: any(named: 'from'),
@@ -1202,12 +1453,11 @@ void main() {
           ),
         ).thenAnswer((_) async => []);
 
-        // Create a fresh data source without the pre-loaded cache
         freshDataSource = PlannerItemDataSource(
           eventRepository: mockEventRepository,
           homeworkRepository: mockHomeworkRepository,
           courseScheduleRepository: mockCourseScheduleRepository,
-          externalCalendarRepository: mockExternalCalendarRepository,
+              externalCalendarRepository: mockExternalCalendarRepository,
           userSettings: userSettings,
         );
       });
@@ -1229,7 +1479,6 @@ void main() {
           DateTime(2025, 1, 31),
         );
 
-        // Reset mocks to track new calls
         reset(mockHomeworkRepository);
         reset(mockEventRepository);
         reset(mockCourseScheduleRepository);
@@ -1263,7 +1512,6 @@ void main() {
           ),
         ).thenAnswer((_) async => []);
 
-        // Same range should use cache
         await freshDataSource.handleLoadMore(
           DateTime(2025, 1, 1),
           DateTime(2025, 1, 31),
@@ -1284,7 +1532,6 @@ void main() {
           DateTime(2025, 1, 31),
         );
 
-        // Different range should fetch
         await freshDataSource.handleLoadMore(
           DateTime(2025, 2, 1),
           DateTime(2025, 2, 28),
@@ -1353,7 +1600,6 @@ void main() {
           ),
         ).thenAnswer((_) async => [homework]);
 
-        // Load two different ranges that both return the same item
         await freshDataSource.handleLoadMore(
           DateTime(2025, 1, 1),
           DateTime(2025, 1, 31),
@@ -1363,7 +1609,6 @@ void main() {
           DateTime(2025, 2, 15),
         );
 
-        // allPlannerItems should deduplicate
         expect(freshDataSource.allPlannerItems, hasLength(1));
       });
 
@@ -1453,7 +1698,31 @@ void main() {
   });
 }
 
-// Helper functions to create test models
+UserSettingsModel _createUserSettings({required tz.Location timeZone}) {
+  return UserSettingsModel(
+    timeZone: timeZone,
+    defaultView: 0,
+    colorSchemeTheme: 0,
+    weekStartsOn: 0,
+    whatsNewVersionSeen: 0,
+    showGettingStarted: false,
+    eventsColor: const Color(0xFF4CAF50),
+    resourceColor: const Color(0xFF2196F3),
+    gradeColor: const Color(0xFFF44336),
+    defaultReminderType: 3,
+    defaultReminderOffset: 0,
+    defaultReminderOffsetType: 0,
+    colorByCategory: false,
+    showPlannerTooltips: true,
+    rememberFilterState: false,
+    collapseBusyDays: true,
+    isSetupComplete: true,
+    dragAndDropOnMobile: true,
+    atRiskThreshold: 70,
+    showWeekNumbers: false,
+    onTrackTolerance: 10,
+  );
+}
 
 HomeworkModel _createHomeworkModel({
   int id = 1,
@@ -1542,14 +1811,18 @@ ExternalCalendarEventModel _createExternalCalendarEventModel({
   int id = 1,
   String title = 'External Event',
   Color color = const Color(0xFF9C27B0),
+  DateTime? start,
+  DateTime? end,
+  String? recurrenceRule,
+  List<DateTime> exceptionDates = const [],
 }) {
   return ExternalCalendarEventModel(
     id: id,
     title: title,
     allDay: false,
     showEndTime: true,
-    start: DateTime.parse('2025-01-15T10:00:00Z'),
-    end: DateTime.parse('2025-01-15T11:00:00Z'),
+    start: start ?? DateTime.parse('2025-01-15T10:00:00Z'),
+    end: end ?? DateTime.parse('2025-01-15T11:00:00Z'),
     priority: 50,
     url: null,
     comments: '',
@@ -1557,6 +1830,8 @@ ExternalCalendarEventModel _createExternalCalendarEventModel({
     reminders: [],
     ownerId: '1',
     color: color,
+    recurrenceRule: recurrenceRule,
+    exceptionDates: exceptionDates,
   );
 }
 

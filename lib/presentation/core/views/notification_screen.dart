@@ -367,7 +367,7 @@ class _NotificationsScreenState
     }
     reminders.removeWhere((r) => r.startOfRange == null);
 
-    Sort.byStartOfRange(reminders, userSettings!.timeZone);
+    Sort.byStartOfRange(reminders);
 
     final notifications = <NotificationModel>[];
     for (final r in reminders) {

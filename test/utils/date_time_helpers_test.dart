@@ -211,7 +211,6 @@ void main() {
           location,
         );
 
-        // Result should be a valid ISO 8601 string with timezone offset
         expect(
           result,
           matches(RegExp(r'^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d+')),
@@ -234,7 +233,6 @@ void main() {
 
     group('getDaysBetween', () {
       test('returns 0 when before start date', () {
-        // Use dates in the future relative to now
         final now = DateTime.now();
         final futureStart = now.add(const Duration(days: 30));
         final futureEnd = now.add(const Duration(days: 60));
@@ -244,7 +242,6 @@ void main() {
       });
 
       test('returns 100 when after end date', () {
-        // Use dates in the past relative to now
         final now = DateTime.now();
         final pastStart = now.subtract(const Duration(days: 60));
         final pastEnd = now.subtract(const Duration(days: 30));
@@ -254,7 +251,6 @@ void main() {
       });
 
       test('returns 0 when start equals end and dates are in future', () {
-        // Use a future date
         final now = DateTime.now();
         final futureDate = now.add(const Duration(days: 30));
 
@@ -262,7 +258,6 @@ void main() {
       });
 
       test('returns 100 when start equals end and dates are in past', () {
-        // Use a past date
         final now = DateTime.now();
         final pastDate = now.subtract(const Duration(days: 30));
 
@@ -270,13 +265,11 @@ void main() {
       });
 
       test('returns days elapsed when currently within range', () {
-        // Create a range that spans the current date
         final now = DateTime.now();
         final start = now.subtract(const Duration(days: 10));
         final end = now.add(const Duration(days: 20));
 
         final result = HeliumDateTime.getDaysBetween(start, end);
-        // Should be approximately 10 days (the elapsed portion)
         expect(result, greaterThanOrEqualTo(9));
         expect(result, lessThanOrEqualTo(11));
       });
@@ -324,17 +317,14 @@ void main() {
       });
 
       test('result is always between 0 and 100', () {
-        // Test with various date ranges
         final now = DateTime.now();
 
-        // Past range - should be 100
         final pastStart = now.subtract(const Duration(days: 60));
         final pastEnd = now.subtract(const Duration(days: 30));
         final result1 = HeliumDateTime.getPercentDiffBetween(pastStart, pastEnd);
         expect(result1, greaterThanOrEqualTo(0));
         expect(result1, lessThanOrEqualTo(100));
 
-        // Future range - should be 0
         final futureStart = now.add(const Duration(days: 30));
         final futureEnd = now.add(const Duration(days: 60));
         final result2 = HeliumDateTime.getPercentDiffBetween(futureStart, futureEnd);
@@ -343,13 +333,11 @@ void main() {
       });
 
       test('returns approximately 50% at midpoint of range', () {
-        // Create a range centered on now
         final now = DateTime.now();
         final start = now.subtract(const Duration(days: 50));
         final end = now.add(const Duration(days: 50));
 
         final result = HeliumDateTime.getPercentDiffBetween(start, end);
-        // Should be approximately 50%
         expect(result, greaterThanOrEqualTo(45));
         expect(result, lessThanOrEqualTo(55));
       });
@@ -358,12 +346,10 @@ void main() {
     group('toLocal - timezone conversion', () {
       test('converts UTC to America/New_York (UTC-5 standard, UTC-4 DST)', () {
         final nyTz = tz.getLocation('America/New_York');
-        // January (standard time, UTC-5)
         final utcWinter = DateTime.utc(2025, 1, 15, 12, 0, 0);
         final localWinter = HeliumDateTime.toLocal(utcWinter, nyTz);
         expect(localWinter.hour, equals(7)); // 12:00 UTC = 7:00 EST
 
-        // July (daylight saving time, UTC-4)
         final utcSummer = DateTime.utc(2025, 7, 15, 12, 0, 0);
         final localSummer = HeliumDateTime.toLocal(utcSummer, nyTz);
         expect(localSummer.hour, equals(8)); // 12:00 UTC = 8:00 EDT
@@ -371,12 +357,10 @@ void main() {
 
       test('converts UTC to Europe/London (UTC+0 standard, UTC+1 DST)', () {
         final londonTz = tz.getLocation('Europe/London');
-        // January (standard time, UTC+0)
         final utcWinter = DateTime.utc(2025, 1, 15, 12, 0, 0);
         final localWinter = HeliumDateTime.toLocal(utcWinter, londonTz);
         expect(localWinter.hour, equals(12)); // 12:00 UTC = 12:00 GMT
 
-        // July (British Summer Time, UTC+1)
         final utcSummer = DateTime.utc(2025, 7, 15, 12, 0, 0);
         final localSummer = HeliumDateTime.toLocal(utcSummer, londonTz);
         expect(localSummer.hour, equals(13)); // 12:00 UTC = 13:00 BST
@@ -390,7 +374,6 @@ void main() {
       });
 
       test('handles UTC midnight boundary - date changes in positive offset', () {
-        // UTC midnight should become next day morning in Asia/Tokyo
         final tokyoTz = tz.getLocation('Asia/Tokyo');
         final utcMidnight = DateTime.utc(2025, 6, 15, 0, 0, 0);
         final local = HeliumDateTime.toLocal(utcMidnight, tokyoTz);
@@ -400,9 +383,7 @@ void main() {
       });
 
       test('handles UTC midnight boundary - date changes in negative offset', () {
-        // UTC 3:00 AM should become previous day in America/Los_Angeles
         final laTz = tz.getLocation('America/Los_Angeles');
-        // In January (PST = UTC-8)
         final utcEarlyMorning = DateTime.utc(2025, 1, 15, 3, 0, 0);
         final local = HeliumDateTime.toLocal(utcEarlyMorning, laTz);
 
@@ -429,32 +410,24 @@ void main() {
       });
 
       test('handles DST spring forward transition (America/New_York)', () {
-        // DST starts second Sunday of March at 2:00 AM local
-        // In 2025, DST starts March 9 at 2:00 AM (clocks move to 3:00 AM)
         final nyTz = tz.getLocation('America/New_York');
 
-        // Just before DST (March 9, 2025, 6:00 UTC = 1:00 AM EST)
         final beforeDst = DateTime.utc(2025, 3, 9, 6, 0, 0);
         final localBefore = HeliumDateTime.toLocal(beforeDst, nyTz);
         expect(localBefore.hour, equals(1)); // 1:00 AM EST
 
-        // Just after DST (March 9, 2025, 8:00 UTC = 4:00 AM EDT)
         final afterDst = DateTime.utc(2025, 3, 9, 8, 0, 0);
         final localAfter = HeliumDateTime.toLocal(afterDst, nyTz);
         expect(localAfter.hour, equals(4)); // 4:00 AM EDT
       });
 
       test('handles DST fall back transition (America/New_York)', () {
-        // DST ends first Sunday of November at 2:00 AM local
-        // In 2025, DST ends November 2 at 2:00 AM (clocks move to 1:00 AM)
         final nyTz = tz.getLocation('America/New_York');
 
-        // Just before DST ends (November 2, 2025, 5:00 UTC = 1:00 AM EDT)
         final beforeEnd = DateTime.utc(2025, 11, 2, 5, 0, 0);
         final localBefore = HeliumDateTime.toLocal(beforeEnd, nyTz);
         expect(localBefore.hour, equals(1)); // 1:00 AM EDT
 
-        // Just after DST ends (November 2, 2025, 7:00 UTC = 2:00 AM EST)
         final afterEnd = DateTime.utc(2025, 11, 2, 7, 0, 0);
         final localAfter = HeliumDateTime.toLocal(afterEnd, nyTz);
         expect(localAfter.hour, equals(2)); // 2:00 AM EST
@@ -490,7 +463,6 @@ void main() {
 
       test('year boundary - UTC midnight Dec 31 in positive offset', () {
         final tokyoTz = tz.getLocation('Asia/Tokyo');
-        // UTC midnight on Dec 31 is already Jan 1 in Tokyo
         final utcNewYearsEve = DateTime.utc(2025, 12, 31, 0, 0, 0);
         final local = HeliumDateTime.toLocal(utcNewYearsEve, tokyoTz);
 
@@ -515,7 +487,6 @@ void main() {
     group('parse - timezone edge cases', () {
       test('parses ISO string and converts to specified timezone', () {
         final nyTz = tz.getLocation('America/New_York');
-        // UTC time 15:00 should become 11:00 in NY (EDT, UTC-4 in July)
         final result = HeliumDateTime.parse('2025-07-15T15:00:00Z', nyTz);
 
         expect(result.hour, equals(11)); // 15:00 UTC = 11:00 EDT
@@ -524,8 +495,6 @@ void main() {
 
       test('parses ISO string during DST transition', () {
         final nyTz = tz.getLocation('America/New_York');
-        // Test parsing a time just after DST spring forward
-        // March 9, 2025 10:00 UTC should be 6:00 AM EDT
         final result = HeliumDateTime.parse('2025-03-09T10:00:00Z', nyTz);
 
         expect(result.hour, equals(6)); // Should be 6:00 AM EDT
@@ -533,7 +502,6 @@ void main() {
 
       test('parses ISO string with timezone offset suffix', () {
         final utcTz = tz.getLocation('UTC');
-        // The Z suffix indicates UTC
         final result = HeliumDateTime.parse('2025-08-15T10:30:00Z', utcTz);
 
         expect(result.hour, equals(10));
@@ -544,7 +512,6 @@ void main() {
         final nyTz = tz.getLocation('America/New_York');
         final result = HeliumDateTime.parse('2025-01-15T00:00:00Z', nyTz);
 
-        // Midnight UTC should be 7:00 PM previous day in NY (EST, UTC-5)
         expect(result.hour, equals(19)); // 7:00 PM
         expect(result.day, equals(14)); // Previous day
       });
@@ -553,12 +520,39 @@ void main() {
         final nyTz = tz.getLocation('America/New_York');
         final result = HeliumDateTime.parse('2025-01-15T23:59:59Z', nyTz);
 
-        // 23:59:59 UTC should be 18:59:59 in NY (EST)
         expect(result.hour, equals(18));
         expect(result.minute, equals(59));
         expect(result.second, equals(59));
         expect(result.day, equals(15)); // Same day
       });
+    });
+  });
+
+  group('unresolved UTC instants', () {
+    final storedInstant = DateTime.parse('2025-09-03T22:00:00Z');
+
+    test('midnightIn resolves before truncating', () {
+      final amsterdam = tz.getLocation('Europe/Amsterdam');
+      final losAngeles = tz.getLocation('America/Los_Angeles');
+      expect(HeliumDateTime.midnightIn(storedInstant, amsterdam),
+          tz.TZDateTime(amsterdam, 2025, 9, 4));
+      expect(
+        HeliumDateTime.midnightIn(
+            DateTime.parse('2025-01-15T08:00:00Z'), losAngeles),
+        tz.TZDateTime(losAngeles, 2025, 1, 15),
+      );
+    });
+
+    test('wallClockIn reads a naive value as already in the zone', () {
+      final amsterdam = tz.getLocation('Europe/Amsterdam');
+      expect(
+        HeliumDateTime.wallClockIn(DateTime(2025, 9, 18, 9, 0), amsterdam),
+        tz.TZDateTime(amsterdam, 2025, 9, 18, 9, 0),
+      );
+      expect(
+        HeliumDateTime.wallClockIn(storedInstant, amsterdam),
+        tz.TZDateTime(amsterdam, 2025, 9, 4),
+      );
     });
   });
 }

@@ -47,9 +47,9 @@ class _VerifyEmailScreenState extends BasePageScreenState<VerifyEmailScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _codeController = TextEditingController();
 
-  // Resend countdown timer
   static const int _resendCooldownSeconds = 60;
   Timer? _resendTimer;
+  DateTime? _resendEndsAt;
   int _resendCountdown = 0;
   bool _isResending = false;
 
@@ -70,8 +70,7 @@ class _VerifyEmailScreenState extends BasePageScreenState<VerifyEmailScreen> {
 
     // Auto-submit if both email and code are provided (e.g., from email link)
     if (widget.email != null && widget.code != null) {
-      // Defer submission until after initState so the form widgets are built
-      // and BLoC events can be dispatched with a valid context
+      // The form widgets and BLoC context are not ready until after initState
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!mounted) return;
 
@@ -358,6 +357,10 @@ class _VerifyEmailScreenState extends BasePageScreenState<VerifyEmailScreen> {
   }
 
   void _startResendCountdown() {
+    _resendEndsAt = DateTime.now().add(
+      const Duration(seconds: _resendCooldownSeconds + 1),
+    );
+
     setState(() {
       _isResending = false;
       _resendCountdown = _resendCooldownSeconds;
@@ -365,7 +368,6 @@ class _VerifyEmailScreenState extends BasePageScreenState<VerifyEmailScreen> {
 
     _resendTimer?.cancel();
 
-    // Wait 1 second before starting countdown to avoid hitting rate limit edge case
     Future.delayed(const Duration(seconds: 1), () {
       if (!mounted) return;
 
@@ -375,9 +377,15 @@ class _VerifyEmailScreenState extends BasePageScreenState<VerifyEmailScreen> {
           return;
         }
 
+        final int remainingMs = _resendEndsAt!
+            .difference(DateTime.now())
+            .inMilliseconds;
+
         setState(() {
-          _resendCountdown--;
+          _resendCountdown = (remainingMs / Duration.millisecondsPerSecond)
+              .ceil();
           if (_resendCountdown <= 0) {
+            _resendCountdown = 0;
             timer.cancel();
           }
         });

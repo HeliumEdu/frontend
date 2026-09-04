@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_timezone/flutter_timezone.dart';
 import 'package:heliumapp/presentation/features/auth/controllers/credentials_form_controller.dart';
 import 'package:heliumapp/presentation/features/shared/controllers/basic_form_controller.dart';
-import 'package:heliumapp/utils/time_zone_constants.dart';
+import 'package:heliumapp/utils/date_time_helpers.dart';
 
 class SignupFormController extends CredentialsFormController {
   // Field name constants - must match backend API field names
@@ -15,8 +15,7 @@ class SignupFormController extends CredentialsFormController {
 
   Future<void> initializeTimeZones() async {
     final tz = (await FlutterTimezone.getLocalTimezone()).identifier;
-    selectedTimeZone =
-        TimeZoneConstants.all.contains(tz) ? tz : 'UTC';
+    selectedTimeZone = HeliumDateTime.resolveTimeZone(tz);
   }
 
   @override
