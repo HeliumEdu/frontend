@@ -126,6 +126,15 @@ class UpdateCourseScheduleEvent extends CourseEvent {
   });
 }
 
+class FetchHasCourseSchedulesEvent extends CourseEvent {
+  final bool forceRefresh;
+
+  FetchHasCourseSchedulesEvent({
+    required super.origin,
+    this.forceRefresh = false,
+  });
+}
+
 class FetchCourseSchedulesEvent extends CourseEvent {
   final int courseGroupId;
   final int courseId;

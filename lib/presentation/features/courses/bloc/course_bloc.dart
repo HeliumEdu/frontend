@@ -40,6 +40,7 @@ class CourseBloc extends Bloc<CourseEvent, CourseState> {
     on<UpdateCourseEvent>(_onUpdateCourse);
     on<DeleteCourseEvent>(_onDeleteCourse);
     on<UpdateCourseScheduleEvent>(_onUpdateCourseSchedule);
+    on<FetchHasCourseSchedulesEvent>(_onFetchHasCourseSchedules);
     on<FetchCourseSchedulesEvent>(_onFetchCourseSchedules);
     on<CreateCourseScheduleEvent>(_onCreateCourseSchedule);
     on<DeleteCourseScheduleEvent>(_onDeleteCourseSchedule);
@@ -169,6 +170,34 @@ class CourseBloc extends Bloc<CourseEvent, CourseState> {
         event.courseId,
       );
       emit(CourseFetched(origin: event.origin, course: course));
+    } on HeliumException catch (e) {
+      emit(CoursesError(origin: event.origin, message: e.message));
+    } catch (e) {
+      emit(
+        CoursesError(
+          origin: event.origin,
+          message: HeliumException.unexpectedError,
+        ),
+      );
+    }
+  }
+
+  Future<void> _onFetchHasCourseSchedules(
+    FetchHasCourseSchedulesEvent event,
+    Emitter<CourseState> emit,
+  ) async {
+    try {
+      final hasCourseSchedules = await courseScheduleRepository
+          .hasCourseSchedules(
+            shownOnCalendar: true,
+            forceRefresh: event.forceRefresh,
+          );
+      emit(
+        HasCourseSchedulesFetched(
+          origin: event.origin,
+          hasCourseSchedules: hasCourseSchedules,
+        ),
+      );
     } on HeliumException catch (e) {
       emit(CoursesError(origin: event.origin, message: e.message));
     } catch (e) {
