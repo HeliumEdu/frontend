@@ -73,6 +73,18 @@ class PlannerHelper {
     return HeliumDateTime.wallClockIn(selectedDate, timeZone);
   }
 
+  /// Selection for a region carrying a date but no hour — a month cell, or the
+  /// all-day panel. The current [timeZone] hour stands in so new items do not
+  /// prefill at midnight. Naive, because SfCalendar is handed it back.
+  static DateTime selectionWithCurrentHour({
+    required DateTime date,
+    required DateTime now,
+    required tz.Location timeZone,
+  }) {
+    final local = tz.TZDateTime.from(now, timeZone);
+    return DateTime(date.year, date.month, date.day, local.hour);
+  }
+
   /// Index of the first item in [sorted] due on or after today in [timeZone],
   /// or -1 when every item is in the past. [sorted] must be ordered by `start`.
   static int firstIndexDueOnOrAfter(

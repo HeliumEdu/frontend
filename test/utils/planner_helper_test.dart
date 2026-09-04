@@ -298,6 +298,77 @@ void main() {
     });
   });
 
+  group('selectionWithCurrentHour', () {
+    final amsterdam = tz.getLocation('Europe/Amsterdam');
+    final losAngeles = tz.getLocation('America/Los_Angeles');
+
+    test('stands in the account-timezone hour, not the device one', () {
+      // GIVEN
+      final now = tz.TZDateTime(amsterdam, 2025, 9, 4, 14, 30);
+
+      // WHEN
+      final result = PlannerHelper.selectionWithCurrentHour(
+        date: DateTime(2025, 9, 11),
+        now: now,
+        timeZone: amsterdam,
+      );
+
+      // THEN
+      expect(result, DateTime(2025, 9, 11, 14));
+    });
+
+    test('keeps the tapped day and discards the hour the date arrived with', () {
+      // GIVEN
+      final now = tz.TZDateTime(losAngeles, 2025, 9, 4, 9);
+
+      // WHEN
+      final result = PlannerHelper.selectionWithCurrentHour(
+        date: DateTime(2025, 9, 11, 23, 59),
+        now: now,
+        timeZone: losAngeles,
+      );
+
+      // THEN
+      expect(result, DateTime(2025, 9, 11, 9),
+          reason: 'an all-day panel or month cell carries a date but no hour');
+    });
+
+    test('result is naive so it can be handed back to SfCalendar', () {
+      // GIVEN / WHEN
+      final result = PlannerHelper.selectionWithCurrentHour(
+        date: DateTime(2025, 9, 11),
+        now: tz.TZDateTime(amsterdam, 2025, 9, 4, 14),
+        timeZone: amsterdam,
+      );
+
+      // THEN
+      expect(result, isNot(isA<tz.TZDateTime>()));
+      expect(result.isUtc, isFalse);
+    });
+
+    test('feeds initialDateForNewItem the account hour end to end', () {
+      // GIVEN
+      final now = tz.TZDateTime(amsterdam, 2025, 9, 4, 14, 30);
+
+      // WHEN
+      final selected = PlannerHelper.selectionWithCurrentHour(
+        date: DateTime(2025, 9, 11),
+        now: now,
+        timeZone: amsterdam,
+      );
+      final result = PlannerHelper.initialDateForNewItem(
+        view: PlannerView.week,
+        selectedDate: selected,
+        now: now,
+        timeZone: amsterdam,
+      );
+
+      // THEN
+      expect(tz.TZDateTime.from(result!, amsterdam),
+          tz.TZDateTime(amsterdam, 2025, 9, 11, 14));
+    });
+  });
+
   group('initialDateForNewItem', () {
     final amsterdam = tz.getLocation('Europe/Amsterdam');
 

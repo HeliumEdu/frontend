@@ -1030,6 +1030,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
           onDragEnd: _dropCalendarItem,
           onAppointmentResizeEnd: _resizeCalendarItem,
           onSelectionChanged: _onCalendarSelectionChanged,
+          onTap: _onCalendarTap,
           onViewChanged: (ViewChangedDetails details) {
             _visibleDates = details.visibleDates;
             if (!mounted) return;
@@ -1979,11 +1980,10 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
         _calendarController.selectedDate == null) {
       _mobileMonthAutoSelectApplied = true;
       final now = DateTime.now();
-      _calendarController.selectedDate = DateTime(
-        now.year,
-        now.month,
-        now.day,
-        now.hour,
+      _calendarController.selectedDate = PlannerHelper.selectionWithCurrentHour(
+        date: now,
+        now: now,
+        timeZone: userSettings!.timeZone,
       );
     }
   }
@@ -1999,6 +1999,19 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
     }
   }
 
+  void _onCalendarTap(CalendarTapDetails details) {
+    if (details.targetElement != CalendarElement.allDayPanel) return;
+    if (details.date == null) return;
+
+    _log.info('All-day panel tapped: ${details.date}');
+
+    _calendarController.selectedDate = PlannerHelper.selectionWithCurrentHour(
+      date: details.date!,
+      now: DateTime.now(),
+      timeZone: userSettings!.timeZone,
+    );
+  }
+
   void _onCalendarSelectionChanged(CalendarSelectionDetails details) {
     if (details.date == null) return;
 
@@ -2008,16 +2021,12 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
       _mobileMonthAutoSelectApplied = false;
     }
 
-    // Include current hour so new items don't default to midnight
     if (_currentView == PlannerView.month) {
-      final now = DateTime.now();
-      final selectedWithTime = DateTime(
-        details.date!.year,
-        details.date!.month,
-        details.date!.day,
-        now.hour,
+      _calendarController.selectedDate = PlannerHelper.selectionWithCurrentHour(
+        date: details.date!,
+        now: DateTime.now(),
+        timeZone: userSettings!.timeZone,
       );
-      _calendarController.selectedDate = selectedWithTime;
     }
   }
 
@@ -2325,6 +2334,8 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
   }
 
   Widget _buildMobileMonthCell(BuildContext context, MonthCellDetails details) {
+    // Device clock: SfCalendar anchors its own today on a bare DateTime.now(),
+    // so zoning this would paint a second, disagreeing marker.
     final isToday = DateUtils.isSameDay(details.date, DateTime.now());
     final isCurrentMonth =
         details.visibleDates.isNotEmpty &&
@@ -3664,6 +3675,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
     if (_currentView == PlannerView.todos) {
       _todosDataGridKey.currentState?.goToToday();
     } else {
+      // Device clock, for the same reason as the today highlight above.
       _jumpToDate(DateTime.now(), offsetForVisibility: true);
     }
   }
