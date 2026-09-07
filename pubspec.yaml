@@ -23,7 +23,7 @@ dependencies:
   google_fonts: 8.1.0
   dio: 5.9.2
   pretty_dio_logger: 1.4.0
-  dio_cache_interceptor: 4.0.6
+  dio_cache_interceptor: 4.0.7
   bloc: 9.2.0
   flutter_bloc: 9.1.1
   shared_preferences: 2.5.5
