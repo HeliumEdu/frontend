@@ -4399,11 +4399,11 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
     required bool isMobile,
   }) {
     return Material(
-      color: context.colorScheme.surface,
+      color: menuContext.colorScheme.surface,
       child: ConstrainedBox(
         constraints: BoxConstraints(
           maxHeight:
-              MediaQuery.of(context).size.height *
+              MediaQuery.of(menuContext).size.height *
               AppConstants.bottomSheetMaxHeightFactor,
         ),
         child: SingleChildScrollView(
@@ -4436,7 +4436,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
                               .defaultViews[PlannerHelper.mapHeliumViewToApiView(
                             PlannerView.values[index],
                           )],
-                          style: AppStyles.formText(context),
+                          style: AppStyles.formText(menuContext),
                         ),
                         value: PlannerView.values[index],
                         controlAffinity: ListTileControlAffinity.leading,
