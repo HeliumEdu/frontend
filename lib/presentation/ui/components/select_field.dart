@@ -98,10 +98,10 @@ class SelectField<T extends BaseTitledModel> extends StatelessWidget {
 
     Widget buildContent(BuildContext menuContext, StateSetter setMenuState) {
       return Material(
-        color: Theme.of(parentContext).colorScheme.surface,
+        color: Theme.of(menuContext).colorScheme.surface,
         child: ConstrainedBox(
           constraints: BoxConstraints(
-            maxHeight: MediaQuery.of(parentContext).size.height * AppConstants.bottomSheetMaxHeightFactor,
+            maxHeight: MediaQuery.of(menuContext).size.height * AppConstants.bottomSheetMaxHeightFactor,
           ),
           child: SingleChildScrollView(
           child: Padding(
@@ -133,7 +133,7 @@ class SelectField<T extends BaseTitledModel> extends StatelessWidget {
                       Expanded(
                         child: Text(
                           item.title,
-                          style: AppStyles.formText(parentContext),
+                          style: AppStyles.formText(menuContext),
                         ),
                       ),
                     ],
