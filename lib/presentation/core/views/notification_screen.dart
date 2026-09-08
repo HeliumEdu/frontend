@@ -38,7 +38,6 @@ import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/date_time_helpers.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:heliumapp/utils/error_helpers.dart';
-import 'package:heliumapp/utils/sort_helpers.dart';
 
 /// Navigates to the notifications route (responsive: side panel on desktop,
 /// full-screen on mobile). The route's pageBuilder handles dialog rendering.
@@ -135,40 +134,41 @@ class _NotificationsScreenState
   List<NotificationModel> _notifications = [];
   bool _isOpeningEntity = false;
   bool _isDismissingAll = false;
-  int _lastKnownCount = 0;
 
   @override
   void initState() {
     super.initState();
-    _lastKnownCount = NotificationCountService().count.value;
-    NotificationCountService().count.addListener(_onCountChanged);
+    NotificationCountService().active.addListener(_onActiveChanged);
   }
 
   @override
   void dispose() {
-    NotificationCountService().count.removeListener(_onCountChanged);
+    NotificationCountService().active.removeListener(_onActiveChanged);
     super.dispose();
   }
 
-  void _onCountChanged() {
+  void _onActiveChanged() {
     if (!mounted) return;
-    final current = NotificationCountService().count.value;
-    if (current > _lastKnownCount && _notifications.isNotEmpty) {
-      _lastKnownCount = current;
-      _fetchReminders(forceRefresh: true);
-    } else {
-      _lastKnownCount = current;
-    }
+    setState(() => _notifications = _mapActiveToNotifications());
+
+    // A locally-added reminder carries whatever the push payload held, which does
+    // not always include its parent; the list endpoint returns it hydrated.
+    if (!NotificationCountService().isLoaded) _fetchReminders(forceRefresh: true);
+  }
+
+  List<NotificationModel> _mapActiveToNotifications() {
+    return NotificationCountService().active.value
+        .map(_mapReminderToNotification)
+        .toList();
   }
 
   @override
   Future<UserSettingsModel?> loadSettings() {
     return super.loadSettings().then((settings) {
       if (mounted && settings != null) {
-        final cached = NotificationCountService().cachedNotifications;
-        if (cached != null) {
+        if (NotificationCountService().isLoaded) {
           setState(() {
-            _notifications = cached;
+            _notifications = _mapActiveToNotifications();
             isLoading = false;
           });
         } else {
@@ -199,48 +199,26 @@ class _NotificationsScreenState
             _populateInitialStateData(state);
           } else if (state is ReminderUpdated) {
             final reminder = state.reminder;
-            final shouldRemove =
-                reminder.dismissed ||
-                !reminder.sent ||
-                reminder.startOfRange == null ||
-                reminder.startOfRange!.isAfter(DateTime.now());
+            final isActive =
+                reminder.sent &&
+                !reminder.dismissed &&
+                reminder.startOfRange != null &&
+                !reminder.startOfRange!.isAfter(DateTime.now());
 
-            NotificationCountService().invalidateCachedNotifications();
-            if (shouldRemove) {
+            if (isActive) {
+              NotificationCountService().upsert(reminder);
+            } else {
               if (reminder.dismissed) {
                 showSnackBar(context, 'Reminder dismissed.');
-                NotificationCountService().decrement();
               }
-              setState(() {
-                _notifications.removeWhere((n) => n.reminder.id == reminder.id);
-              });
-            } else {
-              final index = _notifications.indexWhere(
-                (n) => n.reminder.id == reminder.id,
-              );
-              if (index != -1) {
-                final notification = _notifications[index];
-                setState(() {
-                  _notifications[index] = _mapReminderToNotification(
-                    reminder,
-                    existingColor: notification.color,
-                  );
-                });
-              }
+              NotificationCountService().remove(reminder.id);
             }
           } else if (state is ReminderDeleted) {
-            NotificationCountService().invalidateCachedNotifications();
-            setState(() {
-              _notifications.removeWhere((n) => n.reminder.id == state.id);
-            });
+            NotificationCountService().remove(state.id);
           } else if (state is AllRemindersDismissed) {
             showSnackBar(context, 'All Reminders dismissed.');
-            NotificationCountService().count.value = 0;
-            NotificationCountService().cacheNotifications(const []);
-            setState(() {
-              _notifications = [];
-              _isDismissingAll = false;
-            });
+            NotificationCountService().clear();
+            setState(() => _isDismissingAll = false);
           }
         },
       ),
@@ -353,62 +331,21 @@ class _NotificationsScreenState
   }
 
   void _populateInitialStateData(RemindersFetched state) {
-    final reminders = state.reminders;
-
-    final unsupported = reminders.where((r) => r.startOfRange == null).toList();
-    for (final r in unsupported) {
-      ErrorHelpers.logAndReport(
-        'Skipping reminder ${r.id} with null startOfRange',
-        Exception('Reminder ${r.id} has null startOfRange'),
-        StackTrace.current,
-      );
-    }
-    reminders.removeWhere((r) => r.startOfRange == null);
-
-    Sort.byStartOfRange(reminders);
-
-    final notifications = <NotificationModel>[];
-    for (final r in reminders) {
-      try {
-        notifications.add(_mapReminderToNotification(r));
-      } catch (e, st) {
-        ErrorHelpers.logAndReport(
-          'Failed to map reminder ${r.id} to notification',
-          e,
-          st,
-        );
-      }
-    }
-
-    setState(() {
-      _notifications = notifications;
-      isLoading = false;
-    });
-
-    // The fetched active set is authoritative; reconcile the bell badge count
-    // with it (corrects any drift from local increment/decrement) and cache the
-    // list so a reopen with an unchanged count can skip the fetch.
-    NotificationCountService().count.value = notifications.length;
-    NotificationCountService().cacheNotifications(notifications);
+    NotificationCountService().setActive(state.reminders);
+    setState(() => isLoading = false);
   }
 
   void _removeEventNotifications() {
-    NotificationCountService().invalidateCachedNotifications();
-    setState(() {
-      _notifications.removeWhere((n) => n.reminder.event != null);
-    });
+    NotificationCountService().removeWhere(
+      (reminder) => reminder.event != null,
+    );
   }
 
   void _removeNotificationByPlannerItemId({int? eventId, int? homeworkId}) {
-    NotificationCountService().invalidateCachedNotifications();
-    setState(() {
-      _notifications.removeWhere((n) {
-        if (eventId != null) return n.reminder.event?.entity?.id == eventId;
-        if (homeworkId != null) {
-          return n.reminder.homework?.entity?.id == homeworkId;
-        }
-        return false;
-      });
+    NotificationCountService().removeWhere((reminder) {
+      if (eventId != null) return reminder.event?.id == eventId;
+      if (homeworkId != null) return reminder.homework?.id == homeworkId;
+      return false;
     });
   }
 
@@ -469,40 +406,39 @@ class _NotificationsScreenState
     return HeliumDateTime.formatDateTimeRange(classStart, classEnd, true, false);
   }
 
-  NotificationModel _mapReminderToNotification(
-    ReminderModel reminder, {
-    Color? existingColor,
-  }) {
+  NotificationModel _mapReminderToNotification(ReminderModel reminder) {
     final String title;
     final Color? color;
     final String timestamp;
 
-    if (reminder.homework != null) {
-      final course = reminder.homework?.entity?.course.entity;
-      final category = reminder.homework?.entity?.category.entity;
-      title = reminder.homework?.entity?.title as String;
+    // Branch on the nested entity, not the `IdOrEntity` wrapper: a reminder PATCH
+    // responds with bare parent ids, and mapping has to stay total.
+    if (reminder.homework?.entity != null) {
+      final homework = reminder.homework!.entity!;
+      final course = homework.course.entity;
+      final category = homework.category.entity;
+      title = homework.title;
       color =
-          existingColor ??
           (userSettings?.colorByCategory == true
               ? category?.color
               : course?.color) ??
           FallbackConstants.fallbackColor;
-      timestamp = reminder.homework!.entity!.start.toIso8601String();
-    } else if (reminder.event != null) {
-      title = reminder.event?.entity?.title as String;
+      timestamp = homework.start.toIso8601String();
+    } else if (reminder.event?.entity != null) {
+      final event = reminder.event!.entity!;
+      title = event.title;
       color =
-          existingColor ??
           userSettings?.eventsColor ??
           FallbackConstants.fallbackColor;
-      timestamp = reminder.event!.entity!.start.toIso8601String();
-    } else if (reminder.course != null) {
-      final course = reminder.course?.entity;
-      title = course?.title ?? '';
-      color = existingColor ?? course?.color ?? FallbackConstants.fallbackColor;
+      timestamp = event.start.toIso8601String();
+    } else if (reminder.course?.entity != null) {
+      final course = reminder.course!.entity!;
+      title = course.title;
+      color = course.color;
       timestamp = reminder.startOfRange!.toIso8601String();
     } else {
       title = reminder.message;
-      color = existingColor ?? FallbackConstants.fallbackColor;
+      color = FallbackConstants.fallbackColor;
       timestamp = reminder.startOfRange!.toIso8601String();
     }
 

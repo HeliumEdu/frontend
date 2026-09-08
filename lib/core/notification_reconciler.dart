@@ -16,11 +16,14 @@ final _log = Logger('core.notification_reconciler');
 /// pushes, drops them offline, and won't wake a force-quit app). Android and web
 /// receive that push reliably, so they need no resume reconciliation.
 ///
-/// The reconciliation is deliberately POSITIVE-CONFIRMATION: it reads the
-/// reminder ids actually sitting in the tray, asks the server which of those
-/// specific reminders are now dismissed, and removes only the confirmed ones.
-/// A failed/empty fetch clears nothing — it never over-clears by treating "not
-/// in the active set" as stale.
+/// A tray entry is stale when its reminder is no longer in the bell's active
+/// set. Asking that rather than "was it dismissed?" also catches a reminder
+/// un-sent by a reschedule, whose notification would otherwise sit in the tray
+/// showing the old time.
+///
+/// Over-clearing is prevented by ordering: the tray is read before the active set
+/// is fetched, so a reminder that fires in between cannot be cleared by mistake,
+/// and a fetch failure throws past the clear step.
 class NotificationReconciler {
   static const _nativeChannel = MethodChannel('com.heliumedu.heliumapp/native');
   static final RegExp _reminderIdentifier = RegExp(r'^reminder_(\d+)$');
@@ -55,22 +58,28 @@ class NotificationReconciler {
     _instance = NotificationReconciler._internal();
   }
 
-  /// Removes any delivered iOS notification whose reminder has since been
-  /// dismissed. No-op on non-iOS platforms.
+  /// Removes any delivered iOS notification whose reminder is no longer active.
+  /// No-op on non-iOS platforms.
   Future<void> reconcile() async {
     if (kIsWeb || !Platform.isIOS) return;
+    await _reconcile();
+  }
 
+  @visibleForTesting
+  Future<void> reconcileForTesting() => _reconcile();
+
+  Future<void> _reconcile() async {
     try {
       final deliveredIds = await _deliveredReminderIds();
       if (deliveredIds.isEmpty) return;
 
-      final dismissedIds = await _dismissedAmong(deliveredIds);
-      if (dismissedIds.isEmpty) return;
+      final staleIds = deliveredIds.difference(await _activeReminderIds());
+      if (staleIds.isEmpty) return;
 
       await _channel.invokeMethod('removeDeliveredNotifications', {
-        'identifiers': dismissedIds.map((id) => 'reminder_$id').toList(),
+        'identifiers': staleIds.map((id) => 'reminder_$id').toList(),
       });
-      _log.info('Cleared ${dismissedIds.length} stale notification(s) on resume');
+      _log.info('Cleared ${staleIds.length} stale notification(s) on resume');
     } catch (e, s) {
       _log.warning('Notification reconciliation failed', e, s);
     }
@@ -91,16 +100,14 @@ class NotificationReconciler {
     return ids;
   }
 
-  /// Of the given delivered reminder ids, those the server now reports dismissed.
-  Future<Set<int>> _dismissedAmong(Set<int> deliveredIds) async {
-    final dismissed = await _reminderRepository.getReminders(
-      dismissed: true,
+  Future<Set<int>> _activeReminderIds() async {
+    final active = await _reminderRepository.getReminders(
+      sent: true,
+      dismissed: false,
       type: 3,
+      startOfRange: DateTime.now(),
       forceRefresh: true,
     );
-    return dismissed
-        .map((r) => r.id)
-        .where(deliveredIds.contains)
-        .toSet();
+    return active.map((reminder) => reminder.id).toSet();
   }
 }

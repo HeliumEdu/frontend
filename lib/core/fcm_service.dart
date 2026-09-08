@@ -490,7 +490,7 @@ class FcmService with WidgetsBindingObserver {
     _recentMessageIds[notification.id.toString()] = now;
 
     await showLocalNotification(notification);
-    NotificationCountService().increment();
+    NotificationCountService().upsert(notification.reminder);
     _log.info('Foreground message $messageId notification displayed');
   }
 
@@ -500,12 +500,8 @@ class FcmService with WidgetsBindingObserver {
   /// AppDelegate and web in the service worker, so this only touches the tray
   /// on those platforms.
   ///
-  /// The bell count is NOT decremented here: the dismiss push fans out to ALL
-  /// devices including the originator, so this handler fires both for cross-device
-  /// dismisses AND as an echo of the user's own in-app dismiss. The in-app path
-  /// already decrements via the ReminderUpdated listener; decrementing here too
-  /// would double-count. The count self-corrects on the next refresh() (resume,
-  /// screen open) for cross-device dismisses where the screen was closed.
+  /// The reminder is also dropped from the bell's active set. Removal is keyed
+  /// by id, so the echo of the user's own dismiss is a no-op, not a double-count.
   Future<void> _handleDismissMessage(RemoteMessage message) async {
     final reminderId = message.data['reminder_id'];
     if (reminderId == null || reminderId.isEmpty) {
@@ -514,6 +510,9 @@ class FcmService with WidgetsBindingObserver {
     }
 
     _log.info('Dismiss received for reminder $reminderId; clearing notification');
+
+    final id = int.tryParse(reminderId);
+    if (id != null) NotificationCountService().remove(id);
 
     if (kIsWeb) {
       // A foregrounded tab receives dismiss via onMessage, not the SW's

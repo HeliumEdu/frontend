@@ -193,7 +193,6 @@ class _NavigationShellState extends State<NavigationShell> {
 
     DioClient().cacheService.addInactivityResumeListener(_checkGettingStartedDialog);
     DioClient().cacheService.addInactivityResumeListener(_clearScreenDropdownFilters);
-    // Cheap count query — refresh on every resume, not just the 10-min window.
     DioClient().cacheService.addQuickResumeListener(_refreshNotificationCount);
     _checkDialogs();
     _refreshNotificationCount();

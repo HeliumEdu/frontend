@@ -278,7 +278,7 @@ jobs:
         run: |
           npm install -g @sentry/cli@3.6.2
           SENTRY_DIST="${RELEASE_VERSION##*+}"
-          SENTRY_PROPERTIES=sentry.properties sentry-cli releases deploys "$RELEASE_VERSION" new \
+          SENTRY_PROPERTIES=sentry/sentry.properties sentry-cli releases deploys "$RELEASE_VERSION" new \
             --env prod \
             --name "dist-${SENTRY_DIST}"
 

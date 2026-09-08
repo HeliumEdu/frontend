@@ -15,6 +15,20 @@ import '../mocks/mock_services.dart';
 
 class MockNotificationDetails extends Mock implements NotificationDetails {}
 
+List<ReminderModel> _activeReminders(int count) => List.generate(
+  count,
+  (index) => ReminderModel(
+    id: index + 1,
+    message: 'body',
+    startOfRange: DateTime.parse('2025-01-15T10:00:00Z'),
+    type: 3,
+    offset: 30,
+    offsetType: 0,
+    sent: true,
+    dismissed: false,
+  ),
+);
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
@@ -129,30 +143,48 @@ void main() {
 
       tearDown(NotificationCountService.resetForTesting);
 
-      test('does not decrement the count (avoids echo double-count)', () async {
-        // GIVEN a non-zero count and a dismiss push for a reminder
-        NotificationCountService().count.value = 3;
+      test('drops the dismissed reminder from the active set', () async {
+        // GIVEN
+        NotificationCountService().setActive(_activeReminders(3));
         const message = RemoteMessage(
-          data: {'action': 'dismiss', 'reminder_id': '42'},
+          data: {'action': 'dismiss', 'reminder_id': '2'},
         );
 
-        // WHEN the dismiss message is handled
+        // WHEN
         await fcmService.handleDismissMessageForTesting(message);
 
-        // THEN the count is unchanged — the in-app ReminderUpdated listener is
-        // responsible for decrementing; the push handler only clears the tray.
-        expect(NotificationCountService().count.value, 3);
+        // THEN
+        expect(NotificationCountService().count.value, 2);
+        expect(
+          NotificationCountService().active.value.map((r) => r.id),
+          [1, 3],
+        );
+      });
+
+      test('an echo of the user own dismiss does not double-count', () async {
+        // GIVEN
+        NotificationCountService().setActive(_activeReminders(3));
+        const message = RemoteMessage(
+          data: {'action': 'dismiss', 'reminder_id': '2'},
+        );
+
+        // WHEN
+        await fcmService.handleDismissMessageForTesting(message);
+        await fcmService.handleDismissMessageForTesting(message);
+
+        // THEN
+        expect(NotificationCountService().count.value, 2);
       });
 
       test('ignores a dismiss missing its reminder_id', () async {
         // GIVEN a dismiss push with no reminder_id
-        NotificationCountService().count.value = 3;
+        NotificationCountService().setActive(_activeReminders(3));
         const message = RemoteMessage(data: {'action': 'dismiss'});
 
         // WHEN the dismiss message is handled
         await fcmService.handleDismissMessageForTesting(message);
 
-        // THEN the count is untouched (nothing to dismiss)
+        // THEN
         expect(NotificationCountService().count.value, 3);
       });
     });
