@@ -118,6 +118,7 @@ class ResourceDetailsState extends State<ResourceDetails> {
             )) {
           _populateInitialStateData(state);
         } else if (state is ResourceScreenDataFailed &&
+            isLoading &&
             state.matches(
               resourceGroupId: widget.resourceGroupId,
               resourceId: widget.resourceId,
@@ -401,6 +402,7 @@ class ResourceDetailsState extends State<ResourceDetails> {
     }
 
     setState(() {
+      _error = null;
       isLoading = false;
     });
 

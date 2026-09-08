@@ -163,6 +163,7 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
             state.matches(homeworkId: _homeworkId, eventId: _eventId)) {
           _populateInitialPlannerItemStateData(state);
         } else if (state is PlannerItemScreenDataFailed &&
+            isLoading &&
             state.matches(homeworkId: _homeworkId, eventId: _eventId)) {
           setState(() {
             _error = state.message ?? HeliumException.unexpectedError;
@@ -915,6 +916,7 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
     }
 
     setState(() {
+      _error = null;
       isLoading = false;
     });
 

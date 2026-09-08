@@ -107,6 +107,7 @@ class CourseDetailsState extends State<CourseDetails> {
             )) {
           _populateInitialStateData(state);
         } else if (state is CourseScreenDataFailed &&
+            isLoading &&
             state.matches(
               courseGroupId: widget.courseGroupId,
               courseId: widget.courseId,
@@ -417,6 +418,7 @@ class CourseDetailsState extends State<CourseDetails> {
         formController.endDate = state.courseGroup.endDate;
       }
 
+      _error = null;
       isLoading = false;
     });
   }
