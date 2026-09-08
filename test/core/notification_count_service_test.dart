@@ -157,24 +157,55 @@ void main() {
   });
 
   group('an unfetched list', () {
-    test('a pushed reminder nudges the count without inventing a list', () {
+    test('a pushed reminder refetches the count rather than inventing a list', () async {
       // GIVEN
-      whenCount(0);
+      whenCount(3);
 
       // WHEN
       service.upsert(_reminder(1));
+      await Future<void>.delayed(Duration.zero);
 
       // THEN
-      expect(service.count.value, 1);
+      expect(service.count.value, 3);
       expect(service.active.value, isEmpty);
     });
 
-    test('a dismiss push nudges the count down but not below zero', () {
+    test('a redelivered push cannot inflate the count', () async {
+      // GIVEN
+      whenCount(3);
+
       // WHEN
-      service.remove(1);
+      service.upsert(_reminder(1));
+      service.upsert(_reminder(1));
+      await Future<void>.delayed(Duration.zero);
 
       // THEN
-      expect(service.count.value, 0);
+      expect(service.count.value, 3);
+    });
+
+    test('a dismiss push refetches the count', () async {
+      // GIVEN
+      whenCount(2);
+
+      // WHEN
+      service.remove(1);
+      await Future<void>.delayed(Duration.zero);
+
+      // THEN
+      expect(service.count.value, 2);
+    });
+
+    test('a dismiss delivered twice cannot double-decrement', () async {
+      // GIVEN
+      whenCount(2);
+
+      // WHEN
+      service.remove(1);
+      service.remove(1);
+      await Future<void>.delayed(Duration.zero);
+
+      // THEN
+      expect(service.count.value, 2);
     });
   });
 
