@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:heliumapp/core/dio_client.dart';
 import 'package:heliumapp/data/models/planner/reminder_model.dart';
@@ -138,11 +140,14 @@ class NotificationCountService {
 
   /// Adds a pushed reminder, or replaces the copy already held. Keyed by id, so
   /// a redelivery cannot count the same reminder twice.
+  ///
+  /// With no list to key against there is nothing to dedupe by, and delivery is
+  /// at-least-once, so the count is refetched rather than guessed at.
   void upsert(ReminderModel reminder) {
     if (reminder.startOfRange == null) return;
 
     if (!_loaded) {
-      _count.value++;
+      unawaited(refresh());
       return;
     }
 
@@ -166,7 +171,7 @@ class NotificationCountService {
 
   void remove(int reminderId) {
     if (!_loaded) {
-      if (_count.value > 0) _count.value--;
+      unawaited(refresh());
       return;
     }
     removeWhere((reminder) => reminder.id == reminderId);
