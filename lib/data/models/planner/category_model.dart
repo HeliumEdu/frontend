@@ -7,6 +7,7 @@ import 'package:heliumapp/utils/conversion_helpers.dart';
 class CategoryModel extends BaseTitledModel {
   final Color color;
   final int course;
+  final int courseGroup;
   final double weight;
   final double? averageGrade;
   final double? gradeByWeight;
@@ -19,6 +20,7 @@ class CategoryModel extends BaseTitledModel {
     super.shownOnCalendar,
     required this.color,
     required this.course,
+    required this.courseGroup,
     required this.weight,
     this.averageGrade,
     this.gradeByWeight,
@@ -33,6 +35,7 @@ class CategoryModel extends BaseTitledModel {
       shownOnCalendar: json['shown_on_calendar'],
       color: HeliumColors.hexToColor(json['color']),
       course: json['course'],
+      courseGroup: json['course_group'],
       weight: toDouble(json['weight'])!,
       averageGrade: toDouble(json['average_grade']),
       gradeByWeight: toDouble(json['grade_by_weight']),

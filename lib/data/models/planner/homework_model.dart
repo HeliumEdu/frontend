@@ -12,6 +12,8 @@ import 'package:heliumapp/utils/planner_helper.dart';
 class HomeworkModel extends PlannerItemBaseModel {
   final bool completed;
   final IdOrEntity<CourseModel> course;
+
+  final int courseGroup;
   final IdOrEntity<CategoryModel> category;
   final List<IdOrEntity<ResourceModel>> resources;
   final List<IdOrEntity<NoteModel>> notes;
@@ -30,6 +32,7 @@ class HomeworkModel extends PlannerItemBaseModel {
     required super.reminders,
     required this.completed,
     required this.course,
+    required this.courseGroup,
     required this.resources,
     required this.category,
     required this.notes,
@@ -62,6 +65,7 @@ class HomeworkModel extends PlannerItemBaseModel {
           ? idOrEntityListFrom(json['notes'], NoteModel.fromJson)
           : [],
       course: idOrEntityFrom(json['course'], CourseModel.fromJson),
+      courseGroup: json['course_group'],
     );
   }
 
@@ -92,6 +96,7 @@ class HomeworkModel extends PlannerItemBaseModel {
     List<IdOrEntity<ReminderModel>>? reminders,
     bool? completed,
     IdOrEntity<CourseModel>? course,
+    int? courseGroup,
     IdOrEntity<CategoryModel>? category,
     List<IdOrEntity<ResourceModel>>? resources,
     List<IdOrEntity<NoteModel>>? notes,
@@ -110,6 +115,7 @@ class HomeworkModel extends PlannerItemBaseModel {
       reminders: reminders ?? this.reminders,
       completed: completed ?? this.completed,
       course: course ?? this.course,
+      courseGroup: courseGroup ?? this.courseGroup,
       category: category ?? this.category,
       resources: resources ?? this.resources,
       notes: notes ?? this.notes,

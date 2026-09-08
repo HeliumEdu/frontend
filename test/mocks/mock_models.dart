@@ -181,9 +181,11 @@ class MockModels {
     TimeOfDay? satStartTime,
     TimeOfDay? satEndTime,
     int course = 1,
+    int courseGroup = 1,
   }) {
     return CourseScheduleModel(
       id: id,
+      courseGroup: courseGroup,
       daysOfWeek: daysOfWeek,
       sunStartTime: sunStartTime ?? const TimeOfDay(hour: 0, minute: 0),
       sunEndTime: sunEndTime ?? const TimeOfDay(hour: 0, minute: 0),
@@ -274,12 +276,14 @@ class MockModels {
     double weight = 30.0,
     double? averageGrade,
     double? gradeByWeight,
+    int courseGroup = 1,
   }) {
     return CategoryModel(
       id: id,
       title: title,
       color: color,
       course: course,
+      courseGroup: courseGroup,
       weight: weight,
       averageGrade: averageGrade,
       gradeByWeight: gradeByWeight,
@@ -573,9 +577,11 @@ class MockModels {
     String currentGrade = '-1/100',
     int courseId = 1,
     int categoryId = 1,
+    int courseGroup = 1,
   }) {
     return HomeworkModel(
       id: id,
+      courseGroup: courseGroup,
       title: title,
       allDay: allDay,
       showEndTime: showEndTime,

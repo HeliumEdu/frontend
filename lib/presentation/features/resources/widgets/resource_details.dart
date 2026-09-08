@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_quill/flutter_quill.dart';
+import 'package:heliumapp/core/helium_exception.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/data/models/drop_down_item.dart';
 import 'package:heliumapp/data/models/planner/course_model.dart';
@@ -28,6 +29,7 @@ import 'package:heliumapp/presentation/ui/components/helium_icon_button.dart';
 import 'package:heliumapp/presentation/ui/components/label_and_text_form_field.dart';
 import 'package:heliumapp/presentation/ui/components/notes_editor.dart';
 import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
+import 'package:heliumapp/presentation/ui/feedback/error_card.dart';
 import 'package:heliumapp/presentation/features/resources/constants/resource_constants.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/quill_helpers.dart';
@@ -64,6 +66,7 @@ class ResourceDetailsState extends State<ResourceDetails> {
   List<CourseModel> _courses = [];
   List<DropDownItem<ResourceGroupModel>> _groupItems = [];
   bool isLoading = true;
+  String? _error;
   bool _isSubmitting = false;
   bool _hasRequestedInitialFocus = false;
 
@@ -74,6 +77,15 @@ class ResourceDetailsState extends State<ResourceDetails> {
     if (!widget.isEdit) formController.markChanged(userInitiated: false);
 
     formController.urlFocusNode.addListener(_onUrlFocusChange);
+
+    _fetchScreenData();
+  }
+
+  void _fetchScreenData() {
+    setState(() {
+      isLoading = true;
+      _error = null;
+    });
 
     context.read<ResourceBloc>().add(
       FetchResourceScreenDataEvent(
@@ -106,11 +118,15 @@ class ResourceDetailsState extends State<ResourceDetails> {
             )) {
           _populateInitialStateData(state);
         } else if (state is ResourceScreenDataFailed &&
+            isLoading &&
             state.matches(
               resourceGroupId: widget.resourceGroupId,
               resourceId: widget.resourceId,
             )) {
-          setState(() => isLoading = false);
+          setState(() {
+            _error = state.message ?? HeliumException.unexpectedError;
+            isLoading = false;
+          });
         }
       },
       child: _buildContent(context),
@@ -120,6 +136,15 @@ class ResourceDetailsState extends State<ResourceDetails> {
   Widget _buildContent(BuildContext context) {
     if (isLoading) {
       return const Center(child: LoadingIndicator(expanded: false));
+    }
+
+    if (_error != null) {
+      return ErrorCard(
+        message: _error!,
+        source: 'resource_details',
+        expanded: false,
+        onReload: _fetchScreenData,
+      );
     }
 
     return Column(
@@ -260,7 +285,7 @@ class ResourceDetailsState extends State<ResourceDetails> {
   }
 
   Future<void> onSubmit({bool redirectToNotebook = false}) async {
-    if (isLoading || _isSubmitting) return;
+    if (isLoading || _error != null || _isSubmitting) return;
     if (formController.validateAndScrollToError()) {
       // Notify parent that action is starting (validation passed)
       setState(() => _isSubmitting = true);
@@ -377,6 +402,7 @@ class ResourceDetailsState extends State<ResourceDetails> {
     }
 
     setState(() {
+      _error = null;
       isLoading = false;
     });
 

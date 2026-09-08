@@ -22,6 +22,7 @@ class CourseScheduleModel extends BaseModel {
   final TimeOfDay satStartTime;
   final TimeOfDay satEndTime;
   final int course;
+  final int courseGroup;
 
   /// Optional per-schedule date window. Null means the schedule inherits the
   /// parent course's dates.
@@ -59,6 +60,7 @@ class CourseScheduleModel extends BaseModel {
     required this.satStartTime,
     required this.satEndTime,
     required this.course,
+    required this.courseGroup,
     this.startDate,
     this.endDate,
     this.template,
@@ -89,6 +91,7 @@ class CourseScheduleModel extends BaseModel {
       satStartTime: HeliumTime.parse(json['sat_start_time'] as String)!,
       satEndTime: HeliumTime.parse(json['sat_end_time'] as String)!,
       course: json['course'],
+      courseGroup: json['course_group'],
       startDate: json['start_date'] != null
           ? DateTime.parse(json['start_date'] as String)
           : null,

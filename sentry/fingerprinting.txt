@@ -2,14 +2,17 @@
 # Settings -> Projects -> frontend -> Issue Grouping -> Fingerprint Rules.
 
 # Syncfusion calendar internals. Upstream, unfixable, splits per call site. Full
-# pub-cache path on web/dart2js, bare filename on AOT.
+# pub-cache path on web/dart2js, bare filename on AOT. The family spans at least
+# sfcalendar.dart and calendar_view.dart; neither filename exists in lib/.
 error.value:"*Null check operator used on a null value*" stack.abs_path:"**syncfusion_flutter_calendar**" -> helium-syncfusion-calendar title="Syncfusion calendar null-check (upstream)"
 error.value:"*Null check operator used on a null value*" stack.abs_path:"**sfcalendar.dart" -> helium-syncfusion-calendar title="Syncfusion calendar null-check (upstream)"
+error.value:"*Null check operator used on a null value*" stack.abs_path:"**calendar_view.dart" -> helium-syncfusion-calendar title="Syncfusion calendar null-check (upstream)"
 
 # Syncfusion schedule-view scroll. Upstream iterates _forwardWidgetHeights.length (a Map)
 # while indexing _nextDates[i] (a List).
 error.value:"*RangeError*" stack.abs_path:"**syncfusion_flutter_calendar**" -> helium-syncfusion-calendar title="Syncfusion calendar (upstream)"
 error.value:"*RangeError*" stack.abs_path:"**sfcalendar.dart" -> helium-syncfusion-calendar title="Syncfusion calendar (upstream)"
+error.value:"*RangeError*" stack.abs_path:"**calendar_view.dart" -> helium-syncfusion-calendar title="Syncfusion calendar (upstream)"
 
 # Flutter web CanvasKit context loss. Upstream engine, no app code in the path. The empty
 # Field '' is throwUnnamedLateFieldNI; our own late fields are named and cannot match.

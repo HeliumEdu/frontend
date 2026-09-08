@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:heliumapp/core/helium_exception.dart';
 import 'package:heliumapp/data/models/drop_down_item.dart';
 import 'package:heliumapp/data/models/planner/category_model.dart';
 import 'package:heliumapp/data/models/planner/course_group_model.dart';
@@ -35,6 +36,7 @@ import 'package:heliumapp/presentation/ui/components/label_and_text_form_field.d
 import 'package:heliumapp/presentation/ui/components/notes_editor.dart';
 import 'package:heliumapp/presentation/ui/components/resource_title_label.dart';
 import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
+import 'package:heliumapp/presentation/ui/feedback/error_card.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/color_helpers.dart';
@@ -94,6 +96,7 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
   StreamSubscription<DocChange>? _notesSubscription;
 
   bool isLoading = true;
+  String? _error;
   bool _isSubmitting = false;
   bool _hasRequestedInitialFocus = false;
   late bool _isEvent;
@@ -125,6 +128,15 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
       }
     });
 
+    _fetchScreenData();
+  }
+
+  void _fetchScreenData() {
+    setState(() {
+      isLoading = true;
+      _error = null;
+    });
+
     context.read<PlannerItemBloc>().add(
       FetchPlannerItemScreenDataEvent(
         origin: EventOrigin.subScreen,
@@ -151,8 +163,12 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
             state.matches(homeworkId: _homeworkId, eventId: _eventId)) {
           _populateInitialPlannerItemStateData(state);
         } else if (state is PlannerItemScreenDataFailed &&
+            isLoading &&
             state.matches(homeworkId: _homeworkId, eventId: _eventId)) {
-          setState(() => isLoading = false);
+          setState(() {
+            _error = state.message ?? HeliumException.unexpectedError;
+            isLoading = false;
+          });
         }
       },
       child: _buildContent(context),
@@ -165,6 +181,7 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
       _eventId = eventId;
       _homeworkId = homeworkId;
       isLoading = true;
+      _error = null;
       _plannerItem = null;
       formController.isChanged = false;
       formController.isUserDirty = false;
@@ -183,6 +200,15 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
   Widget _buildContent(BuildContext context) {
     if (isLoading || widget.userSettings == null) {
       return const Center(child: LoadingIndicator(expanded: false));
+    }
+
+    if (_error != null) {
+      return ErrorCard(
+        message: _error!,
+        source: 'planner_item_details',
+        expanded: false,
+        onReload: _fetchScreenData,
+      );
     }
 
     final List<ResourceModel> filteredResources = _resources.where((resource) {
@@ -558,17 +584,12 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
   }
 
   Future<void> onSubmit({bool redirectToNotebook = false}) async {
-    if (isLoading || _isSubmitting) return;
+    if (isLoading || _error != null || _isSubmitting) return;
     _log.info('Submitting planner item (isEvent=$_isEvent, isEdit=${widget.isEdit}, redirectToNotebook=$redirectToNotebook)');
     if (formController.validateAndScrollToError()) {
       final selectedCourse = _courseById(formController.selectedCourse);
-      final originalCourse = _plannerItem is HomeworkModel
-          ? _courseById((_plannerItem as HomeworkModel).course.id)
-          : null;
 
-      if (!_isEvent &&
-          (selectedCourse == null ||
-              (widget.isEdit && widget.homeworkId != null && originalCourse == null))) {
+      if (!_isEvent && selectedCourse == null) {
         _showMissingCourseError();
         return;
       }
@@ -688,11 +709,12 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
         if (!mounted) return;
         if (widget.isEdit && widget.homeworkId != null) {
           // Use original course for URL path (backend filters by URL course_id)
+          final homework = _plannerItem as HomeworkModel;
           context.read<PlannerItemBloc>().add(
             UpdateHomeworkEvent(
               origin: EventOrigin.subScreen,
-              courseGroupId: originalCourse!.courseGroup,
-              courseId: originalCourse.id,
+              courseGroupId: homework.courseGroup,
+              courseId: homework.course.id,
               homeworkId: widget.homeworkId!,
               request: request,
               linkedNoteId: formController.linkedNoteId,
@@ -894,6 +916,7 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
     }
 
     setState(() {
+      _error = null;
       isLoading = false;
     });
 
@@ -1168,16 +1191,6 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
   void onDelete() {
     if (_plannerItem == null) return;
 
-    final CourseModel? course;
-    if (_plannerItem is HomeworkModel) {
-      course = _courseById((_plannerItem as HomeworkModel).course.id);
-      if (course == null) {
-        _showMissingCourseError();
-        return;
-      }
-    } else {
-      course = null;
-    }
 
     final Function(PlannerItemBaseModel) onDelete;
     if (_plannerItem is HomeworkModel) {
@@ -1186,8 +1199,8 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
         context.read<PlannerItemBloc>().add(
           DeleteHomeworkEvent(
             origin: EventOrigin.subScreen,
-            courseGroupId: course!.courseGroup,
-            courseId: course.id,
+            courseGroupId: (item as HomeworkModel).courseGroup,
+            courseId: item.course.id,
             homeworkId: item.id,
           ),
         );
@@ -1217,13 +1230,6 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
 
     final homework =
         _plannerItem is HomeworkModel ? _plannerItem as HomeworkModel : null;
-    final selectedCourse =
-        homework != null ? _courseById(homework.course.id) : null;
-    if (homework != null && selectedCourse == null) {
-      _showMissingCourseError();
-      return;
-    }
-
     widget.onActionStarted?.call();
 
     if (_plannerItem is EventModel) {
@@ -1237,8 +1243,8 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
       context.read<PlannerItemBloc>().add(
         CloneHomeworkEvent(
           origin: EventOrigin.subScreen,
-          courseGroupId: selectedCourse!.courseGroup,
-          courseId: selectedCourse.id,
+          courseGroupId: homework.courseGroup,
+          courseId: homework.course.id,
           homeworkId: homework.id,
         ),
       );

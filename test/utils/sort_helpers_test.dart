@@ -524,6 +524,7 @@ HomeworkModel _createHomework({
 }) {
   return HomeworkModel(
     id: id,
+    courseGroup: 1,
     title: title ?? 'Homework $id',
     allDay: allDay,
     showEndTime: true,

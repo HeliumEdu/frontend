@@ -1738,6 +1738,7 @@ HomeworkModel _createHomeworkModel({
 }) {
   return HomeworkModel(
     id: id,
+    courseGroup: 1,
     title: title,
     allDay: allDay,
     showEndTime: true,
@@ -1870,6 +1871,7 @@ CategoryModel _createCategoryModel({
     title: title,
     color: color,
     course: 1,
+    courseGroup: 1,
     weight: 100,
   );
 }

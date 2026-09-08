@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:heliumapp/core/helium_exception.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/data/models/planner/course_group_model.dart';
 import 'package:heliumapp/data/models/planner/request/course_request_model.dart';
@@ -19,6 +20,7 @@ import 'package:heliumapp/presentation/ui/components/helium_icon_button.dart';
 import 'package:heliumapp/presentation/ui/components/helium_picker_field.dart';
 import 'package:heliumapp/presentation/ui/components/label_and_text_form_field.dart';
 import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
+import 'package:heliumapp/presentation/ui/feedback/error_card.dart';
 import 'package:heliumapp/presentation/ui/components/spinner_field.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/color_helpers.dart' show HeliumColors;
@@ -58,6 +60,7 @@ class CourseDetailsState extends State<CourseDetails> {
 
   bool isLoading = true;
   bool _isSubmitting = false;
+  String? _error;
   CourseGroupModel? _courseGroup;
 
   @override
@@ -67,6 +70,15 @@ class CourseDetailsState extends State<CourseDetails> {
     if (!widget.isEdit) formController.markChanged(userInitiated: false);
 
     formController.urlFocusNode.addListener(_onUrlFocusChange);
+
+    _fetchScreenData();
+  }
+
+  void _fetchScreenData() {
+    setState(() {
+      isLoading = true;
+      _error = null;
+    });
 
     context.read<CourseBloc>().add(
       FetchCourseScreenDataEvent(
@@ -95,11 +107,15 @@ class CourseDetailsState extends State<CourseDetails> {
             )) {
           _populateInitialStateData(state);
         } else if (state is CourseScreenDataFailed &&
+            isLoading &&
             state.matches(
               courseGroupId: widget.courseGroupId,
               courseId: widget.courseId,
             )) {
-          setState(() => isLoading = false);
+          setState(() {
+            _error = state.message ?? HeliumException.unexpectedError;
+            isLoading = false;
+          });
         }
       },
       child: _buildContent(context),
@@ -109,6 +125,15 @@ class CourseDetailsState extends State<CourseDetails> {
   Widget _buildContent(BuildContext context) {
     if (isLoading || widget.userSettings == null) {
       return const Center(child: LoadingIndicator(expanded: false));
+    }
+
+    if (_error != null) {
+      return ErrorCard(
+        message: _error!,
+        source: 'course_details',
+        expanded: false,
+        onReload: _fetchScreenData,
+      );
     }
 
     return Column(
@@ -300,7 +325,7 @@ class CourseDetailsState extends State<CourseDetails> {
 
   /// Submit the form. Called by parent screen when header save is pressed.
   bool onSubmit() {
-    if (isLoading || _isSubmitting) return false;
+    if (isLoading || _error != null || _isSubmitting) return false;
     if (formController.validateAndScrollToError()) {
       // Notify parent that action is starting (validation passed)
       setState(() => _isSubmitting = true);
@@ -393,6 +418,7 @@ class CourseDetailsState extends State<CourseDetails> {
         formController.endDate = state.courseGroup.endDate;
       }
 
+      _error = null;
       isLoading = false;
     });
   }

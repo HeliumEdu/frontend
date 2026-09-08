@@ -103,6 +103,7 @@ Map<String, dynamic> givenCourseScheduleJson({
     'sat_start_time': satStartTime,
     'sat_end_time': satEndTime,
     'course': course,
+    'course_group': 1,
     'recurrence_groups': recurrenceGroups ?? [],
   };
 }
@@ -240,6 +241,7 @@ Map<String, dynamic> givenCategoryJson({
     'title': title,
     'color': color,
     'course': course,
+    'course_group': 1,
     'weight': weight,
     'average_grade': averageGrade,
     'grade_by_weight': gradeByWeight,
@@ -290,6 +292,7 @@ Map<String, dynamic> givenAttachmentJson({
     'size': size,
     'user': user,
     'course': course,
+    'course_group': 1,
     'event': event,
     'homework': homework,
   };
@@ -449,6 +452,7 @@ Map<String, dynamic> givenHomeworkJson({
     'comments': comments,
     'completed': completed,
     'course': course,
+    'course_group': 1,
     'category': category,
     'materials': resources ?? [],
     'current_grade': currentGrade,
