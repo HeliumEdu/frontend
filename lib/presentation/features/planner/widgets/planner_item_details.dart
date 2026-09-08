@@ -562,13 +562,8 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
     _log.info('Submitting planner item (isEvent=$_isEvent, isEdit=${widget.isEdit}, redirectToNotebook=$redirectToNotebook)');
     if (formController.validateAndScrollToError()) {
       final selectedCourse = _courseById(formController.selectedCourse);
-      final originalCourse = _plannerItem is HomeworkModel
-          ? _courseById((_plannerItem as HomeworkModel).course.id)
-          : null;
 
-      if (!_isEvent &&
-          (selectedCourse == null ||
-              (widget.isEdit && widget.homeworkId != null && originalCourse == null))) {
+      if (!_isEvent && selectedCourse == null) {
         _showMissingCourseError();
         return;
       }
@@ -688,11 +683,12 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
         if (!mounted) return;
         if (widget.isEdit && widget.homeworkId != null) {
           // Use original course for URL path (backend filters by URL course_id)
+          final homework = _plannerItem as HomeworkModel;
           context.read<PlannerItemBloc>().add(
             UpdateHomeworkEvent(
               origin: EventOrigin.subScreen,
-              courseGroupId: originalCourse!.courseGroup,
-              courseId: originalCourse.id,
+              courseGroupId: homework.courseGroup,
+              courseId: homework.course.id,
               homeworkId: widget.homeworkId!,
               request: request,
               linkedNoteId: formController.linkedNoteId,
@@ -1168,16 +1164,6 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
   void onDelete() {
     if (_plannerItem == null) return;
 
-    final CourseModel? course;
-    if (_plannerItem is HomeworkModel) {
-      course = _courseById((_plannerItem as HomeworkModel).course.id);
-      if (course == null) {
-        _showMissingCourseError();
-        return;
-      }
-    } else {
-      course = null;
-    }
 
     final Function(PlannerItemBaseModel) onDelete;
     if (_plannerItem is HomeworkModel) {
@@ -1186,8 +1172,8 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
         context.read<PlannerItemBloc>().add(
           DeleteHomeworkEvent(
             origin: EventOrigin.subScreen,
-            courseGroupId: course!.courseGroup,
-            courseId: course.id,
+            courseGroupId: (item as HomeworkModel).courseGroup,
+            courseId: item.course.id,
             homeworkId: item.id,
           ),
         );
@@ -1217,13 +1203,6 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
 
     final homework =
         _plannerItem is HomeworkModel ? _plannerItem as HomeworkModel : null;
-    final selectedCourse =
-        homework != null ? _courseById(homework.course.id) : null;
-    if (homework != null && selectedCourse == null) {
-      _showMissingCourseError();
-      return;
-    }
-
     widget.onActionStarted?.call();
 
     if (_plannerItem is EventModel) {
@@ -1237,8 +1216,8 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
       context.read<PlannerItemBloc>().add(
         CloneHomeworkEvent(
           origin: EventOrigin.subScreen,
-          courseGroupId: selectedCourse!.courseGroup,
-          courseId: selectedCourse.id,
+          courseGroupId: homework.courseGroup,
+          courseId: homework.course.id,
           homeworkId: homework.id,
         ),
       );

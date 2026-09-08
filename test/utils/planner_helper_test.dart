@@ -518,6 +518,7 @@ HomeworkModel _createHomeworkModel({
 }) {
   return HomeworkModel(
     id: id,
+    courseGroup: 1,
     title: 'Test Homework',
     allDay: allDay,
     showEndTime: true,

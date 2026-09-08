@@ -369,9 +369,14 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
       painter.dispose();
     }
     final picture = recorder.endRecording();
-    final image = await picture.toImage(48, 48);
-    picture.dispose();
-    image.dispose();
+    try {
+      final image = await picture.toImage(48, 48);
+      image.dispose();
+    } catch (e) {
+      _log.fine('Glyph warm-up unavailable', e);
+    } finally {
+      picture.dispose();
+    }
   }
 
   @override
@@ -2143,9 +2148,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
         context.read<PlannerItemBloc>().add(
           UpdateHomeworkEvent(
             origin: EventOrigin.screen,
-            courseGroupId: _courses
-                .firstWhere((c) => c.id == plannerItem.course.id)
-                .courseGroup,
+            courseGroupId: plannerItem.courseGroup,
             courseId: plannerItem.course.id,
             homeworkId: plannerItem.id,
             request: request,
@@ -2253,9 +2256,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
         context.read<PlannerItemBloc>().add(
           UpdateHomeworkEvent(
             origin: EventOrigin.screen,
-            courseGroupId: _courses
-                .firstWhere((c) => c.id == plannerItem.course.id)
-                .courseGroup,
+            courseGroupId: plannerItem.courseGroup,
             courseId: plannerItem.course.id,
             homeworkId: plannerItem.id,
             request: request,
@@ -2293,12 +2294,6 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
     BuildContext context,
     PlannerItemBaseModel plannerItem,
   ) {
-    final CourseModel? course;
-    if (plannerItem is HomeworkModel) {
-      course = _courses.firstWhere((c) => c.id == plannerItem.course.id);
-    } else {
-      course = null;
-    }
 
     final Function(PlannerItemBaseModel) onDelete;
     if (plannerItem is HomeworkModel) {
@@ -2306,8 +2301,8 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
         context.read<PlannerItemBloc>().add(
           DeleteHomeworkEvent(
             origin: EventOrigin.screen,
-            courseGroupId: course!.courseGroup,
-            courseId: course.id,
+            courseGroupId: plannerItem.courseGroup,
+            courseId: plannerItem.course.id,
             homeworkId: h.id,
           ),
         );
@@ -3411,9 +3406,11 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
 
   CourseModel? _getCourseForPlannerItem(PlannerItemBaseModel plannerItem) {
     if (plannerItem is HomeworkModel) {
-      return _courses.firstWhere((c) => c.id == plannerItem.course.id);
+      return _courses.firstWhereOrNull((c) => c.id == plannerItem.course.id);
     } else if (plannerItem is CourseScheduleEventModel) {
-      return _courses.firstWhere((c) => c.id.toString() == plannerItem.ownerId);
+      return _courses.firstWhereOrNull(
+        (c) => c.id.toString() == plannerItem.ownerId,
+      );
     }
     return null;
   }
@@ -3716,14 +3713,13 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
       if (pendingValue == null) return;
 
       final request = HomeworkRequestModel(completed: pendingValue);
-      final course = _courses.firstWhere((c) => c.id == homework.course.id);
 
       _inFlightCompletionIds.add(homework.id);
       context.read<PlannerItemBloc>().add(
         UpdateHomeworkEvent(
           origin: EventOrigin.screen,
-          courseGroupId: course.courseGroup,
-          courseId: course.id,
+          courseGroupId: homework.courseGroup,
+          courseId: homework.course.id,
           homeworkId: homework.id,
           request: request,
         ),
