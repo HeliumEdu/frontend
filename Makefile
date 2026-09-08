@@ -165,13 +165,13 @@ upload-ios-symbols upload-android-symbols:
 			exit 1; \
 		fi; \
 	done
-	SENTRY_PROPERTIES=sentry.properties sentry-cli debug-files upload $(SYMBOL_DIRS)
+	SENTRY_PROPERTIES=sentry/sentry.properties sentry-cli debug-files upload $(SYMBOL_DIRS)
 
 upload-web-symbols:
 	test -f build/web/main.dart.js.map
-	SENTRY_PROPERTIES=sentry.properties sentry-cli sourcemaps inject build/web
+	SENTRY_PROPERTIES=sentry/sentry.properties sentry-cli sourcemaps inject build/web
 	dart bin/embed_sourcemap_sources.dart
-	SENTRY_PROPERTIES=sentry.properties sentry-cli sourcemaps upload \
+	SENTRY_PROPERTIES=sentry/sentry.properties sentry-cli sourcemaps upload \
 		$(SENTRY_UPLOAD_ARGS) \
 		--no-rewrite \
 		--validate \

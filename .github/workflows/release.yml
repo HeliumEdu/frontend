@@ -417,7 +417,7 @@ jobs:
         run: |
           npm install -g @sentry/cli@3.6.2
           SENTRY_DIST="${RELEASE_VERSION##*+}"
-          SENTRY_PROPERTIES=sentry.properties sentry-cli releases new "$RELEASE_VERSION"
+          SENTRY_PROPERTIES=sentry/sentry.properties sentry-cli releases new "$RELEASE_VERSION"
           make upload-web-symbols RELEASE_VERSION="$RELEASE_VERSION" SENTRY_DIST="$SENTRY_DIST"
 
       - name: Upload web artifact
@@ -516,9 +516,9 @@ jobs:
           VERSION: ${{ needs.prereq.outputs.version }}
         run: |
           npm install -g @sentry/cli@3.6.2
-          SENTRY_PROPERTIES=sentry.properties sentry-cli releases new "$VERSION"
-          SENTRY_PROPERTIES=sentry.properties sentry-cli releases set-commits --auto "$VERSION"
-          SENTRY_PROPERTIES=sentry.properties sentry-cli releases finalize "$VERSION"
+          SENTRY_PROPERTIES=sentry/sentry.properties sentry-cli releases new "$VERSION"
+          SENTRY_PROPERTIES=sentry/sentry.properties sentry-cli releases set-commits --auto "$VERSION"
+          SENTRY_PROPERTIES=sentry/sentry.properties sentry-cli releases finalize "$VERSION"
 
   deploy:
     name: Trigger Deploy Workflow
