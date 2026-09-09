@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:heliumapp/config/app_router.dart';
@@ -7,6 +9,7 @@ import 'package:heliumapp/core/helium_exception.dart';
 import 'package:heliumapp/core/time_zone_database_service.dart';
 import 'package:heliumapp/data/models/auth/user_settings_model.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/info/info_bloc.dart';
+import 'package:heliumapp/core/notification_count_service.dart';
 import 'package:heliumapp/presentation/core/views/reload_scope.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/info/info_event.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/info/info_state.dart';
@@ -192,6 +195,7 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
   void reloadPage() {
     // App-scoped, so a rebuild leaves its failure in place.
     context.read<InfoBloc>().add(LoadInfoEvent());
+    unawaited(NotificationCountService().refresh());
 
     final scope = ReloadScope.maybeOf(context);
     if (scope != null) {
