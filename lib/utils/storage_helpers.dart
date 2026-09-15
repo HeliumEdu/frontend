@@ -119,7 +119,7 @@ class HeliumStorage {
         withReadStream: true,
       );
     } on PlatformException catch (e) {
-      if (e.code == 'already_active') {
+      if (e.code == 'already_active' || e.code == 'multiple_request') {
         _log.warning('File picker reported an active session');
         return const PickFilesResult(files: [], cancelled: true);
       }

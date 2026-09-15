@@ -1,5 +1,4 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:heliumapp/core/helium_exception.dart';
 import 'package:heliumapp/data/models/base_model.dart';
 import 'package:heliumapp/utils/conversion_helpers.dart';
 
@@ -91,11 +90,11 @@ void main() {
         expect(result.entity!.description, equals('Desc'));
       });
 
-      test('throws HeliumException for invalid data format', () {
+      test('throws ArgumentError for a shape that is neither id nor object', () {
         // WHEN/THEN
         expect(
           () => idOrEntityFrom<TestModel>(['invalid'], TestModel.fromJson),
-          throwsA(isA<HeliumException>()),
+          throwsArgumentError,
         );
       });
     });

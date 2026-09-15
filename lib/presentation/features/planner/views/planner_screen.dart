@@ -3458,7 +3458,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
             if (!confirmed || !mounted) return;
           }
 
-          if (!context.mounted) return;
+          if (!mounted) return;
           context.read<PlannerBloc>().add(
             SkipCourseOccurrenceEvent(
               origin: EventOrigin.dialog,
@@ -3471,6 +3471,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
             ? course.website.toString()
             : null,
         onEditSchedule: () {
+          if (!mounted) return;
           context.go('${AppRoute.coursesScreen}/${event.ownerId}/schedule');
         },
       ),

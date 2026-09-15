@@ -30,3 +30,7 @@ error.value:"*DioException*bad response*" -> helium-dio-bad-response title="API 
 # in for the literal quotes around the asset name.
 error.value:"*Unable to load asset:*assets/fonts/*" -> helium-asset-load-font title="Web font asset failed to load"
 error.value:"*Unable to load asset:*" -> helium-asset-load-other title="Asset failed to load (non-font)"
+
+# Firebase JS pulled in by dynamic import on web. A blocked or failed fetch is raised by the
+# browser and captured by the JavaScript SDK, so it never reaches Dart-side filters.
+error.value:"*Failed to fetch dynamically imported module*firebasejs*" -> helium-firebase-js-load title="Firebase JS failed to load (web)"

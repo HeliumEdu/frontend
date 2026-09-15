@@ -88,19 +88,32 @@ class LogService {
       DioExceptionType.connectionError ||
       DioExceptionType.cancel =>
         true,
-      DioExceptionType.unknown => _isTlsFailure(error),
+      DioExceptionType.unknown =>
+        _isTlsFailure(error) || _isConnectionDropped(error),
       DioExceptionType.badCertificate || DioExceptionType.badResponse => false,
     };
   }
 
   /// TLS failures arrive as `unknown`, which otherwise stays reportable: it wraps real bugs.
   static bool _isTlsFailure(DioException error) {
-    final text = '${error.message ?? ''} ${error.error ?? ''}'.toLowerCase();
+    final text = _errorText(error);
 
     return text.contains('handshakeexception') ||
         text.contains('tlsexception') ||
         text.contains('certificate_verify_failed');
   }
+
+  static bool _isConnectionDropped(DioException error) {
+    final text = _errorText(error);
+
+    return text.contains('socketexception') ||
+        text.contains('connection abort') ||
+        text.contains('connection reset') ||
+        text.contains('connection closed');
+  }
+
+  static String _errorText(DioException error) =>
+      '${error.message ?? ''} ${error.error ?? ''}'.toLowerCase();
 
   static SentryLevel _breadcrumbLevelFor(LogRecord record) {
     if (record.level >= Level.WARNING) {

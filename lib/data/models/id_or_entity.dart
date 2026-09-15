@@ -1,8 +1,4 @@
-import 'package:heliumapp/core/helium_exception.dart';
 import 'package:heliumapp/data/models/base_model.dart';
-import 'package:logging/logging.dart';
-
-final _log = Logger('data.models');
 
 class IdOrEntity<T extends BaseModel> {
   final int id;
@@ -17,21 +13,11 @@ class IdOrEntity<T extends BaseModel> {
     }
 
     if (value is int) return IdOrEntity(id: value);
-    try {
-      if (data is Map<String, dynamic>) {
-        return IdOrEntity(id: data['id'], entity: fromJson(data));
-      }
-    } catch (e, s) {
-      _log.severe('An unknown error occurred', e, s);
+    if (data is Map<String, dynamic>) {
+      return IdOrEntity(id: data['id'], entity: fromJson(data));
     }
 
-    _log.severe(
-      'Unknown data format, or given class does not implement fromJson '
-      '(data type: ${data.runtimeType})',
-    );
-    throw HeliumException(
-      message: 'An unexpected error occurred while processing data.',
-    );
+    throw ArgumentError.value(data, 'data', 'Expected an id or a JSON object');
   }
 
   @override
