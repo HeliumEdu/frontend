@@ -150,6 +150,8 @@ jobs:
     needs: [prereq, test]
     if: "!cancelled() && needs.prereq.result == 'success' && needs.test.result == 'success'"
     runs-on: ubuntu-latest
+    concurrency:
+      group: helium-frontend-google-play
 
     steps:
       - uses: actions/checkout@v6
@@ -240,12 +242,12 @@ jobs:
           npm install -g @sentry/cli@3.6.2
           make upload-android-symbols
 
-      - name: Stage release candidate on Internal track
+      - name: Stage release candidate on the closed track
         env:
           RELEASE_VERSION: ${{ needs.prereq.outputs.version }}
         run: |
           cd android
-          bundle exec fastlane deploy_internal \
+          bundle exec fastlane stage_release_candidate \
             aab_path:../build/app/outputs/bundle/release/app-release.aab \
             version:"${RELEASE_VERSION%%+*}"
 
@@ -521,44 +523,18 @@ jobs:
           SENTRY_PROPERTIES=sentry/sentry.properties sentry-cli releases finalize "$VERSION"
 
   deploy:
-    name: Trigger Deploy Workflow
+    name: Deploy
     needs: [prereq, create-release-tag]
     if: "!cancelled() && (inputs.trigger_deploy_after_release == true || inputs.trigger_deploy_after_release == 'true') && needs.prereq.result == 'success' && needs['create-release-tag'].result == 'success'"
-    runs-on: ubuntu-latest
-    steps:
-      - name: Generate GitHub App token
-        id: app-token
-        uses: actions/create-github-app-token@v3
-        with:
-          client-id: ${{ secrets.HELIUM_BOT_APP_ID }}
-          private-key: ${{ secrets.HELIUM_BOT_PRIVATE_KEY }}
-          skip-token-revoke: true
-
-      - name: Trigger deploy workflow
-        env:
-          GH_TOKEN: ${{ steps.app-token.outputs.token }}
-          VERSION: ${{ needs.prereq.outputs.version }}
-          PLATFORMS: ${{ inputs.platforms }}
-          AUTO_SUBMIT_FOR_REVIEW: ${{ inputs.auto_submit_for_review }}
-          PUSH_STORE_ASSETS: ${{ inputs.push_store_assets }}
-        run: |
-          gh workflow run deploy.yml \
-            --repo ${{ github.repository }} \
-            -f version_type=specific \
-            -f specific_version="$VERSION" \
-            -f platforms="$PLATFORMS" \
-            -f auto_submit_for_review="$AUTO_SUBMIT_FOR_REVIEW" \
-            -f push_store_assets="$PUSH_STORE_ASSETS"
-
-      - name: Deployment trigger summary
-        env:
-          VERSION: ${{ needs.prereq.outputs.version }}
-          PLATFORMS: ${{ inputs.platforms }}
-        run: |
-          echo "### Deploy Workflow Triggered" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "- **Version**: $VERSION" >> $GITHUB_STEP_SUMMARY
-          echo "- **Platforms**: $PLATFORMS" >> $GITHUB_STEP_SUMMARY
+    uses: ./.github/workflows/deploy.yml
+    with:
+      version_type: specific
+      specific_version: ${{ needs.prereq.outputs.version }}
+      platforms: ${{ inputs.platforms }}
+      auto_submit_for_review: ${{ inputs.auto_submit_for_review == true || inputs.auto_submit_for_review == 'true' }}
+      push_store_assets: ${{ inputs.push_store_assets == true || inputs.push_store_assets == 'true' }}
+      artifact_run_id: ${{ github.run_id }}
+    secrets: inherit
 
   cleanup:
     needs: [prereq, create-release-tag, deploy]

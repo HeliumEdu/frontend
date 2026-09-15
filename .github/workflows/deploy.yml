@@ -306,6 +306,8 @@ jobs:
     name: Deploy Android
     if: inputs.platforms == 'android' || inputs.platforms == 'all'
     runs-on: ubuntu-latest
+    concurrency:
+      group: helium-frontend-google-play
 
     steps:
       - name: Generate GitHub App token
@@ -455,6 +457,8 @@ jobs:
     name: Deploy iOS
     if: inputs.platforms == 'ios' || inputs.platforms == 'all'
     runs-on: macos-latest
+    concurrency:
+      group: helium-frontend-app-store
 
     steps:
       - name: Generate GitHub App token

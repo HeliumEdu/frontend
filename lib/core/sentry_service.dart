@@ -215,10 +215,6 @@ class SentryService {
   /// Check SentryException type and value
   bool _shouldFilterSentryException(SentryException exception,
       {bool backgroundEndpoint = false}) {
-    if (_shouldFilterByStackFrames(exception)) {
-      return true;
-    }
-
     final type = exception.type?.toLowerCase() ?? '';
     final value = exception.value?.toLowerCase() ?? '';
     final combined = '$type $value';
@@ -260,14 +256,6 @@ class SentryService {
     return false;
   }
 
-  /// Filter exceptions originating entirely within known third-party packages
-  bool _shouldFilterByStackFrames(SentryException exception) {
-    final frames = exception.stackTrace?.frames ?? [];
-    return frames.any((f) => [f.absPath, f.module, f.fileName, f.package].any(
-        (path) => (path ?? '').toLowerCase().contains('syncfusion_flutter')));
-  }
-
-  /// Text-based filtering as a fallback
   bool _shouldFilterByText(SentryEvent event) {
     final textParts = <String>[
       event.message?.formatted ?? '',

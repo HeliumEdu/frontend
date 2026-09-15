@@ -20,7 +20,7 @@ platform :android do
     next_code
   end
 
-  desc "Upload an AAB to the Internal track. Every CI build lands here so testers run the newest code, and the release workflow stages its candidate the same way before promoting it to Production."
+  desc "Upload an AAB to the Internal track. Every CI build lands here so testers run the newest code."
   lane :deploy_internal do |options|
     aab_path = options[:aab_path] || "../build/app/outputs/bundle/release/app-release.aab"
     version = options[:version]
@@ -37,7 +37,24 @@ platform :android do
     )
   end
 
-  desc "Promote the Internal-track release candidate to Production, pushing metadata text every time and store-listing assets only when push_store_assets:true. Leaves the release as a draft for the operator to send for review; set submit_for_review:true to send it from CI. Managed Publishing gates the post-review publish either way."
+  desc "Stage a release candidate on the closed 'alpha' track, which holds no testers and exists so a CI upload to Internal can never replace the candidate before it is promoted."
+  lane :stage_release_candidate do |options|
+    aab_path = options[:aab_path] || "../build/app/outputs/bundle/release/app-release.aab"
+    version = options[:version]
+
+    upload_to_play_store(
+      aab: aab_path,
+      track: 'alpha',
+      version_name: version,
+      skip_upload_apk: true,
+      skip_upload_metadata: true,
+      skip_upload_images: true,
+      skip_upload_screenshots: true,
+      release_status: 'completed'
+    )
+  end
+
+  desc "Promote the release candidate from the closed 'alpha' track to Production, pushing metadata text every time and store-listing assets only when push_store_assets:true. Leaves the release as a draft for the operator to send for review; set submit_for_review:true to send it from CI. Managed Publishing gates the post-review publish either way."
   lane :deploy_production do |options|
     version = options[:version]
     version_code = options[:version_code]
@@ -66,12 +83,12 @@ platform :android do
 
     # supply promotes only on a run that uploads no binary of its own, so both
     # skip flags are load-bearing. The promoted release keeps the name stamped
-    # on the Internal release at build time, which leaves version_name inert
-    # here; version_code picks which Internal release carries over, and names
+    # on the alpha release at build time, which leaves version_name inert
+    # here; version_code picks which alpha release carries over, and names
     # the changelog supply looks for.
     upload_to_play_store(
       metadata_path: metadata_dir,
-      track: 'internal',
+      track: 'alpha',
       track_promote_to: 'production',
       version_code: version_code,
       # Draft is the only way to reach Production without submitting: Play reviews this app

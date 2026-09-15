@@ -395,6 +395,8 @@ jobs:
     if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/develop' }}
 
     runs-on: macos-latest
+    concurrency:
+      group: helium-frontend-app-store
 
     steps:
       - uses: actions/checkout@v6
@@ -540,6 +542,8 @@ jobs:
     if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/develop' }}
 
     runs-on: ubuntu-latest
+    concurrency:
+      group: helium-frontend-google-play
 
     steps:
       - uses: actions/checkout@v6
