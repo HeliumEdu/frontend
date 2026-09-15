@@ -542,6 +542,9 @@ jobs:
     if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/develop' }}
 
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: read
     concurrency:
       group: helium-frontend-google-play
 
@@ -636,7 +639,16 @@ jobs:
           npm install -g @sentry/cli@3.6.2
           make upload-android-symbols
 
+      - name: Check for an in-progress release
+        id: release-check
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          ACTIVE=$(gh run list --workflow release.yml --status in_progress --json databaseId --jq 'length')
+          echo "active=${ACTIVE}" >> $GITHUB_OUTPUT
+
       - name: Deploy to Google Play Internal track
+        if: steps.release-check.outputs.active == '0'
         run: |
           cd android
           bundle exec fastlane deploy_internal \
@@ -649,6 +661,12 @@ jobs:
 
       - name: Deployment summary
         run: |
+          if [ "${{ steps.release-check.outputs.active }}" != "0" ]; then
+            echo "### Android CI Preview Skipped" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "A release is in progress; uploading now could replace its candidate on the Internal track before it is promoted." >> $GITHUB_STEP_SUMMARY
+            exit 0
+          fi
           echo "### Android CI Preview Deployment Complete" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "- **Commit**: ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
