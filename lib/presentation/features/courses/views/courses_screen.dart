@@ -526,14 +526,7 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen>
         }
       }
 
-      if (_courseGroups.isNotEmpty) {
-        if (_selectedGroupId == null ||
-            !_courseGroups.any((g) => g.id == _selectedGroupId)) {
-          _selectedGroupId = CourseGroupHelpers.currentGroupId(_courseGroups);
-        }
-      } else {
-        _selectedGroupId = null;
-      }
+      _selectedGroupId = _selectableGroupId(_selectedGroupId);
 
       isLoading = false;
       screenError = null;
@@ -541,6 +534,11 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen>
 
     openFromQueryParams();
   }
+
+  int? _selectableGroupId(int? candidate) =>
+      _courseGroups.any((g) => g.id == candidate)
+          ? candidate
+          : CourseGroupHelpers.currentGroupId(_courseGroups);
 
   Widget _buildCourseCard(BuildContext context, CourseModel course) {
     final categoryCount = _categoryCounts[course.id] ?? 0;
@@ -980,7 +978,9 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen>
     if (savedGroupId == null) return;
 
     setState(() {
-      _selectedGroupId = savedGroupId;
+      _selectedGroupId = _courseGroups.isEmpty
+          ? savedGroupId
+          : _selectableGroupId(savedGroupId);
     });
   }
 

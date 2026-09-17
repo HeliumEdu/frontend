@@ -5,6 +5,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:heliumapp/config/app_route.dart';
+import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/core/helium_exception.dart';
 import 'package:heliumapp/data/models/drop_down_item.dart';
 import 'package:heliumapp/data/models/planner/category_model.dart';
@@ -23,7 +25,9 @@ import 'package:heliumapp/presentation/features/planner/bloc/planneritem_event.d
 import 'package:heliumapp/presentation/features/planner/bloc/planneritem_state.dart';
 import 'package:heliumapp/presentation/features/planner/controllers/planner_item_form_controller.dart';
 import 'package:heliumapp/presentation/features/planner/dialogs/confirm_delete_dialog.dart';
+import 'package:heliumapp/presentation/ui/components/helium_icon_button.dart';
 import 'package:heliumapp/presentation/ui/components/select_field.dart';
+import 'package:heliumapp/presentation/ui/feedback/info_container.dart';
 import 'package:heliumapp/presentation/ui/layout/helium_full_screen_scroll_view.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/core/base_event.dart';
 import 'package:heliumapp/presentation/features/shared/controllers/basic_form_controller.dart';
@@ -64,6 +68,7 @@ class PlannerItemDetails extends StatefulWidget {
   final ValueChanged<bool>? onIsEventChanged;
   final VoidCallback? onActionStarted;
   final VoidCallback? onSubmitRequested;
+  final ValueChanged<String>? onNavigateRequested;
 
   const PlannerItemDetails({
     super.key,
@@ -78,6 +83,7 @@ class PlannerItemDetails extends StatefulWidget {
     this.onIsEventChanged,
     this.onActionStarted,
     this.onSubmitRequested,
+    this.onNavigateRequested,
   });
 
   @override
@@ -276,6 +282,8 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
                         (widget.onSubmitRequested ?? onSubmit).call(),
                   ),
                   const SizedBox(height: 14),
+                  if (!widget.isEdit && _courses.isEmpty)
+                    _buildNoClassesNotice(),
                   if (!_isEvent) ...[
                     DropDown(
                       label: 'Class',
@@ -517,6 +525,24 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildNoClassesNotice() {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 14),
+      child: InfoContainer(
+        text:
+            'Once you\'ve created at least one Class shown on the Planner, '
+            'you can create either an Event or an Assignment here.',
+        trailing: HeliumIconButton(
+          icon: Icons.school,
+          backgroundColor: context.colorScheme.onSurfaceVariant,
+          tooltip: 'Add a Class',
+          onPressed: () =>
+              widget.onNavigateRequested?.call(AppRoute.coursesScreen),
+        ),
+      ),
     );
   }
 

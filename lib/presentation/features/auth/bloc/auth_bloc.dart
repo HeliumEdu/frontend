@@ -15,7 +15,6 @@ import 'package:heliumapp/data/models/auth/request/delete_account_request_model.
 import 'package:heliumapp/data/models/auth/request/forgot_password_request_model.dart';
 import 'package:heliumapp/data/models/auth/request/refresh_token_request_model.dart';
 import 'package:heliumapp/data/models/auth/request/reset_password_request_model.dart';
-import 'package:heliumapp/data/models/auth/request/update_settings_request_model.dart';
 import 'package:heliumapp/data/models/auth/user_model.dart';
 import 'package:heliumapp/core/analytics_service.dart';
 import 'package:heliumapp/core/jwt_utils.dart';
@@ -33,6 +32,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
   AuthBloc({required this.authRepository, required this.dioClient})
     : super(AuthInitial()) {
+    dioClient.addForcedLogoutListener(_onForcedLogoutSignal);
+
     on<RegisterEvent>(_onRegister);
     on<VerifyEmailEvent>(_onVerifyEmail);
     on<ResendVerificationEvent>(_onResendVerification);
@@ -42,6 +43,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<MicrosoftLoginEvent>(_onMicrosoftLogin);
 
     on<LogoutEvent>(_onLogout);
+    on<ForcedLogoutEvent>(_onForcedLogout);
     on<CheckAuthEvent>(_onCheckAuth);
     on<RefreshTokenEvent>(_onRefreshToken);
     on<FetchProfileEvent>(_onFetchProfile);
@@ -376,6 +378,18 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     }
   }
 
+  void _onForcedLogoutSignal() => add(ForcedLogoutEvent());
+
+  void _onForcedLogout(ForcedLogoutEvent event, Emitter<AuthState> emit) {
+    emit(AuthLoggedOut());
+  }
+
+  @override
+  Future<void> close() {
+    dioClient.removeForcedLogoutListener(_onForcedLogoutSignal);
+    return super.close();
+  }
+
   Future<void> _onFetchProfile(
     FetchProfileEvent event,
     Emitter<AuthState> emit,
@@ -411,7 +425,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
       if (accessToken?.isNotEmpty ?? false) {
         try {
-          await dioClient.fetchSettings();
+          await dioClient.getSettings(forceRefresh: true);
 
           final userId = JwtUtils.getUserId(accessToken!);
           SentryService().setUser(userId?.toString());
@@ -573,12 +587,9 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
     try {
       await authRepository.deleteExampleSchedule();
-      await authRepository.updateUserSettings(
-        UpdateSettingsRequestModel(showGettingStarted: false),
-      );
       // Warm the settings cache so the router's auth-redirect read is a hit,
       // not a post-redirect cold fetch that stalls the outgoing screen.
-      await dioClient.fetchSettings(forceRefresh: true);
+      await dioClient.getSettings(forceRefresh: true);
       unawaited(NotificationCountService().refresh());
 
       emit(AuthScheduleDataRefreshed());

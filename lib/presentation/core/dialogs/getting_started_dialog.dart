@@ -15,6 +15,7 @@ import 'package:heliumapp/presentation/ui/components/helium_elevated_button.dart
 import 'package:heliumapp/core/motion_service.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/app_style.dart';
+import 'package:heliumapp/utils/deep_link_helpers.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:heliumapp/utils/snack_bar_helpers.dart';
 
@@ -163,7 +164,7 @@ class _GettingStartedDialogWidgetState
   /// any deliberate navigation rather than being left stranded under it.
   void _dismissIfOverlayActive() {
     if (!mounted) return;
-    final path = router.routerDelegate.currentConfiguration.uri.path;
+    final path = router.activeLocation.path;
     final onShellTab =
         NavigationPage.values.any((page) => page.route == path);
     if (!onShellTab && Navigator.canPop(context)) {

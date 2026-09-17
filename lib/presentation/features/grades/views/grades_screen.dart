@@ -292,14 +292,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
     setState(() {
       _courseGroups = state.courseGroups;
       _grades = state.grades;
-      if (_courseGroups.isNotEmpty) {
-        if (_selectedGroupId == null ||
-            !_courseGroups.any((g) => g.id == _selectedGroupId)) {
-          _selectedGroupId = CourseGroupHelpers.currentGroupId(_courseGroups);
-        }
-      } else {
-        _selectedGroupId = null;
-      }
+      _selectedGroupId = _selectableGroupId(_selectedGroupId);
       _pendingImpactCourseId = null;
       isLoading = false;
     });
@@ -2476,6 +2469,11 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
     );
   }
 
+  int? _selectableGroupId(int? candidate) =>
+      _courseGroups.any((g) => g.id == candidate)
+          ? candidate
+          : CourseGroupHelpers.currentGroupId(_courseGroups);
+
   void _restoreSelectedGroup(UserSettingsModel settings) {
     final savedGroupId = ScreenDropdownFilterHelpers.restore(
       ScreensDropdownFilterPrefKey.gradesGroupId,
@@ -2484,7 +2482,9 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
     if (savedGroupId == null) return;
 
     setState(() {
-      _selectedGroupId = savedGroupId;
+      _selectedGroupId = _courseGroups.isEmpty
+          ? savedGroupId
+          : _selectableGroupId(savedGroupId);
     });
   }
 

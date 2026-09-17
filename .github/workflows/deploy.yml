@@ -37,6 +37,10 @@ on:
         required: false
         type: boolean
         default: false
+      artifact_run_id:
+        description: 'Automation only: workflow run ID to fetch build artifacts from (bypasses the release-history search). Leave blank for a manual deploy.'
+        required: false
+        type: string
   workflow_call:
     inputs:
       version_type:
@@ -158,6 +162,8 @@ jobs:
         with:
           name: helium-${{ inputs.specific_version }}-web
           path: ./web-build
+          run-id: ${{ inputs.artifact_run_id }}
+          github-token: ${{ steps.app-token.outputs.token }}
 
       - name: Download web artifact
         if: ${{ inputs.artifact_run_id == '' }}
@@ -382,6 +388,8 @@ jobs:
         with:
           name: helium-${{ inputs.specific_version }}-android.aab
           path: ./android-build
+          run-id: ${{ inputs.artifact_run_id }}
+          github-token: ${{ steps.app-token.outputs.token }}
 
       - name: Download Android artifact
         if: ${{ inputs.artifact_run_id == '' }}
@@ -533,6 +541,8 @@ jobs:
         with:
           name: helium-${{ inputs.specific_version }}-ios.ipa
           path: ./ios-build
+          run-id: ${{ inputs.artifact_run_id }}
+          github-token: ${{ steps.app-token.outputs.token }}
 
       - name: Download iOS artifact
         if: ${{ inputs.artifact_run_id == '' }}

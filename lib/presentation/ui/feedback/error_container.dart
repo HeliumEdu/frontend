@@ -31,25 +31,31 @@ class ErrorContainer extends StatelessWidget {
         border: Border.all(color: errorColor.withValues(alpha: 0.2)),
       ),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(
-            icon ?? Icons.error_outline_rounded,
-            color: errorColor,
-            size: Responsive.getIconSize(
-              context,
-              mobile: 18,
-              tablet: 20,
-              desktop: 22,
-            ),
-          ),
-          const SizedBox(width: _iconTextSpacing),
           Expanded(
-            child: SelectableText(
-              text,
-              style: AppStyles.standardBodyText(
-                context,
-              ).copyWith(color: errorColor),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Icon(
+                  icon ?? Icons.error_outline_rounded,
+                  color: errorColor,
+                  size: Responsive.getIconSize(
+                    context,
+                    mobile: 18,
+                    tablet: 20,
+                    desktop: 22,
+                  ),
+                ),
+                const SizedBox(width: _iconTextSpacing),
+                Expanded(
+                  child: SelectableText(
+                    text,
+                    style: AppStyles.standardBodyText(
+                      context,
+                    ).copyWith(color: errorColor),
+                  ),
+                ),
+              ],
             ),
           ),
           if (onDismiss != null) ...[

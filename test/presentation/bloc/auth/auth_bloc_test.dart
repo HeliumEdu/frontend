@@ -1,4 +1,5 @@
 import 'package:bloc_test/bloc_test.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:heliumapp/core/helium_exception.dart';
 import 'package:heliumapp/core/last_oauth_provider_store.dart';
@@ -179,6 +180,36 @@ void main() {
       );
     });
 
+    group('ForcedLogoutEvent', () {
+      blocTest<AuthBloc, AuthState>(
+        'emits [AuthLoggedOut] when DioClient signals a forced logout',
+        build: () => authBloc,
+        act: (bloc) {
+          final signal = verify(
+            () => mockDioClient.addForcedLogoutListener(captureAny()),
+          ).captured.single as VoidCallback;
+          signal();
+        },
+        expect: () => [isA<AuthLoggedOut>()],
+        verify: (_) {
+          verifyNever(() => mockAuthRepository.logout());
+        },
+      );
+
+      test('close unregisters the forced logout listener', () async {
+        // GIVEN
+        final signal = verify(
+          () => mockDioClient.addForcedLogoutListener(captureAny()),
+        ).captured.single as VoidCallback;
+
+        // WHEN
+        await authBloc.close();
+
+        // THEN
+        verify(() => mockDioClient.removeForcedLogoutListener(signal)).called(1);
+      });
+    });
+
     group('LogoutEvent', () {
       blocTest<AuthBloc, AuthState>(
         'emits [AuthLoading, AuthLoggedOut] when logout succeeds',
@@ -220,7 +251,7 @@ void main() {
             () => mockDioClient.getRefreshToken(),
           ).thenAnswer((_) async => 'valid_refresh_token');
           when(
-            () => mockDioClient.fetchSettings(),
+            () => mockDioClient.getSettings(forceRefresh: true),
           ).thenAnswer((_) async => MockModels.createUser().settings);
           return authBloc;
         },

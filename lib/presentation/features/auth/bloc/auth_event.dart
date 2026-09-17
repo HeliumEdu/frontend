@@ -37,6 +37,8 @@ class MicrosoftLoginEvent extends AuthEvent {}
 
 class LogoutEvent extends AuthEvent {}
 
+class ForcedLogoutEvent extends AuthEvent {}
+
 class CheckAuthEvent extends AuthEvent {}
 
 class RefreshTokenEvent extends AuthEvent {}

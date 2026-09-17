@@ -164,7 +164,7 @@ void initializeRouter({String? initialLocation}) {
             routes: [
               GoRoute(
                 path: AppRoute.plannerScreen,
-                pageBuilder: (context, state) => NoTransitionPage(
+                pageBuilder: (context, state) => const NoTransitionPage(
                   child: ReloadScope(child: PlannerScreen()),
                 ),
                 routes: [
@@ -823,9 +823,9 @@ Future<String?> _authRedirect(BuildContext context, GoRouterState state) async {
     // so only reach for the network when the flag has never been stored.
     if (PrefService().getBool(SettingsPrefKey.isSetupComplete.key) == null) {
       try {
-        await DioClient().fetchSettings();
+        await DioClient().getSettings();
       } on DioException catch (e) {
-        // On web, a 401 --> refresh --> 403 path can escape fetchSettings()'s
+        // On web, a 401 --> refresh --> 403 path can escape getSettings()'s
         // own try-catch due to async zone isolation. Treat auth failures as
         // "session gone" and redirect to login rather than letting the
         // exception propagate into GoRouter (which wraps it as a GoException).

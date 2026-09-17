@@ -30,34 +30,35 @@ class InfoContainer extends StatelessWidget {
       decoration: BoxDecoration(
         color: primaryColor.withValues(alpha: 0.06),
         borderRadius: BorderRadius.circular(_containerBorderRadius),
-        border: Border.all(
-          color: primaryColor.withValues(alpha: 0.15),
-        ),
+        border: Border.all(color: primaryColor.withValues(alpha: 0.15)),
       ),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(
-            icon ?? Icons.info_outline_rounded,
-            color: primaryColor.withValues(alpha: 0.7),
-            size: Responsive.getIconSize(
-              context,
-              mobile: 18,
-              tablet: 20,
-              desktop: 22,
-            ),
-          ),
-          const SizedBox(width: _iconTextSpacing),
           Expanded(
-            child: SelectableText(
-              text,
-              style: AppStyles.standardBodyText(context),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Icon(
+                  icon ?? Icons.info_outline_rounded,
+                  color: primaryColor.withValues(alpha: 0.7),
+                  size: Responsive.getIconSize(
+                    context,
+                    mobile: 18,
+                    tablet: 20,
+                    desktop: 22,
+                  ),
+                ),
+                const SizedBox(width: _iconTextSpacing),
+                Expanded(
+                  child: SelectableText(
+                    text,
+                    style: AppStyles.standardBodyText(context),
+                  ),
+                ),
+              ],
             ),
           ),
-          if (trailing != null) ...[
-            const SizedBox(width: 8),
-            trailing!,
-          ],
+          if (trailing != null) ...[const SizedBox(width: 8), trailing!],
           if (onDismiss != null) ...[
             const SizedBox(width: 8),
             Semantics(
@@ -65,7 +66,10 @@ class InfoContainer extends StatelessWidget {
               button: true,
               child: IconButton(
                 onPressed: onDismiss,
-                icon: Icon(Icons.close, color: primaryColor.withValues(alpha: 0.7)),
+                icon: Icon(
+                  Icons.close,
+                  color: primaryColor.withValues(alpha: 0.7),
+                ),
                 iconSize: Responsive.getIconSize(
                   context,
                   mobile: 16,

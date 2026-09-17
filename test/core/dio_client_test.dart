@@ -268,6 +268,37 @@ void main() {
         verify(() => mockPrefService.clear()).called(1);
       });
     });
+
+    group('forceLogout', () {
+      test('clears storage and notifies forced logout listeners once', () async {
+        // GIVEN
+        when(() => mockPrefService.clear()).thenAnswer((_) async => []);
+        var notified = 0;
+        dioClient.addForcedLogoutListener(() => notified++);
+
+        // WHEN
+        await dioClient.forceLogout();
+
+        // THEN
+        verify(() => mockPrefService.clear()).called(1);
+        expect(notified, 1);
+      });
+
+      test('a removed listener is not notified', () async {
+        // GIVEN
+        when(() => mockPrefService.clear()).thenAnswer((_) async => []);
+        var notified = 0;
+        void listener() => notified++;
+        dioClient.addForcedLogoutListener(listener);
+        dioClient.removeForcedLogoutListener(listener);
+
+        // WHEN
+        await dioClient.forceLogout();
+
+        // THEN
+        expect(notified, 0);
+      });
+    });
   });
 }
 

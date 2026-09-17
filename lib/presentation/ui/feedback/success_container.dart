@@ -31,25 +31,31 @@ class SuccessContainer extends StatelessWidget {
         border: Border.all(color: successColor.withValues(alpha: 0.2)),
       ),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(
-            icon ?? Icons.check_circle_outline_rounded,
-            color: successColor,
-            size: Responsive.getIconSize(
-              context,
-              mobile: 18,
-              tablet: 20,
-              desktop: 22,
-            ),
-          ),
-          const SizedBox(width: _iconTextSpacing),
           Expanded(
-            child: SelectableText(
-              text,
-              style: AppStyles.standardBodyText(
-                context,
-              ).copyWith(color: successColor),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Icon(
+                  icon ?? Icons.check_circle_outline_rounded,
+                  color: successColor,
+                  size: Responsive.getIconSize(
+                    context,
+                    mobile: 18,
+                    tablet: 20,
+                    desktop: 22,
+                  ),
+                ),
+                const SizedBox(width: _iconTextSpacing),
+                Expanded(
+                  child: SelectableText(
+                    text,
+                    style: AppStyles.standardBodyText(
+                      context,
+                    ).copyWith(color: successColor),
+                  ),
+                ),
+              ],
             ),
           ),
           if (onDismiss != null) ...[

@@ -688,7 +688,7 @@ class _ImportExportScreenState extends State<ImportExportScreen> {
         await _dioClient.cacheService.invalidateAll();
         // Warm the settings cache so the router's auth-redirect read is a hit,
         // not a post-redirect cold fetch that stalls the outgoing screen.
-        await _dioClient.fetchSettings(forceRefresh: true);
+        await _dioClient.getSettings(forceRefresh: true);
         if (!mounted) return;
         unawaited(NotificationCountService().refresh());
         if (mounted) {

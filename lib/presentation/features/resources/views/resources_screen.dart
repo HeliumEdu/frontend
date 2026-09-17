@@ -445,16 +445,7 @@ class _ResourcesScreenState
         }
       }
 
-      if (_resourceGroups.isNotEmpty) {
-        final isValidSelection =
-            _selectedGroupId == _showAllGroupId ||
-            _resourceGroups.any((g) => g.id == _selectedGroupId);
-        if (_selectedGroupId == null || !isValidSelection) {
-          _selectedGroupId = _resourceGroups.first.id;
-        }
-      } else {
-        _selectedGroupId = null;
-      }
+      _selectedGroupId = _selectableGroupId(_selectedGroupId);
 
       isLoading = false;
       screenError = null;
@@ -620,6 +611,13 @@ class _ResourcesScreenState
     );
   }
 
+  int? _selectableGroupId(int? candidate) {
+    if (_resourceGroups.isEmpty) return null;
+    final isSelectable = candidate == _showAllGroupId ||
+        _resourceGroups.any((g) => g.id == candidate);
+    return isSelectable ? candidate : _resourceGroups.first.id;
+  }
+
   void _restoreSelectedGroup(UserSettingsModel settings) {
     final savedGroupId = ScreenDropdownFilterHelpers.restore(
       ScreensDropdownFilterPrefKey.resourcesGroupId,
@@ -628,7 +626,9 @@ class _ResourcesScreenState
     if (savedGroupId == null) return;
 
     setState(() {
-      _selectedGroupId = savedGroupId;
+      _selectedGroupId = _resourceGroups.isEmpty
+          ? savedGroupId
+          : _selectableGroupId(savedGroupId);
     });
   }
 

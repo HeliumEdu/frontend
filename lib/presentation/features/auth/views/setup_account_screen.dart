@@ -140,7 +140,7 @@ class _SetupAccountScreenState extends BasePageScreenState<SetupAccountScreen> {
     try {
       _log.info('Checking setup status ...');
 
-      final settings = await DioClient().fetchSettings(forceRefresh: true);
+      final settings = await DioClient().getSettings(forceRefresh: true);
 
       if (settings != null && settings.isSetupComplete) {
         _log.info('... setup complete, navigating to planner');

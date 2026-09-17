@@ -53,7 +53,7 @@ class NotificationsScreen extends StatelessWidget {
   /// instead of always on /planner.
   final String shellPath;
 
-  NotificationsScreen({
+  const NotificationsScreen({
     super.key,
     this.shellPath = AppRoute.plannerScreen,
   });

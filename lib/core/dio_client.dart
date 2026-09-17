@@ -57,7 +57,8 @@ class DioClient {
        _cacheService = cacheService ?? CacheService();
 
   bool _isRefreshing = false;
-  Completer<void>? _refreshCompleter;
+  Completer<bool>? _refreshCompleter;
+  final List<VoidCallback> _forcedLogoutListeners = [];
   String? _clientVersion;
   String? _clientPlatform;
 
@@ -80,6 +81,18 @@ class DioClient {
   Dio get dio => _dio;
 
   CacheService get cacheService => _cacheService;
+
+  void addForcedLogoutListener(VoidCallback callback) =>
+      _forcedLogoutListeners.add(callback);
+
+  void removeForcedLogoutListener(VoidCallback callback) =>
+      _forcedLogoutListeners.remove(callback);
+
+  void _notifyForcedLogout() {
+    for (final callback in List<VoidCallback>.of(_forcedLogoutListeners)) {
+      callback();
+    }
+  }
 
   /// Builds every HTTP client in the app. Never construct `Dio()` directly —
   /// an unset timeout means no limit, so a bare client can hang forever on a
@@ -164,44 +177,42 @@ class DioClient {
                   parameters: {'category': AnalyticsCategory.operational.value},
                 ),
               );
+              final refreshed = await _refreshCompleter!.future;
+              if (!refreshed) {
+                return handler.next(error);
+              }
               try {
-                await _refreshCompleter!.future;
                 final newToken = await getAccessToken();
-                if (newToken?.isNotEmpty ?? false) {
-                  error.requestOptions.headers['Authorization'] =
-                      'Bearer $newToken';
-                  _refreshReplayBody(error.requestOptions);
-                  final retryResponse = await _dio.fetch(error.requestOptions);
-                  return handler.resolve(retryResponse);
-                } else {
-                  await forceLogout();
+                if (newToken == null || newToken.isEmpty) {
                   return handler.next(error);
                 }
+                error.requestOptions.headers['Authorization'] =
+                    'Bearer $newToken';
+                _refreshReplayBody(error.requestOptions);
+                final retryResponse = await _dio.fetch(error.requestOptions);
+                return handler.resolve(retryResponse);
               } catch (e) {
-                await forceLogout();
                 return handler.next(error);
               }
             }
 
             _log.info('Got 401 error, attempting to refresh token ...');
             _isRefreshing = true;
-            _refreshCompleter = Completer<void>();
-            // Absorb completeError when no request is awaiting, so it can't
-            // escape as an unhandled error.
-            unawaited(_refreshCompleter!.future.catchError((_) {}));
+            _refreshCompleter = Completer<bool>();
 
             try {
               final refreshToken = await getRefreshToken();
 
               if (refreshToken == null || refreshToken.isEmpty) {
-                _log.info('No refresh token available, redirecting to login');
+                if (await _sentWithCurrentAccessToken(error.requestOptions)) {
+                  _log.info('No refresh token available, redirecting to login');
+                  await forceLogout();
+                } else {
+                  _log.info('Session already ended while request was in flight');
+                }
                 _isRefreshing = false;
-                // Use complete() instead of completeError() to avoid unhandled
-                // exception when no other requests are waiting on the completer.
-                // Waiting requests check for null token after completion.
-                _refreshCompleter!.complete();
+                _refreshCompleter!.complete(false);
                 _refreshCompleter = null;
-                await forceLogout();
                 return handler.next(error);
               }
 
@@ -244,10 +255,10 @@ class DioClient {
                 _log.info(
                   'Got $refreshStatusCode during token refresh, session expired',
                 );
-                _isRefreshing = false;
-                _refreshCompleter!.complete();
-                _refreshCompleter = null;
                 await forceLogout();
+                _isRefreshing = false;
+                _refreshCompleter!.complete(false);
+                _refreshCompleter = null;
                 return handler.next(error);
               }
 
@@ -262,7 +273,7 @@ class DioClient {
                 );
                 _log.info('Token refreshed successfully');
                 _isRefreshing = false;
-                _refreshCompleter!.complete();
+                _refreshCompleter!.complete(true);
                 _refreshCompleter = null;
 
                 error.requestOptions.headers['Authorization'] =
@@ -275,31 +286,23 @@ class DioClient {
                 _log.warning(
                   'Token refresh failed with status: ${response.statusCode}',
                 );
-                _isRefreshing = false;
-                _refreshCompleter!.completeError('Token refresh failed');
-                _refreshCompleter = null;
 
                 if (_isInvalidTokenError(response.data)) {
                   _log.info(
                     'Refresh token is invalid/expired, clearing tokens',
                   );
                   await forceLogout();
-                  return handler.next(error);
+                } else {
+                  _log.warning(
+                    'Token refresh failed but not due to invalid token, retrying request',
+                  );
                 }
-
-                _log.warning(
-                  'Token refresh failed but not due to invalid token, retrying request',
-                );
-
+                _isRefreshing = false;
+                _refreshCompleter!.complete(false);
+                _refreshCompleter = null;
                 return handler.next(error);
               }
             } catch (e) {
-              _isRefreshing = false;
-              if (_refreshCompleter != null) {
-                _refreshCompleter!.completeError(e);
-                _refreshCompleter = null;
-              }
-
               bool shouldLogout = false;
               if (e is DioException) {
                 final statusCode = e.response?.statusCode;
@@ -319,6 +322,11 @@ class DioClient {
                 await forceLogout();
               } else {
                 _log.severe('Unexpected error during token refresh', e);
+              }
+              _isRefreshing = false;
+              if (_refreshCompleter != null) {
+                _refreshCompleter!.complete(false);
+                _refreshCompleter = null;
               }
               return handler.next(error);
             }
@@ -350,7 +358,7 @@ class DioClient {
     _cacheService.onInactivityResume = () async {
       if (!await isAuthenticated()) return;
 
-      if (await fetchSettings(forceRefresh: true) != null) {
+      if (await _fetchSettings(forceRefresh: true) != null) {
         await _cacheService.invalidateAll();
       }
     };
@@ -411,7 +419,7 @@ class DioClient {
 
   /// Set [rethrowErrors] to surface a mapped [HeliumException] instead of
   /// returning null, so callers can show why the fetch failed.
-  Future<UserSettingsModel?> fetchSettings({
+  Future<UserSettingsModel?> _fetchSettings({
     bool forceRefresh = false,
     bool rethrowErrors = false,
   }) async {
@@ -447,7 +455,10 @@ class DioClient {
     }
   }
 
-  Future<UserSettingsModel?> getSettings({bool rethrowErrors = false}) async {
+  Future<UserSettingsModel?> getSettings({
+    bool forceRefresh = false,
+    bool rethrowErrors = false,
+  }) async {
     await _prefService.init();
 
     try {
@@ -477,16 +488,20 @@ class DioClient {
         SettingsPrefKey.showWeekNumbers.key: p.getBool(SettingsPrefKey.showWeekNumbers.key),
       };
 
-      if (cachedJson.values.any((v) => v == null)) {
-        _log.info('Fetching settings from API ...');
-        final fetchedSettings = await fetchSettings(
+      final isCacheComplete = !cachedJson.values.any((v) => v == null);
+
+      if (forceRefresh || !isCacheComplete) {
+        final fetchedSettings = await _fetchSettings(
+          forceRefresh: forceRefresh,
           rethrowErrors: rethrowErrors,
         );
         if (fetchedSettings != null) {
           return fetchedSettings;
         }
-        _log.warning('Failed to fetch settings from API');
-        return null;
+        if (!isCacheComplete) {
+          _log.warning('Failed to fetch settings from API');
+          return null;
+        }
       }
 
       return UserSettingsModel.fromJson(cachedJson);
@@ -494,7 +509,7 @@ class DioClient {
       rethrow;
     } catch (parseError) {
       _log.info('Failed to parse cached settings: $parseError');
-      return await fetchSettings(rethrowErrors: rethrowErrors);
+      return await _fetchSettings(rethrowErrors: rethrowErrors);
     }
   }
 
@@ -613,6 +628,12 @@ class DioClient {
     );
   }
 
+  Future<bool> _sentWithCurrentAccessToken(RequestOptions options) async {
+    final current = await getAccessToken();
+    final expected = (current?.isNotEmpty ?? false) ? 'Bearer $current' : null;
+    return options.headers['Authorization'] == expected;
+  }
+
   bool _isInvalidTokenError(dynamic responseData) {
     if (responseData is Map<String, dynamic>) {
       final detail = responseData['detail'];
@@ -633,6 +654,8 @@ class DioClient {
 
     try {
       await clearStorage();
+      SentryService().clearUser();
+      _notifyForcedLogout();
       final context = rootNavigatorKey.currentContext;
       if (context != null && context.mounted) {
         SnackBarHelper.show(

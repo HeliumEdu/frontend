@@ -1,5 +1,22 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:heliumapp/config/app_router.dart';
+
+extension ActiveLocation on GoRouter {
+  Uri get activeLocation {
+    final configuration = routerDelegate.currentConfiguration;
+    if (configuration.isEmpty) return configuration.uri;
+    final tail = _leafMatch(configuration.matches.last);
+    return tail is ImperativeRouteMatch ? tail.matches.uri : configuration.uri;
+  }
+
+  RouteMatchBase _leafMatch(RouteMatchBase match) {
+    if (match is ShellRouteMatch && match.matches.isNotEmpty) {
+      return _leafMatch(match.matches.last);
+    }
+    return match;
+  }
+}
 
 /// URL synchronization helpers for deep link support.
 extension DeepLinkContext on BuildContext {

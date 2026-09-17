@@ -12,6 +12,7 @@ import 'package:heliumapp/presentation/features/planner/widgets/planner_item_det
 import 'package:heliumapp/presentation/features/planner/widgets/planner_item_reminders.dart';
 import 'package:heliumapp/presentation/features/shared/widgets/core/base_attachments.dart';
 import 'package:heliumapp/presentation/features/shared/widgets/flow/multi_step_container.dart';
+import 'package:heliumapp/presentation/ui/feedback/discard_changes_scope.dart';
 import 'package:heliumapp/presentation/ui/components/helium_icon_button.dart';
 import 'package:heliumapp/utils/deep_link_helpers.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
@@ -572,6 +573,11 @@ class _PlannerItemAddScreenState
         isEdit: widget.isEdit || _currentEntityId != null,
         isNew: widget.isNew,
         userSettings: userSettings,
+        onNavigateRequested: (route) async {
+          if (isDirty && !await confirmDiscardChanges(context)) return;
+          closeWithoutPrompt();
+          WidgetsBinding.instance.addPostFrameCallback((_) => router.go(route));
+        },
         onIsEventChanged: (isEvent) {
           setState(() {
             _currentIsEvent = isEvent;

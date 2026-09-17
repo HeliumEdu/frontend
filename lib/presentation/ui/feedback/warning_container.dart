@@ -28,28 +28,32 @@ class WarningContainer extends StatelessWidget {
       decoration: BoxDecoration(
         color: warningColor.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(_containerBorderRadius),
-        border: Border.all(
-          color: warningColor.withValues(alpha: 0.2),
-        ),
+        border: Border.all(color: warningColor.withValues(alpha: 0.2)),
       ),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(
-            icon ?? Icons.warning_amber_rounded,
-            color: warningColor,
-            size: Responsive.getIconSize(
-              context,
-              mobile: 18,
-              tablet: 20,
-              desktop: 22,
-            ),
-          ),
-          const SizedBox(width: _iconTextSpacing),
           Expanded(
-            child: SelectableText(
-              text,
-              style: AppStyles.standardBodyText(context),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Icon(
+                  icon ?? Icons.warning_amber_rounded,
+                  color: warningColor,
+                  size: Responsive.getIconSize(
+                    context,
+                    mobile: 18,
+                    tablet: 20,
+                    desktop: 22,
+                  ),
+                ),
+                const SizedBox(width: _iconTextSpacing),
+                Expanded(
+                  child: SelectableText(
+                    text,
+                    style: AppStyles.standardBodyText(context),
+                  ),
+                ),
+              ],
             ),
           ),
           if (onDismiss != null) ...[

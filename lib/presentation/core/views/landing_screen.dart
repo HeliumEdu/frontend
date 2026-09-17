@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -23,7 +21,6 @@ class LandingScreen extends StatefulWidget {
 class _LandingScreenState extends State<LandingScreen> {
   final DioClient _dioClient = DioClient();
   String? _deepLinkRoute;
-  StreamSubscription<AuthState>? _authSubscription;
 
   @override
   void initState() {
@@ -42,14 +39,26 @@ class _LandingScreenState extends State<LandingScreen> {
   }
 
   @override
-  void dispose() {
-    _authSubscription?.cancel();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
-    return const SizedBox.shrink();
+    return BlocListener<AuthBloc, AuthState>(
+      listenWhen: (_, current) =>
+          current is AuthAuthenticated ||
+          current is AuthTokenRefreshed ||
+          current is AuthUnauthenticated ||
+          current is AuthError,
+      listener: (context, state) {
+        if (state is AuthAuthenticated || state is AuthTokenRefreshed) {
+          _log.info('Access token is valid, navigating to home');
+          _navigateToTarget();
+        } else {
+          _log.info(
+            'Access and refresh tokens missing or invalid, navigating to login',
+          );
+          _navigateToSignin();
+        }
+      },
+      child: const SizedBox.shrink(),
+    );
   }
 
   Future<void> _checkAutoLogin() async {
@@ -58,24 +67,6 @@ class _LandingScreenState extends State<LandingScreen> {
     if (mounted && (accessToken?.isNotEmpty ?? false)) {
       _log.info('Token found, checking authentication ...');
 
-      _log.info('Checking access token validity ...');
-
-      // Set up listener before dispatching event to avoid race condition
-      _authSubscription = context.read<AuthBloc>().stream.listen((state) async {
-        _log.info('Auth state received: ${state.runtimeType}');
-        if (state is AuthAuthenticated || state is AuthTokenRefreshed) {
-          _log.info('Access token is valid, navigating to home');
-
-          await _authSubscription?.cancel();
-          _navigateToTarget();
-        } else if (state is AuthUnauthenticated || state is AuthError) {
-          _log.info(
-            'Access and refresh tokens missing or invalid, navigating to login',
-          );
-          await _authSubscription?.cancel();
-          _navigateToSignin();
-        }
-      });
       context.read<AuthBloc>().add(CheckAuthEvent());
     } else {
       _log.info('No token found or context not mounted, navigate to login');

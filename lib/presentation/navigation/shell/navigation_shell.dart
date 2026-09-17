@@ -31,6 +31,7 @@ import 'package:heliumapp/presentation/ui/layout/page_header.dart';
 import 'package:heliumapp/utils/app_assets.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/app_style.dart';
+import 'package:heliumapp/utils/deep_link_helpers.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:logging/logging.dart';
 import 'package:heliumapp/utils/url_helpers.dart';
@@ -158,7 +159,7 @@ enum NavigationPage {
   Widget buildScreen() {
     switch (this) {
       case NavigationPage.planner:
-        return PlannerScreen();
+        return const PlannerScreen();
       case NavigationPage.notes:
         return const NotebookScreen();
       case NavigationPage.courses:
@@ -350,8 +351,8 @@ class _NavigationShellState extends State<NavigationShell> {
   /// An imperative push leaves the URI on the base location, so a tapped
   /// notification's destination has to be asked for rather than read off it.
   bool get _destinationIsTopLevelPage {
-    final destination = FcmService.tappedDestination ??
-        router.routerDelegate.currentConfiguration.uri.path;
+    final destination =
+        FcmService.tappedDestination ?? router.activeLocation.path;
     return NavigationPage.values.any((page) => page.route == destination);
   }
 
@@ -376,7 +377,7 @@ class _NavigationShellState extends State<NavigationShell> {
     bool showWhatsNew = false;
 
     try {
-      final settings = await DioClient().getSettings();
+      final settings = await DioClient().getSettings(forceRefresh: true);
       showGettingStarted =
           settings?.showGettingStarted ??
           FallbackConstants.defaultShowGettingStarted;

@@ -11,6 +11,8 @@ import 'package:heliumapp/data/models/auth/user_settings_model.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/info/info_bloc.dart';
 import 'package:heliumapp/core/notification_count_service.dart';
 import 'package:heliumapp/presentation/core/views/reload_scope.dart';
+import 'package:heliumapp/presentation/features/auth/bloc/auth_bloc.dart';
+import 'package:heliumapp/presentation/features/auth/bloc/auth_state.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/info/info_event.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/info/info_state.dart';
 import 'package:heliumapp/presentation/navigation/shell/navigation_shell.dart';
@@ -284,7 +286,14 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
       });
     }
 
-    final listeners = buildListeners(context);
+    final listeners = [
+      if (isAuthenticatedScreen)
+        BlocListener<AuthBloc, AuthState>(
+          listenWhen: (_, current) => current is AuthLoggedOut,
+          listener: (_, _) => _sessionEnded = true,
+        ),
+      ...buildListeners(context),
+    ];
     if (listeners.isNotEmpty) {
       return MultiBlocListener(
         listeners: listeners,

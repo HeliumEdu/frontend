@@ -126,7 +126,7 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
           response.data['refresh'],
         );
 
-        await dioClient.fetchSettings();
+        await dioClient.getSettings(forceRefresh: true);
 
         final tokenResponse = TokenResponseModel.fromJson(response.data);
 
@@ -205,7 +205,7 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
           response.data['refresh'],
         );
 
-        await dioClient.fetchSettings();
+        await dioClient.getSettings(forceRefresh: true);
 
         final loginResponse = TokenResponseModel.fromJson(response.data);
 
@@ -272,7 +272,7 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
           response.data['refresh'],
         );
 
-        await dioClient.fetchSettings();
+        await dioClient.getSettings(forceRefresh: true);
 
         final loginResponse = TokenResponseModel.fromJson(response.data);
 
@@ -593,7 +593,7 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
         );
 
         await dioClient.saveTokens(tokenResponse.access, tokenResponse.refresh);
-        await dioClient.fetchSettings();
+        await dioClient.getSettings(forceRefresh: true);
 
         try {
           await FcmService().registerToken(force: true);
