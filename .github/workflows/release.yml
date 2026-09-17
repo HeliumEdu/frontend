@@ -575,7 +575,7 @@ jobs:
           WORKFLOW: deploy.yml
           PRIOR_RUN_ID: ${{ steps.prior-run.outputs.run_id }}
           RETRIES: ${{ (inputs.platforms == 'web' || inputs.platforms == 'android') && 30 || inputs.platforms == 'ios' && 60 || 180 }}
-        run: ./bin/wait-for-deploy-run.sh
+        run: bash bin/wait-for-deploy-run.sh
 
       - name: Deployment trigger summary
         if: always()
