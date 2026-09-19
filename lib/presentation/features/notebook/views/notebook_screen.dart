@@ -483,7 +483,6 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen> 
       _searchQuery = query;
       if (_contentSearchQuery != _loadedContentSearchQuery) {
         _loadedContentSearchQuery = null;
-        _contentSearchMatchIds = null;
       }
     });
     _scheduleContentSearch();
@@ -547,9 +546,9 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen> 
     _contentSearchErrorShown = false;
     setState(() {
       _loadingContentSearchQuery = null;
-      _loadedContentSearchQuery = isCurrent ? state.search : null;
-      _contentSearchMatchIds =
-          isCurrent ? state.notes.map((note) => note.id).toSet() : null;
+      if (!isCurrent) return;
+      _loadedContentSearchQuery = state.search;
+      _contentSearchMatchIds = state.notes.map((note) => note.id).toSet();
     });
   }
 
@@ -558,12 +557,16 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen> 
 
     if (_hasSearchQuery) {
       final contentMatchIds = _contentSearchMatchIds;
+      final contentMatchesAreCurrent =
+          contentMatchIds != null &&
+          _loadedContentSearchQuery == _contentSearchQuery;
       filtered = filtered.where((note) {
-        if (contentMatchIds != null) return contentMatchIds.contains(note.id);
-        return SearchHelper.matchesAny(
+        if (contentMatchesAreCurrent) return contentMatchIds.contains(note.id);
+        final matchesTitle = SearchHelper.matchesAny(
           [note.title, note.linkedEntityTitle],
           _searchQuery!,
         );
+        return matchesTitle || (contentMatchIds?.contains(note.id) ?? false);
       }).toList();
     }
 
