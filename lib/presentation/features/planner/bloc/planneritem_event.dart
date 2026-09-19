@@ -23,12 +23,6 @@ class FetchPlannerItemScreenDataEvent extends PlannerItemEvent {
   });
 }
 
-class FetchEventEvent extends PlannerItemEvent {
-  final int eventId;
-
-  FetchEventEvent({required super.origin, required this.eventId});
-}
-
 class CreateEventEvent extends PlannerItemEvent {
   final EventRequestModel request;
   final bool advanceNavOnSuccess;
@@ -77,12 +71,6 @@ class DeleteEventEvent extends PlannerItemEvent {
 
 class DeleteAllEventsEvent extends PlannerItemEvent {
   DeleteAllEventsEvent({required super.origin});
-}
-
-class FetchHomeworkEvent extends PlannerItemEvent {
-  final int id;
-
-  FetchHomeworkEvent({required super.origin, required this.id});
 }
 
 class CreateHomeworkEvent extends PlannerItemEvent {

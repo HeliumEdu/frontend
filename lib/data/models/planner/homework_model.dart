@@ -58,8 +58,8 @@ class HomeworkModel extends PlannerItemBaseModel {
       currentGrade: json['current_grade'],
       completed: json['completed'],
       category: idOrEntityFrom(json['category'], CategoryModel.fromJson),
-      resources: json['materials'] != null
-          ? idOrEntityListFrom(json['materials'], ResourceModel.fromJson)
+      resources: json['resources'] != null
+          ? idOrEntityListFrom(json['resources'], ResourceModel.fromJson)
           : [],
       notes: json['notes'] != null
           ? idOrEntityListFrom(json['notes'], NoteModel.fromJson)
@@ -76,7 +76,7 @@ class HomeworkModel extends PlannerItemBaseModel {
     data['completed'] = completed;
     data['course'] = course;
     data['category'] = category;
-    data['materials'] = resources;
+    data['resources'] = resources;
     data['notes'] = notes;
     data['current_grade'] = currentGrade;
 

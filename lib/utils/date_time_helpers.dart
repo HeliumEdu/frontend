@@ -101,10 +101,6 @@ class HeliumDateTime {
     return date.weekday == 7 ? 0 : date.weekday;
   }
 
-  static DateTime parse(String isoString, tz.Location timeZone) {
-    return tz.TZDateTime.from(DateTime.parse(isoString), timeZone);
-  }
-
   /// Resolves a device-reported identifier into one the API accepts, or `'UTC'`.
   ///
   /// Neither allow-list carries IANA link names, and device APIs report whatever
@@ -180,12 +176,6 @@ class HeliumDateTime {
     return DateFormat(format).format(date);
   }
 
-  static String formatDateAndTime(DateTime date) {
-    return DateFormat(
-      'MMM d, yyyy • h:mm a',
-    ).format(date).replaceAll(':00', '');
-  }
-
   static String formatDateForTodos(DateTime date) {
     return DateFormat('EEE, MMM d').format(date);
   }
@@ -245,25 +235,6 @@ class HeliumDateTime {
       time?.minute ?? 0,
     );
     return dateTime.toIso8601String();
-  }
-
-  static int getDaysBetween(DateTime startDate, DateTime endDate) {
-    final now = DateTime.now();
-
-    if (now.isBefore(startDate)) {
-      return 0;
-    }
-
-    if (now.isAfter(endDate)) {
-      return 100;
-    }
-
-    final totalDays = endDate.difference(startDate).inDays;
-    if (totalDays <= 0) {
-      return 0;
-    }
-
-    return now.difference(startDate).inDays;
   }
 
   static int getPercentDiffBetween(DateTime startDate, DateTime endDate) {

@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:logging/logging.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
@@ -9,19 +8,11 @@ final _log = Logger('core.app_version');
 class AppVersionService {
   String? _version;
 
-  static AppVersionService _instance = AppVersionService._internal();
+  static final AppVersionService _instance = AppVersionService._internal();
 
   factory AppVersionService() => _instance;
 
   AppVersionService._internal();
-
-  @visibleForTesting
-  AppVersionService.forTesting({String? version}) : _version = version;
-
-  @visibleForTesting
-  static void setInstanceForTesting(AppVersionService instance) {
-    _instance = instance;
-  }
 
   /// The semver string (e.g. `3.6.18`), without build metadata. Null until
   /// [init] completes or if resolution failed.

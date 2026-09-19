@@ -36,7 +36,7 @@ Map<String, dynamic> givenUserSettingsJson({
     'week_starts_on': weekStartsOn,
     'whats_new_version_seen': whatsNewVersionSeen,
     'events_color': eventsColor,
-    'material_color': resourceColor,
+    'resource_color': resourceColor,
     'grade_color': gradeColor,
     'default_reminder_type': defaultReminderType,
     'default_reminder_offset': defaultReminderOffset,

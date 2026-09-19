@@ -177,9 +177,9 @@ void main() {
       test('filters by groupId when provided', () async {
         // GIVEN - API returns resources from multiple groups
         final resourcesJson = [
-          givenResourceJson(id: 1, title: 'Material A', resourceGroup: 5),
-          givenResourceJson(id: 2, title: 'Material B', resourceGroup: 3),
-          givenResourceJson(id: 3, title: 'Material C', resourceGroup: 5),
+          givenResourceJson(id: 1, title: 'Resource A', resourceGroup: 5),
+          givenResourceJson(id: 2, title: 'Resource B', resourceGroup: 3),
+          givenResourceJson(id: 3, title: 'Resource C', resourceGroup: 5),
         ];
         when(
           () => mockDio.get(any()),
@@ -190,8 +190,8 @@ void main() {
 
         // THEN - only resources from group 5 are returned
         expect(result.length, equals(2));
-        expect(result[0].title, equals('Material A'));
-        expect(result[1].title, equals('Material C'));
+        expect(result[0].title, equals('Resource A'));
+        expect(result[1].title, equals('Resource C'));
       });
 
       test('parses resource with courses correctly', () async {
@@ -253,13 +253,13 @@ void main() {
     group('createResource', () {
       test('returns created ResourceModel on 201 response', () async {
         // GIVEN
-        final json = givenResourceJson(id: 1, title: 'New Material');
+        final json = givenResourceJson(id: 1, title: 'New Resource');
         when(
           () => mockDio.post(any(), data: any(named: 'data')),
         ).thenAnswer((_) async => givenSuccessResponse(json, statusCode: 201));
 
         final request = ResourceRequestModel(
-          title: 'New Material',
+          title: 'New Resource',
           status: 0,
           condition: 0,
           website: '',
@@ -273,20 +273,20 @@ void main() {
         final result = await dataSource.createResource(groupId: 1, request: request);
 
         // THEN
-        expect(result.title, equals('New Material'));
+        expect(result.title, equals('New Resource'));
       });
     });
 
     group('updateResource', () {
       test('returns updated ResourceModel on 200 response', () async {
         // GIVEN
-        final json = givenResourceJson(id: 1, title: 'Updated Material');
+        final json = givenResourceJson(id: 1, title: 'Updated Resource');
         when(
           () => mockDio.put(any(), data: any(named: 'data')),
         ).thenAnswer((_) async => givenSuccessResponse(json));
 
         final request = ResourceRequestModel(
-          title: 'Updated Material',
+          title: 'Updated Resource',
           status: 1,
           condition: 1,
           website: '',
@@ -304,7 +304,7 @@ void main() {
         );
 
         // THEN
-        expect(result.title, equals('Updated Material'));
+        expect(result.title, equals('Updated Resource'));
       });
     });
 

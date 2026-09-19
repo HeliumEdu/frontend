@@ -31,7 +31,7 @@ class NotificationReconciler {
   final ReminderRepository _reminderRepository;
   final MethodChannel _channel;
 
-  static NotificationReconciler _instance = NotificationReconciler._internal();
+  static final NotificationReconciler _instance = NotificationReconciler._internal();
 
   factory NotificationReconciler() => _instance;
 
@@ -47,16 +47,6 @@ class NotificationReconciler {
     required MethodChannel channel,
   }) : _reminderRepository = reminderRepository,
        _channel = channel;
-
-  @visibleForTesting
-  static void setInstanceForTesting(NotificationReconciler instance) {
-    _instance = instance;
-  }
-
-  @visibleForTesting
-  static void resetForTesting() {
-    _instance = NotificationReconciler._internal();
-  }
 
   /// Removes any delivered iOS notification whose reminder is no longer active.
   /// No-op on non-iOS platforms.

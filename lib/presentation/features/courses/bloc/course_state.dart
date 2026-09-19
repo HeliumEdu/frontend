@@ -98,20 +98,6 @@ class CourseScreenDataFetched extends CourseState with CourseScreenDataIdentity 
   });
 }
 
-class CoursesFetched extends CourseState {
-  final List<CourseModel> courses;
-
-  CoursesFetched({required super.origin, required this.courses});
-}
-
-class CourseFetched extends CourseEntityState {
-  CourseFetched({
-    required super.origin,
-    required super.course,
-    super.advanceNavOnSuccess = false,
-  });
-}
-
 class CourseGroupCreated extends CourseGroupEntityState {
   CourseGroupCreated({required super.origin, required super.courseGroup});
 }

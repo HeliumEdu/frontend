@@ -144,14 +144,6 @@ void main() {
       });
     });
 
-    group('parse', () {
-      test('parses ISO string with timezone correctly', () {
-        final location = tz.getLocation('America/New_York');
-        final result = HeliumDateTime.parse('2025-08-15T10:30:00Z', location);
-        expect(result, isA<tz.TZDateTime>());
-      });
-    });
-
     group('formatName', () {
       test('returns abbreviated day name', () {
         final monday = DateTime(2025, 1, 20); // Monday
@@ -228,50 +220,6 @@ void main() {
         );
 
         expect(result, contains('2025-08-15'));
-      });
-    });
-
-    group('getDaysBetween', () {
-      test('returns 0 when before start date', () {
-        final now = DateTime.now();
-        final futureStart = now.add(const Duration(days: 30));
-        final futureEnd = now.add(const Duration(days: 60));
-
-        final result = HeliumDateTime.getDaysBetween(futureStart, futureEnd);
-        expect(result, equals(0));
-      });
-
-      test('returns 100 when after end date', () {
-        final now = DateTime.now();
-        final pastStart = now.subtract(const Duration(days: 60));
-        final pastEnd = now.subtract(const Duration(days: 30));
-
-        final result = HeliumDateTime.getDaysBetween(pastStart, pastEnd);
-        expect(result, equals(100));
-      });
-
-      test('returns 0 when start equals end and dates are in future', () {
-        final now = DateTime.now();
-        final futureDate = now.add(const Duration(days: 30));
-
-        expect(HeliumDateTime.getDaysBetween(futureDate, futureDate), equals(0));
-      });
-
-      test('returns 100 when start equals end and dates are in past', () {
-        final now = DateTime.now();
-        final pastDate = now.subtract(const Duration(days: 30));
-
-        expect(HeliumDateTime.getDaysBetween(pastDate, pastDate), equals(100));
-      });
-
-      test('returns days elapsed when currently within range', () {
-        final now = DateTime.now();
-        final start = now.subtract(const Duration(days: 10));
-        final end = now.add(const Duration(days: 20));
-
-        final result = HeliumDateTime.getDaysBetween(start, end);
-        expect(result, greaterThanOrEqualTo(9));
-        expect(result, lessThanOrEqualTo(11));
       });
     });
 
@@ -481,49 +429,6 @@ void main() {
         expect(local.month, equals(1));
         expect(local.day, equals(1));
         expect(local.hour, equals(8)); // 8:00 AM Jan 1 in Tokyo
-      });
-    });
-
-    group('parse - timezone edge cases', () {
-      test('parses ISO string and converts to specified timezone', () {
-        final nyTz = tz.getLocation('America/New_York');
-        final result = HeliumDateTime.parse('2025-07-15T15:00:00Z', nyTz);
-
-        expect(result.hour, equals(11)); // 15:00 UTC = 11:00 EDT
-        expect(result.day, equals(15));
-      });
-
-      test('parses ISO string during DST transition', () {
-        final nyTz = tz.getLocation('America/New_York');
-        final result = HeliumDateTime.parse('2025-03-09T10:00:00Z', nyTz);
-
-        expect(result.hour, equals(6)); // Should be 6:00 AM EDT
-      });
-
-      test('parses ISO string with timezone offset suffix', () {
-        final utcTz = tz.getLocation('UTC');
-        final result = HeliumDateTime.parse('2025-08-15T10:30:00Z', utcTz);
-
-        expect(result.hour, equals(10));
-        expect(result.minute, equals(30));
-      });
-
-      test('parses midnight UTC correctly', () {
-        final nyTz = tz.getLocation('America/New_York');
-        final result = HeliumDateTime.parse('2025-01-15T00:00:00Z', nyTz);
-
-        expect(result.hour, equals(19)); // 7:00 PM
-        expect(result.day, equals(14)); // Previous day
-      });
-
-      test('parses end of day UTC correctly', () {
-        final nyTz = tz.getLocation('America/New_York');
-        final result = HeliumDateTime.parse('2025-01-15T23:59:59Z', nyTz);
-
-        expect(result.hour, equals(18));
-        expect(result.minute, equals(59));
-        expect(result.second, equals(59));
-        expect(result.day, equals(15)); // Same day
       });
     });
   });

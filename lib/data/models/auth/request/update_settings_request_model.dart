@@ -72,7 +72,7 @@ class UpdateSettingsRequestModel {
       json['events_color'] = eventsColor;
     }
     if (resourceColor != null) {
-      json['material_color'] = resourceColor;
+      json['resource_color'] = resourceColor;
     }
     if (gradeColor != null) {
       json['grade_color'] = gradeColor;

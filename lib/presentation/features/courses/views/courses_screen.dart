@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/config/pref_service.dart';
 import 'package:heliumapp/core/analytics_service.dart';
@@ -30,7 +29,6 @@ import 'package:heliumapp/presentation/features/planner/bloc/reminder_state.dart
 import 'package:heliumapp/presentation/features/planner/dialogs/confirm_delete_dialog.dart';
 import 'package:heliumapp/presentation/features/courses/dialogs/course_group_dialog.dart';
 import 'package:heliumapp/presentation/core/views/base_page_screen_state.dart';
-import 'package:heliumapp/presentation/core/views/deep_link_mixin.dart';
 import 'package:heliumapp/presentation/features/courses/views/course_add_screen.dart';
 import 'package:heliumapp/presentation/ui/components/course_title_label.dart';
 import 'package:heliumapp/presentation/ui/feedback/empty_card.dart';
@@ -67,13 +65,10 @@ class _CoursesProvidedScreen extends StatefulWidget {
   State<_CoursesProvidedScreen> createState() => _CoursesScreenState();
 }
 
-class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen>
-    with DeepLinkMixin {
+class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen> {
   @override
   bool get enablePrint => true;
 
-  @override
-  String get routePath => AppRoute.coursesScreen;
 
   @override
   VoidCallback get actionButtonCallback => () {
@@ -532,7 +527,6 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen>
       screenError = null;
     });
 
-    openFromQueryParams();
   }
 
   int? _selectableGroupId(int? candidate) =>

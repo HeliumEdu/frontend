@@ -521,9 +521,6 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
 }
 
 /// Shows any widget using [BasePageScreenState] as a dialog.
-///
-/// Returns a [Future] that completes when dismissed; chain
-/// `.then((_) => clearRouteQueryParams(basePath))` to clear URL params.
 Future<void> showScreenAsDialog(
     BuildContext context, {
       required Widget child,

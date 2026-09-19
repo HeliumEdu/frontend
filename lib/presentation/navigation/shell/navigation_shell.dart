@@ -148,14 +148,6 @@ enum NavigationPage {
 
   String get navKeyName => 'nav_tab_$name';
 
-  static NavigationPage? fromRoute(String route) {
-    try {
-      return NavigationPage.values.firstWhere((page) => page.route == route);
-    } catch (e) {
-      return null;
-    }
-  }
-
   Widget buildScreen() {
     switch (this) {
       case NavigationPage.planner:

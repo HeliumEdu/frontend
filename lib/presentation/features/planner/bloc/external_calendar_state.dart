@@ -1,4 +1,3 @@
-import 'package:heliumapp/data/models/planner/external_calendar_event_model.dart';
 import 'package:heliumapp/data/models/planner/external_calendar_model.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/core/base_state.dart';
 
@@ -25,12 +24,6 @@ class ExternalCalendarsFetched extends ExternalCalendarState {
     required super.origin,
     required this.externalCalendars,
   });
-}
-
-class ExternalCalendarEventsFetched extends ExternalCalendarState {
-  final List<ExternalCalendarEventModel> events;
-
-  ExternalCalendarEventsFetched({required super.origin, required this.events});
 }
 
 class ExternalCalendarCreated extends ExternalCalendarState {

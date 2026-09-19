@@ -32,8 +32,6 @@ class ScheduleTemplate {
   static bool isDayCyclePreset(int template) =>
       presetCycleLength.containsKey(template);
 
-  static bool isWeekBasedPreset(int template) => template == weekAb;
-
   /// A short label for a rotating schedule ("6-Day Cycle", "Week A"), or null
   /// for a plain weekly one.
   static String? summaryLabel(CourseScheduleModel schedule) {

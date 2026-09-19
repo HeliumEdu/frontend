@@ -33,28 +33,6 @@ class FetchResourceScreenDataEvent extends ResourceEvent {
   });
 }
 
-class FetchResourcesEvent extends ResourceEvent {
-  final int? resourceGroupId;
-  final bool? shownOnCalendar;
-
-  FetchResourcesEvent({
-    required super.origin,
-    this.resourceGroupId,
-    this.shownOnCalendar,
-  });
-}
-
-class FetchResourceEvent extends ResourceEvent {
-  final int resourceGroupId;
-  final int resourceId;
-
-  FetchResourceEvent({
-    required super.origin,
-    required this.resourceGroupId,
-    required this.resourceId,
-  });
-}
-
 class CreateResourceGroupEvent extends ResourceEvent {
   final ResourceGroupRequestModel request;
 

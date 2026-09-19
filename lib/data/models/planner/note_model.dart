@@ -107,12 +107,4 @@ class NoteModel extends BaseTitledModel {
   }
 
   bool get isStandalone => linkedEntityType.isEmpty;
-
-  bool get isLinkedToHomework => homework.isNotEmpty;
-
-  bool get isLinkedToEvent => events.isNotEmpty;
-
-  bool get isLinkedToMaterial => resources.isNotEmpty;
-
-  bool get hasLinkedEntity => linkedEntityType.isNotEmpty;
 }

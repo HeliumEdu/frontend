@@ -36,7 +36,6 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
     required this.categoryRepository,
   }) : super(NoteInitial(origin: EventOrigin.bloc)) {
     on<FetchNotesEvent>(_onFetchNotes);
-    on<FetchNoteEvent>(_onFetchNote);
     on<FetchNoteScreenDataEvent>(_onFetchNoteScreenData);
     on<FetchLinkableEntitiesEvent>(_onFetchLinkableEntities);
     on<CreateNoteEvent>(_onCreateNote);
@@ -72,28 +71,7 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
         shownOnCalendar: event.shownOnCalendar,
         forceRefresh: event.forceRefresh,
       );
-      emit(NotesFetched(origin: event.origin, notes: notes));
-    } on HeliumException catch (e) {
-      emit(NotesError(origin: event.origin, message: e.message));
-    } catch (e) {
-      emit(NotesError(
-        origin: event.origin,
-        message: HeliumException.unexpectedError,
-      ));
-    }
-  }
-
-  Future<void> _onFetchNote(
-    FetchNoteEvent event,
-    Emitter<NoteState> emit,
-  ) async {
-    emit(NotesLoading(origin: event.origin));
-    try {
-      final note = await noteRepository.getNote(
-        id: event.noteId,
-        forceRefresh: event.forceRefresh,
-      );
-      emit(NoteFetched(origin: event.origin, note: note));
+      emit(NotesFetched(origin: event.origin, notes: notes, search: event.search));
     } on HeliumException catch (e) {
       emit(NotesError(origin: event.origin, message: e.message));
     } catch (e) {

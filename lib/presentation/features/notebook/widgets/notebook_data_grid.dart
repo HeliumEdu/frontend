@@ -72,6 +72,7 @@ class NotebookDataGrid extends StatefulWidget {
   final bool isLoading;
   final bool hasAnyNotes;
   final String? emptyMessage;
+  final Widget? emptyAction;
 
   const NotebookDataGrid({
     super.key,
@@ -84,6 +85,7 @@ class NotebookDataGrid extends StatefulWidget {
     this.isLoading = false,
     this.hasAnyNotes = false,
     this.emptyMessage,
+    this.emptyAction,
   });
 
   @override
@@ -364,6 +366,10 @@ class _NotebookDataGridState extends BaseDataGridState<NotebookDataGrid> {
                               ),
                             ),
                       ),
+                      if (widget.emptyAction != null) ...[
+                        const SizedBox(height: 8),
+                        widget.emptyAction!,
+                      ],
                     ],
                   ),
                 )

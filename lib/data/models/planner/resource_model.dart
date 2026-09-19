@@ -37,7 +37,7 @@ class ResourceModel extends BaseTitledModel {
       details: json['details']?.toString().isEmpty == true
           ? null
           : json['details']?.toString(),
-      resourceGroup: json['material_group'],
+      resourceGroup: json['resource_group'],
       courses: json['courses'] != null ? List<int>.from(json['courses']) : [],
       notes: json['notes'] != null ? List<int>.from(json['notes']) : [],
     );
@@ -52,7 +52,7 @@ class ResourceModel extends BaseTitledModel {
       'website': website?.toString() ?? '',
       'price': price,
       'details': details,
-      'material_group': resourceGroup,
+      'resource_group': resourceGroup,
       'courses': courses,
     };
   }

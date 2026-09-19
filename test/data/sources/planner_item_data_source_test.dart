@@ -116,7 +116,6 @@ void main() {
 
         expect(freshDataSource.appointments, isEmpty);
         expect(freshDataSource.allPlannerItems, isEmpty);
-        expect(freshDataSource.hasLoadedInitialData, isFalse);
       });
 
       test('initializes with empty filter state', () {
@@ -1462,16 +1461,6 @@ void main() {
         );
       });
 
-      test('sets hasLoadedInitialData after first load', () async {
-        expect(freshDataSource.hasLoadedInitialData, isFalse);
-
-        await freshDataSource.handleLoadMore(
-          DateTime(2025, 1, 1),
-          DateTime(2025, 1, 31),
-        );
-
-        expect(freshDataSource.hasLoadedInitialData, isTrue);
-      });
 
       test('caches date ranges and skips fetch on repeat', () async {
         await freshDataSource.handleLoadMore(

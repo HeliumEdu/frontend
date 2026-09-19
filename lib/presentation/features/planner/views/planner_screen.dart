@@ -47,7 +47,6 @@ import 'package:heliumapp/data/sources/homework_remote_data_source.dart';
 import 'package:heliumapp/data/sources/planner_item_data_source.dart';
 import 'package:heliumapp/data/sources/resource_remote_data_source.dart';
 import 'package:heliumapp/presentation/core/views/base_page_screen_state.dart';
-import 'package:heliumapp/presentation/core/views/deep_link_mixin.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_bloc.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_state.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/attachment_bloc.dart';
@@ -64,11 +63,13 @@ import 'package:heliumapp/presentation/features/planner/bloc/planneritem_event.d
 import 'package:heliumapp/presentation/features/planner/bloc/planneritem_state.dart';
 import 'package:heliumapp/presentation/features/planner/dialogs/confirm_delete_dialog.dart';
 import 'package:heliumapp/presentation/features/planner/dialogs/course_schedule_event_dialog.dart';
+import 'package:heliumapp/presentation/features/planner/dialogs/external_calendar_event_dialog.dart';
 import 'package:heliumapp/presentation/features/planner/views/planner_item_add_screen.dart';
 import 'package:heliumapp/presentation/features/planner/widgets/day_popout_dialog.dart';
 import 'package:heliumapp/presentation/features/planner/widgets/planner_item_meta_row.dart';
 import 'package:heliumapp/presentation/features/planner/widgets/todos_data_grid.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/core/base_event.dart';
+import 'package:heliumapp/presentation/navigation/shell/navigation_shell.dart';
 import 'package:heliumapp/presentation/ui/components/helium_checkbox_list_tile.dart';
 import 'package:heliumapp/presentation/ui/components/helium_elevated_button.dart';
 import 'package:heliumapp/presentation/ui/components/helium_icon_button.dart';
@@ -137,8 +138,7 @@ class _CalendarProvidedScreen extends StatefulWidget {
   State<_CalendarProvidedScreen> createState() => _CalendarScreenState();
 }
 
-class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
-    with DeepLinkMixin {
+class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> {
   static const _agendaHeightMobile = 53.0;
   static const _agendaHeightDesktop = 57.0;
   static const _monthCalendarItemHeight = 21.0;
@@ -168,8 +168,6 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
   @override
   Widget buildHeaderArea(BuildContext context) => _buildCalendarHeader();
 
-  @override
-  String get routePath => AppRoute.plannerScreen;
 
   @override
   VoidCallback get actionButtonCallback => () {
@@ -240,6 +238,8 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
   // https://github.com/syncfusion/flutter-widgets/issues/2523
   PlannerItemBaseModel? _lastHoveredItem;
   PlannerItemBaseModel? _pointerDownHoveredItem;
+
+  PlannerItemBaseModel? _pointerDownItem;
 
   // Debounces rapid checkbox taps so fast toggling doesn't fire a network
   // request per tap. We update the optimistic override immediately on each
@@ -469,7 +469,6 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
           if (state is PlannerScreenDataFetched) {
             setState(() => screenError = null);
             _populateInitialCalendarStateData(state);
-            openFromQueryParams();
 
             // The range cache short-circuits handleLoadMore, so an
             // invalidated Dio cache alone refetches nothing.
@@ -1085,24 +1084,12 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
       _calendarController.selectedDate = null;
     }
 
-    if (plannerItem is CourseScheduleEventModel) {
-      final shouldHideWebsiteLink =
-          hideWebsiteLink ??
-          (_currentView == PlannerView.agenda ||
-              (_currentView == PlannerView.month &&
-                  Responsive.isMobile(context)));
-      _showCourseScheduleEventDialog(
+    if (_isLockedCalendarInteractionItem(plannerItem)) {
+      _showLockedItemActions(
         plannerItem,
         occurrenceDate ?? plannerItem.start,
-        hideWebsiteLink: shouldHideWebsiteLink,
+        hideWebsiteLink: hideWebsiteLink,
       );
-      return false;
-    } else if (plannerItem is ExternalCalendarEventModel) {
-      _showEditExternalCalendarEventSnackBar();
-      return false;
-      // HE-184: drop this branch when recurring Events become editable.
-    } else if (_isReadOnlyRecurringEvent(plannerItem)) {
-      _showRecurringEventReadOnlySnackBar();
       return false;
     }
 
@@ -2084,17 +2071,11 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
     if (_isLockedCalendarInteractionItem(plannerItem)) {
       _plannerItemDataSource!.resetAppointments();
       if (dropDetails.droppingTime != null) {
-        if (plannerItem is CourseScheduleEventModel) {
-          _showCourseScheduleEventDialog(
-            plannerItem,
-            dropDetails.droppingTime!,
-          );
-          // HE-184: drop this branch when recurring Events become editable.
-        } else if (_isReadOnlyRecurringEvent(plannerItem)) {
-          _showRecurringEventReadOnlySnackBar();
-        } else {
-          _showEditExternalCalendarEventSnackBar();
-        }
+        _showLockedItemActions(
+          plannerItem,
+          _pointerDownItem?.start ?? dropDetails.droppingTime!,
+          hideWebsiteLink: false,
+        );
       }
       return;
     }
@@ -2277,16 +2258,13 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
           ),
         );
       }
-    } else if (plannerItem is CourseScheduleEventModel) {
+    } else if (_isLockedCalendarInteractionItem(plannerItem)) {
       _plannerItemDataSource!.resetAppointments();
-      _showCourseScheduleEventDialog(plannerItem, resizeDetails.startTime!);
-    } else if (plannerItem is ExternalCalendarEventModel) {
-      _plannerItemDataSource!.resetAppointments();
-      _showEditExternalCalendarEventSnackBar();
-      // HE-184: drop this branch when recurring Events become resizable.
-    } else if (_isReadOnlyRecurringEvent(plannerItem)) {
-      _plannerItemDataSource!.resetAppointments();
-      _showRecurringEventReadOnlySnackBar();
+      _showLockedItemActions(
+        plannerItem,
+        _pointerDownItem?.start ?? resizeDetails.startTime!,
+        hideWebsiteLink: false,
+      );
     }
   }
 
@@ -2483,14 +2461,18 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
 
     // Hover tracking for drag mismatch detection — see _onCalendarDragStart.
     // https://github.com/syncfusion/flutter-widgets/issues/2523
-    calendarItemWidget = MouseRegion(
-      onEnter: (_) => _lastHoveredItem = plannerItem,
-      onExit: (_) {
-        if (_lastHoveredItem?.id == plannerItem.id) {
-          _lastHoveredItem = null;
-        }
-      },
-      child: calendarItemWidget,
+    calendarItemWidget = Listener(
+      onPointerDown: (_) =>
+          _pointerDownItem = _occurrenceOf(plannerItem, details.date),
+      child: MouseRegion(
+        onEnter: (_) => _lastHoveredItem = plannerItem,
+        onExit: (_) {
+          if (_lastHoveredItem?.id == plannerItem.id) {
+            _lastHoveredItem = null;
+          }
+        },
+        child: calendarItemWidget,
+      ),
     );
 
     return KeyedSubtree(
@@ -2503,6 +2485,41 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
         child: calendarItemWidget,
       ),
     );
+  }
+
+  void _showLockedItemActions(
+    PlannerItemBaseModel plannerItem,
+    DateTime occurrenceDate, {
+    bool? hideWebsiteLink,
+  }) {
+    if (plannerItem is CourseScheduleEventModel) {
+      final shouldHideWebsiteLink =
+          hideWebsiteLink ??
+          (_currentView == PlannerView.agenda ||
+              (_currentView == PlannerView.month &&
+                  Responsive.isMobile(context)));
+      _showCourseScheduleEventDialog(
+        plannerItem,
+        occurrenceDate,
+        hideWebsiteLink: shouldHideWebsiteLink,
+      );
+    } else if (plannerItem is ExternalCalendarEventModel) {
+      _showExternalCalendarEventDialog(plannerItem, occurrenceDate);
+      // HE-184: drop this branch when recurring Events become editable.
+    } else if (_isReadOnlyRecurringEvent(plannerItem)) {
+      _showRecurringEventReadOnlySnackBar();
+    }
+  }
+
+  PlannerItemBaseModel _occurrenceOf(PlannerItemBaseModel item, DateTime date) {
+    return _plannerItemDataSource
+            ?.getItemsForDay(date)
+            .firstWhereOrNull(
+              (candidate) =>
+                  candidate.id == item.id &&
+                  candidate.plannerItemType == item.plannerItemType,
+            ) ??
+        item;
   }
 
   bool _isLockedCalendarInteractionItem(PlannerItemBaseModel item) {
@@ -3415,15 +3432,6 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
     return null;
   }
 
-  void _showEditExternalCalendarEventSnackBar() {
-    showSnackBar(
-      context,
-      "You can't edit External Calendars in Helium.",
-      seconds: 4,
-      type: SnackType.info,
-    );
-  }
-
   // HE-184: Stop-gap snackbar shown when a user taps a recurring Event. Remove
   // this method (and its callsites) when the full add/edit UI for recurring
   // Events lands.
@@ -3474,6 +3482,33 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen>
           if (!mounted) return;
           context.go('${AppRoute.coursesScreen}/${event.ownerId}/schedule');
         },
+      ),
+    );
+  }
+
+  void _showExternalCalendarEventDialog(
+    ExternalCalendarEventModel event,
+    DateTime occurrenceDate,
+  ) {
+    final calendarId = int.tryParse(event.ownerId);
+    if (calendarId == null) return;
+
+    final calendar = _externalCalendarsById[calendarId];
+    if (calendar == null) return;
+
+    showExternalCalendarEventDialog(
+      context: context,
+      calendarTitle: calendar.title,
+      calendarColor: calendar.color,
+      occurrenceDate: occurrenceDate,
+      actions: ExternalCalendarEventActions(
+        onManageCalendars: () {
+          if (!mounted) return;
+          context.push(
+            '${BranchPathScope.of(context)}${AppRoute.settingScreen}/external-calendars',
+          );
+        },
+        eventUrl: event.url?.toString(),
       ),
     );
   }

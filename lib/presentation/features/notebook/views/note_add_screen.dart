@@ -266,7 +266,9 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
   }
 
   bool get isDirty {
-    return _saveStatus == SaveStatus.unsaved || _saveStatus == SaveStatus.error;
+    final hasUnsavedContent =
+        _saveStatus == SaveStatus.unsaved || _saveStatus == SaveStatus.error;
+    return (hasUnsavedContent && !_isNoteEmpty) || _pendingUnlink;
   }
 
   Duration get _effectiveDebounce {
@@ -349,7 +351,7 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
   }
 
   Future<void> _cancelAndClose() async {
-    if ((isDirty && !_isNoteEmpty) || _pendingUnlink) {
+    if (isDirty) {
       _debounceTimer?.cancel();
       _isDiscardDialogOpen = true;
       final shouldDiscard = await confirmDiscardChanges(context);

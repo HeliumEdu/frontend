@@ -26,17 +26,6 @@ class FetchNotesEvent extends NoteEvent {
   });
 }
 
-class FetchNoteEvent extends NoteEvent {
-  final int noteId;
-  final bool forceRefresh;
-
-  FetchNoteEvent({
-    required super.origin,
-    required this.noteId,
-    this.forceRefresh = false,
-  });
-}
-
 class FetchNoteScreenDataEvent extends NoteEvent {
   final int? noteId;
   final int? linkHomeworkId;

@@ -30,23 +30,6 @@ class FetchCourseScreenDataEvent extends CourseEvent {
   });
 }
 
-class FetchCoursesEvent extends CourseEvent {
-  final bool? shownOnCalendar;
-
-  FetchCoursesEvent({required super.origin, this.shownOnCalendar});
-}
-
-class FetchCourseEvent extends CourseEvent {
-  final int courseGroupId;
-  final int courseId;
-
-  FetchCourseEvent({
-    required super.origin,
-    required this.courseGroupId,
-    required this.courseId,
-  });
-}
-
 class CreateCourseGroupEvent extends CourseEvent {
   final CourseGroupRequestModel request;
 

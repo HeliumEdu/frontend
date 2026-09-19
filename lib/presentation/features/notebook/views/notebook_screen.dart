@@ -1,15 +1,14 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/core/helium_exception.dart';
 import 'package:heliumapp/config/pref_service.dart';
 import 'package:heliumapp/data/models/auth/user_settings_model.dart';
 import 'package:heliumapp/data/models/planner/note_model.dart';
 import 'package:heliumapp/presentation/core/views/base_page_screen_state.dart';
-import 'package:heliumapp/presentation/core/views/deep_link_mixin.dart';
 import 'package:heliumapp/presentation/ui/layout/page_header.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_bloc.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_state.dart';
@@ -24,6 +23,7 @@ import 'package:heliumapp/presentation/features/planner/bloc/planneritem_state.d
 import 'package:heliumapp/presentation/features/planner/dialogs/confirm_delete_dialog.dart';
 import 'package:heliumapp/presentation/ui/components/helium_checkbox_list_tile.dart';
 import 'package:heliumapp/presentation/ui/feedback/error_card.dart';
+import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
 import 'package:heliumapp/presentation/ui/layout/shadow_container.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/app_style.dart';
@@ -47,16 +47,13 @@ class _NotebookProvidedScreen extends StatefulWidget {
   State<_NotebookProvidedScreen> createState() => _NotebookScreenState();
 }
 
-class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen>
-    with DeepLinkMixin {
+class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen> {
   static const _savedNotebookFilterStateKey = 'saved_notebook_filter_state';
   static const _savedRowsPerPageKey = 'saved_rows_per_page';
 
   @override
   bool get enablePrint => true;
 
-  @override
-  String get routePath => AppRoute.notebookScreen;
 
   @override
   IconData get icon => Icons.library_books;
@@ -70,8 +67,17 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen>
   @override
   VoidCallback? get actionButtonCallback => _createNewNote;
 
+  static const _contentSearchDebounce = Duration(milliseconds: 400);
+  static const _contentSearchMinLength = 2;
+
   List<NoteModel> _notes = [];
   String? _searchQuery;
+  bool _searchNoteContent = false;
+  Timer? _contentSearchTimer;
+  String? _loadingContentSearchQuery;
+  String? _loadedContentSearchQuery;
+  Set<int>? _contentSearchMatchIds;
+  bool _contentSearchErrorShown = false;
   final Set<String> _filterEntityTypes = {};
   bool _shownOnCalendar = false;
   final TextEditingController _searchController = TextEditingController();
@@ -99,6 +105,7 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen>
 
   @override
   void dispose() {
+    _contentSearchTimer?.cancel();
     _searchController.dispose();
     _searchFocusNode.dispose();
     super.dispose();
@@ -114,22 +121,34 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen>
               isLoading = false;
               screenError = state.message ?? HeliumException.unexpectedError;
             });
+          } else if (state is NotesError &&
+              state.origin == EventOrigin.subScreen &&
+              _loadingContentSearchQuery != null) {
+            setState(() {
+              _loadingContentSearchQuery = null;
+            });
+            if (!_contentSearchErrorShown) {
+              _contentSearchErrorShown = true;
+              showSnackBar(context, state.message!, type: SnackType.error);
+            }
           } else if (state is NotesError && state.origin != EventOrigin.screen && state.origin != EventOrigin.subScreen) {
             if (!isShowingErrorCard) {
               showSnackBar(context, state.message!, type: SnackType.error);
             }
+          } else if (state is NotesFetched && state.origin == EventOrigin.subScreen) {
+            _onContentSearchResults(state);
           } else if (state is NotesFetched) {
             setState(() {
               _notes = state.notes;
               _notesReady = true;
               screenError = null;
             });
-            openFromQueryParams();
           } else if (state is NoteCreated) {
             setState(() {
               _notes = [..._notes, state.note];
               Sort.byUpdatedAt(_notes);
             });
+            _refreshContentSearch();
           } else if (state is NoteUpdated) {
             setState(() {
               final updated = List<NoteModel>.from(_notes);
@@ -140,9 +159,11 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen>
                 _notes = updated;
               }
             });
+            _refreshContentSearch();
           } else if (state is NoteDeleted) {
             setState(() {
               _notes = _notes.where((n) => n.id != state.noteId).toList();
+              _contentSearchMatchIds?.remove(state.noteId);
             });
             showSnackBar(context, 'Note deleted.');
           }
@@ -266,10 +287,7 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen>
                             decoration: InputDecoration(
                               hintText: 'Search ...',
                               hintStyle: AppStyles.formHint(context),
-                              prefixIcon: Icon(
-                                Icons.search,
-                                color: context.colorScheme.onSurface.withValues(alpha: 0.4),
-                              ),
+                              prefixIcon: _buildSearchPrefixIcon(context),
                               border: InputBorder.none,
                               enabledBorder: InputBorder.none,
                               focusedBorder: InputBorder.none,
@@ -278,34 +296,43 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen>
                                 horizontal: 12,
                                 vertical: 10,
                               ),
-                              suffixIcon: ValueListenableBuilder<TextEditingValue>(
-                                valueListenable: _searchController,
-                                builder: (context, value, _) {
-                                  if (value.text.isEmpty) {
-                                    return const SizedBox.shrink();
-                                  }
-                                  return IconButton(
-                                    onPressed: () {
-                                      _searchController.clear();
-                                      setState(() {
-                                        _searchQuery = null;
-                                      });
+                              suffixIcon: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  ValueListenableBuilder<TextEditingValue>(
+                                    valueListenable: _searchController,
+                                    builder: (context, value, _) {
+                                      if (value.text.isEmpty) {
+                                        return const SizedBox.shrink();
+                                      }
+                                      return _buildSearchFieldButton(
+                                        context,
+                                        icon: Icons.close,
+                                        tooltip: 'Clear',
+                                        onPressed: () {
+                                          _searchController.clear();
+                                          _onSearchQueryChanged(null);
+                                        },
+                                      );
                                     },
-                                    icon: Icon(
-                                      Icons.close,
-                                      size: 20,
-                                      color: context.colorScheme.onSurface.withValues(alpha: 0.4),
-                                    ),
-                                    tooltip: 'Clear',
-                                  );
-                                },
+                                  ),
+                                  _buildSearchFieldButton(
+                                    context,
+                                    icon: Icons.manage_search,
+                                    tooltip: _searchNoteContent
+                                        ? 'Stop searching note content'
+                                        : 'Also search note content',
+                                    onPressed: _toggleContentSearch,
+                                    isActive: _searchNoteContent,
+                                  ),
+                                ],
                               ),
                             ),
                             onChanged: (value) {
-                              setState(() {
-                                _searchQuery = value.isEmpty ? null : value;
-                              });
+                              _onSearchQueryChanged(value.isEmpty ? null : value);
                             },
+                            onSubmitted: (_) =>
+                                _scheduleContentSearch(immediately: true),
                           ),
                         ),
                       ),
@@ -360,12 +387,23 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen>
         final filteredNotes = (notesLoading || !hasAnyNotes)
             ? <NoteModel>[]
             : _getFilteredNotes();
+        final offerContentSearch = hasAnyNotes &&
+            filteredNotes.isEmpty &&
+            !_searchNoteContent &&
+            _hasSearchQuery;
 
         return NotebookDataGrid(
           notes: filteredNotes,
           isLoading: notesLoading,
           hasAnyNotes: hasAnyNotes,
           emptyMessage: 'No notes match the applied filters or search',
+          emptyAction: offerContentSearch
+              ? TextButton.icon(
+                  onPressed: _toggleContentSearch,
+                  icon: const Icon(Icons.manage_search),
+                  label: const Text('Search note content'),
+                )
+              : null,
           onNoteTap: _openNote,
           onDelete: _confirmDeleteNote,
           userSettings: userSettings,
@@ -388,13 +426,140 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen>
         shownOnCalendar: _shownOnCalendar,
       ),
     );
+    _refreshContentSearch(immediately: true);
+  }
+
+  bool get _hasSearchQuery => _searchQuery?.trim().isNotEmpty ?? false;
+
+  String get _contentSearchQuery =>
+      SearchHelper.normalizeQuery(_searchQuery ?? '');
+
+  bool get _isContentSearchWorthRequesting =>
+      _searchNoteContent &&
+      _contentSearchQuery.length >= _contentSearchMinLength &&
+      SearchHelper.hasTerms(_contentSearchQuery);
+
+  Widget _buildSearchFieldButton(
+    BuildContext context, {
+    required IconData icon,
+    required String tooltip,
+    required VoidCallback onPressed,
+    bool isActive = false,
+  }) {
+    return IconButton(
+      onPressed: onPressed,
+      icon: Icon(
+        icon,
+        size: 20,
+        color: isActive
+            ? context.colorScheme.primary
+            : context.colorScheme.onSurface.withValues(alpha: 0.4),
+      ),
+      tooltip: tooltip,
+    );
+  }
+
+  Widget _buildSearchPrefixIcon(BuildContext context) {
+    final color = context.colorScheme.onSurface.withValues(alpha: 0.4);
+    if (_loadingContentSearchQuery == null) {
+      return Icon(Icons.search, color: color);
+    }
+    return SizedBox(
+      width: 48,
+      height: 48,
+      child: Center(
+        child: LoadingIndicator(
+          size: 16,
+          strokeWidth: 2,
+          color: color,
+          expanded: false,
+        ),
+      ),
+    );
+  }
+
+  void _onSearchQueryChanged(String? query) {
+    setState(() {
+      _searchQuery = query;
+      if (_contentSearchQuery != _loadedContentSearchQuery) {
+        _loadedContentSearchQuery = null;
+        _contentSearchMatchIds = null;
+      }
+    });
+    _scheduleContentSearch();
+  }
+
+  void _toggleContentSearch() {
+    setState(() {
+      _searchNoteContent = !_searchNoteContent;
+      _loadedContentSearchQuery = null;
+      _contentSearchMatchIds = null;
+    });
+    _saveFilterStateIfEnabled();
+    _scheduleContentSearch(immediately: true);
+  }
+
+  void _refreshContentSearch({bool immediately = false}) {
+    _loadedContentSearchQuery = null;
+    _scheduleContentSearch(immediately: immediately);
+  }
+
+  void _scheduleContentSearch({bool immediately = false}) {
+    _contentSearchTimer?.cancel();
+    if (!_isContentSearchWorthRequesting) {
+      _contentSearchErrorShown = false;
+      if (_loadingContentSearchQuery != null || _contentSearchMatchIds != null) {
+        setState(() {
+          _loadingContentSearchQuery = null;
+          _contentSearchMatchIds = null;
+        });
+      }
+      return;
+    }
+    if (immediately) {
+      _runContentSearch();
+      return;
+    }
+    _contentSearchTimer = Timer(_contentSearchDebounce, _runContentSearch);
+  }
+
+  void _runContentSearch() {
+    if (!mounted) return;
+    final query = _contentSearchQuery;
+    if (query == _loadingContentSearchQuery || query == _loadedContentSearchQuery) {
+      return;
+    }
+    setState(() {
+      _loadingContentSearchQuery = query;
+    });
+    context.read<NoteBloc>().add(
+      FetchNotesEvent(
+        origin: EventOrigin.subScreen,
+        search: query,
+        shownOnCalendar: _shownOnCalendar,
+      ),
+    );
+  }
+
+  void _onContentSearchResults(NotesFetched state) {
+    if (state.search != _loadingContentSearchQuery) return;
+    final isCurrent = _searchNoteContent && state.search == _contentSearchQuery;
+    _contentSearchErrorShown = false;
+    setState(() {
+      _loadingContentSearchQuery = null;
+      _loadedContentSearchQuery = isCurrent ? state.search : null;
+      _contentSearchMatchIds =
+          isCurrent ? state.notes.map((note) => note.id).toSet() : null;
+    });
   }
 
   List<NoteModel> _getFilteredNotes() {
     var filtered = _notes;
 
-    if (_searchQuery != null && _searchQuery!.isNotEmpty) {
+    if (_hasSearchQuery) {
+      final contentMatchIds = _contentSearchMatchIds;
       filtered = filtered.where((note) {
+        if (contentMatchIds != null) return contentMatchIds.contains(note.id);
         return SearchHelper.matchesAny(
           [note.title, note.linkedEntityTitle],
           _searchQuery!,
@@ -429,6 +594,7 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen>
     final filterState = {
       'filterEntityTypes': _filterEntityTypes.toList(),
       'shownOnCalendar': _shownOnCalendar,
+      'searchNoteContent': _searchNoteContent,
     };
     PrefService().setString(
       _savedNotebookFilterStateKey,
@@ -445,17 +611,20 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen>
     final savedState = PrefService().getString(_savedNotebookFilterStateKey);
     List<dynamic>? savedEntityTypes;
     bool? savedExcludeHiddenGroups;
+    bool? savedSearchNoteContent;
     if (savedState != null && savedState.isNotEmpty) {
       try {
         final filterState = jsonDecode(savedState) as Map<String, dynamic>;
         savedEntityTypes = filterState['filterEntityTypes'] as List<dynamic>?;
         savedExcludeHiddenGroups =
             filterState['shownOnCalendar'] as bool?;
+        savedSearchNoteContent = filterState['searchNoteContent'] as bool?;
       } catch (_) {}
     }
 
     if (savedEntityTypes == null &&
         savedExcludeHiddenGroups == null &&
+        savedSearchNoteContent == null &&
         savedRowsPerPage == null) {
       return;
     }
@@ -467,6 +636,9 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen>
       }
       if (savedExcludeHiddenGroups != null) {
         _shownOnCalendar = savedExcludeHiddenGroups;
+      }
+      if (savedSearchNoteContent != null) {
+        _searchNoteContent = savedSearchNoteContent;
       }
       if (savedRowsPerPage != null) _rowsPerPage = savedRowsPerPage;
     });

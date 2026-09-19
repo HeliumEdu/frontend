@@ -1,7 +1,6 @@
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/config/pref_service.dart';
 import 'package:heliumapp/core/dio_client.dart';
@@ -11,7 +10,6 @@ import 'package:heliumapp/data/models/planner/note_model.dart';
 import 'package:heliumapp/data/models/planner/resource_group_model.dart';
 import 'package:heliumapp/data/models/planner/resource_model.dart';
 import 'package:heliumapp/presentation/core/views/base_page_screen_state.dart';
-import 'package:heliumapp/presentation/core/views/deep_link_mixin.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_bloc.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_state.dart';
 import 'package:heliumapp/presentation/features/planner/dialogs/confirm_delete_dialog.dart';
@@ -59,15 +57,12 @@ class _ResourcesProvidedScreen extends StatefulWidget {
 }
 
 class _ResourcesScreenState
-    extends BasePageScreenState<_ResourcesProvidedScreen>
-    with DeepLinkMixin {
+    extends BasePageScreenState<_ResourcesProvidedScreen> {
   static const int _showAllGroupId = -1;
 
   @override
   bool get enablePrint => true;
 
-  @override
-  String get routePath => AppRoute.resourcesScreen;
 
   @override
   VoidCallback get actionButtonCallback => () {
@@ -451,7 +446,6 @@ class _ResourcesScreenState
       screenError = null;
     });
 
-    openFromQueryParams();
   }
 
   Widget _buildResourceCard(BuildContext context, ResourceModel resource) {

@@ -22,7 +22,7 @@ class FeedbackService with WidgetsBindingObserver {
 
   bool _isInitialized = false;
 
-  static FeedbackService _instance = FeedbackService._internal();
+  static final FeedbackService _instance = FeedbackService._internal();
 
   factory FeedbackService() => _instance;
 
@@ -30,25 +30,6 @@ class FeedbackService with WidgetsBindingObserver {
     : _dioClient = DioClient(),
       _prefService = PrefService(),
       _inAppReview = InAppReview.instance;
-
-  @visibleForTesting
-  FeedbackService.forTesting({
-    required DioClient dioClient,
-    required PrefService prefService,
-    required InAppReview inAppReview,
-  }) : _dioClient = dioClient,
-       _prefService = prefService,
-       _inAppReview = inAppReview;
-
-  @visibleForTesting
-  static void resetForTesting() {
-    _instance = FeedbackService._internal();
-  }
-
-  @visibleForTesting
-  static void setInstanceForTesting(FeedbackService instance) {
-    _instance = instance;
-  }
 
   Future<void> init() async {
     if (_isInitialized) return;

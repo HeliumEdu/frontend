@@ -43,23 +43,6 @@ class CacheService with WidgetsBindingObserver {
     _initLifecycleObserver();
   }
 
-  /// Constructor for testing with a custom store
-  @visibleForTesting
-  CacheService.withStore(CacheStore store) {
-    _store = store;
-    _options = CacheOptions(
-      store: _store,
-      policy: CachePolicy.forceCache,
-      maxStale: cacheTtl,
-      hitCacheOnNetworkFailure: true,
-      keyBuilder: CacheOptions.defaultCacheKeyBuilder,
-    );
-    _cacheInterceptor = DioCacheInterceptor(options: _options);
-    _interceptor = _createMethodFilteringInterceptor();
-    _loggingInterceptor = _createLoggingInterceptor();
-    // Skip lifecycle observer in tests
-  }
-
   void _initLifecycleObserver() {
     // Use addPostFrameCallback to ensure WidgetsBinding is ready
     WidgetsBinding.instance.addPostFrameCallback((_) {

@@ -35,28 +35,6 @@ class CourseExceptionHelpers {
     return sorted.map(_formatDate).join(',');
   }
 
-  /// Returns a deduplicated, sorted list of all exception dates that apply to
-  /// a specific course: its own [courseExceptions] plus any
-  /// [courseGroupExceptions] (semester holidays).
-  ///
-  /// Used by [CourseScheduleBuilderSource] to populate
-  /// [CourseScheduleEventModel.exceptionDates].
-  static List<DateTime> mergeExceptions(
-    List<DateTime> courseExceptions,
-    List<DateTime> courseGroupExceptions,
-  ) {
-    final seen = <String>{};
-    final merged = <DateTime>[];
-
-    for (final dt in [...courseExceptions, ...courseGroupExceptions]) {
-      final key = _formatDate(dt);
-      if (seen.add(key)) merged.add(dt);
-    }
-
-    merged.sort();
-    return merged;
-  }
-
   static String _formatDate(DateTime dt) {
     final y = dt.year.toString().padLeft(4, '0');
     final m = dt.month.toString().padLeft(2, '0');

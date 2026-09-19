@@ -17,19 +17,6 @@ class FetchExternalCalendarsEvent extends ExternalCalendarEvent {
   FetchExternalCalendarsEvent({required super.origin, this.forceRefresh = false});
 }
 
-class FetchExternalCalendarEventsEvent extends ExternalCalendarEvent {
-  final DateTime from;
-  final DateTime to;
-  final String? search;
-
-  FetchExternalCalendarEventsEvent({
-    required super.origin,
-    required this.from,
-    required this.to,
-    this.search,
-  });
-}
-
 class CreateExternalCalendarEvent extends ExternalCalendarEvent {
   final ExternalCalendarRequestModel request;
 

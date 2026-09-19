@@ -51,7 +51,7 @@ class GoogleAccountStore {
 
   final FlutterSecureStorage _secureStorage;
 
-  static GoogleAccountStore _instance = GoogleAccountStore._internal();
+  static final GoogleAccountStore _instance = GoogleAccountStore._internal();
 
   factory GoogleAccountStore() => _instance;
 
@@ -60,20 +60,6 @@ class GoogleAccountStore {
         iOptions: IOSOptions(accountName: _accountName),
         webOptions: WebOptions(publicKey: _accountName),
       );
-
-  @visibleForTesting
-  GoogleAccountStore.forTesting({required FlutterSecureStorage secureStorage})
-    : _secureStorage = secureStorage;
-
-  @visibleForTesting
-  static void resetForTesting() {
-    _instance = GoogleAccountStore._internal();
-  }
-
-  @visibleForTesting
-  static void setInstanceForTesting(GoogleAccountStore instance) {
-    _instance = instance;
-  }
 
   Future<RememberedGoogleAccount?> getRemembered() async {
     final raw = await _secureStorage.read(key: _key);

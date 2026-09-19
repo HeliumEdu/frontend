@@ -101,20 +101,6 @@ class ResourceScreenDataFetched extends ResourceState
   });
 }
 
-class ResourcesFetched extends ResourceState {
-  final List<ResourceModel> resources;
-
-  ResourcesFetched({
-    required super.origin,
-    super.message,
-    required this.resources,
-  });
-}
-
-class ResourceFetched extends ResourceEntityState {
-  ResourceFetched({required super.origin, required super.resource});
-}
-
 class ResourceGroupCreated extends ResourceGroupEntityState {
   ResourceGroupCreated({required super.origin, required super.resourceGroup});
 }

@@ -55,7 +55,7 @@ class ApiUrl {
   // Planner
   static const plannerCoursesListUrl = '/planner/courses/';
   static const plannerCategoriesListUrl = '/planner/categories/';
-  static const plannerResourcesListUrl = '/planner/materials/';
+  static const plannerResourcesListUrl = '/planner/resources/';
   static const plannerHomeworkListUrl = '/planner/homework/';
   static const plannerEventsListUrl = '/planner/events/';
   static const plannerNotesListUrl = '/planner/notes/';
@@ -140,18 +140,18 @@ class ApiUrl {
       '/planner/coursegroups/$groupId/courses/$courseId/categories/$categoryId/';
 
   // Resources
-  static const plannerResourceGroupsListUrl = '/planner/materialgroups/';
+  static const plannerResourceGroupsListUrl = '/planner/resourcegroups/';
 
   static String plannerResourceGroupsDetailsUrl(int groupId) =>
-      '/planner/materialgroups/$groupId/';
+      '/planner/resourcegroups/$groupId/';
 
   static String plannerResourceGroupsResourcesListUrl(int groupId) =>
-      '/planner/materialgroups/$groupId/materials/';
+      '/planner/resourcegroups/$groupId/resources/';
 
   static String plannerResourceGroupsResourceDetailsUrl(
     int groupId,
     int resourceId,
-  ) => '/planner/materialgroups/$groupId/materials/$resourceId/';
+  ) => '/planner/resourcegroups/$groupId/resources/$resourceId/';
 
   // Import/Export
   static const importExportImportUrl = '/importexport/import/';

@@ -40,7 +40,7 @@ class HomeworkRequestModel {
     if (currentGrade != null) json['current_grade'] = currentGrade;
     if (completed != null) json['completed'] = completed;
     if (category != null) json['category'] = category;
-    if (resources != null) json['materials'] = resources;
+    if (resources != null) json['resources'] = resources;
 
     return json;
   }

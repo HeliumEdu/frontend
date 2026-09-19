@@ -117,16 +117,6 @@ class PlannerItemScreenDataFetched extends PlannerItemState
   });
 }
 
-class EventFetched extends EventEntityState {
-  EventFetched({
-    required super.origin,
-    required super.event,
-    required super.entityId,
-    required super.isEvent,
-    super.advanceNavOnSuccess = true,
-  });
-}
-
 class EventCreated extends EventEntityState {
   final bool isClone;
   final bool redirectToNotebook;
@@ -167,16 +157,6 @@ class EventDeleted extends PlannerItemState {
 
 class AllEventsDeleted extends PlannerItemState {
   AllEventsDeleted({required super.origin});
-}
-
-class HomeworkFetched extends HomeworkEntityState {
-  HomeworkFetched({
-    required super.origin,
-    required super.homework,
-    required super.entityId,
-    required super.isEvent,
-    super.advanceNavOnSuccess = true,
-  });
 }
 
 class HomeworkCreated extends HomeworkEntityState {

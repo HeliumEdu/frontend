@@ -15,25 +15,11 @@ class AnalyticsService {
 
   bool _isInitialized = false;
 
-  static AnalyticsService _instance = AnalyticsService._internal();
+  static final AnalyticsService _instance = AnalyticsService._internal();
 
   factory AnalyticsService() => _instance;
 
   AnalyticsService._internal();
-
-  @visibleForTesting
-  AnalyticsService.forTesting({required FirebaseAnalytics analytics})
-    : _analytics = analytics;
-
-  @visibleForTesting
-  static void resetForTesting() {
-    _instance = AnalyticsService._internal();
-  }
-
-  @visibleForTesting
-  static void setInstanceForTesting(AnalyticsService instance) {
-    _instance = instance;
-  }
 
   FirebaseAnalytics get analytics {
     _analytics ??= FirebaseAnalytics.instance;

@@ -44,13 +44,11 @@ class PlannerItemBloc extends Bloc<PlannerItemEvent, PlannerItemState> {
     required this.noteRepository,
   }) : super(PlannerItemInitial(origin: EventOrigin.bloc)) {
     on<FetchPlannerItemScreenDataEvent>(_onFetchPlannerItemScreenDataEvent);
-    on<FetchEventEvent>(_onFetchEvent);
     on<CreateEventEvent>(_onCreateEvent);
     on<CloneEventEvent>(_onCloneEvent);
     on<UpdateEventEvent>(_onUpdateEvent);
     on<DeleteEventEvent>(_onDeleteEvent);
     on<DeleteAllEventsEvent>(_onDeleteAllEvents);
-    on<FetchHomeworkEvent>(_onFetchHomework);
     on<CreateHomeworkEvent>(_onCreateHomework);
     on<CloneHomeworkEvent>(_onCloneHomework);
     on<UpdateHomeworkEvent>(_onUpdateHomework);
@@ -160,33 +158,6 @@ class PlannerItemBloc extends Bloc<PlannerItemEvent, PlannerItemState> {
 
     final resolved = await courseRepository.getCourses(id: courseId);
     return resolved.isNotEmpty ? resolved.first : null;
-  }
-
-  Future<void> _onFetchEvent(
-    FetchEventEvent event,
-    Emitter<PlannerItemState> emit,
-  ) async {
-    emit(PlannerItemsLoading(origin: event.origin));
-    try {
-      final entity = await eventRepository.getEvent(id: event.eventId);
-      emit(
-        EventFetched(
-          origin: event.origin,
-          event: entity,
-          entityId: entity.id,
-          isEvent: true,
-        ),
-      );
-    } on HeliumException catch (e) {
-      emit(PlannerItemsError(origin: event.origin, message: e.message));
-    } catch (e) {
-      emit(
-        PlannerItemsError(
-          origin: event.origin,
-          message: HeliumException.unexpectedError,
-        ),
-      );
-    }
   }
 
   Future<void> _onCreateEvent(
@@ -365,33 +336,6 @@ class PlannerItemBloc extends Bloc<PlannerItemEvent, PlannerItemState> {
     try {
       await eventRepository.deleteAllEvents();
       emit(AllEventsDeleted(origin: event.origin));
-    } on HeliumException catch (e) {
-      emit(PlannerItemsError(origin: event.origin, message: e.message));
-    } catch (e) {
-      emit(
-        PlannerItemsError(
-          origin: event.origin,
-          message: HeliumException.unexpectedError,
-        ),
-      );
-    }
-  }
-
-  Future<void> _onFetchHomework(
-    FetchHomeworkEvent event,
-    Emitter<PlannerItemState> emit,
-  ) async {
-    emit(PlannerItemsLoading(origin: event.origin));
-    try {
-      final homework = await homeworkRepository.getHomework(id: event.id);
-      emit(
-        HomeworkFetched(
-          origin: event.origin,
-          homework: homework,
-          entityId: homework.id,
-          isEvent: false,
-        ),
-      );
     } on HeliumException catch (e) {
       emit(PlannerItemsError(origin: event.origin, message: e.message));
     } catch (e) {

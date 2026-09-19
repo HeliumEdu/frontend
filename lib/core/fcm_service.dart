@@ -84,12 +84,6 @@ class FcmService with WidgetsBindingObserver {
        _prefService = prefService;
 
   @visibleForTesting
-  static void resetForTesting() {
-    _instance._stopObservingLifecycle();
-    _instance = FcmService._internal();
-  }
-
-  @visibleForTesting
   static void setInstanceForTesting(FcmService instance) {
     _instance = instance;
   }
@@ -97,12 +91,6 @@ class FcmService with WidgetsBindingObserver {
   static void setForegroundTapCallback(void Function(String route) callback) {
     _onForegroundTap = callback;
   }
-
-  @visibleForTesting
-  Map<String, DateTime> get recentMessageIdsForTesting => _recentMessageIds;
-
-  @visibleForTesting
-  static Duration get dedupeWindowForTesting => _dedupeWindow;
 
   @visibleForTesting
   Future<void> handleDismissMessageForTesting(RemoteMessage message) =>
@@ -165,12 +153,6 @@ class FcmService with WidgetsBindingObserver {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       WidgetsBinding.instance.addObserver(this);
     });
-  }
-
-  void _stopObservingLifecycle() {
-    if (!_observingLifecycle) return;
-    _observingLifecycle = false;
-    WidgetsBinding.instance.removeObserver(this);
   }
 
   @override

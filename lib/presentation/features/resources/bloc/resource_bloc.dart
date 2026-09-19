@@ -23,8 +23,6 @@ class ResourceBloc extends Bloc<ResourceEvent, ResourceState> {
   }) : super(ResourcesInitial(origin: EventOrigin.bloc)) {
     on<FetchResourcesScreenDataEvent>(_onFetchResourcesScreenData);
     on<FetchResourceScreenDataEvent>(_onFetchResourceScreenDataEvent);
-    on<FetchResourcesEvent>(_onFetchResources);
-    on<FetchResourceEvent>(_onFetchResource);
     on<CreateResourceGroupEvent>(_onCreateResourceGroup);
     on<UpdateResourceGroupEvent>(_onUpdateResourceGroup);
     on<DeleteResourceGroupEvent>(_onDeleteResourceGroup);
@@ -202,52 +200,6 @@ class ResourceBloc extends Bloc<ResourceEvent, ResourceState> {
       emit(
         ResourceGroupDeleted(origin: event.origin, id: event.resourceGroupId),
       );
-    } on HeliumException catch (e) {
-      emit(ResourcesError(origin: event.origin, message: e.message));
-    } catch (e) {
-      emit(
-        ResourcesError(
-          origin: event.origin,
-          message: HeliumException.unexpectedError,
-        ),
-      );
-    }
-  }
-
-  Future<void> _onFetchResource(
-    FetchResourceEvent event,
-    Emitter<ResourceState> emit,
-  ) async {
-    emit(ResourcesLoading(origin: event.origin));
-    try {
-      final resource = await resourceRepository.getResource(
-        groupId: event.resourceGroupId,
-        resourceId: event.resourceId,
-      );
-      emit(ResourceFetched(origin: event.origin, resource: resource));
-    } on HeliumException catch (e) {
-      emit(ResourcesError(origin: event.origin, message: e.message));
-    } catch (e) {
-      emit(
-        ResourcesError(
-          origin: event.origin,
-          message: HeliumException.unexpectedError,
-        ),
-      );
-    }
-  }
-
-  Future<void> _onFetchResources(
-    FetchResourcesEvent event,
-    Emitter<ResourceState> emit,
-  ) async {
-    emit(ResourcesLoading(origin: event.origin));
-    try {
-      final resources = await resourceRepository.getResources(
-        groupId: event.resourceGroupId,
-        shownOnCalendar: event.shownOnCalendar,
-      );
-      emit(ResourcesFetched(origin: event.origin, resources: resources));
     } on HeliumException catch (e) {
       emit(ResourcesError(origin: event.origin, message: e.message));
     } catch (e) {

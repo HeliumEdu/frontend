@@ -5,7 +5,6 @@ import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:heliumapp/config/analytics_event.dart';
-import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/core/helium_exception.dart';
 import 'package:heliumapp/config/pref_service.dart';
@@ -19,7 +18,6 @@ import 'package:heliumapp/data/models/planner/grade_course_group_model.dart';
 import 'package:heliumapp/data/models/planner/grade_course_model.dart';
 import 'package:heliumapp/data/models/planner/homework_series_item_model.dart';
 import 'package:heliumapp/presentation/core/views/base_page_screen_state.dart';
-import 'package:heliumapp/presentation/core/views/deep_link_mixin.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_bloc.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_state.dart';
 import 'package:heliumapp/presentation/features/grades/bloc/grade_bloc.dart';
@@ -108,16 +106,13 @@ class _GradesProvidedScreen extends StatefulWidget {
   State<_GradesProvidedScreen> createState() => _GradesScreenState();
 }
 
-class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
-    with DeepLinkMixin {
+class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
   static const _savedGradeGraphSettingsKey = 'saved_grades_graph_settings';
   static const _overallSeriesName = 'Overall Grade';
 
   @override
   bool get enablePrint => true;
 
-  @override
-  String get routePath => AppRoute.gradesScreen;
 
   // Category table row element heights
   static const double _contributionBarHeight = 24;
@@ -206,7 +201,6 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen>
           } else if (state is GradeScreenDataFetched) {
             setState(() => screenError = null);
             _populateInitiateStateData(state);
-            openFromQueryParams();
           }
         },
       ),

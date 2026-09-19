@@ -31,8 +31,6 @@ class CourseBloc extends Bloc<CourseEvent, CourseState> {
   }) : super(CourseInitial(origin: EventOrigin.bloc)) {
     on<FetchCoursesScreenDataEvent>(_onFetchCoursesScreenDataEvent);
     on<FetchCourseScreenDataEvent>(_onFetchCourseScreenDataEvent);
-    on<FetchCoursesEvent>(_onFetchCourses);
-    on<FetchCourseEvent>(_onFetchCourse);
     on<CreateCourseGroupEvent>(_onCreateCourseGroup);
     on<UpdateCourseGroupEvent>(_onUpdateCourseGroup);
     on<DeleteCourseGroupEvent>(_onDeleteCourseGroup);
@@ -130,53 +128,6 @@ class CourseBloc extends Bloc<CourseEvent, CourseState> {
           message: HeliumException.unexpectedError,
           courseGroupId: event.courseGroupId,
           courseId: event.courseId,
-        ),
-      );
-    }
-  }
-
-  Future<void> _onFetchCourses(
-    FetchCoursesEvent event,
-    Emitter<CourseState> emit,
-  ) async {
-    emit(CoursesLoading(origin: event.origin));
-
-    try {
-      final courses = await courseRepository.getCourses(
-        shownOnCalendar: event.shownOnCalendar,
-      );
-      emit(CoursesFetched(origin: event.origin, courses: courses));
-    } on HeliumException catch (e) {
-      emit(CoursesError(origin: event.origin, message: e.message));
-    } catch (e) {
-      emit(
-        CoursesError(
-          origin: event.origin,
-          message: HeliumException.unexpectedError,
-        ),
-      );
-    }
-  }
-
-  Future<void> _onFetchCourse(
-    FetchCourseEvent event,
-    Emitter<CourseState> emit,
-  ) async {
-    emit(CoursesLoading(origin: event.origin));
-
-    try {
-      final course = await courseRepository.getCourse(
-        event.courseGroupId,
-        event.courseId,
-      );
-      emit(CourseFetched(origin: event.origin, course: course));
-    } on HeliumException catch (e) {
-      emit(CoursesError(origin: event.origin, message: e.message));
-    } catch (e) {
-      emit(
-        CoursesError(
-          origin: event.origin,
-          message: HeliumException.unexpectedError,
         ),
       );
     }

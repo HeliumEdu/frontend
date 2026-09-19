@@ -28,7 +28,7 @@ class ResourceRequestModel {
       'price': price,
       'details': details,
       'courses': courses,
-      'material_group': resourceGroup,
+      'resource_group': resourceGroup,
     };
 
     return data;

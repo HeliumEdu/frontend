@@ -3,11 +3,9 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:heliumapp/config/analytics_event.dart';
 import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/config/app_router.dart';
 import 'package:heliumapp/config/app_theme.dart';
-import 'package:heliumapp/core/analytics_service.dart';
 import 'package:heliumapp/core/dio_client.dart';
 import 'package:heliumapp/core/notification_count_service.dart';
 import 'package:heliumapp/data/models/auth/user_settings_model.dart';
@@ -38,13 +36,6 @@ import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/date_time_helpers.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:heliumapp/utils/error_helpers.dart';
-
-/// Navigates to the notifications route (responsive: side panel on desktop,
-/// full-screen on mobile). The route's pageBuilder handles dialog rendering.
-Future<void> showNotifications(BuildContext context) async {
-  unawaited(AnalyticsService().logEvent(name: AnalyticsEvent.notificationsOpen, parameters: {'category': AnalyticsCategory.featureInteraction.value}));
-  await context.push<void>(AppRoute.notificationsScreen);
-}
 
 class NotificationsScreen extends StatelessWidget {
   /// Underlying shell tab path (e.g. `/notebook`, `/classes`) the dialog is

@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:logging/logging.dart';
 
@@ -12,21 +11,12 @@ class TimeZoneDatabaseService {
   bool _isLoaded = false;
   Future<bool>? _pending;
 
-  static TimeZoneDatabaseService _instance =
+  static final TimeZoneDatabaseService _instance =
       TimeZoneDatabaseService._internal();
 
   factory TimeZoneDatabaseService() => _instance;
 
   TimeZoneDatabaseService._internal();
-
-  @visibleForTesting
-  TimeZoneDatabaseService.forTesting({bool isLoaded = false})
-    : _isLoaded = isLoaded;
-
-  @visibleForTesting
-  static void setInstanceForTesting(TimeZoneDatabaseService instance) {
-    _instance = instance;
-  }
 
   /// Whether the asset is available, fetching it once per session. Only
   /// success is memoized, so a failure is retried by the next call.

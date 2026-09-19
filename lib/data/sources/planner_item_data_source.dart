@@ -271,8 +271,6 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
     super.dispose();
   }
 
-  bool get hasLoadedInitialData => _hasLoadedInitialData;
-
   Map<int, bool> get selectedCourses => _selectedCourses;
 
   List<String> get filterCategories => _filterCategories;
@@ -1267,16 +1265,6 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
     );
     _notifyCalendarReset();
     _notifyChangeListeners();
-  }
-
-  /// Waits for any pending filter operations to complete
-  Future<void> waitForFilters() async {
-    _filterDebounceTimer?.cancel();
-    _filterDebounceTimer = null;
-    if (_filterCompleter != null && !_filterCompleter!.isCompleted) {
-      await _applyFiltersAsync();
-    }
-    await _filterPass;
   }
 
   /// [showOverlay] drives the screen's full-area refresh scrim via

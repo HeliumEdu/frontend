@@ -171,10 +171,6 @@ extension AppStyles on BuildContext {
         color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
       );
 
-  // Used for active menu items
-  static TextStyle menuItemActive(BuildContext context) =>
-      menuItem(context).copyWith(color: Theme.of(context).colorScheme.primary);
-
   // Used for timeline calendar item text size
   static TextStyle calendarItemText(BuildContext context) {
     return poppins(

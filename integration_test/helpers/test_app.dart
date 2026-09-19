@@ -18,6 +18,7 @@ import 'package:heliumapp/presentation/core/dialogs/whats_new_dialog.dart';
 import 'package:heliumapp/presentation/features/auth/controllers/credentials_form_controller.dart';
 import 'package:heliumapp/presentation/features/auth/views/login_screen.dart';
 import 'package:heliumapp/presentation/features/planner/views/planner_screen.dart';
+import 'package:heliumapp/presentation/ui/layout/page_header.dart';
 import 'package:http/http.dart' as http;
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
@@ -484,38 +485,49 @@ Future<void> ensureOnLoginScreen(WidgetTester tester) async {
   await tester.pumpAndSettle();
 }
 
+/// Waits up to [timeout] for [marker], taps [dismissControl], and waits for
+/// [marker] to disappear. Returns whether the overlay was present at all.
+Future<bool> _dismissOverlay(
+  WidgetTester tester, {
+  required String name,
+  required Finder marker,
+  required Finder dismissControl,
+  required Duration timeout,
+}) async {
+  final appeared = await waitForWidget(tester, marker, timeout: timeout);
+  if (!appeared) {
+    return false;
+  }
+
+  _log.info('Dismissing $name ...');
+  await tester.tap(dismissControl);
+  await tester.pumpAndSettle();
+
+  final closed = await waitForWidgetToDisappear(
+    tester,
+    marker,
+    timeout: const Duration(seconds: 5),
+  );
+  if (!closed) {
+    _log.warning('$name did not close within timeout');
+  }
+
+  return true;
+}
+
 /// Dismisses the "Getting Started" dialog if present.
 /// This dialog appears on first login and after browser hard refresh.
 /// Returns true if the dialog was found and dismissed, false otherwise.
 Future<bool> dismissGettingStartedDialog(
   WidgetTester tester, {
   Duration timeout = const Duration(seconds: 5),
-}) async {
-  final dialogFinder = find.text('Welcome to Helium!');
-
-  // Wait for dialog to appear (it may take a moment after navigation)
-  final appeared = await waitForWidget(tester, dialogFinder, timeout: timeout);
-  if (!appeared) {
-    return false;
-  }
-
-  _log.info('Dismissing Getting Started dialog ...');
-  await tester.tap(find.byKey(const Key(gettingStartedDismissButtonKey)));
-  await tester.pumpAndSettle();
-
-  // Wait for dialog to fully close before proceeding
-  final closed = await waitForWidgetToDisappear(
-    tester,
-    dialogFinder,
-    timeout: const Duration(seconds: 5),
-  );
-
-  if (!closed) {
-    _log.warning('Getting Started dialog did not close within timeout');
-  }
-
-  return true;
-}
+}) => _dismissOverlay(
+  tester,
+  name: 'Getting Started dialog',
+  marker: find.text('Welcome to Helium!'),
+  dismissControl: find.byKey(const Key(gettingStartedDismissButtonKey)),
+  timeout: timeout,
+);
 
 /// Dismisses the "What's New" dialog if present.
 /// This dialog appears once after the Getting Started dialog (stored in prefs).
@@ -523,31 +535,50 @@ Future<bool> dismissGettingStartedDialog(
 Future<bool> dismissWhatsNewDialog(
   WidgetTester tester, {
   Duration timeout = const Duration(seconds: 5),
+}) => _dismissOverlay(
+  tester,
+  name: "What's New dialog",
+  marker: find.text("What's New?"),
+  dismissControl: find.byKey(const Key(whatsNewDismissButtonKey)),
+  timeout: timeout,
+);
+
+/// Closes the open page dialog via its header X and waits until the app is
+/// back on [shellPath] with [shellTitle] in the browser title. The close is
+/// scoped to [PageHeader] so an entity badge's own X is never matched.
+Future<void> closePageDialog(
+  WidgetTester tester, {
+  required String shellPath,
+  required String shellTitle,
 }) async {
-  final dialogFinder = find.text("What's New?");
-
-  // Wait for dialog to appear (it may take a moment after Getting Started closes)
-  final appeared = await waitForWidget(tester, dialogFinder, timeout: timeout);
-  if (!appeared) {
-    return false;
-  }
-
-  _log.info('Dismissing What\'s New dialog ...');
-  await tester.tap(find.byKey(const Key(whatsNewDismissButtonKey)));
-  await tester.pumpAndSettle();
-
-  // Wait for dialog to fully close before proceeding
-  final closed = await waitForWidgetToDisappear(
+  final headerClose = find.descendant(
+    of: find.byType(PageHeader),
+    matching: find.byIcon(Icons.close),
+  );
+  final wasOpen = await _dismissOverlay(
     tester,
-    dialogFinder,
-    timeout: const Duration(seconds: 5),
+    name: 'page dialog',
+    marker: headerClose,
+    dismissControl: headerClose,
+    timeout: TestConfig().apiTimeout,
+  );
+  expect(
+    wasOpen,
+    isTrue,
+    reason: 'A page dialog should be open before closing it',
   );
 
-  if (!closed) {
-    _log.warning('What\'s New dialog did not close within timeout');
-  }
-
-  return true;
+  final backOnShell = await waitForRoute(
+    tester,
+    shellPath,
+    browserTitle: shellTitle,
+    timeout: TestConfig().apiTimeout,
+  );
+  expect(
+    backOnShell,
+    isTrue,
+    reason: 'Closing the dialog should return to $shellPath',
+  );
 }
 
 /// Helper to log in and navigate to planner, handling dialogs.
@@ -831,7 +862,7 @@ Future<void> expectOnClassesScreen(WidgetTester tester) async {
   );
 }
 
-/// Assert we're on the Resources screen and verify the full group/material
+/// Assert we're on the Resources screen and verify the full group/resource
 /// structure. Resources are organized by [GroupDropdown]; only one group's
 /// resources are visible at a time, so this helper cycles through groups.
 Future<void> expectOnResourcesScreen(WidgetTester tester) async {

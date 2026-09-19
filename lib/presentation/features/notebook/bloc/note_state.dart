@@ -27,19 +27,12 @@ class NotesError extends NoteState {
 
 class NotesFetched extends NoteState {
   final List<NoteModel> notes;
+  final String? search;
 
   NotesFetched({
     required super.origin,
     required this.notes,
-  });
-}
-
-class NoteFetched extends NoteState {
-  final NoteModel note;
-
-  NoteFetched({
-    required super.origin,
-    required this.note,
+    this.search,
   });
 }
 

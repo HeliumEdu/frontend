@@ -68,11 +68,6 @@ class DioClient {
   }
 
   @visibleForTesting
-  static void setInstanceForTesting(DioClient instance) {
-    _instance = instance;
-  }
-
-  @visibleForTesting
   bool isInvalidTokenError(dynamic data) => _isInvalidTokenError(data);
 
   @visibleForTesting

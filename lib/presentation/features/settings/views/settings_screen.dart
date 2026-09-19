@@ -4,14 +4,12 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:heliumapp/config/analytics_event.dart';
 import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/config/app_router.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/config/dirty_dialog_registry.dart';
 import 'package:heliumapp/config/donation_config.dart';
 import 'package:heliumapp/config/theme_notifier.dart';
-import 'package:heliumapp/core/analytics_service.dart';
 import 'package:heliumapp/data/models/auth/request/update_settings_request_model.dart';
 import 'package:heliumapp/presentation/core/views/base_page_screen_state.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_bloc.dart';
@@ -52,16 +50,6 @@ enum SettingsSubScreen {
   changeEmail,
   changePassword,
   importExport,
-}
-
-/// Navigates to the settings route (responsive: side panel on desktop,
-/// full-screen on mobile). The route's pageBuilder handles dialog rendering.
-Future<void> showSettings(BuildContext context, {String? initialTab}) async {
-  unawaited(AnalyticsService().logEvent(name: AnalyticsEvent.settingsOpen, parameters: {'category': AnalyticsCategory.featureInteraction.value}));
-  final path = initialTab == null
-      ? AppRoute.settingScreen
-      : '${AppRoute.settingScreen}/$initialTab';
-  await context.push<void>(path);
 }
 
 class SettingsScreen extends StatefulWidget {

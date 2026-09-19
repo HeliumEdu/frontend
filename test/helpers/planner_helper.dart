@@ -454,7 +454,7 @@ Map<String, dynamic> givenHomeworkJson({
     'course': course,
     'course_group': 1,
     'category': category,
-    'materials': resources ?? [],
+    'resources': resources ?? [],
     'current_grade': currentGrade,
     'attachments': attachments ?? [],
     'reminders': reminders ?? [],
@@ -537,7 +537,7 @@ Map<String, dynamic> givenResourceJson({
     'details': details,
     'website': website,
     'price': price,
-    'material_group': resourceGroup,
+    'resource_group': resourceGroup,
     'courses': courses ?? [],
   };
 }
@@ -554,7 +554,7 @@ void verifyResourceMatchesJson(
   expect(resource.details, equals(json['details']));
   expect(resource.website?.toString(), equals(json['website']));
   expect(resource.price, equals(json['price']));
-  expect(resource.resourceGroup, equals(json['material_group']));
+  expect(resource.resourceGroup, equals(json['resource_group']));
   expect(resource.courses, equals(json['courses']));
 }
 

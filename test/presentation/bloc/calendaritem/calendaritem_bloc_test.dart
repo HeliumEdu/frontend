@@ -187,48 +187,6 @@ void main() {
     });
 
     group('Event CRUD operations', () {
-      group('FetchEventEvent', () {
-        blocTest<PlannerItemBloc, PlannerItemState>(
-          'emits [PlannerItemsLoading, EventFetched] when fetch succeeds',
-          build: () {
-            when(
-              () => mockEventRepository.getEvent(id: 1),
-            ).thenAnswer((_) async => MockModels.createEvent(id: 1));
-            return plannerItemBloc;
-          },
-          act: (bloc) => bloc.add(
-            FetchEventEvent(origin: EventOrigin.screen, eventId: 1),
-          ),
-          expect: () => [
-            isA<PlannerItemsLoading>(),
-            isA<EventFetched>()
-                .having((s) => s.event.id, 'event id', 1)
-                .having((s) => s.isEvent, 'isEvent', isTrue),
-          ],
-        );
-
-        blocTest<PlannerItemBloc, PlannerItemState>(
-          'emits [PlannerItemsLoading, PlannerItemsError] when event not found',
-          build: () {
-            when(
-              () => mockEventRepository.getEvent(id: 999),
-            ).thenThrow(NotFoundException(message: 'Event not found'));
-            return plannerItemBloc;
-          },
-          act: (bloc) => bloc.add(
-            FetchEventEvent(origin: EventOrigin.screen, eventId: 999),
-          ),
-          expect: () => [
-            isA<PlannerItemsLoading>(),
-            isA<PlannerItemsError>().having(
-              (e) => e.message,
-              'message',
-              'Event not found',
-            ),
-          ],
-        );
-      });
-
       group('CreateEventEvent', () {
         final request = EventRequestModel(
           title: 'New Event',
@@ -395,48 +353,6 @@ void main() {
     });
 
     group('Homework CRUD operations', () {
-      group('FetchHomeworkEvent', () {
-        blocTest<PlannerItemBloc, PlannerItemState>(
-          'emits [PlannerItemsLoading, HomeworkFetched] when fetch succeeds',
-          build: () {
-            when(
-              () => mockHomeworkRepository.getHomework(id: 1),
-            ).thenAnswer((_) async => MockModels.createHomework(id: 1));
-            return plannerItemBloc;
-          },
-          act: (bloc) => bloc.add(
-            FetchHomeworkEvent(origin: EventOrigin.screen, id: 1),
-          ),
-          expect: () => [
-            isA<PlannerItemsLoading>(),
-            isA<HomeworkFetched>()
-                .having((s) => s.homework.id, 'homework id', 1)
-                .having((s) => s.isEvent, 'isEvent', isFalse),
-          ],
-        );
-
-        blocTest<PlannerItemBloc, PlannerItemState>(
-          'emits [PlannerItemsLoading, PlannerItemsError] when homework not found',
-          build: () {
-            when(
-              () => mockHomeworkRepository.getHomework(id: 999),
-            ).thenThrow(NotFoundException(message: 'Homework not found'));
-            return plannerItemBloc;
-          },
-          act: (bloc) => bloc.add(
-            FetchHomeworkEvent(origin: EventOrigin.screen, id: 999),
-          ),
-          expect: () => [
-            isA<PlannerItemsLoading>(),
-            isA<PlannerItemsError>().having(
-              (e) => e.message,
-              'message',
-              'Homework not found',
-            ),
-          ],
-        );
-      });
-
       group('CreateHomeworkEvent', () {
         const courseGroupId = 1;
         const courseId = 2;

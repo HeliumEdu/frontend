@@ -12,7 +12,6 @@ class ExternalCalendarBloc
   ExternalCalendarBloc({required this.externalCalendarRepository})
     : super(ExternalCalendarInitial(origin: EventOrigin.bloc)) {
     on<FetchExternalCalendarsEvent>(_onFetchExternalCalendars);
-    on<FetchExternalCalendarEventsEvent>(_onFetchExternalCalendarEvents);
     on<CreateExternalCalendarEvent>(_onCreateExternalCalendar);
     on<UpdateExternalCalendarEvent>(_onUpdateExternalCalendar);
     on<DeleteExternalCalendarEvent>(_onDeleteExternalCalendar);
@@ -37,30 +36,6 @@ class ExternalCalendarBloc
           externalCalendars: calendars,
         ),
       );
-    } on HeliumException catch (e) {
-      emit(ExternalCalendarsError(origin: event.origin, message: e.message));
-    } catch (e) {
-      emit(
-        ExternalCalendarsError(
-          origin: event.origin,
-          message: HeliumException.unexpectedError,
-        ),
-      );
-    }
-  }
-
-  Future<void> _onFetchExternalCalendarEvents(
-    FetchExternalCalendarEventsEvent event,
-    Emitter<ExternalCalendarState> emit,
-  ) async {
-    emit(ExternalCalendarsLoading(origin: event.origin));
-    try {
-      final events = await externalCalendarRepository.getExternalCalendarEvents(
-        from: event.from,
-        to: event.to,
-        search: event.search,
-      );
-      emit(ExternalCalendarEventsFetched(origin: event.origin, events: events));
     } on HeliumException catch (e) {
       emit(ExternalCalendarsError(origin: event.origin, message: e.message));
     } catch (e) {

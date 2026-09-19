@@ -49,13 +49,10 @@ class FallbackConstants {
   static const defaultReminderOffset = 30;
   static const defaultReminderOffsetType = 0;
   static const defaultColorByCategory = false;
-  static const defaultColorSchemeTheme = 2;
-  static const defaultWhatsNewVersionSeen = 0;
   static const defaultShowGettingStarted = false;
   static const defaultEventsColor = Color(0xffe74674);
   static const defaultResourceColor = Color(0xffdc7d50);
   static const defaultGradeColor = Color(0xff9d629d);
-  static const defaultCalendarUseCategoryColors = false;
   static const defaultShowPlannerTooltips = true;
   static const defaultDragAndDropOnMobile = true;
   static const defaultRememberFilterState = false;
@@ -91,8 +88,6 @@ class PlannerTypeColors {
 }
 
 class CalendarConstants {
-  static const List<String> colorSchemeThemes = ['Light', 'Dark', 'System'];
-
   static const List<String> dayNames = [
     'Sunday',
     'Monday',

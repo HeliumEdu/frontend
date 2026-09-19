@@ -18,7 +18,7 @@ enum SettingsPrefKey {
   whatsNewVersionSeen('whats_new_version_seen'),
   showGettingStarted('show_getting_started'),
   eventsColor('events_color'),
-  resourceColor('material_color'),
+  resourceColor('resource_color'),
   gradeColor('grade_color'),
   defaultReminderType('default_reminder_type'),
   defaultReminderOffset('default_reminder_offset'),
@@ -101,11 +101,6 @@ class PrefService {
   @visibleForTesting
   static void resetForTesting() {
     _instance = PrefService._internal();
-  }
-
-  @visibleForTesting
-  static void setInstanceForTesting(PrefService instance) {
-    _instance = instance;
   }
 
   Future<void> init() async {
@@ -194,10 +189,6 @@ class PrefService {
         rethrow;
       }
     }
-  }
-
-  Future<void>? deleteSecure(String key) {
-    return _secureStorage.delete(key: key);
   }
 
   Future<void> removeKeys(Iterable<String> keys) async {

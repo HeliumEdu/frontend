@@ -41,11 +41,9 @@ class AnalyticsEvent {
   static const String importComplete = 'helium_import_complete';
   static const String mobileWebContinue = 'helium_mobile_web_continue';
   static const String noteCreate = 'helium_note_create';
-  static const String notificationsOpen = 'helium_notifications_open';
   static const String printPreview = 'helium_print_preview';
   static const String reminderCreate = 'helium_reminder_create';
   static const String resourceCreate = 'helium_resource_create';
-  static const String settingsOpen = 'helium_settings_open';
   static const String themeSelect = 'helium_theme_select';
   static const String todosExportCsv = 'helium_todos_export_csv';
 
@@ -57,5 +55,4 @@ class AnalyticsEvent {
   static const String debugFcmTokenStaleFail = 'helium_debug_fcm_token_stale_fail';
   static const String debugGradeCalcNoWeight = 'helium_debug_grade_calc_no_weight';
   static const String debugNoteAutosaveError = 'helium_debug_note_autosave_error';
-  static const String debugSetupCacheFallback = 'helium_debug_setup_cache_fallback';
 }
