@@ -293,7 +293,7 @@ class _CourseExceptionsDialogState extends State<CourseExceptionsDialog> {
                   Icon(
                     Icons.block_outlined,
                     size: 13,
-                    color: context.colorScheme.onSurface.withValues(alpha: 0.4),
+                    color: context.colorScheme.onSurface.withValues(alpha: AppStyles.mutedIconAlpha),
                   ),
                   const SizedBox(width: 5),
                   Text(

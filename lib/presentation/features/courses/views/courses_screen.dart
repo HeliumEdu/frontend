@@ -833,7 +833,7 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen> {
                       tablet: 18,
                       desktop: 20,
                     ),
-                    color: context.colorScheme.onSurface.withValues(alpha: 0.4),
+                    color: context.colorScheme.onSurface.withValues(alpha: AppStyles.mutedIconAlpha),
                   ),
                   const SizedBox(width: 4),
                   Expanded(
@@ -896,9 +896,7 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen> {
   }
 
   String _formatCredits(double credits) {
-    final formatted = credits % 1 == 0
-        ? credits.toInt().toString()
-        : credits.toStringAsFixed(1);
+    final formatted = HeliumNumber.format(credits, fractionDigits: 1, trimZeros: true);
     return '$formatted ${credits.plural('credit')}';
   }
 

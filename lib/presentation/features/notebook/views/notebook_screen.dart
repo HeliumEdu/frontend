@@ -296,36 +296,46 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen> 
                                 horizontal: 12,
                                 vertical: 10,
                               ),
-                              suffixIcon: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  ValueListenableBuilder<TextEditingValue>(
-                                    valueListenable: _searchController,
-                                    builder: (context, value, _) {
-                                      if (value.text.isEmpty) {
-                                        return const SizedBox.shrink();
-                                      }
-                                      return _buildSearchFieldButton(
+                              suffixIconConstraints: const BoxConstraints(
+                                minWidth: _searchFieldButtonSize,
+                                minHeight: _searchFieldButtonSize,
+                              ),
+                              suffixIcon: ValueListenableBuilder<TextEditingValue>(
+                                valueListenable: _searchController,
+                                builder: (context, value, _) {
+                                  return Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      if (value.text.isNotEmpty)
+                                        _buildSearchFieldButton(
+                                          context,
+                                          key: const ValueKey('search_clear'),
+                                          icon: Icons.close,
+                                          tooltip: 'Clear',
+                                          borderRadius: const BorderRadius.horizontal(
+                                            left: Radius.circular(8),
+                                          ),
+                                          onPressed: () {
+                                            _searchController.clear();
+                                            _onSearchQueryChanged(null);
+                                          },
+                                        ),
+                                      _buildSearchFieldButton(
                                         context,
-                                        icon: Icons.close,
-                                        tooltip: 'Clear',
-                                        onPressed: () {
-                                          _searchController.clear();
-                                          _onSearchQueryChanged(null);
-                                        },
-                                      );
-                                    },
-                                  ),
-                                  _buildSearchFieldButton(
-                                    context,
-                                    icon: Icons.manage_search,
-                                    tooltip: _searchNoteContent
-                                        ? 'Stop searching note content'
-                                        : 'Also search note content',
-                                    onPressed: _toggleContentSearch,
-                                    isActive: _searchNoteContent,
-                                  ),
-                                ],
+                                        key: const ValueKey('search_content'),
+                                        icon: Icons.manage_search,
+                                        tooltip: _searchNoteContent
+                                            ? 'Stop searching note content'
+                                            : 'Also search note content',
+                                        borderRadius: const BorderRadius.horizontal(
+                                          right: Radius.circular(8),
+                                        ),
+                                        onPressed: _toggleContentSearch,
+                                        isActive: _searchNoteContent,
+                                      ),
+                                    ],
+                                  );
+                                },
                               ),
                             ),
                             onChanged: (value) {
@@ -439,28 +449,49 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen> 
       _contentSearchQuery.length >= _contentSearchMinLength &&
       SearchHelper.hasTerms(_contentSearchQuery);
 
+  static const _searchFieldButtonSize = 40.0;
+
+  /// The clear and content-search buttons sit flush against each other and
+  /// the field's edge, so only their outer corners are rounded. Each keeps
+  /// its own element so removing the clear button never morphs it into its
+  /// neighbour's shape.
   Widget _buildSearchFieldButton(
     BuildContext context, {
+    required Key key,
     required IconData icon,
     required String tooltip,
+    required BorderRadius borderRadius,
     required VoidCallback onPressed,
     bool isActive = false,
   }) {
     return IconButton(
+      key: key,
       onPressed: onPressed,
+      isSelected: isActive,
+      padding: EdgeInsets.zero,
+      visualDensity: VisualDensity.standard,
+      constraints: const BoxConstraints.tightFor(
+        width: _searchFieldButtonSize,
+        height: _searchFieldButtonSize,
+      ),
+      style: IconButton.styleFrom(
+        backgroundColor: isActive ? context.colorScheme.primary : null,
+        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        shape: RoundedRectangleBorder(borderRadius: borderRadius),
+      ),
       icon: Icon(
         icon,
         size: 20,
         color: isActive
-            ? context.colorScheme.primary
-            : context.colorScheme.onSurface.withValues(alpha: 0.4),
+            ? context.colorScheme.onPrimary
+            : context.colorScheme.onSurface.withValues(alpha: AppStyles.mutedIconAlpha),
       ),
       tooltip: tooltip,
     );
   }
 
   Widget _buildSearchPrefixIcon(BuildContext context) {
-    final color = context.colorScheme.onSurface.withValues(alpha: 0.4);
+    final color = context.colorScheme.onSurface.withValues(alpha: AppStyles.mutedIconAlpha);
     if (_loadingContentSearchQuery == null) {
       return Icon(Icons.search, color: color);
     }

@@ -189,7 +189,7 @@ class _QuillSearchBarState extends State<QuillSearchBar> {
                 icon: Icon(
                   Icons.close,
                   size: 20,
-                  color: context.colorScheme.onSurface.withValues(alpha: 0.4),
+                  color: context.colorScheme.onSurface.withValues(alpha: AppStyles.mutedIconAlpha),
                 ),
                 onPressed: () {
                   _clearSelection();
@@ -246,7 +246,7 @@ class _QuillSearchBarState extends State<QuillSearchBar> {
                 size: 20,
                 color: _offsets.isNotEmpty
                     ? context.colorScheme.primary
-                    : context.colorScheme.onSurface.withValues(alpha: 0.4),
+                    : context.colorScheme.onSurface.withValues(alpha: AppStyles.mutedIconAlpha),
               ),
               tooltip: 'Previous',
               onPressed: _offsets.isNotEmpty ? _moveToPrevious : null,
@@ -261,7 +261,7 @@ class _QuillSearchBarState extends State<QuillSearchBar> {
                 size: 20,
                 color: _offsets.isNotEmpty
                     ? context.colorScheme.primary
-                    : context.colorScheme.onSurface.withValues(alpha: 0.4),
+                    : context.colorScheme.onSurface.withValues(alpha: AppStyles.mutedIconAlpha),
               ),
               tooltip: 'Next',
               onPressed: _offsets.isNotEmpty ? _moveToNext : null,
@@ -277,7 +277,7 @@ class _QuillSearchBarState extends State<QuillSearchBar> {
                 size: 18,
                 color: _caseSensitive
                     ? context.colorScheme.primary
-                    : context.colorScheme.onSurface.withValues(alpha: 0.4),
+                    : context.colorScheme.onSurface.withValues(alpha: AppStyles.mutedIconAlpha),
               ),
               tooltip: 'Match case',
               onPressed: () {
@@ -299,7 +299,7 @@ class _QuillSearchBarState extends State<QuillSearchBar> {
                 size: 18,
                 color: _wholeWord
                     ? context.colorScheme.primary
-                    : context.colorScheme.onSurface.withValues(alpha: 0.4),
+                    : context.colorScheme.onSurface.withValues(alpha: AppStyles.mutedIconAlpha),
               ),
               tooltip: 'Match whole word',
               onPressed: () {

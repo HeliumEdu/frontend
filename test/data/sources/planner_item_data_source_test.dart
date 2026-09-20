@@ -460,6 +460,9 @@ void main() {
           dragAndDropOnMobile: true,
           atRiskThreshold: 70,
           showWeekNumbers: false,
+          dateFormat: 0,
+          timeFormat: 0,
+          numberFormat: 0,
           onTrackTolerance: 10,
         );
 
@@ -1709,6 +1712,9 @@ UserSettingsModel _createUserSettings({required tz.Location timeZone}) {
     dragAndDropOnMobile: true,
     atRiskThreshold: 70,
     showWeekNumbers: false,
+    dateFormat: 0,
+    timeFormat: 0,
+    numberFormat: 0,
     onTrackTolerance: 10,
   );
 }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/utils/app_style.dart';
+import 'package:heliumapp/utils/format_helpers.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 
 class SpinnerField extends StatelessWidget {
@@ -87,7 +88,7 @@ class SpinnerField extends StatelessWidget {
                     inputFormatters: allowDecimal
                         ? [
                             FilteringTextInputFormatter.allow(
-                              RegExp(r'^\d*\.?\d*'),
+                              RegExp(r'^\d*[.,]?\d*'),
                             ),
                           ]
                         : [FilteringTextInputFormatter.digitsOnly],
@@ -185,7 +186,7 @@ class SpinnerField extends StatelessWidget {
   }
 
   void _increment() {
-    final currentValue = double.tryParse(controller.text) ?? minValue;
+    final currentValue = HeliumNumber.parse(controller.text) ?? minValue;
     final newValue = currentValue + step;
     if (maxValue == null || newValue <= maxValue!) {
       controller.text = _formatValue(newValue);
@@ -194,7 +195,7 @@ class SpinnerField extends StatelessWidget {
   }
 
   void _decrement() {
-    final currentValue = double.tryParse(controller.text) ?? minValue;
+    final currentValue = HeliumNumber.parse(controller.text) ?? minValue;
     final newValue = currentValue - step;
     if (newValue >= minValue) {
       controller.text = _formatValue(newValue);
@@ -204,7 +205,7 @@ class SpinnerField extends StatelessWidget {
 
   String _formatValue(double value) {
     if (allowDecimal) {
-      return value.toString().replaceAll(RegExp(r'\.0+$'), '');
+      return HeliumNumber.format(value, trimZeros: true);
     } else {
       return value.toInt().toString();
     }

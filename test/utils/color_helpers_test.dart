@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:heliumapp/core/contrast_service.dart';
 import 'package:heliumapp/utils/color_helpers.dart';
 
 void main() {
@@ -97,16 +98,31 @@ void main() {
       });
 
       test('handles mid-luminance colors appropriately', () {
-        // Red has luminance ~0.21, should return white
         expect(
           HeliumColors.contrastingTextColor(Colors.red),
           Colors.white,
         );
-        // Light green has high luminance, should return black
         expect(
           HeliumColors.contrastingTextColor(const Color(0xFF90EE90)),
           Colors.black,
         );
+      });
+
+      test('picks whichever of black or white reads better when the OS asks for increased contrast', () {
+        ContrastService().init(true);
+        addTearDown(() => ContrastService().init(false));
+
+        expect(
+          HeliumColors.contrastingTextColor(Colors.red),
+          Colors.black,
+          reason: 'black reads at 5.3:1 on red where white only reaches 4.0:1',
+        );
+        expect(
+          HeliumColors.contrastingTextColor(Colors.blue),
+          Colors.black,
+          reason: 'black reads at 6.4:1 on blue where white only reaches 3.3:1',
+        );
+        expect(HeliumColors.contrastingTextColor(Colors.black), Colors.white);
       });
     });
   });

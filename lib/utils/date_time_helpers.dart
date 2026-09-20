@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:heliumapp/config/regional_settings_notifier.dart';
+import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/time_zone_aliases.dart';
 import 'package:heliumapp/utils/time_zone_constants.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import 'package:intl/intl.dart';
 import 'package:logging/logging.dart';
 import 'package:timezone/standalone.dart' as tz;
@@ -8,6 +11,16 @@ import 'package:timezone/standalone.dart' as tz;
 final _log = Logger('utils');
 
 class HeliumTime {
+  static String get timePattern =>
+      RegionalSettingsNotifier().uses24HourClock ? 'HH:mm' : 'h:mm a';
+
+  static String get timeRulerPattern =>
+      RegionalSettingsNotifier().uses24HourClock ? 'HH:mm' : 'h a';
+
+  static String shortenOnTheHour(String formatted) {
+    return RegionalSettingsNotifier().uses24HourClock ? formatted : formatted.replaceAll(':00', '');
+  }
+
   static TimeOfDay? parse(String time) {
     final parts = time.split(':');
     return TimeOfDay(hour: int.parse(parts[0]), minute: int.parse(parts[1]));
@@ -22,7 +35,7 @@ class HeliumTime {
       time.hour,
       time.minute,
     );
-    return DateFormat('h:mm a').format(dateTime);
+    return DateFormat(timePattern).format(dateTime);
   }
 
   static String formatTimeRange(TimeOfDay startTime, TimeOfDay endTime) {
@@ -146,9 +159,79 @@ class HeliumDateTime {
     );
   }
 
-  static String formatDayNameShort(DateTime date) {
-    return DateFormat('EEE').format(date);
+  static const dayNameShortPattern = 'EEE';
+
+  /// Whether the device locale writes the month before the day; year-first
+  /// locales count as day-first, since the app renders word-month dates and
+  /// has no year-first form. Falls back to month-first for an unknown locale.
+  static Future<int> detectDateFormat(Locale locale) async {
+    await initializeDateFormatting();
+    final String pattern;
+    try {
+      pattern = DateFormat.yMd(locale.toString()).pattern ?? '';
+    } on ArgumentError {
+      return FallbackConstants.defaultDateFormat;
+    }
+    final monthFirst = !pattern.startsWith('y') && pattern.indexOf('M') < pattern.indexOf('d');
+    return monthFirst
+        ? RegionalFormatConstants.dateFormatMonthDayYear
+        : RegionalFormatConstants.dateFormatDayMonthYear;
   }
+
+  /// The weekday the device locale starts its week on, as the API's
+  /// Sunday-based index; falls back to Sunday for an unknown locale.
+  static Future<int> detectWeekStartsOn(Locale locale) async {
+    await initializeDateFormatting();
+    try {
+      final mondayBased = DateFormat.yMd(locale.toString()).dateSymbols.FIRSTDAYOFWEEK;
+      return (mondayBased + 1) % DateTime.daysPerWeek;
+    } on ArgumentError {
+      return FallbackConstants.defaultWeekStartsOn;
+    }
+  }
+
+  /// The clock the device uses: the OS 24-hour toggle when the platform
+  /// reports one, otherwise the device locale's convention.
+  static Future<int> detectTimeFormat(Locale locale, {bool? alwaysUse24HourFormat}) async {
+    if (alwaysUse24HourFormat != null) {
+      return alwaysUse24HourFormat
+          ? RegionalFormatConstants.timeFormatTwentyFourHour
+          : RegionalFormatConstants.timeFormatTwelveHour;
+    }
+    await initializeDateFormatting();
+    try {
+      final pattern = DateFormat.jm(locale.toString()).pattern ?? '';
+      return pattern.contains('H')
+          ? RegionalFormatConstants.timeFormatTwentyFourHour
+          : RegionalFormatConstants.timeFormatTwelveHour;
+    } on ArgumentError {
+      return FallbackConstants.defaultTimeFormat;
+    }
+  }
+
+  static String dateFormatExample(int dateFormat, DateTime date) {
+    return dateFormat == RegionalFormatConstants.dateFormatDayMonthYear
+        ? DateFormat('d MMM yyyy').format(date)
+        : DateFormat('MMM d, yyyy').format(date);
+  }
+
+  static String timeFormatExample(int timeFormat, DateTime date) {
+    return timeFormat == RegionalFormatConstants.timeFormatTwentyFourHour
+        ? DateFormat('HH:mm').format(date)
+        : DateFormat('h:mm a').format(date);
+  }
+
+  static String formatDayNameShort(DateTime date) {
+    return DateFormat(dayNameShortPattern).format(date);
+  }
+
+  /// Word-month dates read month-first only for the month/day/year setting.
+  static bool get _monthFirst =>
+      RegionalSettingsNotifier().dateFormat == RegionalFormatConstants.dateFormatMonthDayYear;
+
+  static String _ordered(String monthFirst, String dayFirst) => _monthFirst ? monthFirst : dayFirst;
+
+  static DateFormat get dateFormatForChartAxis => DateFormat(_ordered('MMM d', 'd MMM'));
 
   static String formatMonthAndYear(
     DateTime date, {
@@ -159,7 +242,7 @@ class HeliumDateTime {
   }
 
   static String formatDateWithDay(DateTime date) {
-    return DateFormat('EEEE, MMMM d').format(date);
+    return DateFormat(_ordered('EEEE, MMMM d', 'EEEE, d MMMM')).format(date);
   }
 
   static String formatDate(
@@ -167,25 +250,24 @@ class HeliumDateTime {
     bool abbreviateMonth = true,
     bool showYear = true,
   }) {
-    final String format;
-    if (showYear) {
-      format = abbreviateMonth ? 'MMM d, yyyy' : 'MMMM d, yyyy';
-    } else {
-      format = abbreviateMonth ? 'MMM d' : 'MMMM d';
-    }
+    final month = abbreviateMonth ? 'MMM' : 'MMMM';
+    final format = showYear
+        ? _ordered('$month d, yyyy', 'd $month yyyy')
+        : _ordered('$month d', 'd $month');
     return DateFormat(format).format(date);
   }
 
   static String formatDateForTodos(DateTime date) {
-    return DateFormat('EEE, MMM d').format(date);
+    return DateFormat(_ordered('EEE, MMM d', 'EEE, d MMM')).format(date);
   }
 
   static String formatDateAndTimeForTodos(DateTime date) {
-    return DateFormat('EEE, MMM d • h:mm a').format(date).replaceAll(':00', '');
+    final pattern = '${_ordered('EEE, MMM d', 'EEE, d MMM')} • ${HeliumTime.timePattern}';
+    return HeliumTime.shortenOnTheHour(DateFormat(pattern).format(date));
   }
 
   static String formatTime(DateTime date) {
-    return DateFormat('h:mm a').format(date).replaceAll(':00', '');
+    return HeliumTime.shortenOnTheHour(DateFormat(HeliumTime.timePattern).format(date));
   }
 
   static String formatDateTimeRange(

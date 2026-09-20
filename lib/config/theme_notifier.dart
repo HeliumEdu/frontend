@@ -4,6 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:heliumapp/config/analytics_event.dart';
 import 'package:heliumapp/config/pref_service.dart';
 import 'package:heliumapp/core/analytics_service.dart';
+import 'package:logging/logging.dart';
+
+final _log = Logger('config');
 
 class ThemeNotifier extends ChangeNotifier {
   static final ThemeNotifier _instance = ThemeNotifier._internal();
@@ -13,10 +16,11 @@ class ThemeNotifier extends ChangeNotifier {
   factory ThemeNotifier() => _instance;
 
   ThemeNotifier._internal() {
-    // Ensure PrefService is initialized
     _prefService.init().then((_) {
       _loadFromPrefs();
       notifyListeners();
+    }).catchError((Object e) {
+      _log.warning('Preferences unavailable, keeping default theme: ${e.runtimeType}');
     });
   }
 

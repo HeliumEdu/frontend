@@ -9,6 +9,7 @@
 
 import 'package:heliumapp/data/models/planner/grade_category_model.dart';
 import 'package:heliumapp/data/models/planner/homework_series_item_model.dart';
+import 'package:heliumapp/utils/format_helpers.dart';
 
 /// Result of a "what grade do I need" calculation
 enum NeededGradeState {
@@ -250,7 +251,7 @@ class GradeHelper {
       try {
         final split = grade.split('/');
         if (split.length == 2) {
-          return (double.parse(split[0]) / double.parse(split[1])) * 100;
+          return (HeliumNumber.parse(split[0])! / HeliumNumber.parse(split[1])!) * 100;
         }
         return null;
       } catch (e) {
@@ -272,7 +273,7 @@ class GradeHelper {
       return showNaAsBlank ? '' : 'N/A';
     }
 
-    return '${gradeValue.toStringAsFixed(2)}%';
+    return '${HeliumNumber.format(gradeValue, fractionDigits: 2)}%';
   }
 
   /// Formats a percentage value for display (e.g., category weights)
@@ -283,10 +284,7 @@ class GradeHelper {
       if (percentage == 0 && zeroAsNa != null && zeroAsNa) {
         return 'N/A';
       }
-      if (percentage == percentage.roundToDouble()) {
-        return '${percentage.toInt()}%';
-      }
-      return '${percentage.toStringAsFixed(2).replaceAll(RegExp(r'\.?0+$'), '')}%';
+      return '${HeliumNumber.format(percentage, fractionDigits: 2, trimZeros: true)}%';
     } catch (e) {
       return 'N/A';
     }

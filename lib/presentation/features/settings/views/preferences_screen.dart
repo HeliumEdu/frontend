@@ -24,6 +24,8 @@ import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/color_helpers.dart';
+import 'package:heliumapp/utils/date_time_helpers.dart';
+import 'package:heliumapp/utils/format_helpers.dart';
 import 'package:heliumapp/utils/snack_bar_helpers.dart';
 import 'package:heliumapp/utils/time_zone_constants.dart';
 import 'package:logging/logging.dart';
@@ -35,6 +37,12 @@ class PreferencesScreen extends StatefulWidget {
   final VoidCallback? onActionStarted;
   final VoidCallback? onCompleted;
   final VoidCallback? onFailed;
+
+  static const String timeZoneField = 'preferences_time_zone';
+  static const String dateFormatField = 'preferences_date_format';
+  static const String timeFormatField = 'preferences_time_format';
+  static const String numberFormatField = 'preferences_number_format';
+  static const String dragAndDropField = 'preferences_drag_and_drop';
 
   const PreferencesScreen({
     super.key,
@@ -69,6 +77,9 @@ class PreferencesScreenState extends State<PreferencesScreen> {
   String _selectedWeekStartsOn =
       CalendarConstants.dayNames[FallbackConstants.defaultWeekStartsOn];
   String _selectedTimeZone = FallbackConstants.defaultTimeZone;
+  int _selectedDateFormat = FallbackConstants.defaultDateFormat;
+  int _selectedTimeFormat = FallbackConstants.defaultTimeFormat;
+  int _selectedNumberFormat = FallbackConstants.defaultNumberFormat;
   String _selectedReminderOffsetType = ReminderConstants
       .offsetTypes[FallbackConstants.defaultReminderOffsetType];
   String _selectedReminderType = ReminderConstants.itemForType(
@@ -156,6 +167,7 @@ class PreferencesScreenState extends State<PreferencesScreen> {
             _buildSectionHeader('GENERAL'),
             SearchableDropdown(
               label: 'Time zone',
+              key: const Key(PreferencesScreen.timeZoneField),
               initialValue: TimeZoneConstants.items.firstWhere(
                 (tz) => tz.value == _selectedTimeZone,
                 orElse: () => TimeZoneConstants.items.firstWhere(
@@ -172,6 +184,8 @@ class PreferencesScreenState extends State<PreferencesScreen> {
             ),
 
             ?_buildTimeZoneChangeNotice(),
+            const SizedBox(height: 14),
+            _buildRegionalFormatFields(),
 
             _buildSectionHeader('PLANNER'),
             DropDown(
@@ -207,6 +221,7 @@ class PreferencesScreenState extends State<PreferencesScreen> {
               contentPadding: EdgeInsets.zero,
             ),
             HeliumCheckboxListTile(
+              key: const Key(PreferencesScreen.dragAndDropField),
               title: Text(
                 'Drag-and-drop on touch devices',
                 style: AppStyles.formLabel(context),
@@ -513,6 +528,9 @@ class PreferencesScreenState extends State<PreferencesScreen> {
           showWeekNumbers: showWeekNumbers,
           atRiskThreshold: atRiskThreshold,
           onTrackTolerance: onTrackTolerance,
+          dateFormat: _selectedDateFormat,
+          timeFormat: _selectedTimeFormat,
+          numberFormat: _selectedNumberFormat,
         ),
       ),
     );
@@ -520,6 +538,75 @@ class PreferencesScreenState extends State<PreferencesScreen> {
 
   void resetSubmitting() {
     setState(() => _isSubmitting = false);
+  }
+
+  Widget _buildRegionalFormatFields() {
+    final now = DateTime.now();
+    return Wrap(
+      spacing: 24,
+      runSpacing: 12,
+      children: [
+        _buildSegmentedField(
+          key: const Key(PreferencesScreen.dateFormatField),
+          label: 'Date format',
+          selected: _selectedDateFormat,
+          segments: [
+            for (final dateFormat in RegionalFormatConstants.dateFormats)
+              ButtonSegment(value: dateFormat, label: Text(HeliumDateTime.dateFormatExample(dateFormat, now))),
+          ],
+          onChanged: (value) => _selectedDateFormat = value,
+        ),
+        _buildSegmentedField(
+          key: const Key(PreferencesScreen.timeFormatField),
+          label: 'Time format',
+          selected: _selectedTimeFormat,
+          segments: [
+            for (final timeFormat in RegionalFormatConstants.timeFormats)
+              ButtonSegment(value: timeFormat, label: Text(HeliumDateTime.timeFormatExample(timeFormat, now))),
+          ],
+          onChanged: (value) => _selectedTimeFormat = value,
+        ),
+        _buildSegmentedField(
+          key: const Key(PreferencesScreen.numberFormatField),
+          label: 'Number format',
+          selected: _selectedNumberFormat,
+          segments: [
+            for (final numberFormat in RegionalFormatConstants.numberFormats)
+              ButtonSegment(value: numberFormat, label: Text(HeliumNumber.numberFormatExample(numberFormat))),
+          ],
+          onChanged: (value) => _selectedNumberFormat = value,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSegmentedField({
+    required Key key,
+    required String label,
+    required int selected,
+    required List<ButtonSegment<int>> segments,
+    required ValueChanged<int> onChanged,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(label, style: AppStyles.formLabel(context)),
+        const SizedBox(height: 4),
+        SegmentedButton<int>(
+          key: key,
+          showSelectedIcon: false,
+          segments: segments,
+          selected: {selected},
+          onSelectionChanged: (selection) {
+            setState(() {
+              onChanged(selection.first);
+              _isChanged = true;
+            });
+          },
+        ),
+      ],
+    );
   }
 
   Widget? _buildTimeZoneChangeNotice() {
@@ -575,6 +662,9 @@ class PreferencesScreenState extends State<PreferencesScreen> {
           CalendarConstants.dayNames[state.user.settings.weekStartsOn];
       _selectedTimeZone = state.user.settings.timeZone.toString();
       _savedTimeZone = _selectedTimeZone;
+      _selectedDateFormat = state.user.settings.dateFormat;
+      _selectedTimeFormat = state.user.settings.timeFormat;
+      _selectedNumberFormat = state.user.settings.numberFormat;
       _selectedReminderOffsetType = ReminderConstants
           .offsetTypes[state.user.settings.defaultReminderOffsetType];
       _selectedReminderType = ReminderConstants.itemForType(

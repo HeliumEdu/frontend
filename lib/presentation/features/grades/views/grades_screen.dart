@@ -47,7 +47,6 @@ import 'package:heliumapp/utils/print_helpers.dart';
 import 'package:heliumapp/utils/screen_dropdown_filter_helpers.dart';
 import 'package:heliumapp/utils/sort_helpers.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
-import 'package:intl/intl.dart';
 import 'package:syncfusion_flutter_charts/charts.dart' as charts;
 import 'package:syncfusion_flutter_gauges/gauges.dart';
 
@@ -925,7 +924,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
                   ),
                   color: ungradedCount > 0
                       ? context.semanticColors.warning
-                      : context.colorScheme.onSurface.withValues(alpha: 0.5),
+                      : context.colorScheme.onSurface.withValues(alpha: AppStyles.mutedTextAlpha),
                   fontWeight: FontWeight.bold,
                 ),
                 maxLines: 1,
@@ -939,7 +938,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
             style: AppStyles.smallSecondaryText(context).copyWith(
               color: ungradedCount > 0
                   ? context.semanticColors.warning
-                  : context.colorScheme.onSurface.withValues(alpha: 0.5),
+                  : context.colorScheme.onSurface.withValues(alpha: AppStyles.mutedTextAlpha),
             ),
             textAlign: TextAlign.center,
           ),
@@ -1526,7 +1525,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
               primaryXAxis: charts.DateTimeAxis(
                 minimum: xAxisRange.min,
                 maximum: xAxisRange.max,
-                dateFormat: DateFormat('MMM dd'),
+                dateFormat: HeliumDateTime.dateFormatForChartAxis,
                 intervalType: charts.DateTimeIntervalType.days,
                 majorGridLines: charts.MajorGridLines(
                   width: 0.35,
@@ -1657,7 +1656,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
     final isOverallSeries = seriesName == _overallSeriesName;
     final isCourseSeries = isTermView && !isOverallSeries;
     final isNonOverallSeries = !isOverallSeries;
-    final classGradeAtPoint = '${chartPoint.grade.toStringAsFixed(2)}%';
+    final classGradeAtPoint = '${HeliumNumber.format(chartPoint.grade, fractionDigits: 2)}%';
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),

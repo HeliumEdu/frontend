@@ -45,6 +45,7 @@ import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/color_helpers.dart';
 import 'package:heliumapp/utils/date_time_helpers.dart';
+import 'package:heliumapp/utils/format_helpers.dart';
 import 'package:heliumapp/utils/grade_helpers.dart';
 import 'package:heliumapp/utils/planner_helper.dart';
 import 'package:heliumapp/utils/quill_helpers.dart';
@@ -579,7 +580,7 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
                     hintText: 'Grade',
                     controller: formController.gradeController,
                     inputFormatters: [
-                      FilteringTextInputFormatter.allow(RegExp(r'[0-9\./]')),
+                      FilteringTextInputFormatter.allow(RegExp(r'[0-9.,/]')),
                     ],
                     focusNode: formController.gradeFocusNode,
                     onChanged: (_) => formController.markChanged(),
@@ -712,7 +713,7 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
       } else {
         String? gradeValue;
         if (formController.isCompleted) {
-          final gradeText = formController.gradeController.text.trim();
+          final gradeText = HeliumNumber.normalize(formController.gradeController.text);
           gradeValue = gradeText.isEmpty ? '-1/100' : gradeText;
         } else if (!widget.isEdit) {
           gradeValue = '-1/100';
@@ -828,7 +829,7 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
               value: c,
               label: weightedCourseIds.contains(c.course)
                   ? (c.weight > 0
-                      ? '${c.title} (${c.weight.toStringAsFixed(0)}%)'
+                      ? '${c.title} (${HeliumNumber.format(c.weight, fractionDigits: 0)}%)'
                       : '${c.title} (Not Graded)')
                   : c.title,
               iconData: Icons.category_outlined,

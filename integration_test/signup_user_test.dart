@@ -14,6 +14,7 @@ import 'helpers/api_helper.dart';
 import 'helpers/email_helper.dart';
 import 'helpers/test_app.dart';
 import 'helpers/test_config.dart';
+import 'package:heliumapp/presentation/ui/components/searchable_dropdown.dart';
 
 final _log = Logger('signup_user_test');
 
@@ -86,17 +87,37 @@ void main() {
         findsOneWidget,
         reason: 'Timezone dropdown should be present',
       );
-      await tester.tap(timezoneField);
-      await tester.pumpAndSettle();
+      final browserLocale = WidgetsBinding.instance.platformDispatcher.locale;
+      _log.info('Browser locale: $browserLocale (${WidgetsBinding.instance.platformDispatcher.locales})');
+      expect(
+        browserLocale.languageCode,
+        equals(config.region.languageCode),
+        reason: 'Browser should report the runner region\'s language',
+      );
 
-      // Clear existing text and type "Chicago" to filter
-      await enterTextInField(tester, timezoneField, 'chicago');
-      await tester.pumpAndSettle();
+      final detectedTimeZone = tester
+          .widget<SearchableDropdown<String>>(timezoneField)
+          .initialValue
+          .value;
+      expect(
+        detectedTimeZone,
+        equals(config.region.detectedTimeZone),
+        reason: 'Timezone dropdown should be prefilled from the browser',
+      );
 
-      // Wait for dropdown options to appear and select America/Chicago
-      await waitForWidget(tester, find.text('America / Chicago'));
-      await tester.tap(find.text('America / Chicago'));
-      await tester.pumpAndSettle();
+      if (config.region.signupTimeZoneOverride != null) {
+        await tester.tap(timezoneField);
+        await tester.pumpAndSettle();
+
+        // Clear existing text and type "Chicago" to filter
+        await enterTextInField(tester, timezoneField, 'chicago');
+        await tester.pumpAndSettle();
+
+        // Wait for dropdown options to appear and select America/Chicago
+        await waitForWidget(tester, find.text('America / Chicago'));
+        await tester.tap(find.text('America / Chicago'));
+        await tester.pumpAndSettle();
+      }
 
       // Capture timestamp before submitting (for email polling)
       signupInitiatedAt = DateTime.now().toUtc();
@@ -205,6 +226,20 @@ void main() {
         isTrue,
         reason: 'Should reach planner after verification',
       );
+
+      // Setup ran before the planner appeared, so the account now carries
+      // the chosen time zone and the regional formats detected from the browser
+      final settings = await apiHelper.getUserSettings();
+      expect(settings, isNotNull, reason: 'Should read settings from the API');
+      expect(
+        settings!['time_zone'],
+        equals(config.region.accountTimeZone),
+        reason: 'Account time zone should match the signup choice',
+      );
+      expect(settings['week_starts_on'], equals(config.region.weekStartsOn), reason: 'Detected week start');
+      expect(settings['date_format'], equals(config.region.dateFormat), reason: 'Detected date format');
+      expect(settings['time_format'], equals(config.region.timeFormat), reason: 'Detected time format');
+      expect(settings['number_format'], equals(config.region.numberFormat), reason: 'Detected number format');
 
       verificationSucceeded = true;
       _log.info('Email verification succeeded');

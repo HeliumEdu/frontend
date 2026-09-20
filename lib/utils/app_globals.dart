@@ -39,6 +39,21 @@ class AppConstants {
   static const basicCardInset = 12.0;
 }
 
+class RegionalFormatConstants {
+  static const dateFormatMonthDayYear = 0;
+  static const dateFormatDayMonthYear = 1;
+
+  static const timeFormatTwelveHour = 0;
+  static const timeFormatTwentyFourHour = 1;
+
+  static const numberFormatPoint = 0;
+  static const numberFormatComma = 1;
+
+  static const dateFormats = [dateFormatMonthDayYear, dateFormatDayMonthYear];
+  static const timeFormats = [timeFormatTwelveHour, timeFormatTwentyFourHour];
+  static const numberFormats = [numberFormatPoint, numberFormatComma];
+}
+
 class FallbackConstants {
   static const fallbackColor = seedColor;
 
@@ -60,6 +75,9 @@ class FallbackConstants {
   static const defaultAtRiskThreshold = 70;
   static const defaultOnTrackTolerance = 10;
   static const defaultShowWeekNumbers = true;
+  static const defaultDateFormat = RegionalFormatConstants.dateFormatMonthDayYear;
+  static const defaultTimeFormat = RegionalFormatConstants.timeFormatTwelveHour;
+  static const defaultNumberFormat = RegionalFormatConstants.numberFormatPoint;
 }
 
 /// Colors for planner item types (Events, Homework, Class Schedules, External Calendars)

@@ -88,7 +88,7 @@ class ScheduleSummary extends StatelessWidget {
             tablet: 16,
             desktop: 18,
           ),
-          color: onSurface.withValues(alpha: 0.4),
+          color: onSurface.withValues(alpha: AppStyles.mutedIconAlpha),
         ),
         const SizedBox(width: 4),
         Expanded(

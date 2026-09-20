@@ -66,7 +66,57 @@ class TestConfig {
 
   bool get isDevLocal => environment == 'dev-local';
 
+  /// The region the browser is running as (runner `TZ` + `--accept-lang`),
+  /// which decides what signup and setup are expected to detect.
+  IntegrationRegion get region => IntegrationRegion.values.byName(
+        const String.fromEnvironment('INTEGRATION_REGION', defaultValue: 'us'),
+      );
+
   /// Timeout for operations that depend on an API response (network round-trip
   /// to the backend).
   Duration get apiTimeout => const Duration(seconds: 30);
+}
+
+/// What each runner region's browser detects, and whether signup overrides
+/// the detected time zone (the US leg picks America/Chicago so the rest of
+/// the full suite can assume it).
+enum IntegrationRegion {
+  us(
+    languageCode: 'en',
+    detectedTimeZone: 'America/Los_Angeles',
+    signupTimeZoneOverride: 'America/Chicago',
+    weekStartsOn: 0,
+    dateFormat: 0,
+    timeFormat: 0,
+    numberFormat: 0,
+  ),
+  de(
+    languageCode: 'de',
+    detectedTimeZone: 'Europe/Berlin',
+    signupTimeZoneOverride: null,
+    weekStartsOn: 1,
+    dateFormat: 1,
+    timeFormat: 1,
+    numberFormat: 1,
+  );
+
+  final String languageCode;
+  final String detectedTimeZone;
+  final String? signupTimeZoneOverride;
+  final int weekStartsOn;
+  final int dateFormat;
+  final int timeFormat;
+  final int numberFormat;
+
+  const IntegrationRegion({
+    required this.languageCode,
+    required this.detectedTimeZone,
+    required this.signupTimeZoneOverride,
+    required this.weekStartsOn,
+    required this.dateFormat,
+    required this.timeFormat,
+    required this.numberFormat,
+  });
+
+  String get accountTimeZone => signupTimeZoneOverride ?? detectedTimeZone;
 }

@@ -12,6 +12,7 @@ import 'package:heliumapp/presentation/ui/feedback/success_container.dart';
 import 'package:heliumapp/presentation/ui/feedback/warning_container.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/date_time_helpers.dart';
+import 'package:heliumapp/utils/format_helpers.dart';
 import 'package:heliumapp/utils/grade_helpers.dart';
 import 'package:heliumapp/utils/sort_helpers.dart';
 
@@ -238,7 +239,7 @@ class _GradeProjectionTabState extends State<GradeProjectionTab> {
               SizedBox(
                 width: 60,
                 child: Text(
-                  '${projectedPct.toStringAsFixed(2)}%',
+                  '${HeliumNumber.format(projectedPct, fractionDigits: 2)}%',
                   style: AppStyles.formText(context),
                   textAlign: TextAlign.end,
                 ),

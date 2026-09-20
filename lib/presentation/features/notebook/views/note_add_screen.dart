@@ -948,7 +948,7 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
       tooltip = 'Auto-save failed, will retry';
     } else if (_note == null) {
       icon = Icons.cloud_outlined;
-      color = context.colorScheme.onSurface.withValues(alpha: 0.5);
+      color = context.colorScheme.onSurface.withValues(alpha: AppStyles.mutedTextAlpha);
       tooltip = 'Auto-save not yet active';
     } else {
       icon = Icons.cloud_outlined;
@@ -1437,7 +1437,7 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
 
   Widget _buildPickerList(BuildContext context) {
     final query = _linkPickerSearchController.text.trim();
-    final onSurface50 = context.colorScheme.onSurface.withValues(alpha: 0.5);
+    final onSurface50 = context.colorScheme.onSurface.withValues(alpha: AppStyles.mutedTextAlpha);
     final rows = <_LinkPickerRow>[];
 
     switch (_linkPickerType) {

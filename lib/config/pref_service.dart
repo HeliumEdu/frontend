@@ -32,6 +32,9 @@ enum SettingsPrefKey {
   atRiskThreshold('at_risk_threshold'),
   onTrackTolerance('on_track_tolerance'),
   showWeekNumbers('show_week_numbers'),
+  dateFormat('date_format'),
+  timeFormat('time_format'),
+  numberFormat('number_format'),
   gettingStartedLastPage('getting_started_last_page');
 
   const SettingsPrefKey(this.key);
@@ -111,6 +114,7 @@ class PrefService {
     }
 
     _initCompleter = Completer<void>();
+    _initCompleter!.future.ignore();
     try {
       _sharedStorage = await SharedPreferencesWithCache.create(
         cacheOptions: SharedPreferencesWithCacheOptions(

@@ -238,6 +238,28 @@ class ApiHelper {
     return tryWith(newToken);
   }
 
+  /// Fetches the test user's settings as the API returns them.
+  Future<Map<String, dynamic>?> getUserSettings() async {
+    final apiHost = _config.projectApiHost;
+    final response = await _authedRequest(
+      (token) => http.get(
+        Uri.parse('$apiHost${ApiUrl.authUserUrl}'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      ),
+    );
+    if (response?.statusCode == 200) {
+      final Map<String, dynamic> user = jsonDecode(response!.body);
+      return user['settings'] as Map<String, dynamic>?;
+    }
+    _log.warning(
+      'Failed to fetch user settings: ${response?.statusCode ?? "no token"}',
+    );
+    return null;
+  }
+
   /// Fetches all courses for the test user.
   Future<List<CourseModel>?> getCourses() async {
     final apiHost = _config.projectApiHost;

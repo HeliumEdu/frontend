@@ -69,12 +69,23 @@ permissions:
 
 jobs:
   integration-test:
-    name: Integration Tests
+    name: Integration Tests (${{ matrix.region }})
     runs-on: ubuntu-latest
+
+    # The full suite runs as a US browser; a second, signup-only leg runs as a
+    # German browser to prove setup detects the regional time zone and formats.
+    # The smoke suite only needs the US leg.
+    strategy:
+      fail-fast: false
+      matrix:
+        include: >-
+          ${{ inputs.suite == 'smoke'
+              && fromJSON('[{"region": "us", "target": "integration_test/full_test.dart"}]')
+              || fromJSON('[{"region": "us", "target": "integration_test/full_test.dart"}, {"region": "de", "target": "integration_test/signup_user_test.dart"}]') }}
 
     env:
       ENVIRONMENT: ${{ inputs.environment || 'dev-local' }}
-      INTEGRATION_EMAIL_SUFFIX: github-frontend-${{ github.run_id }}
+      INTEGRATION_EMAIL_SUFFIX: github-frontend-${{ github.run_id }}-${{ matrix.region }}
       EMAIL_POLL_TIMEOUT_MINUTES: 30
       AWS_INTEGRATION_S3_ACCESS_KEY_ID: ${{ secrets.AWS_INTEGRATION_S3_ACCESS_KEY_ID }}
       AWS_INTEGRATION_S3_SECRET_ACCESS_KEY: ${{ secrets.AWS_INTEGRATION_S3_SECRET_ACCESS_KEY }}
@@ -118,9 +129,6 @@ jobs:
       - name: Install ChromeDriver
         if: steps.cache-chromedriver.outputs.cache-hit != 'true'
         uses: nanasess/setup-chromedriver@v2
-
-      - name: Start ChromeDriver
-        run: chromedriver --port=4444 &
 
       - name: Install dependencies
         run: make install
@@ -171,6 +179,8 @@ jobs:
               ENVIRONMENT=${{ env.ENVIRONMENT }} \
               INTEGRATION_LOG_LEVEL=${{ inputs.log_level || 'fine' }} \
               INTEGRATION_EMAIL_SUFFIX="${{ env.INTEGRATION_EMAIL_SUFFIX }}" \
+              INTEGRATION_TARGET="${{ matrix.target }}" \
+              INTEGRATION_REGION="${{ matrix.region }}" \
               EMAIL_POLL_TIMEOUT_MINUTES="${{ env.EMAIL_POLL_TIMEOUT_MINUTES }}" \
               AWS_INTEGRATION_S3_ACCESS_KEY_ID="${{ env.AWS_INTEGRATION_S3_ACCESS_KEY_ID }}" \
               AWS_INTEGRATION_S3_SECRET_ACCESS_KEY="${{ env.AWS_INTEGRATION_S3_SECRET_ACCESS_KEY }}"

@@ -100,6 +100,23 @@ endif
 ifdef EMAIL_POLL_TIMEOUT_MINUTES
     DRIVE_ARGS += --dart-define=EMAIL_POLL_TIMEOUT_MINUTES=$(EMAIL_POLL_TIMEOUT_MINUTES)
 endif
+# The browser region integration tests run as; mirrors IntegrationRegion in
+# integration_test/helpers/test_config.dart. Chrome only reports the region's
+# language with all three of the UI locale, accept-language, and LANGUAGE set.
+REGION_TZ_us := America/Los_Angeles
+REGION_UI_LANG_us := en-US
+REGION_ACCEPT_LANG_us := en-US
+REGION_LANGUAGE_us := en_US
+REGION_TZ_de := Europe/Berlin
+REGION_UI_LANG_de := de
+REGION_ACCEPT_LANG_de := de-DE
+REGION_LANGUAGE_de := de_DE
+ifneq ($(INTEGRATION_REGION),)
+    DRIVE_ARGS += --dart-define=INTEGRATION_REGION=$(INTEGRATION_REGION)
+    DRIVE_ARGS += --web-browser-flag="--lang=$(REGION_UI_LANG_$(INTEGRATION_REGION))"
+    DRIVE_ARGS += --web-browser-flag="--accept-lang=$(REGION_ACCEPT_LANG_$(INTEGRATION_REGION))"
+    DRIVE_ENV := TZ=$(REGION_TZ_$(INTEGRATION_REGION)) LANGUAGE=$(REGION_LANGUAGE_$(INTEGRATION_REGION))
+endif
 ifdef RELEASE_VERSION
     DRIVE_ARGS += --dart-define=RELEASE_VERSION=$(RELEASE_VERSION)
 endif
@@ -219,7 +236,7 @@ test-integration:
 ifeq ($(ENVIRONMENT),dev-local)
 	@$(MAKE) start-platform
 endif
-	@chromedriver --port=4444 & CHROME_PID=$$!; sleep 2 && flutter drive --target=$(INTEGRATION_TARGET) $(DRIVE_ARGS); TEST_EXIT=$$?; \
+	@$(DRIVE_ENV) chromedriver --port=4444 & CHROME_PID=$$!; sleep 2 && $(DRIVE_ENV) flutter drive --target=$(INTEGRATION_TARGET) $(DRIVE_ARGS); TEST_EXIT=$$?; \
 		kill $$CHROME_PID 2>/dev/null || true; \
 		exit $$TEST_EXIT
 

@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_timezone/flutter_timezone.dart';
 import 'package:go_router/go_router.dart';
@@ -12,6 +13,7 @@ import 'package:heliumapp/presentation/ui/layout/unauthenticated_scaffold.dart';
 import 'package:heliumapp/utils/app_assets.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/date_time_helpers.dart';
+import 'package:heliumapp/utils/format_helpers.dart';
 import 'package:logging/logging.dart';
 
 final _log = Logger('presentation.views');
@@ -95,13 +97,8 @@ class _SetupAccountScreenState extends BasePageScreenState<SetupAccountScreen> {
     await DioClient().cacheService.clearAll();
 
     try {
-      if (widget.autoDetectTimeZone) {
-        await _updateDetectedTimeZone();
-      } else {
-        _log.info(
-          'Setup started from non-OAuth flow, skipping timezone auto-update',
-        );
-      }
+      await _updateDetectedSettings();
+      await DioClient().startSetup();
     } catch (e) {
       _log.warning('Unexpected setup initialization error: ${e.runtimeType}');
     } finally {
@@ -111,17 +108,33 @@ class _SetupAccountScreenState extends BasePageScreenState<SetupAccountScreen> {
     }
   }
 
-  Future<void> _updateDetectedTimeZone() async {
+  /// The time zone is detected only on the OAuth path; the signup form
+  /// already captured it otherwise.
+  Future<void> _updateDetectedSettings() async {
     try {
-      final tz = (await FlutterTimezone.getLocalTimezone()).identifier;
-      final detectedTimeZone = HeliumDateTime.resolveTimeZone(tz);
+      final locale = PlatformDispatcher.instance.locale;
+      final view = PlatformDispatcher.instance.views.firstOrNull;
+      final alwaysUse24HourFormat = kIsWeb || view == null
+          ? null
+          : MediaQueryData.fromView(view).alwaysUse24HourFormat;
 
       await DioClient().updateSettings(
-        UpdateSettingsRequestModel(timeZone: detectedTimeZone),
+        UpdateSettingsRequestModel(
+          timeZone: widget.autoDetectTimeZone
+              ? HeliumDateTime.resolveTimeZone((await FlutterTimezone.getLocalTimezone()).identifier)
+              : null,
+          weekStartsOn: await HeliumDateTime.detectWeekStartsOn(locale),
+          dateFormat: await HeliumDateTime.detectDateFormat(locale),
+          timeFormat: await HeliumDateTime.detectTimeFormat(
+            locale,
+            alwaysUse24HourFormat: alwaysUse24HourFormat,
+          ),
+          numberFormat: HeliumNumber.detectNumberFormat(locale),
+        ),
       );
-      _log.info('Updated user timezone from setup flow');
+      _log.info('Updated detected settings from setup flow');
     } catch (e) {
-      _log.warning('Failed to auto-detect or update timezone: ${e.runtimeType}');
+      _log.warning('Failed to auto-detect or update settings: ${e.runtimeType}');
     }
   }
 

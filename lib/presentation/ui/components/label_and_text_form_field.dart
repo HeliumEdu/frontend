@@ -120,7 +120,7 @@ class _LabelAndTextFormFieldState extends State<LabelAndTextFormField> {
         prefixIcon: widget.prefixIcon != null
             ? Icon(
                 widget.prefixIcon,
-                color: context.colorScheme.onSurface.withValues(alpha: 0.4),
+                color: context.colorScheme.onSurface.withValues(alpha: AppStyles.mutedIconAlpha),
               )
             : null,
         contentPadding: EdgeInsets.symmetric(

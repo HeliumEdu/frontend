@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:heliumapp/config/app_theme.dart';
+import 'package:heliumapp/core/contrast_service.dart';
 
 class HeliumColors {
   static const List<Color> preferredColors = [
@@ -99,12 +100,46 @@ class HeliumColors {
     }
   }
 
-  /// Returns a contrasting text color (white or black) based on background luminance.
-  /// Uses WCAG luminance threshold of 0.5 for optimal contrast.
+  /// WCAG contrast ratio between [foreground] composited over [background].
+  static double contrastRatio(Color foreground, Color background) {
+    final composited = Color.alphaBlend(foreground, background);
+    final lighter = max(composited.computeLuminance(), background.computeLuminance());
+    final darker = min(composited.computeLuminance(), background.computeLuminance());
+    return (lighter + 0.05) / (darker + 0.05);
+  }
+
+  /// Returns a contrasting text color (white or black) for [backgroundColor].
+  /// Flips to black at a luminance of 0.5, which keeps white text on most
+  /// palette colors; when the OS asks for increased contrast, picks whichever
+  /// of the two reads better instead, which always clears WCAG AA (4.5:1).
   static Color contrastingTextColor(Color backgroundColor) {
+    if (ContrastService().increaseContrast) {
+      return contrastRatio(Colors.black, backgroundColor) >=
+              contrastRatio(Colors.white, backgroundColor)
+          ? Colors.black
+          : Colors.white;
+    }
     return backgroundColor.computeLuminance() > 0.5
         ? Colors.black
         : Colors.white;
+  }
+
+  /// Moves [color] toward [target] in small steps until it reads at
+  /// [minimumRatio] against [background]; returns [color] unchanged when it
+  /// already does.
+  static Color ensureContrast(
+    Color color, {
+    required Color background,
+    required Color target,
+    double minimumRatio = 4.5,
+  }) {
+    var adjusted = color;
+    var amount = 0.0;
+    while (contrastRatio(adjusted, background) < minimumRatio && amount < 1.0) {
+      amount += 0.05;
+      adjusted = Color.lerp(color, target, amount)!;
+    }
+    return adjusted;
   }
 }
 
@@ -117,7 +152,7 @@ extension ContrastingColor on Color {
   /// Returns a contrasting text color (white or black) based on luminance.
   /// Results are cached by color value for efficiency.
   Color get contrasting => _cache.putIfAbsent(
-        toARGB32(),
+        (toARGB32() << 1) | (ContrastService().increaseContrast ? 1 : 0),
         () => HeliumColors.contrastingTextColor(this),
       );
 }
@@ -147,18 +182,24 @@ class BadgeColors {
 
   /// Returns a foreground color (for text/icons) that ensures readability.
   /// In dark mode, lightens dark colors. In light mode, darkens light colors.
+  /// When the OS asks for increased contrast, moves the color only as far as
+  /// needed to read at WCAG AA against [background] instead.
   static Color foreground(BuildContext context, Color color) {
     final isDark = context.isDarkMode;
-    final luminance = color.computeLuminance();
-
-    if (isDark && luminance < 0.4) {
-      // Dark mode with dark color - lighten it for readability
-      return Color.lerp(color, Colors.white, 0.5)!;
-    } else if (!isDark && luminance > 0.7) {
-      // Light mode with light color - darken it for readability
-      return Color.lerp(color, Colors.black, 0.4)!;
+    if (ContrastService().increaseContrast) {
+      return HeliumColors.ensureContrast(
+        color,
+        background: background(context, color),
+        target: isDark ? Colors.white : Colors.black,
+      );
     }
 
+    final luminance = color.computeLuminance();
+    if (isDark && luminance < 0.4) {
+      return Color.lerp(color, Colors.white, 0.5)!;
+    } else if (!isDark && luminance > 0.7) {
+      return Color.lerp(color, Colors.black, 0.4)!;
+    }
     return color;
   }
 }

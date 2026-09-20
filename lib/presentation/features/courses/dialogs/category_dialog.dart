@@ -15,6 +15,7 @@ import 'package:heliumapp/presentation/features/courses/controllers/category_for
 import 'package:heliumapp/presentation/ui/components/label_and_text_form_field.dart';
 import 'package:heliumapp/presentation/ui/components/spinner_field.dart';
 import 'package:heliumapp/utils/color_helpers.dart';
+import 'package:heliumapp/utils/format_helpers.dart';
 
 class _CategoryProvidedWidget extends StatefulWidget {
   final int courseGroupId;
@@ -52,10 +53,7 @@ class _CategoryWidgetState extends BaseDialogState<_CategoryProvidedWidget> {
         _formController.weightController.text = '';
       } else {
         final weight = widget.category!.weight;
-        _formController.weightController.text =
-            weight == weight.roundToDouble()
-                ? weight.toStringAsFixed(0)
-                : weight.toString();
+        _formController.weightController.text = HeliumNumber.format(weight, trimZeros: true);
       }
       _formController.selectedColor = widget.category!.color;
     } else {
@@ -152,7 +150,7 @@ class _CategoryWidgetState extends BaseDialogState<_CategoryProvidedWidget> {
     if (_formController.formKey.currentState!.validate()) {
       String weightValue = '0';
       if (_formController.weightController.text.trim().isNotEmpty) {
-        weightValue = _formController.weightController.text.trim();
+        weightValue = HeliumNumber.normalize(_formController.weightController.text);
       }
 
       final request = CategoryRequestModel(

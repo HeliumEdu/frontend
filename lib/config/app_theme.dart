@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:heliumapp/config/semantic_colors.dart';
+import 'package:heliumapp/core/contrast_service.dart';
 import 'package:heliumapp/presentation/ui/components/helium_elevated_button.dart';
 import 'package:heliumapp/utils/app_style.dart';
+import 'package:heliumapp/utils/color_helpers.dart';
 
 const Color seedColor = Color(0xff418eb9);
 class AppTheme {
@@ -24,6 +26,24 @@ class AppTheme {
     );
     return _buildTheme(colorScheme, SemanticColors.dark, reduceMotion: reduceMotion);
   }
+
+  /// Text color for labels sitting on the brand primary. The primary itself is
+  /// never adjusted; when the OS asks for increased contrast the label flips
+  /// to whichever of black or white reads better on it.
+  static Color onPrimaryText(ColorScheme colorScheme) => ContrastService().increaseContrast
+      ? HeliumColors.contrastingTextColor(colorScheme.primary)
+      : colorScheme.onPrimary;
+
+  /// Color for labels rendered in the brand primary on the surface (text and
+  /// outlined buttons). Unchanged by default; when the OS asks for increased
+  /// contrast it is moved only as far as WCAG AA requires.
+  static Color primaryText(ColorScheme colorScheme) => ContrastService().increaseContrast
+      ? HeliumColors.ensureContrast(
+          colorScheme.primary,
+          background: colorScheme.surface,
+          target: colorScheme.brightness == Brightness.dark ? Colors.white : Colors.black,
+        )
+      : colorScheme.primary;
 
   static ThemeData _buildTheme(
     ColorScheme colorScheme,
@@ -77,24 +97,28 @@ class AppTheme {
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
-          foregroundColor: colorScheme.primary,
+          foregroundColor: primaryText(colorScheme),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
         ),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           backgroundColor: colorScheme.primary,
-          foregroundColor: colorScheme.onPrimary,
+          foregroundColor: onPrimaryText(colorScheme),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
         ),
       ),
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
+          foregroundColor: primaryText(colorScheme),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
         ),
       ),
       segmentedButtonTheme: SegmentedButtonThemeData(
         style: ButtonStyle(
+          textStyle: WidgetStateProperty.all(
+            AppStyles.poppins(fontWeight: FontWeight.w600),
+          ),
           backgroundColor: WidgetStateColor.resolveWith((states) {
             if (states.contains(WidgetState.selected)) {
               return colorScheme.primary;
@@ -104,7 +128,7 @@ class AppTheme {
           }),
           foregroundColor: WidgetStateColor.resolveWith((states) {
             if (states.contains(WidgetState.selected)) {
-              return colorScheme.onPrimary;
+              return onPrimaryText(colorScheme);
             }
             return colorScheme.onSurfaceVariant;
           }),
@@ -156,7 +180,7 @@ class AppTheme {
         helpTextStyle: AppStyles.poppins(
           fontSize: 12,
           fontWeight: FontWeight.w500,
-          color: colorScheme.onSurface.withValues(alpha: 0.6),
+          color: colorScheme.onSurface.withValues(alpha: AppStyles.mutedTextAlpha),
         ),
         cancelButtonStyle: HeliumElevatedButton.baseStyle(
           colorScheme,
@@ -173,7 +197,7 @@ class AppTheme {
         headerHelpStyle: AppStyles.poppins(
           fontSize: 14,
           fontWeight: FontWeight.w500,
-          color: colorScheme.onSurface.withValues(alpha: 0.6),
+          color: colorScheme.onSurface.withValues(alpha: AppStyles.mutedTextAlpha),
         ),
         headerHeadlineStyle: AppStyles.poppins(
           fontSize: 32,
@@ -182,7 +206,7 @@ class AppTheme {
         weekdayStyle: AppStyles.poppins(
           fontSize: 12,
           fontWeight: FontWeight.w500,
-          color: colorScheme.onSurface.withValues(alpha: 0.6),
+          color: colorScheme.onSurface.withValues(alpha: AppStyles.mutedTextAlpha),
         ),
         dayStyle: AppStyles.poppins(fontSize: 14, fontWeight: FontWeight.w400),
         yearStyle: AppStyles.poppins(fontSize: 14, fontWeight: FontWeight.w400),

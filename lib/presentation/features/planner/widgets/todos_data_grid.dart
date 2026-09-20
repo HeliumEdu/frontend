@@ -22,6 +22,7 @@ import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
 import 'package:heliumapp/presentation/ui/components/base_data_grid.dart';
 import 'package:heliumapp/utils/error_helpers.dart';
 import 'package:heliumapp/utils/app_globals.dart';
+import 'package:heliumapp/utils/format_helpers.dart';
 import 'package:heliumapp/utils/print_helpers.dart';
 import 'package:heliumapp/utils/snack_bar_helpers.dart';
 import 'package:heliumapp/utils/storage_helpers.dart';
@@ -370,7 +371,7 @@ class TodosDataGridState extends BaseDataGridState<TodosDataGrid> {
         category?.title ?? '',
         homework.priority > 0 ? (homework.priority / 10).round().toString() : '',
         isCompleted && gradeValue != null
-            ? gradeValue.toStringAsFixed(2)
+            ? HeliumNumber.format(gradeValue, fractionDigits: 2)
             : '',
         if (hasResources)
           homework.resources
@@ -588,7 +589,7 @@ class TodosDataGridState extends BaseDataGridState<TodosDataGrid> {
           Text(
             'No assignments match the applied filters or search',
             style: AppStyles.standardBodyTextLight(context).copyWith(
-              color: context.colorScheme.onSurface.withValues(alpha: 0.5),
+              color: context.colorScheme.onSurface.withValues(alpha: AppStyles.mutedTextAlpha),
             ),
           ),
         ],

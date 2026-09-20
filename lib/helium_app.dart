@@ -5,9 +5,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:heliumapp/config/analytics_event.dart';
 import 'package:heliumapp/config/app_router.dart';
+import 'package:heliumapp/config/regional_settings_notifier.dart';
 import 'package:heliumapp/config/theme_notifier.dart';
 import 'package:heliumapp/core/analytics_service.dart';
+import 'package:heliumapp/core/contrast_service.dart';
 import 'package:heliumapp/core/motion_service.dart';
+import 'package:heliumapp/utils/material_localizations_helpers.dart';
 import 'package:heliumapp/utils/print_service.dart';
 import 'package:heliumapp/utils/web_helpers_stub.dart'
     if (dart.library.js_interop) 'package:heliumapp/utils/web_helpers_web.dart';
@@ -36,11 +39,13 @@ class HeliumApp extends StatefulWidget {
 
 class _HeliumAppState extends State<HeliumApp> with WidgetsBindingObserver {
   final _themeNotifier = ThemeNotifier();
+  final _regionalSettingsNotifier = RegionalSettingsNotifier();
 
   @override
   void initState() {
     super.initState();
-    _themeNotifier.addListener(_onThemeChanged);
+    _themeNotifier.addListener(_rebuild);
+    _regionalSettingsNotifier.addListener(_rebuild);
     if (PrintService.isSupported) HardwareKeyboard.instance.addHandler(_handleKeyEvent);
     WidgetsBinding.instance.addObserver(this);
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -49,6 +54,7 @@ class _HeliumAppState extends State<HeliumApp> with WidgetsBindingObserver {
       MotionService().init(
         features.disableAnimations || features.reduceMotion || getSystemReduceMotion(),
       );
+      ContrastService().init(features.highContrast || getSystemIncreaseContrast());
       setState(() {});
     });
     _log.info('HeliumApp initialized with theme: ${_themeNotifier.themeMode}');
@@ -57,7 +63,8 @@ class _HeliumAppState extends State<HeliumApp> with WidgetsBindingObserver {
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
-    _themeNotifier.removeListener(_onThemeChanged);
+    _themeNotifier.removeListener(_rebuild);
+    _regionalSettingsNotifier.removeListener(_rebuild);
     if (PrintService.isSupported) HardwareKeyboard.instance.removeHandler(_handleKeyEvent);
     super.dispose();
   }
@@ -83,7 +90,7 @@ class _HeliumAppState extends State<HeliumApp> with WidgetsBindingObserver {
       (defaultTargetPlatform == TargetPlatform.iOS ||
           defaultTargetPlatform == TargetPlatform.android);
 
-  void _onThemeChanged() {
+  void _rebuild() {
     setState(() {});
   }
 
@@ -138,14 +145,21 @@ class _HeliumAppState extends State<HeliumApp> with WidgetsBindingObserver {
       theme: AppTheme.light(reduceMotion: MotionService().reduceMotion),
       darkTheme: AppTheme.dark(reduceMotion: MotionService().reduceMotion),
       themeMode: _themeNotifier.themeMode,
-      localizationsDelegates: const [
-        HeliumQuillLocalizationsDelegate(),
-        HeliumSfLocalizationsDelegate(),
+      localizationsDelegates: [
+        const HeliumQuillLocalizationsDelegate(),
+        const HeliumSfLocalizationsDelegate(),
+        HeliumMaterialLocalizationsDelegate(
+          firstDayOfWeekIndex: _regionalSettingsNotifier.weekStartsOn,
+          dateFormat: _regionalSettingsNotifier.dateFormat,
+        ),
       ],
-      builder: (context, child) => GestureDetector(
-        onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
-        behavior: HitTestBehavior.opaque,
-        child: child,
+      builder: (context, child) => RegionalFormatScope(
+        alwaysUse24HourFormat: _regionalSettingsNotifier.uses24HourClock,
+        child: GestureDetector(
+          onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
+          behavior: HitTestBehavior.opaque,
+          child: child,
+        ),
       ),
     );
   }

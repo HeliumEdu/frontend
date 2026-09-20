@@ -80,6 +80,9 @@ class MockModels {
     int atRiskThreshold = 70,
     int onTrackTolerance = 10,
     bool showWeekNumbers = false,
+    int dateFormat = 0,
+    int timeFormat = 0,
+    int numberFormat = 0,
     String? privateSlug,
   }) {
     _ensureTzInitialized();
@@ -104,6 +107,9 @@ class MockModels {
       atRiskThreshold: atRiskThreshold,
       onTrackTolerance: onTrackTolerance,
       showWeekNumbers: showWeekNumbers,
+      dateFormat: dateFormat,
+      timeFormat: timeFormat,
+      numberFormat: numberFormat,
       privateSlug: privateSlug,
       dragAndDropOnMobile: true,
     );

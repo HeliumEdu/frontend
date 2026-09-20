@@ -234,6 +234,9 @@ void main() {
         when(
           () => mockPrefService.getBool('show_week_numbers'),
         ).thenReturn(true);
+        when(() => mockPrefService.getInt('date_format')).thenReturn(1);
+        when(() => mockPrefService.getInt('time_format')).thenReturn(1);
+        when(() => mockPrefService.getInt('number_format')).thenReturn(1);
 
         // WHEN
         final settings = await dioClient.getSettings();
@@ -246,6 +249,9 @@ void main() {
         expect(settings.colorByCategory, isTrue);
         expect(settings.showPlannerTooltips, isFalse);
         expect(settings.defaultView, equals(0));
+        expect(settings.dateFormat, equals(1));
+        expect(settings.timeFormat, equals(1));
+        expect(settings.numberFormat, equals(1));
         expect(settings.colorSchemeTheme, equals(1));
         verify(() => mockPrefService.getString('time_zone')).called(1);
         // The service reads from calendar_use_category_colors, not color_by_category

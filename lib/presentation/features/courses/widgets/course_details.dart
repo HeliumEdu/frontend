@@ -14,6 +14,7 @@ import 'package:heliumapp/presentation/features/courses/controllers/course_form_
 import 'package:heliumapp/presentation/ui/components/color_selector.dart';
 import 'package:heliumapp/presentation/ui/layout/helium_full_screen_scroll_view.dart';
 import 'package:heliumapp/presentation/ui/components/helium_checkbox_list_tile.dart';
+import 'package:heliumapp/utils/format_helpers.dart';
 import 'package:heliumapp/utils/snack_bar_helpers.dart';
 import 'package:heliumapp/presentation/features/shared/widgets/flow/multi_step_container.dart';
 import 'package:heliumapp/presentation/ui/components/helium_icon_button.dart';
@@ -336,7 +337,7 @@ class CourseDetailsState extends State<CourseDetails> {
         room: formController.isOnline ? '' : formController.roomController.text.trim(),
         credits: formController.creditsController.text.trim().isEmpty
             ? '0'
-            : formController.creditsController.text.trim(),
+            : HeliumNumber.normalize(formController.creditsController.text),
         color: HeliumColors.colorToHex(formController.selectedColor),
         website: formController.urlController.text.trim(),
         isOnline: formController.isOnline,
@@ -397,11 +398,8 @@ class CourseDetailsState extends State<CourseDetails> {
         formController.teacherEmailController.text =
             state.course!.teacherEmail;
         final credits = state.course!.credits;
-        formController.creditsController.text = credits == 0
-            ? ''
-            : credits == credits.roundToDouble()
-                ? credits.toStringAsFixed(0)
-                : credits.toString();
+        formController.creditsController.text =
+            credits == 0 ? '' : HeliumNumber.format(credits, trimZeros: true);
 
         formController.startDate = state.course!.startDate;
         formController.endDate = state.course!.endDate;

@@ -11,6 +11,7 @@ import 'package:heliumapp/config/app_router.dart';
 import 'package:heliumapp/config/pref_service.dart';
 import 'package:heliumapp/core/analytics_service.dart';
 import 'package:heliumapp/core/app_version_service.dart';
+import 'package:heliumapp/core/contrast_service.dart';
 import 'package:heliumapp/core/fcm_service.dart';
 import 'package:heliumapp/core/feedback_service.dart';
 import 'package:heliumapp/core/log_service.dart';
@@ -121,6 +122,7 @@ Future<void> _bootstrap() async {
   MotionService().init(
     accessibilityFeatures.disableAnimations || accessibilityFeatures.reduceMotion || getSystemReduceMotion(),
   );
+  ContrastService().init(accessibilityFeatures.highContrast || getSystemIncreaseContrast());
 
   try {
     await FeedbackService().init();

@@ -18,6 +18,9 @@ class UpdateSettingsRequestModel {
   final int? atRiskThreshold;
   final int? onTrackTolerance;
   final bool? showWeekNumbers;
+  final int? dateFormat;
+  final int? timeFormat;
+  final int? numberFormat;
 
   UpdateSettingsRequestModel({
     this.timeZone,
@@ -39,6 +42,9 @@ class UpdateSettingsRequestModel {
     this.atRiskThreshold,
     this.onTrackTolerance,
     this.showWeekNumbers,
+    this.dateFormat,
+    this.timeFormat,
+    this.numberFormat,
   });
 
   Map<String, dynamic> toJson() {
@@ -100,6 +106,15 @@ class UpdateSettingsRequestModel {
     }
     if (showWeekNumbers != null) {
       json['show_week_numbers'] = showWeekNumbers;
+    }
+    if (dateFormat != null) {
+      json['date_format'] = dateFormat;
+    }
+    if (timeFormat != null) {
+      json['time_format'] = timeFormat;
+    }
+    if (numberFormat != null) {
+      json['number_format'] = numberFormat;
     }
 
     return json;

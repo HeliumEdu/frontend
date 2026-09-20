@@ -577,7 +577,7 @@ class _NotificationsScreenState
                                   notification.reminder,
                                 ),
                           style: AppStyles.smallSecondaryTextLight(context).copyWith(
-                            color: context.colorScheme.onSurface.withValues(alpha: 0.5),
+                            color: context.colorScheme.onSurface.withValues(alpha: AppStyles.mutedTextAlpha),
                           ),
                           maxLines: 1,
                         ),

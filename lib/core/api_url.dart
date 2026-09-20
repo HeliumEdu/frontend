@@ -31,6 +31,7 @@ class ApiUrl {
   static const authUserUrl = '/auth/user/';
   static const authUserDeleteUrl = '/auth/user/delete/';
   static const authUserSettingsUrl = '/auth/user/settings/';
+  static const authUserSetupUrl = '/auth/user/setup/';
   static const authUserSettingsReviewPromptAckUrl =
       '/auth/user/settings/review-prompt-ack/';
   static const authUserPushTokenUrl = '/auth/user/pushtoken/';

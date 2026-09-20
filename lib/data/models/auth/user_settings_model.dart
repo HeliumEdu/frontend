@@ -26,6 +26,9 @@ class UserSettingsModel {
   final int atRiskThreshold;
   final int onTrackTolerance;
   final bool showWeekNumbers;
+  final int dateFormat;
+  final int timeFormat;
+  final int numberFormat;
   final String? privateSlug;
   final bool promptForReview;
 
@@ -51,6 +54,9 @@ class UserSettingsModel {
     required this.atRiskThreshold,
     required this.onTrackTolerance,
     required this.showWeekNumbers,
+    required this.dateFormat,
+    required this.timeFormat,
+    required this.numberFormat,
     this.privateSlug,
     this.promptForReview = false,
   });
@@ -84,6 +90,9 @@ class UserSettingsModel {
       atRiskThreshold: json['at_risk_threshold'] ?? FallbackConstants.defaultAtRiskThreshold,
       onTrackTolerance: json['on_track_tolerance'] ?? FallbackConstants.defaultOnTrackTolerance,
       showWeekNumbers: json['show_week_numbers'] ?? FallbackConstants.defaultShowWeekNumbers,
+      dateFormat: json['date_format'] ?? FallbackConstants.defaultDateFormat,
+      timeFormat: json['time_format'] ?? FallbackConstants.defaultTimeFormat,
+      numberFormat: json['number_format'] ?? FallbackConstants.defaultNumberFormat,
       privateSlug: json['private_slug'],
       promptForReview: json['prompt_for_review'] ?? false,
     );
@@ -111,6 +120,9 @@ class UserSettingsModel {
       'at_risk_threshold': atRiskThreshold,
       'on_track_tolerance': onTrackTolerance,
       'show_week_numbers': showWeekNumbers,
+      'date_format': dateFormat,
+      'time_format': timeFormat,
+      'number_format': numberFormat,
       'private_slug': privateSlug,
     };
   }

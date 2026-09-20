@@ -1,8 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 
 extension AppStyles on BuildContext {
+  /// The lightest [ColorScheme.onSurface] alpha that still reads at WCAG AA
+  /// (4.5:1) as text on the surface in both themes.
+  static const double mutedTextAlpha = 0.65;
+
+  /// The lightest [ColorScheme.onSurface] alpha that still reads at WCAG AA
+  /// (3:1) as an icon or control on the surface in both themes.
+  static const double mutedIconAlpha = 0.55;
+
   // Fallback font for characters missing from the primary family
   static const fallbackFonts = ['Noto Sans'];
 
@@ -114,7 +123,7 @@ extension AppStyles on BuildContext {
       mobile: 15,
       desktop: 16,
     ),
-    color: Theme.of(context).colorScheme.onPrimary,
+    color: AppTheme.onPrimaryText(Theme.of(context).colorScheme),
     fontFeatures: [const FontFeature.tabularFigures()],
   );
 
@@ -148,7 +157,7 @@ extension AppStyles on BuildContext {
 
   // Used for form field placeholder/hint text
   static TextStyle formHint(BuildContext context) => formText(context).copyWith(
-    color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
+    color: Theme.of(context).colorScheme.onSurface.withValues(alpha: mutedTextAlpha),
   );
 
   // Used for form validation error messages
@@ -168,7 +177,7 @@ extension AppStyles on BuildContext {
   static TextStyle menuItemHint(BuildContext context) =>
       menuItem(context).copyWith(
         fontSize: Responsive.getFontSize(context, mobile: 12, desktop: 13),
-        color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
+        color: Theme.of(context).colorScheme.onSurface.withValues(alpha: mutedTextAlpha),
       );
 
   // Used for timeline calendar item text size

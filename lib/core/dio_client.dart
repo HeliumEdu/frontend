@@ -13,6 +13,7 @@ import 'package:heliumapp/config/analytics_event.dart';
 import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/config/app_router.dart';
 import 'package:heliumapp/config/pref_service.dart';
+import 'package:heliumapp/config/regional_settings_notifier.dart';
 import 'package:heliumapp/config/theme_notifier.dart';
 import 'package:heliumapp/core/analytics_service.dart';
 import 'package:heliumapp/core/fcm_service.dart';
@@ -481,6 +482,9 @@ class DioClient {
         SettingsPrefKey.atRiskThreshold.key: p.getInt(SettingsPrefKey.atRiskThreshold.key),
         SettingsPrefKey.onTrackTolerance.key: p.getInt(SettingsPrefKey.onTrackTolerance.key),
         SettingsPrefKey.showWeekNumbers.key: p.getBool(SettingsPrefKey.showWeekNumbers.key),
+        SettingsPrefKey.dateFormat.key: p.getInt(SettingsPrefKey.dateFormat.key),
+        SettingsPrefKey.timeFormat.key: p.getInt(SettingsPrefKey.timeFormat.key),
+        SettingsPrefKey.numberFormat.key: p.getInt(SettingsPrefKey.numberFormat.key),
       };
 
       final isCacheComplete = !cachedJson.values.any((v) => v == null);
@@ -518,6 +522,12 @@ class DioClient {
       _ => ThemeMode.system,
     };
     await ThemeNotifier().setThemeMode(themeMode);
+    await RegionalSettingsNotifier().update(
+      weekStartsOn: settings.weekStartsOn,
+      dateFormat: settings.dateFormat,
+      timeFormat: settings.timeFormat,
+      numberFormat: settings.numberFormat,
+    );
 
     final p = _prefService;
     final result = await Future.wait([
@@ -542,6 +552,9 @@ class DioClient {
       ?p.setInt(SettingsPrefKey.atRiskThreshold.key, settings.atRiskThreshold),
       ?p.setInt(SettingsPrefKey.onTrackTolerance.key, settings.onTrackTolerance),
       ?p.setBool(SettingsPrefKey.showWeekNumbers.key, settings.showWeekNumbers),
+      ?p.setInt(SettingsPrefKey.dateFormat.key, settings.dateFormat),
+      ?p.setInt(SettingsPrefKey.timeFormat.key, settings.timeFormat),
+      ?p.setInt(SettingsPrefKey.numberFormat.key, settings.numberFormat),
     ]);
 
     if (p.getString('saved_grades_graph_settings') == null) {
@@ -575,6 +588,20 @@ class DioClient {
       }
     } catch (e) {
       _log.severe('Failed to update settings', e);
+      rethrow;
+    }
+  }
+
+  Future<void> startSetup() async {
+    try {
+      final response = await _dio.post(ApiUrl.authUserSetupUrl);
+
+      if (response.statusCode == 200) {
+        final settings = UserSettingsModel.fromJson(response.data);
+        await saveSettings(settings);
+      }
+    } catch (e) {
+      _log.severe('Failed to start setup', e);
       rethrow;
     }
   }

@@ -994,11 +994,11 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
               textStyle: AppStyles.smallSecondaryText(context),
               leadingDatesTextStyle: AppStyles.smallSecondaryText(context)
                   .copyWith(
-                    color: context.colorScheme.onSurface.withValues(alpha: 0.5),
+                    color: context.colorScheme.onSurface.withValues(alpha: AppStyles.mutedTextAlpha),
                   ),
               trailingDatesTextStyle: AppStyles.smallSecondaryText(context)
                   .copyWith(
-                    color: context.colorScheme.onSurface.withValues(alpha: 0.5),
+                    color: context.colorScheme.onSurface.withValues(alpha: AppStyles.mutedTextAlpha),
                   ),
             ),
             agendaStyle: AgendaStyle(
@@ -1013,14 +1013,15 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
             appointmentDisplayMode: Responsive.isMobile(context)
                 ? MonthAppointmentDisplayMode.none
                 : MonthAppointmentDisplayMode.appointment,
-            dayFormat: 'EEE',
+            dayFormat: HeliumDateTime.dayNameShortPattern,
           ),
           timeSlotViewSettings: TimeSlotViewSettings(
             minimumAppointmentDuration: const Duration(minutes: 32),
             timeTextStyle: AppStyles.smallSecondaryText(context).copyWith(
               color: context.colorScheme.onSurface.withValues(alpha: 0.6),
             ),
-            dayFormat: 'EEE',
+            dayFormat: HeliumDateTime.dayNameShortPattern,
+            timeFormat: HeliumTime.timeRulerPattern,
             timeIntervalHeight: Responsive.isMobile(context) ? 43 : 60,
           ),
           loadMoreWidgetBuilder: _loadMoreWidgetBuilder,
@@ -2361,7 +2362,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
                     ? context.colorScheme.onPrimary
                     : isCurrentMonth
                     ? context.colorScheme.onSurface
-                    : context.colorScheme.onSurface.withValues(alpha: 0.5),
+                    : context.colorScheme.onSurface.withValues(alpha: AppStyles.mutedTextAlpha),
                 fontWeight: isToday ? FontWeight.w600 : null,
               ),
             ),

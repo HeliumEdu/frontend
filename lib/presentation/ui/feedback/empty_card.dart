@@ -22,7 +22,7 @@ class EmptyCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final onSurface = context.colorScheme.onSurface.withValues(alpha: 0.5);
+    final onSurface = context.colorScheme.onSurface.withValues(alpha: AppStyles.mutedTextAlpha);
     final content = Center(
       child: Padding(
         padding: const EdgeInsets.symmetric(

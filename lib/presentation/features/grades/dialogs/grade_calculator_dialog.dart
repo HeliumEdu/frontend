@@ -12,6 +12,7 @@ import 'package:heliumapp/presentation/ui/components/spinner_field.dart';
 import 'package:heliumapp/presentation/ui/feedback/success_container.dart';
 import 'package:heliumapp/presentation/ui/feedback/warning_container.dart';
 import 'package:heliumapp/utils/app_style.dart';
+import 'package:heliumapp/utils/format_helpers.dart';
 import 'package:heliumapp/utils/grade_helpers.dart';
 import 'package:heliumapp/utils/sort_helpers.dart';
 import 'package:heliumapp/core/analytics_service.dart';
@@ -85,10 +86,10 @@ class _GradeCalculatorDialogState extends State<GradeCalculatorDialog> {
   @override
   void initState() {
     super.initState();
-    _desiredGradeController.text =
-        (widget.currentOverallGrade + widget.defaultDesiredGradeBoost)
-            .clamp(0, 100)
-            .toStringAsFixed(1);
+    _desiredGradeController.text = HeliumNumber.format(
+      (widget.currentOverallGrade + widget.defaultDesiredGradeBoost).clamp(0, 100).toDouble(),
+      fractionDigits: 1,
+    );
     if (_eligibleTargetCategories.isNotEmpty) {
       _selectedCategoryId = _eligibleTargetCategories.first.id;
     }
@@ -109,7 +110,7 @@ class _GradeCalculatorDialogState extends State<GradeCalculatorDialog> {
       return;
     }
 
-    final desiredGrade = double.tryParse(_desiredGradeController.text);
+    final desiredGrade = HeliumNumber.parse(_desiredGradeController.text);
     if (desiredGrade == null || desiredGrade < 0 || desiredGrade > 100) {
       setState(() {
         _result = null;
@@ -131,7 +132,7 @@ class _GradeCalculatorDialogState extends State<GradeCalculatorDialog> {
   }
 
   String _buildResultMessage(NeededGradeResult result) {
-    final desiredGrade = double.tryParse(_desiredGradeController.text) ?? 0;
+    final desiredGrade = HeliumNumber.parse(_desiredGradeController.text) ?? 0;
     String targetCategoryTitle = 'this category';
     for (final category in _normalizedCategories) {
       if (category.id == _selectedCategoryId) {
@@ -155,9 +156,9 @@ class _GradeCalculatorDialogState extends State<GradeCalculatorDialog> {
       case NeededGradeState.aboveTarget:
         return 'You\'re already above your target based on current category performance.';
       case NeededGradeState.unachievable:
-        return 'You would need to score ${result.neededGrade.toStringAsFixed(1)}% to reach your target.';
+        return 'You would need to score ${HeliumNumber.format(result.neededGrade, fractionDigits: 1)}% to reach your target.';
       case NeededGradeState.achievable:
-        return 'You need to score ${result.neededGrade.toStringAsFixed(1)}% on "$targetCategoryTitle" to achieve ${desiredGrade.toStringAsFixed(1)}% in this class.';
+        return 'You need to score ${HeliumNumber.format(result.neededGrade, fractionDigits: 1)}% on "$targetCategoryTitle" to achieve ${HeliumNumber.format(desiredGrade, fractionDigits: 1)}% in this class.';
     }
   }
 
@@ -217,7 +218,7 @@ class _GradeCalculatorDialogState extends State<GradeCalculatorDialog> {
                           const SizedBox(width: 8),
                           Expanded(
                             child: Text(
-                              '${category.title} (${category.weight.toStringAsFixed(0)}%)',
+                              '${category.title} (${HeliumNumber.format(category.weight, fractionDigits: 0)}%)',
                               style: AppStyles.formText(context),
                               overflow: TextOverflow.ellipsis,
                             ),

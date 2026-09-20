@@ -94,10 +94,10 @@ class _WhatsNewDialogWidgetState extends State<_WhatsNewDialogWidget> {
                     // newest feature first, oldest last.
                     _buildFeatureItem(
                       context,
-                      icon: Icons.manage_search,
-                      title: 'Search Your Notes',
+                      icon: Icons.tune,
+                      title: 'Your Planner, Your Way',
                       description:
-                          'Search inside your notes and find that lecture detail before the exam',
+                          'Choose your date, time, and number formats under Preferences. Search inside your notes.',
                     ),
                     const SizedBox(height: 12),
                     _buildFeatureItem(
@@ -118,10 +118,10 @@ class _WhatsNewDialogWidgetState extends State<_WhatsNewDialogWidget> {
                     const SizedBox(height: 12),
                     _buildFeatureItem(
                       context,
-                      icon: Icons.link,
-                      title: 'Link & Unlink Notes',
+                      icon: Icons.print_outlined,
+                      title: 'Print & Export',
                       description:
-                          'Re-link a note to a different item, or turn it standalone, without leaving the editor',
+                          'Print anything across the app, including your formatted notes, or export "Todos" to CSV',
                     ),
                     if (showDonationLink) ...[
                       const SizedBox(height: 8),
