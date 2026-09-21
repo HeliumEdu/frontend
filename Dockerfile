@@ -26,6 +26,7 @@ FROM flutter-sdk AS build
 ARG PROJECT_API_HOST=
 ARG RELEASE_VERSION=
 ARG SENTRY_DIST=
+ARG SENTRY_DSN=
 ARG SENTRY_ENVIRONMENT=
 
 WORKDIR /app
@@ -40,6 +41,7 @@ RUN set -eux; \
     if [ -n "${PROJECT_API_HOST:-}" ]; then BUILD_ARGS="$BUILD_ARGS --dart-define=PROJECT_API_HOST=${PROJECT_API_HOST}"; fi; \
     if [ -n "${RELEASE_VERSION:-}" ]; then BUILD_ARGS="$BUILD_ARGS --dart-define=RELEASE_VERSION=${RELEASE_VERSION}"; fi; \
     if [ -n "${SENTRY_DIST:-}" ]; then BUILD_ARGS="$BUILD_ARGS --dart-define=SENTRY_DIST=${SENTRY_DIST}"; fi; \
+    if [ -n "${SENTRY_DSN:-}" ]; then BUILD_ARGS="$BUILD_ARGS --dart-define=SENTRY_DSN=${SENTRY_DSN}"; fi; \
     if [ -n "${SENTRY_ENVIRONMENT:-}" ]; then BUILD_ARGS="$BUILD_ARGS --dart-define=SENTRY_ENVIRONMENT=${SENTRY_ENVIRONMENT}"; fi; \
     flutter build web --release --source-maps --pwa-strategy=none $BUILD_ARGS; \
     dart bin/update_version.dart

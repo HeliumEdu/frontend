@@ -4,7 +4,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:logging/logging.dart';
-import 'package:package_info_plus/package_info_plus.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
 final _log = Logger('core');
@@ -17,6 +16,10 @@ class SentryService {
   SentryService._internal();
 
   static const _nativeChannel = MethodChannel('com.heliumedu.heliumapp/native');
+
+  static const _releaseVersion = String.fromEnvironment('RELEASE_VERSION');
+
+  static const _dsn = String.fromEnvironment('SENTRY_DSN');
 
   /// Matches any HTTP 4xx (client error) status code in free text.
   static final _clientErrorStatusPattern = RegExp(r'\b4\d\d\b');
@@ -38,7 +41,11 @@ class SentryService {
     return _instance._shouldFilter(event);
   }
 
-  bool get isEnabled => !kDebugMode && !kProfileMode;
+  bool get isEnabled =>
+      !kDebugMode &&
+      !kProfileMode &&
+      _releaseVersion.isNotEmpty &&
+      _dsn.isNotEmpty;
 
   /// Initializes Sentry, then runs [appRunner] under it.
   ///
@@ -51,8 +58,8 @@ class SentryService {
       return;
     }
 
-    // The test farm channel and PackageInfo below both need a binding. Web
-    // needs neither, and initializing there would take the zone from the SDK.
+    // The test farm channel needs a binding. Web doesn't, and initializing
+    // there would take the zone from the SDK.
     if (!kIsWeb) {
       WidgetsFlutterBinding.ensureInitialized();
     }
@@ -67,26 +74,13 @@ class SentryService {
     }
 
     const environment = String.fromEnvironment('SENTRY_ENVIRONMENT');
-    String release = const String.fromEnvironment('RELEASE_VERSION');
-    String dist = const String.fromEnvironment('SENTRY_DIST');
-    if (release.isEmpty) {
-      final packageInfo = await PackageInfo.fromPlatform();
-      release = '${packageInfo.version}+${packageInfo.buildNumber}';
-      dist = packageInfo.buildNumber;
-    }
+    const dist = String.fromEnvironment('SENTRY_DIST');
 
     await SentryFlutter.init((options) {
-      options.dsn =
-          'https://d6522731f64a56983e3504ed78390601@o4510767194570752.ingest.us.sentry.io/4510767197519872';
+      options.dsn = _dsn;
 
-      if (release.isNotEmpty) {
-        options.release = release;
-        // Default to 'prod' for release builds, but allow override
-        options.environment = environment.isNotEmpty ? environment : 'prod';
-      } else if (environment.isNotEmpty) {
-        // Local builds without a release can still set an environment
-        options.environment = environment;
-      }
+      options.release = _releaseVersion;
+      options.environment = environment.isNotEmpty ? environment : 'prod';
       if (dist.isNotEmpty) {
         options.dist = dist;
       }

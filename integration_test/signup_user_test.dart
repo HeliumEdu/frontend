@@ -240,6 +240,7 @@ void main() {
       expect(settings['date_format'], equals(config.region.dateFormat), reason: 'Detected date format');
       expect(settings['time_format'], equals(config.region.timeFormat), reason: 'Detected time format');
       expect(settings['number_format'], equals(config.region.numberFormat), reason: 'Detected number format');
+      expect(settings['at_risk_threshold'], equals(config.region.atRiskThreshold), reason: 'Regional at-risk default');
 
       verificationSucceeded = true;
       _log.info('Email verification succeeded');

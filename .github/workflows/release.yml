@@ -228,9 +228,10 @@ jobs:
           SIGNING_STORE_FILE: ${{ github.workspace }}/android/helium-release-key.jks
           SIGNING_STORE_PASSWORD: ${{ secrets.ANDROID_SIGNING_STORE_PASSWORD }}
           RELEASE_VERSION: ${{ needs.prereq.outputs.version }}
+          SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
         run: |
           SENTRY_DIST="${RELEASE_VERSION##*+}"
-          make build-android-release RELEASE_VERSION="$RELEASE_VERSION" SENTRY_DIST="$SENTRY_DIST" \
+          make build-android-release RELEASE_VERSION="$RELEASE_VERSION" SENTRY_DIST="$SENTRY_DIST" SENTRY_DSN="$SENTRY_DSN" \
             BUILD_NUMBER="${{ steps.version-code.outputs.code }}"
           echo "${{ steps.version-code.outputs.code }}" \
             > build/app/outputs/bundle/release/version_code.txt
@@ -348,9 +349,10 @@ jobs:
         env:
           COCOAPODS_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           RELEASE_VERSION: ${{ needs.prereq.outputs.version }}
+          SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
         run: |
           SENTRY_DIST="${RELEASE_VERSION##*+}"
-          make build-ios-release RELEASE_VERSION="$RELEASE_VERSION" SENTRY_DIST="$SENTRY_DIST"
+          make build-ios-release RELEASE_VERSION="$RELEASE_VERSION" SENTRY_DIST="$SENTRY_DIST" SENTRY_DSN="$SENTRY_DSN"
 
       - name: Upload debug symbols to Sentry
         env:
@@ -408,9 +410,10 @@ jobs:
       - name: Build web release bundle
         env:
           RELEASE_VERSION: ${{ needs.prereq.outputs.version }}
+          SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
         run: |
           SENTRY_DIST="${RELEASE_VERSION##*+}"
-          make build-web RELEASE_VERSION="$RELEASE_VERSION" SENTRY_DIST="$SENTRY_DIST"
+          make build-web RELEASE_VERSION="$RELEASE_VERSION" SENTRY_DIST="$SENTRY_DIST" SENTRY_DSN="$SENTRY_DSN"
 
       - name: Upload source maps to Sentry
         env:
@@ -464,9 +467,10 @@ jobs:
       - name: Build and publish web containers
         env:
           RELEASE_VERSION: ${{ needs.prereq.outputs.version }}
+          SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
         run: |
           SENTRY_DIST="${RELEASE_VERSION##*+}"
-          make publish RELEASE_VERSION="$RELEASE_VERSION" SENTRY_DIST="$SENTRY_DIST"
+          make publish RELEASE_VERSION="$RELEASE_VERSION" SENTRY_DIST="$SENTRY_DIST" SENTRY_DSN="$SENTRY_DSN"
 
   create-release-tag:
     name: Create Release Tag

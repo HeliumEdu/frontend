@@ -89,6 +89,7 @@ enum IntegrationRegion {
     dateFormat: 0,
     timeFormat: 0,
     numberFormat: 0,
+    atRiskThreshold: 70,
   ),
   de(
     languageCode: 'de',
@@ -98,6 +99,7 @@ enum IntegrationRegion {
     dateFormat: 1,
     timeFormat: 1,
     numberFormat: 1,
+    atRiskThreshold: 60,
   );
 
   final String languageCode;
@@ -107,6 +109,7 @@ enum IntegrationRegion {
   final int dateFormat;
   final int timeFormat;
   final int numberFormat;
+  final int atRiskThreshold;
 
   const IntegrationRegion({
     required this.languageCode,
@@ -116,6 +119,7 @@ enum IntegrationRegion {
     required this.dateFormat,
     required this.timeFormat,
     required this.numberFormat,
+    required this.atRiskThreshold,
   });
 
   String get accountTimeZone => signupTimeZoneOverride ?? detectedTimeZone;

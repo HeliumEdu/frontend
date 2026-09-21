@@ -283,8 +283,14 @@ jobs:
           ENVIRONMENT: ${{ steps.target.outputs.environment }}
           SENTRY_ENVIRONMENT: ${{ steps.target.outputs.sentry_environment }}
           FIREBASE_AUTH_DOMAIN: ${{ steps.target.outputs.firebase_auth_domain }}
+          RELEASE_VERSION: ${{ steps.ci-version.outputs.version }}
+          PROJECT_API_HOST: ${{ steps.target.outputs.api }}
+          SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
         run: |
+          SENTRY_DIST="${RELEASE_VERSION##*+}"
           ARGS="ENVIRONMENT=${ENVIRONMENT} SENTRY_ENVIRONMENT=${SENTRY_ENVIRONMENT}"
+          ARGS="$ARGS RELEASE_VERSION=${RELEASE_VERSION} SENTRY_DIST=${SENTRY_DIST} SENTRY_DSN=${SENTRY_DSN}"
+          ARGS="$ARGS PROJECT_API_HOST=${PROJECT_API_HOST}"
           if [ -n "$FIREBASE_AUTH_DOMAIN" ]; then
             ARGS="$ARGS FIREBASE_AUTH_DOMAIN=${FIREBASE_AUTH_DOMAIN}"
           fi
@@ -499,10 +505,11 @@ jobs:
         env:
           COCOAPODS_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           RELEASE_VERSION: ${{ steps.ci-version.outputs.build-name }}+${{ steps.ci-version.outputs.build-number }}
+          SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
         run: |
           SENTRY_DIST="${RELEASE_VERSION##*+}"
           make build-ios-release ENVIRONMENT=prod \
-            RELEASE_VERSION="$RELEASE_VERSION" SENTRY_DIST="$SENTRY_DIST" \
+            RELEASE_VERSION="$RELEASE_VERSION" SENTRY_DIST="$SENTRY_DIST" SENTRY_DSN="$SENTRY_DSN" \
             BUILD_NAME=${{ steps.ci-version.outputs.build-name }} \
             BUILD_NUMBER=${{ steps.ci-version.outputs.build-number }}
 
@@ -625,10 +632,11 @@ jobs:
           SIGNING_STORE_FILE: ${{ github.workspace }}/android/helium-release-key.jks
           SIGNING_STORE_PASSWORD: ${{ secrets.ANDROID_SIGNING_STORE_PASSWORD }}
           RELEASE_VERSION: ${{ steps.ci-version.outputs.build-name }}+${{ steps.ci-version.outputs.build-number }}
+          SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
         run: |
           SENTRY_DIST="${RELEASE_VERSION##*+}"
           make build-android-release ENVIRONMENT=prod \
-            RELEASE_VERSION="$RELEASE_VERSION" SENTRY_DIST="$SENTRY_DIST" \
+            RELEASE_VERSION="$RELEASE_VERSION" SENTRY_DIST="$SENTRY_DIST" SENTRY_DSN="$SENTRY_DSN" \
             BUILD_NAME=${{ steps.ci-version.outputs.build-name }} \
             BUILD_NUMBER=${{ steps.ci-version.outputs.build-number }}
 

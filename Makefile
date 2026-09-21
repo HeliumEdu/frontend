@@ -28,10 +28,15 @@ endif
 ifdef SENTRY_DIST
     RELEASE_ARGS += --dart-define=SENTRY_DIST=$(SENTRY_DIST)
 endif
+ifdef SENTRY_DSN
+    RELEASE_ARGS += --dart-define=SENTRY_DSN=$(SENTRY_DSN)
+endif
 ifdef FIREBASE_AUTH_DOMAIN
     RELEASE_ARGS += --dart-define=FIREBASE_AUTH_DOMAIN=$(FIREBASE_AUTH_DOMAIN)
 endif
-ifndef RELEASE_VERSION
+ifeq ($(origin PROJECT_API_HOST),command line)
+    RELEASE_ARGS += --dart-define=PROJECT_API_HOST=$(PROJECT_API_HOST)
+else ifndef RELEASE_VERSION
     RELEASE_ARGS += --dart-define=PROJECT_API_HOST=$(PROJECT_API_HOST)
 endif
 ifdef SENTRY_ENVIRONMENT
@@ -122,6 +127,9 @@ ifdef RELEASE_VERSION
 endif
 ifdef SENTRY_DIST
     DRIVE_ARGS += --dart-define=SENTRY_DIST=$(SENTRY_DIST)
+endif
+ifdef SENTRY_DSN
+    DRIVE_ARGS += --dart-define=SENTRY_DSN=$(SENTRY_DSN)
 endif
 
 all: build-docker-local run-docker
@@ -278,6 +286,7 @@ build-docker:
 		--build-arg FLUTTER_VERSION=$(FLUTTER_VERSION) \
 		--build-arg RELEASE_VERSION=$(RELEASE_VERSION) \
 		--build-arg SENTRY_DIST=$(SENTRY_DIST) \
+		--build-arg SENTRY_DSN=$(SENTRY_DSN) \
 		--build-arg SENTRY_ENVIRONMENT=$(SENTRY_ENVIRONMENT) \
 		--cache-from=type=local,src=$(DOCKER_CACHE_DIR) \
 		--cache-to=type=local,dest=$(DOCKER_CACHE_DIR),mode=max \
