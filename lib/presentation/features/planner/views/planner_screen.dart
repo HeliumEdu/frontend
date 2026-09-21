@@ -3147,20 +3147,6 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
       );
     }
 
-    if (PlannerHelper.shouldShowDeleteButton(plannerItem)) {
-      buttons.add(
-        Semantics(
-          label: 'Delete',
-          button: true,
-          child: HeliumIconButton(
-            onPressed: () => _deletePlannerItem(context, plannerItem),
-            icon: Icons.delete_outline,
-            color: foregroundColor,
-          ),
-        ),
-      );
-    }
-
     if (buttons.isEmpty) {
       return const SizedBox.shrink();
     }

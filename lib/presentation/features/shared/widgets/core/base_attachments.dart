@@ -379,7 +379,7 @@ abstract class BaseAttachmentsState extends State<BaseAttachmentsContent> {
                 },
                 icon: Icon(
                   Icons.close,
-                  color: context.colorScheme.error,
+                  color: context.colorScheme.secondary.withValues(alpha: 0.7),
                   size: Responsive.getIconSize(
                     context,
                     mobile: 20,

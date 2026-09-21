@@ -4,9 +4,11 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:heliumapp/core/helium_exception.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/data/models/planner/course_group_model.dart';
+import 'package:heliumapp/data/models/planner/course_model.dart';
 import 'package:heliumapp/data/models/planner/request/course_request_model.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/core/base_event.dart';
 import 'package:heliumapp/presentation/features/courses/bloc/course_bloc.dart';
+import 'package:heliumapp/presentation/features/planner/dialogs/confirm_delete_dialog.dart';
 import 'package:heliumapp/presentation/features/courses/bloc/course_event.dart';
 import 'package:heliumapp/presentation/features/courses/bloc/course_state.dart';
 import 'package:heliumapp/presentation/features/shared/controllers/basic_form_controller.dart';
@@ -63,6 +65,7 @@ class CourseDetailsState extends State<CourseDetails> {
   bool _isSubmitting = false;
   String? _error;
   CourseGroupModel? _courseGroup;
+  CourseModel? _course;
 
   @override
   void initState() {
@@ -324,6 +327,28 @@ class CourseDetailsState extends State<CourseDetails> {
     setState(() => _isSubmitting = false);
   }
 
+  void onDelete() {
+    if (_course == null) return;
+
+    showConfirmDeleteDialog(
+      parentContext: context,
+      item: _course!,
+      label: _course!.title,
+      additionalWarning:
+          'Any assignments associated with this class, including attachments and other data, will also be deleted.',
+      onDelete: (course) {
+        widget.onActionStarted?.call();
+        context.read<CourseBloc>().add(
+          DeleteCourseEvent(
+            origin: EventOrigin.subScreen,
+            courseGroupId: course.courseGroup,
+            courseId: course.id,
+          ),
+        );
+      },
+    );
+  }
+
   /// Submit the form. Called by parent screen when header save is pressed.
   bool onSubmit() {
     if (isLoading || _error != null || _isSubmitting) return false;
@@ -391,6 +416,7 @@ class CourseDetailsState extends State<CourseDetails> {
       _courseGroup = state.courseGroup;
 
       if (widget.isEdit) {
+        _course = state.course;
         formController.titleController.text = state.course!.title;
         formController.roomController.text = state.course!.room;
         formController.urlController.text = state.course!.website?.toString() ?? '';

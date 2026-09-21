@@ -111,14 +111,12 @@ class _NotebookDataGridState extends BaseDataGridState<NotebookDataGrid> {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.notes != widget.notes ||
         oldWidget.userSettings != widget.userSettings ||
-        oldWidget.onNoteTap != widget.onNoteTap ||
-        oldWidget.onDelete != widget.onDelete) {
+        oldWidget.onNoteTap != widget.onNoteTap) {
       _dataSource.update(
         notes: widget.notes,
         context: context,
         userSettings: widget.userSettings,
         onEdit: widget.onNoteTap,
-        onDelete: widget.onDelete,
       );
       // Defer setState because didUpdateWidget fires during the parent's build;
       // calling setState synchronously here would trigger a nested rebuild error
@@ -141,7 +139,7 @@ class _NotebookDataGridState extends BaseDataGridState<NotebookDataGrid> {
     final isTouchDevice = Responsive.isTouchDevice(context);
     final isCompact = Responsive.isCompact(context);
     final isCapturing = PrintableArea.capturing.value;
-    final showActions = !isTouchDevice && !isCapturing;
+    final showActions = !isTouchDevice && !isCapturing && !isCompact;
     final columns = _buildColumns(isMobile, isTablet, showActions, isCompact);
 
     final isShowingAll = widget.rowsPerPage == -1;
@@ -465,7 +463,7 @@ class _NotebookDataGridState extends BaseDataGridState<NotebookDataGrid> {
         GridColumn(
           columnName: 'actions',
           label: const SizedBox.shrink(),
-          width: isCompact ? 51 : 97,
+          width: 52,
           allowSorting: false,
         ),
       );
@@ -480,7 +478,6 @@ class _NotebookDataGridState extends BaseDataGridState<NotebookDataGrid> {
       context: context,
       userSettings: widget.userSettings,
       onEdit: widget.onNoteTap,
-      onDelete: widget.onDelete,
     );
   }
 
@@ -507,7 +504,6 @@ class NotesDataSource extends BaseDataGridSource {
   BuildContext context;
   UserSettingsModel? userSettings;
   Function(NoteModel) onEdit;
-  Function(BuildContext, NoteModel) onDelete;
   late List<DataGridRow> _allRows;
   late Map<int, NoteModel> _notesById;
 
@@ -515,7 +511,6 @@ class NotesDataSource extends BaseDataGridSource {
     required this.notes,
     required this.context,
     required this.onEdit,
-    required this.onDelete,
     this.userSettings,
   }) {
     sortedColumns.add(
@@ -650,14 +645,12 @@ class NotesDataSource extends BaseDataGridSource {
     required List<NoteModel> notes,
     required BuildContext context,
     required Function(NoteModel) onEdit,
-    required Function(BuildContext, NoteModel) onDelete,
     UserSettingsModel? userSettings,
   }) {
     this.notes = notes;
     this.context = context;
     this.userSettings = userSettings;
     this.onEdit = onEdit;
-    this.onDelete = onDelete;
     _rebuildRows();
     notifyListeners();
   }
@@ -800,7 +793,7 @@ class NotesDataSource extends BaseDataGridSource {
         case 'modified':
           return width >= NotebookColumn.modified.minViewportWidth!;
         case 'actions':
-          return !isTouchDevice && !PrintableArea.capturing.value;
+          return !isTouchDevice && !PrintableArea.capturing.value && !Responsive.isCompactWidth(width);
         default:
           return true;
       }
@@ -1031,24 +1024,12 @@ class NotesDataSource extends BaseDataGridSource {
             mainAxisSize: MainAxisSize.min,
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
-              if (!isCompact) ...[
-                Semantics(
-                  label: 'Edit',
-                  button: true,
-                  child: HeliumIconButton(
-                    onPressed: () => onEdit(note),
-                    icon: Icons.edit_outlined,
-                    color: context.colorScheme.onSurface,
-                  ),
-                ),
-                const SizedBox(width: 8),
-              ],
               Semantics(
-                label: 'Delete',
+                label: 'Edit',
                 button: true,
                 child: HeliumIconButton(
-                  onPressed: () => onDelete(context, note),
-                  icon: Icons.delete_outline,
+                  onPressed: () => onEdit(note),
+                  icon: Icons.edit_outlined,
                   color: context.colorScheme.onSurface,
                 ),
               ),

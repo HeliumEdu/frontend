@@ -10,11 +10,13 @@ import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/data/models/drop_down_item.dart';
 import 'package:heliumapp/data/models/planner/course_model.dart';
 import 'package:heliumapp/data/models/planner/resource_group_model.dart';
+import 'package:heliumapp/data/models/planner/resource_model.dart';
 import 'package:heliumapp/data/models/planner/request/resource_request_model.dart';
 import 'package:heliumapp/data/models/planner/request/note_request_model.dart';
 import 'package:heliumapp/presentation/features/notebook/bloc/note_bloc.dart';
 import 'package:heliumapp/presentation/features/notebook/bloc/note_event.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/core/base_event.dart';
+import 'package:heliumapp/presentation/features/planner/dialogs/confirm_delete_dialog.dart';
 import 'package:heliumapp/presentation/features/resources/bloc/resource_bloc.dart';
 import 'package:heliumapp/presentation/features/resources/bloc/resource_event.dart';
 import 'package:heliumapp/presentation/features/resources/bloc/resource_state.dart';
@@ -65,6 +67,7 @@ class ResourceDetailsState extends State<ResourceDetails> {
 
   List<CourseModel> _courses = [];
   List<DropDownItem<ResourceGroupModel>> _groupItems = [];
+  ResourceModel? _resource;
   bool isLoading = true;
   String? _error;
   bool _isSubmitting = false;
@@ -284,6 +287,27 @@ class ResourceDetailsState extends State<ResourceDetails> {
     setState(() => _isSubmitting = false);
   }
 
+  void onDelete() {
+    if (_resource == null) return;
+
+    showConfirmDeleteDialog(
+      parentContext: context,
+      item: _resource!,
+      label: _resource!.title,
+      additionalWarning: 'Its associated attachments and note will also be deleted.',
+      onDelete: (resource) {
+        widget.onActionStarted?.call();
+        context.read<ResourceBloc>().add(
+          DeleteResourceEvent(
+            origin: EventOrigin.subScreen,
+            resourceGroupId: resource.resourceGroup,
+            resourceId: resource.id,
+          ),
+        );
+      },
+    );
+  }
+
   Future<void> onSubmit({bool redirectToNotebook = false}) async {
     if (isLoading || _error != null || _isSubmitting) return;
     if (formController.validateAndScrollToError()) {
@@ -371,6 +395,7 @@ class ResourceDetailsState extends State<ResourceDetails> {
         .toList();
 
     if (widget.isEdit) {
+      _resource = state.resource;
       formController.titleController.text = state.resource!.title;
       formController.urlController.text = state.resource!.website?.toString() ?? '';
       formController.priceController.text = state.resource!.price ?? '';

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:heliumapp/config/app_route.dart';
+import 'package:heliumapp/config/app_theme.dart';
 import 'package:logging/logging.dart';
 import 'package:heliumapp/config/app_router.dart';
 import 'package:heliumapp/config/dirty_dialog_registry.dart';
@@ -16,6 +17,7 @@ import 'package:heliumapp/presentation/features/resources/bloc/resource_state.da
 import 'package:heliumapp/presentation/features/shared/bloc/core/base_event.dart';
 import 'package:heliumapp/presentation/features/shared/widgets/flow/multi_step_container.dart';
 import 'package:heliumapp/presentation/features/resources/widgets/resource_details.dart';
+import 'package:heliumapp/presentation/ui/components/helium_icon_button.dart';
 import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
 import 'package:heliumapp/utils/deep_link_helpers.dart';
 import 'package:heliumapp/utils/snack_bar_helpers.dart';
@@ -212,6 +214,23 @@ class _ResourceAddScreenState
       _detailsKey.currentState?.formController.isUserDirty ?? false;
 
   @override
+  List<Widget> get additionalHeaderButtons {
+    if (currentStep != 0) return const [];
+    if (_currentResourceId == null) return const [];
+    return [
+      Semantics(
+        label: 'Delete',
+        button: true,
+        child: HeliumIconButton(
+          onPressed: () => _detailsKey.currentState?.onDelete(),
+          icon: Icons.delete_outline,
+          color: context.colorScheme.error,
+        ),
+      ),
+    ];
+  }
+
+  @override
   Function? get saveAction {
     if (steps[currentStep].stepScreenType != ScreenType.entityPage) {
       return null;
@@ -319,6 +338,9 @@ class _ResourceAddScreenState
               showSnackBar(context, 'Resource created.', useRootMessenger: true);
               closeWithoutPrompt();
             }
+          } else if (state is ResourceDeleted) {
+            showSnackBar(context, 'Resource deleted.', useRootMessenger: true);
+            closeWithoutPrompt();
           } else if (state is ResourceUpdated) {
             if (state.redirectToNotebook) {
               _log.info('Resource updated with notebook redirect (resourceId=${state.resource.id})');

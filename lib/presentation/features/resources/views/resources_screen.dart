@@ -12,7 +12,6 @@ import 'package:heliumapp/data/models/planner/resource_model.dart';
 import 'package:heliumapp/presentation/core/views/base_page_screen_state.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_bloc.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_state.dart';
-import 'package:heliumapp/presentation/features/planner/dialogs/confirm_delete_dialog.dart';
 import 'package:heliumapp/presentation/features/notebook/bloc/note_bloc.dart';
 import 'package:heliumapp/presentation/features/notebook/bloc/note_state.dart';
 import 'package:heliumapp/presentation/features/resources/bloc/resource_bloc.dart';
@@ -265,14 +264,6 @@ class _ResourcesScreenState
               group: group,
             );
           },
-          onDelete: (g) {
-            context.read<ResourceBloc>().add(
-              DeleteResourceGroupEvent(
-                origin: EventOrigin.screen,
-                resourceGroupId: g.id,
-              ),
-            );
-          },
         ),
       ),
     );
@@ -482,7 +473,7 @@ class _ResourcesScreenState
                     ),
                     const SizedBox(width: 8),
                   ],
-                  if (!Responsive.isMobile(context)) ...[
+                  if (!Responsive.isMobile(context))
                     PrintHidden(
                       child: Semantics(
                         label: 'Edit',
@@ -493,36 +484,6 @@ class _ResourcesScreenState
                         ),
                       ),
                     ),
-                    const SizedBox(width: 8),
-                  ],
-                  PrintHidden(
-                    child: Semantics(
-                      label: 'Delete',
-                      button: true,
-                      child: HeliumIconButton(
-                        onPressed: () {
-                          showConfirmDeleteDialog(
-                            parentContext: context,
-                            item: resource,
-                            label: resource.title,
-                            additionalWarning:
-                                'Its associated attachments and note will also be deleted.',
-                            onDelete: (m) {
-                              context.read<ResourceBloc>().add(
-                                DeleteResourceEvent(
-                                  origin: EventOrigin.screen,
-                                  resourceGroupId: m.resourceGroup,
-                                  resourceId: m.id,
-                                ),
-                              );
-                            },
-                          );
-                        },
-                        icon: Icons.delete_outline,
-                        color: context.colorScheme.error,
-                      ),
-                    ),
-                  ),
                 ],
               ),
 

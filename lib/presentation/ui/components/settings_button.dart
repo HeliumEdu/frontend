@@ -15,7 +15,9 @@ class SettingsButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return IconButton(
       key: const Key(buttonKey),
-      visualDensity: compact ? VisualDensity.compact : VisualDensity.standard,
+      style: compact
+          ? IconButton.styleFrom(tapTargetSize: MaterialTapTargetSize.shrinkWrap)
+          : null,
       onPressed: () {
         if (!context.mounted) return;
         // Push relative to the current shell tab so settings overlays it

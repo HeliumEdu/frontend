@@ -9,7 +9,6 @@ import 'package:heliumapp/core/analytics_service.dart';
 import 'package:heliumapp/core/dio_client.dart';
 import 'package:heliumapp/utils/color_helpers.dart';
 import 'package:heliumapp/data/models/auth/user_settings_model.dart';
-import 'package:heliumapp/data/models/base_model.dart';
 import 'package:heliumapp/data/models/planner/course_group_model.dart';
 import 'package:heliumapp/data/models/planner/course_model.dart';
 import 'package:heliumapp/data/models/planner/course_schedule_model.dart';
@@ -26,7 +25,6 @@ import 'package:heliumapp/presentation/features/planner/bloc/attachment_bloc.dar
 import 'package:heliumapp/presentation/features/planner/bloc/attachment_state.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/reminder_bloc.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/reminder_state.dart';
-import 'package:heliumapp/presentation/features/planner/dialogs/confirm_delete_dialog.dart';
 import 'package:heliumapp/presentation/features/courses/dialogs/course_group_dialog.dart';
 import 'package:heliumapp/presentation/core/views/base_page_screen_state.dart';
 import 'package:heliumapp/presentation/features/courses/views/course_add_screen.dart';
@@ -380,14 +378,6 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen> {
               group: group,
             );
           },
-          onDelete: (g) => {
-            context.read<CourseBloc>().add(
-              DeleteCourseGroupEvent(
-                origin: EventOrigin.screen,
-                courseGroupId: (g as BaseModel).id,
-              ),
-            ),
-          },
         ),
       ),
     );
@@ -583,39 +573,13 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen> {
                     ),
                     const SizedBox(width: 8),
                   ],
-                  if (!Responsive.isMobile(context)) ...[
+                  if (!Responsive.isMobile(context))
                     PrintHidden(
                       child: HeliumIconButton(
                         onPressed: () => _onEdit(course),
                         icon: Icons.edit_outlined,
                       ),
                     ),
-                    const SizedBox(width: 8),
-                  ],
-                  PrintHidden(
-                    child: HeliumIconButton(
-                      onPressed: () {
-                        showConfirmDeleteDialog(
-                          parentContext: context,
-                          item: course,
-                          label: course.title,
-                          additionalWarning:
-                              'Any assignments associated with this class, including attachments and other data, will also be deleted.',
-                          onDelete: (c) {
-                            context.read<CourseBloc>().add(
-                              DeleteCourseEvent(
-                                origin: EventOrigin.screen,
-                                courseGroupId: c.courseGroup,
-                                courseId: c.id,
-                              ),
-                            );
-                          },
-                        );
-                      },
-                      icon: Icons.delete_outline,
-                      color: context.colorScheme.error,
-                    ),
-                  ),
                 ],
               ),
 

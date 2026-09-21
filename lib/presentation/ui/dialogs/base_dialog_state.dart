@@ -106,9 +106,20 @@ abstract class BaseDialogState<T extends StatefulWidget> extends State<T> {
 
   void cancelAction() => Navigator.pop(context);
 
+  Widget? buildLeadingAction() => null;
+
+  double get actionButtonSize =>
+      HeliumElevatedButton.minimumHeight +
+      Theme.of(context).visualDensity.baseSizeAdjustment.dy;
+
   Widget buildButtonArea() {
+    final leadingAction = buildLeadingAction();
     return Row(
       children: [
+        if (leadingAction != null) ...[
+          leadingAction,
+          const SizedBox(width: _buttonSpacing),
+        ],
         Expanded(
           child: HeliumElevatedButton(
             buttonText: 'Cancel',

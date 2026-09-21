@@ -189,7 +189,7 @@ class TodosDataGridState extends BaseDataGridState<TodosDataGrid> {
     final isTouchDevice = Responsive.isTouchDevice(context);
     final isCompact = Responsive.isCompact(context);
     final isCapturing = PrintableArea.capturing.value;
-    final showActions = !(isTouchDevice || isCapturing);
+    final showActions = !(isTouchDevice || isCapturing || isMobile);
 
     final headerColor =
         context.colorScheme.surfaceContainerHighest.withValues(alpha: 0.5);
@@ -527,7 +527,7 @@ class TodosDataGridState extends BaseDataGridState<TodosDataGrid> {
       columns.add(GridColumn(
         columnName: 'actions',
         label: const SizedBox.shrink(),
-        width: isCompact ? 42 : 178,
+        width: isCompact ? 42 : 134,
         allowSorting: false,
       ));
     }
@@ -712,7 +712,6 @@ class TodosDataGridState extends BaseDataGridState<TodosDataGrid> {
       dataSource: widget.dataSource,
       onTap: widget.onTap,
       onToggleCompleted: widget.onToggleCompleted,
-      onDelete: widget.onDelete,
     );
 
     _dataSource.updatePagination(
@@ -735,7 +734,6 @@ class TodosDataGridState extends BaseDataGridState<TodosDataGrid> {
       dataSource: widget.dataSource,
       onTap: widget.onTap,
       onToggleCompleted: widget.onToggleCompleted,
-      onDelete: widget.onDelete,
     );
   }
 
@@ -778,7 +776,6 @@ class TodosDataGridState extends BaseDataGridState<TodosDataGrid> {
       dataSource: widget.dataSource,
       onTap: widget.onTap,
       onToggleCompleted: widget.onToggleCompleted,
-      onDelete: widget.onDelete,
     );
     _dataSource.updatePagination(
       currentPage: _currentPage,
@@ -807,7 +804,6 @@ class TodosDataSource extends BaseDataGridSource {
   PlannerItemDataSource _dataSource;
   Function(HomeworkModel) _onTap;
   Function(HomeworkModel, bool) _onToggleCompleted;
-  Function(BuildContext, HomeworkModel) _onDelete;
 
   Map<int, HomeworkModel> _homeworksById = {};
 
@@ -817,13 +813,11 @@ class TodosDataSource extends BaseDataGridSource {
     required PlannerItemDataSource dataSource,
     required Function(HomeworkModel) onTap,
     required Function(HomeworkModel, bool) onToggleCompleted,
-    required Function(BuildContext, HomeworkModel) onDelete,
   })  : _homeworks = homeworks,
         _context = context,
         _dataSource = dataSource,
         _onTap = onTap,
-        _onToggleCompleted = onToggleCompleted,
-        _onDelete = onDelete {
+        _onToggleCompleted = onToggleCompleted {
     sortedColumns.add(
       const SortColumnDetails(
         name: 'due',
@@ -898,14 +892,12 @@ class TodosDataSource extends BaseDataGridSource {
     required PlannerItemDataSource dataSource,
     required Function(HomeworkModel) onTap,
     required Function(HomeworkModel, bool) onToggleCompleted,
-    required Function(BuildContext, HomeworkModel) onDelete,
   }) {
     _homeworks = homeworks;
     _context = context;
     _dataSource = dataSource;
     _onTap = onTap;
     _onToggleCompleted = onToggleCompleted;
-    _onDelete = onDelete;
     _rebuildRows();
     notifyListeners();
   }
@@ -1021,7 +1013,7 @@ class TodosDataSource extends BaseDataGridSource {
         case 'meta':
           return width >= TodosColumn.meta.minViewportWidth!;
         case 'actions':
-          return !isTouchDevice && !PrintableArea.capturing.value;
+          return !isTouchDevice && !PrintableArea.capturing.value && width >= ResponsiveBreakpoints.mobile;
         default:
           return true;
       }
@@ -1298,20 +1290,6 @@ class TodosDataSource extends BaseDataGridSource {
           ),
         );
       }
-    }
-
-    if (PlannerHelper.shouldShowDeleteButton(homework)) {
-      buttons.add(
-        Semantics(
-          label: 'Delete',
-          button: true,
-          child: HeliumIconButton(
-            onPressed: () => _onDelete(_context, homework),
-            icon: Icons.delete_outlined,
-            color: _context.colorScheme.onSurface,
-          ),
-        ),
-      );
     }
 
     return Container(

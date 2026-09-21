@@ -6,6 +6,7 @@ import 'package:heliumapp/data/models/planner/course_group_model.dart';
 import 'package:heliumapp/data/models/planner/request/course_group_request_model.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/core/base_event.dart';
 import 'package:heliumapp/presentation/features/courses/bloc/course_bloc.dart';
+import 'package:heliumapp/presentation/features/planner/dialogs/confirm_delete_dialog.dart';
 import 'package:heliumapp/presentation/features/courses/bloc/course_event.dart';
 import 'package:heliumapp/presentation/features/courses/bloc/course_state.dart';
 import 'package:heliumapp/presentation/features/courses/dialogs/course_exceptions_dialog.dart';
@@ -14,6 +15,7 @@ import 'package:heliumapp/presentation/features/shared/controllers/basic_form_co
 import 'package:heliumapp/presentation/features/courses/controllers/course_group_form_controller.dart';
 import 'package:heliumapp/presentation/ui/components/helium_checkbox_list_tile.dart';
 import 'package:heliumapp/presentation/ui/components/helium_elevated_button.dart';
+import 'package:heliumapp/presentation/ui/components/helium_icon_button.dart';
 import 'package:heliumapp/presentation/ui/components/label_and_text_form_field.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/config/app_theme.dart';
@@ -77,7 +79,8 @@ class _CourseGroupWidgetState
               errorMessage = state.message;
             });
           } else if (state is CourseGroupCreated ||
-              state is CourseGroupUpdated) {
+              state is CourseGroupUpdated ||
+              state is CourseGroupDeleted) {
             Navigator.pop(context);
           }
 
@@ -89,6 +92,38 @@ class _CourseGroupWidgetState
         },
       ),
     ];
+  }
+
+  @override
+  Widget? buildLeadingAction() {
+    if (!widget.isEdit) return null;
+    return Semantics(
+      label: 'Delete',
+      button: true,
+      child: HeliumIconButton(
+        onPressed: () {
+          showConfirmDeleteDialog(
+            parentContext: context,
+            item: widget.group!,
+            label: widget.group!.title,
+            additionalWarning:
+                'Anything in this group, including attachments and other data, will also be deleted.',
+            onDelete: (value) {
+              setState(() => isSubmitting = true);
+              context.read<CourseBloc>().add(
+                DeleteCourseGroupEvent(
+                  origin: EventOrigin.dialog,
+                  courseGroupId: value.id,
+                ),
+              );
+            },
+          );
+        },
+        icon: Icons.delete_outlined,
+        color: context.colorScheme.error,
+        minimumSize: actionButtonSize,
+      ),
+    );
   }
 
   @override

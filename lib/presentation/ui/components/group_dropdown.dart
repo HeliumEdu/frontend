@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/data/models/base_model.dart';
 import 'package:heliumapp/data/models/planner/course_group_model.dart';
-import 'package:heliumapp/presentation/features/planner/dialogs/confirm_delete_dialog.dart';
 import 'package:heliumapp/presentation/ui/components/helium_elevated_button.dart';
 import 'package:heliumapp/presentation/ui/components/helium_icon_button.dart';
 import 'package:heliumapp/presentation/ui/layout/shadow_container.dart';
@@ -16,7 +15,6 @@ class GroupDropdown<T extends BaseTitledModel> extends StatelessWidget {
   final bool isReadOnly;
   final VoidCallback? onCreate;
   final Function(T)? onEdit;
-  final Function(T)? onDelete;
   final T? initialSelection;
 
   /// Determines whether a given group shows edit/delete controls. Defaults
@@ -31,7 +29,6 @@ class GroupDropdown<T extends BaseTitledModel> extends StatelessWidget {
     this.isReadOnly = false,
     this.onCreate,
     this.onEdit,
-    this.onDelete,
     this.initialSelection,
     this.isEditable,
   });
@@ -123,30 +120,6 @@ class GroupDropdown<T extends BaseTitledModel> extends StatelessWidget {
                   onEdit!(item);
                 },
                 icon: Icons.edit_outlined,
-              ),
-            ),
-            const SizedBox(width: 8),
-            Semantics(
-              label: 'Delete',
-              button: true,
-              child: HeliumIconButton(
-                onPressed: () {
-                  if (Navigator.canPop(context)) {
-                    Navigator.pop(context);
-                  }
-                  showConfirmDeleteDialog(
-                    parentContext: context,
-                    item: item,
-                    label: item.title,
-                    additionalWarning:
-                        'Anything in this group, including attachments and other data, will also be deleted.',
-                    onDelete: (value) {
-                      onDelete!(value);
-                    },
-                  );
-                },
-                icon: Icons.delete_outlined,
-                color: context.colorScheme.error,
               ),
             ),
             const SizedBox(width: 8),

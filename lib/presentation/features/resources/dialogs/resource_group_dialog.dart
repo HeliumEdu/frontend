@@ -1,9 +1,11 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/data/models/base_model.dart';
 import 'package:heliumapp/data/models/planner/resource_group_model.dart';
 import 'package:heliumapp/data/models/planner/request/resource_group_request_model.dart';
+import 'package:heliumapp/presentation/features/planner/dialogs/confirm_delete_dialog.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/core/base_event.dart';
 import 'package:heliumapp/presentation/features/resources/bloc/resource_bloc.dart';
 import 'package:heliumapp/presentation/features/resources/bloc/resource_event.dart';
@@ -12,6 +14,7 @@ import 'package:heliumapp/presentation/ui/dialogs/base_dialog_state.dart';
 import 'package:heliumapp/presentation/features/shared/controllers/basic_form_controller.dart';
 import 'package:heliumapp/presentation/features/resources/controllers/resource_group_form_controller.dart';
 import 'package:heliumapp/presentation/ui/components/helium_checkbox_list_tile.dart';
+import 'package:heliumapp/presentation/ui/components/helium_icon_button.dart';
 import 'package:heliumapp/presentation/ui/components/label_and_text_form_field.dart';
 import 'package:heliumapp/utils/app_style.dart';
 
@@ -68,7 +71,8 @@ class _ResourceGroupWidgetState
               errorMessage = state.message;
             });
           } else if (state is ResourceGroupCreated ||
-              state is ResourceGroupUpdated) {
+              state is ResourceGroupUpdated ||
+              state is ResourceGroupDeleted) {
             Navigator.pop(context);
           }
 
@@ -80,6 +84,38 @@ class _ResourceGroupWidgetState
         },
       ),
     ];
+  }
+
+  @override
+  Widget? buildLeadingAction() {
+    if (!widget.isEdit) return null;
+    return Semantics(
+      label: 'Delete',
+      button: true,
+      child: HeliumIconButton(
+        onPressed: () {
+          showConfirmDeleteDialog(
+            parentContext: context,
+            item: widget.group!,
+            label: widget.group!.title,
+            additionalWarning:
+                'Anything in this group, including attachments and other data, will also be deleted.',
+            onDelete: (value) {
+              setState(() => isSubmitting = true);
+              context.read<ResourceBloc>().add(
+                DeleteResourceGroupEvent(
+                  origin: EventOrigin.dialog,
+                  resourceGroupId: value.id,
+                ),
+              );
+            },
+          );
+        },
+        icon: Icons.delete_outlined,
+        color: context.colorScheme.error,
+        minimumSize: actionButtonSize,
+      ),
+    );
   }
 
   @override

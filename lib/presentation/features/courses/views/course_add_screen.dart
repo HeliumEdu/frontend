@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:heliumapp/config/app_route.dart';
+import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/config/app_router.dart';
 import 'package:heliumapp/config/dirty_dialog_registry.dart';
 import 'package:heliumapp/presentation/features/courses/bloc/course_bloc.dart';
@@ -15,6 +16,7 @@ import 'package:heliumapp/presentation/features/courses/widgets/course_attachmen
 import 'package:heliumapp/presentation/features/shared/widgets/core/base_attachments.dart';
 import 'package:heliumapp/presentation/features/courses/widgets/course_categories.dart';
 import 'package:heliumapp/presentation/features/courses/widgets/course_details.dart';
+import 'package:heliumapp/presentation/ui/components/helium_icon_button.dart';
 import 'package:heliumapp/presentation/features/courses/widgets/course_reminders.dart';
 import 'package:heliumapp/presentation/features/courses/widgets/course_schedule.dart';
 import 'package:heliumapp/utils/snack_bar_helpers.dart';
@@ -228,6 +230,23 @@ class _CourseAddScreenState extends MultiStepContainerState<CourseAddScreen> {
   IconData? get icon => Icons.school;
 
   @override
+  List<Widget> get additionalHeaderButtons {
+    if (currentStep != 0) return const [];
+    if (_currentCourseId == null) return const [];
+    return [
+      Semantics(
+        label: 'Delete',
+        button: true,
+        child: HeliumIconButton(
+          onPressed: () => _detailsKey.currentState?.onDelete(),
+          icon: Icons.delete_outline,
+          color: context.colorScheme.error,
+        ),
+      ),
+    ];
+  }
+
+  @override
   bool get deferDismissal =>
       _attachmentsKey.currentState?.isSubmitting ?? false;
 
@@ -308,6 +327,9 @@ class _CourseAddScreenState extends MultiStepContainerState<CourseAddScreen> {
               // Course not found after fetch; back out to the index.
               context.go(widget.shellPath);
             }
+          } else if (state is CourseDeleted) {
+            showSnackBar(context, 'Class deleted.', useRootMessenger: true);
+            closeWithoutPrompt();
           } else if (state is CourseCreated || state is CourseUpdated) {
             state as CourseEntityState;
 

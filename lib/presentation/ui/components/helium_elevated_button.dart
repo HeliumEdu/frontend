@@ -5,7 +5,7 @@ import 'package:heliumapp/utils/app_style.dart';
 
 class HeliumElevatedButton extends StatefulWidget {
   static const _buttonBorderRadius = 6.0;
-  static const _buttonMinHeight = 44.0;
+  static const minimumHeight = 44.0;
   static const _buttonHorizontalPadding = 12.0;
   static const _iconSize = 16.0;
   static const _loadingIndicatorSize = 20.0;
@@ -40,7 +40,7 @@ class HeliumElevatedButton extends StatefulWidget {
     ColorScheme colorScheme, {
     Color? backgroundColor,
     double minimumWidth = double.infinity,
-    double minimumHeight = _buttonMinHeight,
+    double minimumHeight = minimumHeight,
   }) {
     return ButtonStyle(
       backgroundColor: WidgetStatePropertyAll(
@@ -104,7 +104,7 @@ class _HeliumElevatedButtonState extends State<HeliumElevatedButton> {
         context.colorScheme,
         backgroundColor: effectiveBg,
         minimumWidth: widget.fullWidth ? double.infinity : 0,
-        minimumHeight: widget.minHeight ?? HeliumElevatedButton._buttonMinHeight,
+        minimumHeight: widget.minHeight ?? HeliumElevatedButton.minimumHeight,
       ).copyWith(
         tapTargetSize: MaterialTapTargetSize.shrinkWrap,
         visualDensity: widget.visualDensity,

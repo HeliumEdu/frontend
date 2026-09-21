@@ -1567,7 +1567,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
                 majorTickLines: const charts.MajorTickLines(size: 0),
                 plotBands: [
                   charts.PlotBand(
-                    isVisible: true,
+                    isVisible: _atRiskThreshold > yAxisRange.min,
                     start: 0,
                     end: _atRiskThreshold,
                     color: context.semanticColors.warning.withValues(
