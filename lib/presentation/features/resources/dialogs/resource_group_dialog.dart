@@ -99,7 +99,7 @@ class _ResourceGroupWidgetState
             item: widget.group!,
             label: widget.group!.title,
             additionalWarning:
-                'Anything in this group, including attachments and other data, will also be deleted.',
+                'Anything in this group, including resources, will also be deleted.',
             onDelete: (value) {
               setState(() => isSubmitting = true);
               context.read<ResourceBloc>().add(
