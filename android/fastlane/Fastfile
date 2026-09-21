@@ -37,7 +37,48 @@ platform :android do
     )
   end
 
-  desc "Promote the Internal-track release candidate to Production, pushing metadata text every time and store-listing assets only when push_store_assets:true. Leaves the release as a draft for the operator to send for review; set submit_for_review:true to send it from CI. Managed Publishing gates the post-review publish either way."
+  desc "Re-create the Internal release for a version code whose bundle Play already holds. Every CI preview replaces the Internal release, so a deploy that runs later than its release (a re-deploy of latest, a specific version, a rollback) finds its candidate gone; this puts it back from Play's artifact library without re-uploading the AAB, which Play would reject as a duplicate version code."
+  private_lane :ensure_staged_on_internal do |options|
+    version = options[:version]
+    version_code = options[:version_code].to_i
+
+    staged_codes = google_play_track_version_codes(track: 'internal')
+    if staged_codes.include?(version_code)
+      UI.message("Version code #{version_code} is already on the Internal track")
+      next
+    end
+
+    UI.important("Version code #{version_code} is no longer on the Internal track (found: #{staged_codes.inspect}); re-staging it from Play's artifact library")
+    # supply's upload_to_play_store only writes a track when it has uploaded a
+    # binary in the same run (version_codes_to_retain alone is a no-op since
+    # fastlane 2.238), so drive its Play client directly with the same
+    # tracks.update call it would otherwise make.
+    #
+    # Draft, not completed: Play refuses a completed rollout whose codes are
+    # all lower than the track's current release, which is exactly the case
+    # when a newer CI preview has landed. A draft is not a rollout, so it is
+    # exempt, and it leaves the preview live for testers. Promotion accepts a
+    # release of any status when filtered by version_code.
+    #
+    # Actions run from the project dir (fastlane chdirs up for each one) while
+    # lane bodies run from fastlane/, so step up to match and let the Appfile's
+    # relative json_key_file resolve the way it does for every action.
+    require 'supply'
+    Dir.chdir('..') do
+      Supply.config = FastlaneCore::Configuration.create(Supply::Options.available_options, { track: 'internal' })
+      client = Supply::Client.make_from_config
+      client.begin_edit(package_name: Supply.config[:package_name])
+      track = client.tracks('internal').first || AndroidPublisher::Track.new(track: 'internal')
+      track.releases = [
+        AndroidPublisher::TrackRelease.new(name: version, status: 'draft', version_codes: [version_code])
+      ]
+      client.update_track('internal', track)
+      client.commit_current_edit!
+    end
+    UI.success("Re-staged #{version} (#{version_code}) on the Internal track as a draft")
+  end
+
+  desc "Promote the Internal-track release candidate to Production, pushing metadata text every time and store-listing assets only when push_store_assets:true. Re-stages the candidate on Internal first if a CI preview has since replaced it, so the lane is idempotent for a fresh release, a re-deploy, or a rollback. Leaves the release as a draft for the operator to send for review; set submit_for_review:true to send it from CI. Managed Publishing gates the post-review publish either way."
   lane :deploy_production do |options|
     version = options[:version]
     version_code = options[:version_code]
@@ -64,11 +105,13 @@ platform :android do
     FileUtils.mkdir_p(changelog_dir)
     FileUtils.cp(template, changelog)
 
+    ensure_staged_on_internal(version: version, version_code: version_code)
+
     # supply promotes only on a run that uploads no binary of its own, so both
     # skip flags are load-bearing. The promoted release keeps the name stamped
-    # on the Internal release at build time, which leaves version_name inert
-    # here; version_code picks which Internal release carries over, and names
-    # the changelog supply looks for.
+    # on the Internal release, which leaves version_name inert here;
+    # version_code picks which Internal release carries over, and names the
+    # changelog supply looks for.
     upload_to_play_store(
       metadata_path: metadata_dir,
       track: 'internal',
