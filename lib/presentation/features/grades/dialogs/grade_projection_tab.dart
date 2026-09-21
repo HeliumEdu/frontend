@@ -210,7 +210,9 @@ class _GradeProjectionTabState extends State<GradeProjectionTab> {
               ),
               const SizedBox(width: 8),
               Text(
-                HeliumDateTime.formatDateForTodos(item.start),
+                HeliumDateTime.formatDateForTodos(
+                  HeliumDateTime.toLocal(item.start, widget.userSettings.timeZone),
+                ),
                 style: AppStyles.smallSecondaryText(context).copyWith(
                   color: context.colorScheme.outline,
                 ),
