@@ -13,11 +13,11 @@ class MobileGestureDetector extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isMobile = Responsive.isMobile(context);
+    final opensOnTap = !Responsive.showItemActions(context);
     return MouseRegion(
-      cursor: isMobile ? SystemMouseCursors.click : MouseCursor.defer,
+      cursor: opensOnTap ? SystemMouseCursors.click : MouseCursor.defer,
       child: GestureDetector(
-        onTap: isMobile
+        onTap: opensOnTap
             ? () {
                 Feedback.forTap(context);
                 onTap();

@@ -346,7 +346,7 @@ class PlannerHelper {
   }
 
   static bool shouldShowEditButton(BuildContext context) {
-    return !Responsive.isMobile(context);
+    return Responsive.showItemActions(context);
   }
 
   static bool shouldShowEditButtonForPlannerItem(
@@ -363,6 +363,9 @@ class PlannerHelper {
   static bool shouldShowDeleteButton(PlannerItemBaseModel plannerItem) {
     return plannerItem is HomeworkModel || plannerItem is EventModel;
   }
+
+  static bool shouldOpenOnItemTap(BuildContext context) =>
+      !shouldShowEditButton(context);
 
   static List<CourseModel> sortByGroupStartThenByTitle(
     List<CourseModel> courses,

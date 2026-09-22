@@ -120,14 +120,14 @@ Widget _buildContent(
                     ),
                     if (!isMobile)
                       IconButton(
+                        style: IconButton.styleFrom(
+                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        ),
                         onPressed: () => Navigator.of(menuContext).pop(),
                         icon: Icon(
                           Icons.close,
-                          size: 20,
-                          color: menuContext.colorScheme.primary,
+                          color: menuContext.colorScheme.secondary,
                         ),
-                        padding: EdgeInsets.zero,
-                        constraints: const BoxConstraints(),
                       ),
                   ],
                 ),

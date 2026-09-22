@@ -1092,8 +1092,9 @@ class TodosDataSource extends BaseDataGridSource {
     return Center(
       child: Checkbox(
         value: isCompleted,
-        onChanged: (value) {
-          _onToggleCompleted(homework, value!);
+        onChanged: (_) {
+          final currentValue = _dataSource.isHomeworkCompleted(homework);
+          _onToggleCompleted(homework, !currentValue);
         },
         activeColor: checkColor,
         side: BorderSide(color: checkColor, width: 2),

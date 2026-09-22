@@ -11,6 +11,8 @@ import 'package:heliumapp/config/dirty_dialog_registry.dart';
 import 'package:heliumapp/config/donation_config.dart';
 import 'package:heliumapp/config/theme_notifier.dart';
 import 'package:heliumapp/data/models/auth/request/update_settings_request_model.dart';
+import 'package:heliumapp/presentation/features/shared/bloc/info/info_bloc.dart';
+import 'package:heliumapp/presentation/features/shared/bloc/info/info_state.dart';
 import 'package:heliumapp/presentation/core/views/base_page_screen_state.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_bloc.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_event.dart';
@@ -79,6 +81,33 @@ class SettingsScreen extends StatefulWidget {
 }
 
 class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
+  @override
+  List<Widget> get additionalRightHeaderButtons {
+    final sessionFailed =
+        settingsError != null ||
+        context.watch<InfoBloc>().state is InfoLoadFailed;
+    if (!sessionFailed) {
+      return const [];
+    }
+
+    return [
+      Semantics(
+        label: 'Sign out',
+        button: true,
+        child: IconButton(
+          style: IconButton.styleFrom(
+            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          ),
+          onPressed: () => _showLogoutDialog(context, force: true),
+          icon: Icon(
+            Icons.logout_outlined,
+            color: context.semanticColors.warning,
+          ),
+        ),
+      ),
+    ];
+  }
+
   final _preferencesKey = GlobalKey<PreferencesScreenState>();
   final _changeEmailKey = GlobalKey<ChangeEmailScreenState>();
   final _changePasswordKey = GlobalKey<ChangePasswordScreenState>();
@@ -1094,7 +1123,7 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
     );
   }
 
-  void _showLogoutDialog(BuildContext parentContext) {
+  void _showLogoutDialog(BuildContext parentContext, {bool force = false}) {
     bool isSubmitting = false;
 
     showDialog(
@@ -1146,6 +1175,11 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
                           });
 
                           Navigator.of(dialogContext).pop();
+
+                          if (force) {
+                            unawaited(dioClient.forceLogout());
+                            return;
+                          }
 
                           parentContext.read<AuthBloc>().add(LogoutEvent());
                         },

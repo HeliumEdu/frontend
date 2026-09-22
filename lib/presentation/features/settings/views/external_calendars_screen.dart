@@ -260,7 +260,7 @@ class ExternalCalendarsScreenState extends State<ExternalCalendarsScreen> {
                       },
               ),
               const SizedBox(width: 8),
-              if (!Responsive.isMobile(context)) ...[
+              if (Responsive.showItemActions(context)) ...[
                 Semantics(
                   label: 'Edit',
                   button: true,

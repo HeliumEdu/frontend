@@ -473,7 +473,7 @@ class _ResourcesScreenState
                     ),
                     const SizedBox(width: 8),
                   ],
-                  if (!Responsive.isMobile(context))
+                  if (Responsive.showItemActions(context))
                     PrintHidden(
                       child: Semantics(
                         label: 'Edit',

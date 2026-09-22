@@ -4,6 +4,7 @@ import 'package:heliumapp/data/models/planner/planner_item_base_model.dart';
 import 'package:heliumapp/data/sources/planner_item_data_source.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/date_time_helpers.dart';
+import 'package:heliumapp/utils/responsive_helpers.dart';
 
 class PlannerDayPopOutDialog extends StatefulWidget {
   final DateTime date;
@@ -38,33 +39,34 @@ class _PlannerDayPopOutDialogState extends State<PlannerDayPopOutDialog> {
         final currentItems = widget.dataSource.getItemsForDay(widget.date);
 
         return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
           child: Container(
-            width: 360,
+            width: Responsive.getDialogWidth(context),
             constraints: const BoxConstraints(maxHeight: 480),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
                 Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 12, 8, 8),
+                  padding: const EdgeInsets.fromLTRB(20, 12, 12, 8),
                   child: Row(
                     children: [
                       Expanded(
                         child: Text(
                           HeliumDateTime.formatDateWithDay(widget.date),
-                          style: AppStyles.headingText(
-                            context,
-                          ).copyWith(color: context.colorScheme.onSurface),
+                          style: AppStyles.pageTitle(context),
                         ),
                       ),
                       IconButton(
+                        style: IconButton.styleFrom(
+                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        ),
                         onPressed: () => Navigator.of(context).pop(),
                         icon: Icon(
                           Icons.close,
-                          size: 20,
-                          color: context.colorScheme.primary,
+                          color: context.colorScheme.secondary,
                         ),
-                        padding: EdgeInsets.zero,
-                        constraints: const BoxConstraints(),
                       ),
                     ],
                   ),

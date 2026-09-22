@@ -249,11 +249,11 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
   final Map<int, bool> _pendingToggleValues = {};
   static const _toggleDebounceDuration = Duration(milliseconds: 400);
 
-  // Tracks IDs whose completion update has been dispatched to the BLoC and is
-  // awaiting a server response. On success (HomeworkUpdated) the ID is removed.
-  // On failure (PlannerItemsError) all in-flight overrides are cleared so the
-  // UI reverts to the last known server state rather than staying stuck.
-  final Set<int> _inFlightCompletionIds = {};
+  // Completion updates dispatched to the BLoC and awaiting a response, per
+  // homework ID. A response is stale while the count is above zero.
+  final Map<int, int> _inFlightCompletionCounts = {};
+
+  Offset? _timelineTapPosition;
 
   int? _deferredOpenItemId;
   VoidCallback? _deferredOpenAction;
@@ -388,7 +388,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
     }
     _pendingToggleTimers.clear();
     _pendingToggleValues.clear();
-    _inFlightCompletionIds.clear();
+    _inFlightCompletionCounts.clear();
     _deferredOpenItemId = null;
     _deferredOpenAction = null;
     _plannerItemDataSource?.dispose();
@@ -553,17 +553,22 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
             if (!isShowingErrorCard) {
               showSnackBar(context, state.message!, type: SnackType.error);
             }
-            for (final id in _inFlightCompletionIds) {
+            for (final id in _inFlightCompletionCounts.keys) {
               _plannerItemDataSource!.clearCompletedOverride(id);
             }
-            _inFlightCompletionIds.clear();
+            _inFlightCompletionCounts.clear();
             _deferredOpenItemId = null;
             _deferredOpenAction = null;
           } else if (state is HomeworkUpdated) {
-            _inFlightCompletionIds.remove(state.homework.id);
+            _decrementInFlightCompletion(state.homework.id);
             final previousHomework = _plannerItemDataSource!.allHomeworks
                 .firstWhereOrNull((h) => h.id == state.homework.id);
-            _plannerItemDataSource!.updatePlannerItem(state.homework);
+            _plannerItemDataSource!.updatePlannerItem(
+              state.homework,
+              hasPendingCompletionWrite: _hasPendingCompletionWrite(
+                state.homework.id,
+              ),
+            );
             _executeDeferredOpen(state.homework.id);
             if (state.homework.completed &&
                 previousHomework?.completed == false) {
@@ -1103,9 +1108,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
     _deferredOpenAction = null;
 
     final hasPendingWrite =
-        (homeworkId != null &&
-            (_pendingToggleTimers.containsKey(homeworkId) ||
-                _inFlightCompletionIds.contains(homeworkId))) ||
+        (homeworkId != null && _hasPendingCompletionWrite(homeworkId)) ||
         _plannerItemDataSource!.hasTimeOverride(plannerItem.id);
 
     if (hasPendingWrite) {
@@ -2855,6 +2858,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
     required double appointmentWidth,
     bool? completedOverride,
     required Color backgroundColor,
+    bool isInAgenda = false,
   }) {
     if (PlannerHelper.shouldShowCheckbox(plannerItem, appointmentWidth)) {
       return _buildCheckboxWidget(
@@ -2867,7 +2871,20 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
       plannerItem,
       _currentView,
     )) {
-      return _buildSchoolIconWidget(backgroundColor: backgroundColor);
+      return _buildPrefixIconWidget(
+        AppConstants.courseScheduleIcon,
+        backgroundColor: backgroundColor,
+      );
+    } else if (isInAgenda && plannerItem is ExternalCalendarEventModel) {
+      return _buildPrefixIconWidget(
+        AppConstants.externalCalendarIcon,
+        backgroundColor: backgroundColor,
+      );
+    } else if (isInAgenda && plannerItem is EventModel) {
+      return _buildPrefixIconWidget(
+        AppConstants.eventIcon,
+        backgroundColor: backgroundColor,
+      );
     }
     return null;
   }
@@ -3112,7 +3129,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
     }
 
     if (plannerItem is CourseScheduleEventModel &&
-        !Responsive.isMobile(context)) {
+        Responsive.showItemActions(context)) {
       buttons.add(
         Semantics(
           label: 'More',
@@ -3205,6 +3222,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
       appointmentWidth: width,
       completedOverride: completedOverride,
       backgroundColor: color,
+      isInAgenda: true,
     );
 
     final centerWidget = _buildCalendarItemCenterForAgenda(
@@ -3231,76 +3249,57 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
     final isCheckbox =
         plannerItem is HomeworkModel &&
         PlannerHelper.shouldShowCheckbox(plannerItem, width);
-    final isTouchDevice = Responsive.isTouchDevice(context);
-    final isMobileLayout = Responsive.isMobile(context);
+    final useTouchTargets = Responsive.useTouchTargets(context);
 
-    // Build left column with tap zone for checkbox on touch devices
-    Widget leftColumn;
-    if (leftIcon != null) {
-      final leftContent = Padding(
-        padding: const EdgeInsets.only(left: 8),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Center(child: leftIcon),
-            const SizedBox(width: 8),
-          ],
-        ),
-      );
+    Widget leftContent(Widget icon) => Padding(
+      padding: const EdgeInsets.only(left: 8),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [Center(child: icon), const SizedBox(width: 8)],
+      ),
+    );
 
-      if (isTouchDevice && isCheckbox) {
-        // Wrap checkbox in IgnorePointer so only the column GestureDetector
-        // handles taps, preventing double-toggle from both handlers firing
-        final leftContentIgnorePointer = Padding(
-          padding: const EdgeInsets.only(left: 8),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Center(child: IgnorePointer(child: leftIcon)),
-              const SizedBox(width: 8),
-            ],
-          ),
-        );
-        leftColumn = MouseRegion(
+    Widget leftTapZone({required Widget icon, required VoidCallback onTap}) =>
+        MouseRegion(
           cursor: SystemMouseCursors.click,
           child: GestureDetector(
             behavior: HitTestBehavior.opaque,
-            onTap: () {
-              // Fetch current value at tap time, not build time, to avoid
-              // stale closures on rapid taps
-              final currentValue = _plannerItemDataSource!.isHomeworkCompleted(
-                plannerItem,
-              );
-              _onToggleCompleted(plannerItem, !currentValue);
-            },
-            child: SizedBox(
-              height: agendaHeight,
-              child: leftContentIgnorePointer,
-            ),
+            onTap: onTap,
+            child: SizedBox(height: agendaHeight, child: leftContent(icon)),
           ),
         );
-      } else if (isTouchDevice && plannerItem is CourseScheduleEventModel) {
-        leftColumn = MouseRegion(
-          cursor: SystemMouseCursors.click,
-          child: GestureDetector(
-            behavior: HitTestBehavior.opaque,
-            onTap: () {
-              Feedback.forTap(context);
-              _openPlannerItem(plannerItem, occurrenceDate: occurrenceDate);
-            },
-            child: SizedBox(height: agendaHeight, child: leftContent),
-          ),
-        );
-      } else {
-        leftColumn = leftContent;
-      }
-    } else {
+
+    final Widget leftColumn;
+    if (leftIcon == null) {
       leftColumn = const SizedBox(width: 8);
+    } else if (useTouchTargets && isCheckbox) {
+      // IgnorePointer so only the column GestureDetector handles taps,
+      // preventing double-toggle from both handlers firing
+      leftColumn = leftTapZone(
+        icon: IgnorePointer(child: leftIcon),
+        onTap: () {
+          // Fetch current value at tap time, not build time, to avoid
+          // stale closures on rapid taps
+          final currentValue = _plannerItemDataSource!.isHomeworkCompleted(
+            plannerItem,
+          );
+          _onToggleCompleted(plannerItem, !currentValue);
+        },
+      );
+    } else if (PlannerHelper.shouldOpenOnItemTap(context)) {
+      leftColumn = leftTapZone(
+        icon: leftIcon,
+        onTap: () {
+          Feedback.forTap(context);
+          _openPlannerItem(plannerItem, occurrenceDate: occurrenceDate);
+        },
+      );
+    } else {
+      leftColumn = leftContent(leftIcon);
     }
 
-    // Build center column with tap zone to open item on mobile
     Widget centerColumn;
-    if (isMobileLayout) {
+    if (PlannerHelper.shouldOpenOnItemTap(context)) {
       final centerContent = _buildCalendarItemCenterForAgenda(
         plannerItem: plannerItem,
         isOnline: isOnline,
@@ -3357,12 +3356,21 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
     final isOnline = _plannerItemDataSource!.isOnlineForItem(plannerItem);
     final location = _plannerItemDataSource!.getLocationForItem(plannerItem);
 
-    final inlineIcon = _buildItemIcon(
+    var inlineIcon = _buildItemIcon(
       plannerItem: plannerItem,
       appointmentWidth: width,
       completedOverride: completedOverride,
       backgroundColor: color,
     );
+
+    // On touch the item's own detector owns checkbox taps, so the recognizer
+    // survives the SfCalendar rebuild that a toggle triggers.
+    final usesCheckboxZone =
+        Responsive.useTouchTargets(context) &&
+        PlannerHelper.shouldShowCheckbox(plannerItem, width);
+    if (usesCheckboxZone && inlineIcon != null) {
+      inlineIcon = IgnorePointer(child: inlineIcon);
+    }
 
     final centerWidget = _buildCalendarItemCenterForTimeline(
       plannerItem: plannerItem,
@@ -3375,10 +3383,16 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
 
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
-      onTap: () {
-        Feedback.forTap(context);
-        _openPlannerItem(plannerItem, occurrenceDate: occurrenceDate);
-      },
+      onTapDown: usesCheckboxZone ? (_) => _timelineTapPosition = null : null,
+      onTapUp: usesCheckboxZone
+          ? (details) => _timelineTapPosition = details.localPosition
+          : null,
+      onTapCancel: usesCheckboxZone ? () => _timelineTapPosition = null : null,
+      onTap: () => _onTimelineItemTap(
+        plannerItem: plannerItem,
+        occurrenceDate: occurrenceDate,
+        usesCheckboxZone: usesCheckboxZone,
+      ),
       child: Container(
         width: width,
         height: height,
@@ -3406,6 +3420,37 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
         ),
       ),
     );
+  }
+
+  // A semantics tap carries no position and opens the item.
+  bool _isCheckboxZoneTap(Offset? position) {
+    if (position == null) {
+      return false;
+    }
+
+    const zone = PlannerHelper.checkboxWidth * 1.5;
+    return position.dx < zone && position.dy < zone;
+  }
+
+  void _onTimelineItemTap({
+    required PlannerItemBaseModel plannerItem,
+    required DateTime? occurrenceDate,
+    required bool usesCheckboxZone,
+  }) {
+    final position = _timelineTapPosition;
+    _timelineTapPosition = null;
+
+    if (usesCheckboxZone && _isCheckboxZoneTap(position)) {
+      final homework = plannerItem as HomeworkModel;
+      final currentValue = _plannerItemDataSource!.isHomeworkCompleted(
+        homework,
+      );
+      _onToggleCompleted(homework, !currentValue);
+      return;
+    }
+
+    Feedback.forTap(context);
+    _openPlannerItem(plannerItem, occurrenceDate: occurrenceDate);
   }
 
   CourseModel? _getCourseForPlannerItem(PlannerItemBaseModel plannerItem) {
@@ -3627,10 +3672,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
         date: date,
         dataSource: _plannerItemDataSource!,
         onPlannerItemTap: (context, plannerItem) {
-          if (!PlannerHelper.shouldShowEditButtonForPlannerItem(
-            context,
-            plannerItem,
-          )) {
+          if (!PlannerHelper.shouldOpenOnItemTap(context)) {
             return false;
           }
           return _openPlannerItem(plannerItem, hideWebsiteLink: true);
@@ -3737,7 +3779,11 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
 
       final request = HomeworkRequestModel(completed: pendingValue);
 
-      _inFlightCompletionIds.add(homework.id);
+      _inFlightCompletionCounts.update(
+        homework.id,
+        (count) => count + 1,
+        ifAbsent: () => 1,
+      );
       context.read<PlannerItemBloc>().add(
         UpdateHomeworkEvent(
           origin: EventOrigin.screen,
@@ -3748,6 +3794,19 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
         ),
       );
     });
+  }
+
+  bool _hasPendingCompletionWrite(int homeworkId) =>
+      _pendingToggleTimers.containsKey(homeworkId) ||
+      _inFlightCompletionCounts.containsKey(homeworkId);
+
+  void _decrementInFlightCompletion(int homeworkId) {
+    final remaining = (_inFlightCompletionCounts[homeworkId] ?? 0) - 1;
+    if (remaining > 0) {
+      _inFlightCompletionCounts[homeworkId] = remaining;
+    } else {
+      _inFlightCompletionCounts.remove(homeworkId);
+    }
   }
 
   void _executeDeferredOpen(int itemId) {
@@ -4727,16 +4786,19 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
     );
   }
 
-  Widget _buildSchoolIconWidget({required Color backgroundColor}) {
+  Widget _buildPrefixIconWidget(
+    IconData icon, {
+    required Color backgroundColor,
+  }) {
     final foregroundColor = backgroundColor.contrasting;
     return SizedBox(
-      width: 16,
-      height: 16,
+      width: PlannerHelper.checkboxWidth,
+      height: PlannerHelper.checkboxWidth,
       child: Transform.scale(
         scale: AppStyles.calendarItemPrefixScale(context),
         child: Icon(
-          Icons.school,
-          size: 16,
+          icon,
+          size: PlannerHelper.checkboxWidth,
           color: foregroundColor.withValues(alpha: 0.7),
         ),
       ),

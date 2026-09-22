@@ -95,15 +95,21 @@ class _GradeCalculatorContainerState extends State<GradeCalculatorContainer>
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
+                    const Icon(Icons.space_bar, color: Colors.transparent),
+                    Text(
+                      'Grade Calculator',
+                      style: AppStyles.pageTitle(context),
+                    ),
                     IconButton(
                       style: IconButton.styleFrom(
                         tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                       ),
                       onPressed: () => Navigator.pop(context),
-                      icon: Icon(Icons.close, color: context.colorScheme.secondary),
+                      icon: Icon(
+                        Icons.close,
+                        color: context.colorScheme.secondary,
+                      ),
                     ),
-                    Text('Grade Calculator', style: AppStyles.pageTitle(context)),
-                    const Icon(Icons.space_bar, color: Colors.transparent),
                   ],
                 ),
 

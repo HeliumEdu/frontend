@@ -281,7 +281,7 @@ abstract class BaseReminderWidgetState<T extends BaseRemindersContent>
                 ),
               ),
               const SizedBox(width: 8),
-              if (!Responsive.isMobile(context)) ...[
+              if (Responsive.showItemActions(context)) ...[
                 Semantics(
                   label: 'Edit',
                   button: true,

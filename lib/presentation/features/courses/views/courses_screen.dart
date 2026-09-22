@@ -573,7 +573,7 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen> {
                     ),
                     const SizedBox(width: 8),
                   ],
-                  if (!Responsive.isMobile(context))
+                  if (Responsive.showItemActions(context))
                     PrintHidden(
                       child: HeliumIconButton(
                         onPressed: () => _onEdit(course),

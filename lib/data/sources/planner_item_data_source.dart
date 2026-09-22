@@ -1064,7 +1064,10 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
     _applyFiltersAndNotify();
   }
 
-  void updatePlannerItem(PlannerItemBaseModel plannerItem) {
+  void updatePlannerItem(
+    PlannerItemBaseModel plannerItem, {
+    bool hasPendingCompletionWrite = false,
+  }) {
     bool updated = false;
 
     for (final items in _dateRangeCache.values) {
@@ -1084,7 +1087,12 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
     }
 
     if (plannerItem is HomeworkModel) {
-      _completedOverrides.remove(plannerItem.id);
+      final override = _completedOverrides[plannerItem.id];
+      if (override == null ||
+          override == plannerItem.completed ||
+          !hasPendingCompletionWrite) {
+        _completedOverrides.remove(plannerItem.id);
+      }
     }
     _timeOverrides.remove(plannerItem.id);
 
