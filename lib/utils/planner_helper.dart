@@ -20,7 +20,7 @@ final _log = Logger('utils');
 
 enum PlannerItemType { event, homework, external, courseSchedule }
 
-enum PlannerView { month, week, day, agenda, todos }
+enum PlannerView { month, week, threeDay, day, agenda, todos }
 
 enum PlannerFilterType {
   assignments('Assignments'),
@@ -163,6 +163,8 @@ class PlannerHelper {
         return CalendarView.month;
       case PlannerView.week:
         return CalendarView.week;
+      case PlannerView.threeDay:
+        return CalendarView.day;
       case PlannerView.day:
         return CalendarView.day;
       case PlannerView.agenda:
@@ -174,6 +176,8 @@ class PlannerHelper {
     }
   }
 
+  /// Not injective: `threeDay`, `day` and `todos` all use [CalendarView.day], so a caller
+  /// holding a current [PlannerView] must rule it out before trusting this.
   static PlannerView mapSfCalendarViewToHeliumView(CalendarView view) {
     switch (view) {
       case CalendarView.month:
@@ -198,6 +202,8 @@ class PlannerHelper {
         return PlannerView.week;
       case 2:
         return PlannerView.day;
+      case 5:
+        return PlannerView.threeDay;
       case 3:
         return PlannerView.todos;
       case 4:
@@ -215,6 +221,8 @@ class PlannerHelper {
         return 1;
       case PlannerView.day:
         return 2;
+      case PlannerView.threeDay:
+        return 5;
       case PlannerView.agenda:
         return 4;
       case PlannerView.todos:
@@ -254,9 +262,12 @@ class PlannerHelper {
   }
 
   /// True when an appointment is wide enough to render the checkbox and still
-  /// leave at least an equal-sized tap zone for opening the item.
+  /// leave at least an equal-sized tap zone for opening the item, which ends up
+  /// being the 3-day view on mobile as the narrowest.
+  static const double minCheckboxWidth = 62;
+
   static bool _hasRoomForCheckbox(double appointmentWidth) {
-    return appointmentWidth >= checkboxWidth * 2;
+    return appointmentWidth >= minCheckboxWidth;
   }
 
   static bool shouldShowSchoolIcon(

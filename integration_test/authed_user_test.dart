@@ -8,6 +8,7 @@ import 'package:heliumapp/presentation/features/auth/controllers/credentials_for
 import 'package:heliumapp/presentation/features/auth/views/login_screen.dart';
 import 'package:heliumapp/presentation/features/planner/controllers/planner_item_form_controller.dart';
 import 'package:heliumapp/presentation/features/planner/views/planner_screen.dart';
+import 'package:heliumapp/presentation/features/planner/widgets/todos_data_grid.dart';
 import 'package:heliumapp/presentation/navigation/shell/navigation_shell.dart';
 import 'package:heliumapp/presentation/ui/components/settings_button.dart';
 import 'package:heliumapp/presentation/ui/layout/page_header.dart';
@@ -24,6 +25,64 @@ import 'helpers/test_app.dart';
 import 'helpers/test_config.dart';
 
 final _log = Logger('authed_user_test');
+
+/// Opens the planner view switcher and selects [view].
+///
+/// [expectedContent] is a widget only the chosen view renders. Asserting on it
+/// catches an option tap that dismissed the menu without switching views, which
+/// otherwise surfaces much later as an unrelated timeout.
+Future<void> switchPlannerView(
+  WidgetTester tester,
+  PlannerView view, {
+  Finder? expectedContent,
+}) async {
+  _log.info('Switching to ${view.name} view ...');
+
+  final viewButton = find.byKey(
+    const Key(PlannerScreen.viewSwitcherButtonKey),
+  );
+  expect(
+    viewButton,
+    findsOneWidget,
+    reason: 'View switcher button should exist',
+  );
+  await tester.tap(viewButton);
+  await tester.pumpAndSettle();
+
+  final option = find.byKey(Key(PlannerScreen.viewOptionKey(view)));
+  final menuOpened = await waitForWidget(
+    tester,
+    option,
+    timeout: const Duration(seconds: 5),
+  );
+  expect(
+    menuOpened,
+    isTrue,
+    reason: '${view.name} option should be in view menu',
+  );
+
+  await tester.tap(option);
+  await tester.pumpAndSettle();
+
+  expect(
+    option.evaluate(),
+    isEmpty,
+    reason: 'View menu should close after selecting ${view.name}',
+  );
+
+  if (expectedContent == null) return;
+
+  final switched = await waitForWidget(
+    tester,
+    expectedContent,
+    timeout: const Duration(seconds: 10),
+  );
+  expect(
+    switched,
+    isTrue,
+    reason: 'Planner should render the ${view.name} view once it is selected',
+  );
+}
 
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
@@ -403,27 +462,11 @@ void main() {
       const homeworkCategoryTitle = 'Homework 👨🏽‍💻';
       const todosPageSize = 10;
 
-      _log.info('Switching to "Todos" view ...');
-      final viewButton = find.byKey(
-        const Key(PlannerScreen.viewSwitcherButtonKey),
-      );
-      expect(
-        viewButton,
-        findsOneWidget,
-        reason: 'View button (Change view tooltip) should exist',
-      );
-      await tester.tap(viewButton);
-
-      // Wait for menu to open
-      final todosOption = find.text('Todos');
-      final menuOpened = await waitForWidget(
+      await switchPlannerView(
         tester,
-        todosOption,
-        timeout: const Duration(seconds: 5),
+        PlannerView.todos,
+        expectedContent: find.byType(TodosDataGrid),
       );
-      expect(menuOpened, isTrue, reason: 'Todos option should be in view menu');
-      await tester.tap(todosOption);
-      await tester.pumpAndSettle();
       await takeScreenshot('todos_view_initial_state');
 
       // X and Y vary mid-load (TodosTable expands the window via a network
@@ -1105,17 +1148,11 @@ void main() {
         const completeStatus = 'Complete';
 
         // Switch to Todos view
-        _log.info('Switching to Todos view ...');
-        await tester.tap(find.byKey(const Key(PlannerScreen.viewSwitcherButtonKey)));
-        final todosOption = find.text('Todos');
-        final menuOpened = await waitForWidget(
+        await switchPlannerView(
           tester,
-          todosOption,
-          timeout: const Duration(seconds: 5),
+          PlannerView.todos,
+          expectedContent: find.byType(TodosDataGrid),
         );
-        expect(menuOpened, isTrue, reason: 'Todos option should appear');
-        await tester.tap(todosOption);
-        await tester.pumpAndSettle();
 
         // Wait for initial Todos render before applying filters
         final initialPagination = find.textContaining(
@@ -1404,23 +1441,7 @@ void main() {
               .map((e) => eventKey(e.id)),
         ];
 
-        _log.info('Switching to Agenda view ...');
-        await tester.tap(
-          find.byKey(const Key(PlannerScreen.viewSwitcherButtonKey)),
-        );
-        final agendaOption = find.text('Agenda');
-        final agendaMenuOpened = await waitForWidget(
-          tester,
-          agendaOption,
-          timeout: const Duration(seconds: 5),
-        );
-        expect(
-          agendaMenuOpened,
-          isTrue,
-          reason: 'Agenda option should appear in view menu',
-        );
-        await tester.tap(agendaOption);
-        await tester.pumpAndSettle();
+        await switchPlannerView(tester, PlannerView.agenda);
 
         // Filter primitives (mirror Test 7's mechanic).
         Finder filterTileFor(String text) => find.ancestor(

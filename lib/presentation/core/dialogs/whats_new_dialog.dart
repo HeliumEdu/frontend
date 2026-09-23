@@ -97,7 +97,7 @@ class _WhatsNewDialogWidgetState extends State<_WhatsNewDialogWidget> {
                       icon: Icons.tune,
                       title: 'Your Planner, Your Way',
                       description:
-                          'Choose your date, time, and number formats under Preferences. Search inside your notes.',
+                          'Try the new 3-day view, pick your date, time, and number formats under Preferences, and search inside your notes',
                     ),
                     const SizedBox(height: 12),
                     _buildFeatureItem(

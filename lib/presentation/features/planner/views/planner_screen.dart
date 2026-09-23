@@ -95,6 +95,9 @@ class PlannerScreen extends StatelessWidget {
   static const String plannerItemCheckboxKeyPrefix = 'planner_item_checkbox_';
   static const String todayButtonKey = 'planner_today_button';
   static const String viewSwitcherButtonKey = 'planner_view_switcher_button';
+
+  static String viewOptionKey(PlannerView view) =>
+      'planner_view_option_${view.name}';
   static const String filterButtonKey = 'planner_filter_button';
   static const String searchButtonKey = 'planner_search_button';
   static const String calendarPrevButtonKey = 'planner_calendar_prev_button';
@@ -940,8 +943,9 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
           headerHeight: 0,
           showCurrentTimeIndicator: true,
           showWeekNumber:
-              userSettings?.showWeekNumbers ??
-              FallbackConstants.defaultShowWeekNumbers,
+              _currentView != PlannerView.threeDay &&
+              (userSettings?.showWeekNumbers ??
+                  FallbackConstants.defaultShowWeekNumbers),
           allowDragAndDrop:
               !Responsive.isTouchDevice(context) ||
               (userSettings?.dragAndDropOnMobile ??
@@ -1028,6 +1032,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
             dayFormat: HeliumDateTime.dayNameShortPattern,
             timeFormat: HeliumTime.timeRulerPattern,
             timeIntervalHeight: Responsive.isMobile(context) ? 43 : 60,
+            numberOfDaysInView: _currentView == PlannerView.threeDay ? 3 : -1,
           ),
           loadMoreWidgetBuilder: _loadMoreWidgetBuilder,
           monthCellBuilder: Responsive.isMobile(context)
@@ -1699,25 +1704,10 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
   }
 
   String _buildHeaderDate() {
-    final displayDate = _calendarController.displayDate!;
-    final isCompact = Responsive.isCompact(context);
-
-    switch (_calendarController.view) {
-      case CalendarView.day:
-        return HeliumDateTime.formatDate(
-          displayDate,
-          abbreviateMonth: isCompact,
-          showYear: !isCompact,
-        );
-      case CalendarView.month:
-      case CalendarView.week:
-      case CalendarView.schedule:
-      default:
-        return HeliumDateTime.formatMonthAndYear(
-          displayDate,
-          abbreviateMonth: isCompact,
-        );
-    }
+    return HeliumDateTime.formatMonthAndYear(
+      _calendarController.displayDate!,
+      abbreviateMonth: Responsive.isCompact(context),
+    );
   }
 
   /// Sample labels for every month in the current view's format. Used to
@@ -1727,24 +1717,12 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
   /// asynchronously, so TextPainter can disagree with the paint pass).
   List<String> _calendarHeaderSamples() {
     final isCompact = Responsive.isCompact(context);
+
     return List.generate(12, (i) {
-      final probe = DateTime(2025, i + 1, 25);
-      switch (_calendarController.view) {
-        case CalendarView.day:
-          return HeliumDateTime.formatDate(
-            probe,
-            abbreviateMonth: isCompact,
-            showYear: !isCompact,
-          );
-        case CalendarView.month:
-        case CalendarView.week:
-        case CalendarView.schedule:
-        default:
-          return HeliumDateTime.formatMonthAndYear(
-            probe,
-            abbreviateMonth: isCompact,
-          );
-      }
+      return HeliumDateTime.formatMonthAndYear(
+        DateTime(2025, i + 1, 25),
+        abbreviateMonth: isCompact,
+      );
     });
   }
 
@@ -1921,6 +1899,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
     final isEnteringCalendarView =
         (newView == PlannerView.month ||
         newView == PlannerView.week ||
+        newView == PlannerView.threeDay ||
         newView == PlannerView.day);
     final isLeavingMonthView = _currentView == PlannerView.month;
 
@@ -1983,9 +1962,15 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
   }
 
   void _calendarViewChanged() {
-    final newView = PlannerHelper.mapSfCalendarViewToHeliumView(
-      _calendarController.view!,
-    );
+    final sfView = _calendarController.view!;
+
+    // Several PlannerViews share CalendarView.day, so a controller already showing the
+    // view we are on carries no new information — only a genuine change does.
+    if (PlannerHelper.mapHeliumViewToSfCalendarView(_currentView) == sfView) {
+      return;
+    }
+
+    final newView = PlannerHelper.mapSfCalendarViewToHeliumView(sfView);
     if (newView != _currentView) {
       setState(() {
         _changeView(newView);
@@ -4509,6 +4494,9 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
                   child: Column(
                     children: List.generate(PlannerView.values.length, (index) {
                       return RadioListTile<PlannerView>(
+                        key: Key(
+                          PlannerScreen.viewOptionKey(PlannerView.values[index]),
+                        ),
                         title: Text(
                           CalendarConstants
                               .defaultViews[PlannerHelper.mapHeliumViewToApiView(
@@ -4910,13 +4898,17 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
           color: foregroundColor.withValues(alpha: 0.4),
         ),
         const SizedBox(width: 2),
-        Text(
-          'Online',
-          style:
-              (isInAgenda
-                      ? AppStyles.smallSecondaryTextLight(context)
-                      : AppStyles.calendarItemTextLight(context))
-                  .copyWith(color: foregroundColor.withValues(alpha: 0.7)),
+        Expanded(
+          child: Text(
+            'Online',
+            style:
+                (isInAgenda
+                        ? AppStyles.smallSecondaryTextLight(context)
+                        : AppStyles.calendarItemTextLight(context))
+                    .copyWith(color: foregroundColor.withValues(alpha: 0.7)),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
         ),
       ],
     );

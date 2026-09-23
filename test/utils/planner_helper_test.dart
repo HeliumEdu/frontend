@@ -37,6 +37,25 @@ void main() {
           PlannerHelper.mapHeliumViewToSfCalendarView(PlannerView.todos),
           CalendarView.day,
         );
+        expect(
+          PlannerHelper.mapHeliumViewToSfCalendarView(PlannerView.threeDay),
+          CalendarView.day,
+        );
+      });
+
+      test('round-trips every view through the API mapping', () {
+        // GIVEN
+        for (final view in PlannerView.values) {
+          // WHEN
+          final apiValue = PlannerHelper.mapHeliumViewToApiView(view);
+
+          // THEN
+          expect(
+            PlannerHelper.mapApiViewToHeliumView(apiValue),
+            view,
+            reason: '$view must survive a round trip through the API value',
+          );
+        }
       });
     });
 
@@ -90,11 +109,12 @@ void main() {
         expect(PlannerHelper.mapApiViewToHeliumView(2), PlannerView.day);
         expect(PlannerHelper.mapApiViewToHeliumView(3), PlannerView.todos);
         expect(PlannerHelper.mapApiViewToHeliumView(4), PlannerView.agenda);
+        expect(PlannerHelper.mapApiViewToHeliumView(5), PlannerView.threeDay);
       });
 
       test('throws HeliumException for invalid view', () {
         expect(
-          () => PlannerHelper.mapApiViewToHeliumView(5),
+          () => PlannerHelper.mapApiViewToHeliumView(6),
           throwsA(isA<HeliumException>()),
         );
         expect(
@@ -259,15 +279,14 @@ void main() {
       });
 
       test(
-        'returns true for HomeworkModel when appointment width is at least '
-        '2x the checkbox width',
+        'returns true for HomeworkModel at the minimum checkbox width',
         () {
           final homeworkItem = _createHomeworkModel();
 
           expect(
             PlannerHelper.shouldShowCheckbox(
               homeworkItem,
-              PlannerHelper.checkboxWidth * 2,
+              PlannerHelper.minCheckboxWidth,
             ),
             isTrue,
           );
@@ -275,15 +294,14 @@ void main() {
       );
 
       test(
-        'returns false for HomeworkModel when appointment width is under '
-        '2x the checkbox width',
+        'returns false for HomeworkModel below the minimum checkbox width',
         () {
           final homeworkItem = _createHomeworkModel();
 
           expect(
             PlannerHelper.shouldShowCheckbox(
               homeworkItem,
-              PlannerHelper.checkboxWidth * 2 - 0.1,
+              PlannerHelper.minCheckboxWidth - 0.1,
             ),
             isFalse,
           );

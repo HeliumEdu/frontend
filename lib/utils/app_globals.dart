@@ -134,6 +134,7 @@ class CalendarConstants {
     'Day',
     'Todos',
     'Agenda',
+    '3-Day',
   ];
   static final List<DropDownItem<String>> defaultViewItems = PlannerView.values
       .map((view) {
