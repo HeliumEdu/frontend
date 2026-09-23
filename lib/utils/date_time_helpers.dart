@@ -346,4 +346,30 @@ class HeliumDateTime {
     if (percentage > 100) return 100;
     return percentage;
   }
+
+  /// Returns the ISO-8601 week number for [date], matching what SfCalendar
+  /// paints in its own week number column.
+  static int isoWeekNumber(DateTime date) {
+    // Counted in UTC so a DST boundary cannot shorten the span and drop a day.
+    final yearEndDate = DateTime.utc(date.year - 1, 12, 31);
+    final dayOfYear = DateTime.utc(
+      date.year,
+      date.month,
+      date.day,
+    ).difference(yearEndDate).inDays;
+    final weekNumber = (dayOfYear - date.weekday + 10) ~/ 7;
+
+    if (weekNumber < 1) {
+      return _weeksInYear(date.year - 1);
+    }
+    if (weekNumber > _weeksInYear(date.year)) {
+      return 1;
+    }
+    return weekNumber;
+  }
+
+  static int _weeksInYear(int year) {
+    int p(int y) => (y + (y ~/ 4) - (y ~/ 100) + (y ~/ 400)) % 7;
+    return p(year) == 4 || p(year - 1) == 3 ? 53 : 52;
+  }
 }
