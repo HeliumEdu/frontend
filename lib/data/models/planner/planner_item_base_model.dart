@@ -13,7 +13,6 @@ abstract class PlannerItemBaseModel extends BaseTitledModel {
   final DateTime end;
   final int priority;
   final Uri? url;
-  final String comments;
   final Color? color;
   final String? location;
   final PlannerItemType plannerItemType;
@@ -29,7 +28,6 @@ abstract class PlannerItemBaseModel extends BaseTitledModel {
     required this.end,
     required this.priority,
     this.url,
-    required this.comments,
     this.color,
     this.location,
     required this.plannerItemType,
@@ -47,7 +45,6 @@ abstract class PlannerItemBaseModel extends BaseTitledModel {
       'end': end.toIso8601String(),
       'priority': priority,
       'url': url?.toString(),
-      'comments': comments,
       'attachments': attachments,
       'reminders': reminders,
       'calendar_item_type': plannerItemType,

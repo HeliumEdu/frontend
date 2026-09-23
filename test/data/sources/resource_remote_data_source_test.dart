@@ -264,7 +264,6 @@ void main() {
           condition: 0,
           website: '',
           price: '',
-          details: '',
           courses: [1],
           resourceGroup: 1,
         );
@@ -291,7 +290,6 @@ void main() {
           condition: 1,
           website: '',
           price: '',
-          details: '',
           courses: [1, 2],
           resourceGroup: 1,
         );

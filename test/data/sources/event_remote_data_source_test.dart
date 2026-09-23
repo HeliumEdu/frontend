@@ -181,7 +181,6 @@ void main() {
           start: '2025-09-01T10:00:00Z',
           end: '2025-09-01T12:00:00Z',
           priority: 50,
-          comments: '',
         );
 
         // WHEN
@@ -206,7 +205,6 @@ void main() {
           start: '2025-09-01T10:00:00Z',
           end: '2025-09-01T12:00:00Z',
           priority: 50,
-          comments: '',
         );
 
         // WHEN/THEN
@@ -232,7 +230,6 @@ void main() {
           start: '2025-09-01T10:00:00Z',
           end: '2025-09-01T14:00:00Z',
           priority: 75,
-          comments: 'Updated comments',
         );
 
         // WHEN

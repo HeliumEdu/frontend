@@ -115,34 +115,6 @@ void main() {
         expect(result[0].currentGrade, equals('95'));
       });
 
-      test('filters by category titles when provided', () async {
-        // GIVEN
-        when(
-          () => mockDio.get(
-            any(),
-            queryParameters: any(named: 'queryParameters'),
-          ),
-        ).thenAnswer((_) async => givenSuccessResponse([]));
-
-        // WHEN
-        await dataSource.getHomeworks(
-          from: DateTime(2025, 8, 1),
-          to: DateTime(2025, 12, 31),
-          categoryTitles: ['Homework', 'Quizzes'],
-        );
-
-        // THEN
-        final captured =
-            verify(
-                  () => mockDio.get(
-                    any(),
-                    queryParameters: captureAny(named: 'queryParameters'),
-                  ),
-                ).captured.first
-                as Map<String, dynamic>;
-        expect(captured['category__title_in'], equals('Homework,Quizzes'));
-      });
-
       test('throws HeliumException on invalid response format', () async {
         // GIVEN
         when(
@@ -231,7 +203,6 @@ void main() {
           start: '2025-09-01T23:59:00Z',
           end: '2025-09-02T23:59:00Z',
           priority: 75,
-          comments: '',
           completed: false,
           currentGrade: '',
           category: null,
@@ -265,7 +236,6 @@ void main() {
           start: '2025-09-01T23:59:00Z',
           end: '2025-09-02T23:59:00Z',
           priority: 75,
-          comments: '',
           completed: false,
           currentGrade: '',
           category: null,

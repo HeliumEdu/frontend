@@ -12,14 +12,12 @@ class HomeworkRepositoryImpl implements HomeworkRepository {
   Future<List<HomeworkModel>> getHomeworks({
     DateTime? from,
     DateTime? to,
-    List<String>? categoryTitles,
     String? search,
     String? title,
     bool? shownOnCalendar,
     bool forceRefresh = false,
   }) async {
     return remoteDataSource.getHomeworks(
-      categoryTitles: categoryTitles,
       from: from,
       to: to,
       search: search,

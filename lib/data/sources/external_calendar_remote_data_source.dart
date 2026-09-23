@@ -22,7 +22,6 @@ abstract class ExternalCalendarRemoteDataSource extends BaseDataSource {
   Future<List<ExternalCalendarEventModel>> getExternalCalendarEvents({
     required DateTime from,
     required DateTime to,
-    String? search,
     bool? shownOnCalendar,
     bool forceRefresh = false,
   });
@@ -97,7 +96,6 @@ class ExternalCalendarRemoteDataSourceImpl
   Future<List<ExternalCalendarEventModel>> getExternalCalendarEvents({
     required DateTime from,
     required DateTime to,
-    String? search,
     bool? shownOnCalendar,
     bool forceRefresh = false,
   }) async {
@@ -110,7 +108,6 @@ class ExternalCalendarRemoteDataSourceImpl
         'from': from.toIso8601String(),
         'to': to.toIso8601String(),
       };
-      if (search != null) queryParameters['search'] = search;
       if (shownOnCalendar != null) {
         queryParameters['shown_on_calendar'] = shownOnCalendar;
       }

@@ -25,7 +25,6 @@ abstract class EventBaseModel extends PlannerItemBaseModel {
     required super.end,
     required super.priority,
     required super.url,
-    required super.comments,
     required super.attachments,
     required super.reminders,
     required super.color,

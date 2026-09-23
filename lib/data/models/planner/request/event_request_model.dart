@@ -5,7 +5,6 @@ class EventRequestModel {
   final String? start;
   final String? end;
   final int? priority;
-  final String? comments;
 
   EventRequestModel({
     this.title,
@@ -14,7 +13,6 @@ class EventRequestModel {
     this.start,
     this.end,
     this.priority,
-    this.comments,
   });
 
   Map<String, dynamic> toJson() {
@@ -26,7 +24,6 @@ class EventRequestModel {
     if (start != null) json['start'] = start;
     if (end != null) json['end'] = end;
     if (priority != null) json['priority'] = priority;
-    if (comments != null) json['comments'] = comments;
 
     return json;
   }

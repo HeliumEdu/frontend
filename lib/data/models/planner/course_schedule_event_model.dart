@@ -7,6 +7,7 @@ import 'package:heliumapp/utils/planner_helper.dart';
 
 class CourseScheduleEventModel extends PlannerItemBaseModel {
   final String ownerId;
+  final String comments;
   final String? recurrenceRule;
 
   /// Exception dates are computed client-side by merging course and
@@ -22,7 +23,7 @@ class CourseScheduleEventModel extends PlannerItemBaseModel {
     required super.end,
     required super.priority,
     required super.url,
-    required super.comments,
+    required this.comments,
     required super.attachments,
     required super.reminders,
     required super.color,

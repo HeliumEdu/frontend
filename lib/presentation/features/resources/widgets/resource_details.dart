@@ -327,7 +327,6 @@ class ResourceDetailsState extends State<ResourceDetails> {
         price: formController.priceController.text.trim().isEmpty
             ? ''
             : formController.priceController.text.trim(),
-        details: widget.isEdit ? formController.initialNotes : '',
         courses: formController.selectedCourses,
         resourceGroup: selectedGroupId,
       );
@@ -399,7 +398,6 @@ class ResourceDetailsState extends State<ResourceDetails> {
       formController.titleController.text = state.resource!.title;
       formController.urlController.text = state.resource!.website?.toString() ?? '';
       formController.priceController.text = state.resource!.price ?? '';
-      formController.initialNotes = state.resource!.details ?? '';
       formController.selectedStatus = state.resource!.status;
       formController.selectedCondition = state.resource!.condition;
       formController.selectedCourses = List<int>.from(

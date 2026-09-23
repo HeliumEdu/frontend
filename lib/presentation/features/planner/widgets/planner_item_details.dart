@@ -685,7 +685,6 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
           start: start,
           end: end,
           priority: _getPriorityValue(),
-          comments: _plannerItem?.comments ?? '',
         );
 
         if (!mounted) return;

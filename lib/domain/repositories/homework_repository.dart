@@ -5,7 +5,6 @@ abstract class HomeworkRepository {
   Future<List<HomeworkModel>> getHomeworks({
     DateTime? from,
     DateTime? to,
-    List<String>? categoryTitles,
     String? search,
     String? title,
     bool? shownOnCalendar,

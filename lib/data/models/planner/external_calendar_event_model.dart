@@ -8,6 +8,8 @@ import 'package:heliumapp/utils/planner_helper.dart';
 class ExternalCalendarEventModel extends EventBaseModel {
   final String ownerId;
 
+  final String comments;
+
   ExternalCalendarEventModel({
     required super.id,
     required super.title,
@@ -17,7 +19,7 @@ class ExternalCalendarEventModel extends EventBaseModel {
     required super.end,
     required super.priority,
     required super.url,
-    required super.comments,
+    required this.comments,
     required super.attachments,
     required super.reminders,
     required super.color,
@@ -85,6 +87,7 @@ class ExternalCalendarEventModel extends EventBaseModel {
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = super.toJson();
 
+    data['comments'] = comments;
     data['ownerId'] = ownerId;
     data['color'] = HeliumColors.colorToHex(color!);
 

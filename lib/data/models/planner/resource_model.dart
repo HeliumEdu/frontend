@@ -6,7 +6,6 @@ class ResourceModel extends BaseTitledModel {
   final int condition;
   final Uri? website;
   final String? price;
-  final String? details;
   final int resourceGroup;
   final List<int> courses;
   final List<int> notes;
@@ -19,7 +18,6 @@ class ResourceModel extends BaseTitledModel {
     required this.condition,
     this.website,
     this.price,
-    this.details,
     required this.resourceGroup,
     required this.courses,
     required this.notes,
@@ -34,9 +32,6 @@ class ResourceModel extends BaseTitledModel {
       condition: json['condition'],
       website: toUri(json['website']),
       price: json['price'],
-      details: json['details']?.toString().isEmpty == true
-          ? null
-          : json['details']?.toString(),
       resourceGroup: json['resource_group'],
       courses: json['courses'] != null ? List<int>.from(json['courses']) : [],
       notes: json['notes'] != null ? List<int>.from(json['notes']) : [],
@@ -51,7 +46,6 @@ class ResourceModel extends BaseTitledModel {
       'condition': condition,
       'website': website?.toString() ?? '',
       'price': price,
-      'details': details,
       'resource_group': resourceGroup,
       'courses': courses,
     };

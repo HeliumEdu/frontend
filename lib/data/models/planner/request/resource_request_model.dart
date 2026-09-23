@@ -4,7 +4,6 @@ class ResourceRequestModel {
   final int condition;
   final String website;
   final String price;
-  final String details;
   final List<int> courses;
   final int resourceGroup;
 
@@ -14,7 +13,6 @@ class ResourceRequestModel {
     required this.condition,
     required this.website,
     required this.price,
-    required this.details,
     required this.courses,
     required this.resourceGroup,
   });
@@ -26,7 +24,6 @@ class ResourceRequestModel {
       'condition': condition,
       'website': website,
       'price': price,
-      'details': details,
       'courses': courses,
       'resource_group': resourceGroup,
     };

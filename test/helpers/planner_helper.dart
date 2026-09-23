@@ -406,7 +406,6 @@ void verifyEventMatchesJson(EventModel event, Map<String, dynamic> json) {
   expect(event.end, equals(DateTime.parse(json['end'] as String)));
   expect(event.priority, equals(json['priority']));
   expect(event.url?.toString(), equals(json['url']));
-  expect(event.comments, equals(json['comments']));
   expect(event.ownerId, equals(json['owner_id']));
 
   if (json['color'] != null && event.color != null) {
@@ -473,7 +472,6 @@ void verifyHomeworkMatchesJson(
   expect(homework.start, equals(DateTime.parse(json['start'] as String)));
   expect(homework.end, equals(DateTime.parse(json['end'] as String)));
   expect(homework.priority, equals(json['priority']));
-  expect(homework.comments, equals(json['comments']));
   expect(homework.completed, equals(json['completed']));
   expect(homework.currentGrade, equals(json['current_grade']));
 
@@ -551,7 +549,6 @@ void verifyResourceMatchesJson(
   expect(resource.title, equals(json['title']));
   expect(resource.status, equals(json['status']));
   expect(resource.condition, equals(json['condition']));
-  expect(resource.details, equals(json['details']));
   expect(resource.website?.toString(), equals(json['website']));
   expect(resource.price, equals(json['price']));
   expect(resource.resourceGroup, equals(json['resource_group']));

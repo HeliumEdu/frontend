@@ -17,7 +17,6 @@ abstract class HomeworkRemoteDataSource extends BaseDataSource {
   Future<List<HomeworkModel>> getHomeworks({
     DateTime? from,
     DateTime? to,
-    List<String>? categoryTitles,
     String? search,
     String? title,
     bool? shownOnCalendar,
@@ -64,7 +63,6 @@ class HomeworkRemoteDataSourceImpl extends HomeworkRemoteDataSource {
   Future<List<HomeworkModel>> getHomeworks({
     DateTime? from,
     DateTime? to,
-    List<String>? categoryTitles,
     String? search,
     String? title,
     bool? shownOnCalendar,
@@ -76,16 +74,6 @@ class HomeworkRemoteDataSourceImpl extends HomeworkRemoteDataSource {
       final Map<String, dynamic> queryParameters = {};
       if (from != null) queryParameters['from'] = from.toIso8601String();
       if (to != null) queryParameters['to'] = to.toIso8601String();
-      if (categoryTitles?.isNotEmpty ?? false) {
-        final sanitizedTitles = categoryTitles
-            ?.map((title) => title.trim())
-            .where((title) => title.isNotEmpty)
-            .toSet()
-            .toList();
-        if (sanitizedTitles!.isNotEmpty) {
-          queryParameters['category__title_in'] = sanitizedTitles.join(',');
-        }
-      }
       if (search != null) queryParameters['search'] = search;
       if (title != null) queryParameters['title'] = title;
       if (shownOnCalendar != null) {

@@ -10,7 +10,6 @@ abstract class ExternalCalendarRepository {
   Future<List<ExternalCalendarEventModel>> getExternalCalendarEvents({
     required DateTime from,
     required DateTime to,
-    String? search,
     bool? shownOnCalendar,
     bool forceRefresh = false,
   });

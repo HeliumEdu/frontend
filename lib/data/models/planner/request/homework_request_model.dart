@@ -6,7 +6,6 @@ class HomeworkRequestModel {
   final String? start;
   final String? end;
   final int? priority;
-  final String? comments;
   final String? currentGrade;
   final bool? completed;
   final int? category;
@@ -20,7 +19,6 @@ class HomeworkRequestModel {
     this.start,
     this.end,
     this.priority,
-    this.comments,
     this.currentGrade,
     this.completed,
     this.category,

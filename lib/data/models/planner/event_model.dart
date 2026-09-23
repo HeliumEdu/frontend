@@ -21,7 +21,6 @@ class EventModel extends EventBaseModel {
     required super.end,
     required super.priority,
     required super.url,
-    required super.comments,
     required super.attachments,
     required super.reminders,
     required super.color,
@@ -41,7 +40,6 @@ class EventModel extends EventBaseModel {
       end: DateTime.parse(json['end']),
       priority: json['priority'],
       url: toUri(json['url']),
-      comments: json['comments'],
       attachments: json['attachments'] != null
           ? idOrEntityListFrom(json['attachments'], AttachmentModel.fromJson)
           : [],
@@ -86,7 +84,6 @@ class EventModel extends EventBaseModel {
     DateTime? end,
     int? priority,
     Uri? url,
-    String? comments,
     List<IdOrEntity<AttachmentModel>>? attachments,
     List<IdOrEntity<ReminderModel>>? reminders,
     Color? color,
@@ -104,7 +101,6 @@ class EventModel extends EventBaseModel {
       end: end ?? this.end,
       priority: priority ?? this.priority,
       url: url ?? this.url,
-      comments: comments ?? this.comments,
       attachments: attachments ?? this.attachments,
       reminders: reminders ?? this.reminders,
       color: color ?? this.color,
