@@ -119,6 +119,6 @@ jobs:
         uses: HeliumEdu/.github/actions/datadog-metric@main
         with:
           api-key: ${{ secrets.PROJECT_DATADOG_API_KEY }}
-          metric: helium.canary.runs
-          value: 1
-          tags: env:${{ inputs.environment || 'prod' }},result:${{ steps.tests.outcome == 'success' && 'passed' || 'failed' }}
+          metric: helium.canary.failed
+          value: ${{ steps.tests.outcome == 'failure' && 1 || 0 }}
+          tags: env:${{ inputs.environment || 'prod' }}
