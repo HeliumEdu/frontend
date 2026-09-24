@@ -1,7 +1,7 @@
 // AUTO-GENERATED — DO NOT EDIT.
 // Refreshed periodically from IANA tzdata via:
 //   platform/bin/refresh-timezones.py
-// IANA release: 2026c
+// IANA release: 2026d
 
 /// IANA link (alias) names mapped to the selectable zone they point at.
 ///
@@ -78,7 +78,6 @@ class TimeZoneAliases {
     'Brazil/East': 'America/Sao_Paulo',
     'Brazil/West': 'America/Manaus',
     'CET': 'Europe/Brussels',
-    'CST6CDT': 'America/Chicago',
     'Canada/Saskatchewan': 'America/Regina',
     'Canada/Yukon': 'America/Whitehorse',
     'Chile/Continental': 'America/Santiago',
@@ -86,7 +85,6 @@ class TimeZoneAliases {
     'Cuba': 'America/Havana',
     'EET': 'Europe/Athens',
     'EST': 'America/Panama',
-    'EST5EDT': 'America/New_York',
     'Egypt': 'Africa/Cairo',
     'Eire': 'Europe/Dublin',
     'Europe/Belfast': 'Europe/London',
@@ -108,7 +106,6 @@ class TimeZoneAliases {
     'Libya': 'Africa/Tripoli',
     'MET': 'Europe/Brussels',
     'MST': 'America/Phoenix',
-    'MST7MDT': 'America/Denver',
     'Mexico/BajaNorte': 'America/Tijuana',
     'Mexico/BajaSur': 'America/Mazatlan',
     'Mexico/General': 'America/Mexico_City',
@@ -116,7 +113,6 @@ class TimeZoneAliases {
     'NZ-CHAT': 'Pacific/Chatham',
     'Navajo': 'America/Denver',
     'PRC': 'Asia/Shanghai',
-    'PST8PDT': 'America/Los_Angeles',
     'Pacific/Enderbury': 'Pacific/Kanton',
     'Pacific/Johnston': 'Pacific/Honolulu',
     'Pacific/Ponape': 'Pacific/Guadalcanal',
