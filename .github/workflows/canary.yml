@@ -102,6 +102,7 @@ jobs:
         run: python -m playwright install chromium
 
       - name: Run canary tests
+        id: tests
         run: cd canary_test && python -m pytest -v --screenshot=only-on-failure --output=screenshots
 
       - name: Upload screenshots
@@ -112,3 +113,12 @@ jobs:
           path: canary_test/screenshots/
           if-no-files-found: ignore
           retention-days: 7
+
+      - name: Report result to Datadog
+        if: always() && (steps.tests.outcome == 'success' || steps.tests.outcome == 'failure')
+        uses: HeliumEdu/.github/actions/datadog-metric@main
+        with:
+          api-key: ${{ secrets.PROJECT_DATADOG_API_KEY }}
+          metric: helium.canary.runs
+          value: 1
+          tags: env:${{ inputs.environment || 'prod' }},result:${{ steps.tests.outcome == 'success' && 'passed' || 'failed' }}
