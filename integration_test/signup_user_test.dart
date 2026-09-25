@@ -198,23 +198,20 @@ void main() {
 
       // Submit verification
       await tester.tap(find.text('Verify & Sign In'));
-      await tester.pumpAndSettle(const Duration(seconds: 10));
 
-      final stillOnVerify =
-          find.text('Verify Email').evaluate().isNotEmpty &&
-          find
-              .byKey(const Key(VerifyEmailScreen.codeField))
-              .evaluate()
-              .isNotEmpty;
+      // On first login, the user is taken to /setup, then to /planner once their
+      // account is set up; wait on /setup right away, as it is left in seconds
+      final reachedSetup = await waitForRoute(
+        tester,
+        AppRoute.setupAccountScreen,
+        timeout: config.apiTimeout,
+      );
       expect(
-        stillOnVerify,
-        isFalse,
-        reason: 'Should have left verify screen after successful verification',
+        reachedSetup,
+        isTrue,
+        reason: 'Should go to setup after verification',
       );
 
-      // On first login, the user will first be taken to /setup, then /planner,
-      // once their account is setup—time on on /setup can vary, but what
-      // matters is that they get to /planner
       final reachedPlanner = await waitForRoute(
         tester,
         AppRoute.plannerScreen,
