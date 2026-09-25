@@ -590,6 +590,37 @@ void main() {
         expect(local.hour, equals(8)); // 8:00 AM Jan 1 in Tokyo
       });
     });
+
+    group('isoWeekNumber', () {
+      test('numbers weeks from the first Thursday of the year', () {
+        expect(HeliumDateTime.isoWeekNumber(DateTime(2026, 1, 1)), equals(1));
+        expect(HeliumDateTime.isoWeekNumber(DateTime(2021, 1, 4)), equals(1));
+        expect(HeliumDateTime.isoWeekNumber(DateTime(2023, 1, 1)), equals(52));
+      });
+
+      test('carries the trailing week into the previous year', () {
+        expect(HeliumDateTime.isoWeekNumber(DateTime(2021, 1, 1)), equals(53));
+        expect(HeliumDateTime.isoWeekNumber(DateTime(2021, 1, 3)), equals(53));
+        expect(HeliumDateTime.isoWeekNumber(DateTime(2016, 1, 3)), equals(53));
+        expect(HeliumDateTime.isoWeekNumber(DateTime(2000, 1, 1)), equals(52));
+      });
+
+      test('rolls the final days into week one of the next year', () {
+        expect(HeliumDateTime.isoWeekNumber(DateTime(2019, 12, 30)), equals(1));
+        expect(HeliumDateTime.isoWeekNumber(DateTime(2024, 12, 30)), equals(1));
+      });
+
+      test('reaches week 53 only in long years', () {
+        expect(HeliumDateTime.isoWeekNumber(DateTime(2020, 12, 28)), equals(53));
+        expect(HeliumDateTime.isoWeekNumber(DateTime(2015, 12, 28)), equals(53));
+        expect(HeliumDateTime.isoWeekNumber(DateTime(2026, 12, 31)), equals(53));
+      });
+
+      test('counts whole days across a daylight saving transition', () {
+        expect(HeliumDateTime.isoWeekNumber(DateTime(2026, 8, 31)), equals(36));
+        expect(HeliumDateTime.isoWeekNumber(DateTime(2026, 9, 21)), equals(39));
+      });
+    });
   });
 
   group('unresolved UTC instants', () {
@@ -618,5 +649,6 @@ void main() {
         tz.TZDateTime(amsterdam, 2025, 9, 4),
       );
     });
+
   });
 }

@@ -81,11 +81,13 @@ import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/color_helpers.dart';
 import 'package:heliumapp/utils/date_time_helpers.dart';
 import 'package:heliumapp/utils/grade_helpers.dart';
+import 'package:heliumapp/presentation/features/planner/widgets/week_column.dart';
 import 'package:heliumapp/utils/planner_helper.dart';
 import 'package:heliumapp/utils/print_helpers.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:heliumapp/utils/url_helpers.dart';
 import 'package:logging/logging.dart';
+import 'package:syncfusion_flutter_core/localizations.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';
 import 'package:timezone/standalone.dart' as tz;
 
@@ -144,6 +146,9 @@ class _CalendarProvidedScreen extends StatefulWidget {
 class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> {
   static const _agendaHeightMobile = 53.0;
   static const _agendaHeightDesktop = 57.0;
+
+  static const _monthViewHeaderHeight = 28.0;
+
   static const _monthCalendarItemHeight = 21.0;
   // SfCalendar adds ~2px between adjacent appointments in month view cells.
   // Both the display-count and expanded-height calculations must account for
@@ -932,6 +937,17 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
             ? _agendaHeightMobile
             : _agendaHeightDesktop;
 
+        final showWeekNumbers =
+            userSettings?.showWeekNumbers ??
+            FallbackConstants.defaultShowWeekNumbers;
+
+        // Every other view keeps SfCalendar's own week number column, which is
+        // only oversized enough to matter in month view.
+        final usesCustomWeekColumn =
+            showWeekNumbers &&
+            _currentView == PlannerView.month &&
+            !Responsive.isMobile(context);
+
         final calendar = SfCalendar(
           backgroundColor: context.colorScheme.surface,
           cellBorderColor:
@@ -944,8 +960,8 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
           showCurrentTimeIndicator: true,
           showWeekNumber:
               _currentView != PlannerView.threeDay &&
-              (userSettings?.showWeekNumbers ??
-                  FallbackConstants.defaultShowWeekNumbers),
+              !usesCustomWeekColumn &&
+              showWeekNumbers,
           allowDragAndDrop:
               !Responsive.isTouchDevice(context) ||
               (userSettings?.dragAndDropOnMobile ??
@@ -964,7 +980,9 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
           todayTextStyle: AppStyles.standardBodyText(
             context,
           ).copyWith(color: context.colorScheme.onPrimary),
-          viewHeaderHeight: _currentView == PlannerView.month ? 28 : -1,
+          viewHeaderHeight: _currentView == PlannerView.month
+              ? _monthViewHeaderHeight
+              : -1,
           viewHeaderStyle: ViewHeaderStyle(
             dayTextStyle: AppStyles.standardBodyText(context),
             dateTextStyle: AppStyles.standardBodyText(context),
@@ -1057,6 +1075,30 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
           },
         );
 
+        final weekNumberTextStyle = AppStyles.smallSecondaryTextLight(context);
+        final weekNumberLabel = SfLocalizations.of(context).weeknumberLabel;
+        final plannerCalendar = usesCustomWeekColumn
+            ? Row(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  SizedBox(
+                    width: WeekColumn.widthFor(
+                      context,
+                      label: weekNumberLabel,
+                      textStyle: weekNumberTextStyle,
+                    ),
+                    child: WeekColumn(
+                      visibleDates: _visibleDates,
+                      headerHeight: _monthViewHeaderHeight,
+                      label: weekNumberLabel,
+                      textStyle: weekNumberTextStyle,
+                    ),
+                  ),
+                  Expanded(child: calendar),
+                ],
+              )
+            : calendar;
+
         if (constraints.maxHeight.isInfinite) {
           // During capture the OverflowBox removes the height constraint.
           // Size week/day/agenda to one Portrait Letter content area (720pt ×
@@ -1070,11 +1112,11 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
             height:
                 constraints.maxWidth * letterPortraitContentAspect -
                 calendarHeaderHeight,
-            child: calendar,
+            child: plannerCalendar,
           );
         }
 
-        return calendar;
+        return plannerCalendar;
       },
     );
   }

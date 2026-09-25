@@ -98,7 +98,7 @@ class DioClient {
     String? baseUrl,
     Map<String, dynamic>? headers,
     ValidateStatus? validateStatus,
-    Duration connectTimeout = const Duration(seconds: 15),
+    Duration connectTimeout = const Duration(seconds: 10),
     Duration receiveTimeout = const Duration(seconds: 30),
     Duration sendTimeout = const Duration(seconds: 120),
   }) {

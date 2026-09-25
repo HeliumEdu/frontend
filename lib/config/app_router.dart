@@ -872,6 +872,12 @@ Future<String?> _authRedirect(BuildContext context, GoRouterState state) async {
       return isSafe ? next : AppRoute.plannerScreen;
     }
 
+    if (!isSetupComplete &&
+        !publicRoutes.contains(matchedLocation) &&
+        matchedLocation != AppRoute.setupAccountScreen) {
+      return AppRoute.setupAccountScreen;
+    }
+
     // On setup screen: redirect to planner if setup is complete
     if (matchedLocation == AppRoute.setupAccountScreen && isSetupComplete) {
       return AppRoute.plannerScreen;
