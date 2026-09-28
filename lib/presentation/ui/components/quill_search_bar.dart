@@ -28,6 +28,7 @@ class QuillSearchBar extends StatefulWidget {
 class _QuillSearchBarState extends State<QuillSearchBar> {
   final TextEditingController _textController = TextEditingController();
   final FocusNode _searchFocusNode = FocusNode();
+  final FocusNode _keyboardListenerFocusNode = FocusNode();
 
   String _searchText = '';
   List<int> _offsets = [];
@@ -49,6 +50,7 @@ class _QuillSearchBarState extends State<QuillSearchBar> {
   void dispose() {
     _textController.dispose();
     _searchFocusNode.dispose();
+    _keyboardListenerFocusNode.dispose();
     _searchTimer?.cancel();
     super.dispose();
   }
@@ -158,7 +160,7 @@ class _QuillSearchBarState extends State<QuillSearchBar> {
   @override
   Widget build(BuildContext context) {
     return KeyboardListener(
-      focusNode: FocusNode(),
+      focusNode: _keyboardListenerFocusNode,
       onKeyEvent: (event) {
         if (event is KeyDownEvent &&
             event.logicalKey == LogicalKeyboardKey.escape) {

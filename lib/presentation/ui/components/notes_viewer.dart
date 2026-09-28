@@ -14,6 +14,8 @@ class NotesViewer extends StatefulWidget {
 
 class _NotesViewerState extends State<NotesViewer> {
   late QuillController _controller;
+  final FocusNode _focusNode = FocusNode();
+  final ScrollController _scrollController = ScrollController();
   bool _renderable = false;
 
   @override
@@ -49,6 +51,8 @@ class _NotesViewerState extends State<NotesViewer> {
   @override
   void dispose() {
     _controller.dispose();
+    _focusNode.dispose();
+    _scrollController.dispose();
     super.dispose();
   }
 
@@ -62,6 +66,8 @@ class _NotesViewerState extends State<NotesViewer> {
       constraints: const BoxConstraints(maxHeight: 150),
       child: QuillEditor.basic(
         controller: _controller,
+        focusNode: _focusNode,
+        scrollController: _scrollController,
         config: QuillEditorConfig(
           showCursor: false,
           padding: EdgeInsets.zero,

@@ -44,6 +44,7 @@ class HeliumQuillEditor extends StatefulWidget {
 
 class _HeliumQuillEditorState extends State<HeliumQuillEditor> {
   late final FocusNode _ownFocusNode;
+  late final ScrollController _scrollController;
   void Function()? _removeWebClipboardListeners;
 
   // Shared across all instances so a copy in one Helium editor can be
@@ -57,6 +58,7 @@ class _HeliumQuillEditorState extends State<HeliumQuillEditor> {
   void initState() {
     super.initState();
     _ownFocusNode = FocusNode();
+    _scrollController = ScrollController();
     _removeWebClipboardListeners = registerQuillClipboardListeners(
       isEditorFocused: () => _effectiveFocusNode.hasFocus,
       onCopy: _captureWebCopy,
@@ -68,6 +70,7 @@ class _HeliumQuillEditorState extends State<HeliumQuillEditor> {
   void dispose() {
     _removeWebClipboardListeners?.call();
     _ownFocusNode.dispose();
+    _scrollController.dispose();
     super.dispose();
   }
 
@@ -192,6 +195,7 @@ class _HeliumQuillEditorState extends State<HeliumQuillEditor> {
       child: QuillEditor.basic(
         controller: widget.controller,
         focusNode: _effectiveFocusNode,
+        scrollController: _scrollController,
         config: widget.config,
       ),
     );
