@@ -1091,6 +1091,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
     if (isMobile) {
       showModalBottomSheet(
         context: context,
+        useRootNavigator: true,
         isScrollControlled: true,
         backgroundColor: context.colorScheme.surface,
         shape: const RoundedRectangleBorder(
@@ -2171,6 +2172,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
     if (isMobile) {
       showModalBottomSheet(
         context: context,
+        useRootNavigator: true,
         isScrollControlled: true,
         backgroundColor: context.colorScheme.surface,
         shape: const RoundedRectangleBorder(

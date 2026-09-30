@@ -4448,6 +4448,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
     if (isMobile) {
       showModalBottomSheet(
         context: context,
+        useRootNavigator: true,
         isScrollControlled: true,
         backgroundColor: context.colorScheme.surface,
         shape: const RoundedRectangleBorder(
@@ -4568,6 +4569,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
     if (isMobile) {
       showModalBottomSheet(
         context: context,
+        useRootNavigator: true,
         isScrollControlled: true,
         backgroundColor: context.colorScheme.surface,
         shape: const RoundedRectangleBorder(

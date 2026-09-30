@@ -852,6 +852,7 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen> 
     if (isMobile) {
       showModalBottomSheet(
         context: context,
+        useRootNavigator: true,
         isScrollControlled: true,
         backgroundColor: context.colorScheme.surface,
         shape: const RoundedRectangleBorder(

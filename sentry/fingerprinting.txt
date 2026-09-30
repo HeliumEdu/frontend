@@ -34,3 +34,8 @@ error.value:"*Unable to load asset:*" -> helium-asset-load-other title="Asset fa
 # Firebase JS pulled in by dynamic import on web. A blocked or failed fetch is raised by the
 # browser and captured by the JavaScript SDK, so it never reaches Dart-side filters.
 error.value:"*Failed to fetch dynamically imported module*firebasejs*" -> helium-firebase-js-load title="Firebase JS failed to load (web)"
+
+# The same dynamic-import failure in Safari and Firefox wording. Neither message carries the
+# module URL, so the source (Firebase JS, or flutter.js loading CanvasKit/skwasm) is unknown.
+error.value:"*Importing a module script failed*" -> helium-dynamic-import-load title="Dynamic module failed to load (Safari/Firefox, source unknown)"
+error.value:"*error loading dynamically imported module*" -> helium-dynamic-import-load title="Dynamic module failed to load (Safari/Firefox, source unknown)"

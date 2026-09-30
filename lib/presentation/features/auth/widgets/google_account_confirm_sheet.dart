@@ -104,6 +104,7 @@ Future<bool?> showGoogleAccountConfirmSheet({
 }) {
   return showModalBottomSheet<bool>(
     context: parentContext,
+    useRootNavigator: true,
     backgroundColor: parentContext.colorScheme.surface,
     shape: const RoundedRectangleBorder(
       borderRadius: BorderRadius.vertical(top: Radius.circular(16)),

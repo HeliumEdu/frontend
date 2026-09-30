@@ -39,6 +39,7 @@ void showPlannerItemActionDialog({
   if (isMobile) {
     showModalBottomSheet(
       context: context,
+      useRootNavigator: true,
       isScrollControlled: true,
       backgroundColor: context.colorScheme.surface,
       shape: const RoundedRectangleBorder(

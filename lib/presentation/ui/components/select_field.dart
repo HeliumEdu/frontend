@@ -162,6 +162,7 @@ class SelectField<T extends BaseTitledModel> extends StatelessWidget {
     if (isMobile) {
       showModalBottomSheet(
         context: parentContext,
+        useRootNavigator: true,
         isScrollControlled: true,
         backgroundColor: Theme.of(parentContext).colorScheme.surface,
         shape: const RoundedRectangleBorder(
