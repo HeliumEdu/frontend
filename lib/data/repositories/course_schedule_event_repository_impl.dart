@@ -20,13 +20,11 @@ class CourseScheduleRepositoryImpl implements CourseScheduleRepository {
     required List<CourseModel> courses,
     required DateTime from,
     required DateTime to,
-    String? search,
   }) async {
     return builderSource.buildCourseScheduleEvents(
       courses: courses,
       from: from,
       to: to,
-      search: search,
     );
   }
 

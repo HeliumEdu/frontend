@@ -47,18 +47,4 @@ abstract class EventBaseModel extends PlannerItemBaseModel {
   /// Used by the planner data source to render each expanded RRULE occurrence
   /// as its own per-day item.
   EventBaseModel copyAtOccurrence(DateTime start, DateTime end);
-
-  @override
-  Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = super.toJson();
-    if (recurrenceRule != null) {
-      data['recurrence_rule'] = recurrenceRule;
-    }
-    if (exceptionDates.isNotEmpty) {
-      data['exception_dates'] = exceptionDates
-          .map((d) => d.toIso8601String())
-          .toList();
-    }
-    return data;
-  }
 }

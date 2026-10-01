@@ -14,8 +14,4 @@ class ResourceGroupModel extends BaseTitledModel {
       shownOnCalendar: json['shown_on_calendar'],
     );
   }
-
-  Map<String, dynamic> toJson() {
-    return {'id': id, 'title': title, 'shown_on_calendar': shownOnCalendar};
-  }
 }

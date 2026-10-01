@@ -137,6 +137,8 @@ class _GradeCalculatorContainerState extends State<GradeCalculatorContainer>
                           GradeProjectionTab(
                             categories: widget.course.categories,
                             ungradedAssignments: widget.course.ungradedAssignments,
+                            pointsEarned: widget.course.pointsEarned,
+                            pointsPossible: widget.course.pointsPossible,
                             currentOverallGrade: widget.course.overallGrade,
                             courseTitle: widget.course.title,
                             courseColor: widget.course.color,
@@ -144,6 +146,9 @@ class _GradeCalculatorContainerState extends State<GradeCalculatorContainer>
                           ),
                           GradeCalculatorDialog(
                             categories: widget.course.categories,
+                            ungradedAssignments: widget.course.ungradedAssignments,
+                            pointsEarned: widget.course.pointsEarned,
+                            pointsPossible: widget.course.pointsPossible,
                             currentOverallGrade: widget.course.overallGrade,
                             courseTitle: widget.course.title,
                             courseColor: widget.course.color,

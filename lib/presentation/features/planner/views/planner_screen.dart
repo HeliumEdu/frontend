@@ -263,7 +263,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
 
   Offset? _timelineTapPosition;
 
-  int? _deferredOpenItemId;
+  PlannerItemBaseModel? _deferredOpenItem;
   VoidCallback? _deferredOpenAction;
 
   int _calendarItemsDisplayCount = _monthMinItemDisplayCount;
@@ -397,7 +397,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
     _pendingToggleTimers.clear();
     _pendingToggleValues.clear();
     _inFlightCompletionCounts.clear();
-    _deferredOpenItemId = null;
+    _deferredOpenItem = null;
     _deferredOpenAction = null;
     _plannerItemDataSource?.dispose();
     _searchController.dispose();
@@ -536,10 +536,10 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
             _plannerItemDataSource!.addPlannerItem(state.event);
           } else if (state is EventUpdated) {
             _plannerItemDataSource!.updatePlannerItem(state.event);
-            _executeDeferredOpen(state.event.id);
+            _executeDeferredOpen(state.event);
           } else if (state is EventDeleted) {
             showSnackBar(context, 'Event deleted.');
-            _plannerItemDataSource!.removePlannerItem(state.id);
+            _plannerItemDataSource!.removePlannerItem(PlannerItemType.event, state.id);
           } else if (state is AllEventsDeleted) {
             _log.info('All Events deleted, refreshing calendar sources');
 
@@ -565,7 +565,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
               _plannerItemDataSource!.clearCompletedOverride(id);
             }
             _inFlightCompletionCounts.clear();
-            _deferredOpenItemId = null;
+            _deferredOpenItem = null;
             _deferredOpenAction = null;
           } else if (state is HomeworkUpdated) {
             _decrementInFlightCompletion(state.homework.id);
@@ -577,7 +577,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
                 state.homework.id,
               ),
             );
-            _executeDeferredOpen(state.homework.id);
+            _executeDeferredOpen(state.homework);
             if (state.homework.completed &&
                 previousHomework?.completed == false) {
               FeedbackService().triggerReviewRequest();
@@ -622,7 +622,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
             }
           } else if (state is HomeworkDeleted) {
             showSnackBar(context, 'Assignment deleted.');
-            _plannerItemDataSource!.removePlannerItem(state.id);
+            _plannerItemDataSource!.removePlannerItem(PlannerItemType.homework, state.id);
           }
         },
       ),
@@ -1151,15 +1151,15 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
         ? plannerItem.id
         : null;
 
-    _deferredOpenItemId = null;
+    _deferredOpenItem = null;
     _deferredOpenAction = null;
 
     final hasPendingWrite =
         (homeworkId != null && _hasPendingCompletionWrite(homeworkId)) ||
-        _plannerItemDataSource!.hasTimeOverride(plannerItem.id);
+        _plannerItemDataSource!.hasTimeOverride(plannerItem);
 
     if (hasPendingWrite) {
-      _deferredOpenItemId = plannerItem.id;
+      _deferredOpenItem = plannerItem;
       _deferredOpenAction = () {
         if (!mounted) return;
         showPlannerItemAdd(
@@ -2120,10 +2120,11 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
         plannerItem.start,
         userSettings!.timeZone,
       );
-      final Duration duration = tz.TZDateTime.from(
+      final endDateTime = tz.TZDateTime.from(
         plannerItem.end,
         userSettings!.timeZone,
-      ).difference(startDateTime);
+      );
+      final Duration duration = endDateTime.difference(startDateTime);
 
       final roundedMinute = PlannerHelper.roundMinute(
         dropDetails.droppingTime!.minute,
@@ -2141,10 +2142,12 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
             ? startDateTime.minute
             : roundedMinute,
       );
-      final DateTime end = start.add(duration);
+      final DateTime end = plannerItem.allDay
+          ? HeliumDateTime.allDayEndAfterMove(start, startDateTime, endDateTime)
+          : start.add(duration);
 
       _plannerItemDataSource!.setTimeOverride(
-        plannerItem.id,
+        plannerItem,
         start.toIso8601String(),
         end.toIso8601String(),
       );
@@ -2189,7 +2192,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
     if (dragDetails.appointment is PlannerItemBaseModel) {
       final item = dragDetails.appointment as PlannerItemBaseModel;
       final hovered = _pointerDownHoveredItem;
-      final isMismatch = hovered != null && hovered.id != item.id;
+      final isMismatch = hovered != null && hovered != item;
 
       if (isMismatch) {
         _log.warning(
@@ -2244,7 +2247,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
         PlannerHelper.roundMinute(resizeDetails.endTime!.minute),
       );
       if (plannerItem.allDay) {
-        end = end.add(const Duration(days: 1));
+        end = HeliumDateTime.addDays(end, 1);
       }
 
       // Warn if homework is being moved outside course date range
@@ -2253,7 +2256,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
       }
 
       _plannerItemDataSource!.setTimeOverride(
-        plannerItem.id,
+        plannerItem,
         start.toIso8601String(),
         end.toIso8601String(),
       );
@@ -2498,7 +2501,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
       child: MouseRegion(
         onEnter: (_) => _lastHoveredItem = plannerItem,
         onExit: (_) {
-          if (_lastHoveredItem?.id == plannerItem.id) {
+          if (_lastHoveredItem == plannerItem) {
             _lastHoveredItem = null;
           }
         },
@@ -2546,9 +2549,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
     return _plannerItemDataSource
             ?.getItemsForDay(date)
             .firstWhereOrNull(
-              (candidate) =>
-                  candidate.id == item.id &&
-                  candidate.plannerItemType == item.plannerItemType,
+              (candidate) => candidate == item,
             ) ??
         item;
   }
@@ -2697,7 +2698,8 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
           ),
         );
       }
-      if (GradeHelper.parseGrade(plannerItem.currentGrade) != null) {
+      if (_plannerItemDataSource!.isHomeworkCompleted(plannerItem) &&
+          GradeHelper.parseGrade(plannerItem.currentGrade) != null) {
         rows.add(
           _PlannerTooltipRow.text(
             icon: Icons.assignment_turned_in_outlined,
@@ -3836,10 +3838,10 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
     }
   }
 
-  void _executeDeferredOpen(int itemId) {
-    if (_deferredOpenItemId != itemId) return;
+  void _executeDeferredOpen(PlannerItemBaseModel plannerItem) {
+    if (_deferredOpenItem != plannerItem) return;
     final action = _deferredOpenAction;
-    _deferredOpenItemId = null;
+    _deferredOpenItem = null;
     _deferredOpenAction = null;
     if (action == null) return;
     WidgetsBinding.instance.addPostFrameCallback((_) => action());

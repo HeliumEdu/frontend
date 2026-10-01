@@ -16,12 +16,4 @@ class PrivateFeedModel {
       courseSchedulesPrivateUrl: json['courseschedules_private_url'],
     );
   }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'events_private_url': eventsPrivateUrl,
-      'homework_private_url': homeworkPrivateUrl,
-      'courseschedules_private_url': courseSchedulesPrivateUrl,
-    };
-  }
 }

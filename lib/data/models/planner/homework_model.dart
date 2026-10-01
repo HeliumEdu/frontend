@@ -67,20 +67,6 @@ class HomeworkModel extends PlannerItemBaseModel {
     );
   }
 
-  @override
-  Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = super.toJson();
-
-    data['completed'] = completed;
-    data['course'] = course;
-    data['category'] = category;
-    data['resources'] = resources;
-    data['notes'] = notes;
-    data['current_grade'] = currentGrade;
-
-    return data;
-  }
-
   HomeworkModel copyWith({
     int? id,
     String? title,

@@ -23,6 +23,8 @@ void main() {
       gradeByWeight: 90,
       numHomework: 1,
       numHomeworkGraded: 0,
+      pointsEarned: 0,
+      pointsPossible: 0,
       homeworkSeries: const [],
     );
     final assignment = HomeworkSeriesItemModel(
@@ -43,6 +45,8 @@ void main() {
             categories: [category],
             ungradedAssignments: [assignment],
             currentOverallGrade: 90,
+            pointsEarned: 0,
+            pointsPossible: 0,
             courseTitle: 'Fundamentals of Programming',
             courseColor: Colors.blue,
             userSettings: MockModels.createUserSettings(timeZone: timeZone),

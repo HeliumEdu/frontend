@@ -97,33 +97,4 @@ class UserSettingsModel {
       promptForReview: json['prompt_for_review'] ?? false,
     );
   }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'time_zone': timeZone,
-      'default_view': defaultView,
-      'color_scheme_theme': colorSchemeTheme,
-      'week_starts_on': weekStartsOn,
-      'show_getting_started': showGettingStarted,
-      'is_setup_complete': isSetupComplete,
-      'events_color': eventsColor,
-      'resource_color': resourceColor,
-      'grade_color': gradeColor,
-      'default_reminder_type': defaultReminderOffset,
-      'default_reminder_offset': defaultReminderOffset,
-      'default_reminder_offset_type': defaultReminderOffsetType,
-      'calendar_use_category_colors': colorByCategory,
-      'show_planner_tooltips': showPlannerTooltips,
-      'drag_and_drop_on_mobile': dragAndDropOnMobile,
-      'remember_filter_state': rememberFilterState,
-      'calendar_event_limit': collapseBusyDays,
-      'at_risk_threshold': atRiskThreshold,
-      'on_track_tolerance': onTrackTolerance,
-      'show_week_numbers': showWeekNumbers,
-      'date_format': dateFormat,
-      'time_format': timeFormat,
-      'number_format': numberFormat,
-      'private_slug': privateSlug,
-    };
-  }
 }

@@ -31,17 +31,4 @@ class AttachmentModel extends BaseTitledModel {
       homework: json['homework'],
     );
   }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'title': title,
-      'attachment': attachment,
-      'size': size,
-      'user': user,
-      'course': course,
-      'event': event,
-      'homework': homework,
-    };
-  }
 }

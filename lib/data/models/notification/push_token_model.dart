@@ -20,13 +20,4 @@ class PushTokenModel extends BaseModel {
       user: json['user'],
     );
   }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'device_id': deviceId,
-      'token': token,
-      'user': user,
-    };
-  }
 }

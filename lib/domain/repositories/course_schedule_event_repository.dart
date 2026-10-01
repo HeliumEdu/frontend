@@ -8,7 +8,6 @@ abstract class CourseScheduleRepository {
     required List<CourseModel> courses,
     required DateTime from,
     required DateTime to,
-    String? search,
   });
 
   Future<bool> hasCourseSchedules({

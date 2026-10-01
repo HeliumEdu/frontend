@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_quill/flutter_quill.dart';
 import 'package:heliumapp/presentation/features/shared/controllers/basic_form_controller.dart';
 import 'package:heliumapp/utils/format_helpers.dart';
+import 'package:heliumapp/utils/grade_helpers.dart';
 import 'package:heliumapp/utils/quill_helpers.dart';
 
 class PlannerItemFormController extends BasicFormController {
@@ -47,7 +48,7 @@ class PlannerItemFormController extends BasicFormController {
 
   void _onGradeFocusChange() {
     if (!gradeFocusNode.hasFocus) {
-      var value = HeliumNumber.normalize(gradeController.text);
+      var value = GradeHelper.normalizeFraction(gradeController.text);
       if (value != '') {
         if (value.contains('/') && value.endsWith('%')) {
           // If a ratio and a percentage exist, drop the percentage
@@ -69,7 +70,7 @@ class PlannerItemFormController extends BasicFormController {
           value = '';
         }
 
-        gradeController.text = value;
+        gradeController.text = HeliumNumber.localize(value);
       }
     }
   }

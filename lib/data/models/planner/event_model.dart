@@ -61,17 +61,6 @@ class EventModel extends EventBaseModel {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = super.toJson();
-
-    data['ownerId'] = ownerId;
-    data['notes'] = notes;
-    data['color'] = color != null ? HeliumColors.colorToHex(color!) : null;
-
-    return data;
-  }
-
-  @override
   EventModel copyAtOccurrence(DateTime start, DateTime end) =>
       copyWith(start: start, end: end);
 

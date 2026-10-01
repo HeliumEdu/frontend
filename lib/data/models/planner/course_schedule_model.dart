@@ -123,40 +123,6 @@ class CourseScheduleModel extends BaseModel {
     );
   }
 
-  Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'days_of_week': daysOfWeek,
-      'sun_start_time': HeliumTime.formatForApi(sunStartTime),
-      'sun_end_time': HeliumTime.formatForApi(sunEndTime),
-      'mon_start_time': HeliumTime.formatForApi(monStartTime),
-      'mon_end_time': HeliumTime.formatForApi(monEndTime),
-      'tue_start_time': HeliumTime.formatForApi(tueStartTime),
-      'tue_end_time': HeliumTime.formatForApi(tueEndTime),
-      'wed_start_time': HeliumTime.formatForApi(wedStartTime),
-      'wed_end_time': HeliumTime.formatForApi(wedEndTime),
-      'thu_start_time': HeliumTime.formatForApi(thuStartTime),
-      'thu_end_time': HeliumTime.formatForApi(thuEndTime),
-      'fri_start_time': HeliumTime.formatForApi(friStartTime),
-      'fri_end_time': HeliumTime.formatForApi(friEndTime),
-      'sat_start_time': HeliumTime.formatForApi(satStartTime),
-      'sat_end_time': HeliumTime.formatForApi(satEndTime),
-      'course': course,
-      'start_date':
-          startDate != null ? HeliumDateTime.formatDateForApi(startDate!) : null,
-      'end_date':
-          endDate != null ? HeliumDateTime.formatDateForApi(endDate!) : null,
-      'template': template,
-      'cycle_length': cycleLength,
-      'anchor_date': anchorDate != null
-          ? HeliumDateTime.formatDateForApi(anchorDate!)
-          : null,
-      'cycle_slots': cycleSlots.map((slot) => slot.toJson()).toList(),
-      'is_week_based': isWeekBased,
-      'week_offset': weekOffset,
-    };
-  }
-
   /// Whether every active day shares one start/end time. Inactive days are
   /// ignored: their `00:00` is a placeholder, not a meeting time.
   bool allDaysSameTime() {

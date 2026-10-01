@@ -43,18 +43,4 @@ class CategoryModel extends BaseTitledModel {
       numHomework: toInt(json['num_homework']),
     );
   }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'title': title,
-      'color': color,
-      'course': course,
-      'weight': weight,
-      'average_grade': averageGrade,
-      'grade_by_weight': gradeByWeight,
-      'trend': trend,
-      'num_homework': numHomework,
-    };
-  }
 }

@@ -82,15 +82,4 @@ class ExternalCalendarEventModel extends EventBaseModel {
       exceptionDates: exceptionDates,
     );
   }
-
-  @override
-  Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = super.toJson();
-
-    data['comments'] = comments;
-    data['ownerId'] = ownerId;
-    data['color'] = HeliumColors.colorToHex(color!);
-
-    return data;
-  }
 }

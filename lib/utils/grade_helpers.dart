@@ -37,15 +37,6 @@ class NeededGradeResult {
 }
 
 class GradeHelper {
-  // Category grades may come in either 0-100 or 0-1 scale depending on source.
-  // Normalize into percentage before weighted-grade math.
-  static double _normalizedCategoryGrade(double overallGrade) {
-    if (overallGrade < 0) {
-      return overallGrade;
-    }
-    return overallGrade <= 1 ? overallGrade * 100 : overallGrade;
-  }
-
   /// Calculates what grade is needed in a specific category to achieve
   /// a desired overall grade.
   ///
@@ -98,7 +89,7 @@ class GradeHelper {
 
         if (category.overallGrade >= 0) {
           sumOfOtherWeightedGrades +=
-              category.weight * _normalizedCategoryGrade(category.overallGrade);
+              category.weight * category.overallGrade;
         }
         // Ungraded categories contribute 0 (pessimistic default).
       }
@@ -135,6 +126,48 @@ class GradeHelper {
     }
   }
 
+  /// The score needed on one remaining assignment, as a percentage of its
+  /// [assignmentPointsPossible], to bring a points-based class's grade to
+  /// [desiredOverallGrade]: total earned over total possible once it's graded.
+  static NeededGradeResult calculateNeededAssignmentScore({
+    required double gradedPointsEarned,
+    required double gradedPointsPossible,
+    required double assignmentPointsPossible,
+    required double desiredOverallGrade,
+  }) {
+    final neededPoints =
+        desiredOverallGrade / 100 * (gradedPointsPossible + assignmentPointsPossible) - gradedPointsEarned;
+    final neededGrade = neededPoints / assignmentPointsPossible * 100;
+
+    if (neededGrade < 0) {
+      return NeededGradeResult(neededGrade: neededGrade, state: NeededGradeState.aboveTarget);
+    } else if (neededGrade > 100) {
+      return NeededGradeResult(neededGrade: neededGrade, state: NeededGradeState.unachievable);
+    }
+    return NeededGradeResult(neededGrade: neededGrade, state: NeededGradeState.achievable);
+  }
+
+  /// Converts a needed category average into the score needed on that
+  /// category's one remaining assignment, from the category's graded points.
+  /// Weight errors pass through unchanged.
+  static NeededGradeResult toAssignmentScore(
+    NeededGradeResult categoryNeed, {
+    required double categoryGradedPointsEarned,
+    required double categoryGradedPointsPossible,
+    required double assignmentPointsPossible,
+  }) {
+    if (categoryNeed.state == NeededGradeState.targetCategoryHasNoWeight ||
+        categoryNeed.state == NeededGradeState.invalidTotalWeight) {
+      return categoryNeed;
+    }
+    return calculateNeededAssignmentScore(
+      gradedPointsEarned: categoryGradedPointsEarned,
+      gradedPointsPossible: categoryGradedPointsPossible,
+      assignmentPointsPossible: assignmentPointsPossible,
+      desiredOverallGrade: categoryNeed.neededGrade,
+    );
+  }
+
   /// Projects an overall grade given hypothetical scores for ungraded assignments.
   /// [projections] maps assignment ID to a hypothetical score as a percentage (0–100).
   ///
@@ -144,11 +177,13 @@ class GradeHelper {
     required List<GradeCategoryModel> categories,
     required List<HomeworkSeriesItemModel> ungradedAssignments,
     required Map<int, double> projections,
+    required double pointsEarned,
+    required double pointsPossible,
   }) {
     final hasWeightedGrading = categories.any((c) => c.weight > 0);
     return hasWeightedGrading
         ? _projectedWeighted(categories, ungradedAssignments, projections)
-        : _projectedPoints(categories, ungradedAssignments, projections);
+        : _projectedPoints(ungradedAssignments, projections, pointsEarned, pointsPossible);
   }
 
   static double _projectedWeighted(
@@ -203,28 +238,13 @@ class GradeHelper {
   }
 
   static double _projectedPoints(
-    List<GradeCategoryModel> categories,
     List<HomeworkSeriesItemModel> ungradedAssignments,
     Map<int, double> projections,
+    double pointsEarned,
+    double pointsPossible,
   ) {
-    double totalEarned = 0.0;
-    double totalPossible = 0.0;
-
-    for (final category in categories) {
-      if (category.overallGrade < 0 || category.numHomeworkGraded <= 0) continue;
-
-      final catUngraded =
-          ungradedAssignments.where((item) => item.categoryId == category.id).toList();
-      // Approximate each graded assignment's worth using ungraded items as a reference.
-      // Fall back to 100 pts when no ungraded reference exists in this category.
-      final avgPP = catUngraded.isEmpty
-          ? 100.0
-          : catUngraded.fold(0.0, (s, i) => s + (i.pointsPossible ?? 0)) / catUngraded.length;
-
-      final gradedPossible = category.numHomeworkGraded * avgPP;
-      totalEarned += category.overallGrade / 100.0 * gradedPossible;
-      totalPossible += gradedPossible;
-    }
+    double totalEarned = pointsEarned;
+    double totalPossible = pointsPossible;
 
     for (final item in ungradedAssignments) {
       final pp = item.pointsPossible ?? 0;
@@ -236,13 +256,16 @@ class GradeHelper {
     return totalPossible > 0 ? totalEarned / totalPossible * 100 : -1;
   }
 
+  /// Normalizes each side of the `/` on its own, so both read as decimals.
+  static String normalizeFraction(String text) =>
+      text.split('/').map(HeliumNumber.normalize).join('/');
+
   /// Parses a grade value from various formats (strings like "X/Y", numbers, etc.)
   /// Returns the grade as a percentage (0-100) or null if invalid/not graded
   static double? parseGrade(dynamic grade) {
     if (grade == null ||
         grade == '' ||
         grade == '-1/100' ||
-        grade == 0 ||
         grade == -1.0) {
       return null;
     }
@@ -273,7 +296,7 @@ class GradeHelper {
       return showNaAsBlank ? '' : 'N/A';
     }
 
-    return '${HeliumNumber.format(gradeValue, fractionDigits: 2)}%';
+    return HeliumNumber.formatPercent(gradeValue, fractionDigits: 2);
   }
 
   /// Formats a percentage value for display (e.g., category weights)
@@ -284,7 +307,7 @@ class GradeHelper {
       if (percentage == 0 && zeroAsNa != null && zeroAsNa) {
         return 'N/A';
       }
-      return '${HeliumNumber.format(percentage, fractionDigits: 2, trimZeros: true)}%';
+      return HeliumNumber.formatPercent(percentage, fractionDigits: 2, trimZeros: true);
     } catch (e) {
       return 'N/A';
     }

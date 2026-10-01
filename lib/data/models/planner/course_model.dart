@@ -139,30 +139,4 @@ class CourseModel extends BaseTitledModel {
       numHomeworkGraded: numHomeworkGraded ?? this.numHomeworkGraded,
     );
   }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'title': title,
-      'start_date': startDate.toIso8601String(),
-      'end_date': endDate.toIso8601String(),
-      'room': room,
-      'credits': credits,
-      'color': color,
-      'website': website?.toString() ?? '',
-      'is_online': isOnline,
-      'course_group': courseGroup,
-      'teacher_name': teacherName,
-      'teacher_email': teacherEmail,
-      'current_grade': currentGrade,
-      'schedules': schedules.map((schedule) => schedule.toJson()).toList(),
-      'trend': trend,
-      'num_days': numDays,
-      'num_days_completed': numDaysCompleted,
-      'has_weighted_grading': hasWeightedGrading,
-      'num_homework': numHomework,
-      'num_homework_completed': numHomeworkCompleted,
-      'num_homework_graded': numHomeworkGraded,
-    };
-  }
 }

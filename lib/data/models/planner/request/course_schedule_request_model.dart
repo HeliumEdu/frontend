@@ -86,12 +86,14 @@ class CourseScheduleRequestModel {
     };
 
     // A template expands to cycle_length / is_week_based server-side; sending
-    // them alongside it conflicts, so only Custom sends the raw values.
+    // them alongside it conflicts, so only Weekly and Custom send the raw values.
+    // The server keeps an omitted is_week_based, so send it to clear Week A/B.
     if (template != null) {
       json['template'] = template;
     } else {
       json['template'] = null;
       json['cycle_length'] = cycleLength;
+      json['is_week_based'] = false;
     }
 
     return json;

@@ -52,10 +52,16 @@ class HeliumNumber {
     return double.tryParse(normalize(text));
   }
 
+  /// Writes a canonical point decimal, such as a stored grade, with the
+  /// regional decimal separator and no grouping, so [normalize] reads it back.
+  static String localize(String canonical) => _usesCommaDecimal ? canonical.replaceAll('.', ',') : canonical;
+
+  static bool get _usesCommaDecimal =>
+      RegionalSettingsNotifier().numberFormat == RegionalFormatConstants.numberFormatComma;
+
   /// A locale whose decimal and grouping separators match the number format
   /// setting, so every number renders through the same intl rules.
-  static String get _formatLocale =>
-      RegionalSettingsNotifier().numberFormat == RegionalFormatConstants.numberFormatComma ? 'de_DE' : 'en_US';
+  static String get _formatLocale => _usesCommaDecimal ? 'de_DE' : 'en_US';
 
   /// Renders [value] with the regional decimal and thousands separators.
   /// [fractionDigits] fixes the precision (up to 10 fraction digits when
@@ -67,6 +73,9 @@ class HeliumNumber {
       ..maximumFractionDigits = fractionDigits ?? 10;
     return numberFormat.format(value);
   }
+
+  static String formatPercent(double value, {int? fractionDigits, bool trimZeros = false}) =>
+      '${format(value, fractionDigits: fractionDigits, trimZeros: trimZeros)}%';
 
   /// The decimal separator the device locale writes, falling back to a point
   /// when the locale is unknown.

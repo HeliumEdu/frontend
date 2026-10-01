@@ -11,6 +11,7 @@ import 'package:heliumapp/data/models/planner/external_calendar_event_model.dart
 import 'package:heliumapp/data/models/planner/homework_model.dart';
 import 'package:heliumapp/data/models/planner/planner_item_base_model.dart';
 import 'package:heliumapp/data/sources/planner_item_data_source.dart';
+import 'package:heliumapp/utils/planner_helper.dart';
 import 'package:heliumapp/utils/sort_helpers.dart';
 import 'package:heliumapp/domain/repositories/course_schedule_event_repository.dart';
 import 'package:heliumapp/domain/repositories/event_repository.dart';
@@ -307,30 +308,17 @@ void main() {
             ),
           );
 
-          DateTime sfConvert(DateTime value) {
-            final converted = tz.TZDateTime.from(value, amsterdam);
-            return DateTime(
-              converted.year,
-              converted.month,
-              converted.day,
-              converted.hour,
-              converted.minute,
-              converted.second,
-            );
-          }
-
-          bool isSameDate(DateTime a, DateTime b) =>
-              a.year == b.year && a.month == b.month && a.day == b.day;
-
           final occurrences = SfCalendar.getRecurrenceDateTimeCollection(
             dataSource.getRecurrenceRule(0)!,
-            sfConvert(dataSource.getStartTime(0)),
+            _sfCalendarDateTime(dataSource.getStartTime(0), dataSource.userSettings.timeZone),
           );
           final exceptions =
-              dataSource.getRecurrenceExceptionDates(0)!.map(sfConvert).toList();
+              dataSource.getRecurrenceExceptionDates(0)!
+                  .map((e) => _sfCalendarDateTime(e, dataSource.userSettings.timeZone))
+                  .toList();
 
           final rendered = occurrences
-              .where((o) => !exceptions.any((e) => isSameDate(o, e)))
+              .where((o) => !exceptions.any((e) => _isSameDate(o, e)))
               .map((o) => '${o.year}-${o.month}-${o.day}')
               .toList();
 
@@ -341,6 +329,78 @@ void main() {
             isNot(contains('2025-9-18')),
             reason: 'the EXDATE must suppress the 18th',
           );
+        },
+      );
+
+      test(
+        'an all-day date-only EXDATE suppresses its own date west of UTC',
+        () {
+          // GIVEN
+          final la = tz.getLocation('America/Los_Angeles');
+          dataSource.userSettings = _createUserSettings(timeZone: la);
+          dataSource.appointments!.clear();
+          dataSource.appointments!.insert(
+            0,
+            _createExternalCalendarEventModel(
+              id: 902,
+              allDay: true,
+              start: tz.TZDateTime(la, 2025, 10, 1).toUtc(),
+              end: tz.TZDateTime(la, 2025, 10, 2).toUtc(),
+              recurrenceRule: 'FREQ=DAILY;COUNT=7',
+              exceptionDates: [DateTime.parse('2025-10-05T00:00:00Z')],
+            ),
+          );
+
+          // WHEN
+          final occurrences = SfCalendar.getRecurrenceDateTimeCollection(
+            dataSource.getRecurrenceRule(0)!,
+            _sfCalendarDateTime(dataSource.getStartTime(0), dataSource.userSettings.timeZone),
+          );
+          final exceptions =
+              dataSource.getRecurrenceExceptionDates(0)!
+                  .map((e) => _sfCalendarDateTime(e, dataSource.userSettings.timeZone))
+                  .toList();
+          final rendered = occurrences
+              .where((o) => !exceptions.any((e) => _isSameDate(o, e)))
+              .map((o) => '${o.year}-${o.month}-${o.day}')
+              .toList();
+
+          // THEN
+          expect(rendered, isNot(contains('2025-10-5')),
+              reason: 'the date-only EXDATE must suppress the 5th');
+          expect(rendered, contains('2025-10-4'),
+              reason: 'the day before must still show');
+        },
+      );
+
+      test(
+        'an all-day date-only EXDATE suppresses its own date in the day popout west of UTC',
+        () {
+          // GIVEN
+          final la = tz.getLocation('America/Los_Angeles');
+          dataSource.userSettings = _createUserSettings(timeZone: la);
+          dataSource.appointments!.clear();
+          dataSource.appointments!.insert(
+            0,
+            _createExternalCalendarEventModel(
+              id: 903,
+              allDay: true,
+              start: tz.TZDateTime(la, 2025, 10, 1).toUtc(),
+              end: tz.TZDateTime(la, 2025, 10, 2).toUtc(),
+              recurrenceRule: 'FREQ=DAILY;COUNT=7',
+              exceptionDates: [DateTime.parse('2025-10-05T00:00:00Z')],
+            ),
+          );
+
+          // WHEN
+          final onException = dataSource.getItemsForDay(DateTime(2025, 10, 5));
+          final dayBefore = dataSource.getItemsForDay(DateTime(2025, 10, 4));
+
+          // THEN
+          expect(onException.map((e) => e.id), isNot(contains(903)),
+              reason: 'the date-only EXDATE must suppress the 5th');
+          expect(dayBefore.map((e) => e.id), contains(903),
+              reason: 'the day before must still show');
         },
       );
 
@@ -989,10 +1049,89 @@ void main() {
         expect(dataSource.completedOverrides, isEmpty);
       });
 
+      test('updatePlannerItem hides a shown item that no longer matches the search', () {
+        // GIVEN
+        dataSource.addPlannerItem(_createHomeworkModel(id: 1, title: 'Quiz 3'));
+        dataSource.setSearchQuery('Quiz');
+
+        // WHEN
+        dataSource.updatePlannerItem(_createHomeworkModel(id: 1, title: 'Exam 3'));
+
+        // THEN
+        expect(dataSource.appointments, isEmpty);
+      });
+
+      test('updatePlannerItem hides a toggled item once its completion write settles', () {
+        // GIVEN
+        dataSource.addPlannerItem(_createHomeworkModel(id: 1, completed: false));
+        dataSource.setFilterStatuses({'Incomplete'});
+        dataSource.setCompletedOverride(1, true);
+
+        // WHEN
+        dataSource.updatePlannerItem(_createHomeworkModel(id: 1, completed: true));
+
+        // THEN
+        expect(dataSource.appointments, isEmpty);
+      });
+
+      test('updatePlannerItem keeps a toggled item shown while a completion write is pending', () {
+        // GIVEN
+        dataSource.addPlannerItem(_createHomeworkModel(id: 1, completed: false));
+        dataSource.setFilterStatuses({'Incomplete'});
+        dataSource.setCompletedOverride(1, false);
+
+        // WHEN
+        dataSource.updatePlannerItem(
+          _createHomeworkModel(id: 1, completed: true),
+          hasPendingCompletionWrite: true,
+        );
+
+        // THEN
+        expect(dataSource.appointments, hasLength(1));
+      });
+
+      test('addPlannerItem adds an assignment that shares its id with a cached event', () {
+        // GIVEN
+        dataSource.addPlannerItem(_createEventModel(id: 7, title: 'Event 7'));
+
+        // WHEN
+        dataSource.addPlannerItem(_createHomeworkModel(id: 7, title: 'Assignment 7'));
+
+        // THEN
+        expect(dataSource.allPlannerItems.map((item) => item.title), containsAll(['Event 7', 'Assignment 7']));
+        expect(dataSource.appointments, hasLength(2));
+      });
+
+      test('updatePlannerItem leaves an event that shares the assignment id in place', () {
+        // GIVEN
+        dataSource.addPlannerItem(_createEventModel(id: 7, title: 'Event 7'));
+        dataSource.addPlannerItem(_createHomeworkModel(id: 7, title: 'Assignment 7'));
+
+        // WHEN
+        dataSource.updatePlannerItem(_createHomeworkModel(id: 7, title: 'Assignment 7 saved'));
+
+        // THEN
+        expect(dataSource.allPlannerItems.map((item) => item.title), unorderedEquals(['Event 7', 'Assignment 7 saved']));
+        expect(dataSource.appointments, hasLength(2));
+      });
+
+      test('removePlannerItem leaves an event that shares the assignment id in place', () {
+        // GIVEN
+        dataSource.addPlannerItem(_createEventModel(id: 7, title: 'Event 7'));
+        dataSource.addPlannerItem(_createHomeworkModel(id: 7, title: 'Assignment 7'));
+
+        // WHEN
+        dataSource.removePlannerItem(PlannerItemType.homework, 7);
+
+        // THEN
+        expect(dataSource.allPlannerItems.map((item) => item.title), ['Event 7']);
+        expect(dataSource.appointments, hasLength(1));
+      });
+
       test('removePlannerItem removes item', () {
         final homework = _createHomeworkModel(id: 1);
         dataSource.addPlannerItem(homework);
-        dataSource.removePlannerItem(1);
+        dataSource.removePlannerItem(PlannerItemType.homework, 1);
 
         expect(dataSource.allPlannerItems, isEmpty);
         expect(dataSource.appointments, isEmpty);
@@ -1002,13 +1141,13 @@ void main() {
         final homework = _createHomeworkModel(id: 1);
         dataSource.addPlannerItem(homework);
         dataSource.setCompletedOverride(1, true);
-        dataSource.removePlannerItem(1);
+        dataSource.removePlannerItem(PlannerItemType.homework, 1);
 
         expect(dataSource.completedOverrides, isEmpty);
       });
 
       test('removePlannerItem handles non-existent item', () {
-        dataSource.removePlannerItem(999);
+        dataSource.removePlannerItem(PlannerItemType.homework, 999);
         expect(dataSource.allPlannerItems, isEmpty);
       });
     });
@@ -1041,6 +1180,18 @@ void main() {
         expect(dataSource.completedOverrides, isEmpty);
       });
 
+      test('clearCompletedOverride hides an item that no longer matches the status filter', () {
+        // GIVEN
+        dataSource.setFilterStatuses({'Complete'});
+        dataSource.setCompletedOverride(1, true);
+
+        // WHEN
+        dataSource.clearCompletedOverride(1);
+
+        // THEN
+        expect(dataSource.appointments, isEmpty);
+      });
+
       test('completedOverrides returns unmodifiable map', () {
         dataSource.setCompletedOverride(1, true);
         final overrides = dataSource.completedOverrides;
@@ -1063,7 +1214,7 @@ void main() {
 
       test('getStartTime uses override when present', () {
         dataSource.setTimeOverride(
-          1,
+          homework,
           '2025-01-20T09:00:00Z',
           '2025-01-20T10:00:00Z',
         );
@@ -1078,7 +1229,7 @@ void main() {
 
       test('getEndTime uses override when present', () {
         dataSource.setTimeOverride(
-          1,
+          homework,
           '2025-01-20T09:00:00Z',
           '2025-01-20T10:00:00Z',
         );
@@ -1091,9 +1242,30 @@ void main() {
         expect(dataSource.getEndTime(0), expected);
       });
 
+      test('setTimeOverride moves only the dragged item when an event shares its id', () {
+        // GIVEN
+        dataSource.addPlannerItem(_createEventModel(
+          id: 1,
+          start: DateTime.parse('2025-01-15T12:00:00Z'),
+          end: DateTime.parse('2025-01-15T13:00:00Z'),
+        ));
+        final eventStart = dataSource.getStartTime(
+          dataSource.appointments!.indexWhere((a) => a is EventModel),
+        );
+
+        // WHEN
+        dataSource.setTimeOverride(homework, '2025-01-20T09:00:00Z', '2025-01-20T10:00:00Z');
+
+        // THEN
+        expect(
+          dataSource.getStartTime(dataSource.appointments!.indexWhere((a) => a is EventModel)),
+          eventStart,
+        );
+      });
+
       test('updatePlannerItem clears time override', () {
         dataSource.setTimeOverride(
-          1,
+          homework,
           '2025-01-20T09:00:00Z',
           '2025-01-20T10:00:00Z',
         );
@@ -1518,6 +1690,65 @@ void main() {
         );
       });
 
+      test('fetches through the end of the last requested day', () async {
+        // GIVEN
+        final la = tz.getLocation('America/Los_Angeles');
+
+        // WHEN
+        await freshDataSource.handleLoadMore(
+          DateTime(2025, 3, 1),
+          DateTime(2025, 3, 7),
+        );
+
+        // THEN
+        final homeworkTo = verify(
+          () => mockHomeworkRepository.getHomeworks(
+            from: any(named: 'from'),
+            to: captureAny(named: 'to'),
+            shownOnCalendar: any(named: 'shownOnCalendar'),
+          ),
+        ).captured.single as DateTime;
+        expect(homeworkTo, tz.TZDateTime(la, 2025, 3, 8));
+        final eventTo = verify(
+          () => mockEventRepository.getEvents(
+            from: any(named: 'from'),
+            to: captureAny(named: 'to'),
+          ),
+        ).captured.single as DateTime;
+        expect(eventTo, tz.TZDateTime(la, 2025, 3, 8));
+        final externalTo = verify(
+          () => mockExternalCalendarRepository.getExternalCalendarEvents(
+            from: any(named: 'from'),
+            to: captureAny(named: 'to'),
+            shownOnCalendar: any(named: 'shownOnCalendar'),
+          ),
+        ).captured.single as DateTime;
+        expect(externalTo, tz.TZDateTime(la, 2025, 3, 8));
+      });
+
+      test('keeps an item added on the last loaded day', () async {
+        // GIVEN
+        final la = tz.getLocation('America/Los_Angeles');
+        await freshDataSource.handleLoadMore(
+          DateTime(2025, 3, 1),
+          DateTime(2025, 3, 7),
+        );
+        final homework = _createHomeworkModel(
+          id: 77,
+          start: tz.TZDateTime(la, 2025, 3, 7, 10).toUtc(),
+          end: tz.TZDateTime(la, 2025, 3, 7, 11).toUtc(),
+        );
+
+        // WHEN
+        freshDataSource.addPlannerItem(homework);
+
+        // THEN
+        expect(
+          freshDataSource.allPlannerItems.whereType<HomeworkModel>().map((h) => h.id),
+          contains(77),
+        );
+      });
+
       test('fetches for different date ranges', () async {
         await freshDataSource.handleLoadMore(
           DateTime(2025, 1, 1),
@@ -1719,6 +1950,21 @@ UserSettingsModel _createUserSettings({required tz.Location timeZone}) {
   );
 }
 
+DateTime _sfCalendarDateTime(DateTime value, tz.Location calendarZone) {
+  final converted = tz.TZDateTime.from(value, calendarZone);
+  return DateTime(
+    converted.year,
+    converted.month,
+    converted.day,
+    converted.hour,
+    converted.minute,
+    converted.second,
+  );
+}
+
+bool _isSameDate(DateTime a, DateTime b) =>
+    a.year == b.year && a.month == b.month && a.day == b.day;
+
 HomeworkModel _createHomeworkModel({
   int id = 1,
   String title = 'Test Homework',
@@ -1809,11 +2055,12 @@ ExternalCalendarEventModel _createExternalCalendarEventModel({
   DateTime? end,
   String? recurrenceRule,
   List<DateTime> exceptionDates = const [],
+  bool allDay = false,
 }) {
   return ExternalCalendarEventModel(
     id: id,
     title: title,
-    allDay: false,
+    allDay: allDay,
     showEndTime: true,
     start: start ?? DateTime.parse('2025-01-15T10:00:00Z'),
     end: end ?? DateTime.parse('2025-01-15T11:00:00Z'),

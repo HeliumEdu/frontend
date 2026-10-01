@@ -11,7 +11,7 @@ abstract class BaseModel {
           id == other.id;
 
   @override
-  int get hashCode => id.hashCode;
+  int get hashCode => Object.hash(runtimeType, id);
 }
 
 abstract class BaseTitledModel extends BaseModel {

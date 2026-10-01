@@ -37,17 +37,4 @@ class ResourceModel extends BaseTitledModel {
       notes: json['notes'] != null ? List<int>.from(json['notes']) : [],
     );
   }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'title': title,
-      'status': status,
-      'condition': condition,
-      'website': website?.toString() ?? '',
-      'price': price,
-      'resource_group': resourceGroup,
-      'courses': courses,
-    };
-  }
 }

@@ -21,19 +21,4 @@ class NotificationModel extends BaseModel {
     this.course,
     this.color,
   });
-
-  Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = {
-      'id': id,
-      'title': title,
-      'body': body,
-      'timestamp': timestamp,
-      'color': color,
-      'reminder': reminder.toJson(),
-    };
-
-    if (course != null) data['course'] = course!.toJson();
-
-    return data;
-  }
 }

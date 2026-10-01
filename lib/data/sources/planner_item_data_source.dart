@@ -65,7 +65,7 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
   String _searchQuery = '';
   int _todosItemsPerPage = 10;
   final Map<int, bool> _completedOverrides = {};
-  final Map<int, PlannerItemTimeOverride> _timeOverrides = {};
+  final Map<PlannerItemBaseModel, PlannerItemTimeOverride> _timeOverrides = {};
   bool _isMonthView = false;
   Timer? _filterDebounceTimer;
   bool _filterRerunRequested = false;
@@ -216,10 +216,7 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
       _log.info('Refreshing external calendar events only');
 
       if (_dateRangeCache.isNotEmpty) {
-        final cachedRanges = _dateRangeCache.keys.map((key) {
-          final parts = key.split('_');
-          return (DateTime.parse(parts[0]), DateTime.parse(parts[1]));
-        }).toList();
+        final cachedRanges = _dateRangeCache.keys.map(_cacheRangeBounds).toList();
 
         final unionStart = cachedRanges
             .map((r) => r.$1)
@@ -240,9 +237,7 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
           final items = entry.value;
           items.removeWhere((item) => item is ExternalCalendarEventModel);
 
-          final parts = entry.key.split('_');
-          final rangeStart = DateTime.parse(parts[0]);
-          final rangeEnd = DateTime.parse(parts[1]);
+          final (rangeStart, rangeEnd) = _cacheRangeBounds(entry.key);
 
           for (final event in newEvents) {
             if (event.start.isBefore(rangeEnd) && event.end.isAfter(rangeStart)) {
@@ -301,16 +296,13 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
   /// instead of the platform-assigned id, mirroring the redundant id recomputation in
   /// [ExternalCalendarEventModel.fromJson].
   List<PlannerItemBaseModel> get allPlannerItems {
-    final seen = <String>{};
+    final seen = <Object>{};
     final items = <PlannerItemBaseModel>[];
     for (final rangeItems in _dateRangeCache.values) {
       for (final item in rangeItems) {
-        final String key;
-        if (item is ExternalCalendarEventModel) {
-          key = 'ExternalCalendarEventModel:${item.ownerId}:${item.start.millisecondsSinceEpoch}:${item.title}';
-        } else {
-          key = '${item.runtimeType}:${item.id}';
-        }
+        final Object key = item is ExternalCalendarEventModel
+            ? (item.ownerId, item.start.millisecondsSinceEpoch, item.title)
+            : item;
         if (seen.add(key)) {
           items.add(item);
         }
@@ -320,10 +312,17 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
   }
 
   /// `exceptionDates` mixes forms: course-schedule exceptions are naive local
-  /// midnight, event and external EXDATEs are UTC instants.
-  bool _isExceptionOn(List<DateTime> exceptionDates, tz.TZDateTime occurrence) {
+  /// midnight, event and external EXDATEs are UTC instants, and an all-day
+  /// series' date-only EXDATE can be UTC midnight naming a calendar date.
+  bool _isExceptionOn(
+    List<DateTime> exceptionDates,
+    tz.TZDateTime occurrence, {
+    bool allDay = false,
+  }) {
     return exceptionDates.any((e) {
-      final local = HeliumDateTime.wallClockIn(e, userSettings.timeZone);
+      final local = allDay
+          ? HeliumDateTime.allDayExceptionIn(e, userSettings.timeZone)
+          : HeliumDateTime.wallClockIn(e, userSettings.timeZone);
       return local.year == occurrence.year &&
           local.month == occurrence.month &&
           local.day == occurrence.day;
@@ -423,7 +422,7 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
             continue;
           }
 
-          if (_isExceptionOn(appointment.exceptionDates, occurrenceLocal)) {
+          if (_isExceptionOn(appointment.exceptionDates, occurrenceLocal, allDay: appointment.allDay)) {
             continue;
           }
 
@@ -465,12 +464,12 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
   }
 
   DateTime _effectiveStart(PlannerItemBaseModel item) {
-    final override = _timeOverrides[item.id];
+    final override = _timeOverrides[item];
     return override != null ? DateTime.parse(override.start) : item.start;
   }
 
   DateTime _effectiveEnd(PlannerItemBaseModel item) {
-    final override = _timeOverrides[item.id];
+    final override = _timeOverrides[item];
     return override != null ? DateTime.parse(override.end) : item.end;
   }
 
@@ -522,7 +521,7 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
   @override
   DateTime getStartTime(int index) {
     final item = _getData(index);
-    final override = _timeOverrides[item.id];
+    final override = _timeOverrides[item];
     final rawStart = override != null ? DateTime.parse(override.start) : item.start;
     final priority = Sort.typeSortPriority[item.plannerItemType] ?? 0;
     if (item.allDay) {
@@ -541,7 +540,7 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
   @override
   DateTime getEndTime(int index) {
     final plannerItem = _getData(index);
-    final override = _timeOverrides[plannerItem.id];
+    final override = _timeOverrides[plannerItem];
     final rawStart = override != null ? DateTime.parse(override.start) : plannerItem.start;
     final rawEnd = override != null ? DateTime.parse(override.end) : plannerItem.end;
     if (plannerItem.allDay) {
@@ -617,6 +616,11 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
       return List<DateTime>.of(item.exceptionDates);
     }
     if (item is EventBaseModel && item.exceptionDates.isNotEmpty) {
+      if (item.allDay) {
+        return item.exceptionDates
+            .map((e) => HeliumDateTime.allDayExceptionIn(e, userSettings.timeZone))
+            .toList();
+      }
       return List<DateTime>.of(item.exceptionDates);
     }
     return null;
@@ -644,10 +648,19 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
   }
 
   String _cacheKey(DateTime from, DateTime to) {
-    // API query parameters are date-only, so cache keys can be the same
+    // Fetches cover whole days, so cache keys are date-only
     final fromKey = HeliumDateTime.dateOnly(from);
     final toKey = HeliumDateTime.dateOnly(to);
     return '${fromKey.toIso8601String()}_${toKey.toIso8601String()}';
+  }
+
+  (tz.TZDateTime, tz.TZDateTime) _cacheRangeBounds(String key) {
+    final parts = key.split('_');
+    return HeliumDateTime.dayRangeIn(
+      DateTime.parse(parts[0]),
+      DateTime.parse(parts[1]),
+      userSettings.timeZone,
+    );
   }
 
   bool isOnlineForItem(PlannerItemBaseModel plannerItem) {
@@ -691,19 +704,12 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
     final key = _cacheKey(startDate, endDate);
 
     if (forceRefresh || !_dateRangeCache.containsKey(key)) {
-      // Convert dates to TZDateTime in user's timezone at midnight.
-      // This ensures date boundaries are interpreted consistently on the backend.
-      final tzStartDate = tz.TZDateTime(
+      // Send whole-day bounds in the user's timezone as instants, so the
+      // backend reads the same boundaries the cache buckets use.
+      final (tzStartDate, tzEndDate) = HeliumDateTime.dayRangeIn(
+        startDate,
+        endDate,
         userSettings.timeZone,
-        startDate.year,
-        startDate.month,
-        startDate.day,
-      );
-      final tzEndDate = tz.TZDateTime(
-        userSettings.timeZone,
-        endDate.year,
-        endDate.month,
-        endDate.day,
       );
 
       final List<dynamic> results;
@@ -716,8 +722,8 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
             forceRefresh: forceRefresh,
           ),
           eventRepository.getEvents(
-            from: startDate,
-            to: endDate,
+            from: tzStartDate,
+            to: tzEndDate,
             forceRefresh: forceRefresh,
           ),
           courseScheduleRepository.getCourseScheduleEvents(
@@ -726,8 +732,8 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
             to: endDate,
           ),
           externalCalendarRepository.getExternalCalendarEvents(
-            from: startDate,
-            to: endDate,
+            from: tzStartDate,
+            to: tzEndDate,
             shownOnCalendar: true,
             forceRefresh: forceRefresh,
           ),
@@ -1031,7 +1037,7 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
 
   void addPlannerItem(PlannerItemBaseModel plannerItem) {
     for (final items in _dateRangeCache.values) {
-      if (items.any((existing) => existing.id == plannerItem.id)) {
+      if (items.contains(plannerItem)) {
         return;
       }
     }
@@ -1044,18 +1050,14 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
     final itemEnd = plannerItem.end;
 
     for (final entry in _dateRangeCache.entries) {
-      final parts = entry.key.split('_');
-      final rangeStart = DateTime.parse(parts[0]);
-      final rangeEnd = DateTime.parse(parts[1]);
+      final (rangeStart, rangeEnd) = _cacheRangeBounds(entry.key);
 
       if (itemStart.isBefore(rangeEnd) && itemEnd.isAfter(rangeStart)) {
         entry.value.add(plannerItem);
       }
     }
 
-    if (!appointments!.any(
-      (item) => (item as PlannerItemBaseModel).id == plannerItem.id,
-    )) {
+    if (!appointments!.contains(plannerItem)) {
       appointments!.add(plannerItem);
       Sort.byStartThenTitle(appointments!.cast<PlannerItemBaseModel>());
       _notifyCalendarReset();
@@ -1071,9 +1073,7 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
     bool updated = false;
 
     for (final items in _dateRangeCache.values) {
-      final index = items.indexWhere(
-        (existing) => existing.id == plannerItem.id,
-      );
+      final index = items.indexOf(plannerItem);
       if (index != -1) {
         items[index] = plannerItem;
         updated = true;
@@ -1094,22 +1094,18 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
         _completedOverrides.remove(plannerItem.id);
       }
     }
-    _timeOverrides.remove(plannerItem.id);
+    _timeOverrides.remove(plannerItem);
 
-    final oldIndex = appointments!.indexWhere(
-      (item) => (item as PlannerItemBaseModel).id == plannerItem.id,
-    );
+    final oldIndex = appointments!.indexOf(plannerItem);
 
-    if (oldIndex != -1) {
+    if (oldIndex != -1 && _isShownByFilters(plannerItem)) {
       appointments![oldIndex] = plannerItem;
       Sort.byStartThenTitle(appointments!.cast<PlannerItemBaseModel>());
       _notifyCalendarReset();
       // Force SfCalendar's per-appointment cache to rebuild.
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (_isDisposed || appointments == null) return;
-        final item = appointments!.firstWhereOrNull(
-          (a) => (a as PlannerItemBaseModel).id == plannerItem.id,
-        );
+        final item = appointments!.firstWhereOrNull((a) => a == plannerItem);
         if (item == null) return;
         notifyListeners(CalendarDataSourceAction.remove, [item]);
         notifyListeners(CalendarDataSourceAction.add, [item]);
@@ -1122,12 +1118,17 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
     _notifyChangeListeners();
   }
 
-  void removePlannerItem(int plannerItemId) {
+  bool _isShownByFilters(PlannerItemBaseModel plannerItem) =>
+      _filteredPlannerItems.contains(plannerItem);
+
+  void removePlannerItem(PlannerItemType plannerItemType, int plannerItemId) {
     PlannerItemBaseModel? removedItem;
 
     for (final items in _dateRangeCache.values) {
       final index = items.indexWhere(
-        (existing) => existing.id == plannerItemId,
+        (existing) =>
+            existing.plannerItemType == plannerItemType &&
+            existing.id == plannerItemId,
       );
       if (index != -1) {
         removedItem ??= items[index];
@@ -1140,7 +1141,9 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
         'Calendar item removed: ${removedItem.runtimeType} $plannerItemId',
       );
       appointments!.remove(removedItem);
-      _completedOverrides.remove(plannerItemId);
+      if (removedItem is HomeworkModel) {
+        _completedOverrides.remove(plannerItemId);
+      }
       if (!_isDisposed) {
         notifyListeners(CalendarDataSourceAction.remove, [removedItem]);
       }
@@ -1158,9 +1161,11 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
   void clearCompletedOverride(int homeworkId) {
     _completedOverrides.remove(homeworkId);
     _notifyChangeListeners();
+    _applyFiltersAndNotify();
   }
 
-  bool hasTimeOverride(int itemId) => _timeOverrides.containsKey(itemId);
+  bool hasTimeOverride(PlannerItemBaseModel plannerItem) =>
+      _timeOverrides.containsKey(plannerItem);
 
   /// Optimistic override for drag-drop/resize. Updates getStartTime/getEndTime
   /// immediately so the item visually snaps to the new position before the API
@@ -1168,8 +1173,8 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
   /// current frame renders at the new position. Safe to call synchronously
   /// because it is only ever called from event callbacks (onDragEnd,
   /// onAppointmentResizeEnd), not during build or paint.
-  void setTimeOverride(int itemId, String start, String end) {
-    _timeOverrides[itemId] = PlannerItemTimeOverride(start: start, end: end);
+  void setTimeOverride(PlannerItemBaseModel plannerItem, String start, String end) {
+    _timeOverrides[plannerItem] = PlannerItemTimeOverride(start: start, end: end);
     if (_isDisposed || appointments == null) return;
     appointments!.clear();
     appointments!.addAll(_filteredPlannerItems);
@@ -1184,9 +1189,7 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
     if (!_isMonthView) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (_isDisposed || appointments == null) return;
-        final item = appointments!.firstWhereOrNull(
-          (a) => (a as PlannerItemBaseModel).id == itemId,
-        );
+        final item = appointments!.firstWhereOrNull((a) => a == plannerItem);
         if (item == null) return;
         // remove+add refreshes SfCalendar's cached time label for this item.
         // The follow-up reset restores correct list order — add always appends

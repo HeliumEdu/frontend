@@ -478,15 +478,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
       overallGradeUrgency,
     );
 
-    double? trend;
-    final gradedItems = selectedGroup.homeworkSeries
-        .where((item) => item.graded)
-        .toList();
-    if (gradedItems.length >= 2) {
-      final recent = gradedItems.last.cumulativeGrade ?? 0.0;
-      final previous = gradedItems[gradedItems.length - 2].cumulativeGrade ?? 0.0;
-      trend = recent - previous;
-    }
+    final trend = selectedGroup.trend;
 
     return _buildSummaryCard(
       child: Column(
@@ -750,19 +742,19 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
     );
   }
 
+  bool _hasGrade(GradeCourseModel course) => GradeHelper.parseGrade(course.overallGrade) != null;
+
+  bool _isAtRisk(GradeCourseModel course) =>
+      course.numHomeworkGraded > 0 && _hasGrade(course) && course.overallGrade < _atRiskThreshold;
+
   Widget _buildAtRiskCoursesCard(GradeCourseGroupModel selectedGroup) {
     final atRiskCourses = selectedGroup.courses
-        .where(
-          (course) =>
-      course.numHomeworkGraded > 0 &&
-          course.overallGrade < _atRiskThreshold,
-    )
+        .where(_isAtRisk)
         .toList();
     final atRiskCount = atRiskCourses.length;
-    final totalGraded = selectedGroup.courses.fold(
-      0,
-          (sum, course) => sum + course.numHomeworkGraded,
-    );
+    final totalGraded = selectedGroup.courses
+        .where(_hasGrade)
+        .fold(0, (sum, course) => sum + course.numHomeworkGraded);
 
     return MouseRegion(
       cursor: atRiskCount > 0
@@ -1657,7 +1649,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
     final isOverallSeries = seriesName == _overallSeriesName;
     final isCourseSeries = isTermView && !isOverallSeries;
     final isNonOverallSeries = !isOverallSeries;
-    final classGradeAtPoint = '${HeliumNumber.format(chartPoint.grade, fractionDigits: 2)}%';
+    final classGradeAtPoint = HeliumNumber.formatPercent(chartPoint.grade, fractionDigits: 2);
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
@@ -2270,8 +2262,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
                           ),
                         ),
                       ),
-                      if (course.numHomeworkGraded > 0 &&
-                          course.overallGrade < _atRiskThreshold) ...[
+                      if (_isAtRisk(course)) ...[
                         const SizedBox(width: 8),
                         const _AtRiskBadge(),
                       ],

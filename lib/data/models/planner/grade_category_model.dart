@@ -13,6 +13,8 @@ class GradeCategoryModel extends BaseTitledModel {
   final double? trend;
   final int numHomework;
   final int numHomeworkGraded;
+  final double pointsEarned;
+  final double pointsPossible;
   final List<HomeworkSeriesItemModel> homeworkSeries;
 
   GradeCategoryModel({
@@ -25,6 +27,8 @@ class GradeCategoryModel extends BaseTitledModel {
     this.trend,
     required this.numHomework,
     required this.numHomeworkGraded,
+    required this.pointsEarned,
+    required this.pointsPossible,
     required this.homeworkSeries,
   });
 
@@ -39,6 +43,8 @@ class GradeCategoryModel extends BaseTitledModel {
       trend: toDouble(json['trend']),
       numHomework: json['num_homework'],
       numHomeworkGraded: json['num_homework_graded'],
+      pointsEarned: toDouble(json['points_earned'])!,
+      pointsPossible: toDouble(json['points_possible'])!,
       homeworkSeries:
           (json['homework_series'] as List<dynamic>?)
               ?.map(
@@ -49,20 +55,5 @@ class GradeCategoryModel extends BaseTitledModel {
               .toList() ??
           [],
     );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'title': title,
-      'overall_grade': overallGrade,
-      'weight': weight,
-      'color': color,
-      'grade_by_weight': gradeByWeight,
-      'trend': trend,
-      'num_homework': numHomework,
-      'num_homework_graded': numHomeworkGraded,
-      'homework_series': homeworkSeries.map((item) => item.toJson()).toList(),
-    };
   }
 }

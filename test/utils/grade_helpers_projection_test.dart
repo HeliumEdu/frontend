@@ -25,6 +25,8 @@ void main() {
           categories: categories,
           ungradedAssignments: ungraded,
           projections: projections,
+          pointsEarned: 0,
+          pointsPossible: 0,
         );
 
         // THEN projected grade is 100%
@@ -48,6 +50,8 @@ void main() {
           categories: categories,
           ungradedAssignments: ungraded,
           projections: projections,
+          pointsEarned: 0,
+          pointsPossible: 0,
         );
 
         // THEN 60%*80% + 40%*90% = 84%
@@ -76,6 +80,8 @@ void main() {
           categories: categories,
           ungradedAssignments: ungraded,
           projections: projections,
+          pointsEarned: 0,
+          pointsPossible: 0,
         );
 
         // THEN result equals the projected score
@@ -104,6 +110,8 @@ void main() {
           categories: categories,
           ungradedAssignments: ungraded,
           projections: projections,
+          pointsEarned: 160,
+          pointsPossible: 200,
         );
 
         // THEN:
@@ -132,6 +140,8 @@ void main() {
           categories: categories,
           ungradedAssignments: [],
           projections: {},
+          pointsEarned: 264,
+          pointsPossible: 300,
         );
 
         // THEN result is the actual grade unchanged
@@ -154,6 +164,8 @@ void main() {
           categories: categories,
           ungradedAssignments: ungraded,
           projections: projections,
+          pointsEarned: 270,
+          pointsPossible: 300,
         );
 
         // THEN both categories contribute:
@@ -180,6 +192,8 @@ void main() {
           categories: categories,
           ungradedAssignments: ungraded,
           projections: projections,
+          pointsEarned: 0,
+          pointsPossible: 0,
         );
 
         // THEN only the weighted category contributes
@@ -204,6 +218,8 @@ void main() {
           categories: categories,
           ungradedAssignments: ungraded,
           projections: projections,
+          pointsEarned: 0,
+          pointsPossible: 0,
         );
 
         expect(result, closeTo(100.0, 0.01));
@@ -231,6 +247,8 @@ void main() {
           categories: categories,
           ungradedAssignments: ungraded,
           projections: projections,
+          pointsEarned: 160,
+          pointsPossible: 200,
         );
 
         // THEN: avgPP=100, graded: 2*100=200, earned=0.80*200=160
@@ -256,6 +274,8 @@ void main() {
           categories: categories,
           ungradedAssignments: ungraded,
           projections: projections,
+          pointsEarned: 0,
+          pointsPossible: 0,
         );
 
         // THEN zero-possible item contributes nothing
@@ -267,6 +287,8 @@ void main() {
           categories: [],
           ungradedAssignments: [],
           projections: {},
+          pointsEarned: 0,
+          pointsPossible: 0,
         );
 
         expect(result, -1);
@@ -282,6 +304,8 @@ GradeCategoryModel _createCategory({
   required double grade,
   int numHomework = 0,
   int numHomeworkGraded = 0,
+  double pointsEarned = 0,
+  double pointsPossible = 0,
 }) {
   return GradeCategoryModel(
     id: id,
@@ -293,6 +317,8 @@ GradeCategoryModel _createCategory({
     trend: null,
     numHomework: numHomework,
     numHomeworkGraded: numHomeworkGraded,
+    pointsEarned: pointsEarned,
+    pointsPossible: pointsPossible,
     homeworkSeries: [],
   );
 }

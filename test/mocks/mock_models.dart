@@ -338,6 +338,7 @@ class MockModels {
       id: id,
       title: title,
       overallGrade: overallGrade,
+      trend: null,
       homeworkSeries: homeworkSeries ?? [],
       courses: [],
       numHomework: numHomework,

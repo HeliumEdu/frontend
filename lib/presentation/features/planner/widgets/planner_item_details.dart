@@ -655,7 +655,7 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
       String end;
       if (formController.showEndDateTime) {
         final endDateForApi = formController.isAllDay
-            ? formController.endDate.add(const Duration(days: 1))
+            ? HeliumDateTime.addDays(formController.endDate, 1)
             : formController.endDate;
         end = HeliumDateTime.formatDateAndTimeForApi(
           endDateForApi,
@@ -664,9 +664,7 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
         );
       } else {
         if (formController.isAllDay) {
-          final endDate = formController.startDate.add(
-            const Duration(days: 1),
-          );
+          final endDate = HeliumDateTime.addDays(formController.startDate, 1);
           end = HeliumDateTime.formatDateAndTimeForApi(
             endDate,
             null,
@@ -712,7 +710,7 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
       } else {
         String? gradeValue;
         if (formController.isCompleted) {
-          final gradeText = HeliumNumber.normalize(formController.gradeController.text);
+          final gradeText = GradeHelper.normalizeFraction(formController.gradeController.text);
           gradeValue = gradeText.isEmpty ? '-1/100' : gradeText;
         } else if (!widget.isEdit) {
           gradeValue = '-1/100';
@@ -828,7 +826,7 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
               value: c,
               label: weightedCourseIds.contains(c.course)
                   ? (c.weight > 0
-                      ? '${c.title} (${HeliumNumber.format(c.weight, fractionDigits: 0)}%)'
+                      ? '${c.title} (${HeliumNumber.formatPercent(c.weight, fractionDigits: 0)})'
                       : '${c.title} (Not Graded)')
                   : c.title,
               iconData: Icons.category_outlined,
@@ -870,9 +868,7 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
           widget.userSettings!.timeZone,
         );
         if (formController.isAllDay) {
-          formController.endDate = endDateTime.subtract(
-            const Duration(days: 1),
-          );
+          formController.endDate = HeliumDateTime.addDays(endDateTime, -1);
         } else {
           formController.endDate = endDateTime;
           formController.endTime = TimeOfDay.fromDateTime(endDateTime);
@@ -890,7 +886,7 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
             if (plannerItem.currentGrade == '-1/100') {
               formController.gradeController.text = '';
             } else {
-              formController.gradeController.text = plannerItem.currentGrade!;
+              formController.gradeController.text = HeliumNumber.localize(plannerItem.currentGrade!);
             }
           }
 

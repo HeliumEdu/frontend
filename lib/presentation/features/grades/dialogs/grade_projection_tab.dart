@@ -24,6 +24,8 @@ import 'package:heliumapp/utils/sort_helpers.dart';
 class GradeProjectionTab extends StatefulWidget {
   final List<GradeCategoryModel> categories;
   final List<HomeworkSeriesItemModel> ungradedAssignments;
+  final double pointsEarned;
+  final double pointsPossible;
   final double currentOverallGrade;
   final String courseTitle;
   final Color courseColor;
@@ -33,6 +35,8 @@ class GradeProjectionTab extends StatefulWidget {
     super.key,
     required this.categories,
     required this.ungradedAssignments,
+    required this.pointsEarned,
+    required this.pointsPossible,
     required this.currentOverallGrade,
     required this.courseTitle,
     required this.courseColor,
@@ -80,6 +84,8 @@ class _GradeProjectionTabState extends State<GradeProjectionTab> {
       categories: widget.categories,
       ungradedAssignments: widget.ungradedAssignments,
       projections: _projections,
+      pointsEarned: widget.pointsEarned,
+      pointsPossible: widget.pointsPossible,
     );
   }
 
@@ -241,7 +247,7 @@ class _GradeProjectionTabState extends State<GradeProjectionTab> {
               SizedBox(
                 width: 60,
                 child: Text(
-                  '${HeliumNumber.format(projectedPct, fractionDigits: 2)}%',
+                  HeliumNumber.formatPercent(projectedPct, fractionDigits: 2),
                   style: AppStyles.formText(context),
                   textAlign: TextAlign.end,
                 ),

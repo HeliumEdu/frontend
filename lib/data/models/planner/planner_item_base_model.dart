@@ -34,20 +34,4 @@ abstract class PlannerItemBaseModel extends BaseTitledModel {
     required this.attachments,
     required this.reminders,
   });
-
-  Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'title': title,
-      'all_day': allDay,
-      'show_end_time': showEndTime,
-      'start': start.toIso8601String(),
-      'end': end.toIso8601String(),
-      'priority': priority,
-      'url': url?.toString(),
-      'attachments': attachments,
-      'reminders': reminders,
-      'calendar_item_type': plannerItemType,
-    };
-  }
 }

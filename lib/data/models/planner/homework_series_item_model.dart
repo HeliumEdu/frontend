@@ -37,19 +37,4 @@ class HomeworkSeriesItemModel {
       impactScore: (json['impact_score'] as num?)?.toDouble(),
     );
   }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'title': title,
-      'start': start.toIso8601String(),
-      'category_id': categoryId,
-      'course_id': courseId,
-      'points_possible': pointsPossible,
-      'graded': graded,
-      'homework_grade': homeworkGrade,
-      'cumulative_grade': cumulativeGrade,
-      'impact_score': impactScore,
-    };
-  }
 }

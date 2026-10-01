@@ -55,17 +55,4 @@ class CourseScheduleEventModel extends PlannerItemBaseModel {
       exceptionDates: const [],
     );
   }
-
-  @override
-  Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = super.toJson();
-
-    data['ownerId'] = ownerId;
-    data['color'] = HeliumColors.colorToHex(color!);
-    if (recurrenceRule != null) {
-      data['recurrenceRule'] = recurrenceRule;
-    }
-
-    return data;
-  }
 }

@@ -109,6 +109,174 @@ void main() {
       });
     });
 
+    group('addDays', () {
+      test('lands on the next midnight across a fall-back day', () {
+        // GIVEN
+        final amsterdam = tz.getLocation('Europe/Amsterdam');
+        final midnight = tz.TZDateTime(amsterdam, 2026, 10, 25);
+
+        // WHEN
+        final next = HeliumDateTime.addDays(midnight, 1);
+
+        // THEN
+        expect(next, tz.TZDateTime(amsterdam, 2026, 10, 26));
+        expect(midnight.add(const Duration(days: 1)), isNot(next),
+            reason: 'an absolute 24h step lands on 23:00 on the 25-hour day');
+      });
+
+      test('lands on the previous midnight across a spring-forward day', () {
+        // GIVEN
+        final amsterdam = tz.getLocation('Europe/Amsterdam');
+        final midnight = tz.TZDateTime(amsterdam, 2026, 3, 30);
+
+        // WHEN
+        final previous = HeliumDateTime.addDays(midnight, -1);
+
+        // THEN
+        expect(previous, tz.TZDateTime(amsterdam, 2026, 3, 29));
+      });
+
+      test('matches an absolute day step on a day without a transition', () {
+        // GIVEN
+        final la = tz.getLocation('America/Los_Angeles');
+        final midnight = tz.TZDateTime(la, 2026, 6, 10);
+
+        // WHEN
+        final next = HeliumDateTime.addDays(midnight, 1);
+
+        // THEN
+        expect(next, tz.TZDateTime(la, 2026, 6, 11));
+        expect(next, midnight.add(const Duration(days: 1)));
+      });
+
+      test('keeps the wall clock time and zone of the value', () {
+        // GIVEN
+        final la = tz.getLocation('America/Los_Angeles');
+        final value = tz.TZDateTime(la, 2026, 10, 31, 9, 30);
+
+        // WHEN
+        final next = HeliumDateTime.addDays(value, 1);
+
+        // THEN
+        expect(next, isA<tz.TZDateTime>());
+        expect((next as tz.TZDateTime).location, la);
+        expect([next.year, next.month, next.day, next.hour, next.minute], [2026, 11, 1, 9, 30]);
+      });
+
+      test('steps a naive date by calendar day', () {
+        // GIVEN
+        final date = DateTime(2026, 12, 31);
+
+        // WHEN
+        final next = HeliumDateTime.addDays(date, 1);
+
+        // THEN
+        expect(next, DateTime(2027, 1, 1));
+        expect(next.isUtc, isFalse);
+      });
+    });
+
+    group('allDayExceptionIn', () {
+      test('reads a UTC-midnight exception as its calendar date west of UTC', () {
+        // GIVEN
+        final la = tz.getLocation('America/Los_Angeles');
+        final exception = DateTime.parse('2026-10-05T00:00:00Z');
+
+        // WHEN
+        final resolved = HeliumDateTime.allDayExceptionIn(exception, la);
+
+        // THEN
+        expect(resolved, tz.TZDateTime(la, 2026, 10, 5));
+        expect(HeliumDateTime.wallClockIn(exception, la).day, 4,
+            reason: 'reading it as an instant lands on the previous day');
+      });
+
+      test('reads a UTC-midnight exception as its calendar date east of UTC', () {
+        // GIVEN
+        final amsterdam = tz.getLocation('Europe/Amsterdam');
+        final exception = DateTime.parse('2026-10-05T00:00:00Z');
+
+        // WHEN
+        final resolved = HeliumDateTime.allDayExceptionIn(exception, amsterdam);
+
+        // THEN
+        expect(resolved, tz.TZDateTime(amsterdam, 2026, 10, 5));
+      });
+
+      test('keeps an exception that is a local-midnight instant on its date', () {
+        // GIVEN
+        final la = tz.getLocation('America/Los_Angeles');
+        final exception = tz.TZDateTime(la, 2026, 10, 5).toUtc();
+
+        // WHEN
+        final resolved = HeliumDateTime.allDayExceptionIn(exception, la);
+
+        // THEN
+        expect(resolved, tz.TZDateTime(la, 2026, 10, 5));
+      });
+    });
+
+    group('allDayEndAfterMove', () {
+      test('keeps the calendar-day length when moved onto a fall-back day', () {
+        // GIVEN
+        final amsterdam = tz.getLocation('Europe/Amsterdam');
+        final originalStart = tz.TZDateTime(amsterdam, 2026, 10, 17);
+        final originalEnd = tz.TZDateTime(amsterdam, 2026, 10, 19);
+        final newStart = tz.TZDateTime(amsterdam, 2026, 10, 24);
+
+        // WHEN
+        final newEnd = HeliumDateTime.allDayEndAfterMove(newStart, originalStart, originalEnd);
+
+        // THEN
+        expect(newEnd, tz.TZDateTime(amsterdam, 2026, 10, 26));
+        expect(newStart.add(originalEnd.difference(originalStart)), isNot(newEnd),
+            reason: 'keeping the absolute duration lands on 23:00 and drops the last day');
+      });
+
+      test('keeps the calendar-day length when moved off a spring-forward day', () {
+        // GIVEN
+        final la = tz.getLocation('America/Los_Angeles');
+        final originalStart = tz.TZDateTime(la, 2026, 3, 8);
+        final originalEnd = tz.TZDateTime(la, 2026, 3, 9);
+        final newStart = tz.TZDateTime(la, 2026, 3, 15);
+
+        // WHEN
+        final newEnd = HeliumDateTime.allDayEndAfterMove(newStart, originalStart, originalEnd);
+
+        // THEN
+        expect(newEnd, tz.TZDateTime(la, 2026, 3, 16));
+      });
+    });
+
+    group('calendarDaysBetween', () {
+      test('counts calendar days across a fall-back day', () {
+        // GIVEN
+        final amsterdam = tz.getLocation('Europe/Amsterdam');
+        final start = tz.TZDateTime(amsterdam, 2026, 10, 23);
+        final end = tz.TZDateTime(amsterdam, 2026, 10, 26);
+
+        // WHEN
+        final days = HeliumDateTime.calendarDaysBetween(start, end);
+
+        // THEN
+        expect(days, 3);
+        expect(end.difference(start).inHours, 73);
+      });
+
+      test('counts calendar days on days without a transition', () {
+        // GIVEN
+        final la = tz.getLocation('America/Los_Angeles');
+        final start = tz.TZDateTime(la, 2026, 6, 10);
+        final end = tz.TZDateTime(la, 2026, 6, 12);
+
+        // WHEN
+        final days = HeliumDateTime.calendarDaysBetween(start, end);
+
+        // THEN
+        expect(days, 2);
+      });
+    });
+
     group('getDayIndex', () {
       test('returns 0 for Sunday', () {
         final sunday = DateTime(2025, 8, 24); // Sunday
@@ -379,6 +547,41 @@ void main() {
         );
 
         expect(result, contains('2025-08-15'));
+      });
+    });
+
+    group('dayRangeIn', () {
+      test('spans whole days across a fall-back day', () {
+        // GIVEN
+        final amsterdam = tz.getLocation('Europe/Amsterdam');
+
+        // WHEN
+        final (start, endExclusive) = HeliumDateTime.dayRangeIn(
+          DateTime(2026, 10, 24),
+          DateTime(2026, 10, 25),
+          amsterdam,
+        );
+
+        // THEN
+        expect(start, tz.TZDateTime(amsterdam, 2026, 10, 24));
+        expect(endExclusive, tz.TZDateTime(amsterdam, 2026, 10, 26));
+        expect(endExclusive.difference(start).inHours, 49);
+      });
+
+      test('spans whole days on days without a transition', () {
+        // GIVEN
+        final la = tz.getLocation('America/Los_Angeles');
+
+        // WHEN
+        final (start, endExclusive) = HeliumDateTime.dayRangeIn(
+          DateTime(2026, 6, 10),
+          DateTime(2026, 6, 10),
+          la,
+        );
+
+        // THEN
+        expect(start, tz.TZDateTime(la, 2026, 6, 10));
+        expect(endExclusive, tz.TZDateTime(la, 2026, 6, 11));
       });
     });
 

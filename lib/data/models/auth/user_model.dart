@@ -32,15 +32,4 @@ class UserModel extends BaseModel {
           .toList(),
     );
   }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'email': email,
-      'email_changing': emailChanging,
-      'settings': settings.toJson(),
-      'has_usable_password': hasUsablePassword,
-      'has_oauth_providers': hasOAuthProviders,
-    };
-  }
 }

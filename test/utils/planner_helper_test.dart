@@ -4,6 +4,7 @@ import 'package:heliumapp/core/helium_exception.dart';
 import 'package:heliumapp/data/models/id_or_entity.dart';
 import 'package:heliumapp/data/models/planner/category_model.dart';
 import 'package:heliumapp/data/models/planner/course_model.dart';
+import 'package:heliumapp/data/models/planner/course_schedule_model.dart';
 import 'package:heliumapp/data/models/planner/event_model.dart';
 import 'package:heliumapp/data/models/planner/homework_model.dart';
 import 'package:heliumapp/utils/planner_helper.dart';
@@ -11,10 +12,95 @@ import 'package:syncfusion_flutter_calendar/calendar.dart';
 import 'package:timezone/data/latest_all.dart' as tz_data;
 import 'package:timezone/standalone.dart' as tz;
 
+import '../helpers/planner_helper.dart';
+
 void main() {
   tz_data.initializeTimeZones();
 
   group('PlannerHelper', () {
+    group('courseMeetingEnd', () {
+      final la = tz.getLocation('America/Los_Angeles');
+      final schedules = [
+        CourseScheduleModel.fromJson(givenCourseScheduleJson(
+          id: 1,
+          recurrenceGroups: [
+            givenRecurrenceGroupJson(
+              start: '2025-08-25T16:00:00Z',
+              end: '2025-08-25T17:30:00Z',
+              recurrenceRule: 'FREQ=WEEKLY;BYDAY=MO;UNTIL=20251215T235959Z',
+            ),
+          ],
+        )),
+        CourseScheduleModel.fromJson(givenCourseScheduleJson(
+          id: 2,
+          recurrenceGroups: [
+            givenRecurrenceGroupJson(
+              start: '2025-08-25T20:00:00Z',
+              end: '2025-08-25T22:00:00Z',
+              recurrenceRule: 'FREQ=WEEKLY;BYDAY=MO;UNTIL=20251215T235959Z',
+            ),
+          ],
+        )),
+      ];
+
+      test('ends the meeting that starts at the given start, not the first on that day', () {
+        // GIVEN
+        final labStart = tz.TZDateTime(la, 2025, 9, 8, 13);
+
+        // WHEN
+        final end = PlannerHelper.courseMeetingEnd(schedules: schedules, meetingStart: labStart, timeZone: la);
+
+        // THEN
+        expect(end, tz.TZDateTime(la, 2025, 9, 8, 15));
+      });
+
+      test('ends the lecture when the given start is the lecture', () {
+        // GIVEN
+        final lectureStart = tz.TZDateTime(la, 2025, 9, 8, 9);
+
+        // WHEN
+        final end = PlannerHelper.courseMeetingEnd(schedules: schedules, meetingStart: lectureStart, timeZone: la);
+
+        // THEN
+        expect(end, tz.TZDateTime(la, 2025, 9, 8, 10, 30));
+      });
+
+      test('returns null when no meeting starts at the given start', () {
+        // GIVEN
+        final offDay = tz.TZDateTime(la, 2025, 9, 9, 9);
+
+        // WHEN
+        final end = PlannerHelper.courseMeetingEnd(schedules: schedules, meetingStart: offDay, timeZone: la);
+
+        // THEN
+        expect(end, isNull);
+      });
+
+      test('ends a meeting whose UTC start falls on the previous day, after DST ends', () {
+        // GIVEN
+        final amsterdam = tz.getLocation('Europe/Amsterdam');
+        final earlySchedules = [
+          CourseScheduleModel.fromJson(givenCourseScheduleJson(
+            id: 3,
+            recurrenceGroups: [
+              givenRecurrenceGroupJson(
+                start: '2025-08-24T22:30:00Z',
+                end: '2025-08-25T00:00:00Z',
+                recurrenceRule: 'FREQ=WEEKLY;BYDAY=MO;UNTIL=20251215T235959Z',
+              ),
+            ],
+          )),
+        ];
+        final meetingStart = tz.TZDateTime(amsterdam, 2025, 11, 3, 0, 30);
+
+        // WHEN
+        final end = PlannerHelper.courseMeetingEnd(schedules: earlySchedules, meetingStart: meetingStart, timeZone: amsterdam);
+
+        // THEN
+        expect(end, tz.TZDateTime(amsterdam, 2025, 11, 3, 2));
+      });
+    });
+
     group('mapHeliumViewToSfCalendarView', () {
       test('maps view types correctly', () {
         expect(

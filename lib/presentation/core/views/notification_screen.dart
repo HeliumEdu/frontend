@@ -34,6 +34,7 @@ import 'package:heliumapp/presentation/ui/layout/page_header.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/date_time_helpers.dart';
+import 'package:heliumapp/utils/planner_helper.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:heliumapp/utils/error_helpers.dart';
 
@@ -363,38 +364,17 @@ class _NotificationsScreenState
       userSettings!.timeZone,
     );
 
-    if (course == null || course.schedules.isEmpty) {
-      return HeliumDateTime.formatDate(classStartLocal);
+    final meetingEnd = course == null
+        ? null
+        : PlannerHelper.courseMeetingEnd(
+            schedules: course.schedules,
+            meetingStart: classStartLocal,
+            timeZone: userSettings!.timeZone,
+          );
+    if (meetingEnd == null) {
+      return HeliumDateTime.formatDateTimeRange(classStartLocal, classStartLocal, false, false);
     }
-
-    final dayIndex = HeliumDateTime.getDayIndex(classStartLocal);
-
-    // Search all schedules for one active on this day.
-    final activeSchedule = course.schedules
-        .where((s) => s.isDayActive(dayIndex))
-        .firstOrNull;
-
-    if (activeSchedule == null) {
-      return HeliumDateTime.formatDate(classStartLocal);
-    }
-
-    final startTime = activeSchedule.getStartTimeForDayIndex(dayIndex);
-    final endTime = activeSchedule.getEndTimeForDayIndex(dayIndex);
-    final classStart = DateTime(
-      classStartLocal.year,
-      classStartLocal.month,
-      classStartLocal.day,
-      startTime.hour,
-      startTime.minute,
-    );
-    final classEnd = DateTime(
-      classStartLocal.year,
-      classStartLocal.month,
-      classStartLocal.day,
-      endTime.hour,
-      endTime.minute,
-    );
-    return HeliumDateTime.formatDateTimeRange(classStart, classEnd, true, false);
+    return HeliumDateTime.formatDateTimeRange(classStartLocal, meetingEnd, true, false);
   }
 
   NotificationModel _mapReminderToNotification(ReminderModel reminder) {

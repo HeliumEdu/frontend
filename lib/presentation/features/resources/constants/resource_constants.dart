@@ -8,7 +8,7 @@ class ResourceConstants {
     'Ordered',
     'Shipped',
     'Needed',
-    'Returned',
+    'Received',
     'To Sell',
     'Digital',
   ];

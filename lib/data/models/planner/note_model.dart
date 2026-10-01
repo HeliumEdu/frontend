@@ -62,18 +62,6 @@ class NoteModel extends BaseTitledModel {
     );
   }
 
-  Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'title': title,
-      'content': content,
-      'updated_at': updatedAt.toIso8601String(),
-      'homework': homework,
-      'events': events,
-      'resources': resources,
-    };
-  }
-
   NoteModel copyWith({
     int? id,
     String? title,

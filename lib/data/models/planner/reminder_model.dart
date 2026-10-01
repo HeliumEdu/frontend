@@ -55,22 +55,6 @@ class ReminderModel extends BaseModel {
     );
   }
 
-  Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'message': message,
-      'start_of_range': startOfRange?.toIso8601String(),
-      'offset': offset,
-      'offset_type': offsetType,
-      'type': type,
-      'sent': sent,
-      'dismissed': dismissed,
-      'homework': homework,
-      'event': event,
-      'course': course,
-    };
-  }
-
   ReminderModel copyWith({
     int? id,
     String? message,

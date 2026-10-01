@@ -7,8 +7,4 @@ class TokenResponseModel {
   factory TokenResponseModel.fromJson(Map<String, dynamic> json) {
     return TokenResponseModel(access: json['access'], refresh: json['refresh']);
   }
-
-  Map<String, dynamic> toJson() {
-    return {'access': access, 'refresh': refresh};
-  }
 }

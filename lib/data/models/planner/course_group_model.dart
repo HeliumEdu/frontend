@@ -37,17 +37,4 @@ class CourseGroupModel extends BaseTitledModel {
       numDaysCompleted: json['num_days_completed'],
     );
   }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'title': title,
-      'start_date': startDate.toIso8601String(),
-      'end_date': endDate.toIso8601String(),
-      'shown_on_calendar': shownOnCalendar,
-      'overall_grade': overallGrade,
-      'num_days': numDays,
-      'num_days_completed': numDaysCompleted,
-    };
-  }
 }

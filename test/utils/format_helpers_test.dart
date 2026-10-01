@@ -5,6 +5,7 @@ import 'package:heliumapp/data/models/planner/reminder_model.dart';
 import 'package:heliumapp/config/regional_settings_notifier.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/format_helpers.dart';
+import 'package:heliumapp/utils/grade_helpers.dart';
 
 void main() {
   group('format helpers', () {
@@ -150,6 +151,30 @@ void main() {
           expect(HeliumNumber.parse(HeliumNumber.format(1234.5, fractionDigits: 1)), 1234.5);
           expect(HeliumNumber.parse(HeliumNumber.format(85.5, fractionDigits: 2)), 85.5);
         }
+      });
+
+      test('localizes a stored grade to the regional separator without grouping', () async {
+        // GIVEN
+        await useSeparator(RegionalFormatConstants.numberFormatComma);
+
+        // WHEN
+        final localized = HeliumNumber.localize('1000.5/1200');
+
+        // THEN
+        expect(localized, '1000,5/1200');
+        expect(GradeHelper.normalizeFraction(localized), '1000.5/1200',
+            reason: 'the input field must read its own text back unchanged');
+      });
+
+      test('leaves a stored grade unchanged in the point format', () async {
+        // GIVEN
+        await useSeparator(RegionalFormatConstants.numberFormatPoint);
+
+        // WHEN
+        final localized = HeliumNumber.localize('8.5/10.25');
+
+        // THEN
+        expect(localized, '8.5/10.25');
       });
     });
 

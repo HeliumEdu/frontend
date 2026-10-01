@@ -24,16 +24,4 @@ class ExternalCalendarModel extends BaseTitledModel {
       shownOnCalendar: json['shown_on_calendar'],
     );
   }
-
-  Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = {
-      'id': id,
-      'title': title,
-      'url': url.toString(),
-      'color': color,
-      'shown_on_calendar': shownOnCalendar,
-    };
-
-    return data;
-  }
 }

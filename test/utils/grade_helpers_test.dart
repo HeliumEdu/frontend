@@ -28,6 +28,7 @@ void main() {
       test('parses numeric grades', () {
         expect(GradeHelper.parseGrade(85.5), 85.5);
         expect(GradeHelper.parseGrade(90), 90.0);
+        expect(GradeHelper.parseGrade(0), 0.0);
       });
 
       test('parses fraction strings typed with a comma decimal separator', () {
@@ -45,7 +46,6 @@ void main() {
         expect(GradeHelper.parseGrade(null), null);
         expect(GradeHelper.parseGrade(''), null);
         expect(GradeHelper.parseGrade('-1/100'), null);
-        expect(GradeHelper.parseGrade(0), null);
         expect(GradeHelper.parseGrade(-1.0), null);
       });
 
@@ -55,17 +55,41 @@ void main() {
       });
     });
 
+    group('normalizeFraction', () {
+      test('keeps the decimal point on both sides of a fraction', () {
+        // GIVEN
+        const typed = '8.5/10.25';
+
+        // WHEN
+        final normalized = GradeHelper.normalizeFraction(typed);
+
+        // THEN
+        expect(normalized, '8.5/10.25');
+      });
+
+      test('converts a comma decimal on both sides of a fraction to a point', () {
+        // GIVEN
+        const typed = '8,5/10,25';
+
+        // WHEN
+        final normalized = GradeHelper.normalizeFraction(typed);
+
+        // THEN
+        expect(normalized, '8.5/10.25');
+      });
+    });
+
     group('gradeForDisplay', () {
       test('formats grades as percentage with 2 decimals', () {
         expect(GradeHelper.gradeForDisplay(85.5), '85.50%');
         expect(GradeHelper.gradeForDisplay(90), '90.00%');
         expect(GradeHelper.gradeForDisplay('17/20'), '85.00%');
         expect(GradeHelper.gradeForDisplay(100.0), '100.00%');
+        expect(GradeHelper.gradeForDisplay(0), '0.00%');
       });
 
       test('returns N/A for invalid/ungraded values', () {
         expect(GradeHelper.gradeForDisplay(null), 'N/A');
-        expect(GradeHelper.gradeForDisplay(0), 'N/A');
         expect(GradeHelper.gradeForDisplay(-1.0), 'N/A');
       });
 
@@ -95,6 +119,132 @@ void main() {
       });
     });
 
+    group('calculateNeededAssignmentScore', () {
+      test('calculates the score needed on a remaining assignment from total points', () {
+        // GIVEN
+        const gradedPointsEarned = 60.0;
+        const gradedPointsPossible = 110.0;
+
+        // WHEN
+        final result = GradeHelper.calculateNeededAssignmentScore(
+          gradedPointsEarned: gradedPointsEarned,
+          gradedPointsPossible: gradedPointsPossible,
+          assignmentPointsPossible: 100,
+          desiredOverallGrade: 70,
+        );
+
+        // THEN
+        expect(result.state, NeededGradeState.achievable);
+        expect(result.neededGrade, closeTo(87, 0.0001),
+            reason: '(0.7 × 210 − 60) / 100 = 87%');
+      });
+
+      test('reports a target the current points already exceed', () {
+        // GIVEN
+        const gradedPointsEarned = 60.0;
+        const gradedPointsPossible = 110.0;
+
+        // WHEN
+        final result = GradeHelper.calculateNeededAssignmentScore(
+          gradedPointsEarned: gradedPointsEarned,
+          gradedPointsPossible: gradedPointsPossible,
+          assignmentPointsPossible: 100,
+          desiredOverallGrade: 20,
+        );
+
+        // THEN
+        expect(result.state, NeededGradeState.aboveTarget);
+      });
+
+      test('reports a target that needs more than full marks', () {
+        // GIVEN
+        const gradedPointsEarned = 60.0;
+        const gradedPointsPossible = 110.0;
+
+        // WHEN
+        final result = GradeHelper.calculateNeededAssignmentScore(
+          gradedPointsEarned: gradedPointsEarned,
+          gradedPointsPossible: gradedPointsPossible,
+          assignmentPointsPossible: 100,
+          desiredOverallGrade: 90,
+        );
+
+        // THEN
+        expect(result.state, NeededGradeState.unachievable);
+        expect(result.neededGrade, closeTo(129, 0.0001));
+      });
+
+      test('weighs the assignment by its own point value', () {
+        // GIVEN
+        const gradedPointsEarned = 60.0;
+        const gradedPointsPossible = 110.0;
+
+        // WHEN
+        final result = GradeHelper.calculateNeededAssignmentScore(
+          gradedPointsEarned: gradedPointsEarned,
+          gradedPointsPossible: gradedPointsPossible,
+          assignmentPointsPossible: 10,
+          desiredOverallGrade: 60,
+        );
+
+        // THEN
+        expect(result.state, NeededGradeState.unachievable,
+            reason: 'a 10-point assignment can lift 60/110 to at most 70/120 = 58.3%');
+      });
+    });
+
+    group('toAssignmentScore', () {
+      test('converts a needed category average into the score on the remaining assignment', () {
+        // GIVEN
+        final categoryNeed = NeededGradeResult(neededGrade: 85, state: NeededGradeState.achievable);
+
+        // WHEN
+        final result = GradeHelper.toAssignmentScore(
+          categoryNeed,
+          categoryGradedPointsEarned: 40,
+          categoryGradedPointsPossible: 50,
+          assignmentPointsPossible: 100,
+        );
+
+        // THEN
+        expect(result.state, NeededGradeState.achievable);
+        expect(result.neededGrade, closeTo(87.5, 0.0001),
+            reason: '(0.85 × 150 − 40) / 100 = 87.5% on the remaining assignment');
+      });
+
+      test('matches the category average when the category has no graded work', () {
+        // GIVEN
+        final categoryNeed = NeededGradeResult(neededGrade: 72, state: NeededGradeState.achievable);
+
+        // WHEN
+        final result = GradeHelper.toAssignmentScore(
+          categoryNeed,
+          categoryGradedPointsEarned: 0,
+          categoryGradedPointsPossible: 0,
+          assignmentPointsPossible: 100,
+        );
+
+        // THEN
+        expect(result.neededGrade, closeTo(72, 0.0001));
+      });
+
+      test('passes weight errors through unchanged', () {
+        // GIVEN
+        final categoryNeed = NeededGradeResult(neededGrade: 0, state: NeededGradeState.invalidTotalWeight);
+
+        // WHEN
+        final result = GradeHelper.toAssignmentScore(
+          categoryNeed,
+          categoryGradedPointsEarned: 40,
+          categoryGradedPointsPossible: 50,
+          assignmentPointsPossible: 100,
+        );
+
+        // THEN
+        expect(result.state, NeededGradeState.invalidTotalWeight);
+      });
+    });
+
     group('calculateNeededGrade', () {
       test('calculates basic needed grade', () {
         final categories = [
@@ -113,21 +263,25 @@ void main() {
         expect(result.neededGrade, closeTo(83.33, 0.01));
       });
 
-      test('supports fractional category grades (0-1 scale)', () {
+      test('treats category averages at or below 1% as percentages', () {
+        // GIVEN
         final categories = [
           _createCategory(id: 1, title: 'Tests', weight: 30, grade: 0.8),
           _createCategory(id: 2, title: 'Homework', weight: 40, grade: 0.9),
           _createCategory(id: 3, title: 'Final', weight: 30, grade: -1),
         ];
 
+        // WHEN
         final result = GradeHelper.calculateNeededGrade(
           categories: categories,
           targetCategoryId: 3,
           desiredOverallGrade: 85,
         );
 
-        expect(result.isAchievable, true);
-        expect(result.neededGrade, closeTo(83.33, 0.01));
+        // THEN
+        expect(result.state, NeededGradeState.unachievable,
+            reason: 'averages of 0.8% and 0.9% leave (8500 - 24 - 36) / 30 = 281.33% needed');
+        expect(result.neededGrade, closeTo(281.33, 0.01));
       });
 
       test('detects already above target (negative needed grade)', () {
@@ -303,6 +457,8 @@ GradeCategoryModel _createCategory({
   required double grade,
   int numHomework = 0,
   int numHomeworkGraded = 0,
+  double pointsEarned = 0,
+  double pointsPossible = 0,
 }) {
   return GradeCategoryModel(
     id: id,
@@ -314,6 +470,8 @@ GradeCategoryModel _createCategory({
     trend: null,
     numHomework: numHomework,
     numHomeworkGraded: numHomeworkGraded,
+    pointsEarned: pointsEarned,
+    pointsPossible: pointsPossible,
     homeworkSeries: [],
   );
 }

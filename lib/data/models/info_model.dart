@@ -21,12 +21,4 @@ class InfoModel {
       minimumSupportedVersion: json['minimum_supported_version'] ?? '0.0.0',
     );
   }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'max_upload_size': maxUploadSize,
-      'import_file_types': importFileTypes,
-      'minimum_supported_version': minimumSupportedVersion,
-    };
-  }
 }

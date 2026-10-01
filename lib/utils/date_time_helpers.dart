@@ -109,6 +109,34 @@ class HeliumDateTime {
     return DateTime(date.year, date.month, date.day);
   }
 
+  /// Steps [date] by whole calendar days, keeping its wall clock time and zone,
+  /// unlike `add(Duration(days:))`, which shifts the wall clock across DST.
+  static DateTime addDays(DateTime date, int days) {
+    if (date is tz.TZDateTime) {
+      return tz.TZDateTime(date.location, date.year, date.month, date.day + days, date.hour,
+          date.minute, date.second, date.millisecond, date.microsecond);
+    }
+    if (date.isUtc) {
+      return DateTime.utc(date.year, date.month, date.day + days, date.hour, date.minute,
+          date.second, date.millisecond, date.microsecond);
+    }
+    return DateTime(date.year, date.month, date.day + days, date.hour, date.minute, date.second,
+        date.millisecond, date.microsecond);
+  }
+
+  /// The exclusive end of an all-day item moved to [newStart], keeping the
+  /// calendar-day length of [originalStart]..[originalEnd] across DST.
+  static DateTime allDayEndAfterMove(DateTime newStart, DateTime originalStart, DateTime originalEnd) =>
+      addDays(newStart, calendarDaysBetween(originalStart, originalEnd));
+
+  /// The number of calendar days from [start]'s date to [end]'s date, read
+  /// from each value's own components.
+  static int calendarDaysBetween(DateTime start, DateTime end) {
+    return DateTime.utc(end.year, end.month, end.day)
+        .difference(DateTime.utc(start.year, start.month, start.day))
+        .inDays;
+  }
+
   /// Converts DateTime.weekday (1=Mon, 7=Sun) to 0-based index (0=Sun, 6=Sat)
   static int getDayIndex(DateTime date) {
     return date.weekday == 7 ? 0 : date.weekday;
@@ -142,6 +170,23 @@ class HeliumDateTime {
   static tz.TZDateTime midnightIn(DateTime instant, tz.Location timeZone) {
     final local = tz.TZDateTime.from(instant, timeZone);
     return tz.TZDateTime(timeZone, local.year, local.month, local.day);
+  }
+
+  /// Resolves an all-day series' exception date to its midnight in [timeZone].
+  /// A date-only exception can arrive as UTC midnight (`2026-10-05T00:00:00Z`),
+  /// which names a calendar date rather than an instant; any other value is a
+  /// real instant and resolves by wall clock.
+  static tz.TZDateTime allDayExceptionIn(DateTime exception, tz.Location timeZone) {
+    final isDateOnly = exception.isUtc &&
+        exception.hour == 0 &&
+        exception.minute == 0 &&
+        exception.second == 0 &&
+        exception.millisecond == 0 &&
+        exception.microsecond == 0;
+    if (isDateOnly) {
+      return tz.TZDateTime(timeZone, exception.year, exception.month, exception.day);
+    }
+    return wallClockIn(exception, timeZone);
   }
 
   /// Anchors [value] to [timeZone], reading a naive value as wall clock already
@@ -317,6 +362,19 @@ class HeliumDateTime {
       time?.minute ?? 0,
     );
     return dateTime.toIso8601String();
+  }
+
+  /// The instants spanning whole days in [timeZone]: midnight of [firstDay]
+  /// through the exclusive midnight after [lastDay], each read by its date.
+  static (tz.TZDateTime, tz.TZDateTime) dayRangeIn(
+    DateTime firstDay,
+    DateTime lastDay,
+    tz.Location timeZone,
+  ) {
+    return (
+      tz.TZDateTime(timeZone, firstDay.year, firstDay.month, firstDay.day),
+      tz.TZDateTime(timeZone, lastDay.year, lastDay.month, lastDay.day + 1),
+    );
   }
 
   static int getPercentDiffBetween(DateTime startDate, DateTime endDate) {

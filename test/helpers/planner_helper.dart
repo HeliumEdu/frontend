@@ -569,11 +569,13 @@ Map<String, dynamic> givenGradeCourseGroupJson({
   int numHomework = 20,
   int numHomeworkCompleted = 15,
   int numHomeworkGraded = 12,
+  double? trend,
 }) {
   return {
     'id': id,
     'title': title,
     'overall_grade': overallGrade,
+    'trend': trend,
     'homework_series': homeworkSeries ?? [],
     'courses': courses ?? [],
     'num_homework': numHomework,
@@ -714,6 +716,8 @@ CourseScheduleRequestModel givenCourseScheduleRequestModel({
   TimeOfDay? friEndTime,
   TimeOfDay? satStartTime,
   TimeOfDay? satEndTime,
+  int? template,
+  int? cycleLength,
 }) {
   return CourseScheduleRequestModel(
     daysOfWeek: daysOfWeek,
@@ -731,6 +735,8 @@ CourseScheduleRequestModel givenCourseScheduleRequestModel({
     friEndTime: friEndTime ?? const TimeOfDay(hour: 10, minute: 30),
     satStartTime: satStartTime ?? const TimeOfDay(hour: 0, minute: 0),
     satEndTime: satEndTime ?? const TimeOfDay(hour: 0, minute: 0),
+    template: template,
+    cycleLength: cycleLength,
   );
 }
 

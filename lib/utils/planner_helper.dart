@@ -5,6 +5,7 @@ import 'package:heliumapp/data/models/planner/planner_item_base_model.dart';
 import 'package:heliumapp/data/models/planner/course_group_model.dart';
 import 'package:heliumapp/data/models/planner/course_model.dart';
 import 'package:heliumapp/data/models/planner/course_schedule_event_model.dart';
+import 'package:heliumapp/data/models/planner/course_schedule_model.dart';
 import 'package:heliumapp/data/models/planner/event_model.dart';
 import 'package:heliumapp/data/models/planner/homework_model.dart';
 import 'package:heliumapp/data/models/planner/reminder_model.dart';
@@ -424,4 +425,33 @@ class PlannerHelper {
   /// A result of 60 is valid; DateTime/TZDateTime constructors overflow it
   /// to minute 0 of the next hour.
   static int roundMinute(int minute) => ((minute + 15) ~/ 30) * 30;
+
+  /// The end of the meeting starting exactly at [meetingStart] across all
+  /// schedules' recurrence groups, or null.
+  static tz.TZDateTime? courseMeetingEnd({
+    required List<CourseScheduleModel> schedules,
+    required DateTime meetingStart,
+    required tz.Location timeZone,
+  }) {
+    final local = tz.TZDateTime.from(meetingStart, timeZone);
+    final expandFrom = DateTime(local.year, local.month, local.day - 1);
+    final expandTo = DateTime(local.year, local.month, local.day + 2);
+    for (final schedule in schedules) {
+      for (final group in schedule.recurrenceGroups) {
+        final occurrences = SfCalendar.getRecurrenceDateTimeCollection(
+          group.recurrenceRule,
+          tz.TZDateTime.from(group.start, timeZone),
+          specificStartDate: expandFrom,
+          specificEndDate: expandTo,
+        );
+        for (final occurrence in occurrences) {
+          final occurrenceStart = HeliumDateTime.wallClockIn(occurrence, timeZone);
+          if (occurrenceStart.isAtSameMomentAs(meetingStart)) {
+            return occurrenceStart.add(group.end.difference(group.start));
+          }
+        }
+      }
+    }
+    return null;
+  }
 }

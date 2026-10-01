@@ -11,15 +11,11 @@ final _log = Logger('data.sources');
 /// exception dates (see `coursescheduleservice.course_schedule_to_recurrence_groups`);
 /// this source only hydrates them into [CourseScheduleEventModel]s with the
 /// parent course's display fields, letting SfCalendar expand the recurrences.
-///
-/// If [search] is provided, only events whose title contains the search string
-/// (case-insensitive) are returned.
 class CourseScheduleBuilderSource {
   List<CourseScheduleEventModel> buildCourseScheduleEvents({
     required List<CourseModel> courses,
     required DateTime from,
     required DateTime to,
-    String? search,
   }) {
     _log.info('Building CourseScheduleEvents for ${courses.length} course(s)');
 
@@ -46,18 +42,10 @@ class CourseScheduleBuilderSource {
       }
     }
 
-    List<CourseScheduleEventModel> filteredEvents = events;
-    if (search != null && search.isNotEmpty) {
-      final searchLower = search.toLowerCase();
-      filteredEvents = events
-          .where((event) => event.title.toLowerCase().contains(searchLower))
-          .toList();
-    }
+    events.sort((a, b) => a.start.compareTo(b.start));
 
-    filteredEvents.sort((a, b) => a.start.compareTo(b.start));
-
-    _log.info('... built ${filteredEvents.length} CourseScheduleEvent(s)');
-    return filteredEvents;
+    _log.info('... built ${events.length} CourseScheduleEvent(s)');
+    return events;
   }
 
   CourseScheduleEventModel _buildEvent({

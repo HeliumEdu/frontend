@@ -57,7 +57,6 @@ void main() {
             courses: any(named: 'courses'),
             from: any(named: 'from'),
             to: any(named: 'to'),
-            search: any(named: 'search'),
           ),
         ).thenReturn(expectedEvents);
 
@@ -76,42 +75,6 @@ void main() {
             courses: courses,
             from: from,
             to: to,
-            search: null,
-          ),
-        ).called(1);
-      });
-
-      test('passes search parameter to builderSource', () async {
-        // GIVEN
-        final courses = <CourseModel>[];
-        final from = DateTime(2025, 8, 1);
-        final to = DateTime(2025, 12, 31);
-        const search = 'CS 101';
-
-        when(
-          () => mockBuilderSource.buildCourseScheduleEvents(
-            courses: any(named: 'courses'),
-            from: any(named: 'from'),
-            to: any(named: 'to'),
-            search: any(named: 'search'),
-          ),
-        ).thenReturn([]);
-
-        // WHEN
-        await repository.getCourseScheduleEvents(
-          courses: courses,
-          from: from,
-          to: to,
-          search: search,
-        );
-
-        // THEN
-        verify(
-          () => mockBuilderSource.buildCourseScheduleEvents(
-            courses: courses,
-            from: from,
-            to: to,
-            search: search,
           ),
         ).called(1);
       });
@@ -127,7 +90,6 @@ void main() {
             courses: any(named: 'courses'),
             from: any(named: 'from'),
             to: any(named: 'to'),
-            search: any(named: 'search'),
           ),
         ).thenReturn([]);
 
@@ -144,7 +106,6 @@ void main() {
             courses: courses,
             from: from,
             to: to,
-            search: null,
           ),
         ).called(1);
       });
@@ -156,7 +117,6 @@ void main() {
             courses: any(named: 'courses'),
             from: any(named: 'from'),
             to: any(named: 'to'),
-            search: any(named: 'search'),
           ),
         ).thenReturn([]);
 
