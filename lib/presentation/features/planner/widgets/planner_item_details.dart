@@ -613,6 +613,7 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
   Future<void> onSubmit({bool redirectToNotebook = false}) async {
     if (isLoading || _error != null || _isSubmitting) return;
     _log.info('Submitting planner item (isEvent=$_isEvent, isEdit=${widget.isEdit}, redirectToNotebook=$redirectToNotebook)');
+    setState(formController.normalizeGrade);
     if (formController.validateAndScrollToError()) {
       final selectedCourse = _courseById(formController.selectedCourse);
 

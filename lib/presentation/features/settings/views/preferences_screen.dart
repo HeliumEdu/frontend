@@ -468,7 +468,7 @@ class PreferencesScreenState extends State<PreferencesScreen> {
   }
 
   void onSubmit() {
-    if (_isSubmitting) return;
+    if (_isLoading || _isSubmitting) return;
     setState(() => _isSubmitting = true);
     widget.onActionStarted?.call();
 

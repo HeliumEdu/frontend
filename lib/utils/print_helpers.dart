@@ -618,6 +618,8 @@ class _PrintableAreaState extends State<PrintableArea> {
         filename: 'Helium_${title.toLowerCase()}_$date.pdf',
       );
     } finally {
+      PrintableArea.capturing.value = false;
+      if (mounted) setState(() => _capturePending = false);
       // Restore theme regardless of how the dialog exits.
       if (wasDark) await themeNotifier.setThemeMode(originalMode);
     }

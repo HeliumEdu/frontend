@@ -118,6 +118,7 @@ class TodosDataGridState extends BaseDataGridState<TodosDataGrid> {
   late TodosDataSource _dataSource;
   bool _isInitialized = false;
   bool _hasInitializedNavigation = false;
+  bool _isInitializing = false;
   bool _isExporting = false;
 
   int _currentPage = 1;
@@ -738,15 +739,20 @@ class TodosDataGridState extends BaseDataGridState<TodosDataGrid> {
   }
 
   Future<void> _initializeData() async {
-    if (widget.dataSource.courses == null) return;
-    await _expandDataWindowForAllCourses();
-    if (!mounted) return;
-    if (!_hasInitializedNavigation) {
-      goToToday(isInitialLoad: true);
-    } else {
-      setState(() {
-        _isInitialized = true;
-      });
+    if (_isInitializing || widget.dataSource.courses == null) return;
+    _isInitializing = true;
+    try {
+      await _expandDataWindowForAllCourses();
+      if (!mounted) return;
+      if (!_hasInitializedNavigation) {
+        goToToday(isInitialLoad: true);
+      } else {
+        setState(() {
+          _isInitialized = true;
+        });
+      }
+    } finally {
+      _isInitializing = false;
     }
   }
 

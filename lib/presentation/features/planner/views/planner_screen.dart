@@ -27,6 +27,7 @@ import 'package:heliumapp/data/models/planner/external_calendar_event_model.dart
 import 'package:heliumapp/data/models/planner/external_calendar_model.dart';
 import 'package:heliumapp/data/models/planner/homework_model.dart';
 import 'package:heliumapp/data/models/planner/planner_item_base_model.dart';
+import 'package:heliumapp/data/models/planner/resource_model.dart';
 import 'package:heliumapp/data/models/planner/request/event_request_model.dart';
 import 'package:heliumapp/data/models/planner/reminder_model.dart';
 import 'package:heliumapp/data/models/planner/request/homework_request_model.dart';
@@ -220,6 +221,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
     for (final g in _courseGroups) g.id: g,
   };
   final Map<int, CategoryModel> _categoriesMap = {};
+  final Map<int, ResourceModel> _resourcesMap = {};
   final List<CategoryModel> _deduplicatedCategories = [];
   bool _isSearchExpanded = false;
   bool _isFilterExpanded = false;
@@ -453,10 +455,8 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
           _plannerItemDataSource!.isMonthView =
               _currentView == PlannerView.month;
 
-          if (_courses.isNotEmpty) {
-            _plannerItemDataSource!.courses = _courses;
-            _plannerItemDataSource!.courseGroupsById = _courseGroupsById;
-            _plannerItemDataSource!.categoriesMap = _categoriesMap;
+          if (!isLoading) {
+            _applyScreenDataToDataSource();
           }
 
           _plannerItemDataSource!.restoreFiltersIfEnabled();
@@ -558,7 +558,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
           } else if (state is HomeworkCreated) {
             _plannerItemDataSource!.addPlannerItem(state.homework);
           } else if (state is PlannerItemsError) {
-            if (!isShowingErrorCard) {
+            if (state.origin == EventOrigin.screen && !isShowingErrorCard) {
               showSnackBar(context, state.message!, type: SnackType.error);
             }
             for (final id in _inFlightCompletionCounts.keys) {
@@ -3739,16 +3739,12 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
       for (final category in state.categories) {
         _categoriesMap[category.id] = category;
       }
+      _resourcesMap
+        ..clear()
+        ..addAll({for (final r in state.resources) r.id: r});
 
       if (_plannerItemDataSource != null) {
-        _plannerItemDataSource!.courses = _courses;
-        _plannerItemDataSource!.courseGroupsById = {
-          for (final g in _courseGroups) g.id: g,
-        };
-        _plannerItemDataSource!.categoriesMap = _categoriesMap;
-        _plannerItemDataSource!.resourcesMap = {
-          for (final r in state.resources) r.id: r,
-        };
+        _applyScreenDataToDataSource();
       }
 
       _deduplicatedCategories.addAll(
@@ -3757,6 +3753,13 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
 
       isLoading = false;
     });
+  }
+
+  void _applyScreenDataToDataSource() {
+    _plannerItemDataSource!.courses = _courses;
+    _plannerItemDataSource!.courseGroupsById = _courseGroupsById;
+    _plannerItemDataSource!.categoriesMap = _categoriesMap;
+    _plannerItemDataSource!.resourcesMap = _resourcesMap;
   }
 
   void _goToToday() {

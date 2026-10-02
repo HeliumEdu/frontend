@@ -48,30 +48,36 @@ class PlannerItemFormController extends BasicFormController {
 
   void _onGradeFocusChange() {
     if (!gradeFocusNode.hasFocus) {
-      var value = GradeHelper.normalizeFraction(gradeController.text);
-      if (value != '') {
-        if (value.contains('/') && value.endsWith('%')) {
-          // If a ratio and a percentage exist, drop the percentage
+      normalizeGrade();
+    }
+  }
+
+  /// Rewrites the grade as an explicit `x/y` fraction (a bare number reads as
+  /// out of 100). Idempotent, so it runs on blur and again before submit.
+  void normalizeGrade() {
+    var value = GradeHelper.normalizeFraction(gradeController.text);
+    if (value != '') {
+      if (value.contains('/') && value.endsWith('%')) {
+        // If a ratio and a percentage exist, drop the percentage
+        value = value.substring(0, value.length - 1);
+      } else if (!value.contains('/')) {
+        // If the value ends with a percentage, drop it
+        if (value.endsWith('%')) {
           value = value.substring(0, value.length - 1);
-        } else if (!value.contains('/')) {
-          // If the value ends with a percentage, drop it
-          if (value.endsWith('%')) {
-            value = value.substring(0, value.length - 1);
-          }
-          // Similarly, if the value didn't end with a percentage, clarify it's out of 100
-          value += '/100';
         }
-
-        final split = value.split('/');
-        // Ensure there is no division by 0
-        if (double.tryParse(split[0]) == 0 && double.tryParse(split[1]) == 0) {
-          value = '0/100';
-        } else if (double.tryParse(split[1]) == 0) {
-          value = '';
-        }
-
-        gradeController.text = HeliumNumber.localize(value);
+        // Similarly, if the value didn't end with a percentage, clarify it's out of 100
+        value += '/100';
       }
+
+      final split = value.split('/');
+      // Ensure there is no division by 0
+      if (double.tryParse(split[0]) == 0 && double.tryParse(split[1]) == 0) {
+        value = '0/100';
+      } else if (double.tryParse(split[1]) == 0) {
+        value = '';
+      }
+
+      gradeController.text = HeliumNumber.localize(value);
     }
   }
 }
