@@ -41,6 +41,8 @@ class _FeedsScreenState extends State<FeedsScreen> {
     final authState = context.read<AuthBloc>().state;
     if (authState is AuthProfileFetched) {
       _applyProfileState(authState);
+    } else {
+      context.read<AuthBloc>().add(FetchProfileEvent());
     }
   }
 

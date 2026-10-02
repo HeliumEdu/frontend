@@ -254,11 +254,15 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
           });
           return settings;
         })
-        .catchError((Object error) {
+        .catchError((Object error) async {
+          // A forced logout clears the tokens before the 401 surfaces.
+          final loggedOut =
+              error is UnauthorizedException &&
+              !await dioClient.isAuthenticated();
           if (mounted) {
             setState(() {
               settingsLoaded = false;
-              _sessionEnded = error is UnauthorizedException;
+              _sessionEnded = _sessionEnded || loggedOut;
               if (!_sessionEnded) {
                 settingsError = error is HeliumException
                     ? error.displayMessage
