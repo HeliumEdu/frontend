@@ -61,3 +61,5 @@ android/fastlane/metadata/android/en-US/changelogs/
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+.venv

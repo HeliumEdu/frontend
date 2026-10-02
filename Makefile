@@ -147,7 +147,10 @@ screenshots:
 	@if [ ! -d "$$HOME/.fastlane/frameit/latest" ] || [ -z "$$(ls $$HOME/.fastlane/frameit/latest/*.png 2>/dev/null)" ]; then \
 		fastlane frameit download_frames; \
 	fi
-	./bin/grab-screenshots.sh
+	@./bin/grab-screenshots.sh
+	@[ -x .venv/bin/python ] || python3 -m venv .venv
+	@.venv/bin/python -c 'import playwright, PIL' 2>/dev/null || .venv/bin/pip install -q playwright pillow
+	@.venv/bin/python bin/grab-screenshots-web.py
 
 clean:
 	flutter clean

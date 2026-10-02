@@ -274,9 +274,3 @@ echo "════════════════════════�
 echo "Capture done. Scaling iPhone and iPad shots to App Store dimensions ..."
 echo "════════════════════════════════════════════════════════════"
 "$(dirname "${BASH_SOURCE[0]}")/scale-for-appstore.sh"
-
-echo ""
-echo "════════════════════════════════════════════════════════════"
-echo "Syncing onboarding screenshots from www ..."
-echo "════════════════════════════════════════════════════════════"
-"$(dirname "${BASH_SOURCE[0]}")/sync-onboarding.sh"

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Syncs onboarding screenshots and the laptop frame asset from the www project
-# into frontend/assets/img/. www is the source of truth for these images;
+# Syncs onboarding screenshots, the laptop frame asset and the logo from the
+# www project into frontend/assets/img/. www is the source of truth for these images;
 # frontend carries renamed copies consumed by the onboarding flow.
 #
 # Files are only written when source and destination differ (byte-for-byte).
@@ -30,6 +30,7 @@ SYNC_MAP=(
   "todos.png:onboarding_todos.png"
   "week-view.png:onboarding_week_view.png"
   "frames/frame-laptop.png:frame_laptop.png"
+  "../helium-logo.png:logo.png"
 )
 
 echo "Syncing onboarding assets (www → frontend) ..."
