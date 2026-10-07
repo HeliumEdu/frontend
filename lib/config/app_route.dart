@@ -21,6 +21,13 @@ class AppRoute {
   static const String gradesScreen = '/grades';
   static const String notificationsScreen = '/notifications';
   static const String settingScreen = '/settings';
+
+  // External redirects, served by another host (mirrored in terraform's rewrites-spa.js)
+  static const String statusRedirect = '/status';
+  static const String supportRedirect = '/support';
+  static const String contactRedirect = '/contact';
+  static const String docsRedirect = '/docs';
+  static const String apiRedirect = '/api';
 }
 
 /// Deep link query parameter name constants and parsing utilities.

@@ -35,6 +35,7 @@ import 'package:heliumapp/presentation/features/settings/views/settings_screen.d
 import 'package:heliumapp/presentation/navigation/shell/navigation_shell.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
+import 'package:heliumapp/utils/url_helpers.dart';
 import 'package:logging/logging.dart';
 
 final rootNavigatorKey = GlobalKey<NavigatorState>();
@@ -78,6 +79,37 @@ void initializeRouter({String? initialLocation}) {
       GoRoute(
         path: AppRoute.registerScreen,
         redirect: (_, _) => AppRoute.signupScreen,
+      ),
+      // External redirects
+      GoRoute(
+        path: AppRoute.statusRedirect,
+        pageBuilder: (context, state) => const MaterialPage(
+          child: _ExternalRedirect(destination: 'https://status.heliumedu.com'),
+        ),
+      ),
+      GoRoute(
+        path: AppRoute.supportRedirect,
+        pageBuilder: (context, state) => const MaterialPage(
+          child: _ExternalRedirect(destination: 'https://www.heliumedu.com/support'),
+        ),
+      ),
+      GoRoute(
+        path: AppRoute.contactRedirect,
+        pageBuilder: (context, state) => const MaterialPage(
+          child: _ExternalRedirect(destination: 'https://www.heliumedu.com/contact'),
+        ),
+      ),
+      GoRoute(
+        path: AppRoute.docsRedirect,
+        pageBuilder: (context, state) => const MaterialPage(
+          child: _ExternalRedirect(destination: 'https://api.heliumedu.com/docs'),
+        ),
+      ),
+      GoRoute(
+        path: AppRoute.apiRedirect,
+        pageBuilder: (context, state) => const MaterialPage(
+          child: _ExternalRedirect(destination: 'https://api.heliumedu.com'),
+        ),
       ),
       GoRoute(
         path: AppRoute.forgotPasswordScreen,
@@ -805,6 +837,11 @@ Future<String?> _authRedirect(BuildContext context, GoRouterState state) async {
     AppRoute.resetPasswordScreen,
     AppRoute.verifyEmailScreen,
     AppRoute.mobileWebScreen,
+    AppRoute.statusRedirect,
+    AppRoute.supportRedirect,
+    AppRoute.contactRedirect,
+    AppRoute.docsRedirect,
+    AppRoute.apiRedirect,
   ];
 
   final matchedLocation = state.matchedLocation;
@@ -901,6 +938,28 @@ bool _shouldShowMobileWebPrompt(BuildContext context, GoRouterState state) {
 }
 
 /// Widget that redirects to a fallback route when arguments are missing
+class _ExternalRedirect extends StatefulWidget {
+  final String destination;
+
+  const _ExternalRedirect({required this.destination});
+
+  @override
+  State<_ExternalRedirect> createState() => _ExternalRedirectState();
+}
+
+class _ExternalRedirectState extends State<_ExternalRedirect> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      unawaited(UrlHelpers.launchWebUrl(widget.destination, sameTabOnWeb: true));
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) => const Scaffold(body: SizedBox.shrink());
+}
+
 class _RouteRedirect extends StatelessWidget {
   final String redirectTo;
 

@@ -8,11 +8,11 @@ class UrlHelpers {
   /// Silently no-ops for any other scheme (e.g. javascript:, file://) to
   /// prevent user-supplied or API-supplied URLs from triggering unintended
   /// platform behaviour.
-  static Future<void> launchWebUrl(String url) async {
+  static Future<void> launchWebUrl(String url, {bool sameTabOnWeb = false}) async {
     final uri = Uri.tryParse(url);
     if (uri == null || (uri.scheme != 'http' && uri.scheme != 'https')) return;
     try {
-      await launchUrl(uri);
+      await launchUrl(uri, webOnlyWindowName: sameTabOnWeb ? '_self' : null);
     } on PlatformException {
       final context = rootScaffoldMessengerKey.currentContext;
       if (context != null && context.mounted) {
