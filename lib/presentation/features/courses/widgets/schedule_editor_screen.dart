@@ -283,9 +283,11 @@ class _ScheduleEditorScreenState extends BaseDialogState<ScheduleEditorScreen> {
     );
 
     final listeners = buildListeners(context);
-    return listeners.isNotEmpty
+    final screen = listeners.isNotEmpty
         ? MultiBlocListener(listeners: listeners, child: content)
         : content;
+
+    return PopScope(canPop: !isSubmitting, child: screen);
   }
 
   @override

@@ -93,6 +93,7 @@ class _ResourceGroupWidgetState
       label: 'Delete',
       button: true,
       child: HeliumIconButton(
+        enabled: !isSubmitting,
         onPressed: () {
           showConfirmDeleteDialog(
             parentContext: context,

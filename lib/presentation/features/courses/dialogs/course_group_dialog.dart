@@ -101,6 +101,7 @@ class _CourseGroupWidgetState
       label: 'Delete',
       button: true,
       child: HeliumIconButton(
+        enabled: !isSubmitting,
         onPressed: () {
           showConfirmDeleteDialog(
             parentContext: context,

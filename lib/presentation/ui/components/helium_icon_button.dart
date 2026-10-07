@@ -4,6 +4,7 @@ import 'package:heliumapp/utils/responsive_helpers.dart';
 
 class HeliumIconButton extends StatelessWidget {
   final VoidCallback onPressed;
+  final bool enabled;
   final IconData icon;
   final String? tooltip;
   final Color? color;
@@ -16,6 +17,7 @@ class HeliumIconButton extends StatelessWidget {
   const HeliumIconButton({
     super.key,
     required this.onPressed,
+    this.enabled = true,
     required this.icon,
     this.tooltip,
     this.color,
@@ -42,12 +44,18 @@ class HeliumIconButton extends StatelessWidget {
     final hoverBg = isSolid
         ? backgroundColor!.withValues(alpha: 0.85)
         : tintColor.withValues(alpha: 0.4);
-    final effectiveIconColor =
+    final baseIconColor =
         iconColor ?? (isSolid ? context.colorScheme.onPrimary : tintColor);
+    final effectiveIconColor = enabled
+        ? baseIconColor
+        : baseIconColor.withValues(alpha: 0.4);
 
     return IconButton.filled(
       style: ButtonStyle(
         backgroundColor: WidgetStateColor.resolveWith((states) {
+          if (states.contains(WidgetState.disabled)) {
+            return effectiveBg.withValues(alpha: effectiveBg.a * 0.4);
+          }
           if (states.contains(WidgetState.hovered)) {
             return hoverBg;
           }
@@ -55,7 +63,7 @@ class HeliumIconButton extends StatelessWidget {
         }),
         tapTargetSize: MaterialTapTargetSize.shrinkWrap,
       ),
-      onPressed: onPressed,
+      onPressed: enabled ? onPressed : null,
       icon: Icon(icon, color: effectiveIconColor, size: useSize),
       tooltip: tooltip,
       padding: const EdgeInsets.all(6),

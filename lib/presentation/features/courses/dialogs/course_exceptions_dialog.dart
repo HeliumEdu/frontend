@@ -107,6 +107,7 @@ class _CourseExceptionsDialogState extends State<CourseExceptionsDialog> {
                     Expanded(
                       child: HeliumElevatedButton(
                         buttonText: 'Cancel',
+                        enabled: !_isSaving,
                         backgroundColor: context.colorScheme.outline,
                         onPressed: () => Navigator.pop(context),
                       ),

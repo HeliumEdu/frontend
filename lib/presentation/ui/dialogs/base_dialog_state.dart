@@ -24,14 +24,14 @@ abstract class BaseDialogState<T extends StatefulWidget> extends State<T> {
   @override
   Widget build(BuildContext context) {
     final listeners = buildListeners(context);
-    if (listeners.isNotEmpty) {
-      return MultiBlocListener(
-        listeners: buildListeners(context),
-        child: buildDialog(context),
-      );
-    } else {
-      return buildDialog(context);
-    }
+    final dialog = listeners.isNotEmpty
+        ? MultiBlocListener(
+            listeners: listeners,
+            child: buildDialog(context),
+          )
+        : buildDialog(context);
+
+    return PopScope(canPop: !isSubmitting, child: dialog);
   }
 
   List<BlocListener<dynamic, dynamic>> buildListeners(BuildContext context) {
@@ -124,6 +124,7 @@ abstract class BaseDialogState<T extends StatefulWidget> extends State<T> {
           child: HeliumElevatedButton(
             buttonText: 'Cancel',
             backgroundColor: context.colorScheme.outline,
+            enabled: !isSubmitting,
             onPressed: cancelAction,
           ),
         ),

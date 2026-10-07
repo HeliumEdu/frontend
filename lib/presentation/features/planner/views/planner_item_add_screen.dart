@@ -324,6 +324,7 @@ class _PlannerItemAddScreenState
         label: 'Delete',
         button: true,
         child: HeliumIconButton(
+          enabled: !isSubmitting,
           onPressed: () => _detailsKey.currentState?.onDelete(),
           icon: Icons.delete_outline,
           color: context.colorScheme.error,
@@ -331,6 +332,7 @@ class _PlannerItemAddScreenState
       ),
       const SizedBox(width: 8),
       HeliumIconButton(
+        enabled: !isSubmitting,
         onPressed: () => _detailsKey.currentState?.onClone(),
         icon: Icons.copy_outlined,
         tooltip: 'Clone',

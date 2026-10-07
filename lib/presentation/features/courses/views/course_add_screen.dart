@@ -238,6 +238,7 @@ class _CourseAddScreenState extends MultiStepContainerState<CourseAddScreen> {
         label: 'Delete',
         button: true,
         child: HeliumIconButton(
+          enabled: !isSubmitting,
           onPressed: () => _detailsKey.currentState?.onDelete(),
           icon: Icons.delete_outline,
           color: context.colorScheme.error,

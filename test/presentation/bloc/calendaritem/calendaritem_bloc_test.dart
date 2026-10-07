@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:heliumapp/core/helium_exception.dart';
@@ -329,6 +331,32 @@ void main() {
           ],
         );
 
+        final eventDeleteInFlight = Completer<void>();
+
+        blocTest<PlannerItemBloc, PlannerItemState>(
+          'sends one request when the same event is deleted twice while the first is in flight',
+          build: () {
+            when(
+              () => mockEventRepository.deleteEvent(eventId: eventId),
+            ).thenAnswer((_) => eventDeleteInFlight.future);
+            return plannerItemBloc;
+          },
+          act: (bloc) async {
+            bloc.add(DeleteEventEvent(origin: EventOrigin.dialog, id: eventId));
+            bloc.add(DeleteEventEvent(origin: EventOrigin.dialog, id: eventId));
+            await Future<void>.delayed(Duration.zero);
+            eventDeleteInFlight.complete();
+          },
+          expect: () => [
+            isA<PlannerItemsLoading>(),
+            isA<EventDeleted>().having((s) => s.id, 'id', eventId),
+          ],
+          verify: (_) {
+            verify(() => mockEventRepository.deleteEvent(eventId: eventId))
+                .called(1);
+          },
+        );
+
         blocTest<PlannerItemBloc, PlannerItemState>(
           'emits [PlannerItemsLoading, PlannerItemsError] when deletion fails',
           build: () {
@@ -544,6 +572,47 @@ void main() {
             isA<PlannerItemsLoading>(),
             isA<HomeworkDeleted>().having((s) => s.id, 'id', homeworkId),
           ],
+        );
+
+        final homeworkDeleteInFlight = Completer<void>();
+
+        blocTest<PlannerItemBloc, PlannerItemState>(
+          'sends one request when the same homework is deleted twice while the first is in flight',
+          build: () {
+            when(
+              () => mockHomeworkRepository.deleteHomework(
+                groupId: courseGroupId,
+                courseId: courseId,
+                homeworkId: homeworkId,
+              ),
+            ).thenAnswer((_) => homeworkDeleteInFlight.future);
+            return plannerItemBloc;
+          },
+          act: (bloc) async {
+            final delete = DeleteHomeworkEvent(
+              origin: EventOrigin.dialog,
+              courseGroupId: courseGroupId,
+              courseId: courseId,
+              homeworkId: homeworkId,
+            );
+            bloc.add(delete);
+            bloc.add(delete);
+            await Future<void>.delayed(Duration.zero);
+            homeworkDeleteInFlight.complete();
+          },
+          expect: () => [
+            isA<PlannerItemsLoading>(),
+            isA<HomeworkDeleted>().having((s) => s.id, 'id', homeworkId),
+          ],
+          verify: (_) {
+            verify(
+              () => mockHomeworkRepository.deleteHomework(
+                groupId: courseGroupId,
+                courseId: courseId,
+                homeworkId: homeworkId,
+              ),
+            ).called(1);
+          },
         );
 
         blocTest<PlannerItemBloc, PlannerItemState>(

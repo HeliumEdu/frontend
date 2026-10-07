@@ -27,6 +27,8 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
   final CourseRepository courseRepository;
   final CategoryRepository categoryRepository;
 
+  final Set<int> _deletingNoteIds = {};
+
   NoteBloc({
     required this.noteRepository,
     required this.homeworkRepository,
@@ -287,6 +289,8 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
     DeleteNoteEvent event,
     Emitter<NoteState> emit,
   ) async {
+    if (!_deletingNoteIds.add(event.noteId)) return;
+
     emit(NotesLoading(origin: event.origin));
     try {
       await noteRepository.deleteNote(noteId: event.noteId);
@@ -298,6 +302,8 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
         origin: event.origin,
         message: HeliumException.unexpectedError,
       ));
+    } finally {
+      _deletingNoteIds.remove(event.noteId);
     }
   }
 }

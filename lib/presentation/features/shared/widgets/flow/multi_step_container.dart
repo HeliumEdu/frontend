@@ -151,6 +151,7 @@ abstract class MultiStepContainerState<T extends MultiStepContainer>
   /// navigation was deferred rather than allowed to proceed.
   @protected
   bool deferNavigationDismissal() {
+    if (isSubmitting) return true;
     if (!deferDismissal) return false;
     _dismissDeferred = true;
     return true;
@@ -186,7 +187,7 @@ abstract class MultiStepContainerState<T extends MultiStepContainer>
   }
 
   Future<void> _attemptDismiss() async {
-    if (!mounted) return;
+    if (!mounted || isSubmitting) return;
     if (deferDismissal) {
       _dismissDeferred = true;
       return;

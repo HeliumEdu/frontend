@@ -34,6 +34,9 @@ class PlannerItemBloc extends Bloc<PlannerItemEvent, PlannerItemState> {
   final ResourceRepository resourceRepository;
   final NoteRepository noteRepository;
 
+  final Set<int> _deletingEventIds = {};
+  final Set<int> _deletingHomeworkIds = {};
+
   PlannerItemBloc({
     required this.eventRepository,
     required this.homeworkRepository,
@@ -311,6 +314,8 @@ class PlannerItemBloc extends Bloc<PlannerItemEvent, PlannerItemState> {
     DeleteEventEvent event,
     Emitter<PlannerItemState> emit,
   ) async {
+    if (!_deletingEventIds.add(event.id)) return;
+
     emit(PlannerItemsLoading(origin: event.origin));
     try {
       await eventRepository.deleteEvent(eventId: event.id);
@@ -325,6 +330,8 @@ class PlannerItemBloc extends Bloc<PlannerItemEvent, PlannerItemState> {
           message: HeliumException.unexpectedError,
         ),
       );
+    } finally {
+      _deletingEventIds.remove(event.id);
     }
   }
 
@@ -502,6 +509,8 @@ class PlannerItemBloc extends Bloc<PlannerItemEvent, PlannerItemState> {
     DeleteHomeworkEvent event,
     Emitter<PlannerItemState> emit,
   ) async {
+    if (!_deletingHomeworkIds.add(event.homeworkId)) return;
+
     emit(PlannerItemsLoading(origin: event.origin));
     try {
       await homeworkRepository.deleteHomework(
@@ -520,6 +529,8 @@ class PlannerItemBloc extends Bloc<PlannerItemEvent, PlannerItemState> {
           message: HeliumException.unexpectedError,
         ),
       );
+    } finally {
+      _deletingHomeworkIds.remove(event.homeworkId);
     }
   }
 

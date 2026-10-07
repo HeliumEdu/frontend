@@ -301,6 +301,7 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
         label: 'Delete',
         button: true,
         child: HeliumIconButton(
+          enabled: !isSubmitting,
           onPressed: _onDelete,
           icon: Icons.delete_outline,
           color: context.colorScheme.error,
@@ -351,6 +352,7 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
   }
 
   Future<void> _cancelAndClose() async {
+    if (isSubmitting) return;
     if (isDirty) {
       _debounceTimer?.cancel();
       _isDiscardDialogOpen = true;
