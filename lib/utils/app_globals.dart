@@ -64,7 +64,7 @@ class FallbackConstants {
   static const defaultReminderOffset = 30;
   static const defaultReminderOffsetType = 0;
   static const defaultColorByCategory = false;
-  static const defaultShowGettingStarted = false;
+  static const defaultGettingStartedDue = false;
   static const defaultEventsColor = Color(0xffe74674);
   static const defaultResourceColor = Color(0xffdc7d50);
   static const defaultGradeColor = Color(0xff9d629d);

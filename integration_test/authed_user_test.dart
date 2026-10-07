@@ -1831,7 +1831,7 @@ void main() {
     });
 
     namedTestWidgets(
-      '10. Clearing the example schedule keeps the courses the user edited',
+      '10. Clearing the example schedule from Settings keeps the courses the user edited',
       (tester) async {
         if (!canProceed) {
           _log.warning('Skipping: user does not exist');
@@ -1855,10 +1855,7 @@ void main() {
         );
         final keptCourseIds = {homework1!.course.id, quiz4!.course.id};
         final coursesBefore = await apiHelper.getCourses();
-        final keptCourses = coursesBefore!
-            .where((c) => keptCourseIds.contains(c.id))
-            .toList();
-        final clearedCourses = coursesBefore
+        final clearedCourses = coursesBefore!
             .where((c) => !keptCourseIds.contains(c.id))
             .toList();
         expect(
@@ -1867,46 +1864,50 @@ void main() {
           reason: 'The example schedule should have untouched courses to clear',
         );
 
-        final welcomeDialogFound = await _signInToGettingStartedDialog(
+        await initializeTestApp(tester);
+        final loggedIn = await loginAndNavigateToPlanner(
           tester,
           testEmail,
           testPassword,
         );
-        if (!welcomeDialogFound) {
-          skipTest(
-            'Welcome dialog not available (example schedule may be cleared)',
-          );
-          return;
-        }
+        expect(loggedIn, isTrue, reason: 'Should be logged in');
 
-        final clearButton = find.text('Clear Example Data');
+        _log.info('Opening Settings ...');
+        await tester.tap(find.byKey(const Key(SettingsButton.buttonKey)));
+        final settingsLoaded = await waitForWidget(
+          tester,
+          find.text('Change Password'),
+          timeout: const Duration(seconds: 10),
+        );
+        expect(settingsLoaded, isTrue, reason: 'Settings should finish loading');
+
+        final clearItem = find.text('Clear Example Data');
+        await scrollUntilVisible(tester, clearItem);
         expect(
-          clearButton,
+          clearItem,
           findsOneWidget,
-          reason: 'Clear Example Data button should exist',
+          reason: 'Settings should offer Clear Example Data while the example schedule exists',
         );
 
-        _log.info('Clicking Clear Example Data button ...');
-        await tester.tap(clearButton);
-
-        // The API answers 400 with a notice when the user's edits were kept,
-        // and the app still refreshes and lands on Classes.
+        _log.info('Clicking Clear Example Data in Settings ...');
+        await tester.tap(clearItem);
         await tester.pumpAndSettle(const Duration(seconds: 10));
 
-        _log.info('Waiting for navigation to Classes screen ...');
-        final classesScreenFound = await waitForRoute(
+        final settingsReturned = await waitForWidget(
           tester,
-          AppRoute.coursesScreen,
-          browserTitle: 'Classes',
+          find.text('Change Password'),
           timeout: const Duration(seconds: 45),
         );
         expect(
-          classesScreenFound,
+          settingsReturned,
           isTrue,
-          reason:
-              'Should navigate to Classes screen after clearing example data',
+          reason: 'Settings should return once the example schedule is cleared',
         );
-        await tester.pumpAndSettle(const Duration(seconds: 3));
+        expect(
+          clearItem,
+          findsNothing,
+          reason: 'Clear Example Data should disappear once the example schedule is cleared',
+        );
 
         _log.info('Verifying the edited courses were kept via the API ...');
         final coursesAfter = await apiHelper.getCourses();
@@ -1921,22 +1922,6 @@ void main() {
           isEmpty,
           reason: 'Untouched example events should be cleared',
         );
-
-        _log.info('Verifying the Classes screen ...');
-        for (final course in keptCourses) {
-          expect(
-            find.textContaining(course.title).evaluate().isNotEmpty,
-            isTrue,
-            reason: '${course.title} was edited, so it should be kept',
-          );
-        }
-        for (final course in clearedCourses) {
-          expect(
-            find.textContaining(course.title).evaluate().isEmpty,
-            isTrue,
-            reason: '${course.title} was untouched, so it should be cleared',
-          );
-        }
 
         _log.info('... example data cleared, edited courses kept');
       },

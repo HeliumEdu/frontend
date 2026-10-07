@@ -11,6 +11,7 @@ class UserSettingsModel {
   final int weekStartsOn;
   final int whatsNewVersionSeen;
   final bool showGettingStarted;
+  final bool gettingStartedDue;
   final bool isSetupComplete;
   final Color eventsColor;
   final Color resourceColor;
@@ -39,6 +40,7 @@ class UserSettingsModel {
     required this.weekStartsOn,
     required this.whatsNewVersionSeen,
     required this.showGettingStarted,
+    required this.gettingStartedDue,
     required this.isSetupComplete,
     required this.eventsColor,
     required this.resourceColor,
@@ -75,6 +77,7 @@ class UserSettingsModel {
       weekStartsOn: json['week_starts_on'],
       whatsNewVersionSeen: json['whats_new_version_seen'],
       showGettingStarted: json['show_getting_started'],
+      gettingStartedDue: json['getting_started_due'],
       isSetupComplete: json['is_setup_complete'],
       eventsColor: HeliumColors.hexToColor(json['events_color']),
       resourceColor: HeliumColors.hexToColor(json['resource_color']),

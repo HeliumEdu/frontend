@@ -9,6 +9,7 @@ import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/config/donation_config.dart';
 import 'package:heliumapp/config/pref_service.dart';
 import 'package:heliumapp/core/dio_client.dart';
+import 'package:heliumapp/data/models/auth/request/update_settings_request_model.dart';
 import 'package:heliumapp/core/fcm_service.dart';
 import 'package:heliumapp/core/notification_count_service.dart';
 import 'package:heliumapp/core/notification_reconciler.dart';
@@ -353,11 +354,11 @@ class _NavigationShellState extends State<NavigationShell> {
 
     try {
       final settings = await DioClient().getSettings();
-      final showGettingStarted =
-          settings?.showGettingStarted ??
-          FallbackConstants.defaultShowGettingStarted;
+      final gettingStartedDue =
+          settings?.gettingStartedDue ??
+          FallbackConstants.defaultGettingStartedDue;
 
-      if (!mounted || !showGettingStarted || !_destinationIsTopLevelPage) return;
+      if (!mounted || !gettingStartedDue || !_destinationIsTopLevelPage) return;
       await _showGettingStartedDialogSafely();
     } catch (e) {
       _log.warning('Failed to check getting started dialog state: ${e.runtimeType}');
@@ -365,14 +366,14 @@ class _NavigationShellState extends State<NavigationShell> {
   }
 
   Future<void> _checkDialogs() async {
-    bool showGettingStarted = FallbackConstants.defaultShowGettingStarted;
+    bool gettingStartedDue = FallbackConstants.defaultGettingStartedDue;
     bool showWhatsNew = false;
 
     try {
       final settings = await DioClient().getSettings(forceRefresh: true);
-      showGettingStarted =
-          settings?.showGettingStarted ??
-          FallbackConstants.defaultShowGettingStarted;
+      gettingStartedDue =
+          settings?.gettingStartedDue ??
+          FallbackConstants.defaultGettingStartedDue;
       showWhatsNew = await WhatsNewService().shouldShowWhatsNew();
     } catch (e) {
       _log.warning('Failed to prepare startup dialogs: ${e.runtimeType}');
@@ -390,7 +391,7 @@ class _NavigationShellState extends State<NavigationShell> {
 
       if (!_destinationIsTopLevelPage) return;
 
-      if (showGettingStarted) {
+      if (gettingStartedDue) {
         // Re-check from the server: the value captured above may be stale if
         // the app was backgrounded between the initial fetch and this callback.
         await _checkGettingStartedDialog();
@@ -417,11 +418,22 @@ class _NavigationShellState extends State<NavigationShell> {
 
     _isShowingGettingStarted = true;
     try {
+      unawaited(_reportGettingStartedShown());
       await showGettingStartedDialog(context);
     } catch (e) {
       _log.warning('Failed to show getting started dialog: ${e.runtimeType}');
     } finally {
       _isShowingGettingStarted = false;
+    }
+  }
+
+  Future<void> _reportGettingStartedShown() async {
+    try {
+      await DioClient().updateSettings(
+        UpdateSettingsRequestModel(gettingStartedDue: false),
+      );
+    } catch (e) {
+      _log.warning('Failed to report the getting started dialog as shown: ${e.runtimeType}');
     }
   }
 

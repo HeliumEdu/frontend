@@ -270,8 +270,7 @@ void main() {
 
     group('deleteExampleSchedule', () {
       const message =
-          'The example schedule is cleared, except for the items you edited, '
-          'which are now yours to keep.';
+          'The example schedule was cleared, except for anything that changed.';
 
       test('returns null and clears the cache on 204', () async {
         // GIVEN
@@ -288,15 +287,11 @@ void main() {
       });
 
       test(
-        'returns the message and clears the cache when edited items were kept (400)',
+        'returns the message and clears the cache when anything was kept (200)',
         () async {
           // GIVEN
-          when(() => mockDio.delete(any())).thenThrow(
-            givenDioException(
-              statusCode: 400,
-              responseData: [message],
-              message: 'Validation error',
-            ),
+          when(() => mockDio.delete(any())).thenAnswer(
+            (_) async => givenSuccessResponse({'message': message}),
           );
 
           // WHEN
@@ -307,6 +302,24 @@ void main() {
           verify(() => mockCacheService.clearAll()).called(1);
         },
       );
+
+      test('throws and keeps the cache on a 400', () async {
+        // GIVEN
+        when(() => mockDio.delete(any())).thenThrow(
+          givenDioException(
+            statusCode: 400,
+            responseData: [message],
+            message: 'Validation error',
+          ),
+        );
+
+        // WHEN/THEN
+        await expectLater(
+          dataSource.deleteExampleSchedule(),
+          throwsA(isA<HeliumException>()),
+        );
+        verifyNever(() => mockCacheService.clearAll());
+      });
 
       test('throws and keeps the cache on a server error', () async {
         // GIVEN

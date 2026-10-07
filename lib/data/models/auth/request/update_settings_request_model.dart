@@ -4,6 +4,7 @@ class UpdateSettingsRequestModel {
   final int? weekStartsOn;
   final int? colorSchemeTheme;
   final int? whatsNewVersionSeen;
+  final bool? gettingStartedDue;
   final bool? colorByCategory;
   final bool? showPlannerTooltips;
   final bool? dragAndDropOnMobile;
@@ -28,6 +29,7 @@ class UpdateSettingsRequestModel {
     this.weekStartsOn,
     this.colorSchemeTheme,
     this.whatsNewVersionSeen,
+    this.gettingStartedDue,
     this.colorByCategory,
     this.showPlannerTooltips,
     this.dragAndDropOnMobile,
@@ -61,6 +63,9 @@ class UpdateSettingsRequestModel {
     }
     if (whatsNewVersionSeen != null) {
       json['whats_new_version_seen'] = whatsNewVersionSeen;
+    }
+    if (gettingStartedDue != null) {
+      json['getting_started_due'] = gettingStartedDue;
     }
     if (colorByCategory != null) {
       json['calendar_use_category_colors'] = colorByCategory;

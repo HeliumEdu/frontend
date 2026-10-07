@@ -190,6 +190,9 @@ void main() {
           () => mockPrefService.getBool('show_getting_started'),
         ).thenReturn(false);
         when(
+          () => mockPrefService.getBool('getting_started_due'),
+        ).thenReturn(false);
+        when(
           () => mockPrefService.getString('events_color'),
         ).thenReturn('#FF0000');
         when(

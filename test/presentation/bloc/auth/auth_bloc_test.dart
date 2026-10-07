@@ -614,8 +614,7 @@ void main() {
 
     group('DeleteExampleScheduleEvent', () {
       const message =
-          'The example schedule is cleared, except for the items you edited, '
-          'which are now yours to keep.';
+          'The example schedule was cleared, except for anything that changed.';
 
       setUp(() {
         TestWidgetsFlutterBinding.ensureInitialized();

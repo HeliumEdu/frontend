@@ -17,6 +17,7 @@ enum SettingsPrefKey {
   weekStartsOn('week_starts_on'),
   whatsNewVersionSeen('whats_new_version_seen'),
   showGettingStarted('show_getting_started'),
+  gettingStartedDue('getting_started_due'),
   eventsColor('events_color'),
   resourceColor('resource_color'),
   gradeColor('grade_color'),

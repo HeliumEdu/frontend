@@ -636,19 +636,14 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
         ApiUrl.authUserDeleteExampleScheduleUrl,
       );
 
-      if (response.statusCode != 204) {
+      if (response.statusCode != 204 && response.statusCode != 200) {
         throw unexpectedStatus(response, 'Failed to delete example schedule.');
       }
 
       await _recordExampleScheduleCleared();
-      return null;
+      return response.statusCode == 200 ? response.data['message'] as String : null;
     } on DioException catch (e, s) {
-      final error = handleDioError(e, s);
-      if (error.httpStatusCode == 400) {
-        await _recordExampleScheduleCleared();
-        return error.displayMessage;
-      }
-      throw error;
+      throw handleDioError(e, s);
     } on HeliumException {
       rethrow;
     } catch (e, s) {

@@ -454,9 +454,13 @@ jobs:
             STATUS="Staged as a draft. Click **Send for review** in Play Console when ready."
           fi
 
+          SEMVER="${FULL_VERSION%%+*}"
+          VERSION_CODE=$(cat ./android-build/version_code.txt)
+
           echo "### Android Deployment Complete" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "- **Version**: ${FULL_VERSION}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Version**: ${SEMVER}+${VERSION_CODE}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Release tag**: ${FULL_VERSION}" >> $GITHUB_STEP_SUMMARY
           echo "- **Track**: Production" >> $GITHUB_STEP_SUMMARY
           echo "- **Status**: ${STATUS}" >> $GITHUB_STEP_SUMMARY
           echo "- **Console**: [Google Play Console](https://play.google.com/console/developers/5225481146664498498/app/4975537823503737498/tracks/production)" >> $GITHUB_STEP_SUMMARY

@@ -128,6 +128,7 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
   bool _hasOAuthProviders = false;
   List<String> _oauthProviders = [];
   bool _dangerZoneExpanded = false;
+  bool _clearingExampleData = false;
   Timer? _dangerZoneTimer;
   // Cached at sub-screen entry so title/form don't flash if _hasUsablePassword
   // updates while the changePassword sub-screen is still mounted.
@@ -349,7 +350,10 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
           if (state is AuthError) {
             // Only handle on the main settings page; sub-screens handle their own errors.
             if (_activeSubScreen == null) {
-              setState(() => isLoading = false);
+              setState(() {
+                isLoading = false;
+                _clearingExampleData = false;
+              });
               if (!isShowingErrorCard) {
                 showSnackBar(context, state.message!, type: SnackType.error);
               }
@@ -368,6 +372,15 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
 
               isLoading = false;
             });
+          } else if (state is AuthScheduleDataRefreshed && _clearingExampleData) {
+            setState(() => _clearingExampleData = false);
+            await loadSettings();
+            if (!context.mounted) return;
+            showSnackBar(
+              context,
+              state.message ?? 'Example schedule cleared.',
+              type: state.message == null ? SnackType.success : SnackType.info,
+            );
           } else if (state is AuthEmailChangeRequested) {
             setState(() {
               _emailChanging = state.newEmail;
@@ -514,6 +527,12 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
             _buildSubSettingsArea(),
 
             const SizedBox(height: 12),
+
+            if (userSettings?.showGettingStarted ?? false) ...[
+              _buildExampleDataArea(),
+
+              const SizedBox(height: 12),
+            ],
 
             _buildDangerZoneArea(),
 
@@ -843,6 +862,32 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
         ),
       ),
     );
+  }
+
+  Widget _buildExampleDataArea() {
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(16.0),
+        border: Border.all(
+          color: context.colorScheme.error.withValues(alpha: 0.2),
+        ),
+      ),
+      child: _buildDangerZoneItem(
+        icon: Icons.cleaning_services_outlined,
+        label: 'Clear Example Data',
+        hint: 'Remove the example schedule, keeping anything that changed',
+        onTap: _clearExampleData,
+        isFirst: true,
+        isLast: true,
+      ),
+    );
+  }
+
+  void _clearExampleData() {
+    if (_clearingExampleData) return;
+
+    setState(() => _clearingExampleData = true);
+    context.read<AuthBloc>().add(DeleteExampleScheduleEvent());
   }
 
   Widget _buildDangerZoneArea() {
