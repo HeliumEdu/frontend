@@ -677,6 +677,7 @@ class DioClient {
     try {
       await clearStorage();
       SentryService().clearUser();
+      unawaited(AnalyticsService().setUserId(null));
       _notifyForcedLogout();
       final context = rootNavigatorKey.currentContext;
       if (context != null && context.mounted) {

@@ -115,13 +115,15 @@ const _cards = [
   _OnboardingCard(
     title: 'Ready when you are',
     description:
-        "You'll see this welcome screen periodically until you clear the "
-        'example data, and until then, feel free to explore it and get a feel '
-        'for everything Helium has to offer.',
+        'This welcome returns on every device until you clear the example '
+        'data. Until then, feel free to explore it and get a feel for '
+        'everything Helium has to offer.',
     icon: Icons.auto_delete_outlined,
     imagePaths: ['assets/img/onboarding_reminders.png'],
   ),
 ];
+
+const double _onboardingImageAspectRatio = 1880 / 1000;
 
 class _GettingStartedDialogWidget extends StatefulWidget {
   const _GettingStartedDialogWidget();
@@ -135,7 +137,7 @@ class _GettingStartedDialogWidgetState
     extends State<_GettingStartedDialogWidget> {
   static const double _desktopWidth = 600.0;
   static const double _pageViewHeight = 465.0;
-  static const double _pageViewHeightMobile = 390.0;
+  static const double _pageBottomInset = 12.0;
   static const double _dotSize = 8.0;
   static const double _activeDotSize = 10.0;
 
@@ -190,6 +192,16 @@ class _GettingStartedDialogWidgetState
         if (state is AuthScheduleDataRefreshed) {
           if (!context.mounted) return;
 
+          final message = state.message;
+          if (message != null) {
+            SnackBarHelper.show(
+              context,
+              message,
+              type: SnackType.info,
+              useRootMessenger: true,
+            );
+          }
+
           final navigator = Navigator.maybeOf(context);
           if (navigator?.canPop() ?? false) {
             navigator!.pop();
@@ -234,18 +246,7 @@ class _GettingStartedDialogWidgetState
                       borderRadius: const BorderRadius.vertical(
                         top: Radius.circular(12),
                       ),
-                      child: SizedBox(
-                        height: isMobile
-                            ? _pageViewHeightMobile
-                            : _pageViewHeight,
-                        child: PageView.builder(
-                          controller: _pageController,
-                          onPageChanged: _onPageChanged,
-                          itemCount: _cards.length,
-                          itemBuilder: (context, index) =>
-                              _buildCard(context, _cards[index]),
-                        ),
-                      ),
+                      child: _buildPages(context, isMobile),
                     ),
                   ),
                   _buildNavigation(context),
@@ -257,6 +258,53 @@ class _GettingStartedDialogWidgetState
           );
         },
       ),
+    );
+  }
+
+  Widget _buildPages(BuildContext context, bool isMobile) {
+    final pages = PageView.builder(
+      controller: _pageController,
+      onPageChanged: _onPageChanged,
+      itemCount: _cards.length,
+      itemBuilder: (context, index) => _buildCard(context, _cards[index]),
+    );
+
+    if (!isMobile) {
+      return SizedBox(height: _pageViewHeight, child: pages);
+    }
+
+    // Text wraps differently by phone width and text scale, so a fixed height
+    // leaves dead space above the dots. The hidden copies size this area to
+    // the tallest card instead.
+    return Stack(
+      children: [
+        for (final card in _cards)
+          Visibility(
+            visible: false,
+            maintainSize: true,
+            maintainAnimation: true,
+            maintainState: true,
+            child: _buildCardMeasure(context, card),
+          ),
+        Positioned.fill(child: pages),
+      ],
+    );
+  }
+
+  Widget _buildCardMeasure(BuildContext context, _OnboardingCard card) {
+    final hasImage = card.stackedDevices || card.imagePaths.isNotEmpty;
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        _buildCardHeader(context, card),
+        if (hasImage)
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 24.0),
+            child: AspectRatio(aspectRatio: _onboardingImageAspectRatio),
+          ),
+        const SizedBox(height: _pageBottomInset),
+      ],
     );
   }
 
@@ -287,52 +335,52 @@ class _GettingStartedDialogWidgetState
 
     return CustomScrollView(
       slivers: [
-        SliverToBoxAdapter(
-          child: Padding(
-            padding: const EdgeInsets.all(24.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(8.0),
-                      decoration: BoxDecoration(
-                        color: context.colorScheme.primary.withValues(
-                          alpha: 0.1,
-                        ),
-                        borderRadius: BorderRadius.circular(8.0),
-                      ),
-                      child: Icon(
-                        card.icon,
-                        color: context.colorScheme.primary,
-                        size: 24.0,
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: SelectableText(
-                        card.title,
-                        style: AppStyles.pageTitle(context),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                SelectableText(
-                  card.description,
-                  style: AppStyles.standardBodyText(context),
-                ),
-              ],
-            ),
-          ),
-        ),
+        SliverToBoxAdapter(child: _buildCardHeader(context, card)),
         SliverFillRemaining(
           hasScrollBody: false,
           child: Align(alignment: Alignment.topCenter, child: imageWidget),
         ),
       ],
+    );
+  }
+
+  Widget _buildCardHeader(BuildContext context, _OnboardingCard card) {
+    return Padding(
+      padding: const EdgeInsets.all(24.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8.0),
+                decoration: BoxDecoration(
+                  color: context.colorScheme.primary.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(8.0),
+                ),
+                child: Icon(
+                  card.icon,
+                  color: context.colorScheme.primary,
+                  size: 24.0,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: SelectableText(
+                  card.title,
+                  style: AppStyles.pageTitle(context),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          SelectableText(
+            card.description,
+            style: AppStyles.standardBodyText(context),
+          ),
+        ],
+      ),
     );
   }
 
@@ -464,35 +512,42 @@ class _GettingStartedDialogWidgetState
           SizedBox(
             width: buttonWidth,
             child: HeliumElevatedButton(
-              buttonText: 'Clear Example Data',
-              icon: Icons.delete_outline,
-              isLoading: isLoading,
+              key: const Key(gettingStartedDismissButtonKey),
+              buttonText: "I'll explore first",
               enabled: !isLoading,
-              backgroundColor: context.colorScheme.error,
-              onPressed: () {
-                context.read<AuthBloc>().add(DeleteExampleScheduleEvent());
-              },
+              onPressed: () => Navigator.pop(context),
             ),
           ),
           const SizedBox(height: 8),
           SizedBox(
             width: buttonWidth,
-            child: TextButton(
-              key: const Key(gettingStartedDismissButtonKey),
-              onPressed: isLoading ? null : () => Navigator.pop(context),
-              child: Text(
-                "I'll explore first",
-                style: AppStyles.standardBodyText(
-                  context,
-                ).copyWith(
-                  color: isLoading
-                      ? context.colorScheme.primary.withValues(alpha: 0.3)
-                      : context.colorScheme.primary,
-                ),
-              ),
-            ),
+            child: _buildClearButton(context, isLoading),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildClearButton(BuildContext context, bool isLoading) {
+    final error = context.colorScheme.error;
+
+    return OutlinedButton.icon(
+      onPressed: isLoading
+          ? null
+          : () => context.read<AuthBloc>().add(DeleteExampleScheduleEvent()),
+      icon: isLoading
+          ? SizedBox(
+              width: 16,
+              height: 16,
+              child: CircularProgressIndicator(strokeWidth: 2.5, color: error),
+            )
+          : const Icon(Icons.delete_outline, size: 16),
+      label: const Text('Clear Example Data'),
+      style: OutlinedButton.styleFrom(
+        foregroundColor: error,
+        side: BorderSide(color: error),
+        minimumSize: const Size.fromHeight(HeliumElevatedButton.minimumHeight),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6.0)),
       ),
     );
   }
@@ -585,7 +640,7 @@ class _StackedDevices extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AspectRatio(
-      aspectRatio: 1880 / 1000,
+      aspectRatio: _onboardingImageAspectRatio,
       child: LayoutBuilder(
         builder: (context, constraints) {
           final h = constraints.maxHeight;

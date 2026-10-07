@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:heliumapp/core/cache_service.dart';
 import 'package:heliumapp/core/dio_client.dart';
 import 'package:heliumapp/core/helium_exception.dart';
 import 'package:heliumapp/data/models/auth/request/change_password_request_model.dart';
@@ -17,12 +18,15 @@ import '../../mocks/mock_dio.dart';
 
 class MockDioClient extends Mock implements DioClient {}
 
+class MockCacheService extends Mock implements CacheService {}
+
 class _FakeUserSettingsModel extends Fake implements UserSettingsModel {}
 
 void main() {
   late AuthRemoteDataSourceImpl dataSource;
   late MockDioClient mockDioClient;
   late MockDio mockDio;
+  late MockCacheService mockCacheService;
 
   setUpAll(() {
     tz_data.initializeTimeZones();
@@ -33,7 +37,10 @@ void main() {
   setUp(() {
     mockDioClient = MockDioClient();
     mockDio = MockDio();
+    mockCacheService = MockCacheService();
     when(() => mockDioClient.dio).thenReturn(mockDio);
+    when(() => mockDioClient.cacheService).thenReturn(mockCacheService);
+    when(() => mockCacheService.clearAll()).thenAnswer((_) async {});
     when(() => mockDioClient.saveTokens(any(), any())).thenAnswer((_) async {});
     when(
       () => mockDioClient.saveSettings(any()),
@@ -259,6 +266,59 @@ void main() {
           verify(() => mockDioClient.clearStorage()).called(1);
         },
       );
+    });
+
+    group('deleteExampleSchedule', () {
+      const message =
+          'The example schedule is cleared, except for the items you edited, '
+          'which are now yours to keep.';
+
+      test('returns null and clears the cache on 204', () async {
+        // GIVEN
+        when(() => mockDio.delete(any())).thenAnswer(
+          (_) async => givenSuccessResponse(null, statusCode: 204),
+        );
+
+        // WHEN
+        final result = await dataSource.deleteExampleSchedule();
+
+        // THEN
+        expect(result, isNull);
+        verify(() => mockCacheService.clearAll()).called(1);
+      });
+
+      test(
+        'returns the message and clears the cache when edited items were kept (400)',
+        () async {
+          // GIVEN
+          when(() => mockDio.delete(any())).thenThrow(
+            givenDioException(
+              statusCode: 400,
+              responseData: [message],
+              message: 'Validation error',
+            ),
+          );
+
+          // WHEN
+          final result = await dataSource.deleteExampleSchedule();
+
+          // THEN
+          expect(result, message);
+          verify(() => mockCacheService.clearAll()).called(1);
+        },
+      );
+
+      test('throws and keeps the cache on a server error', () async {
+        // GIVEN
+        when(() => mockDio.delete(any())).thenThrow(givenServerException());
+
+        // WHEN/THEN
+        await expectLater(
+          dataSource.deleteExampleSchedule(),
+          throwsA(isA<ServerException>()),
+        );
+        verifyNever(() => mockCacheService.clearAll());
+      });
     });
 
     group('changePassword', () {

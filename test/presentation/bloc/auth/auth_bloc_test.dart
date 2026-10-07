@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:heliumapp/core/helium_exception.dart';
 import 'package:heliumapp/core/last_oauth_provider_store.dart';
+import 'package:heliumapp/core/notification_count_service.dart';
 import 'package:heliumapp/data/models/auth/token_response_model.dart';
 import 'package:heliumapp/data/models/no_content_response_model.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_bloc.dart';
@@ -608,6 +609,76 @@ void main() {
             'No internet connection',
           ),
         ],
+      );
+    });
+
+    group('DeleteExampleScheduleEvent', () {
+      const message =
+          'The example schedule is cleared, except for the items you edited, '
+          'which are now yours to keep.';
+
+      setUp(() {
+        TestWidgetsFlutterBinding.ensureInitialized();
+        when(
+          () => mockDioClient.getSettings(forceRefresh: true),
+        ).thenAnswer((_) async => null);
+        NotificationCountService.setInstanceForTesting(
+          NotificationCountService.forTesting(
+            reminderRepository: MockReminderRepository(),
+          ),
+        );
+      });
+
+      tearDown(NotificationCountService.resetForTesting);
+
+      blocTest<AuthBloc, AuthState>(
+        'emits [AuthLoading, AuthScheduleDataRefreshed] without a message when everything was cleared',
+        build: () {
+          when(
+            () => mockAuthRepository.deleteExampleSchedule(),
+          ).thenAnswer((_) async => null);
+          return authBloc;
+        },
+        act: (bloc) => bloc.add(DeleteExampleScheduleEvent()),
+        expect: () => [
+          isA<AuthLoading>(),
+          isA<AuthScheduleDataRefreshed>().having(
+            (state) => state.message,
+            'message',
+            isNull,
+          ),
+        ],
+      );
+
+      blocTest<AuthBloc, AuthState>(
+        'emits [AuthLoading, AuthScheduleDataRefreshed] carrying the message when edited items were kept',
+        build: () {
+          when(
+            () => mockAuthRepository.deleteExampleSchedule(),
+          ).thenAnswer((_) async => message);
+          return authBloc;
+        },
+        act: (bloc) => bloc.add(DeleteExampleScheduleEvent()),
+        expect: () => [
+          isA<AuthLoading>(),
+          isA<AuthScheduleDataRefreshed>().having(
+            (state) => state.message,
+            'message',
+            message,
+          ),
+        ],
+      );
+
+      blocTest<AuthBloc, AuthState>(
+        'emits [AuthLoading, AuthError] when clearing fails',
+        build: () {
+          when(
+            () => mockAuthRepository.deleteExampleSchedule(),
+          ).thenThrow(ServerException(message: 'Server error'));
+          return authBloc;
+        },
+        act: (bloc) => bloc.add(DeleteExampleScheduleEvent()),
+        expect: () => [isA<AuthLoading>(), isA<AuthError>()],
       );
     });
 

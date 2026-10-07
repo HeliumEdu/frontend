@@ -84,6 +84,41 @@ Future<void> switchPlannerView(
   );
 }
 
+/// Signs in without dismissing the welcome dialog. Returns false when the
+/// dialog never appears, which means the example schedule is already cleared.
+Future<bool> _signInToGettingStartedDialog(
+  WidgetTester tester,
+  String email,
+  String password,
+) async {
+  for (var attempt = 0; attempt < 2; attempt++) {
+    await initializeTestApp(tester);
+    await ensureOnLoginScreen(tester);
+
+    await enterTextInField(
+      tester,
+      find.byKey(const Key(CredentialsFormController.emailField)),
+      email,
+    );
+    await enterTextInField(
+      tester,
+      find.byKey(const Key(CredentialsFormController.passwordField)),
+      password,
+    );
+
+    await tester.tap(find.byKey(const Key(LoginScreen.signInButtonKey)));
+
+    final welcomeDialogFound = await waitForWidget(
+      tester,
+      find.text('Welcome to Helium!'),
+      timeout: const Duration(seconds: 45),
+    );
+    if (welcomeDialogFound) return true;
+  }
+
+  return false;
+}
+
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
   final config = TestConfig();
@@ -1795,135 +1830,194 @@ void main() {
       }
     });
 
-    namedTestWidgets('10. User can clear example schedule', (tester) async {
-      if (!canProceed) {
-        _log.warning('Skipping: user does not exist');
-        skipTest('user does not exist (run signup_user_test first)');
-        return;
-      }
+    namedTestWidgets(
+      '10. Clearing the example schedule keeps the courses the user edited',
+      (tester) async {
+        if (!canProceed) {
+          _log.warning('Skipping: user does not exist');
+          skipTest('user does not exist (run signup_user_test first)');
+          return;
+        }
 
-      await initializeTestApp(tester);
-      await ensureOnLoginScreen(tester);
-
-      // Log in - but DON'T dismiss the welcome dialog automatically
-      await enterTextInField(
-        tester,
-        find.byKey(const Key(CredentialsFormController.emailField)),
-        testEmail,
-      );
-      await enterTextInField(
-        tester,
-        find.byKey(const Key(CredentialsFormController.passwordField)),
-        testPassword,
-      );
-
-      await tester.tap(find.byKey(const Key(LoginScreen.signInButtonKey)));
-
-      // Wait for the welcome dialog to appear
-      final welcomeDialogFound = await waitForWidget(
-        tester,
-        find.text('Welcome to Helium!'),
-        timeout: const Duration(seconds: 45),
-      );
-
-      if (!welcomeDialogFound) {
-        await initializeTestApp(tester);
-        await ensureOnLoginScreen(tester);
-
-        await enterTextInField(
-          tester,
-          find.byKey(const Key(CredentialsFormController.emailField)),
-          testEmail,
+        // The suite edits Homework 1 and Quiz 4 earlier, so the courses that
+        // own them are the user's now and must survive the clear.
+        final homework1 = await apiHelper.findHomeworkByTitle('Homework 1');
+        final quiz4 = await apiHelper.findHomeworkByTitle('Quiz 4');
+        expect(
+          homework1,
+          isNotNull,
+          reason: 'Homework 1 should exist (edited by an earlier test)',
         );
-        await enterTextInField(
+        expect(
+          quiz4,
+          isNotNull,
+          reason: 'Quiz 4 should exist (edited by an earlier test)',
+        );
+        final keptCourseIds = {homework1!.course.id, quiz4!.course.id};
+        final coursesBefore = await apiHelper.getCourses();
+        final keptCourses = coursesBefore!
+            .where((c) => keptCourseIds.contains(c.id))
+            .toList();
+        final clearedCourses = coursesBefore
+            .where((c) => !keptCourseIds.contains(c.id))
+            .toList();
+        expect(
+          clearedCourses,
+          isNotEmpty,
+          reason: 'The example schedule should have untouched courses to clear',
+        );
+
+        final welcomeDialogFound = await _signInToGettingStartedDialog(
           tester,
-          find.byKey(const Key(CredentialsFormController.passwordField)),
+          testEmail,
           testPassword,
         );
-
-        await tester.tap(find.byKey(const Key(LoginScreen.signInButtonKey)));
-
-        final retryWelcomeFound = await waitForWidget(
-          tester,
-          find.text('Welcome to Helium!'),
-          timeout: const Duration(seconds: 45),
-        );
-
-        if (!retryWelcomeFound) {
+        if (!welcomeDialogFound) {
           skipTest(
             'Welcome dialog not available (example schedule may be cleared)',
           );
           return;
         }
-      }
 
-      // Click "Clear Example Data" button
-      final clearButton = find.text('Clear Example Data');
-      expect(
-        clearButton,
-        findsOneWidget,
-        reason: 'Clear Example Data button should exist',
-      );
+        final clearButton = find.text('Clear Example Data');
+        expect(
+          clearButton,
+          findsOneWidget,
+          reason: 'Clear Example Data button should exist',
+        );
 
-      _log.info('Clicking Clear Example Data button ...');
-      await tester.tap(clearButton);
+        _log.info('Clicking Clear Example Data button ...');
+        await tester.tap(clearButton);
 
-      // The delete API is synchronous - data is cleared when it returns.
-      // Just let the UI settle after the operation completes.
-      await tester.pumpAndSettle(const Duration(seconds: 10));
+        // The API answers 400 with a notice when the user's edits were kept,
+        // and the app still refreshes and lands on Classes.
+        await tester.pumpAndSettle(const Duration(seconds: 10));
 
-      // Wait for navigation to Classes screen
-      _log.info('Waiting for navigation to Classes screen ...');
-      final classesScreenFound = await waitForRoute(
-        tester,
-        AppRoute.coursesScreen,
-        browserTitle: 'Classes',
-        timeout: const Duration(seconds: 45),
-      );
-      expect(
-        classesScreenFound,
-        isTrue,
-        reason: 'Should navigate to Classes screen after clearing example data',
-      );
+        _log.info('Waiting for navigation to Classes screen ...');
+        final classesScreenFound = await waitForRoute(
+          tester,
+          AppRoute.coursesScreen,
+          browserTitle: 'Classes',
+          timeout: const Duration(seconds: 45),
+        );
+        expect(
+          classesScreenFound,
+          isTrue,
+          reason:
+              'Should navigate to Classes screen after clearing example data',
+        );
+        await tester.pumpAndSettle(const Duration(seconds: 3));
 
-      _log.info(
-        'Reached Classes screen, verifying example data was cleared ...',
-      );
-      await tester.pumpAndSettle(const Duration(seconds: 3));
+        _log.info('Verifying the edited courses were kept via the API ...');
+        final coursesAfter = await apiHelper.getCourses();
+        expect(
+          coursesAfter!.map((c) => c.id).toSet(),
+          keptCourseIds,
+          reason: 'Only the courses the user edited should remain',
+        );
+        final eventsAfter = await apiHelper.getEvents();
+        expect(
+          eventsAfter,
+          isEmpty,
+          reason: 'Untouched example events should be cleared',
+        );
 
-      // Assert the Classes screen is empty
-      final hasFallSemester = find
-          .textContaining('Fall Semester')
-          .evaluate()
-          .isNotEmpty;
-      final hasProgramming = find
-          .textContaining('Programming')
-          .evaluate()
-          .isNotEmpty;
-      final hasWriting = find.textContaining('Writing').evaluate().isNotEmpty;
-      final hasPsychology = find
-          .textContaining('Psychology')
-          .evaluate()
-          .isNotEmpty;
+        _log.info('Verifying the Classes screen ...');
+        for (final course in keptCourses) {
+          expect(
+            find.textContaining(course.title).evaluate().isNotEmpty,
+            isTrue,
+            reason: '${course.title} was edited, so it should be kept',
+          );
+        }
+        for (final course in clearedCourses) {
+          expect(
+            find.textContaining(course.title).evaluate().isEmpty,
+            isTrue,
+            reason: '${course.title} was untouched, so it should be cleared',
+          );
+        }
 
-      expect(
-        hasFallSemester,
-        isFalse,
-        reason: 'Fall Semester should be cleared',
-      );
-      expect(
-        hasProgramming,
-        isFalse,
-        reason: 'Programming course should be cleared',
-      );
-      expect(hasWriting, isFalse, reason: 'Writing course should be cleared');
-      expect(
-        hasPsychology,
-        isFalse,
-        reason: 'Psychology course should be cleared',
-      );
+        _log.info('... example data cleared, edited courses kept');
+      },
+    );
 
-      _log.info('... example data successfully cleared');
-    });
+    namedTestWidgets(
+      '11. A re-imported example schedule clears completely and leaves kept courses alone',
+      (tester) async {
+        if (!canProceed) {
+          _log.warning('Skipping: user does not exist');
+          skipTest('user does not exist (run signup_user_test first)');
+          return;
+        }
+
+        final keptCourseIds = (await apiHelper.getCourses())!
+            .map((c) => c.id)
+            .toSet();
+        expect(
+          keptCourseIds,
+          isNotEmpty,
+          reason: 'The previous test should have kept the edited courses',
+        );
+
+        final imported = await apiHelper.importExampleSchedule();
+        expect(
+          imported,
+          isTrue,
+          reason:
+              'Re-importing is allowed once the example schedule is cleared',
+        );
+        final coursesAfterImport = (await apiHelper.getCourses())!;
+        expect(
+          coursesAfterImport.length,
+          greaterThan(keptCourseIds.length),
+          reason: 'The re-import should add its own, separate courses',
+        );
+
+        final welcomeDialogFound = await _signInToGettingStartedDialog(
+          tester,
+          testEmail,
+          testPassword,
+        );
+        expect(
+          welcomeDialogFound,
+          isTrue,
+          reason:
+              'A re-imported example schedule shows the welcome dialog again',
+        );
+
+        _log.info('Clicking Clear Example Data button ...');
+        await tester.tap(find.text('Clear Example Data'));
+        await tester.pumpAndSettle(const Duration(seconds: 10));
+
+        final classesScreenFound = await waitForRoute(
+          tester,
+          AppRoute.coursesScreen,
+          browserTitle: 'Classes',
+          timeout: const Duration(seconds: 45),
+        );
+        expect(
+          classesScreenFound,
+          isTrue,
+          reason:
+              'Should navigate to Classes screen after clearing example data',
+        );
+
+        _log.info('Verifying only the new example data was cleared ...');
+        final coursesAfterClear = (await apiHelper.getCourses())!;
+        expect(
+          coursesAfterClear.map((c) => c.id).toSet(),
+          keptCourseIds,
+          reason: 'Clearing the untouched re-import should leave kept courses',
+        );
+        expect(
+          await apiHelper.getEvents(),
+          isEmpty,
+          reason: 'The re-imported example events should be cleared',
+        );
+
+        _log.info('... re-imported example data cleared completely');
+      },
+    );
   });
 }

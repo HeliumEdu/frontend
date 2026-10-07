@@ -485,4 +485,21 @@ class ApiHelper {
     );
     return false;
   }
+
+  /// Imports a fresh example schedule, the same call the Import/Export screen
+  /// makes. The API only accepts it once the previous example data is cleared.
+  Future<bool> importExampleSchedule() async {
+    final apiHost = _config.projectApiHost;
+    final response = await _authedRequest(
+      (token) => http.post(
+        Uri.parse('$apiHost${ApiUrl.importExportExampleScheduleUrl}'),
+        headers: {'Authorization': 'Bearer $token'},
+      ),
+    );
+    if (response?.statusCode == 204) return true;
+    _log.warning(
+      'Failed to import example schedule: ${response?.statusCode ?? "no token"}',
+    );
+    return false;
+  }
 }

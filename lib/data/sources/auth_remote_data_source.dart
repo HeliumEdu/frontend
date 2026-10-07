@@ -73,7 +73,10 @@ abstract class AuthRemoteDataSource extends BaseDataSource {
     ResetPasswordRequestModel request,
   );
 
-  Future<void> deleteExampleSchedule();
+  /// Clears the example schedule. Returns the message to show when the user's
+  /// own edits were kept (the API answers 400 with it), or null when everything
+  /// was cleared.
+  Future<String?> deleteExampleSchedule();
 }
 
 class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
@@ -360,6 +363,7 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
 
       await dioClient.clearStorage();
       SentryService().clearUser();
+      unawaited(AnalyticsService().setUserId(null));
 
       if (refreshToken?.isNotEmpty ?? false) {
         try {
@@ -452,6 +456,7 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
       if (response.statusCode == 204) {
         await dioClient.clearStorage();
         SentryService().clearUser();
+        unawaited(AnalyticsService().setUserId(null));
 
         return NoContentResponseModel(message: 'Account deleted');
       } else {
@@ -625,7 +630,7 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
   }
 
   @override
-  Future<void> deleteExampleSchedule() async {
+  Future<String?> deleteExampleSchedule() async {
     try {
       final response = await dioClient.dio.delete(
         ApiUrl.authUserDeleteExampleScheduleUrl,
@@ -635,18 +640,28 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
         throw unexpectedStatus(response, 'Failed to delete example schedule.');
       }
 
-      // Clear all cached data since the example data is now deleted
-      await dioClient.cacheService.clearAll();
-      unawaited(AnalyticsService().logEvent(name: AnalyticsEvent.exampleScheduleClear, parameters: {'category': AnalyticsCategory.onboarding.value}));
-      unawaited(AnalyticsService().setUserProperty(name: 'onboarding_complete', value: 'true'));
+      await _recordExampleScheduleCleared();
+      return null;
     } on DioException catch (e, s) {
-      throw handleDioError(e, s);
+      final error = handleDioError(e, s);
+      if (error.httpStatusCode == 400) {
+        await _recordExampleScheduleCleared();
+        return error.displayMessage;
+      }
+      throw error;
     } on HeliumException {
       rethrow;
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
       throw HeliumException(message: HeliumException.unexpectedError);
     }
+  }
+
+  Future<void> _recordExampleScheduleCleared() async {
+    // Clear all cached data since the example data is now deleted
+    await dioClient.cacheService.clearAll();
+    unawaited(AnalyticsService().logEvent(name: AnalyticsEvent.exampleScheduleClear, parameters: {'category': AnalyticsCategory.onboarding.value}));
+    unawaited(AnalyticsService().setUserProperty(name: 'onboarding_complete', value: 'true'));
   }
 
   Future<void> _blacklistRefreshToken(String refreshToken) async {

@@ -58,5 +58,5 @@ abstract class AuthRepository {
     ResetPasswordRequestModel request,
   );
 
-  Future<void> deleteExampleSchedule();
+  Future<String?> deleteExampleSchedule();
 }

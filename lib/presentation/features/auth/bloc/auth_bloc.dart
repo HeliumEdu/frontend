@@ -586,13 +586,13 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     emit(AuthLoading());
 
     try {
-      await authRepository.deleteExampleSchedule();
+      final message = await authRepository.deleteExampleSchedule();
       // Warm the settings cache so the router's auth-redirect read is a hit,
       // not a post-redirect cold fetch that stalls the outgoing screen.
       await dioClient.getSettings(forceRefresh: true);
       unawaited(NotificationCountService().refresh());
 
-      emit(AuthScheduleDataRefreshed());
+      emit(AuthScheduleDataRefreshed(message: message));
     } on HeliumException catch (e) {
       emit(AuthError(
         message: e.displayMessage,

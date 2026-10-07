@@ -124,7 +124,7 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
-  Future<void> deleteExampleSchedule() async {
+  Future<String?> deleteExampleSchedule() async {
     return remoteDataSource.deleteExampleSchedule();
   }
 }

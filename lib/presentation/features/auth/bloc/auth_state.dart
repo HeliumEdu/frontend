@@ -43,7 +43,9 @@ class AuthLoggedOut extends AuthState {}
 
 class AuthAccountDeleted extends AuthState {}
 
-class AuthScheduleDataRefreshed extends AuthState {}
+class AuthScheduleDataRefreshed extends AuthState {
+  AuthScheduleDataRefreshed({super.message});
+}
 
 class AuthPasswordChanged extends AuthState {}
 
