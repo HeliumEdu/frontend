@@ -77,6 +77,7 @@ class _CourseScheduleContentState extends State<_CourseScheduleContent> {
   List<CourseScheduleModel> _schedules = [];
 
   List<DateTime> _courseExceptions = [];
+  bool _courseDataLoaded = false;
   List<DateTime> _courseGroupExceptions = [];
   DateTime? _courseStartDate;
   DateTime? _courseEndDate;
@@ -94,6 +95,7 @@ class _CourseScheduleContentState extends State<_CourseScheduleContent> {
           origin: EventOrigin.subScreen,
           courseGroupId: widget.courseGroupId,
           courseId: widget.courseId,
+          forceRefresh: true,
         ),
       );
     } else {
@@ -135,9 +137,13 @@ class _CourseScheduleContentState extends State<_CourseScheduleContent> {
         } else if (state is CourseScheduleDeleted) {
           SnackBarHelper.show(context, 'Schedule deleted.');
           setState(() => _schedules.removeWhere((s) => s.id == state.id));
+        } else if (state is CourseExceptionsUpdated &&
+            state.course.id == widget.courseId) {
+          setState(() => _courseExceptions = state.course.exceptions);
         } else if (state is CourseScreenDataFetched) {
           setState(() {
             _courseExceptions = state.course?.exceptions ?? [];
+            _courseDataLoaded = true;
             _courseGroupExceptions = state.courseGroup.exceptions;
             _courseStartDate = state.course?.startDate;
             _courseEndDate = state.course?.endDate;
@@ -283,31 +289,19 @@ class _CourseScheduleContentState extends State<_CourseScheduleContent> {
       backgroundColor: context.colorScheme.onSurfaceVariant,
       fullWidth: false,
       minHeight: actionHeight,
+      visualDensity: VisualDensity.standard,
+      enabled: _courseDataLoaded,
       onPressed: _showCancellations,
     );
   }
 
-  Future<void> _showCancellations() async {
-    await showCourseExceptionsDialog(
+  Future<void> _showCancellations() {
+    return showCourseExceptionsDialog(
       context: context,
+      courseGroupId: widget.courseGroupId,
+      courseId: widget.courseId,
       courseTitle: _courseTitle ?? '',
       courseExceptions: _courseExceptions,
-      onSave: (exceptions) async {
-        await context.read<CourseBloc>().courseRepository.updateCourseExceptions(
-          widget.courseGroupId,
-          widget.courseId,
-          exceptions,
-        );
-        if (mounted) {
-          context.read<CourseBloc>().add(
-            FetchCourseScreenDataEvent(
-              origin: EventOrigin.subScreen,
-              courseGroupId: widget.courseGroupId,
-              courseId: widget.courseId,
-            ),
-          );
-        }
-      },
       courseGroupExceptions: _courseGroupExceptions,
       firstDate: _courseStartDate,
       lastDate: _courseEndDate,

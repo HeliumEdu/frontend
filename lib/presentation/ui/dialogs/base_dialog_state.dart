@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/presentation/features/shared/controllers/basic_form_controller.dart';
 import 'package:heliumapp/presentation/ui/feedback/error_container.dart';
+import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
 import 'package:heliumapp/presentation/ui/components/helium_elevated_button.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
@@ -19,6 +20,7 @@ abstract class BaseDialogState<T extends StatefulWidget> extends State<T> {
   BasicFormController get formController;
 
   bool isSubmitting = false;
+  bool isLoading = false;
   String? errorMessage;
 
   @override
@@ -61,7 +63,12 @@ abstract class BaseDialogState<T extends StatefulWidget> extends State<T> {
                   children: [
                     buildDialogHeader(),
 
-                    buildMainArea(context),
+                    if (isLoading)
+                      _buildLoadingArea(context)
+                    else
+                      buildMainArea(context),
+
+                    ?buildSecondaryActions(),
 
                     if (errorMessage != null) buildErrorArea(),
 
@@ -90,6 +97,27 @@ abstract class BaseDialogState<T extends StatefulWidget> extends State<T> {
   @mustBeOverridden
   Widget buildMainArea(BuildContext context);
 
+  /// Lays the form out unseen beneath the spinner so the dialog opens at its
+  /// final size; the form remounts, and autofocuses, once loading ends.
+  Widget _buildLoadingArea(BuildContext context) {
+    return Stack(
+      children: [
+        ExcludeFocus(
+          child: Visibility(
+            visible: false,
+            maintainSize: true,
+            maintainAnimation: true,
+            maintainState: true,
+            child: buildMainArea(context),
+          ),
+        ),
+        const Positioned.fill(
+          child: Center(child: LoadingIndicator(expanded: false)),
+        ),
+      ],
+    );
+  }
+
   Widget buildErrorArea() {
     return Padding(
       padding: const EdgeInsets.only(top: 12),
@@ -107,6 +135,9 @@ abstract class BaseDialogState<T extends StatefulWidget> extends State<T> {
   void cancelAction() => Navigator.pop(context);
 
   Widget? buildLeadingAction() => null;
+
+  /// Actions shown beneath the form that stay visible while it loads.
+  Widget? buildSecondaryActions() => null;
 
   double get actionButtonSize =>
       HeliumElevatedButton.minimumHeight +
@@ -133,11 +164,15 @@ abstract class BaseDialogState<T extends StatefulWidget> extends State<T> {
           child: HeliumElevatedButton(
             buttonText: 'Save',
             isLoading: isSubmitting,
-            onPressed: handleSubmit,
+            onPressed: _onSavePressed,
           ),
         ),
       ],
     );
+  }
+
+  void _onSavePressed() {
+    if (!isLoading) handleSubmit();
   }
 
   @mustBeOverridden

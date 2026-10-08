@@ -49,6 +49,32 @@ void main() {
 
     group('FetchCoursesScreenDataEvent', () {
       blocTest<CourseBloc, CourseState>(
+        'a passive fetch emits only the result, with no loading state',
+        build: () {
+          when(
+            () => mockCourseRepository.getCourseGroups(),
+          ).thenAnswer((_) async => MockModels.createCourseGroups());
+          when(
+            () => mockCourseRepository.getCourses(),
+          ).thenAnswer((_) async => MockModels.createCourses());
+          when(
+            () => mockCategoryRepository.getCategories(),
+          ).thenAnswer((_) async => MockModels.createCategories());
+          when(
+            () => mockAttachmentRepository.getAttachments(),
+          ).thenAnswer((_) async => MockModels.createAttachments());
+          when(
+            () => mockReminderRepository.getReminders(sent: false),
+          ).thenAnswer((_) async => MockModels.createReminders());
+          return courseBloc;
+        },
+        act: (bloc) => bloc.add(
+          FetchCoursesScreenDataEvent(origin: EventOrigin.dialog, passive: true),
+        ),
+        expect: () => [isA<CoursesScreenDataFetched>()],
+      );
+
+      blocTest<CourseBloc, CourseState>(
         'emits [CoursesLoading, CoursesScreenDataFetched] when data fetch succeeds',
         build: () {
           when(
@@ -313,9 +339,99 @@ void main() {
       );
     });
 
+    group('Exceptions', () {
+      blocTest<CourseBloc, CourseState>(
+        'emits CourseGroupExceptionsUpdated with the saved group',
+        build: () {
+          when(
+            () => mockCourseRepository.updateCourseGroupExceptions(1, any()),
+          ).thenAnswer((_) async => MockModels.createCourseGroup(id: 1));
+          return courseBloc;
+        },
+        act: (bloc) => bloc.add(
+          UpdateCourseGroupExceptionsEvent(
+            origin: EventOrigin.dialog,
+            courseGroupId: 1,
+            exceptions: [DateTime(2026, 11, 26)],
+          ),
+        ),
+        expect: () => [
+          isA<CourseGroupExceptionsUpdated>()
+              .having((s) => s.courseGroup.id, 'courseGroup id', 1),
+        ],
+      );
+
+      blocTest<CourseBloc, CourseState>(
+        'emits CourseExceptionsUpdated with the saved class',
+        build: () {
+          when(
+            () => mockCourseRepository.updateCourseExceptions(1, 2, any()),
+          ).thenAnswer((_) async => MockModels.createCourse(id: 2));
+          return courseBloc;
+        },
+        act: (bloc) => bloc.add(
+          UpdateCourseExceptionsEvent(
+            origin: EventOrigin.dialog,
+            courseGroupId: 1,
+            courseId: 2,
+            exceptions: [DateTime(2026, 11, 26)],
+          ),
+        ),
+        expect: () => [
+          isA<CourseExceptionsUpdated>()
+              .having((s) => s.course.id, 'course id', 2),
+        ],
+      );
+
+      blocTest<CourseBloc, CourseState>(
+        'emits CoursesError from the dialog when saving fails',
+        build: () {
+          when(
+            () => mockCourseRepository.updateCourseExceptions(1, 2, any()),
+          ).thenThrow(ServerException(message: 'Server error'));
+          return courseBloc;
+        },
+        act: (bloc) => bloc.add(
+          UpdateCourseExceptionsEvent(
+            origin: EventOrigin.dialog,
+            courseGroupId: 1,
+            courseId: 2,
+            exceptions: const [],
+          ),
+        ),
+        expect: () => [
+          isA<CoursesError>()
+              .having((s) => s.origin, 'origin', EventOrigin.dialog),
+        ],
+      );
+    });
+
     group('FetchCourseSchedulesEvent', () {
       const courseGroupId = 1;
       const courseId = 2;
+
+      blocTest<CourseBloc, CourseState>(
+        'a passive fetch emits only the result, with no loading state',
+        build: () {
+          when(
+            () => mockCourseScheduleRepository.getCourseSchedulesForCourse(
+              courseGroupId,
+              courseId,
+              forceRefresh: any(named: 'forceRefresh'),
+            ),
+          ).thenAnswer((_) async => [MockModels.createCourseSchedule(id: 10)]);
+          return courseBloc;
+        },
+        act: (bloc) => bloc.add(
+          FetchCourseSchedulesEvent(
+            origin: EventOrigin.dialog,
+            courseGroupId: courseGroupId,
+            courseId: courseId,
+            passive: true,
+          ),
+        ),
+        expect: () => [isA<CourseSchedulesFetched>()],
+      );
 
       blocTest<CourseBloc, CourseState>(
         'emits [CoursesLoading, CourseSchedulesFetched] when fetch succeeds',

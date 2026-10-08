@@ -1,3 +1,4 @@
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:heliumapp/config/app_theme.dart';
@@ -17,6 +18,7 @@ import 'package:heliumapp/presentation/ui/components/helium_picker_field.dart';
 import 'package:heliumapp/presentation/ui/components/spinner_field.dart';
 import 'package:heliumapp/presentation/ui/dialogs/base_dialog_state.dart';
 import 'package:heliumapp/presentation/ui/feedback/discard_changes_scope.dart';
+import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
 import 'package:heliumapp/presentation/ui/layout/helium_full_screen_scroll_view.dart';
 import 'package:heliumapp/presentation/ui/layout/page_header.dart';
 import 'package:heliumapp/utils/app_globals.dart';
@@ -139,9 +141,25 @@ class _ScheduleEditorScreenState extends BaseDialogState<ScheduleEditorScreen> {
   @override
   void initState() {
     super.initState();
-    final schedule = widget.schedule;
+    if (!widget.isEdit) {
+      _loadSchedule(null);
+      return;
+    }
+    isLoading = true;
+    context.read<CourseBloc>().add(
+      FetchCourseSchedulesEvent(
+        origin: EventOrigin.dialog,
+        courseGroupId: widget.courseGroupId,
+        courseId: widget.courseId,
+        forceRefresh: true,
+        passive: true,
+      ),
+    );
+  }
+
+  void _loadSchedule(CourseScheduleModel? schedule) {
     if (schedule != null) {
-      _populateFrom(schedule);
+      _populateInitialStateData(schedule);
     }
     if (_selectedDays.isEmpty) {
       // A schedule needs at least one day; default to Mon/Wed/Fri.
@@ -157,7 +175,7 @@ class _ScheduleEditorScreenState extends BaseDialogState<ScheduleEditorScreen> {
     super.dispose();
   }
 
-  void _populateFrom(CourseScheduleModel schedule) {
+  void _populateInitialStateData(CourseScheduleModel schedule) {
     _selectedDays = schedule.getActiveDayIndices();
     _variesByDay = !schedule.allDaysSameTime();
 
@@ -207,11 +225,23 @@ class _ScheduleEditorScreenState extends BaseDialogState<ScheduleEditorScreen> {
           if (state is CourseScheduleCreated ||
               state is CourseScheduleUpdated) {
             Navigator.of(context).pop();
+          } else if (state is CourseSchedulesFetched &&
+              state.origin == EventOrigin.dialog &&
+              isLoading) {
+            final schedule = state.schedules
+                .firstWhereOrNull((s) => s.id == widget.schedule!.id);
+            setState(() {
+              if (schedule == null) errorMessage = 'Schedule not found.';
+              _loadSchedule(schedule ?? widget.schedule);
+              isLoading = false;
+            });
           } else if (state is CoursesError &&
               state.origin == EventOrigin.dialog) {
             setState(() {
+              if (isLoading) _loadSchedule(widget.schedule);
               errorMessage = state.message;
               isSubmitting = false;
+              isLoading = false;
             });
           }
         },
@@ -236,7 +266,7 @@ class _ScheduleEditorScreenState extends BaseDialogState<ScheduleEditorScreen> {
               screenType: ScreenType.entityPage,
               isLoading: isSubmitting,
               cancelAction: _handleClose,
-              saveAction: handleSubmit,
+              saveAction: isLoading ? null : handleSubmit,
               additionalRightButtons: [
                 Semantics(
                   label: 'Learn more',
@@ -257,26 +287,29 @@ class _ScheduleEditorScreenState extends BaseDialogState<ScheduleEditorScreen> {
                 ),
               ],
             ),
-            Expanded(
-              child: HeliumFullScreenScrollView(
-                keyboardDismissBehavior:
-                    ScrollViewKeyboardDismissBehavior.onDrag,
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
-                  child: Form(
-                    key: formController.formKey,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        buildMainArea(context),
-                        if (errorMessage != null) buildErrorArea(),
-                      ],
+            if (isLoading)
+              const LoadingIndicator()
+            else
+              Expanded(
+                child: HeliumFullScreenScrollView(
+                  keyboardDismissBehavior:
+                      ScrollViewKeyboardDismissBehavior.onDrag,
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
+                    child: Form(
+                      key: formController.formKey,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          buildMainArea(context),
+                          if (errorMessage != null) buildErrorArea(),
+                        ],
+                      ),
                     ),
                   ),
                 ),
               ),
-            ),
           ],
         ),
       ),

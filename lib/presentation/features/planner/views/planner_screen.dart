@@ -476,7 +476,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
         listener: (context, state) {
           if (state is PlannerScreenDataFetched) {
             setState(() => screenError = null);
-            _populateInitialCalendarStateData(state);
+            _populateInitialStateData(state);
 
             // The range cache short-circuits handleLoadMore, so an
             // invalidated Dio cache alone refetches nothing.
@@ -3737,7 +3737,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
     );
   }
 
-  void _populateInitialCalendarStateData(PlannerScreenDataFetched state) {
+  void _populateInitialStateData(PlannerScreenDataFetched state) {
     _log.info(
       'Planner screen data loaded: ${state.courses.length} courses, '
       '${state.categories.length} categories',

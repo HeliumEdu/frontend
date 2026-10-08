@@ -223,8 +223,8 @@ void main() {
           () => mockPrefService.getBool('drag_and_drop_on_mobile'),
         ).thenReturn(true);
         when(
-          () => mockPrefService.getBool('is_setup_complete'),
-        ).thenReturn(true);
+          () => mockPrefService.getInt('setup_state'),
+        ).thenReturn(2);
         when(
           () => mockPrefService.getBool('calendar_event_limit'),
         ).thenReturn(true);

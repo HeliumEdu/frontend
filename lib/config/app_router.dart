@@ -10,6 +10,7 @@ import 'package:heliumapp/config/dirty_dialog_registry.dart';
 import 'package:heliumapp/config/pref_service.dart';
 import 'package:heliumapp/core/analytics_service.dart';
 import 'package:heliumapp/core/dio_client.dart';
+import 'package:heliumapp/data/models/auth/user_settings_model.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:heliumapp/presentation/core/views/landing_screen.dart';
 import 'package:heliumapp/presentation/core/views/mobile_web_screen.dart';
@@ -854,7 +855,7 @@ Future<String?> _authRedirect(BuildContext context, GoRouterState state) async {
   if (isLoggedIn) {
     // Runs on every navigation, and screens refresh settings once they mount,
     // so only reach for the network when the flag has never been stored.
-    if (PrefService().getBool(SettingsPrefKey.isSetupComplete.key) == null) {
+    if (PrefService().getInt(SettingsPrefKey.setupState.key) == null) {
       try {
         await DioClient().getSettings();
       } on DioException catch (e) {
@@ -871,11 +872,11 @@ Future<String?> _authRedirect(BuildContext context, GoRouterState state) async {
       }
     }
 
-    final isSetupComplete = PrefService().getBool(SettingsPrefKey.isSetupComplete.key);
+    final setupStateCode = PrefService().getInt(SettingsPrefKey.setupState.key);
 
     // Defensive fallback: if setup state is temporarily unavailable
     // (e.g. first load during API blip), avoid forcing a redirect.
-    if (isSetupComplete == null) {
+    if (setupStateCode == null) {
       _log.warning(
         'Setup completion flag unavailable during auth redirect '
         '(location=$matchedLocation), skipping setup-based redirect',
@@ -884,6 +885,8 @@ Future<String?> _authRedirect(BuildContext context, GoRouterState state) async {
       unawaited(Sentry.captureMessage('Auth redirect skipped setup-based redirect: setup state unavailable at location=$matchedLocation', level: SentryLevel.error));
       return null;
     }
+
+    final isSetupComplete = setupStateCode == SetupState.complete.code;
 
     // On public routes: redirect to setup or planner based on setup status
     // Exception: verify screen should always be accessible (for email change verification)

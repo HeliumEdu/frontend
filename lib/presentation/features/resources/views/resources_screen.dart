@@ -216,7 +216,13 @@ class _ResourcesScreenState
             _replaceResource(state.resource);
           } else if (state is ResourceScreenDataFetched &&
               state.resource != null) {
-            _replaceResource(state.resource!);
+            context.read<ResourceBloc>().add(
+              FetchResourcesScreenDataEvent(
+                origin: EventOrigin.subScreen,
+                forceRefresh: true,
+                passive: true,
+              ),
+            );
           } else if (state is ResourceDeleted) {
             showSnackBar(context, 'Resource deleted.');
 

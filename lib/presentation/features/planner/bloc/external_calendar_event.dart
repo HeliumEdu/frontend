@@ -13,8 +13,13 @@ class ResetExternalCalendarsEvent extends ExternalCalendarEvent {
 
 class FetchExternalCalendarsEvent extends ExternalCalendarEvent {
   final bool forceRefresh;
+  final bool passive;
 
-  FetchExternalCalendarsEvent({required super.origin, this.forceRefresh = false});
+  FetchExternalCalendarsEvent({
+    required super.origin,
+    this.forceRefresh = false,
+    this.passive = false,
+  });
 }
 
 class CreateExternalCalendarEvent extends ExternalCalendarEvent {

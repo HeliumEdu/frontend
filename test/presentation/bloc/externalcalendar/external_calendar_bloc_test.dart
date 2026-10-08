@@ -38,6 +38,20 @@ void main() {
 
     group('FetchExternalCalendarsEvent', () {
       blocTest<ExternalCalendarBloc, ExternalCalendarState>(
+        'a passive fetch emits only the result, with no loading state',
+        build: () {
+          when(
+            () => mockExternalCalendarRepository.getExternalCalendars(),
+          ).thenAnswer((_) async => MockModels.createExternalCalendars());
+          return externalCalendarBloc;
+        },
+        act: (bloc) => bloc.add(
+          FetchExternalCalendarsEvent(origin: EventOrigin.dialog, passive: true),
+        ),
+        expect: () => [isA<ExternalCalendarsFetched>()],
+      );
+
+      blocTest<ExternalCalendarBloc, ExternalCalendarState>(
         'emits [ExternalCalendarsLoading, ExternalCalendarsFetched] when fetch succeeds',
         build: () {
           when(

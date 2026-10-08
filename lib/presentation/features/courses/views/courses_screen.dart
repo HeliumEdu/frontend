@@ -207,9 +207,18 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen> {
             ));
           } else if (state is CourseUpdated) {
             _replaceCourse(state.course);
-          } else if (state is CourseScreenDataFetched && state.course != null) {
+          } else if (state is CourseExceptionsUpdated) {
+            _replaceCourse(state.course);
+          } else if (state is CourseGroupExceptionsUpdated) {
             _replaceCourseGroup(state.courseGroup);
-            _replaceCourse(state.course!);
+          } else if (state is CourseScreenDataFetched && state.course != null) {
+            context.read<CourseBloc>().add(
+              FetchCoursesScreenDataEvent(
+                origin: EventOrigin.subScreen,
+                forceRefresh: true,
+                passive: true,
+              ),
+            );
           } else if (state is CourseDeleted) {
             showSnackBar(context, 'Class deleted.');
 

@@ -28,7 +28,7 @@ enum SettingsPrefKey {
   showPlannerTooltips('show_planner_tooltips'),
   rememberFilterState('remember_filter_state'),
   dragAndDropOnMobile('drag_and_drop_on_mobile'),
-  isSetupComplete('is_setup_complete'),
+  setupState('setup_state'),
   calendarEventLimit('calendar_event_limit'),
   atRiskThreshold('at_risk_threshold'),
   onTrackTolerance('on_track_tolerance'),

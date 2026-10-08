@@ -1,3 +1,4 @@
+import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -47,11 +48,15 @@ class _CourseGroupWidgetState
     super.initState();
 
     if (widget.isEdit) {
-      _formController.titleController.text = widget.group!.title;
-      _formController.startDate = widget.group!.startDate;
-      _formController.endDate = widget.group!.endDate;
-      _formController.shownOnCalendar = widget.group!.shownOnCalendar!;
-      _groupExceptions = List<DateTime>.from(widget.group!.exceptions);
+      _populateInitialStateData(widget.group!);
+      isLoading = true;
+      context.read<CourseBloc>().add(
+        FetchCoursesScreenDataEvent(
+          origin: EventOrigin.dialog,
+          forceRefresh: true,
+          passive: true,
+        ),
+      );
     } else {
       _formController.markChanged();
       _groupExceptions = [];
@@ -60,6 +65,14 @@ class _CourseGroupWidgetState
       _formController.endDate = DateTime.now().add(const Duration(days: 30));
       _formController.shownOnCalendar = true;
     }
+  }
+
+  void _populateInitialStateData(CourseGroupModel group) {
+    _formController.titleController.text = group.title;
+    _formController.startDate = group.startDate;
+    _formController.endDate = group.endDate;
+    _formController.shownOnCalendar = group.shownOnCalendar!;
+    _groupExceptions = List<DateTime>.from(group.exceptions);
   }
 
   @override
@@ -75,8 +88,23 @@ class _CourseGroupWidgetState
       BlocListener<CourseBloc, CourseState>(
         listener: (context, state) {
           if (state is CoursesError) {
+            if (ModalRoute.of(context)?.isCurrent == false) return;
             setState(() {
               errorMessage = state.message;
+              isLoading = false;
+            });
+          } else if (state is CourseGroupExceptionsUpdated &&
+              state.courseGroup.id == widget.group?.id) {
+            setState(() => _groupExceptions = state.courseGroup.exceptions);
+          } else if (state is CoursesScreenDataFetched &&
+              state.origin == EventOrigin.dialog &&
+              isLoading) {
+            final group = state.courseGroups
+                .firstWhereOrNull((g) => g.id == widget.group!.id);
+            setState(() {
+              if (group == null) errorMessage = 'Group not found.';
+              _populateInitialStateData(group ?? widget.group!);
+              isLoading = false;
             });
           } else if (state is CourseGroupCreated ||
               state is CourseGroupUpdated ||
@@ -124,6 +152,30 @@ class _CourseGroupWidgetState
         color: context.colorScheme.error,
         minimumSize: actionButtonSize,
       ),
+    );
+  }
+
+  @override
+  Widget? buildSecondaryActions() {
+    if (!widget.isEdit) return null;
+    return Padding(
+      padding: const EdgeInsets.only(top: 14),
+      child: HeliumElevatedButton(
+        buttonText: 'Holidays & Breaks',
+        backgroundColor: context.colorScheme.onSurfaceVariant,
+        enabled: !isLoading && !isSubmitting,
+        onPressed: _showHolidaysAndBreaks,
+      ),
+    );
+  }
+
+  Future<void> _showHolidaysAndBreaks() {
+    return showCourseGroupExceptionsDialog(
+      context: context,
+      courseGroupId: widget.group!.id,
+      exceptions: _groupExceptions,
+      firstDate: _formController.startDate!,
+      lastDate: _formController.endDate!,
     );
   }
 
@@ -266,30 +318,6 @@ class _CourseGroupWidgetState
             ),
           ],
         ),
-        if (widget.isEdit) ...[
-          const SizedBox(height: 14),
-          HeliumElevatedButton(
-            buttonText: 'Holidays & Breaks',
-            backgroundColor: context.colorScheme.onSurfaceVariant,
-            onPressed: () async {
-              await showCourseGroupExceptionsDialog(
-                context: context,
-                exceptions: _groupExceptions,
-                onSave: (exceptions) async {
-                  await context.read<CourseBloc>().courseRepository.updateCourseGroupExceptions(
-                    widget.group!.id,
-                    exceptions,
-                  );
-                  if (context.mounted) {
-                    setState(() => _groupExceptions = exceptions);
-                  }
-                },
-                firstDate: _formController.startDate!,
-                lastDate: _formController.endDate!,
-              );
-            },
-          ),
-        ],
       ],
     );
   }

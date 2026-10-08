@@ -15,8 +15,13 @@ class ResetCoursesEvent extends CourseEvent {
 
 class FetchCoursesScreenDataEvent extends CourseEvent {
   final bool forceRefresh;
+  final bool passive;
 
-  FetchCoursesScreenDataEvent({required super.origin, this.forceRefresh = false});
+  FetchCoursesScreenDataEvent({
+    required super.origin,
+    this.forceRefresh = false,
+    this.passive = false,
+  });
 }
 
 class FetchCourseScreenDataEvent extends CourseEvent {
@@ -124,12 +129,14 @@ class FetchCourseSchedulesEvent extends CourseEvent {
   final int courseGroupId;
   final int courseId;
   final bool forceRefresh;
+  final bool passive;
 
   FetchCourseSchedulesEvent({
     required super.origin,
     required this.courseGroupId,
     required this.courseId,
     this.forceRefresh = false,
+    this.passive = false,
   });
 }
 
@@ -156,5 +163,29 @@ class DeleteCourseScheduleEvent extends CourseEvent {
     required this.courseGroupId,
     required this.courseId,
     required this.scheduleId,
+  });
+}
+
+class UpdateCourseGroupExceptionsEvent extends CourseEvent {
+  final int courseGroupId;
+  final List<DateTime> exceptions;
+
+  UpdateCourseGroupExceptionsEvent({
+    required super.origin,
+    required this.courseGroupId,
+    required this.exceptions,
+  });
+}
+
+class UpdateCourseExceptionsEvent extends CourseEvent {
+  final int courseGroupId;
+  final int courseId;
+  final List<DateTime> exceptions;
+
+  UpdateCourseExceptionsEvent({
+    required super.origin,
+    required this.courseGroupId,
+    required this.courseId,
+    required this.exceptions,
   });
 }

@@ -1,3 +1,4 @@
+import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -48,20 +49,30 @@ class _CategoryWidgetState extends BaseDialogState<_CategoryProvidedWidget> {
     super.initState();
 
     if (widget.isEdit) {
-      _formController.titleController.text = widget.category!.title;
-      if (widget.category!.weight == 0) {
-        _formController.weightController.text = '';
-      } else {
-        final weight = widget.category!.weight;
-        _formController.weightController.text = HeliumNumber.format(weight, trimZeros: true);
-      }
-      _formController.selectedColor = widget.category!.color;
+      _populateInitialStateData(widget.category!);
+      isLoading = true;
+      context.read<CategoryBloc>().add(
+        FetchCategoriesEvent(
+          origin: EventOrigin.dialog,
+          courseId: widget.courseId,
+          forceRefresh: true,
+          passive: true,
+        ),
+      );
     } else {
       _formController.markChanged();
       _formController.titleController.clear();
       _formController.weightController.clear();
       _formController.selectedColor = HeliumColors.getRandomColor();
     }
+  }
+
+  void _populateInitialStateData(CategoryModel category) {
+    _formController.titleController.text = category.title;
+    _formController.weightController.text = category.weight == 0
+        ? ''
+        : HeliumNumber.format(category.weight, trimZeros: true);
+    _formController.selectedColor = category.color;
   }
 
   @override
@@ -79,6 +90,17 @@ class _CategoryWidgetState extends BaseDialogState<_CategoryProvidedWidget> {
           if (state is CategoriesError) {
             setState(() {
               errorMessage = state.message;
+              isLoading = false;
+            });
+          } else if (state is CategoriesFetched &&
+              state.origin == EventOrigin.dialog &&
+              isLoading) {
+            final category = state.categories
+                .firstWhereOrNull((c) => c.id == widget.category!.id);
+            setState(() {
+              if (category == null) errorMessage = 'Category not found.';
+              _populateInitialStateData(category ?? widget.category!);
+              isLoading = false;
             });
           } else if (state is CategoryCreated || state is CategoryUpdated) {
             Navigator.pop(context);

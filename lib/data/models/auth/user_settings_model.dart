@@ -4,6 +4,27 @@ import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/color_helpers.dart';
 import 'package:timezone/standalone.dart' as tz;
 
+/// An account's progress through first-time setup, mirroring the platform's
+/// `setup_state`.
+enum SetupState {
+  pending(0),
+  importing(1),
+  complete(2);
+
+  const SetupState(this.code);
+
+  /// The value the platform uses for this state.
+  final int code;
+
+  /// Throws on a [code] the platform doesn't define rather than guessing.
+  static SetupState fromCode(int code) {
+    for (final state in values) {
+      if (state.code == code) return state;
+    }
+    throw ArgumentError.value(code, 'code', 'Unknown setup state');
+  }
+}
+
 class UserSettingsModel {
   tz.Location timeZone;
   final int defaultView;
@@ -12,7 +33,7 @@ class UserSettingsModel {
   final int whatsNewVersionSeen;
   final bool showGettingStarted;
   final bool gettingStartedDue;
-  final bool isSetupComplete;
+  final SetupState setupState;
   final Color eventsColor;
   final Color resourceColor;
   final Color gradeColor;
@@ -41,7 +62,7 @@ class UserSettingsModel {
     required this.whatsNewVersionSeen,
     required this.showGettingStarted,
     required this.gettingStartedDue,
-    required this.isSetupComplete,
+    required this.setupState,
     required this.eventsColor,
     required this.resourceColor,
     required this.gradeColor,
@@ -78,7 +99,7 @@ class UserSettingsModel {
       whatsNewVersionSeen: json['whats_new_version_seen'],
       showGettingStarted: json['show_getting_started'],
       gettingStartedDue: json['getting_started_due'],
-      isSetupComplete: json['is_setup_complete'],
+      setupState: SetupState.fromCode(json['setup_state']),
       eventsColor: HeliumColors.hexToColor(json['events_color']),
       resourceColor: HeliumColors.hexToColor(json['resource_color']),
       gradeColor: HeliumColors.hexToColor(json['grade_color']),

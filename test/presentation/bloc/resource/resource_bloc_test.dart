@@ -43,6 +43,32 @@ void main() {
 
     group('FetchResourcesScreenDataEvent', () {
       blocTest<ResourceBloc, ResourceState>(
+        'a passive fetch emits only the result, with no loading state',
+        build: () {
+          when(
+            () => mockResourceRepository.getResourceGroups(),
+          ).thenAnswer((_) async => MockModels.createResourceGroups());
+          when(
+            () => mockResourceRepository.getResources(),
+          ).thenAnswer((_) async => MockModels.createResources());
+          when(
+            () => mockCourseRepository.getCourses(shownOnCalendar: true),
+          ).thenAnswer((_) async => MockModels.createCourses());
+          when(
+            () => mockNoteRepository.getNotes(
+              linkedEntityType: 'resource',
+              includeContent: true,
+            ),
+          ).thenAnswer((_) async => []);
+          return resourceBloc;
+        },
+        act: (bloc) => bloc.add(
+          FetchResourcesScreenDataEvent(origin: EventOrigin.dialog, passive: true),
+        ),
+        expect: () => [isA<ResourcesScreenDataFetched>()],
+      );
+
+      blocTest<ResourceBloc, ResourceState>(
         'emits [ResourcesLoading, ResourcesScreenDataFetched] when fetch succeeds',
         build: () {
           when(

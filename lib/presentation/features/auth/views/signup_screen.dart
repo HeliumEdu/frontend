@@ -9,6 +9,7 @@ import 'package:go_router/go_router.dart';
 import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/config/pref_service.dart';
+import 'package:heliumapp/data/models/auth/user_settings_model.dart';
 
 import 'package:heliumapp/presentation/features/auth/bloc/auth_bloc.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_event.dart';
@@ -97,9 +98,11 @@ class _SignupScreenState extends BasePageScreenState<SignupScreen> {
             // Check if account setup is complete. Default to false for OAuth
             // (new users won't have the pref yet, and the setup screen handles
             // the already-complete case by redirecting immediately).
-            final isSetupComplete =
-                PrefService().getBool(SettingsPrefKey.isSetupComplete.key) ??
-                !wasOAuthFlow;
+            final setupStateCode =
+                PrefService().getInt(SettingsPrefKey.setupState.key);
+            final isSetupComplete = setupStateCode == null
+                ? !wasOAuthFlow
+                : setupStateCode == SetupState.complete.code;
 
             if (!isSetupComplete) {
               if (wasOAuthFlow) {

@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:heliumapp/config/app_theme.dart';
-import 'package:heliumapp/core/helium_exception.dart';
+import 'package:heliumapp/presentation/features/courses/bloc/course_bloc.dart';
+import 'package:heliumapp/presentation/features/courses/bloc/course_event.dart';
+import 'package:heliumapp/presentation/features/courses/bloc/course_state.dart';
+import 'package:heliumapp/presentation/features/shared/bloc/core/base_event.dart';
 import 'package:heliumapp/presentation/ui/components/helium_elevated_button.dart';
 import 'package:heliumapp/presentation/ui/components/helium_icon_button.dart';
 import 'package:heliumapp/presentation/ui/feedback/empty_card.dart';
@@ -21,7 +25,8 @@ import 'package:heliumapp/utils/snack_bar_helpers.dart';
 class CourseExceptionsDialog extends StatefulWidget {
   final String title;
   final List<DateTime> exceptions;
-  final Future<void> Function(List<DateTime>) onSave;
+  final int courseGroupId;
+  final int? courseId;
   final List<DateTime> readOnlyExceptions;
   final String? readOnlyLabel;
   final DateTime? firstDate;
@@ -31,7 +36,8 @@ class CourseExceptionsDialog extends StatefulWidget {
     super.key,
     required this.title,
     required this.exceptions,
-    required this.onSave,
+    required this.courseGroupId,
+    this.courseId,
     this.readOnlyExceptions = const [],
     this.readOnlyLabel,
     this.firstDate,
@@ -56,6 +62,13 @@ class _CourseExceptionsDialogState extends State<CourseExceptionsDialog> {
 
   @override
   Widget build(BuildContext context) {
+    return BlocListener<CourseBloc, CourseState>(
+      listener: _onCourseStateChanged,
+      child: _buildDialog(context),
+    );
+  }
+
+  Widget _buildDialog(BuildContext context) {
     return Dialog(
       backgroundColor: Colors.transparent,
       insetPadding: Responsive.isMobile(context)
@@ -181,30 +194,39 @@ class _CourseExceptionsDialogState extends State<CourseExceptionsDialog> {
     });
   }
 
-  Future<void> _save() async {
+  void _save() {
     setState(() {
       _isSaving = true;
       _message = null;
     });
-    try {
-      await widget.onSave(_exceptions);
-      if (mounted) Navigator.pop(context);
-    } on HeliumException catch (e) {
-      if (mounted) {
-        setState(() {
-          _isSaving = false;
-          _message = e.displayMessage;
-          _messageType = SnackType.error;
-        });
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() {
-          _isSaving = false;
-          _message = HeliumException.unexpectedError;
-          _messageType = SnackType.error;
-        });
-      }
+    final courseId = widget.courseId;
+    context.read<CourseBloc>().add(
+      courseId == null
+          ? UpdateCourseGroupExceptionsEvent(
+              origin: EventOrigin.dialog,
+              courseGroupId: widget.courseGroupId,
+              exceptions: _exceptions,
+            )
+          : UpdateCourseExceptionsEvent(
+              origin: EventOrigin.dialog,
+              courseGroupId: widget.courseGroupId,
+              courseId: courseId,
+              exceptions: _exceptions,
+            ),
+    );
+  }
+
+  void _onCourseStateChanged(BuildContext context, CourseState state) {
+    if (!_isSaving) return;
+    if (state is CourseGroupExceptionsUpdated ||
+        state is CourseExceptionsUpdated) {
+      Navigator.pop(context);
+    } else if (state is CoursesError && state.origin == EventOrigin.dialog) {
+      setState(() {
+        _isSaving = false;
+        _message = state.message;
+        _messageType = SnackType.error;
+      });
     }
   }
 
@@ -321,8 +343,9 @@ class _CourseExceptionsDialogState extends State<CourseExceptionsDialog> {
 Future<void> showCourseExceptionsDialog({
   required BuildContext context,
   required String courseTitle,
+  required int courseGroupId,
+  required int courseId,
   required List<DateTime> courseExceptions,
-  required Future<void> Function(List<DateTime>) onSave,
   List<DateTime> courseGroupExceptions = const [],
   DateTime? firstDate,
   DateTime? lastDate,
@@ -333,7 +356,8 @@ Future<void> showCourseExceptionsDialog({
     builder: (_) => CourseExceptionsDialog(
       title: 'Cancellations',
       exceptions: courseExceptions,
-      onSave: onSave,
+      courseGroupId: courseGroupId,
+      courseId: courseId,
       readOnlyExceptions: courseGroupExceptions,
       readOnlyLabel: 'Also cancelled via class group exceptions',
       firstDate: firstDate,
@@ -345,8 +369,8 @@ Future<void> showCourseExceptionsDialog({
 /// Shows a [CourseExceptionsDialog] for course-group holidays
 Future<void> showCourseGroupExceptionsDialog({
   required BuildContext context,
+  required int courseGroupId,
   required List<DateTime> exceptions,
-  required Future<void> Function(List<DateTime>) onSave,
   DateTime? firstDate,
   DateTime? lastDate,
 }) {
@@ -356,7 +380,7 @@ Future<void> showCourseGroupExceptionsDialog({
     builder: (_) => CourseExceptionsDialog(
       title: 'Holidays & Breaks',
       exceptions: exceptions,
-      onSave: onSave,
+      courseGroupId: courseGroupId,
       firstDate: firstDate,
       lastDate: lastDate,
     ),

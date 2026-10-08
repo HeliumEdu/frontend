@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/core/dio_client.dart';
 import 'package:heliumapp/data/models/auth/request/update_settings_request_model.dart';
+import 'package:heliumapp/data/models/auth/user_settings_model.dart';
 import 'package:heliumapp/presentation/core/views/base_page_screen_state.dart';
 import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
 import 'package:heliumapp/presentation/ui/layout/unauthenticated_scaffold.dart';
@@ -155,7 +156,7 @@ class _SetupAccountScreenState extends BasePageScreenState<SetupAccountScreen> {
 
       final settings = await DioClient().getSettings(forceRefresh: true);
 
-      if (settings != null && settings.isSetupComplete) {
+      if (settings != null && settings.setupState == SetupState.complete) {
         _log.info('... setup complete, navigating to planner');
         _pollTimer?.cancel();
 

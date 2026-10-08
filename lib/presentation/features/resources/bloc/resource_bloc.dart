@@ -38,7 +38,7 @@ class ResourceBloc extends Bloc<ResourceEvent, ResourceState> {
     FetchResourcesScreenDataEvent event,
     Emitter<ResourceState> emit,
   ) async {
-    emit(ResourcesLoading(origin: event.origin));
+    if (!event.passive) emit(ResourcesLoading(origin: event.origin));
     try {
       final results = await Future.wait([
         resourceRepository.getResourceGroups(forceRefresh: event.forceRefresh),

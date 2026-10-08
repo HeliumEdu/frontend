@@ -14,8 +14,13 @@ class ResetResourcesEvent extends ResourceEvent {
 
 class FetchResourcesScreenDataEvent extends ResourceEvent {
   final bool forceRefresh;
+  final bool passive;
 
-  FetchResourcesScreenDataEvent({required super.origin, this.forceRefresh = false});
+  FetchResourcesScreenDataEvent({
+    required super.origin,
+    this.forceRefresh = false,
+    this.passive = false,
+  });
 }
 
 class FetchResourceScreenDataEvent extends ResourceEvent {

@@ -9,8 +9,15 @@ class FetchCategoriesEvent extends CategoryEvent {
   final int? courseId;
   final String? title;
   final bool forceRefresh;
+  final bool passive;
 
-  FetchCategoriesEvent({required super.origin, this.courseId, this.title, this.forceRefresh = false});
+  FetchCategoriesEvent({
+    required super.origin,
+    this.courseId,
+    this.title,
+    this.forceRefresh = false,
+    this.passive = false,
+  });
 }
 
 class CreateCategoryEvent extends CategoryEvent {

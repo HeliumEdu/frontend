@@ -36,6 +36,23 @@ void main() {
 
     group('FetchCategoriesEvent', () {
       blocTest<CategoryBloc, CategoryState>(
+        'a passive fetch emits only the result, with no loading state',
+        build: () {
+          when(
+            () => mockCategoryRepository.getCategories(
+              courseId: any(named: 'courseId'),
+              title: any(named: 'title'),
+            ),
+          ).thenAnswer((_) async => MockModels.createCategories());
+          return categoryBloc;
+        },
+        act: (bloc) => bloc.add(
+          FetchCategoriesEvent(origin: EventOrigin.dialog, passive: true),
+        ),
+        expect: () => [isA<CategoriesFetched>()],
+      );
+
+      blocTest<CategoryBloc, CategoryState>(
         'emits [CategoriesLoading, CategoriesFetched] when fetch succeeds',
         build: () {
           when(

@@ -1,3 +1,4 @@
+import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -47,16 +48,27 @@ class _ExternalCalendarWidgetState
     super.initState();
 
     if (widget.isEdit) {
-      _formController.titleController.text = widget.externalCalendar!.title;
-      _formController.urlController.text = widget.externalCalendar!.url.toString();
-      _formController.selectedColor = widget.externalCalendar!.color;
-      _formController.shownOnCalendar =
-          widget.externalCalendar!.shownOnCalendar!;
+      _populateInitialStateData(widget.externalCalendar!);
+      isLoading = true;
+      context.read<ExternalCalendarBloc>().add(
+        FetchExternalCalendarsEvent(
+          origin: EventOrigin.dialog,
+          forceRefresh: true,
+          passive: true,
+        ),
+      );
     } else {
       _formController.markChanged();
       _formController.selectedColor = HeliumColors.getRandomColor();
       _formController.shownOnCalendar = true;
     }
+  }
+
+  void _populateInitialStateData(ExternalCalendarModel externalCalendar) {
+    _formController.titleController.text = externalCalendar.title;
+    _formController.urlController.text = externalCalendar.url.toString();
+    _formController.selectedColor = externalCalendar.color;
+    _formController.shownOnCalendar = externalCalendar.shownOnCalendar!;
   }
 
   @override
@@ -74,6 +86,22 @@ class _ExternalCalendarWidgetState
           if (state is ExternalCalendarsError) {
             setState(() {
               errorMessage = state.message;
+              isLoading = false;
+            });
+          } else if (state is ExternalCalendarsFetched &&
+              state.origin == EventOrigin.dialog &&
+              isLoading) {
+            final externalCalendar = state.externalCalendars.firstWhereOrNull(
+              (c) => c.id == widget.externalCalendar!.id,
+            );
+            setState(() {
+              if (externalCalendar == null) {
+                errorMessage = 'External calendar not found.';
+              }
+              _populateInitialStateData(
+                externalCalendar ?? widget.externalCalendar!,
+              );
+              isLoading = false;
             });
           } else if (state is ExternalCalendarCreated ||
               state is ExternalCalendarUpdated) {

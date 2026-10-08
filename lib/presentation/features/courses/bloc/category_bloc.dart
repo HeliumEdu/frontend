@@ -24,7 +24,7 @@ class CategoryBloc extends Bloc<CategoryEvent, CategoryState> {
     FetchCategoriesEvent event,
     Emitter<CategoryState> emit,
   ) async {
-    emit(CategoriesLoading(origin: event.origin));
+    if (!event.passive) emit(CategoriesLoading(origin: event.origin));
     try {
       final categories = await categoryRepository.getCategories(
         courseId: event.courseId,

@@ -1,3 +1,4 @@
+import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -45,13 +46,25 @@ class _ResourceGroupWidgetState
     super.initState();
 
     if (widget.isEdit) {
-      _formController.titleController.text = widget.group!.title;
-      _formController.shownOnCalendar = widget.group!.shownOnCalendar!;
+      _populateInitialStateData(widget.group!);
+      isLoading = true;
+      context.read<ResourceBloc>().add(
+        FetchResourcesScreenDataEvent(
+          origin: EventOrigin.dialog,
+          forceRefresh: true,
+          passive: true,
+        ),
+      );
     } else {
       _formController.markChanged();
       _formController.titleController.clear();
       _formController.shownOnCalendar = true;
     }
+  }
+
+  void _populateInitialStateData(ResourceGroupModel group) {
+    _formController.titleController.text = group.title;
+    _formController.shownOnCalendar = group.shownOnCalendar!;
   }
 
   @override
@@ -69,6 +82,17 @@ class _ResourceGroupWidgetState
           if (state is ResourcesError) {
             setState(() {
               errorMessage = state.message;
+              isLoading = false;
+            });
+          } else if (state is ResourcesScreenDataFetched &&
+              state.origin == EventOrigin.dialog &&
+              isLoading) {
+            final group = state.resourceGroups
+                .firstWhereOrNull((g) => g.id == widget.group!.id);
+            setState(() {
+              if (group == null) errorMessage = 'Group not found.';
+              _populateInitialStateData(group ?? widget.group!);
+              isLoading = false;
             });
           } else if (state is ResourceGroupCreated ||
               state is ResourceGroupUpdated ||
