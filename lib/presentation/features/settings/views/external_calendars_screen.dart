@@ -79,6 +79,14 @@ class ExternalCalendarsScreenState extends State<ExternalCalendarsScreen> {
             Sort.byTitle(_externalCalendars);
             _updatingCalendarIds.remove(state.externalCalendar.id);
           });
+        } else if (state is ExternalCalendarConflict) {
+          setState(() {
+            _externalCalendars[_externalCalendars.indexWhere(
+                  (g) => g.id == state.latest.id,
+                )] =
+                state.latest;
+            Sort.byTitle(_externalCalendars);
+          });
         } else if (state is ExternalCalendarDeleted) {
           SnackBarHelper.show(context, 'External calendar deleted.');
           setState(() {

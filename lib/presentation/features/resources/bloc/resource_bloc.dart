@@ -176,6 +176,7 @@ class ResourceBloc extends Bloc<ResourceEvent, ResourceState> {
       final resourceGroup = await resourceRepository.updateResourceGroup(
         id: event.resourceGroupId,
         request: event.request,
+        version: event.version,
       );
       emit(
         ResourceGroupUpdated(
@@ -183,6 +184,11 @@ class ResourceBloc extends Bloc<ResourceEvent, ResourceState> {
           resourceGroup: resourceGroup,
         ),
       );
+    } on ConflictException catch (e) {
+      emit(ResourceGroupConflict(
+        origin: event.origin,
+        latest: ResourceGroupModel.fromJson(e.latest),
+      ));
     } on HeliumException catch (e) {
       emit(ResourcesError(origin: event.origin, message: e.message));
     } catch (e) {
@@ -254,11 +260,17 @@ class ResourceBloc extends Bloc<ResourceEvent, ResourceState> {
         groupId: event.resourceGroupId,
         resourceId: event.resourceId,
         request: event.request,
+        version: event.version,
       );
       emit(ResourceUpdated(
         origin: event.origin,
         resource: resource,
         redirectToNotebook: event.redirectToNotebook,
+      ));
+    } on ConflictException catch (e) {
+      emit(ResourceConflict(
+        origin: event.origin,
+        latest: ResourceModel.fromJson(e.latest),
       ));
     } on HeliumException catch (e) {
       emit(ResourcesError(origin: event.origin, message: e.message));

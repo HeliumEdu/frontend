@@ -17,6 +17,9 @@ class ResourceFormController extends BasicFormController {
   QuillController notesController = heliumQuillController();
   int? linkedNoteId;
 
+  /// The linked note's version as loaded, sent with its save.
+  String? linkedNoteVersion;
+
   bool notesEdited = false;
 
   void dispose() {

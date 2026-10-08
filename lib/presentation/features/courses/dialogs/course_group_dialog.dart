@@ -17,6 +17,7 @@ import 'package:heliumapp/presentation/ui/components/helium_checkbox_list_tile.d
 import 'package:heliumapp/presentation/ui/components/helium_elevated_button.dart';
 import 'package:heliumapp/presentation/ui/components/helium_icon_button.dart';
 import 'package:heliumapp/presentation/ui/components/label_and_text_form_field.dart';
+import 'package:heliumapp/presentation/ui/feedback/conflict_dialog.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/utils/date_time_helpers.dart';
@@ -36,6 +37,10 @@ class _CourseGroupWidgetState
     extends BaseDialogState<_CourseGroupProvidedWidget> {
   final CourseGroupFormController _formController = CourseGroupFormController();
   late List<DateTime> _groupExceptions;
+  String? _version;
+
+  /// Set when the user picks Overwrite, so the next save is unconditional.
+  bool _overwriteNewer = false;
 
   @override
   String get dialogTitle => 'Group';
@@ -73,6 +78,23 @@ class _CourseGroupWidgetState
     _formController.endDate = group.endDate;
     _formController.shownOnCalendar = group.shownOnCalendar!;
     _groupExceptions = List<DateTime>.from(group.exceptions);
+    _version = group.version;
+  }
+
+  Future<void> _resolveConflict(CourseGroupModel latest) async {
+    final resolution = await confirmConflictResolution(context);
+    if (!mounted) return;
+    switch (resolution) {
+      case ConflictResolution.loadLatest:
+        setState(() {
+          _populateInitialStateData(latest);
+          _formController.isChanged = false;
+          _formController.isUserDirty = false;
+        });
+      case ConflictResolution.overwrite:
+        _overwriteNewer = true;
+        handleSubmit();
+    }
   }
 
   @override
@@ -95,7 +117,10 @@ class _CourseGroupWidgetState
             });
           } else if (state is CourseGroupExceptionsUpdated &&
               state.courseGroup.id == widget.group?.id) {
-            setState(() => _groupExceptions = state.courseGroup.exceptions);
+            setState(() {
+              _groupExceptions = state.courseGroup.exceptions;
+              _version = state.courseGroup.version;
+            });
           } else if (state is CoursesScreenDataFetched &&
               state.origin == EventOrigin.dialog &&
               isLoading) {
@@ -106,6 +131,8 @@ class _CourseGroupWidgetState
               _populateInitialStateData(group ?? widget.group!);
               isLoading = false;
             });
+          } else if (state is CourseGroupConflict) {
+            _resolveConflict(state.latest);
           } else if (state is CourseGroupCreated ||
               state is CourseGroupUpdated ||
               state is CourseGroupDeleted) {
@@ -344,8 +371,10 @@ class _CourseGroupWidgetState
             origin: EventOrigin.dialog,
             courseGroupId: widget.group!.id,
             request: request,
+            version: _overwriteNewer ? null : _version,
           ),
         );
+        _overwriteNewer = false;
       } else {
         context.read<CourseBloc>().add(
           CreateCourseGroupEvent(origin: EventOrigin.dialog, request: request),

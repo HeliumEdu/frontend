@@ -10,7 +10,12 @@ class CourseGroupModel extends BaseTitledModel {
   final int? numDays;
   final int? numDaysCompleted;
 
+  /// The raw `updated_at`, sent back as `If-Match` so a stale full edit is
+  /// rejected instead of overwriting a change made elsewhere.
+  final String? version;
+
   CourseGroupModel({
+    this.version,
     required super.id,
     required super.title,
     required super.shownOnCalendar,
@@ -25,6 +30,7 @@ class CourseGroupModel extends BaseTitledModel {
   factory CourseGroupModel.fromJson(Map<String, dynamic> json) {
     return CourseGroupModel(
       id: json['id'],
+      version: json['updated_at'],
       title: json['title'],
       startDate: DateTime.parse(json['start_date']),
       endDate: DateTime.parse(json['end_date']),

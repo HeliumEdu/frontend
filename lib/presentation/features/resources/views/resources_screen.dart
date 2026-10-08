@@ -27,6 +27,7 @@ import 'package:heliumapp/presentation/ui/components/helium_icon_button.dart';
 import 'package:heliumapp/presentation/ui/components/notes_viewer.dart';
 import 'package:heliumapp/presentation/ui/components/pill_badge.dart';
 import 'package:heliumapp/presentation/ui/components/resource_title_label.dart';
+import 'package:heliumapp/presentation/ui/feedback/conflict_dialog.dart';
 import 'package:heliumapp/presentation/ui/feedback/empty_card.dart';
 import 'package:heliumapp/presentation/ui/feedback/error_card.dart';
 import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
@@ -123,6 +124,15 @@ class _ResourcesScreenState
     });
   }
 
+  void _replaceResourceGroup(ResourceGroupModel resourceGroup) {
+    setState(() {
+      final index = _resourceGroups.indexWhere((g) => g.id == resourceGroup.id);
+      if (index == -1) return;
+      _resourceGroups[index] = resourceGroup;
+      Sort.byTitle(_resourceGroups);
+    });
+  }
+
   void _replaceResource(ResourceModel resource) {
     setState(() {
       for (final resources in _resourcesMap.values) {
@@ -161,6 +171,14 @@ class _ResourcesScreenState
             setState(() {
               _notesMap.removeWhere((_, note) => note.id == state.noteId);
             });
+          } else if (state is NoteSavedAsCopy) {
+            // Shown here, not in the editor, which may close before the
+            // note's save finishes
+            showSnackBar(
+              context,
+              noteSavedAsCopyMessage,
+              useRootMessenger: true,
+            );
           }
         },
       ),
@@ -182,15 +200,9 @@ class _ResourcesScreenState
             _saveSelectedGroup();
           } else if (state is ResourceGroupUpdated) {
             // No snackbar on updates
-
-            setState(() {
-              final index = _resourceGroups.indexWhere(
-                (g) => g.id == state.resourceGroup.id,
-              );
-              if (index == -1) return;
-              _resourceGroups[index] = state.resourceGroup;
-              Sort.byTitle(_resourceGroups);
-            });
+            _replaceResourceGroup(state.resourceGroup);
+          } else if (state is ResourceGroupConflict) {
+            _replaceResourceGroup(state.latest);
           } else if (state is ResourceGroupDeleted) {
             showSnackBar(context, 'Group deleted.');
 
@@ -215,6 +227,8 @@ class _ResourcesScreenState
             });
           } else if (state is ResourceUpdated) {
             _replaceResource(state.resource);
+          } else if (state is ResourceConflict) {
+            _replaceResource(state.latest);
           } else if (state is ResourceScreenDataFetched &&
               state.resource != null) {
             context.read<ResourceBloc>().add(

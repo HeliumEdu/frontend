@@ -42,3 +42,10 @@ class CategoryDeleted extends CategoryState {
 
   CategoryDeleted({required super.origin, required this.id});
 }
+
+/// A conditional save lost to a newer version saved elsewhere.
+class CategoryConflict extends CategoryState {
+  final CategoryModel latest;
+
+  CategoryConflict({required super.origin, required this.latest});
+}

@@ -9,7 +9,6 @@ import 'package:heliumapp/data/models/planner/category_model.dart';
 import 'package:heliumapp/data/models/planner/course_group_model.dart';
 import 'package:heliumapp/data/models/planner/course_model.dart';
 import 'package:heliumapp/data/models/planner/course_schedule_model.dart';
-import 'package:heliumapp/data/models/planner/event_model.dart';
 import 'package:heliumapp/data/models/planner/homework_model.dart';
 import 'package:heliumapp/data/models/planner/note_model.dart';
 import 'package:heliumapp/data/models/planner/resource_model.dart';
@@ -256,32 +255,31 @@ class PlannerItemBloc extends Bloc<PlannerItemEvent, PlannerItemState> {
   ) async {
     emit(PlannerItemsLoading(origin: event.origin));
     try {
-      // Update entity and note in parallel
-      final futures = <Future<dynamic>>[
-        eventRepository.updateEvent(eventId: event.id, request: event.request),
-      ];
-
-      int? linkedNoteId = event.linkedNoteId;
-      if (event.linkedNoteId != null && event.noteEdited) {
-        // Empty content triggers note deletion on backend
-        final contentToSend = event.noteContent ?? <String, dynamic>{};
-        futures.add(noteRepository.updateNote(
-          noteId: event.linkedNoteId!,
-          request: NoteRequestModel(content: contentToSend),
+      final saved = await _saveWithLinkedNote(
+        eventRepository.updateEvent(
+          eventId: event.id,
+          request: event.request,
+          version: event.version,
+        ),
+        _saveLinkedNote(
+          linkedNoteId: event.linkedNoteId,
+          linkedNoteVersion: event.linkedNoteVersion,
+          noteEdited: event.noteEdited,
+          noteContent: event.noteContent,
+          entityTitle: event.request.title,
+          newNoteRequest: (content) =>
+              NoteRequestModel(content: content, eventId: event.id),
+        ),
+      );
+      if (saved.entityConflict) {
+        emit(PlannerItemConflict(
+          origin: event.origin,
+          noteSavedAsCopy: saved.note?.savedAsCopy ?? false,
         ));
-        if (event.noteContent == null) linkedNoteId = null;
-      } else if (event.linkedNoteId == null && event.noteContent != null) {
-        futures.add(noteRepository.createNote(
-          request: NoteRequestModel(content: event.noteContent, eventId: event.id),
-        ));
+        return;
       }
-
-      final results = await Future.wait(futures);
-      final rawEntity = results[0] as EventModel;
-
-      if (event.linkedNoteId == null && results.length > 1) {
-        linkedNoteId = (results[1] as NoteModel).id;
-      }
+      final rawEntity = saved.entity!;
+      final linkedNoteId = saved.note!.noteId;
 
       final entity = rawEntity.copyWith(
         notes: _reconcileNotes(
@@ -300,6 +298,7 @@ class PlannerItemBloc extends Bloc<PlannerItemEvent, PlannerItemState> {
           advanceNavOnSuccess: event.advanceNavOnSuccess,
           redirectToNotebook: event.redirectToNotebook,
           linkedNoteId: linkedNoteId,
+          noteSavedAsCopy: saved.note!.savedAsCopy,
         ),
       );
     } on HeliumException catch (e) {
@@ -456,37 +455,33 @@ class PlannerItemBloc extends Bloc<PlannerItemEvent, PlannerItemState> {
   ) async {
     emit(PlannerItemsLoading(origin: event.origin));
     try {
-      // Update entity and note in parallel
-      final futures = <Future<dynamic>>[
+      final saved = await _saveWithLinkedNote(
         homeworkRepository.updateHomework(
           groupId: event.courseGroupId,
           courseId: event.courseId,
           homeworkId: event.homeworkId,
           request: event.request,
+          version: event.version,
         ),
-      ];
-
-      int? linkedNoteId = event.linkedNoteId;
-      if (event.linkedNoteId != null && event.noteEdited) {
-        // Empty content triggers note deletion on backend
-        final contentToSend = event.noteContent ?? <String, dynamic>{};
-        futures.add(noteRepository.updateNote(
-          noteId: event.linkedNoteId!,
-          request: NoteRequestModel(content: contentToSend),
+        _saveLinkedNote(
+          linkedNoteId: event.linkedNoteId,
+          linkedNoteVersion: event.linkedNoteVersion,
+          noteEdited: event.noteEdited,
+          noteContent: event.noteContent,
+          entityTitle: event.request.title,
+          newNoteRequest: (content) =>
+              NoteRequestModel(content: content, homeworkId: event.homeworkId),
+        ),
+      );
+      if (saved.entityConflict) {
+        emit(PlannerItemConflict(
+          origin: event.origin,
+          noteSavedAsCopy: saved.note?.savedAsCopy ?? false,
         ));
-        if (event.noteContent == null) linkedNoteId = null;
-      } else if (event.linkedNoteId == null && event.noteContent != null) {
-        futures.add(noteRepository.createNote(
-          request: NoteRequestModel(content: event.noteContent, homeworkId: event.homeworkId),
-        ));
+        return;
       }
-
-      final results = await Future.wait(futures);
-      final rawHomework = results[0] as HomeworkModel;
-
-      if (event.linkedNoteId == null && results.length > 1) {
-        linkedNoteId = (results[1] as NoteModel).id;
-      }
+      final rawHomework = saved.entity!;
+      final linkedNoteId = saved.note!.noteId;
 
       final homework = rawHomework.copyWith(
         notes: _reconcileNotes(
@@ -505,6 +500,7 @@ class PlannerItemBloc extends Bloc<PlannerItemEvent, PlannerItemState> {
           advanceNavOnSuccess: event.advanceNavOnSuccess,
           redirectToNotebook: event.redirectToNotebook,
           linkedNoteId: linkedNoteId,
+          noteSavedAsCopy: saved.note!.savedAsCopy,
         ),
       );
     } on HeliumException catch (e) {
@@ -548,6 +544,86 @@ class PlannerItemBloc extends Bloc<PlannerItemEvent, PlannerItemState> {
     }
   }
 
+  /// Saves an entity and its linked note in parallel. A stale entity save is
+  /// reported as [_FormSave.entityConflict] once both finish, so the note's
+  /// outcome is known; any other failure is rethrown.
+  static Future<_FormSave<T>> _saveWithLinkedNote<T>(
+    Future<T> entitySave,
+    Future<_LinkedNoteSave> noteSave,
+  ) async {
+    T? entity;
+    _LinkedNoteSave? note;
+    (Object, StackTrace)? entityFailure;
+    (Object, StackTrace)? noteFailure;
+    await Future.wait([
+      entitySave.then<void>(
+        (value) => entity = value,
+        onError: (Object e, StackTrace s) {
+          entityFailure = (e, s);
+        },
+      ),
+      noteSave.then<void>(
+        (value) => note = value,
+        onError: (Object e, StackTrace s) {
+          noteFailure = (e, s);
+        },
+      ),
+    ]);
+
+    if (entityFailure?.$1 is ConflictException) {
+      return _FormSave(entityConflict: true, note: note);
+    }
+    for (final failure in [entityFailure, noteFailure]) {
+      if (failure != null) Error.throwWithStackTrace(failure.$1, failure.$2);
+    }
+    return _FormSave(entity: entity, note: note);
+  }
+
+  /// Saves a form's linked note. An untouched note isn't saved. If the note
+  /// changed elsewhere, this device's text is kept as a standalone note, so
+  /// neither version is lost; standalone because an entity can only have one
+  /// note.
+  Future<_LinkedNoteSave> _saveLinkedNote({
+    required int? linkedNoteId,
+    required String? linkedNoteVersion,
+    required bool noteEdited,
+    required Map<String, dynamic>? noteContent,
+    required String? entityTitle,
+    required NoteRequestModel Function(Map<String, dynamic> content)
+        newNoteRequest,
+  }) async {
+    if (linkedNoteId == null) {
+      if (noteContent == null) return const _LinkedNoteSave(noteId: null);
+      final note = await noteRepository.createNote(
+        request: newNoteRequest(noteContent),
+      );
+      return _LinkedNoteSave(noteId: note.id);
+    }
+    if (!noteEdited) return _LinkedNoteSave(noteId: linkedNoteId);
+
+    try {
+      // Empty content triggers note deletion on backend
+      await noteRepository.updateNote(
+        noteId: linkedNoteId,
+        request: NoteRequestModel(content: noteContent ?? <String, dynamic>{}),
+        version: linkedNoteVersion,
+      );
+      return _LinkedNoteSave(noteId: noteContent == null ? null : linkedNoteId);
+    } on ConflictException {
+      if (noteContent == null) return _LinkedNoteSave(noteId: linkedNoteId);
+      final title = entityTitle?.trim() ?? '';
+      await noteRepository.createNote(
+        request: NoteRequestModel(
+          title: title.isEmpty
+              ? 'Copy from this device'
+              : '$title (copy from this device)',
+          content: noteContent,
+        ),
+      );
+      return _LinkedNoteSave(noteId: linkedNoteId, savedAsCopy: true);
+    }
+  }
+
   /// Reconciles an entity's `notes` against the actual linked-note state after
   /// a parallel `Future.wait` — the entity PATCH may still list a just-deleted
   /// note or miss a just-created one.
@@ -564,4 +640,19 @@ class PlannerItemBloc extends Bloc<PlannerItemEvent, PlannerItemState> {
     }
     return filtered;
   }
+}
+
+class _LinkedNoteSave {
+  final int? noteId;
+  final bool savedAsCopy;
+
+  const _LinkedNoteSave({required this.noteId, this.savedAsCopy = false});
+}
+
+class _FormSave<T> {
+  final T? entity;
+  final _LinkedNoteSave? note;
+  final bool entityConflict;
+
+  const _FormSave({this.entity, this.note, this.entityConflict = false});
 }

@@ -14,7 +14,12 @@ class CategoryModel extends BaseTitledModel {
   final double? trend;
   final int? numHomework;
 
+  /// The raw `updated_at`, sent back as `If-Match` so a stale full edit is
+  /// rejected instead of overwriting a change made elsewhere.
+  final String? version;
+
   CategoryModel({
+    this.version,
     required super.id,
     required super.title,
     super.shownOnCalendar,
@@ -31,6 +36,7 @@ class CategoryModel extends BaseTitledModel {
   factory CategoryModel.fromJson(Map<String, dynamic> json) {
     return CategoryModel(
       id: json['id'],
+      version: json['updated_at'],
       title: json['title'],
       shownOnCalendar: json['shown_on_calendar'],
       color: HeliumColors.hexToColor(json['color']),

@@ -73,6 +73,9 @@ class ResourceDetailsState extends State<ResourceDetails> {
   bool _isSubmitting = false;
   bool _hasRequestedInitialFocus = false;
 
+  /// Set when the user picks Overwrite, so the next save is unconditional.
+  bool _overwriteNewer = false;
+
   @override
   void initState() {
     super.initState();
@@ -98,6 +101,20 @@ class ResourceDetailsState extends State<ResourceDetails> {
         forceRefresh: true,
       ),
     );
+  }
+
+  /// Discards the form's edits and reloads the version saved elsewhere.
+  void loadLatest() {
+    formController.isChanged = false;
+    formController.isUserDirty = false;
+    _fetchScreenData();
+  }
+
+  /// Saves the form's edits over the version saved elsewhere.
+  void overwriteNewer() {
+    _overwriteNewer = true;
+    onSubmit();
+    _overwriteNewer = false;
   }
 
   @override
@@ -339,10 +356,16 @@ class ResourceDetailsState extends State<ResourceDetails> {
         final existingNoteId = formController.linkedNoteId;
         if (existingNoteId != null) {
           if (formController.notesEdited) {
+            final title = request.title.trim();
             context.read<NoteBloc>().add(UpdateNoteEvent(
               origin: EventOrigin.subScreen,
               noteId: existingNoteId,
               request: NoteRequestModel(content: content ?? {}),
+              version:
+                  _overwriteNewer ? null : formController.linkedNoteVersion,
+              copyTitleOnConflict: title.isEmpty
+                  ? 'Copy from this device'
+                  : '$title (copy from this device)',
             ));
           }
         } else if (content != null) {
@@ -363,6 +386,7 @@ class ResourceDetailsState extends State<ResourceDetails> {
             resourceId: widget.resourceId!,
             request: request,
             redirectToNotebook: redirectToNotebook,
+            version: _overwriteNewer ? null : _resource?.version,
           ),
         );
       } else {
@@ -408,9 +432,10 @@ class ResourceDetailsState extends State<ResourceDetails> {
       formController.selectedResourceGroupId = state.resource!.resourceGroup;
 
       formController.notesController.dispose();
+      formController.linkedNoteId = state.linkedNote?.id;
+      formController.linkedNoteVersion = state.linkedNote?.version;
       formController.notesEdited = false;
       if (state.linkedNote != null) {
-        formController.linkedNoteId = state.linkedNote!.id;
         formController.notesController = heliumQuillController(
           document: state.linkedNote!.content != null
               ? tryParseNotesDocument(state.linkedNote!.content) ??

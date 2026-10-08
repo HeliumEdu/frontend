@@ -50,10 +50,12 @@ class NoteRepositoryImpl implements NoteRepository {
   Future<NoteModel?> updateNote({
     required int noteId,
     required NoteRequestModel request,
+    String? version,
   }) async {
     return remoteDataSource.updateNote(
       noteId: noteId,
       request: request,
+      version: version,
     );
   }
 

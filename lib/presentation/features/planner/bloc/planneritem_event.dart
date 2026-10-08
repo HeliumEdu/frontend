@@ -53,6 +53,13 @@ class UpdateEventEvent extends PlannerItemEvent {
   final int? linkedNoteId;
   final Map<String, dynamic>? noteContent;
   final bool redirectToNotebook;
+  /// The entity's version as last read; when set, a stale save emits
+  /// [PlannerItemConflict] instead of overwriting.
+  final String? version;
+
+  /// The linked note's version as last read, sent with its save.
+  final String? linkedNoteVersion;
+
   final bool noteEdited;
 
   UpdateEventEvent({
@@ -63,6 +70,8 @@ class UpdateEventEvent extends PlannerItemEvent {
     this.linkedNoteId,
     this.noteContent,
     this.redirectToNotebook = false,
+    this.version,
+    this.linkedNoteVersion,
     this.noteEdited = true,
   });
 }
@@ -118,6 +127,13 @@ class UpdateHomeworkEvent extends PlannerItemEvent {
   final int? linkedNoteId;
   final Map<String, dynamic>? noteContent;
   final bool redirectToNotebook;
+  /// The entity's version as last read; when set, a stale save emits
+  /// [PlannerItemConflict] instead of overwriting.
+  final String? version;
+
+  /// The linked note's version as last read, sent with its save.
+  final String? linkedNoteVersion;
+
   final bool noteEdited;
 
   UpdateHomeworkEvent({
@@ -130,6 +146,8 @@ class UpdateHomeworkEvent extends PlannerItemEvent {
     this.linkedNoteId,
     this.noteContent,
     this.redirectToNotebook = false,
+    this.version,
+    this.linkedNoteVersion,
     this.noteEdited = true,
   });
 }

@@ -10,7 +10,12 @@ class ResourceModel extends BaseTitledModel {
   final List<int> courses;
   final List<int> notes;
 
+  /// The raw `updated_at`, sent back as `If-Match` so a stale full edit is
+  /// rejected instead of overwriting a change made elsewhere.
+  final String? version;
+
   ResourceModel({
+    this.version,
     required super.id,
     required super.title,
     super.shownOnCalendar,
@@ -26,6 +31,7 @@ class ResourceModel extends BaseTitledModel {
   factory ResourceModel.fromJson(Map<String, dynamic> json) {
     return ResourceModel(
       id: json['id'],
+      version: json['updated_at'],
       title: json['title'],
       shownOnCalendar: json['shown_on_calendar'],
       status: json['status'],

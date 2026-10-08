@@ -36,8 +36,9 @@ abstract class CourseScheduleRepository {
     int groupId,
     int courseId,
     int scheduleId,
-    CourseScheduleRequestModel request,
-  );
+    CourseScheduleRequestModel request, {
+    String? version,
+  });
 
   Future<List<CourseScheduleModel>> getCourseSchedulesForCourse(
     int groupId,

@@ -12,7 +12,12 @@ class EventModel extends EventBaseModel {
   final String? ownerId;
   final List<IdOrEntity<NoteModel>> notes;
 
+  /// The raw `updated_at`, sent back as `If-Match` so a stale full edit is
+  /// rejected instead of overwriting a change made elsewhere.
+  final String? version;
+
   EventModel({
+    this.version,
     required super.id,
     required super.title,
     required super.allDay,
@@ -33,6 +38,7 @@ class EventModel extends EventBaseModel {
   factory EventModel.fromJson(Map<String, dynamic> json) {
     return EventModel(
       id: json['id'],
+      version: json['updated_at'],
       title: json['title'],
       allDay: json['all_day'],
       showEndTime: json['show_end_time'],
@@ -65,6 +71,7 @@ class EventModel extends EventBaseModel {
       copyWith(start: start, end: end);
 
   EventModel copyWith({
+    String? version,
     int? id,
     String? title,
     bool? allDay,
@@ -83,6 +90,7 @@ class EventModel extends EventBaseModel {
   }) {
     return EventModel(
       id: id ?? this.id,
+      version: version ?? this.version,
       title: title ?? this.title,
       allDay: allDay ?? this.allDay,
       showEndTime: showEndTime ?? this.showEndTime,

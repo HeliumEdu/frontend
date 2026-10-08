@@ -63,10 +63,21 @@ class UpdateNoteEvent extends NoteEvent {
   final int noteId;
   final NoteRequestModel request;
 
+  /// The note's version as last read; when set, a stale save emits
+  /// [NoteConflict] instead of overwriting.
+  final String? version;
+
+  /// When set, a stale save keeps the request's content as a standalone note
+  /// with this title, emitting [NoteSavedAsCopy], instead of [NoteConflict].
+  /// For forms that save a linked note and may close before it finishes.
+  final String? copyTitleOnConflict;
+
   UpdateNoteEvent({
     required super.origin,
     required this.noteId,
     required this.request,
+    this.version,
+    this.copyTitleOnConflict,
   });
 }
 

@@ -4,6 +4,7 @@ import 'package:heliumapp/data/models/planner/attachment_model.dart';
 import 'package:heliumapp/data/models/planner/category_model.dart';
 import 'package:heliumapp/data/models/planner/course_group_model.dart';
 import 'package:heliumapp/data/models/planner/course_model.dart';
+import 'package:heliumapp/data/models/planner/course_schedule_model.dart';
 import 'package:heliumapp/data/models/planner/request/course_request_model.dart';
 import 'package:heliumapp/data/models/planner/reminder_model.dart';
 import 'package:heliumapp/domain/repositories/attachment_repository.dart';
@@ -271,8 +272,14 @@ class CourseBloc extends Bloc<CourseEvent, CourseState> {
       final courseGroup = await courseRepository.updateCourseGroup(
         event.courseGroupId,
         event.request,
+        version: event.version,
       );
       emit(CourseGroupUpdated(origin: event.origin, courseGroup: courseGroup));
+    } on ConflictException catch (e) {
+      emit(CourseGroupConflict(
+        origin: event.origin,
+        latest: CourseGroupModel.fromJson(e.latest),
+      ));
     } on HeliumException catch (e) {
       emit(CoursesError(origin: event.origin, message: e.message));
     } catch (e) {
@@ -348,6 +355,7 @@ class CourseBloc extends Bloc<CourseEvent, CourseState> {
         event.courseGroupId,
         event.courseId,
         event.request,
+        version: event.version,
       );
       emit(
         CourseUpdated(
@@ -356,6 +364,11 @@ class CourseBloc extends Bloc<CourseEvent, CourseState> {
           advanceNavOnSuccess: event.advanceNavOnSuccess,
         ),
       );
+    } on ConflictException catch (e) {
+      emit(CourseConflict(
+        origin: event.origin,
+        latest: CourseModel.fromJson(e.latest),
+      ));
     } on HeliumException catch (e) {
       emit(CoursesError(origin: event.origin, message: e.message));
     } catch (e) {
@@ -401,6 +414,7 @@ class CourseBloc extends Bloc<CourseEvent, CourseState> {
         event.courseId,
         event.scheduleId,
         event.request,
+        version: event.version,
       );
       emit(
         CourseScheduleUpdated(
@@ -409,6 +423,11 @@ class CourseBloc extends Bloc<CourseEvent, CourseState> {
           advanceNavOnSuccess: event.advanceNavOnSuccess,
         ),
       );
+    } on ConflictException catch (e) {
+      emit(CourseScheduleConflict(
+        origin: event.origin,
+        latest: CourseScheduleModel.fromJson(e.latest),
+      ));
     } on HeliumException catch (e) {
       emit(CoursesError(origin: event.origin, message: e.message));
     } catch (e) {

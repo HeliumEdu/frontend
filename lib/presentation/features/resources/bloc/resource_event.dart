@@ -49,11 +49,15 @@ class CreateResourceGroupEvent extends ResourceEvent {
 class UpdateResourceGroupEvent extends ResourceEvent {
   final int resourceGroupId;
   final ResourceGroupRequestModel request;
+  /// The item's version as last read; when set, a stale save emits a
+  /// conflict state instead of overwriting.
+  final String? version;
 
   UpdateResourceGroupEvent({
     required super.origin,
     required this.resourceGroupId,
     required this.request,
+    this.version,
   });
 }
 
@@ -84,6 +88,9 @@ class UpdateResourceEvent extends ResourceEvent {
   final int resourceId;
   final ResourceRequestModel request;
   final bool redirectToNotebook;
+  /// The item's version as last read; when set, a stale save emits a
+  /// conflict state instead of overwriting.
+  final String? version;
 
   UpdateResourceEvent({
     required super.origin,
@@ -91,6 +98,7 @@ class UpdateResourceEvent extends ResourceEvent {
     required this.resourceId,
     required this.request,
     this.redirectToNotebook = false,
+    this.version,
   });
 }
 

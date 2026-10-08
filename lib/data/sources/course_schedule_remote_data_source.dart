@@ -36,8 +36,9 @@ abstract class CourseScheduleRemoteDataSource extends BaseDataSource {
     int groupId,
     int courseId,
     int scheduleId,
-    CourseScheduleRequestModel request,
-  );
+    CourseScheduleRequestModel request, {
+    String? version,
+  });
 
   Future<List<CourseScheduleModel>> getCourseSchedulesForCourse(
     int groupId,
@@ -219,8 +220,9 @@ class CourseScheduleRemoteDataSourceImpl
     int groupId,
     int courseId,
     int scheduleId,
-    CourseScheduleRequestModel request,
-  ) async {
+    CourseScheduleRequestModel request, {
+    String? version,
+  }) async {
     try {
       _log.info('Updating CourseSchedule $scheduleId for Course $courseId ...');
 
@@ -231,6 +233,7 @@ class CourseScheduleRemoteDataSourceImpl
           scheduleId,
         ),
         data: request.toJson(),
+        options: ifMatchOptions(version),
       );
 
       if (response.statusCode == 200) {

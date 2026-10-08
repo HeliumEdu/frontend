@@ -19,8 +19,9 @@ abstract class CategoryRepository {
     int groupId,
     int courseId,
     int categoryId,
-    CategoryRequestModel request,
-  );
+    CategoryRequestModel request, {
+    String? version,
+  });
 
   Future<void> deleteCategory(int groupId, int courseId, int categoryId);
 }

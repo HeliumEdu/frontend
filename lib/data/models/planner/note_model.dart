@@ -6,9 +6,9 @@ class NoteModel extends BaseTitledModel {
   final Map<String, dynamic>? content;
   final DateTime updatedAt;
 
-  /// The raw `updated_at` as the server sent it, compared to tell whether a
-  /// re-read is newer. Kept as a string because a [DateTime] round trip loses
-  /// precision on web.
+  /// The raw `updated_at` as the server sent it, sent back as `If-Match` so a
+  /// stale save is rejected. Kept as a string because a [DateTime] round trip
+  /// loses precision on web.
   final String? version;
   final List<int> homework;
   final List<int> events;

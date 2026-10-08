@@ -28,8 +28,9 @@ abstract class CourseRemoteDataSource extends BaseDataSource {
 
   Future<CourseGroupModel> updateCourseGroup(
     int groupId,
-    CourseGroupRequestModel request,
-  );
+    CourseGroupRequestModel request, {
+    String? version,
+  });
 
   Future<void> deleteCourseGroup(int groupId);
 
@@ -47,8 +48,9 @@ abstract class CourseRemoteDataSource extends BaseDataSource {
   Future<CourseModel> updateCourse(
     int groupId,
     int courseId,
-    CourseRequestModel request,
-  );
+    CourseRequestModel request, {
+    String? version,
+  });
 
   Future<void> deleteCourse(int groupId, int courseId);
 
@@ -188,14 +190,16 @@ class CourseRemoteDataSourceImpl extends CourseRemoteDataSource {
   Future<CourseModel> updateCourse(
     int groupId,
     int courseId,
-    CourseRequestModel request,
-  ) async {
+    CourseRequestModel request, {
+    String? version,
+  }) async {
     try {
       _log.info('Updating Course $courseId in CourseGroup $groupId ...');
 
       final response = await dioClient.dio.put(
         ApiUrl.plannerCourseGroupsCoursesDetailsUrl(groupId, courseId),
         data: request.toJson(),
+        options: ifMatchOptions(version),
       );
 
       if (response.statusCode == 200) {
@@ -350,13 +354,15 @@ class CourseRemoteDataSourceImpl extends CourseRemoteDataSource {
   @override
   Future<CourseGroupModel> updateCourseGroup(
     int groupId,
-    CourseGroupRequestModel request,
-  ) async {
+    CourseGroupRequestModel request, {
+    String? version,
+  }) async {
     try {
       _log.info('Updating CourseGroup $groupId ...');
       final response = await dioClient.dio.put(
         ApiUrl.plannerCourseGroupsDetailsUrl(groupId),
         data: request.toJson(),
+        options: ifMatchOptions(version),
       );
 
       if (response.statusCode == 200) {

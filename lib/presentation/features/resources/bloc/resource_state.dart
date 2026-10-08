@@ -140,3 +140,17 @@ class ResourceDeleted extends ResourceState {
 
   ResourceDeleted({required super.origin, required this.id});
 }
+
+/// A conditional save lost to a newer version saved elsewhere.
+class ResourceGroupConflict extends ResourceState {
+  final ResourceGroupModel latest;
+
+  ResourceGroupConflict({required super.origin, required this.latest});
+}
+
+/// A conditional save lost to a newer version saved elsewhere.
+class ResourceConflict extends ResourceState {
+  final ResourceModel latest;
+
+  ResourceConflict({required super.origin, required this.latest});
+}

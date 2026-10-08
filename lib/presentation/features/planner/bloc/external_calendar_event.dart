@@ -31,11 +31,15 @@ class CreateExternalCalendarEvent extends ExternalCalendarEvent {
 class UpdateExternalCalendarEvent extends ExternalCalendarEvent {
   final int id;
   final ExternalCalendarRequestModel request;
+  /// The item's version as last read; when set, a stale save emits a
+  /// conflict state instead of overwriting.
+  final String? version;
 
   UpdateExternalCalendarEvent({
     required super.origin,
     required this.id,
     required this.request,
+    this.version,
   });
 }
 

@@ -17,6 +17,7 @@ import 'package:heliumapp/presentation/ui/components/helium_checkbox_list_tile.d
 import 'package:heliumapp/presentation/ui/components/helium_picker_field.dart';
 import 'package:heliumapp/presentation/ui/components/spinner_field.dart';
 import 'package:heliumapp/presentation/ui/dialogs/base_dialog_state.dart';
+import 'package:heliumapp/presentation/ui/feedback/conflict_dialog.dart';
 import 'package:heliumapp/presentation/ui/feedback/discard_changes_scope.dart';
 import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
 import 'package:heliumapp/presentation/ui/layout/helium_full_screen_scroll_view.dart';
@@ -107,6 +108,11 @@ class _ScheduleEditorScreenState extends BaseDialogState<ScheduleEditorScreen> {
   final Map<int, TimeOfDay> _cycleStartTimes = {};
   final Map<int, TimeOfDay> _cycleEndTimes = {};
 
+  String? _version;
+
+  /// Set when the user picks Overwrite, so the next save is unconditional.
+  bool _overwriteNewer = false;
+
   int get _effectiveCycleLength {
     if (ScheduleTemplate.isDayCyclePreset(_template)) {
       return ScheduleTemplate.presetCycleLength[_template]!;
@@ -170,6 +176,47 @@ class _ScheduleEditorScreenState extends BaseDialogState<ScheduleEditorScreen> {
     _normalizeCycleSelection();
   }
 
+  /// Restores the field initializers above, so loading another version
+  /// starts from the same blank slate as opening the editor.
+  void _resetToDefaults() {
+    _variesByDay = false;
+    _selectedDays = {};
+    _singleStartTime = const TimeOfDay(hour: 12, minute: 0);
+    _singleEndTime = const TimeOfDay(hour: 12, minute: 50);
+    _startTimes.clear();
+    _endTimes.clear();
+    _overrideDates = false;
+    _startDate = null;
+    _endDate = null;
+    _isRotating = false;
+    _template = ScheduleTemplate.abDay;
+    _cycleLengthController.text = '6';
+    _weekOffset = 0;
+    _anchorDate = null;
+    _cycleMeets
+      ..clear()
+      ..add(1);
+    _cycleStartTimes.clear();
+    _cycleEndTimes.clear();
+  }
+
+  Future<void> _resolveConflict(CourseScheduleModel latest) async {
+    final resolution = await confirmConflictResolution(context);
+    if (!mounted) return;
+    switch (resolution) {
+      case ConflictResolution.loadLatest:
+        setState(() {
+          _resetToDefaults();
+          _loadSchedule(latest);
+          _formController.isChanged = false;
+          _formController.isUserDirty = false;
+        });
+      case ConflictResolution.overwrite:
+        _overwriteNewer = true;
+        handleSubmit();
+    }
+  }
+
   @override
   void dispose() {
     _cycleLengthController.dispose();
@@ -177,6 +224,7 @@ class _ScheduleEditorScreenState extends BaseDialogState<ScheduleEditorScreen> {
   }
 
   void _populateInitialStateData(CourseScheduleModel schedule) {
+    _version = schedule.version;
     _selectedDays = schedule.getActiveDayIndices();
     _variesByDay = !schedule.allDaysSameTime();
 
@@ -236,6 +284,10 @@ class _ScheduleEditorScreenState extends BaseDialogState<ScheduleEditorScreen> {
               _loadSchedule(schedule ?? widget.schedule);
               isLoading = false;
             });
+          } else if (state is CourseScheduleConflict &&
+              state.origin == EventOrigin.dialog) {
+            setState(() => isSubmitting = false);
+            _resolveConflict(state.latest);
           } else if (state is CoursesError &&
               state.origin == EventOrigin.dialog) {
             setState(() {
@@ -347,8 +399,10 @@ class _ScheduleEditorScreenState extends BaseDialogState<ScheduleEditorScreen> {
           courseId: widget.courseId,
           scheduleId: widget.schedule!.id,
           request: request,
+          version: _overwriteNewer ? null : _version,
         ),
       );
+      _overwriteNewer = false;
     } else {
       context.read<CourseBloc>().add(
         CreateCourseScheduleEvent(

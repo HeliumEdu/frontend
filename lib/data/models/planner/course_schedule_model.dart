@@ -42,7 +42,12 @@ class CourseScheduleModel extends BaseModel {
 
   final List<CourseScheduleRecurrenceGroupModel> recurrenceGroups;
 
+  /// The raw `updated_at`, sent back as `If-Match` so a stale full edit is
+  /// rejected instead of overwriting a change made elsewhere.
+  final String? version;
+
   CourseScheduleModel({
+    this.version,
     required super.id,
     required this.daysOfWeek,
     required this.sunStartTime,
@@ -75,6 +80,7 @@ class CourseScheduleModel extends BaseModel {
   factory CourseScheduleModel.fromJson(Map<String, dynamic> json) {
     return CourseScheduleModel(
       id: json['id'],
+      version: json['updated_at'],
       daysOfWeek: json['days_of_week'],
       sunStartTime: HeliumTime.parse(json['sun_start_time'] as String)!,
       sunEndTime: HeliumTime.parse(json['sun_end_time'] as String)!,

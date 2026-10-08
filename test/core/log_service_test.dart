@@ -77,6 +77,24 @@ void main() {
         }
       });
 
+      test('ConflictException at SEVERE becomes a breadcrumb, not an event', () {
+        // GIVEN
+        final record = _record(
+          Level.SEVERE,
+          error: ConflictException(latest: {'id': 1}),
+        );
+
+        // WHEN
+        final action = LogService.classifyRecord(record);
+
+        // THEN
+        expect(
+          action,
+          LogSentryAction.log,
+          reason: 'A save that lost to another device is expected, not a bug',
+        );
+      });
+
       test('Non-network HeliumException at SEVERE is still captured', () {
         final record = _record(
           Level.SEVERE,

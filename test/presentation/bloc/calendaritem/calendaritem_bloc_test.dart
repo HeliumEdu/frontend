@@ -3,6 +3,8 @@ import 'dart:async';
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:heliumapp/core/helium_exception.dart';
+import 'package:heliumapp/data/models/planner/note_model.dart';
+import 'package:heliumapp/data/models/planner/request/note_request_model.dart';
 import 'package:heliumapp/data/models/planner/request/event_request_model.dart';
 import 'package:heliumapp/data/models/planner/request/homework_request_model.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/planneritem_bloc.dart';
@@ -511,6 +513,101 @@ void main() {
         );
 
         blocTest<PlannerItemBloc, PlannerItemState>(
+          'emits PlannerItemConflict when the homework changed elsewhere',
+          build: () {
+            when(
+              () => mockHomeworkRepository.updateHomework(
+                groupId: courseGroupId,
+                courseId: courseId,
+                homeworkId: homeworkId,
+                request: any(named: 'request'),
+                version: 'v1',
+              ),
+            ).thenAnswer((_) async => throw ConflictException(latest: {}));
+            return plannerItemBloc;
+          },
+          act: (bloc) => bloc.add(
+            UpdateHomeworkEvent(
+              origin: EventOrigin.subScreen,
+              courseGroupId: courseGroupId,
+              courseId: courseId,
+              homeworkId: homeworkId,
+              request: request,
+              version: 'v1',
+            ),
+          ),
+          expect: () => [
+            isA<PlannerItemsLoading>(),
+            isA<PlannerItemConflict>()
+                .having((s) => s.noteSavedAsCopy, 'noteSavedAsCopy', isFalse),
+          ],
+        );
+
+        blocTest<PlannerItemBloc, PlannerItemState>(
+          'keeps an edited linked note as a copy when the note changed elsewhere',
+          build: () {
+            when(
+              () => mockHomeworkRepository.updateHomework(
+                groupId: courseGroupId,
+                courseId: courseId,
+                homeworkId: homeworkId,
+                request: any(named: 'request'),
+                version: any(named: 'version'),
+              ),
+            ).thenAnswer(
+              (_) async => MockModels.createHomework(id: homeworkId),
+            );
+            when(
+              () => mockNoteRepository.updateNote(
+                noteId: 3,
+                request: any(named: 'request'),
+                version: 'note-v1',
+              ),
+            ).thenAnswer((_) async => throw ConflictException(latest: {}));
+            when(
+              () => mockNoteRepository.createNote(
+                request: any(named: 'request'),
+              ),
+            ).thenAnswer(
+              (_) async => NoteModel.fromJson({
+                'id': 9,
+                'title': 'Updated Homework (copy from this device)',
+                'updated_at': '2026-10-07T12:00:00Z',
+              }),
+            );
+            return plannerItemBloc;
+          },
+          act: (bloc) => bloc.add(
+            UpdateHomeworkEvent(
+              origin: EventOrigin.subScreen,
+              courseGroupId: courseGroupId,
+              courseId: courseId,
+              homeworkId: homeworkId,
+              request: request,
+              linkedNoteId: 3,
+              linkedNoteVersion: 'note-v1',
+              noteContent: {'ops': []},
+              noteEdited: true,
+            ),
+          ),
+          expect: () => [
+            isA<PlannerItemsLoading>(),
+            isA<HomeworkUpdated>()
+                .having((s) => s.noteSavedAsCopy, 'noteSavedAsCopy', isTrue)
+                .having((s) => s.linkedNoteId, 'linkedNoteId', 3),
+          ],
+          verify: (_) {
+            final copy = verify(
+              () => mockNoteRepository.createNote(
+                request: captureAny(named: 'request'),
+              ),
+            ).captured.single as NoteRequestModel;
+            expect(copy.title, 'Updated Homework (copy from this device)');
+            expect(copy.homeworkId, isNull, reason: 'The copy is standalone');
+          },
+        );
+
+        blocTest<PlannerItemBloc, PlannerItemState>(
           'does not save an untouched linked note',
           build: () {
             when(
@@ -519,6 +616,7 @@ void main() {
                 courseId: courseId,
                 homeworkId: homeworkId,
                 request: any(named: 'request'),
+                version: any(named: 'version'),
               ),
             ).thenAnswer(
               (_) async => MockModels.createHomework(id: homeworkId),
@@ -547,6 +645,7 @@ void main() {
               () => mockNoteRepository.updateNote(
                 noteId: any(named: 'noteId'),
                 request: any(named: 'request'),
+                version: any(named: 'version'),
               ),
             );
             verifyNever(

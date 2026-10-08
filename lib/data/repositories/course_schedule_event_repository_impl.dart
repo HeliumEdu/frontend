@@ -81,13 +81,15 @@ class CourseScheduleRepositoryImpl implements CourseScheduleRepository {
     int groupId,
     int courseId,
     int scheduleId,
-    CourseScheduleRequestModel request,
-  ) async {
+    CourseScheduleRequestModel request, {
+    String? version,
+  }) async {
     return remoteDataSource.updateCourseSchedule(
       groupId,
       courseId,
       scheduleId,
       request,
+      version: version,
     );
   }
 

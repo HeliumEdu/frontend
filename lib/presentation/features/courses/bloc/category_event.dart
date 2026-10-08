@@ -38,6 +38,9 @@ class UpdateCategoryEvent extends CategoryEvent {
   final int courseId;
   final int categoryId;
   final CategoryRequestModel request;
+  /// The item's version as last read; when set, a stale save emits a
+  /// conflict state instead of overwriting.
+  final String? version;
 
   UpdateCategoryEvent({
     required super.origin,
@@ -45,6 +48,7 @@ class UpdateCategoryEvent extends CategoryEvent {
     required this.courseId,
     required this.categoryId,
     required this.request,
+    this.version,
   });
 }
 

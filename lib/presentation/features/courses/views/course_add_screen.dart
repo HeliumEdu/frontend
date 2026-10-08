@@ -10,6 +10,7 @@ import 'package:heliumapp/presentation/features/courses/bloc/course_bloc.dart';
 import 'package:heliumapp/presentation/features/courses/bloc/course_event.dart';
 import 'package:heliumapp/presentation/features/courses/bloc/course_state.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/core/base_event.dart';
+import 'package:heliumapp/presentation/ui/feedback/conflict_dialog.dart';
 import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
 import 'package:heliumapp/presentation/features/shared/widgets/flow/multi_step_container.dart';
 import 'package:heliumapp/presentation/features/courses/widgets/course_attachments.dart';
@@ -317,6 +318,11 @@ class _CourseAddScreenState extends MultiStepContainerState<CourseAddScreen> {
             }
             _detailsKey.currentState?.resetSubmitting();
             setState(() { isLoading = false; isSubmitting = false; });
+          } else if (state is CourseConflict &&
+              state.origin == EventOrigin.subScreen) {
+            _detailsKey.currentState?.resetSubmitting();
+            setState(() => isSubmitting = false);
+            _resolveConflict();
           } else if (state is CoursesScreenDataFetched &&
               _currentCourseGroupId == null &&
               _currentCourseId != null) {
@@ -365,6 +371,17 @@ class _CourseAddScreenState extends MultiStepContainerState<CourseAddScreen> {
         },
       ),
     ];
+  }
+
+  Future<void> _resolveConflict() async {
+    final resolution = await confirmConflictResolution(context);
+    if (!mounted) return;
+    switch (resolution) {
+      case ConflictResolution.loadLatest:
+        _detailsKey.currentState?.loadLatest();
+      case ConflictResolution.overwrite:
+        _detailsKey.currentState?.overwriteNewer();
+    }
   }
 
   bool _willCloseAfterSave() {

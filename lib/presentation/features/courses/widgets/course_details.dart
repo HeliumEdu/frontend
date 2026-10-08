@@ -67,6 +67,9 @@ class CourseDetailsState extends State<CourseDetails> {
   CourseGroupModel? _courseGroup;
   CourseModel? _course;
 
+  /// Set when the user picks Overwrite, so the next save is unconditional.
+  bool _overwriteNewer = false;
+
   @override
   void initState() {
     super.initState();
@@ -92,6 +95,20 @@ class CourseDetailsState extends State<CourseDetails> {
         forceRefresh: true,
       ),
     );
+  }
+
+  /// Discards the form's edits and reloads the version saved elsewhere.
+  void loadLatest() {
+    formController.isChanged = false;
+    formController.isUserDirty = false;
+    _fetchScreenData();
+  }
+
+  /// Saves the form's edits over the version saved elsewhere.
+  void overwriteNewer() {
+    _overwriteNewer = true;
+    onSubmit();
+    _overwriteNewer = false;
   }
 
   @override
@@ -381,6 +398,7 @@ class CourseDetailsState extends State<CourseDetails> {
             courseGroupId: widget.courseGroupId,
             courseId: widget.courseId!,
             request: request,
+            version: _overwriteNewer ? null : _course?.version,
           ),
         );
       } else {

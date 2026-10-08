@@ -14,6 +14,7 @@ import 'package:heliumapp/presentation/features/shared/controllers/basic_form_co
 import 'package:heliumapp/presentation/features/courses/controllers/category_form_controller.dart';
 import 'package:heliumapp/presentation/ui/components/label_and_text_form_field.dart';
 import 'package:heliumapp/presentation/ui/components/spinner_field.dart';
+import 'package:heliumapp/presentation/ui/feedback/conflict_dialog.dart';
 import 'package:heliumapp/utils/color_helpers.dart';
 import 'package:heliumapp/utils/format_helpers.dart';
 import 'package:heliumapp/utils/platform_behavior.dart';
@@ -37,6 +38,10 @@ class _CategoryProvidedWidget extends StatefulWidget {
 
 class _CategoryWidgetState extends BaseDialogState<_CategoryProvidedWidget> {
   final CategoryFormController _formController = CategoryFormController();
+  String? _version;
+
+  /// Set when the user picks Overwrite, so the next save is unconditional.
+  bool _overwriteNewer = false;
 
   @override
   String get dialogTitle => 'Category';
@@ -73,6 +78,23 @@ class _CategoryWidgetState extends BaseDialogState<_CategoryProvidedWidget> {
         ? ''
         : HeliumNumber.format(category.weight, trimZeros: true);
     _formController.selectedColor = category.color;
+    _version = category.version;
+  }
+
+  Future<void> _resolveConflict(CategoryModel latest) async {
+    final resolution = await confirmConflictResolution(context);
+    if (!mounted) return;
+    switch (resolution) {
+      case ConflictResolution.loadLatest:
+        setState(() {
+          _populateInitialStateData(latest);
+          _formController.isChanged = false;
+          _formController.isUserDirty = false;
+        });
+      case ConflictResolution.overwrite:
+        _overwriteNewer = true;
+        handleSubmit();
+    }
   }
 
   @override
@@ -102,6 +124,8 @@ class _CategoryWidgetState extends BaseDialogState<_CategoryProvidedWidget> {
               _populateInitialStateData(category ?? widget.category!);
               isLoading = false;
             });
+          } else if (state is CategoryConflict) {
+            _resolveConflict(state.latest);
           } else if (state is CategoryCreated || state is CategoryUpdated) {
             Navigator.pop(context);
           }
@@ -189,8 +213,10 @@ class _CategoryWidgetState extends BaseDialogState<_CategoryProvidedWidget> {
             courseId: widget.courseId,
             categoryId: widget.category!.id,
             request: request,
+            version: _overwriteNewer ? null : _version,
           ),
         );
+        _overwriteNewer = false;
       } else {
         context.read<CategoryBloc>().add(
           CreateCategoryEvent(

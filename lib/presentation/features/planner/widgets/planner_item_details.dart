@@ -118,6 +118,9 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
   String? _preferredCategoryName;
   List<String> _preferredResourceNames = [];
 
+  /// Set when the user picks Overwrite, so the next save is unconditional.
+  bool _overwriteNewer = false;
+
   @override
   void initState() {
     super.initState();
@@ -151,6 +154,16 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
         forceRefresh: true,
       ),
     );
+  }
+
+  /// Discards the form's edits and reloads the version saved elsewhere.
+  void loadLatest() => loadEntity(eventId: _eventId, homeworkId: _homeworkId);
+
+  /// Saves the form's edits over the version saved elsewhere.
+  void overwriteNewer() {
+    _overwriteNewer = true;
+    onSubmit();
+    _overwriteNewer = false;
   }
 
   @override
@@ -697,6 +710,11 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
               linkedNoteId: formController.linkedNoteId,
               noteContent: noteContent,
               redirectToNotebook: redirectToNotebook,
+              version: _overwriteNewer
+                  ? null
+                  : (_plannerItem as EventModel?)?.version,
+              linkedNoteVersion:
+                  _overwriteNewer ? null : formController.linkedNoteVersion,
               noteEdited: formController.notesEdited,
             ),
           );
@@ -747,6 +765,9 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
               linkedNoteId: formController.linkedNoteId,
               noteContent: noteContent,
               redirectToNotebook: redirectToNotebook,
+              version: _overwriteNewer ? null : homework.version,
+              linkedNoteVersion:
+                  _overwriteNewer ? null : formController.linkedNoteVersion,
               noteEdited: formController.notesEdited,
             ),
           );
@@ -932,13 +953,15 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
       }
     }
 
-    formController.notesEdited = false;
-    if (widget.isEdit && state.linkedNote != null) {
-      formController.linkedNoteId = state.linkedNote!.id;
+    if (widget.isEdit) {
+      final linkedNote = state.linkedNote;
+      formController.linkedNoteId = linkedNote?.id;
+      formController.linkedNoteVersion = linkedNote?.version;
+      formController.notesEdited = false;
       formController.notesController.dispose();
       formController.notesController = heliumQuillController(
-        document: state.linkedNote!.content != null
-            ? tryParseNotesDocument(state.linkedNote!.content) ??
+        document: linkedNote?.content != null
+            ? tryParseNotesDocument(linkedNote!.content) ??
                 buildUnrenderableNotePlaceholder()
             : null,
       );

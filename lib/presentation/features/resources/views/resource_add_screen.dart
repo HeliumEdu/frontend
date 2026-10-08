@@ -18,6 +18,7 @@ import 'package:heliumapp/presentation/features/shared/bloc/core/base_event.dart
 import 'package:heliumapp/presentation/features/shared/widgets/flow/multi_step_container.dart';
 import 'package:heliumapp/presentation/features/resources/widgets/resource_details.dart';
 import 'package:heliumapp/presentation/ui/components/helium_icon_button.dart';
+import 'package:heliumapp/presentation/ui/feedback/conflict_dialog.dart';
 import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
 import 'package:heliumapp/utils/deep_link_helpers.dart';
 import 'package:heliumapp/utils/snack_bar_helpers.dart';
@@ -251,6 +252,17 @@ class _ResourceAddScreenState
     };
   }
 
+  Future<void> _resolveConflict() async {
+    final resolution = await confirmConflictResolution(context);
+    if (!mounted) return;
+    switch (resolution) {
+      case ConflictResolution.loadLatest:
+        _detailsKey.currentState?.loadLatest();
+      case ConflictResolution.overwrite:
+        _detailsKey.currentState?.overwriteNewer();
+    }
+  }
+
   @override
   List<BlocListener<dynamic, dynamic>> buildListeners(BuildContext context) {
     return [
@@ -276,6 +288,11 @@ class _ResourceAddScreenState
             }
             _detailsKey.currentState?.resetSubmitting();
             setState(() { isLoading = false; isSubmitting = false; });
+          } else if (state is ResourceConflict &&
+              state.origin == EventOrigin.subScreen) {
+            _detailsKey.currentState?.resetSubmitting();
+            setState(() => isSubmitting = false);
+            _resolveConflict();
           } else if (state is ResourcesScreenDataFetched &&
               _currentResourceGroupId == null &&
               _currentResourceId != null) {

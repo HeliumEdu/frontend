@@ -47,10 +47,12 @@ class EventRepositoryImpl implements EventRepository {
   Future<EventModel> updateEvent({
     required int eventId,
     required EventRequestModel request,
+    String? version,
   }) async {
     return remoteDataSource.updateEvent(
       eventId: eventId,
       request: request,
+      version: version,
     );
   }
 

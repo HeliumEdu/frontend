@@ -8,6 +8,7 @@ import 'package:heliumapp/data/models/planner/event_model.dart';
 import 'package:heliumapp/data/models/planner/homework_model.dart';
 import 'package:heliumapp/data/models/planner/note_model.dart';
 import 'package:heliumapp/data/models/planner/resource_group_model.dart';
+import 'package:heliumapp/data/models/planner/request/note_request_model.dart';
 import 'package:heliumapp/data/models/planner/resource_model.dart';
 import 'package:heliumapp/domain/repositories/category_repository.dart';
 import 'package:heliumapp/domain/repositories/course_repository.dart';
@@ -272,6 +273,7 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
       final note = await noteRepository.updateNote(
         noteId: event.noteId,
         request: event.request,
+        version: event.version,
       );
       if (note == null) {
         // Note was deleted because content was cleared on a linked note
@@ -279,6 +281,23 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
       } else {
         emit(NoteUpdated(origin: event.origin, note: note));
       }
+    } on ConflictException catch (e) {
+      final copyTitle = event.copyTitleOnConflict;
+      if (copyTitle == null) {
+        emit(NoteConflict(
+          origin: event.origin,
+          noteId: event.noteId,
+          latest: NoteModel.fromJson(e.latest),
+        ));
+        return;
+      }
+      await _saveConflictCopy(event, copyTitle, emit);
+    } on NotFoundException catch (e) {
+      emit(NoteMissing(
+        origin: event.origin,
+        message: e.message,
+        noteId: event.noteId,
+      ));
     } on HeliumException catch (e) {
       emit(NotesError(origin: event.origin, message: e.message));
     } catch (e) {
@@ -286,6 +305,31 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
         origin: event.origin,
         message: HeliumException.unexpectedError,
       ));
+    }
+  }
+
+  /// Keeps a stale linked-note save's content as a standalone note, so the
+  /// change made elsewhere stays linked and this device's text isn't lost.
+  Future<void> _saveConflictCopy(
+    UpdateNoteEvent event,
+    String copyTitle,
+    Emitter<NoteState> emit,
+  ) async {
+    try {
+      final copy = await noteRepository.createNote(
+        request: NoteRequestModel(
+          title: copyTitle,
+          content: event.request.content,
+        ),
+      );
+      emit(NoteCreated(origin: event.origin, note: copy));
+      emit(NoteSavedAsCopy(
+        origin: event.origin,
+        noteId: event.noteId,
+        copy: copy,
+      ));
+    } on HeliumException catch (e) {
+      emit(NotesError(origin: event.origin, message: e.message));
     }
   }
 

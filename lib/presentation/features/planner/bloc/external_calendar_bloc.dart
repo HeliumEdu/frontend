@@ -1,5 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:heliumapp/core/helium_exception.dart';
+import 'package:heliumapp/data/models/planner/external_calendar_model.dart';
 import 'package:heliumapp/domain/repositories/external_calendar_repository.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/core/base_event.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/external_calendar_event.dart';
@@ -81,7 +82,11 @@ class ExternalCalendarBloc
   ) async {
     try {
       final externalCalendar = await externalCalendarRepository
-          .updateExternalCalendar(calendarId: event.id, payload: event.request);
+          .updateExternalCalendar(
+            calendarId: event.id,
+            payload: event.request,
+            version: event.version,
+          );
 
       emit(
         ExternalCalendarUpdated(
@@ -89,6 +94,11 @@ class ExternalCalendarBloc
           externalCalendar: externalCalendar,
         ),
       );
+    } on ConflictException catch (e) {
+      emit(ExternalCalendarConflict(
+        origin: event.origin,
+        latest: ExternalCalendarModel.fromJson(e.latest),
+      ));
     } on HeliumException catch (e) {
       emit(ExternalCalendarsError(origin: event.origin, message: e.message));
     } catch (e) {

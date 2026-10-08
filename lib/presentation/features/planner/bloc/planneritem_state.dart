@@ -138,6 +138,10 @@ class EventUpdated extends EventEntityState {
   final bool redirectToNotebook;
   final int? linkedNoteId;
 
+  /// The linked note changed elsewhere, so this device's text was saved as a
+  /// standalone note instead.
+  final bool noteSavedAsCopy;
+
   EventUpdated({
     required super.origin,
     required super.event,
@@ -146,6 +150,7 @@ class EventUpdated extends EventEntityState {
     required super.advanceNavOnSuccess,
     this.redirectToNotebook = false,
     this.linkedNoteId,
+    this.noteSavedAsCopy = false,
   });
 }
 
@@ -180,6 +185,10 @@ class HomeworkUpdated extends HomeworkEntityState {
   final bool redirectToNotebook;
   final int? linkedNoteId;
 
+  /// The linked note changed elsewhere, so this device's text was saved as a
+  /// standalone note instead.
+  final bool noteSavedAsCopy;
+
   HomeworkUpdated({
     required super.origin,
     required super.homework,
@@ -188,7 +197,16 @@ class HomeworkUpdated extends HomeworkEntityState {
     required super.advanceNavOnSuccess,
     this.redirectToNotebook = false,
     this.linkedNoteId,
+    this.noteSavedAsCopy = false,
   });
+}
+
+/// A conditional save of a homework or event lost to a newer version saved
+/// elsewhere. Its linked note may still have saved, or been kept as a copy.
+class PlannerItemConflict extends PlannerItemState {
+  final bool noteSavedAsCopy;
+
+  PlannerItemConflict({required super.origin, required this.noteSavedAsCopy});
 }
 
 class HomeworkDeleted extends PlannerItemState {

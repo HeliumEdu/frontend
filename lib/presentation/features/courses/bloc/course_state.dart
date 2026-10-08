@@ -183,3 +183,24 @@ class CourseExceptionsUpdated extends CourseState {
 
   CourseExceptionsUpdated({required super.origin, required this.course});
 }
+
+/// A conditional save lost to a newer version saved elsewhere.
+class CourseGroupConflict extends CourseState {
+  final CourseGroupModel latest;
+
+  CourseGroupConflict({required super.origin, required this.latest});
+}
+
+/// A conditional save lost to a newer version saved elsewhere.
+class CourseConflict extends CourseState {
+  final CourseModel latest;
+
+  CourseConflict({required super.origin, required this.latest});
+}
+
+/// A conditional save lost to a newer version saved elsewhere.
+class CourseScheduleConflict extends CourseState {
+  final CourseScheduleModel latest;
+
+  CourseScheduleConflict({required super.origin, required this.latest});
+}

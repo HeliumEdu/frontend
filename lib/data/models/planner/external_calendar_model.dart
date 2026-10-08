@@ -7,7 +7,12 @@ class ExternalCalendarModel extends BaseTitledModel {
   final Uri url;
   final Color color;
 
+  /// The raw `updated_at`, sent back as `If-Match` so a stale full edit is
+  /// rejected instead of overwriting a change made elsewhere.
+  final String? version;
+
   ExternalCalendarModel({
+    this.version,
     required super.id,
     required super.title,
     required super.shownOnCalendar,
@@ -18,6 +23,7 @@ class ExternalCalendarModel extends BaseTitledModel {
   factory ExternalCalendarModel.fromJson(Map<String, dynamic> json) {
     return ExternalCalendarModel(
       id: json['id'],
+      version: json['updated_at'],
       title: json['title'],
       url: Uri.parse(json['url']),
       color: HeliumColors.hexToColor(json['color']),

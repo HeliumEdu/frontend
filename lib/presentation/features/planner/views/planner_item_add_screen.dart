@@ -12,6 +12,8 @@ import 'package:heliumapp/presentation/features/planner/widgets/planner_item_det
 import 'package:heliumapp/presentation/features/planner/widgets/planner_item_reminders.dart';
 import 'package:heliumapp/presentation/features/shared/widgets/core/base_attachments.dart';
 import 'package:heliumapp/presentation/features/shared/widgets/flow/multi_step_container.dart';
+import 'package:heliumapp/presentation/features/shared/bloc/core/base_event.dart';
+import 'package:heliumapp/presentation/ui/feedback/conflict_dialog.dart';
 import 'package:heliumapp/presentation/ui/feedback/discard_changes_scope.dart';
 import 'package:heliumapp/presentation/ui/components/helium_icon_button.dart';
 import 'package:heliumapp/utils/deep_link_helpers.dart';
@@ -361,6 +363,18 @@ class _PlannerItemAddScreenState
     };
   }
 
+  Future<void> _resolveConflict({required bool noteSavedAsCopy}) async {
+    final resolution = await confirmConflictResolution(context);
+    if (!mounted) return;
+    if (noteSavedAsCopy) showSnackBar(context, noteSavedAsCopyMessage);
+    switch (resolution) {
+      case ConflictResolution.loadLatest:
+        _detailsKey.currentState?.loadLatest();
+      case ConflictResolution.overwrite:
+        _detailsKey.currentState?.overwriteNewer();
+    }
+  }
+
   @override
   List<BlocListener<dynamic, dynamic>> buildListeners(BuildContext context) {
     return [
@@ -386,6 +400,11 @@ class _PlannerItemAddScreenState
             }
             _detailsKey.currentState?.resetSubmitting();
             setState(() => isSubmitting = false);
+          } else if (state is PlannerItemConflict &&
+              state.origin == EventOrigin.subScreen) {
+            _detailsKey.currentState?.resetSubmitting();
+            setState(() => isSubmitting = false);
+            _resolveConflict(noteSavedAsCopy: state.noteSavedAsCopy);
           } else if (state is EventDeleted || state is HomeworkDeleted) {
             // Always closes after delete, show on root
             showSnackBar(
@@ -399,6 +418,15 @@ class _PlannerItemAddScreenState
               state is EventCreated ||
               state is EventUpdated) {
             state as BaseEntityState;
+
+            if ((state is HomeworkUpdated && state.noteSavedAsCopy) ||
+                (state is EventUpdated && state.noteSavedAsCopy)) {
+              showSnackBar(
+                context,
+                noteSavedAsCopyMessage,
+                useRootMessenger: true,
+              );
+            }
 
             final isClone =
                 (state is EventCreated && state.isClone) ||

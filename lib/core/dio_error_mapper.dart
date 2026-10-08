@@ -18,6 +18,14 @@ class DioErrorMapper {
     StackTrace s, {
     String? notFoundEntity,
   }) {
+    final responseData = e.response?.data;
+    if (e.type == DioExceptionType.badResponse &&
+        e.response?.statusCode == 412 &&
+        responseData is Map<String, dynamic>) {
+      _log.info('Dio precondition failed, the item changed elsewhere');
+      return ConflictException(latest: responseData);
+    }
+
     SessionHealth.markTroubled();
 
     switch (e.type) {
@@ -33,7 +41,6 @@ class DioErrorMapper {
 
       case DioExceptionType.badResponse:
         final statusCode = e.response?.statusCode;
-        final responseData = e.response?.data;
         final responseType = responseData?.runtimeType;
         final summary =
             'Dio bad response received, status: $statusCode, dataType: $responseType';

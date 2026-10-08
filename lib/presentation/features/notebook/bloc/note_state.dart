@@ -124,6 +124,41 @@ class NoteUpdated extends NoteState {
   });
 }
 
+/// A conditional save of [noteId] lost to a newer version saved elsewhere.
+class NoteConflict extends NoteState {
+  final int noteId;
+  final NoteModel latest;
+
+  NoteConflict({
+    required super.origin,
+    required this.noteId,
+    required this.latest,
+  });
+}
+
+/// A stale save of [noteId] was kept as the standalone note [copy].
+class NoteSavedAsCopy extends NoteState {
+  final int noteId;
+  final NoteModel copy;
+
+  NoteSavedAsCopy({
+    required super.origin,
+    required this.noteId,
+    required this.copy,
+  });
+}
+
+/// A save of [noteId] found the note deleted elsewhere.
+class NoteMissing extends NotesError {
+  final int noteId;
+
+  NoteMissing({
+    required super.origin,
+    required super.message,
+    required this.noteId,
+  });
+}
+
 class NoteRefreshed extends NoteState {
   final NoteModel note;
 

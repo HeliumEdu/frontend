@@ -31,6 +31,7 @@ abstract class EventRemoteDataSource extends BaseDataSource {
   Future<EventModel> updateEvent({
     required int eventId,
     required EventRequestModel request,
+    String? version,
   });
 
   Future<void> deleteEvent({required int eventId});
@@ -184,12 +185,14 @@ class EventRemoteDataSourceImpl extends EventRemoteDataSource {
   Future<EventModel> updateEvent({
     required int eventId,
     required EventRequestModel request,
+    String? version,
   }) async {
     try {
       _log.info('Updating Event $eventId ...');
       final response = await dioClient.dio.patch(
         ApiUrl.plannerEventsDetailsUrl(eventId),
         data: request.toJson(),
+        options: ifMatchOptions(version),
       );
 
       if (response.statusCode == 200) {

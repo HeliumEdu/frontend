@@ -33,6 +33,7 @@ abstract class ExternalCalendarRemoteDataSource extends BaseDataSource {
   Future<ExternalCalendarModel> updateExternalCalendar({
     required int calendarId,
     required ExternalCalendarRequestModel payload,
+    String? version,
   });
 
   Future<void> deleteExternalCalendar({required int calendarId});
@@ -183,6 +184,7 @@ class ExternalCalendarRemoteDataSourceImpl
   Future<ExternalCalendarModel> updateExternalCalendar({
     required int calendarId,
     required ExternalCalendarRequestModel payload,
+    String? version,
   }) async {
     try {
       _log.info('Updating ExternalCalendar $calendarId ...');
@@ -190,6 +192,7 @@ class ExternalCalendarRemoteDataSourceImpl
       final response = await dioClient.dio.patch(
         ApiUrl.feedExternalCalendarDetailUrl(calendarId),
         data: payload.toJson(),
+        options: ifMatchOptions(version),
       );
 
       if (response.statusCode == 200) {
