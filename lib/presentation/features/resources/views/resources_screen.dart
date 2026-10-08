@@ -122,6 +122,16 @@ class _ResourcesScreenState
     });
   }
 
+  void _replaceResource(ResourceModel resource) {
+    setState(() {
+      for (final resources in _resourcesMap.values) {
+        resources.removeWhere((m) => m.id == resource.id);
+      }
+      _resourcesMap.putIfAbsent(resource.resourceGroup, () => []).add(resource);
+      Sort.byTitle(_resourcesMap[resource.resourceGroup]!);
+    });
+  }
+
   @override
   List<BlocListener<dynamic, dynamic>> buildListeners(BuildContext context) {
     return [
@@ -203,15 +213,10 @@ class _ResourcesScreenState
               Sort.byTitle(_resourcesMap[state.resource.resourceGroup]!);
             });
           } else if (state is ResourceUpdated) {
-            setState(() {
-              for (final resources in _resourcesMap.values) {
-                resources.removeWhere((m) => m.id == state.resource.id);
-              }
-              _resourcesMap
-                  .putIfAbsent(state.resource.resourceGroup, () => [])
-                  .add(state.resource);
-              Sort.byTitle(_resourcesMap[state.resource.resourceGroup]!);
-            });
+            _replaceResource(state.resource);
+          } else if (state is ResourceScreenDataFetched &&
+              state.resource != null) {
+            _replaceResource(state.resource!);
           } else if (state is ResourceDeleted) {
             showSnackBar(context, 'Resource deleted.');
 

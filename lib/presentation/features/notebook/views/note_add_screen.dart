@@ -127,6 +127,7 @@ class NoteAddScreen extends StatefulWidget {
 class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
     with WidgetsBindingObserver {
   static const _autoSaveDebounce = Duration(seconds: 1);
+  static const _autoPullInterval = Duration(seconds: 30);
 
   final BasicFormController _formController = BasicFormController();
   final TextEditingController _titleController = TextEditingController();
@@ -167,6 +168,9 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
   int _autoSaveErrorCount = 0;
   bool _isDiscardDialogOpen = false;
 
+  Timer? _autoPullTimer;
+  bool _isApplyingRemoteVersion = false;
+
   bool _isClosing = false;
   StreamSubscription<DocChange>? _documentSubscription;
 
@@ -203,16 +207,21 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
         linkResourceId: widget.linkResourceId,
       ),
     );
+    _startAutoPull();
   }
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.paused ||
         state == AppLifecycleState.hidden) {
+      _autoPullTimer?.cancel();
       if (_debounceTimer?.isActive == true) {
         _debounceTimer!.cancel();
         _triggerAutoSave();
       }
+    } else if (state == AppLifecycleState.resumed) {
+      _pullLatest();
+      _startAutoPull();
     }
   }
 
@@ -225,6 +234,7 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
     }
     PrintService().unregister(_printHandler);
     _debounceTimer?.cancel();
+    _autoPullTimer?.cancel();
     _documentSubscription?.cancel();
     _titleController.removeListener(_onContentChanged);
     _titleController.dispose();
@@ -425,7 +435,9 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
     return [
       BlocListener<NoteBloc, NoteState>(
         listener: (context, state) {
-          if (state is NotesError) {
+          if (state is NoteRefreshed && state.note.id == _note?.id) {
+            _applyRefreshedNote(state.note);
+          } else if (state is NotesError) {
             if (isLoading) {
               showSnackBar(
                 context,
@@ -543,12 +555,7 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
                 _note = state.note;
                 _saveStatus = SaveStatus.saved;
                 _autoSaveErrorCount = 0;
-                _linkedEntityType = state.note.linkedEntityType.isEmpty
-                    ? null
-                    : state.note.linkedEntityType;
-                _linkedEntityTitle = state.note.linkedEntityTitle;
-                _linkedEntityCompleted = state.note.linkedEntityCompleted;
-                _linkedEntityColor = state.note.courseColor ?? state.note.categoryColor;
+                _setLinkedEntityFrom(state.note);
               });
               _isAutoSaving = false;
               _onContentChanged();
@@ -596,7 +603,10 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
   }
 
   void _onContentChanged() {
-    if (isLoading || _saveStatus == SaveStatus.saving || _isDiscardDialogOpen) {
+    if (isLoading ||
+        _saveStatus == SaveStatus.saving ||
+        _isDiscardDialogOpen ||
+        _isApplyingRemoteVersion) {
       return;
     }
 
@@ -686,6 +696,83 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
       );
       _pendingUnlink = false;
     }
+  }
+
+  void _startAutoPull() {
+    _autoPullTimer?.cancel();
+    _autoPullTimer = Timer.periodic(_autoPullInterval, (_) => _pullLatest());
+  }
+
+  /// Only an editor with nothing unsaved or in flight takes a newer version,
+  /// so a background pull never replaces the user's own changes.
+  bool get _canTakeRemoteVersion =>
+      mounted &&
+      !isLoading &&
+      !isSubmitting &&
+      _note != null &&
+      _saveStatus == SaveStatus.saved &&
+      !_pendingUnlink &&
+      !_isAutoSaving &&
+      !_isDiscardDialogOpen &&
+      _debounceTimer?.isActive != true;
+
+  void _pullLatest() {
+    if (!_canTakeRemoteVersion) return;
+    context.read<NoteBloc>().add(
+      RefreshNoteEvent(origin: EventOrigin.subScreen, noteId: _note!.id),
+    );
+  }
+
+  void _applyRefreshedNote(NoteModel note) {
+    if (!_canTakeRemoteVersion || note.version == _note!.version) return;
+    _showNoteVersion(note);
+  }
+
+  /// Replaces the editor with [note] as the saved baseline, keeping the title
+  /// and editor selections at the same offsets, clamped to the new text.
+  void _showNoteVersion(NoteModel note) {
+    final editorOffset = _quillController.selection.baseOffset;
+    final titleSelection = _titleController.selection;
+    final document =
+        tryParseNotesDocument(note.content) ?? buildUnrenderableNotePlaceholder();
+
+    _isApplyingRemoteVersion = true;
+    setState(() {
+      _note = note;
+      _saveStatus = SaveStatus.saved;
+      _setLinkedEntityFrom(note);
+      _quillController.document = document;
+      _titleController.value = TextEditingValue(
+        text: note.title,
+        selection: _clampSelection(titleSelection, note.title.length),
+      );
+    });
+    if (editorOffset >= 0) {
+      _quillController.updateSelection(
+        TextSelection.collapsed(
+          offset: math.min(editorOffset, document.length - 1),
+        ),
+        ChangeSource.silent,
+      );
+    }
+    _setupDocumentListener();
+    _isApplyingRemoteVersion = false;
+  }
+
+  static TextSelection _clampSelection(TextSelection selection, int length) {
+    if (!selection.isValid) return TextSelection.collapsed(offset: length);
+    return TextSelection(
+      baseOffset: math.min(selection.baseOffset, length),
+      extentOffset: math.min(selection.extentOffset, length),
+    );
+  }
+
+  void _setLinkedEntityFrom(NoteModel note) {
+    _linkedEntityType =
+        note.linkedEntityType.isEmpty ? null : note.linkedEntityType;
+    _linkedEntityTitle = note.linkedEntityTitle;
+    _linkedEntityCompleted = note.linkedEntityCompleted;
+    _linkedEntityColor = note.courseColor ?? note.categoryColor;
   }
 
   void _handleAutoSaveError(String message) {

@@ -22,11 +22,13 @@ class FetchCoursesScreenDataEvent extends CourseEvent {
 class FetchCourseScreenDataEvent extends CourseEvent {
   final int courseGroupId;
   final int? courseId;
+  final bool forceRefresh;
 
   FetchCourseScreenDataEvent({
     required super.origin,
     required this.courseGroupId,
     required this.courseId,
+    this.forceRefresh = false,
   });
 }
 

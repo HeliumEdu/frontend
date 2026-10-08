@@ -98,7 +98,11 @@ class CourseBloc extends Bloc<CourseEvent, CourseState> {
       final results = await Future.wait([
         courseRepository.getCourseGroup(event.courseGroupId),
         if (event.courseId != null)
-          courseRepository.getCourse(event.courseGroupId, event.courseId!),
+          courseRepository.getCourse(
+            event.courseGroupId,
+            event.courseId!,
+            forceRefresh: event.forceRefresh,
+          ),
       ]);
       final courseGroup = results[0] as CourseGroupModel;
       final CourseModel? course =

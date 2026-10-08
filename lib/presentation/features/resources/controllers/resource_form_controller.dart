@@ -17,6 +17,8 @@ class ResourceFormController extends BasicFormController {
   QuillController notesController = heliumQuillController();
   int? linkedNoteId;
 
+  bool notesEdited = false;
+
   void dispose() {
     titleController.dispose();
     urlController.dispose();

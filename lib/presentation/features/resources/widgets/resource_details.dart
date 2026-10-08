@@ -95,6 +95,7 @@ class ResourceDetailsState extends State<ResourceDetails> {
         origin: EventOrigin.subScreen,
         resourceGroupId: widget.resourceGroupId,
         resourceId: widget.resourceId,
+        forceRefresh: true,
       ),
     );
   }
@@ -337,12 +338,13 @@ class ResourceDetailsState extends State<ResourceDetails> {
         final content = noteContent;
         final existingNoteId = formController.linkedNoteId;
         if (existingNoteId != null) {
-          // Update with current content; empty content triggers deletion on backend
-          context.read<NoteBloc>().add(UpdateNoteEvent(
-            origin: EventOrigin.subScreen,
-            noteId: existingNoteId,
-            request: NoteRequestModel(content: content ?? {}),
-          ));
+          if (formController.notesEdited) {
+            context.read<NoteBloc>().add(UpdateNoteEvent(
+              origin: EventOrigin.subScreen,
+              noteId: existingNoteId,
+              request: NoteRequestModel(content: content ?? {}),
+            ));
+          }
         } else if (content != null) {
           context.read<NoteBloc>().add(CreateNoteEvent(
             origin: EventOrigin.subScreen,
@@ -406,6 +408,7 @@ class ResourceDetailsState extends State<ResourceDetails> {
       formController.selectedResourceGroupId = state.resource!.resourceGroup;
 
       formController.notesController.dispose();
+      formController.notesEdited = false;
       if (state.linkedNote != null) {
         formController.linkedNoteId = state.linkedNote!.id;
         formController.notesController = heliumQuillController(
@@ -448,7 +451,9 @@ class ResourceDetailsState extends State<ResourceDetails> {
   void _setupNotesListener() {
     _notesSubscription?.cancel();
     _notesSubscription = formController.notesController.document.changes.listen((change) {
-      if (isNoteEdited(change)) formController.markChanged();
+      if (!isNoteEdited(change)) return;
+      formController.markChanged();
+      formController.notesEdited = true;
     });
   }
 

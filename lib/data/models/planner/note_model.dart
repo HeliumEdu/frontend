@@ -5,6 +5,11 @@ import 'package:heliumapp/utils/color_helpers.dart';
 class NoteModel extends BaseTitledModel {
   final Map<String, dynamic>? content;
   final DateTime updatedAt;
+
+  /// The raw `updated_at` as the server sent it, compared to tell whether a
+  /// re-read is newer. Kept as a string because a [DateTime] round trip loses
+  /// precision on web.
+  final String? version;
   final List<int> homework;
   final List<int> events;
   final List<int> resources;
@@ -20,6 +25,7 @@ class NoteModel extends BaseTitledModel {
     required super.title,
     this.content,
     required this.updatedAt,
+    this.version,
     this.homework = const [],
     this.events = const [],
     this.resources = const [],
@@ -44,6 +50,7 @@ class NoteModel extends BaseTitledModel {
           ? Map<String, dynamic>.from(json['content'])
           : null,
       updatedAt: DateTime.parse(json['updated_at']),
+      version: json['updated_at'],
       homework: homework,
       events: events,
       resources: resources,
@@ -67,6 +74,7 @@ class NoteModel extends BaseTitledModel {
     String? title,
     Map<String, dynamic>? content,
     DateTime? updatedAt,
+    String? version,
     List<int>? homework,
     List<int>? events,
     List<int>? resources,
@@ -82,6 +90,7 @@ class NoteModel extends BaseTitledModel {
       title: title ?? this.title,
       content: content ?? this.content,
       updatedAt: updatedAt ?? this.updatedAt,
+      version: version ?? this.version,
       homework: homework ?? this.homework,
       events: events ?? this.events,
       resources: resources ?? this.resources,

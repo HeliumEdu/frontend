@@ -35,6 +35,8 @@ class PlannerItemFormController extends BasicFormController {
   QuillController notesController = heliumQuillController();
   int? linkedNoteId;
 
+  bool notesEdited = false;
+
   PlannerItemFormController() {
     gradeFocusNode.addListener(_onGradeFocusChange);
   }

@@ -83,9 +83,12 @@ class CacheService with WidgetsBindingObserver {
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.paused) {
-      _pausedAt = DateTime.now();
-      _log.fine('App paused, recording timestamp for cache invalidation check');
+    if (state == AppLifecycleState.paused ||
+        state == AppLifecycleState.hidden) {
+      if (_pausedAt == null) {
+        _pausedAt = DateTime.now();
+        _log.fine('App hidden, recording timestamp for cache invalidation check');
+      }
     } else if (state == AppLifecycleState.resumed && _pausedAt != null) {
       final inactiveDuration = DateTime.now().difference(_pausedAt!);
       if (inactiveDuration > inactivityThreshold) {

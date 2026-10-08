@@ -89,6 +89,7 @@ class CourseDetailsState extends State<CourseDetails> {
         origin: EventOrigin.subScreen,
         courseGroupId: widget.courseGroupId,
         courseId: widget.courseId,
+        forceRefresh: true,
       ),
     );
   }

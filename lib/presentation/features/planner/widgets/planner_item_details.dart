@@ -149,6 +149,7 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
         origin: EventOrigin.subScreen,
         eventId: _eventId,
         homeworkId: _homeworkId,
+        forceRefresh: true,
       ),
     );
   }
@@ -200,6 +201,7 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
         origin: EventOrigin.subScreen,
         eventId: eventId,
         homeworkId: homeworkId,
+        forceRefresh: true,
       ),
     );
   }
@@ -696,6 +698,7 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
               linkedNoteId: formController.linkedNoteId,
               noteContent: noteContent,
               redirectToNotebook: redirectToNotebook,
+              noteEdited: formController.notesEdited,
             ),
           );
         } else {
@@ -745,6 +748,7 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
               linkedNoteId: formController.linkedNoteId,
               noteContent: noteContent,
               redirectToNotebook: redirectToNotebook,
+              noteEdited: formController.notesEdited,
             ),
           );
         } else {
@@ -772,7 +776,9 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
   void _setupNotesListener() {
     _notesSubscription?.cancel();
     _notesSubscription = formController.notesController.document.changes.listen((change) {
-      if (isNoteEdited(change)) formController.markChanged();
+      if (!isNoteEdited(change)) return;
+      formController.markChanged();
+      formController.notesEdited = true;
     });
   }
 
@@ -927,6 +933,7 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
       }
     }
 
+    formController.notesEdited = false;
     if (widget.isEdit && state.linkedNote != null) {
       formController.linkedNoteId = state.linkedNote!.id;
       formController.notesController.dispose();

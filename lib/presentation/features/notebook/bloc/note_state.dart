@@ -124,6 +124,15 @@ class NoteUpdated extends NoteState {
   });
 }
 
+class NoteRefreshed extends NoteState {
+  final NoteModel note;
+
+  NoteRefreshed({
+    required super.origin,
+    required this.note,
+  });
+}
+
 class NoteDeleted extends NoteState {
   final int noteId;
 

@@ -25,11 +25,13 @@ class FetchResourceScreenDataEvent extends ResourceEvent {
   /// has a resolved group.
   final int? resourceGroupId;
   final int? resourceId;
+  final bool forceRefresh;
 
   FetchResourceScreenDataEvent({
     required super.origin,
     this.resourceGroupId,
     this.resourceId,
+    this.forceRefresh = false,
   });
 }
 

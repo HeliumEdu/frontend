@@ -16,6 +16,7 @@ import 'package:heliumapp/data/models/planner/request/course_schedule_request_mo
 import 'package:heliumapp/data/models/planner/request/event_request_model.dart';
 import 'package:heliumapp/data/models/planner/request/external_calendar_request_model.dart';
 import 'package:heliumapp/data/models/planner/request/homework_request_model.dart';
+import 'package:heliumapp/data/models/planner/request/note_request_model.dart';
 import 'package:heliumapp/data/models/planner/request/resource_group_request_model.dart';
 import 'package:heliumapp/data/models/planner/request/resource_request_model.dart';
 import 'package:heliumapp/data/models/planner/request/reminder_request_model.dart';
@@ -50,6 +51,7 @@ void registerFallbackValues() {
   registerFallbackValue(_FakeResourceGroupRequestModel());
   registerFallbackValue(_FakeReminderRequestModel());
   registerFallbackValue(_FakeExternalCalendarRequestModel());
+  registerFallbackValue(_FakeNoteRequestModel());
 }
 
 // Fake implementations for request models
@@ -103,3 +105,5 @@ class _FakeExternalCalendarRequestModel extends Fake
     implements ExternalCalendarRequestModel {}
 
 class _FakeUserSettingsModel extends Fake implements UserSettingsModel {}
+
+class _FakeNoteRequestModel extends Fake implements NoteRequestModel {}

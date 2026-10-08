@@ -70,6 +70,15 @@ class UpdateNoteEvent extends NoteEvent {
   });
 }
 
+class RefreshNoteEvent extends NoteEvent {
+  final int noteId;
+
+  RefreshNoteEvent({
+    required super.origin,
+    required this.noteId,
+  });
+}
+
 class DeleteNoteEvent extends NoteEvent {
   final int noteId;
 

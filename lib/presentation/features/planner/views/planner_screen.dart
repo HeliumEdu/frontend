@@ -557,6 +557,15 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
             unawaited(_refreshExternalCalendarsMap());
           } else if (state is HomeworkCreated) {
             _plannerItemDataSource!.addPlannerItem(state.homework);
+          } else if (state is PlannerItemScreenDataFetched &&
+              state.plannerItem != null) {
+            final plannerItem = state.plannerItem!;
+            _plannerItemDataSource!.updatePlannerItem(
+              plannerItem,
+              hasPendingCompletionWrite: _hasPendingCompletionWrite(
+                plannerItem.id,
+              ),
+            );
           } else if (state is PlannerItemsError) {
             if (state.origin == EventOrigin.screen && !isShowingErrorCard) {
               showSnackBar(context, state.message!, type: SnackType.error);

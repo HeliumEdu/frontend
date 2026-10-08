@@ -15,11 +15,13 @@ class ResetPlannerItemsEvent extends PlannerItemEvent {
 class FetchPlannerItemScreenDataEvent extends PlannerItemEvent {
   final int? eventId;
   final int? homeworkId;
+  final bool forceRefresh;
 
   FetchPlannerItemScreenDataEvent({
     required super.origin,
     this.eventId,
     this.homeworkId,
+    this.forceRefresh = false,
   });
 }
 
@@ -51,6 +53,7 @@ class UpdateEventEvent extends PlannerItemEvent {
   final int? linkedNoteId;
   final Map<String, dynamic>? noteContent;
   final bool redirectToNotebook;
+  final bool noteEdited;
 
   UpdateEventEvent({
     required super.origin,
@@ -60,6 +63,7 @@ class UpdateEventEvent extends PlannerItemEvent {
     this.linkedNoteId,
     this.noteContent,
     this.redirectToNotebook = false,
+    this.noteEdited = true,
   });
 }
 
@@ -114,6 +118,7 @@ class UpdateHomeworkEvent extends PlannerItemEvent {
   final int? linkedNoteId;
   final Map<String, dynamic>? noteContent;
   final bool redirectToNotebook;
+  final bool noteEdited;
 
   UpdateHomeworkEvent({
     required super.origin,
@@ -125,6 +130,7 @@ class UpdateHomeworkEvent extends PlannerItemEvent {
     this.linkedNoteId,
     this.noteContent,
     this.redirectToNotebook = false,
+    this.noteEdited = true,
   });
 }
 

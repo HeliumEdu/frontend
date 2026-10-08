@@ -511,6 +511,53 @@ void main() {
         );
 
         blocTest<PlannerItemBloc, PlannerItemState>(
+          'does not save an untouched linked note',
+          build: () {
+            when(
+              () => mockHomeworkRepository.updateHomework(
+                groupId: courseGroupId,
+                courseId: courseId,
+                homeworkId: homeworkId,
+                request: any(named: 'request'),
+              ),
+            ).thenAnswer(
+              (_) async => MockModels.createHomework(id: homeworkId),
+            );
+            return plannerItemBloc;
+          },
+          act: (bloc) => bloc.add(
+            UpdateHomeworkEvent(
+              origin: EventOrigin.subScreen,
+              courseGroupId: courseGroupId,
+              courseId: courseId,
+              homeworkId: homeworkId,
+              request: request,
+              linkedNoteId: 3,
+              noteContent: {'ops': []},
+              noteEdited: false,
+            ),
+          ),
+          expect: () => [
+            isA<PlannerItemsLoading>(),
+            isA<HomeworkUpdated>()
+                .having((s) => s.linkedNoteId, 'linkedNoteId', 3),
+          ],
+          verify: (_) {
+            verifyNever(
+              () => mockNoteRepository.updateNote(
+                noteId: any(named: 'noteId'),
+                request: any(named: 'request'),
+              ),
+            );
+            verifyNever(
+              () => mockNoteRepository.createNote(
+                request: any(named: 'request'),
+              ),
+            );
+          },
+        );
+
+        blocTest<PlannerItemBloc, PlannerItemState>(
           'emits [PlannerItemsLoading, PlannerItemsError] when update fails',
           build: () {
             when(

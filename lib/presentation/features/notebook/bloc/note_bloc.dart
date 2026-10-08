@@ -18,6 +18,9 @@ import 'package:heliumapp/domain/repositories/resource_repository.dart';
 import 'package:heliumapp/presentation/features/notebook/bloc/note_event.dart';
 import 'package:heliumapp/presentation/features/notebook/bloc/note_state.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/core/base_event.dart';
+import 'package:logging/logging.dart';
+
+final _log = Logger('presentation.bloc');
 
 class NoteBloc extends Bloc<NoteEvent, NoteState> {
   final NoteRepository noteRepository;
@@ -42,6 +45,7 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
     on<FetchLinkableEntitiesEvent>(_onFetchLinkableEntities);
     on<CreateNoteEvent>(_onCreateNote);
     on<UpdateNoteEvent>(_onUpdateNote);
+    on<RefreshNoteEvent>(_onRefreshNote);
     on<DeleteNoteEvent>(_onDeleteNote);
     on<ResetNotesEvent>(
       (event, emit) => emit(NoteInitial(origin: EventOrigin.bloc)),
@@ -282,6 +286,21 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
         origin: event.origin,
         message: HeliumException.unexpectedError,
       ));
+    }
+  }
+
+  Future<void> _onRefreshNote(
+    RefreshNoteEvent event,
+    Emitter<NoteState> emit,
+  ) async {
+    try {
+      final note = await noteRepository.getNote(
+        id: event.noteId,
+        forceRefresh: true,
+      );
+      emit(NoteRefreshed(origin: event.origin, note: note));
+    } on HeliumException catch (e) {
+      _log.info('Background refresh of Note ${event.noteId} failed: ${e.runtimeType}');
     }
   }
 

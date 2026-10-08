@@ -123,6 +123,25 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen> {
     super.dispose();
   }
 
+  void _replaceCourseGroup(CourseGroupModel courseGroup) {
+    setState(() {
+      final index = _courseGroups.indexWhere((g) => g.id == courseGroup.id);
+      if (index == -1) return;
+      _courseGroups[index] = courseGroup;
+      Sort.byStartDate(_courseGroups);
+    });
+  }
+
+  void _replaceCourse(CourseModel course) {
+    setState(() {
+      for (final courses in _coursesMap.values) {
+        courses.removeWhere((c) => c.id == course.id);
+      }
+      _coursesMap.putIfAbsent(course.courseGroup, () => []).add(course);
+      Sort.byTitle(_coursesMap[course.courseGroup]!);
+    });
+  }
+
   @override
   List<BlocListener<dynamic, dynamic>> buildListeners(BuildContext context) {
     return [
@@ -157,15 +176,7 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen> {
             _saveSelectedGroup();
           } else if (state is CourseGroupUpdated) {
             // No snackbar on updates
-
-            setState(() {
-              final index = _courseGroups.indexWhere(
-                (g) => g.id == state.courseGroup.id,
-              );
-              if (index == -1) return;
-              _courseGroups[index] = state.courseGroup;
-              Sort.byStartDate(_courseGroups);
-            });
+            _replaceCourseGroup(state.courseGroup);
           } else if (state is CourseGroupDeleted) {
             showSnackBar(context, 'Group deleted.');
 
@@ -195,15 +206,10 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen> {
               value: _courseLoadBucket(totalCourses),
             ));
           } else if (state is CourseUpdated) {
-            setState(() {
-              for (final courses in _coursesMap.values) {
-                courses.removeWhere((c) => c.id == state.course.id);
-              }
-              _coursesMap
-                  .putIfAbsent(state.course.courseGroup, () => [])
-                  .add(state.course);
-              Sort.byTitle(_coursesMap[state.course.courseGroup]!);
-            });
+            _replaceCourse(state.course);
+          } else if (state is CourseScreenDataFetched && state.course != null) {
+            _replaceCourseGroup(state.courseGroup);
+            _replaceCourse(state.course!);
           } else if (state is CourseDeleted) {
             showSnackBar(context, 'Class deleted.');
 

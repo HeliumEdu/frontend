@@ -87,9 +87,14 @@ class ResourceBloc extends Bloc<ResourceEvent, ResourceState> {
           resourceRepository.getResource(
             groupId: event.resourceGroupId!,
             resourceId: event.resourceId!,
+            forceRefresh: event.forceRefresh,
           ),
         if (event.resourceId != null)
-          noteRepository.getNotes(resourceId: event.resourceId, includeContent: true),
+          noteRepository.getNotes(
+            resourceId: event.resourceId,
+            includeContent: true,
+            forceRefresh: event.forceRefresh,
+          ),
       ]);
 
       final courses = results[0] as List<CourseModel>;

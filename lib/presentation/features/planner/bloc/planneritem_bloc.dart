@@ -78,8 +78,15 @@ class PlannerItemBloc extends Bloc<PlannerItemEvent, PlannerItemState> {
 
       if (event.eventId != null) {
         final results = await Future.wait([
-          eventRepository.getEvent(id: event.eventId!),
-          noteRepository.getNotes(eventId: event.eventId, includeContent: true),
+          eventRepository.getEvent(
+            id: event.eventId!,
+            forceRefresh: event.forceRefresh,
+          ),
+          noteRepository.getNotes(
+            eventId: event.eventId,
+            includeContent: true,
+            forceRefresh: event.forceRefresh,
+          ),
         ]);
         plannerItem = results[0] as PlannerItemBaseModel;
         final notes = results[1] as List<NoteModel>;
@@ -92,7 +99,10 @@ class PlannerItemBloc extends Bloc<PlannerItemEvent, PlannerItemState> {
       } else {
         final results = await Future.wait([
           event.homeworkId != null
-              ? homeworkRepository.getHomework(id: event.homeworkId!)
+              ? homeworkRepository.getHomework(
+                  id: event.homeworkId!,
+                  forceRefresh: event.forceRefresh,
+                )
               : Future.value(null),
           courseRepository.getCourseGroups(shownOnCalendar: true),
           courseRepository.getCourses(shownOnCalendar: true),
@@ -100,7 +110,11 @@ class PlannerItemBloc extends Bloc<PlannerItemEvent, PlannerItemState> {
           categoryRepository.getCategories(shownOnCalendar: true),
           resourceRepository.getResources(shownOnCalendar: true),
           event.homeworkId != null
-              ? noteRepository.getNotes(homeworkId: event.homeworkId, includeContent: true)
+              ? noteRepository.getNotes(
+                  homeworkId: event.homeworkId,
+                  includeContent: true,
+                  forceRefresh: event.forceRefresh,
+                )
               : Future.value(<NoteModel>[]),
         ]);
         plannerItem = results[0] as PlannerItemBaseModel?;
@@ -248,7 +262,7 @@ class PlannerItemBloc extends Bloc<PlannerItemEvent, PlannerItemState> {
       ];
 
       int? linkedNoteId = event.linkedNoteId;
-      if (event.linkedNoteId != null) {
+      if (event.linkedNoteId != null && event.noteEdited) {
         // Empty content triggers note deletion on backend
         final contentToSend = event.noteContent ?? <String, dynamic>{};
         futures.add(noteRepository.updateNote(
@@ -256,7 +270,7 @@ class PlannerItemBloc extends Bloc<PlannerItemEvent, PlannerItemState> {
           request: NoteRequestModel(content: contentToSend),
         ));
         if (event.noteContent == null) linkedNoteId = null;
-      } else if (event.noteContent != null) {
+      } else if (event.linkedNoteId == null && event.noteContent != null) {
         futures.add(noteRepository.createNote(
           request: NoteRequestModel(content: event.noteContent, eventId: event.id),
         ));
@@ -453,7 +467,7 @@ class PlannerItemBloc extends Bloc<PlannerItemEvent, PlannerItemState> {
       ];
 
       int? linkedNoteId = event.linkedNoteId;
-      if (event.linkedNoteId != null) {
+      if (event.linkedNoteId != null && event.noteEdited) {
         // Empty content triggers note deletion on backend
         final contentToSend = event.noteContent ?? <String, dynamic>{};
         futures.add(noteRepository.updateNote(
@@ -461,7 +475,7 @@ class PlannerItemBloc extends Bloc<PlannerItemEvent, PlannerItemState> {
           request: NoteRequestModel(content: contentToSend),
         ));
         if (event.noteContent == null) linkedNoteId = null;
-      } else if (event.noteContent != null) {
+      } else if (event.linkedNoteId == null && event.noteContent != null) {
         futures.add(noteRepository.createNote(
           request: NoteRequestModel(content: event.noteContent, homeworkId: event.homeworkId),
         ));
