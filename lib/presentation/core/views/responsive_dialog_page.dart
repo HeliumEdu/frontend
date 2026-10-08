@@ -8,6 +8,10 @@ import 'package:heliumapp/utils/responsive_helpers.dart';
 /// mobile and an overlay [Dialog] on desktop. Used by GoRoute pageBuilders for
 /// any dialog-style screen.
 ///
+/// With [fullScreen], the desktop dialog fills the window edge to edge
+/// instead of floating in a bordered frame, while keeping dialog behavior
+/// (fade transition, Esc to dismiss).
+///
 /// The dialog vs. full-screen choice is made at pageBuilder time — a window
 /// resize while a dialog is open does not switch modes.
 Page<T> responsiveDialogPage<T>(
@@ -19,6 +23,7 @@ Page<T> responsiveDialogPage<T>(
   AlignmentGeometry alignment = Alignment.center,
   EdgeInsets insetPadding = const EdgeInsets.all(16),
   bool? barrierDismissible,
+  bool fullScreen = false,
   LocalKey? key,
 }) {
   final pageKey = key ?? state.pageKey;
@@ -37,6 +42,7 @@ Page<T> responsiveDialogPage<T>(
     insetPadding: insetPadding,
     barrierDismissible:
         barrierDismissible ?? !Responsive.isTouchDevice(context),
+    fullScreen: fullScreen,
   );
 }
 
@@ -47,6 +53,7 @@ class _DialogPage<T> extends Page<T> {
   final AlignmentGeometry alignment;
   final EdgeInsets insetPadding;
   final bool barrierDismissible;
+  final bool fullScreen;
 
   const _DialogPage({
     super.key,
@@ -56,6 +63,7 @@ class _DialogPage<T> extends Page<T> {
     required this.alignment,
     required this.insetPadding,
     required this.barrierDismissible,
+    required this.fullScreen,
   });
 
   @override
@@ -65,6 +73,7 @@ class _DialogPage<T> extends Page<T> {
       settings: this,
       barrierDismissible: barrierDismissible,
       barrierColor: Colors.black54,
+      useSafeArea: !fullScreen,
       // _DialogPageContent reads its data from the route's settings on every
       // build, so URL-driven Page swaps under a shared page key reach the
       // dialog content via the modal scope's `changedInternalState` rebuild.
@@ -117,6 +126,9 @@ class _DialogPageContentState extends State<_DialogPageContent> {
   @override
   Widget build(BuildContext context) {
     final page = ModalRoute.of(context)!.settings as _DialogPage;
+    if (page.fullScreen) {
+      return _FullScreenPageContent(child: page.child);
+    }
     final mediaQuery = MediaQuery.of(context);
     final effectiveHeight = page.height ?? mediaQuery.size.height - 32;
     return Dialog(

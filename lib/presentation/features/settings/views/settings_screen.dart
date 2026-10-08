@@ -374,13 +374,18 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
             });
           } else if (state is AuthScheduleDataRefreshed && _clearingExampleData) {
             setState(() => _clearingExampleData = false);
-            await loadSettings();
-            if (!context.mounted) return;
             showSnackBar(
               context,
               state.message ?? 'Example schedule cleared.',
               type: state.message == null ? SnackType.success : SnackType.info,
+              useRootMessenger: true,
             );
+            // Defer so SfCalendar's pending post-frame setState fires before
+            // the branch swap disposes it.
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (!context.mounted) return;
+              context.go(AppRoute.coursesScreen);
+            });
           } else if (state is AuthEmailChangeRequested) {
             setState(() {
               _emailChanging = state.newEmail;

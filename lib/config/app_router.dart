@@ -508,7 +508,6 @@ Page<dynamic> _noteDialogPage(
   final linkEventId = int.tryParse(query[DeepLinkParam.linkEventId] ?? '');
   final linkResourceId =
       int.tryParse(query[DeepLinkParam.linkResourceId] ?? '');
-  final useCompact = Responsive.useCompactLayout(context);
   return responsiveDialogPage(
     context,
     state,
@@ -522,10 +521,7 @@ Page<dynamic> _noteDialogPage(
       linkEventId: linkEventId,
       linkResourceId: linkResourceId,
     ),
-    width: double.infinity,
-    insetPadding:
-        useCompact ? EdgeInsets.zero : const EdgeInsets.all(32),
-    alignment: Alignment.center,
+    fullScreen: true,
   );
 }
 

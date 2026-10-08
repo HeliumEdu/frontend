@@ -743,14 +743,17 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
   }
 
   Widget _buildDesktopLayout(BuildContext context, bool isCompact) {
-    return Form(
-      key: _formController.formKey,
-      child: Column(
-        children: [
-          _buildTitleRow(context),
-          if (_showLinkPicker) _buildLinkPicker(context),
-          Expanded(child: _buildEditorContainer(context, isCompact)),
-        ],
+    return SafeArea(
+      top: false,
+      child: Form(
+        key: _formController.formKey,
+        child: Column(
+          children: [
+            _buildTitleRow(context),
+            if (_showLinkPicker) _buildLinkPicker(context),
+            Expanded(child: _buildEditorContainer(context, isCompact)),
+          ],
+        ),
       ),
     );
   }

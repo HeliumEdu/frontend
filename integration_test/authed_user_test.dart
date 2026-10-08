@@ -1893,20 +1893,16 @@ void main() {
         await tester.tap(clearItem);
         await tester.pumpAndSettle(const Duration(seconds: 10));
 
-        final settingsReturned = await waitForWidget(
+        final classesScreenFound = await waitForRoute(
           tester,
-          find.text('Change Password'),
+          AppRoute.coursesScreen,
+          browserTitle: 'Classes',
           timeout: const Duration(seconds: 45),
         );
         expect(
-          settingsReturned,
+          classesScreenFound,
           isTrue,
-          reason: 'Settings should return once the example schedule is cleared',
-        );
-        expect(
-          clearItem,
-          findsNothing,
-          reason: 'Clear Example Data should disappear once the example schedule is cleared',
+          reason: 'Settings should close to Classes once the example schedule is cleared',
         );
 
         _log.info('Verifying the edited courses were kept via the API ...');
