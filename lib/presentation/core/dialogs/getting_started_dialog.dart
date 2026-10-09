@@ -13,6 +13,7 @@ import 'package:heliumapp/presentation/features/auth/bloc/auth_event.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_state.dart';
 import 'package:heliumapp/presentation/ui/components/helium_elevated_button.dart';
 import 'package:heliumapp/core/motion_service.dart';
+import 'package:heliumapp/presentation/ui/feedback/confirm_clear_example_data.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/deep_link_helpers.dart';
@@ -528,13 +529,16 @@ class _GettingStartedDialogWidgetState
     );
   }
 
+  Future<void> _clearExampleData() async {
+    if (!await confirmClearExampleData(context) || !mounted) return;
+    context.read<AuthBloc>().add(DeleteExampleScheduleEvent());
+  }
+
   Widget _buildClearButton(BuildContext context, bool isLoading) {
     final error = context.colorScheme.error;
 
     return OutlinedButton.icon(
-      onPressed: isLoading
-          ? null
-          : () => context.read<AuthBloc>().add(DeleteExampleScheduleEvent()),
+      onPressed: isLoading ? null : _clearExampleData,
       icon: isLoading
           ? SizedBox(
               width: 16,
