@@ -318,62 +318,66 @@ class _FeedsScreenState extends State<FeedsScreen> {
       context: parentContext,
       builder: (dialogContext) => StatefulBuilder(
         builder: (BuildContext context, StateSetter setState) {
-          return AlertDialog(
-            title: Row(
-              children: [
-                Icon(
-                  Icons.warning_rounded,
-                  color: context.colorScheme.error,
-                  size: 24,
+          return PopScope(
+            canPop: !isSubmitting,
+            child: AlertDialog(
+              title: Row(
+                children: [
+                  Icon(
+                    Icons.warning_rounded,
+                    color: context.colorScheme.error,
+                    size: 24,
+                  ),
+                  const SizedBox(width: 12),
+                  Text('Disable All Feeds', style: AppStyles.pageTitle(context)),
+                ],
+              ),
+              content: SizedBox(
+                width: Responsive.getDialogWidth(context),
+                child: Text(
+                  'Disabling Feeds will break any existing integrations. Enabling again later will generate new URLs, and will not re-establish these connections. This action cannot be undone.',
+                  style: AppStyles.standardBodyText(context),
                 ),
-                const SizedBox(width: 12),
-                Text('Disable All Feeds', style: AppStyles.pageTitle(context)),
+              ),
+              actions: [
+                SizedBox(
+                  width: Responsive.getDialogWidth(context),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: HeliumElevatedButton(
+                          buttonText: 'Cancel',
+                          backgroundColor: context.colorScheme.outline,
+                          enabled: !isSubmitting,
+                          onPressed: () {
+                            Navigator.of(dialogContext).pop();
+                          },
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: HeliumElevatedButton(
+                          buttonText: 'Disable',
+                          backgroundColor: context.colorScheme.error,
+                          isLoading: isSubmitting,
+                          onPressed: () {
+                            setState(() {
+                              isSubmitting = true;
+                            });
+
+                            Navigator.of(dialogContext).pop();
+
+                            parentContext.read<AuthBloc>().add(
+                              DisablePrivateFeedsEvent(),
+                            );
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ],
             ),
-            content: SizedBox(
-              width: Responsive.getDialogWidth(context),
-              child: Text(
-                'Disabling Feeds will break any existing integrations. Enabling again later will generate new URLs, and will not re-establish these connections. This action cannot be undone.',
-                style: AppStyles.standardBodyText(context),
-              ),
-            ),
-            actions: [
-              SizedBox(
-                width: Responsive.getDialogWidth(context),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: HeliumElevatedButton(
-                        buttonText: 'Cancel',
-                        backgroundColor: context.colorScheme.outline,
-                        onPressed: () {
-                          Navigator.of(dialogContext).pop();
-                        },
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: HeliumElevatedButton(
-                        buttonText: 'Disable',
-                        backgroundColor: context.colorScheme.error,
-                        isLoading: isSubmitting,
-                        onPressed: () {
-                          setState(() {
-                            isSubmitting = true;
-                          });
-
-                          Navigator.of(dialogContext).pop();
-
-                          parentContext.read<AuthBloc>().add(
-                            DisablePrivateFeedsEvent(),
-                          );
-                        },
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
           );
         },
       ),

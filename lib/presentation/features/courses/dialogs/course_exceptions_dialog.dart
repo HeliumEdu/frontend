@@ -62,9 +62,12 @@ class _CourseExceptionsDialogState extends State<CourseExceptionsDialog> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocListener<CourseBloc, CourseState>(
-      listener: _onCourseStateChanged,
-      child: _buildDialog(context),
+    return PopScope(
+      canPop: !_isSaving,
+      child: BlocListener<CourseBloc, CourseState>(
+        listener: _onCourseStateChanged,
+        child: _buildDialog(context),
+      ),
     );
   }
 

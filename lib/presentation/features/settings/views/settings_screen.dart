@@ -32,6 +32,7 @@ import 'package:heliumapp/presentation/ui/components/helium_elevated_button.dart
 import 'package:heliumapp/presentation/ui/components/helium_icon_button.dart';
 import 'package:heliumapp/presentation/ui/components/label_and_text_form_field.dart';
 import 'package:heliumapp/presentation/ui/components/support_helium_card.dart';
+import 'package:heliumapp/presentation/ui/feedback/confirm_clear_example_data.dart';
 import 'package:heliumapp/presentation/ui/feedback/discard_changes_scope.dart';
 import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
 import 'package:heliumapp/presentation/ui/feedback/warning_container.dart';
@@ -352,6 +353,7 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
             if (_activeSubScreen == null) {
               setState(() {
                 isLoading = false;
+                if (_clearingExampleData) isSubmitting = false;
                 _clearingExampleData = false;
               });
               if (!isShowingErrorCard) {
@@ -373,7 +375,10 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
               isLoading = false;
             });
           } else if (state is AuthScheduleDataRefreshed && _clearingExampleData) {
-            setState(() => _clearingExampleData = false);
+            setState(() {
+              _clearingExampleData = false;
+              isSubmitting = false;
+            });
             showSnackBar(
               context,
               state.message ?? 'Example schedule cleared.',
@@ -529,15 +534,15 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
 
             const SizedBox(height: 12),
 
-            _buildSubSettingsArea(),
-
-            const SizedBox(height: 12),
-
             if (userSettings?.showGettingStarted ?? false) ...[
               _buildExampleDataArea(),
 
               const SizedBox(height: 12),
             ],
+
+            _buildSubSettingsArea(),
+
+            const SizedBox(height: 12),
 
             _buildDangerZoneArea(),
 
@@ -785,6 +790,7 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
   }
 
   void _navigateToSubSettings(SettingsSubScreen subScreen) {
+    if (isSubmitting) return;
     if (subScreen == SettingsSubScreen.changePassword) {
       _changePasswordPasswordless = !_hasUsablePassword;
     }
@@ -880,7 +886,6 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
       child: _buildDangerZoneItem(
         icon: Icons.cleaning_services_outlined,
         label: 'Clear Example Data',
-        hint: 'Remove the example schedule, keeping anything that changed',
         onTap: _clearExampleData,
         isFirst: true,
         isLast: true,
@@ -888,10 +893,14 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
     );
   }
 
-  void _clearExampleData() {
+  Future<void> _clearExampleData() async {
     if (_clearingExampleData) return;
+    if (!await confirmClearExampleData(context) || !mounted) return;
 
-    setState(() => _clearingExampleData = true);
+    setState(() {
+      _clearingExampleData = true;
+      isSubmitting = true;
+    });
     context.read<AuthBloc>().add(DeleteExampleScheduleEvent());
   }
 
@@ -1019,7 +1028,7 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
   Widget _buildDangerZoneItem({
     required IconData icon,
     required String label,
-    required String hint,
+    String? hint,
     required VoidCallback onTap,
     bool isFirst = false,
     bool isLast = false,
@@ -1066,8 +1075,10 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
                         context,
                       ).copyWith(color: context.colorScheme.error),
                     ),
-                    const SizedBox(height: 2.0),
-                    Text(hint, style: AppStyles.menuItemHint(context)),
+                    if (hint != null) ...[
+                      const SizedBox(height: 2.0),
+                      Text(hint, style: AppStyles.menuItemHint(context)),
+                    ],
                   ],
                 ),
               ),
@@ -1095,78 +1106,82 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
       context: parentContext,
       builder: (dialogContext) => StatefulBuilder(
         builder: (context, setState) {
-          return AlertDialog(
-            title: Row(
-              children: [
-                Icon(
-                  Icons.warning_amber_rounded,
-                  color: context.colorScheme.error,
-                  size: Responsive.getIconSize(
-                    context,
-                    mobile: 28,
-                    tablet: 30,
-                    desktop: 32,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    'Delete All Events',
-                    style: AppStyles.featureText(
+          return PopScope(
+            canPop: !isSubmitting,
+            child: AlertDialog(
+              title: Row(
+                children: [
+                  Icon(
+                    Icons.warning_amber_rounded,
+                    color: context.colorScheme.error,
+                    size: Responsive.getIconSize(
                       context,
-                    ).copyWith(color: context.colorScheme.error),
+                      mobile: 28,
+                      tablet: 30,
+                      desktop: 32,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      'Delete All Events',
+                      style: AppStyles.featureText(
+                        context,
+                      ).copyWith(color: context.colorScheme.error),
+                    ),
+                  ),
+                ],
+              ),
+              content: SizedBox(
+                width: Responsive.getDialogWidth(context),
+                child: Text(
+                  'Are you sure you want to delete all Events? Anything associated with them, including attachments, notes, and other data, will also be deleted. This action cannot be undone.',
+                  style: AppStyles.standardBodyText(context),
+                ),
+              ),
+              actions: [
+                SizedBox(
+                  width: Responsive.getDialogWidth(context),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: HeliumElevatedButton(
+                          buttonText: 'Cancel',
+                          backgroundColor: context.colorScheme.outline,
+                          enabled: !isSubmitting,
+                          onPressed: () {
+                            Navigator.of(dialogContext).pop();
+                          },
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: HeliumElevatedButton(
+                          buttonText: 'Delete',
+                          backgroundColor: context.colorScheme.error,
+                          isLoading: isSubmitting,
+                          onPressed: () {
+                            setState(() {
+                              isSubmitting = true;
+                            });
+
+                            Navigator.of(dialogContext).pop();
+
+                            this.setState(() {
+                              isLoading = true;
+                            });
+
+                            context.read<PlannerItemBloc>().add(
+                              DeleteAllEventsEvent(origin: EventOrigin.dialog),
+                            );
+                          },
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ],
             ),
-            content: SizedBox(
-              width: Responsive.getDialogWidth(context),
-              child: Text(
-                'Are you sure you want to delete all Events? Anything associated with them, including attachments, notes, and other data, will also be deleted. This action cannot be undone.',
-                style: AppStyles.standardBodyText(context),
-              ),
-            ),
-            actions: [
-              SizedBox(
-                width: Responsive.getDialogWidth(context),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: HeliumElevatedButton(
-                        buttonText: 'Cancel',
-                        backgroundColor: context.colorScheme.outline,
-                        onPressed: () {
-                          Navigator.of(dialogContext).pop();
-                        },
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: HeliumElevatedButton(
-                        buttonText: 'Delete',
-                        backgroundColor: context.colorScheme.error,
-                        isLoading: isSubmitting,
-                        onPressed: () {
-                          setState(() {
-                            isSubmitting = true;
-                          });
-
-                          Navigator.of(dialogContext).pop();
-
-                          this.setState(() {
-                            isLoading = true;
-                          });
-
-                          context.read<PlannerItemBloc>().add(
-                            DeleteAllEventsEvent(origin: EventOrigin.dialog),
-                          );
-                        },
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
           );
         },
       ),
@@ -1180,65 +1195,69 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
       context: parentContext,
       builder: (dialogContext) => StatefulBuilder(
         builder: (BuildContext context, StateSetter setState) {
-          return AlertDialog(
-            title: Row(
-              children: [
-                Icon(
-                  Icons.logout_rounded,
-                  color: context.colorScheme.error,
-                  size: 24,
+          return PopScope(
+            canPop: !isSubmitting,
+            child: AlertDialog(
+              title: Row(
+                children: [
+                  Icon(
+                    Icons.logout_rounded,
+                    color: context.colorScheme.error,
+                    size: 24,
+                  ),
+                  const SizedBox(width: 12),
+                  Text('Sign Out', style: AppStyles.pageTitle(context)),
+                ],
+              ),
+              content: SizedBox(
+                width: Responsive.getDialogWidth(context),
+                child: Text(
+                  'Are you sure you want to sign out?',
+                  style: AppStyles.standardBodyText(context),
                 ),
-                const SizedBox(width: 12),
-                Text('Sign Out', style: AppStyles.pageTitle(context)),
+              ),
+              actions: [
+                SizedBox(
+                  width: Responsive.getDialogWidth(context),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: HeliumElevatedButton(
+                          buttonText: 'Cancel',
+                          backgroundColor: context.colorScheme.outline,
+                          enabled: !isSubmitting,
+                          onPressed: () {
+                            Navigator.of(dialogContext).pop();
+                          },
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: HeliumElevatedButton(
+                          buttonText: 'Sign Out',
+                          backgroundColor: context.colorScheme.error,
+                          isLoading: isSubmitting,
+                          onPressed: () {
+                            setState(() {
+                              isSubmitting = true;
+                            });
+
+                            Navigator.of(dialogContext).pop();
+
+                            if (force) {
+                              unawaited(dioClient.forceLogout());
+                              return;
+                            }
+
+                            parentContext.read<AuthBloc>().add(LogoutEvent());
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ],
             ),
-            content: SizedBox(
-              width: Responsive.getDialogWidth(context),
-              child: Text(
-                'Are you sure you want to sign out?',
-                style: AppStyles.standardBodyText(context),
-              ),
-            ),
-            actions: [
-              SizedBox(
-                width: Responsive.getDialogWidth(context),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: HeliumElevatedButton(
-                        buttonText: 'Cancel',
-                        backgroundColor: context.colorScheme.outline,
-                        onPressed: () {
-                          Navigator.of(dialogContext).pop();
-                        },
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: HeliumElevatedButton(
-                        buttonText: 'Sign Out',
-                        backgroundColor: context.colorScheme.error,
-                        isLoading: isSubmitting,
-                        onPressed: () {
-                          setState(() {
-                            isSubmitting = true;
-                          });
-
-                          Navigator.of(dialogContext).pop();
-
-                          if (force) {
-                            unawaited(dioClient.forceLogout());
-                            return;
-                          }
-
-                          parentContext.read<AuthBloc>().add(LogoutEvent());
-                        },
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
           );
         },
       ),
@@ -1273,119 +1292,123 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
             }
           }
 
-          return AlertDialog(
-            title: Row(
-              children: [
-                Icon(
-                  Icons.warning_amber_rounded,
-                  color: context.colorScheme.error,
-                  size: Responsive.getIconSize(
-                    context,
-                    mobile: 28,
-                    tablet: 30,
-                    desktop: 32,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    'Delete Account',
-                    style: AppStyles.featureText(
+          return PopScope(
+            canPop: !isSubmitting,
+            child: AlertDialog(
+              title: Row(
+                children: [
+                  Icon(
+                    Icons.warning_amber_rounded,
+                    color: context.colorScheme.error,
+                    size: Responsive.getIconSize(
                       context,
-                    ).copyWith(color: context.colorScheme.error),
+                      mobile: 28,
+                      tablet: 30,
+                      desktop: 32,
+                    ),
                   ),
-                ),
-              ],
-            ),
-            content: SizedBox(
-              width: Responsive.getDialogWidth(context),
-              child: SingleChildScrollView(
-                keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-                child: Form(
-                  key: _deleteAccountFormController.formKey,
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        _hasUsablePassword
-                            ? 'To permanently delete your account — and all data you have stored in Helium—confirm your password below. This action cannot be undone.'
-                            : 'To permanently delete your account — and all data you have stored in Helium—confirm by clicking the Delete button below. This action cannot be undone.',
-                        style: AppStyles.standardBodyText(context),
-                      ),
-                      if (_hasUsablePassword) ...[
-                        const SizedBox(height: 20),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: LabelAndTextFormField(
-                                key: const Key(
-                                  SettingsScreen.deleteAccountPasswordField,
-                                ),
-                                autofocus: kIsWeb,
-                                controller: _deleteAccountPasswordController,
-                                validator:
-                                    BasicFormController.validateRequiredField,
-                                onFieldSubmitted: (value) => handleSubmit(),
-                                obscureText: obscurePassword,
-                                prefixIcon: Icons.lock_outline,
-                                suffixIcon: IconButton(
-                                  onPressed: () {
-                                    setState(() {
-                                      obscurePassword = !obscurePassword;
-                                    });
-                                  },
-                                  icon: Icon(
-                                    obscurePassword
-                                        ? Icons.visibility_outlined
-                                        : Icons.visibility_off_outlined,
-                                    color: context.colorScheme.onSurface
-                                        .withValues(alpha: 0.4),
-                                    size: Responsive.getIconSize(
-                                      context,
-                                      mobile: 20,
-                                      tablet: 22,
-                                      desktop: 24,
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      'Delete Account',
+                      style: AppStyles.featureText(
+                        context,
+                      ).copyWith(color: context.colorScheme.error),
+                    ),
+                  ),
+                ],
+              ),
+              content: SizedBox(
+                width: Responsive.getDialogWidth(context),
+                child: SingleChildScrollView(
+                  keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+                  child: Form(
+                    key: _deleteAccountFormController.formKey,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          _hasUsablePassword
+                              ? 'To permanently delete your account — and all data you have stored in Helium—confirm your password below. This action cannot be undone.'
+                              : 'To permanently delete your account — and all data you have stored in Helium—confirm by clicking the Delete button below. This action cannot be undone.',
+                          style: AppStyles.standardBodyText(context),
+                        ),
+                        if (_hasUsablePassword) ...[
+                          const SizedBox(height: 20),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: LabelAndTextFormField(
+                                  key: const Key(
+                                    SettingsScreen.deleteAccountPasswordField,
+                                  ),
+                                  autofocus: kIsWeb,
+                                  controller: _deleteAccountPasswordController,
+                                  validator:
+                                      BasicFormController.validateRequiredField,
+                                  onFieldSubmitted: (value) => handleSubmit(),
+                                  obscureText: obscurePassword,
+                                  prefixIcon: Icons.lock_outline,
+                                  suffixIcon: IconButton(
+                                    onPressed: () {
+                                      setState(() {
+                                        obscurePassword = !obscurePassword;
+                                      });
+                                    },
+                                    icon: Icon(
+                                      obscurePassword
+                                          ? Icons.visibility_outlined
+                                          : Icons.visibility_off_outlined,
+                                      color: context.colorScheme.onSurface
+                                          .withValues(alpha: 0.4),
+                                      size: Responsive.getIconSize(
+                                        context,
+                                        mobile: 20,
+                                        tablet: 22,
+                                        desktop: 24,
+                                      ),
                                     ),
                                   ),
                                 ),
                               ),
-                            ),
-                          ],
-                        ),
+                            ],
+                          ),
+                        ],
                       ],
-                    ],
+                    ),
                   ),
                 ),
               ),
-            ),
-            actions: [
-              SizedBox(
-                width: Responsive.getDialogWidth(context),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: HeliumElevatedButton(
-                        buttonText: 'Cancel',
-                        backgroundColor: context.colorScheme.outline,
-                        onPressed: () {
-                          Navigator.of(dialogContext).pop();
-                        },
+              actions: [
+                SizedBox(
+                  width: Responsive.getDialogWidth(context),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: HeliumElevatedButton(
+                          buttonText: 'Cancel',
+                          backgroundColor: context.colorScheme.outline,
+                          enabled: !isSubmitting,
+                          onPressed: () {
+                            Navigator.of(dialogContext).pop();
+                          },
+                        ),
                       ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: HeliumElevatedButton(
-                        buttonText: 'Delete',
-                        backgroundColor: context.colorScheme.error,
-                        isLoading: isSubmitting,
-                        onPressed: handleSubmit,
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: HeliumElevatedButton(
+                          buttonText: 'Delete',
+                          backgroundColor: context.colorScheme.error,
+                          isLoading: isSubmitting,
+                          onPressed: handleSubmit,
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           );
         },
       ),

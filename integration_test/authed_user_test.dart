@@ -1891,6 +1891,8 @@ void main() {
 
         _log.info('Clicking Clear Example Data in Settings ...');
         await tester.tap(clearItem);
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Clear').last);
         await tester.pumpAndSettle(const Duration(seconds: 10));
 
         final classesScreenFound = await waitForRoute(
@@ -1969,6 +1971,8 @@ void main() {
 
         _log.info('Clicking Clear Example Data button ...');
         await tester.tap(find.text('Clear Example Data'));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Clear').last);
         await tester.pumpAndSettle(const Duration(seconds: 10));
 
         final classesScreenFound = await waitForRoute(
