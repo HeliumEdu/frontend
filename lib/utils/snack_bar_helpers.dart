@@ -3,7 +3,9 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:heliumapp/config/app_theme.dart';
+import 'package:heliumapp/core/contrast_service.dart';
 import 'package:heliumapp/utils/app_style.dart';
+import 'package:heliumapp/utils/color_helpers.dart';
 
 final rootScaffoldMessengerKey = GlobalKey<ScaffoldMessengerState>();
 
@@ -21,6 +23,10 @@ enum SnackType {
   }
 
   Color foregroundColor(BuildContext context) {
+    if (ContrastService().increaseContrast) {
+      return HeliumColors.contrastingTextColor(backgroundColor(context));
+    }
+
     return switch (this) {
       SnackType.success => context.semanticColors.onSuccess,
       SnackType.info => context.semanticColors.onInfo,

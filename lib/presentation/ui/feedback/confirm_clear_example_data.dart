@@ -12,10 +12,8 @@ Future<bool> confirmClearExampleData(BuildContext context) async {
       content: SizedBox(
         width: Responsive.getDialogWidth(dialogContext),
         child: Text(
-          'This removes the example schedule, including its classes, '
-          'assignments, and events. Anything you\'ve added to Helium won\'t be '
-          'deleted, and anything from the example schedule you\'ve changed '
-          'will remain.',
+          'This removes the example schedule. Anything you\'ve added or '
+          'changed stays.',
           style: AppStyles.standardBodyText(dialogContext),
         ),
       ),
@@ -35,7 +33,6 @@ Future<bool> confirmClearExampleData(BuildContext context) async {
               Expanded(
                 child: HeliumElevatedButton(
                   buttonText: 'Clear',
-                  backgroundColor: dialogContext.colorScheme.error,
                   onPressed: () => Navigator.of(dialogContext).pop(true),
                 ),
               ),

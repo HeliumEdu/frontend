@@ -45,6 +45,34 @@ class AppTheme {
         )
       : colorScheme.primary;
 
+  /// Semantic colors for text, icons, and borders on the surface. Unchanged by
+  /// default; when the OS asks for increased contrast, success, warning, and
+  /// info are moved only as far as WCAG AA requires, including on their own
+  /// tints and on container surfaces.
+  static SemanticColors applyIncreasedContrast(
+    SemanticColors semantic,
+    ColorScheme colorScheme,
+  ) {
+    if (!ContrastService().increaseContrast) return semantic;
+
+    return semantic.copyWith(
+      success: _increaseContrast(semantic.success, colorScheme),
+      warning: _increaseContrast(semantic.warning, colorScheme),
+      info: _increaseContrast(semantic.info, colorScheme),
+    );
+  }
+
+  static Color _increaseContrast(Color color, ColorScheme colorScheme) {
+    final target = colorScheme.brightness == Brightness.dark ? Colors.white : Colors.black;
+
+    for (var amount = 0.0; amount < 1.0; amount += 0.05) {
+      final candidate = Color.lerp(color, target, amount)!;
+      final tint = Color.lerp(colorScheme.surfaceContainer, candidate, 0.15)!;
+      if (HeliumColors.contrastRatio(candidate, tint) >= 4.5) return candidate;
+    }
+    return target;
+  }
+
   static ThemeData _buildTheme(
     ColorScheme colorScheme,
     SemanticColors semantic, {
@@ -232,7 +260,7 @@ class AppTheme {
         color: colorScheme.outline.withValues(alpha: 0.2),
         thickness: 1,
       ),
-      extensions: [semantic],
+      extensions: [applyIncreasedContrast(semantic, colorScheme)],
     );
   }
 }
