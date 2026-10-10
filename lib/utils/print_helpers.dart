@@ -176,7 +176,10 @@ class _BuiltPdfPreviewDialogState extends State<_BuiltPdfPreviewDialog> {
           actions: hasBytes
               ? [
                   IconButton(
-                    icon: const Icon(Icons.share),
+                    icon: Icon(
+                      Icons.share,
+                      color: context.colorScheme.primary,
+                    ),
                     tooltip: 'Share',
                     onPressed: () async {
                       await Printing.sharePdf(
@@ -185,17 +188,22 @@ class _BuiltPdfPreviewDialogState extends State<_BuiltPdfPreviewDialog> {
                       );
                     },
                   ),
-                  IconButton(
-                    icon: const Icon(Icons.print),
-                    tooltip: 'Print',
-                    onPressed: () async {
-                      await Printing.layoutPdf(
-                        onLayout: (_) async => _pdfBytes!,
-                        name: widget.title.isNotEmpty
-                            ? widget.title
-                            : 'Document',
-                      );
-                    },
+                  _TrailingActionSlot(
+                    child: IconButton(
+                      icon: Icon(
+                        Icons.print,
+                        color: context.colorScheme.primary,
+                      ),
+                      tooltip: 'Print',
+                      onPressed: () async {
+                        await Printing.layoutPdf(
+                          onLayout: (_) async => _pdfBytes!,
+                          name: widget.title.isNotEmpty
+                              ? widget.title
+                              : 'Document',
+                        );
+                      },
+                    ),
                   ),
                 ]
               : null,
@@ -220,6 +228,18 @@ class _BuiltPdfPreviewDialogState extends State<_BuiltPdfPreviewDialog> {
       canDebug: false,
     );
   }
+}
+
+/// Gives the last app bar action the same square slot as the leading button,
+/// so both sit the same distance from their edge at any visual density.
+class _TrailingActionSlot extends StatelessWidget {
+  final Widget child;
+
+  const _TrailingActionSlot({required this.child});
+
+  @override
+  Widget build(BuildContext context) =>
+      SizedBox(width: kToolbarHeight, child: Center(child: child));
 }
 
 /// Opens a full-screen PDF preview dialog.
@@ -311,15 +331,17 @@ class _PdfPreviewDialogState extends State<_PdfPreviewDialog> {
                 );
               },
             ),
-            IconButton(
-              icon: Icon(Icons.print, color: context.colorScheme.primary),
-              tooltip: 'Print',
-              onPressed: () async {
-                await Printing.layoutPdf(
-                  onLayout: (_) => _buildPdf(PrintableArea.pageFormat),
-                  name: widget.title.isNotEmpty ? widget.title : 'Document',
-                );
-              },
+            _TrailingActionSlot(
+              child: IconButton(
+                icon: Icon(Icons.print, color: context.colorScheme.primary),
+                tooltip: 'Print',
+                onPressed: () async {
+                  await Printing.layoutPdf(
+                    onLayout: (_) => _buildPdf(PrintableArea.pageFormat),
+                    name: widget.title.isNotEmpty ? widget.title : 'Document',
+                  );
+                },
+              ),
             ),
           ],
         ),

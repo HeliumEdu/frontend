@@ -43,6 +43,8 @@ class PlatformBehavior {
     TargetPlatform.fuchsia => false,
   };
 
+  static bool get reservesStatusBarSpace => !isDesktopHost;
+
   static bool get usesTouchInteractions => support.hasTouchInput;
 
   /// Whether hit targets are sized for a finger rather than a pointer.

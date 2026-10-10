@@ -157,10 +157,14 @@ class _HeliumAppState extends State<HeliumApp> with WidgetsBindingObserver {
       ],
       builder: (context, child) => RegionalFormatScope(
         alwaysUse24HourFormat: _regionalSettingsNotifier.uses24HourClock,
-        child: GestureDetector(
-          onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
-          behavior: HitTestBehavior.opaque,
-          child: child,
+        child: MediaQuery.removePadding(
+          context: context,
+          removeTop: !PlatformBehavior.reservesStatusBarSpace,
+          child: GestureDetector(
+            onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
+            behavior: HitTestBehavior.opaque,
+            child: child,
+          ),
         ),
       ),
     );
