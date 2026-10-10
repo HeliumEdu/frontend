@@ -57,6 +57,16 @@ class HeliumElevatedButton extends StatefulWidget {
     );
   }
 
+  /// The secondary counterpart to [baseStyle]: the same size and shape, with
+  /// an outline in place of the fill.
+  static ButtonStyle outlinedStyle(ColorScheme colorScheme) {
+    return OutlinedButton.styleFrom(
+      side: BorderSide(color: colorScheme.primary),
+      minimumSize: const Size.fromHeight(minimumHeight),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(_buttonBorderRadius)),
+    );
+  }
+
   @override
   State<HeliumElevatedButton> createState() => _HeliumElevatedButtonState();
 }
