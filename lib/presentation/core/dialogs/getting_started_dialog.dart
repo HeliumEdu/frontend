@@ -119,7 +119,7 @@ const _cards = [
         'This welcome returns on every device until you clear the example '
         'data. Until then, feel free to explore it and get a feel for '
         'everything Helium has to offer.',
-    icon: Icons.auto_delete_outlined,
+    icon: Icons.cleaning_services_outlined,
     imagePaths: ['assets/img/onboarding_reminders.png'],
   ),
 ];
@@ -535,21 +535,18 @@ class _GettingStartedDialogWidgetState
   }
 
   Widget _buildClearButton(BuildContext context, bool isLoading) {
-    final error = context.colorScheme.error;
-
     return OutlinedButton.icon(
       onPressed: isLoading ? null : _clearExampleData,
       icon: isLoading
-          ? SizedBox(
+          ? const SizedBox(
               width: 16,
               height: 16,
-              child: CircularProgressIndicator(strokeWidth: 2.5, color: error),
+              child: CircularProgressIndicator(strokeWidth: 2.5),
             )
-          : const Icon(Icons.delete_outline, size: 16),
+          : const Icon(Icons.cleaning_services_outlined, size: 16),
       label: const Text('Clear Example Data'),
       style: OutlinedButton.styleFrom(
-        foregroundColor: error,
-        side: BorderSide(color: error),
+        side: BorderSide(color: context.colorScheme.primary),
         minimumSize: const Size.fromHeight(HeliumElevatedButton.minimumHeight),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6.0)),
       ),

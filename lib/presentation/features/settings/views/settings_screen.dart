@@ -880,13 +880,15 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(16.0),
         border: Border.all(
-          color: context.colorScheme.error.withValues(alpha: 0.2),
+          color: context.colorScheme.primary.withValues(alpha: 0.2),
         ),
       ),
-      child: _buildDangerZoneItem(
+      child: _buildSettingsItem(
         icon: Icons.cleaning_services_outlined,
         label: 'Clear Example Data',
+        hint: 'Remove the example schedule',
         onTap: _clearExampleData,
+        iconColor: context.colorScheme.primary,
         isFirst: true,
         isLast: true,
       ),
