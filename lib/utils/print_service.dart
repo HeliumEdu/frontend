@@ -1,5 +1,3 @@
-import 'package:flutter/foundation.dart';
-
 typedef PrintHandler = Future<void> Function();
 
 /// Singleton that allows screens to register a print handler invoked when
@@ -14,12 +12,6 @@ class PrintService {
   factory PrintService() => _instance;
 
   PrintService._internal();
-
-  /// True on web and non-mobile desktop; platforms where printing is supported
-  static bool get isSupported =>
-      kIsWeb ||
-      (defaultTargetPlatform != TargetPlatform.android &&
-          defaultTargetPlatform != TargetPlatform.iOS);
 
   final List<PrintHandler> _stack = [];
 

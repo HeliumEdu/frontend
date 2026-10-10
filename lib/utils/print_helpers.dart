@@ -6,6 +6,7 @@ import 'package:flutter/rendering.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/config/theme_notifier.dart';
 import 'package:heliumapp/utils/date_time_helpers.dart';
+import 'package:heliumapp/utils/platform_behavior.dart';
 import 'package:heliumapp/utils/print_service.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
@@ -568,7 +569,7 @@ class _PrintableAreaState extends State<PrintableArea> {
   @override
   void initState() {
     super.initState();
-    if (PrintService.isSupported) {
+    if (PlatformBehavior.supportsPrintShortcut) {
       _registeredHandler = _printArea;
       PrintService().register(_registeredHandler);
     }
@@ -576,7 +577,7 @@ class _PrintableAreaState extends State<PrintableArea> {
 
   @override
   void dispose() {
-    if (PrintService.isSupported) PrintService().unregister(_registeredHandler);
+    if (PlatformBehavior.supportsPrintShortcut) PrintService().unregister(_registeredHandler);
     super.dispose();
   }
 

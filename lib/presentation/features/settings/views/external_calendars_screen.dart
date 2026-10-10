@@ -20,7 +20,7 @@ import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
 import 'package:heliumapp/presentation/ui/layout/mobile_gesture_detector.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/app_style.dart';
-import 'package:heliumapp/utils/responsive_helpers.dart';
+import 'package:heliumapp/utils/platform_behavior.dart';
 import 'package:heliumapp/utils/snack_bar_helpers.dart';
 import 'package:heliumapp/utils/sort_helpers.dart';
 import 'package:heliumapp/utils/url_helpers.dart';
@@ -260,7 +260,7 @@ class ExternalCalendarsScreenState extends State<ExternalCalendarsScreen> {
                       },
               ),
               const SizedBox(width: 8),
-              if (Responsive.showItemActions(context)) ...[
+              if (PlatformBehavior.showItemActions(context)) ...[
                 Semantics(
                   label: 'Edit',
                   button: true,

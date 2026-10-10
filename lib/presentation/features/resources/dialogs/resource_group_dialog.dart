@@ -1,5 +1,4 @@
 import 'package:collection/collection.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:heliumapp/config/app_theme.dart';
@@ -18,6 +17,7 @@ import 'package:heliumapp/presentation/ui/components/helium_checkbox_list_tile.d
 import 'package:heliumapp/presentation/ui/components/helium_icon_button.dart';
 import 'package:heliumapp/presentation/ui/components/label_and_text_form_field.dart';
 import 'package:heliumapp/utils/app_style.dart';
+import 'package:heliumapp/utils/platform_behavior.dart';
 
 class _ResourceGroupProvidedWidget extends StatefulWidget {
   final bool isEdit;
@@ -150,7 +150,7 @@ class _ResourceGroupWidgetState
       children: [
         LabelAndTextFormField(
           label: 'Title',
-          autofocus: kIsWeb || !widget.isEdit,
+          autofocus: PlatformBehavior.autofocusesOnOpen || !widget.isEdit,
           controller: _formController.titleController,
           validator: BasicFormController.validateRequiredField,
           onChanged: (_) => _formController.markChanged(),

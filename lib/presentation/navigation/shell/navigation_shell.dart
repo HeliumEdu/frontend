@@ -33,6 +33,7 @@ import 'package:heliumapp/utils/app_assets.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/deep_link_helpers.dart';
+import 'package:heliumapp/utils/platform_behavior.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:logging/logging.dart';
 import 'package:heliumapp/utils/url_helpers.dart';
@@ -484,7 +485,7 @@ class _NavigationShellState extends State<NavigationShell> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          if (!Responsive.isTouchDevice(context) &&
+          if (PlatformBehavior.showsAppStoreLinks &&
               availableHeight > AppConstants.minHeightForTrailingNav) ...[
             _buildAppStoreButton(
               context: context,

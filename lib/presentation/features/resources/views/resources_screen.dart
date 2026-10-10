@@ -34,6 +34,7 @@ import 'package:heliumapp/presentation/ui/layout/mobile_gesture_detector.dart';
 import 'package:heliumapp/presentation/ui/layout/responsive_card_grid.dart';
 import 'package:heliumapp/utils/error_helpers.dart';
 import 'package:heliumapp/utils/app_style.dart';
+import 'package:heliumapp/utils/platform_behavior.dart';
 import 'package:heliumapp/utils/print_helpers.dart';
 import 'package:heliumapp/utils/quill_helpers.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
@@ -484,7 +485,7 @@ class _ResourcesScreenState
                     ),
                     const SizedBox(width: 8),
                   ],
-                  if (Responsive.showItemActions(context))
+                  if (PlatformBehavior.showItemActions(context))
                     PrintHidden(
                       child: Semantics(
                         label: 'Edit',

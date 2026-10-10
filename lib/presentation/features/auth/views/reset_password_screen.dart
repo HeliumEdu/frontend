@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -14,6 +13,7 @@ import 'package:heliumapp/presentation/ui/components/label_and_text_form_field.d
 import 'package:heliumapp/presentation/ui/layout/unauthenticated_scaffold.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/app_style.dart';
+import 'package:heliumapp/utils/platform_behavior.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 
 class ResetPasswordScreen extends StatefulWidget {
@@ -147,7 +147,7 @@ class _ResetPasswordScreenState
           if (hasValidLink) ...[
             LabelAndTextFormField(
               hintText: 'New password',
-              autofocus: kIsWeb,
+              autofocus: PlatformBehavior.autofocusesOnOpen,
               prefixIcon: Icons.lock_outline,
               controller: _passwordController,
               obscureText: true,

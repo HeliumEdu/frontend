@@ -24,6 +24,7 @@ import 'package:heliumapp/presentation/ui/layout/page_header.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/date_time_helpers.dart';
+import 'package:heliumapp/utils/platform_behavior.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:heliumapp/utils/schedule_week_resolver.dart';
 import 'package:heliumapp/utils/url_helpers.dart';
@@ -661,9 +662,7 @@ class _ScheduleEditorScreenState extends BaseDialogState<ScheduleEditorScreen> {
       initialTime: isStart
           ? (_cycleStartTimes[day] ?? _defaultCycleStart)
           : (_cycleEndTimes[day] ?? _defaultCycleEnd),
-      initialEntryMode: Responsive.isTouchDevice(context)
-          ? TimePickerEntryMode.dial
-          : TimePickerEntryMode.input,
+      initialEntryMode: PlatformBehavior.timePickerEntryMode,
       confirmText: 'Select',
     );
     if (pickedTime != null) {
@@ -997,9 +996,7 @@ class _ScheduleEditorScreenState extends BaseDialogState<ScheduleEditorScreen> {
       initialTime: isStartTime
           ? (_startTimes[dayIndex] ?? _singleStartTime)
           : (_endTimes[dayIndex] ?? _singleEndTime),
-      initialEntryMode: Responsive.isTouchDevice(context)
-          ? TimePickerEntryMode.dial
-          : TimePickerEntryMode.input,
+      initialEntryMode: PlatformBehavior.timePickerEntryMode,
       confirmText: 'Select',
     );
     if (pickedTime != null) {
@@ -1026,9 +1023,7 @@ class _ScheduleEditorScreenState extends BaseDialogState<ScheduleEditorScreen> {
     final pickedTime = await showTimePicker(
       context: context,
       initialTime: isStartTime ? _singleStartTime : _singleEndTime,
-      initialEntryMode: Responsive.isTouchDevice(context)
-          ? TimePickerEntryMode.dial
-          : TimePickerEntryMode.input,
+      initialEntryMode: PlatformBehavior.timePickerEntryMode,
       confirmText: 'Select',
     );
     if (pickedTime != null) {

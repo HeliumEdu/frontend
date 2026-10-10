@@ -84,6 +84,7 @@ import 'package:heliumapp/utils/date_time_helpers.dart';
 import 'package:heliumapp/utils/grade_helpers.dart';
 import 'package:heliumapp/presentation/features/planner/widgets/week_column.dart';
 import 'package:heliumapp/utils/planner_helper.dart';
+import 'package:heliumapp/utils/platform_behavior.dart';
 import 'package:heliumapp/utils/print_helpers.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:heliumapp/utils/url_helpers.dart';
@@ -972,7 +973,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
               !usesCustomWeekColumn &&
               showWeekNumbers,
           allowDragAndDrop:
-              !Responsive.isTouchDevice(context) ||
+              PlatformBehavior.allowsDragAndDropByDefault ||
               (userSettings?.dragAndDropOnMobile ??
                   FallbackConstants.defaultDragAndDropOnMobile),
           dragAndDropSettings: DragAndDropSettings(
@@ -2490,7 +2491,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
     // https://github.com/syncfusion/flutter-widgets/issues/2519
     // Skip for agenda-style items which handle taps internally via column zones.
     if (_currentView == PlannerView.month &&
-        Responsive.isTouchDevice(context) &&
+        PlatformBehavior.usesTouchInteractions &&
         !isInAgenda) {
       calendarItemWidget = GestureDetector(
         onTap: () {
@@ -2618,7 +2619,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
     bool isInAgendaStyle = false,
   }) {
     if (_isCalendarInteractionInProgress ||
-        Responsive.isTouchDevice(context) ||
+        !PlatformBehavior.showsHoverTooltips ||
         !(userSettings?.showPlannerTooltips ??
             FallbackConstants.defaultShowPlannerTooltips)) {
       return child;
@@ -3167,7 +3168,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
     }
 
     if (plannerItem is CourseScheduleEventModel &&
-        Responsive.showItemActions(context)) {
+        PlatformBehavior.showItemActions(context)) {
       buttons.add(
         Semantics(
           label: 'More',
@@ -3287,7 +3288,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
     final isCheckbox =
         plannerItem is HomeworkModel &&
         PlannerHelper.shouldShowCheckbox(plannerItem, width);
-    final useTouchTargets = Responsive.useTouchTargets(context);
+    final useTouchTargets = PlatformBehavior.usesTouchTargets;
 
     Widget leftContent(Widget icon) => Padding(
       padding: const EdgeInsets.only(left: 8),
@@ -3404,7 +3405,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
     // On touch the item's own detector owns checkbox taps, so the recognizer
     // survives the SfCalendar rebuild that a toggle triggers.
     final usesCheckboxZone =
-        Responsive.useTouchTargets(context) &&
+        PlatformBehavior.usesTouchTargets &&
         PlannerHelper.shouldShowCheckbox(plannerItem, width);
     if (usesCheckboxZone && inlineIcon != null) {
       inlineIcon = IgnorePointer(child: inlineIcon);

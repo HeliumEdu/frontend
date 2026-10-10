@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_bloc.dart';
@@ -10,6 +9,7 @@ import 'package:heliumapp/presentation/ui/components/helium_password_field.dart'
 import 'package:heliumapp/presentation/ui/layout/helium_full_screen_scroll_view.dart';
 import 'package:heliumapp/presentation/ui/components/label_and_text_form_field.dart';
 import 'package:heliumapp/presentation/ui/feedback/warning_container.dart';
+import 'package:heliumapp/utils/platform_behavior.dart';
 import 'package:heliumapp/utils/snack_bar_helpers.dart';
 
 class ChangeEmailScreen extends StatefulWidget {
@@ -135,7 +135,7 @@ class ChangeEmailScreenState extends State<ChangeEmailScreen> {
                 ],
                 LabelAndTextFormField(
                   label: 'New email',
-                  autofocus: kIsWeb,
+                  autofocus: PlatformBehavior.autofocusesOnOpen,
                   prefixIcon: Icons.email_outlined,
                   keyboardType: TextInputType.emailAddress,
                   controller: _formController.newEmailController,

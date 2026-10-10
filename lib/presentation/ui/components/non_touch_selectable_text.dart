@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:heliumapp/utils/responsive_helpers.dart';
+import 'package:heliumapp/utils/platform_behavior.dart';
 
 class NonTouchSelectableText extends StatelessWidget {
   final String data;
@@ -15,7 +15,7 @@ class NonTouchSelectableText extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (!Responsive.isTouchDevice(context)) {
+    if (!PlatformBehavior.usesTouchInteractions) {
       return SelectableText(
         data,
         style: style,

@@ -11,6 +11,7 @@ import 'package:heliumapp/core/analytics_service.dart';
 import 'package:heliumapp/core/contrast_service.dart';
 import 'package:heliumapp/core/motion_service.dart';
 import 'package:heliumapp/utils/material_localizations_helpers.dart';
+import 'package:heliumapp/utils/platform_behavior.dart';
 import 'package:heliumapp/utils/print_service.dart';
 import 'package:heliumapp/utils/web_helpers_stub.dart'
     if (dart.library.js_interop) 'package:heliumapp/utils/web_helpers_web.dart';
@@ -46,7 +47,7 @@ class _HeliumAppState extends State<HeliumApp> with WidgetsBindingObserver {
     super.initState();
     _themeNotifier.addListener(_rebuild);
     _regionalSettingsNotifier.addListener(_rebuild);
-    if (PrintService.isSupported) HardwareKeyboard.instance.addHandler(_handleKeyEvent);
+    if (PlatformBehavior.supportsPrintShortcut) HardwareKeyboard.instance.addHandler(_handleKeyEvent);
     WidgetsBinding.instance.addObserver(this);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
@@ -65,7 +66,7 @@ class _HeliumAppState extends State<HeliumApp> with WidgetsBindingObserver {
     WidgetsBinding.instance.removeObserver(this);
     _themeNotifier.removeListener(_rebuild);
     _regionalSettingsNotifier.removeListener(_rebuild);
-    if (PrintService.isSupported) HardwareKeyboard.instance.removeHandler(_handleKeyEvent);
+    if (PlatformBehavior.supportsPrintShortcut) HardwareKeyboard.instance.removeHandler(_handleKeyEvent);
     super.dispose();
   }
 
@@ -142,6 +143,7 @@ class _HeliumAppState extends State<HeliumApp> with WidgetsBindingObserver {
       scaffoldMessengerKey: rootScaffoldMessengerKey,
       routerConfig: router,
       debugShowCheckedModeBanner: false,
+      scrollBehavior: const HeliumScrollBehavior(),
       theme: AppTheme.light(reduceMotion: MotionService().reduceMotion),
       darkTheme: AppTheme.dark(reduceMotion: MotionService().reduceMotion),
       themeMode: _themeNotifier.themeMode,

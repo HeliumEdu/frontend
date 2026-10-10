@@ -23,6 +23,7 @@ import 'package:heliumapp/presentation/ui/components/base_data_grid.dart';
 import 'package:heliumapp/utils/error_helpers.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/format_helpers.dart';
+import 'package:heliumapp/utils/platform_behavior.dart';
 import 'package:heliumapp/utils/print_helpers.dart';
 import 'package:heliumapp/utils/snack_bar_helpers.dart';
 import 'package:heliumapp/utils/storage_helpers.dart';
@@ -187,7 +188,7 @@ class TodosDataGridState extends BaseDataGridState<TodosDataGrid> {
     final isMobile = Responsive.isMobile(context);
     final isTablet = Responsive.isTablet(context);
     final isSlimMobile = Responsive.isSlimMobile(context);
-    final isTouchDevice = Responsive.isTouchDevice(context);
+    final isTouchDevice = PlatformBehavior.usesTouchInteractions;
     final isCompact = Responsive.isCompact(context);
     final isCapturing = PrintableArea.capturing.value;
     final showActions = !(isTouchDevice || isCapturing || isMobile);
@@ -798,7 +799,7 @@ class TodosDataGridState extends BaseDataGridState<TodosDataGrid> {
   bool _shouldShowColumn(TodosColumn column) {
     if (column.minViewportWidth == null) return true;
     return MediaQuery.of(context).size.width >= column.minViewportWidth! ||
-        (column.showOnTouchDevice && Responsive.isTouchDevice(context));
+        (column.showOnTouchDevice && PlatformBehavior.usesTouchInteractions);
   }
 
 }
@@ -861,7 +862,7 @@ class TodosDataSource extends BaseDataGridSource {
           ? categoryColor
           : courseColor;
 
-      final isTouchDevice = Responsive.isTouchDevice(_context);
+      final isTouchDevice = PlatformBehavior.usesTouchInteractions;
       final isCompact = Responsive.isCompact(_context);
       final rowCursor =
           (isTouchDevice || isCompact) ? SystemMouseCursors.click : MouseCursor.defer;
@@ -1002,7 +1003,7 @@ class TodosDataSource extends BaseDataGridSource {
 
   List<DataGridCell> _getDisplayCells(DataGridRow row) {
     final width = MediaQuery.of(_context).size.width;
-    final isTouchDevice = Responsive.isTouchDevice(_context);
+    final isTouchDevice = PlatformBehavior.usesTouchInteractions;
 
     return row.getCells().where((cell) {
       if (cell.columnName.startsWith('_')) return false;
@@ -1034,7 +1035,7 @@ class TodosDataSource extends BaseDataGridSource {
     final userSettings = _dataSource.userSettings;
     final courses = _dataSource.courses ?? [];
     final categoriesMap = _dataSource.categoriesMap ?? {};
-    final isTouchDevice = Responsive.isTouchDevice(_context);
+    final isTouchDevice = PlatformBehavior.usesTouchInteractions;
     final isCompact = Responsive.isCompact(_context);
     final isSelectable = !isTouchDevice && !isCompact;
 

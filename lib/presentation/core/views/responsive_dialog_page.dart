@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/presentation/core/views/base_page_screen_state.dart';
+import 'package:heliumapp/utils/platform_behavior.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 
 /// Returns a [Page] that renders [child] as a full-screen [MaterialPage] on
@@ -41,7 +42,7 @@ Page<T> responsiveDialogPage<T>(
     alignment: alignment,
     insetPadding: insetPadding,
     barrierDismissible:
-        barrierDismissible ?? !Responsive.isTouchDevice(context),
+        barrierDismissible ?? PlatformBehavior.dismissesDialogOnBarrierTap,
     fullScreen: fullScreen,
   );
 }

@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:heliumapp/core/helium_exception.dart';
@@ -17,6 +16,7 @@ import 'package:heliumapp/presentation/ui/components/color_selector.dart';
 import 'package:heliumapp/presentation/ui/layout/helium_full_screen_scroll_view.dart';
 import 'package:heliumapp/presentation/ui/components/helium_checkbox_list_tile.dart';
 import 'package:heliumapp/utils/format_helpers.dart';
+import 'package:heliumapp/utils/platform_behavior.dart';
 import 'package:heliumapp/utils/snack_bar_helpers.dart';
 import 'package:heliumapp/presentation/features/shared/widgets/flow/multi_step_container.dart';
 import 'package:heliumapp/presentation/ui/components/helium_icon_button.dart';
@@ -155,7 +155,7 @@ class CourseDetailsState extends State<CourseDetails> {
                   const SizedBox(height: 14),
                   LabelAndTextFormField(
                     label: 'Title',
-                    autofocus: kIsWeb || !widget.isEdit,
+                    autofocus: PlatformBehavior.autofocusesOnOpen || !widget.isEdit,
                     controller: formController.titleController,
                     validator: BasicFormController.validateRequiredField,
                     fieldKey: formController.getFieldKey('title'),

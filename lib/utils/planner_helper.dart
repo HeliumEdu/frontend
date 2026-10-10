@@ -11,6 +11,7 @@ import 'package:heliumapp/data/models/planner/homework_model.dart';
 import 'package:heliumapp/data/models/planner/reminder_model.dart';
 import 'package:heliumapp/utils/date_time_helpers.dart';
 import 'package:heliumapp/utils/error_helpers.dart';
+import 'package:heliumapp/utils/platform_behavior.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:heliumapp/utils/sort_helpers.dart';
 import 'package:logging/logging.dart';
@@ -358,7 +359,7 @@ class PlannerHelper {
   }
 
   static bool shouldShowEditButton(BuildContext context) {
-    return Responsive.showItemActions(context);
+    return PlatformBehavior.showItemActions(context);
   }
 
   static bool shouldShowEditButtonForPlannerItem(

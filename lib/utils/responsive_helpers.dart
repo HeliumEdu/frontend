@@ -1,7 +1,5 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:heliumapp/utils/touch_support_stub.dart'
-    if (dart.library.js_interop) 'package:heliumapp/utils/touch_support_web.dart';
 
 class ResponsiveBreakpoints {
   static const double slimMobile = 390;
@@ -94,22 +92,6 @@ class Responsive {
         return mobile;
     }
   }
-
-  /// - Native iOS/Android  -->  true
-  /// - Web on mobile/tablet browser  -->  true (the browser reports touch points)
-  /// - Desktop with a touchscreen  -->  true (the browser reports touch points)
-  /// - Desktop with only a pointer  -->  false
-  static bool isTouchDevice(BuildContext context) => hasTouchScreen;
-
-  /// Whether an item carries its own action buttons rather than opening when
-  /// the item itself is tapped. A finger gets the tap experience at any size;
-  /// a pointer needs the room for buttons.
-  static bool showItemActions(BuildContext context) =>
-      !isTouchDevice(context) && !isMobile(context);
-
-  /// Whether hit targets are sized for a finger rather than a pointer.
-  static bool useTouchTargets(BuildContext context) => isTouchDevice(context);
-
 
   static DeviceType getDeviceType(BuildContext context) {
     final double width = MediaQuery.of(context).size.width;

@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:math' as math;
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -46,6 +45,7 @@ import 'package:heliumapp/presentation/ui/layout/page_header.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/deep_link_helpers.dart';
+import 'package:heliumapp/utils/platform_behavior.dart';
 import 'package:heliumapp/utils/print_helpers.dart';
 import 'package:heliumapp/utils/print_service.dart';
 import 'package:heliumapp/utils/quill_helpers.dart';
@@ -495,8 +495,8 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
               setState(() => isLoading = false);
             }
 
-            // Request focus once on mobile for create mode
-            if (!_hasRequestedInitialFocus && !kIsWeb && _note?.id == null) {
+            // Request focus once on touch devices for create mode
+            if (!_hasRequestedInitialFocus && !PlatformBehavior.autofocusesOnOpen && _note?.id == null) {
               _hasRequestedInitialFocus = true;
               // Defer focus request so the text field is attached to the tree
               // before requestFocus is called; BLoC listeners run during build
@@ -962,7 +962,7 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
                   hintText: 'Title',
                   controller: _titleController,
                   focusNode: _titleFocusNode,
-                  autofocus: kIsWeb,
+                  autofocus: PlatformBehavior.autofocusesOnOpen,
                   validator: null,
                   fieldKey: _formController.getFieldKey('title'),
                   onFieldSubmitted: (_) => saveAction?.call(),

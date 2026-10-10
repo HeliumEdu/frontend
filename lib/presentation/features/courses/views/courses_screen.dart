@@ -43,6 +43,7 @@ import 'package:heliumapp/utils/error_helpers.dart';
 import 'package:heliumapp/utils/format_helpers.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/date_time_helpers.dart';
+import 'package:heliumapp/utils/platform_behavior.dart';
 import 'package:heliumapp/utils/print_helpers.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:heliumapp/utils/screen_dropdown_filter_helpers.dart';
@@ -588,7 +589,7 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen> {
                     ),
                     const SizedBox(width: 8),
                   ],
-                  if (Responsive.showItemActions(context))
+                  if (PlatformBehavior.showItemActions(context))
                     PrintHidden(
                       child: HeliumIconButton(
                         onPressed: () => _onEdit(course),

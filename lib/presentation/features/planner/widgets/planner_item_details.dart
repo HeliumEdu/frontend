@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:collection/collection.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -48,8 +47,8 @@ import 'package:heliumapp/utils/date_time_helpers.dart';
 import 'package:heliumapp/utils/format_helpers.dart';
 import 'package:heliumapp/utils/grade_helpers.dart';
 import 'package:heliumapp/utils/planner_helper.dart';
+import 'package:heliumapp/utils/platform_behavior.dart';
 import 'package:heliumapp/utils/quill_helpers.dart';
-import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:heliumapp/utils/snack_bar_helpers.dart';
 import 'package:logging/logging.dart';
 import 'package:timezone/standalone.dart' as tz;
@@ -275,7 +274,7 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
                   LabelAndTextFormField(
                     key: const Key(PlannerItemFormController.titleField),
                     label: 'Title',
-                    autofocus: kIsWeb,
+                    autofocus: PlatformBehavior.autofocusesOnOpen,
                     focusNode: _titleFocusNode,
                     controller: formController.titleController,
                     validator: BasicFormController.validateRequiredField,
@@ -955,8 +954,8 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
       _setupNotesListener();
     });
 
-    // Request focus once on mobile for create mode
-    if (!_hasRequestedInitialFocus && !kIsWeb && !widget.isEdit) {
+    // Request focus once on touch devices for create mode
+    if (!_hasRequestedInitialFocus && !PlatformBehavior.autofocusesOnOpen && !widget.isEdit) {
       _hasRequestedInitialFocus = true;
       // Defer focus request so the text field is attached to the tree before
       // requestFocus is called; BLoC listeners fire during the build pipeline
@@ -1038,9 +1037,7 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
       initialTime: isStartTime
           ? formController.startTime
           : formController.endTime,
-      initialEntryMode: Responsive.isTouchDevice(context)
-          ? TimePickerEntryMode.dial
-          : TimePickerEntryMode.input,
+      initialEntryMode: PlatformBehavior.timePickerEntryMode,
       confirmText: 'Select',
     );
 
