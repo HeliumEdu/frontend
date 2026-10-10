@@ -6,8 +6,8 @@
   "rangeStrategy": "bump",
   "ignoreDeps": ["dart"],
   "timezone": "America/Chicago",
-  "schedule": ["before 6am on monday"],
-  "enabledManagers": ["pub", "custom.regex"],
+  "schedule": ["on monday"],
+  "enabledManagers": ["pub", "bundler", "custom.regex"],
   "labels": ["renovate"],
   "rebaseWhen": "behind-base-branch",
   "platformAutomerge": true,
@@ -51,6 +51,16 @@
     },
     {
       "matchManagers": ["pub"],
+      "automerge": true
+    },
+    {
+      "matchManagers": ["bundler"],
+      "enabled": false
+    },
+    {
+      "matchManagers": ["bundler"],
+      "matchPackageNames": ["cocoapods"],
+      "enabled": true,
       "automerge": true
     }
   ]

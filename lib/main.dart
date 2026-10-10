@@ -23,6 +23,7 @@ import 'package:heliumapp/core/time_zone_database_service.dart';
 import 'package:heliumapp/firebase_environment.dart';
 import 'package:heliumapp/helium_app.dart';
 import 'package:heliumapp/startup_failure_app.dart';
+import 'package:heliumapp/utils/platform_behavior.dart';
 import 'package:heliumapp/utils/web_helpers_stub.dart'
     if (dart.library.js_interop) 'package:heliumapp/utils/web_helpers_web.dart';
 import 'package:logging/logging.dart';
@@ -85,6 +86,7 @@ Future<void> _bootstrap() async {
   unawaited(TimeZoneDatabaseService().ensureLoaded());
 
   await refreshSystemProxy();
+  await PlatformBehavior.initialize();
 
   try {
     await Firebase.initializeApp(options: firebaseOptionsWithOverrides());

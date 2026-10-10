@@ -1,5 +1,4 @@
 import 'package:collection/collection.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:heliumapp/data/models/base_model.dart';
@@ -17,6 +16,7 @@ import 'package:heliumapp/presentation/ui/components/label_and_text_form_field.d
 import 'package:heliumapp/presentation/ui/components/spinner_field.dart';
 import 'package:heliumapp/utils/color_helpers.dart';
 import 'package:heliumapp/utils/format_helpers.dart';
+import 'package:heliumapp/utils/platform_behavior.dart';
 
 class _CategoryProvidedWidget extends StatefulWidget {
   final int courseGroupId;
@@ -123,7 +123,7 @@ class _CategoryWidgetState extends BaseDialogState<_CategoryProvidedWidget> {
       children: [
         LabelAndTextFormField(
           label: 'Title',
-          autofocus: kIsWeb || !widget.isEdit,
+          autofocus: PlatformBehavior.autofocusesOnOpen || !widget.isEdit,
           controller: _formController.titleController,
           validator: BasicFormController.validateRequiredField,
           onChanged: (_) => _formController.markChanged(),

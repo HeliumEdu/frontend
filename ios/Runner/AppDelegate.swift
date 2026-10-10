@@ -41,6 +41,8 @@ import FirebaseMessaging
         result(nil)
       case "getSystemProxy":
         result(AppDelegate.systemProxy())
+      case "isiOSAppOnMac":
+        result(ProcessInfo.processInfo.isiOSAppOnMac)
       default:
         result(FlutterMethodNotImplemented)
       }

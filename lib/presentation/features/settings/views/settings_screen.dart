@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -41,6 +40,7 @@ import 'package:heliumapp/presentation/ui/layout/page_header.dart';
 import 'package:heliumapp/presentation/ui/layout/shadow_container.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/app_style.dart';
+import 'package:heliumapp/utils/platform_behavior.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:sign_in_button/sign_in_button.dart';
@@ -1345,7 +1345,7 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
                                   key: const Key(
                                     SettingsScreen.deleteAccountPasswordField,
                                   ),
-                                  autofocus: kIsWeb,
+                                  autofocus: PlatformBehavior.autofocusesOnOpen,
                                   controller: _deleteAccountPasswordController,
                                   validator:
                                       BasicFormController.validateRequiredField,

@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:collection/collection.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_quill/flutter_quill.dart';
@@ -24,6 +23,7 @@ import 'package:heliumapp/presentation/features/shared/controllers/basic_form_co
 import 'package:heliumapp/presentation/features/resources/controllers/resource_form_controller.dart';
 import 'package:heliumapp/presentation/ui/components/select_field.dart';
 import 'package:heliumapp/presentation/ui/layout/helium_full_screen_scroll_view.dart';
+import 'package:heliumapp/utils/platform_behavior.dart';
 import 'package:heliumapp/utils/snack_bar_helpers.dart';
 import 'package:heliumapp/presentation/ui/components/course_title_label.dart';
 import 'package:heliumapp/presentation/ui/components/drop_down.dart';
@@ -163,7 +163,7 @@ class ResourceDetailsState extends State<ResourceDetails> {
                 children: [
                   LabelAndTextFormField(
                     label: 'Title',
-                    autofocus: kIsWeb,
+                    autofocus: PlatformBehavior.autofocusesOnOpen,
                     focusNode: _titleFocusNode,
                     controller: formController.titleController,
                     validator: BasicFormController.validateRequiredField,
@@ -437,8 +437,8 @@ class ResourceDetailsState extends State<ResourceDetails> {
       _setupNotesListener();
     });
 
-    // Request focus once on mobile for create mode
-    if (!_hasRequestedInitialFocus && !kIsWeb && !widget.isEdit) {
+    // Request focus once on touch devices for create mode
+    if (!_hasRequestedInitialFocus && !PlatformBehavior.autofocusesOnOpen && !widget.isEdit) {
       _hasRequestedInitialFocus = true;
       // Defer focus request so the text field is attached to the tree before
       // requestFocus is called; BLoC listeners fire during the build pipeline

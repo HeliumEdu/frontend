@@ -44,7 +44,7 @@ ifdef SENTRY_ENVIRONMENT
 endif
 
 SYMBOLS_DIR := build/symbols
-IOS_DSYMS_DIR := build/ios/archive/Runner.xcarchive/dSYMs
+IOS_DSYMS_DIR := build/ios/archive/Helium.xcarchive/dSYMs
 
 IOS_SYMBOL_DIRS := $(SYMBOLS_DIR)/ $(IOS_DSYMS_DIR)/
 ANDROID_SYMBOL_DIRS := $(SYMBOLS_DIR)/

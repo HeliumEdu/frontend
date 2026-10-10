@@ -23,6 +23,7 @@ import 'package:heliumapp/presentation/ui/feedback/error_card.dart';
 import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
 import 'package:heliumapp/presentation/ui/layout/page_header.dart';
 import 'package:heliumapp/utils/app_globals.dart';
+import 'package:heliumapp/utils/platform_behavior.dart';
 import 'package:heliumapp/utils/print_helpers.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:heliumapp/utils/snack_bar_helpers.dart';
@@ -544,7 +545,7 @@ Future<void> showScreenAsDialog(
     context: context,
     useSafeArea: !isFullScreen,
     barrierDismissible:
-    barrierDismissible ?? !Responsive.isTouchDevice(context),
+    barrierDismissible ?? PlatformBehavior.dismissesDialogOnBarrierTap,
     barrierColor: isFullScreen ? Colors.transparent : Colors.black54,
     builder: (dialogContext) {
       final mediaQuery = MediaQuery.of(dialogContext);

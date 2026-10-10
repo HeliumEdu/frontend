@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:heliumapp/utils/responsive_helpers.dart';
+import 'package:heliumapp/utils/platform_behavior.dart';
 
 class MobileGestureDetector extends StatelessWidget {
   final GestureTapCallback onTap;
@@ -13,7 +13,7 @@ class MobileGestureDetector extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final opensOnTap = !Responsive.showItemActions(context);
+    final opensOnTap = !PlatformBehavior.showItemActions(context);
     return MouseRegion(
       cursor: opensOnTap ? SystemMouseCursors.click : MouseCursor.defer,
       child: GestureDetector(

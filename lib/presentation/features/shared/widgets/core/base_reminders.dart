@@ -10,6 +10,7 @@ import 'package:heliumapp/presentation/features/planner/bloc/reminder_event.dart
 import 'package:heliumapp/presentation/features/planner/bloc/reminder_state.dart';
 import 'package:heliumapp/presentation/features/planner/dialogs/confirm_delete_dialog.dart';
 import 'package:heliumapp/presentation/features/planner/dialogs/reminder_dialog.dart';
+import 'package:heliumapp/utils/platform_behavior.dart';
 import 'package:heliumapp/utils/snack_bar_helpers.dart' show SnackBarHelper, SnackType;
 import 'package:heliumapp/presentation/features/shared/widgets/flow/multi_step_container.dart';
 import 'package:heliumapp/presentation/ui/feedback/empty_card.dart';
@@ -281,7 +282,7 @@ abstract class BaseReminderWidgetState<T extends BaseRemindersContent>
                 ),
               ),
               const SizedBox(width: 8),
-              if (Responsive.showItemActions(context)) ...[
+              if (PlatformBehavior.showItemActions(context)) ...[
                 Semantics(
                   label: 'Edit',
                   button: true,

@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:heliumapp/data/models/auth/user_settings_model.dart';
@@ -17,6 +16,7 @@ import 'package:heliumapp/presentation/ui/components/label_and_text_form_field.d
 import 'package:heliumapp/presentation/ui/components/spinner_field.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/conversion_helpers.dart';
+import 'package:heliumapp/utils/platform_behavior.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 
 class _ReminderProvidedWidget extends StatefulWidget {
@@ -105,7 +105,7 @@ class _ReminderWidgetState extends BaseDialogState<_ReminderProvidedWidget> {
       children: [
         LabelAndTextFormField(
           label: 'Message',
-          autofocus: kIsWeb || !widget.isEdit,
+          autofocus: PlatformBehavior.autofocusesOnOpen || !widget.isEdit,
           maxLines: Responsive.isCompactDialogHeight(context) ? 1 : 3,
           spellCheck: true,
           controller: _formController.messageController,

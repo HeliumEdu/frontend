@@ -21,7 +21,7 @@ import 'package:heliumapp/presentation/ui/components/color_selector.dart';
 import 'package:heliumapp/presentation/features/planner/constants/reminder_constants.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/core/base_event.dart';
 import 'package:heliumapp/utils/app_globals.dart';
-import 'package:heliumapp/utils/responsive_helpers.dart';
+import 'package:heliumapp/utils/platform_behavior.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/color_helpers.dart';
 import 'package:heliumapp/utils/date_time_helpers.dart';
@@ -236,7 +236,7 @@ class PreferencesScreenState extends State<PreferencesScreen> {
               controlAffinity: ListTileControlAffinity.leading,
               contentPadding: EdgeInsets.zero,
             ),
-            if (!Responsive.isTouchDevice(context))
+            if (PlatformBehavior.showsHoverTooltips)
               HeliumCheckboxListTile(
                 title: Text(
                   'Show tooltips',

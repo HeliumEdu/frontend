@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -17,6 +16,7 @@ import 'package:heliumapp/presentation/ui/components/label_and_text_form_field.d
 import 'package:heliumapp/presentation/ui/layout/unauthenticated_scaffold.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/app_style.dart';
+import 'package:heliumapp/utils/platform_behavior.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 
 class VerifyEmailScreen extends StatefulWidget {
@@ -183,7 +183,7 @@ class _VerifyEmailScreenState extends BasePageScreenState<VerifyEmailScreen> {
           LabelAndTextFormField(
             key: const Key(VerifyEmailScreen.emailField),
             hintText: 'Email',
-            autofocus: kIsWeb && widget.email == null,
+            autofocus: PlatformBehavior.autofocusesOnOpen && widget.email == null,
             prefixIcon: Icons.email_outlined,
             controller: _emailController,
             validator: BasicFormController.validateRequiredEmail,

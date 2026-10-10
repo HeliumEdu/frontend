@@ -4,6 +4,7 @@ import 'package:heliumapp/core/contrast_service.dart';
 import 'package:heliumapp/presentation/ui/components/helium_elevated_button.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/color_helpers.dart';
+import 'package:heliumapp/utils/platform_behavior.dart';
 
 const Color seedColor = Color(0xff418eb9);
 class AppTheme {
@@ -83,8 +84,12 @@ class AppTheme {
           ? const PageTransitionsTheme(builders: {
               TargetPlatform.android: _NoMotionPageTransitionsBuilder(),
               TargetPlatform.iOS: _NoMotionPageTransitionsBuilder(),
+              TargetPlatform.macOS: _NoMotionPageTransitionsBuilder(),
+              TargetPlatform.windows: _NoMotionPageTransitionsBuilder(),
+              TargetPlatform.linux: _NoMotionPageTransitionsBuilder(),
             })
           : const PageTransitionsTheme(),
+      platform: PlatformBehavior.hostPlatform,
       useMaterial3: true,
       colorScheme: colorScheme,
       textTheme: AppStyles.defaultTextTheme(colorScheme),

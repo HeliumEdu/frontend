@@ -18,6 +18,7 @@ import 'package:heliumapp/utils/error_helpers.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/color_helpers.dart';
 import 'package:heliumapp/utils/date_time_helpers.dart';
+import 'package:heliumapp/utils/platform_behavior.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:heliumapp/utils/print_helpers.dart';
 import 'package:syncfusion_flutter_core/theme.dart';
@@ -136,7 +137,7 @@ class _NotebookDataGridState extends BaseDataGridState<NotebookDataGrid> {
   Widget build(BuildContext context) {
     final isMobile = Responsive.isMobile(context);
     final isTablet = Responsive.isTablet(context);
-    final isTouchDevice = Responsive.isTouchDevice(context);
+    final isTouchDevice = PlatformBehavior.usesTouchInteractions;
     final isCompact = Responsive.isCompact(context);
     final isCapturing = PrintableArea.capturing.value;
     final showActions = !isTouchDevice && !isCapturing && !isCompact;
@@ -597,7 +598,7 @@ class NotesDataSource extends BaseDataGridSource {
 
       final displayCells = _getDisplayCells(row);
 
-      final isTouchDevice = Responsive.isTouchDevice(context);
+      final isTouchDevice = PlatformBehavior.usesTouchInteractions;
       final isCompact = Responsive.isCompact(context);
       final rowCursor = (isTouchDevice || isCompact)
           ? SystemMouseCursors.click
@@ -782,7 +783,7 @@ class NotesDataSource extends BaseDataGridSource {
 
   List<DataGridCell> _getDisplayCells(DataGridRow row) {
     final width = MediaQuery.of(context).size.width;
-    final isTouchDevice = Responsive.isTouchDevice(context);
+    final isTouchDevice = PlatformBehavior.usesTouchInteractions;
 
     return row.getCells().where((cell) {
       if (cell.columnName.startsWith('_')) return false;
@@ -809,7 +810,7 @@ class NotesDataSource extends BaseDataGridSource {
     Color? categoryColor,
     bool? linkedEntityCompleted,
   ) {
-    final isTouchDevice = Responsive.isTouchDevice(context);
+    final isTouchDevice = PlatformBehavior.usesTouchInteractions;
     final isCompact = Responsive.isCompact(context);
     final isSelectable = !isTouchDevice && !isCompact;
 

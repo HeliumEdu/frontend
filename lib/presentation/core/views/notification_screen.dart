@@ -35,6 +35,7 @@ import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/date_time_helpers.dart';
 import 'package:heliumapp/utils/planner_helper.dart';
+import 'package:heliumapp/utils/platform_behavior.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:heliumapp/utils/error_helpers.dart';
 
@@ -433,7 +434,7 @@ class _NotificationsScreenState
       plannerItem = null;
     }
 
-    final isTouchDevice = Responsive.isTouchDevice(context);
+    final isTouchDevice = PlatformBehavior.usesTouchInteractions;
 
     final rowContent = Material(
       color: Colors.transparent,

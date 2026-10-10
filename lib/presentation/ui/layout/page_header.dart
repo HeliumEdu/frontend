@@ -9,6 +9,7 @@ import 'package:heliumapp/presentation/ui/components/settings_button.dart';
 import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/app_style.dart';
+import 'package:heliumapp/utils/platform_behavior.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:heliumapp/utils/url_helpers.dart';
 
@@ -49,7 +50,7 @@ class PageHeader extends StatelessWidget {
   /// in the navigation rail instead.
   static bool showSettingsInHeader(BuildContext context) {
     return Responsive.isMobile(context) ||
-        (!Responsive.isTouchDevice(context) &&
+        (PlatformBehavior.showsAppStoreLinks &&
             MediaQuery.of(context).size.height <
                 AppConstants.minHeightForTrailingNav);
   }

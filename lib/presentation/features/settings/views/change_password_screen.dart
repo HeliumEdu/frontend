@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -9,6 +8,7 @@ import 'package:heliumapp/presentation/features/shared/controllers/basic_form_co
 import 'package:heliumapp/presentation/features/settings/controllers/change_password_form_controller.dart';
 import 'package:heliumapp/presentation/ui/components/helium_password_field.dart';
 import 'package:heliumapp/presentation/ui/layout/helium_full_screen_scroll_view.dart';
+import 'package:heliumapp/utils/platform_behavior.dart';
 import 'package:heliumapp/utils/snack_bar_helpers.dart';
 
 class ChangePasswordScreen extends StatefulWidget {
@@ -116,7 +116,7 @@ class ChangePasswordScreenState extends State<ChangePasswordScreen> {
                 if (!widget.passwordless) ...[
                   HeliumPasswordField(
                     label: 'Current password',
-                    autofocus: kIsWeb,
+                    autofocus: PlatformBehavior.autofocusesOnOpen,
                     controller: _formController.oldPasswordController,
                     validator: BasicFormController.validatePassword,
                     onFieldSubmitted: (value) => onSubmit(),
@@ -127,7 +127,7 @@ class ChangePasswordScreenState extends State<ChangePasswordScreen> {
 
                 HeliumPasswordField(
                   label: 'New password',
-                  autofocus: widget.passwordless && kIsWeb,
+                  autofocus: widget.passwordless && PlatformBehavior.autofocusesOnOpen,
                   controller: _formController.newPasswordController,
                   validator: BasicFormController.validatePassword,
                   autofillHints: const [AutofillHints.newPassword],

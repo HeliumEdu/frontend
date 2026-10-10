@@ -24,6 +24,7 @@ import 'package:heliumapp/presentation/ui/layout/unauthenticated_scaffold.dart';
 import 'package:heliumapp/utils/app_assets.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/google_avatar_helpers.dart';
+import 'package:heliumapp/utils/platform_behavior.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:logging/logging.dart';
 import 'package:sign_in_button/sign_in_button.dart';
@@ -203,7 +204,7 @@ class _LoginScreenViewState extends BasePageScreenState<LoginScreen> {
             LabelAndTextFormField(
               key: const Key(CredentialsFormController.emailField),
               hintText: 'Email',
-              autofocus: kIsWeb,
+              autofocus: PlatformBehavior.autofocusesOnOpen,
               prefixIcon: Icons.email_outlined,
               controller: _formController.emailController,
               validator: BasicFormController.validateRequiredEmail,
