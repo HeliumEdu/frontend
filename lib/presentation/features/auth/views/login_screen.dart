@@ -15,7 +15,7 @@ import 'package:heliumapp/presentation/features/auth/bloc/auth_bloc.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_event.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_state.dart';
 import 'package:heliumapp/presentation/features/auth/controllers/credentials_form_controller.dart';
-import 'package:heliumapp/presentation/features/auth/widgets/google_account_confirm_sheet.dart';
+import 'package:heliumapp/presentation/features/auth/widgets/google_account_confirmation.dart';
 import 'package:heliumapp/presentation/features/shared/controllers/basic_form_controller.dart';
 import 'package:heliumapp/presentation/ui/components/helium_elevated_button.dart';
 import 'package:heliumapp/presentation/ui/components/helium_password_field.dart';
@@ -315,7 +315,7 @@ class _LoginScreenViewState extends BasePageScreenState<LoginScreen> {
 
                             if (!context.mounted) return null;
 
-                            return showGoogleAccountConfirmSheet(
+                            return showGoogleAccountConfirmation(
                               parentContext: context,
                               account: account,
                             );

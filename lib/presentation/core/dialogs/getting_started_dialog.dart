@@ -545,11 +545,7 @@ class _GettingStartedDialogWidgetState
             )
           : const Icon(Icons.cleaning_services_outlined, size: 16),
       label: const Text('Clear Example Data'),
-      style: OutlinedButton.styleFrom(
-        side: BorderSide(color: context.colorScheme.primary),
-        minimumSize: const Size.fromHeight(HeliumElevatedButton.minimumHeight),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6.0)),
-      ),
+      style: HeliumElevatedButton.outlinedStyle(context.colorScheme),
     );
   }
 }

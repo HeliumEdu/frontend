@@ -4,11 +4,13 @@ import 'package:heliumapp/core/google_account_store.dart';
 import 'package:heliumapp/presentation/ui/components/helium_elevated_button.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/google_avatar_helpers.dart';
+import 'package:heliumapp/utils/platform_behavior.dart';
+import 'package:heliumapp/utils/responsive_helpers.dart';
 
-class _GoogleAccountConfirmSheet extends StatelessWidget {
+class _GoogleAccountConfirmContent extends StatelessWidget {
   final RememberedGoogleAccount account;
 
-  const _GoogleAccountConfirmSheet({required this.account});
+  const _GoogleAccountConfirmContent({required this.account});
 
   @override
   Widget build(BuildContext context) {
@@ -18,7 +20,7 @@ class _GoogleAccountConfirmSheet extends StatelessWidget {
     final initial = label[0].toUpperCase();
 
     return Material(
-      color: context.colorScheme.surface,
+      type: MaterialType.transparency,
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -76,17 +78,16 @@ class _GoogleAccountConfirmSheet extends StatelessWidget {
                 Navigator.of(context).pop(true);
               },
             ),
-            const SizedBox(height: 4),
-            TextButton(
-              onPressed: () {
-                Feedback.forTap(context);
-                Navigator.of(context).pop(false);
-              },
-              child: Text(
-                'Not you? Use a different account',
-                style: AppStyles.formText(
-                  context,
-                ).copyWith(color: context.colorScheme.primary),
+            const SizedBox(height: 8),
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton(
+                style: HeliumElevatedButton.outlinedStyle(context.colorScheme),
+                onPressed: () {
+                  Feedback.forTap(context);
+                  Navigator.of(context).pop(false);
+                },
+                child: const Text('Not you? Use a different account'),
               ),
             ),
           ],
@@ -98,10 +99,39 @@ class _GoogleAccountConfirmSheet extends StatelessWidget {
 
 /// Confirms the Google account remembered from a previous sign-in (iOS only
 /// - see `OAuthSignInService`); resolves true/false/null as in `GoogleLoginEvent`.
-Future<bool?> showGoogleAccountConfirmSheet({
+/// Desktop hosts get a centered dialog, touch devices a bottom sheet.
+Future<bool?> showGoogleAccountConfirmation({
   required BuildContext parentContext,
   required RememberedGoogleAccount account,
 }) {
+  if (PlatformBehavior.isDesktopHost) {
+    return _showConfirmDialog(parentContext, account);
+  }
+  return _showConfirmSheet(parentContext, account);
+}
+
+Future<bool?> _showConfirmDialog(
+  BuildContext parentContext,
+  RememberedGoogleAccount account,
+) {
+  return showDialog<bool>(
+    context: parentContext,
+    useRootNavigator: true,
+    builder: (BuildContext dialogContext) {
+      return Dialog(
+        child: SizedBox(
+          width: Responsive.getDialogWidth(dialogContext),
+          child: _GoogleAccountConfirmContent(account: account),
+        ),
+      );
+    },
+  );
+}
+
+Future<bool?> _showConfirmSheet(
+  BuildContext parentContext,
+  RememberedGoogleAccount account,
+) {
   return showModalBottomSheet<bool>(
     context: parentContext,
     useRootNavigator: true,
@@ -110,7 +140,7 @@ Future<bool?> showGoogleAccountConfirmSheet({
       borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
     ),
     builder: (BuildContext sheetContext) {
-      return _GoogleAccountConfirmSheet(account: account);
+      return _GoogleAccountConfirmContent(account: account);
     },
   );
 }
