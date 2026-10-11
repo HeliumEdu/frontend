@@ -444,5 +444,48 @@ void main() {
         });
       });
     });
+
+    group('conditional writes', () {
+      test('maps a 412 with a body to ConflictException carrying the latest item', () {
+        // GIVEN
+        final latest = {'id': 7, 'title': 'Changed elsewhere'};
+        final error = givenDioException(statusCode: 412, responseData: latest);
+
+        // WHEN
+        final result = dataSource.handleDioError(error, StackTrace.current);
+
+        // THEN
+        expect(result, isA<ConflictException>());
+        expect((result as ConflictException).latest, equals(latest));
+        expect(result.httpStatusCode, equals(412));
+      });
+
+      test('maps a 412 without a JSON body to a ServerException', () {
+        // GIVEN
+        final error = givenDioException(statusCode: 412, responseData: 'oops');
+
+        // WHEN
+        final result = dataSource.handleDioError(error, StackTrace.current);
+
+        // THEN
+        expect(result, isA<ServerException>());
+      });
+
+      test('ifMatchOptions sends the version as If-Match', () {
+        // WHEN
+        final options = dataSource.ifMatchOptions('2026-10-07T12:00:00.123456Z');
+
+        // THEN
+        expect(options?.headers?['If-Match'], equals('2026-10-07T12:00:00.123456Z'));
+      });
+
+      test('ifMatchOptions sends nothing without a version', () {
+        // WHEN
+        final options = dataSource.ifMatchOptions(null);
+
+        // THEN
+        expect(options, isNull, reason: 'No version means an unconditional write');
+      });
+    });
   });
 }

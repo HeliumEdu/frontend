@@ -37,13 +37,15 @@ class CategoryRepositoryImpl implements CategoryRepository {
     int groupId,
     int courseId,
     int categoryId,
-    CategoryRequestModel request,
-  ) async {
+    CategoryRequestModel request, {
+    String? version,
+  }) async {
     return remoteDataSource.updateCategory(
       groupId,
       courseId,
       categoryId,
       request,
+      version: version,
     );
   }
 

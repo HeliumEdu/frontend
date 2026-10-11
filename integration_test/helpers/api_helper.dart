@@ -6,7 +6,9 @@ import 'package:heliumapp/data/models/planner/course_model.dart';
 import 'package:heliumapp/data/models/planner/course_schedule_model.dart';
 import 'package:heliumapp/data/models/planner/event_model.dart';
 import 'package:heliumapp/data/models/planner/homework_model.dart';
+import 'package:heliumapp/data/models/planner/note_model.dart';
 import 'package:heliumapp/data/models/planner/request/homework_request_model.dart';
+import 'package:heliumapp/data/models/planner/request/note_request_model.dart';
 import 'package:http/http.dart' as http;
 import 'package:logging/logging.dart';
 
@@ -499,6 +501,82 @@ class ApiHelper {
     if (response?.statusCode == 204) return true;
     _log.warning(
       'Failed to import example schedule: ${response?.statusCode ?? "no token"}',
+    );
+    return false;
+  }
+
+  /// Creates a standalone note and returns it.
+  Future<NoteModel?> createNote(NoteRequestModel request) async {
+    final apiHost = _config.projectApiHost;
+    final response = await _authedRequest(
+      (token) => http.post(
+        Uri.parse('$apiHost${ApiUrl.plannerNotesListUrl}'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode(request.toJson()),
+      ),
+    );
+    if (response?.statusCode == 201) {
+      return NoteModel.fromJson(jsonDecode(response!.body));
+    }
+    _log.warning(
+      'Failed to create note: ${response?.statusCode ?? "no token"}',
+    );
+    return null;
+  }
+
+  /// Updates a note unconditionally, as another device would.
+  Future<bool> updateNote(int noteId, NoteRequestModel request) async {
+    final apiHost = _config.projectApiHost;
+    final response = await _authedRequest(
+      (token) => http.patch(
+        Uri.parse('$apiHost${ApiUrl.plannerNotesDetailsUrl(noteId)}'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode(request.toJson()),
+      ),
+    );
+    if (response?.statusCode == 200) return true;
+    _log.warning(
+      'Failed to update note: ${response?.statusCode ?? "no token"}',
+    );
+    return false;
+  }
+
+  /// Fetches all of the test user's notes, without content.
+  Future<List<NoteModel>?> getNotes() async {
+    final apiHost = _config.projectApiHost;
+    final response = await _authedRequest(
+      (token) => http.get(
+        Uri.parse('$apiHost${ApiUrl.plannerNotesListUrl}'),
+        headers: {'Authorization': 'Bearer $token'},
+      ),
+    );
+    if (response?.statusCode == 200) {
+      final List<dynamic> items = jsonDecode(response!.body);
+      return items.map((item) => NoteModel.fromJson(item)).toList();
+    }
+    _log.warning(
+      'Failed to fetch notes: ${response?.statusCode ?? "no token"}',
+    );
+    return null;
+  }
+
+  Future<bool> deleteNote(int noteId) async {
+    final apiHost = _config.projectApiHost;
+    final response = await _authedRequest(
+      (token) => http.delete(
+        Uri.parse('$apiHost${ApiUrl.plannerNotesDetailsUrl(noteId)}'),
+        headers: {'Authorization': 'Bearer $token'},
+      ),
+    );
+    if (response?.statusCode == 204) return true;
+    _log.warning(
+      'Failed to delete note: ${response?.statusCode ?? "no token"}',
     );
     return false;
   }

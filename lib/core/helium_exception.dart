@@ -89,3 +89,18 @@ class UnauthorizedException extends HeliumException {
     super.cause,
   });
 }
+
+/// A conditional write lost to a newer version saved elsewhere (412).
+class ConflictException extends HeliumException {
+  static const conflictMessage = 'This was changed on another device.';
+
+  final Map<String, dynamic> latest;
+
+  ConflictException({
+    required this.latest,
+    super.message = conflictMessage,
+    super.code = '412',
+    super.httpStatusCode = 412,
+    super.cause,
+  });
+}

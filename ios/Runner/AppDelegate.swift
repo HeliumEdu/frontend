@@ -1,5 +1,7 @@
+import CoreSpotlight
 import Flutter
 import UIKit
+import UniformTypeIdentifiers
 import FirebaseCore
 import FirebaseMessaging
 
@@ -12,8 +14,29 @@ import FirebaseMessaging
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
   ) -> Bool {
     FirebaseApp.configure()
+    indexPlannerSearch()
 
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
+  }
+
+  /// Lets home-screen search find Helium by "planner" (for anyone who remembers what it is, not its name): one entry
+  /// that opens the app, which lands signed-in students on the planner. Re-indexing the same id each launch is a
+  /// no-op, and iOS removes it with the app.
+  private func indexPlannerSearch() {
+    let attributes = CSSearchableItemAttributeSet(contentType: UTType.content)
+    attributes.title = "Planner"
+    attributes.contentDescription = "Helium"
+    attributes.keywords = ["planner"]
+    let item = CSSearchableItem(
+      uniqueIdentifier: "planner",
+      domainIdentifier: "com.heliumedu.heliumapp.search",
+      attributeSet: attributes
+    )
+    CSSearchableIndex.default().indexSearchableItems([item]) { error in
+      if let error = error {
+        NSLog("Couldn't add Helium's planner search entry: \(error.localizedDescription)")
+      }
+    }
   }
 
   func didInitializeImplicitFlutterEngine(_ engineBridge: FlutterImplicitEngineBridge) {

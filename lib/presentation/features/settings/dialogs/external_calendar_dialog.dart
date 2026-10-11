@@ -13,6 +13,7 @@ import 'package:heliumapp/presentation/features/shared/bloc/core/base_event.dart
 import 'package:heliumapp/presentation/features/shared/controllers/basic_form_controller.dart';
 import 'package:heliumapp/presentation/ui/components/label_and_text_form_field.dart';
 import 'package:heliumapp/presentation/ui/dialogs/base_dialog_state.dart';
+import 'package:heliumapp/presentation/ui/feedback/conflict_dialog.dart';
 import 'package:heliumapp/presentation/ui/components/color_selector.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/color_helpers.dart';
@@ -36,6 +37,9 @@ class _ExternalCalendarWidgetState
     extends BaseDialogState<_ExternalCalendarProvidedWidget> {
   final ExternalCalendarFormController _formController =
       ExternalCalendarFormController();
+  String? _version;
+  bool _overwriteNewer = false;
+  ExternalCalendarModel? _conflictLatest;
 
   @override
   String get dialogTitle => 'External Calendar';
@@ -69,6 +73,20 @@ class _ExternalCalendarWidgetState
     _formController.urlController.text = externalCalendar.url.toString();
     _formController.selectedColor = externalCalendar.color;
     _formController.shownOnCalendar = externalCalendar.shownOnCalendar!;
+    _version = externalCalendar.version;
+  }
+
+  void _loadLatest() {
+    setState(() {
+      _populateInitialStateData(_conflictLatest!);
+      _formController.isChanged = false;
+      _formController.isUserDirty = false;
+    });
+  }
+
+  void _overwrite() {
+    _overwriteNewer = true;
+    handleSubmit();
   }
 
   @override
@@ -103,6 +121,13 @@ class _ExternalCalendarWidgetState
               );
               isLoading = false;
             });
+          } else if (state is ExternalCalendarConflict) {
+            _conflictLatest = state.latest;
+            resolveConflict(
+              context,
+              onLoadLatest: _loadLatest,
+              onOverwrite: _overwrite,
+            );
           } else if (state is ExternalCalendarCreated ||
               state is ExternalCalendarUpdated) {
             Navigator.pop(context);
@@ -203,8 +228,10 @@ class _ExternalCalendarWidgetState
             origin: EventOrigin.dialog,
             id: widget.externalCalendar!.id,
             request: request,
+            version: _overwriteNewer ? null : _version,
           ),
         );
+        _overwriteNewer = false;
       } else {
         context.read<ExternalCalendarBloc>().add(
           CreateExternalCalendarEvent(

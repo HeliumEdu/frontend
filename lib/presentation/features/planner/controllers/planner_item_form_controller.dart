@@ -34,6 +34,7 @@ class PlannerItemFormController extends BasicFormController {
   double priorityValue = 50.0;
   QuillController notesController = heliumQuillController();
   int? linkedNoteId;
+  String? linkedNoteVersion;
 
   bool notesEdited = false;
 

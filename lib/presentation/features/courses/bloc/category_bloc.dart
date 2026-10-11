@@ -81,8 +81,14 @@ class CategoryBloc extends Bloc<CategoryEvent, CategoryState> {
         event.courseId,
         event.categoryId,
         event.request,
+        version: event.version,
       );
       emit(CategoryUpdated(origin: event.origin, category: category));
+    } on ConflictException catch (e) {
+      emit(CategoryConflict(
+        origin: event.origin,
+        latest: CategoryModel.fromJson(e.latest),
+      ));
     } on HeliumException catch (e) {
       emit(CategoriesError(origin: event.origin, message: e.message));
     } catch (e) {

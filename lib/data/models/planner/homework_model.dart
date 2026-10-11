@@ -35,12 +35,14 @@ class HomeworkModel extends PlannerItemBaseModel {
     required this.resources,
     required this.category,
     required this.notes,
+    super.version,
     this.currentGrade,
   }) : super(plannerItemType: PlannerItemType.homework);
 
   factory HomeworkModel.fromJson(Map<String, dynamic> json) {
     return HomeworkModel(
       id: json['id'],
+      version: json['updated_at'],
       title: json['title'],
       allDay: json['all_day'],
       showEndTime: json['show_end_time'],
@@ -68,6 +70,7 @@ class HomeworkModel extends PlannerItemBaseModel {
   }
 
   HomeworkModel copyWith({
+    String? version,
     int? id,
     String? title,
     bool? allDay,
@@ -87,6 +90,7 @@ class HomeworkModel extends PlannerItemBaseModel {
   }) {
     return HomeworkModel(
       id: id ?? this.id,
+      version: version ?? this.version,
       title: title ?? this.title,
       allDay: allDay ?? this.allDay,
       showEndTime: showEndTime ?? this.showEndTime,

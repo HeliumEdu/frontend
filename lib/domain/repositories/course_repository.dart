@@ -15,8 +15,9 @@ abstract class CourseRepository {
 
   Future<CourseGroupModel> updateCourseGroup(
     int groupId,
-    CourseGroupRequestModel request,
-  );
+    CourseGroupRequestModel request, {
+    String? version,
+  });
 
   Future<void> deleteCourseGroup(int groupId);
 
@@ -34,8 +35,9 @@ abstract class CourseRepository {
   Future<CourseModel> updateCourse(
     int groupId,
     int courseId,
-    CourseRequestModel request,
-  );
+    CourseRequestModel request, {
+    String? version,
+  });
 
   Future<void> deleteCourse(int groupId, int courseId);
 

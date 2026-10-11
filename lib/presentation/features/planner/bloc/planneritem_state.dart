@@ -137,6 +137,7 @@ class EventCreated extends EventEntityState {
 class EventUpdated extends EventEntityState {
   final bool redirectToNotebook;
   final int? linkedNoteId;
+  final bool noteSavedAsCopy;
 
   EventUpdated({
     required super.origin,
@@ -146,6 +147,7 @@ class EventUpdated extends EventEntityState {
     required super.advanceNavOnSuccess,
     this.redirectToNotebook = false,
     this.linkedNoteId,
+    this.noteSavedAsCopy = false,
   });
 }
 
@@ -179,6 +181,7 @@ class HomeworkCreated extends HomeworkEntityState {
 class HomeworkUpdated extends HomeworkEntityState {
   final bool redirectToNotebook;
   final int? linkedNoteId;
+  final bool noteSavedAsCopy;
 
   HomeworkUpdated({
     required super.origin,
@@ -188,7 +191,14 @@ class HomeworkUpdated extends HomeworkEntityState {
     required super.advanceNavOnSuccess,
     this.redirectToNotebook = false,
     this.linkedNoteId,
+    this.noteSavedAsCopy = false,
   });
+}
+
+class PlannerItemConflict extends PlannerItemState {
+  final bool noteSavedAsCopy;
+
+  PlannerItemConflict({required super.origin, required this.noteSavedAsCopy});
 }
 
 class HomeworkDeleted extends PlannerItemState {

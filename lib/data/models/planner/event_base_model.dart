@@ -29,6 +29,7 @@ abstract class EventBaseModel extends PlannerItemBaseModel {
     required super.reminders,
     required super.color,
     required super.plannerItemType,
+    super.version,
     this.recurrenceRule,
     this.exceptionDates = const [],
   });

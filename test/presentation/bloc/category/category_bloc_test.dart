@@ -8,6 +8,7 @@ import 'package:heliumapp/presentation/features/courses/bloc/category_state.dart
 import 'package:heliumapp/presentation/features/shared/bloc/core/base_event.dart';
 import 'package:mocktail/mocktail.dart';
 
+import '../../../helpers/planner_helper.dart';
 import '../../../mocks/mock_models.dart';
 import '../../../mocks/mock_repositories.dart';
 import '../../../mocks/register_fallbacks.dart';
@@ -271,6 +272,44 @@ void main() {
           isA<CategoryUpdated>()
               .having((s) => s.category.id, 'category id', categoryId)
               .having((s) => s.category.title, 'title', 'Updated Category'),
+        ],
+      );
+
+      blocTest<CategoryBloc, CategoryState>(
+        'emits CategoryConflict with the latest category when the save is stale',
+        build: () {
+          when(
+            () => mockCategoryRepository.updateCategory(
+              courseGroupId,
+              courseId,
+              categoryId,
+              any(),
+              version: 'v1',
+            ),
+          ).thenThrow(
+            ConflictException(
+              latest: givenCategoryJson(id: categoryId, title: 'Changed elsewhere'),
+            ),
+          );
+          return categoryBloc;
+        },
+        act: (bloc) => bloc.add(
+          UpdateCategoryEvent(
+            origin: EventOrigin.dialog,
+            courseGroupId: courseGroupId,
+            courseId: courseId,
+            categoryId: categoryId,
+            request: request,
+            version: 'v1',
+          ),
+        ),
+        expect: () => [
+          isA<CategoriesLoading>(),
+          isA<CategoryConflict>().having(
+            (s) => s.latest.title,
+            'latest title',
+            'Changed elsewhere',
+          ),
         ],
       );
 

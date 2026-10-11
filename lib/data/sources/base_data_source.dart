@@ -9,6 +9,9 @@ abstract class BaseDataSource {
     String? notFoundEntity,
   }) => DioErrorMapper.map(e, s, notFoundEntity: notFoundEntity);
 
+  Options? ifMatchOptions(String? version) =>
+      version == null ? null : Options(headers: {'If-Match': version});
+
   /// The endpoint returned a 2xx this call doesn't expect.
   ///
   /// Dio's `validateStatus` turns every non-2xx into a `DioException` before we

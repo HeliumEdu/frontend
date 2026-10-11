@@ -13,11 +13,13 @@ class ExternalCalendarModel extends BaseTitledModel {
     required super.shownOnCalendar,
     required this.url,
     required this.color,
+    super.version,
   });
 
   factory ExternalCalendarModel.fromJson(Map<String, dynamic> json) {
     return ExternalCalendarModel(
       id: json['id'],
+      version: json['updated_at'],
       title: json['title'],
       url: Uri.parse(json['url']),
       color: HeliumColors.hexToColor(json['color']),

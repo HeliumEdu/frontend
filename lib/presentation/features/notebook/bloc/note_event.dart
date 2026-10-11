@@ -63,10 +63,13 @@ class UpdateNoteEvent extends NoteEvent {
   final int noteId;
   final NoteRequestModel request;
 
+  final String? version;
+
   UpdateNoteEvent({
     required super.origin,
     required this.noteId,
     required this.request,
+    this.version,
   });
 }
 

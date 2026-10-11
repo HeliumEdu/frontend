@@ -42,10 +42,12 @@ class ExternalCalendarRepositoryImpl implements ExternalCalendarRepository {
   Future<ExternalCalendarModel> updateExternalCalendar({
     required int calendarId,
     required ExternalCalendarRequestModel payload,
+    String? version,
   }) async {
     return remoteDataSource.updateExternalCalendar(
       calendarId: calendarId,
       payload: payload,
+      version: version,
     );
   }
 

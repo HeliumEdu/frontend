@@ -38,6 +38,7 @@ class UpdateCategoryEvent extends CategoryEvent {
   final int courseId;
   final int categoryId;
   final CategoryRequestModel request;
+  final String? version;
 
   UpdateCategoryEvent({
     required super.origin,
@@ -45,6 +46,7 @@ class UpdateCategoryEvent extends CategoryEvent {
     required this.courseId,
     required this.categoryId,
     required this.request,
+    this.version,
   });
 }
 

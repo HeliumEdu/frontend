@@ -33,5 +33,6 @@ abstract class PlannerItemBaseModel extends BaseTitledModel {
     required this.plannerItemType,
     required this.attachments,
     required this.reminders,
+    super.version,
   });
 }

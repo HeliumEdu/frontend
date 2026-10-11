@@ -53,6 +53,8 @@ class UpdateEventEvent extends PlannerItemEvent {
   final int? linkedNoteId;
   final Map<String, dynamic>? noteContent;
   final bool redirectToNotebook;
+  final String? version;
+  final String? linkedNoteVersion;
   final bool noteEdited;
 
   UpdateEventEvent({
@@ -63,6 +65,8 @@ class UpdateEventEvent extends PlannerItemEvent {
     this.linkedNoteId,
     this.noteContent,
     this.redirectToNotebook = false,
+    this.version,
+    this.linkedNoteVersion,
     this.noteEdited = true,
   });
 }
@@ -118,6 +122,8 @@ class UpdateHomeworkEvent extends PlannerItemEvent {
   final int? linkedNoteId;
   final Map<String, dynamic>? noteContent;
   final bool redirectToNotebook;
+  final String? version;
+  final String? linkedNoteVersion;
   final bool noteEdited;
 
   UpdateHomeworkEvent({
@@ -130,6 +136,8 @@ class UpdateHomeworkEvent extends PlannerItemEvent {
     this.linkedNoteId,
     this.noteContent,
     this.redirectToNotebook = false,
+    this.version,
+    this.linkedNoteVersion,
     this.noteEdited = true,
   });
 }

@@ -10,6 +10,7 @@ import 'package:heliumapp/presentation/features/shared/bloc/core/base_event.dart
 import 'package:heliumapp/presentation/features/resources/bloc/resource_bloc.dart';
 import 'package:heliumapp/presentation/features/resources/bloc/resource_event.dart';
 import 'package:heliumapp/presentation/features/resources/bloc/resource_state.dart';
+import 'package:heliumapp/presentation/ui/feedback/conflict_dialog.dart';
 import 'package:heliumapp/presentation/ui/dialogs/base_dialog_state.dart';
 import 'package:heliumapp/presentation/features/shared/controllers/basic_form_controller.dart';
 import 'package:heliumapp/presentation/features/resources/controllers/resource_group_form_controller.dart';
@@ -34,6 +35,9 @@ class _ResourceGroupWidgetState
     extends BaseDialogState<_ResourceGroupProvidedWidget> {
   final ResourceGroupFormController _formController =
       ResourceGroupFormController();
+  String? _version;
+  bool _overwriteNewer = false;
+  ResourceGroupModel? _conflictLatest;
 
   @override
   String get dialogTitle => 'Group';
@@ -65,6 +69,20 @@ class _ResourceGroupWidgetState
   void _populateInitialStateData(ResourceGroupModel group) {
     _formController.titleController.text = group.title;
     _formController.shownOnCalendar = group.shownOnCalendar!;
+    _version = group.version;
+  }
+
+  void _loadLatest() {
+    setState(() {
+      _populateInitialStateData(_conflictLatest!);
+      _formController.isChanged = false;
+      _formController.isUserDirty = false;
+    });
+  }
+
+  void _overwrite() {
+    _overwriteNewer = true;
+    handleSubmit();
   }
 
   @override
@@ -94,6 +112,13 @@ class _ResourceGroupWidgetState
               _populateInitialStateData(group ?? widget.group!);
               isLoading = false;
             });
+          } else if (state is ResourceGroupConflict) {
+            _conflictLatest = state.latest;
+            resolveConflict(
+              context,
+              onLoadLatest: _loadLatest,
+              onOverwrite: _overwrite,
+            );
           } else if (state is ResourceGroupCreated ||
               state is ResourceGroupUpdated ||
               state is ResourceGroupDeleted) {
@@ -202,8 +227,10 @@ class _ResourceGroupWidgetState
             origin: EventOrigin.dialog,
             resourceGroupId: widget.group!.id,
             request: request,
+            version: _overwriteNewer ? null : _version,
           ),
         );
+        _overwriteNewer = false;
       } else {
         context.read<ResourceBloc>().add(
           CreateResourceGroupEvent(

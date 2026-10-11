@@ -124,6 +124,27 @@ class NoteUpdated extends NoteState {
   });
 }
 
+class NoteConflict extends NoteState {
+  final int noteId;
+  final NoteModel latest;
+
+  NoteConflict({
+    required super.origin,
+    required this.noteId,
+    required this.latest,
+  });
+}
+
+class NoteMissing extends NotesError {
+  final int noteId;
+
+  NoteMissing({
+    required super.origin,
+    required super.message,
+    required this.noteId,
+  });
+}
+
 class NoteRefreshed extends NoteState {
   final NoteModel note;
 

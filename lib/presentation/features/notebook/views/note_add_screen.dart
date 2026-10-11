@@ -39,6 +39,7 @@ import 'package:heliumapp/presentation/ui/components/label_and_text_form_field.d
 import 'package:heliumapp/presentation/ui/components/notes_editor.dart';
 import 'package:heliumapp/presentation/ui/components/quill_search_bar.dart';
 import 'package:heliumapp/presentation/ui/components/resource_title_label.dart';
+import 'package:heliumapp/presentation/ui/feedback/conflict_dialog.dart';
 import 'package:heliumapp/presentation/ui/feedback/discard_changes_scope.dart';
 import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
 import 'package:heliumapp/presentation/ui/layout/page_header.dart';
@@ -58,6 +59,14 @@ import 'package:pdf/widgets.dart' as pw;
 import 'package:sentry_flutter/sentry_flutter.dart';
 
 enum SaveStatus { unsaved, saving, saved, error }
+
+class _PendingConflict {
+  final NoteModel latest;
+  final bool wasManualSave;
+  bool isSavingCopy = false;
+
+  _PendingConflict({required this.latest, required this.wasManualSave});
+}
 
 /// Pushes the note editor route on the notebook shell.
 ///
@@ -168,7 +177,12 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
   int _autoSaveErrorCount = 0;
   bool _isDiscardDialogOpen = false;
 
+  // Concurrency state
+  static const _maxUnconfirmedSends = 5;
+  final List<({String title, Delta content})> _unconfirmedSends = [];
   Timer? _autoPullTimer;
+  _PendingConflict? _conflict;
+  bool _isRecreatingDeletedNote = false;
   bool _isApplyingRemoteVersion = false;
 
   bool _isClosing = false;
@@ -435,7 +449,18 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
     return [
       BlocListener<NoteBloc, NoteState>(
         listener: (context, state) {
-          if (state is NoteRefreshed && state.note.id == _note?.id) {
+          if (state is NoteConflict && state.noteId == _note?.id) {
+            _onSaveConflict(state.latest, wasManualSave: !_isAutoSaving);
+          } else if (state is NoteMissing &&
+              state.noteId == _note?.id &&
+              _saveStatus == SaveStatus.saving &&
+              !_isLinking) {
+            _recreateDeletedNote();
+          } else if (_conflict?.isSavingCopy == true && state is NoteCreated) {
+            _onConflictCopySaved();
+          } else if (_conflict?.isSavingCopy == true && state is NotesError) {
+            _onConflictCopyFailed(state.message!);
+          } else if (state is NoteRefreshed && state.note.id == _note?.id) {
             _applyRefreshedNote(state.note);
           } else if (state is NotesError) {
             if (isLoading) {
@@ -529,10 +554,14 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
                   '${widget.shellPath}/${state.note.id}',
                 );
               }
-              showSnackBar(context, 'Note created.');
+              showSnackBar(context, _takeNoteCreatedMessage());
             } else {
               // Manual save - show message and close
-              showSnackBar(context, 'Note created.', useRootMessenger: true);
+              showSnackBar(
+                context,
+                _takeNoteCreatedMessage(),
+                useRootMessenger: true,
+              );
               _closeImmediately();
             }
           } else if (state is LinkableEntitiesFetched) {
@@ -555,6 +584,7 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
                 _note = state.note;
                 _saveStatus = SaveStatus.saved;
                 _autoSaveErrorCount = 0;
+                _unconfirmedSends.clear();
                 _setLinkedEntityFrom(state.note);
               });
               _isAutoSaving = false;
@@ -606,6 +636,7 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
     if (isLoading ||
         _saveStatus == SaveStatus.saving ||
         _isDiscardDialogOpen ||
+        _isResolvingConflict ||
         _isApplyingRemoteVersion) {
       return;
     }
@@ -640,7 +671,12 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
   }
 
   void _triggerAutoSave() {
-    if (_saveStatus == SaveStatus.saving || _isAutoSaving || _isDiscardDialogOpen) return;
+    if (_saveStatus == SaveStatus.saving ||
+        _isAutoSaving ||
+        _isDiscardDialogOpen ||
+        _isResolvingConflict) {
+      return;
+    }
 
     final title = _titleController.text.trim();
     final bodyIsEmpty = _quillController.document.toPlainText().trim().isEmpty;
@@ -657,7 +693,7 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
     return title.isEmpty && bodyIsEmpty;
   }
 
-  void _performSave({required bool isAutoSave}) {
+  void _performSave({required bool isAutoSave, bool unconditional = false}) {
     _debounceTimer?.cancel();
 
     setState(() {
@@ -683,6 +719,7 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
         ),
       );
     } else {
+      if (!unconditional) _rememberUnconfirmedSend(title, content);
       context.read<NoteBloc>().add(
         UpdateNoteEvent(
           origin: EventOrigin.subScreen,
@@ -692,10 +729,156 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
             content: {'ops': content},
             clearLinks: _pendingUnlink,
           ),
+          version: unconditional ? null : _note!.version,
         ),
       );
-      _pendingUnlink = false;
     }
+  }
+
+  bool get _isResolvingConflict => _conflict != null;
+
+  void _rememberUnconfirmedSend(String title, List<dynamic> ops) {
+    final content = Delta.fromJson(ops);
+    final last = _unconfirmedSends.lastOrNull;
+    if (last != null && last.title == title && last.content == content) return;
+
+    _unconfirmedSends.add((title: title, content: content));
+    if (_unconfirmedSends.length > _maxUnconfirmedSends) {
+      _unconfirmedSends.removeAt(0);
+    }
+  }
+
+  bool _isOwnWrite(NoteModel latest) {
+    final ops = latest.content?['ops'];
+    if (ops == null) return false;
+
+    final latestContent = Delta.fromJson(ops);
+    for (final sent in _unconfirmedSends) {
+      if (sent.title == latest.title && sent.content == latestContent) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /// A save whose response was lost still reached the server, so its retry
+  /// loses to this device's own earlier write. That is not a conflict: the
+  /// editor continues from the version already saved.
+  bool _adoptOwnWrite(NoteModel latest, {required bool wasManualSave}) {
+    if (!_isOwnWrite(latest)) return false;
+
+    _debounceTimer?.cancel();
+    _unconfirmedSends.clear();
+    setState(() {
+      _isAutoSaving = false;
+      isSubmitting = false;
+      _note = latest;
+      _saveStatus = SaveStatus.saved;
+      _autoSaveErrorCount = 0;
+      _pendingUnlink = _pendingUnlink && latest.linkedEntityType.isNotEmpty;
+      if (!_pendingUnlink) _setLinkedEntityFrom(latest);
+    });
+
+    if (wasManualSave) {
+      _performSave(isAutoSave: false);
+    } else {
+      _onContentChanged();
+    }
+    return true;
+  }
+
+  Future<void> _onSaveConflict(
+    NoteModel latest, {
+    required bool wasManualSave,
+  }) async {
+    if (_adoptOwnWrite(latest, wasManualSave: wasManualSave)) return;
+
+    _debounceTimer?.cancel();
+    setState(() {
+      _isAutoSaving = false;
+      isSubmitting = false;
+      _saveStatus = SaveStatus.unsaved;
+      _conflict = _PendingConflict(
+        latest: latest,
+        wasManualSave: wasManualSave,
+      );
+    });
+
+    await resolveConflict(
+      context,
+      onLoadLatest: _saveLocalCopy,
+      onOverwrite: _overwriteNewer,
+    );
+  }
+
+  void _overwriteNewer() {
+    final wasManualSave = _conflict!.wasManualSave;
+    setState(() => _conflict = null);
+    _performSave(isAutoSave: !wasManualSave, unconditional: true);
+  }
+
+  void _saveLocalCopy() {
+    setState(() {
+      _conflict!.isSavingCopy = true;
+      isSubmitting = true;
+    });
+
+    context.read<NoteBloc>().add(
+      CreateNoteEvent(
+        origin: EventOrigin.subScreen,
+        request: NoteRequestModel.conflictCopy(
+          title: _titleController.text,
+          content: {'ops': _quillController.document.toDelta().toJson()},
+        ),
+      ),
+    );
+  }
+
+  void _onConflictCopySaved() {
+    final latest = _conflict!.latest;
+    _pendingRedirectRoute = null;
+    setState(() {
+      _conflict = null;
+      isSubmitting = false;
+      _autoSaveErrorCount = 0;
+    });
+    _showNoteVersion(latest, keepCursor: false);
+    showSnackBar(context, 'Your changes were saved as a separate note.');
+  }
+
+  void _onConflictCopyFailed(String message) {
+    final conflict = _conflict!;
+    setState(() {
+      _conflict = null;
+      isSubmitting = false;
+    });
+    if (!isShowingErrorCard) {
+      showSnackBar(context, message, type: SnackType.error);
+    }
+    _onSaveConflict(conflict.latest, wasManualSave: conflict.wasManualSave);
+  }
+
+  void _recreateDeletedNote() {
+    final wasAutoSave = _isAutoSaving;
+    setState(() {
+      _note = null;
+      _pendingLinkId = null;
+      _pendingUnlink = false;
+      _linkedEntityType = null;
+      _linkedEntityTitle = null;
+      _linkedEntityColor = null;
+      _linkedEntityCompleted = null;
+      _isAutoSaving = false;
+      _isRecreatingDeletedNote = true;
+      _unconfirmedSends.clear();
+    });
+    _performSave(isAutoSave: wasAutoSave);
+  }
+
+  String _takeNoteCreatedMessage() {
+    if (!_isRecreatingDeletedNote) return 'Note created.';
+    _isRecreatingDeletedNote = false;
+    return 'This note was deleted on another device, so it was saved as a new note.';
   }
 
   void _startAutoPull() {
@@ -714,6 +897,7 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
       !_pendingUnlink &&
       !_isAutoSaving &&
       !_isDiscardDialogOpen &&
+      !_isResolvingConflict &&
       _debounceTimer?.isActive != true;
 
   void _pullLatest() {
@@ -725,29 +909,34 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
 
   void _applyRefreshedNote(NoteModel note) {
     if (!_canTakeRemoteVersion || note.version == _note!.version) return;
-    _showNoteVersion(note);
+    _showNoteVersion(note, keepCursor: true);
   }
 
-  /// Replaces the editor with [note] as the saved baseline, keeping the title
-  /// and editor selections at the same offsets, clamped to the new text.
-  void _showNoteVersion(NoteModel note) {
+  /// Replaces the editor with [note] as the saved baseline. With [keepCursor],
+  /// the title and editor selections stay at the same offsets, clamped to the
+  /// new text.
+  void _showNoteVersion(NoteModel note, {required bool keepCursor}) {
     final editorOffset = _quillController.selection.baseOffset;
     final titleSelection = _titleController.selection;
     final document =
         tryParseNotesDocument(note.content) ?? buildUnrenderableNotePlaceholder();
 
     _isApplyingRemoteVersion = true;
+    _unconfirmedSends.clear();
     setState(() {
       _note = note;
+      _pendingUnlink = false;
       _saveStatus = SaveStatus.saved;
       _setLinkedEntityFrom(note);
       _quillController.document = document;
       _titleController.value = TextEditingValue(
         text: note.title,
-        selection: _clampSelection(titleSelection, note.title.length),
+        selection: keepCursor
+            ? _clampSelection(titleSelection, note.title.length)
+            : TextSelection.collapsed(offset: note.title.length),
       );
     });
-    if (editorOffset >= 0) {
+    if (keepCursor && editorOffset >= 0) {
       _quillController.updateSelection(
         TextSelection.collapsed(
           offset: math.min(editorOffset, document.length - 1),

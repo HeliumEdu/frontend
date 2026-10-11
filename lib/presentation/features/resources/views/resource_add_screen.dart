@@ -18,6 +18,7 @@ import 'package:heliumapp/presentation/features/shared/bloc/core/base_event.dart
 import 'package:heliumapp/presentation/features/shared/widgets/flow/multi_step_container.dart';
 import 'package:heliumapp/presentation/features/resources/widgets/resource_details.dart';
 import 'package:heliumapp/presentation/ui/components/helium_icon_button.dart';
+import 'package:heliumapp/presentation/ui/feedback/conflict_dialog.dart';
 import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
 import 'package:heliumapp/utils/deep_link_helpers.dart';
 import 'package:heliumapp/utils/snack_bar_helpers.dart';
@@ -251,6 +252,21 @@ class _ResourceAddScreenState
     };
   }
 
+  Future<void> _resolveConflict({required bool noteSavedAsCopy}) async {
+    await resolveConflict(
+      context,
+      onLoadLatest: _loadLatest,
+      onOverwrite: _overwriteNewer,
+    );
+    if (noteSavedAsCopy && mounted) {
+      showSnackBar(context, noteSavedAsCopyMessage);
+    }
+  }
+
+  void _loadLatest() => _detailsKey.currentState?.loadLatest();
+
+  void _overwriteNewer() => _detailsKey.currentState?.overwriteNewer();
+
   @override
   List<BlocListener<dynamic, dynamic>> buildListeners(BuildContext context) {
     return [
@@ -276,6 +292,11 @@ class _ResourceAddScreenState
             }
             _detailsKey.currentState?.resetSubmitting();
             setState(() { isLoading = false; isSubmitting = false; });
+          } else if (state is ResourceConflict &&
+              state.origin == EventOrigin.subScreen) {
+            _detailsKey.currentState?.resetSubmitting();
+            setState(() => isSubmitting = false);
+            _resolveConflict(noteSavedAsCopy: state.noteSavedAsCopy);
           } else if (state is ResourcesScreenDataFetched &&
               _currentResourceGroupId == null &&
               _currentResourceId != null) {
@@ -343,24 +364,25 @@ class _ResourceAddScreenState
             showSnackBar(context, 'Resource deleted.', useRootMessenger: true);
             closeWithoutPrompt();
           } else if (state is ResourceUpdated) {
+            if (state.noteSavedAsCopy) {
+              showSnackBar(
+                context,
+                noteSavedAsCopyMessage,
+                useRootMessenger: true,
+              );
+            }
             if (state.redirectToNotebook) {
               _log.info('Resource updated with notebook redirect (resourceId=${state.resource.id})');
               _detailsKey.currentState?.resetSubmitting();
               setState(() => isSubmitting = false);
 
-              final linkedNoteId = _detailsKey.currentState?.linkedNoteId;
-              final noteContent = _detailsKey.currentState?.noteContent;
-
-              if (linkedNoteId != null && noteContent != null) {
-                // Existing note being updated; ID is already known
+              final linkedNoteId = state.linkedNoteId;
+              if (linkedNoteId != null) {
                 DirtyDialogRegistry.releaseActive();
                 navigateAndClearStack(
                   context,
                   '${AppRoute.notebookScreen}/$linkedNoteId',
                 );
-              } else if (linkedNoteId == null && noteContent != null) {
-                // New note being created by NoteBloc; wait for NoteCreated
-                _pendingRedirectToNotebook = true;
               } else {
                 // No note content; navigate to the new-note dialog with the
                 // resource link riding via extra so it isn't in the URL.

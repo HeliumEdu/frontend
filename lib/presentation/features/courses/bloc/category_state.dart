@@ -42,3 +42,9 @@ class CategoryDeleted extends CategoryState {
 
   CategoryDeleted({required super.origin, required this.id});
 }
+
+class CategoryConflict extends CategoryState {
+  final CategoryModel latest;
+
+  CategoryConflict({required super.origin, required this.latest});
+}

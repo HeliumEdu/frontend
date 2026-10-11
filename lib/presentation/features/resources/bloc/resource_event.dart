@@ -49,11 +49,13 @@ class CreateResourceGroupEvent extends ResourceEvent {
 class UpdateResourceGroupEvent extends ResourceEvent {
   final int resourceGroupId;
   final ResourceGroupRequestModel request;
+  final String? version;
 
   UpdateResourceGroupEvent({
     required super.origin,
     required this.resourceGroupId,
     required this.request,
+    this.version,
   });
 }
 
@@ -83,14 +85,24 @@ class UpdateResourceEvent extends ResourceEvent {
   final int resourceGroupId;
   final int resourceId;
   final ResourceRequestModel request;
+  final int? linkedNoteId;
+  final Map<String, dynamic>? noteContent;
   final bool redirectToNotebook;
+  final String? version;
+  final String? linkedNoteVersion;
+  final bool noteEdited;
 
   UpdateResourceEvent({
     required super.origin,
     required this.resourceGroupId,
     required this.resourceId,
     required this.request,
+    this.linkedNoteId,
+    this.noteContent,
     this.redirectToNotebook = false,
+    this.version,
+    this.linkedNoteVersion,
+    this.noteEdited = true,
   });
 }
 

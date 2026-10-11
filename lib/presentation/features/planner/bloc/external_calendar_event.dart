@@ -31,11 +31,13 @@ class CreateExternalCalendarEvent extends ExternalCalendarEvent {
 class UpdateExternalCalendarEvent extends ExternalCalendarEvent {
   final int id;
   final ExternalCalendarRequestModel request;
+  final String? version;
 
   UpdateExternalCalendarEvent({
     required super.origin,
     required this.id,
     required this.request,
+    this.version,
   });
 }
 

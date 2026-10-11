@@ -26,6 +26,7 @@ abstract class NoteRepository {
   Future<NoteModel?> updateNote({
     required int noteId,
     required NoteRequestModel request,
+    String? version,
   });
 
   Future<void> deleteNote({required int noteId});

@@ -16,6 +16,7 @@ class ResourceFormController extends BasicFormController {
   int? selectedResourceGroupId;
   QuillController notesController = heliumQuillController();
   int? linkedNoteId;
+  String? linkedNoteVersion;
 
   bool notesEdited = false;
 

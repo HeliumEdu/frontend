@@ -21,11 +21,13 @@ class ResourceModel extends BaseTitledModel {
     required this.resourceGroup,
     required this.courses,
     required this.notes,
+    super.version,
   });
 
   factory ResourceModel.fromJson(Map<String, dynamic> json) {
     return ResourceModel(
       id: json['id'],
+      version: json['updated_at'],
       title: json['title'],
       shownOnCalendar: json['shown_on_calendar'],
       status: json['status'],

@@ -17,6 +17,7 @@ class CourseGroupModel extends BaseTitledModel {
     required this.startDate,
     required this.endDate,
     required this.exceptions,
+    super.version,
     this.overallGrade,
     this.numDays,
     this.numDaysCompleted,
@@ -25,6 +26,7 @@ class CourseGroupModel extends BaseTitledModel {
   factory CourseGroupModel.fromJson(Map<String, dynamic> json) {
     return CourseGroupModel(
       id: json['id'],
+      version: json['updated_at'],
       title: json['title'],
       startDate: DateTime.parse(json['start_date']),
       endDate: DateTime.parse(json['end_date']),
