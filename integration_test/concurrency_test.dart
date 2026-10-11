@@ -151,7 +151,7 @@ void main() {
     );
 
     namedTestWidgets(
-      '2. A note changed on another device keeps this device\'s text as a copy on Load Latest',
+      '2. A note changed on another device discards this device\'s changes on Load Latest',
       (tester) async {
         if (!await login(tester)) return;
 
@@ -215,13 +215,10 @@ void main() {
         expect(loaded, isTrue, reason: 'The editor should show the other version');
 
         final notes = (await apiHelper.getNotes())!;
-        final copies = notes.where(
-          (n) => n.title == 'Concurrency Note (mine) (copy from this device)',
-        );
         expect(
-          copies,
-          hasLength(1),
-          reason: 'This device\'s text should be kept as a separate note',
+          notes.where((n) => n.title.startsWith('Concurrency Note (mine)')),
+          isEmpty,
+          reason: 'Load Latest should not keep this device\'s text anywhere',
         );
 
         await closePageDialog(
@@ -230,7 +227,6 @@ void main() {
           shellTitle: 'Notebook',
         );
         await apiHelper.deleteNote(note.id);
-        await apiHelper.deleteNote(copies.single.id);
       },
     );
   });

@@ -8,6 +8,7 @@ import 'package:heliumapp/data/models/planner/homework_model.dart';
 import 'package:heliumapp/data/models/planner/note_model.dart';
 import 'package:heliumapp/data/models/planner/resource_model.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/core/base_state.dart';
+import 'package:heliumapp/domain/linked_note_saver.dart';
 
 abstract class PlannerItemState extends BaseState {
   PlannerItemState({required super.origin, super.message});
@@ -137,7 +138,7 @@ class EventCreated extends EventEntityState {
 class EventUpdated extends EventEntityState {
   final bool redirectToNotebook;
   final int? linkedNoteId;
-  final bool noteSavedAsCopy;
+  final LinkedNoteSave? linkedNoteSave;
 
   EventUpdated({
     required super.origin,
@@ -147,7 +148,7 @@ class EventUpdated extends EventEntityState {
     required super.advanceNavOnSuccess,
     this.redirectToNotebook = false,
     this.linkedNoteId,
-    this.noteSavedAsCopy = false,
+    this.linkedNoteSave,
   });
 }
 
@@ -181,7 +182,7 @@ class HomeworkCreated extends HomeworkEntityState {
 class HomeworkUpdated extends HomeworkEntityState {
   final bool redirectToNotebook;
   final int? linkedNoteId;
-  final bool noteSavedAsCopy;
+  final LinkedNoteSave? linkedNoteSave;
 
   HomeworkUpdated({
     required super.origin,
@@ -191,14 +192,14 @@ class HomeworkUpdated extends HomeworkEntityState {
     required super.advanceNavOnSuccess,
     this.redirectToNotebook = false,
     this.linkedNoteId,
-    this.noteSavedAsCopy = false,
+    this.linkedNoteSave,
   });
 }
 
 class PlannerItemConflict extends PlannerItemState {
-  final bool noteSavedAsCopy;
+  final LinkedNoteSave? linkedNoteSave;
 
-  PlannerItemConflict({required super.origin, required this.noteSavedAsCopy});
+  PlannerItemConflict({required super.origin, this.linkedNoteSave});
 }
 
 class HomeworkDeleted extends PlannerItemState {

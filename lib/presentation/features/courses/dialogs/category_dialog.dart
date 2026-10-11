@@ -9,12 +9,12 @@ import 'package:heliumapp/presentation/features/courses/bloc/category_event.dart
 import 'package:heliumapp/presentation/features/courses/bloc/category_state.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/core/base_event.dart';
 import 'package:heliumapp/presentation/ui/dialogs/base_dialog_state.dart';
+import 'package:heliumapp/presentation/ui/dialogs/conflict_resolving_dialog.dart';
 import 'package:heliumapp/presentation/ui/components/color_selector.dart';
 import 'package:heliumapp/presentation/features/shared/controllers/basic_form_controller.dart';
 import 'package:heliumapp/presentation/features/courses/controllers/category_form_controller.dart';
 import 'package:heliumapp/presentation/ui/components/label_and_text_form_field.dart';
 import 'package:heliumapp/presentation/ui/components/spinner_field.dart';
-import 'package:heliumapp/presentation/ui/feedback/conflict_dialog.dart';
 import 'package:heliumapp/utils/color_helpers.dart';
 import 'package:heliumapp/utils/format_helpers.dart';
 import 'package:heliumapp/utils/platform_behavior.dart';
@@ -36,11 +36,9 @@ class _CategoryProvidedWidget extends StatefulWidget {
   State<_CategoryProvidedWidget> createState() => _CategoryWidgetState();
 }
 
-class _CategoryWidgetState extends BaseDialogState<_CategoryProvidedWidget> {
+class _CategoryWidgetState extends BaseDialogState<_CategoryProvidedWidget>
+    with ConflictResolvingDialog<_CategoryProvidedWidget, CategoryModel> {
   final CategoryFormController _formController = CategoryFormController();
-  String? _version;
-  bool _overwriteNewer = false;
-  CategoryModel? _conflictLatest;
 
   @override
   String get dialogTitle => 'Category';
@@ -77,20 +75,14 @@ class _CategoryWidgetState extends BaseDialogState<_CategoryProvidedWidget> {
         ? ''
         : HeliumNumber.format(category.weight, trimZeros: true);
     _formController.selectedColor = category.color;
-    _version = category.version;
+    trackVersion(category);
   }
 
-  void _loadLatest() {
-    setState(() {
-      _populateInitialStateData(_conflictLatest!);
-      _formController.isChanged = false;
-      _formController.isUserDirty = false;
-    });
-  }
-
-  void _overwrite() {
-    _overwriteNewer = true;
-    handleSubmit();
+  @override
+  void applyLatest(CategoryModel latest) {
+    _populateInitialStateData(latest);
+    _formController.isChanged = false;
+    _formController.isUserDirty = false;
   }
 
   @override
@@ -121,12 +113,7 @@ class _CategoryWidgetState extends BaseDialogState<_CategoryProvidedWidget> {
               isLoading = false;
             });
           } else if (state is CategoryConflict) {
-            _conflictLatest = state.latest;
-            resolveConflict(
-              context,
-              onLoadLatest: _loadLatest,
-              onOverwrite: _overwrite,
-            );
+            resolveDialogConflict(state.latest);
           } else if (state is CategoryCreated || state is CategoryUpdated) {
             Navigator.pop(context);
           }
@@ -214,10 +201,9 @@ class _CategoryWidgetState extends BaseDialogState<_CategoryProvidedWidget> {
             courseId: widget.courseId,
             categoryId: widget.category!.id,
             request: request,
-            version: _overwriteNewer ? null : _version,
+            version: versionToSend,
           ),
         );
-        _overwriteNewer = false;
       } else {
         context.read<CategoryBloc>().add(
           CreateCategoryEvent(

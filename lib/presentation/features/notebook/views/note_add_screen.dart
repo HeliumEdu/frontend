@@ -56,14 +56,12 @@ import 'package:heliumapp/utils/search_helpers.dart';
 import 'package:heliumapp/utils/sort_helpers.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
-import 'package:sentry_flutter/sentry_flutter.dart';
 
 enum SaveStatus { unsaved, saving, saved, error }
 
 class _PendingConflict {
   final NoteModel latest;
   final bool wasManualSave;
-  bool isSavingCopy = false;
 
   _PendingConflict({required this.latest, required this.wasManualSave});
 }
@@ -175,6 +173,7 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
   Timer? _debounceTimer;
   bool _isAutoSaving = false;
   int _autoSaveErrorCount = 0;
+  bool _willRetrySave = false;
   bool _isDiscardDialogOpen = false;
 
   // Concurrency state
@@ -398,7 +397,7 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
     }
 
     // Manual save already in flight; bloc listener will close on completion
-    if (_saveStatus == SaveStatus.saving && !_isAutoSaving) return;
+    if (isSubmitting && !_isAutoSaving) return;
 
     if (_isNoteEmpty) {
       _closeImmediately();
@@ -433,7 +432,7 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
     }
 
     // Auto-save in flight: upgrade to manual so bloc listener closes
-    if (_saveStatus == SaveStatus.saving && _isAutoSaving) {
+    if (_isAutoSaving) {
       setState(() {
         _isAutoSaving = false;
         isSubmitting = true;
@@ -456,10 +455,6 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
               _saveStatus == SaveStatus.saving &&
               !_isLinking) {
             _recreateDeletedNote();
-          } else if (_conflict?.isSavingCopy == true && state is NoteCreated) {
-            _onConflictCopySaved();
-          } else if (_conflict?.isSavingCopy == true && state is NotesError) {
-            _onConflictCopyFailed(state.message!);
           } else if (state is NoteRefreshed && state.note.id == _note?.id) {
             _applyRefreshedNote(state.note);
           } else if (state is NotesError) {
@@ -485,21 +480,21 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
               } else if (_note == null) {
                 setState(() => isSubmitting = false);
               }
-              if (_autoSaveErrorCount == 0) {
+              if (_autoSaveErrorCount == 0 || !state.canRetry) {
                 if (!isShowingErrorCard) {
                   showSnackBar(context, state.message!, type: SnackType.error);
                 }
               }
-              _handleAutoSaveError(state.message!);
+              _handleAutoSaveError(canRetry: state.canRetry);
               _isAutoSaving = false;
             } else {
               setState(() => isSubmitting = false);
-              if (_autoSaveErrorCount == 0) {
+              if (_autoSaveErrorCount == 0 || !state.canRetry) {
                 if (!isShowingErrorCard) {
                   showSnackBar(context, state.message!, type: SnackType.error);
                 }
               }
-              _handleAutoSaveError('Manual save failed');
+              _handleAutoSaveError(canRetry: state.canRetry);
             }
           } else if (state is NoteScreenDataFailed &&
               _isOwnScreenDataRequest(state)) {
@@ -556,13 +551,12 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
               }
               showSnackBar(context, _takeNoteCreatedMessage());
             } else {
-              // Manual save - show message and close
               showSnackBar(
                 context,
                 _takeNoteCreatedMessage(),
                 useRootMessenger: true,
               );
-              _closeImmediately();
+              _closeOrSaveNewerEdits(state.note);
             }
           } else if (state is LinkableEntitiesFetched) {
             setState(() {
@@ -590,9 +584,8 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
               _isAutoSaving = false;
               _onContentChanged();
             } else {
-              // Manual save - close
               _pendingUnlink = false;
-              _closeImmediately();
+              _closeOrSaveNewerEdits(state.note);
             }
           } else if (state is NoteDeleted) {
             showSnackBar(context, 'Note deleted.', useRootMessenger: true);
@@ -625,11 +618,14 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
     );
   }
 
-  String _getSavedContentAsJson() {
-    if (_note?.content == null || _note!.content!['ops'] == null) {
-      return '';
-    }
-    return jsonEncode(_note!.content!['ops']);
+  bool _hasEditsSince(NoteModel? saved) {
+    final savedOps = saved?.content?['ops'];
+    final savedContent = savedOps == null ? '' : jsonEncode(savedOps);
+    final currentContent = jsonEncode(
+      _quillController.document.toDelta().toJson(),
+    );
+    return _titleController.text.trim() != (saved?.title ?? '') ||
+        currentContent != savedContent;
   }
 
   void _onContentChanged() {
@@ -641,17 +637,7 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
       return;
     }
 
-    // Check if content actually changed from last saved state, comparing Delta
-    // JSON so that formatting-only changes (bold, italic, etc.) are detected
-    final currentTitle = _titleController.text;
-    final currentContent = jsonEncode(
-      _quillController.document.toDelta().toJson(),
-    );
-    final savedTitle = _note?.title ?? '';
-    final savedContent = _getSavedContentAsJson();
-    if (currentTitle == savedTitle && currentContent == savedContent) {
-      return;
-    }
+    if (!_hasEditsSince(_note)) return;
 
     setState(() {
       // Preserve error state — icon stays red until a save actually succeeds
@@ -661,7 +647,7 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
     // For new notes, only auto-save once title OR body is non-empty
     final isNewNote = _note == null;
     if (isNewNote) {
-      final hasTitle = currentTitle.trim().isNotEmpty;
+      final hasTitle = _titleController.text.trim().isNotEmpty;
       final hasBody = _quillController.document.toPlainText().trim().isNotEmpty;
       if (!hasTitle && !hasBody) return;
     }
@@ -693,7 +679,7 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
     return title.isEmpty && bodyIsEmpty;
   }
 
-  void _performSave({required bool isAutoSave, bool unconditional = false}) {
+  void _performSave({required bool isAutoSave}) {
     _debounceTimer?.cancel();
 
     setState(() {
@@ -719,7 +705,7 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
         ),
       );
     } else {
-      if (!unconditional) _rememberUnconfirmedSend(title, content);
+      _rememberUnconfirmedSend(title, content);
       context.read<NoteBloc>().add(
         UpdateNoteEvent(
           origin: EventOrigin.subScreen,
@@ -729,7 +715,7 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
             content: {'ops': content},
             clearLinks: _pendingUnlink,
           ),
-          version: unconditional ? null : _note!.version,
+          version: _note!.version,
         ),
       );
     }
@@ -744,7 +730,9 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
 
     _unconfirmedSends.add((title: title, content: content));
     if (_unconfirmedSends.length > _maxUnconfirmedSends) {
-      _unconfirmedSends.removeAt(0);
+      // The oldest send is the one in flight when the connection dropped, so
+      // it is the likeliest to have reached the server; drop the next oldest.
+      _unconfirmedSends.removeAt(1);
     }
   }
 
@@ -806,56 +794,53 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
 
     await resolveConflict(
       context,
-      onLoadLatest: _saveLocalCopy,
+      onLoadLatest: _loadLatestVersion,
       onOverwrite: _overwriteNewer,
+      canKeepEditing: true,
     );
   }
 
-  void _overwriteNewer() {
-    final wasManualSave = _conflict!.wasManualSave;
-    setState(() => _conflict = null);
-    _performSave(isAutoSave: !wasManualSave, unconditional: true);
-  }
-
-  void _saveLocalCopy() {
-    setState(() {
-      _conflict!.isSavingCopy = true;
-      isSubmitting = true;
-    });
-
-    context.read<NoteBloc>().add(
-      CreateNoteEvent(
-        origin: EventOrigin.subScreen,
-        request: NoteRequestModel.conflictCopy(
-          title: _titleController.text,
-          content: {'ops': _quillController.document.toDelta().toJson()},
-        ),
-      ),
-    );
-  }
-
-  void _onConflictCopySaved() {
+  void _loadLatestVersion() {
     final latest = _conflict!.latest;
     _pendingRedirectRoute = null;
     setState(() {
       _conflict = null;
-      isSubmitting = false;
       _autoSaveErrorCount = 0;
     });
     _showNoteVersion(latest, keepCursor: false);
-    showSnackBar(context, 'Your changes were saved as a separate note.');
   }
 
-  void _onConflictCopyFailed(String message) {
+  void _retrySaveNow() {
+    setState(() => _conflict = null);
+    _debounceTimer?.cancel();
+    _triggerAutoSave();
+  }
+
+  void _overwriteNewer() {
     final conflict = _conflict!;
+    _unconfirmedSends.clear();
     setState(() {
       _conflict = null;
-      isSubmitting = false;
+      _note = conflict.latest;
+      _pendingUnlink =
+          _pendingUnlink && conflict.latest.linkedEntityType.isNotEmpty;
+      if (!_pendingUnlink) _setLinkedEntityFrom(conflict.latest);
     });
-    if (!isShowingErrorCard) {
-      showSnackBar(context, message, type: SnackType.error);
+    _performSave(isAutoSave: !conflict.wasManualSave);
+  }
+
+  void _closeOrSaveNewerEdits(NoteModel saved) {
+    if (!_hasEditsSince(saved) || _isNoteEmpty) {
+      _closeImmediately();
+      return;
     }
-    _onSaveConflict(conflict.latest, wasManualSave: conflict.wasManualSave);
+    _unconfirmedSends.clear();
+    setState(() {
+      _note = saved;
+      _saveStatus = SaveStatus.saved;
+      _autoSaveErrorCount = 0;
+    });
+    _performSave(isAutoSave: false);
   }
 
   void _recreateDeletedNote() {
@@ -964,24 +949,24 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
     _linkedEntityColor = note.courseColor ?? note.categoryColor;
   }
 
-  void _handleAutoSaveError(String message) {
+  void _handleAutoSaveError({required bool canRetry}) {
+    _debounceTimer?.cancel();
+    _willRetrySave = canRetry;
+    if (!canRetry) {
+      setState(() => _saveStatus = SaveStatus.error);
+      return;
+    }
+
     _autoSaveErrorCount++;
 
     AnalyticsService().logEvent(
       name: AnalyticsEvent.debugNoteAutosaveError,
       parameters: {'category': AnalyticsCategory.edgeCase.value},
     );
-    Sentry.captureMessage(
-      'Note autosave failed',
-      level: SentryLevel.error,
-      withScope: (scope) =>
-          scope.setContexts('autosave_error', {'error': message}),
-    );
 
     setState(() => _saveStatus = SaveStatus.error);
 
     // Reuse debounce slot to schedule background retry with backoff
-    _debounceTimer?.cancel();
     _debounceTimer = Timer(_effectiveDebounce, _triggerAutoSave);
   }
 
@@ -1218,16 +1203,27 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
     );
   }
 
+  bool get _isAutoSavePaused =>
+      _saveStatus == SaveStatus.error || _isResolvingConflict;
+
   Widget _buildSyncStatusIcon() {
+    if (_isAutoSavePaused) {
+      return HeliumIconButton(
+        onPressed: _retrySaveNow,
+        icon: Icons.cloud_off_outlined,
+        color: context.semanticColors.warning,
+        filled: false,
+        tooltip: _saveStatus == SaveStatus.error && _willRetrySave
+            ? 'Auto-save paused, will retry'
+            : 'Auto-save paused',
+      );
+    }
+
     final IconData icon;
     final Color color;
     final String tooltip;
 
-    if (_saveStatus == SaveStatus.error) {
-      icon = Icons.cloud_off_outlined;
-      color = context.colorScheme.error;
-      tooltip = 'Auto-save failed, will retry';
-    } else if (_note == null) {
+    if (_note == null) {
       icon = Icons.cloud_outlined;
       color = context.colorScheme.onSurface.withValues(alpha: AppStyles.mutedTextAlpha);
       tooltip = 'Auto-save not yet active';
@@ -1240,8 +1236,12 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
     return Tooltip(
       message: tooltip,
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 4),
-        child: Icon(icon, size: 18, color: color),
+        padding: HeliumIconButton.padding,
+        child: Icon(
+          icon,
+          size: HeliumIconButton.defaultIconSize(context),
+          color: color,
+        ),
       ),
     );
   }

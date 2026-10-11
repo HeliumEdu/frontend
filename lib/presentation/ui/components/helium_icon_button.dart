@@ -3,6 +3,8 @@ import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 
 class HeliumIconButton extends StatelessWidget {
+  static const padding = EdgeInsets.all(6);
+
   final VoidCallback onPressed;
   final bool enabled;
   final IconData icon;
@@ -13,6 +15,7 @@ class HeliumIconButton extends StatelessWidget {
   final double? size;
   final double? minimumSize;
   final VisualDensity? visualDensity;
+  final bool filled;
 
   const HeliumIconButton({
     super.key,
@@ -26,13 +29,15 @@ class HeliumIconButton extends StatelessWidget {
     this.size,
     this.minimumSize,
     this.visualDensity,
+    this.filled = true,
   });
+
+  static double defaultIconSize(BuildContext context) =>
+      Responsive.getIconSize(context, mobile: 20, tablet: 22, desktop: 24);
 
   @override
   Widget build(BuildContext context) {
-    final useSize =
-        size ??
-        Responsive.getIconSize(context, mobile: 20, tablet: 22, desktop: 24);
+    final useSize = size ?? defaultIconSize(context);
 
     // Solid-fill variant: callers pass `backgroundColor` to mirror
     // HeliumElevatedButton's filled style (solid bg + onPrimary icon). When
@@ -40,10 +45,12 @@ class HeliumIconButton extends StatelessWidget {
     // alpha 0.2 for bg, full color for icon) used by add/edit/delete actions.
     final isSolid = backgroundColor != null;
     final tintColor = color ?? context.colorScheme.primary;
-    final effectiveBg = isSolid ? backgroundColor! : tintColor.withValues(alpha: 0.2);
+    final effectiveBg = isSolid
+        ? backgroundColor!
+        : tintColor.withValues(alpha: filled ? 0.2 : 0);
     final hoverBg = isSolid
         ? backgroundColor!.withValues(alpha: 0.85)
-        : tintColor.withValues(alpha: 0.4);
+        : tintColor.withValues(alpha: filled ? 0.4 : 0.12);
     final baseIconColor =
         iconColor ?? (isSolid ? context.colorScheme.onPrimary : tintColor);
     final effectiveIconColor = enabled
@@ -66,7 +73,7 @@ class HeliumIconButton extends StatelessWidget {
       onPressed: enabled ? onPressed : null,
       icon: Icon(icon, color: effectiveIconColor, size: useSize),
       tooltip: tooltip,
-      padding: const EdgeInsets.all(6),
+      padding: padding,
       constraints: minimumSize != null
           ? BoxConstraints(minWidth: minimumSize!, minHeight: minimumSize!)
           : const BoxConstraints(),

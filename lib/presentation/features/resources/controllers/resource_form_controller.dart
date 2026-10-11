@@ -1,9 +1,9 @@
 import 'package:flutter/cupertino.dart';
-import 'package:flutter_quill/flutter_quill.dart';
 import 'package:heliumapp/presentation/features/shared/controllers/basic_form_controller.dart';
-import 'package:heliumapp/utils/quill_helpers.dart';
+import 'package:heliumapp/presentation/features/shared/controllers/linked_note_form_fields.dart';
 
-class ResourceFormController extends BasicFormController {
+class ResourceFormController extends BasicFormController
+    with LinkedNoteFormFields {
   final TextEditingController titleController = TextEditingController();
   final TextEditingController urlController = TextEditingController();
   final TextEditingController priceController = TextEditingController();
@@ -14,11 +14,6 @@ class ResourceFormController extends BasicFormController {
 
   /// Null until the user picks a group; unset when opened from "Show All".
   int? selectedResourceGroupId;
-  QuillController notesController = heliumQuillController();
-  int? linkedNoteId;
-  String? linkedNoteVersion;
-
-  bool notesEdited = false;
 
   void dispose() {
     titleController.dispose();

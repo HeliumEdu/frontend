@@ -12,7 +12,9 @@ import 'package:heliumapp/presentation/features/planner/widgets/planner_item_det
 import 'package:heliumapp/presentation/features/planner/widgets/planner_item_reminders.dart';
 import 'package:heliumapp/presentation/features/shared/widgets/core/base_attachments.dart';
 import 'package:heliumapp/presentation/features/shared/widgets/flow/multi_step_container.dart';
+import 'package:heliumapp/data/models/planner/planner_item_base_model.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/core/base_event.dart';
+import 'package:heliumapp/domain/linked_note_saver.dart';
 import 'package:heliumapp/presentation/ui/feedback/conflict_dialog.dart';
 import 'package:heliumapp/presentation/ui/feedback/discard_changes_scope.dart';
 import 'package:heliumapp/presentation/ui/components/helium_icon_button.dart';
@@ -363,20 +365,43 @@ class _PlannerItemAddScreenState
     };
   }
 
-  Future<void> _resolveConflict({required bool noteSavedAsCopy}) async {
-    await resolveConflict(
-      context,
-      onLoadLatest: _loadLatest,
-      onOverwrite: _overwriteNewer,
+  void _resolveConflict({
+    PlannerItemBaseModel? savedItem,
+    LinkedNoteSave? linkedNoteSave,
+  }) {
+    _detailsKey.currentState?.resetSubmitting();
+    setState(() => isSubmitting = false);
+    _detailsKey.currentState?.applyConflict(
+      savedItem: savedItem,
+      linkedNoteSave: linkedNoteSave,
     );
-    if (noteSavedAsCopy && mounted) {
-      showSnackBar(context, noteSavedAsCopyMessage);
-    }
+    resolveFormConflict(
+      context,
+      _detailsKey.currentState,
+      canKeepEditing: linkedNoteSave?.isConflict ?? false,
+    );
   }
 
-  void _loadLatest() => _detailsKey.currentState?.loadLatest();
-
-  void _overwriteNewer() => _detailsKey.currentState?.overwriteNewer();
+  (PlannerItemBaseModel, LinkedNoteSave)? _savedWithNoteConflict(
+    PlannerItemState state,
+  ) =>
+      switch (state) {
+        EventUpdated(
+          origin: EventOrigin.subScreen,
+          :final event,
+          :final linkedNoteSave?,
+        )
+            when linkedNoteSave.isConflict =>
+          (event, linkedNoteSave),
+        HomeworkUpdated(
+          origin: EventOrigin.subScreen,
+          :final homework,
+          :final linkedNoteSave?,
+        )
+            when linkedNoteSave.isConflict =>
+          (homework, linkedNoteSave),
+        _ => null,
+      };
 
   @override
   List<BlocListener<dynamic, dynamic>> buildListeners(BuildContext context) {
@@ -405,9 +430,13 @@ class _PlannerItemAddScreenState
             setState(() => isSubmitting = false);
           } else if (state is PlannerItemConflict &&
               state.origin == EventOrigin.subScreen) {
-            _detailsKey.currentState?.resetSubmitting();
-            setState(() => isSubmitting = false);
-            _resolveConflict(noteSavedAsCopy: state.noteSavedAsCopy);
+            _resolveConflict(linkedNoteSave: state.linkedNoteSave);
+          } else if (_savedWithNoteConflict(state)
+              case (final savedItem, final linkedNoteSave)) {
+            _resolveConflict(
+              savedItem: savedItem,
+              linkedNoteSave: linkedNoteSave,
+            );
           } else if (state is EventDeleted || state is HomeworkDeleted) {
             // Always closes after delete, show on root
             showSnackBar(
@@ -421,15 +450,6 @@ class _PlannerItemAddScreenState
               state is EventCreated ||
               state is EventUpdated) {
             state as BaseEntityState;
-
-            if ((state is HomeworkUpdated && state.noteSavedAsCopy) ||
-                (state is EventUpdated && state.noteSavedAsCopy)) {
-              showSnackBar(
-                context,
-                noteSavedAsCopyMessage,
-                useRootMessenger: true,
-              );
-            }
 
             final isClone =
                 (state is EventCreated && state.isClone) ||

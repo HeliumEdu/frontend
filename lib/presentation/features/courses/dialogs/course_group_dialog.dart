@@ -11,13 +11,13 @@ import 'package:heliumapp/presentation/features/courses/bloc/course_event.dart';
 import 'package:heliumapp/presentation/features/courses/bloc/course_state.dart';
 import 'package:heliumapp/presentation/features/courses/dialogs/course_exceptions_dialog.dart';
 import 'package:heliumapp/presentation/ui/dialogs/base_dialog_state.dart';
+import 'package:heliumapp/presentation/ui/dialogs/conflict_resolving_dialog.dart';
 import 'package:heliumapp/presentation/features/shared/controllers/basic_form_controller.dart';
 import 'package:heliumapp/presentation/features/courses/controllers/course_group_form_controller.dart';
 import 'package:heliumapp/presentation/ui/components/helium_checkbox_list_tile.dart';
 import 'package:heliumapp/presentation/ui/components/helium_elevated_button.dart';
 import 'package:heliumapp/presentation/ui/components/helium_icon_button.dart';
 import 'package:heliumapp/presentation/ui/components/label_and_text_form_field.dart';
-import 'package:heliumapp/presentation/ui/feedback/conflict_dialog.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/utils/date_time_helpers.dart';
@@ -34,12 +34,10 @@ class _CourseGroupProvidedWidget extends StatefulWidget {
 }
 
 class _CourseGroupWidgetState
-    extends BaseDialogState<_CourseGroupProvidedWidget> {
+    extends BaseDialogState<_CourseGroupProvidedWidget>
+    with ConflictResolvingDialog<_CourseGroupProvidedWidget, CourseGroupModel> {
   final CourseGroupFormController _formController = CourseGroupFormController();
   late List<DateTime> _groupExceptions;
-  String? _version;
-  bool _overwriteNewer = false;
-  CourseGroupModel? _conflictLatest;
 
   @override
   String get dialogTitle => 'Group';
@@ -77,20 +75,14 @@ class _CourseGroupWidgetState
     _formController.endDate = group.endDate;
     _formController.shownOnCalendar = group.shownOnCalendar!;
     _groupExceptions = List<DateTime>.from(group.exceptions);
-    _version = group.version;
+    trackVersion(group);
   }
 
-  void _loadLatest() {
-    setState(() {
-      _populateInitialStateData(_conflictLatest!);
-      _formController.isChanged = false;
-      _formController.isUserDirty = false;
-    });
-  }
-
-  void _overwrite() {
-    _overwriteNewer = true;
-    handleSubmit();
+  @override
+  void applyLatest(CourseGroupModel latest) {
+    _populateInitialStateData(latest);
+    _formController.isChanged = false;
+    _formController.isUserDirty = false;
   }
 
   @override
@@ -115,7 +107,7 @@ class _CourseGroupWidgetState
               state.courseGroup.id == widget.group?.id) {
             setState(() {
               _groupExceptions = state.courseGroup.exceptions;
-              _version = state.courseGroup.version;
+              trackVersion(state.courseGroup);
             });
           } else if (state is CoursesScreenDataFetched &&
               state.origin == EventOrigin.dialog &&
@@ -128,12 +120,7 @@ class _CourseGroupWidgetState
               isLoading = false;
             });
           } else if (state is CourseGroupConflict) {
-            _conflictLatest = state.latest;
-            resolveConflict(
-              context,
-              onLoadLatest: _loadLatest,
-              onOverwrite: _overwrite,
-            );
+            resolveDialogConflict(state.latest);
           } else if (state is CourseGroupCreated ||
               state is CourseGroupUpdated ||
               state is CourseGroupDeleted) {
@@ -372,10 +359,9 @@ class _CourseGroupWidgetState
             origin: EventOrigin.dialog,
             courseGroupId: widget.group!.id,
             request: request,
-            version: _overwriteNewer ? null : _version,
+            version: versionToSend,
           ),
         );
-        _overwriteNewer = false;
       } else {
         context.read<CourseBloc>().add(
           CreateCourseGroupEvent(origin: EventOrigin.dialog, request: request),

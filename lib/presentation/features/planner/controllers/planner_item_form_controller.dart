@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_quill/flutter_quill.dart';
 import 'package:heliumapp/presentation/features/shared/controllers/basic_form_controller.dart';
+import 'package:heliumapp/presentation/features/shared/controllers/linked_note_form_fields.dart';
 import 'package:heliumapp/utils/format_helpers.dart';
 import 'package:heliumapp/utils/grade_helpers.dart';
-import 'package:heliumapp/utils/quill_helpers.dart';
 
-class PlannerItemFormController extends BasicFormController {
+class PlannerItemFormController extends BasicFormController
+    with LinkedNoteFormFields {
   // Field name constants for integration testing
   static const String titleField = 'planner_item_title';
   static const String gradeField = 'planner_item_grade';
@@ -32,11 +32,6 @@ class PlannerItemFormController extends BasicFormController {
   /// schedule's class time. Parallels [isChanged] but scoped to time only.
   bool userChangedTime = false;
   double priorityValue = 50.0;
-  QuillController notesController = heliumQuillController();
-  int? linkedNoteId;
-  String? linkedNoteVersion;
-
-  bool notesEdited = false;
 
   PlannerItemFormController() {
     gradeFocusNode.addListener(_onGradeFocusChange);
