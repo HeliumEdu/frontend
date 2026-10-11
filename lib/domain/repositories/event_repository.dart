@@ -22,6 +22,7 @@ abstract class EventRepository {
   Future<EventModel> updateEvent({
     required int eventId,
     required EventRequestModel request,
+    String? version,
   });
 
   Future<void> deleteEvent({required int eventId});

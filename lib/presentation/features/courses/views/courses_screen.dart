@@ -178,6 +178,8 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen> {
           } else if (state is CourseGroupUpdated) {
             // No snackbar on updates
             _replaceCourseGroup(state.courseGroup);
+          } else if (state is CourseGroupConflict) {
+            _replaceCourseGroup(state.latest);
           } else if (state is CourseGroupDeleted) {
             showSnackBar(context, 'Group deleted.');
 
@@ -210,6 +212,8 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen> {
             _replaceCourse(state.course);
           } else if (state is CourseExceptionsUpdated) {
             _replaceCourse(state.course);
+          } else if (state is CourseConflict) {
+            _replaceCourse(state.latest);
           } else if (state is CourseGroupExceptionsUpdated) {
             _replaceCourseGroup(state.courseGroup);
           } else if (state is CourseScreenDataFetched && state.course != null) {

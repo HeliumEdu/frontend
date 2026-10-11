@@ -10,17 +10,20 @@ import 'package:heliumapp/domain/repositories/resource_repository.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/core/base_event.dart';
 import 'package:heliumapp/presentation/features/resources/bloc/resource_event.dart';
 import 'package:heliumapp/presentation/features/resources/bloc/resource_state.dart';
+import 'package:heliumapp/presentation/features/shared/bloc/core/linked_note_saver.dart';
 
 class ResourceBloc extends Bloc<ResourceEvent, ResourceState> {
   final ResourceRepository resourceRepository;
   final CourseRepository courseRepository;
   final NoteRepository noteRepository;
+  final LinkedNoteSaver _linkedNoteSaver;
 
   ResourceBloc({
     required this.resourceRepository,
     required this.courseRepository,
     required this.noteRepository,
-  }) : super(ResourcesInitial(origin: EventOrigin.bloc)) {
+  }) : _linkedNoteSaver = LinkedNoteSaver(noteRepository),
+       super(ResourcesInitial(origin: EventOrigin.bloc)) {
     on<FetchResourcesScreenDataEvent>(_onFetchResourcesScreenData);
     on<FetchResourceScreenDataEvent>(_onFetchResourceScreenDataEvent);
     on<CreateResourceGroupEvent>(_onCreateResourceGroup);
@@ -176,6 +179,7 @@ class ResourceBloc extends Bloc<ResourceEvent, ResourceState> {
       final resourceGroup = await resourceRepository.updateResourceGroup(
         id: event.resourceGroupId,
         request: event.request,
+        version: event.version,
       );
       emit(
         ResourceGroupUpdated(
@@ -183,6 +187,11 @@ class ResourceBloc extends Bloc<ResourceEvent, ResourceState> {
           resourceGroup: resourceGroup,
         ),
       );
+    } on ConflictException catch (e) {
+      emit(ResourceGroupConflict(
+        origin: event.origin,
+        latest: ResourceGroupModel.fromJson(e.latest),
+      ));
     } on HeliumException catch (e) {
       emit(ResourcesError(origin: event.origin, message: e.message));
     } catch (e) {
@@ -250,15 +259,42 @@ class ResourceBloc extends Bloc<ResourceEvent, ResourceState> {
   ) async {
     emit(ResourcesLoading(origin: event.origin));
     try {
-      final resource = await resourceRepository.updateResource(
-        groupId: event.resourceGroupId,
-        resourceId: event.resourceId,
-        request: event.request,
+      final saved = await LinkedNoteSaver.saveWithEntity(
+        resourceRepository.updateResource(
+          groupId: event.resourceGroupId,
+          resourceId: event.resourceId,
+          request: event.request,
+          version: event.version,
+        ),
+        _linkedNoteSaver.save(
+          linkedNoteId: event.linkedNoteId,
+          linkedNoteVersion: event.linkedNoteVersion,
+          noteEdited: event.noteEdited,
+          noteContent: event.noteContent,
+          entityTitle: event.request.title,
+          resourceId: event.resourceId,
+        ),
       );
+      final conflict = saved.entityConflict;
+      if (conflict != null) {
+        emit(ResourceConflict(
+          origin: event.origin,
+          latest: ResourceModel.fromJson(conflict.latest),
+          linkedNoteId: saved.note == null
+              ? event.linkedNoteId
+              : saved.note!.noteId,
+          linkedNote: saved.note?.note,
+          noteSavedAsCopy: saved.note?.savedAsCopy ?? false,
+        ));
+        return;
+      }
       emit(ResourceUpdated(
         origin: event.origin,
-        resource: resource,
+        resource: saved.entity!,
         redirectToNotebook: event.redirectToNotebook,
+        linkedNoteId: saved.note!.noteId,
+        linkedNote: saved.note!.note,
+        noteSavedAsCopy: saved.note!.savedAsCopy,
       ));
     } on HeliumException catch (e) {
       emit(ResourcesError(origin: event.origin, message: e.message));

@@ -45,6 +45,7 @@ abstract class HomeworkRemoteDataSource extends BaseDataSource {
     required int courseId,
     required int homeworkId,
     required HomeworkRequestModel request,
+    String? version,
   });
 
   Future<void> deleteHomework({
@@ -214,6 +215,7 @@ class HomeworkRemoteDataSourceImpl extends HomeworkRemoteDataSource {
     required int courseId,
     required int homeworkId,
     required HomeworkRequestModel request,
+    String? version,
   }) async {
     try {
       _log.info('Updating Homework $homeworkId for Course $courseId ...');
@@ -224,6 +226,7 @@ class HomeworkRemoteDataSourceImpl extends HomeworkRemoteDataSource {
           homeworkId,
         ),
         data: request.toJson(),
+        options: ifMatchOptions(version),
       );
 
       if (response.statusCode == 200) {

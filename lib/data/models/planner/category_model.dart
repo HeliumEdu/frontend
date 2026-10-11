@@ -22,6 +22,7 @@ class CategoryModel extends BaseTitledModel {
     required this.course,
     required this.courseGroup,
     required this.weight,
+    super.version,
     this.averageGrade,
     this.gradeByWeight,
     this.trend,
@@ -31,6 +32,7 @@ class CategoryModel extends BaseTitledModel {
   factory CategoryModel.fromJson(Map<String, dynamic> json) {
     return CategoryModel(
       id: json['id'],
+      version: json['updated_at'],
       title: json['title'],
       shownOnCalendar: json['shown_on_calendar'],
       color: HeliumColors.hexToColor(json['color']),

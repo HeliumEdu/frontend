@@ -6,6 +6,10 @@ import 'package:heliumapp/utils/responsive_helpers.dart';
 
 enum ConflictResolution { loadLatest, overwrite }
 
+const noteSavedAsCopyMessage =
+    'The note was changed on another device, so your changes were saved as a '
+    'separate note.';
+
 Future<void> resolveConflict(
   BuildContext context, {
   required VoidCallback onLoadLatest,

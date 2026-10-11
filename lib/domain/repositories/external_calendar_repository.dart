@@ -21,6 +21,7 @@ abstract class ExternalCalendarRepository {
   Future<ExternalCalendarModel> updateExternalCalendar({
     required int calendarId,
     required ExternalCalendarRequestModel payload,
+    String? version,
   });
 
   Future<void> deleteExternalCalendar({required int calendarId});

@@ -61,6 +61,7 @@ class CourseScheduleModel extends BaseModel {
     required this.satEndTime,
     required this.course,
     required this.courseGroup,
+    super.version,
     this.startDate,
     this.endDate,
     this.template,
@@ -75,6 +76,7 @@ class CourseScheduleModel extends BaseModel {
   factory CourseScheduleModel.fromJson(Map<String, dynamic> json) {
     return CourseScheduleModel(
       id: json['id'],
+      version: json['updated_at'],
       daysOfWeek: json['days_of_week'],
       sunStartTime: HeliumTime.parse(json['sun_start_time'] as String)!,
       sunEndTime: HeliumTime.parse(json['sun_end_time'] as String)!,

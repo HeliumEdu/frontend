@@ -46,11 +46,13 @@ class CreateCourseGroupEvent extends CourseEvent {
 class UpdateCourseGroupEvent extends CourseEvent {
   final int courseGroupId;
   final CourseGroupRequestModel request;
+  final String? version;
 
   UpdateCourseGroupEvent({
     required super.origin,
     required this.courseGroupId,
     required this.request,
+    this.version,
   });
 }
 
@@ -78,6 +80,7 @@ class UpdateCourseEvent extends CourseEvent {
   final int courseId;
   final CourseRequestModel request;
   final bool advanceNavOnSuccess;
+  final String? version;
 
   UpdateCourseEvent({
     required super.origin,
@@ -85,6 +88,7 @@ class UpdateCourseEvent extends CourseEvent {
     required this.courseId,
     required this.request,
     this.advanceNavOnSuccess = false,
+    this.version,
   });
 }
 
@@ -105,6 +109,7 @@ class UpdateCourseScheduleEvent extends CourseEvent {
   final int scheduleId;
   final CourseScheduleRequestModel request;
   final bool advanceNavOnSuccess;
+  final String? version;
 
   UpdateCourseScheduleEvent({
     required super.origin,
@@ -113,6 +118,7 @@ class UpdateCourseScheduleEvent extends CourseEvent {
     required this.scheduleId,
     required this.request,
     this.advanceNavOnSuccess = false,
+    this.version,
   });
 }
 

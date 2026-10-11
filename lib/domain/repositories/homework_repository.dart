@@ -33,6 +33,7 @@ abstract class HomeworkRepository {
     required int courseId,
     required int homeworkId,
     required HomeworkRequestModel request,
+    String? version,
   });
 
   Future<void> deleteHomework({

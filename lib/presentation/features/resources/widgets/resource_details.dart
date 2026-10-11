@@ -11,9 +11,6 @@ import 'package:heliumapp/data/models/planner/course_model.dart';
 import 'package:heliumapp/data/models/planner/resource_group_model.dart';
 import 'package:heliumapp/data/models/planner/resource_model.dart';
 import 'package:heliumapp/data/models/planner/request/resource_request_model.dart';
-import 'package:heliumapp/data/models/planner/request/note_request_model.dart';
-import 'package:heliumapp/presentation/features/notebook/bloc/note_bloc.dart';
-import 'package:heliumapp/presentation/features/notebook/bloc/note_event.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/core/base_event.dart';
 import 'package:heliumapp/presentation/features/planner/dialogs/confirm_delete_dialog.dart';
 import 'package:heliumapp/presentation/features/resources/bloc/resource_bloc.dart';
@@ -73,6 +70,8 @@ class ResourceDetailsState extends State<ResourceDetails> {
   bool _isSubmitting = false;
   bool _hasRequestedInitialFocus = false;
 
+  bool _overwriteNewer = false;
+
   @override
   void initState() {
     super.initState();
@@ -98,6 +97,18 @@ class ResourceDetailsState extends State<ResourceDetails> {
         forceRefresh: true,
       ),
     );
+  }
+
+  void loadLatest() {
+    formController.isChanged = false;
+    formController.isUserDirty = false;
+    _fetchScreenData();
+  }
+
+  void overwriteNewer() {
+    _overwriteNewer = true;
+    onSubmit();
+    _overwriteNewer = false;
   }
 
   @override
@@ -282,8 +293,6 @@ class ResourceDetailsState extends State<ResourceDetails> {
   Map<String, dynamic>? get noteContent =>
       buildNotesDelta(formController.notesController);
 
-  int? get linkedNoteId => formController.linkedNoteId;
-
   void resetSubmitting() {
     setState(() => _isSubmitting = false);
   }
@@ -334,27 +343,6 @@ class ResourceDetailsState extends State<ResourceDetails> {
 
       if (!mounted) return;
       if (widget.isEdit && widget.resourceId != null) {
-        // Dispatch note operations to NoteBloc directly; resource.id is known
-        final content = noteContent;
-        final existingNoteId = formController.linkedNoteId;
-        if (existingNoteId != null) {
-          if (formController.notesEdited) {
-            context.read<NoteBloc>().add(UpdateNoteEvent(
-              origin: EventOrigin.subScreen,
-              noteId: existingNoteId,
-              request: NoteRequestModel(content: content ?? {}),
-            ));
-          }
-        } else if (content != null) {
-          context.read<NoteBloc>().add(CreateNoteEvent(
-            origin: EventOrigin.subScreen,
-            request: NoteRequestModel(
-              content: content,
-              resourceId: widget.resourceId!,
-            ),
-          ));
-        }
-
         context.read<ResourceBloc>().add(
           UpdateResourceEvent(
             origin: EventOrigin.subScreen,
@@ -362,7 +350,13 @@ class ResourceDetailsState extends State<ResourceDetails> {
             resourceGroupId: widget.resourceGroupId!,
             resourceId: widget.resourceId!,
             request: request,
+            linkedNoteId: formController.linkedNoteId,
+            noteContent: noteContent,
             redirectToNotebook: redirectToNotebook,
+            version: _overwriteNewer ? null : _resource?.version,
+            linkedNoteVersion:
+                _overwriteNewer ? null : formController.linkedNoteVersion,
+            noteEdited: formController.notesEdited,
           ),
         );
       } else {
@@ -408,9 +402,10 @@ class ResourceDetailsState extends State<ResourceDetails> {
       formController.selectedResourceGroupId = state.resource!.resourceGroup;
 
       formController.notesController.dispose();
+      formController.linkedNoteId = state.linkedNote?.id;
+      formController.linkedNoteVersion = state.linkedNote?.version;
       formController.notesEdited = false;
       if (state.linkedNote != null) {
-        formController.linkedNoteId = state.linkedNote!.id;
         formController.notesController = heliumQuillController(
           document: state.linkedNote!.content != null
               ? tryParseNotesDocument(state.linkedNote!.content) ??

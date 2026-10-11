@@ -1,7 +1,12 @@
 abstract class BaseModel {
   final int id;
 
-  BaseModel({required this.id});
+  /// The raw `updated_at`, sent back as `If-Match` so a stale save is
+  /// rejected. Kept as a string because a [DateTime] round trip loses
+  /// precision on web.
+  final String? version;
+
+  BaseModel({required this.id, this.version});
 
   @override
   bool operator ==(Object other) =>
@@ -21,6 +26,7 @@ abstract class BaseTitledModel extends BaseModel {
   BaseTitledModel({
     required super.id,
     required this.title,
+    super.version,
     this.shownOnCalendar,
   });
 

@@ -26,10 +26,12 @@ class ResourceRepositoryImpl implements ResourceRepository {
   Future<ResourceGroupModel> updateResourceGroup({
     required int id,
     required ResourceGroupRequestModel request,
+    String? version,
   }) async {
     return remoteDataSource.updateResourceGroup(
       groupId: id,
       request: request,
+      version: version,
     );
   }
 
@@ -82,11 +84,13 @@ class ResourceRepositoryImpl implements ResourceRepository {
     required int groupId,
     required int resourceId,
     required ResourceRequestModel request,
+    String? version,
   }) async {
     return remoteDataSource.updateResource(
       groupId: groupId,
       resourceId: resourceId,
       request: request,
+      version: version,
     );
   }
 

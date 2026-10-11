@@ -31,8 +31,9 @@ abstract class CategoryRemoteDataSource extends BaseDataSource {
     int groupId,
     int courseId,
     int categoryId,
-    CategoryRequestModel request,
-  );
+    CategoryRequestModel request, {
+    String? version,
+  });
 
   Future<void> deleteCategory(int groupId, int courseId, int categoryId);
 }
@@ -138,8 +139,9 @@ class CategoryRemoteDataSourceImpl extends CategoryRemoteDataSource {
     int groupId,
     int courseId,
     int categoryId,
-    CategoryRequestModel request,
-  ) async {
+    CategoryRequestModel request, {
+    String? version,
+  }) async {
     try {
       _log.info('Updating Category $categoryId for Course $courseId ...');
 
@@ -150,6 +152,7 @@ class CategoryRemoteDataSourceImpl extends CategoryRemoteDataSource {
           categoryId,
         ),
         data: request.toJson(),
+        options: ifMatchOptions(version),
       );
 
       if (response.statusCode == 200) {

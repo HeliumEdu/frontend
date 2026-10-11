@@ -123,6 +123,15 @@ class _ResourcesScreenState
     });
   }
 
+  void _replaceResourceGroup(ResourceGroupModel resourceGroup) {
+    setState(() {
+      final index = _resourceGroups.indexWhere((g) => g.id == resourceGroup.id);
+      if (index == -1) return;
+      _resourceGroups[index] = resourceGroup;
+      Sort.byTitle(_resourceGroups);
+    });
+  }
+
   void _replaceResource(ResourceModel resource) {
     setState(() {
       for (final resources in _resourcesMap.values) {
@@ -182,15 +191,9 @@ class _ResourcesScreenState
             _saveSelectedGroup();
           } else if (state is ResourceGroupUpdated) {
             // No snackbar on updates
-
-            setState(() {
-              final index = _resourceGroups.indexWhere(
-                (g) => g.id == state.resourceGroup.id,
-              );
-              if (index == -1) return;
-              _resourceGroups[index] = state.resourceGroup;
-              Sort.byTitle(_resourceGroups);
-            });
+            _replaceResourceGroup(state.resourceGroup);
+          } else if (state is ResourceGroupConflict) {
+            _replaceResourceGroup(state.latest);
           } else if (state is ResourceGroupDeleted) {
             showSnackBar(context, 'Group deleted.');
 
@@ -215,6 +218,18 @@ class _ResourcesScreenState
             });
           } else if (state is ResourceUpdated) {
             _replaceResource(state.resource);
+            _applyLinkedNote(
+              state.resource.id,
+              linkedNoteId: state.linkedNoteId,
+              linkedNote: state.linkedNote,
+            );
+          } else if (state is ResourceConflict) {
+            _replaceResource(state.latest);
+            _applyLinkedNote(
+              state.latest.id,
+              linkedNoteId: state.linkedNoteId,
+              linkedNote: state.linkedNote,
+            );
           } else if (state is ResourceScreenDataFetched &&
               state.resource != null) {
             context.read<ResourceBloc>().add(
@@ -339,6 +354,18 @@ class _ResourcesScreenState
 
   void _upsertNoteForResource(int resourceId, NoteModel note) {
     _notesMap[resourceId] = note;
+  }
+
+  void _applyLinkedNote(
+    int resourceId, {
+    required int? linkedNoteId,
+    required NoteModel? linkedNote,
+  }) {
+    if (linkedNoteId == null) {
+      setState(() => _notesMap.remove(resourceId));
+    } else if (linkedNote != null) {
+      setState(() => _upsertNoteForResource(resourceId, linkedNote));
+    }
   }
 
   Widget _buildResourcesList() {

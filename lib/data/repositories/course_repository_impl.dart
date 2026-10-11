@@ -34,9 +34,10 @@ class CourseRepositoryImpl implements CourseRepository {
   @override
   Future<CourseGroupModel> updateCourseGroup(
     int groupId,
-    CourseGroupRequestModel request,
-  ) async {
-    return remoteDataSource.updateCourseGroup(groupId, request);
+    CourseGroupRequestModel request, {
+    String? version,
+  }) async {
+    return remoteDataSource.updateCourseGroup(groupId, request, version: version);
   }
 
   @override
@@ -78,9 +79,10 @@ class CourseRepositoryImpl implements CourseRepository {
   Future<CourseModel> updateCourse(
     int groupId,
     int courseId,
-    CourseRequestModel request,
-  ) async {
-    return remoteDataSource.updateCourse(groupId, courseId, request);
+    CourseRequestModel request, {
+    String? version,
+  }) async {
+    return remoteDataSource.updateCourse(groupId, courseId, request, version: version);
   }
 
   @override

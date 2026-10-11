@@ -67,12 +67,14 @@ class HomeworkRepositoryImpl implements HomeworkRepository {
     required int courseId,
     required int homeworkId,
     required HomeworkRequestModel request,
+    String? version,
   }) async {
     return remoteDataSource.updateHomework(
       groupId: groupId,
       courseId: courseId,
       homeworkId: homeworkId,
       request: request,
+      version: version,
     );
   }
 

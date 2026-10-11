@@ -13,6 +13,7 @@ abstract class ResourceRepository {
   Future<ResourceGroupModel> updateResourceGroup({
     required int id,
     required ResourceGroupRequestModel request,
+    String? version,
   });
 
   Future<void> deleteResourceGroup({required int id});
@@ -39,6 +40,7 @@ abstract class ResourceRepository {
     required int groupId,
     required int resourceId,
     required ResourceRequestModel request,
+    String? version,
   });
 
   Future<void> deleteResource({

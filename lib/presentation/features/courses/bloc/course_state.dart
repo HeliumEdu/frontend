@@ -183,3 +183,21 @@ class CourseExceptionsUpdated extends CourseState {
 
   CourseExceptionsUpdated({required super.origin, required this.course});
 }
+
+class CourseGroupConflict extends CourseState {
+  final CourseGroupModel latest;
+
+  CourseGroupConflict({required super.origin, required this.latest});
+}
+
+class CourseConflict extends CourseState {
+  final CourseModel latest;
+
+  CourseConflict({required super.origin, required this.latest});
+}
+
+class CourseScheduleConflict extends CourseState {
+  final CourseScheduleModel latest;
+
+  CourseScheduleConflict({required super.origin, required this.latest});
+}

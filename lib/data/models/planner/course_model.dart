@@ -45,6 +45,7 @@ class CourseModel extends BaseTitledModel {
     required this.currentGrade,
     required this.schedules,
     required this.exceptions,
+    super.version,
     this.trend,
     this.numDays,
     this.numDaysCompleted,
@@ -57,6 +58,7 @@ class CourseModel extends BaseTitledModel {
   factory CourseModel.fromJson(Map<String, dynamic> json) {
     return CourseModel(
       id: json['id'],
+      version: json['updated_at'],
       title: json['title'],
       shownOnCalendar: json['shown_on_calendar'],
       startDate: DateTime.parse(json['start_date']),
@@ -89,6 +91,7 @@ class CourseModel extends BaseTitledModel {
   }
 
   CourseModel copyWith({
+    String? version,
     int? id,
     String? title,
     bool? shownOnCalendar,
@@ -115,6 +118,7 @@ class CourseModel extends BaseTitledModel {
   }) {
     return CourseModel(
       id: id ?? this.id,
+      version: version ?? this.version,
       title: title ?? this.title,
       shownOnCalendar: shownOnCalendar ?? this.shownOnCalendar,
       startDate: startDate ?? this.startDate,

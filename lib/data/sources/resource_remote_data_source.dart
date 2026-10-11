@@ -30,6 +30,7 @@ abstract class ResourceRemoteDataSource extends BaseDataSource {
   Future<ResourceGroupModel> updateResourceGroup({
     required int groupId,
     required ResourceGroupRequestModel request,
+    String? version,
   });
 
   Future<void> deleteResourceGroup({required int groupId});
@@ -56,6 +57,7 @@ abstract class ResourceRemoteDataSource extends BaseDataSource {
     required int groupId,
     required int resourceId,
     required ResourceRequestModel request,
+    String? version,
   });
 
   Future<void> deleteResource({
@@ -166,6 +168,7 @@ class ResourceRemoteDataSourceImpl extends ResourceRemoteDataSource {
   Future<ResourceGroupModel> updateResourceGroup({
     required int groupId,
     required ResourceGroupRequestModel request,
+    String? version,
   }) async {
     try {
       _log.info('Updating ResourceGroup $groupId ...');
@@ -173,6 +176,7 @@ class ResourceRemoteDataSourceImpl extends ResourceRemoteDataSource {
       final response = await dioClient.dio.put(
         ApiUrl.plannerResourceGroupsDetailsUrl(groupId),
         data: request.toJson(),
+        options: ifMatchOptions(version),
       );
 
       if (response.statusCode == 200) {
@@ -341,12 +345,14 @@ class ResourceRemoteDataSourceImpl extends ResourceRemoteDataSource {
     required int groupId,
     required int resourceId,
     required ResourceRequestModel request,
+    String? version,
   }) async {
     try {
       _log.info('Updating Resource $resourceId in ResourceGroup $groupId ...');
       final response = await dioClient.dio.put(
         ApiUrl.plannerResourceGroupsResourceDetailsUrl(groupId, resourceId),
         data: request.toJson(),
+        options: ifMatchOptions(version),
       );
 
       if (response.statusCode == 200) {

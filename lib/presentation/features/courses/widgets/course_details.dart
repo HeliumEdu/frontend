@@ -67,6 +67,8 @@ class CourseDetailsState extends State<CourseDetails> {
   CourseGroupModel? _courseGroup;
   CourseModel? _course;
 
+  bool _overwriteNewer = false;
+
   @override
   void initState() {
     super.initState();
@@ -92,6 +94,18 @@ class CourseDetailsState extends State<CourseDetails> {
         forceRefresh: true,
       ),
     );
+  }
+
+  void loadLatest() {
+    formController.isChanged = false;
+    formController.isUserDirty = false;
+    _fetchScreenData();
+  }
+
+  void overwriteNewer() {
+    _overwriteNewer = true;
+    onSubmit();
+    _overwriteNewer = false;
   }
 
   @override
@@ -381,6 +395,7 @@ class CourseDetailsState extends State<CourseDetails> {
             courseGroupId: widget.courseGroupId,
             courseId: widget.courseId!,
             request: request,
+            version: _overwriteNewer ? null : _course?.version,
           ),
         );
       } else {

@@ -6,10 +6,6 @@ class NoteModel extends BaseTitledModel {
   final Map<String, dynamic>? content;
   final DateTime updatedAt;
 
-  /// The raw `updated_at` as the server sent it, sent back as `If-Match` so a
-  /// stale save is rejected. Kept as a string because a [DateTime] round trip
-  /// loses precision on web.
-  final String? version;
   final List<int> homework;
   final List<int> events;
   final List<int> resources;
@@ -25,7 +21,7 @@ class NoteModel extends BaseTitledModel {
     required super.title,
     this.content,
     required this.updatedAt,
-    this.version,
+    super.version,
     this.homework = const [],
     this.events = const [],
     this.resources = const [],

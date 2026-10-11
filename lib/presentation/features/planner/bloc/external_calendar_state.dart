@@ -49,3 +49,9 @@ class ExternalCalendarDeleted extends ExternalCalendarState {
 
   ExternalCalendarDeleted({required super.origin, required this.id});
 }
+
+class ExternalCalendarConflict extends ExternalCalendarState {
+  final ExternalCalendarModel latest;
+
+  ExternalCalendarConflict({required super.origin, required this.latest});
+}

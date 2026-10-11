@@ -127,11 +127,17 @@ class ResourceCreated extends ResourceEntityState {
 
 class ResourceUpdated extends ResourceEntityState {
   final bool redirectToNotebook;
+  final int? linkedNoteId;
+  final NoteModel? linkedNote;
+  final bool noteSavedAsCopy;
 
   ResourceUpdated({
     required super.origin,
     required super.resource,
     this.redirectToNotebook = false,
+    this.linkedNoteId,
+    this.linkedNote,
+    this.noteSavedAsCopy = false,
   });
 }
 
@@ -139,4 +145,25 @@ class ResourceDeleted extends ResourceState {
   final int id;
 
   ResourceDeleted({required super.origin, required this.id});
+}
+
+class ResourceGroupConflict extends ResourceState {
+  final ResourceGroupModel latest;
+
+  ResourceGroupConflict({required super.origin, required this.latest});
+}
+
+class ResourceConflict extends ResourceState {
+  final ResourceModel latest;
+  final int? linkedNoteId;
+  final NoteModel? linkedNote;
+  final bool noteSavedAsCopy;
+
+  ResourceConflict({
+    required super.origin,
+    required this.latest,
+    this.linkedNoteId,
+    this.linkedNote,
+    this.noteSavedAsCopy = false,
+  });
 }
