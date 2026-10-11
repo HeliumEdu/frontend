@@ -6,8 +6,6 @@ import 'package:heliumapp/utils/responsive_helpers.dart';
 
 enum ConflictResolution { loadLatest, overwrite }
 
-/// Asks how to resolve a save that lost to a change made on another device,
-/// then runs the callback for the user's choice.
 Future<void> resolveConflict(
   BuildContext context, {
   required VoidCallback onLoadLatest,
@@ -24,10 +22,6 @@ Future<void> resolveConflict(
   }
 }
 
-/// Asks how to resolve a save that lost to a change made on another device.
-///
-/// The user must pick one; the dialog can't be dismissed, so nothing is
-/// resolved silently.
 Future<ConflictResolution> confirmConflictResolution(
   BuildContext context,
 ) async {

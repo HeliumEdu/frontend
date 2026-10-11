@@ -91,9 +91,6 @@ class UnauthorizedException extends HeliumException {
 }
 
 /// A conditional write lost to a newer version saved elsewhere (412).
-///
-/// [latest] is the item's current JSON as returned by the server, for the
-/// caller to reconcile against.
 class ConflictException extends HeliumException {
   static const conflictMessage = 'This was changed on another device.';
 

@@ -63,8 +63,6 @@ class UpdateNoteEvent extends NoteEvent {
   final int noteId;
   final NoteRequestModel request;
 
-  /// The note's version as last read; when set, a stale save emits
-  /// [NoteConflict] instead of overwriting.
   final String? version;
 
   UpdateNoteEvent({

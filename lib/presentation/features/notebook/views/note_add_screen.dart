@@ -60,7 +60,6 @@ import 'package:sentry_flutter/sentry_flutter.dart';
 
 enum SaveStatus { unsaved, saving, saved, error }
 
-/// A save that lost to [latest], until the user's choice has been applied.
 class _PendingConflict {
   final NoteModel latest;
   final bool wasManualSave;
@@ -694,8 +693,6 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
     return title.isEmpty && bodyIsEmpty;
   }
 
-  /// Saves the editor. An update is conditional on the note's version unless
-  /// [unconditional], which the user picks to overwrite a newer version.
   void _performSave({required bool isAutoSave, bool unconditional = false}) {
     _debounceTimer?.cancel();
 
@@ -790,8 +787,6 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
     return true;
   }
 
-  /// A save lost to a newer version. Autosave pauses until the user picks
-  /// how to resolve it.
   Future<void> _onSaveConflict(
     NoteModel latest, {
     required bool wasManualSave,
@@ -822,23 +817,17 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
     _performSave(isAutoSave: !wasManualSave, unconditional: true);
   }
 
-  /// Keeps this device's text as a standalone note before the editor loads
-  /// [latest], so choosing the other version never loses what was typed here.
-  /// Standalone because a linked entity can only have one note.
   void _saveLocalCopy() {
     setState(() {
       _conflict!.isSavingCopy = true;
       isSubmitting = true;
     });
 
-    final title = _titleController.text.trim();
     context.read<NoteBloc>().add(
       CreateNoteEvent(
         origin: EventOrigin.subScreen,
-        request: NoteRequestModel(
-          title: title.isEmpty
-              ? 'Copy from this device'
-              : '$title (copy from this device)',
+        request: NoteRequestModel.conflictCopy(
+          title: _titleController.text,
           content: {'ops': _quillController.document.toDelta().toJson()},
         ),
       ),
@@ -854,11 +843,9 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
       _autoSaveErrorCount = 0;
     });
     _showNoteVersion(latest, keepCursor: false);
-    showSnackBar(context, 'Your version was saved as a separate note.');
+    showSnackBar(context, 'Your changes were saved as a separate note.');
   }
 
-  /// The copy didn't save, so the local text stays in the editor and the
-  /// user is asked again rather than losing it.
   void _onConflictCopyFailed(String message) {
     final conflict = _conflict!;
     setState(() {
@@ -871,8 +858,6 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
     _onSaveConflict(conflict.latest, wasManualSave: conflict.wasManualSave);
   }
 
-  /// The note was deleted on another device; the editor's text is saved as a
-  /// new standalone note instead of being lost.
   void _recreateDeletedNote() {
     final wasAutoSave = _isAutoSaving;
     setState(() {

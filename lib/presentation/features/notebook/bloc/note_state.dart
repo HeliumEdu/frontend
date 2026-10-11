@@ -124,7 +124,6 @@ class NoteUpdated extends NoteState {
   });
 }
 
-/// A conditional save of [noteId] lost to a newer version saved elsewhere.
 class NoteConflict extends NoteState {
   final int noteId;
   final NoteModel latest;
@@ -136,7 +135,6 @@ class NoteConflict extends NoteState {
   });
 }
 
-/// A save of [noteId] found the note deleted elsewhere.
 class NoteMissing extends NotesError {
   final int noteId;
 
