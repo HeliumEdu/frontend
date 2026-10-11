@@ -23,7 +23,7 @@ import 'package:heliumapp/data/models/planner/request/note_request_model.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/planneritem_event.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/planneritem_state.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/core/base_event.dart';
-import 'package:heliumapp/presentation/features/shared/bloc/core/linked_note_saver.dart';
+import 'package:heliumapp/domain/linked_note_saver.dart';
 
 class PlannerItemBloc extends Bloc<PlannerItemEvent, PlannerItemState> {
   final EventRepository eventRepository;
@@ -269,14 +269,13 @@ class PlannerItemBloc extends Bloc<PlannerItemEvent, PlannerItemState> {
           linkedNoteVersion: event.linkedNoteVersion,
           noteEdited: event.noteEdited,
           noteContent: event.noteContent,
-          entityTitle: event.request.title,
           eventId: event.id,
         ),
       );
       if (saved.entityConflict != null) {
         emit(PlannerItemConflict(
           origin: event.origin,
-          noteSavedAsCopy: saved.note?.savedAsCopy ?? false,
+          linkedNoteSave: saved.note,
         ));
         return;
       }
@@ -300,7 +299,7 @@ class PlannerItemBloc extends Bloc<PlannerItemEvent, PlannerItemState> {
           advanceNavOnSuccess: event.advanceNavOnSuccess,
           redirectToNotebook: event.redirectToNotebook,
           linkedNoteId: linkedNoteId,
-          noteSavedAsCopy: saved.note!.savedAsCopy,
+          linkedNoteSave: saved.note,
         ),
       );
     } on HeliumException catch (e) {
@@ -470,14 +469,13 @@ class PlannerItemBloc extends Bloc<PlannerItemEvent, PlannerItemState> {
           linkedNoteVersion: event.linkedNoteVersion,
           noteEdited: event.noteEdited,
           noteContent: event.noteContent,
-          entityTitle: event.request.title,
           homeworkId: event.homeworkId,
         ),
       );
       if (saved.entityConflict != null) {
         emit(PlannerItemConflict(
           origin: event.origin,
-          noteSavedAsCopy: saved.note?.savedAsCopy ?? false,
+          linkedNoteSave: saved.note,
         ));
         return;
       }
@@ -501,7 +499,7 @@ class PlannerItemBloc extends Bloc<PlannerItemEvent, PlannerItemState> {
           advanceNavOnSuccess: event.advanceNavOnSuccess,
           redirectToNotebook: event.redirectToNotebook,
           linkedNoteId: linkedNoteId,
-          noteSavedAsCopy: saved.note!.savedAsCopy,
+          linkedNoteSave: saved.note,
         ),
       );
     } on HeliumException catch (e) {

@@ -3,15 +3,17 @@ import 'package:heliumapp/data/models/planner/note_model.dart';
 import 'package:heliumapp/data/models/planner/request/note_request_model.dart';
 import 'package:heliumapp/domain/repositories/note_repository.dart';
 
+typedef _Settled<T> = ({T? value, (Object, StackTrace)? failure});
+
 class LinkedNoteSave {
   final int? noteId;
   final NoteModel? note;
-  final bool savedAsCopy;
+  final bool isConflict;
 
   const LinkedNoteSave({
     required this.noteId,
     this.note,
-    this.savedAsCopy = false,
+    this.isConflict = false,
   });
 }
 
@@ -23,56 +25,39 @@ class FormSave<T> {
   const FormSave({this.entity, this.note, this.entityConflict});
 }
 
-/// Saves the note linked to a homework, event or resource from that entity's
-/// form.
 class LinkedNoteSaver {
   final NoteRepository noteRepository;
 
   const LinkedNoteSaver(this.noteRepository);
 
-  /// Saves an entity and its linked note in parallel. A stale entity save is
-  /// reported as [FormSave.entityConflict] once both finish, so the note's
-  /// outcome is known; any other failure is rethrown.
   static Future<FormSave<T>> saveWithEntity<T>(
     Future<T> entitySave,
     Future<LinkedNoteSave> noteSave,
   ) async {
-    T? entity;
-    LinkedNoteSave? note;
-    (Object, StackTrace)? entityFailure;
-    (Object, StackTrace)? noteFailure;
-    await Future.wait([
-      entitySave.then<void>(
-        (value) => entity = value,
-        onError: (Object e, StackTrace s) {
-          entityFailure = (e, s);
-        },
-      ),
-      noteSave.then<void>(
-        (value) => note = value,
-        onError: (Object e, StackTrace s) {
-          noteFailure = (e, s);
-        },
-      ),
-    ]);
+    final (entity, note) = await (_settle(entitySave), _settle(noteSave)).wait;
 
-    if (entityFailure?.$1 case final ConflictException conflict) {
-      return FormSave(entityConflict: conflict, note: note);
+    if (entity.failure?.$1 case final ConflictException conflict) {
+      return FormSave(entityConflict: conflict, note: note.value);
     }
-    for (final failure in [entityFailure, noteFailure]) {
+    for (final failure in [entity.failure, note.failure]) {
       if (failure != null) Error.throwWithStackTrace(failure.$1, failure.$2);
     }
-    return FormSave(entity: entity, note: note);
+    return FormSave(entity: entity.value, note: note.value);
   }
 
-  /// An untouched note isn't saved. If the note changed elsewhere, this
-  /// device's text is kept as a separate note, so neither version is lost.
+  static Future<_Settled<T>> _settle<T>(Future<T> future) async {
+    try {
+      return (value: await future, failure: null);
+    } catch (e, s) {
+      return (value: null, failure: (e, s));
+    }
+  }
+
   Future<LinkedNoteSave> save({
     required int? linkedNoteId,
     required String? linkedNoteVersion,
     required bool noteEdited,
     required Map<String, dynamic>? noteContent,
-    required String? entityTitle,
     int? homeworkId,
     int? eventId,
     int? resourceId,
@@ -100,20 +85,10 @@ class LinkedNoteSaver {
       );
       return LinkedNoteSave(noteId: note?.id, note: note);
     } on ConflictException catch (e) {
-      final latest = NoteModel.fromJson(e.latest);
-      if (noteContent == null) {
-        return LinkedNoteSave(noteId: linkedNoteId, note: latest);
-      }
-      await noteRepository.createNote(
-        request: NoteRequestModel.conflictCopy(
-          title: entityTitle ?? '',
-          content: noteContent,
-        ),
-      );
       return LinkedNoteSave(
         noteId: linkedNoteId,
-        note: latest,
-        savedAsCopy: true,
+        note: NoteModel.fromJson(e.latest),
+        isConflict: true,
       );
     }
   }

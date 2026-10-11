@@ -10,7 +10,7 @@ import 'package:heliumapp/domain/repositories/resource_repository.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/core/base_event.dart';
 import 'package:heliumapp/presentation/features/resources/bloc/resource_event.dart';
 import 'package:heliumapp/presentation/features/resources/bloc/resource_state.dart';
-import 'package:heliumapp/presentation/features/shared/bloc/core/linked_note_saver.dart';
+import 'package:heliumapp/domain/linked_note_saver.dart';
 
 class ResourceBloc extends Bloc<ResourceEvent, ResourceState> {
   final ResourceRepository resourceRepository;
@@ -271,7 +271,6 @@ class ResourceBloc extends Bloc<ResourceEvent, ResourceState> {
           linkedNoteVersion: event.linkedNoteVersion,
           noteEdited: event.noteEdited,
           noteContent: event.noteContent,
-          entityTitle: event.request.title,
           resourceId: event.resourceId,
         ),
       );
@@ -280,11 +279,7 @@ class ResourceBloc extends Bloc<ResourceEvent, ResourceState> {
         emit(ResourceConflict(
           origin: event.origin,
           latest: ResourceModel.fromJson(conflict.latest),
-          linkedNoteId: saved.note == null
-              ? event.linkedNoteId
-              : saved.note!.noteId,
-          linkedNote: saved.note?.note,
-          noteSavedAsCopy: saved.note?.savedAsCopy ?? false,
+          linkedNoteSave: saved.note,
         ));
         return;
       }
@@ -293,8 +288,7 @@ class ResourceBloc extends Bloc<ResourceEvent, ResourceState> {
         resource: saved.entity!,
         redirectToNotebook: event.redirectToNotebook,
         linkedNoteId: saved.note!.noteId,
-        linkedNote: saved.note!.note,
-        noteSavedAsCopy: saved.note!.savedAsCopy,
+        linkedNoteSave: saved.note,
       ));
     } on HeliumException catch (e) {
       emit(ResourcesError(origin: event.origin, message: e.message));

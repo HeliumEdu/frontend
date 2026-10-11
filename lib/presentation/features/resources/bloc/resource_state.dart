@@ -3,6 +3,7 @@ import 'package:heliumapp/data/models/planner/note_model.dart';
 import 'package:heliumapp/data/models/planner/resource_group_model.dart';
 import 'package:heliumapp/data/models/planner/resource_model.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/core/base_state.dart';
+import 'package:heliumapp/domain/linked_note_saver.dart';
 
 abstract class ResourceState extends BaseState {
   ResourceState({required super.origin, super.message});
@@ -128,16 +129,14 @@ class ResourceCreated extends ResourceEntityState {
 class ResourceUpdated extends ResourceEntityState {
   final bool redirectToNotebook;
   final int? linkedNoteId;
-  final NoteModel? linkedNote;
-  final bool noteSavedAsCopy;
+  final LinkedNoteSave? linkedNoteSave;
 
   ResourceUpdated({
     required super.origin,
     required super.resource,
     this.redirectToNotebook = false,
     this.linkedNoteId,
-    this.linkedNote,
-    this.noteSavedAsCopy = false,
+    this.linkedNoteSave,
   });
 }
 
@@ -155,15 +154,11 @@ class ResourceGroupConflict extends ResourceState {
 
 class ResourceConflict extends ResourceState {
   final ResourceModel latest;
-  final int? linkedNoteId;
-  final NoteModel? linkedNote;
-  final bool noteSavedAsCopy;
+  final LinkedNoteSave? linkedNoteSave;
 
   ResourceConflict({
     required super.origin,
     required this.latest,
-    this.linkedNoteId,
-    this.linkedNote,
-    this.noteSavedAsCopy = false,
+    this.linkedNoteSave,
   });
 }

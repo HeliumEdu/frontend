@@ -90,7 +90,6 @@ class UnauthorizedException extends HeliumException {
   });
 }
 
-/// A conditional write lost to a newer version saved elsewhere (412).
 class ConflictException extends HeliumException {
   static const conflictMessage = 'This was changed on another device.';
 

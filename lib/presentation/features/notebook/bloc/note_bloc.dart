@@ -254,7 +254,11 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
       final note = await noteRepository.createNote(request: event.request);
       emit(NoteCreated(origin: event.origin, note: note));
     } on HeliumException catch (e) {
-      emit(NotesError(origin: event.origin, message: e.message));
+      emit(NotesError(
+        origin: event.origin,
+        message: e.message,
+        canRetry: e is! ValidationException,
+      ));
     } catch (e) {
       emit(NotesError(
         origin: event.origin,
@@ -293,7 +297,11 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
         noteId: event.noteId,
       ));
     } on HeliumException catch (e) {
-      emit(NotesError(origin: event.origin, message: e.message));
+      emit(NotesError(
+        origin: event.origin,
+        message: e.message,
+        canRetry: e is! ValidationException,
+      ));
     } catch (e) {
       emit(NotesError(
         origin: event.origin,

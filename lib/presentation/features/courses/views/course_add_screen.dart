@@ -293,10 +293,6 @@ class _CourseAddScreenState extends MultiStepContainerState<CourseAddScreen> {
     };
   }
 
-  void _loadLatest() => _detailsKey.currentState?.loadLatest();
-
-  void _overwriteNewer() => _detailsKey.currentState?.overwriteNewer();
-
   @override
   List<BlocListener<dynamic, dynamic>> buildListeners(BuildContext context) {
     return [
@@ -326,11 +322,7 @@ class _CourseAddScreenState extends MultiStepContainerState<CourseAddScreen> {
               state.origin == EventOrigin.subScreen) {
             _detailsKey.currentState?.resetSubmitting();
             setState(() => isSubmitting = false);
-            resolveConflict(
-              context,
-              onLoadLatest: _loadLatest,
-              onOverwrite: _overwriteNewer,
-            );
+            resolveFormConflict(context, _detailsKey.currentState);
           } else if (state is CoursesScreenDataFetched &&
               _currentCourseGroupId == null &&
               _currentCourseId != null) {

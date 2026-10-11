@@ -12,6 +12,8 @@ import 'package:heliumapp/data/models/planner/resource_group_model.dart';
 import 'package:heliumapp/data/models/planner/resource_model.dart';
 import 'package:heliumapp/data/models/planner/request/resource_request_model.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/core/base_event.dart';
+import 'package:heliumapp/presentation/ui/feedback/conflict_dialog.dart';
+import 'package:heliumapp/domain/linked_note_saver.dart';
 import 'package:heliumapp/presentation/features/planner/dialogs/confirm_delete_dialog.dart';
 import 'package:heliumapp/presentation/features/resources/bloc/resource_bloc.dart';
 import 'package:heliumapp/presentation/features/resources/bloc/resource_event.dart';
@@ -55,7 +57,8 @@ class ResourceDetails extends StatefulWidget {
   State<ResourceDetails> createState() => ResourceDetailsState();
 }
 
-class ResourceDetailsState extends State<ResourceDetails> {
+class ResourceDetailsState extends State<ResourceDetails>
+    with ConflictResolvableForm<ResourceDetails> {
   final ResourceFormController formController = ResourceFormController();
   final FocusNode _titleFocusNode = FocusNode();
   final FocusNode _notesFocusNode = FocusNode();
@@ -70,7 +73,7 @@ class ResourceDetailsState extends State<ResourceDetails> {
   bool _isSubmitting = false;
   bool _hasRequestedInitialFocus = false;
 
-  bool _overwriteNewer = false;
+  bool _isResourceConflict = false;
 
   @override
   void initState() {
@@ -99,16 +102,20 @@ class ResourceDetailsState extends State<ResourceDetails> {
     );
   }
 
+  @override
   void loadLatest() {
     formController.isChanged = false;
     formController.isUserDirty = false;
     _fetchScreenData();
   }
 
-  void overwriteNewer() {
-    _overwriteNewer = true;
-    onSubmit();
-    _overwriteNewer = false;
+  void applyConflict({
+    ResourceModel? savedResource,
+    LinkedNoteSave? linkedNoteSave,
+  }) {
+    _isResourceConflict = savedResource == null;
+    if (savedResource != null) setState(() => _resource = savedResource);
+    formController.applyLinkedNoteSave(linkedNoteSave);
   }
 
   @override
@@ -318,6 +325,7 @@ class ResourceDetailsState extends State<ResourceDetails> {
     );
   }
 
+  @override
   Future<void> onSubmit({bool redirectToNotebook = false}) async {
     if (isLoading || _error != null || _isSubmitting) return;
     if (formController.validateAndScrollToError()) {
@@ -353,9 +361,11 @@ class ResourceDetailsState extends State<ResourceDetails> {
             linkedNoteId: formController.linkedNoteId,
             noteContent: noteContent,
             redirectToNotebook: redirectToNotebook,
-            version: _overwriteNewer ? null : _resource?.version,
-            linkedNoteVersion:
-                _overwriteNewer ? null : formController.linkedNoteVersion,
+            version:
+                isOverwriting && _isResourceConflict ? null : _resource?.version,
+            linkedNoteVersion: formController.linkedNoteVersionToSend(
+              overwrite: isOverwriting,
+            ),
             noteEdited: formController.notesEdited,
           ),
         );
@@ -401,20 +411,8 @@ class ResourceDetailsState extends State<ResourceDetails> {
       );
       formController.selectedResourceGroupId = state.resource!.resourceGroup;
 
-      formController.notesController.dispose();
-      formController.linkedNoteId = state.linkedNote?.id;
-      formController.linkedNoteVersion = state.linkedNote?.version;
-      formController.notesEdited = false;
-      if (state.linkedNote != null) {
-        formController.notesController = heliumQuillController(
-          document: state.linkedNote!.content != null
-              ? tryParseNotesDocument(state.linkedNote!.content) ??
-                  buildUnrenderableNotePlaceholder()
-              : null,
-        );
-      } else {
-        formController.notesController = heliumQuillController();
-      }
+      formController.loadLinkedNote(state.linkedNote);
+      _isResourceConflict = false;
     } else {
       // Default to the launching context's group (a specific group's view);
       // stays unset when opened without one (e.g. from "Show All"), forcing

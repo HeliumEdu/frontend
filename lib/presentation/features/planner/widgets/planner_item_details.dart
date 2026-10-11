@@ -29,6 +29,8 @@ import 'package:heliumapp/presentation/ui/components/select_field.dart';
 import 'package:heliumapp/presentation/ui/feedback/info_container.dart';
 import 'package:heliumapp/presentation/ui/layout/helium_full_screen_scroll_view.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/core/base_event.dart';
+import 'package:heliumapp/presentation/ui/feedback/conflict_dialog.dart';
+import 'package:heliumapp/domain/linked_note_saver.dart';
 import 'package:heliumapp/presentation/features/shared/controllers/basic_form_controller.dart';
 import 'package:heliumapp/presentation/features/shared/widgets/flow/multi_step_container.dart';
 import 'package:heliumapp/presentation/ui/components/drop_down.dart';
@@ -90,7 +92,8 @@ class PlannerItemDetails extends StatefulWidget {
   State<PlannerItemDetails> createState() => PlannerItemDetailsState();
 }
 
-class PlannerItemDetailsState extends State<PlannerItemDetails> {
+class PlannerItemDetailsState extends State<PlannerItemDetails>
+    with ConflictResolvableForm<PlannerItemDetails> {
   final PlannerItemFormController formController = PlannerItemFormController();
   final FocusNode _titleFocusNode = FocusNode();
   final FocusNode _notesFocusNode = FocusNode();
@@ -118,7 +121,7 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
   String? _preferredCategoryName;
   List<String> _preferredResourceNames = [];
 
-  bool _overwriteNewer = false;
+  bool _isItemConflict = false;
 
   @override
   void initState() {
@@ -155,12 +158,16 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
     );
   }
 
+  @override
   void loadLatest() => loadEntity(eventId: _eventId, homeworkId: _homeworkId);
 
-  void overwriteNewer() {
-    _overwriteNewer = true;
-    onSubmit();
-    _overwriteNewer = false;
+  void applyConflict({
+    PlannerItemBaseModel? savedItem,
+    LinkedNoteSave? linkedNoteSave,
+  }) {
+    _isItemConflict = savedItem == null;
+    if (savedItem != null) setState(() => _plannerItem = savedItem);
+    formController.applyLinkedNoteSave(linkedNoteSave);
   }
 
   @override
@@ -621,6 +628,7 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
     setState(() => _isSubmitting = false);
   }
 
+  @override
   Future<void> onSubmit({bool redirectToNotebook = false}) async {
     if (isLoading || _error != null || _isSubmitting) return;
     _log.info('Submitting planner item (isEvent=$_isEvent, isEdit=${widget.isEdit}, redirectToNotebook=$redirectToNotebook)');
@@ -707,11 +715,12 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
               linkedNoteId: formController.linkedNoteId,
               noteContent: noteContent,
               redirectToNotebook: redirectToNotebook,
-              version: _overwriteNewer
+              version: isOverwriting && _isItemConflict
                   ? null
                   : (_plannerItem as EventModel?)?.version,
-              linkedNoteVersion:
-                  _overwriteNewer ? null : formController.linkedNoteVersion,
+              linkedNoteVersion: formController.linkedNoteVersionToSend(
+                overwrite: isOverwriting,
+              ),
               noteEdited: formController.notesEdited,
             ),
           );
@@ -762,9 +771,11 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
               linkedNoteId: formController.linkedNoteId,
               noteContent: noteContent,
               redirectToNotebook: redirectToNotebook,
-              version: _overwriteNewer ? null : homework.version,
-              linkedNoteVersion:
-                  _overwriteNewer ? null : formController.linkedNoteVersion,
+              version:
+                  isOverwriting && _isItemConflict ? null : homework.version,
+              linkedNoteVersion: formController.linkedNoteVersionToSend(
+                overwrite: isOverwriting,
+              ),
               noteEdited: formController.notesEdited,
             ),
           );
@@ -951,17 +962,8 @@ class PlannerItemDetailsState extends State<PlannerItemDetails> {
     }
 
     if (widget.isEdit) {
-      final linkedNote = state.linkedNote;
-      formController.linkedNoteId = linkedNote?.id;
-      formController.linkedNoteVersion = linkedNote?.version;
-      formController.notesEdited = false;
-      formController.notesController.dispose();
-      formController.notesController = heliumQuillController(
-        document: linkedNote?.content != null
-            ? tryParseNotesDocument(linkedNote!.content) ??
-                buildUnrenderableNotePlaceholder()
-            : null,
-      );
+      formController.loadLinkedNote(state.linkedNote);
+      _isItemConflict = false;
     }
 
     setState(() {

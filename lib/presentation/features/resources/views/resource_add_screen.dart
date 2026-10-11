@@ -14,7 +14,9 @@ import 'package:heliumapp/presentation/features/notebook/bloc/note_state.dart';
 import 'package:heliumapp/presentation/features/resources/bloc/resource_bloc.dart';
 import 'package:heliumapp/presentation/features/resources/bloc/resource_event.dart';
 import 'package:heliumapp/presentation/features/resources/bloc/resource_state.dart';
+import 'package:heliumapp/data/models/planner/resource_model.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/core/base_event.dart';
+import 'package:heliumapp/domain/linked_note_saver.dart';
 import 'package:heliumapp/presentation/features/shared/widgets/flow/multi_step_container.dart';
 import 'package:heliumapp/presentation/features/resources/widgets/resource_details.dart';
 import 'package:heliumapp/presentation/ui/components/helium_icon_button.dart';
@@ -252,20 +254,22 @@ class _ResourceAddScreenState
     };
   }
 
-  Future<void> _resolveConflict({required bool noteSavedAsCopy}) async {
-    await resolveConflict(
-      context,
-      onLoadLatest: _loadLatest,
-      onOverwrite: _overwriteNewer,
+  void _resolveConflict({
+    ResourceModel? savedResource,
+    LinkedNoteSave? linkedNoteSave,
+  }) {
+    _detailsKey.currentState?.resetSubmitting();
+    setState(() => isSubmitting = false);
+    _detailsKey.currentState?.applyConflict(
+      savedResource: savedResource,
+      linkedNoteSave: linkedNoteSave,
     );
-    if (noteSavedAsCopy && mounted) {
-      showSnackBar(context, noteSavedAsCopyMessage);
-    }
+    resolveFormConflict(
+      context,
+      _detailsKey.currentState,
+      canKeepEditing: linkedNoteSave?.isConflict ?? false,
+    );
   }
-
-  void _loadLatest() => _detailsKey.currentState?.loadLatest();
-
-  void _overwriteNewer() => _detailsKey.currentState?.overwriteNewer();
 
   @override
   List<BlocListener<dynamic, dynamic>> buildListeners(BuildContext context) {
@@ -294,9 +298,14 @@ class _ResourceAddScreenState
             setState(() { isLoading = false; isSubmitting = false; });
           } else if (state is ResourceConflict &&
               state.origin == EventOrigin.subScreen) {
-            _detailsKey.currentState?.resetSubmitting();
-            setState(() => isSubmitting = false);
-            _resolveConflict(noteSavedAsCopy: state.noteSavedAsCopy);
+            _resolveConflict(linkedNoteSave: state.linkedNoteSave);
+          } else if (state is ResourceUpdated &&
+              state.origin == EventOrigin.subScreen &&
+              (state.linkedNoteSave?.isConflict ?? false)) {
+            _resolveConflict(
+              savedResource: state.resource,
+              linkedNoteSave: state.linkedNoteSave,
+            );
           } else if (state is ResourcesScreenDataFetched &&
               _currentResourceGroupId == null &&
               _currentResourceId != null) {
@@ -364,13 +373,6 @@ class _ResourceAddScreenState
             showSnackBar(context, 'Resource deleted.', useRootMessenger: true);
             closeWithoutPrompt();
           } else if (state is ResourceUpdated) {
-            if (state.noteSavedAsCopy) {
-              showSnackBar(
-                context,
-                noteSavedAsCopyMessage,
-                useRootMessenger: true,
-              );
-            }
             if (state.redirectToNotebook) {
               _log.info('Resource updated with notebook redirect (resourceId=${state.resource.id})');
               _detailsKey.currentState?.resetSubmitting();

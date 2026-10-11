@@ -129,11 +129,9 @@ class _CourseScheduleContentState extends State<_CourseScheduleContent> {
         } else if (state is CourseScheduleCreated) {
           SnackBarHelper.show(context, 'Schedule saved.');
           setState(() => _schedules = [..._schedules, state.schedule]);
-        } else if (state is CourseScheduleUpdated ||
-            state is CourseScheduleConflict) {
-          final schedule = state is CourseScheduleUpdated
-              ? state.schedule
-              : (state as CourseScheduleConflict).latest;
+        } else if (state
+            case CourseScheduleUpdated(:final schedule) ||
+                CourseScheduleConflict(latest: final schedule)) {
           setState(() {
             final index = _schedules.indexWhere((s) => s.id == schedule.id);
             if (index >= 0) _schedules[index] = schedule;

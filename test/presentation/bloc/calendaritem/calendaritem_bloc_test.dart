@@ -3,8 +3,6 @@ import 'dart:async';
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:heliumapp/core/helium_exception.dart';
-import 'package:heliumapp/data/models/planner/note_model.dart';
-import 'package:heliumapp/data/models/planner/request/note_request_model.dart';
 import 'package:heliumapp/data/models/planner/request/event_request_model.dart';
 import 'package:heliumapp/data/models/planner/request/homework_request_model.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/planneritem_bloc.dart';
@@ -538,13 +536,16 @@ void main() {
           ),
           expect: () => [
             isA<PlannerItemsLoading>(),
-            isA<PlannerItemConflict>()
-                .having((s) => s.noteSavedAsCopy, 'noteSavedAsCopy', isFalse),
+            isA<PlannerItemConflict>().having(
+              (s) => s.linkedNoteSave?.isConflict ?? false,
+              'linked note conflict',
+              isFalse,
+            ),
           ],
         );
 
         blocTest<PlannerItemBloc, PlannerItemState>(
-          'keeps an edited linked note as a copy when the note changed elsewhere',
+          'reports a linked note conflict without saving a copy',
           build: () {
             when(
               () => mockHomeworkRepository.updateHomework(
@@ -572,17 +573,6 @@ void main() {
                 },
               ),
             );
-            when(
-              () => mockNoteRepository.createNote(
-                request: any(named: 'request'),
-              ),
-            ).thenAnswer(
-              (_) async => NoteModel.fromJson({
-                'id': 9,
-                'title': 'Updated Homework (copy from this device)',
-                'updated_at': '2026-10-07T12:00:00Z',
-              }),
-            );
             return plannerItemBloc;
           },
           act: (bloc) => bloc.add(
@@ -601,17 +591,24 @@ void main() {
           expect: () => [
             isA<PlannerItemsLoading>(),
             isA<HomeworkUpdated>()
-                .having((s) => s.noteSavedAsCopy, 'noteSavedAsCopy', isTrue)
+                .having(
+                  (s) => s.linkedNoteSave?.isConflict,
+                  'linked note conflict',
+                  isTrue,
+                )
+                .having(
+                  (s) => s.linkedNoteSave?.note?.version,
+                  'latest note version',
+                  '2026-10-07T11:00:00Z',
+                )
                 .having((s) => s.linkedNoteId, 'linkedNoteId', 3),
           ],
           verify: (_) {
-            final copy = verify(
+            verifyNever(
               () => mockNoteRepository.createNote(
-                request: captureAny(named: 'request'),
+                request: any(named: 'request'),
               ),
-            ).captured.single as NoteRequestModel;
-            expect(copy.title, 'Updated Homework (copy from this device)');
-            expect(copy.homeworkId, isNull, reason: 'The copy is standalone');
+            );
           },
         );
 

@@ -112,11 +112,10 @@ class _CourseCategoriesContentState extends State<_CourseCategoriesContent> {
             _categories.add(state.category);
             Sort.byTitle(_categories);
           });
-        } else if (state is CategoryUpdated || state is CategoryConflict) {
+        } else if (state
+            case CategoryUpdated(:final category) ||
+                CategoryConflict(latest: final category)) {
           // No snackbar on updates
-          final category = state is CategoryUpdated
-              ? state.category
-              : (state as CategoryConflict).latest;
           setState(() {
             _categories[_categories.indexWhere((c) => c.id == category.id)] =
                 category;

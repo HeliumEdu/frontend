@@ -15,21 +15,6 @@ class NoteRequestModel {
     this.clearLinks = false,
   });
 
-  /// This device's text, kept when its save loses a conflict. Standalone
-  /// because a linked entity can only have one note.
-  factory NoteRequestModel.conflictCopy({
-    required String title,
-    required Map<String, dynamic> content,
-  }) {
-    final trimmedTitle = title.trim();
-    return NoteRequestModel(
-      title: trimmedTitle.isEmpty
-          ? 'Copy from this device'
-          : '$trimmedTitle (copy from this device)',
-      content: content,
-    );
-  }
-
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
 

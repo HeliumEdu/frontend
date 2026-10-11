@@ -21,6 +21,7 @@ import 'package:heliumapp/presentation/features/resources/constants/resource_con
 import 'package:heliumapp/presentation/features/resources/dialogs/resource_group_dialog.dart';
 import 'package:heliumapp/presentation/features/resources/views/resource_add_screen.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/core/base_event.dart';
+import 'package:heliumapp/domain/linked_note_saver.dart';
 import 'package:heliumapp/presentation/ui/components/course_title_label.dart';
 import 'package:heliumapp/presentation/ui/components/group_dropdown.dart';
 import 'package:heliumapp/presentation/ui/components/helium_icon_button.dart';
@@ -218,18 +219,10 @@ class _ResourcesScreenState
             });
           } else if (state is ResourceUpdated) {
             _replaceResource(state.resource);
-            _applyLinkedNote(
-              state.resource.id,
-              linkedNoteId: state.linkedNoteId,
-              linkedNote: state.linkedNote,
-            );
+            _applyLinkedNoteSave(state.resource.id, state.linkedNoteSave);
           } else if (state is ResourceConflict) {
             _replaceResource(state.latest);
-            _applyLinkedNote(
-              state.latest.id,
-              linkedNoteId: state.linkedNoteId,
-              linkedNote: state.linkedNote,
-            );
+            _applyLinkedNoteSave(state.latest.id, state.linkedNoteSave);
           } else if (state is ResourceScreenDataFetched &&
               state.resource != null) {
             context.read<ResourceBloc>().add(
@@ -356,15 +349,13 @@ class _ResourcesScreenState
     _notesMap[resourceId] = note;
   }
 
-  void _applyLinkedNote(
-    int resourceId, {
-    required int? linkedNoteId,
-    required NoteModel? linkedNote,
-  }) {
-    if (linkedNoteId == null) {
+  void _applyLinkedNoteSave(int resourceId, LinkedNoteSave? linkedNoteSave) {
+    if (linkedNoteSave == null) return;
+    final note = linkedNoteSave.note;
+    if (linkedNoteSave.noteId == null) {
       setState(() => _notesMap.remove(resourceId));
-    } else if (linkedNote != null) {
-      setState(() => _upsertNoteForResource(resourceId, linkedNote));
+    } else if (note != null) {
+      setState(() => _upsertNoteForResource(resourceId, note));
     }
   }
 

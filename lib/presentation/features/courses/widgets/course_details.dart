@@ -6,6 +6,7 @@ import 'package:heliumapp/data/models/planner/course_group_model.dart';
 import 'package:heliumapp/data/models/planner/course_model.dart';
 import 'package:heliumapp/data/models/planner/request/course_request_model.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/core/base_event.dart';
+import 'package:heliumapp/presentation/ui/feedback/conflict_dialog.dart';
 import 'package:heliumapp/presentation/features/courses/bloc/course_bloc.dart';
 import 'package:heliumapp/presentation/features/planner/dialogs/confirm_delete_dialog.dart';
 import 'package:heliumapp/presentation/features/courses/bloc/course_event.dart';
@@ -58,7 +59,8 @@ class CourseDetails extends StatefulWidget {
   State<CourseDetails> createState() => CourseDetailsState();
 }
 
-class CourseDetailsState extends State<CourseDetails> {
+class CourseDetailsState extends State<CourseDetails>
+    with ConflictResolvableForm<CourseDetails> {
   final CourseFormController formController = CourseFormController();
 
   bool isLoading = true;
@@ -66,8 +68,6 @@ class CourseDetailsState extends State<CourseDetails> {
   String? _error;
   CourseGroupModel? _courseGroup;
   CourseModel? _course;
-
-  bool _overwriteNewer = false;
 
   @override
   void initState() {
@@ -96,17 +96,13 @@ class CourseDetailsState extends State<CourseDetails> {
     );
   }
 
+  @override
   void loadLatest() {
     formController.isChanged = false;
     formController.isUserDirty = false;
     _fetchScreenData();
   }
 
-  void overwriteNewer() {
-    _overwriteNewer = true;
-    onSubmit();
-    _overwriteNewer = false;
-  }
 
   @override
   void dispose() {
@@ -365,6 +361,7 @@ class CourseDetailsState extends State<CourseDetails> {
   }
 
   /// Submit the form. Called by parent screen when header save is pressed.
+  @override
   bool onSubmit() {
     if (isLoading || _error != null || _isSubmitting) return false;
     if (formController.validateAndScrollToError()) {
@@ -395,7 +392,7 @@ class CourseDetailsState extends State<CourseDetails> {
             courseGroupId: widget.courseGroupId,
             courseId: widget.courseId!,
             request: request,
-            version: _overwriteNewer ? null : _course?.version,
+            version: isOverwriting ? null : _course?.version,
           ),
         );
       } else {
