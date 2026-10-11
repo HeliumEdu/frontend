@@ -61,12 +61,12 @@ import 'package:sentry_flutter/sentry_flutter.dart';
 enum SaveStatus { unsaved, saving, saved, error }
 
 /// A save that lost to [latest], until the user's choice has been applied.
-class _ConflictResolution {
+class _PendingConflict {
   final NoteModel latest;
   final bool wasManualSave;
   bool isSavingCopy = false;
 
-  _ConflictResolution({required this.latest, required this.wasManualSave});
+  _PendingConflict({required this.latest, required this.wasManualSave});
 }
 
 /// Pushes the note editor route on the notebook shell.
@@ -182,7 +182,7 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
   static const _maxUnconfirmedSends = 5;
   final List<({String title, Delta content})> _unconfirmedSends = [];
   Timer? _autoPullTimer;
-  _ConflictResolution? _conflict;
+  _PendingConflict? _conflict;
   bool _isRecreatingDeletedNote = false;
   bool _isApplyingRemoteVersion = false;
 
@@ -454,7 +454,8 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
             _onSaveConflict(state.latest, wasManualSave: !_isAutoSaving);
           } else if (state is NoteMissing &&
               state.noteId == _note?.id &&
-              _saveStatus == SaveStatus.saving) {
+              _saveStatus == SaveStatus.saving &&
+              !_isLinking) {
             _recreateDeletedNote();
           } else if (_conflict?.isSavingCopy == true && state is NoteCreated) {
             _onConflictCopySaved();
@@ -802,7 +803,7 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
       _isAutoSaving = false;
       isSubmitting = false;
       _saveStatus = SaveStatus.unsaved;
-      _conflict = _ConflictResolution(
+      _conflict = _PendingConflict(
         latest: latest,
         wasManualSave: wasManualSave,
       );
