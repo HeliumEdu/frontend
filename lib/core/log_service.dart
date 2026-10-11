@@ -60,6 +60,7 @@ class LogService {
           record.error is UnauthorizedException ||
           record.error is NotFoundException ||
           record.error is ValidationException ||
+          record.error is ConflictException ||
           _isConnectivityFailure(record.error)) {
         return LogSentryAction.log;
       }

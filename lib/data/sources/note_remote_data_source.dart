@@ -35,6 +35,7 @@ abstract class NoteRemoteDataSource extends BaseDataSource {
   Future<NoteModel?> updateNote({
     required int noteId,
     required NoteRequestModel request,
+    String? version,
   });
 
   Future<void> deleteNote({required int noteId});
@@ -169,12 +170,14 @@ class NoteRemoteDataSourceImpl extends NoteRemoteDataSource {
   Future<NoteModel?> updateNote({
     required int noteId,
     required NoteRequestModel request,
+    String? version,
   }) async {
     try {
       _log.info('Updating Note $noteId ...');
       final response = await dioClient.dio.patch(
         ApiUrl.plannerNotesDetailsUrl(noteId),
         data: request.toJson(),
+        options: ifMatchOptions(version),
       );
 
       if (response.statusCode == 200) {

@@ -272,6 +272,7 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
       final note = await noteRepository.updateNote(
         noteId: event.noteId,
         request: event.request,
+        version: event.version,
       );
       if (note == null) {
         // Note was deleted because content was cleared on a linked note
@@ -279,6 +280,18 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
       } else {
         emit(NoteUpdated(origin: event.origin, note: note));
       }
+    } on ConflictException catch (e) {
+      emit(NoteConflict(
+        origin: event.origin,
+        noteId: event.noteId,
+        latest: NoteModel.fromJson(e.latest),
+      ));
+    } on NotFoundException catch (e) {
+      emit(NoteMissing(
+        origin: event.origin,
+        message: e.message,
+        noteId: event.noteId,
+      ));
     } on HeliumException catch (e) {
       emit(NotesError(origin: event.origin, message: e.message));
     } catch (e) {

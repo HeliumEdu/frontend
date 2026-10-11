@@ -9,6 +9,12 @@ abstract class BaseDataSource {
     String? notFoundEntity,
   }) => DioErrorMapper.map(e, s, notFoundEntity: notFoundEntity);
 
+  /// Options that make a write conditional on [version], the item's raw
+  /// `updated_at` as last read. A stale version fails with a
+  /// [ConflictException]; a null version writes unconditionally.
+  Options? ifMatchOptions(String? version) =>
+      version == null ? null : Options(headers: {'If-Match': version});
+
   /// The endpoint returned a 2xx this call doesn't expect.
   ///
   /// Dio's `validateStatus` turns every non-2xx into a `DioException` before we
