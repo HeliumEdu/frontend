@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:heliumapp/config/app_theme.dart';
+import 'package:heliumapp/presentation/ui/dialogs/helium_bottom_sheet.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/date_time_helpers.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
@@ -37,23 +38,20 @@ void showPlannerItemActionDialog({
   final isMobile = Responsive.isMobile(context);
 
   if (isMobile) {
-    showModalBottomSheet(
+    showHeliumBottomSheet(
       context: context,
-      useRootNavigator: true,
-      isScrollControlled: true,
-      backgroundColor: context.colorScheme.surface,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-      ),
-      builder: (ctx) => StatefulBuilder(
-        builder: (menuContext, setMenuState) => _buildContent(
-          menuContext,
-          isMobile: isMobile,
-          icon: icon,
-          title: title,
-          color: color,
-          occurrenceDate: occurrenceDate,
-          actions: actions,
+      builder: (ctx) => SafeArea(
+        top: false,
+        child: StatefulBuilder(
+          builder: (menuContext, setMenuState) => _buildContent(
+            menuContext,
+            isMobile: isMobile,
+            icon: icon,
+            title: title,
+            color: color,
+            occurrenceDate: occurrenceDate,
+            actions: actions,
+          ),
         ),
       ),
     );

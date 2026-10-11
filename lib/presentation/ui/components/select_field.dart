@@ -3,6 +3,7 @@ import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/data/models/base_model.dart';
 import 'package:heliumapp/data/models/planner/course_model.dart';
 import 'package:heliumapp/presentation/ui/components/helium_checkbox_list_tile.dart';
+import 'package:heliumapp/presentation/ui/dialogs/helium_bottom_sheet.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
@@ -105,7 +106,7 @@ class SelectField<T extends BaseTitledModel> extends StatelessWidget {
           ),
           child: SingleChildScrollView(
           child: Padding(
-            padding: const EdgeInsets.all(16.0),
+            padding: Responsive.sheetContentPadding(menuContext),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: items.map((item) {
@@ -160,14 +161,8 @@ class SelectField<T extends BaseTitledModel> extends StatelessWidget {
     }
 
     if (isMobile) {
-      showModalBottomSheet(
+      showHeliumBottomSheet(
         context: parentContext,
-        useRootNavigator: true,
-        isScrollControlled: true,
-        backgroundColor: Theme.of(parentContext).colorScheme.surface,
-        shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(16.0)),
-        ),
         builder: (context) => StatefulBuilder(builder: buildContent),
       );
     } else {

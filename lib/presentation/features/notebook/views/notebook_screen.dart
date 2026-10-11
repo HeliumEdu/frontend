@@ -9,6 +9,7 @@ import 'package:heliumapp/config/pref_service.dart';
 import 'package:heliumapp/data/models/auth/user_settings_model.dart';
 import 'package:heliumapp/data/models/planner/note_model.dart';
 import 'package:heliumapp/presentation/core/views/base_page_screen_state.dart';
+import 'package:heliumapp/presentation/ui/dialogs/helium_bottom_sheet.dart';
 import 'package:heliumapp/presentation/ui/layout/page_header.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_bloc.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_state.dart';
@@ -732,7 +733,7 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen> 
           ),
           child: SingleChildScrollView(
             child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: Responsive.sheetContentPadding(context),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
@@ -850,14 +851,8 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen> 
     }
 
     if (isMobile) {
-      showModalBottomSheet(
+      showHeliumBottomSheet(
         context: context,
-        useRootNavigator: true,
-        isScrollControlled: true,
-        backgroundColor: context.colorScheme.surface,
-        shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-        ),
         builder: (context) => StatefulBuilder(builder: buildContent),
       );
     } else {

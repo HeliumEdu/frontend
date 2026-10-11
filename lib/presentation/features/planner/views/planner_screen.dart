@@ -74,6 +74,7 @@ import 'package:heliumapp/presentation/navigation/shell/navigation_shell.dart';
 import 'package:heliumapp/presentation/ui/components/helium_checkbox_list_tile.dart';
 import 'package:heliumapp/presentation/ui/components/helium_elevated_button.dart';
 import 'package:heliumapp/presentation/ui/components/helium_icon_button.dart';
+import 'package:heliumapp/presentation/ui/dialogs/helium_bottom_sheet.dart';
 import 'package:heliumapp/presentation/ui/feedback/error_card.dart';
 import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
 import 'package:heliumapp/presentation/ui/layout/shadow_container.dart';
@@ -4058,7 +4059,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
                 maxHeight: MediaQuery.of(context).size.height * 0.75,
               ),
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
+          padding: Responsive.sheetContentPadding(context),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
@@ -4461,14 +4462,8 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
     }
 
     if (isMobile) {
-      showModalBottomSheet(
+      showHeliumBottomSheet(
         context: context,
-        useRootNavigator: true,
-        isScrollControlled: true,
-        backgroundColor: context.colorScheme.surface,
-        shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-        ),
         builder: (context) => StatefulBuilder(builder: buildContent),
       );
     } else {
@@ -4529,7 +4524,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
         ),
         child: SingleChildScrollView(
           child: Padding(
-            padding: const EdgeInsets.all(16),
+            padding: Responsive.sheetContentPadding(menuContext),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
@@ -4582,14 +4577,8 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
     final isMobile = Responsive.isMobile(context);
 
     if (isMobile) {
-      showModalBottomSheet(
+      showHeliumBottomSheet(
         context: context,
-        useRootNavigator: true,
-        isScrollControlled: true,
-        backgroundColor: context.colorScheme.surface,
-        shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-        ),
         builder: (context) => StatefulBuilder(
           builder: (ctx, ss) =>
               _buildViewMenuContent(ctx, ss, isMobile: isMobile),
