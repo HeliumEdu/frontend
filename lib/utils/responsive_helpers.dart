@@ -197,4 +197,20 @@ class Responsive {
   static double bottomSafeAreaInset(BuildContext context) {
     return MediaQuery.of(context).viewPadding.bottom;
   }
+
+  /// Padding for a bottom sheet's scrolling content: [padding] on every side,
+  /// plus [bottomSafeAreaInset] so the last item rests above the home
+  /// indicator while the scroll still flows beneath it. Popup menus strip the
+  /// inset, so content shared with a desktop menu gets plain [padding] there.
+  static EdgeInsets sheetContentPadding(
+    BuildContext context, {
+    double padding = 16,
+  }) {
+    return EdgeInsets.fromLTRB(
+      padding,
+      padding,
+      padding,
+      padding + bottomSafeAreaInset(context),
+    );
+  }
 }

@@ -32,6 +32,7 @@ import 'package:heliumapp/presentation/ui/components/course_title_label.dart';
 import 'package:heliumapp/presentation/ui/components/grade_label.dart';
 import 'package:heliumapp/presentation/ui/components/group_dropdown.dart';
 import 'package:heliumapp/presentation/ui/components/helium_checkbox_list_tile.dart';
+import 'package:heliumapp/presentation/ui/dialogs/helium_bottom_sheet.dart';
 import 'package:heliumapp/presentation/ui/feedback/empty_card.dart';
 import 'package:heliumapp/presentation/ui/feedback/error_card.dart';
 import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
@@ -1081,14 +1082,8 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
     final isMobile = Responsive.isMobile(context);
 
     if (isMobile) {
-      showModalBottomSheet(
+      showHeliumBottomSheet(
         context: context,
-        useRootNavigator: true,
-        isScrollControlled: true,
-        backgroundColor: context.colorScheme.surface,
-        shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-        ),
         builder: (ctx) =>
             StatefulBuilder(
               builder: (menuContext, _) =>
@@ -1147,7 +1142,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
         ),
         child: SingleChildScrollView(
         child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: Responsive.sheetContentPadding(menuContext),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
@@ -2071,7 +2066,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
           ),
           child: SingleChildScrollView(
             child: Padding(
-              padding: const EdgeInsets.all(16),
+              padding: Responsive.sheetContentPadding(menuContext),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
@@ -2162,14 +2157,8 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
     }
 
     if (isMobile) {
-      showModalBottomSheet(
+      showHeliumBottomSheet(
         context: context,
-        useRootNavigator: true,
-        isScrollControlled: true,
-        backgroundColor: context.colorScheme.surface,
-        shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-        ),
         builder: (context) => StatefulBuilder(builder: buildContent),
       );
     } else {

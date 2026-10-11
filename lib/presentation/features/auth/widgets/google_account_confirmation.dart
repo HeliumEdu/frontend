@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/core/google_account_store.dart';
 import 'package:heliumapp/presentation/ui/components/helium_elevated_button.dart';
+import 'package:heliumapp/presentation/ui/dialogs/helium_bottom_sheet.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/google_avatar_helpers.dart';
-import 'package:heliumapp/utils/platform_behavior.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 
 class _GoogleAccountConfirmContent extends StatelessWidget {
@@ -99,15 +99,15 @@ class _GoogleAccountConfirmContent extends StatelessWidget {
 
 /// Confirms the Google account remembered from a previous sign-in (iOS only
 /// - see `OAuthSignInService`); resolves true/false/null as in `GoogleLoginEvent`.
-/// Desktop hosts get a centered dialog, touch devices a bottom sheet.
+/// Mobile layouts get a bottom sheet, wider layouts a centered dialog.
 Future<bool?> showGoogleAccountConfirmation({
   required BuildContext parentContext,
   required RememberedGoogleAccount account,
 }) {
-  if (PlatformBehavior.isDesktopHost) {
-    return _showConfirmDialog(parentContext, account);
+  if (Responsive.isMobile(parentContext)) {
+    return _showConfirmSheet(parentContext, account);
   }
-  return _showConfirmSheet(parentContext, account);
+  return _showConfirmDialog(parentContext, account);
 }
 
 Future<bool?> _showConfirmDialog(
@@ -132,15 +132,13 @@ Future<bool?> _showConfirmSheet(
   BuildContext parentContext,
   RememberedGoogleAccount account,
 ) {
-  return showModalBottomSheet<bool>(
+  return showHeliumBottomSheet<bool>(
     context: parentContext,
-    useRootNavigator: true,
-    backgroundColor: parentContext.colorScheme.surface,
-    shape: const RoundedRectangleBorder(
-      borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-    ),
     builder: (BuildContext sheetContext) {
-      return _GoogleAccountConfirmContent(account: account);
+      return SafeArea(
+        top: false,
+        child: _GoogleAccountConfirmContent(account: account),
+      );
     },
   );
 }
