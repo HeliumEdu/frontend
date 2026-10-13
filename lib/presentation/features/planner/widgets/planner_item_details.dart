@@ -777,6 +777,7 @@ class PlannerItemDetailsState extends State<PlannerItemDetails>
                 overwrite: isOverwriting,
               ),
               noteEdited: formController.notesEdited,
+              previousHomework: homework,
             ),
           );
         } else {
