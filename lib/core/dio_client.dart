@@ -24,6 +24,7 @@ import 'package:heliumapp/core/cache_service.dart';
 import 'package:heliumapp/core/system_proxy_io.dart'
     if (dart.library.js_interop) 'package:heliumapp/core/system_proxy_stub.dart';
 import 'package:heliumapp/core/retry_evaluator.dart';
+import 'package:heliumapp/core/jwt_utils.dart';
 import 'package:heliumapp/core/sentry_service.dart';
 import 'package:heliumapp/data/models/auth/request/refresh_token_request_model.dart';
 import 'package:heliumapp/data/models/auth/request/update_settings_request_model.dart';
@@ -384,6 +385,7 @@ class DioClient {
 
   Future<void> saveAccessToken(String accessToken) async {
     await _prefService.setSecure('access_token', accessToken);
+    await identifyUser(accessToken);
   }
 
   Future<void> saveRefreshToken(String refreshToken) async {
@@ -396,8 +398,20 @@ class DioClient {
   }
 
   Future<List<void>?> clearStorage() async {
+    SentryService().clearUser();
+    unawaited(AnalyticsService().setUserId(null));
     await _cacheService.clearAll();
     return _prefService.clear();
+  }
+
+  Future<void> identifyUser([String? accessToken]) async {
+    accessToken ??= await getAccessToken();
+    if (accessToken == null || accessToken.isEmpty) return;
+
+    final userId = JwtUtils.getUserId(accessToken)?.toString();
+    if (userId == null) return;
+    SentryService().setUser(userId);
+    unawaited(AnalyticsService().setUserId(userId));
   }
 
   Future<String?> getAccessToken() async {
@@ -678,8 +692,6 @@ class DioClient {
 
     try {
       await clearStorage();
-      SentryService().clearUser();
-      unawaited(AnalyticsService().setUserId(null));
       _notifyForcedLogout();
       final context = rootNavigatorKey.currentContext;
       if (context != null && context.mounted) {

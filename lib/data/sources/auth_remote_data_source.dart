@@ -7,8 +7,6 @@ import 'package:heliumapp/core/api_url.dart';
 import 'package:heliumapp/core/dio_client.dart';
 import 'package:heliumapp/core/fcm_service.dart';
 import 'package:heliumapp/core/helium_exception.dart';
-import 'package:heliumapp/core/sentry_service.dart';
-import 'package:heliumapp/core/jwt_utils.dart';
 import 'package:heliumapp/data/models/auth/login_request_model.dart';
 import 'package:heliumapp/data/models/auth/private_feed_model.dart';
 import 'package:heliumapp/data/models/auth/register_request_model.dart';
@@ -144,10 +142,7 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
           _log.warning('Failed to register FCM token after verification', e);
         }
 
-        final verifyUserId = JwtUtils.getUserId(response.data['access'] as String);
-        unawaited(AnalyticsService().setUserId(verifyUserId?.toString()));
         unawaited(AnalyticsService().logSignUp());
-        SentryService().setUser(verifyUserId?.toString());
 
         return tokenResponse;
       } else {
@@ -223,10 +218,7 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
           _log.warning('Failed to register FCM token after login', e);
         }
 
-        final loginUserId = JwtUtils.getUserId(response.data['access'] as String);
-        unawaited(AnalyticsService().setUserId(loginUserId?.toString()));
         unawaited(AnalyticsService().logLogin(loginMethod: 'email'));
-        SentryService().setUser(loginUserId?.toString());
 
         return loginResponse;
       } else {
@@ -290,10 +282,7 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
           _log.warning('Failed to register FCM token after $provider login', e);
         }
 
-        final oauthUserId = JwtUtils.getUserId(response.data['access'] as String);
-        unawaited(AnalyticsService().setUserId(oauthUserId?.toString()));
         unawaited(AnalyticsService().logLogin(loginMethod: provider));
-        SentryService().setUser(oauthUserId?.toString());
 
         return loginResponse;
       } else {
@@ -362,8 +351,6 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
       }
 
       await dioClient.clearStorage();
-      SentryService().clearUser();
-      unawaited(AnalyticsService().setUserId(null));
 
       if (refreshToken?.isNotEmpty ?? false) {
         try {
@@ -455,8 +442,6 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
 
       if (response.statusCode == 204) {
         await dioClient.clearStorage();
-        SentryService().clearUser();
-        unawaited(AnalyticsService().setUserId(null));
 
         return NoContentResponseModel(message: 'Account deleted');
       } else {
@@ -610,10 +595,6 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
         } catch (e) {
           _log.warning('Failed to register FCM token after password reset', e);
         }
-
-        final resetUserId = JwtUtils.getUserId(tokenResponse.access);
-        unawaited(AnalyticsService().setUserId(resetUserId?.toString()));
-        SentryService().setUser(resetUserId?.toString());
 
         return tokenResponse;
       } else {

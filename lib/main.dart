@@ -12,6 +12,7 @@ import 'package:heliumapp/config/pref_service.dart';
 import 'package:heliumapp/core/analytics_service.dart';
 import 'package:heliumapp/core/app_version_service.dart';
 import 'package:heliumapp/core/contrast_service.dart';
+import 'package:heliumapp/core/dio_client.dart';
 import 'package:heliumapp/core/fcm_service.dart';
 import 'package:heliumapp/core/feedback_service.dart';
 import 'package:heliumapp/core/log_service.dart';
@@ -116,6 +117,12 @@ Future<void> _bootstrap() async {
     _log.severe('Preferences initialization failed', e);
     runApp(const StartupFailureApp(onReload: reloadPage));
     return;
+  }
+
+  try {
+    await DioClient().identifyUser();
+  } catch (e, s) {
+    _log.severe('Identifying the stored user failed', e, s);
   }
 
   await AppVersionService().init();
