@@ -1,3 +1,4 @@
+import 'package:heliumapp/data/models/planner/homework_model.dart';
 import 'package:heliumapp/data/models/planner/request/event_request_model.dart';
 import 'package:heliumapp/data/models/planner/request/homework_request_model.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/core/base_event.dart';
@@ -126,6 +127,8 @@ class UpdateHomeworkEvent extends PlannerItemEvent {
   final String? linkedNoteVersion;
   final bool noteEdited;
 
+  final HomeworkModel? previousHomework;
+
   UpdateHomeworkEvent({
     required super.origin,
     required this.courseGroupId,
@@ -139,6 +142,7 @@ class UpdateHomeworkEvent extends PlannerItemEvent {
     this.version,
     this.linkedNoteVersion,
     this.noteEdited = true,
+    this.previousHomework,
   });
 }
 

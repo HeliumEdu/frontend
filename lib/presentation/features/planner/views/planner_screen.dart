@@ -580,8 +580,11 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
             _deferredOpenAction = null;
           } else if (state is HomeworkUpdated) {
             _decrementInFlightCompletion(state.homework.id);
-            final previousHomework = _plannerItemDataSource!.allHomeworks
-                .firstWhereOrNull((h) => h.id == state.homework.id);
+            final previousHomework =
+                state.previousHomework ??
+                _plannerItemDataSource!.allHomeworks.firstWhereOrNull(
+                  (h) => h.id == state.homework.id,
+                );
             _plannerItemDataSource!.updatePlannerItem(
               state.homework,
               hasPendingCompletionWrite: _hasPendingCompletionWrite(
@@ -591,7 +594,9 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
             _executeDeferredOpen(state.homework);
             if (state.homework.completed &&
                 previousHomework?.completed == false) {
-              FeedbackService().triggerReviewRequest();
+              if (!_isAwaitingConflictResolution(state)) {
+                FeedbackService().scheduleReviewRequest();
+              }
               unawaited(
                 AnalyticsService().logEvent(
                   name: AnalyticsEvent.homeworkComplete,
@@ -3838,6 +3843,9 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
       );
     });
   }
+
+  bool _isAwaitingConflictResolution(HomeworkUpdated state) =>
+      state.linkedNoteSave?.isConflict ?? false;
 
   bool _hasPendingCompletionWrite(int homeworkId) =>
       _pendingToggleTimers.containsKey(homeworkId) ||

@@ -500,6 +500,7 @@ class PlannerItemBloc extends Bloc<PlannerItemEvent, PlannerItemState> {
           redirectToNotebook: event.redirectToNotebook,
           linkedNoteId: linkedNoteId,
           linkedNoteSave: saved.note,
+          previousHomework: event.previousHomework,
         ),
       );
     } on HeliumException catch (e) {

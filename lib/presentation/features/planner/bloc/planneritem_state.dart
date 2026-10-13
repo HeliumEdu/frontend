@@ -184,6 +184,10 @@ class HomeworkUpdated extends HomeworkEntityState {
   final int? linkedNoteId;
   final LinkedNoteSave? linkedNoteSave;
 
+  /// The server's copy before this write, or null when the sender did not
+  /// have one, in which case listeners should read their own cache.
+  final HomeworkModel? previousHomework;
+
   HomeworkUpdated({
     required super.origin,
     required super.homework,
@@ -193,6 +197,7 @@ class HomeworkUpdated extends HomeworkEntityState {
     this.redirectToNotebook = false,
     this.linkedNoteId,
     this.linkedNoteSave,
+    this.previousHomework,
   });
 }
 

@@ -1,3 +1,4 @@
+import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
@@ -15,12 +16,14 @@ class FeedbackService with WidgetsBindingObserver {
   static const String _keySessionEndedClean = 'feedback_session_ended_clean';
   static const String _keyCleanSessionCount = 'feedback_clean_session_count';
   static const int _cleanSessionThreshold = 2;
+  static const Duration _reviewRequestDelay = Duration(seconds: 4);
 
   final DioClient _dioClient;
   final PrefService _prefService;
   final InAppReview _inAppReview;
 
   bool _isInitialized = false;
+  Timer? _pendingReviewRequest;
 
   static final FeedbackService _instance = FeedbackService._internal();
 
@@ -58,14 +61,31 @@ class FeedbackService with WidgetsBindingObserver {
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.paused ||
         state == AppLifecycleState.detached) {
+      _cancelPendingReviewRequest();
       _prefService.setBool(_keySessionEndedClean, true);
     } else if (state == AppLifecycleState.resumed) {
       _prefService.setBool(_keySessionEndedClean, false);
     }
   }
 
-  Future<void> triggerReviewRequest() async {
+  /// Requests a review once completions have stopped for
+  /// [_reviewRequestDelay], so a run of completions is not interrupted; each
+  /// call restarts the wait. Backgrounding the app drops the pending request
+  /// unacknowledged, leaving the user eligible next time.
+  void scheduleReviewRequest() {
     if (kIsWeb) return;
+
+    _cancelPendingReviewRequest();
+    _pendingReviewRequest = Timer(_reviewRequestDelay, _requestReview);
+  }
+
+  void _cancelPendingReviewRequest() {
+    _pendingReviewRequest?.cancel();
+    _pendingReviewRequest = null;
+  }
+
+  Future<void> _requestReview() async {
+    _pendingReviewRequest = null;
 
     if (SessionHealth.isTroubled) return;
 
