@@ -55,6 +55,8 @@ var _bootstrapped = false;
 /// Swallows failures: `pendingFonts` rejects on the first face that will not
 /// load, which would otherwise abort bootstrap short of [runApp].
 Future<void> _preloadBundledFonts() async {
+  GoogleFonts.config.allowRuntimeFetching = false;
+
   try {
     await GoogleFonts.pendingFonts([
       GoogleFonts.poppins(fontWeight: FontWeight.w300),
@@ -78,12 +80,9 @@ Future<void> _bootstrap() async {
   // outside the app's zone routes its callbacks' errors to the wrong one.
   WidgetsFlutterBinding.ensureInitialized();
 
-  GoogleFonts.config.allowRuntimeFetching = false;
-
   await _preloadBundledFonts();
 
   tz.initializeTimeZones();
-  // Awaited by the first screen that needs it.
   unawaited(TimeZoneDatabaseService().ensureLoaded());
 
   await refreshSystemProxy();

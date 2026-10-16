@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:heliumapp/core/app_version_service.dart';
 import 'package:heliumapp/core/dio_client.dart';
 import 'package:heliumapp/core/notification_count_service.dart';
 import 'package:heliumapp/data/repositories/auth_repository_impl.dart';
@@ -29,6 +30,7 @@ import 'package:heliumapp/presentation/features/resources/bloc/resource_event.da
 import 'package:heliumapp/presentation/features/shared/bloc/core/provider_helpers.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/info/info_bloc.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/info/info_event.dart';
+import 'package:heliumapp/presentation/features/shared/bloc/update_gate/update_gate_bloc.dart';
 
 /// Hosts every entity-data BLoC read across multiple shells, so any overlay
 /// route (settings, notifications, homework/event/note/resource/course
@@ -69,6 +71,13 @@ class AppProviders extends StatelessWidget {
               remoteDataSource: InfoRemoteDataSourceImpl(dioClient: dioClient),
             ),
           )..add(LoadInfoEvent()),
+        ),
+        BlocProvider<UpdateGateBloc>(
+          lazy: true,
+          create: (context) => UpdateGateBloc(
+            infoBloc: context.read<InfoBloc>(),
+            appVersion: AppVersionService().version,
+          ),
         ),
         BlocProvider<ExternalCalendarBloc>(
           lazy: true,
