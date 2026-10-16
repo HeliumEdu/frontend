@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:heliumapp/core/dio_client.dart';
+import 'package:heliumapp/core/fcm_service.dart';
 import 'package:heliumapp/data/repositories/attachment_repository_impl.dart';
 import 'package:heliumapp/data/repositories/category_repository_impl.dart';
 import 'package:heliumapp/data/repositories/course_repository_impl.dart';
 import 'package:heliumapp/data/repositories/course_schedule_event_repository_impl.dart';
 import 'package:heliumapp/data/repositories/event_repository_impl.dart';
 import 'package:heliumapp/data/repositories/external_calendar_repository_impl.dart';
+import 'package:heliumapp/data/repositories/grade_repository_impl.dart';
 import 'package:heliumapp/data/repositories/homework_repository_impl.dart';
 import 'package:heliumapp/data/repositories/note_repository_impl.dart';
+import 'package:heliumapp/data/repositories/reminder_repository_impl.dart';
 import 'package:heliumapp/data/repositories/resource_repository_impl.dart';
 import 'package:heliumapp/data/sources/attachment_remote_data_source.dart';
 import 'package:heliumapp/data/sources/category_remote_data_source.dart';
@@ -16,22 +19,21 @@ import 'package:heliumapp/data/sources/course_schedule_builder_source.dart';
 import 'package:heliumapp/data/sources/course_schedule_remote_data_source.dart';
 import 'package:heliumapp/data/sources/event_remote_data_source.dart';
 import 'package:heliumapp/data/sources/external_calendar_remote_data_source.dart';
+import 'package:heliumapp/data/sources/grade_remote_data_source.dart';
 import 'package:heliumapp/data/sources/homework_remote_data_source.dart';
 import 'package:heliumapp/data/sources/note_remote_data_source.dart';
-import 'package:heliumapp/data/sources/resource_remote_data_source.dart';
-import 'package:heliumapp/data/repositories/grade_repository_impl.dart';
-import 'package:heliumapp/data/repositories/reminder_repository_impl.dart';
-import 'package:heliumapp/data/sources/grade_remote_data_source.dart';
 import 'package:heliumapp/data/sources/reminder_remote_data_source.dart';
+import 'package:heliumapp/data/sources/resource_remote_data_source.dart';
 import 'package:heliumapp/presentation/features/courses/bloc/category_bloc.dart';
 import 'package:heliumapp/presentation/features/courses/bloc/course_bloc.dart';
 import 'package:heliumapp/presentation/features/grades/bloc/grade_bloc.dart';
 import 'package:heliumapp/presentation/features/notebook/bloc/note_bloc.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/attachment_bloc.dart';
-import 'package:heliumapp/presentation/features/planner/bloc/planneritem_bloc.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/external_calendar_bloc.dart';
+import 'package:heliumapp/presentation/features/planner/bloc/planneritem_bloc.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/reminder_bloc.dart';
 import 'package:heliumapp/presentation/features/resources/bloc/resource_bloc.dart';
+import 'package:heliumapp/presentation/features/shared/bloc/notification_count/notification_count_bloc.dart';
 
 
 class ProviderHelpers {
@@ -94,6 +96,16 @@ class ProviderHelpers {
       attachmentRepository: AttachmentRepositoryImpl(
         remoteDataSource: AttachmentRemoteDataSourceImpl(dioClient: _dioClient),
       ),
+    );
+  }
+
+  NotificationCountBloc Function(BuildContext context)
+  createNotificationCountBloc() {
+    return (context) => NotificationCountBloc(
+      reminderRepository: ReminderRepositoryImpl(
+        remoteDataSource: ReminderRemoteDataSourceImpl(dioClient: _dioClient),
+      ),
+      fcmService: FcmService(),
     );
   }
 

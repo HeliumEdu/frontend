@@ -14,6 +14,7 @@ import 'package:heliumapp/core/contrast_service.dart';
 import 'package:heliumapp/core/motion_service.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/update_gate/update_gate_bloc.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/update_gate/update_gate_state.dart';
+import 'package:heliumapp/presentation/features/shared/widgets/core/update_gate_activity_reporter.dart';
 import 'package:heliumapp/update_required_app.dart';
 import 'package:heliumapp/utils/material_localizations_helpers.dart';
 import 'package:heliumapp/utils/platform_behavior.dart';
@@ -44,8 +45,9 @@ class _HeliumAppState extends State<HeliumApp> with WidgetsBindingObserver {
     super.initState();
     _themeNotifier.addListener(_rebuild);
     _regionalSettingsNotifier.addListener(_rebuild);
-    if (PlatformBehavior.supportsPrintShortcut)
+    if (PlatformBehavior.supportsPrintShortcut) {
       HardwareKeyboard.instance.addHandler(_handleKeyEvent);
+    }
     WidgetsBinding.instance.addObserver(this);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
@@ -69,8 +71,9 @@ class _HeliumAppState extends State<HeliumApp> with WidgetsBindingObserver {
     WidgetsBinding.instance.removeObserver(this);
     _themeNotifier.removeListener(_rebuild);
     _regionalSettingsNotifier.removeListener(_rebuild);
-    if (PlatformBehavior.supportsPrintShortcut)
+    if (PlatformBehavior.supportsPrintShortcut) {
       HardwareKeyboard.instance.removeHandler(_handleKeyEvent);
+    }
     super.dispose();
   }
 
@@ -142,7 +145,7 @@ class _HeliumAppState extends State<HeliumApp> with WidgetsBindingObserver {
     return BlocBuilder<UpdateGateBloc, UpdateGateState>(
       builder: (context, state) => state is UpdateGateShown
           ? const UpdateRequiredApp()
-          : _buildRoutedApp(context),
+          : UpdateGateActivityReporter(child: _buildRoutedApp(context)),
     );
   }
 

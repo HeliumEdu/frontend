@@ -3,7 +3,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:heliumapp/core/helium_exception.dart';
 import 'package:heliumapp/core/last_oauth_provider_store.dart';
-import 'package:heliumapp/core/notification_count_service.dart';
 import 'package:heliumapp/data/models/auth/token_response_model.dart';
 import 'package:heliumapp/data/models/no_content_response_model.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_bloc.dart';
@@ -621,14 +620,7 @@ void main() {
         when(
           () => mockDioClient.getSettings(forceRefresh: true),
         ).thenAnswer((_) async => null);
-        NotificationCountService.setInstanceForTesting(
-          NotificationCountService.forTesting(
-            reminderRepository: MockReminderRepository(),
-          ),
-        );
       });
-
-      tearDown(NotificationCountService.resetForTesting);
 
       blocTest<AuthBloc, AuthState>(
         'emits [AuthLoading, AuthScheduleDataRefreshed] without a message when everything was cleared',

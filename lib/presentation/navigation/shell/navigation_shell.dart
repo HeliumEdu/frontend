@@ -11,7 +11,9 @@ import 'package:heliumapp/config/pref_service.dart';
 import 'package:heliumapp/core/dio_client.dart';
 import 'package:heliumapp/data/models/auth/request/update_settings_request_model.dart';
 import 'package:heliumapp/core/fcm_service.dart';
-import 'package:heliumapp/core/notification_count_service.dart';
+import 'package:heliumapp/presentation/features/shared/bloc/core/base_event.dart';
+import 'package:heliumapp/presentation/features/shared/bloc/notification_count/notification_count_bloc.dart';
+import 'package:heliumapp/presentation/features/shared/bloc/notification_count/notification_count_event.dart';
 import 'package:heliumapp/core/notification_reconciler.dart';
 import 'package:heliumapp/core/whats_new_service.dart';
 import 'package:heliumapp/presentation/core/dialogs/getting_started_dialog.dart';
@@ -209,7 +211,9 @@ class _NavigationShellState extends State<NavigationShell> {
   }
 
   void _refreshNotificationCount() {
-    unawaited(NotificationCountService().refresh());
+    context.read<NotificationCountBloc>().add(
+      RefreshNotificationCountEvent(origin: EventOrigin.screen),
+    );
     unawaited(NotificationReconciler().reconcile());
   }
 

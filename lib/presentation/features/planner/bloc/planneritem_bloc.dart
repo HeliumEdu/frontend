@@ -2,16 +2,17 @@ import 'dart:async';
 
 import 'package:bloc/bloc.dart';
 import 'package:heliumapp/core/helium_exception.dart';
-import 'package:heliumapp/core/notification_count_service.dart';
 import 'package:heliumapp/data/models/id_or_entity.dart';
-import 'package:heliumapp/data/models/planner/planner_item_base_model.dart';
 import 'package:heliumapp/data/models/planner/category_model.dart';
 import 'package:heliumapp/data/models/planner/course_group_model.dart';
 import 'package:heliumapp/data/models/planner/course_model.dart';
 import 'package:heliumapp/data/models/planner/course_schedule_model.dart';
 import 'package:heliumapp/data/models/planner/homework_model.dart';
 import 'package:heliumapp/data/models/planner/note_model.dart';
+import 'package:heliumapp/data/models/planner/planner_item_base_model.dart';
+import 'package:heliumapp/data/models/planner/request/note_request_model.dart';
 import 'package:heliumapp/data/models/planner/resource_model.dart';
+import 'package:heliumapp/domain/linked_note_saver.dart';
 import 'package:heliumapp/domain/repositories/category_repository.dart';
 import 'package:heliumapp/domain/repositories/course_repository.dart';
 import 'package:heliumapp/domain/repositories/course_schedule_event_repository.dart';
@@ -19,11 +20,9 @@ import 'package:heliumapp/domain/repositories/event_repository.dart';
 import 'package:heliumapp/domain/repositories/homework_repository.dart';
 import 'package:heliumapp/domain/repositories/note_repository.dart';
 import 'package:heliumapp/domain/repositories/resource_repository.dart';
-import 'package:heliumapp/data/models/planner/request/note_request_model.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/planneritem_event.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/planneritem_state.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/core/base_event.dart';
-import 'package:heliumapp/domain/linked_note_saver.dart';
 
 class PlannerItemBloc extends Bloc<PlannerItemEvent, PlannerItemState> {
   final EventRepository eventRepository;
@@ -314,16 +313,6 @@ class PlannerItemBloc extends Bloc<PlannerItemEvent, PlannerItemState> {
     }
   }
 
-  /// A delete cascades its reminders away server-side without pushing anything,
-  /// so the bell has to be told. Cannot throw: the delete already succeeded.
-  void _refreshNotificationCount() {
-    unawaited(() async {
-      try {
-        await NotificationCountService().refresh();
-      } catch (_) {}
-    }());
-  }
-
   Future<void> _onDeleteEvent(
     DeleteEventEvent event,
     Emitter<PlannerItemState> emit,
@@ -334,7 +323,6 @@ class PlannerItemBloc extends Bloc<PlannerItemEvent, PlannerItemState> {
     try {
       await eventRepository.deleteEvent(eventId: event.id);
       emit(EventDeleted(origin: event.origin, id: event.id));
-      _refreshNotificationCount();
     } on HeliumException catch (e) {
       emit(PlannerItemsError(origin: event.origin, message: e.message));
     } catch (e) {
@@ -529,7 +517,6 @@ class PlannerItemBloc extends Bloc<PlannerItemEvent, PlannerItemState> {
         homeworkId: event.homeworkId,
       );
       emit(HomeworkDeleted(origin: event.origin, id: event.homeworkId));
-      _refreshNotificationCount();
     } on HeliumException catch (e) {
       emit(PlannerItemsError(origin: event.origin, message: e.message));
     } catch (e) {

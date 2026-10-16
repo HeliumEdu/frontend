@@ -3,7 +3,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/config/app_theme.dart';
-import 'package:heliumapp/core/notification_count_service.dart';
+import 'package:heliumapp/presentation/features/shared/bloc/notification_count/notification_count_bloc.dart';
+import 'package:heliumapp/presentation/features/shared/bloc/notification_count/notification_count_state.dart';
 import 'package:heliumapp/presentation/navigation/shell/navigation_shell.dart';
 import 'package:heliumapp/presentation/ui/components/settings_button.dart';
 import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
@@ -143,9 +144,10 @@ class PageHeader extends StatelessWidget {
                     final shellPath = BranchPathScope.of(context);
                     context.push('$shellPath${AppRoute.notificationsScreen}');
                   },
-                  icon: ValueListenableBuilder<int>(
-                    valueListenable: NotificationCountService().count,
-                    builder: (context, count, child) {
+                  icon: BlocSelector<NotificationCountBloc,
+                      NotificationCountState, int>(
+                    selector: (state) => state.count,
+                    builder: (context, count) {
                       final bell = Icon(
                         Icons.notifications,
                         color: context.colorScheme.primary,

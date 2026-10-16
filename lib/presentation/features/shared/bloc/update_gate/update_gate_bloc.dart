@@ -1,11 +1,4 @@
-import 'dart:async';
-
 import 'package:bloc/bloc.dart';
-import 'package:flutter/gestures.dart';
-import 'package:flutter/services.dart';
-import 'package:heliumapp/config/app_route.dart';
-import 'package:heliumapp/config/app_router.dart';
-import 'package:heliumapp/presentation/features/shared/bloc/info/info_bloc.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/info/info_state.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/update_gate/update_gate_event.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/update_gate/update_gate_state.dart';
@@ -18,132 +11,98 @@ final _log = Logger('presentation.bloc');
 /// Whether the update screen replaces the app because the running version is
 /// below `/info/`'s minimum supported version.
 ///
-/// The update screen replaces the whole app and is only surfaced on screens
-/// where active work can't be / isn't being done. It fails open everywhere
-/// so that it can't block the app from loading, in the event the gate itself
-/// has some failure.
+/// The update screen replaces the whole app, so it is shown right away only on
+/// a cold launch the user hasn't touched yet; otherwise it waits until the user
+/// is idle on a screen where no work can be lost. It fails open everywhere so
+/// that it can't block the app from loading, in the event the gate itself has
+/// some failure.
 class UpdateGateBloc extends Bloc<UpdateGateEvent, UpdateGateState> {
   static const _idleBeforeGate = Duration(seconds: 10);
-  static const _checkEvery = Duration(seconds: 2);
-
-  static const _pagesWithNothingToSave = {
-    AppRoute.plannerScreen,
-    AppRoute.coursesScreen,
-    AppRoute.resourcesScreen,
-    AppRoute.gradesScreen,
-    AppRoute.landingScreen,
-    AppRoute.signinScreen,
-  };
 
   final String? _appVersion;
-  final bool Function() _onPageWithNothingToSave;
   final Duration _idle;
-  late final StreamSubscription<InfoState> _infoSub;
-  final Stopwatch _sinceInput = Stopwatch();
-  Timer? _check;
-  bool _required = false;
+  final Stopwatch _sinceUserActive = Stopwatch()..start();
+  bool _isColdLaunch = true;
   bool _failedOpen = false;
 
   UpdateGateBloc({
-    required InfoBloc infoBloc,
     required String? appVersion,
-    @visibleForTesting bool Function()? onPageWithNothingToSave,
     @visibleForTesting Duration idle = _idleBeforeGate,
   })  : _appVersion = appVersion,
-        _onPageWithNothingToSave =
-            onPageWithNothingToSave ?? _currentPageHasNothingToSave,
         _idle = idle,
         super(UpdateGateHidden()) {
-    on<UpdateGateInfoChanged>(_onInfoChanged);
-    on<UpdateGateChecked>(_onChecked);
-    _infoSub = infoBloc.stream.listen(_addInfoChanged);
-    add(UpdateGateInfoChanged(infoBloc.state));
+    on<UpdateGateInfoChangedEvent>(_onInfoChanged);
+    on<UpdateGateUserActiveEvent>(_onUserActive);
+    on<UpdateGateCheckEvent>(_onCheck);
+    on<UpdateGateCheckFailedEvent>(_onCheckFailed);
   }
-
-  static bool _currentPageHasNothingToSave() {
-    final path = router.routerDelegate.currentConfiguration.uri.path;
-    final somethingOnTop = rootNavigatorKey.currentState?.canPop() ?? true;
-    return _pagesWithNothingToSave.contains(path) && !somethingOnTop;
-  }
-
-  void _addInfoChanged(InfoState info) => add(UpdateGateInfoChanged(info));
 
   void _onInfoChanged(
-    UpdateGateInfoChanged event,
+    UpdateGateInfoChangedEvent event,
     Emitter<UpdateGateState> emit,
   ) {
     final info = event.info;
     if (info is! InfoLoaded || _failedOpen) return;
+
+    final wasColdLaunch = _isColdLaunch;
+    _isColdLaunch = false;
+
     final version = _appVersion;
+    final bool required;
     try {
-      _required = version != null &&
+      required = version != null &&
           VersionHelpers.isBelow(version, info.info.minimumSupportedVersion);
     } catch (e, s) {
-      _failOpen(e, s);
+      _failOpen(e, s, emit);
       return;
     }
-    if (_required && state is UpdateGateHidden) {
-      _waitForASafeMoment();
-    } else if (!_required) {
-      _stopWaiting();
-      if (state is UpdateGateShown) emit(UpdateGateHidden());
+
+    if (!required) {
+      if (state is! UpdateGateHidden) emit(UpdateGateHidden());
+    } else if (state is UpdateGateHidden) {
+      if (wasColdLaunch) {
+        emit(UpdateGateShown());
+      } else {
+        _sinceUserActive
+          ..reset()
+          ..start();
+        emit(UpdateGateWaiting());
+      }
     }
   }
 
-  void _onChecked(UpdateGateChecked event, Emitter<UpdateGateState> emit) {
-    if (!_required || state is UpdateGateShown) return;
-    if (_sinceInput.elapsed < _idle) return;
-    try {
-      if (!_onPageWithNothingToSave()) return;
-    } catch (e, s) {
-      _failOpen(e, s);
-      return;
-    }
-    _stopWaiting();
+  void _onUserActive(
+    UpdateGateUserActiveEvent event,
+    Emitter<UpdateGateState> emit,
+  ) {
+    _isColdLaunch = false;
+    _sinceUserActive
+      ..reset()
+      ..start();
+  }
+
+  void _onCheck(UpdateGateCheckEvent event, Emitter<UpdateGateState> emit) {
+    if (state is! UpdateGateWaiting) return;
+    if (_sinceUserActive.elapsed < _idle || !event.isPageSafe) return;
     emit(UpdateGateShown());
   }
 
-  void _waitForASafeMoment() {
-    if (_check != null) return;
-    _restartIdleClock();
-    GestureBinding.instance.pointerRouter.addGlobalRoute(_onPointer);
-    HardwareKeyboard.instance.addHandler(_onKey);
-    _check = Timer.periodic(_checkEvery, _onCheckTimer);
-  }
+  void _onCheckFailed(
+    UpdateGateCheckFailedEvent event,
+    Emitter<UpdateGateState> emit,
+  ) => _failOpen(event.error, event.stackTrace, emit);
 
-  void _stopWaiting() {
-    final check = _check;
-    if (check == null) return;
-    check.cancel();
-    _check = null;
-    GestureBinding.instance.pointerRouter.removeGlobalRoute(_onPointer);
-    HardwareKeyboard.instance.removeHandler(_onKey);
-  }
-
-  void _onCheckTimer(Timer timer) => add(UpdateGateChecked());
-
-  void _restartIdleClock() => _sinceInput
-    ..reset()
-    ..start();
-
-  void _onPointer(PointerEvent event) => _restartIdleClock();
-
-  bool _onKey(KeyEvent event) {
-    _restartIdleClock();
-    return false;
-  }
-
-  void _failOpen(Object error, StackTrace stackTrace) {
+  void _failOpen(
+    Object error,
+    StackTrace stackTrace,
+    Emitter<UpdateGateState> emit,
+  ) {
     _failedOpen = true;
-    _required = false;
-    _stopWaiting();
-    _log.severe('Update gate disabled after an unexpected error', error, stackTrace);
-  }
-
-  @override
-  Future<void> close() async {
-    _stopWaiting();
-    await _infoSub.cancel();
-    return super.close();
+    if (state is! UpdateGateHidden) emit(UpdateGateHidden());
+    _log.severe(
+      'Update gate disabled after an unexpected error',
+      error,
+      stackTrace,
+    );
   }
 }

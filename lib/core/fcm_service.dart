@@ -18,8 +18,8 @@ import 'package:heliumapp/core/fcm_web_notifications_stub.dart'
     if (dart.library.html) 'package:heliumapp/core/fcm_web_notifications_web.dart'
     as web_notifications;
 import 'package:heliumapp/core/jwt_utils.dart';
-import 'package:heliumapp/core/notification_count_service.dart';
 import 'package:heliumapp/data/models/notification/notification_model.dart';
+import 'package:heliumapp/data/models/planner/reminder_model.dart';
 import 'package:heliumapp/data/models/notification/request/push_token_request_model.dart';
 import 'package:heliumapp/data/repositories/push_notification_repository_impl.dart';
 import 'package:heliumapp/data/sources/push_notification_remote_data_source.dart';
@@ -49,6 +49,10 @@ class FcmService with WidgetsBindingObserver {
   static const Duration _registrationHeartbeat = Duration(hours: 24);
 
   static void Function(String route)? _onForegroundTap;
+
+  final List<void Function(ReminderModel reminder)> _reminderReceivedListeners =
+      [];
+  final List<void Function(int reminderId)> _reminderDismissedListeners = [];
 
   bool _isInitialized = false;
   bool _isSupported = true;
@@ -91,6 +95,21 @@ class FcmService with WidgetsBindingObserver {
   static void setForegroundTapCallback(void Function(String route) callback) {
     _onForegroundTap = callback;
   }
+
+  void addReminderReceivedListener(
+    void Function(ReminderModel reminder) listener,
+  ) => _reminderReceivedListeners.add(listener);
+
+  void removeReminderReceivedListener(
+    void Function(ReminderModel reminder) listener,
+  ) => _reminderReceivedListeners.remove(listener);
+
+  void addReminderDismissedListener(void Function(int reminderId) listener) =>
+      _reminderDismissedListeners.add(listener);
+
+  void removeReminderDismissedListener(
+    void Function(int reminderId) listener,
+  ) => _reminderDismissedListeners.remove(listener);
 
   @visibleForTesting
   Future<void> handleDismissMessageForTesting(RemoteMessage message) =>
@@ -472,7 +491,9 @@ class FcmService with WidgetsBindingObserver {
     _recentMessageIds[notification.id.toString()] = now;
 
     await showLocalNotification(notification);
-    NotificationCountService().upsert(notification.reminder);
+    for (final listener in List.of(_reminderReceivedListeners)) {
+      listener(notification.reminder);
+    }
     _log.info('Foreground message $messageId notification displayed');
   }
 
@@ -494,7 +515,11 @@ class FcmService with WidgetsBindingObserver {
     _log.info('Dismiss received for reminder $reminderId; clearing notification');
 
     final id = int.tryParse(reminderId);
-    if (id != null) NotificationCountService().remove(id);
+    if (id != null) {
+      for (final listener in List.of(_reminderDismissedListeners)) {
+        listener(id);
+      }
+    }
 
     if (kIsWeb) {
       // A foregrounded tab receives dismiss via onMessage, not the SW's
@@ -739,7 +764,7 @@ Future<void> _onBackgroundMessage(RemoteMessage message) async {
   // Reminder pushes are displayed natively by the OS, so this handler exists
   // to register the background isolate and to clear a notification on a dismiss
   // push. The count is left to refresh() on resume — this isolate has its own
-  // memory, separate from the UI's NotificationCountService.
+  // memory, separate from the UI's NotificationCountBloc.
   try {
     await Firebase.initializeApp();
   } catch (e) {
