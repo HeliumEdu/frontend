@@ -5,16 +5,13 @@ import 'package:heliumapp/presentation/features/courses/bloc/course_bloc.dart';
 import 'package:heliumapp/presentation/features/courses/bloc/course_event.dart';
 import 'package:heliumapp/presentation/features/courses/bloc/course_state.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/core/base_event.dart';
-import 'package:heliumapp/presentation/ui/components/helium_elevated_button.dart';
+import 'package:heliumapp/presentation/features/shared/controllers/basic_form_controller.dart';
 import 'package:heliumapp/presentation/ui/components/helium_icon_button.dart';
+import 'package:heliumapp/presentation/ui/dialogs/base_dialog_state.dart';
 import 'package:heliumapp/presentation/ui/feedback/empty_card.dart';
-import 'package:heliumapp/presentation/ui/feedback/error_container.dart';
-import 'package:heliumapp/presentation/ui/feedback/info_container.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/date_time_helpers.dart';
-import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:heliumapp/utils/sort_helpers.dart';
-import 'package:heliumapp/utils/snack_bar_helpers.dart';
 
 /// Reusable dialog for managing a list of exception dates.
 ///
@@ -48,11 +45,18 @@ class CourseExceptionsDialog extends StatefulWidget {
   State<CourseExceptionsDialog> createState() => _CourseExceptionsDialogState();
 }
 
-class _CourseExceptionsDialogState extends State<CourseExceptionsDialog> {
+class _CourseExceptionsDialogState
+    extends BaseDialogState<CourseExceptionsDialog> {
+  static const _datesListHeight = 300.0;
+
+  final BasicFormController _formController = BasicFormController();
   late List<DateTime> _exceptions;
-  bool _isSaving = false;
-  String? _message;
-  SnackType _messageType = SnackType.error;
+
+  @override
+  String get dialogTitle => widget.title;
+
+  @override
+  BasicFormController get formController => _formController;
 
   @override
   void initState() {
@@ -61,88 +65,27 @@ class _CourseExceptionsDialogState extends State<CourseExceptionsDialog> {
   }
 
   @override
-  Widget build(BuildContext context) {
-    return PopScope(
-      canPop: !_isSaving,
-      child: BlocListener<CourseBloc, CourseState>(
-        listener: _onCourseStateChanged,
-        child: _buildDialog(context),
-      ),
-    );
+  List<BlocListener<dynamic, dynamic>> buildListeners(BuildContext context) {
+    return [
+      BlocListener<CourseBloc, CourseState>(listener: _onCourseStateChanged),
+    ];
   }
 
-  Widget _buildDialog(BuildContext context) {
-    return Dialog(
-      backgroundColor: Colors.transparent,
-      insetPadding: Responsive.isMobile(context)
-          ? const EdgeInsets.symmetric(horizontal: 16, vertical: 16)
-          : const EdgeInsets.symmetric(horizontal: 40, vertical: 24),
-      child: SizedBox(
-        width: Responsive.getDialogWidth(context),
-        height: 480,
-        child: Material(
-          color: context.colorScheme.surface,
-          borderRadius: BorderRadius.circular(12),
-          child: Padding(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Center(
-                  child: Text(
-                    widget.title,
-                    style: AppStyles.pageTitle(context),
-                  ),
-                ),
-                const SizedBox(height: 16),
-
-                Expanded(child: _buildEditableSection(context)),
-
-                if (widget.readOnlyExceptions.isNotEmpty) ...[
-                  const SizedBox(height: 20),
-                  _buildReadOnlySection(context),
-                ],
-
-                if (_message != null) ...[
-                  const SizedBox(height: 12),
-                  if (_messageType == SnackType.info)
-                    InfoContainer(
-                      text: _message!,
-                      onDismiss: () => setState(() => _message = null),
-                    )
-                  else
-                    ErrorContainer(
-                      text: _message!,
-                      onDismiss: () => setState(() => _message = null),
-                    ),
-                ],
-
-                const SizedBox(height: 16),
-                Row(
-                  children: [
-                    Expanded(
-                      child: HeliumElevatedButton(
-                        buttonText: 'Cancel',
-                        enabled: !_isSaving,
-                        backgroundColor: context.colorScheme.outline,
-                        onPressed: () => Navigator.pop(context),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: HeliumElevatedButton(
-                        buttonText: 'Save',
-                        isLoading: _isSaving,
-                        onPressed: _save,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
+  @override
+  Widget buildMainArea(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        SizedBox(
+          height: _datesListHeight,
+          child: _buildEditableSection(context),
         ),
-      ),
+        if (widget.readOnlyExceptions.isNotEmpty) ...[
+          const SizedBox(height: 20),
+          _buildReadOnlySection(context),
+        ],
+      ],
     );
   }
 
@@ -178,12 +121,14 @@ class _CourseExceptionsDialogState extends State<CourseExceptionsDialog> {
     if (picked == null) return;
 
     final dateOnly = HeliumDateTime.dateOnly(picked);
+    _formController.markChanged();
     setState(() {
       _exceptions = [..._exceptions, dateOnly]..sort();
     });
   }
 
   void _removeDate(DateTime date) {
+    _formController.markChanged();
     setState(() {
       _exceptions =
           _exceptions
@@ -197,11 +142,16 @@ class _CourseExceptionsDialogState extends State<CourseExceptionsDialog> {
     });
   }
 
-  void _save() {
-    setState(() {
-      _isSaving = true;
-      _message = null;
-    });
+  @override
+  void handleSubmit() {
+    if (!_formController.isChanged) {
+      cancelAction();
+      return;
+    }
+    super.handleSubmit();
+    if (!isSubmitting) return;
+
+    setState(() => errorMessage = null);
     final courseId = widget.courseId;
     context.read<CourseBloc>().add(
       courseId == null
@@ -220,15 +170,14 @@ class _CourseExceptionsDialogState extends State<CourseExceptionsDialog> {
   }
 
   void _onCourseStateChanged(BuildContext context, CourseState state) {
-    if (!_isSaving) return;
+    if (!isSubmitting) return;
     if (state is CourseGroupExceptionsUpdated ||
         state is CourseExceptionsUpdated) {
       Navigator.pop(context);
     } else if (state is CoursesError && state.origin == EventOrigin.dialog) {
       setState(() {
-        _isSaving = false;
-        _message = state.message;
-        _messageType = SnackType.error;
+        isSubmitting = false;
+        errorMessage = state.message;
       });
     }
   }

@@ -31,6 +31,10 @@ class PageHeader extends StatelessWidget {
   final List<Widget> additionalRightButtons;
   final String? helpUrl;
 
+  /// Evens the vertical padding and sets the header off from the form beneath
+  /// it with a divider, for headers shown atop a dialog.
+  final bool isDialog;
+
   const PageHeader({
     super.key,
     required this.title,
@@ -44,6 +48,7 @@ class PageHeader extends StatelessWidget {
     this.additionalLeftButtons = const [],
     this.additionalRightButtons = const [],
     this.helpUrl,
+    this.isDialog = false,
   });
 
   /// Returns true if the settings button should appear in the page header
@@ -210,10 +215,19 @@ class PageHeader extends StatelessWidget {
           )
         : _buildContent(context);
 
-    return Container(
+    final header = Container(
       color: context.colorScheme.surface,
-      padding: const EdgeInsets.only(top: 6, bottom: 2, left: 12, right: 12),
+      padding: isDialog
+          ? AppConstants.dialogHeaderPadding
+          : AppConstants.pageHeaderPadding,
       child: wrappedContent,
+    );
+
+    if (!isDialog) return header;
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [header, const Divider(height: 1)],
     );
   }
 }

@@ -130,12 +130,11 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
   /// actions.
   List<Widget> get additionalRightHeaderButtons => const [];
 
-  EdgeInsets get scaffoldInsets => const EdgeInsets.only(
-    left: 12,
-    right: 12,
-    top: 8,
-    bottom: 0,
-  );
+  /// Dialog-mode content runs to the bottom edge, since these screens scroll
+  /// and reserve only the safe-area inset there.
+  EdgeInsets get scaffoldInsets => DialogModeProvider.isDialogMode(context)
+      ? AppConstants.dialogContentPadding.copyWith(bottom: 0)
+      : AppConstants.pageContentPadding;
 
   @override
   @protected
@@ -431,6 +430,7 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
       title: screenTitle,
       icon: icon,
       screenType: screenType,
+      isDialog: DialogModeProvider.isDialogMode(context),
       isLoading: isSubmitting,
       cancelAction: cancelAction,
       saveAction: saveAction,
