@@ -94,7 +94,7 @@ class FeedbackService with WidgetsBindingObserver {
 
     final UserSettingsModel? settings;
     try {
-      settings = await _dioClient.getSettings();
+      settings = await _dioClient.getSettings(forceRefresh: true);
       if (settings == null || !settings.promptForReview) return;
     } catch (e) {
       _log.warning('Failed to fetch settings for review check: $e');

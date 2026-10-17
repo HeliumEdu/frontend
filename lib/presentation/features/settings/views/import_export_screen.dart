@@ -13,7 +13,6 @@ import 'package:heliumapp/core/api_url.dart';
 import 'package:heliumapp/core/dio_client.dart';
 import 'package:heliumapp/core/dio_error_mapper.dart';
 import 'package:heliumapp/core/helium_exception.dart';
-import 'package:heliumapp/core/notification_count_service.dart';
 import 'package:heliumapp/data/models/auth/user_settings_model.dart';
 import 'package:heliumapp/data/models/planner/course_group_model.dart';
 import 'package:heliumapp/data/models/planner/course_model.dart';
@@ -528,7 +527,6 @@ class _ImportExportScreenState extends State<ImportExportScreen> {
         }
 
         await _dioClient.cacheService.invalidateAll();
-        unawaited(NotificationCountService().refresh());
 
         if (mounted) {
           context.read<AuthBloc>().add(RefreshScheduleDataEvent());
@@ -690,7 +688,6 @@ class _ImportExportScreenState extends State<ImportExportScreen> {
         // not a post-redirect cold fetch that stalls the outgoing screen.
         await _dioClient.getSettings(forceRefresh: true);
         if (!mounted) return;
-        unawaited(NotificationCountService().refresh());
         if (mounted) {
           unawaited(
             AnalyticsService().logEvent(

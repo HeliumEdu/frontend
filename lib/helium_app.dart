@@ -3,31 +3,29 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:heliumapp/config/analytics_event.dart';
 import 'package:heliumapp/config/app_router.dart';
+import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/config/regional_settings_notifier.dart';
 import 'package:heliumapp/config/theme_notifier.dart';
 import 'package:heliumapp/core/analytics_service.dart';
 import 'package:heliumapp/core/contrast_service.dart';
 import 'package:heliumapp/core/motion_service.dart';
+import 'package:heliumapp/presentation/features/shared/bloc/update_gate/update_gate_bloc.dart';
+import 'package:heliumapp/presentation/features/shared/bloc/update_gate/update_gate_state.dart';
+import 'package:heliumapp/presentation/features/shared/widgets/core/update_gate_activity_reporter.dart';
+import 'package:heliumapp/update_required_app.dart';
 import 'package:heliumapp/utils/material_localizations_helpers.dart';
 import 'package:heliumapp/utils/platform_behavior.dart';
 import 'package:heliumapp/utils/print_service.dart';
-import 'package:heliumapp/utils/web_helpers_stub.dart'
-    if (dart.library.js_interop) 'package:heliumapp/utils/web_helpers_web.dart';
 import 'package:heliumapp/utils/quill_helpers.dart';
 import 'package:heliumapp/utils/sf_calendar_helpers.dart';
 import 'package:heliumapp/utils/snack_bar_helpers.dart';
-import 'package:heliumapp/config/app_theme.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:heliumapp/core/app_version_service.dart';
-import 'package:heliumapp/presentation/features/shared/bloc/info/info_bloc.dart';
-import 'package:heliumapp/presentation/features/shared/bloc/info/info_state.dart';
-import 'package:heliumapp/update_required_app.dart';
-import 'package:heliumapp/utils/version_helpers.dart';
+import 'package:heliumapp/utils/web_helpers_stub.dart'
+    if (dart.library.js_interop) 'package:heliumapp/utils/web_helpers_web.dart';
 import 'package:logging/logging.dart';
 import 'package:url_launcher/url_launcher.dart';
-
 
 final _log = Logger('app');
 
@@ -47,15 +45,22 @@ class _HeliumAppState extends State<HeliumApp> with WidgetsBindingObserver {
     super.initState();
     _themeNotifier.addListener(_rebuild);
     _regionalSettingsNotifier.addListener(_rebuild);
-    if (PlatformBehavior.supportsPrintShortcut) HardwareKeyboard.instance.addHandler(_handleKeyEvent);
+    if (PlatformBehavior.supportsPrintShortcut) {
+      HardwareKeyboard.instance.addHandler(_handleKeyEvent);
+    }
     WidgetsBinding.instance.addObserver(this);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
-      final features = WidgetsBinding.instance.platformDispatcher.accessibilityFeatures;
+      final features =
+          WidgetsBinding.instance.platformDispatcher.accessibilityFeatures;
       MotionService().init(
-        features.disableAnimations || features.reduceMotion || getSystemReduceMotion(),
+        features.disableAnimations ||
+            features.reduceMotion ||
+            getSystemReduceMotion(),
       );
-      ContrastService().init(features.highContrast || getSystemIncreaseContrast());
+      ContrastService().init(
+        features.highContrast || getSystemIncreaseContrast(),
+      );
       setState(() {});
     });
     _log.info('HeliumApp initialized with theme: ${_themeNotifier.themeMode}');
@@ -66,7 +71,9 @@ class _HeliumAppState extends State<HeliumApp> with WidgetsBindingObserver {
     WidgetsBinding.instance.removeObserver(this);
     _themeNotifier.removeListener(_rebuild);
     _regionalSettingsNotifier.removeListener(_rebuild);
-    if (PlatformBehavior.supportsPrintShortcut) HardwareKeyboard.instance.removeHandler(_handleKeyEvent);
+    if (PlatformBehavior.supportsPrintShortcut) {
+      HardwareKeyboard.instance.removeHandler(_handleKeyEvent);
+    }
     super.dispose();
   }
 
@@ -75,7 +82,9 @@ class _HeliumAppState extends State<HeliumApp> with WidgetsBindingObserver {
   // desktop url_launcher implementations don't implement closeWebView and
   // would throw on every URL change.
   @override
-  Future<bool> didPushRouteInformation(RouteInformation routeInformation) async {
+  Future<bool> didPushRouteInformation(
+    RouteInformation routeInformation,
+  ) async {
     if (_isMobile) unawaited(closeInAppWebView());
     return false;
   }
@@ -97,7 +106,8 @@ class _HeliumAppState extends State<HeliumApp> with WidgetsBindingObserver {
 
   bool _handleKeyEvent(KeyEvent event) {
     if (event is! KeyDownEvent) return false;
-    final isPrint = event.logicalKey == LogicalKeyboardKey.keyP &&
+    final isPrint =
+        event.logicalKey == LogicalKeyboardKey.keyP &&
         (HardwareKeyboard.instance.isMetaPressed ||
             HardwareKeyboard.instance.isControlPressed);
     if (!isPrint) return false;
@@ -107,7 +117,12 @@ class _HeliumAppState extends State<HeliumApp> with WidgetsBindingObserver {
     } else if (kIsWeb) {
       // Call synchronously within the key event to satisfy the browser's
       // user-activation requirement; async delay would cause it to be blocked.
-      unawaited(AnalyticsService().logEvent(name: AnalyticsEvent.printPreview, parameters: {'category': AnalyticsCategory.featureInteraction.value}));
+      unawaited(
+        AnalyticsService().logEvent(
+          name: AnalyticsEvent.printPreview,
+          parameters: {'category': AnalyticsCategory.featureInteraction.value},
+        ),
+      );
       triggerBrowserPrint();
     }
     return true;
@@ -116,26 +131,22 @@ class _HeliumAppState extends State<HeliumApp> with WidgetsBindingObserver {
   Future<void> _handlePrint() async {
     final printed = await PrintService().printCurrent();
     if (printed) {
-      unawaited(AnalyticsService().logEvent(name: AnalyticsEvent.printPreview, parameters: {'category': AnalyticsCategory.featureInteraction.value}));
+      unawaited(
+        AnalyticsService().logEvent(
+          name: AnalyticsEvent.printPreview,
+          parameters: {'category': AnalyticsCategory.featureInteraction.value},
+        ),
+      );
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<InfoBloc, InfoState>(
-      buildWhen: (previous, current) =>
-          _updateRequired(previous) != _updateRequired(current),
-      builder: (context, infoState) => _updateRequired(infoState)
+    return BlocBuilder<UpdateGateBloc, UpdateGateState>(
+      builder: (context, state) => state is UpdateGateShown
           ? const UpdateRequiredApp()
-          : _buildRoutedApp(context),
+          : UpdateGateActivityReporter(child: _buildRoutedApp(context)),
     );
-  }
-
-  bool _updateRequired(InfoState state) {
-    final version = AppVersionService().version;
-    return state is InfoLoaded &&
-        version != null &&
-        VersionHelpers.isBelow(version, state.info.minimumSupportedVersion);
   }
 
   Widget _buildRoutedApp(BuildContext context) {

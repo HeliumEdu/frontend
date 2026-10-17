@@ -4,9 +4,11 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:heliumapp/config/pref_service.dart';
 import 'package:heliumapp/core/dio_client.dart';
 import 'package:heliumapp/core/fcm_service.dart';
-import 'package:heliumapp/core/notification_count_service.dart';
 import 'package:heliumapp/data/models/notification/notification_model.dart';
 import 'package:heliumapp/data/models/planner/reminder_model.dart';
+import 'package:heliumapp/presentation/features/shared/bloc/core/base_event.dart';
+import 'package:heliumapp/presentation/features/shared/bloc/notification_count/notification_count_bloc.dart';
+import 'package:heliumapp/presentation/features/shared/bloc/notification_count/notification_count_event.dart';
 import 'package:mocktail/mocktail.dart';
 
 import '../mocks/mock_firebase.dart';
@@ -130,40 +132,43 @@ void main() {
     });
 
     group('dismiss message', () {
-      late MockReminderRepository mockReminderRepository;
+      late NotificationCountBloc notificationCountBloc;
 
       setUp(() {
-        mockReminderRepository = MockReminderRepository();
-        NotificationCountService.setInstanceForTesting(
-          NotificationCountService.forTesting(
-            reminderRepository: mockReminderRepository,
+        notificationCountBloc = NotificationCountBloc(
+          reminderRepository: MockReminderRepository(),
+          fcmService: fcmService,
+        );
+        notificationCountBloc.add(
+          SetActiveRemindersEvent(
+            origin: EventOrigin.screen,
+            reminders: _activeReminders(3),
           ),
         );
       });
 
-      tearDown(NotificationCountService.resetForTesting);
+      tearDown(() => notificationCountBloc.close());
 
       test('drops the dismissed reminder from the active set', () async {
         // GIVEN
-        NotificationCountService().setActive(_activeReminders(3));
         const message = RemoteMessage(
           data: {'action': 'dismiss', 'reminder_id': '2'},
         );
 
         // WHEN
         await fcmService.handleDismissMessageForTesting(message);
+        await pumpEventQueue();
 
         // THEN
-        expect(NotificationCountService().count.value, 2);
+        expect(notificationCountBloc.state.count, 2);
         expect(
-          NotificationCountService().active.value.map((r) => r.id),
+          notificationCountBloc.state.active.map((r) => r.id),
           [1, 3],
         );
       });
 
       test('an echo of the user own dismiss does not double-count', () async {
         // GIVEN
-        NotificationCountService().setActive(_activeReminders(3));
         const message = RemoteMessage(
           data: {'action': 'dismiss', 'reminder_id': '2'},
         );
@@ -171,21 +176,41 @@ void main() {
         // WHEN
         await fcmService.handleDismissMessageForTesting(message);
         await fcmService.handleDismissMessageForTesting(message);
+        await pumpEventQueue();
 
         // THEN
-        expect(NotificationCountService().count.value, 2);
+        expect(notificationCountBloc.state.count, 2);
       });
 
       test('ignores a dismiss missing its reminder_id', () async {
-        // GIVEN a dismiss push with no reminder_id
-        NotificationCountService().setActive(_activeReminders(3));
+        // GIVEN
         const message = RemoteMessage(data: {'action': 'dismiss'});
 
-        // WHEN the dismiss message is handled
+        // WHEN
         await fcmService.handleDismissMessageForTesting(message);
+        await pumpEventQueue();
 
         // THEN
-        expect(NotificationCountService().count.value, 3);
+        expect(notificationCountBloc.state.count, 3);
+      });
+
+      test('a closed bloc stops listening for dismisses', () async {
+        // GIVEN
+        await notificationCountBloc.close();
+        const message = RemoteMessage(
+          data: {'action': 'dismiss', 'reminder_id': '2'},
+        );
+
+        // WHEN
+        await fcmService.handleDismissMessageForTesting(message);
+        await pumpEventQueue();
+
+        // THEN
+        expect(
+          notificationCountBloc.isClosed,
+          isTrue,
+          reason: 'A dismiss after close must not add to a closed bloc',
+        );
       });
     });
   });

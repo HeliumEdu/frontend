@@ -7,7 +7,6 @@ import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/config/app_router.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/core/dio_client.dart';
-import 'package:heliumapp/core/notification_count_service.dart';
 import 'package:heliumapp/data/models/auth/user_settings_model.dart';
 import 'package:heliumapp/data/models/notification/notification_model.dart';
 import 'package:heliumapp/data/models/planner/homework_model.dart';
@@ -23,21 +22,24 @@ import 'package:heliumapp/presentation/features/planner/bloc/reminder_bloc.dart'
 import 'package:heliumapp/presentation/features/planner/bloc/reminder_event.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/reminder_state.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/core/base_event.dart';
+import 'package:heliumapp/presentation/features/shared/bloc/notification_count/notification_count_bloc.dart';
+import 'package:heliumapp/presentation/features/shared/bloc/notification_count/notification_count_event.dart';
+import 'package:heliumapp/presentation/features/shared/bloc/notification_count/notification_count_state.dart';
 import 'package:heliumapp/presentation/ui/components/course_title_label.dart';
-import 'package:heliumapp/presentation/ui/layout/helium_full_screen_scroll_view.dart';
 import 'package:heliumapp/presentation/ui/components/generic_label.dart';
 import 'package:heliumapp/presentation/ui/components/non_touch_selectable_text.dart';
 import 'package:heliumapp/presentation/ui/feedback/empty_card.dart';
 import 'package:heliumapp/presentation/ui/feedback/error_card.dart';
 import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
+import 'package:heliumapp/presentation/ui/layout/helium_full_screen_scroll_view.dart';
 import 'package:heliumapp/presentation/ui/layout/page_header.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/date_time_helpers.dart';
+import 'package:heliumapp/utils/error_helpers.dart';
 import 'package:heliumapp/utils/planner_helper.dart';
 import 'package:heliumapp/utils/platform_behavior.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
-import 'package:heliumapp/utils/error_helpers.dart';
 
 class NotificationsScreen extends StatelessWidget {
   /// Underlying shell tab path (e.g. `/notebook`, `/classes`) the dialog is
@@ -128,29 +130,22 @@ class _NotificationsScreenState
   bool _isOpeningEntity = false;
   bool _isDismissingAll = false;
 
-  @override
-  void initState() {
-    super.initState();
-    NotificationCountService().active.addListener(_onActiveChanged);
-  }
+  bool _activeChanged(
+    NotificationCountState previous,
+    NotificationCountState current,
+  ) => !identical(previous.active, current.active);
 
-  @override
-  void dispose() {
-    NotificationCountService().active.removeListener(_onActiveChanged);
-    super.dispose();
-  }
-
-  void _onActiveChanged() {
+  void _onActiveChanged(BuildContext context, NotificationCountState state) {
     if (!mounted) return;
     setState(() => _notifications = _mapActiveToNotifications());
 
     // A locally-added reminder carries whatever the push payload held, which does
     // not always include its parent; the list endpoint returns it hydrated.
-    if (!NotificationCountService().isLoaded) _fetchReminders(forceRefresh: true);
+    if (!state.isLoaded) _fetchReminders(forceRefresh: true);
   }
 
   List<NotificationModel> _mapActiveToNotifications() {
-    return NotificationCountService().active.value
+    return context.read<NotificationCountBloc>().state.active
         .map(_mapReminderToNotification)
         .toList();
   }
@@ -159,7 +154,7 @@ class _NotificationsScreenState
   Future<UserSettingsModel?> loadSettings() {
     return super.loadSettings().then((settings) {
       if (mounted && settings != null) {
-        if (NotificationCountService().isLoaded) {
+        if (context.read<NotificationCountBloc>().state.isLoaded) {
           setState(() {
             _notifications = _mapActiveToNotifications();
             isLoading = false;
@@ -175,6 +170,10 @@ class _NotificationsScreenState
   @override
   List<BlocListener<dynamic, dynamic>> buildListeners(BuildContext context) {
     return [
+      BlocListener<NotificationCountBloc, NotificationCountState>(
+        listenWhen: _activeChanged,
+        listener: _onActiveChanged,
+      ),
       BlocListener<ReminderBloc, ReminderState>(
         listener: (context, state) {
           if (state is RemindersError) {
@@ -199,18 +198,35 @@ class _NotificationsScreenState
                 !reminder.startOfRange!.isAfter(DateTime.now());
 
             if (isActive) {
-              NotificationCountService().upsert(reminder);
+              context.read<NotificationCountBloc>().add(
+                UpsertReminderEvent(
+                  origin: EventOrigin.screen,
+                  reminder: reminder,
+                ),
+              );
             } else {
               if (reminder.dismissed) {
                 showSnackBar(context, 'Reminder dismissed.');
               }
-              NotificationCountService().remove(reminder.id);
+              context.read<NotificationCountBloc>().add(
+                RemoveReminderEvent(
+                  origin: EventOrigin.screen,
+                  reminderId: reminder.id,
+                ),
+              );
             }
           } else if (state is ReminderDeleted) {
-            NotificationCountService().remove(state.id);
+            context.read<NotificationCountBloc>().add(
+              RemoveReminderEvent(
+                origin: EventOrigin.screen,
+                reminderId: state.id,
+              ),
+            );
           } else if (state is AllRemindersDismissed) {
             showSnackBar(context, 'All Reminders dismissed.');
-            NotificationCountService().clear();
+            context.read<NotificationCountBloc>().add(
+              ClearRemindersEvent(origin: EventOrigin.screen),
+            );
             setState(() => _isDismissingAll = false);
           }
         },
@@ -324,22 +340,35 @@ class _NotificationsScreenState
   }
 
   void _populateInitialStateData(RemindersFetched state) {
-    NotificationCountService().setActive(state.reminders);
+    context.read<NotificationCountBloc>().add(
+      SetActiveRemindersEvent(
+        origin: EventOrigin.screen,
+        reminders: state.reminders,
+      ),
+    );
     setState(() => isLoading = false);
   }
 
   void _removeEventNotifications() {
-    NotificationCountService().removeWhere(
-      (reminder) => reminder.event != null,
+    context.read<NotificationCountBloc>().add(
+      RemoveRemindersWhereEvent(
+        origin: EventOrigin.screen,
+        test: (reminder) => reminder.event != null,
+      ),
     );
   }
 
   void _removeNotificationByPlannerItemId({int? eventId, int? homeworkId}) {
-    NotificationCountService().removeWhere((reminder) {
-      if (eventId != null) return reminder.event?.id == eventId;
-      if (homeworkId != null) return reminder.homework?.id == homeworkId;
-      return false;
-    });
+    context.read<NotificationCountBloc>().add(
+      RemoveRemindersWhereEvent(
+        origin: EventOrigin.screen,
+        test: (reminder) {
+          if (eventId != null) return reminder.event?.id == eventId;
+          if (homeworkId != null) return reminder.homework?.id == homeworkId;
+          return false;
+        },
+      ),
+    );
   }
 
   Duration _offsetToDuration(ReminderModel reminder) {

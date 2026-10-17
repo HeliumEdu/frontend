@@ -2,11 +2,11 @@ import 'dart:async';
 
 import 'package:bloc/bloc.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:heliumapp/core/analytics_service.dart';
 import 'package:heliumapp/core/dio_client.dart';
-import 'package:heliumapp/core/last_oauth_provider_store.dart';
-import 'package:heliumapp/core/notification_count_service.dart';
-import 'package:heliumapp/core/oauth_sign_in_service.dart';
 import 'package:heliumapp/core/helium_exception.dart';
+import 'package:heliumapp/core/last_oauth_provider_store.dart';
+import 'package:heliumapp/core/oauth_sign_in_service.dart';
 import 'package:heliumapp/data/models/auth/login_request_model.dart';
 import 'package:heliumapp/data/models/auth/register_request_model.dart';
 import 'package:heliumapp/data/models/auth/request/change_email_request_model.dart';
@@ -16,7 +16,6 @@ import 'package:heliumapp/data/models/auth/request/forgot_password_request_model
 import 'package:heliumapp/data/models/auth/request/refresh_token_request_model.dart';
 import 'package:heliumapp/data/models/auth/request/reset_password_request_model.dart';
 import 'package:heliumapp/data/models/auth/user_model.dart';
-import 'package:heliumapp/core/analytics_service.dart';
 import 'package:heliumapp/domain/repositories/auth_repository.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_event.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_state.dart';
@@ -585,7 +584,6 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       // Warm the settings cache so the router's auth-redirect read is a hit,
       // not a post-redirect cold fetch that stalls the outgoing screen.
       await dioClient.getSettings(forceRefresh: true);
-      unawaited(NotificationCountService().refresh());
 
       emit(AuthScheduleDataRefreshed(message: message));
     } on HeliumException catch (e) {

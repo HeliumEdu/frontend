@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:heliumapp/core/fcm_service.dart';
 import 'package:heliumapp/config/pref_service.dart';
 import 'package:heliumapp/core/cache_service.dart';
 import 'package:mocktail/mocktail.dart';
@@ -25,3 +26,5 @@ class MockFirebaseMessaging extends Mock implements FirebaseMessaging {}
 
 class MockFlutterLocalNotificationsPlugin extends Mock
     implements FlutterLocalNotificationsPlugin {}
+
+class MockFcmService extends Mock implements FcmService {}

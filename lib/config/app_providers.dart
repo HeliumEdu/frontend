@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:heliumapp/core/app_version_service.dart';
 import 'package:heliumapp/core/dio_client.dart';
-import 'package:heliumapp/core/notification_count_service.dart';
 import 'package:heliumapp/data/repositories/auth_repository_impl.dart';
 import 'package:heliumapp/data/repositories/info_repository_impl.dart';
 import 'package:heliumapp/data/sources/auth_remote_data_source.dart';
@@ -22,13 +22,20 @@ import 'package:heliumapp/presentation/features/planner/bloc/external_calendar_b
 import 'package:heliumapp/presentation/features/planner/bloc/external_calendar_event.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/planneritem_bloc.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/planneritem_event.dart';
+import 'package:heliumapp/presentation/features/planner/bloc/planneritem_state.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/reminder_bloc.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/reminder_event.dart';
 import 'package:heliumapp/presentation/features/resources/bloc/resource_bloc.dart';
 import 'package:heliumapp/presentation/features/resources/bloc/resource_event.dart';
+import 'package:heliumapp/presentation/features/shared/bloc/core/base_event.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/core/provider_helpers.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/info/info_bloc.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/info/info_event.dart';
+import 'package:heliumapp/presentation/features/shared/bloc/info/info_state.dart';
+import 'package:heliumapp/presentation/features/shared/bloc/notification_count/notification_count_bloc.dart';
+import 'package:heliumapp/presentation/features/shared/bloc/notification_count/notification_count_event.dart';
+import 'package:heliumapp/presentation/features/shared/bloc/update_gate/update_gate_bloc.dart';
+import 'package:heliumapp/presentation/features/shared/bloc/update_gate/update_gate_event.dart';
 
 /// Hosts every entity-data BLoC read across multiple shells, so any overlay
 /// route (settings, notifications, homework/event/note/resource/course
@@ -53,6 +60,10 @@ class AppProviders extends StatelessWidget {
 
     return MultiBlocProvider(
       providers: [
+        BlocProvider<NotificationCountBloc>(
+          lazy: false,
+          create: providerHelpers.createNotificationCountBloc(),
+        ),
         BlocProvider<AuthBloc>(
           lazy: false,
           create: (context) => AuthBloc(
@@ -69,6 +80,12 @@ class AppProviders extends StatelessWidget {
               remoteDataSource: InfoRemoteDataSourceImpl(dioClient: dioClient),
             ),
           )..add(LoadInfoEvent()),
+        ),
+        BlocProvider<UpdateGateBloc>(
+          lazy: true,
+          create: (context) => UpdateGateBloc(
+            appVersion: AppVersionService().version,
+          )..add(UpdateGateInfoChangedEvent(context.read<InfoBloc>().state)),
         ),
         BlocProvider<ExternalCalendarBloc>(
           lazy: true,
@@ -107,23 +124,52 @@ class AppProviders extends StatelessWidget {
           create: providerHelpers.createReminderBloc(),
         ),
       ],
-      child: BlocListener<AuthBloc, AuthState>(
-        listenWhen: (previous, current) =>
-            current is AuthLoggedOut && previous is! AuthLoggedOut,
-        listener: (context, _) {
-          context.read<PlannerItemBloc>().add(ResetPlannerItemsEvent());
-          context.read<ExternalCalendarBloc>().add(
-            ResetExternalCalendarsEvent(),
-          );
-          context.read<CategoryBloc>().add(ResetCategoriesEvent());
-          context.read<CourseBloc>().add(ResetCoursesEvent());
-          context.read<NoteBloc>().add(ResetNotesEvent());
-          context.read<ResourceBloc>().add(ResetResourcesEvent());
-          context.read<GradeBloc>().add(ResetGradesEvent());
-          context.read<AttachmentBloc>().add(ResetAttachmentsEvent());
-          context.read<ReminderBloc>().add(ResetRemindersEvent());
-          NotificationCountService().reset();
-        },
+      child: MultiBlocListener(
+        listeners: [
+          BlocListener<InfoBloc, InfoState>(
+            listener: (context, state) => context.read<UpdateGateBloc>().add(
+              UpdateGateInfoChangedEvent(state),
+            ),
+          ),
+          BlocListener<AuthBloc, AuthState>(
+            listenWhen: (previous, current) =>
+                current is AuthLoggedOut && previous is! AuthLoggedOut,
+            listener: (context, _) {
+              context.read<PlannerItemBloc>().add(ResetPlannerItemsEvent());
+              context.read<ExternalCalendarBloc>().add(
+                ResetExternalCalendarsEvent(),
+              );
+              context.read<CategoryBloc>().add(ResetCategoriesEvent());
+              context.read<CourseBloc>().add(ResetCoursesEvent());
+              context.read<NoteBloc>().add(ResetNotesEvent());
+              context.read<ResourceBloc>().add(ResetResourcesEvent());
+              context.read<GradeBloc>().add(ResetGradesEvent());
+              context.read<AttachmentBloc>().add(ResetAttachmentsEvent());
+              context.read<ReminderBloc>().add(ResetRemindersEvent());
+              context.read<NotificationCountBloc>().add(
+                ResetNotificationCountEvent(),
+              );
+            },
+          ),
+          BlocListener<AuthBloc, AuthState>(
+            listenWhen: (previous, current) =>
+                current is AuthScheduleDataRefreshed,
+            listener: (context, _) => context.read<NotificationCountBloc>().add(
+              RefreshNotificationCountEvent(origin: EventOrigin.bloc),
+            ),
+          ),
+          // A delete cascades its reminders away server-side without pushing
+          // anything, so the bell has to be told.
+          BlocListener<PlannerItemBloc, PlannerItemState>(
+            listenWhen: (previous, current) =>
+                current is EventDeleted ||
+                current is AllEventsDeleted ||
+                current is HomeworkDeleted,
+            listener: (context, _) => context.read<NotificationCountBloc>().add(
+              RefreshNotificationCountEvent(origin: EventOrigin.bloc),
+            ),
+          ),
+        ],
         child: child,
       ),
     );
