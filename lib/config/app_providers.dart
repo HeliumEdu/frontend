@@ -12,6 +12,7 @@ import 'package:heliumapp/presentation/features/courses/bloc/category_bloc.dart'
 import 'package:heliumapp/presentation/features/courses/bloc/category_event.dart';
 import 'package:heliumapp/presentation/features/courses/bloc/course_bloc.dart';
 import 'package:heliumapp/presentation/features/courses/bloc/course_event.dart';
+import 'package:heliumapp/presentation/features/courses/bloc/course_state.dart';
 import 'package:heliumapp/presentation/features/grades/bloc/grade_bloc.dart';
 import 'package:heliumapp/presentation/features/grades/bloc/grade_event.dart';
 import 'package:heliumapp/presentation/features/notebook/bloc/note_bloc.dart';
@@ -25,6 +26,7 @@ import 'package:heliumapp/presentation/features/planner/bloc/planneritem_event.d
 import 'package:heliumapp/presentation/features/planner/bloc/planneritem_state.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/reminder_bloc.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/reminder_event.dart';
+import 'package:heliumapp/presentation/features/planner/bloc/reminder_state.dart';
 import 'package:heliumapp/presentation/features/resources/bloc/resource_bloc.dart';
 import 'package:heliumapp/presentation/features/resources/bloc/resource_event.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/core/base_event.dart';
@@ -165,6 +167,20 @@ class AppProviders extends StatelessWidget {
                 current is EventDeleted ||
                 current is AllEventsDeleted ||
                 current is HomeworkDeleted,
+            listener: (context, _) => context.read<NotificationCountBloc>().add(
+              RefreshNotificationCountEvent(origin: EventOrigin.bloc),
+            ),
+          ),
+          BlocListener<CourseBloc, CourseState>(
+            listenWhen: (previous, current) =>
+                current is CourseDeleted || current is CourseGroupDeleted,
+            listener: (context, _) => context.read<NotificationCountBloc>().add(
+              RefreshNotificationCountEvent(origin: EventOrigin.bloc),
+            ),
+          ),
+          BlocListener<ReminderBloc, ReminderState>(
+            listenWhen: (previous, current) =>
+                current is ReminderUpdated || current is ReminderDeleted,
             listener: (context, _) => context.read<NotificationCountBloc>().add(
               RefreshNotificationCountEvent(origin: EventOrigin.bloc),
             ),
