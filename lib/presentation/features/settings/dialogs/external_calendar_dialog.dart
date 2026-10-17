@@ -60,7 +60,7 @@ class _ExternalCalendarWidgetState
         ),
       );
     } else {
-      _formController.markChanged();
+      _formController.markChanged(userInitiated: false);
       _formController.selectedColor = HeliumColors.getRandomColor();
       _formController.shownOnCalendar = true;
     }

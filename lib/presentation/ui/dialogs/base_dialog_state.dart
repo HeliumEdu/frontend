@@ -2,17 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/presentation/features/shared/controllers/basic_form_controller.dart';
+import 'package:heliumapp/presentation/ui/feedback/discard_changes_scope.dart';
 import 'package:heliumapp/presentation/ui/feedback/error_container.dart';
 import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
-import 'package:heliumapp/presentation/ui/components/helium_elevated_button.dart';
-import 'package:heliumapp/utils/app_style.dart';
+import 'package:heliumapp/presentation/ui/layout/page_header.dart';
+import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:meta/meta.dart';
 
 abstract class BaseDialogState<T extends StatefulWidget> extends State<T> {
   static const _dialogBorderRadius = 12.0;
-  static const _dialogPadding = 20.0;
-  static const _buttonSpacing = 12.0;
+
   @mustBeOverridden
   String get dialogTitle;
 
@@ -27,20 +27,21 @@ abstract class BaseDialogState<T extends StatefulWidget> extends State<T> {
   Widget build(BuildContext context) {
     final listeners = buildListeners(context);
     final dialog = listeners.isNotEmpty
-        ? MultiBlocListener(
-            listeners: listeners,
-            child: buildDialog(context),
-          )
+        ? MultiBlocListener(listeners: listeners, child: buildDialog(context))
         : buildDialog(context);
 
-    return PopScope(canPop: !isSubmitting, child: dialog);
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: _onPopInvoked,
+      child: dialog,
+    );
   }
 
   List<BlocListener<dynamic, dynamic>> buildListeners(BuildContext context) {
     return [];
   }
 
-  Dialog buildDialog(BuildContext context) {
+  Widget buildDialog(BuildContext context) {
     return Dialog(
       backgroundColor: Colors.transparent,
       insetPadding: Responsive.isMobile(context)
@@ -48,37 +49,39 @@ abstract class BaseDialogState<T extends StatefulWidget> extends State<T> {
           : const EdgeInsets.symmetric(horizontal: 40, vertical: 24),
       child: SizedBox(
         width: Responsive.getDialogWidth(context),
-        child: SingleChildScrollView(
-          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-          child: Material(
-            color: context.colorScheme.surface,
-            borderRadius: BorderRadius.circular(_dialogBorderRadius),
-            child: Padding(
-              padding: const EdgeInsets.all(_dialogPadding),
-              child: Form(
-                key: formController.formKey,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    buildDialogHeader(),
+        child: Material(
+          color: context.colorScheme.surface,
+          borderRadius: BorderRadius.circular(_dialogBorderRadius),
+          clipBehavior: Clip.antiAlias,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              buildDialogHeader(),
+              Flexible(
+                child: SingleChildScrollView(
+                  keyboardDismissBehavior:
+                      ScrollViewKeyboardDismissBehavior.onDrag,
+                  padding: AppConstants.dialogContentPadding,
+                  child: Form(
+                    key: formController.formKey,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        if (isLoading)
+                          _buildLoadingArea(context)
+                        else
+                          buildMainArea(context),
 
-                    if (isLoading)
-                      _buildLoadingArea(context)
-                    else
-                      buildMainArea(context),
+                        ?buildSecondaryActions(),
 
-                    ?buildSecondaryActions(),
-
-                    if (errorMessage != null) buildErrorArea(),
-
-                    const SizedBox(height: 12),
-
-                    buildButtonArea(),
-                  ],
+                        if (errorMessage != null) buildErrorArea(),
+                      ],
+                    ),
+                  ),
                 ),
               ),
-            ),
+            ],
           ),
         ),
       ),
@@ -86,11 +89,15 @@ abstract class BaseDialogState<T extends StatefulWidget> extends State<T> {
   }
 
   Widget buildDialogHeader() {
-    return Column(
-      children: [
-        Center(child: Text(dialogTitle, style: AppStyles.pageTitle(context))),
-        const SizedBox(height: 12),
-      ],
+    return PageHeader(
+      title: dialogTitle,
+      screenType: ScreenType.entityPage,
+      isDialog: true,
+      isLoading: isSubmitting,
+      cancelAction: handleClose,
+      saveAction: _onSavePressed,
+      additionalLeftButtons: additionalHeaderButtons,
+      additionalRightButtons: additionalRightHeaderButtons,
     );
   }
 
@@ -132,43 +139,28 @@ abstract class BaseDialogState<T extends StatefulWidget> extends State<T> {
     );
   }
 
+  /// Closes without saving or asking.
   void cancelAction() => Navigator.pop(context);
 
-  Widget? buildLeadingAction() => null;
+  /// The user's close (header close, back, Escape): asks before discarding
+  /// edits they made.
+  Future<void> handleClose() async {
+    if (formController.isUserDirty && !await confirmDiscardChanges(context)) {
+      return;
+    }
+    if (mounted) cancelAction();
+  }
+
+  List<Widget> get additionalHeaderButtons => const [];
+
+  List<Widget> get additionalRightHeaderButtons => const [];
 
   /// Actions shown beneath the form that stay visible while it loads.
   Widget? buildSecondaryActions() => null;
 
-  double get actionButtonSize =>
-      HeliumElevatedButton.minimumHeight +
-      Theme.of(context).visualDensity.baseSizeAdjustment.dy;
-
-  Widget buildButtonArea() {
-    final leadingAction = buildLeadingAction();
-    return Row(
-      children: [
-        if (leadingAction != null) ...[
-          leadingAction,
-          const SizedBox(width: _buttonSpacing),
-        ],
-        Expanded(
-          child: HeliumElevatedButton(
-            buttonText: 'Cancel',
-            backgroundColor: context.colorScheme.outline,
-            enabled: !isSubmitting,
-            onPressed: cancelAction,
-          ),
-        ),
-        const SizedBox(width: _buttonSpacing),
-        Expanded(
-          child: HeliumElevatedButton(
-            buttonText: 'Save',
-            isLoading: isSubmitting,
-            onPressed: _onSavePressed,
-          ),
-        ),
-      ],
-    );
+  void _onPopInvoked(bool didPop, Object? result) {
+    if (didPop || isSubmitting) return;
+    handleClose();
   }
 
   void _onSavePressed() {

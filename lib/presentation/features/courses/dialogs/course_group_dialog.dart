@@ -60,7 +60,7 @@ class _CourseGroupWidgetState
         ),
       );
     } else {
-      _formController.markChanged();
+      _formController.markChanged(userInitiated: false);
       _groupExceptions = [];
       _formController.titleController.clear();
       _formController.startDate = DateTime.now();
@@ -138,36 +138,37 @@ class _CourseGroupWidgetState
   }
 
   @override
-  Widget? buildLeadingAction() {
-    if (!widget.isEdit) return null;
-    return Semantics(
-      label: 'Delete',
-      button: true,
-      child: HeliumIconButton(
-        enabled: !isSubmitting,
-        onPressed: () {
-          showConfirmDeleteDialog(
-            parentContext: context,
-            item: widget.group!,
-            label: widget.group!.title,
-            additionalWarning:
-                'Anything in this group, including classes and their assignments, attachments and other data, will also be deleted.',
-            onDelete: (value) {
-              setState(() => isSubmitting = true);
-              context.read<CourseBloc>().add(
-                DeleteCourseGroupEvent(
-                  origin: EventOrigin.dialog,
-                  courseGroupId: value.id,
-                ),
-              );
-            },
-          );
-        },
-        icon: Icons.delete_outlined,
-        color: context.colorScheme.error,
-        minimumSize: actionButtonSize,
+  List<Widget> get additionalHeaderButtons {
+    if (!widget.isEdit) return const [];
+    return [
+      Semantics(
+        label: 'Delete',
+        button: true,
+        child: HeliumIconButton(
+          enabled: !isSubmitting,
+          onPressed: () {
+            showConfirmDeleteDialog(
+              parentContext: context,
+              item: widget.group!,
+              label: widget.group!.title,
+              additionalWarning:
+                  'Anything in this group, including classes and their assignments, attachments and other data, will also be deleted.',
+              onDelete: (value) {
+                setState(() => isSubmitting = true);
+                context.read<CourseBloc>().add(
+                  DeleteCourseGroupEvent(
+                    origin: EventOrigin.dialog,
+                    courseGroupId: value.id,
+                  ),
+                );
+              },
+            );
+          },
+          icon: Icons.delete_outlined,
+          color: context.colorScheme.error,
+        ),
       ),
-    );
+    ];
   }
 
   @override

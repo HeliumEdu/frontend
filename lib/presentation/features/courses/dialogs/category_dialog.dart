@@ -62,7 +62,7 @@ class _CategoryWidgetState extends BaseDialogState<_CategoryProvidedWidget>
         ),
       );
     } else {
-      _formController.markChanged();
+      _formController.markChanged(userInitiated: false);
       _formController.titleController.clear();
       _formController.weightController.clear();
       _formController.selectedColor = HeliumColors.getRandomColor();

@@ -56,7 +56,7 @@ class _ReminderWidgetState extends BaseDialogState<_ReminderProvidedWidget> {
       _formController.reminderType = widget.reminder!.type;
       _formController.reminderOffsetType = widget.reminder!.offsetType;
     } else {
-      _formController.markChanged();
+      _formController.markChanged(userInitiated: false);
       _formController.messageController.clear();
       _formController.offsetController.text = widget
           .userSettings

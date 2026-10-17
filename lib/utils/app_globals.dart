@@ -37,6 +37,22 @@ class AppConstants {
   static const notificationsDialogWidth = 420.0;
   static const centeredDialogWidth = 550.0;
   static const basicCardInset = 12.0;
+
+  static const pageHeaderPadding = EdgeInsets.fromLTRB(12, 6, 12, 2);
+  static const dialogHeaderPadding = EdgeInsets.fromLTRB(12, 6, 12, 6);
+  static const contentTopInset = 8.0;
+  static const pageContentPadding = EdgeInsets.fromLTRB(
+    12,
+    contentTopInset,
+    12,
+    0,
+  );
+  static const dialogContentPadding = EdgeInsets.fromLTRB(
+    20,
+    contentTopInset,
+    20,
+    20,
+  );
 }
 
 class RegionalFormatConstants {

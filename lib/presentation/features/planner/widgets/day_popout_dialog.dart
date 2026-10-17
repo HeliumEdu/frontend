@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/data/models/planner/planner_item_base_model.dart';
 import 'package:heliumapp/data/sources/planner_item_data_source.dart';
+import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/date_time_helpers.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
@@ -49,7 +50,9 @@ class _PlannerDayPopOutDialogState extends State<PlannerDayPopOutDialog> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 12, 12, 8),
+                  padding: AppConstants.dialogHeaderPadding.copyWith(
+                    left: AppConstants.dialogContentPadding.left,
+                  ),
                   child: Row(
                     children: [
                       Expanded(
@@ -75,7 +78,7 @@ class _PlannerDayPopOutDialogState extends State<PlannerDayPopOutDialog> {
                 Flexible(
                   child: ListView.separated(
                     shrinkWrap: true,
-                    padding: const EdgeInsets.all(8),
+                    padding: AppConstants.dialogContentPadding,
                     itemCount: currentItems.length,
                     separatorBuilder: (context, index) =>
                         const SizedBox(height: 6),

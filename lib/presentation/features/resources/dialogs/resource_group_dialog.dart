@@ -58,7 +58,7 @@ class _ResourceGroupWidgetState
         ),
       );
     } else {
-      _formController.markChanged();
+      _formController.markChanged(userInitiated: false);
       _formController.titleController.clear();
       _formController.shownOnCalendar = true;
     }
@@ -123,36 +123,37 @@ class _ResourceGroupWidgetState
   }
 
   @override
-  Widget? buildLeadingAction() {
-    if (!widget.isEdit) return null;
-    return Semantics(
-      label: 'Delete',
-      button: true,
-      child: HeliumIconButton(
-        enabled: !isSubmitting,
-        onPressed: () {
-          showConfirmDeleteDialog(
-            parentContext: context,
-            item: widget.group!,
-            label: widget.group!.title,
-            additionalWarning:
-                'Anything in this group, including resources, will also be deleted.',
-            onDelete: (value) {
-              setState(() => isSubmitting = true);
-              context.read<ResourceBloc>().add(
-                DeleteResourceGroupEvent(
-                  origin: EventOrigin.dialog,
-                  resourceGroupId: value.id,
-                ),
-              );
-            },
-          );
-        },
-        icon: Icons.delete_outlined,
-        color: context.colorScheme.error,
-        minimumSize: actionButtonSize,
+  List<Widget> get additionalHeaderButtons {
+    if (!widget.isEdit) return const [];
+    return [
+      Semantics(
+        label: 'Delete',
+        button: true,
+        child: HeliumIconButton(
+          enabled: !isSubmitting,
+          onPressed: () {
+            showConfirmDeleteDialog(
+              parentContext: context,
+              item: widget.group!,
+              label: widget.group!.title,
+              additionalWarning:
+                  'Anything in this group, including resources, will also be deleted.',
+              onDelete: (value) {
+                setState(() => isSubmitting = true);
+                context.read<ResourceBloc>().add(
+                  DeleteResourceGroupEvent(
+                    origin: EventOrigin.dialog,
+                    resourceGroupId: value.id,
+                  ),
+                );
+              },
+            );
+          },
+          icon: Icons.delete_outlined,
+          color: context.colorScheme.error,
+        ),
       ),
-    );
+    ];
   }
 
   @override

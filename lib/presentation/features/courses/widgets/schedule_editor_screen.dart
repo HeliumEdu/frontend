@@ -18,10 +18,8 @@ import 'package:heliumapp/presentation/ui/components/helium_picker_field.dart';
 import 'package:heliumapp/presentation/ui/components/spinner_field.dart';
 import 'package:heliumapp/presentation/ui/dialogs/base_dialog_state.dart';
 import 'package:heliumapp/presentation/ui/dialogs/conflict_resolving_dialog.dart';
-import 'package:heliumapp/presentation/ui/feedback/discard_changes_scope.dart';
 import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
 import 'package:heliumapp/presentation/ui/layout/helium_full_screen_scroll_view.dart';
-import 'package:heliumapp/presentation/ui/layout/page_header.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/date_time_helpers.dart';
@@ -130,17 +128,6 @@ class _ScheduleEditorScreenState extends BaseDialogState<ScheduleEditorScreen>
 
   @override
   BasicFormController get formController => _formController;
-
-  Future<void> _handleClose() async {
-    if (!_formController.isUserDirty) {
-      Navigator.of(context).pop();
-      return;
-    }
-    final shouldDiscard = await confirmDiscardChanges(context);
-    if (shouldDiscard && mounted) {
-      Navigator.of(context).pop();
-    }
-  }
 
   @override
   void initState() {
@@ -289,9 +276,29 @@ class _ScheduleEditorScreenState extends BaseDialogState<ScheduleEditorScreen>
   }
 
   @override
-  Widget build(BuildContext context) {
+  List<Widget> get additionalRightHeaderButtons => [
+    Semantics(
+      label: 'Learn more',
+      button: true,
+      child: IconButton(
+        style: IconButton.styleFrom(
+          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        ),
+        tooltip: 'Learn more',
+        onPressed: () =>
+            UrlHelpers.launchWebUrl(AppConstants.supportSchedulesUrl),
+        icon: Icon(
+          Icons.menu_book_outlined,
+          color: context.colorScheme.primary,
+        ),
+      ),
+    ),
+  ];
+
+  @override
+  Widget buildDialog(BuildContext context) {
     final isFullScreen = DialogModeProvider.isFullScreenMode(context);
-    final Widget content = Material(
+    return Material(
       color: context.colorScheme.surface,
       child: SafeArea(
         top: isFullScreen,
@@ -300,32 +307,7 @@ class _ScheduleEditorScreenState extends BaseDialogState<ScheduleEditorScreen>
         right: false,
         child: Column(
           children: [
-            PageHeader(
-              title: dialogTitle,
-              screenType: ScreenType.entityPage,
-              isLoading: isSubmitting,
-              cancelAction: _handleClose,
-              saveAction: isLoading ? null : handleSubmit,
-              additionalRightButtons: [
-                Semantics(
-                  label: 'Learn more',
-                  button: true,
-                  child: IconButton(
-                    style: IconButton.styleFrom(
-                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    ),
-                    tooltip: 'Learn more',
-                    onPressed: () => UrlHelpers.launchWebUrl(
-                      AppConstants.supportSchedulesUrl,
-                    ),
-                    icon: Icon(
-                      Icons.menu_book_outlined,
-                      color: context.colorScheme.primary,
-                    ),
-                  ),
-                ),
-              ],
-            ),
+            buildDialogHeader(),
             if (isLoading)
               const LoadingIndicator()
             else
@@ -334,7 +316,7 @@ class _ScheduleEditorScreenState extends BaseDialogState<ScheduleEditorScreen>
                   keyboardDismissBehavior:
                       ScrollViewKeyboardDismissBehavior.onDrag,
                   child: Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
+                    padding: AppConstants.dialogContentPadding,
                     child: Form(
                       key: formController.formKey,
                       child: Column(
@@ -353,13 +335,6 @@ class _ScheduleEditorScreenState extends BaseDialogState<ScheduleEditorScreen>
         ),
       ),
     );
-
-    final listeners = buildListeners(context);
-    final screen = listeners.isNotEmpty
-        ? MultiBlocListener(listeners: listeners, child: content)
-        : content;
-
-    return PopScope(canPop: !isSubmitting, child: screen);
   }
 
   @override
