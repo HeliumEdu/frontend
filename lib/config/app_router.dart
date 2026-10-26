@@ -91,7 +91,7 @@ void initializeRouter({String? initialLocation}) {
       GoRoute(
         path: AppRoute.supportRedirect,
         pageBuilder: (context, state) => const MaterialPage(
-          child: _ExternalRedirect(destination: 'https://www.heliumedu.com/support'),
+          child: _ExternalRedirect(destination: 'https://www.heliumedu.com/support/'),
         ),
       ),
       GoRoute(
@@ -103,7 +103,7 @@ void initializeRouter({String? initialLocation}) {
       GoRoute(
         path: AppRoute.docsRedirect,
         pageBuilder: (context, state) => const MaterialPage(
-          child: _ExternalRedirect(destination: 'https://api.heliumedu.com/docs'),
+          child: _ExternalRedirect(destination: 'https://api.heliumedu.com/docs/'),
         ),
       ),
       GoRoute(
