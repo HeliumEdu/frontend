@@ -115,6 +115,10 @@ class FcmService with WidgetsBindingObserver {
   Future<void> handleDismissMessageForTesting(RemoteMessage message) =>
       _handleDismissMessage(message);
 
+  @visibleForTesting
+  set tokenRegisteredForTesting(bool registered) =>
+      _tokenRegistered = registered;
+
   Future<void> init() async {
     if (isInitialized) return;
 
@@ -175,10 +179,10 @@ class FcmService with WidgetsBindingObserver {
   }
 
   @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.resumed && _isSupported && !_tokenRegistered) {
-      unawaited(_registerToken());
-    }
+  Future<void> didChangeAppLifecycleState(AppLifecycleState state) async {
+    if (state != AppLifecycleState.resumed || !_isSupported) return;
+    if (_tokenRegistered && !await _registrationHeartbeatIsDue()) return;
+    await _registerToken();
   }
 
   Future<void> _initializeNotifications() async {

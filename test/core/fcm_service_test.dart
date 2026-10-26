@@ -1,4 +1,5 @@
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:heliumapp/config/pref_service.dart';
@@ -211,6 +212,69 @@ void main() {
           isTrue,
           reason: 'A dismiss after close must not add to a closed bloc',
         );
+      });
+    });
+
+    group('resume', () {
+      void givenLastRegisteredAgo(Duration age) {
+        when(
+          () => mockPrefService.getSecure('last_pushtoken_registered_at'),
+        ).thenAnswer(
+          (_) async => DateTime.now().toUtc().subtract(age).toIso8601String(),
+        );
+      }
+
+      setUp(() {
+        when(() => mockFirebaseMessaging.getToken()).thenAnswer((_) async => null);
+      });
+
+      test('a registered device re-registers once the heartbeat lapses', () async {
+        // GIVEN
+        fcmService.tokenRegisteredForTesting = true;
+        givenLastRegisteredAgo(const Duration(hours: 25));
+
+        // WHEN
+        await fcmService.didChangeAppLifecycleState(AppLifecycleState.resumed);
+
+        // THEN
+        verify(() => mockFirebaseMessaging.getToken()).called(1);
+      });
+
+      test('a registered device within the heartbeat does not re-register', () async {
+        // GIVEN
+        fcmService.tokenRegisteredForTesting = true;
+        givenLastRegisteredAgo(const Duration(hours: 1));
+
+        // WHEN
+        await fcmService.didChangeAppLifecycleState(AppLifecycleState.resumed);
+
+        // THEN
+        verifyNever(() => mockFirebaseMessaging.getToken());
+      });
+
+      test('an unregistered device registers regardless of the heartbeat', () async {
+        // GIVEN
+        givenLastRegisteredAgo(const Duration(hours: 1));
+
+        // WHEN
+        await fcmService.didChangeAppLifecycleState(AppLifecycleState.resumed);
+
+        // THEN
+        verify(() => mockFirebaseMessaging.getToken()).called(1);
+        verifyNever(
+          () => mockPrefService.getSecure('last_pushtoken_registered_at'),
+        );
+      });
+
+      test('a state other than resumed does not register', () async {
+        // GIVEN
+        givenLastRegisteredAgo(const Duration(hours: 25));
+
+        // WHEN
+        await fcmService.didChangeAppLifecycleState(AppLifecycleState.paused);
+
+        // THEN
+        verifyNever(() => mockFirebaseMessaging.getToken());
       });
     });
   });
