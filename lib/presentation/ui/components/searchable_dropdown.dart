@@ -137,8 +137,9 @@ class _SearchableDropdownState<T> extends State<SearchableDropdown<T>> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final selectedValue = _selectedItem?.value;
       if (selectedValue == null) return;
-      final index = _filteredOptions
-          .indexWhere((item) => item.value == selectedValue);
+      final index = _filteredOptions.indexWhere(
+        (item) => item.value == selectedValue,
+      );
       if (index < 0) return;
       if (!_optionsScrollController.hasClients) return;
 
@@ -158,13 +159,14 @@ class _SearchableDropdownState<T> extends State<SearchableDropdown<T>> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        if (widget.label != null) Text(widget.label!, style: AppStyles.formLabel(context)),
+        if (widget.label != null)
+          ExcludeSemantics(
+            child: Text(widget.label!, style: AppStyles.formLabel(context)),
+          ),
         if (widget.label != null) const SizedBox(height: 9),
         Autocomplete<DropDownItem<T>>(
           key: ValueKey(widget.initialValue.value),
-          initialValue: TextEditingValue(
-            text: widget.initialValue.label,
-          ),
+          initialValue: TextEditingValue(text: widget.initialValue.label),
           optionsBuilder: (textEditingValue) {
             // After fresh focus, text equals the current selection (it was just
             // select-all'd, not modified). Return the full list so the user can
@@ -201,58 +203,61 @@ class _SearchableDropdownState<T> extends State<SearchableDropdown<T>> {
                         : context.colorScheme.surface,
                     borderRadius: BorderRadius.circular(8.0),
                   ),
-                  child: TextFormField(
-                    controller: textEditingController,
-                    focusNode: focusNode,
-                    enabled: !isDisabled,
-                    mouseCursor: isDisabled
-                        ? SystemMouseCursors.basic
-                        : SystemMouseCursors.click,
-                    style: AppStyles.formText(context),
-                    onFieldSubmitted: (_) => _commitSingleMatchOrRevert(),
-                    onTapOutside: (_) => focusNode.unfocus(),
-                    decoration: InputDecoration(
-                      suffixIcon: IconButton(
-                        icon: Icon(
-                          Icons.keyboard_arrow_down,
-                          color: iconColor,
+                  child: Semantics(
+                    label: widget.label,
+                    child: TextFormField(
+                      controller: textEditingController,
+                      focusNode: focusNode,
+                      enabled: !isDisabled,
+                      mouseCursor: isDisabled
+                          ? SystemMouseCursors.basic
+                          : SystemMouseCursors.click,
+                      style: AppStyles.formText(context),
+                      onFieldSubmitted: (_) => _commitSingleMatchOrRevert(),
+                      onTapOutside: (_) => focusNode.unfocus(),
+                      decoration: InputDecoration(
+                        suffixIcon: IconButton(
+                          icon: Icon(
+                            Icons.keyboard_arrow_down,
+                            color: iconColor,
+                          ),
+                          mouseCursor: SystemMouseCursors.basic,
+                          hoverColor: Colors.transparent,
+                          splashColor: Colors.transparent,
+                          highlightColor: Colors.transparent,
+                          focusColor: Colors.transparent,
+                          style: const ButtonStyle(
+                            overlayColor: WidgetStatePropertyAll(
+                              Colors.transparent,
+                            ),
+                          ),
+                          onPressed: isDisabled
+                              ? null
+                              : () {
+                                  if (focusNode.hasFocus) {
+                                    focusNode.unfocus();
+                                  } else {
+                                    focusNode.requestFocus();
+                                  }
+                                },
                         ),
-                        mouseCursor: SystemMouseCursors.basic,
-                        hoverColor: Colors.transparent,
-                        splashColor: Colors.transparent,
-                        highlightColor: Colors.transparent,
-                        focusColor: Colors.transparent,
-                        style: const ButtonStyle(
-                          overlayColor: WidgetStatePropertyAll(
-                            Colors.transparent,
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8.0),
+                          borderSide: BorderSide(
+                            color: context.colorScheme.outline.withValues(
+                              alpha: 0.2,
+                            ),
                           ),
                         ),
-                        onPressed: isDisabled
-                            ? null
-                            : () {
-                                if (focusNode.hasFocus) {
-                                  focusNode.unfocus();
-                                } else {
-                                  focusNode.requestFocus();
-                                }
-                              },
-                      ),
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                      ),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8.0),
-                        borderSide: BorderSide(
-                          color: context.colorScheme.outline.withValues(
-                            alpha: 0.2,
-                          ),
-                        ),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8.0),
-                        borderSide: BorderSide(
-                          color: context.colorScheme.outline.withValues(
-                            alpha: 0.2,
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8.0),
+                          borderSide: BorderSide(
+                            color: context.colorScheme.outline.withValues(
+                              alpha: 0.2,
+                            ),
                           ),
                         ),
                       ),
@@ -302,8 +307,7 @@ class _SearchableDropdownState<T> extends State<SearchableDropdown<T>> {
                         itemCount: options.length,
                         itemBuilder: (context, index) {
                           final item = options.elementAt(index);
-                          final isSelected =
-                              item.value == _selectedItem?.value;
+                          final isSelected = item.value == _selectedItem?.value;
                           return ListTile(
                             leading: item.iconData != null
                                 ? Icon(
@@ -314,8 +318,7 @@ class _SearchableDropdownState<T> extends State<SearchableDropdown<T>> {
                             title: Text(
                               item.label,
                               style: AppStyles.formText(context).copyWith(
-                                fontWeight:
-                                    isSelected ? FontWeight.bold : null,
+                                fontWeight: isSelected ? FontWeight.bold : null,
                               ),
                             ),
                             trailing: isSelected

@@ -114,12 +114,18 @@ class HeliumColors {
   /// of the two reads better instead, which always clears WCAG AA (4.5:1).
   static Color contrastingTextColor(Color backgroundColor) {
     if (ContrastService().increaseContrast) {
-      return contrastRatio(Colors.black, backgroundColor) >=
-              contrastRatio(Colors.white, backgroundColor)
-          ? Colors.black
-          : Colors.white;
+      return highestContrastTextColor(backgroundColor);
     }
     return backgroundColor.computeLuminance() > 0.5
+        ? Colors.black
+        : Colors.white;
+  }
+
+  /// Whichever of black or white reads better on [backgroundColor]; always
+  /// clears WCAG AA (4.5:1).
+  static Color highestContrastTextColor(Color backgroundColor) {
+    return contrastRatio(Colors.black, backgroundColor) >=
+            contrastRatio(Colors.white, backgroundColor)
         ? Colors.black
         : Colors.white;
   }

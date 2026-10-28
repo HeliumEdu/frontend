@@ -76,7 +76,7 @@ class ScheduleSummary extends StatelessWidget {
   Widget _buildIconRow(BuildContext context, IconData icon, String label) {
     final onSurface = context.colorScheme.onSurface;
     final textStyle = AppStyles.standardBodyText(context).copyWith(
-      color: onSurface.withValues(alpha: 0.6),
+      color: onSurface.withValues(alpha: AppStyles.mutedTextAlpha),
     );
     return Row(
       children: [

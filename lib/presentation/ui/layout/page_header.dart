@@ -121,7 +121,7 @@ class PageHeader extends StatelessWidget {
               const SizedBox(width: 8),
             if (screenType == ScreenType.page && helpUrl != null) ...[
               Semantics(
-                label: 'Help',
+                label: 'Learn more',
                 button: true,
                 child: IconButton(
                   style: IconButton.styleFrom(

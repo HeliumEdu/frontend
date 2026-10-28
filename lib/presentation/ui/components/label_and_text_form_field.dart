@@ -96,7 +96,7 @@ class _LabelAndTextFormFieldState extends State<LabelAndTextFormField> {
   }
 
   Widget _buildTextFormField(BuildContext context) {
-    return TextFormField(
+    final field = TextFormField(
       key: widget.fieldKey,
       initialValue: widget.initialValue,
       autofocus: widget.autofocus,
@@ -113,14 +113,16 @@ class _LabelAndTextFormFieldState extends State<LabelAndTextFormField> {
       autofillHints: widget.autofillHints,
       style: AppStyles.formText(context),
       onFieldSubmitted: widget.onFieldSubmitted,
-      scrollPadding: const EdgeInsets.all(20).copyWith(
-        bottom: 20 + MediaQuery.viewInsetsOf(context).bottom,
-      ),
+      scrollPadding: const EdgeInsets.all(
+        20,
+      ).copyWith(bottom: 20 + MediaQuery.viewInsetsOf(context).bottom),
       decoration: InputDecoration(
         prefixIcon: widget.prefixIcon != null
             ? Icon(
                 widget.prefixIcon,
-                color: context.colorScheme.onSurface.withValues(alpha: AppStyles.mutedIconAlpha),
+                color: context.colorScheme.onSurface.withValues(
+                  alpha: AppStyles.mutedIconAlpha,
+                ),
               )
             : null,
         contentPadding: EdgeInsets.symmetric(
@@ -141,6 +143,9 @@ class _LabelAndTextFormFieldState extends State<LabelAndTextFormField> {
         errorMaxLines: 3,
       ),
     );
+    return widget.label == null
+        ? field
+        : Semantics(label: widget.label, child: field);
   }
 
   @override
@@ -149,7 +154,9 @@ class _LabelAndTextFormFieldState extends State<LabelAndTextFormField> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         if (widget.label != null)
-          Text(widget.label!, style: AppStyles.formLabel(context)),
+          ExcludeSemantics(
+            child: Text(widget.label!, style: AppStyles.formLabel(context)),
+          ),
         if (widget.label != null) const SizedBox(height: 9),
         Container(
           decoration: BoxDecoration(

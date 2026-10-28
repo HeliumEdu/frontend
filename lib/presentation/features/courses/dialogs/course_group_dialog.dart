@@ -215,10 +215,12 @@ class _CourseGroupWidgetState
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('From', style: AppStyles.formLabel(context)),
+                  ExcludeSemantics(
+                    child: Text('From', style: AppStyles.formLabel(context)),
+                  ),
                   const SizedBox(height: 9),
                   Semantics(
-                    label: 'Pick start date',
+                    label: 'From',
                     button: true,
                     child: GestureDetector(
                       onTap: () {
@@ -265,10 +267,12 @@ class _CourseGroupWidgetState
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('To', style: AppStyles.formLabel(context)),
+                  ExcludeSemantics(
+                    child: Text('To', style: AppStyles.formLabel(context)),
+                  ),
                   const SizedBox(height: 9),
                   Semantics(
-                    label: 'Pick end date',
+                    label: 'To',
                     button: true,
                     child: GestureDetector(
                       onTap: () {

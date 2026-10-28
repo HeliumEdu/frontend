@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/semantics.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:heliumapp/config/app_route.dart';
@@ -632,23 +633,29 @@ class _NotificationsScreenState
     );
 
     if (isTouchDevice) {
-      return Dismissible(
-        key: Key('notification_${notification.id}'),
-        direction: DismissDirection.endToStart,
-        background: Container(
-          alignment: Alignment.centerRight,
-          padding: const EdgeInsets.only(right: 20),
-          color: context.colorScheme.secondary,
-          child: Icon(
-            Icons.close,
-            color: context.colorScheme.onSecondary,
-          ),
-        ),
-        confirmDismiss: (direction) async {
-          await _dismissReminder(notification);
-          return false;
+      return Semantics(
+        customSemanticsActions: {
+          const CustomSemanticsAction(label: 'Dismiss reminder'): () =>
+              _dismissReminder(notification),
         },
-        child: rowContent,
+        child: Dismissible(
+          key: Key('notification_${notification.id}'),
+          direction: DismissDirection.endToStart,
+          background: Container(
+            alignment: Alignment.centerRight,
+            padding: const EdgeInsets.only(right: 20),
+            color: context.colorScheme.secondary,
+            child: Icon(
+              Icons.close,
+              color: context.colorScheme.onSecondary,
+            ),
+          ),
+          confirmDismiss: (direction) async {
+            await _dismissReminder(notification);
+            return false;
+          },
+          child: rowContent,
+        ),
       );
     }
 

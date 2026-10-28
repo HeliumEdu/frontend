@@ -665,7 +665,6 @@ class _ScheduleEditorScreenState extends BaseDialogState<ScheduleEditorScreen>
       label: isStart ? 'Start' : 'End',
       time: time,
       backgroundColor: bgColor,
-      semanticsLabel: isStart ? 'Pick start time' : 'Pick end time',
       onTap: () => _selectCycleTime(day, isStart),
     );
   }
@@ -993,7 +992,6 @@ class _ScheduleEditorScreenState extends BaseDialogState<ScheduleEditorScreen>
       label: isStart ? 'Start' : 'End',
       time: time,
       backgroundColor: bgColor,
-      semanticsLabel: isStart ? 'Pick start time' : 'Pick end time',
       onTap: () {
         if (dayIndex == null) {
           _selectSingleTime(isStart);

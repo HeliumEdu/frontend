@@ -51,17 +51,7 @@ class _HeliumAppState extends State<HeliumApp> with WidgetsBindingObserver {
     WidgetsBinding.instance.addObserver(this);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
-      final features =
-          WidgetsBinding.instance.platformDispatcher.accessibilityFeatures;
-      MotionService().init(
-        features.disableAnimations ||
-            features.reduceMotion ||
-            getSystemReduceMotion(),
-      );
-      ContrastService().init(
-        features.highContrast || getSystemIncreaseContrast(),
-      );
-      setState(() {});
+      _applyAccessibilityFeatures();
     });
     _log.info('HeliumApp initialized with theme: ${_themeNotifier.themeMode}');
   }
@@ -99,6 +89,25 @@ class _HeliumAppState extends State<HeliumApp> with WidgetsBindingObserver {
       !kIsWeb &&
       (defaultTargetPlatform == TargetPlatform.iOS ||
           defaultTargetPlatform == TargetPlatform.android);
+
+  @override
+  void didChangeAccessibilityFeatures() {
+    _applyAccessibilityFeatures();
+  }
+
+  void _applyAccessibilityFeatures() {
+    final features =
+        WidgetsBinding.instance.platformDispatcher.accessibilityFeatures;
+    MotionService().init(
+      features.disableAnimations ||
+          features.reduceMotion ||
+          getSystemReduceMotion(),
+    );
+    ContrastService().init(
+      features.highContrast || getSystemIncreaseContrast(),
+    );
+    setState(() {});
+  }
 
   void _rebuild() {
     setState(() {});

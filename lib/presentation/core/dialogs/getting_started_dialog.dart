@@ -570,10 +570,14 @@ class _CyclingImageState extends State<_CyclingImage> {
   @override
   void initState() {
     super.initState();
-    _timer = Timer.periodic(_cycleDuration, (_) {
-      setState(() {
-        _currentIndex = (_currentIndex + 1) % widget.imagePaths.length;
-      });
+    if (!MotionService().reduceMotion) {
+      _timer = Timer.periodic(_cycleDuration, _showNextImage);
+    }
+  }
+
+  void _showNextImage(Timer _) {
+    setState(() {
+      _currentIndex = (_currentIndex + 1) % widget.imagePaths.length;
     });
   }
 

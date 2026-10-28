@@ -72,7 +72,6 @@ class GroupDropdown<T extends BaseTitledModel> extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
       borderColor: context.colorScheme.outline.withValues(alpha: 0.2),
       child: Semantics(
-        label: 'Pick group',
         button: true,
         child: DropdownButtonHideUnderline(
           child: ButtonTheme(

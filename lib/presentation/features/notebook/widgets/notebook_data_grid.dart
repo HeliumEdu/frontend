@@ -834,7 +834,7 @@ class NotesDataSource extends BaseDataGridSource {
           child: Text(
             '—',
             style: AppStyles.standardBodyTextLight(context).copyWith(
-              color: context.colorScheme.onSurface.withValues(alpha: 0.3),
+              color: context.colorScheme.onSurface.withValues(alpha: AppStyles.mutedTextAlpha),
             ),
           ),
         );
@@ -874,7 +874,7 @@ class NotesDataSource extends BaseDataGridSource {
           child: Text(
             '—',
             style: AppStyles.standardBodyTextLight(context).copyWith(
-              color: context.colorScheme.onSurface.withValues(alpha: 0.3),
+              color: context.colorScheme.onSurface.withValues(alpha: AppStyles.mutedTextAlpha),
             ),
           ),
         );
@@ -962,7 +962,7 @@ class NotesDataSource extends BaseDataGridSource {
           child: Text(
             '—',
             style: AppStyles.standardBodyTextLight(context).copyWith(
-              color: context.colorScheme.onSurface.withValues(alpha: 0.3),
+              color: context.colorScheme.onSurface.withValues(alpha: AppStyles.mutedTextAlpha),
             ),
           ),
         );

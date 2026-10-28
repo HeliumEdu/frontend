@@ -179,7 +179,6 @@ class CourseDetailsState extends State<CourseDetails>
                         child: HeliumDateField(
                           label: 'From',
                           date: formController.startDate,
-                          semanticsLabel: 'Pick start date',
                           onTap: () => _selectDate(context, true),
                         ),
                       ),
@@ -188,7 +187,6 @@ class CourseDetailsState extends State<CourseDetails>
                         child: HeliumDateField(
                           label: 'To',
                           date: formController.endDate,
-                          semanticsLabel: 'Pick end date',
                           onTap: () => _selectDate(context, false),
                         ),
                       ),

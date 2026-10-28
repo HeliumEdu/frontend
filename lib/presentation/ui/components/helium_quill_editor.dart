@@ -31,9 +31,14 @@ class HeliumQuillEditor extends StatefulWidget {
   final FocusNode? focusNode;
   final QuillEditorConfig config;
 
+  /// Accessibility name for the editor, which flutter_quill leaves unnamed and
+  /// unmarked as a text field.
+  final String semanticsLabel;
+
   const HeliumQuillEditor({
     super.key,
     required this.controller,
+    required this.semanticsLabel,
     this.focusNode,
     this.config = const QuillEditorConfig(),
   });
@@ -192,11 +197,17 @@ class _HeliumQuillEditorState extends State<HeliumQuillEditor> {
             onInvoke: (_) => _handleMobileCopy(),
           ),
       },
-      child: QuillEditor.basic(
-        controller: widget.controller,
-        focusNode: _effectiveFocusNode,
-        scrollController: _scrollController,
-        config: widget.config,
+      child: Semantics(
+        label: widget.semanticsLabel,
+        textField: true,
+        multiline: true,
+        onTap: _effectiveFocusNode.requestFocus,
+        child: QuillEditor.basic(
+          controller: widget.controller,
+          focusNode: _effectiveFocusNode,
+          scrollController: _scrollController,
+          config: widget.config,
+        ),
       ),
     );
   }
