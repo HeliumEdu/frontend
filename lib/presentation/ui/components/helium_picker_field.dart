@@ -11,7 +11,6 @@ class HeliumDateField extends StatelessWidget {
   final DateTime? date;
   final VoidCallback onTap;
   final Color? backgroundColor;
-  final String? semanticsLabel;
 
   const HeliumDateField({
     super.key,
@@ -19,7 +18,6 @@ class HeliumDateField extends StatelessWidget {
     this.label,
     this.date,
     this.backgroundColor,
-    this.semanticsLabel,
   });
 
   @override
@@ -28,8 +26,6 @@ class HeliumDateField extends StatelessWidget {
       label: label,
       valueText: date != null ? HeliumDateTime.formatDate(date!) : '',
       icon: Icons.calendar_today,
-      semanticsLabel:
-          semanticsLabel ?? (label != null ? 'Pick $label date' : 'Pick date'),
       backgroundColor: backgroundColor,
       onTap: onTap,
     );
@@ -43,7 +39,6 @@ class HeliumTimeField extends StatelessWidget {
   final TimeOfDay? time;
   final VoidCallback onTap;
   final Color? backgroundColor;
-  final String? semanticsLabel;
 
   const HeliumTimeField({
     super.key,
@@ -51,7 +46,6 @@ class HeliumTimeField extends StatelessWidget {
     this.label,
     this.time,
     this.backgroundColor,
-    this.semanticsLabel,
   });
 
   @override
@@ -60,8 +54,6 @@ class HeliumTimeField extends StatelessWidget {
       label: label,
       valueText: time != null ? HeliumTime.format(time!) : '',
       icon: Icons.access_time,
-      semanticsLabel:
-          semanticsLabel ?? (label != null ? 'Pick $label time' : 'Pick time'),
       backgroundColor: backgroundColor,
       onTap: onTap,
     );
@@ -72,7 +64,6 @@ class _PickerFieldBox extends StatelessWidget {
   final String? label;
   final String valueText;
   final IconData icon;
-  final String semanticsLabel;
   final Color? backgroundColor;
   final VoidCallback onTap;
 
@@ -80,7 +71,6 @@ class _PickerFieldBox extends StatelessWidget {
     required this.label,
     required this.valueText,
     required this.icon,
-    required this.semanticsLabel,
     required this.backgroundColor,
     required this.onTap,
   });
@@ -88,7 +78,7 @@ class _PickerFieldBox extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final field = Semantics(
-      label: semanticsLabel,
+      label: label,
       button: true,
       child: GestureDetector(
         onTap: () {
@@ -129,7 +119,9 @@ class _PickerFieldBox extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label!, style: AppStyles.formLabel(context)),
+        ExcludeSemantics(
+          child: Text(label!, style: AppStyles.formLabel(context)),
+        ),
         const SizedBox(height: 9),
         field,
       ],

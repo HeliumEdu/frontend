@@ -1076,6 +1076,7 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
               Expanded(
                 child: HeliumQuillEditor(
                   controller: _quillController,
+                  semanticsLabel: 'Note',
                   focusNode: _editorFocusNode,
                   config: QuillEditorConfig(
                     padding: const EdgeInsets.all(12),
@@ -1340,7 +1341,7 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
     // Standalone note: show tappable badge with link icon to open the picker.
     if (entityType.isEmpty) {
       final outlineColor = context.colorScheme.outline.withValues(alpha: 0.4);
-      final textColor = context.colorScheme.onSurface.withValues(alpha: 0.6);
+      final textColor = context.colorScheme.onSurface.withValues(alpha: AppStyles.mutedTextAlpha);
       return MouseRegion(
         cursor: (_showLinkPicker || _isLinking)
             ? SystemMouseCursors.basic

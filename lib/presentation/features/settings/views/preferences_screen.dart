@@ -303,52 +303,40 @@ class PreferencesScreenState extends State<PreferencesScreen> {
             ),
 
             _buildSectionHeader('DISPLAY'),
-            Row(
-              children: [
-                SizedBox(width: 160, child: Text('Color for Events', style: AppStyles.formLabel(context))),
-                ColorSelector(
-                  semanticLabel: 'Pick color for Events',
-                  selectedColor: _selectedEventColor,
-                  onColorSelected: (color) {
-                    setState(() {
-                      _selectedEventColor = color;
-                      _isChanged = true;
-                    });
-                  },
-                ),
-              ],
+            ColorSelector(
+              label: 'Color for Events',
+              labelWidth: 160,
+              selectedColor: _selectedEventColor,
+              onColorSelected: (color) {
+                setState(() {
+                  _selectedEventColor = color;
+                  _isChanged = true;
+                });
+              },
             ),
             const SizedBox(height: 14),
-            Row(
-              children: [
-                SizedBox(width: 160, child: Text('Color for grades', style: AppStyles.formLabel(context))),
-                ColorSelector(
-                  semanticLabel: 'Pick color for grades',
-                  selectedColor: _selectedGradeColor,
-                  onColorSelected: (color) {
-                    setState(() {
-                      _selectedGradeColor = color;
-                      _isChanged = true;
-                    });
-                  },
-                ),
-              ],
+            ColorSelector(
+              label: 'Color for grades',
+              labelWidth: 160,
+              selectedColor: _selectedGradeColor,
+              onColorSelected: (color) {
+                setState(() {
+                  _selectedGradeColor = color;
+                  _isChanged = true;
+                });
+              },
             ),
             const SizedBox(height: 14),
-            Row(
-              children: [
-                SizedBox(width: 160, child: Text('Color for Resources', style: AppStyles.formLabel(context))),
-                ColorSelector(
-                  semanticLabel: 'Pick color for Resources',
-                  selectedColor: _selectedResourceColor,
-                  onColorSelected: (color) {
-                    setState(() {
-                      _selectedResourceColor = color;
-                      _isChanged = true;
-                    });
-                  },
-                ),
-              ],
+            ColorSelector(
+              label: 'Color for Resources',
+              labelWidth: 160,
+              selectedColor: _selectedResourceColor,
+              onColorSelected: (color) {
+                setState(() {
+                  _selectedResourceColor = color;
+                  _isChanged = true;
+                });
+              },
             ),
             const SizedBox(height: 4),
             HeliumCheckboxListTile(

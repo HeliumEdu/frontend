@@ -1011,7 +1011,11 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
             appointmentItemHeight: agendaHeight,
             placeholderTextStyle: AppStyles.smallSecondaryText(context),
             monthHeaderSettings: MonthHeaderSettings(
-              monthTextStyle: AppStyles.headingText(context),
+              monthTextStyle: AppStyles.headingText(context).copyWith(
+                color: HeliumColors.highestContrastTextColor(
+                  context.colorScheme.primary,
+                ),
+              ),
               backgroundColor: context.colorScheme.primary,
               height: 90,
             ),
@@ -1061,7 +1065,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
           timeSlotViewSettings: TimeSlotViewSettings(
             minimumAppointmentDuration: const Duration(minutes: 32),
             timeTextStyle: AppStyles.smallSecondaryText(context).copyWith(
-              color: context.colorScheme.onSurface.withValues(alpha: 0.6),
+              color: context.colorScheme.onSurface.withValues(alpha: AppStyles.mutedTextAlpha),
             ),
             dayFormat: HeliumDateTime.dayNameShortPattern,
             timeFormat: HeliumTime.timeRulerPattern,
@@ -1397,7 +1401,6 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
               Material(
                 color: Colors.transparent,
                 child: Semantics(
-                  label: 'Pick date',
                   button: true,
                   child: InkWell(
                     onTap: _openDatePicker,
@@ -4707,7 +4710,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
     return Icon(
       Icons.repeat,
       size: 12,
-      color: foregroundColor.withValues(alpha: 0.75),
+      color: foregroundColor.withValues(alpha: AppStyles.increasedContrastAlpha(0.75)),
     );
   }
 
@@ -4769,35 +4772,41 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
     final dataSource = _plannerItemDataSource;
 
     Widget buildBox(bool isCompleted) {
-      return SizedBox(
-        width: PlannerHelper.checkboxWidth,
-        height: PlannerHelper.checkboxWidth,
-        child: Transform.scale(
-          scale: AppStyles.calendarItemPrefixScale(context),
-          child: Container(
-            decoration: BoxDecoration(
-              color: isCompleted ? primary : Colors.transparent,
-              border: Border.all(
-                color: isCompleted
-                    ? primary
-                    : foregroundColor.withValues(alpha: 0.7),
-                width: 2,
+      return Semantics(
+        container: true,
+        checked: isCompleted,
+        label: 'Complete ${homework.title}',
+        onTap: () => _toggleHomeworkCompleted(homework, completedOverride),
+        child: SizedBox(
+          width: PlannerHelper.checkboxWidth,
+          height: PlannerHelper.checkboxWidth,
+          child: Transform.scale(
+            scale: AppStyles.calendarItemPrefixScale(context),
+            child: Container(
+              decoration: BoxDecoration(
+                color: isCompleted ? primary : Colors.transparent,
+                border: Border.all(
+                  color: isCompleted
+                      ? primary
+                      : foregroundColor.withValues(alpha: AppStyles.increasedContrastAlpha(0.7)),
+                  width: 2,
+                ),
+                borderRadius: BorderRadius.circular(2),
               ),
-              borderRadius: BorderRadius.circular(2),
-            ),
-            child: isCompleted
-                ? Center(
-                    child: Transform.translate(
-                      offset: const Offset(-1.5, -1.5),
-                      child: Icon(
-                        Icons.check,
-                        size: 17,
-                        weight: 700,
-                        color: onPrimary,
+              child: isCompleted
+                  ? Center(
+                      child: Transform.translate(
+                        offset: const Offset(-1.5, -1.5),
+                        child: Icon(
+                          Icons.check,
+                          size: 17,
+                          weight: 700,
+                          color: onPrimary,
+                        ),
                       ),
-                    ),
-                  )
-                : null,
+                    )
+                  : null,
+            ),
           ),
         ),
       );
@@ -4810,13 +4819,8 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
       cursor: SystemMouseCursors.click,
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
-        onTap: () {
-          final current =
-              dataSource?.isHomeworkCompleted(homework) ??
-              completedOverride ??
-              homework.completed;
-          _onToggleCompleted(homework, !current);
-        },
+        excludeFromSemantics: true,
+        onTap: () => _toggleHomeworkCompleted(homework, completedOverride),
         child: dataSource != null
             ? ListenableBuilder(
                 listenable: dataSource.changeNotifier,
@@ -4828,6 +4832,14 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
             : buildBox(completedOverride ?? homework.completed),
       ),
     );
+  }
+
+  void _toggleHomeworkCompleted(HomeworkModel homework, bool? completedOverride) {
+    final current =
+        _plannerItemDataSource?.isHomeworkCompleted(homework) ??
+        completedOverride ??
+        homework.completed;
+    _onToggleCompleted(homework, !current);
   }
 
   Widget _buildPrefixIconWidget(
@@ -4843,7 +4855,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
         child: Icon(
           icon,
           size: PlannerHelper.checkboxWidth,
-          color: foregroundColor.withValues(alpha: 0.7),
+          color: foregroundColor.withValues(alpha: AppStyles.increasedContrastAlpha(0.7)),
         ),
       ),
     );
@@ -4861,7 +4873,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
     final foregroundColor = backgroundColor.contrasting;
     final timeStyle = AppStyles.calendarItemTextLight(
       context,
-    ).copyWith(color: foregroundColor.withValues(alpha: 0.7));
+    ).copyWith(color: foregroundColor.withValues(alpha: AppStyles.increasedContrastAlpha(0.7)));
     final timeSpan = TextSpan(
       text: HeliumDateTime.formatTime(
         HeliumDateTime.toLocal(plannerItem.start, userSettings!.timeZone),
@@ -4913,7 +4925,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
                 (isInAgenda
                         ? AppStyles.smallSecondaryTextLight(context)
                         : AppStyles.calendarItemTextLight(context))
-                    .copyWith(color: foregroundColor.withValues(alpha: 0.7)),
+                    .copyWith(color: foregroundColor.withValues(alpha: AppStyles.increasedContrastAlpha(0.7))),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),
@@ -4937,7 +4949,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
     return Icon(
       Icons.repeat,
       size: 10,
-      color: foregroundColor.withValues(alpha: 0.4),
+      color: foregroundColor.withValues(alpha: AppStyles.increasedContrastAlpha(0.4)),
     );
   }
 
@@ -4951,7 +4963,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
         Icon(
           Icons.language,
           size: 10,
-          color: foregroundColor.withValues(alpha: 0.4),
+          color: foregroundColor.withValues(alpha: AppStyles.increasedContrastAlpha(0.4)),
         ),
         const SizedBox(width: 2),
         Expanded(
@@ -4961,7 +4973,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
                 (isInAgenda
                         ? AppStyles.smallSecondaryTextLight(context)
                         : AppStyles.calendarItemTextLight(context))
-                    .copyWith(color: foregroundColor.withValues(alpha: 0.7)),
+                    .copyWith(color: foregroundColor.withValues(alpha: AppStyles.increasedContrastAlpha(0.7))),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),
@@ -4981,7 +4993,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
         Icon(
           Icons.pin_drop_outlined,
           size: 10,
-          color: foregroundColor.withValues(alpha: 0.4),
+          color: foregroundColor.withValues(alpha: AppStyles.increasedContrastAlpha(0.4)),
         ),
         const SizedBox(width: 2),
         Expanded(
@@ -4991,7 +5003,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
                 (isInAgenda
                         ? AppStyles.smallSecondaryTextLight(context)
                         : AppStyles.calendarItemTextLight(context))
-                    .copyWith(color: foregroundColor.withValues(alpha: 0.7)),
+                    .copyWith(color: foregroundColor.withValues(alpha: AppStyles.increasedContrastAlpha(0.7))),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),

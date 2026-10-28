@@ -379,7 +379,7 @@ class _SignupScreenState extends BasePageScreenState<SignupScreen> {
               text: TextSpan(
                 text: "By signing up, you agree to Helium's ",
                 style: AppStyles.formText(context).copyWith(
-                  color: context.colorScheme.onSurface.withValues(alpha: 0.6),
+                  color: context.colorScheme.onSurface.withValues(alpha: AppStyles.mutedTextAlpha),
                 ),
                 children: [
                   TextSpan(

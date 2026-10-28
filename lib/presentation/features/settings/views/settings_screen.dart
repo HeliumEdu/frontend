@@ -555,7 +555,7 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
                     Text(
                       _version,
                       style: AppStyles.smallSecondaryText(context).copyWith(
-                        color: context.colorScheme.onSurface.withValues(alpha: 0.3),
+                        color: context.colorScheme.onSurface.withValues(alpha: AppStyles.mutedTextAlpha),
                       ),
                     ),
                     const SizedBox(height: 4),
@@ -565,7 +565,7 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
                       child: Text(
                         'Open Source on GitHub',
                         style: AppStyles.smallSecondaryText(context).copyWith(
-                          color: context.colorScheme.onSurface.withValues(alpha: 0.3),
+                          color: context.colorScheme.onSurface.withValues(alpha: AppStyles.mutedTextAlpha),
                         ),
                       ),
                     ),
@@ -1345,6 +1345,7 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
                                   key: const Key(
                                     SettingsScreen.deleteAccountPasswordField,
                                   ),
+                                  label: 'Password',
                                   autofocus: PlatformBehavior.autofocusesOnOpen,
                                   controller: _deleteAccountPasswordController,
                                   validator:
@@ -1352,23 +1353,29 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
                                   onFieldSubmitted: (value) => handleSubmit(),
                                   obscureText: obscurePassword,
                                   prefixIcon: Icons.lock_outline,
-                                  suffixIcon: IconButton(
-                                    onPressed: () {
-                                      setState(() {
-                                        obscurePassword = !obscurePassword;
-                                      });
-                                    },
-                                    icon: Icon(
-                                      obscurePassword
-                                          ? Icons.visibility_outlined
-                                          : Icons.visibility_off_outlined,
-                                      color: context.colorScheme.onSurface
-                                          .withValues(alpha: 0.4),
-                                      size: Responsive.getIconSize(
-                                        context,
-                                        mobile: 20,
-                                        tablet: 22,
-                                        desktop: 24,
+                                  suffixIcon: Semantics(
+                                    label: obscurePassword
+                                        ? 'Show password'
+                                        : 'Hide password',
+                                    button: true,
+                                    child: IconButton(
+                                      onPressed: () {
+                                        setState(() {
+                                          obscurePassword = !obscurePassword;
+                                        });
+                                      },
+                                      icon: Icon(
+                                        obscurePassword
+                                            ? Icons.visibility_outlined
+                                            : Icons.visibility_off_outlined,
+                                        color: context.colorScheme.onSurface
+                                            .withValues(alpha: 0.4),
+                                        size: Responsive.getIconSize(
+                                          context,
+                                          mobile: 20,
+                                          tablet: 22,
+                                          desktop: 24,
+                                        ),
                                       ),
                                     ),
                                   ),

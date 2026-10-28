@@ -38,7 +38,10 @@ class SpinnerField extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        if (label != null) Text(label!, style: AppStyles.formLabel(context)),
+        if (label != null)
+          ExcludeSemantics(
+            child: Text(label!, style: AppStyles.formLabel(context)),
+          ),
         if (label != null) const SizedBox(height: 9),
         _buildSpinnerRow(context),
       ],
@@ -61,58 +64,61 @@ class SpinnerField extends StatelessWidget {
               ),
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(_fieldBorderRadius),
-                child: Focus(
-                  onKeyEvent: (_, event) {
-                    if (event is! KeyDownEvent && event is! KeyRepeatEvent) {
-                      return KeyEventResult.ignored;
-                    }
-                    if (event.logicalKey == LogicalKeyboardKey.arrowUp) {
-                      _increment();
-                      return KeyEventResult.handled;
-                    }
-                    if (event.logicalKey == LogicalKeyboardKey.arrowDown) {
-                      _decrement();
-                      return KeyEventResult.handled;
-                    }
-                    return KeyEventResult.ignored;
-                  },
-                  child: TextFormField(
-                    controller: controller,
-                    expands: true,
-                    maxLines: null,
-                    minLines: null,
-                    textAlignVertical: TextAlignVertical.center,
-                    keyboardType: const TextInputType.numberWithOptions(
-                      decimal: true,
-                    ),
-                    inputFormatters: allowDecimal
-                        ? [
-                            FilteringTextInputFormatter.allow(
-                              RegExp(r'^\d*[.,]?\d*'),
-                            ),
-                          ]
-                        : [FilteringTextInputFormatter.digitsOnly],
-                    style: AppStyles.formText(context),
-                    validator: validator,
-                    onChanged: (value) {
-                      if (value.isEmpty) {
-                        controller.text = _formatValue(minValue);
+                child: Semantics(
+                  label: label,
+                  child: Focus(
+                    onKeyEvent: (_, event) {
+                      if (event is! KeyDownEvent && event is! KeyRepeatEvent) {
+                        return KeyEventResult.ignored;
                       }
-                      onChanged?.call(value);
+                      if (event.logicalKey == LogicalKeyboardKey.arrowUp) {
+                        _increment();
+                        return KeyEventResult.handled;
+                      }
+                      if (event.logicalKey == LogicalKeyboardKey.arrowDown) {
+                        _decrement();
+                        return KeyEventResult.handled;
+                      }
+                      return KeyEventResult.ignored;
                     },
-                    decoration: InputDecoration(
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: _contentPaddingHorizontal,
-                        vertical: _contentPaddingVertical,
+                    child: TextFormField(
+                      controller: controller,
+                      expands: true,
+                      maxLines: null,
+                      minLines: null,
+                      textAlignVertical: TextAlignVertical.center,
+                      keyboardType: const TextInputType.numberWithOptions(
+                        decimal: true,
                       ),
-                      border: InputBorder.none,
-                      enabledBorder: InputBorder.none,
-                      focusedBorder: InputBorder.none,
-                      disabledBorder: InputBorder.none,
-                      errorBorder: InputBorder.none,
-                      focusedErrorBorder: InputBorder.none,
-                      errorStyle: AppStyles.formErrorStyle(context),
-                      errorMaxLines: 3,
+                      inputFormatters: allowDecimal
+                          ? [
+                              FilteringTextInputFormatter.allow(
+                                RegExp(r'^\d*[.,]?\d*'),
+                              ),
+                            ]
+                          : [FilteringTextInputFormatter.digitsOnly],
+                      style: AppStyles.formText(context),
+                      validator: validator,
+                      onChanged: (value) {
+                        if (value.isEmpty) {
+                          controller.text = _formatValue(minValue);
+                        }
+                        onChanged?.call(value);
+                      },
+                      decoration: InputDecoration(
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: _contentPaddingHorizontal,
+                          vertical: _contentPaddingVertical,
+                        ),
+                        border: InputBorder.none,
+                        enabledBorder: InputBorder.none,
+                        focusedBorder: InputBorder.none,
+                        disabledBorder: InputBorder.none,
+                        errorBorder: InputBorder.none,
+                        focusedErrorBorder: InputBorder.none,
+                        errorStyle: AppStyles.formErrorStyle(context),
+                        errorMaxLines: 3,
+                      ),
                     ),
                   ),
                 ),

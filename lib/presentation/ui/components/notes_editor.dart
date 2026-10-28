@@ -133,7 +133,9 @@ class _NotesEditorState extends State<NotesEditor> with WidgetsBindingObserver {
       children: [
         Row(
           children: [
-            Text('Notes', style: AppStyles.formLabel(context)),
+            ExcludeSemantics(
+              child: Text('Notes', style: AppStyles.formLabel(context)),
+            ),
             const Spacer(),
             if (widget.onOpenInNotes != null)
               TextButton.icon(
@@ -204,6 +206,7 @@ class _NotesEditorState extends State<NotesEditor> with WidgetsBindingObserver {
                   ),
                   child: HeliumQuillEditor(
                     controller: widget.controller,
+                    semanticsLabel: 'Notes',
                     focusNode: widget.focusNode,
                     config: QuillEditorConfig(
                       padding: const EdgeInsets.all(12.0),

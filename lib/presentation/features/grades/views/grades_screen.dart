@@ -135,8 +135,13 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
       (userSettings?.onTrackTolerance ??
           FallbackConstants.defaultOnTrackTolerance)
           .toDouble();
+
+  double get _chartAnimationDurationMs => MotionService()
+      .effectiveDuration(_chartAnimationDuration)
+      .inMilliseconds
+      .toDouble();
   static const double _defaultDesiredGradeBoost = 5.0;
-  static const double _chartAnimationDurationMs = 250;
+  static const _chartAnimationDuration = Duration(milliseconds: 250);
 
   List<CourseGroupModel> _courseGroups = [];
   List<GradeCourseGroupModel> _grades = [];
@@ -762,7 +767,6 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
           ? SystemMouseCursors.click
           : SystemMouseCursors.basic,
       child: Semantics(
-        label: 'Show at-risk classes',
         button: atRiskCount > 0,
         child: GestureDetector(
           onTap: atRiskCount > 0
@@ -942,7 +946,6 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
                   ? SystemMouseCursors.click
                   : MouseCursor.defer,
               child: Semantics(
-                label: 'Switch class',
                 button: sortedCourses.length > 1,
                 child: GestureDetector(
                   onTap: sortedCourses.length > 1
@@ -1001,7 +1004,6 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
               MouseRegion(
                 cursor: SystemMouseCursors.click,
                 child: Semantics(
-                  label: 'Open assignment',
                   button: true,
                   child: GestureDetector(
                     onTap: () {
@@ -1564,7 +1566,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
                     text: 'At-Risk Zone',
                     textStyle: AppStyles.smallSecondaryText(context).copyWith(
                       color: context.semanticColors.warning.withValues(
-                        alpha: 0.8,
+                        alpha: AppStyles.increasedContrastAlpha(0.8),
                       ),
                     ),
                     horizontalTextAlignment: charts.TextAnchor.start,

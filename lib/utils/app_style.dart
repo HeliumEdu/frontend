@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:heliumapp/config/app_theme.dart';
+import 'package:heliumapp/core/contrast_service.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 
 extension AppStyles on BuildContext {
@@ -11,6 +12,12 @@ extension AppStyles on BuildContext {
   /// The lightest [ColorScheme.onSurface] alpha that still reads at WCAG AA
   /// (3:1) as an icon or control on the surface in both themes.
   static const double mutedIconAlpha = 0.55;
+
+  /// [alpha] by default; opaque when the OS asks for increased contrast, since
+  /// a translucent foreground can't hold WCAG AA on an arbitrary background
+  /// such as a course color.
+  static double increasedContrastAlpha(double alpha) =>
+      ContrastService().increaseContrast ? 1.0 : alpha;
 
   // Fallback font for characters missing from the primary family
   static const fallbackFonts = ['Noto Sans'];
