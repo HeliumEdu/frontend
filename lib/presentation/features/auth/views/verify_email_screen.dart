@@ -26,8 +26,9 @@ class VerifyEmailScreen extends StatefulWidget {
 
   final String? email;
   final String? code;
+  final String? next;
 
-  const VerifyEmailScreen({super.key, this.email, this.code});
+  const VerifyEmailScreen({super.key, this.email, this.code, this.next});
 
   @override
   State<VerifyEmailScreen> createState() => _VerifyEmailScreenState();
@@ -95,7 +96,7 @@ class _VerifyEmailScreenState extends BasePageScreenState<VerifyEmailScreen> {
         listener: (context, state) {
           if (state is AuthLoggedIn) {
             if (!context.mounted) return;
-            context.go(AppRoute.setupAccountScreen);
+            context.go(NextRoute.carry(AppRoute.setupAccountScreen, widget.next));
           } else if (state is AuthVerificationResent) {
             showSnackBar(
               context,
@@ -282,7 +283,7 @@ class _VerifyEmailScreenState extends BasePageScreenState<VerifyEmailScreen> {
           Center(
             child: TextButton(
               onPressed: () {
-                context.go(AppRoute.signinScreen);
+                context.go(NextRoute.carry(AppRoute.signinScreen, widget.next));
               },
               child: Row(
                 mainAxisSize: MainAxisSize.min,

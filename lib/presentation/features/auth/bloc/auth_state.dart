@@ -1,4 +1,5 @@
 import 'package:heliumapp/core/api_error_parser.dart';
+import 'package:heliumapp/data/models/auth/oauth_authorization_model.dart';
 import 'package:heliumapp/data/models/auth/user_model.dart';
 
 abstract class AuthState {
@@ -65,6 +66,24 @@ class AuthTokenRefreshed extends AuthState {}
 
 class AuthUnauthenticated extends AuthState {
   AuthUnauthenticated({required super.message});
+}
+
+class AuthAuthorizationDescribed extends AuthState {
+  final OAuthAuthorizationModel authorization;
+
+  AuthAuthorizationDescribed({required this.authorization});
+}
+
+class AuthAuthorizationDecided extends AuthState {
+  final String redirectUri;
+
+  AuthAuthorizationDecided({required this.redirectUri});
+}
+
+class AuthAuthorizationRejected extends AuthState {
+  final String? redirectUri;
+
+  AuthAuthorizationRejected({required super.message, this.redirectUri});
 }
 
 class AuthError extends AuthState {

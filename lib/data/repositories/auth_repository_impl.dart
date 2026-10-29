@@ -4,6 +4,7 @@ import 'package:heliumapp/data/models/auth/request/delete_account_request_model.
 import 'package:heliumapp/data/models/auth/request/forgot_password_request_model.dart';
 import 'package:heliumapp/data/models/auth/request/reset_password_request_model.dart';
 import 'package:heliumapp/data/models/auth/login_request_model.dart';
+import 'package:heliumapp/data/models/auth/oauth_authorization_model.dart';
 import 'package:heliumapp/data/models/auth/private_feed_model.dart';
 import 'package:heliumapp/data/models/auth/request/refresh_token_request_model.dart';
 import 'package:heliumapp/data/models/auth/register_request_model.dart';
@@ -126,5 +127,15 @@ class AuthRepositoryImpl implements AuthRepository {
   @override
   Future<String?> deleteExampleSchedule() async {
     return remoteDataSource.deleteExampleSchedule();
+  }
+
+  @override
+  Future<OAuthAuthorizationModel> describeAuthorization(String query) async {
+    return remoteDataSource.describeAuthorization(query);
+  }
+
+  @override
+  Future<String> decideAuthorization(String query, {required bool allow}) async {
+    return remoteDataSource.decideAuthorization(query, allow: allow);
   }
 }
