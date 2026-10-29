@@ -13,6 +13,8 @@ import 'package:heliumapp/presentation/ui/dialogs/helium_bottom_sheet.dart';
 import 'package:heliumapp/presentation/ui/layout/page_header.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_bloc.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_state.dart';
+import 'package:heliumapp/presentation/features/courses/bloc/course_bloc.dart';
+import 'package:heliumapp/presentation/features/courses/bloc/course_state.dart';
 import 'package:heliumapp/presentation/features/notebook/bloc/note_bloc.dart';
 import 'package:heliumapp/presentation/features/notebook/bloc/note_event.dart';
 import 'package:heliumapp/presentation/features/notebook/bloc/note_state.dart';
@@ -22,6 +24,8 @@ import 'package:heliumapp/presentation/features/shared/bloc/core/base_event.dart
 import 'package:heliumapp/presentation/features/planner/bloc/planneritem_bloc.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/planneritem_state.dart';
 import 'package:heliumapp/presentation/features/planner/dialogs/confirm_delete_dialog.dart';
+import 'package:heliumapp/presentation/features/resources/bloc/resource_bloc.dart';
+import 'package:heliumapp/presentation/features/resources/bloc/resource_state.dart';
 import 'package:heliumapp/presentation/ui/components/helium_checkbox_list_tile.dart';
 import 'package:heliumapp/presentation/ui/feedback/error_card.dart';
 import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
@@ -176,18 +180,18 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen> 
             setState(() {
               userSettings = state.user.settings;
             });
+          } else if (state is AuthScheduleDataRefreshed) {
+            // An import or clearing the example schedule adds or deletes notes.
+            _refetchNotes();
           }
         },
       ),
+      // The platform deletes a note along with the assignment, event, or resource it's
+      // linked to (including through a deleted class or group), so those notes leave the list.
       BlocListener<PlannerItemBloc, PlannerItemState>(
         listener: (context, state) {
           if (state is AllEventsDeleted) {
-            setState(() {
-              _notes = _notes.map((note) {
-                if (note.events.isEmpty) return note;
-                return note.copyWith(events: [], linkedEntityType: '');
-              }).toList();
-            });
+            _removeNotesWhere((note) => note.events.isNotEmpty);
           } else if (state is HomeworkUpdated) {
             setState(() {
               final updated = List<NoteModel>.from(_notes);
@@ -215,37 +219,26 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen> 
               }
             });
           } else if (state is HomeworkDeleted) {
-            setState(() {
-              final updated = List<NoteModel>.from(_notes);
-              final index = updated.indexWhere(
-                (n) => n.homework.contains(state.id),
-              );
-              if (index != -1) {
-                updated[index] = updated[index].copyWith(
-                  homework: updated[index].homework
-                      .where((id) => id != state.id)
-                      .toList(),
-                  linkedEntityType: '',
-                );
-                _notes = updated;
-              }
-            });
+            _removeNotesWhere((note) => note.homework.contains(state.id));
           } else if (state is EventDeleted) {
-            setState(() {
-              final updated = List<NoteModel>.from(_notes);
-              final index = updated.indexWhere(
-                (n) => n.events.contains(state.id),
-              );
-              if (index != -1) {
-                updated[index] = updated[index].copyWith(
-                  events: updated[index].events
-                      .where((id) => id != state.id)
-                      .toList(),
-                  linkedEntityType: '',
-                );
-                _notes = updated;
-              }
-            });
+            _removeNotesWhere((note) => note.events.contains(state.id));
+          }
+        },
+      ),
+      // A deleted class or group takes its assignments' notes, which can't be matched locally.
+      BlocListener<CourseBloc, CourseState>(
+        listenWhen: (previous, current) =>
+            current is CourseDeleted || current is CourseGroupDeleted,
+        listener: (context, state) => _refetchNotes(),
+      ),
+      BlocListener<ResourceBloc, ResourceState>(
+        listenWhen: (previous, current) =>
+            current is ResourceDeleted || current is ResourceGroupDeleted,
+        listener: (context, state) {
+          if (state is ResourceDeleted) {
+            _removeNotesWhere((note) => note.resources.contains(state.id));
+          } else {
+            _refetchNotes();
           }
         },
       ),
@@ -428,6 +421,25 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen> 
         );
       },
     );
+  }
+
+  void _removeNotesWhere(bool Function(NoteModel note) deleted) {
+    final removed = _notes.where(deleted).map((note) => note.id).toSet();
+    if (removed.isEmpty) return;
+    setState(() {
+      _notes = _notes.where((note) => !removed.contains(note.id)).toList();
+      _contentSearchMatchIds?.removeAll(removed);
+    });
+  }
+
+  void _refetchNotes() {
+    context.read<NoteBloc>().add(
+      FetchNotesEvent(
+        origin: EventOrigin.bloc,
+        shownOnCalendar: _shownOnCalendar,
+      ),
+    );
+    _refreshContentSearch();
   }
 
   void _fetchNotes() {
