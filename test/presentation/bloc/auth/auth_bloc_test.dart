@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:heliumapp/core/helium_exception.dart';
 import 'package:heliumapp/core/last_oauth_provider_store.dart';
+import 'package:heliumapp/data/models/auth/oauth_authorization_model.dart';
 import 'package:heliumapp/data/models/auth/token_response_model.dart';
 import 'package:heliumapp/data/models/no_content_response_model.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_bloc.dart';
@@ -704,6 +705,110 @@ void main() {
         },
         act: (bloc) => bloc.add(DisablePrivateFeedsEvent()),
         expect: () => [isA<AuthLoading>(), isA<AuthProfileFetched>()],
+      );
+    });
+
+    group('DescribeAuthorizationEvent', () {
+      const query = 'client_id=abc&state=xyz';
+      const errorRedirect = 'https://claude.ai/api/mcp/auth_callback?error=invalid_scope&state=xyz';
+
+      blocTest<AuthBloc, AuthState>(
+        'emits [AuthLoading, AuthAuthorizationDescribed] when the request is valid',
+        build: () {
+          when(() => mockAuthRepository.describeAuthorization(query)).thenAnswer(
+            (_) async => OAuthAuthorizationModel(
+              clientName: 'Claude',
+              redirectUri: 'https://claude.ai/api/mcp/auth_callback',
+              scopes: [],
+            ),
+          );
+          return authBloc;
+        },
+        act: (bloc) => bloc.add(DescribeAuthorizationEvent(query: query)),
+        expect: () => [
+          isA<AuthLoading>(),
+          isA<AuthAuthorizationDescribed>().having(
+            (s) => s.authorization.clientName,
+            'clientName',
+            'Claude',
+          ),
+        ],
+      );
+
+      blocTest<AuthBloc, AuthState>(
+        'emits AuthAuthorizationRejected with the redirect when the client may be told',
+        build: () {
+          when(() => mockAuthRepository.describeAuthorization(query)).thenThrow(
+            ValidationException(
+              message: 'Invalid scope.',
+              httpStatusCode: 400,
+              details: {'error': 'invalid_scope', 'redirect_uri': errorRedirect},
+            ),
+          );
+          return authBloc;
+        },
+        act: (bloc) => bloc.add(DescribeAuthorizationEvent(query: query)),
+        expect: () => [
+          isA<AuthLoading>(),
+          isA<AuthAuthorizationRejected>().having(
+            (s) => s.redirectUri,
+            'redirectUri',
+            errorRedirect,
+          ),
+        ],
+      );
+
+      blocTest<AuthBloc, AuthState>(
+        'emits AuthAuthorizationRejected without a redirect when the client is unknown',
+        build: () {
+          when(() => mockAuthRepository.describeAuthorization(query)).thenThrow(
+            ValidationException(
+              message: 'Invalid client_id parameter value.',
+              httpStatusCode: 400,
+              details: {'error': 'invalid_request'},
+            ),
+          );
+          return authBloc;
+        },
+        act: (bloc) => bloc.add(DescribeAuthorizationEvent(query: query)),
+        expect: () => [
+          isA<AuthLoading>(),
+          isA<AuthAuthorizationRejected>()
+              .having((s) => s.redirectUri, 'redirectUri', isNull)
+              .having((s) => s.message, 'message', AuthBloc.invalidAuthorizationMessage),
+        ],
+      );
+
+      blocTest<AuthBloc, AuthState>(
+        'emits AuthError when the request fails otherwise',
+        build: () {
+          when(() => mockAuthRepository.describeAuthorization(query)).thenThrow(
+            NetworkException(message: 'Network error'),
+          );
+          return authBloc;
+        },
+        act: (bloc) => bloc.add(DescribeAuthorizationEvent(query: query)),
+        expect: () => [isA<AuthLoading>(), isA<AuthError>()],
+      );
+    });
+
+    group('DecideAuthorizationEvent', () {
+      const query = 'client_id=abc&state=xyz';
+      const redirect = 'https://claude.ai/api/mcp/auth_callback?code=c&state=xyz';
+
+      blocTest<AuthBloc, AuthState>(
+        'emits [AuthLoading, AuthAuthorizationDecided] with the redirect',
+        build: () {
+          when(
+            () => mockAuthRepository.decideAuthorization(query, allow: false),
+          ).thenAnswer((_) async => redirect);
+          return authBloc;
+        },
+        act: (bloc) => bloc.add(DecideAuthorizationEvent(query: query, allow: false)),
+        expect: () => [
+          isA<AuthLoading>(),
+          isA<AuthAuthorizationDecided>().having((s) => s.redirectUri, 'redirectUri', redirect),
+        ],
       );
     });
   });

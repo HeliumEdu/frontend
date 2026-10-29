@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 class AppRoute {
   // Unauthenticated routes
   static const String landingScreen = '/';
@@ -21,6 +23,7 @@ class AppRoute {
   static const String gradesScreen = '/grades';
   static const String notificationsScreen = '/notifications';
   static const String settingScreen = '/settings';
+  static const String connectScreen = '/connect';
 
   // External redirects, served by another host (mirrored in terraform's rewrites-spa.js)
   static const String statusRedirect = '/status';
@@ -28,6 +31,52 @@ class AppRoute {
   static const String contactRedirect = '/contact';
   static const String docsRedirect = '/docs';
   static const String apiRedirect = '/api';
+}
+
+/// Where to return once signed in and set up, carried through sign-in, signup,
+/// verification, and setup as the `next` query parameter.
+///
+/// The route is carried base64url-encoded: the web engine decodes the whole URL
+/// before writing it to browser history, which would split a route's own query
+/// (`/connect?a=1&b=2`) into the outer URL's parameters.
+class NextRoute {
+  static const String param = 'next';
+
+  /// The route carried in [queryParameters], when it's safe to follow. A plain
+  /// path is read as is.
+  static String? read(Map<String, String> queryParameters) {
+    final value = queryParameters[param];
+    if (value == null || value.isEmpty) return null;
+
+    String route = value;
+    if (!value.startsWith('/')) {
+      try {
+        route = utf8.decode(base64Url.decode(base64Url.normalize(value)));
+      } on FormatException {
+        return null;
+      }
+    }
+
+    return isSafe(route) ? route : null;
+  }
+
+  /// Whether [route] is an in-app path, so following it can't leave the app.
+  static bool isSafe(String? route) {
+    if (route == null) return false;
+    final uri = Uri.tryParse(route);
+    return uri != null &&
+        uri.scheme.isEmpty &&
+        uri.host.isEmpty &&
+        uri.path.startsWith('/');
+  }
+
+  /// [route] with [next] attached, or [route] alone when [next] isn't safe.
+  static String carry(String route, String? next) {
+    if (!isSafe(next)) return route;
+    final separator = route.contains('?') ? '&' : '?';
+    final encoded = base64Url.encode(utf8.encode(next!)).replaceAll('=', '');
+    return '$route$separator$param=$encoded';
+  }
 }
 
 /// Deep link query parameter name constants and parsing utilities.

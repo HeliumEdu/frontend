@@ -52,6 +52,7 @@ class _SignupScreenState extends BasePageScreenState<SignupScreen> {
   bool get isAuthenticatedScreen => false;
 
   final SignupFormController _formController = SignupFormController();
+  String? _nextRoute;
   bool _isOAuthLoading = false;
 
   late final TapGestureRecognizer _termsRecognizer;
@@ -60,6 +61,14 @@ class _SignupScreenState extends BasePageScreenState<SignupScreen> {
   @override
   void initState() {
     super.initState();
+
+    // Defer until after initState so GoRouterState is available; it requires an
+    // attached BuildContext
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+
+      _nextRoute = NextRoute.read(GoRouterState.of(context).uri.queryParameters);
+    });
 
     _termsRecognizer = TapGestureRecognizer()
       ..onTap = () => UrlHelpers.launchWebUrl(AppConstants.termsUrl);
@@ -107,14 +116,18 @@ class _SignupScreenState extends BasePageScreenState<SignupScreen> {
 
             if (!isSetupComplete) {
               if (wasOAuthFlow) {
-                context.replace(
+                context.replace(NextRoute.carry(
                   '${AppRoute.setupAccountScreen}?auto_detect_tz=true',
-                );
+                  _nextRoute,
+                ));
               } else {
-                context.replace(AppRoute.setupAccountScreen);
+                context.replace(
+                  NextRoute.carry(AppRoute.setupAccountScreen, _nextRoute),
+                );
               }
             } else {
-              context.replace(AppRoute.plannerScreen);
+              // Redirect to intended destination or default to planner
+              context.replace(_nextRoute ?? AppRoute.plannerScreen);
             }
           } else if (state is AuthRegistered) {
             TextInput.finishAutofillContext();
@@ -136,9 +149,10 @@ class _SignupScreenState extends BasePageScreenState<SignupScreen> {
             }
 
             if (!context.mounted) return;
-            context.go(
+            context.go(NextRoute.carry(
               '${AppRoute.verifyEmailScreen}?email=${Uri.encodeComponent(email)}',
-            );
+              _nextRoute,
+            ));
           } else if (state is AuthError) {
             showSnackBar(
               context,
@@ -344,7 +358,7 @@ class _SignupScreenState extends BasePageScreenState<SignupScreen> {
               children: [
                 TextButton(
                   onPressed: () {
-                    context.go(AppRoute.signinScreen);
+                    context.go(NextRoute.carry(AppRoute.signinScreen, _nextRoute));
                   },
                   child: Row(
                     mainAxisSize: MainAxisSize.min,

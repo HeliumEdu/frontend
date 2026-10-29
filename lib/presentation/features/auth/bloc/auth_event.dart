@@ -110,3 +110,16 @@ class DeleteExampleScheduleEvent extends AuthEvent {}
 
 /// Triggers schedule data refresh on listening screens (e.g., after import or delete)
 class RefreshScheduleDataEvent extends AuthEvent {}
+
+class DescribeAuthorizationEvent extends AuthEvent {
+  final String query;
+
+  DescribeAuthorizationEvent({required this.query});
+}
+
+class DecideAuthorizationEvent extends AuthEvent {
+  final String query;
+  final bool allow;
+
+  DecideAuthorizationEvent({required this.query, required this.allow});
+}

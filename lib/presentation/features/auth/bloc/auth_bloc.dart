@@ -24,6 +24,10 @@ import 'package:logging/logging.dart';
 final _log = Logger('presentation.bloc');
 
 class AuthBloc extends Bloc<AuthEvent, AuthState> {
+  static const invalidAuthorizationMessage =
+      "This connection request isn't valid. Start connecting again from the "
+      'app you came from.';
+
   final AuthRepository authRepository;
   final DioClient dioClient;
 
@@ -54,6 +58,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<DeleteAccountEvent>(_onDeleteAccount);
     on<DeleteExampleScheduleEvent>(_onDeleteExampleSchedule);
     on<RefreshScheduleDataEvent>(_onRefreshScheduleData);
+    on<DescribeAuthorizationEvent>(_onDescribeAuthorization);
+    on<DecideAuthorizationEvent>(_onDecideAuthorization);
   }
 
   Future<void> _onRegister(RegisterEvent event, Emitter<AuthState> emit) async {
@@ -603,5 +609,62 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     Emitter<AuthState> emit,
   ) {
     emit(AuthScheduleDataRefreshed());
+  }
+
+  Future<void> _onDescribeAuthorization(
+    DescribeAuthorizationEvent event,
+    Emitter<AuthState> emit,
+  ) async {
+    emit(AuthLoading());
+
+    try {
+      final authorization = await authRepository.describeAuthorization(
+        event.query,
+      );
+
+      emit(AuthAuthorizationDescribed(authorization: authorization));
+    } on HeliumException catch (e) {
+      emit(_authorizationError(e));
+    } catch (e) {
+      emit(AuthError(message: HeliumException.unexpectedError));
+    }
+  }
+
+  Future<void> _onDecideAuthorization(
+    DecideAuthorizationEvent event,
+    Emitter<AuthState> emit,
+  ) async {
+    emit(AuthLoading());
+
+    try {
+      final redirectUri = await authRepository.decideAuthorization(
+        event.query,
+        allow: event.allow,
+      );
+
+      emit(AuthAuthorizationDecided(redirectUri: redirectUri));
+    } on HeliumException catch (e) {
+      emit(_authorizationError(e));
+    } catch (e) {
+      emit(AuthError(message: HeliumException.unexpectedError));
+    }
+  }
+
+  AuthState _authorizationError(HeliumException e) {
+    final details = e.details;
+    if (e is! ValidationException || details is! Map<String, dynamic>) {
+      return AuthError(
+        message: e.displayMessage,
+        code: e.code,
+        httpStatusCode: e.httpStatusCode,
+        parsedError: e.parsedError,
+      );
+    }
+
+    _log.warning('OAuth authorization request rejected: ${details['error']}');
+    return AuthAuthorizationRejected(
+      message: invalidAuthorizationMessage,
+      redirectUri: details['redirect_uri'] as String?,
+    );
   }
 }

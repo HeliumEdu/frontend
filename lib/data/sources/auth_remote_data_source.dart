@@ -8,6 +8,7 @@ import 'package:heliumapp/core/dio_client.dart';
 import 'package:heliumapp/core/fcm_service.dart';
 import 'package:heliumapp/core/helium_exception.dart';
 import 'package:heliumapp/data/models/auth/login_request_model.dart';
+import 'package:heliumapp/data/models/auth/oauth_authorization_model.dart';
 import 'package:heliumapp/data/models/auth/private_feed_model.dart';
 import 'package:heliumapp/data/models/auth/register_request_model.dart';
 import 'package:heliumapp/data/models/auth/request/change_email_request_model.dart';
@@ -75,6 +76,13 @@ abstract class AuthRemoteDataSource extends BaseDataSource {
   /// own edits were kept (the API answers 400 with it), or null when everything
   /// was cleared.
   Future<String?> deleteExampleSchedule();
+
+  /// Describes the OAuth authorization request in [query] (passed unchanged).
+  Future<OAuthAuthorizationModel> describeAuthorization(String query);
+
+  /// Approves or denies the OAuth authorization request in [query], returning
+  /// the client's redirect URI to send the user to.
+  Future<String> decideAuthorization(String query, {required bool allow});
 }
 
 class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
@@ -623,6 +631,53 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
 
       await _recordExampleScheduleCleared();
       return response.statusCode == 200 ? response.data['message'] as String : null;
+    } on DioException catch (e, s) {
+      throw handleDioError(e, s);
+    } on HeliumException {
+      rethrow;
+    } catch (e, s) {
+      _log.severe('An unexpected error occurred', e, s);
+      throw HeliumException(message: HeliumException.unexpectedError);
+    }
+  }
+
+  @override
+  Future<OAuthAuthorizationModel> describeAuthorization(String query) async {
+    try {
+      final response = await dioClient.dio.get(
+        '${ApiUrl.authOAuthAuthorizeUrl}?$query',
+        options: dioClient.cacheService.forceRefreshOptions(),
+      );
+
+      if (response.statusCode == 200) {
+        return OAuthAuthorizationModel.fromJson(response.data);
+      } else {
+        throw unexpectedStatus(response, 'Failed to load the connection request.');
+      }
+    } on DioException catch (e, s) {
+      throw handleDioError(e, s);
+    } on HeliumException {
+      rethrow;
+    } catch (e, s) {
+      _log.severe('An unexpected error occurred', e, s);
+      throw HeliumException(message: HeliumException.unexpectedError);
+    }
+  }
+
+  @override
+  Future<String> decideAuthorization(String query, {required bool allow}) async {
+    try {
+      final response = await dioClient.dio.post(
+        '${ApiUrl.authOAuthAuthorizeUrl}?$query',
+        data: {'allow': allow},
+      );
+
+      if (response.statusCode == 200) {
+        unawaited(AnalyticsService().logEvent(name: allow ? AnalyticsEvent.connectAllow : AnalyticsEvent.connectDeny, parameters: {'category': AnalyticsCategory.featureInteraction.value}));
+        return response.data['redirect_uri'] as String;
+      } else {
+        throw unexpectedStatus(response, 'Failed to complete the connection request.');
+      }
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
     } on HeliumException {

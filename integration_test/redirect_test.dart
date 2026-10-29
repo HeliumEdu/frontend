@@ -72,7 +72,7 @@ void main() {
             reason: 'Should be on /signin after redirect',
           );
           expect(
-            uri.queryParameters['next'],
+            NextRoute.read(uri.queryParameters),
             equals(path),
             reason: '/signin should carry next=$path to preserve intended route',
           );

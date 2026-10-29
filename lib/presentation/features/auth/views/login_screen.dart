@@ -62,9 +62,8 @@ class _LoginScreenViewState extends BasePageScreenState<LoginScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
 
-      final next = GoRouterState.of(context).uri.queryParameters['next'];
-      if (next?.isNotEmpty ?? false) {
-        _nextRoute = Uri.decodeComponent(next!);
+      _nextRoute = NextRoute.read(GoRouterState.of(context).uri.queryParameters);
+      if (_nextRoute != null) {
         showSnackBar(
           context,
           'Please sign in to continue.',
@@ -129,18 +128,18 @@ class _LoginScreenViewState extends BasePageScreenState<LoginScreen> {
 
             if (!isSetupComplete) {
               if (wasOAuthFlow) {
-                context.replace(
+                context.replace(NextRoute.carry(
                   '${AppRoute.setupAccountScreen}?auto_detect_tz=true',
-                );
+                  _nextRoute,
+                ));
               } else {
-                context.replace(AppRoute.setupAccountScreen);
+                context.replace(
+                  NextRoute.carry(AppRoute.setupAccountScreen, _nextRoute),
+                );
               }
             } else {
               // Redirect to intended destination or default to planner
-              final destination = _isValidNextRoute(_nextRoute)
-                  ? _nextRoute!
-                  : AppRoute.plannerScreen;
-              context.replace(destination);
+              context.replace(_nextRoute ?? AppRoute.plannerScreen);
             }
           } else if (state is AuthAccountInactive) {
             _showInactiveAccountSnackBar(context, state.email, state.message);
@@ -385,7 +384,7 @@ class _LoginScreenViewState extends BasePageScreenState<LoginScreen> {
               child: TextButton(
                 key: const Key(LoginScreen.signupLinkKey),
                 onPressed: () {
-                  context.go(AppRoute.signupScreen);
+                  context.go(NextRoute.carry(AppRoute.signupScreen, _nextRoute));
                 },
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
@@ -435,15 +434,6 @@ class _LoginScreenViewState extends BasePageScreenState<LoginScreen> {
         },
       ),
     );
-  }
-
-  bool _isValidNextRoute(String? route) {
-    if (route == null) return false;
-    final uri = Uri.tryParse(route);
-    return uri != null &&
-        uri.scheme.isEmpty &&
-        uri.host.isEmpty &&
-        uri.path.startsWith('/');
   }
 
   void _onSubmit() {

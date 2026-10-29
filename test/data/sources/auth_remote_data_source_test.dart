@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:heliumapp/core/cache_service.dart';
 import 'package:heliumapp/core/dio_client.dart';
@@ -442,6 +443,74 @@ void main() {
           () => dataSource.confirmPasswordReset(request),
           throwsA(isA<ValidationException>()),
         );
+      });
+    });
+
+    group('describeAuthorization', () {
+      const query = 'client_id=abc&scope=planner%3Aread&state=xyz';
+
+      test('passes the query unchanged and bypasses the cache', () async {
+        // GIVEN
+        final refreshOptions = Options();
+        when(() => mockCacheService.forceRefreshOptions()).thenReturn(refreshOptions);
+        when(
+          () => mockDio.get(any(), options: any(named: 'options')),
+        ).thenAnswer((_) async => givenSuccessResponse({
+              'client_name': 'Claude',
+              'redirect_uri': 'https://claude.ai/api/mcp/auth_callback',
+              'scopes': [
+                {'scope': 'planner:read', 'description': 'Read your classes'},
+              ],
+            }));
+
+        // WHEN
+        final result = await dataSource.describeAuthorization(query);
+
+        // THEN
+        verify(() => mockDio.get('/auth/oauth/authorize/?$query', options: refreshOptions)).called(1);
+        expect(result.clientName, 'Claude');
+        expect(result.redirectUri, 'https://claude.ai/api/mcp/auth_callback');
+        expect(result.scopes.single.description, 'Read your classes');
+      });
+
+      test('throws ValidationException carrying the error redirect on 400 response', () async {
+        // GIVEN
+        when(() => mockCacheService.forceRefreshOptions()).thenReturn(Options());
+        when(
+          () => mockDio.get(any(), options: any(named: 'options')),
+        ).thenThrow(givenValidationException({
+          'error': 'invalid_scope',
+          'error_description': 'Invalid scope.',
+          'redirect_uri': 'https://claude.ai/api/mcp/auth_callback?error=invalid_scope',
+        }));
+
+        // WHEN/THEN
+        expect(
+          () => dataSource.describeAuthorization(query),
+          throwsA(isA<ValidationException>().having(
+            (e) => (e.details as Map)['redirect_uri'],
+            'redirect_uri',
+            'https://claude.ai/api/mcp/auth_callback?error=invalid_scope',
+          )),
+        );
+      });
+    });
+
+    group('decideAuthorization', () {
+      test('posts the decision and returns the redirect', () async {
+        // GIVEN
+        when(
+          () => mockDio.post(any(), data: any(named: 'data')),
+        ).thenAnswer((_) async => givenSuccessResponse({
+              'redirect_uri': 'https://claude.ai/api/mcp/auth_callback?code=c&state=xyz',
+            }));
+
+        // WHEN
+        final result = await dataSource.decideAuthorization('state=xyz', allow: true);
+
+        // THEN
+        verify(() => mockDio.post('/auth/oauth/authorize/?state=xyz', data: {'allow': true})).called(1);
+        expect(result, 'https://claude.ai/api/mcp/auth_callback?code=c&state=xyz');
       });
     });
 

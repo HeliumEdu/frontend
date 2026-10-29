@@ -21,8 +21,13 @@ final _log = Logger('presentation.views');
 
 class SetupAccountScreen extends StatefulWidget {
   final bool autoDetectTimeZone;
+  final String? next;
 
-  const SetupAccountScreen({super.key, this.autoDetectTimeZone = false});
+  const SetupAccountScreen({
+    super.key,
+    this.autoDetectTimeZone = false,
+    this.next,
+  });
 
   @override
   State<SetupAccountScreen> createState() => _SetupAccountScreenState();
@@ -157,11 +162,11 @@ class _SetupAccountScreenState extends BasePageScreenState<SetupAccountScreen> {
       final settings = await DioClient().getSettings(forceRefresh: true);
 
       if (settings != null && settings.setupState == SetupState.complete) {
-        _log.info('... setup complete, navigating to planner');
+        _log.info('... setup complete, navigating on');
         _pollTimer?.cancel();
 
         if (mounted) {
-          context.replace(AppRoute.plannerScreen);
+          context.replace(widget.next ?? AppRoute.plannerScreen);
         }
       } else {
         _log.info('--> Setup not yet complete, continuing to poll');

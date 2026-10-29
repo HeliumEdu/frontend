@@ -16,6 +16,7 @@ import 'package:heliumapp/presentation/core/views/landing_screen.dart';
 import 'package:heliumapp/presentation/core/views/mobile_web_screen.dart';
 import 'package:heliumapp/presentation/core/views/notification_screen.dart';
 import 'package:heliumapp/presentation/core/views/reload_scope.dart';
+import 'package:heliumapp/presentation/features/auth/views/connect_screen.dart';
 import 'package:heliumapp/presentation/features/auth/views/forgot_password_screen.dart';
 import 'package:heliumapp/presentation/features/auth/views/login_screen.dart';
 import 'package:heliumapp/presentation/features/auth/views/reset_password_screen.dart';
@@ -132,8 +133,9 @@ void initializeRouter({String? initialLocation}) {
         pageBuilder: (context, state) {
           final email = state.uri.queryParameters['email'];
           final code = state.uri.queryParameters['code'];
+          final next = NextRoute.read(state.uri.queryParameters);
           return MaterialPage(
-            child: VerifyEmailScreen(email: email, code: code),
+            child: VerifyEmailScreen(email: email, code: code, next: next),
           );
         },
       ),
@@ -142,16 +144,26 @@ void initializeRouter({String? initialLocation}) {
         pageBuilder: (context, state) {
           final autoDetectTimeZone =
               state.uri.queryParameters['auto_detect_tz'] == 'true';
+          final next = NextRoute.read(state.uri.queryParameters);
           return MaterialPage(
-            child: SetupAccountScreen(autoDetectTimeZone: autoDetectTimeZone),
+            child: SetupAccountScreen(
+              autoDetectTimeZone: autoDetectTimeZone,
+              next: next,
+            ),
           );
         },
+      ),
+      GoRoute(
+        path: AppRoute.connectScreen,
+        pageBuilder: (context, state) => MaterialPage(
+          child: ConnectScreen(query: state.uri.query),
+        ),
       ),
       GoRoute(
         path: AppRoute.mobileWebScreen,
         pageBuilder: (context, state) {
           final nextRoute =
-              state.uri.queryParameters['next'] ?? AppRoute.landingScreen;
+              NextRoute.read(state.uri.queryParameters) ?? AppRoute.landingScreen;
           return MaterialPage(child: MobileWebScreen(nextRoute: nextRoute));
         },
       ),
@@ -811,8 +823,7 @@ Future<String?> _authRedirect(BuildContext context, GoRouterState state) async {
 
   if (_shouldShowMobileWebPrompt(context, state)) {
     if (state.matchedLocation != AppRoute.mobileWebScreen) {
-      final encodedNext = Uri.encodeComponent(state.uri.toString());
-      return '${AppRoute.mobileWebScreen}?next=$encodedNext';
+      return NextRoute.carry(AppRoute.mobileWebScreen, state.uri.toString());
     }
     return null;
   }
@@ -846,9 +857,7 @@ Future<String?> _authRedirect(BuildContext context, GoRouterState state) async {
   // If not logged in and trying to access protected route, redirect to login
   if (!isLoggedIn && !publicRoutes.contains(matchedLocation)) {
     // Pass intended destination as ?next param for redirect after login
-    final intendedUrl = state.uri.toString();
-    final encodedNext = Uri.encodeComponent(intendedUrl);
-    return '${AppRoute.signinScreen}?next=$encodedNext';
+    return NextRoute.carry(AppRoute.signinScreen, state.uri.toString());
   }
 
   // If logged in, check setup status for routing
@@ -888,35 +897,35 @@ Future<String?> _authRedirect(BuildContext context, GoRouterState state) async {
 
     final isSetupComplete = setupStateCode == SetupState.complete.code;
 
+    // A link opened before signing in or finishing setup still names where it
+    // meant to go. Path-only, so it cannot redirect off-origin.
+    final next = NextRoute.read(state.uri.queryParameters);
+    final followsNext =
+        next != null && !publicRoutes.contains(Uri.parse(next).path);
+
     // On public routes: redirect to setup or planner based on setup status
     // Exception: verify screen should always be accessible (for email change verification)
     if (publicRoutes.contains(matchedLocation) &&
         matchedLocation != AppRoute.verifyEmailScreen &&
         matchedLocation != AppRoute.resetPasswordScreen) {
-      if (!isSetupComplete) return AppRoute.setupAccountScreen;
+      if (!isSetupComplete) {
+        return followsNext
+            ? NextRoute.carry(AppRoute.setupAccountScreen, next)
+            : AppRoute.setupAccountScreen;
+      }
 
-      // A shared link opened while already signed in still names where it meant
-      // to go. Path-only, so it cannot redirect off-origin.
-      final next = state.uri.queryParameters['next'];
-      final nextUri = next == null ? null : Uri.tryParse(next);
-      final isSafe = nextUri != null &&
-          nextUri.scheme.isEmpty &&
-          nextUri.host.isEmpty &&
-          nextUri.path.startsWith('/') &&
-          !publicRoutes.contains(nextUri.path);
-
-      return isSafe ? next : AppRoute.plannerScreen;
+      return followsNext ? next : AppRoute.plannerScreen;
     }
 
     if (!isSetupComplete &&
         !publicRoutes.contains(matchedLocation) &&
         matchedLocation != AppRoute.setupAccountScreen) {
-      return AppRoute.setupAccountScreen;
+      return NextRoute.carry(AppRoute.setupAccountScreen, state.uri.toString());
     }
 
-    // On setup screen: redirect to planner if setup is complete
+    // On setup screen: move on if setup is complete
     if (matchedLocation == AppRoute.setupAccountScreen && isSetupComplete) {
-      return AppRoute.plannerScreen;
+      return followsNext ? next : AppRoute.plannerScreen;
     }
 
   }
@@ -927,6 +936,9 @@ Future<String?> _authRedirect(BuildContext context, GoRouterState state) async {
 bool _shouldShowMobileWebPrompt(BuildContext context, GoRouterState state) {
   if (!kIsWeb) return false;
 
+  // Connecting an app happens in the browser it started in, then returns there
+  if (_isConnectFlow(state)) return false;
+
   final hasBypassedPrompt =
       PrefService().getBool('mobile_web_continue') ?? false;
   if (hasBypassedPrompt) return false;
@@ -934,6 +946,12 @@ bool _shouldShowMobileWebPrompt(BuildContext context, GoRouterState state) {
   return kDebugMode
       ? MediaQuery.maybeOf(context) != null && Responsive.isMobile(context)
       : Responsive.isIOSPlatform() || Responsive.isAndroidPlatform();
+}
+
+bool _isConnectFlow(GoRouterState state) {
+  if (state.matchedLocation == AppRoute.connectScreen) return true;
+  final next = NextRoute.read(state.uri.queryParameters);
+  return next != null && Uri.parse(next).path == AppRoute.connectScreen;
 }
 
 /// Widget that redirects to a fallback route when arguments are missing
