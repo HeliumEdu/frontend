@@ -1,8 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
-import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/data/models/auth/oauth_authorization_model.dart';
 import 'package:heliumapp/presentation/core/views/base_page_screen_state.dart';
@@ -10,8 +8,10 @@ import 'package:heliumapp/presentation/features/auth/bloc/auth_bloc.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_event.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_state.dart';
 import 'package:heliumapp/presentation/ui/components/helium_elevated_button.dart';
+import 'package:heliumapp/presentation/ui/feedback/error_card.dart';
 import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
 import 'package:heliumapp/presentation/ui/layout/unauthenticated_scaffold.dart';
+import 'package:heliumapp/utils/app_assets.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
@@ -23,6 +23,10 @@ import 'package:heliumapp/utils/url_helpers.dart';
 class ConnectScreen extends StatefulWidget {
   static const String allowButtonKey = 'connect_allow_button';
   static const String denyButtonKey = 'connect_deny_button';
+
+  /// The consent's height with a two-line heading (measured; 377 with one),
+  /// so moving between loading, consent, and error doesn't resize the card.
+  static const double stateAreaMinHeight = 400;
 
   /// The OAuth authorization request's query string, passed to the API as is.
   final String query;
@@ -41,7 +45,8 @@ class _ConnectScreenState extends BasePageScreenState<ConnectScreen> {
   bool get isAuthenticatedScreen => false;
 
   OAuthAuthorizationModel? _authorization;
-  String? _error;
+  String? _invalidMessage;
+  String? _loadError;
   bool _isReturning = false;
   bool _isAllowing = false;
 
@@ -50,7 +55,7 @@ class _ConnectScreenState extends BasePageScreenState<ConnectScreen> {
     super.initState();
 
     if (widget.query.isEmpty) {
-      _error = AuthBloc.invalidAuthorizationMessage;
+      _invalidMessage = AuthBloc.invalidAuthorizationMessage;
       return;
     }
 
@@ -58,9 +63,7 @@ class _ConnectScreenState extends BasePageScreenState<ConnectScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
 
-      context.read<AuthBloc>().add(
-        DescribeAuthorizationEvent(query: widget.query),
-      );
+      _describe();
     });
   }
 
@@ -81,13 +84,13 @@ class _ConnectScreenState extends BasePageScreenState<ConnectScreen> {
               _returnToClient(redirectUri);
             } else {
               setState(() {
-                _error = state.message;
+                _invalidMessage = state.message;
               });
             }
           } else if (state is AuthError) {
             if (_authorization == null) {
               setState(() {
-                _error = state.message;
+                _loadError = state.message;
               });
             } else {
               showSnackBar(
@@ -119,58 +122,54 @@ class _ConnectScreenState extends BasePageScreenState<ConnectScreen> {
 
   @override
   Widget buildMainArea(BuildContext context) {
-    final authorization = _authorization;
-
     return Column(
       children: [
         const SizedBox(height: 12),
 
-        Text(
-          screenTitle,
-          style: AppStyles.featureText(
-            context,
-          ).copyWith(fontSize: Responsive.getFontSize(context, mobile: 22)),
+        Center(child: Image.asset(AppAssets.logoImagePath, height: 90.0)),
+
+        const SizedBox(height: 25),
+
+        const Divider(height: 1),
+
+        const SizedBox(height: 25),
+
+        ConstrainedBox(
+          constraints: const BoxConstraints(
+            minHeight: ConnectScreen.stateAreaMinHeight,
+          ),
+          child: Center(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: _buildState(context),
+            ),
+          ),
         ),
-
-        const SizedBox(height: 25),
-
-        _buildIcon(context, _error == null ? Icons.link : Icons.link_off),
-
-        const SizedBox(height: 25),
-
-        if (_error != null)
-          ..._buildError(context)
-        else if (_isReturning)
-          ..._buildReturning(context)
-        else if (authorization == null)
-          const LoadingIndicator(expanded: false)
-        else
-          ..._buildConsent(context, authorization),
       ],
     );
   }
 
-  Widget _buildIcon(BuildContext context, IconData icon) {
-    return Center(
-      child: Container(
-        width: AppConstants.authContainerSize,
-        height: AppConstants.authContainerSize,
-        decoration: BoxDecoration(
-          color: context.colorScheme.primary.withValues(alpha: 0.1),
-          shape: BoxShape.circle,
+  List<Widget> _buildState(BuildContext context) {
+    final authorization = _authorization;
+
+    if (_invalidMessage != null) {
+      return _buildInvalid(context, _invalidMessage!);
+    } else if (_loadError != null) {
+      return [
+        ErrorCard(
+          message: _loadError!,
+          source: 'connect_screen',
+          onReload: _describe,
+          expanded: false,
+          supportUrl: AppConstants.supportWhereToStartUrl,
         ),
-        child: Icon(
-          icon,
-          size: Responsive.getIconSize(
-            context,
-            mobile: 60,
-            tablet: 64,
-            desktop: 68,
-          ),
-          color: context.colorScheme.primary,
-        ),
-      ),
-    );
+      ];
+    } else if (_isReturning) {
+      return _buildReturning(context);
+    } else if (authorization == null) {
+      return [const LoadingIndicator(expanded: false)];
+    }
+    return _buildConsent(context, authorization);
   }
 
   List<Widget> _buildConsent(
@@ -184,7 +183,7 @@ class _ConnectScreenState extends BasePageScreenState<ConnectScreen> {
         textAlign: TextAlign.center,
       ),
 
-      const SizedBox(height: 20),
+      const SizedBox(height: 25),
 
       Align(
         alignment: Alignment.centerLeft,
@@ -194,7 +193,7 @@ class _ConnectScreenState extends BasePageScreenState<ConnectScreen> {
         ),
       ),
 
-      const SizedBox(height: 8),
+      const SizedBox(height: 12),
 
       for (final scope in authorization.scopes)
         Padding(
@@ -223,7 +222,7 @@ class _ConnectScreenState extends BasePageScreenState<ConnectScreen> {
           ),
         ),
 
-      const SizedBox(height: 20),
+      const SizedBox(height: 25),
 
       Text(
         'Only allow this if you are connecting ${authorization.clientName} to '
@@ -242,19 +241,27 @@ class _ConnectScreenState extends BasePageScreenState<ConnectScreen> {
         onPressed: () => _decide(allow: true),
       ),
 
-      const SizedBox(height: 12),
+      const SizedBox(height: 16),
 
-      Center(
-        child: TextButton(
-          key: const Key(ConnectScreen.denyButtonKey),
-          onPressed: isSubmitting ? null : () => _decide(allow: false),
-          child: Text(
-            'Deny',
-            style: AppStyles.buttonText(
-              context,
-            ).copyWith(color: context.colorScheme.primary),
-          ),
-        ),
+      TextButton(
+        key: const Key(ConnectScreen.denyButtonKey),
+        style: HeliumElevatedButton.textStyle(context.colorScheme),
+        onPressed: isSubmitting ? null : () => _decide(allow: false),
+        child: isSubmitting && !_isAllowing
+            ? LoadingIndicator(
+                size: HeliumElevatedButton.loadingIndicatorSize,
+                strokeWidth: HeliumElevatedButton.loadingIndicatorStrokeWidth,
+                expanded: false,
+                color: context.colorScheme.onSurface.withValues(alpha: 0.38),
+              )
+            : Text(
+                'Deny',
+                style: AppStyles.buttonText(context).copyWith(
+                  color: isSubmitting
+                      ? context.colorScheme.onSurface.withValues(alpha: 0.38)
+                      : context.colorScheme.primary,
+                ),
+              ),
       ),
     ];
   }
@@ -263,35 +270,42 @@ class _ConnectScreenState extends BasePageScreenState<ConnectScreen> {
     final clientName = _authorization?.clientName ?? 'the app you came from';
 
     return [
+      if (kIsWeb) ...[
+        const LoadingIndicator(size: 48, strokeWidth: 4, expanded: false),
+
+        const SizedBox(height: 32),
+      ],
+
       Text(
         kIsWeb
             ? 'Returning you to $clientName ...'
             : 'Return to $clientName to finish.',
-        style: AppStyles.headingText(context),
+        style: AppStyles.standardBodyText(
+          context,
+        ).copyWith(fontSize: 18.0, fontWeight: FontWeight.w500),
         textAlign: TextAlign.center,
       ),
-      if (kIsWeb) ...[
-        const SizedBox(height: 25),
-        const LoadingIndicator(expanded: false),
-      ],
     ];
   }
 
-  List<Widget> _buildError(BuildContext context) {
+  List<Widget> _buildInvalid(BuildContext context, String message) {
     return [
       Text(
-        _error!,
+        message,
         style: AppStyles.headingText(context),
         textAlign: TextAlign.center,
       ),
-
-      const SizedBox(height: 25),
-
-      HeliumElevatedButton(
-        buttonText: 'Go to Helium',
-        onPressed: () => context.go(AppRoute.plannerScreen),
-      ),
     ];
+  }
+
+  void _describe() {
+    setState(() {
+      _loadError = null;
+    });
+
+    context.read<AuthBloc>().add(
+      DescribeAuthorizationEvent(query: widget.query),
+    );
   }
 
   void _decide({required bool allow}) {

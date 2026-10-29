@@ -8,8 +8,8 @@ class HeliumElevatedButton extends StatefulWidget {
   static const minimumHeight = 44.0;
   static const _buttonHorizontalPadding = 12.0;
   static const _iconSize = 16.0;
-  static const _loadingIndicatorSize = 20.0;
-  static const _loadingIndicatorStrokeWidth = 2.5;
+  static const loadingIndicatorSize = 20.0;
+  static const loadingIndicatorStrokeWidth = 2.5;
 
   final String buttonText;
   final IconData? icon;
@@ -62,6 +62,16 @@ class HeliumElevatedButton extends StatefulWidget {
   static ButtonStyle outlinedStyle(ColorScheme colorScheme) {
     return OutlinedButton.styleFrom(
       side: BorderSide(color: colorScheme.primary),
+      minimumSize: const Size.fromHeight(minimumHeight),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(_buttonBorderRadius)),
+    );
+  }
+
+  /// The text counterpart to [baseStyle]: the same size and shape, with no
+  /// fill or outline.
+  static ButtonStyle textStyle(ColorScheme colorScheme) {
+    return TextButton.styleFrom(
+      foregroundColor: colorScheme.primary,
       minimumSize: const Size.fromHeight(minimumHeight),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(_buttonBorderRadius)),
     );
@@ -121,8 +131,8 @@ class _HeliumElevatedButtonState extends State<HeliumElevatedButton> {
       ),
       label: widget.isLoading
           ? LoadingIndicator(
-              size: HeliumElevatedButton._loadingIndicatorSize,
-              strokeWidth: HeliumElevatedButton._loadingIndicatorStrokeWidth,
+              size: HeliumElevatedButton.loadingIndicatorSize,
+              strokeWidth: HeliumElevatedButton.loadingIndicatorStrokeWidth,
               expanded: false,
               color: context.colorScheme.onSurface.withValues(alpha: 0.38),
             )
