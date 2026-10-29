@@ -13,6 +13,7 @@ class ErrorCard extends StatefulWidget {
   final String source;
   final Function onReload;
   final bool expanded;
+  final String supportUrl;
 
   const ErrorCard({
     super.key,
@@ -20,6 +21,7 @@ class ErrorCard extends StatefulWidget {
     required this.source,
     required this.onReload,
     this.expanded = true,
+    this.supportUrl = AppConstants.supportPortalUrl,
   });
 
   @override
@@ -84,7 +86,7 @@ class _ErrorCardState extends State<ErrorCard> {
                 icon: Icons.menu_book_outlined,
                 backgroundColor: context.colorScheme.onSurfaceVariant,
                 onPressed: () =>
-                    UrlHelpers.launchWebUrl(AppConstants.supportPortalUrl),
+                    UrlHelpers.launchWebUrl(widget.supportUrl),
               ),
             ),
           ],
