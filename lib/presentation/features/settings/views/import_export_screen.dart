@@ -64,7 +64,7 @@ class _ImportExportScreenState extends State<ImportExportScreen> {
   bool _isExporting = false;
   bool _isImportingExample = false;
 
-  // Populated only while an `.ics` file is selected — the target picker's options.
+  // Populated only while a file is selected — the target picker's options.
   List<CourseGroupModel> _courseGroups = [];
   List<CourseModel> _courses = [];
   _ImportTarget? _selectedTarget;
@@ -174,7 +174,7 @@ class _ImportExportScreenState extends State<ImportExportScreen> {
             ],
           ),
         ),
-        if (_selectedIsIcs) _buildTargetPicker(context),
+        if (_selectedFileBytes != null) _buildTargetPicker(context),
         const SizedBox(height: 16),
         HeliumElevatedButton(
           onPressed: _importData,
@@ -185,13 +185,20 @@ class _ImportExportScreenState extends State<ImportExportScreen> {
               _selectedFileBytes != null &&
               !_isImporting &&
               !_isLoadingTargets &&
-              !(_selectedIsIcs && _selectedTarget == null),
+              _selectedTarget != null,
         ),
       ],
     );
   }
 
   Widget _buildTargetPicker(BuildContext context) {
+    final border = OutlineInputBorder(
+      borderRadius: BorderRadius.circular(8),
+      borderSide: BorderSide(
+        color: context.colorScheme.outline.withValues(alpha: 0.2),
+      ),
+    );
+
     return Padding(
       padding: const EdgeInsets.only(top: 16),
       child: Column(
@@ -199,49 +206,46 @@ class _ImportExportScreenState extends State<ImportExportScreen> {
         children: [
           Text('Import into', style: AppStyles.formLabel(context)),
           const SizedBox(height: 9),
-          if (_isLoadingTargets)
-            const Padding(
-              padding: EdgeInsets.symmetric(vertical: 8),
-              child: Center(child: CircularProgressIndicator()),
-            )
-          else
-            DropdownButtonFormField<_ImportTarget>(
-              key: ValueKey(_selectedFileName),
-              initialValue: _selectedTarget,
-              isExpanded: true,
-              hint: Text(
-                'Select a destination',
-                style: AppStyles.formText(context),
-              ),
-              decoration: InputDecoration(
-                contentPadding: const EdgeInsets.only(left: 12),
-                filled: true,
-                fillColor: context.colorScheme.surface,
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  borderSide: BorderSide(
-                    color: context.colorScheme.outline.withValues(alpha: 0.2),
-                  ),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  borderSide: BorderSide(
-                    color: context.colorScheme.outline.withValues(alpha: 0.2),
-                  ),
-                ),
-              ),
-              icon: Icon(
-                Icons.keyboard_arrow_down,
-                color: context.colorScheme.primary,
-              ),
-              dropdownColor: context.colorScheme.surface,
+          // The same field while loading (disabled, a spinner for its arrow), so the
+          // layout doesn't shift when the destinations arrive.
+          DropdownButtonFormField<_ImportTarget>(
+            key: ValueKey((_selectedFileName, _isLoadingTargets)),
+            initialValue: _selectedTarget,
+            isExpanded: true,
+            hint: Text(
+              'Select a destination',
               style: AppStyles.formText(context),
-              items: _buildTargetItems(context),
-              onChanged: (target) {
-                if (target == null) return;
-                setState(() => _selectedTarget = target);
-              },
             ),
+            decoration: InputDecoration(
+              contentPadding: const EdgeInsets.only(left: 12),
+              filled: true,
+              fillColor: context.colorScheme.surface,
+              enabledBorder: border,
+              focusedBorder: border,
+              disabledBorder: border,
+            ),
+            icon: _isLoadingTargets
+                ? const SizedBox.square(
+                    dimension: 24,
+                    child: Padding(
+                      padding: EdgeInsets.all(4),
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    ),
+                  )
+                : Icon(
+                    Icons.keyboard_arrow_down,
+                    color: context.colorScheme.primary,
+                  ),
+            dropdownColor: context.colorScheme.surface,
+            style: AppStyles.formText(context),
+            items: _buildTargetItems(context),
+            onChanged: _isLoadingTargets
+                ? null
+                : (target) {
+                    if (target == null) return;
+                    setState(() => _selectedTarget = target);
+                  },
+          ),
         ],
       ),
     );
@@ -250,6 +254,8 @@ class _ImportExportScreenState extends State<ImportExportScreen> {
   List<DropdownMenuItem<_ImportTarget>> _buildTargetItems(
     BuildContext context,
   ) {
+    if (!_selectedIsIcs) return _buildCourseGroupTargetItems(context);
+
     final items = <DropdownMenuItem<_ImportTarget>>[];
 
     for (var i = 0; i < _courseGroups.length; i++) {
@@ -313,6 +319,40 @@ class _ImportExportScreenState extends State<ImportExportScreen> {
         ),
       ),
     );
+
+    return items;
+  }
+
+  List<DropdownMenuItem<_ImportTarget>> _buildCourseGroupTargetItems(
+    BuildContext context,
+  ) {
+    final items = <DropdownMenuItem<_ImportTarget>>[
+      DropdownMenuItem(
+        value: const _ImportTarget(_TargetKind.newCourseGroups),
+        child: Row(
+          children: [
+            Icon(Icons.add, size: 16, color: context.colorScheme.primary),
+            const SizedBox(width: 8),
+            Text('Create new groups', style: AppStyles.formText(context)),
+          ],
+        ),
+      ),
+    ];
+
+    if (_courseGroups.isNotEmpty) items.add(_dividerItem(context));
+
+    for (final group in _courseGroups) {
+      items.add(
+        DropdownMenuItem(
+          value: _ImportTarget(_TargetKind.existingCourseGroup, group.id),
+          child: Text(
+            group.title,
+            style: AppStyles.formText(context),
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+      );
+    }
 
     return items;
   }
@@ -403,15 +443,15 @@ class _ImportExportScreenState extends State<ImportExportScreen> {
     setState(() {
       _selectedFileName = file.name;
       _selectedFileBytes = file.bytes;
-      _selectedTarget = null;
+      // A JSON file imports its own groups unless another destination is chosen.
+      _selectedTarget = isIcs
+          ? null
+          : const _ImportTarget(_TargetKind.newCourseGroups);
       _courseGroups = [];
       _courses = [];
     });
 
-    // Only an ICS import needs a destination; JSON keeps its no-target flow.
-    if (_selectedIsIcs) {
-      await _loadImportTargets();
-    }
+    await _loadImportTargets();
   }
 
   String? _validateJsonFile(Uint8List bytes) {
@@ -447,17 +487,22 @@ class _ImportExportScreenState extends State<ImportExportScreen> {
     try {
       final repository = context.read<CourseBloc>().courseRepository;
       final groups = await repository.getCourseGroups(shownOnCalendar: true);
-      final courses = await repository.getCourses(shownOnCalendar: true);
+      // Only an `.ics` destination can be a class.
+      final courses = _selectedIsIcs
+          ? await repository.getCourses(shownOnCalendar: true)
+          : <CourseModel>[];
 
       if (!mounted) return;
 
       setState(() {
         _courseGroups = groups;
         _courses = courses;
-        // With no class groups to import into, Events is the only destination.
-        _selectedTarget = _courseGroups.isEmpty
-            ? const _ImportTarget(_TargetKind.events)
-            : null;
+        // With no class groups to import into, Events is the only `.ics` destination.
+        if (_selectedIsIcs) {
+          _selectedTarget = _courseGroups.isEmpty
+              ? const _ImportTarget(_TargetKind.events)
+              : null;
+        }
         _isLoadingTargets = false;
       });
     } on HeliumException catch (e) {
@@ -486,7 +531,8 @@ class _ImportExportScreenState extends State<ImportExportScreen> {
   Future<void> _importData() async {
     if (_selectedFileBytes == null || _selectedFileName == null) return;
     final isIcs = _selectedIsIcs;
-    if (isIcs && _selectedTarget == null) return;
+    final target = _selectedTarget;
+    if (target == null) return;
 
     setState(() {
       _isImporting = true;
@@ -501,12 +547,15 @@ class _ImportExportScreenState extends State<ImportExportScreen> {
         ),
       };
       if (isIcs) {
-        formMap.addAll(_targetFields(_selectedTarget!));
+        formMap.addAll(_targetFields(target));
       }
 
       final response = await _dioClient.dio.post(
         isIcs ? ApiUrl.importExportImportIcsUrl : ApiUrl.importExportImportUrl,
         data: FormData.fromMap(formMap),
+        queryParameters: target.kind == _TargetKind.existingCourseGroup
+            ? {'course_group': target.id}
+            : null,
       );
 
       if (!mounted) return;
@@ -577,6 +626,9 @@ class _ImportExportScreenState extends State<ImportExportScreen> {
       case _TargetKind.events:
       case _TargetKind.header:
         return {'target_type': 'events'};
+      case _TargetKind.newCourseGroups:
+      case _TargetKind.existingCourseGroup:
+        return {};
     }
   }
 
@@ -737,11 +789,19 @@ class _ImportExportScreenState extends State<ImportExportScreen> {
   }
 }
 
-/// Where an imported `.ics` lands. `header` is a non-selectable group label in the picker.
-enum _TargetKind { header, newCourse, existingCourse, events }
+/// Where an import lands. An `.ics` goes to a class or Events (`header` is a non-selectable
+/// group label in the picker); a JSON file's classes go to new groups or an existing one.
+enum _TargetKind {
+  header,
+  newCourse,
+  existingCourse,
+  events,
+  newCourseGroups,
+  existingCourseGroup,
+}
 
-/// A picker destination. `id` is a course-group id for `newCourse`/`header`, a course
-/// id for `existingCourse`, and null for `events`.
+/// A picker destination. `id` is a course-group id for `newCourse`/`header`/
+/// `existingCourseGroup`, a course id for `existingCourse`, and null otherwise.
 class _ImportTarget {
   final _TargetKind kind;
   final int? id;
