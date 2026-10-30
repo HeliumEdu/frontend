@@ -130,11 +130,18 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
   /// actions.
   List<Widget> get additionalRightHeaderButtons => const [];
 
-  /// Dialog-mode content runs to the bottom edge, since these screens scroll
-  /// and reserve only the safe-area inset there.
-  EdgeInsets get scaffoldInsets => DialogModeProvider.isDialogMode(context)
-      ? AppConstants.dialogContentPadding.copyWith(bottom: 0)
-      : AppConstants.pageContentPadding;
+  /// Whether the page's content sits in bordered containers; on phones,
+  /// unboxed content sits further from the edge.
+  bool get isContentBoxed => true;
+
+  EdgeInsets get scaffoldInsets {
+    if (DialogModeProvider.isDialogMode(context) &&
+        !DialogModeProvider.isFullScreenMode(context)) {
+      return AppConstants.dialogContentPadding.copyWith(bottom: 0);
+    }
+    final edge = Responsive.pageEdgeInset(context, boxed: isContentBoxed);
+    return EdgeInsets.fromLTRB(edge, AppConstants.contentTopInset, edge, 0);
+  }
 
   @override
   @protected

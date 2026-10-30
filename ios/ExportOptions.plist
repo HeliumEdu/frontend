@@ -9,13 +9,8 @@
 	<key>uploadSymbols</key>
 	<true/>
 	<key>signingStyle</key>
-	<string>manual</string>
+	<string>automatic</string>
 	<key>teamID</key>
 	<string>SHY4MCK827</string>
-	<key>provisioningProfiles</key>
-	<dict>
-		<key>com.heliumedu.heliumapp</key>
-		<string>Helium</string>
-	</dict>
 </dict>
 </plist>

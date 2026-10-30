@@ -7,7 +7,11 @@ import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/core/helium_exception.dart';
 import 'package:heliumapp/config/pref_service.dart';
 import 'package:heliumapp/data/models/auth/user_settings_model.dart';
+import 'package:heliumapp/data/models/planner/course_group_model.dart';
+import 'package:heliumapp/data/models/planner/course_model.dart';
 import 'package:heliumapp/data/models/planner/note_model.dart';
+import 'package:heliumapp/data/models/planner/resource_model.dart';
+import 'package:heliumapp/domain/linked_note_saver.dart';
 import 'package:heliumapp/presentation/core/views/base_page_screen_state.dart';
 import 'package:heliumapp/presentation/ui/dialogs/helium_bottom_sheet.dart';
 import 'package:heliumapp/presentation/ui/layout/page_header.dart';
@@ -32,6 +36,7 @@ import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
 import 'package:heliumapp/presentation/ui/layout/shadow_container.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/app_style.dart';
+import 'package:heliumapp/utils/planner_helper.dart';
 import 'package:heliumapp/utils/print_helpers.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:heliumapp/utils/search_helpers.dart';
@@ -84,7 +89,11 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen> 
   Set<int>? _contentSearchMatchIds;
   bool _contentSearchErrorShown = false;
   final Set<String> _filterEntityTypes = {};
+  final Set<int> _filterCourseIds = {};
   bool _shownOnCalendar = false;
+  List<CourseGroupModel> _courseGroups = [];
+  List<CourseModel> _courses = [];
+  Map<int, ResourceModel> _resourcesById = {};
   final TextEditingController _searchController = TextEditingController();
   final FocusNode _searchFocusNode = FocusNode();
   int _rowsPerPage = 10;
@@ -140,14 +149,24 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen> 
             if (!isShowingErrorCard) {
               showSnackBar(context, state.message!, type: SnackType.error);
             }
-          } else if (state is NotesFetched && state.origin == EventOrigin.subScreen) {
-            _onContentSearchResults(state);
-          } else if (state is NotesFetched) {
+          } else if (state is NotebookScreenDataFetched) {
             setState(() {
               _notes = state.notes;
               _notesReady = true;
               screenError = null;
+              _courseGroups = state.courseGroups;
+              _courses = state.courses;
+              _resourcesById = {
+                for (final resource in state.resources) resource.id: resource,
+              };
+              _filterCourseIds.removeWhere(
+                (id) => !_courses.any((course) => course.id == id),
+              );
             });
+            _saveFilterStateIfEnabled();
+          } else if (state is NoteContentSearched &&
+              state.origin == EventOrigin.subScreen) {
+            _onContentSearchResults(state);
           } else if (state is NoteCreated) {
             setState(() {
               _notes = [..._notes, state.note];
@@ -188,9 +207,22 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen> 
       ),
       // The platform deletes a note along with the assignment, event, or resource it's
       // linked to (including through a deleted class or group), so those notes leave the list.
+      // Notes saved from an item's own screen come back with the item.
       BlocListener<PlannerItemBloc, PlannerItemState>(
         listener: (context, state) {
-          if (state is AllEventsDeleted) {
+          if (state is EventCreated) {
+            _applyLinkedNoteSave(
+              state.linkedNoteSave,
+              isLinked: (note) => note.events.contains(state.event.id),
+            );
+          } else if (state is HomeworkCreated) {
+            _applyLinkedNoteSave(
+              state.linkedNoteSave,
+              isLinked: (note) => note.homework.contains(state.homework.id),
+            );
+          } else if (state is PlannerItemsError) {
+            _applyLinkedNoteSave(state.linkedNoteSave);
+          } else if (state is AllEventsDeleted) {
             _removeNotesWhere((note) => note.events.isNotEmpty);
           } else if (state is HomeworkUpdated) {
             setState(() {
@@ -201,10 +233,15 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen> 
               if (index != -1) {
                 updated[index] = updated[index].copyWith(
                   linkedEntityTitle: state.homework.title,
+                  courseId: state.homework.course.id,
                 );
                 _notes = updated;
               }
             });
+            _applyLinkedNoteSave(
+              state.linkedNoteSave,
+              isLinked: (note) => note.homework.contains(state.homework.id),
+            );
           } else if (state is EventUpdated) {
             setState(() {
               final updated = List<NoteModel>.from(_notes);
@@ -218,6 +255,10 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen> 
                 _notes = updated;
               }
             });
+            _applyLinkedNoteSave(
+              state.linkedNoteSave,
+              isLinked: (note) => note.events.contains(state.event.id),
+            );
           } else if (state is HomeworkDeleted) {
             _removeNotesWhere((note) => note.homework.contains(state.id));
           } else if (state is EventDeleted) {
@@ -233,9 +274,25 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen> 
       ),
       BlocListener<ResourceBloc, ResourceState>(
         listenWhen: (previous, current) =>
-            current is ResourceDeleted || current is ResourceGroupDeleted,
+            current is ResourceCreated ||
+            current is ResourceUpdated ||
+            current is ResourcesError ||
+            current is ResourceDeleted ||
+            current is ResourceGroupDeleted,
         listener: (context, state) {
-          if (state is ResourceDeleted) {
+          if (state is ResourceCreated) {
+            _applyLinkedNoteSave(
+              state.linkedNoteSave,
+              isLinked: (note) => note.resources.contains(state.resource.id),
+            );
+          } else if (state is ResourceUpdated) {
+            _applyLinkedNoteSave(
+              state.linkedNoteSave,
+              isLinked: (note) => note.resources.contains(state.resource.id),
+            );
+          } else if (state is ResourcesError) {
+            _applyLinkedNoteSave(state.linkedNoteSave);
+          } else if (state is ResourceDeleted) {
             _removeNotesWhere((note) => note.resources.contains(state.id));
           } else {
             _refetchNotes();
@@ -251,7 +308,12 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen> 
       child: Padding(
         padding: const EdgeInsets.only(bottom: 12),
         child: ShadowContainer(
-          padding: const EdgeInsets.only(left: 8, right: 8, top: 4, bottom: 4),
+          padding: const EdgeInsets.only(
+            left: AppConstants.containerContentInset,
+            right: AppConstants.containerContentInset,
+            top: 4,
+            bottom: 4,
+          ),
           child: SizedBox(
             height: 48,
             child: Row(
@@ -347,7 +409,9 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen> 
                 Builder(
                   builder: (context) {
                     final hasFilters =
-                        _filterEntityTypes.isNotEmpty || _shownOnCalendar;
+                        _filterEntityTypes.isNotEmpty ||
+                        _filterCourseIds.isNotEmpty ||
+                        _shownOnCalendar;
                     return IconButton.outlined(
                       onPressed: () => _openFilterMenu(context),
                       tooltip: 'Filters',
@@ -432,9 +496,33 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen> 
     });
   }
 
+  /// Brings the list in line with a note saved from its item's own screen, or
+  /// the newer version that save lost to. When the item is known, [isLinked]
+  /// picks out its notes, which the note replaces.
+  void _applyLinkedNoteSave(
+    LinkedNoteSave? save, {
+    bool Function(NoteModel note)? isLinked,
+  }) {
+    final note = save?.note;
+    if (save?.deletedNoteId case final deletedNoteId?) {
+      _removeNotesWhere((other) => other.id == deletedNoteId);
+    } else if (note != null) {
+      setState(() {
+        _notes = [
+          ..._notes.where(
+            (other) => other.id != note.id && !(isLinked?.call(other) ?? false),
+          ),
+          note,
+        ];
+        Sort.byUpdatedAt(_notes);
+      });
+      _refreshContentSearch();
+    }
+  }
+
   void _refetchNotes() {
     context.read<NoteBloc>().add(
-      FetchNotesEvent(
+      FetchNotebookScreenDataEvent(
         origin: EventOrigin.bloc,
         shownOnCalendar: _shownOnCalendar,
       ),
@@ -444,7 +532,7 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen> 
 
   void _fetchNotes() {
     context.read<NoteBloc>().add(
-      FetchNotesEvent(
+      FetchNotebookScreenDataEvent(
         origin: EventOrigin.screen,
         shownOnCalendar: _shownOnCalendar,
       ),
@@ -576,7 +664,7 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen> 
       _loadingContentSearchQuery = query;
     });
     context.read<NoteBloc>().add(
-      FetchNotesEvent(
+      SearchNoteContentEvent(
         origin: EventOrigin.subScreen,
         search: query,
         shownOnCalendar: _shownOnCalendar,
@@ -584,7 +672,7 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen> 
     );
   }
 
-  void _onContentSearchResults(NotesFetched state) {
+  void _onContentSearchResults(NoteContentSearched state) {
     if (state.search != _loadingContentSearchQuery) return;
     final isCurrent = _searchNoteContent && state.search == _contentSearchQuery;
     _contentSearchErrorShown = false;
@@ -632,14 +720,29 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen> 
       }).toList();
     }
 
+    if (_filterCourseIds.isNotEmpty) {
+      filtered = filtered
+          .where(
+            (note) =>
+                note.matchesCourseFilter(_filterCourseIds, _resourcesById),
+          )
+          .toList();
+    }
+
     return filtered;
   }
+
+  bool _areCourseNotesVisible() =>
+      _filterEntityTypes.isEmpty ||
+      _filterEntityTypes.contains('homework') ||
+      _filterEntityTypes.contains('resource');
 
   void _saveFilterStateIfEnabled() {
     if (!(userSettings?.rememberFilterState ?? FallbackConstants.defaultRememberFilterState)) return;
 
     final filterState = {
       'filterEntityTypes': _filterEntityTypes.toList(),
+      'filterCourseIds': _filterCourseIds.toList(),
       'shownOnCalendar': _shownOnCalendar,
       'searchNoteContent': _searchNoteContent,
     };
@@ -657,12 +760,14 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen> 
 
     final savedState = PrefService().getString(_savedNotebookFilterStateKey);
     List<dynamic>? savedEntityTypes;
+    List<dynamic>? savedCourseIds;
     bool? savedExcludeHiddenGroups;
     bool? savedSearchNoteContent;
     if (savedState != null && savedState.isNotEmpty) {
       try {
         final filterState = jsonDecode(savedState) as Map<String, dynamic>;
         savedEntityTypes = filterState['filterEntityTypes'] as List<dynamic>?;
+        savedCourseIds = filterState['filterCourseIds'] as List<dynamic>?;
         savedExcludeHiddenGroups =
             filterState['shownOnCalendar'] as bool?;
         savedSearchNoteContent = filterState['searchNoteContent'] as bool?;
@@ -670,6 +775,7 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen> 
     }
 
     if (savedEntityTypes == null &&
+        savedCourseIds == null &&
         savedExcludeHiddenGroups == null &&
         savedSearchNoteContent == null &&
         savedRowsPerPage == null) {
@@ -680,6 +786,11 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen> 
       if (savedEntityTypes != null) {
         _filterEntityTypes.clear();
         _filterEntityTypes.addAll(savedEntityTypes.cast<String>());
+      }
+      if (savedCourseIds != null) {
+        _filterCourseIds
+          ..clear()
+          ..addAll(savedCourseIds.cast<int>());
       }
       if (savedExcludeHiddenGroups != null) {
         _shownOnCalendar = savedExcludeHiddenGroups;
@@ -701,6 +812,10 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen> 
     final isMobile = Responsive.isMobile(context);
 
     Widget buildContent(BuildContext context, StateSetter setMenuState) {
+      final displayCourses = PlannerHelper.sortByGroupStartThenByTitle(
+        _courses,
+        _courseGroups,
+      );
       final filterOptions = [
         (
           value: 'standalone',
@@ -764,6 +879,7 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen> 
                   onPressed: () {
                     final wasExcluding = _shownOnCalendar;
                     _filterEntityTypes.clear();
+                    _filterCourseIds.clear();
                     _shownOnCalendar = false;
                     _saveFilterStateIfEnabled();
                     setMenuState(() {});
@@ -780,7 +896,7 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen> 
                 ),
               ],
             ),
-            const SizedBox(height: 8),
+            _buildFilterSectionHeader(context, 'TYPES'),
             ...filterOptions.map((option) {
               final isChecked = _filterEntityTypes.contains(option.value);
               return HeliumCheckboxListTile(
@@ -818,6 +934,20 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen> 
                 dense: true,
               );
             }),
+            if (_areCourseNotesVisible() && displayCourses.length > 1) ...[
+              _buildFilterSectionHeader(context, 'CLASSES'),
+              for (int i = 0; i < displayCourses.length; i++) ...[
+                if (i > 0 &&
+                    displayCourses[i].courseGroup !=
+                        displayCourses[i - 1].courseGroup)
+                  const Divider(height: 20),
+                _buildCourseFilterTile(
+                  context,
+                  displayCourses[i],
+                  setMenuState,
+                ),
+              ],
+            ],
             const Divider(height: 16),
             HeliumCheckboxListTile(
               title: Row(
@@ -900,6 +1030,61 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen> 
         ],
       );
     }
+  }
+
+  Widget _buildFilterSectionHeader(BuildContext context, String title) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 20, bottom: 4),
+      child: Text(title, style: AppStyles.smallSecondaryTextLight(context)),
+    );
+  }
+
+  Widget _buildCourseFilterTile(
+    BuildContext context,
+    CourseModel course,
+    StateSetter setMenuState,
+  ) {
+    return HeliumCheckboxListTile(
+      title: Row(
+        children: [
+          Container(
+            width: 12,
+            height: 12,
+            decoration: BoxDecoration(
+              color: course.color,
+              shape: BoxShape.circle,
+            ),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              course.title,
+              style: AppStyles.formText(context),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
+      ),
+      value: _filterCourseIds.contains(course.id),
+      onChanged: (value) {
+        if (value == true) {
+          _filterCourseIds.add(course.id);
+        } else {
+          _filterCourseIds.remove(course.id);
+        }
+        _saveFilterStateIfEnabled();
+        setMenuState(() {});
+        // Defer outer setState because setMenuState may still be
+        // executing its rebuild when this callback runs
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) setState(() {});
+        });
+      },
+      controlAffinity: ListTileControlAffinity.leading,
+      contentPadding: EdgeInsets.zero,
+      dense: true,
+    );
   }
 
   void _createNewNote() {

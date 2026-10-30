@@ -464,48 +464,13 @@ jobs:
           echo "build-number=${BUILD_NUMBER}" >> $GITHUB_OUTPUT
           echo "CI build: ${CI_VERSION}+${BUILD_NUMBER}"
 
-      - name: Install Apple certificate
-        env:
-          BUILD_CERTIFICATE_BASE64: ${{ secrets.IOS_BUILD_CERTIFICATE_BASE64 }}
-          P12_PASSWORD: ${{ secrets.IOS_P12_PASSWORD }}
-          KEYCHAIN_PASSWORD: ${{ secrets.IOS_KEYCHAIN_PASSWORD }}
-        run: |
-          CERTIFICATE_PATH=$RUNNER_TEMP/build_certificate.p12
-          KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
-
-          echo -n "$BUILD_CERTIFICATE_BASE64" | base64 --decode -o $CERTIFICATE_PATH
-
-          security create-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
-          security set-keychain-settings -lut 21600 $KEYCHAIN_PATH
-          security unlock-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
-
-          security import $CERTIFICATE_PATH -P "$P12_PASSWORD" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
-          security list-keychain -d user -s $KEYCHAIN_PATH
-
-      - name: Install provisioning profile
-        env:
-          PROVISIONING_PROFILE_BASE64: ${{ secrets.IOS_PROVISIONING_PROFILE_BASE64 }}
-        run: |
-          PP_PATH=$RUNNER_TEMP/build_pp.mobileprovision
-
-          echo -n "$PROVISIONING_PROFILE_BASE64" | base64 --decode -o $PP_PATH
-
-          PP_UUID=$(/usr/libexec/PlistBuddy -c "Print UUID" /dev/stdin <<< $(/usr/bin/security cms -D -i $PP_PATH))
-          echo "Provisioning Profile UUID: $PP_UUID"
-
-          mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
-          cp $PP_PATH ~/Library/MobileDevice/Provisioning\ Profiles/$PP_UUID.mobileprovision
-
-      - name: Configure manual signing
-        run: |
-          sed -i '' 's/"iPhone Developer"/"iPhone Distribution"/g' ios/Runner.xcodeproj/project.pbxproj
-          sed -i '' 's/DEVELOPMENT_TEAM = SHY4MCK827;/CODE_SIGN_STYLE = Manual; DEVELOPMENT_TEAM = SHY4MCK827; PROVISIONING_PROFILE_SPECIFIER = "Helium";/g' ios/Runner.xcodeproj/project.pbxproj
-
       - name: Build iOS release IPA
         env:
           COCOAPODS_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           RELEASE_VERSION: ${{ steps.ci-version.outputs.build-name }}+${{ steps.ci-version.outputs.build-number }}
           SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
+          APP_STORE_CONNECT_API_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
+          APP_STORE_CONNECT_API_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_ISSUER_ID }}
         run: |
           SENTRY_DIST="${RELEASE_VERSION##*+}"
           make build-ios-release ENVIRONMENT=prod \
@@ -530,12 +495,9 @@ jobs:
           cd ios
           bundle exec fastlane deploy_testflight ipa_path:../build/ios/ipa/Helium.ipa
 
-      - name: Cleanup keychain and API key
+      - name: Cleanup API key
         if: always()
-        run: |
-          security delete-keychain $RUNNER_TEMP/app-signing.keychain-db || true
-          rm -f ~/Library/MobileDevice/Provisioning\ Profiles/build_pp.mobileprovision
-          rm -rf ~/.appstoreconnect
+        run: rm -rf ~/.appstoreconnect
 
       - name: Deployment summary
         run: |

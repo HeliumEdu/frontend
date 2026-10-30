@@ -69,6 +69,7 @@ Set<String> get _sharedPrefsAllowList => {
   'mobile_web_continue',
   'saved_grades_graph_settings',
   'saved_notebook_filter_state',
+  'saved_notebook_toolbar_state',
   'feedback_session_ended_clean',
   'feedback_clean_session_count',
 };

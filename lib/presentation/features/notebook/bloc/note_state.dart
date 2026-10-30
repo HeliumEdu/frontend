@@ -1,6 +1,7 @@
 import 'dart:ui';
 
 import 'package:heliumapp/data/models/planner/category_model.dart';
+import 'package:heliumapp/data/models/planner/course_group_model.dart';
 import 'package:heliumapp/data/models/planner/course_model.dart';
 import 'package:heliumapp/data/models/planner/event_model.dart';
 import 'package:heliumapp/data/models/planner/homework_model.dart';
@@ -31,14 +32,29 @@ class NotesError extends NoteState {
   });
 }
 
-class NotesFetched extends NoteState {
+class NoteContentSearched extends NoteState {
   final List<NoteModel> notes;
-  final String? search;
+  final String search;
 
-  NotesFetched({
+  NoteContentSearched({
     required super.origin,
     required this.notes,
-    this.search,
+    required this.search,
+  });
+}
+
+class NotebookScreenDataFetched extends NoteState {
+  final List<NoteModel> notes;
+  final List<CourseGroupModel> courseGroups;
+  final List<CourseModel> courses;
+  final List<ResourceModel> resources;
+
+  NotebookScreenDataFetched({
+    required super.origin,
+    required this.notes,
+    required this.courseGroups,
+    required this.courses,
+    required this.resources,
   });
 }
 

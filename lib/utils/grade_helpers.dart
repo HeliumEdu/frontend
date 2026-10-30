@@ -2,7 +2,9 @@
 // projects/platform/helium/planner/services/gradingservice.py (the source of
 // truth for actual grades). This file operates on category aggregates the
 // backend produces — it does NOT recompute course grades from raw homework.
-// The "What Grade Do I Need?" inverse calculation below is frontend-only.
+// The "What Grade Do I Need?" inverse calculation lives in the backend
+// (projects/platform/helium/planner/services/neededgradeservice.py, served at
+// /planner/grades/needed/); only the "What Could I Get?" projection is here.
 // If you change the weighted-grade math here, audit gradingservice.py for
 // consistency. Both sides have their own test suites covering the math at
 // their respective layers.
@@ -11,163 +13,7 @@ import 'package:heliumapp/data/models/planner/grade_category_model.dart';
 import 'package:heliumapp/data/models/planner/homework_series_item_model.dart';
 import 'package:heliumapp/utils/format_helpers.dart';
 
-/// Result of a "what grade do I need" calculation
-enum NeededGradeState {
-  achievable,
-  aboveTarget,
-  unachievable,
-  targetCategoryHasNoWeight,
-  invalidTotalWeight,
-}
-
-class NeededGradeResult {
-  final double neededGrade;
-  final NeededGradeState state;
-  final double? totalWeightAccountedFor;
-
-  bool get isAchievable =>
-      state == NeededGradeState.achievable ||
-      state == NeededGradeState.aboveTarget;
-
-  NeededGradeResult({
-    required this.neededGrade,
-    required this.state,
-    this.totalWeightAccountedFor,
-  });
-}
-
 class GradeHelper {
-  /// Calculates what grade is needed in a specific category to achieve
-  /// a desired overall grade.
-  ///
-  /// Formula:
-  /// neededGrade = (desiredOverallGrade * 100 - sumOfOtherWeightedGrades) / targetCategoryWeight
-  ///
-  /// Example:
-  /// - Category A: weight 30%, grade 80%
-  /// - Category B: weight 40%, grade 90%
-  /// - Category C (Final): weight 30%, grade unknown
-  /// - Desired overall: 85%
-  ///
-  /// Calculation:
-  /// neededGrade = (85 * 100 - (30*80 + 40*90)) / 30
-  ///             = (8500 - 6000) / 30
-  ///             = 83.33%
-  ///
-  /// [categories] - All categories in the course
-  /// [targetCategoryId] - The category ID to calculate the needed grade for
-  /// [desiredOverallGrade] - The desired overall grade (0-100)
-  ///
-  /// Returns a [NeededGradeResult] with:
-  /// - neededGrade: The grade needed in the target category
-  /// - state: Outcome state used by the UI to construct messaging
-  static NeededGradeResult calculateNeededGrade({
-    required List<GradeCategoryModel> categories,
-    required int targetCategoryId,
-    required double desiredOverallGrade,
-  }) {
-    final targetCategory = categories.firstWhere(
-      (cat) => cat.id == targetCategoryId,
-      orElse: () => throw ArgumentError('Category not found'),
-    );
-
-    if (targetCategory.weight <= 0) {
-      return NeededGradeResult(
-        neededGrade: 0,
-        state: NeededGradeState.targetCategoryHasNoWeight,
-      );
-    }
-
-    double sumOfOtherWeightedGrades = 0;
-    double totalWeightAccountedFor = targetCategory.weight;
-
-    for (final category in categories) {
-      if (category.id == targetCategoryId) continue;
-
-      if (category.weight > 0) {
-        totalWeightAccountedFor += category.weight;
-
-        if (category.overallGrade >= 0) {
-          sumOfOtherWeightedGrades +=
-              category.weight * category.overallGrade;
-        }
-        // Ungraded categories contribute 0 (pessimistic default).
-      }
-    }
-
-    if ((totalWeightAccountedFor - 100).abs() > 0.01) {
-      return NeededGradeResult(
-        neededGrade: 0,
-        state: NeededGradeState.invalidTotalWeight,
-        totalWeightAccountedFor: totalWeightAccountedFor,
-      );
-    }
-
-    // (desiredOverallGrade * 100 - Σ other weighted grades) / targetWeight
-    final neededGrade =
-        (desiredOverallGrade * 100 - sumOfOtherWeightedGrades) /
-        targetCategory.weight;
-
-    if (neededGrade < 0) {
-      return NeededGradeResult(
-        neededGrade: neededGrade,
-        state: NeededGradeState.aboveTarget,
-      );
-    } else if (neededGrade > 100) {
-      return NeededGradeResult(
-        neededGrade: neededGrade,
-        state: NeededGradeState.unachievable,
-      );
-    } else {
-      return NeededGradeResult(
-        neededGrade: neededGrade,
-        state: NeededGradeState.achievable,
-      );
-    }
-  }
-
-  /// The score needed on one remaining assignment, as a percentage of its
-  /// [assignmentPointsPossible], to bring a points-based class's grade to
-  /// [desiredOverallGrade]: total earned over total possible once it's graded.
-  static NeededGradeResult calculateNeededAssignmentScore({
-    required double gradedPointsEarned,
-    required double gradedPointsPossible,
-    required double assignmentPointsPossible,
-    required double desiredOverallGrade,
-  }) {
-    final neededPoints =
-        desiredOverallGrade / 100 * (gradedPointsPossible + assignmentPointsPossible) - gradedPointsEarned;
-    final neededGrade = neededPoints / assignmentPointsPossible * 100;
-
-    if (neededGrade < 0) {
-      return NeededGradeResult(neededGrade: neededGrade, state: NeededGradeState.aboveTarget);
-    } else if (neededGrade > 100) {
-      return NeededGradeResult(neededGrade: neededGrade, state: NeededGradeState.unachievable);
-    }
-    return NeededGradeResult(neededGrade: neededGrade, state: NeededGradeState.achievable);
-  }
-
-  /// Converts a needed category average into the score needed on that
-  /// category's one remaining assignment, from the category's graded points.
-  /// Weight errors pass through unchanged.
-  static NeededGradeResult toAssignmentScore(
-    NeededGradeResult categoryNeed, {
-    required double categoryGradedPointsEarned,
-    required double categoryGradedPointsPossible,
-    required double assignmentPointsPossible,
-  }) {
-    if (categoryNeed.state == NeededGradeState.targetCategoryHasNoWeight ||
-        categoryNeed.state == NeededGradeState.invalidTotalWeight) {
-      return categoryNeed;
-    }
-    return calculateNeededAssignmentScore(
-      gradedPointsEarned: categoryGradedPointsEarned,
-      gradedPointsPossible: categoryGradedPointsPossible,
-      assignmentPointsPossible: assignmentPointsPossible,
-      desiredOverallGrade: categoryNeed.neededGrade,
-    );
-  }
-
   /// Projects an overall grade given hypothetical scores for ungraded assignments.
   /// [projections] maps assignment ID to a hypothetical score as a percentage (0–100).
   ///

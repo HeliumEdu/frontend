@@ -35,7 +35,7 @@ class UpdateRequiredCard extends StatelessWidget {
     final content = Center(
       child: Padding(
         padding: const EdgeInsets.symmetric(
-          horizontal: AppConstants.basicCardInset,
+          horizontal: AppConstants.containerContentInset,
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,

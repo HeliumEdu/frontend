@@ -1,4 +1,4 @@
-.PHONY: all env install screenshots clean clean-chrome icons build-android build-android-release build-ios-dev build-ios build-ios-release update-version firebase-config build-web upload-web-symbols upload-ios-symbols upload-android-symbols test start-platform stop-platform install-chromedriver test-integration test-integration-smoke test-playwright coverage run-devserver build-docker-local build-docker run-docker stop-docker restart-docker publish
+.PHONY: all env install screenshots clean clean-chrome icons sync-assets build-android build-android-release build-ios-dev build-ios build-ios-release update-version firebase-config build-web upload-web-symbols upload-ios-symbols upload-android-symbols test start-platform stop-platform install-chromedriver test-integration test-integration-smoke test-playwright coverage run-devserver build-docker-local build-docker run-docker stop-docker restart-docker publish
 
 SHELL := /usr/bin/env bash
 TAG_VERSION ?= latest
@@ -176,7 +176,8 @@ build-ios: install
 	flutter build ios --debug --no-codesign
 
 build-ios-release: install
-	flutter build ipa --release --export-options-plist=ios/ExportOptions.plist --obfuscate --split-debug-info=$(SYMBOLS_DIR) $(RELEASE_ARGS) $(BUILD_OVERRIDE_ARGS)
+	flutter build ipa --release --no-codesign --obfuscate --split-debug-info=$(SYMBOLS_DIR) $(RELEASE_ARGS) $(BUILD_OVERRIDE_ARGS)
+	./bin/export-ios-signed.sh
 
 build-web: install
 	flutter build web --release --source-maps --no-tree-shake-icons --pwa-strategy=none $(RELEASE_ARGS)
@@ -209,6 +210,16 @@ upload-web-symbols:
 icons:
 	flutter pub run flutter_launcher_icons
 	cp web/icons/Icon-192.png web/favicon.png
+	@if [ -d ../www/public ]; then \
+		cp web/icons/Icon-192.png ../www/public/icon-192.png; \
+		cp web/icons/Icon-512.png ../www/public/icon-512.png; \
+		echo "Copied app icons to ../www/public; run 'make sync-assets' in connector"; \
+	else \
+		echo "⚠ ../www/public not found; skipping the www icon copy"; \
+	fi
+
+sync-assets:
+	bin/sync-assets.sh
 
 update-version:
 	dart bin/update_version.dart

@@ -1,6 +1,7 @@
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:heliumapp/core/helium_exception.dart';
+import 'package:heliumapp/data/models/planner/needed_grade_model.dart';
 import 'package:heliumapp/presentation/features/grades/bloc/grade_bloc.dart';
 import 'package:heliumapp/presentation/features/grades/bloc/grade_event.dart';
 import 'package:heliumapp/presentation/features/grades/bloc/grade_state.dart';
@@ -139,6 +140,70 @@ void main() {
           isA<GradeScreenDataFetched>()
               .having((s) => s.courseGroups, 'courseGroups', isEmpty)
               .having((s) => s.grades, 'grades', isEmpty),
+        ],
+      );
+    });
+
+    group('CalculateNeededGradeEvent', () {
+      blocTest<GradeBloc, GradeState>(
+        'emits [NeededGradeCalculating, NeededGradeCalculated] with the inputs it answers',
+        build: () {
+          when(
+            () => mockGradeRepository.getNeededGrade(
+              courseId: 1,
+              targetId: 2,
+              desiredGrade: 85,
+            ),
+          ).thenAnswer(
+            (_) async => NeededGradeModel(
+              state: NeededGradeState.achievable,
+              neededGrade: 77.5,
+              weighted: true,
+            ),
+          );
+          return gradeBloc;
+        },
+        act: (bloc) => bloc.add(
+          CalculateNeededGradeEvent(courseId: 1, targetId: 2, desiredGrade: 85),
+        ),
+        expect: () => [
+          isA<NeededGradeCalculating>(),
+          isA<NeededGradeCalculated>()
+              .having(
+                (s) => (s.courseId, s.targetId, s.desiredGrade),
+                'inputs',
+                (1, 2, 85.0),
+              )
+              .having((s) => s.result.neededGrade, 'neededGrade', 77.5),
+        ],
+      );
+
+      blocTest<GradeBloc, GradeState>(
+        'emits [NeededGradeCalculating, NeededGradeError] when the calculation fails',
+        build: () {
+          when(
+            () => mockGradeRepository.getNeededGrade(
+              courseId: 1,
+              targetId: 2,
+              desiredGrade: 85,
+            ),
+          ).thenThrow(
+            ValidationException(
+              message: 'Select an ungraded assignment in this class.',
+            ),
+          );
+          return gradeBloc;
+        },
+        act: (bloc) => bloc.add(
+          CalculateNeededGradeEvent(courseId: 1, targetId: 2, desiredGrade: 85),
+        ),
+        expect: () => [
+          isA<NeededGradeCalculating>(),
+          isA<NeededGradeError>().having(
+            (e) => e.message,
+            'message',
+            'Select an ungraded assignment in this class.',
+          ),
         ],
       );
     });

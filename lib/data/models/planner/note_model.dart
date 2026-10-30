@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:heliumapp/data/models/base_model.dart';
+import 'package:heliumapp/data/models/planner/resource_model.dart';
 import 'package:heliumapp/utils/color_helpers.dart';
 
 class NoteModel extends BaseTitledModel {
@@ -13,6 +14,7 @@ class NoteModel extends BaseTitledModel {
   final String? linkedEntityTitle;
   final DateTime? linkedEntityDue;
   final bool? linkedEntityCompleted;
+  final int? courseId;
   final Color? courseColor;
   final Color? categoryColor;
 
@@ -29,6 +31,7 @@ class NoteModel extends BaseTitledModel {
     this.linkedEntityTitle,
     this.linkedEntityDue,
     this.linkedEntityCompleted,
+    this.courseId,
     this.courseColor,
     this.categoryColor,
   });
@@ -56,6 +59,7 @@ class NoteModel extends BaseTitledModel {
           ? DateTime.parse(json['linked_entity_due'])
           : null,
       linkedEntityCompleted: json['linked_entity_completed'] as bool?,
+      courseId: json['course_id'] as int?,
       courseColor: json['course_color'] != null
           ? HeliumColors.hexToColor(json['course_color'])
           : null,
@@ -78,6 +82,7 @@ class NoteModel extends BaseTitledModel {
     String? linkedEntityTitle,
     DateTime? linkedEntityDue,
     bool? linkedEntityCompleted,
+    int? courseId,
     Color? courseColor,
     Color? categoryColor,
   }) {
@@ -94,10 +99,30 @@ class NoteModel extends BaseTitledModel {
       linkedEntityTitle: linkedEntityTitle ?? this.linkedEntityTitle,
       linkedEntityDue: linkedEntityDue ?? this.linkedEntityDue,
       linkedEntityCompleted: linkedEntityCompleted ?? this.linkedEntityCompleted,
+      courseId: courseId ?? this.courseId,
       courseColor: courseColor ?? this.courseColor,
       categoryColor: categoryColor ?? this.categoryColor,
     );
   }
 
   bool get isStandalone => linkedEntityType.isEmpty;
+
+  /// Like the Planner's class filter, only notes tied to a class are narrowed;
+  /// standalone and event notes, and those with no known class, pass.
+  bool matchesCourseFilter(
+    Set<int> courseIds,
+    Map<int, ResourceModel> resourcesById,
+  ) {
+    if (linkedEntityType == 'homework') {
+      return courseId == null || courseIds.contains(courseId);
+    }
+    if (linkedEntityType == 'resource') {
+      final resourceCourseIds = resources
+          .expand((id) => resourcesById[id]?.courses ?? const <int>[])
+          .toSet();
+      return resourceCourseIds.isEmpty ||
+          resourceCourseIds.any(courseIds.contains);
+    }
+    return true;
+  }
 }

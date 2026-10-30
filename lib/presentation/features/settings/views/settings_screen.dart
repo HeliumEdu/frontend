@@ -582,7 +582,7 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
 
   Widget _buildProfileArea() {
     return ShadowContainer(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(AppConstants.containerContentInset),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

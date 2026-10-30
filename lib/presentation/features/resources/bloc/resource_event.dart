@@ -1,5 +1,6 @@
 import 'package:heliumapp/data/models/planner/request/resource_group_request_model.dart';
 import 'package:heliumapp/data/models/planner/request/resource_request_model.dart';
+import 'package:heliumapp/domain/linked_note_saver.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/core/base_event.dart';
 
 abstract class ResourceEvent extends BaseEvent {
@@ -71,12 +72,14 @@ class DeleteResourceGroupEvent extends ResourceEvent {
 class CreateResourceEvent extends ResourceEvent {
   final int resourceGroupId;
   final ResourceRequestModel request;
+  final Map<String, dynamic>? noteContent;
   final bool redirectToNotebook;
 
   CreateResourceEvent({
     required super.origin,
     required this.resourceGroupId,
     required this.request,
+    this.noteContent,
     this.redirectToNotebook = false,
   });
 }
@@ -85,24 +88,18 @@ class UpdateResourceEvent extends ResourceEvent {
   final int resourceGroupId;
   final int resourceId;
   final ResourceRequestModel request;
-  final int? linkedNoteId;
-  final Map<String, dynamic>? noteContent;
+  final LinkedNoteEdit linkedNote;
   final bool redirectToNotebook;
   final String? version;
-  final String? linkedNoteVersion;
-  final bool noteEdited;
 
   UpdateResourceEvent({
     required super.origin,
     required this.resourceGroupId,
     required this.resourceId,
     required this.request,
-    this.linkedNoteId,
-    this.noteContent,
+    this.linkedNote = const LinkedNoteEdit(),
     this.redirectToNotebook = false,
     this.version,
-    this.linkedNoteVersion,
-    this.noteEdited = true,
   });
 }
 

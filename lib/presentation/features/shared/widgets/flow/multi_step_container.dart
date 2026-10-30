@@ -52,6 +52,9 @@ abstract class MultiStepContainerState<T extends MultiStepContainer>
     with TickerProviderStateMixin {
   List<MultiStepDefinition> get steps;
 
+  @override
+  bool get isContentBoxed => false;
+
   List<BlocProvider>? get providers => null;
 
   @override

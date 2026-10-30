@@ -426,14 +426,6 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
         desktop: 260,
       );
 
-  double get _summaryCardPadding =>
-      Responsive.getResponsiveValue(
-        context,
-        mobile: 12,
-        tablet: 12,
-        desktop: 16,
-      );
-
   double get _summaryCircleSize =>
       Responsive.getResponsiveValue(
         context,
@@ -456,7 +448,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
       child: SizedBox(
         height: _summaryCardHeight,
         child: Padding(
-          padding: EdgeInsets.all(_summaryCardPadding),
+          padding: const EdgeInsets.all(AppConstants.containerContentInset),
           child: child,
         ),
       ),
@@ -1202,15 +1194,18 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
     ));
     unawaited(AnalyticsService().setUserProperty(
         name: 'uses_grade_calculator', value: 'true'));
+    final gradeBloc = context.read<GradeBloc>();
     showDialog(
       context: context,
       useRootNavigator: true,
-      builder: (context) =>
-          GradeCalculatorContainer(
-            course: course,
-            userSettings: userSettings!,
-            defaultDesiredGradeBoost: _defaultDesiredGradeBoost,
-          ),
+      builder: (context) => BlocProvider<GradeBloc>.value(
+        value: gradeBloc,
+        child: GradeCalculatorContainer(
+          course: course,
+          userSettings: userSettings!,
+          defaultDesiredGradeBoost: _defaultDesiredGradeBoost,
+        ),
+      ),
     );
   }
 
@@ -2207,7 +2202,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
     return Card(
       key: _courseCardKeys.putIfAbsent(course.id, () => GlobalKey()),
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(AppConstants.containerContentInset),
         child: Column(
           children: [
             _buildCourseSummaryArea(index, isExpanded, course),

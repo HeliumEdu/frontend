@@ -145,10 +145,9 @@ class _GradeCalculatorContainerState extends State<GradeCalculatorContainer>
                             userSettings: widget.userSettings,
                           ),
                           GradeCalculatorDialog(
+                            courseId: widget.course.id,
                             categories: widget.course.categories,
                             ungradedAssignments: widget.course.ungradedAssignments,
-                            pointsEarned: widget.course.pointsEarned,
-                            pointsPossible: widget.course.pointsPossible,
                             currentOverallGrade: widget.course.overallGrade,
                             courseTitle: widget.course.title,
                             courseColor: widget.course.color,

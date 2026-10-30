@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:heliumapp/config/app_theme.dart';
+import 'package:heliumapp/utils/app_globals.dart';
 
 class ShadowContainer extends StatelessWidget {
   static const _containerBorderRadius = 16.0;
@@ -22,7 +23,8 @@ class ShadowContainer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: padding ?? const EdgeInsets.all(8),
+      padding:
+          padding ?? const EdgeInsets.all(AppConstants.containerContentInset),
       decoration: BoxDecoration(
         color: color ?? context.colorScheme.surface,
         borderRadius: BorderRadius.circular(_containerBorderRadius),

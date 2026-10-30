@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 
 class ResponsiveCenterCard extends StatelessWidget {
@@ -28,18 +29,28 @@ class ResponsiveCenterCard extends StatelessWidget {
     final isMobile = Responsive.isMobile(context);
 
     final content = isMobile
-        ? Padding(padding: const EdgeInsets.all(16), child: child)
+        ? Padding(
+            padding: const EdgeInsets.all(AppConstants.unboxedContentInset),
+            child: child,
+          )
         : Container(
             constraints: BoxConstraints(maxWidth: maxWidth),
             margin: const EdgeInsets.symmetric(vertical: 25),
             child: showCard
                 ? Card(
                     child: Padding(
-                      padding: const EdgeInsets.all(16),
+                      padding: const EdgeInsets.all(
+                        AppConstants.containerContentInset,
+                      ),
                       child: child,
                     ),
                   )
-                : Padding(padding: const EdgeInsets.all(16), child: child),
+                : Padding(
+                    padding: const EdgeInsets.all(
+                      AppConstants.unboxedContentInset,
+                    ),
+                    child: child,
+                  ),
           );
 
     final inset = flowIntoBottomInset

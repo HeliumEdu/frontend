@@ -33,12 +33,10 @@ import 'package:heliumapp/presentation/features/shared/controllers/basic_form_co
 import 'package:heliumapp/presentation/ui/components/course_title_label.dart';
 import 'package:heliumapp/presentation/ui/components/generic_label.dart';
 import 'package:heliumapp/presentation/ui/components/helium_icon_button.dart';
-import 'package:heliumapp/presentation/ui/components/helium_quill_editor.dart';
-import 'package:heliumapp/presentation/ui/components/helium_quill_toolbar.dart';
 import 'package:heliumapp/presentation/ui/components/label_and_text_form_field.dart';
 import 'package:heliumapp/presentation/ui/components/notes_editor.dart';
-import 'package:heliumapp/presentation/ui/components/quill_search_bar.dart';
 import 'package:heliumapp/presentation/ui/components/resource_title_label.dart';
+import 'package:heliumapp/presentation/features/shared/widgets/core/linked_note_form.dart';
 import 'package:heliumapp/presentation/ui/feedback/conflict_dialog.dart';
 import 'package:heliumapp/presentation/ui/feedback/discard_changes_scope.dart';
 import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
@@ -79,18 +77,12 @@ Future<void> showNoteAdd(
   int? linkEventId,
   int? linkResourceId,
 }) {
-  final id = noteId?.toString() ?? 'new';
-  final queryParameters = <String, String>{
-    if (linkHomeworkId != null)
-      DeepLinkParam.linkHomeworkId: linkHomeworkId.toString(),
-    if (linkEventId != null) DeepLinkParam.linkEventId: linkEventId.toString(),
-    if (linkResourceId != null)
-      DeepLinkParam.linkResourceId: linkResourceId.toString(),
-  };
-  final target = Uri(
-    path: '${AppRoute.notebookScreen}/$id',
-    queryParameters: queryParameters.isEmpty ? null : queryParameters,
-  ).toString();
+  final target = _noteRoute(
+    noteId: noteId,
+    linkHomeworkId: linkHomeworkId,
+    linkEventId: linkEventId,
+    linkResourceId: linkResourceId,
+  );
   final currentUri = router.routerDelegate.currentConfiguration.uri;
   if (currentUri.toString() == target) {
     // Already on this exact route; avoid duplicate push that would stack
@@ -98,6 +90,50 @@ Future<void> showNoteAdd(
     return Future.value();
   }
   return context.push<void>(target);
+}
+
+/// Leaves an item's form for its note, or a new note linked to the item. The
+/// save before this was the user's intent, so the unsaved-changes guard is
+/// released rather than prompting.
+void openInNotebook(
+  BuildContext context, {
+  required int? noteId,
+  int? homeworkId,
+  int? eventId,
+  int? resourceId,
+}) {
+  DirtyDialogRegistry.releaseActive();
+  navigateAndClearStack(
+    context,
+    noteId != null
+        ? _noteRoute(noteId: noteId)
+        : _noteRoute(
+            linkHomeworkId: homeworkId,
+            linkEventId: eventId,
+            linkResourceId: resourceId,
+          ),
+  );
+}
+
+/// The note [noteId] in the Notebook, or a new note when it's null; the link
+/// params pre-link a new note to an item.
+String _noteRoute({
+  int? noteId,
+  int? linkHomeworkId,
+  int? linkEventId,
+  int? linkResourceId,
+}) {
+  final queryParameters = <String, String>{
+    if (linkHomeworkId != null)
+      DeepLinkParam.linkHomeworkId: linkHomeworkId.toString(),
+    if (linkEventId != null) DeepLinkParam.linkEventId: linkEventId.toString(),
+    if (linkResourceId != null)
+      DeepLinkParam.linkResourceId: linkResourceId.toString(),
+  };
+  return Uri(
+    path: '${AppRoute.notebookScreen}/${noteId ?? 'new'}',
+    queryParameters: queryParameters.isEmpty ? null : queryParameters,
+  ).toString();
 }
 
 class NoteAddScreen extends StatefulWidget {
@@ -149,7 +185,6 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
   Color? _linkedEntityColor;
   bool? _linkedEntityCompleted;
   int? _pendingLinkId;
-  bool _showSearch = false;
   bool _hasRequestedInitialFocus = false;
   String? _registeredPrefix;
 
@@ -596,6 +631,13 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
     ];
   }
 
+  /// On phones the editor runs edge to edge; the title row carries its own
+  /// inset.
+  @override
+  EdgeInsets get scaffoldInsets => Responsive.useCompactLayout(context)
+      ? const EdgeInsets.only(top: AppConstants.contentTopInset)
+      : super.scaffoldInsets;
+
   @override
   Widget buildMainArea(BuildContext context) {
     if (isLoading) {
@@ -612,8 +654,8 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
           _cancelAndClose();
         },
         child: isCompact
-            ? _buildCompactLayout(context, isCompact)
-            : _buildDesktopLayout(context, isCompact),
+            ? _buildCompactLayout(context)
+            : _buildDesktopLayout(context),
       ),
     );
   }
@@ -664,11 +706,7 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
       return;
     }
 
-    final title = _titleController.text.trim();
-    final bodyIsEmpty = _quillController.document.toPlainText().trim().isEmpty;
-
-    // Require at least title or body
-    if (title.isEmpty && bodyIsEmpty) return;
+    if (_isNoteEmpty) return;
 
     _performSave(isAutoSave: true);
   }
@@ -863,7 +901,7 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
   String _takeNoteCreatedMessage() {
     if (!_isRecreatingDeletedNote) return 'Note created.';
     _isRecreatingDeletedNote = false;
-    return 'This note was deleted on another device, so it was saved as a new note.';
+    return noteRecreatedMessage;
   }
 
   void _startAutoPull() {
@@ -1003,7 +1041,7 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
     });
   }
 
-  Widget _buildDesktopLayout(BuildContext context, bool isCompact) {
+  Widget _buildDesktopLayout(BuildContext context) {
     return SafeArea(
       top: false,
       child: Form(
@@ -1012,40 +1050,54 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
           children: [
             _buildTitleRow(context),
             if (_showLinkPicker) _buildLinkPicker(context),
-            Expanded(child: _buildEditorContainer(context, isCompact)),
+            Expanded(child: _buildEditor()),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildCompactLayout(BuildContext context, bool isCompact) {
+  Widget _buildCompactLayout(BuildContext context) {
     const double titleRowHeight = 64;
     const double minEditorContainerHeight = 260;
 
-    // The full-screen dialog doesn't reserve the bottom safe area, so subtract
-    // it here — the editor is fixed-height, not scrollable content, so it must
-    // stay clear of the home indicator rather than flow under it.
-    final bottomInset = MediaQuery.of(context).viewPadding.bottom;
-
     return LayoutBuilder(
       builder: (context, constraints) {
-        final editorContainerHeight =
-            (constraints.maxHeight - titleRowHeight - bottomInset)
-                .clamp(minEditorContainerHeight, double.infinity);
+        final header = Padding(
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppConstants.unboxedContentInset,
+          ),
+          child: Column(
+            children: [
+              _buildTitleRow(context),
+              if (_showLinkPicker) _buildLinkPicker(context),
+            ],
+          ),
+        );
+
+        if (constraints.maxHeight >=
+            titleRowHeight + minEditorContainerHeight) {
+          return Form(
+            key: _formController.formKey,
+            child: Column(
+              children: [
+                header,
+                Expanded(child: _buildEditor()),
+              ],
+            ),
+          );
+        }
 
         return SingleChildScrollView(
           keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-          padding: EdgeInsets.only(bottom: bottomInset),
           child: Form(
             key: _formController.formKey,
             child: Column(
               children: [
-                _buildTitleRow(context),
-                if (_showLinkPicker) _buildLinkPicker(context),
+                header,
                 SizedBox(
-                  height: editorContainerHeight,
-                  child: _buildEditorContainer(context, isCompact),
+                  height: minEditorContainerHeight,
+                  child: _buildEditor(),
                 ),
               ],
             ),
@@ -1055,65 +1107,12 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
     );
   }
 
-  Widget _buildEditorContainer(BuildContext context, bool isCompact) {
-    return Padding(
-      padding: EdgeInsets.only(top: 4, bottom: isCompact ? 2 : 10),
-      child: Container(
-        decoration: BoxDecoration(
-          color: context.colorScheme.surface,
-          border: Border.all(
-            color: context.colorScheme.outline.withValues(alpha: 0.2),
-          ),
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(8),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              _buildQuillToolbar(context, isCompact),
-              const Divider(height: 1),
-              Expanded(
-                child: HeliumQuillEditor(
-                  controller: _quillController,
-                  semanticsLabel: 'Note',
-                  focusNode: _editorFocusNode,
-                  config: QuillEditorConfig(
-                    padding: const EdgeInsets.all(12),
-                    autoFocus: false,
-                    expands: true,
-                    customStyles: NotesEditor.buildDefaultStyles(context),
-                    scrollBottomInset: MediaQuery.of(context).viewInsets.bottom,
-                    // ignore: experimental_member_use
-                    onKeyPressed: (event, node) {
-                      final isFindShortcut =
-                          event.logicalKey == LogicalKeyboardKey.keyF &&
-                          (HardwareKeyboard.instance.isMetaPressed ||
-                              HardwareKeyboard.instance.isControlPressed);
-                      if (isFindShortcut) {
-                        setState(() {
-                _showSearch = !_showSearch;
-              });
-                        return KeyEventResult.handled;
-                      }
-                      return null;
-                    },
-                  ),
-                ),
-              ),
-              if (_showSearch)
-                QuillSearchBar(
-                  controller: _quillController,
-                  onClose: () {
-                    setState(() {
-                      _showSearch = false;
-                    });
-                  },
-                ),
-            ],
-          ),
-        ),
-      ),
+  Widget _buildEditor() {
+    return NotesEditor(
+      layout: NotesEditorLayout.page,
+      controller: _quillController,
+      focusNode: _editorFocusNode,
+      onPrint: _printNote,
     );
   }
 
@@ -1151,55 +1150,6 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
             ],
           );
         },
-      ),
-    );
-  }
-
-  Widget _buildQuillToolbar(BuildContext context, bool isCompact) {
-    final isPhoneLandscape = Responsive.isPhoneLandscape(context);
-    final baseOptions = HeliumQuillToolbar.defaultButtonOptions(context);
-    return HeliumQuillToolbar(
-      controller: _quillController,
-      config: QuillSimpleToolbarConfig(
-        toolbarRunSpacing: 0,
-        toolbarSectionSpacing: 8,
-        customButtons: [
-          QuillToolbarCustomButtonOptions(
-            icon: const Icon(Icons.print_outlined),
-            tooltip: 'Print',
-            onPressed: _printNote,
-          ),
-        ],
-        showDividers: !isCompact,
-        showFontSize: !isCompact,
-        showHeaderStyle: !isCompact,
-        showInlineCode: !isCompact,
-        showClearFormat: !isCompact,
-        showStrikeThrough: !isCompact,
-        showAlignmentButtons: !isCompact,
-        showLeftAlignment: !isCompact,
-        showCenterAlignment: !isCompact,
-        showRightAlignment: !isCompact,
-        showCodeBlock: !isCompact,
-        showUnderLineButton: !isCompact,
-        showIndent: !isCompact,
-        showSubscript: !isCompact,
-        showSuperscript: !isCompact,
-        showBackgroundColorButton: !isCompact,
-        showRedo: !isCompact,
-        showSearchButton: !isPhoneLandscape,
-        buttonOptions: QuillSimpleToolbarButtonOptions(
-          search: QuillToolbarSearchButtonOptions(
-            customOnPressedCallback: (_) async {
-              setState(() {
-                _showSearch = !_showSearch;
-              });
-            },
-          ),
-          base: baseOptions.base,
-          color: baseOptions.color,
-          backgroundColor: baseOptions.backgroundColor,
-        ),
       ),
     );
   }

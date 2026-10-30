@@ -14,6 +14,7 @@ class GradeBloc extends Bloc<GradeEvent, GradeState> {
   GradeBloc({required this.gradeRepository, required this.courseRepository})
     : super(GradeInitial()) {
     on<FetchGradeScreenDataEvent>(_onFetchGrades);
+    on<CalculateNeededGradeEvent>(_onCalculateNeededGrade);
     on<ResetGradesEvent>((event, emit) => emit(GradeInitial()));
   }
 
@@ -36,6 +37,41 @@ class GradeBloc extends Bloc<GradeEvent, GradeState> {
       emit(GradesError(message: e.message));
     } catch (e) {
       emit(GradesError(message: HeliumException.unexpectedError));
+    }
+  }
+
+  Future<void> _onCalculateNeededGrade(
+    CalculateNeededGradeEvent event,
+    Emitter<GradeState> emit,
+  ) async {
+    emit(NeededGradeCalculating());
+
+    try {
+      final result = await gradeRepository.getNeededGrade(
+        courseId: event.courseId,
+        targetId: event.targetId,
+        desiredGrade: event.desiredGrade,
+      );
+      emit(NeededGradeCalculated(
+        courseId: event.courseId,
+        targetId: event.targetId,
+        desiredGrade: event.desiredGrade,
+        result: result,
+      ));
+    } on HeliumException catch (e) {
+      emit(NeededGradeError(
+        courseId: event.courseId,
+        targetId: event.targetId,
+        desiredGrade: event.desiredGrade,
+        message: e.message,
+      ));
+    } catch (e) {
+      emit(NeededGradeError(
+        courseId: event.courseId,
+        targetId: event.targetId,
+        desiredGrade: event.desiredGrade,
+        message: HeliumException.unexpectedError,
+      ));
     }
   }
 }

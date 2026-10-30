@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_quill/flutter_quill.dart';
 import 'package:heliumapp/data/models/planner/note_model.dart';
 import 'package:heliumapp/domain/linked_note_saver.dart';
@@ -9,13 +11,24 @@ mixin LinkedNoteFormFields on BasicFormController {
   int? linkedNoteId;
   String? linkedNoteVersion;
   bool notesEdited = false;
-  String? _conflictingNoteVersion;
+  NoteModel? _conflictingNote;
+  StreamSubscription<DocChange>? _noteEdits;
+
+  /// The note to open in the Notebook: the newer one when a save lost to it.
+  int? get noteIdToOpen => _conflictingNote?.id ?? linkedNoteId;
+
+  /// Whether overwriting the newer note with this form's would delete it,
+  /// leaving it with no content and no title.
+  bool get overwriteDeletesNote =>
+      _conflictingNote != null &&
+      _conflictingNote!.title.trim().isEmpty &&
+      buildNotesDelta(notesController) == null;
 
   void loadLinkedNote(NoteModel? note) {
     linkedNoteId = note?.id;
     linkedNoteVersion = note?.version;
     notesEdited = false;
-    _conflictingNoteVersion = null;
+    _conflictingNote = null;
     notesController.dispose();
     notesController = heliumQuillController(
       document: note?.content != null
@@ -25,12 +38,22 @@ mixin LinkedNoteFormFields on BasicFormController {
     );
   }
 
+  void listenForNoteEdits() {
+    _noteEdits?.cancel();
+    _noteEdits = notesController.document.changes.listen(_onNoteChange);
+  }
+
+  void disposeLinkedNote() {
+    _noteEdits?.cancel();
+    notesController.dispose();
+  }
+
   void applyLinkedNoteSave(LinkedNoteSave? save) {
-    _conflictingNoteVersion = null;
-    if (save == null) return;
+    _conflictingNote = null;
+    if (save == null || save.failure != null) return;
 
     if (save.isConflict) {
-      _conflictingNoteVersion = save.note?.version;
+      _conflictingNote = save.note;
       return;
     }
     linkedNoteId = save.noteId;
@@ -40,7 +63,18 @@ mixin LinkedNoteFormFields on BasicFormController {
     notesEdited = false;
   }
 
-  String? linkedNoteVersionToSend({required bool overwrite}) => overwrite
-      ? _conflictingNoteVersion ?? linkedNoteVersion
-      : linkedNoteVersion;
+  LinkedNoteEdit linkedNoteEdit({required bool overwrite}) => LinkedNoteEdit(
+    noteId: overwrite ? noteIdToOpen : linkedNoteId,
+    version: overwrite
+        ? _conflictingNote?.version ?? linkedNoteVersion
+        : linkedNoteVersion,
+    edited: notesEdited,
+    content: buildNotesDelta(notesController),
+  );
+
+  void _onNoteChange(DocChange change) {
+    if (!isNoteEdited(change)) return;
+    markChanged();
+    notesEdited = true;
+  }
 }
