@@ -493,7 +493,9 @@ jobs:
           APP_STORE_CONNECT_TEAM_ID: ${{ secrets.APP_STORE_CONNECT_TEAM_ID }}
         run: |
           cd ios
-          bundle exec fastlane deploy_testflight ipa_path:../build/ios/ipa/Helium.ipa
+          bundle exec fastlane deploy_testflight ipa_path:../build/ios/ipa/Helium.ipa \
+            version:${{ steps.ci-version.outputs.build-name }} \
+            build_number:${{ steps.ci-version.outputs.build-number }}
 
       - name: Cleanup API key
         if: always()

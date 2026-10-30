@@ -27,6 +27,7 @@ import 'package:heliumapp/presentation/features/settings/views/import_export_scr
 import 'package:heliumapp/presentation/features/settings/views/preferences_screen.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/core/base_event.dart';
 import 'package:heliumapp/presentation/features/shared/controllers/basic_form_controller.dart';
+import 'package:heliumapp/presentation/ui/components/account_email_field.dart';
 import 'package:heliumapp/presentation/ui/components/helium_elevated_button.dart';
 import 'package:heliumapp/presentation/ui/components/helium_icon_button.dart';
 import 'package:heliumapp/presentation/ui/components/label_and_text_form_field.dart';
@@ -43,7 +44,6 @@ import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/platform_behavior.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:package_info_plus/package_info_plus.dart';
-import 'package:sign_in_button/sign_in_button.dart';
 import 'package:heliumapp/utils/url_helpers.dart';
 
 enum SettingsSubScreen {
@@ -639,31 +639,9 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const SizedBox(height: 12),
-              LabelAndTextFormField(
-                initialValue: _email,
-                keyboardType: TextInputType.emailAddress,
-                readOnly: true,
-                prefixIcon: Icons.email_outlined,
-                inlineSuffix: _hasOAuthProviders
-                    ? Padding(
-                        padding: const EdgeInsets.only(right: 6),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            for (final provider in _oauthProviders)
-                              if (_buildProviderBadge(provider) case final badge?) ...[
-                                const SizedBox(width: 6),
-                                Theme(
-                                  data: Theme.of(context).copyWith(
-                                    materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                                  ),
-                                  child: badge,
-                                ),
-                              ],
-                          ],
-                        ),
-                      )
-                    : null,
+              AccountEmailField(
+                email: _email,
+                oauthProviders: _oauthProviders,
               ),
               if (_emailChanging != null && _emailChanging!.isNotEmpty) ...[
                 const SizedBox(height: 8),
@@ -677,36 +655,6 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
           ),
         ],
       ),
-    );
-  }
-
-  Widget? _buildProviderBadge(String provider) {
-    // Google's SignInButton asserts mini != true; use SignInButtonBuilder
-    // directly with the package's own Google G image asset to match the mini
-    // style that Apple and Microsoft render via SignInButton(mini: true).
-    if (provider == 'google') {
-      return IgnorePointer(
-        child: SignInButtonBuilder(
-          text: '',
-          mini: true,
-          backgroundColor: Colors.white,
-          onPressed: () {},
-          image: Image.asset(
-            'assets/logos/google_light.png',
-            package: 'sign_in_button',
-            height: 24,
-          ),
-        ),
-      );
-    }
-    final button = switch (provider) {
-      'apple' => Buttons.apple,
-      'microsoft' => Buttons.microsoft,
-      _ => null,
-    };
-    if (button == null) return null;
-    return IgnorePointer(
-      child: SignInButton(button, mini: true, onPressed: () {}),
     );
   }
 

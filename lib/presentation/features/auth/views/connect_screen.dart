@@ -1,12 +1,15 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
+import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/data/models/auth/oauth_authorization_model.dart';
 import 'package:heliumapp/presentation/core/views/base_page_screen_state.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_bloc.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_event.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_state.dart';
+import 'package:heliumapp/presentation/ui/components/account_email_field.dart';
 import 'package:heliumapp/presentation/ui/components/helium_elevated_button.dart';
 import 'package:heliumapp/presentation/ui/feedback/error_card.dart';
 import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
@@ -23,10 +26,11 @@ import 'package:heliumapp/utils/url_helpers.dart';
 class ConnectScreen extends StatefulWidget {
   static const String allowButtonKey = 'connect_allow_button';
   static const String denyButtonKey = 'connect_deny_button';
+  static const String switchAccountButtonKey = 'connect_switch_account_button';
 
-  /// The consent's height with a two-line heading (measured; 377 with one),
-  /// so moving between loading, consent, and error doesn't resize the card.
-  static const double stateAreaMinHeight = 400;
+  /// About the consent's height, account line included, so moving between
+  /// loading, consent, and error doesn't resize the card.
+  static const double stateAreaMinHeight = 445;
 
   /// The OAuth authorization request's query string, passed to the API as is.
   final String query;
@@ -76,6 +80,13 @@ class _ConnectScreenState extends BasePageScreenState<ConnectScreen> {
             setState(() {
               _authorization = state.authorization;
             });
+          } else if (state is AuthLoggedOut) {
+            context.go(
+              NextRoute.carry(
+                AppRoute.signinScreen,
+                '${AppRoute.connectScreen}?${widget.query}',
+              ),
+            );
           } else if (state is AuthAuthorizationDecided) {
             _returnToClient(state.redirectUri);
           } else if (state is AuthAuthorizationRejected) {
@@ -183,7 +194,42 @@ class _ConnectScreenState extends BasePageScreenState<ConnectScreen> {
         textAlign: TextAlign.center,
       ),
 
-      const SizedBox(height: 25),
+      if (authorization.userEmail case final userEmail?) ...[
+        const SizedBox(height: 16),
+
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 30),
+          child: Column(
+            children: [
+              AccountEmailField(
+                email: userEmail,
+                oauthProviders: authorization.userOAuthProviders,
+              ),
+
+              const SizedBox(height: 4),
+
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  TextButton(
+                    key: const Key(ConnectScreen.switchAccountButtonKey),
+                    onPressed: isSubmitting ? null : _switchAccount,
+                    child: Text(
+                      'Not you?',
+                      style: AppStyles.standardBodyText(
+                        context,
+                      ).copyWith(color: context.colorScheme.primary),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+
+      ],
+
+      const SizedBox(height: 16),
 
       Align(
         alignment: Alignment.centerLeft,
@@ -241,7 +287,7 @@ class _ConnectScreenState extends BasePageScreenState<ConnectScreen> {
         onPressed: () => _decide(allow: true),
       ),
 
-      const SizedBox(height: 16),
+      const SizedBox(height: 8),
 
       TextButton(
         key: const Key(ConnectScreen.denyButtonKey),
@@ -317,6 +363,14 @@ class _ConnectScreenState extends BasePageScreenState<ConnectScreen> {
     context.read<AuthBloc>().add(
       DecideAuthorizationEvent(query: widget.query, allow: allow),
     );
+  }
+
+  void _switchAccount() {
+    setState(() {
+      isSubmitting = true;
+    });
+
+    context.read<AuthBloc>().add(LogoutEvent());
   }
 
   void _returnToClient(String redirectUri) {

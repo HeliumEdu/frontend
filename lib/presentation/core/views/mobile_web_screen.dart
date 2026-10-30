@@ -135,7 +135,7 @@ class _MobileWebScreenState extends BasePageScreenState<MobileWebScreen> {
 
     if (isIOS) return [iosButton];
     if (isAndroid) return [androidButton];
-    return [iosButton, const SizedBox(height: 10), androidButton];
+    return [iosButton, const SizedBox(height: 8), androidButton];
   }
 
   Widget _buildStoreButton({
