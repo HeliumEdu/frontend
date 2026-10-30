@@ -1226,8 +1226,12 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
       padding: const EdgeInsets.only(bottom: 12),
       child: ShadowContainer(
         padding: EdgeInsets.only(
-          left: isMobile ? 6 : 8,
-          right: isMobile ? 6 : 8,
+          left: isMobile
+              ? AppConstants.denseContainerContentInset
+              : AppConstants.containerContentInset,
+          right: isMobile
+              ? AppConstants.denseContainerContentInset
+              : AppConstants.containerContentInset,
           top: 4,
           bottom: 4,
         ),

@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:heliumapp/core/helium_exception.dart';
 import 'package:heliumapp/data/models/planner/request/event_request_model.dart';
 import 'package:heliumapp/data/models/planner/request/homework_request_model.dart';
+import 'package:heliumapp/domain/linked_note_saver.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/planneritem_bloc.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/planneritem_event.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/planneritem_state.dart';
@@ -582,10 +583,11 @@ void main() {
               courseId: courseId,
               homeworkId: homeworkId,
               request: request,
-              linkedNoteId: 3,
-              linkedNoteVersion: 'note-v1',
-              noteContent: {'ops': []},
-              noteEdited: true,
+              linkedNote: const LinkedNoteEdit(
+                noteId: 3,
+                version: 'note-v1',
+                content: {'ops': []},
+              ),
             ),
           ),
           expect: () => [
@@ -635,9 +637,11 @@ void main() {
               courseId: courseId,
               homeworkId: homeworkId,
               request: request,
-              linkedNoteId: 3,
-              noteContent: {'ops': []},
-              noteEdited: false,
+              linkedNote: const LinkedNoteEdit(
+                noteId: 3,
+                edited: false,
+                content: {'ops': []},
+              ),
             ),
           ),
           expect: () => [

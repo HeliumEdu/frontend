@@ -1,6 +1,7 @@
 import 'package:heliumapp/data/models/planner/homework_model.dart';
 import 'package:heliumapp/data/models/planner/request/event_request_model.dart';
 import 'package:heliumapp/data/models/planner/request/homework_request_model.dart';
+import 'package:heliumapp/domain/linked_note_saver.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/core/base_event.dart';
 
 abstract class PlannerItemEvent extends BaseEvent {
@@ -51,24 +52,18 @@ class UpdateEventEvent extends PlannerItemEvent {
   final int id;
   final EventRequestModel request;
   final bool advanceNavOnSuccess;
-  final int? linkedNoteId;
-  final Map<String, dynamic>? noteContent;
+  final LinkedNoteEdit linkedNote;
   final bool redirectToNotebook;
   final String? version;
-  final String? linkedNoteVersion;
-  final bool noteEdited;
 
   UpdateEventEvent({
     required super.origin,
     required this.id,
     required this.request,
     this.advanceNavOnSuccess = false,
-    this.linkedNoteId,
-    this.noteContent,
+    this.linkedNote = const LinkedNoteEdit(),
     this.redirectToNotebook = false,
     this.version,
-    this.linkedNoteVersion,
-    this.noteEdited = true,
   });
 }
 
@@ -120,12 +115,9 @@ class UpdateHomeworkEvent extends PlannerItemEvent {
   final int homeworkId;
   final HomeworkRequestModel request;
   final bool advanceNavOnSuccess;
-  final int? linkedNoteId;
-  final Map<String, dynamic>? noteContent;
+  final LinkedNoteEdit linkedNote;
   final bool redirectToNotebook;
   final String? version;
-  final String? linkedNoteVersion;
-  final bool noteEdited;
 
   final HomeworkModel? previousHomework;
 
@@ -136,12 +128,9 @@ class UpdateHomeworkEvent extends PlannerItemEvent {
     required this.homeworkId,
     required this.request,
     this.advanceNavOnSuccess = false,
-    this.linkedNoteId,
-    this.noteContent,
+    this.linkedNote = const LinkedNoteEdit(),
     this.redirectToNotebook = false,
     this.version,
-    this.linkedNoteVersion,
-    this.noteEdited = true,
     this.previousHomework,
   });
 }

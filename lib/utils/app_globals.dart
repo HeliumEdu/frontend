@@ -36,17 +36,22 @@ class AppConstants {
   static const leftPanelDialogWidth = 500.0;
   static const notificationsDialogWidth = 420.0;
   static const centeredDialogWidth = 550.0;
-  static const basicCardInset = 12.0;
 
   static const pageHeaderPadding = EdgeInsets.fromLTRB(12, 6, 12, 2);
   static const dialogHeaderPadding = EdgeInsets.fromLTRB(12, 6, 12, 6);
   static const contentTopInset = 8.0;
-  static const pageContentPadding = EdgeInsets.fromLTRB(
-    12,
-    contentTopInset,
-    12,
-    0,
-  );
+
+  /// Screen edge to bordered containers, on phones.
+  static const pageEdgeInset = 8.0;
+  /// Screen edge to page content, on tablets and desktops.
+  static const wideScreenPageEdgeInset = 24.0;
+  /// Screen edge to content that isn't in a bordered container, on phones.
+  static const unboxedContentInset = 16.0;
+  /// Border to content, inside bordered containers and cards.
+  static const containerContentInset = 12.0;
+  /// Border to content where space is tight, like the Planner's header.
+  static const denseContainerContentInset = 6.0;
+
   static const dialogContentPadding = EdgeInsets.fromLTRB(
     20,
     contentTopInset,

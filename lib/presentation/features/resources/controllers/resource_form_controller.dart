@@ -20,6 +20,6 @@ class ResourceFormController extends BasicFormController
     urlController.dispose();
     priceController.dispose();
     urlFocusNode.dispose();
-    notesController.dispose();
+    disposeLinkedNote();
   }
 }

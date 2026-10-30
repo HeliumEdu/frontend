@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:heliumapp/utils/app_globals.dart';
 
 class ResponsiveBreakpoints {
   static const double slimMobile = 390;
@@ -41,6 +42,15 @@ class Responsive {
   /// This includes both mobile portrait and phone landscape orientations.
   static bool useCompactLayout(BuildContext context) {
     return isMobile(context) || isPhoneLandscape(context);
+  }
+
+  /// On phones, the inset to a page's bordered containers, or to its content
+  /// when it isn't [boxed]; on wider screens, the wide-screen inset.
+  static double pageEdgeInset(BuildContext context, {bool boxed = true}) {
+    if (!useCompactLayout(context)) return AppConstants.wideScreenPageEdgeInset;
+    return boxed
+        ? AppConstants.pageEdgeInset
+        : AppConstants.unboxedContentInset;
   }
 
   static bool isTablet(BuildContext context) {

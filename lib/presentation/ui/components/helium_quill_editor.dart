@@ -199,7 +199,7 @@ class _HeliumQuillEditorState extends State<HeliumQuillEditor> {
       },
       child: Semantics(
         label: widget.semanticsLabel,
-        textField: true,
+        textField: !widget.controller.readOnly,
         multiline: true,
         onTap: _effectiveFocusNode.requestFocus,
         child: QuillEditor.basic(

@@ -15,10 +15,10 @@ import 'package:heliumapp/presentation/features/shared/widgets/flow/multi_step_c
 import 'package:heliumapp/data/models/planner/planner_item_base_model.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/core/base_event.dart';
 import 'package:heliumapp/domain/linked_note_saver.dart';
-import 'package:heliumapp/presentation/ui/feedback/conflict_dialog.dart';
+import 'package:heliumapp/presentation/features/shared/widgets/core/linked_note_form.dart';
 import 'package:heliumapp/presentation/ui/feedback/discard_changes_scope.dart';
 import 'package:heliumapp/presentation/ui/components/helium_icon_button.dart';
-import 'package:heliumapp/utils/deep_link_helpers.dart';
+import 'package:heliumapp/presentation/features/notebook/views/note_add_screen.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:heliumapp/utils/snack_bar_helpers.dart';
 import 'package:logging/logging.dart';
@@ -369,36 +369,42 @@ class _PlannerItemAddScreenState
     PlannerItemBaseModel? savedItem,
     LinkedNoteSave? linkedNoteSave,
   }) {
-    _detailsKey.currentState?.resetSubmitting();
     setState(() => isSubmitting = false);
-    _detailsKey.currentState?.applyConflict(
-      savedItem: savedItem,
-      linkedNoteSave: linkedNoteSave,
-    );
-    resolveFormConflict(
+    resolveLinkedNoteConflict(
       context,
       _detailsKey.currentState,
-      canKeepEditing: linkedNoteSave?.isConflict ?? false,
+      savedEntity: savedItem,
+      linkedNoteSave: linkedNoteSave,
     );
   }
 
-  (PlannerItemBaseModel, LinkedNoteSave)? _savedWithNoteConflict(
+  (PlannerItemBaseModel, LinkedNoteSave)? _savedWithUnsavedNote(
     PlannerItemState state,
   ) =>
       switch (state) {
+        EventCreated(
+          origin: EventOrigin.subScreen,
+          :final event,
+          :final linkedNoteSave?,
+        ) ||
         EventUpdated(
           origin: EventOrigin.subScreen,
           :final event,
           :final linkedNoteSave?,
         )
-            when linkedNoteSave.isConflict =>
+            when !linkedNoteSave.isSaved =>
           (event, linkedNoteSave),
+        HomeworkCreated(
+          origin: EventOrigin.subScreen,
+          :final homework,
+          :final linkedNoteSave?,
+        ) ||
         HomeworkUpdated(
           origin: EventOrigin.subScreen,
           :final homework,
           :final linkedNoteSave?,
         )
-            when linkedNoteSave.isConflict =>
+            when !linkedNoteSave.isSaved =>
           (homework, linkedNoteSave),
         _ => null,
       };
@@ -426,13 +432,28 @@ class _PlannerItemAddScreenState
             if (!isShowingErrorCard) {
               showSnackBar(context, state.message!, type: SnackType.error);
             }
+            if (state.linkedNoteSave case final linkedNoteSave?) {
+              _detailsKey.currentState?.linkedNoteFields.applyLinkedNoteSave(
+                linkedNoteSave,
+              );
+            }
             _detailsKey.currentState?.resetSubmitting();
             setState(() => isSubmitting = false);
           } else if (state is PlannerItemConflict &&
               state.origin == EventOrigin.subScreen) {
             _resolveConflict(linkedNoteSave: state.linkedNoteSave);
-          } else if (_savedWithNoteConflict(state)
+          } else if (_savedWithUnsavedNote(state)
               case (final savedItem, final linkedNoteSave)) {
+            if (state is EventCreated || state is HomeworkCreated) {
+              setState(() {
+                _currentEntityId = savedItem.id;
+                _currentIsEvent = state is EventCreated;
+              });
+              _useCreatedEntityRoute(
+                isEvent: state is EventCreated,
+                entityId: savedItem.id,
+              );
+            }
             _resolveConflict(
               savedItem: savedItem,
               linkedNoteSave: linkedNoteSave,
@@ -450,6 +471,20 @@ class _PlannerItemAddScreenState
               state is EventCreated ||
               state is EventUpdated) {
             state as BaseEntityState;
+
+            if (state
+                case EventUpdated(
+                      linkedNoteSave: LinkedNoteSave(isRecreated: true),
+                    ) ||
+                    HomeworkUpdated(
+                      linkedNoteSave: LinkedNoteSave(isRecreated: true),
+                    )) {
+              showSnackBar(
+                context,
+                noteRecreatedMessage,
+                useRootMessenger: true,
+              );
+            }
 
             final isClone =
                 (state is EventCreated && state.isClone) ||
@@ -501,29 +536,12 @@ class _PlannerItemAddScreenState
               _detailsKey.currentState?.resetSubmitting();
               setState(() => isSubmitting = false);
 
-              // The save is the user's explicit intent — release the
-              // dirty-guard before navigating so it doesn't intercept the
-              // URL change with a "discard changes?" prompt.
-              DirtyDialogRegistry.releaseActive();
-
-              if (linkedNoteId != null) {
-                navigateAndClearStack(
-                  context,
-                  '${AppRoute.notebookScreen}/$linkedNoteId',
-                );
-              } else if (state.isEvent) {
-                navigateAndClearStack(
-                  context,
-                  '${AppRoute.notebookScreen}/new'
-                  '?${DeepLinkParam.linkEventId}=${state.entityId}',
-                );
-              } else {
-                navigateAndClearStack(
-                  context,
-                  '${AppRoute.notebookScreen}/new'
-                  '?${DeepLinkParam.linkHomeworkId}=${state.entityId}',
-                );
-              }
+              openInNotebook(
+                context,
+                noteId: linkedNoteId,
+                eventId: state.isEvent ? state.entityId : null,
+                homeworkId: state.isEvent ? null : state.entityId,
+              );
             } else {
               _log.info(
                 'Planner item saved normally (entityId=${state.entityId}, isEvent=${state.isEvent}, isNew=${state is HomeworkCreated || state is EventCreated})',
@@ -547,15 +565,7 @@ class _PlannerItemAddScreenState
               });
 
               if (wasCreate) {
-                // New entity minted its real ID — the URL prefix that the
-                // dirty-dialog guard owns has changed (`/<entity>/new` →
-                // `/<entity>/<id>`), so swap the registration before
-                // `_navigateAfterSave` triggers the URL update.
-                if (_registeredPrefix != null) {
-                  DirtyDialogRegistry.unregister(_registeredPrefix!);
-                }
-                _registerDirtyGuard();
-                _replaceUrlForEntity(
+                _useCreatedEntityRoute(
                   isEvent: state.isEvent,
                   entityId: state.entityId,
                 );
@@ -567,6 +577,17 @@ class _PlannerItemAddScreenState
         },
       ),
     ];
+  }
+
+  /// Moves the screen from `/<entity>/new` to the new entity's own path. The
+  /// URL prefix the dirty-dialog guard owns changes with it, so the guard is
+  /// re-registered first.
+  void _useCreatedEntityRoute({required bool isEvent, required int entityId}) {
+    if (_registeredPrefix != null) {
+      DirtyDialogRegistry.unregister(_registeredPrefix!);
+    }
+    _registerDirtyGuard();
+    _replaceUrlForEntity(isEvent: isEvent, entityId: entityId);
   }
 
   /// Replaces the URL with the canonical entity path now that a real ID

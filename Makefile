@@ -176,7 +176,8 @@ build-ios: install
 	flutter build ios --debug --no-codesign
 
 build-ios-release: install
-	flutter build ipa --release --export-options-plist=ios/ExportOptions.plist --obfuscate --split-debug-info=$(SYMBOLS_DIR) $(RELEASE_ARGS) $(BUILD_OVERRIDE_ARGS)
+	flutter build ipa --release --no-codesign --obfuscate --split-debug-info=$(SYMBOLS_DIR) $(RELEASE_ARGS) $(BUILD_OVERRIDE_ARGS)
+	./bin/export-ios-signed.sh
 
 build-web: install
 	flutter build web --release --source-maps --no-tree-shake-icons --pwa-strategy=none $(RELEASE_ARGS)

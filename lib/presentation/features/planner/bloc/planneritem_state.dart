@@ -60,7 +60,14 @@ class PlannerItemsLoading extends PlannerItemState {
 }
 
 class PlannerItemsError extends PlannerItemState {
-  PlannerItemsError({required super.origin, required super.message});
+  /// The linked note's save, when it went through beside the failed item.
+  final LinkedNoteSave? linkedNoteSave;
+
+  PlannerItemsError({
+    required super.origin,
+    required super.message,
+    this.linkedNoteSave,
+  });
 }
 
 mixin PlannerItemScreenDataIdentity {
@@ -122,6 +129,7 @@ class EventCreated extends EventEntityState {
   final bool isClone;
   final bool redirectToNotebook;
   final int? linkedNoteId;
+  final LinkedNoteSave? linkedNoteSave;
 
   EventCreated({
     required super.origin,
@@ -132,6 +140,7 @@ class EventCreated extends EventEntityState {
     this.isClone = false,
     this.redirectToNotebook = false,
     this.linkedNoteId,
+    this.linkedNoteSave,
   });
 }
 
@@ -166,6 +175,7 @@ class HomeworkCreated extends HomeworkEntityState {
   final bool isClone;
   final bool redirectToNotebook;
   final int? linkedNoteId;
+  final LinkedNoteSave? linkedNoteSave;
 
   HomeworkCreated({
     required super.origin,
@@ -176,6 +186,7 @@ class HomeworkCreated extends HomeworkEntityState {
     this.isClone = false,
     this.redirectToNotebook = false,
     this.linkedNoteId,
+    this.linkedNoteSave,
   });
 }
 

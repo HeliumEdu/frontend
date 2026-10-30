@@ -45,6 +45,7 @@ class ApiUrl {
 
   // Grades
   static const plannerGradesUrl = '/planner/grades/';
+  static const plannerGradesNeededUrl = '/planner/grades/needed/';
 
   // External Calendars & Feeds
   static const feedPrivateEnableUrl = '/feed/private/enable/';

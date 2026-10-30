@@ -41,7 +41,7 @@ class PlannerItemFormController extends BasicFormController
     titleController.dispose();
     gradeController.dispose();
     gradeFocusNode.dispose();
-    notesController.dispose();
+    disposeLinkedNote();
   }
 
   void _onGradeFocusChange() {

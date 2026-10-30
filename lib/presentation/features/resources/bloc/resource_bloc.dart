@@ -236,10 +236,16 @@ class ResourceBloc extends Bloc<ResourceEvent, ResourceState> {
         groupId: event.resourceGroupId,
         request: event.request,
       );
+      final linkedNoteSave = await _linkedNoteSaver.saveForNewEntity(
+        event.noteContent,
+        resourceId: resource.id,
+      );
       emit(ResourceCreated(
         origin: event.origin,
         resource: resource,
         redirectToNotebook: event.redirectToNotebook,
+        linkedNoteId: linkedNoteSave.noteId,
+        linkedNoteSave: linkedNoteSave,
       ));
     } on HeliumException catch (e) {
       emit(ResourcesError(origin: event.origin, message: e.message));
@@ -259,26 +265,29 @@ class ResourceBloc extends Bloc<ResourceEvent, ResourceState> {
   ) async {
     emit(ResourcesLoading(origin: event.origin));
     try {
-      final saved = await LinkedNoteSaver.saveWithEntity(
+      final saved = await _linkedNoteSaver.saveWithEntity(
         resourceRepository.updateResource(
           groupId: event.resourceGroupId,
           resourceId: event.resourceId,
           request: event.request,
           version: event.version,
         ),
-        _linkedNoteSaver.save(
-          linkedNoteId: event.linkedNoteId,
-          linkedNoteVersion: event.linkedNoteVersion,
-          noteEdited: event.noteEdited,
-          noteContent: event.noteContent,
-          resourceId: event.resourceId,
-        ),
+        event.linkedNote,
+        resourceId: event.resourceId,
       );
       final conflict = saved.entityConflict;
       if (conflict != null) {
         emit(ResourceConflict(
           origin: event.origin,
           latest: ResourceModel.fromJson(conflict.latest),
+          linkedNoteSave: saved.note,
+        ));
+        return;
+      }
+      if (saved.entityFailure case final failure?) {
+        emit(ResourcesError(
+          origin: event.origin,
+          message: failure.message,
           linkedNoteSave: saved.note,
         ));
         return;

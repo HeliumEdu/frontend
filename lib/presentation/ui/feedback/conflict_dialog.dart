@@ -6,15 +6,32 @@ import 'package:heliumapp/utils/responsive_helpers.dart';
 
 enum ConflictResolution { keepEditing, loadLatest, overwrite }
 
+class ConflictWording {
+  final String title;
+  final String message;
+  final String overwriteLabel;
+
+  const ConflictWording({
+    this.title = 'Changed on Another Device',
+    this.message =
+        'This was changed on another device after you opened it. Load the '
+        'latest version and discard your changes, or overwrite it with your '
+        'changes?',
+    this.overwriteLabel = 'Overwrite',
+  });
+}
+
 Future<void> resolveConflict(
   BuildContext context, {
   required VoidCallback onLoadLatest,
   required VoidCallback onOverwrite,
   bool canKeepEditing = false,
+  ConflictWording wording = const ConflictWording(),
 }) async {
   final resolution = await confirmConflictResolution(
     context,
     canKeepEditing: canKeepEditing,
+    wording: wording,
   );
   if (!context.mounted) return;
 
@@ -62,6 +79,7 @@ Future<void> resolveFormConflict(
 Future<ConflictResolution> confirmConflictResolution(
   BuildContext context, {
   bool canKeepEditing = false,
+  ConflictWording wording = const ConflictWording(),
 }) async {
   final result = await showDialog<ConflictResolution>(
     context: context,
@@ -70,22 +88,23 @@ Future<ConflictResolution> confirmConflictResolution(
       canPop: false,
       child: AlertDialog(
         title: Text(
-          'Changed on Another Device',
+          wording.title,
           style: AppStyles.pageTitle(dialogContext),
         ),
         content: SizedBox(
           width: Responsive.getDialogWidth(dialogContext),
           child: Text(
-            'This was changed on another device after you opened it. Load the '
-            'latest version and discard your changes, or overwrite it with '
-            'your changes?',
+            wording.message,
             style: AppStyles.standardBodyText(dialogContext),
           ),
         ),
         actions: [
           SizedBox(
             width: Responsive.getDialogWidth(dialogContext),
-            child: _ConflictActions(canKeepEditing: canKeepEditing),
+            child: _ConflictActions(
+              canKeepEditing: canKeepEditing,
+              overwriteLabel: wording.overwriteLabel,
+            ),
           ),
         ],
       ),
@@ -96,8 +115,12 @@ Future<ConflictResolution> confirmConflictResolution(
 
 class _ConflictActions extends StatelessWidget {
   final bool canKeepEditing;
+  final String overwriteLabel;
 
-  const _ConflictActions({required this.canKeepEditing});
+  const _ConflictActions({
+    required this.canKeepEditing,
+    required this.overwriteLabel,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -113,7 +136,7 @@ class _ConflictActions extends StatelessWidget {
         resolution: ConflictResolution.loadLatest,
       ),
       _ConflictButton(
-        text: 'Overwrite',
+        text: overwriteLabel,
         resolution: ConflictResolution.overwrite,
         backgroundColor: context.colorScheme.error,
       ),

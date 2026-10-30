@@ -11,16 +11,23 @@ class ResetNotesEvent extends NoteEvent {
   ResetNotesEvent() : super(origin: EventOrigin.bloc);
 }
 
-class FetchNotesEvent extends NoteEvent {
-  final String? search;
-  final String? linkedEntityType;
+class SearchNoteContentEvent extends NoteEvent {
+  final String search;
+  final bool shownOnCalendar;
+
+  SearchNoteContentEvent({
+    required super.origin,
+    required this.search,
+    this.shownOnCalendar = false,
+  });
+}
+
+class FetchNotebookScreenDataEvent extends NoteEvent {
   final bool shownOnCalendar;
   final bool forceRefresh;
 
-  FetchNotesEvent({
+  FetchNotebookScreenDataEvent({
     required super.origin,
-    this.search,
-    this.linkedEntityType,
     this.shownOnCalendar = false,
     this.forceRefresh = false,
   });

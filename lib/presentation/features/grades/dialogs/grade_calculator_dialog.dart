@@ -1,9 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:heliumapp/config/analytics_event.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/data/models/auth/user_settings_model.dart';
 import 'package:heliumapp/data/models/planner/grade_category_model.dart';
 import 'package:heliumapp/data/models/planner/homework_series_item_model.dart';
+import 'package:heliumapp/data/models/planner/needed_grade_model.dart';
+import 'package:heliumapp/presentation/features/grades/bloc/grade_bloc.dart';
+import 'package:heliumapp/presentation/features/grades/bloc/grade_event.dart';
+import 'package:heliumapp/presentation/features/grades/bloc/grade_state.dart';
 import 'package:heliumapp/presentation/ui/components/course_title_label.dart';
 import 'package:heliumapp/presentation/ui/feedback/empty_card.dart';
 import 'package:heliumapp/presentation/ui/feedback/error_container.dart';
@@ -25,6 +30,7 @@ import 'package:sentry_flutter/sentry_flutter.dart';
 /// classes) or on one remaining assignment (points-based classes) to hit a
 /// desired overall grade. Lives inside [GradeCalculatorContainer] as tab 1.
 class GradeCalculatorDialog extends StatefulWidget {
+  final int courseId;
   final List<GradeCategoryModel> categories;
   final double currentOverallGrade;
   final String courseTitle;
@@ -32,15 +38,12 @@ class GradeCalculatorDialog extends StatefulWidget {
   final UserSettingsModel userSettings;
   final double defaultDesiredGradeBoost;
   final List<HomeworkSeriesItemModel> ungradedAssignments;
-  final double pointsEarned;
-  final double pointsPossible;
 
   const GradeCalculatorDialog({
     super.key,
+    required this.courseId,
     required this.categories,
     required this.ungradedAssignments,
-    required this.pointsEarned,
-    required this.pointsPossible,
     required this.currentOverallGrade,
     required this.courseTitle,
     required this.courseColor,
@@ -55,9 +58,9 @@ class GradeCalculatorDialog extends StatefulWidget {
 class _GradeCalculatorDialogState extends State<GradeCalculatorDialog> {
   int? _selectedTargetId;
   final TextEditingController _desiredGradeController = TextEditingController();
-  NeededGradeResult? _result;
-  HomeworkSeriesItemModel? _resultAssignment;
+  NeededGradeModel? _result;
   String? _validationErrorMessage;
+  bool _isCalculating = false;
 
   bool get _hasExplicitWeights => widget.categories.any((cat) => cat.weight > 0);
 
@@ -98,7 +101,6 @@ class _GradeCalculatorDialogState extends State<GradeCalculatorDialog> {
     if (_selectedTargetId == null) {
       setState(() {
         _result = null;
-        _resultAssignment = null;
         _validationErrorMessage = _hasExplicitWeights ? 'Select a category' : 'Select an assignment';
       });
       return;
@@ -108,62 +110,66 @@ class _GradeCalculatorDialogState extends State<GradeCalculatorDialog> {
     if (desiredGrade == null || desiredGrade < 0 || desiredGrade > 100) {
       setState(() {
         _result = null;
-        _resultAssignment = null;
         _validationErrorMessage = 'Enter a valid grade between 0 and 100';
       });
       return;
     }
 
-    final NeededGradeResult result;
-    final HomeworkSeriesItemModel? resultAssignment;
-    if (_hasExplicitWeights) {
-      final categoryNeed = GradeHelper.calculateNeededGrade(
-        categories: widget.categories,
-        targetCategoryId: _selectedTargetId!,
-        desiredOverallGrade: desiredGrade,
-      );
-      final category = widget.categories.firstWhere((cat) => cat.id == _selectedTargetId);
-      resultAssignment = _remainingAssignmentIn(category.id);
-      result = resultAssignment == null
-          ? categoryNeed
-          : GradeHelper.toAssignmentScore(
-              categoryNeed,
-              categoryGradedPointsEarned: category.pointsEarned,
-              categoryGradedPointsPossible: category.pointsPossible,
-              assignmentPointsPossible: resultAssignment.pointsPossible!,
-            );
-    } else {
-      resultAssignment = _selectedAssignment;
-      result = GradeHelper.calculateNeededAssignmentScore(
-        gradedPointsEarned: widget.pointsEarned,
-        gradedPointsPossible: widget.pointsPossible,
-        assignmentPointsPossible: resultAssignment.pointsPossible!,
-        desiredOverallGrade: desiredGrade,
-      );
+    setState(() => _isCalculating = true);
+    context.read<GradeBloc>().add(
+      CalculateNeededGradeEvent(
+        courseId: widget.courseId,
+        targetId: _selectedTargetId!,
+        desiredGrade: desiredGrade,
+      ),
+    );
+  }
+
+  void _onGradeState(BuildContext context, GradeState state) {
+    if (state is NeededGradeCalculated &&
+        _isCurrentCalculation(
+          state.courseId,
+          state.targetId,
+          state.desiredGrade,
+        )) {
+      setState(() {
+        _result = state.result;
+        _validationErrorMessage = null;
+        _isCalculating = false;
+      });
+    } else if (state is NeededGradeError &&
+        _isCurrentCalculation(
+          state.courseId,
+          state.targetId,
+          state.desiredGrade,
+        )) {
+      setState(() {
+        _result = null;
+        _validationErrorMessage = state.message;
+        _isCalculating = false;
+      });
     }
-
-    setState(() {
-      _result = result;
-      _resultAssignment = resultAssignment;
-      _validationErrorMessage = null;
-    });
   }
 
-  HomeworkSeriesItemModel get _selectedAssignment =>
-      _eligibleTargetAssignments.firstWhere((item) => item.id == _selectedTargetId);
+  bool _isCurrentCalculation(int courseId, int targetId, double desiredGrade) =>
+      _isCalculating &&
+      courseId == widget.courseId &&
+      targetId == _selectedTargetId &&
+      desiredGrade == HeliumNumber.parse(_desiredGradeController.text);
 
-  HomeworkSeriesItemModel? _remainingAssignmentIn(int categoryId) {
-    final remaining = widget.ungradedAssignments.where((item) => item.categoryId == categoryId).toList();
-    return remaining.length == 1 ? remaining.single : null;
+  void _clearResult() {
+    _result = null;
+    _validationErrorMessage = null;
+    _isCalculating = false;
   }
 
-  bool _isWeightError(NeededGradeResult result) =>
+  bool _isWeightError(NeededGradeModel result) =>
       result.state == NeededGradeState.targetCategoryHasNoWeight ||
       result.state == NeededGradeState.invalidTotalWeight;
 
-  String _buildResultMessage(NeededGradeResult result) {
-    if (_resultAssignment != null && !_isWeightError(result)) {
-      return _buildAssignmentResultMessage(result, _resultAssignment!);
+  String _buildResultMessage(NeededGradeModel result) {
+    if (result.assignment != null && !_isWeightError(result)) {
+      return _buildAssignmentResultMessage(result, result.assignment!);
     }
 
     final desiredGrade = HeliumNumber.parse(_desiredGradeController.text) ?? 0;
@@ -196,12 +202,14 @@ class _GradeCalculatorDialogState extends State<GradeCalculatorDialog> {
     }
   }
 
-  String _buildAssignmentResultMessage(NeededGradeResult result, HomeworkSeriesItemModel assignment) {
+  String _buildAssignmentResultMessage(
+    NeededGradeModel result,
+    NeededGradeAssignmentModel assignment,
+  ) {
     final desiredGrade = HeliumNumber.parse(_desiredGradeController.text) ?? 0;
-    final neededPoints = result.neededGrade / 100 * assignment.pointsPossible!;
     final points =
-        '${HeliumNumber.format(neededPoints, fractionDigits: 1, trimZeros: true)} / '
-        '${HeliumNumber.format(assignment.pointsPossible!, fractionDigits: 1, trimZeros: true)} points';
+        '${HeliumNumber.format(assignment.neededPoints, fractionDigits: 1, trimZeros: true)} / '
+        '${HeliumNumber.format(assignment.pointsPossible, fractionDigits: 1, trimZeros: true)} points';
 
     switch (result.state) {
       case NeededGradeState.aboveTarget:
@@ -260,6 +268,13 @@ class _GradeCalculatorDialogState extends State<GradeCalculatorDialog> {
 
   @override
   Widget build(BuildContext context) {
+    return BlocListener<GradeBloc, GradeState>(
+      listener: _onGradeState,
+      child: _buildCalculator(context),
+    );
+  }
+
+  Widget _buildCalculator(BuildContext context) {
     if (_eligibleTargetIds.isEmpty) {
       return EmptyCard(
         expanded: false,
@@ -311,9 +326,7 @@ class _GradeCalculatorDialogState extends State<GradeCalculatorDialog> {
                   onChanged: (value) {
                     setState(() {
                       _selectedTargetId = value;
-                      _result = null;
-                      _resultAssignment = null;
-                      _validationErrorMessage = null;
+                      _clearResult();
                     });
                   },
                 ),
@@ -330,11 +343,7 @@ class _GradeCalculatorDialogState extends State<GradeCalculatorDialog> {
             allowDecimal: true,
             maxSpinnerWidth: 120,
             onChanged: (_) {
-              setState(() {
-                _result = null;
-                _resultAssignment = null;
-                _validationErrorMessage = null;
-              });
+              setState(_clearResult);
             },
           ),
         ),
@@ -355,7 +364,11 @@ class _GradeCalculatorDialogState extends State<GradeCalculatorDialog> {
         const Spacer(),
         const SizedBox(height: 12),
 
-        HeliumElevatedButton(buttonText: 'Calculate', onPressed: _calculate),
+        HeliumElevatedButton(
+          buttonText: 'Calculate',
+          onPressed: _calculate,
+          isLoading: _isCalculating,
+        ),
       ],
     );
   }

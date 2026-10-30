@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_quill/flutter_quill.dart';
+import 'package:heliumapp/presentation/ui/components/helium_quill_editor.dart';
 import 'package:heliumapp/presentation/ui/components/notes_editor.dart';
 import 'package:heliumapp/utils/quill_helpers.dart';
 
@@ -15,7 +16,6 @@ class NotesViewer extends StatefulWidget {
 class _NotesViewerState extends State<NotesViewer> {
   late QuillController _controller;
   final FocusNode _focusNode = FocusNode();
-  final ScrollController _scrollController = ScrollController();
   bool _renderable = false;
 
   @override
@@ -52,7 +52,6 @@ class _NotesViewerState extends State<NotesViewer> {
   void dispose() {
     _controller.dispose();
     _focusNode.dispose();
-    _scrollController.dispose();
     super.dispose();
   }
 
@@ -64,10 +63,10 @@ class _NotesViewerState extends State<NotesViewer> {
 
     return ConstrainedBox(
       constraints: const BoxConstraints(maxHeight: 150),
-      child: QuillEditor.basic(
+      child: HeliumQuillEditor(
         controller: _controller,
+        semanticsLabel: 'Note',
         focusNode: _focusNode,
-        scrollController: _scrollController,
         config: QuillEditorConfig(
           showCursor: false,
           padding: EdgeInsets.zero,

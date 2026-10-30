@@ -18,19 +18,19 @@ import 'package:heliumapp/data/models/planner/planner_item_base_model.dart';
 import 'package:heliumapp/data/models/planner/request/event_request_model.dart';
 import 'package:heliumapp/data/models/planner/request/homework_request_model.dart';
 import 'package:heliumapp/data/models/planner/resource_model.dart';
-import 'package:flutter_quill/flutter_quill.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/planneritem_bloc.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/planneritem_event.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/planneritem_state.dart';
 import 'package:heliumapp/presentation/features/planner/controllers/planner_item_form_controller.dart';
 import 'package:heliumapp/presentation/features/planner/dialogs/confirm_delete_dialog.dart';
+import 'package:heliumapp/presentation/features/shared/controllers/linked_note_form_fields.dart';
+import 'package:heliumapp/presentation/features/shared/widgets/core/linked_note_form.dart';
 import 'package:heliumapp/presentation/ui/components/helium_icon_button.dart';
 import 'package:heliumapp/presentation/ui/components/select_field.dart';
 import 'package:heliumapp/presentation/ui/feedback/info_container.dart';
 import 'package:heliumapp/presentation/ui/layout/helium_full_screen_scroll_view.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/core/base_event.dart';
 import 'package:heliumapp/presentation/ui/feedback/conflict_dialog.dart';
-import 'package:heliumapp/domain/linked_note_saver.dart';
 import 'package:heliumapp/presentation/features/shared/controllers/basic_form_controller.dart';
 import 'package:heliumapp/presentation/features/shared/widgets/flow/multi_step_container.dart';
 import 'package:heliumapp/presentation/ui/components/drop_down.dart';
@@ -93,7 +93,9 @@ class PlannerItemDetails extends StatefulWidget {
 }
 
 class PlannerItemDetailsState extends State<PlannerItemDetails>
-    with ConflictResolvableForm<PlannerItemDetails> {
+    with
+        ConflictResolvableForm<PlannerItemDetails>,
+        LinkedNoteForm<PlannerItemDetails, PlannerItemBaseModel> {
   final PlannerItemFormController formController = PlannerItemFormController();
   final FocusNode _titleFocusNode = FocusNode();
   final FocusNode _notesFocusNode = FocusNode();
@@ -101,8 +103,6 @@ class PlannerItemDetailsState extends State<PlannerItemDetails>
   // Entity IDs (can be updated for clone)
   int? _eventId;
   int? _homeworkId;
-
-  StreamSubscription<DocChange>? _notesSubscription;
 
   bool isLoading = true;
   String? _error;
@@ -120,8 +120,6 @@ class PlannerItemDetailsState extends State<PlannerItemDetails>
   List<ResourceModel> _resources = [];
   String? _preferredCategoryName;
   List<String> _preferredResourceNames = [];
-
-  bool _isItemConflict = false;
 
   @override
   void initState() {
@@ -161,18 +159,31 @@ class PlannerItemDetailsState extends State<PlannerItemDetails>
   @override
   void loadLatest() => loadEntity(eventId: _eventId, homeworkId: _homeworkId);
 
-  void applyConflict({
-    PlannerItemBaseModel? savedItem,
-    LinkedNoteSave? linkedNoteSave,
-  }) {
-    _isItemConflict = savedItem == null;
-    if (savedItem != null) setState(() => _plannerItem = savedItem);
-    formController.applyLinkedNoteSave(linkedNoteSave);
-  }
+  @override
+  LinkedNoteFormFields get linkedNoteFields => formController;
+
+  @override
+  void showSavedEntity(PlannerItemBaseModel entity) => setState(() {
+    _plannerItem = entity;
+    if (_isEvent) {
+      _eventId = entity.id;
+    } else {
+      _homeworkId = entity.id;
+    }
+  });
+
+  @override
+  String get itemNoun => _isEvent ? 'event' : 'assignment';
+
+  @override
+  ({int? homeworkId, int? eventId, int? resourceId}) get linkedItem => (
+    homeworkId: _isEvent ? null : _homeworkId,
+    eventId: _isEvent ? _eventId : null,
+    resourceId: null,
+  );
 
   @override
   void dispose() {
-    _notesSubscription?.cancel();
     _titleFocusNode.dispose();
     _notesFocusNode.dispose();
     formController.dispose();
@@ -376,7 +387,7 @@ class PlannerItemDetailsState extends State<PlannerItemDetails>
                     key: ObjectKey(formController.notesController),
                     controller: formController.notesController,
                     focusNode: _notesFocusNode,
-                    onOpenInNotes: widget.isEdit ? () => onSubmit(redirectToNotebook: true) : null,
+                    onOpenInNotebook: widget.isEdit ? () => onSubmit(redirectToNotebook: true) : null,
                   ),
                   const SizedBox(height: 12),
                 ],
@@ -624,6 +635,7 @@ class PlannerItemDetailsState extends State<PlannerItemDetails>
     );
   }
 
+  @override
   void resetSubmitting() {
     setState(() => _isSubmitting = false);
   }
@@ -631,7 +643,8 @@ class PlannerItemDetailsState extends State<PlannerItemDetails>
   @override
   Future<void> onSubmit({bool redirectToNotebook = false}) async {
     if (isLoading || _error != null || _isSubmitting) return;
-    _log.info('Submitting planner item (isEvent=$_isEvent, isEdit=${widget.isEdit}, redirectToNotebook=$redirectToNotebook)');
+    final redirect = rememberRedirectToNotebook(redirectToNotebook);
+    _log.info('Submitting planner item (isEvent=$_isEvent, isEdit=${widget.isEdit}, redirectToNotebook=$redirect)');
     setState(formController.normalizeGrade);
     if (formController.validateAndScrollToError()) {
       final selectedCourse = _courseById(formController.selectedCourse);
@@ -663,7 +676,6 @@ class PlannerItemDetailsState extends State<PlannerItemDetails>
       setState(() => _isSubmitting = true);
       widget.onActionStarted?.call();
 
-      // Get note content for bloc
       final noteContent = buildNotesDelta(formController.notesController);
 
       final start = HeliumDateTime.formatDateAndTimeForApi(
@@ -712,16 +724,13 @@ class PlannerItemDetailsState extends State<PlannerItemDetails>
               origin: EventOrigin.subScreen,
               id: widget.eventId!,
               request: request,
-              linkedNoteId: formController.linkedNoteId,
-              noteContent: noteContent,
-              redirectToNotebook: redirectToNotebook,
-              version: isOverwriting && _isItemConflict
-                  ? null
-                  : (_plannerItem as EventModel?)?.version,
-              linkedNoteVersion: formController.linkedNoteVersionToSend(
+              linkedNote: formController.linkedNoteEdit(
                 overwrite: isOverwriting,
               ),
-              noteEdited: formController.notesEdited,
+              redirectToNotebook: redirect,
+              version: entityVersionToSend(
+                (_plannerItem as EventModel?)?.version,
+              ),
             ),
           );
         } else {
@@ -730,7 +739,7 @@ class PlannerItemDetailsState extends State<PlannerItemDetails>
               origin: EventOrigin.subScreen,
               request: request,
               noteContent: noteContent,
-              redirectToNotebook: redirectToNotebook,
+              redirectToNotebook: redirect,
             ),
           );
         }
@@ -768,15 +777,11 @@ class PlannerItemDetailsState extends State<PlannerItemDetails>
               courseId: homework.course.id,
               homeworkId: widget.homeworkId!,
               request: request,
-              linkedNoteId: formController.linkedNoteId,
-              noteContent: noteContent,
-              redirectToNotebook: redirectToNotebook,
-              version:
-                  isOverwriting && _isItemConflict ? null : homework.version,
-              linkedNoteVersion: formController.linkedNoteVersionToSend(
+              linkedNote: formController.linkedNoteEdit(
                 overwrite: isOverwriting,
               ),
-              noteEdited: formController.notesEdited,
+              redirectToNotebook: redirect,
+              version: entityVersionToSend(homework.version),
               previousHomework: homework,
             ),
           );
@@ -788,7 +793,7 @@ class PlannerItemDetailsState extends State<PlannerItemDetails>
               courseId: selectedCourse.id,
               request: request,
               noteContent: noteContent,
-              redirectToNotebook: redirectToNotebook,
+              redirectToNotebook: redirect,
             ),
           );
         }
@@ -800,15 +805,6 @@ class PlannerItemDetailsState extends State<PlannerItemDetails>
         type: SnackType.error,
       );
     }
-  }
-
-  void _setupNotesListener() {
-    _notesSubscription?.cancel();
-    _notesSubscription = formController.notesController.document.changes.listen((change) {
-      if (!isNoteEdited(change)) return;
-      formController.markChanged();
-      formController.notesEdited = true;
-    });
   }
 
   Future<void> _populateInitialPlannerItemStateData(
@@ -963,8 +959,7 @@ class PlannerItemDetailsState extends State<PlannerItemDetails>
     }
 
     if (widget.isEdit) {
-      formController.loadLinkedNote(state.linkedNote);
-      _isItemConflict = false;
+      loadLinkedNote(state.linkedNote);
     }
 
     setState(() {
@@ -974,7 +969,7 @@ class PlannerItemDetailsState extends State<PlannerItemDetails>
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
-      _setupNotesListener();
+      formController.listenForNoteEdits();
     });
 
     // Request focus once on touch devices for create mode

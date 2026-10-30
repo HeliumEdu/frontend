@@ -37,7 +37,14 @@ class ResourcesLoading extends ResourceState {
 }
 
 class ResourcesError extends ResourceState {
-  ResourcesError({required super.origin, required super.message});
+  /// The linked note's save, when it went through beside the failed resource.
+  final LinkedNoteSave? linkedNoteSave;
+
+  ResourcesError({
+    required super.origin,
+    required super.message,
+    this.linkedNoteSave,
+  });
 }
 
 class ResourcesScreenDataFetched extends ResourceState {
@@ -118,11 +125,15 @@ class ResourceGroupDeleted extends ResourceState {
 
 class ResourceCreated extends ResourceEntityState {
   final bool redirectToNotebook;
+  final int? linkedNoteId;
+  final LinkedNoteSave? linkedNoteSave;
 
   ResourceCreated({
     required super.origin,
     required super.resource,
     this.redirectToNotebook = false,
+    this.linkedNoteId,
+    this.linkedNoteSave,
   });
 }
 

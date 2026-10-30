@@ -217,6 +217,7 @@ class _ResourcesScreenState
                   .add(state.resource);
               Sort.byTitle(_resourcesMap[state.resource.resourceGroup]!);
             });
+            _applyLinkedNoteSave(state.resource.id, state.linkedNoteSave);
           } else if (state is ResourceUpdated) {
             _replaceResource(state.resource);
             _applyLinkedNoteSave(state.resource.id, state.linkedNoteSave);
@@ -350,9 +351,8 @@ class _ResourcesScreenState
   }
 
   void _applyLinkedNoteSave(int resourceId, LinkedNoteSave? linkedNoteSave) {
-    if (linkedNoteSave == null) return;
-    final note = linkedNoteSave.note;
-    if (linkedNoteSave.noteId == null) {
+    final note = linkedNoteSave?.note;
+    if (linkedNoteSave?.isDeleted ?? false) {
       setState(() => _notesMap.remove(resourceId));
     } else if (note != null) {
       setState(() => _upsertNoteForResource(resourceId, note));

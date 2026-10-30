@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_quill/flutter_quill.dart';
 import 'package:heliumapp/core/helium_exception.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/data/models/drop_down_item.dart';
@@ -12,8 +11,9 @@ import 'package:heliumapp/data/models/planner/resource_group_model.dart';
 import 'package:heliumapp/data/models/planner/resource_model.dart';
 import 'package:heliumapp/data/models/planner/request/resource_request_model.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/core/base_event.dart';
+import 'package:heliumapp/presentation/features/shared/controllers/linked_note_form_fields.dart';
+import 'package:heliumapp/presentation/features/shared/widgets/core/linked_note_form.dart';
 import 'package:heliumapp/presentation/ui/feedback/conflict_dialog.dart';
-import 'package:heliumapp/domain/linked_note_saver.dart';
 import 'package:heliumapp/presentation/features/planner/dialogs/confirm_delete_dialog.dart';
 import 'package:heliumapp/presentation/features/resources/bloc/resource_bloc.dart';
 import 'package:heliumapp/presentation/features/resources/bloc/resource_event.dart';
@@ -58,12 +58,12 @@ class ResourceDetails extends StatefulWidget {
 }
 
 class ResourceDetailsState extends State<ResourceDetails>
-    with ConflictResolvableForm<ResourceDetails> {
+    with
+        ConflictResolvableForm<ResourceDetails>,
+        LinkedNoteForm<ResourceDetails, ResourceModel> {
   final ResourceFormController formController = ResourceFormController();
   final FocusNode _titleFocusNode = FocusNode();
   final FocusNode _notesFocusNode = FocusNode();
-
-  StreamSubscription<DocChange>? _notesSubscription;
 
   List<CourseModel> _courses = [];
   List<DropDownItem<ResourceGroupModel>> _groupItems = [];
@@ -72,8 +72,6 @@ class ResourceDetailsState extends State<ResourceDetails>
   String? _error;
   bool _isSubmitting = false;
   bool _hasRequestedInitialFocus = false;
-
-  bool _isResourceConflict = false;
 
   @override
   void initState() {
@@ -109,18 +107,22 @@ class ResourceDetailsState extends State<ResourceDetails>
     _fetchScreenData();
   }
 
-  void applyConflict({
-    ResourceModel? savedResource,
-    LinkedNoteSave? linkedNoteSave,
-  }) {
-    _isResourceConflict = savedResource == null;
-    if (savedResource != null) setState(() => _resource = savedResource);
-    formController.applyLinkedNoteSave(linkedNoteSave);
-  }
+  @override
+  LinkedNoteFormFields get linkedNoteFields => formController;
+
+  @override
+  void showSavedEntity(ResourceModel entity) =>
+      setState(() => _resource = entity);
+
+  @override
+  String get itemNoun => 'resource';
+
+  @override
+  ({int? homeworkId, int? eventId, int? resourceId}) get linkedItem =>
+      (homeworkId: null, eventId: null, resourceId: widget.resourceId);
 
   @override
   void dispose() {
-    _notesSubscription?.cancel();
     _titleFocusNode.dispose();
     _notesFocusNode.dispose();
     formController.urlFocusNode.removeListener(_onUrlFocusChange);
@@ -285,7 +287,7 @@ class ResourceDetailsState extends State<ResourceDetails>
                     key: ObjectKey(formController.notesController),
                     controller: formController.notesController,
                     focusNode: _notesFocusNode,
-                    onOpenInNotes: widget.isEdit ? () => onSubmit(redirectToNotebook: true) : null,
+                    onOpenInNotebook: widget.isEdit ? () => onSubmit(redirectToNotebook: true) : null,
                   ),
                   const SizedBox(height: 12),
                 ],
@@ -297,9 +299,7 @@ class ResourceDetailsState extends State<ResourceDetails>
     );
   }
 
-  Map<String, dynamic>? get noteContent =>
-      buildNotesDelta(formController.notesController);
-
+  @override
   void resetSubmitting() {
     setState(() => _isSubmitting = false);
   }
@@ -328,6 +328,7 @@ class ResourceDetailsState extends State<ResourceDetails>
   @override
   Future<void> onSubmit({bool redirectToNotebook = false}) async {
     if (isLoading || _error != null || _isSubmitting) return;
+    final redirect = rememberRedirectToNotebook(redirectToNotebook);
     if (formController.validateAndScrollToError()) {
       // Notify parent that action is starting (validation passed)
       setState(() => _isSubmitting = true);
@@ -358,25 +359,19 @@ class ResourceDetailsState extends State<ResourceDetails>
             resourceGroupId: widget.resourceGroupId!,
             resourceId: widget.resourceId!,
             request: request,
-            linkedNoteId: formController.linkedNoteId,
-            noteContent: noteContent,
-            redirectToNotebook: redirectToNotebook,
-            version:
-                isOverwriting && _isResourceConflict ? null : _resource?.version,
-            linkedNoteVersion: formController.linkedNoteVersionToSend(
-              overwrite: isOverwriting,
-            ),
-            noteEdited: formController.notesEdited,
+            linkedNote: formController.linkedNoteEdit(overwrite: isOverwriting),
+            redirectToNotebook: redirect,
+            version: entityVersionToSend(_resource?.version),
           ),
         );
       } else {
-        // For CREATE, note content is dispatched by the parent after getting resource.id
         context.read<ResourceBloc>().add(
           CreateResourceEvent(
             origin: EventOrigin.subScreen,
             resourceGroupId: selectedGroupId,
             request: request,
-            redirectToNotebook: redirectToNotebook,
+            noteContent: buildNotesDelta(formController.notesController),
+            redirectToNotebook: redirect,
           ),
         );
       }
@@ -411,8 +406,7 @@ class ResourceDetailsState extends State<ResourceDetails>
       );
       formController.selectedResourceGroupId = state.resource!.resourceGroup;
 
-      formController.loadLinkedNote(state.linkedNote);
-      _isResourceConflict = false;
+      loadLinkedNote(state.linkedNote);
     } else {
       // Default to the launching context's group (a specific group's view);
       // stays unset when opened without one (e.g. from "Show All"), forcing
@@ -427,7 +421,7 @@ class ResourceDetailsState extends State<ResourceDetails>
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
-      _setupNotesListener();
+      formController.listenForNoteEdits();
     });
 
     // Request focus once on touch devices for create mode
@@ -439,15 +433,6 @@ class ResourceDetailsState extends State<ResourceDetails>
         if (mounted) _titleFocusNode.requestFocus();
       });
     }
-  }
-
-  void _setupNotesListener() {
-    _notesSubscription?.cancel();
-    _notesSubscription = formController.notesController.document.changes.listen((change) {
-      if (!isNoteEdited(change)) return;
-      formController.markChanged();
-      formController.notesEdited = true;
-    });
   }
 
   void _onUrlFocusChange() {

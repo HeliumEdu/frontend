@@ -47,7 +47,7 @@ class _ErrorCardState extends State<ErrorCard> {
     final content = Center(
       child: Padding(
         padding: const EdgeInsets.symmetric(
-          horizontal: AppConstants.basicCardInset,
+          horizontal: AppConstants.containerContentInset,
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,

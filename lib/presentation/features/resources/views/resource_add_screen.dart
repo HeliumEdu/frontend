@@ -7,22 +7,18 @@ import 'package:heliumapp/config/app_theme.dart';
 import 'package:logging/logging.dart';
 import 'package:heliumapp/config/app_router.dart';
 import 'package:heliumapp/config/dirty_dialog_registry.dart';
-import 'package:heliumapp/data/models/planner/request/note_request_model.dart';
-import 'package:heliumapp/presentation/features/notebook/bloc/note_bloc.dart';
-import 'package:heliumapp/presentation/features/notebook/bloc/note_event.dart';
-import 'package:heliumapp/presentation/features/notebook/bloc/note_state.dart';
 import 'package:heliumapp/presentation/features/resources/bloc/resource_bloc.dart';
 import 'package:heliumapp/presentation/features/resources/bloc/resource_event.dart';
 import 'package:heliumapp/presentation/features/resources/bloc/resource_state.dart';
 import 'package:heliumapp/data/models/planner/resource_model.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/core/base_event.dart';
 import 'package:heliumapp/domain/linked_note_saver.dart';
+import 'package:heliumapp/presentation/features/shared/widgets/core/linked_note_form.dart';
 import 'package:heliumapp/presentation/features/shared/widgets/flow/multi_step_container.dart';
 import 'package:heliumapp/presentation/features/resources/widgets/resource_details.dart';
 import 'package:heliumapp/presentation/ui/components/helium_icon_button.dart';
-import 'package:heliumapp/presentation/ui/feedback/conflict_dialog.dart';
 import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
-import 'package:heliumapp/utils/deep_link_helpers.dart';
+import 'package:heliumapp/presentation/features/notebook/views/note_add_screen.dart';
 import 'package:heliumapp/utils/snack_bar_helpers.dart';
 
 final _log = Logger('presentation.views');
@@ -107,8 +103,6 @@ class _ResourceAddScreenState
   int? _currentResourceGroupId;
   String? _registeredPrefix;
 
-  bool _pendingRedirectToNotebook = false;
-
   @override
   void initState() {
     super.initState();
@@ -172,6 +166,20 @@ class _ResourceAddScreenState
       isDirty: () => isDirty,
     );
     _registeredPrefix = prefix;
+  }
+
+  /// Takes on a just-created resource's ID. The URL prefix the dirty-dialog
+  /// guard owns changes from `/resources/new` to `/resources/<id>`, so the
+  /// guard is re-registered before the URL moves.
+  void _useCreatedResource(ResourceModel resource) {
+    setState(() {
+      _currentResourceId = resource.id;
+      _currentResourceGroupId = resource.resourceGroup;
+    });
+    if (_registeredPrefix != null) {
+      DirtyDialogRegistry.unregister(_registeredPrefix!);
+    }
+    _registerDirtyGuard();
   }
 
   void _syncStepFromUrl() {
@@ -258,16 +266,12 @@ class _ResourceAddScreenState
     ResourceModel? savedResource,
     LinkedNoteSave? linkedNoteSave,
   }) {
-    _detailsKey.currentState?.resetSubmitting();
     setState(() => isSubmitting = false);
-    _detailsKey.currentState?.applyConflict(
-      savedResource: savedResource,
-      linkedNoteSave: linkedNoteSave,
-    );
-    resolveFormConflict(
+    resolveLinkedNoteConflict(
       context,
       _detailsKey.currentState,
-      canKeepEditing: linkedNoteSave?.isConflict ?? false,
+      savedEntity: savedResource,
+      linkedNoteSave: linkedNoteSave,
     );
   }
 
@@ -294,6 +298,11 @@ class _ResourceAddScreenState
             if (!isShowingErrorCard) {
               showSnackBar(context, state.message!, type: SnackType.error);
             }
+            if (state.linkedNoteSave case final linkedNoteSave?) {
+              _detailsKey.currentState?.linkedNoteFields.applyLinkedNoteSave(
+                linkedNoteSave,
+              );
+            }
             _detailsKey.currentState?.resetSubmitting();
             setState(() { isLoading = false; isSubmitting = false; });
           } else if (state is ResourceConflict &&
@@ -301,7 +310,7 @@ class _ResourceAddScreenState
             _resolveConflict(linkedNoteSave: state.linkedNoteSave);
           } else if (state is ResourceUpdated &&
               state.origin == EventOrigin.subScreen &&
-              (state.linkedNoteSave?.isConflict ?? false)) {
+              !(state.linkedNoteSave?.isSaved ?? true)) {
             _resolveConflict(
               savedResource: state.resource,
               linkedNoteSave: state.linkedNoteSave,
@@ -317,55 +326,33 @@ class _ResourceAddScreenState
               // Resource not found after fetch; back out to the index.
               context.go(widget.shellPath);
             }
+          } else if (state is ResourceCreated &&
+              !(state.linkedNoteSave?.isSaved ?? true)) {
+            _useCreatedResource(state.resource);
+            router.replace(
+              '${widget.shellPath}/${state.resource.id}/'
+              '${resourceDialogSteps[currentStep]}',
+              extra: ResourceDialogExtra(
+                resourceGroupId: state.resource.resourceGroup,
+              ),
+            );
+            _resolveConflict(
+              savedResource: state.resource,
+              linkedNoteSave: state.linkedNoteSave,
+            );
           } else if (state is ResourceCreated) {
-            final noteContent = _detailsKey.currentState?.noteContent;
-
             if (state.redirectToNotebook) {
+              _log.info('Resource created with notebook redirect (resourceId=${state.resource.id})');
               _detailsKey.currentState?.resetSubmitting();
               setState(() => isSubmitting = false);
-
-              // CREATE + redirect: note content must be created first to get its ID
-              if (noteContent != null) {
-                _log.info('Resource created with note content; creating note before notebook redirect (resourceId=${state.resource.id})');
-                _pendingRedirectToNotebook = true;
-                context.read<NoteBloc>().add(CreateNoteEvent(
-                  origin: EventOrigin.subScreen,
-                  request: NoteRequestModel(
-                    content: noteContent,
-                    resourceId: state.resource.id,
-                  ),
-                ));
-              } else {
-                DirtyDialogRegistry.releaseActive();
-                navigateAndClearStack(
-                  context,
-                  '${AppRoute.notebookScreen}/new'
-                  '?${DeepLinkParam.linkResourceId}=${state.resource.id}',
-                );
-              }
+              openInNotebook(
+                context,
+                noteId: state.linkedNoteId,
+                resourceId: state.resource.id,
+              );
             } else {
-              _log.info('Resource created without notebook redirect (resourceId=${state.resource.id}, hasNoteContent=${noteContent != null})');
-              if (noteContent != null) {
-                context.read<NoteBloc>().add(CreateNoteEvent(
-                  origin: EventOrigin.subScreen,
-                  request: NoteRequestModel(
-                    content: noteContent,
-                    resourceId: state.resource.id,
-                  ),
-                ));
-              }
-              setState(() {
-                _currentResourceId = state.resource.id;
-                _currentResourceGroupId = state.resource.resourceGroup;
-              });
-              // New resource minted its real ID — the URL prefix that the
-              // dirty-dialog guard owns has changed
-              // (`/resources/new` → `/resources/<id>`), so swap the
-              // registration before triggering the URL update.
-              if (_registeredPrefix != null) {
-                DirtyDialogRegistry.unregister(_registeredPrefix!);
-              }
-              _registerDirtyGuard();
+              _log.info('Resource created without notebook redirect (resourceId=${state.resource.id}, hasNote=${state.linkedNoteId != null})');
+              _useCreatedResource(state.resource);
               showSnackBar(context, 'Resource created.', useRootMessenger: true);
               closeWithoutPrompt();
             }
@@ -373,49 +360,26 @@ class _ResourceAddScreenState
             showSnackBar(context, 'Resource deleted.', useRootMessenger: true);
             closeWithoutPrompt();
           } else if (state is ResourceUpdated) {
+            if (state.linkedNoteSave case LinkedNoteSave(isRecreated: true)) {
+              showSnackBar(
+                context,
+                noteRecreatedMessage,
+                useRootMessenger: true,
+              );
+            }
             if (state.redirectToNotebook) {
               _log.info('Resource updated with notebook redirect (resourceId=${state.resource.id})');
               _detailsKey.currentState?.resetSubmitting();
               setState(() => isSubmitting = false);
 
-              final linkedNoteId = state.linkedNoteId;
-              if (linkedNoteId != null) {
-                DirtyDialogRegistry.releaseActive();
-                navigateAndClearStack(
-                  context,
-                  '${AppRoute.notebookScreen}/$linkedNoteId',
-                );
-              } else {
-                // No note content; navigate to the new-note dialog with the
-                // resource link riding via extra so it isn't in the URL.
-                DirtyDialogRegistry.releaseActive();
-                navigateAndClearStack(
-                  context,
-                  '${AppRoute.notebookScreen}/new'
-                  '?${DeepLinkParam.linkResourceId}=${state.resource.id}',
-                );
-              }
+              openInNotebook(
+                context,
+                noteId: state.linkedNoteId,
+                resourceId: state.resource.id,
+              );
             } else {
               closeWithoutPrompt();
             }
-          }
-        },
-      ),
-      BlocListener<NoteBloc, NoteState>(
-        listener: (context, state) {
-          if (state is NotesError) {
-            if (!isShowingErrorCard) {
-              showSnackBar(context, state.message!, type: SnackType.error);
-            }
-            _detailsKey.currentState?.resetSubmitting();
-            setState(() => isSubmitting = false);
-          } else if (state is NoteCreated && _pendingRedirectToNotebook) {
-            _pendingRedirectToNotebook = false;
-            DirtyDialogRegistry.releaseActive();
-            navigateAndClearStack(
-              context,
-              '${AppRoute.notebookScreen}/${state.note.id}',
-            );
           }
         },
       ),

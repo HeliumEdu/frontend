@@ -553,7 +553,7 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen> {
       onTap: () => _onEdit(course),
       child: Card(
         child: Padding(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(AppConstants.containerContentInset),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,

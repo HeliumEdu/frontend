@@ -5,19 +5,123 @@ import 'package:flutter_quill/flutter_quill.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/presentation/ui/components/helium_quill_editor.dart';
 import 'package:heliumapp/presentation/ui/components/helium_quill_toolbar.dart';
+import 'package:heliumapp/presentation/ui/components/quill_search_bar.dart';
+import 'package:heliumapp/presentation/ui/layout/helium_full_screen_scroll_view.dart';
+import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 
+enum NotesEditorLayout {
+  /// In a form, under a "Notes" label, with a bounded height.
+  embedded,
+
+  /// Fills its page, with find and print.
+  page,
+}
+
 class NotesEditor extends StatefulWidget {
+  /// Toolbar buttons in priority order; each set keeps [_pageFullButtons]'s.
+  static const _embeddedMinimalButtons = [
+    [
+      HeliumToolbarButton.undo,
+      HeliumToolbarButton.bold,
+      HeliumToolbarButton.italic,
+      HeliumToolbarButton.bulletedList,
+      HeliumToolbarButton.numberedList,
+      HeliumToolbarButton.checklist,
+      HeliumToolbarButton.link,
+    ],
+  ];
+  static const _embeddedFullButtons = [
+    [
+      HeliumToolbarButton.undo,
+      HeliumToolbarButton.redo,
+      HeliumToolbarButton.bold,
+      HeliumToolbarButton.italic,
+      HeliumToolbarButton.underline,
+      HeliumToolbarButton.strikeThrough,
+      HeliumToolbarButton.color,
+      HeliumToolbarButton.clearFormat,
+    ],
+    [
+      HeliumToolbarButton.bulletedList,
+      HeliumToolbarButton.numberedList,
+      HeliumToolbarButton.checklist,
+      HeliumToolbarButton.indentIncrease,
+      HeliumToolbarButton.indentDecrease,
+    ],
+    [HeliumToolbarButton.fontFamily],
+    [HeliumToolbarButton.quote, HeliumToolbarButton.link],
+  ];
+  static const _pageCompactButtons = [
+    [
+      HeliumToolbarButton.undo,
+      HeliumToolbarButton.bold,
+      HeliumToolbarButton.italic,
+      HeliumToolbarButton.backgroundColor,
+      HeliumToolbarButton.bulletedList,
+      HeliumToolbarButton.numberedList,
+      HeliumToolbarButton.checklist,
+      HeliumToolbarButton.headerStyle,
+      HeliumToolbarButton.quote,
+      HeliumToolbarButton.link,
+      HeliumToolbarButton.print,
+      HeliumToolbarButton.search,
+    ],
+  ];
+  static const _pageFullButtons = [
+    [
+      HeliumToolbarButton.undo,
+      HeliumToolbarButton.redo,
+      HeliumToolbarButton.bold,
+      HeliumToolbarButton.italic,
+      HeliumToolbarButton.underline,
+      HeliumToolbarButton.strikeThrough,
+      HeliumToolbarButton.inlineCode,
+      HeliumToolbarButton.subscript,
+      HeliumToolbarButton.superscript,
+      HeliumToolbarButton.color,
+      HeliumToolbarButton.backgroundColor,
+      HeliumToolbarButton.clearFormat,
+    ],
+    [
+      HeliumToolbarButton.bulletedList,
+      HeliumToolbarButton.numberedList,
+      HeliumToolbarButton.checklist,
+      HeliumToolbarButton.indentIncrease,
+      HeliumToolbarButton.indentDecrease,
+    ],
+    [
+      HeliumToolbarButton.headerStyle,
+      HeliumToolbarButton.fontFamily,
+      HeliumToolbarButton.fontSize,
+    ],
+    [
+      HeliumToolbarButton.quote,
+      HeliumToolbarButton.codeBlock,
+      HeliumToolbarButton.link,
+    ],
+    [HeliumToolbarButton.alignment],
+    [HeliumToolbarButton.print, HeliumToolbarButton.search],
+  ];
+
   final QuillController controller;
   final FocusNode? focusNode;
-  final VoidCallback? onOpenInNotes;
+  final NotesEditorLayout layout;
+
+  /// Embedded: opens the note in the Notebook.
+  final VoidCallback? onOpenInNotebook;
+
+  /// Page: prints the note.
+  final VoidCallback? onPrint;
 
   const NotesEditor({
     super.key,
     required this.controller,
     this.focusNode,
-    this.onOpenInNotes,
+    this.layout = NotesEditorLayout.embedded,
+    this.onOpenInNotebook,
+    this.onPrint,
   });
 
   /// Builds theme-aware default styles for Quill editors.
@@ -38,13 +142,6 @@ class NotesEditor extends StatefulWidget {
     );
   }
 
-  static Future<void> showColorPicker(
-    BuildContext context,
-    QuillController controller,
-    bool isBackground,
-  ) =>
-      HeliumQuillToolbar.showColorPicker(context, controller, isBackground);
-
   @override
   State<NotesEditor> createState() => _NotesEditorState();
 }
@@ -52,6 +149,13 @@ class NotesEditor extends StatefulWidget {
 class _NotesEditorState extends State<NotesEditor> with WidgetsBindingObserver {
   final _editorKey = GlobalKey();
   bool _pendingScrollOnKeyboard = false;
+  bool _showSearch = false;
+
+  bool get _isEmbedded => widget.layout == NotesEditorLayout.embedded;
+
+  void _toggleSearch() {
+    setState(() => _showSearch = !_showSearch);
+  }
 
   @override
   void initState() {
@@ -109,7 +213,7 @@ class _NotesEditorState extends State<NotesEditor> with WidgetsBindingObserver {
   }
 
   void _onFocusChange() {
-    if (widget.focusNode?.hasFocus ?? false) {
+    if (_isEmbedded && (widget.focusNode?.hasFocus ?? false)) {
       final viewInsets = WidgetsBinding
           .instance.platformDispatcher.views.first.viewInsets.bottom;
 
@@ -126,7 +230,12 @@ class _NotesEditorState extends State<NotesEditor> with WidgetsBindingObserver {
   @override
   Widget build(BuildContext context) {
     final isCompact = Responsive.useCompactLayout(context);
+    return _isEmbedded
+        ? _buildEmbedded(context, isCompact)
+        : _buildPage(context, isCompact);
+  }
 
+  Widget _buildEmbedded(BuildContext context, bool isCompact) {
     return Column(
       key: _editorKey,
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -137,9 +246,9 @@ class _NotesEditorState extends State<NotesEditor> with WidgetsBindingObserver {
               child: Text('Notes', style: AppStyles.formLabel(context)),
             ),
             const Spacer(),
-            if (widget.onOpenInNotes != null)
+            if (widget.onOpenInNotebook != null)
               TextButton.icon(
-                onPressed: widget.onOpenInNotes,
+                onPressed: widget.onOpenInNotebook,
                 icon: Icon(
                   Icons.library_books,
                   size: 16.0,
@@ -168,35 +277,12 @@ class _NotesEditorState extends State<NotesEditor> with WidgetsBindingObserver {
               children: [
                 HeliumQuillToolbar(
                   controller: widget.controller,
-                  config: QuillSimpleToolbarConfig(
-                    toolbarRunSpacing: 0,
-                    toolbarSectionSpacing: 8,
-                    showFontFamily: !isCompact,
-                    showDividers: !isCompact,
-                    showStrikeThrough: !isCompact,
-                    showRedo: !isCompact,
-                    showQuote: !isCompact,
-                    showUnderLineButton: !isCompact,
-                    showFontSize: false,
-                    showSuperscript: false,
-                    showSubscript: false,
-                    showHeaderStyle: false,
-                    showInlineCode: false,
-                    showCodeBlock: false,
-                    showDirection: false,
-                    showSearchButton: false,
-                    showClearFormat: !isCompact,
-                    showBackgroundColorButton: false,
-                    showColorButton: !isCompact,
-                    showIndent: !isCompact,
-                    buttonOptions: () {
-                      final opts = HeliumQuillToolbar.defaultButtonOptions(context);
-                      return QuillSimpleToolbarButtonOptions(
-                        base: opts.base,
-                        color: opts.color,
-                      );
-                    }(),
-                  ),
+                  density: isCompact
+                      ? HeliumToolbarDensity.minimal
+                      : HeliumToolbarDensity.full,
+                  groups: isCompact
+                      ? NotesEditor._embeddedMinimalButtons
+                      : NotesEditor._embeddedFullButtons,
                 ),
                 const Divider(height: 1),
                 ConstrainedBox(
@@ -226,6 +312,109 @@ class _NotesEditorState extends State<NotesEditor> with WidgetsBindingObserver {
           ),
         ),
       ],
+    );
+  }
+
+  /// Edge to edge on phones, with the safe-area inset as end padding so text
+  /// scrolls under the home indicator; elsewhere a box that runs to the bottom
+  /// of the window.
+  Widget _buildPage(BuildContext context, bool isCompact) {
+    final outline = context.colorScheme.outline.withValues(alpha: 0.2);
+    final radius = isCompact
+        ? BorderRadius.zero
+        : const BorderRadius.only(
+            topLeft: Radius.circular(8),
+            topRight: Radius.circular(8),
+          );
+    final bottomInset = isCompact
+        ? HeliumFullScreenScrollView.insetOf(context)
+        : 0.0;
+    final canSearch = !Responsive.isPhoneLandscape(context);
+    final buttons = isCompact
+        ? NotesEditor._pageCompactButtons
+        : NotesEditor._pageFullButtons;
+    return Padding(
+      padding: const EdgeInsets.only(top: 4),
+      child: Container(
+        decoration: BoxDecoration(
+          color: context.colorScheme.surface,
+          border: isCompact
+              ? Border(top: BorderSide(color: outline))
+              : Border.all(color: outline),
+          borderRadius: isCompact ? null : radius,
+        ),
+        child: ClipRRect(
+          borderRadius: radius,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Padding(
+                padding: EdgeInsets.symmetric(
+                  horizontal: isCompact ? AppConstants.pageEdgeInset : 0,
+                ),
+                child: HeliumQuillToolbar(
+                  controller: widget.controller,
+                  density: isCompact
+                      ? HeliumToolbarDensity.compact
+                      : HeliumToolbarDensity.full,
+                  groups: [
+                    for (final group in buttons)
+                      [
+                        for (final button in group)
+                          if (canSearch || button != HeliumToolbarButton.search)
+                            button,
+                      ],
+                  ],
+                  onSearch: _toggleSearch,
+                  onPrint: widget.onPrint,
+                ),
+              ),
+              const Divider(height: 1),
+              Expanded(
+                child: HeliumQuillEditor(
+                  controller: widget.controller,
+                  semanticsLabel: 'Note',
+                  focusNode: widget.focusNode,
+                  config: QuillEditorConfig(
+                    padding: isCompact
+                        ? EdgeInsets.fromLTRB(
+                            AppConstants.unboxedContentInset,
+                            12,
+                            AppConstants.unboxedContentInset,
+                            12 + bottomInset,
+                          )
+                        : const EdgeInsets.all(
+                            AppConstants.containerContentInset,
+                          ),
+                    autoFocus: false,
+                    expands: true,
+                    customStyles: NotesEditor.buildDefaultStyles(context),
+                    scrollBottomInset: MediaQuery.of(context).viewInsets.bottom,
+                    // ignore: experimental_member_use
+                    onKeyPressed: (event, node) {
+                      final isFindShortcut =
+                          event.logicalKey == LogicalKeyboardKey.keyF &&
+                          (HardwareKeyboard.instance.isMetaPressed ||
+                              HardwareKeyboard.instance.isControlPressed);
+                      if (!isFindShortcut) return null;
+                      _toggleSearch();
+                      return KeyEventResult.handled;
+                    },
+                  ),
+                ),
+              ),
+              if (_showSearch)
+                Padding(
+                  padding: EdgeInsets.only(bottom: bottomInset),
+                  child: QuillSearchBar(
+                    controller: widget.controller,
+                    onClose: () => setState(() => _showSearch = false),
+                  ),
+                ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

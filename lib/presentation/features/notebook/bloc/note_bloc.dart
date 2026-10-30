@@ -3,6 +3,7 @@ import 'package:bloc/bloc.dart';
 import 'package:heliumapp/core/helium_exception.dart';
 import 'package:heliumapp/data/models/id_or_entity.dart';
 import 'package:heliumapp/data/models/planner/category_model.dart';
+import 'package:heliumapp/data/models/planner/course_group_model.dart';
 import 'package:heliumapp/data/models/planner/course_model.dart';
 import 'package:heliumapp/data/models/planner/event_model.dart';
 import 'package:heliumapp/data/models/planner/homework_model.dart';
@@ -40,7 +41,8 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
     required this.courseRepository,
     required this.categoryRepository,
   }) : super(NoteInitial(origin: EventOrigin.bloc)) {
-    on<FetchNotesEvent>(_onFetchNotes);
+    on<SearchNoteContentEvent>(_onSearchNoteContent);
+    on<FetchNotebookScreenDataEvent>(_onFetchNotebookScreenData);
     on<FetchNoteScreenDataEvent>(_onFetchNoteScreenData);
     on<FetchLinkableEntitiesEvent>(_onFetchLinkableEntities);
     on<CreateNoteEvent>(_onCreateNote);
@@ -65,19 +67,23 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
       notes.isEmpty ||
       (currentNoteId != null && notes.every((id) => id == currentNoteId));
 
-  Future<void> _onFetchNotes(
-    FetchNotesEvent event,
+  Future<void> _onSearchNoteContent(
+    SearchNoteContentEvent event,
     Emitter<NoteState> emit,
   ) async {
     emit(NotesLoading(origin: event.origin));
     try {
       final notes = await noteRepository.getNotes(
         search: event.search,
-        linkedEntityType: event.linkedEntityType,
         shownOnCalendar: event.shownOnCalendar,
-        forceRefresh: event.forceRefresh,
       );
-      emit(NotesFetched(origin: event.origin, notes: notes, search: event.search));
+      emit(
+        NoteContentSearched(
+          origin: event.origin,
+          notes: notes,
+          search: event.search,
+        ),
+      );
     } on HeliumException catch (e) {
       emit(NotesError(origin: event.origin, message: e.message));
     } catch (e) {
@@ -85,6 +91,52 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
         origin: event.origin,
         message: HeliumException.unexpectedError,
       ));
+    }
+  }
+
+  Future<void> _onFetchNotebookScreenData(
+    FetchNotebookScreenDataEvent event,
+    Emitter<NoteState> emit,
+  ) async {
+    emit(NotesLoading(origin: event.origin));
+    try {
+      final shownOnCalendar = event.shownOnCalendar ? true : null;
+      final results = await Future.wait([
+        noteRepository.getNotes(
+          shownOnCalendar: event.shownOnCalendar,
+          forceRefresh: event.forceRefresh,
+        ),
+        courseRepository.getCourseGroups(
+          shownOnCalendar: shownOnCalendar,
+          forceRefresh: event.forceRefresh,
+        ),
+        courseRepository.getCourses(
+          shownOnCalendar: shownOnCalendar,
+          forceRefresh: event.forceRefresh,
+        ),
+        resourceRepository.getResources(
+          shownOnCalendar: shownOnCalendar,
+          forceRefresh: event.forceRefresh,
+        ),
+      ]);
+      emit(
+        NotebookScreenDataFetched(
+          origin: event.origin,
+          notes: results[0] as List<NoteModel>,
+          courseGroups: results[1] as List<CourseGroupModel>,
+          courses: results[2] as List<CourseModel>,
+          resources: results[3] as List<ResourceModel>,
+        ),
+      );
+    } on HeliumException catch (e) {
+      emit(NotesError(origin: event.origin, message: e.message));
+    } catch (e) {
+      emit(
+        NotesError(
+          origin: event.origin,
+          message: HeliumException.unexpectedError,
+        ),
+      );
     }
   }
 

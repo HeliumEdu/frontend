@@ -1,6 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:heliumapp/core/api_url.dart';
 import 'package:heliumapp/core/dio_client.dart';
 import 'package:heliumapp/core/helium_exception.dart';
+import 'package:heliumapp/data/models/planner/needed_grade_model.dart';
 import 'package:heliumapp/data/sources/grade_remote_data_source.dart';
 import 'package:mocktail/mocktail.dart';
 
@@ -122,6 +124,105 @@ void main() {
 
         // WHEN/THEN
         expect(() => dataSource.getGrades(), throwsA(isA<HeliumException>()));
+      });
+    });
+
+    group('getNeededGrade', () {
+      test('asks for the needed grade and parses the result', () async {
+        // GIVEN
+        when(
+          () => mockDio.get(
+            any(),
+            queryParameters: any(named: 'queryParameters'),
+          ),
+        ).thenAnswer(
+          (_) async => givenSuccessResponse({
+            'state': 'achievable',
+            'needed_grade': 76.25,
+            'weighted': true,
+            'category': {'id': 2, 'title': 'Exams'},
+            'assignment': {
+              'id': 9,
+              'title': 'Final',
+              'points_possible': 100.0,
+              'needed_points': 76.25,
+            },
+            'total_weight_accounted_for': null,
+          }),
+        );
+
+        // WHEN
+        final result = await dataSource.getNeededGrade(
+          courseId: 1,
+          targetId: 2,
+          desiredGrade: 85,
+        );
+
+        // THEN
+        verify(
+          () => mockDio.get(
+            ApiUrl.plannerGradesNeededUrl,
+            queryParameters: {'course': 1, 'target': 2, 'desired_grade': 85.0},
+          ),
+        ).called(1);
+        expect(result.state, NeededGradeState.achievable);
+        expect(result.neededGrade, 76.25);
+        expect(result.weighted, isTrue);
+        expect(result.assignment!.title, 'Final');
+        expect(result.assignment!.neededPoints, 76.25);
+        expect(result.totalWeightAccountedFor, isNull);
+      });
+
+      test('parses a weight error with no assignment', () async {
+        // GIVEN
+        when(
+          () => mockDio.get(
+            any(),
+            queryParameters: any(named: 'queryParameters'),
+          ),
+        ).thenAnswer(
+          (_) async => givenSuccessResponse({
+            'state': 'invalid_total_weight',
+            'needed_grade': 0,
+            'weighted': true,
+            'category': {'id': 2, 'title': 'Exams'},
+            'assignment': null,
+            'total_weight_accounted_for': 80.0,
+          }),
+        );
+
+        // WHEN
+        final result = await dataSource.getNeededGrade(
+          courseId: 1,
+          targetId: 2,
+          desiredGrade: 85,
+        );
+
+        // THEN
+        expect(result.state, NeededGradeState.invalidTotalWeight);
+        expect(result.isAchievable, isFalse);
+        expect(result.assignment, isNull);
+        expect(result.totalWeightAccountedFor, 80.0);
+      });
+
+      test('throws ServerException on 500 response', () async {
+        // GIVEN
+        when(
+          () => mockDio.get(
+            any(),
+            queryParameters: any(named: 'queryParameters'),
+          ),
+        ).thenThrow(givenServerException());
+
+        // WHEN/THEN
+        expect(
+          () => dataSource.getNeededGrade(
+            courseId: 1,
+            targetId: 2,
+            desiredGrade: 85,
+          ),
+          throwsA(isA<ServerException>()),
+        );
       });
     });
 
