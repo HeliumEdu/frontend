@@ -50,6 +50,8 @@ import 'package:heliumapp/data/sources/resource_remote_data_source.dart';
 import 'package:heliumapp/presentation/core/views/base_page_screen_state.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_bloc.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_state.dart';
+import 'package:heliumapp/presentation/features/notebook/bloc/note_bloc.dart';
+import 'package:heliumapp/presentation/features/notebook/bloc/note_state.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/attachment_bloc.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/attachment_state.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/reminder_bloc.dart';
@@ -677,6 +679,19 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
                 ),
               );
             }
+          }
+        },
+      ),
+      BlocListener<NoteBloc, NoteState>(
+        listenWhen: (previous, current) =>
+            current is NoteCreated || current is NoteUpdated || current is NoteDeleted,
+        listener: (context, state) {
+          if (state is NoteCreated) {
+            _plannerItemDataSource?.syncLinkedNote(state.note.id, note: state.note);
+          } else if (state is NoteUpdated) {
+            _plannerItemDataSource?.syncLinkedNote(state.note.id, note: state.note);
+          } else if (state is NoteDeleted) {
+            _plannerItemDataSource?.syncLinkedNote(state.noteId);
           }
         },
       ),

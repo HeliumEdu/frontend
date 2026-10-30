@@ -7,6 +7,7 @@ import 'package:flutter/widgets.dart';
 import 'package:heliumapp/config/pref_service.dart';
 import 'package:heliumapp/core/helium_exception.dart';
 import 'package:heliumapp/data/models/auth/user_settings_model.dart';
+import 'package:heliumapp/data/models/id_or_entity.dart';
 import 'package:heliumapp/data/models/planner/planner_item_base_model.dart';
 import 'package:heliumapp/data/models/planner/category_model.dart';
 import 'package:heliumapp/data/models/planner/course_group_model.dart';
@@ -17,6 +18,7 @@ import 'package:heliumapp/data/models/planner/event_base_model.dart';
 import 'package:heliumapp/data/models/planner/event_model.dart';
 import 'package:heliumapp/data/models/planner/external_calendar_event_model.dart';
 import 'package:heliumapp/data/models/planner/homework_model.dart';
+import 'package:heliumapp/data/models/planner/note_model.dart';
 import 'package:heliumapp/data/sources/planner_item_filter_compute.dart';
 import 'package:heliumapp/domain/repositories/course_schedule_event_repository.dart';
 import 'package:heliumapp/domain/repositories/event_repository.dart';
@@ -1116,6 +1118,49 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
     }
 
     _notifyChangeListeners();
+  }
+
+  void syncLinkedNote(int noteId, {NoteModel? note}) {
+    var synced = 0;
+    for (final items in _dateRangeCache.values) {
+      for (var i = 0; i < items.length; i++) {
+        final updated = _withLinkedNote(items[i], noteId, note);
+        if (updated == null) continue;
+        items[i] = updated;
+        final index = appointments?.indexOf(updated) ?? -1;
+        if (index != -1) appointments![index] = updated;
+        synced++;
+      }
+    }
+
+    if (synced > 0) {
+      _log.info('Linked note $noteId synced on $synced item(s)');
+      _notifyCalendarReset();
+      _notifyChangeListeners();
+    }
+  }
+
+  PlannerItemBaseModel? _withLinkedNote(PlannerItemBaseModel item, int noteId, NoteModel? note) {
+    final List<IdOrEntity<NoteModel>> notes;
+    final bool linked;
+    if (item is HomeworkModel) {
+      notes = item.notes;
+      linked = note?.homework.contains(item.id) ?? false;
+    } else if (item is EventModel) {
+      notes = item.notes;
+      linked = note?.events.contains(item.id) ?? false;
+    } else {
+      return null;
+    }
+
+    final hadNote = notes.any((linkedNote) => linkedNote.id == noteId);
+    if (!hadNote && !linked) return null;
+
+    final updated = [
+      ...notes.where((linkedNote) => linkedNote.id != noteId),
+      if (linked) IdOrEntity(id: noteId, entity: note),
+    ];
+    return item is HomeworkModel ? item.copyWith(notes: updated) : (item as EventModel).copyWith(notes: updated);
   }
 
   bool _isShownByFilters(PlannerItemBaseModel plannerItem) =>
