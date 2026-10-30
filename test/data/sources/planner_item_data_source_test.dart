@@ -9,6 +9,7 @@ import 'package:heliumapp/data/models/planner/course_schedule_event_model.dart';
 import 'package:heliumapp/data/models/planner/event_model.dart';
 import 'package:heliumapp/data/models/planner/external_calendar_event_model.dart';
 import 'package:heliumapp/data/models/planner/homework_model.dart';
+import 'package:heliumapp/data/models/planner/note_model.dart';
 import 'package:heliumapp/data/models/planner/planner_item_base_model.dart';
 import 'package:heliumapp/data/sources/planner_item_data_source.dart';
 import 'package:heliumapp/utils/planner_helper.dart';
@@ -1048,6 +1049,51 @@ void main() {
         dataSource.updatePlannerItem(updated);
 
         expect(dataSource.completedOverrides, isEmpty);
+      });
+
+      test('syncLinkedNote removes a deleted note from the item it was linked to', () {
+        // GIVEN
+        final note = IdOrEntity<NoteModel>(id: 7);
+        dataSource.addPlannerItem(_createHomeworkModel(id: 1).copyWith(notes: [note]));
+        dataSource.addPlannerItem(_createEventModel(id: 2).copyWith(notes: [IdOrEntity<NoteModel>(id: 8)]));
+
+        // WHEN
+        dataSource.syncLinkedNote(7);
+
+        // THEN
+        final homework = dataSource.allHomeworks.single;
+        expect(homework.notes, isEmpty);
+        expect((dataSource.appointments!.firstWhere((item) => item == homework) as HomeworkModel).notes, isEmpty);
+        expect(dataSource.allEvents.single.notes.map((linked) => linked.id), [8]);
+      });
+
+      test('syncLinkedNote links a created note to its assignment and event', () {
+        // GIVEN
+        dataSource.addPlannerItem(_createHomeworkModel(id: 1));
+        dataSource.addPlannerItem(_createEventModel(id: 2));
+        final note = NoteModel(id: 7, title: 'Lab notes', updatedAt: DateTime.utc(2025, 1, 15), homework: [1]);
+
+        // WHEN
+        dataSource.syncLinkedNote(7, note: note);
+
+        // THEN
+        expect(dataSource.allHomeworks.single.notes.single.id, 7);
+        expect(dataSource.allHomeworks.single.notes.single.entity, note);
+        expect(dataSource.allEvents.single.notes, isEmpty);
+      });
+
+      test('syncLinkedNote moves a relinked note to its new item', () {
+        // GIVEN
+        dataSource.addPlannerItem(_createHomeworkModel(id: 1).copyWith(notes: [IdOrEntity<NoteModel>(id: 7)]));
+        dataSource.addPlannerItem(_createEventModel(id: 2));
+        final note = NoteModel(id: 7, title: 'Lab notes', updatedAt: DateTime.utc(2025, 1, 15), events: [2]);
+
+        // WHEN
+        dataSource.syncLinkedNote(7, note: note);
+
+        // THEN
+        expect(dataSource.allHomeworks.single.notes, isEmpty);
+        expect(dataSource.allEvents.single.notes.single.id, 7);
       });
 
       test('updatePlannerItem hides a shown item that no longer matches the search', () {
