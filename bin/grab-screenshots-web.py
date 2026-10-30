@@ -265,7 +265,7 @@ def build_og_image():
 
 def sync_onboarding():
     print(f"\n{BANNER}\nSyncing onboarding screenshots from www ...\n{BANNER}")
-    subprocess.run([str(REPO / "bin/sync-onboarding.sh")], check=False)
+    subprocess.run([str(REPO / "bin/sync-assets.sh")], check=False)
 
 
 def main():
