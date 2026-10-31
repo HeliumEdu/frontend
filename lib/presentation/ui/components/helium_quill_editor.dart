@@ -202,13 +202,28 @@ class _HeliumQuillEditorState extends State<HeliumQuillEditor> {
         textField: !widget.controller.readOnly,
         multiline: true,
         onTap: _effectiveFocusNode.requestFocus,
-        child: QuillEditor.basic(
-          controller: widget.controller,
-          focusNode: _effectiveFocusNode,
-          scrollController: _scrollController,
-          config: widget.config,
+        child: NotificationListener<ScrollUpdateNotification>(
+          onNotification: _dismissKeyboardOnDrag,
+          child: QuillEditor.basic(
+            controller: widget.controller,
+            focusNode: _effectiveFocusNode,
+            scrollController: _scrollController,
+            config: widget.config,
+          ),
         ),
       ),
     );
+  }
+
+  /// Hides the keyboard when the user drags the note's content, as
+  /// [ScrollViewKeyboardDismissBehavior.onDrag] does on the app's scrolling
+  /// forms; the editor scrolls itself, so no scroll view around it can.
+  bool _dismissKeyboardOnDrag(ScrollUpdateNotification notification) {
+    if (notification.dragDetails == null) return false;
+    final scope = FocusScope.of(context);
+    if (!scope.hasPrimaryFocus && scope.hasFocus) {
+      FocusManager.instance.primaryFocus?.unfocus();
+    }
+    return false;
   }
 }
