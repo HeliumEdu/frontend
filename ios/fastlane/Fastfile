@@ -27,7 +27,7 @@ platform :ios do
 
   desc "Upload IPA to TestFlight and wait for App-Store-side processing"
   lane :deploy_testflight do |options|
-    ipa_path = options[:ipa_path] || "../build/ios/ipa/heliumedu.ipa"
+    ipa_path = options[:ipa_path] || "../build/ios/ipa/Helium.ipa"
     build_number = options[:build_number]
     version = options[:version]
 

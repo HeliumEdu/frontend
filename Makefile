@@ -1,4 +1,4 @@
-.PHONY: all env install screenshots clean clean-chrome icons sync-assets build-android build-android-release build-ios-dev build-ios build-ios-release update-version firebase-config build-web upload-web-symbols upload-ios-symbols upload-android-symbols test start-platform stop-platform install-chromedriver test-integration test-integration-smoke test-playwright coverage run-devserver build-docker-local build-docker run-docker stop-docker restart-docker publish promote
+.PHONY: all env install screenshots clean clean-chrome icons sync-assets build-android build-android-release build-aab build-ios-dev build-ios build-ios-release build-ipa update-version firebase-config build-web upload-web-symbols upload-ios-symbols upload-android-symbols test start-platform stop-platform install-chromedriver test-integration test-integration-smoke test-playwright coverage run-devserver build-docker-local build-docker run-docker stop-docker restart-docker publish promote
 
 SHELL := /usr/bin/env bash
 TAG_VERSION ?= latest
@@ -178,6 +178,25 @@ build-ios: install
 build-ios-release: install
 	flutter build ipa --release --no-codesign --obfuscate --split-debug-info=$(SYMBOLS_DIR) $(RELEASE_ARGS) $(BUILD_OVERRIDE_ARGS)
 	./bin/export-ios-signed.sh
+
+# A prod release candidate for the shared Flutter workflows (alexdlaird/.github): VERSION and BUILD name the build and
+# tag it for Sentry (release, dist), then its debug symbols go to Sentry. SENTRY_DSN and SENTRY_AUTH_TOKEN come from the
+# environment.
+build-aab:
+	$(call require-candidate-vars)
+	$(MAKE) build-android-release ENVIRONMENT=prod RELEASE_VERSION="$(VERSION)" SENTRY_DIST="$(BUILD)" \
+		SENTRY_DSN="$(SENTRY_DSN)" BUILD_NAME="$(VERSION)" BUILD_NUMBER="$(BUILD)"
+	npm install -g @sentry/cli@3.6.2
+	$(MAKE) upload-android-symbols
+
+build-ipa:
+	$(call require-candidate-vars)
+	$(MAKE) build-ios-release ENVIRONMENT=prod RELEASE_VERSION="$(VERSION)" SENTRY_DIST="$(BUILD)" \
+		SENTRY_DSN="$(SENTRY_DSN)" BUILD_NAME="$(VERSION)" BUILD_NUMBER="$(BUILD)"
+	npm install -g @sentry/cli@3.6.2
+	$(MAKE) upload-ios-symbols
+
+require-candidate-vars = $(if $(and $(VERSION),$(BUILD),$(SENTRY_DSN)),,$(error VERSION, BUILD and SENTRY_DSN are required))
 
 build-web: install
 	flutter build web --release --source-maps --no-tree-shake-icons --pwa-strategy=none $(RELEASE_ARGS) $(BUILD_OVERRIDE_ARGS)
