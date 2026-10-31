@@ -130,8 +130,8 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
   /// actions.
   List<Widget> get additionalRightHeaderButtons => const [];
 
-  /// Whether the page's content sits in bordered containers; on phones,
-  /// unboxed content sits further from the edge.
+  /// Whether the page's content sits in bordered containers; unboxed content
+  /// sits further from the edge.
   bool get isContentBoxed => true;
 
   EdgeInsets get scaffoldInsets {
@@ -139,7 +139,7 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
         !DialogModeProvider.isFullScreenMode(context)) {
       return AppConstants.dialogContentPadding.copyWith(bottom: 0);
     }
-    final edge = Responsive.pageEdgeInset(context, boxed: isContentBoxed);
+    final edge = Responsive.pageEdgeInset(boxed: isContentBoxed);
     return EdgeInsets.fromLTRB(edge, AppConstants.contentTopInset, edge, 0);
   }
 
