@@ -176,10 +176,6 @@ jobs:
     timeout-minutes: ${{ (inputs.platforms == 'web' || inputs.platforms == 'android') && 20 || inputs.platforms == 'ios' && 40 || 100 }}
 
     steps:
-      - uses: actions/checkout@v6
-        with:
-          ref: ${{ needs.prereq.outputs.squash_commit_sha }}
-
       - name: Generate GitHub App token
         id: app-token
         uses: actions/create-github-app-token@v3
@@ -188,47 +184,28 @@ jobs:
           private-key: ${{ secrets.HELIUM_BOT_PRIVATE_KEY }}
           skip-token-revoke: true
 
-      - name: Record current deploy run
-        id: prior-run
-        env:
-          GH_TOKEN: ${{ steps.app-token.outputs.token }}
-        run: |
-          PRIOR_RUN_ID=$(gh run list --repo ${{ github.repository }} --workflow deploy.yml --limit 1 --json databaseId --jq '.[0].databaseId // empty')
-          echo "run_id=${PRIOR_RUN_ID}" >> "$GITHUB_OUTPUT"
-
-      - name: Trigger deploy workflow
-        env:
-          GH_TOKEN: ${{ steps.app-token.outputs.token }}
-          VERSION: ${{ needs.prereq.outputs.version }}
-          PLATFORMS: ${{ inputs.platforms }}
-          AUTO_SUBMIT_FOR_REVIEW: ${{ inputs.auto_submit_for_review }}
-          PUSH_STORE_ASSETS: ${{ inputs.push_store_assets }}
-        run: |
-          gh workflow run deploy.yml \
-            --repo ${{ github.repository }} \
-            -f version_type=specific \
-            -f specific_version="$VERSION" \
-            -f platforms="$PLATFORMS" \
-            -f auto_submit_for_review="$AUTO_SUBMIT_FOR_REVIEW" \
-            -f push_store_assets="$PUSH_STORE_ASSETS" \
-            -f artifact_run_id="${{ needs.prereq.outputs.build_run_id }}"
-
-      - name: Wait for deploy workflow to finish
+      - name: Run the deploy workflow and wait for it
         id: wait-for-deploy
-        env:
-          GH_TOKEN: ${{ steps.app-token.outputs.token }}
-          REPO: ${{ github.repository }}
-          WORKFLOW: deploy.yml
-          PRIOR_RUN_ID: ${{ steps.prior-run.outputs.run_id }}
-          RETRIES: ${{ (inputs.platforms == 'web' || inputs.platforms == 'android') && 30 || inputs.platforms == 'ios' && 60 || 180 }}
-        run: bash bin/wait-for-deploy-run.sh
+        uses: alexdlaird/shipshape/run-workflow@v1
+        with:
+          workflow: deploy.yml
+          ref: develop
+          token: ${{ steps.app-token.outputs.token }}
+          timeout-minutes: ${{ (inputs.platforms == 'web' || inputs.platforms == 'android') && 15 || inputs.platforms == 'ios' && 30 || 90 }}
+          inputs: |
+            version_type=specific
+            specific_version=${{ needs.prereq.outputs.version }}
+            platforms=${{ inputs.platforms }}
+            auto_submit_for_review=${{ inputs.auto_submit_for_review }}
+            push_store_assets=${{ inputs.push_store_assets }}
+            artifact_run_id=${{ needs.prereq.outputs.build_run_id }}
 
       - name: Deployment trigger summary
         if: always()
         env:
           VERSION: ${{ needs.prereq.outputs.version }}
           PLATFORMS: ${{ inputs.platforms }}
-          RUN_URL: ${{ steps.wait-for-deploy.outputs.run_url }}
+          RUN_URL: ${{ steps.wait-for-deploy.outputs.run-url }}
         run: |
           echo "### Deploy Workflow Triggered" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY

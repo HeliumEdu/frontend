@@ -41,11 +41,9 @@ class AppConstants {
   static const dialogHeaderPadding = EdgeInsets.fromLTRB(12, 6, 12, 6);
   static const contentTopInset = 8.0;
 
-  /// Screen edge to bordered containers, on phones.
+  /// Screen edge to bordered containers.
   static const pageEdgeInset = 8.0;
-  /// Screen edge to page content, on tablets and desktops.
-  static const wideScreenPageEdgeInset = 24.0;
-  /// Screen edge to content that isn't in a bordered container, on phones.
+  /// Screen edge to content that isn't in a bordered container.
   static const unboxedContentInset = 16.0;
   /// Border to content, inside bordered containers and cards.
   static const containerContentInset = 12.0;

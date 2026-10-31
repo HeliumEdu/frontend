@@ -302,6 +302,18 @@ jobs:
       - uses: actions/checkout@v6
 
       - name: Download the release build
+        id: download
+        continue-on-error: true
+        uses: actions/download-artifact@v8
+        with:
+          name: android-build
+          path: ./android-build
+          run-id: ${{ needs.resolve.outputs.run_id }}
+          github-token: ${{ steps.app-token.outputs.token }}
+
+      # Builds from before the shared candidate workflows named it by version
+      - name: Download the release build (older name)
+        if: steps.download.outcome == 'failure'
         uses: actions/download-artifact@v8
         with:
           name: helium-${{ needs.resolve.outputs.version }}-android
@@ -383,6 +395,18 @@ jobs:
       - uses: actions/checkout@v6
 
       - name: Download the release build
+        id: download
+        continue-on-error: true
+        uses: actions/download-artifact@v8
+        with:
+          name: ios-build
+          path: ./ios-build
+          run-id: ${{ needs.resolve.outputs.run_id }}
+          github-token: ${{ steps.app-token.outputs.token }}
+
+      # Builds from before the shared candidate workflows named it by version
+      - name: Download the release build (older name)
+        if: steps.download.outcome == 'failure'
         uses: actions/download-artifact@v8
         with:
           name: helium-${{ needs.resolve.outputs.version }}-ios

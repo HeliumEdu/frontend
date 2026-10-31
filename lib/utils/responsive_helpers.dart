@@ -44,10 +44,9 @@ class Responsive {
     return isMobile(context) || isPhoneLandscape(context);
   }
 
-  /// On phones, the inset to a page's bordered containers, or to its content
-  /// when it isn't [boxed]; on wider screens, the wide-screen inset.
-  static double pageEdgeInset(BuildContext context, {bool boxed = true}) {
-    if (!useCompactLayout(context)) return AppConstants.wideScreenPageEdgeInset;
+  /// The inset to a page's bordered containers, or to its content when it
+  /// isn't [boxed]; the same on every screen size.
+  static double pageEdgeInset({bool boxed = true}) {
     return boxed
         ? AppConstants.pageEdgeInset
         : AppConstants.unboxedContentInset;
