@@ -110,7 +110,7 @@ jobs:
           repo: frontend
           specific-version: ${{ inputs.version_type != 'latest' && inputs.specific_version || '' }}
 
-      - name: Find the build run that tested it
+      - name: Find the release's build run
         id: resolve
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
@@ -148,7 +148,7 @@ jobs:
 
       - uses: actions/checkout@v6
 
-      - name: Download the tested build
+      - name: Download the release build
         uses: actions/download-artifact@v8
         with:
           name: helium-${{ needs.resolve.outputs.version }}-web
@@ -301,7 +301,7 @@ jobs:
 
       - uses: actions/checkout@v6
 
-      - name: Download the tested build
+      - name: Download the release build
         uses: actions/download-artifact@v8
         with:
           name: helium-${{ needs.resolve.outputs.version }}-android
@@ -382,7 +382,7 @@ jobs:
 
       - uses: actions/checkout@v6
 
-      - name: Download the tested build
+      - name: Download the release build
         uses: actions/download-artifact@v8
         with:
           name: helium-${{ needs.resolve.outputs.version }}-ios

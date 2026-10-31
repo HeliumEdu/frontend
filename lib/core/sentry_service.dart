@@ -53,19 +53,19 @@ class SentryService {
       _releaseVersion.isNotEmpty &&
       _dsn.isNotEmpty;
 
-  /// Initializes Sentry, then runs [appRunner] under it.
-  ///
-  /// [appRunner] must be the app's only entry point — on web the SDK guards it
-  /// with `runZonedGuarded`, which it can only install around a runner it owns —
-  /// and is responsible for initializing the Flutter binding.
-  /// Web builds ship from CI unchanged, so unless the build names an
-  /// environment, the host serving the app decides it.
+  /// The build's environment when it names one; otherwise the host serving the
+  /// app decides it, so one web build serves every environment.
   static String _resolveEnvironment() {
     if (_environmentOverride.isNotEmpty) return _environmentOverride;
     if (kIsWeb && Uri.base.host != _productionWebHost) return 'ci';
     return 'prod';
   }
 
+  /// Initializes Sentry, then runs [appRunner] under it.
+  ///
+  /// [appRunner] must be the app's only entry point — on web the SDK guards it
+  /// with `runZonedGuarded`, which it can only install around a runner it owns —
+  /// and is responsible for initializing the Flutter binding.
   Future<void> run(AppRunner appRunner) async {
     if (!isEnabled) {
       await appRunner();

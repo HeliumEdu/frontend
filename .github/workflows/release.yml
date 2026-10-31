@@ -90,7 +90,7 @@ jobs:
       bot_private_key: ${{ secrets.HELIUM_BOT_PRIVATE_KEY }}
 
   promote-web-container:
-    name: Promote Tested Web Container
+    name: Promote Web Container
     needs: [prereq]
     runs-on: ubuntu-latest
 
@@ -109,7 +109,7 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v4
 
-      - name: Tag the tested image with the release version and publish its files
+      - name: Tag the image with the release version and publish its files
         run: make promote
 
   create-release-tag:
