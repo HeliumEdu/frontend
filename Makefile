@@ -326,8 +326,8 @@ publish: build-docker
 promote:
 	aws ecr-public get-login-password --region us-east-1 | docker login --username AWS --password-stdin public.ecr.aws/heliumedu
 
-	docker buildx imagetools create -t public.ecr.aws/heliumedu/helium/frontend-web:$(PLATFORM)-$(DOCKER_TAG_VERSION) public.ecr.aws/heliumedu/helium/frontend-web:$(PLATFORM)-$(SOURCE_TAG)
-	docker buildx imagetools create -t public.ecr.aws/heliumedu/helium/frontend-web:$(PLATFORM)-latest public.ecr.aws/heliumedu/helium/frontend-web:$(PLATFORM)-$(SOURCE_TAG)
+	docker buildx imagetools create --prefer-index=false -t public.ecr.aws/heliumedu/helium/frontend-web:$(PLATFORM)-$(DOCKER_TAG_VERSION) public.ecr.aws/heliumedu/helium/frontend-web:$(PLATFORM)-$(SOURCE_TAG)
+	docker buildx imagetools create --prefer-index=false -t public.ecr.aws/heliumedu/helium/frontend-web:$(PLATFORM)-latest public.ecr.aws/heliumedu/helium/frontend-web:$(PLATFORM)-$(SOURCE_TAG)
 
 	docker create --platform=linux/$(PLATFORM) --name frontend-web public.ecr.aws/heliumedu/helium/frontend-web:$(PLATFORM)-$(SOURCE_TAG)
 	docker cp frontend-web:/app build
