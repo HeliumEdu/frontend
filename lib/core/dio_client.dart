@@ -629,6 +629,7 @@ class DioClient {
   Future<String?> _resolveClientVersion() async {
     try {
       final info = await PackageInfo.fromPlatform();
+      if (info.buildNumber.isEmpty) return info.version;
       return '${info.version}+${info.buildNumber}';
     } catch (e) {
       _log.warning('Failed to resolve client version', e);

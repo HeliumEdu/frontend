@@ -1,20 +1,10 @@
 name: "Release"
 
-run-name: "Release `${{ inputs.bump_type }}`"
+run-name: "Release `${{ inputs.platforms }}`"
 
 on:
   workflow_dispatch:
     inputs:
-      bump_type:
-        description: 'Version bump type'
-        required: true
-        type: choice
-        default: build
-        options:
-          - build
-          - patch
-          - minor
-          - major
       trigger_deploy_after_release:
         description: 'Trigger deploy after release'
         required: true
@@ -47,11 +37,6 @@ on:
         default: false
   workflow_call:
     inputs:
-      bump_type:
-        description: "Version bump type"
-        required: false
-        type: string
-        default: build
       trigger_deploy_after_release:
         description: "Trigger deploy after release"
         required: false
@@ -68,7 +53,7 @@ on:
         type: string
         default: all
       auto_submit_for_review:
-        description: "Auto-submit for review on both stores; post-review publish still manual"
+        description: "Auto-submit for review on both stores"
         required: false
         type: boolean
         default: false
@@ -95,327 +80,26 @@ concurrency:
 
 jobs:
   prereq:
-    uses: HeliumEdu/.github/.github/workflows/release-prereq.yml@main
+    uses: alexdlaird/.github/.github/workflows/release-prereq.yml@main
     with:
-      bump_type: ${{ inputs.bump_type }}
-      version_format: pubspec
+      version_pattern: 's/^version: .*/version: ${VERSION}/'
       version_file: pubspec.yaml
       repo_slug: HeliumEdu/frontend
     secrets:
       bot_app_id: ${{ secrets.HELIUM_BOT_APP_ID }}
       bot_private_key: ${{ secrets.HELIUM_BOT_PRIVATE_KEY }}
 
-  test:
-    name: Test
+  promote-web-container:
+    name: Promote Tested Web Container
     needs: [prereq]
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v6
-        with:
-          ref: ${{ needs.prereq.outputs.squash_commit_sha }}
-
-      - name: Setup Java 17
-        uses: actions/setup-java@v5
-        with:
-          distribution: 'temurin'
-          java-version: '17'
-          cache: 'gradle'
-          cache-dependency-path: android/*.gradle*
-
-      - name: Read Flutter version
-        id: flutter-version
-        run: echo "version=$(tr -d '[:space:]' < .flutter-version)" >> $GITHUB_OUTPUT
-
-      - name: Setup Flutter SDK
-        uses: flutter-actions/setup-flutter@v4
-        with:
-          channel: stable
-          version: ${{ steps.flutter-version.outputs.version }}
-          cache: true
-
-      - name: Cache pub dependencies
-        uses: actions/cache@v5
-        with:
-          path: ~/.pub-cache
-          key: ${{ runner.os }}-pub-${{ hashFiles('**/pubspec.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-pub-
-
-      - name: Test
-        run: make test
-
-  build-android-release:
-    name: Build Android Release AAB
-    needs: [prereq, test]
-    if: "!cancelled() && needs.prereq.result == 'success' && needs.test.result == 'success'"
-    runs-on: ubuntu-latest
-    concurrency:
-      group: helium-frontend-google-play
-
-    steps:
-      - uses: actions/checkout@v6
-        with:
-          ref: ${{ needs.prereq.outputs.squash_commit_sha }}
-
-      - name: Setup Java 17
-        uses: actions/setup-java@v5
-        with:
-          distribution: 'temurin'
-          java-version: '17'
-          cache: 'gradle'
-          cache-dependency-path: android/*.gradle*
-
-      - name: Read Flutter version
-        id: flutter-version
-        run: echo "version=$(tr -d '[:space:]' < .flutter-version)" >> $GITHUB_OUTPUT
-
-      - name: Setup Flutter SDK
-        uses: flutter-actions/setup-flutter@v4
-        with:
-          channel: stable
-          version: ${{ steps.flutter-version.outputs.version }}
-          cache: true
-
-      - name: Cache pub dependencies
-        uses: actions/cache@v5
-        with:
-          path: ~/.pub-cache
-          key: ${{ runner.os }}-pub-${{ hashFiles('**/pubspec.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-pub-
-
-      - name: Decode keystore
-        run: |
-          echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 --decode > $GITHUB_WORKSPACE/android/helium-release-key.jks
-
-      - name: Setup Ruby
-        uses: ruby/setup-ruby@v1
-        with:
-          ruby-version: '3.3'
-          bundler: 'Gemfile.lock'
-          bundler-cache: false
-
-      - name: Install Fastlane
-        run: |
-          cd android && bundle install
-
-      - name: Decode Google Play service account key
-        env:
-          GOOGLE_PLAY_SERVICE_ACCOUNT_KEY: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_KEY }}
-        run: |
-          echo "$GOOGLE_PLAY_SERVICE_ACCOUNT_KEY" > android/service-account-key.json
-
-      - name: Compute Play version code
-        id: version-code
-        run: |
-          CODE=$(cd android && bundle exec fastlane next_version_code 2>&1 \
-            | sed -n 's/.*Next version code: \([0-9]*\)/\1/p' | tail -1)
-          if [ -z "$CODE" ]; then
-            echo "Could not read the next version code from Play" >&2
-            exit 1
-          fi
-          echo "code=${CODE}" >> $GITHUB_OUTPUT
-          echo "Play version code: ${CODE}"
-
-      - name: Clean build artifacts
-        run: flutter clean
-
-      - name: Build Android release AAB
-        env:
-          SIGNING_KEY_ALIAS: ${{ secrets.ANDROID_SIGNING_KEY_ALIAS }}
-          SIGNING_KEY_PASSWORD: ${{ secrets.ANDROID_SIGNING_KEY_PASSWORD }}
-          SIGNING_STORE_FILE: ${{ github.workspace }}/android/helium-release-key.jks
-          SIGNING_STORE_PASSWORD: ${{ secrets.ANDROID_SIGNING_STORE_PASSWORD }}
-          RELEASE_VERSION: ${{ needs.prereq.outputs.version }}
-          SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
-        run: |
-          SENTRY_DIST="${RELEASE_VERSION##*+}"
-          make build-android-release RELEASE_VERSION="$RELEASE_VERSION" SENTRY_DIST="$SENTRY_DIST" SENTRY_DSN="$SENTRY_DSN" \
-            BUILD_NUMBER="${{ steps.version-code.outputs.code }}"
-          echo "${{ steps.version-code.outputs.code }}" \
-            > build/app/outputs/bundle/release/version_code.txt
-
-      - name: Upload debug symbols to Sentry
-        env:
-          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
-        run: |
-          npm install -g @sentry/cli@3.6.2
-          make upload-android-symbols
-
-      - name: Stage release candidate on Internal track
-        env:
-          RELEASE_VERSION: ${{ needs.prereq.outputs.version }}
-        run: |
-          cd android
-          bundle exec fastlane deploy_internal \
-            aab_path:../build/app/outputs/bundle/release/app-release.aab \
-            version:"${RELEASE_VERSION%%+*}"
-
-      - name: Cleanup service account key
-        if: always()
-        run: rm -f android/service-account-key.json
-
-      - name: Upload AAB artifact
-        uses: actions/upload-artifact@v7
-        with:
-          name: helium-${{ needs.prereq.outputs.version }}-android.aab
-          path: |
-            build/app/outputs/bundle/release/app-release.aab
-            build/app/outputs/bundle/release/version_code.txt
-          retention-days: 30
-
-      - name: Cleanup keystore
-        if: always()
-        run: rm -f $GITHUB_WORKSPACE/android/helium-release-key.jks
-
-  build-ios-release:
-    name: Build iOS Release IPA
-    needs: [prereq, test]
-    if: "!cancelled() && needs.prereq.result == 'success' && needs.test.result == 'success'"
-    runs-on: macos-latest
-
-    steps:
-      - uses: actions/checkout@v6
-        with:
-          ref: ${{ needs.prereq.outputs.squash_commit_sha }}
-
-      - name: Select latest stable Xcode
-        run: |
-          LATEST_XCODE=$(ls /Applications | grep "^Xcode" | grep -v -E "(beta|Release_Candidate)" | sort -V | tail -n 1)
-          sudo xcode-select -s /Applications/$LATEST_XCODE/Contents/Developer
-          xcodebuild -version
-
-      - name: Read Flutter version
-        id: flutter-version
-        run: echo "version=$(tr -d '[:space:]' < .flutter-version)" >> $GITHUB_OUTPUT
-
-      - name: Setup Flutter SDK
-        uses: flutter-actions/setup-flutter@v4
-        with:
-          channel: stable
-          version: ${{ steps.flutter-version.outputs.version }}
-          cache: true
-
-      - name: Cache pub dependencies
-        uses: actions/cache@v5
-        with:
-          path: ~/.pub-cache
-          key: ${{ runner.os }}-pub-${{ hashFiles('**/pubspec.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-pub-
-
-      - name: Install App Store Connect API key
-        env:
-          APP_STORE_CONNECT_API_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
-          APP_STORE_CONNECT_API_KEY: ${{ secrets.APP_STORE_CONNECT_API_KEY }}
-        run: |
-          mkdir -p ~/.appstoreconnect/private_keys
-          echo "$APP_STORE_CONNECT_API_KEY" > ~/.appstoreconnect/private_keys/AuthKey_${APP_STORE_CONNECT_API_KEY_ID}.p8
-
-      - name: Clean build artifacts
-        run: flutter clean
-
-      - name: Build iOS release IPA
-        env:
-          COCOAPODS_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          RELEASE_VERSION: ${{ needs.prereq.outputs.version }}
-          SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
-          APP_STORE_CONNECT_API_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
-          APP_STORE_CONNECT_API_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_ISSUER_ID }}
-        run: |
-          SENTRY_DIST="${RELEASE_VERSION##*+}"
-          make build-ios-release RELEASE_VERSION="$RELEASE_VERSION" SENTRY_DIST="$SENTRY_DIST" SENTRY_DSN="$SENTRY_DSN"
-
-      - name: Upload debug symbols to Sentry
-        env:
-          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
-        run: |
-          npm install -g @sentry/cli@3.6.2
-          make upload-ios-symbols
-
-      - name: Upload IPA artifact
-        uses: actions/upload-artifact@v7
-        with:
-          name: helium-${{ needs.prereq.outputs.version }}-ios.ipa
-          path: build/ios/ipa/Helium.ipa
-          retention-days: 30
-
-      - name: Cleanup API key
-        if: always()
-        run: rm -rf ~/.appstoreconnect
-
-  build-web-release:
-    name: Build Web Release Bundle
-    needs: [prereq, test]
-    if: "!cancelled() && needs.prereq.result == 'success' && needs.test.result == 'success'"
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v6
-        with:
-          ref: ${{ needs.prereq.outputs.squash_commit_sha }}
-
-      - name: Read Flutter version
-        id: flutter-version
-        run: echo "version=$(tr -d '[:space:]' < .flutter-version)" >> $GITHUB_OUTPUT
-
-      - name: Setup Flutter SDK
-        uses: flutter-actions/setup-flutter@v4
-        with:
-          channel: stable
-          version: ${{ steps.flutter-version.outputs.version }}
-          cache: true
-
-      - name: Cache pub dependencies
-        uses: actions/cache@v5
-        with:
-          path: ~/.pub-cache
-          key: ${{ runner.os }}-pub-${{ hashFiles('**/pubspec.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-pub-
-
-      - name: Clean build artifacts
-        run: flutter clean
-
-      - name: Build web release bundle
-        env:
-          RELEASE_VERSION: ${{ needs.prereq.outputs.version }}
-          SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
-        run: |
-          SENTRY_DIST="${RELEASE_VERSION##*+}"
-          make build-web RELEASE_VERSION="$RELEASE_VERSION" SENTRY_DIST="$SENTRY_DIST" SENTRY_DSN="$SENTRY_DSN"
-
-      - name: Upload source maps to Sentry
-        env:
-          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
-          RELEASE_VERSION: ${{ needs.prereq.outputs.version }}
-        run: |
-          npm install -g @sentry/cli@3.6.2
-          SENTRY_DIST="${RELEASE_VERSION##*+}"
-          SENTRY_PROPERTIES=sentry/sentry.properties sentry-cli releases new "$RELEASE_VERSION"
-          make upload-web-symbols RELEASE_VERSION="$RELEASE_VERSION" SENTRY_DIST="$SENTRY_DIST"
-
-      - name: Upload web artifact
-        uses: actions/upload-artifact@v7
-        with:
-          name: helium-${{ needs.prereq.outputs.version }}-web
-          path: build/web
-          include-hidden-files: true
-          retention-days: 30
-
-  build-and-publish-web:
-    name: Build and Publish Web Containers
-    needs: [prereq, test]
-    if: "!cancelled() && needs.prereq.result == 'success' && needs.test.result == 'success'"
     runs-on: ubuntu-latest
 
     env:
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       PLATFORM: amd64
+      SOURCE_TAG: ${{ needs.prereq.outputs.squash_boundary_sha }}
       TAG_VERSION: ${{ needs.prereq.outputs.version }}
-      ENVIRONMENT: prod
 
     steps:
       - uses: actions/checkout@v6
@@ -425,28 +109,13 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v4
 
-      - name: Login to Docker Hub
-        uses: docker/login-action@v4
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-
-      - name: Login to AWS ECR Public
-        run: |
-          aws ecr-public get-login-password --region us-east-1 | docker login --username AWS --password-stdin public.ecr.aws/heliumedu
-
-      - name: Build and publish web containers
-        env:
-          RELEASE_VERSION: ${{ needs.prereq.outputs.version }}
-          SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
-        run: |
-          SENTRY_DIST="${RELEASE_VERSION##*+}"
-          make publish RELEASE_VERSION="$RELEASE_VERSION" SENTRY_DIST="$SENTRY_DIST" SENTRY_DSN="$SENTRY_DSN"
+      - name: Tag the tested image with the release version and publish its files
+        run: make promote
 
   create-release-tag:
     name: Create Release Tag
-    needs: [prereq, build-android-release, build-ios-release, build-web-release, build-and-publish-web]
-    if: "!cancelled() && needs.prereq.result == 'success' && needs['build-android-release'].result == 'success' && needs['build-ios-release'].result == 'success' && needs['build-web-release'].result == 'success' && needs['build-and-publish-web'].result == 'success'"
+    needs: [prereq, promote-web-container]
+    if: "!cancelled() && needs.prereq.result == 'success' && needs['promote-web-container'].result == 'success'"
     runs-on: ubuntu-latest
 
     steps:
@@ -473,18 +142,20 @@ jobs:
 
       - name: Create and push tag
         env:
-          FULL_VERSION: ${{ needs.prereq.outputs.version }}
+          VERSION: ${{ needs.prereq.outputs.version }}
           COMMIT_SHA: ${{ needs.prereq.outputs.squash_commit_sha }}
+          BUILD_RUN_ID: ${{ needs.prereq.outputs.build_run_id }}
         run: |
           git config --global user.name "${{ steps.app-token.outputs.app-slug }}[bot]"
           git config --global user.email "${{ steps.get-bot-user-id.outputs.user-id }}+${{ steps.app-token.outputs.app-slug }}[bot]@users.noreply.github.com"
 
-          if git rev-parse "$FULL_VERSION" >/dev/null 2>&1; then
-            echo "Tag $FULL_VERSION already exists, skipping"
+          if git rev-parse "$VERSION" >/dev/null 2>&1; then
+            echo "Tag $VERSION already exists, skipping"
           else
-            echo "Creating tag $FULL_VERSION on commit $COMMIT_SHA"
-            git tag -a "$FULL_VERSION" -m "Release $FULL_VERSION" "$COMMIT_SHA"
-            git push origin "$FULL_VERSION"
+            echo "Creating tag $VERSION on commit $COMMIT_SHA"
+            # deploy.yml reads Build-Run to find the build artifacts for a re-deploy of this version
+            git tag -a "$VERSION" -m "Release $VERSION" -m "Build-Run: ${BUILD_RUN_ID}" "$COMMIT_SHA"
+            git push origin "$VERSION"
           fi
 
       - name: Create Sentry release
@@ -540,7 +211,7 @@ jobs:
             -f platforms="$PLATFORMS" \
             -f auto_submit_for_review="$AUTO_SUBMIT_FOR_REVIEW" \
             -f push_store_assets="$PUSH_STORE_ASSETS" \
-            -f artifact_run_id="${{ github.run_id }}"
+            -f artifact_run_id="${{ needs.prereq.outputs.build_run_id }}"
 
       - name: Wait for deploy workflow to finish
         id: wait-for-deploy
@@ -570,7 +241,7 @@ jobs:
   cleanup:
     needs: [prereq, create-release-tag, deploy]
     if: always() && needs.prereq.result == 'success'
-    uses: HeliumEdu/.github/.github/workflows/release-cleanup.yml@main
+    uses: alexdlaird/.github/.github/workflows/release-cleanup.yml@main
     with:
       # Consolidation is honoured only when the release actually shipped. Any
       # earlier failure leaves the merge path, which keeps the granular history.
@@ -579,3 +250,11 @@ jobs:
     secrets:
       bot_app_id: ${{ secrets.HELIUM_BOT_APP_ID }}
       bot_private_key: ${{ secrets.HELIUM_BOT_PRIVATE_KEY }}
+
+  bump:
+    needs: [create-release-tag, cleanup]
+    if: always() && needs['create-release-tag'].result == 'success'
+    uses: ./.github/workflows/bump-version.yml
+    with:
+      bump_type: next
+    secrets: inherit

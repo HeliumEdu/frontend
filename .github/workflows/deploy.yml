@@ -14,7 +14,7 @@ on:
           - latest
           - specific
       specific_version:
-        description: 'Specific version tag (only used if version_type is "specific", ex: 1.2.3+45)'
+        description: 'Specific version tag (only used if version_type is "specific", ex: 1.2.3)'
         required: false
         type: string
       platforms:
@@ -38,7 +38,7 @@ on:
         type: boolean
         default: false
       artifact_run_id:
-        description: 'Automation only: workflow run ID to fetch build artifacts from (bypasses the release-history search). Leave blank for a manual deploy.'
+        description: 'Automation only: the build.yml run whose artifacts to deploy (bypasses the release tag lookup). Leave blank for a manual deploy.'
         required: false
         type: string
   workflow_call:
@@ -73,7 +73,7 @@ on:
         type: boolean
         default: false
       artifact_run_id:
-        description: "Workflow run ID containing release artifacts"
+        description: "The build.yml run whose artifacts to deploy"
         required: false
         type: string
 
@@ -84,9 +84,56 @@ concurrency:
   group: "helium-frontend-deploy"
 
 jobs:
+  resolve:
+    name: Resolve Build
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.resolve.outputs.version }}
+      run_id: ${{ steps.resolve.outputs.run_id }}
+
+    steps:
+      - name: Generate GitHub App token
+        id: app-token
+        uses: actions/create-github-app-token@v3
+        with:
+          client-id: ${{ secrets.HELIUM_BOT_APP_ID }}
+          private-key: ${{ secrets.HELIUM_BOT_PRIVATE_KEY }}
+          owner: HeliumEdu
+          skip-token-revoke: true
+
+      - name: Determine version to deploy
+        id: version
+        if: ${{ inputs.artifact_run_id == '' }}
+        uses: HeliumEdu/.github/actions/determine-version@main
+        with:
+          token: ${{ steps.app-token.outputs.token }}
+          repo: frontend
+          specific-version: ${{ inputs.version_type != 'latest' && inputs.specific_version || '' }}
+
+      - name: Find the build run that tested it
+        id: resolve
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          VERSION: ${{ inputs.artifact_run_id != '' && inputs.specific_version || steps.version.outputs.version }}
+          RUN_ID: ${{ inputs.artifact_run_id }}
+        run: |
+          set -euo pipefail
+          if [ -z "$RUN_ID" ]; then
+            TAG_SHA=$(gh api "repos/HeliumEdu/frontend/git/ref/tags/${VERSION}" --jq .object.sha)
+            RUN_ID=$(gh api "repos/HeliumEdu/frontend/git/tags/${TAG_SHA}" --jq .message | sed -n 's/^Build-Run: \([0-9]*\)$/\1/p')
+            if [ -z "$RUN_ID" ]; then
+              echo "::error::Tag ${VERSION} names no Build-Run, so its build artifacts can't be found."
+              exit 1
+            fi
+          fi
+          echo "Deploying ${VERSION} from build.yml run ${RUN_ID}"
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+          echo "run_id=${RUN_ID}" >> "$GITHUB_OUTPUT"
+
   deploy-web:
     name: Deploy Web
     if: inputs.platforms == 'web' || inputs.platforms == 'all'
+    needs: [resolve]
     runs-on: ubuntu-latest
 
     steps:
@@ -101,87 +148,13 @@ jobs:
 
       - uses: actions/checkout@v6
 
-      - name: Determine version to deploy
-        id: version
-        if: ${{ inputs.artifact_run_id == '' }}
-        uses: HeliumEdu/.github/actions/determine-version@main
-        with:
-          token: ${{ steps.app-token.outputs.token }}
-          repo: frontend
-          specific-version: ${{ inputs.version_type != 'latest' && inputs.specific_version || '' }}
-          version-regex: '^[0-9]+\.[0-9]+\.[0-9]+\+[0-9]+$'
-
-      - name: Find workflow run with matching artifact
-        id: find_run
-        if: ${{ inputs.artifact_run_id == '' }}
-        uses: nick-fields/retry@v4
-        env:
-          GH_TOKEN: ${{ steps.app-token.outputs.token }}
-        with:
-          timeout_minutes: 5
-          retry_wait_seconds: 30
-          max_attempts: 5
-          command: |
-            VERSION="${{ steps.version.outputs.version }}"
-            SEMVER="${VERSION}"
-
-            echo "Looking for artifact matching version ${SEMVER} ..."
-
-            # Get recent successful release workflow runs
-            RUNS=$(gh api "repos/HeliumEdu/frontend/actions/workflows/release.yml/runs?status=success&per_page=20" \
-              --jq '.workflow_runs[].id')
-
-            if [ -z "$RUNS" ]; then
-              echo "Error: No successful release workflow runs found"
-              exit 1
-            fi
-
-            # Search each run for an artifact matching our version
-            for RUN_ID in $RUNS; do
-              ARTIFACT_NAME=$(gh api "repos/HeliumEdu/frontend/actions/runs/${RUN_ID}/artifacts" \
-                --jq ".artifacts[] | select(.name | startswith(\"helium-${SEMVER}\") and endswith(\"-web\")) | .name" 2>/dev/null)
-
-              if [ -n "$ARTIFACT_NAME" ]; then
-                echo "Found matching artifact '${ARTIFACT_NAME}' in workflow run ${RUN_ID}"
-                echo "run_id=${RUN_ID}" >> $GITHUB_OUTPUT
-                echo "artifact_name=${ARTIFACT_NAME}" >> $GITHUB_OUTPUT
-
-                # Extract full version from artifact name (e.g., helium-1.0.9+42-web -> 1.0.9+42)
-                FULL_VERSION=$(echo "$ARTIFACT_NAME" | sed 's/helium-\(.*\)-web/\1/')
-                echo "full_version=${FULL_VERSION}" >> $GITHUB_OUTPUT
-                exit 0
-              fi
-            done
-
-            echo "Error: No workflow run found with artifact for version ${VERSION}"
-            exit 1
-
-      - name: Download web artifact from current run
-        if: ${{ inputs.artifact_run_id != '' }}
+      - name: Download the tested build
         uses: actions/download-artifact@v8
         with:
-          name: helium-${{ inputs.specific_version }}-web
+          name: helium-${{ needs.resolve.outputs.version }}-web
           path: ./web-build
-          run-id: ${{ inputs.artifact_run_id }}
+          run-id: ${{ needs.resolve.outputs.run_id }}
           github-token: ${{ steps.app-token.outputs.token }}
-
-      - name: Download web artifact
-        if: ${{ inputs.artifact_run_id == '' }}
-        env:
-          GH_TOKEN: ${{ steps.app-token.outputs.token }}
-        run: |
-          RUN_ID="${{ steps.find_run.outputs.run_id }}"
-          ARTIFACT_NAME="${{ steps.find_run.outputs.artifact_name }}"
-
-          echo "Downloading artifact ${ARTIFACT_NAME} from run ${RUN_ID} ..."
-
-          gh run download ${RUN_ID} \
-            --repo HeliumEdu/frontend \
-            --name "${ARTIFACT_NAME}" \
-            --dir ./web-build
-
-          echo "Artifact downloaded to ./web-build"
-          ls -la ./web-build
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v6
@@ -192,7 +165,7 @@ jobs:
 
       - name: Deploy to S3
         env:
-          VERSION: ${{ inputs.artifact_run_id != '' && inputs.specific_version || steps.find_run.outputs.full_version }}
+          VERSION: ${{ needs.resolve.outputs.version }}
         run: |
           BUCKET_NAME="heliumedu.prod.frontend-app.static"
 
@@ -280,10 +253,10 @@ jobs:
       - name: Notify Sentry of deploy
         env:
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
-          RELEASE_VERSION: ${{ inputs.artifact_run_id != '' && inputs.specific_version || steps.find_run.outputs.full_version }}
+          RELEASE_VERSION: ${{ needs.resolve.outputs.version }}
         run: |
           npm install -g @sentry/cli@3.6.2
-          SENTRY_DIST="${RELEASE_VERSION##*+}"
+          SENTRY_DIST=$(jq -r .build_number ./web-build/version.json)
           SENTRY_PROPERTIES=sentry/sentry.properties sentry-cli releases deploys "$RELEASE_VERSION" new \
             --env prod \
             --name "dist-${SENTRY_DIST}"
@@ -298,19 +271,20 @@ jobs:
 
       - name: Deployment summary
         env:
-          VERSION: ${{ inputs.artifact_run_id != '' && inputs.specific_version || steps.version.outputs.version }}
-          FULL_VERSION: ${{ inputs.artifact_run_id != '' && inputs.specific_version || steps.find_run.outputs.full_version }}
+          VERSION: ${{ needs.resolve.outputs.version }}
         run: |
           URL="https://app.heliumedu.com"
+          BUILD_NUMBER=$(jq -r .build_number ./web-build/version.json)
 
           echo "### Web Deployment Complete" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "- **Version**: ${FULL_VERSION}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Version**: ${VERSION}+${BUILD_NUMBER}" >> $GITHUB_STEP_SUMMARY
           echo "- **URL**: ${URL}" >> $GITHUB_STEP_SUMMARY
 
   deploy-android:
     name: Deploy Android
     if: inputs.platforms == 'android' || inputs.platforms == 'all'
+    needs: [resolve]
     runs-on: ubuntu-latest
     concurrency:
       group: helium-frontend-google-play
@@ -327,87 +301,13 @@ jobs:
 
       - uses: actions/checkout@v6
 
-      - name: Determine version to deploy
-        id: version
-        if: ${{ inputs.artifact_run_id == '' }}
-        uses: HeliumEdu/.github/actions/determine-version@main
-        with:
-          token: ${{ steps.app-token.outputs.token }}
-          repo: frontend
-          specific-version: ${{ inputs.version_type != 'latest' && inputs.specific_version || '' }}
-          version-regex: '^[0-9]+\.[0-9]+\.[0-9]+\+[0-9]+$'
-
-      - name: Find workflow run with matching artifact
-        id: find_run
-        if: ${{ inputs.artifact_run_id == '' }}
-        uses: nick-fields/retry@v4
-        env:
-          GH_TOKEN: ${{ steps.app-token.outputs.token }}
-        with:
-          timeout_minutes: 5
-          retry_wait_seconds: 30
-          max_attempts: 5
-          command: |
-            VERSION="${{ steps.version.outputs.version }}"
-            SEMVER="${VERSION}"
-
-            echo "Looking for artifact matching version ${SEMVER} ..."
-
-            # Get recent successful release workflow runs
-            RUNS=$(gh api "repos/HeliumEdu/frontend/actions/workflows/release.yml/runs?status=success&per_page=20" \
-              --jq '.workflow_runs[].id')
-
-            if [ -z "$RUNS" ]; then
-              echo "Error: No successful release workflow runs found"
-              exit 1
-            fi
-
-            # Search each run for an artifact matching our version
-            for RUN_ID in $RUNS; do
-              ARTIFACT_NAME=$(gh api "repos/HeliumEdu/frontend/actions/runs/${RUN_ID}/artifacts" \
-                --jq ".artifacts[] | select(.name | startswith(\"helium-${SEMVER}\") and endswith(\"-android.aab\")) | .name" 2>/dev/null)
-
-              if [ -n "$ARTIFACT_NAME" ]; then
-                echo "Found matching artifact '${ARTIFACT_NAME}' in workflow run ${RUN_ID}"
-                echo "run_id=${RUN_ID}" >> $GITHUB_OUTPUT
-                echo "artifact_name=${ARTIFACT_NAME}" >> $GITHUB_OUTPUT
-
-                # Extract full version from artifact name (e.g., helium-1.0.9+42-android.aab -> 1.0.9+42)
-                FULL_VERSION=$(echo "$ARTIFACT_NAME" | sed 's/helium-\(.*\)-android\.aab/\1/')
-                echo "full_version=${FULL_VERSION}" >> $GITHUB_OUTPUT
-                exit 0
-              fi
-            done
-
-            echo "Error: No workflow run found with artifact for version ${VERSION}"
-            exit 1
-
-      - name: Download Android artifact from current run
-        if: ${{ inputs.artifact_run_id != '' }}
+      - name: Download the tested build
         uses: actions/download-artifact@v8
         with:
-          name: helium-${{ inputs.specific_version }}-android.aab
+          name: helium-${{ needs.resolve.outputs.version }}-android
           path: ./android-build
-          run-id: ${{ inputs.artifact_run_id }}
+          run-id: ${{ needs.resolve.outputs.run_id }}
           github-token: ${{ steps.app-token.outputs.token }}
-
-      - name: Download Android artifact
-        if: ${{ inputs.artifact_run_id == '' }}
-        env:
-          GH_TOKEN: ${{ steps.app-token.outputs.token }}
-        run: |
-          RUN_ID="${{ steps.find_run.outputs.run_id }}"
-          ARTIFACT_NAME="${{ steps.find_run.outputs.artifact_name }}"
-
-          echo "Downloading artifact ${ARTIFACT_NAME} from run ${RUN_ID} ..."
-
-          gh run download ${RUN_ID} \
-            --repo HeliumEdu/frontend \
-            --name "${ARTIFACT_NAME}" \
-            --dir ./android-build
-
-          echo "Artifact downloaded to ./android-build"
-          ls -la ./android-build
 
       - name: Setup Ruby
         uses: ruby/setup-ruby@v1
@@ -428,15 +328,14 @@ jobs:
 
       - name: Stage Google Play release
         env:
-          FULL_VERSION: ${{ inputs.artifact_run_id != '' && inputs.specific_version || steps.find_run.outputs.full_version }}
+          VERSION: ${{ needs.resolve.outputs.version }}
           AUTO_SUBMIT_FOR_REVIEW: ${{ inputs.auto_submit_for_review }}
           PUSH_STORE_ASSETS: ${{ inputs.push_store_assets }}
         run: |
-          SEMVER="${FULL_VERSION%%+*}"
           VERSION_CODE=$(cat ./android-build/version_code.txt)
-          echo "Staging Google Play release $SEMVER ($VERSION_CODE) ..."
+          echo "Staging Google Play release $VERSION ($VERSION_CODE) ..."
           cd android
-          bundle exec fastlane deploy_production version:$SEMVER version_code:$VERSION_CODE submit_for_review:$AUTO_SUBMIT_FOR_REVIEW push_store_assets:$PUSH_STORE_ASSETS
+          bundle exec fastlane deploy_production version:$VERSION version_code:$VERSION_CODE submit_for_review:$AUTO_SUBMIT_FOR_REVIEW push_store_assets:$PUSH_STORE_ASSETS
 
       - name: Cleanup service account key
         if: always()
@@ -444,8 +343,7 @@ jobs:
 
       - name: Deployment summary
         env:
-          VERSION: ${{ inputs.artifact_run_id != '' && inputs.specific_version || steps.version.outputs.version }}
-          FULL_VERSION: ${{ inputs.artifact_run_id != '' && inputs.specific_version || steps.find_run.outputs.full_version }}
+          VERSION: ${{ needs.resolve.outputs.version }}
           AUTO_SUBMIT_FOR_REVIEW: ${{ inputs.auto_submit_for_review }}
         run: |
           if [ "$AUTO_SUBMIT_FOR_REVIEW" = "true" ]; then
@@ -454,13 +352,12 @@ jobs:
             STATUS="Staged as a draft. Click **Send for review** in Play Console when ready."
           fi
 
-          SEMVER="${FULL_VERSION%%+*}"
           VERSION_CODE=$(cat ./android-build/version_code.txt)
 
           echo "### Android Deployment Complete" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "- **Version**: ${SEMVER}+${VERSION_CODE}" >> $GITHUB_STEP_SUMMARY
-          echo "- **Release tag**: ${FULL_VERSION}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Version**: ${VERSION}+${VERSION_CODE}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Release tag**: ${VERSION}" >> $GITHUB_STEP_SUMMARY
           echo "- **Track**: Production" >> $GITHUB_STEP_SUMMARY
           echo "- **Status**: ${STATUS}" >> $GITHUB_STEP_SUMMARY
           echo "- **Console**: [Google Play Console](https://play.google.com/console/developers/5225481146664498498/app/4975537823503737498/tracks/production)" >> $GITHUB_STEP_SUMMARY
@@ -468,6 +365,7 @@ jobs:
   deploy-ios:
     name: Deploy iOS
     if: inputs.platforms == 'ios' || inputs.platforms == 'all'
+    needs: [resolve]
     runs-on: macos-latest
     concurrency:
       group: helium-frontend-app-store
@@ -484,87 +382,13 @@ jobs:
 
       - uses: actions/checkout@v6
 
-      - name: Determine version to deploy
-        id: version
-        if: ${{ inputs.artifact_run_id == '' }}
-        uses: HeliumEdu/.github/actions/determine-version@main
-        with:
-          token: ${{ steps.app-token.outputs.token }}
-          repo: frontend
-          specific-version: ${{ inputs.version_type != 'latest' && inputs.specific_version || '' }}
-          version-regex: '^[0-9]+\.[0-9]+\.[0-9]+\+[0-9]+$'
-
-      - name: Find workflow run with matching artifact
-        id: find_run
-        if: ${{ inputs.artifact_run_id == '' }}
-        uses: nick-fields/retry@v4
-        env:
-          GH_TOKEN: ${{ steps.app-token.outputs.token }}
-        with:
-          timeout_minutes: 5
-          retry_wait_seconds: 30
-          max_attempts: 5
-          command: |
-            VERSION="${{ steps.version.outputs.version }}"
-            SEMVER="${VERSION}"
-
-            echo "Looking for artifact matching version ${SEMVER} ..."
-
-            # Get recent successful release workflow runs
-            RUNS=$(gh api "repos/HeliumEdu/frontend/actions/workflows/release.yml/runs?status=success&per_page=20" \
-              --jq '.workflow_runs[].id')
-
-            if [ -z "$RUNS" ]; then
-              echo "Error: No successful release workflow runs found"
-              exit 1
-            fi
-
-            # Search each run for an artifact matching our version
-            for RUN_ID in $RUNS; do
-              ARTIFACT_NAME=$(gh api "repos/HeliumEdu/frontend/actions/runs/${RUN_ID}/artifacts" \
-                --jq ".artifacts[] | select(.name | startswith(\"helium-${SEMVER}\") and endswith(\"-ios.ipa\")) | .name" 2>/dev/null)
-
-              if [ -n "$ARTIFACT_NAME" ]; then
-                echo "Found matching artifact '${ARTIFACT_NAME}' in workflow run ${RUN_ID}"
-                echo "run_id=${RUN_ID}" >> $GITHUB_OUTPUT
-                echo "artifact_name=${ARTIFACT_NAME}" >> $GITHUB_OUTPUT
-
-                # Extract full version from artifact name (e.g., helium-1.0.9+42-ios.ipa -> 1.0.9+42)
-                FULL_VERSION=$(echo "$ARTIFACT_NAME" | sed 's/helium-\(.*\)-ios\.ipa/\1/')
-                echo "full_version=${FULL_VERSION}" >> $GITHUB_OUTPUT
-                exit 0
-              fi
-            done
-
-            echo "Error: No workflow run found with artifact for version ${VERSION}"
-            exit 1
-
-      - name: Download iOS artifact from current run
-        if: ${{ inputs.artifact_run_id != '' }}
+      - name: Download the tested build
         uses: actions/download-artifact@v8
         with:
-          name: helium-${{ inputs.specific_version }}-ios.ipa
+          name: helium-${{ needs.resolve.outputs.version }}-ios
           path: ./ios-build
-          run-id: ${{ inputs.artifact_run_id }}
+          run-id: ${{ needs.resolve.outputs.run_id }}
           github-token: ${{ steps.app-token.outputs.token }}
-
-      - name: Download iOS artifact
-        if: ${{ inputs.artifact_run_id == '' }}
-        env:
-          GH_TOKEN: ${{ steps.app-token.outputs.token }}
-        run: |
-          RUN_ID="${{ steps.find_run.outputs.run_id }}"
-          ARTIFACT_NAME="${{ steps.find_run.outputs.artifact_name }}"
-
-          echo "Downloading artifact ${ARTIFACT_NAME} from run ${RUN_ID} ..."
-
-          gh run download ${RUN_ID} \
-            --repo HeliumEdu/frontend \
-            --name "${ARTIFACT_NAME}" \
-            --dir ./ios-build
-
-          echo "Artifact downloaded to ./ios-build"
-          ls -la ./ios-build
 
       - name: Setup Ruby
         uses: ruby/setup-ruby@v1
@@ -577,41 +401,24 @@ jobs:
         run: |
           cd ios && bundle install
 
-      - name: Deploy to TestFlight
+      - name: Stage App Store version
         env:
           APPLE_ID: ${{ secrets.APPLE_ID }}
           APP_STORE_CONNECT_API_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
           APP_STORE_CONNECT_API_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_ISSUER_ID }}
           APP_STORE_CONNECT_API_KEY: ${{ secrets.APP_STORE_CONNECT_API_KEY }}
           APP_STORE_CONNECT_TEAM_ID: ${{ secrets.APP_STORE_CONNECT_TEAM_ID }}
-          FULL_VERSION: ${{ inputs.artifact_run_id != '' && inputs.specific_version || steps.find_run.outputs.full_version }}
-        run: |
-          cd ios
-          echo "Deploying to TestFlight ..."
-
-          # Create App Store Connect API key file
-          mkdir -p ~/.appstoreconnect/private_keys
-          echo "$APP_STORE_CONNECT_API_KEY" > ~/.appstoreconnect/private_keys/AuthKey_${APP_STORE_CONNECT_API_KEY_ID}.p8
-
-          SEMVER="${FULL_VERSION%%+*}"
-          BUILD="${FULL_VERSION##*+}"
-          bundle exec fastlane deploy_testflight ipa_path:../ios-build/Helium.ipa version:$SEMVER build_number:$BUILD
-
-      - name: Stage App Store version
-        env:
-          APPLE_ID: ${{ secrets.APPLE_ID }}
-          APP_STORE_CONNECT_API_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
-          APP_STORE_CONNECT_API_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_ISSUER_ID }}
-          APP_STORE_CONNECT_TEAM_ID: ${{ secrets.APP_STORE_CONNECT_TEAM_ID }}
-          FULL_VERSION: ${{ inputs.artifact_run_id != '' && inputs.specific_version || steps.find_run.outputs.full_version }}
+          VERSION: ${{ needs.resolve.outputs.version }}
           AUTO_SUBMIT_FOR_REVIEW: ${{ inputs.auto_submit_for_review }}
           PUSH_STORE_ASSETS: ${{ inputs.push_store_assets }}
         run: |
+          mkdir -p ~/.appstoreconnect/private_keys
+          echo "$APP_STORE_CONNECT_API_KEY" > ~/.appstoreconnect/private_keys/AuthKey_${APP_STORE_CONNECT_API_KEY_ID}.p8
+
           cd ios
-          SEMVER="${FULL_VERSION%%+*}"
-          BUILD="${FULL_VERSION##*+}"
-          echo "Staging App Store version $SEMVER ($BUILD) ..."
-          bundle exec fastlane deploy_appstore version:$SEMVER build_number:$BUILD submit_for_review:$AUTO_SUBMIT_FOR_REVIEW push_store_assets:$PUSH_STORE_ASSETS
+          BUILD=$(cat ../ios-build/build_number.txt)
+          echo "Staging App Store version $VERSION ($BUILD) ..."
+          bundle exec fastlane deploy_appstore version:$VERSION build_number:$BUILD submit_for_review:$AUTO_SUBMIT_FOR_REVIEW push_store_assets:$PUSH_STORE_ASSETS
 
       - name: Cleanup API key
         if: always()
@@ -619,19 +426,18 @@ jobs:
 
       - name: Deployment summary
         env:
-          VERSION: ${{ inputs.artifact_run_id != '' && inputs.specific_version || steps.version.outputs.version }}
-          FULL_VERSION: ${{ inputs.artifact_run_id != '' && inputs.specific_version || steps.find_run.outputs.full_version }}
+          VERSION: ${{ needs.resolve.outputs.version }}
           AUTO_SUBMIT_FOR_REVIEW: ${{ inputs.auto_submit_for_review }}
         run: |
           if [ "$AUTO_SUBMIT_FOR_REVIEW" = "true" ]; then
-            STATUS="Submitted for review. Once Apple approves, the version sits in PENDING_DEVELOPER_RELEASE awaiting a manual **Release this version** click."
+            STATUS="Submitted for review. Once Apple approves, the version releases automatically."
           else
             STATUS="Staged as a draft. Click **Submit for Review** in App Store Connect when ready."
           fi
 
           echo "### iOS Deployment Complete" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "- **Version**: ${FULL_VERSION}" >> $GITHUB_STEP_SUMMARY
-          echo "- **Destination**: TestFlight and App Store" >> $GITHUB_STEP_SUMMARY
+          echo "- **Version**: ${VERSION}+$(cat ./ios-build/build_number.txt)" >> $GITHUB_STEP_SUMMARY
+          echo "- **Destination**: App Store" >> $GITHUB_STEP_SUMMARY
           echo "- **Status**: ${STATUS}" >> $GITHUB_STEP_SUMMARY
           echo "- **Console**: [App Store Connect](https://appstoreconnect.apple.com/apps/6758323154/distribution/ios/version/deliverable)" >> $GITHUB_STEP_SUMMARY

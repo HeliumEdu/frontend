@@ -67,7 +67,7 @@ platform :ios do
     end
   end
 
-  desc "Stage an App Store version with the latest TestFlight build, push metadata text every time and screenshots only when push_store_assets:true. Optionally auto-submit for App Review (post-review publish remains manual via App Store Connect). The marketing app icon is part of the IPA and is not affected by this flag."
+  desc "Stage an App Store version with the given TestFlight build (CI uploads it), push metadata text every time and screenshots only when push_store_assets:true. Optionally auto-submit for App Review (an approved version releases automatically). The marketing app icon is part of the IPA and is not affected by this flag."
   lane :deploy_appstore do |options|
     version = options[:version]
     build_number = options[:build_number]
@@ -90,9 +90,9 @@ platform :ios do
     # If the target App Store version is past the editable stage (submitted,
     # in review, live, etc.), fail the lane rather than letting
     # `upload_to_app_store` partially mutate an in-flight submission. The
-    # TestFlight upload above already succeeded; the operator must resolve
-    # the existing submission in App Store Connect (or, if the version is
-    # already shipped, do a patch bump) before re-running.
+    # TestFlight build stays in place; the operator must resolve the existing
+    # submission in App Store Connect (or, if the version is already shipped,
+    # release the next version) before re-running.
     locked_states = %w[
       READY_FOR_REVIEW
       WAITING_FOR_REVIEW
@@ -109,9 +109,10 @@ platform :ios do
     if existing && locked_states.include?(existing.app_store_state)
       UI.user_error!(
         "App Store version #{version} is in state " \
-        "`#{existing.app_store_state}` — cannot stage. TestFlight upload " \
-        "above succeeded; do a patch bump (if the version is shipped) or " \
-        "resolve the in-flight submission in App Store Connect, then re-run."
+        "`#{existing.app_store_state}` — cannot stage. The TestFlight " \
+        "build stays in place; release the next version (if this one is " \
+        "shipped) or resolve the in-flight submission in App Store Connect, " \
+        "then re-run."
       )
     end
 
@@ -128,11 +129,7 @@ platform :ios do
       # the set, so order in App Store Connect drifts from local filename order.
       overwrite_screenshots: true,
       submit_for_review: submit_for_review && !submit_separately,
-      # `automatic_release: false` is the post-review manual-publish gate —
-      # Apple's equivalent of Play's Managed Publishing, applied per-version.
-      # The version sits in PENDING_DEVELOPER_RELEASE after Apple approves
-      # until the operator clicks "Release this version" in App Store Connect.
-      automatic_release: false,
+      automatic_release: true,
       force: true,
       precheck_include_in_app_purchases: false
     )
@@ -142,7 +139,7 @@ platform :ios do
     if submit_for_review
       # When submitting for review, deliver itself locates and attaches the
       # build as part of the submission flow — no manual selection needed.
-      UI.success("Submitted App Store version #{version} (build #{build_number}) for review. Apple's review is async; when approved the version will sit in PENDING_DEVELOPER_RELEASE awaiting a manual 'Release this version' click in App Store Connect.")
+      UI.success("Submitted App Store version #{version} (build #{build_number}) for review. Apple's review is async; once approved, the version releases automatically.")
       next
     end
 
@@ -186,7 +183,7 @@ platform :ios do
         skip_metadata: true,
         skip_screenshots: true,
         submit_for_review: true,
-        automatic_release: false,
+        automatic_release: true,
         force: true,
         precheck_include_in_app_purchases: false
       )

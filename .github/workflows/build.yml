@@ -139,10 +139,7 @@ jobs:
       - uses: actions/checkout@v6
 
       - name: Select latest stable Xcode
-        run: |
-          LATEST_XCODE=$(ls /Applications | grep "^Xcode" | grep -v -E "(beta|Release_Candidate)" | sort -V | tail -n 1)
-          sudo xcode-select -s /Applications/$LATEST_XCODE/Contents/Developer
-          xcodebuild -version
+        uses: alexdlaird/shipshape/select-xcode@v1
 
       - name: Read Flutter version
         id: flutter-version
@@ -236,7 +233,7 @@ jobs:
               echo "label=CI Preview"
               echo "bucket=heliumedu.ci.frontend-app.static"
               echo "environment=prod"
-              echo "sentry_environment=ci"
+              echo "sentry_environment="
               echo "firebase_auth_domain=auth.heliumedu.com"
               echo "cf_comment=heliumedu-ci-frontend-app"
               echo "canary_env=ci"
@@ -264,19 +261,13 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-pub-
 
-      - name: Compute CI build version
+      - name: Read version
         id: ci-version
         run: |
-          CURRENT=$(grep '^version:' pubspec.yaml | cut -d' ' -f2)
-          SEMVER="${CURRENT%%+*}"
-          IFS='.' read -r MAJOR MINOR PATCH <<< "$SEMVER"
-          CI_VERSION="${MAJOR}.${MINOR}.$((PATCH + 1))"
-          BUILD="${CURRENT##*+}"
-
-          sed -i "s/^version:.*/version: ${CI_VERSION}+${BUILD}/" pubspec.yaml
-
-          echo "version=${CI_VERSION}+${BUILD}" >> $GITHUB_OUTPUT
-          echo "CI build: ${CI_VERSION}+${BUILD}"
+          VERSION=$(grep '^version:' pubspec.yaml | cut -d' ' -f2)
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          echo "build-number=${{ github.run_number }}" >> $GITHUB_OUTPUT
+          echo "CI build: ${VERSION}+${{ github.run_number }}"
 
       - name: Build web
         env:
@@ -284,12 +275,12 @@ jobs:
           SENTRY_ENVIRONMENT: ${{ steps.target.outputs.sentry_environment }}
           FIREBASE_AUTH_DOMAIN: ${{ steps.target.outputs.firebase_auth_domain }}
           RELEASE_VERSION: ${{ steps.ci-version.outputs.version }}
+          BUILD_NUMBER: ${{ steps.ci-version.outputs.build-number }}
           PROJECT_API_HOST: ${{ steps.target.outputs.api }}
           SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
         run: |
-          SENTRY_DIST="${RELEASE_VERSION##*+}"
           ARGS="ENVIRONMENT=${ENVIRONMENT} SENTRY_ENVIRONMENT=${SENTRY_ENVIRONMENT}"
-          ARGS="$ARGS RELEASE_VERSION=${RELEASE_VERSION} SENTRY_DIST=${SENTRY_DIST} SENTRY_DSN=${SENTRY_DSN}"
+          ARGS="$ARGS RELEASE_VERSION=${RELEASE_VERSION} SENTRY_DIST=${BUILD_NUMBER} BUILD_NUMBER=${BUILD_NUMBER} SENTRY_DSN=${SENTRY_DSN}"
           ARGS="$ARGS PROJECT_API_HOST=${PROJECT_API_HOST}"
           if [ -n "$FIREBASE_AUTH_DOMAIN" ]; then
             ARGS="$ARGS FIREBASE_AUTH_DOMAIN=${FIREBASE_AUTH_DOMAIN}"
@@ -300,10 +291,19 @@ jobs:
         env:
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
           RELEASE_VERSION: ${{ steps.ci-version.outputs.version }}
+          BUILD_NUMBER: ${{ steps.ci-version.outputs.build-number }}
         run: |
           npm install -g @sentry/cli@3.6.2
-          SENTRY_DIST="${RELEASE_VERSION##*+}"
-          make upload-web-symbols RELEASE_VERSION="$RELEASE_VERSION" SENTRY_DIST="$SENTRY_DIST"
+          make upload-web-symbols RELEASE_VERSION="$RELEASE_VERSION" SENTRY_DIST="$BUILD_NUMBER"
+
+      - name: Upload release candidate
+        if: ${{ github.event_name == 'push' }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: helium-${{ steps.ci-version.outputs.version }}-web
+          path: build/web
+          include-hidden-files: true
+          retention-days: 90
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v6
@@ -388,13 +388,44 @@ jobs:
           echo "### ${LABEL} Deployment Complete" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "- **Commit**: ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **Version**: ${{ steps.ci-version.outputs.version }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Version**: ${{ steps.ci-version.outputs.version }}+${{ steps.ci-version.outputs.build-number }}" >> $GITHUB_STEP_SUMMARY
           echo "- **API**: ${API}" >> $GITHUB_STEP_SUMMARY
           if [ -n "$URL" ]; then
             echo "- **URL**: ${URL}" >> $GITHUB_STEP_SUMMARY
           elif [ -n "$DISCOVERED" ]; then
             echo "- **URL**: https://${DISCOVERED}" >> $GITHUB_STEP_SUMMARY
           fi
+
+  publish-web-container:
+    name: Publish web container (release candidate)
+    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/develop' }}
+    runs-on: ubuntu-latest
+
+    env:
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      PLATFORM: amd64
+      TAG_VERSION: ${{ github.sha }}
+      ENVIRONMENT: prod
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v4
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and publish web container
+        env:
+          SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
+        run: |
+          RELEASE_VERSION=$(grep '^version:' pubspec.yaml | cut -d' ' -f2)
+          make publish RELEASE_VERSION="$RELEASE_VERSION" SENTRY_DIST="${{ github.run_number }}" SENTRY_DSN="$SENTRY_DSN"
 
   deploy-ios-ci:
     name: Deploy iOS (CI preview)
@@ -408,10 +439,7 @@ jobs:
       - uses: actions/checkout@v6
 
       - name: Select latest stable Xcode
-        run: |
-          LATEST_XCODE=$(ls /Applications | grep "^Xcode" | grep -v -E "(beta|Release_Candidate)" | sort -V | tail -n 1)
-          sudo xcode-select -s /Applications/$LATEST_XCODE/Contents/Developer
-          xcodebuild -version
+        uses: alexdlaird/shipshape/select-xcode@v1
 
       - name: Read Flutter version
         id: flutter-version
@@ -442,17 +470,23 @@ jobs:
       - name: Install Fastlane
         run: cd ios && bundle install
 
+      - name: Check whether this version is already released
+        id: released
+        run: |
+          VERSION=$(grep '^version:' pubspec.yaml | cut -d' ' -f2)
+          if [ -n "$(git ls-remote --tags origin "refs/tags/${VERSION}")" ]; then
+            echo "released=true" >> $GITHUB_OUTPUT
+          fi
+
       - name: Compute CI build version
+        if: steps.released.outputs.released != 'true'
         id: ci-version
         env:
           APP_STORE_CONNECT_API_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
           APP_STORE_CONNECT_API_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_ISSUER_ID }}
           APP_STORE_CONNECT_API_KEY: ${{ secrets.APP_STORE_CONNECT_API_KEY }}
         run: |
-          CURRENT=$(grep '^version:' pubspec.yaml | cut -d' ' -f2)
-          SEMVER="${CURRENT%%+*}"
-          IFS='.' read -r MAJOR MINOR PATCH <<< "$SEMVER"
-          CI_VERSION="${MAJOR}.${MINOR}.$((PATCH + 1))"
+          CI_VERSION=$(grep '^version:' pubspec.yaml | cut -d' ' -f2)
 
           mkdir -p ~/.appstoreconnect/private_keys
           echo "$APP_STORE_CONNECT_API_KEY" > ~/.appstoreconnect/private_keys/AuthKey_${APP_STORE_CONNECT_API_KEY_ID}.p8
@@ -465,20 +499,22 @@ jobs:
           echo "CI build: ${CI_VERSION}+${BUILD_NUMBER}"
 
       - name: Build iOS release IPA
+        if: steps.released.outputs.released != 'true'
         env:
           COCOAPODS_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          RELEASE_VERSION: ${{ steps.ci-version.outputs.build-name }}+${{ steps.ci-version.outputs.build-number }}
+          RELEASE_VERSION: ${{ steps.ci-version.outputs.build-name }}
+          SENTRY_DIST: ${{ steps.ci-version.outputs.build-number }}
           SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
           APP_STORE_CONNECT_API_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
           APP_STORE_CONNECT_API_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_ISSUER_ID }}
         run: |
-          SENTRY_DIST="${RELEASE_VERSION##*+}"
           make build-ios-release ENVIRONMENT=prod \
             RELEASE_VERSION="$RELEASE_VERSION" SENTRY_DIST="$SENTRY_DIST" SENTRY_DSN="$SENTRY_DSN" \
             BUILD_NAME=${{ steps.ci-version.outputs.build-name }} \
             BUILD_NUMBER=${{ steps.ci-version.outputs.build-number }}
 
       - name: Upload debug symbols to Sentry
+        if: steps.released.outputs.released != 'true'
         env:
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
         run: |
@@ -486,6 +522,7 @@ jobs:
           make upload-ios-symbols
 
       - name: Deploy to TestFlight
+        if: steps.released.outputs.released != 'true'
         env:
           APP_STORE_CONNECT_API_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
           APP_STORE_CONNECT_API_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_ISSUER_ID }}
@@ -497,12 +534,32 @@ jobs:
             version:${{ steps.ci-version.outputs.build-name }} \
             build_number:${{ steps.ci-version.outputs.build-number }}
 
+      - name: Record the TestFlight build for release
+        if: steps.released.outputs.released != 'true'
+        run: |
+          mkdir -p build/release-candidate
+          echo "${{ steps.ci-version.outputs.build-number }}" > build/release-candidate/build_number.txt
+
+      - name: Upload release candidate
+        if: steps.released.outputs.released != 'true'
+        uses: actions/upload-artifact@v7
+        with:
+          name: helium-${{ steps.ci-version.outputs.build-name }}-ios
+          path: build/release-candidate/build_number.txt
+          retention-days: 90
+
       - name: Cleanup API key
         if: always()
         run: rm -rf ~/.appstoreconnect
 
       - name: Deployment summary
         run: |
+          if [ "${{ steps.released.outputs.released }}" = "true" ]; then
+            echo "### iOS CI Preview Skipped" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "This commit's version is already released, so App Store Connect no longer takes builds for it; the next version bump on develop resumes previews." >> $GITHUB_STEP_SUMMARY
+            exit 0
+          fi
           echo "### iOS CI Preview Deployment Complete" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "- **Commit**: ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
@@ -513,9 +570,6 @@ jobs:
     if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/develop' }}
 
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      actions: read
     concurrency:
       group: helium-frontend-google-play
 
@@ -569,10 +623,7 @@ jobs:
       - name: Compute CI build version
         id: ci-version
         run: |
-          CURRENT=$(grep '^version:' pubspec.yaml | cut -d' ' -f2)
-          SEMVER="${CURRENT%%+*}"
-          IFS='.' read -r MAJOR MINOR PATCH <<< "$SEMVER"
-          CI_VERSION="${MAJOR}.${MINOR}.$((PATCH + 1))"
+          CI_VERSION=$(grep '^version:' pubspec.yaml | cut -d' ' -f2)
 
           CODE=$(cd android && bundle exec fastlane next_version_code 2>&1 \
             | sed -n 's/.*Next version code: \([0-9]*\)/\1/p' | tail -1)
@@ -595,10 +646,10 @@ jobs:
           SIGNING_KEY_PASSWORD: ${{ secrets.ANDROID_SIGNING_KEY_PASSWORD }}
           SIGNING_STORE_FILE: ${{ github.workspace }}/android/helium-release-key.jks
           SIGNING_STORE_PASSWORD: ${{ secrets.ANDROID_SIGNING_STORE_PASSWORD }}
-          RELEASE_VERSION: ${{ steps.ci-version.outputs.build-name }}+${{ steps.ci-version.outputs.build-number }}
+          RELEASE_VERSION: ${{ steps.ci-version.outputs.build-name }}
+          SENTRY_DIST: ${{ steps.ci-version.outputs.build-number }}
           SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
         run: |
-          SENTRY_DIST="${RELEASE_VERSION##*+}"
           make build-android-release ENVIRONMENT=prod \
             RELEASE_VERSION="$RELEASE_VERSION" SENTRY_DIST="$SENTRY_DIST" SENTRY_DSN="$SENTRY_DSN" \
             BUILD_NAME=${{ steps.ci-version.outputs.build-name }} \
@@ -611,21 +662,24 @@ jobs:
           npm install -g @sentry/cli@3.6.2
           make upload-android-symbols
 
-      - name: Check for an in-progress release
-        id: release-check
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          ACTIVE=$(gh run list --workflow release.yml --status in_progress --json databaseId --jq 'length')
-          echo "active=${ACTIVE}" >> $GITHUB_OUTPUT
-
       - name: Deploy to Google Play Internal track
-        if: steps.release-check.outputs.active == '0'
         run: |
           cd android
           bundle exec fastlane deploy_internal \
             aab_path:../build/app/outputs/bundle/release/app-release.aab \
             version:${{ steps.ci-version.outputs.build-name }}
+
+      - name: Record the Play version code for release
+        run: |
+          mkdir -p build/release-candidate
+          echo "${{ steps.ci-version.outputs.build-number }}" > build/release-candidate/version_code.txt
+
+      - name: Upload release candidate
+        uses: actions/upload-artifact@v7
+        with:
+          name: helium-${{ steps.ci-version.outputs.build-name }}-android
+          path: build/release-candidate/version_code.txt
+          retention-days: 90
 
       - name: Cleanup service account key
         if: always()
@@ -633,12 +687,6 @@ jobs:
 
       - name: Deployment summary
         run: |
-          if [ "${{ steps.release-check.outputs.active }}" != "0" ]; then
-            echo "### Android CI Preview Skipped" >> $GITHUB_STEP_SUMMARY
-            echo "" >> $GITHUB_STEP_SUMMARY
-            echo "A release is in progress; uploading now could replace its candidate on the Internal track before it is promoted." >> $GITHUB_STEP_SUMMARY
-            exit 0
-          fi
           echo "### Android CI Preview Deployment Complete" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "- **Commit**: ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY

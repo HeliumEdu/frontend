@@ -1,4 +1,4 @@
-.PHONY: all env install screenshots clean clean-chrome icons sync-assets build-android build-android-release build-ios-dev build-ios build-ios-release update-version firebase-config build-web upload-web-symbols upload-ios-symbols upload-android-symbols test start-platform stop-platform install-chromedriver test-integration test-integration-smoke test-playwright coverage run-devserver build-docker-local build-docker run-docker stop-docker restart-docker publish
+.PHONY: all env install screenshots clean clean-chrome icons sync-assets build-android build-android-release build-ios-dev build-ios build-ios-release update-version firebase-config build-web upload-web-symbols upload-ios-symbols upload-android-symbols test start-platform stop-platform install-chromedriver test-integration test-integration-smoke test-playwright coverage run-devserver build-docker-local build-docker run-docker stop-docker restart-docker publish promote
 
 SHELL := /usr/bin/env bash
 TAG_VERSION ?= latest
@@ -180,7 +180,7 @@ build-ios-release: install
 	./bin/export-ios-signed.sh
 
 build-web: install
-	flutter build web --release --source-maps --no-tree-shake-icons --pwa-strategy=none $(RELEASE_ARGS)
+	flutter build web --release --source-maps --no-tree-shake-icons --pwa-strategy=none $(RELEASE_ARGS) $(BUILD_OVERRIDE_ARGS)
 	cp -r web/.well-known build/web/
 	rm -f build/web/.last_build_id
 	$(MAKE) update-version
@@ -323,9 +323,12 @@ publish: build-docker
 	docker tag helium/frontend-web:$(PLATFORM)-$(DOCKER_TAG_VERSION) public.ecr.aws/heliumedu/helium/frontend-web:$(PLATFORM)-$(DOCKER_TAG_VERSION)
 	docker push public.ecr.aws/heliumedu/helium/frontend-web:$(PLATFORM)-$(DOCKER_TAG_VERSION)
 
-	docker tag helium/frontend-web:$(PLATFORM)-$(DOCKER_TAG_VERSION) public.ecr.aws/heliumedu/helium/frontend-web:$(PLATFORM)-latest
-	docker push public.ecr.aws/heliumedu/helium/frontend-web:$(PLATFORM)-latest
+promote:
+	aws ecr-public get-login-password --region us-east-1 | docker login --username AWS --password-stdin public.ecr.aws/heliumedu
 
-	docker create --name frontend-web helium/frontend-web:$(PLATFORM)-$(DOCKER_TAG_VERSION)
+	docker buildx imagetools create -t public.ecr.aws/heliumedu/helium/frontend-web:$(PLATFORM)-$(DOCKER_TAG_VERSION) public.ecr.aws/heliumedu/helium/frontend-web:$(PLATFORM)-$(SOURCE_TAG)
+	docker buildx imagetools create -t public.ecr.aws/heliumedu/helium/frontend-web:$(PLATFORM)-latest public.ecr.aws/heliumedu/helium/frontend-web:$(PLATFORM)-$(SOURCE_TAG)
+
+	docker create --platform=linux/$(PLATFORM) --name frontend-web public.ecr.aws/heliumedu/helium/frontend-web:$(PLATFORM)-$(SOURCE_TAG)
 	docker cp frontend-web:/app build
 	aws s3 sync build "s3://heliumedu/helium/frontend-web/$(TAG_VERSION)"
