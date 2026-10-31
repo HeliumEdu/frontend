@@ -21,6 +21,12 @@ class SentryService {
 
   static const _dsn = String.fromEnvironment('SENTRY_DSN');
 
+  static const _environmentOverride = String.fromEnvironment(
+    'SENTRY_ENVIRONMENT',
+  );
+
+  static const _productionWebHost = 'app.heliumedu.com';
+
   /// Matches any HTTP 4xx (client error) status code in free text.
   static final _clientErrorStatusPattern = RegExp(r'\b4\d\d\b');
 
@@ -46,6 +52,14 @@ class SentryService {
       !kProfileMode &&
       _releaseVersion.isNotEmpty &&
       _dsn.isNotEmpty;
+
+  /// The build's environment when it names one; otherwise the host serving the
+  /// app decides it, so one web build serves every environment.
+  static String _resolveEnvironment() {
+    if (_environmentOverride.isNotEmpty) return _environmentOverride;
+    if (kIsWeb && Uri.base.host != _productionWebHost) return 'ci';
+    return 'prod';
+  }
 
   /// Initializes Sentry, then runs [appRunner] under it.
   ///
@@ -73,14 +87,13 @@ class SentryService {
       return;
     }
 
-    const environment = String.fromEnvironment('SENTRY_ENVIRONMENT');
     const dist = String.fromEnvironment('SENTRY_DIST');
 
     await SentryFlutter.init((options) {
       options.dsn = _dsn;
 
       options.release = _releaseVersion;
-      options.environment = environment.isNotEmpty ? environment : 'prod';
+      options.environment = _resolveEnvironment();
       if (dist.isNotEmpty) {
         options.dist = dist;
       }
