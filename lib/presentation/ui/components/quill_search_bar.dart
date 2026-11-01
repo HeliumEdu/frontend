@@ -180,24 +180,21 @@ class _QuillSearchBarState extends State<QuillSearchBar> {
         ),
         child: Row(
           children: [
-            Semantics(
-              label: 'Close search',
-              button: true,
-              child: IconButton(
-                constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
-                style: IconButton.styleFrom(
-                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                ),
-                icon: Icon(
-                  Icons.close,
-                  size: 20,
-                  color: context.colorScheme.onSurface.withValues(alpha: AppStyles.mutedIconAlpha),
-                ),
-                onPressed: () {
-                  _clearSelection();
-                  widget.onClose();
-                },
+            IconButton(
+              constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+              style: IconButton.styleFrom(
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
               ),
+              icon: Icon(
+                Icons.close,
+                size: 20,
+                color: context.colorScheme.onSurface.withValues(alpha: AppStyles.mutedIconAlpha),
+                semanticLabel: 'Close search',
+              ),
+              onPressed: () {
+                _clearSelection();
+                widget.onClose();
+              },
             ),
             const SizedBox(width: 4),
             Expanded(

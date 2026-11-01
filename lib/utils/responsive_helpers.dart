@@ -2,6 +2,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 class ResponsiveBreakpoints {
+  static const double narrowMobile = 360;
+
   static const double slimMobile = 390;
 
   static const double mobile = 600;
@@ -28,6 +30,10 @@ class Responsive {
 
   static bool isSlimMobile(BuildContext context) {
     return isSlimMobileWidth(MediaQuery.of(context).size.width);
+  }
+
+  static bool isNarrowMobile(BuildContext context) {
+    return isNarrowMobileWidth(MediaQuery.of(context).size.width);
   }
 
   static bool isPhoneLandscape(BuildContext context) {
@@ -61,6 +67,10 @@ class Responsive {
 
   static bool isSlimMobileWidth(double width) {
     return width < ResponsiveBreakpoints.slimMobile;
+  }
+
+  static bool isNarrowMobileWidth(double width) {
+    return width < ResponsiveBreakpoints.narrowMobile;
   }
 
   static bool isTabletWidth(double width) {

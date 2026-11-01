@@ -52,6 +52,9 @@ class AppConstants {
   static const centerCardContentInset = 16.0;
   /// Border to content where space is tight, like the Planner's header.
   static const denseContainerContentInset = 6.0;
+  /// Cell edge to content in every table column, so the first and last
+  /// columns' content also sits this far from the table's border.
+  static const tableCellInset = 8.0;
 
   static const dialogContentPadding = EdgeInsets.fromLTRB(
     unboxedContentInset,

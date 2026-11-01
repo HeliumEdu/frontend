@@ -36,21 +36,18 @@ class ScheduleCard extends StatelessWidget {
               ),
               const SizedBox(width: 8),
               if (PlannerHelper.shouldShowEditButton(context)) ...[
-                Semantics(
-                  label: 'Edit',
-                  button: true,
-                  child: HeliumIconButton(onPressed: onEdit, icon: Icons.edit_outlined),
+                HeliumIconButton(
+                  onPressed: onEdit,
+                  icon: Icons.edit_outlined,
+                  semanticLabel: 'Edit',
                 ),
                 const SizedBox(width: 8),
               ],
-              Semantics(
-                label: 'Delete',
-                button: true,
-                child: HeliumIconButton(
-                  onPressed: onDelete,
-                  icon: Icons.delete_outline,
-                  color: context.colorScheme.error,
-                ),
+              HeliumIconButton(
+                onPressed: onDelete,
+                icon: Icons.delete_outline,
+                semanticLabel: 'Delete',
+                color: context.colorScheme.error,
               ),
             ],
           ),

@@ -123,6 +123,9 @@ class _GradeCalculatorContainerState extends State<GradeCalculatorContainer>
                     fontSize: Responsive.getFontSize(context, mobile: 12, tablet: 14, desktop: 15),
                   ),
                   indicatorSize: TabBarIndicatorSize.tab,
+                  labelPadding: Responsive.isNarrowMobile(context)
+                      ? const EdgeInsets.symmetric(horizontal: 6)
+                      : null,
                 ),
                 const SizedBox(height: 16),
 

@@ -47,21 +47,18 @@ class _HeliumPasswordFieldState extends State<HeliumPasswordField> {
         excluding: true,
         child: Padding(
           padding: const EdgeInsets.only(right: 4.0),
-          child: Semantics(
-            label: _isVisible ? 'Hide password' : 'Show password',
-            button: true,
-            child: IconButton(
-              onPressed: () {
-                setState(() {
-                  _isVisible = !_isVisible;
-                });
-              },
-              icon: Icon(
-                _isVisible
-                    ? Icons.visibility_off_outlined
-                    : Icons.visibility_outlined,
-                color: context.colorScheme.onSurface,
-              ),
+          child: IconButton(
+            onPressed: () {
+              setState(() {
+                _isVisible = !_isVisible;
+              });
+            },
+            icon: Icon(
+              _isVisible
+                  ? Icons.visibility_off_outlined
+                  : Icons.visibility_outlined,
+              color: context.colorScheme.onSurface,
+              semanticLabel: _isVisible ? 'Hide password' : 'Show password',
             ),
           ),
         ),

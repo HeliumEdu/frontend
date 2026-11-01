@@ -80,19 +80,19 @@ class _ConfirmDeleteWidgetState<T extends BaseModel> extends State<_ConfirmDelet
       _isSubmitting = true;
     });
 
-    Navigator.pop(context);
+    Navigator.pop(context, true);
     widget.onDelete(widget.item);
   }
 }
 
-Future<void> showConfirmDeleteDialog<T extends BaseModel>({
+Future<bool> showConfirmDeleteDialog<T extends BaseModel>({
   required BuildContext parentContext,
   required T item,
   required String label,
   required Function(T) onDelete,
   String? additionalWarning,
 }) {
-  return showDialog(
+  return showDialog<bool>(
     context: parentContext,
     builder: (BuildContext dialogContext) {
       return _ConfirmDeleteWidget<T>(
@@ -102,5 +102,7 @@ Future<void> showConfirmDeleteDialog<T extends BaseModel>({
         additionalWarning: additionalWarning,
       );
     },
-  );
+  ).then(_wasConfirmed);
 }
+
+bool _wasConfirmed(bool? result) => result ?? false;

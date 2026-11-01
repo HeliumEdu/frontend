@@ -60,21 +60,17 @@ class SuccessContainer extends StatelessWidget {
           ),
           if (onDismiss != null) ...[
             const SizedBox(width: 8),
-            Semantics(
-              label: 'Dismiss',
-              button: true,
-              child: IconButton(
-                onPressed: onDismiss,
-                icon: Icon(Icons.close, color: successColor),
-                iconSize: Responsive.getIconSize(
-                  context,
-                  mobile: 16,
-                  tablet: 18,
-                  desktop: 20,
-                ),
-                style: IconButton.styleFrom(
-                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                ),
+            IconButton(
+              onPressed: onDismiss,
+              icon: Icon(Icons.close, color: successColor, semanticLabel: 'Dismiss'),
+              iconSize: Responsive.getIconSize(
+                context,
+                mobile: 16,
+                tablet: 18,
+                desktop: 20,
+              ),
+              style: IconButton.styleFrom(
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
               ),
             ),
           ],

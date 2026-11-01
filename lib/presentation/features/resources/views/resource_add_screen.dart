@@ -229,15 +229,12 @@ class _ResourceAddScreenState
     if (currentStep != 0) return const [];
     if (_currentResourceId == null) return const [];
     return [
-      Semantics(
-        label: 'Delete',
-        button: true,
-        child: HeliumIconButton(
-          enabled: !isSubmitting,
-          onPressed: () => _detailsKey.currentState?.onDelete(),
-          icon: Icons.delete_outline,
-          color: context.colorScheme.error,
-        ),
+      HeliumIconButton(
+        enabled: !isSubmitting,
+        onPressed: () => _detailsKey.currentState?.onDelete(),
+        icon: Icons.delete_outline,
+        semanticLabel: 'Delete',
+        color: context.colorScheme.error,
       ),
     ];
   }

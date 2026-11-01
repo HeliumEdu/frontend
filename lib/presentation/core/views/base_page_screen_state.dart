@@ -453,36 +453,33 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
   Widget buildMainArea(BuildContext context);
 
   Widget buildFloatingActionButton() {
-    return Semantics(
-      label: 'Add',
-      button: true,
-      child: Container(
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          boxShadow: [
-            BoxShadow(
-              color: context.colorScheme.primary.withValues(alpha: 0.4),
-              blurRadius: 12,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
-        child: FloatingActionButton.small(
-          heroTag: null,
-          shape: const CircleBorder(),
-          onPressed: actionButtonCallback!,
-          backgroundColor: context.colorScheme.primary,
-          elevation: 0,
-          child: Icon(
-            Icons.add,
-            color: context.colorScheme.onPrimary,
-            size: Responsive.getIconSize(
-              context,
-              mobile: 20,
-              tablet: 22,
-              desktop: 24,
-            ),
+    return Container(
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        boxShadow: [
+          BoxShadow(
+            color: context.colorScheme.primary.withValues(alpha: 0.4),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
           ),
+        ],
+      ),
+      child: FloatingActionButton.small(
+        heroTag: null,
+        shape: const CircleBorder(),
+        onPressed: actionButtonCallback!,
+        backgroundColor: context.colorScheme.primary,
+        elevation: 0,
+        child: Icon(
+          Icons.add,
+          color: context.colorScheme.onPrimary,
+          size: Responsive.getIconSize(
+            context,
+            mobile: 20,
+            tablet: 22,
+            desktop: 24,
+          ),
+          semanticLabel: 'Add',
         ),
       ),
     );

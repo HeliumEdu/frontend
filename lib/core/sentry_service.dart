@@ -41,6 +41,9 @@ class SentryService {
     r'dioexception \[(connection timeout|send timeout|receive timeout|connection error)\]',
   );
 
+  int? _logicalScreenWidth;
+  int? _logicalScreenHeight;
+
   /// Exposed for testing - returns true if the event should be filtered (dropped)
   @visibleForTesting
   static bool shouldFilterEvent(SentryEvent event) {
@@ -160,6 +163,21 @@ class SentryService {
     } catch (e) {
       _log.warning('Failed to clear Sentry user context', e);
     }
+  }
+
+  void setLogicalScreenSize(Size logicalSize) {
+    if (!isEnabled) return;
+    final width = logicalSize.width.round();
+    final height = logicalSize.height.round();
+    if (width == _logicalScreenWidth && height == _logicalScreenHeight) return;
+    _logicalScreenWidth = width;
+    _logicalScreenHeight = height;
+    Sentry.configureScope(
+      (scope) => scope.setAttributes({
+        'screen.logical_width': SentryAttribute.int(width),
+        'screen.logical_height': SentryAttribute.int(height),
+      }),
+    );
   }
 
   /// Check if running on a Google Play pre-launch test farm device.

@@ -22,6 +22,16 @@ on:
         options:
           - none
           - dev
+      deploy_candidates:
+        description: 'Upload TestFlight / Play Internal builds (any branch but main)'
+        required: true
+        type: choice
+        default: none
+        options:
+          - none
+          - ios
+          - android
+          - all
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -429,10 +439,14 @@ jobs:
 
   # The release candidates: TestFlight and Play's Internal track, each keeping its store build number as an artifact of
   # this run, which a release reads to submit that exact build. Each build tags itself for Sentry (release, dist) and
-  # uploads its debug symbols (`make build-ipa` / `build-aab`).
+  # uploads its debug symbols (`make build-ipa` / `build-aab`). A manual run can upload from any branch but main, whose
+  # code is already released; a release only submits builds from a develop push run.
   deploy-ios-ci:
     name: Deploy iOS (CI preview)
-    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/develop' }}
+    if: >-
+      ${{ github.ref != 'refs/heads/main' &&
+      (github.event_name == 'push' ||
+      (github.event_name == 'workflow_dispatch' && contains(fromJSON('["ios", "all"]'), inputs.deploy_candidates))) }}
     uses: alexdlaird/.github/.github/workflows/flutter-ios-candidate.yml@main
     with:
       app_name: helium-frontend
@@ -451,7 +465,10 @@ jobs:
 
   deploy-android-ci:
     name: Deploy Android (CI preview)
-    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/develop' }}
+    if: >-
+      ${{ github.ref != 'refs/heads/main' &&
+      (github.event_name == 'push' ||
+      (github.event_name == 'workflow_dispatch' && contains(fromJSON('["android", "all"]'), inputs.deploy_candidates))) }}
     uses: alexdlaird/.github/.github/workflows/flutter-android-candidate.yml@main
     with:
       app_name: helium-frontend

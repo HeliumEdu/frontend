@@ -84,38 +84,30 @@ class HeliumPager extends StatelessWidget {
 
     return Row(
       children: [
-        Semantics(
-          label: 'First page',
-          button: true,
-          child: IconButton(
-            onPressed: currentPage > 1 ? () => onPageChanged(1) : null,
-            icon: const Icon(Icons.first_page),
+        IconButton(
+          onPressed: currentPage > 1 ? () => onPageChanged(1) : null,
+          icon: const Icon(Icons.first_page, semanticLabel: 'First page'),
+          iconSize: 20,
+          padding: EdgeInsets.zero,
+          constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+          visualDensity: context.theme.visualDensity,
+          style: IconButton.styleFrom(
+            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          ),
+        ),
+        if (!isMobile) ...[
+          const SizedBox(width: 8),
+          IconButton(
+            onPressed: currentPage > 1
+                ? () => onPageChanged(currentPage - 1)
+                : null,
+            icon: const Icon(Icons.chevron_left, semanticLabel: 'Previous page'),
             iconSize: 20,
             padding: EdgeInsets.zero,
             constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
             visualDensity: context.theme.visualDensity,
             style: IconButton.styleFrom(
               tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-            ),
-          ),
-        ),
-        if (!isMobile) ...[
-          const SizedBox(width: 8),
-          Semantics(
-            label: 'Previous page',
-            button: true,
-            child: IconButton(
-              onPressed: currentPage > 1
-                  ? () => onPageChanged(currentPage - 1)
-                  : null,
-              icon: const Icon(Icons.chevron_left),
-              iconSize: 20,
-              padding: EdgeInsets.zero,
-              constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
-              visualDensity: context.theme.visualDensity,
-              style: IconButton.styleFrom(
-                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-              ),
             ),
           ),
         ],
@@ -123,33 +115,11 @@ class HeliumPager extends StatelessWidget {
         ..._buildPageNumbers(context, isMobile),
         const SizedBox(width: 8),
         if (!isMobile) ...[
-          Semantics(
-            label: 'Next page',
-            button: true,
-            child: IconButton(
-              onPressed: currentPage < totalPages
-                  ? () => onPageChanged(currentPage + 1)
-                  : null,
-              icon: const Icon(Icons.chevron_right),
-              iconSize: 20,
-              padding: EdgeInsets.zero,
-              constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
-              visualDensity: context.theme.visualDensity,
-              style: IconButton.styleFrom(
-                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-              ),
-            ),
-          ),
-          const SizedBox(width: 8),
-        ],
-        Semantics(
-          label: 'Last page',
-          button: true,
-          child: IconButton(
+          IconButton(
             onPressed: currentPage < totalPages
-                ? () => onPageChanged(totalPages)
+                ? () => onPageChanged(currentPage + 1)
                 : null,
-            icon: const Icon(Icons.last_page),
+            icon: const Icon(Icons.chevron_right, semanticLabel: 'Next page'),
             iconSize: 20,
             padding: EdgeInsets.zero,
             constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
@@ -157,6 +127,20 @@ class HeliumPager extends StatelessWidget {
             style: IconButton.styleFrom(
               tapTargetSize: MaterialTapTargetSize.shrinkWrap,
             ),
+          ),
+          const SizedBox(width: 8),
+        ],
+        IconButton(
+          onPressed: currentPage < totalPages
+              ? () => onPageChanged(totalPages)
+              : null,
+          icon: const Icon(Icons.last_page, semanticLabel: 'Last page'),
+          iconSize: 20,
+          padding: EdgeInsets.zero,
+          constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+          visualDensity: context.theme.visualDensity,
+          style: IconButton.styleFrom(
+            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
           ),
         ),
       ],
@@ -168,7 +152,7 @@ class HeliumPager extends StatelessWidget {
 
     if (isMobile) {
       // On mobile: show up to 3 pages centered around current, no ellipsis
-      const int maxVisible = 3;
+      final maxVisible = Responsive.isNarrowMobile(context) ? 2 : 3;
       final int start = (currentPage - 1).clamp(
         1,
         (totalPages - maxVisible + 1).clamp(1, totalPages),

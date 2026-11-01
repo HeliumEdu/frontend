@@ -173,24 +173,11 @@ class CourseDetailsState extends State<CourseDetails>
                     onFieldSubmitted: (value) => (widget.onSubmitRequested ?? onSubmit).call(),
                   ),
                   const SizedBox(height: 14),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: HeliumDateField(
-                          label: 'From',
-                          date: formController.startDate,
-                          onTap: () => _selectDate(context, true),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: HeliumDateField(
-                          label: 'To',
-                          date: formController.endDate,
-                          onTap: () => _selectDate(context, false),
-                        ),
-                      ),
-                    ],
+                  HeliumDateRangeFields(
+                    from: formController.startDate,
+                    to: formController.endDate,
+                    onFromTap: () => _selectDate(context, true),
+                    onToTap: () => _selectDate(context, false),
                   ),
                   const SizedBox(height: 14),
                   LabelAndTextFormField(

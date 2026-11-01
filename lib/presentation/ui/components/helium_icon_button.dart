@@ -9,6 +9,7 @@ class HeliumIconButton extends StatelessWidget {
   final bool enabled;
   final IconData icon;
   final String? tooltip;
+  final String? semanticLabel;
   final Color? color;
   final Color? backgroundColor;
   final Color? iconColor;
@@ -23,6 +24,7 @@ class HeliumIconButton extends StatelessWidget {
     this.enabled = true,
     required this.icon,
     this.tooltip,
+    this.semanticLabel,
     this.color,
     this.backgroundColor,
     this.iconColor,
@@ -71,7 +73,12 @@ class HeliumIconButton extends StatelessWidget {
         tapTargetSize: MaterialTapTargetSize.shrinkWrap,
       ),
       onPressed: enabled ? onPressed : null,
-      icon: Icon(icon, color: effectiveIconColor, size: useSize),
+      icon: Icon(
+        icon,
+        color: effectiveIconColor,
+        size: useSize,
+        semanticLabel: semanticLabel,
+      ),
       tooltip: tooltip,
       padding: padding,
       constraints: minimumSize != null

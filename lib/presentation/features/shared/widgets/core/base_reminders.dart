@@ -169,20 +169,17 @@ abstract class BaseReminderWidgetState<T extends BaseRemindersContent>
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(widget.headerTitle, style: AppStyles.featureText(context)),
-            Semantics(
-              label: 'Add reminder',
-              button: true,
-              child: HeliumIconButton(
-                onPressed: () {
-                  showReminderDialog(
-                    parentContext: context,
-                    isEdit: false,
-                    userSettings: widget.userSettings!,
-                    createReminderRequest: createReminderRequest,
-                  );
-                },
-                icon: Icons.add,
-              ),
+            HeliumIconButton(
+              onPressed: () {
+                showReminderDialog(
+                  parentContext: context,
+                  isEdit: false,
+                  userSettings: widget.userSettings!,
+                  createReminderRequest: createReminderRequest,
+                );
+              },
+              icon: Icons.add,
+              semanticLabel: 'Add reminder',
             ),
           ],
         ),
@@ -283,38 +280,32 @@ abstract class BaseReminderWidgetState<T extends BaseRemindersContent>
               ),
               const SizedBox(width: 8),
               if (PlatformBehavior.showItemActions(context)) ...[
-                Semantics(
-                  label: 'Edit',
-                  button: true,
-                  child: HeliumIconButton(
-                    onPressed: () => _onEdit(reminder),
-                    icon: Icons.edit_outlined,
-                  ),
+                HeliumIconButton(
+                  onPressed: () => _onEdit(reminder),
+                  icon: Icons.edit_outlined,
+                  semanticLabel: 'Edit',
                 ),
                 const SizedBox(width: 8),
               ],
-              Semantics(
-                label: 'Delete',
-                button: true,
-                child: HeliumIconButton(
-                  onPressed: () {
-                    showConfirmDeleteDialog(
-                      parentContext: context,
-                      item: reminder,
-                      label: reminder.message,
-                      onDelete: (r) async {
-                        context.read<ReminderBloc>().add(
-                          DeleteReminderEvent(
-                            origin: EventOrigin.subScreen,
-                            id: r.id,
-                          ),
-                        );
-                      },
-                    );
-                  },
-                  icon: Icons.delete_outline,
-                  color: context.colorScheme.error,
-                ),
+              HeliumIconButton(
+                onPressed: () {
+                  showConfirmDeleteDialog(
+                    parentContext: context,
+                    item: reminder,
+                    label: reminder.message,
+                    onDelete: (r) async {
+                      context.read<ReminderBloc>().add(
+                        DeleteReminderEvent(
+                          origin: EventOrigin.subScreen,
+                          id: r.id,
+                        ),
+                      );
+                    },
+                  );
+                },
+                icon: Icons.delete_outline,
+                semanticLabel: 'Delete',
+                color: context.colorScheme.error,
               ),
             ],
           ),

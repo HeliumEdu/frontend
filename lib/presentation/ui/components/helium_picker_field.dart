@@ -32,6 +32,54 @@ class HeliumDateField extends StatelessWidget {
   }
 }
 
+class HeliumDateRangeFields extends StatelessWidget {
+  final DateTime? from;
+  final DateTime? to;
+  final VoidCallback onFromTap;
+  final VoidCallback onToTap;
+  final Color? backgroundColor;
+
+  const HeliumDateRangeFields({
+    super.key,
+    required this.from,
+    required this.to,
+    required this.onFromTap,
+    required this.onToTap,
+    this.backgroundColor,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final fromField = HeliumDateField(
+      label: 'From',
+      date: from,
+      backgroundColor: backgroundColor,
+      onTap: onFromTap,
+    );
+    final toField = HeliumDateField(
+      label: 'To',
+      date: to,
+      backgroundColor: backgroundColor,
+      onTap: onToTap,
+    );
+
+    if (Responsive.isNarrowMobile(context)) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [fromField, const SizedBox(height: 14), toField],
+      );
+    }
+
+    return Row(
+      children: [
+        Expanded(child: fromField),
+        const SizedBox(width: 12),
+        Expanded(child: toField),
+      ],
+    );
+  }
+}
+
 /// A tappable field showing the selected time with a trailing clock icon.
 /// [onTap] owns the `showTimePicker` call, so each caller keeps its own bounds.
 class HeliumTimeField extends StatelessWidget {

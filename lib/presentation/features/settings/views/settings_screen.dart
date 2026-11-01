@@ -93,18 +93,15 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
     }
 
     return [
-      Semantics(
-        label: 'Sign out',
-        button: true,
-        child: IconButton(
-          style: IconButton.styleFrom(
-            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-          ),
-          onPressed: () => _showLogoutDialog(context, force: true),
-          icon: Icon(
-            Icons.logout_outlined,
-            color: context.semanticColors.warning,
-          ),
+      IconButton(
+        style: IconButton.styleFrom(
+          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        ),
+        onPressed: () => _showLogoutDialog(context, force: true),
+        icon: Icon(
+          Icons.logout_outlined,
+          color: context.semanticColors.warning,
+          semanticLabel: 'Sign out',
         ),
       ),
     ];
@@ -636,14 +633,17 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
                   ButtonSegment<ThemeMode>(
                     value: ThemeMode.light,
                     icon: Icon(Icons.light_mode),
+                    tooltip: 'Light',
                   ),
                   ButtonSegment<ThemeMode>(
                     value: ThemeMode.dark,
                     icon: Icon(Icons.dark_mode),
+                    tooltip: 'Dark',
                   ),
                   ButtonSegment<ThemeMode>(
                     value: ThemeMode.system,
                     icon: Icon(Icons.settings_brightness),
+                    tooltip: 'System',
                   ),
                 ],
                 selected: {themeNotifier.themeMode},
@@ -1343,30 +1343,25 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
                                   onFieldSubmitted: (value) => handleSubmit(),
                                   obscureText: obscurePassword,
                                   prefixIcon: Icons.lock_outline,
-                                  suffixIcon: Semantics(
-                                    label: obscurePassword
-                                        ? 'Show password'
-                                        : 'Hide password',
-                                    button: true,
-                                    child: IconButton(
-                                      onPressed: () {
-                                        setState(() {
-                                          obscurePassword = !obscurePassword;
-                                        });
-                                      },
-                                      icon: Icon(
-                                        obscurePassword
-                                            ? Icons.visibility_outlined
-                                            : Icons.visibility_off_outlined,
-                                        color: context.colorScheme.onSurface
-                                            .withValues(alpha: 0.4),
-                                        size: Responsive.getIconSize(
-                                          context,
-                                          mobile: 20,
-                                          tablet: 22,
-                                          desktop: 24,
-                                        ),
+                                  suffixIcon: IconButton(
+                                    onPressed: () {
+                                      setState(() {
+                                        obscurePassword = !obscurePassword;
+                                      });
+                                    },
+                                    icon: Icon(
+                                      obscurePassword
+                                          ? Icons.visibility_outlined
+                                          : Icons.visibility_off_outlined,
+                                      color: context.colorScheme.onSurface
+                                          .withValues(alpha: 0.4),
+                                      size: Responsive.getIconSize(
+                                        context,
+                                        mobile: 20,
+                                        tablet: 22,
+                                        desktop: 24,
                                       ),
+                                      semanticLabel: obscurePassword ? 'Show password' : 'Hide password',
                                     ),
                                   ),
                                 ),

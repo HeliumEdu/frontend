@@ -302,14 +302,21 @@ class HeliumDateTime {
     return DateFormat(format).format(date);
   }
 
-  static String formatDateForTodos(DateTime date) {
-    return DateFormat(_ordered('EEE, MMM d', 'EEE, d MMM')).format(date);
+  static String formatDateForTodos(DateTime date, {bool showWeekday = true}) {
+    return DateFormat(_todosDatePattern(showWeekday)).format(date);
   }
 
-  static String formatDateAndTimeForTodos(DateTime date) {
-    final pattern = '${_ordered('EEE, MMM d', 'EEE, d MMM')} • ${HeliumTime.timePattern}';
+  static String formatDateAndTimeForTodos(
+    DateTime date, {
+    bool showWeekday = true,
+  }) {
+    final pattern = '${_todosDatePattern(showWeekday)} • ${HeliumTime.timePattern}';
     return HeliumTime.shortenOnTheHour(DateFormat(pattern).format(date));
   }
+
+  static String _todosDatePattern(bool showWeekday) => showWeekday
+      ? _ordered('EEE, MMM d', 'EEE, d MMM')
+      : _ordered('MMM d', 'd MMM');
 
   static String formatTime(DateTime date) {
     return HeliumTime.shortenOnTheHour(DateFormat(HeliumTime.timePattern).format(date));

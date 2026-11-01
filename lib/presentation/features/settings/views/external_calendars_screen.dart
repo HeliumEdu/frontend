@@ -124,13 +124,10 @@ class ExternalCalendarsScreenState extends State<ExternalCalendarsScreen> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
-                  Semantics(
-                    label: 'Add external calendar',
-                    button: true,
-                    child: HeliumIconButton(
-                      onPressed: onAddCalendar,
-                      icon: Icons.add,
-                    ),
+                  HeliumIconButton(
+                    onPressed: onAddCalendar,
+                    icon: Icons.add,
+                    semanticLabel: 'Add external calendar',
                   ),
                 ],
               ),
@@ -269,38 +266,32 @@ class ExternalCalendarsScreenState extends State<ExternalCalendarsScreen> {
               ),
               const SizedBox(width: 8),
               if (PlatformBehavior.showItemActions(context)) ...[
-                Semantics(
-                  label: 'Edit',
-                  button: true,
-                  child: HeliumIconButton(
-                    onPressed: () => _onEdit(externalCalendar),
-                    icon: Icons.edit_outlined,
-                  ),
+                HeliumIconButton(
+                  onPressed: () => _onEdit(externalCalendar),
+                  icon: Icons.edit_outlined,
+                  semanticLabel: 'Edit',
                 ),
                 const SizedBox(width: 8),
               ],
-              Semantics(
-                label: 'Delete',
-                button: true,
-                child: HeliumIconButton(
-                  onPressed: () {
-                    showConfirmDeleteDialog(
-                      parentContext: context,
-                      item: externalCalendar,
-                      label: externalCalendar.title,
-                      onDelete: (ec) {
-                        context.read<ExternalCalendarBloc>().add(
-                          DeleteExternalCalendarEvent(
-                            origin: EventOrigin.subScreen,
-                            id: ec.id,
-                          ),
-                        );
-                      },
-                    );
-                  },
-                  icon: Icons.delete_outline,
-                  color: context.colorScheme.error,
-                ),
+              HeliumIconButton(
+                onPressed: () {
+                  showConfirmDeleteDialog(
+                    parentContext: context,
+                    item: externalCalendar,
+                    label: externalCalendar.title,
+                    onDelete: (ec) {
+                      context.read<ExternalCalendarBloc>().add(
+                        DeleteExternalCalendarEvent(
+                          origin: EventOrigin.subScreen,
+                          id: ec.id,
+                        ),
+                      );
+                    },
+                  );
+                },
+                icon: Icons.delete_outline,
+                semanticLabel: 'Delete',
+                color: context.colorScheme.error,
               ),
             ],
           ),

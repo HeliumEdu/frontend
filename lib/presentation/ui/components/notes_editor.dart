@@ -32,6 +32,15 @@ class NotesEditor extends StatefulWidget {
       HeliumToolbarButton.link,
     ],
   ];
+  static const _embeddedSlimButtons = [
+    [
+      HeliumToolbarButton.undo,
+      HeliumToolbarButton.bold,
+      HeliumToolbarButton.italic,
+      HeliumToolbarButton.bulletedList,
+      HeliumToolbarButton.checklist,
+    ],
+  ];
   static const _embeddedFullButtons = [
     [
       HeliumToolbarButton.undo,
@@ -280,9 +289,11 @@ class _NotesEditorState extends State<NotesEditor> with WidgetsBindingObserver {
                   density: isCompact
                       ? HeliumToolbarDensity.minimal
                       : HeliumToolbarDensity.full,
-                  groups: isCompact
-                      ? NotesEditor._embeddedMinimalButtons
-                      : NotesEditor._embeddedFullButtons,
+                  groups: !isCompact
+                      ? NotesEditor._embeddedFullButtons
+                      : Responsive.isSlimMobile(context)
+                      ? NotesEditor._embeddedSlimButtons
+                      : NotesEditor._embeddedMinimalButtons,
                 ),
                 const Divider(height: 1),
                 ConstrainedBox(

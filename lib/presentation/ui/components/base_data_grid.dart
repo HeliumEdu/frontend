@@ -1,4 +1,7 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/print_helpers.dart';
 import 'package:heliumapp/utils/sort_helpers.dart';
 import 'package:logging/logging.dart';
@@ -69,6 +72,11 @@ mixin SortableDataGridSource on DataGridSource {
 abstract class BaseDataGridState<T extends StatefulWidget> extends State<T> {
   final DataGridController gridController = DataGridController();
   final GlobalKey gridKey = GlobalKey();
+  final ColumnSizer columnSizer = ColumnSizer()
+    ..iconsOuterPadding = const EdgeInsets.only(
+      left: 4,
+      right: AppConstants.tableCellInset - 1,
+    );
   PrintableAreaScope? printableAreaScope;
 
   @override
@@ -92,6 +100,17 @@ abstract class BaseDataGridState<T extends StatefulWidget> extends State<T> {
     PrintableArea.capturing.removeListener(_onCapturingChanged);
     gridController.dispose();
     super.dispose();
+  }
+
+  /// The row stays swiped open while the delete is confirmed; removing it
+  /// closes the swipe, so it only closes here when the delete is cancelled.
+  Future<void> onSwipeDeleteTapped(
+    BuildContext context,
+    BaseDataGridSource source,
+    Future<bool> Function() confirmDelete,
+  ) async {
+    unawaited(Feedback.forTap(context));
+    if (!await confirmDelete()) source.notifyListeners();
   }
 
   void _onCapturingChanged() => setState(() {});
