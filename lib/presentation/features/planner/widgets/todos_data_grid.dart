@@ -323,7 +323,7 @@ class TodosDataGridState extends BaseDataGridState<TodosDataGrid> {
             ],
           ),
         ),
-        if (!_isInitialized || widget.dataSource.isRefreshing)
+        if (!_isInitialized)
           Positioned.fill(
             child: Container(
               color: context.colorScheme.surface.withValues(alpha: 0.7),
@@ -562,6 +562,7 @@ class TodosDataGridState extends BaseDataGridState<TodosDataGrid> {
           child: Icon(
             Icons.check_box_outline_blank,
             size: _headerCheckboxIconSize,
+            semanticLabel: 'Completed',
             color: context.colorScheme.onSurface.withValues(alpha: 0.6),
           ),
         ),
@@ -1112,6 +1113,7 @@ class TodosDataSource extends BaseDataGridSource {
         child: Checkbox(
           value: isCompleted,
           onChanged: (_) => _toggleCompleted(homework),
+          semanticLabel: 'Complete ${homework.title}',
           materialTapTargetSize: MaterialTapTargetSize.padded,
           visualDensity: VisualDensity.standard,
           activeColor: checkColor,

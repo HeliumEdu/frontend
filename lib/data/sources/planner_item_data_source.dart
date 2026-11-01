@@ -70,7 +70,9 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
   final Map<PlannerItemBaseModel, PlannerItemTimeOverride> _timeOverrides = {};
   bool _isMonthView = false;
   Timer? _filterDebounceTimer;
+  bool _isFilterOverlayPending = false;
   bool _filterRerunRequested = false;
+  bool _isRerunOverlayRequested = false;
 
   void Function(String message)? onLoadError;
   Future<void>? _filterPass;
@@ -1065,7 +1067,7 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
       _notifyCalendarReset();
     }
 
-    _applyFiltersAndNotify();
+    _applyFiltersAndNotify(showOverlay: false);
   }
 
   void updatePlannerItem(
@@ -1114,7 +1116,7 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
         notifyListeners(CalendarDataSourceAction.reset, appointments!);
       });
     } else {
-      _applyFiltersAndNotify();
+      _applyFiltersAndNotify(showOverlay: false);
     }
 
     _notifyChangeListeners();
@@ -1200,13 +1202,13 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
   void setCompletedOverride(int homeworkId, bool completed) {
     _completedOverrides[homeworkId] = completed;
     _notifyChangeListeners();
-    _applyFiltersAndNotify();
+    _applyFiltersAndNotify(showOverlay: false);
   }
 
   void clearCompletedOverride(int homeworkId) {
     _completedOverrides.remove(homeworkId);
     _notifyChangeListeners();
-    _applyFiltersAndNotify();
+    _applyFiltersAndNotify(showOverlay: false);
   }
 
   bool hasTimeOverride(PlannerItemBaseModel plannerItem) =>
@@ -1296,16 +1298,21 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
 
   /// Schedules filter application with debouncing to prevent the UI from
   /// hanging. Use compute() to run filtering on a background isolate.
-  void _applyFiltersAndNotify() {
+  /// [showOverlay] is false for changes to a single item, which refilter
+  /// without the full-area refresh scrim.
+  void _applyFiltersAndNotify({bool showOverlay = true}) {
     _filterDebounceTimer?.cancel();
 
     if (filterDebounceDuration == Duration.zero) {
       // Synchronous mode (for testing) - skip compute() overhead
       _applyFiltersSynchronously();
     } else {
+      _isFilterOverlayPending = _isFilterOverlayPending || showOverlay;
       _filterCompleter ??= Completer<void>();
       _filterDebounceTimer = Timer(filterDebounceDuration, () {
-        _applyFiltersAsync();
+        final pendingOverlay = _isFilterOverlayPending;
+        _isFilterOverlayPending = false;
+        _applyFiltersAsync(showOverlay: pendingOverlay);
       });
     }
   }
@@ -1331,6 +1338,7 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
     final active = _filterPass;
     if (active != null) {
       _filterRerunRequested = true;
+      _isRerunOverlayRequested = _isRerunOverlayRequested || showOverlay;
       return active;
     }
     final pass = _runFilterPass(showOverlay: showOverlay);
@@ -1392,8 +1400,10 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
     }
 
     if (_filterRerunRequested) {
+      final rerunOverlay = _isRerunOverlayRequested;
       _filterRerunRequested = false;
-      await _runFilterPass(showOverlay: showOverlay);
+      _isRerunOverlayRequested = false;
+      await _runFilterPass(showOverlay: rerunOverlay);
     } else {
       _filterPass = null;
     }

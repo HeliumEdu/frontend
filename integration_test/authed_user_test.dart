@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:heliumapp/config/app_route.dart';
+import 'package:heliumapp/config/app_router.dart';
 import 'package:heliumapp/data/models/planner/request/homework_request_model.dart';
 import 'package:heliumapp/presentation/features/auth/controllers/credentials_form_controller.dart';
 import 'package:heliumapp/presentation/features/auth/views/login_screen.dart';
@@ -835,20 +836,44 @@ void main() {
       );
       expect(loggedIn, isTrue, reason: 'Should be logged in');
 
-      // Align the calendar with the user's configured timezone (America/Chicago).
-      // The CI device runs UTC, which can differ at month boundaries, causing items
-      // anchored to Chicago time to land in a month the UTC calendar doesn't show.
-      await navigateCalendarToUserTimezone(tester, 'America/Chicago');
+      // The example schedule has a Quiz 4 in two classes, and which one the
+      // current month shows depends on the date. Edit the one the rest of the
+      // suite looks up, on the Chicago date it falls on.
+      final quiz4 = await apiHelper.findHomeworkByTitle('Quiz 4');
+      expect(quiz4, isNotNull, reason: 'Quiz 4 should exist');
+      final quiz4Date = tz.TZDateTime.from(
+        quiz4!.start,
+        tz.getLocation('America/Chicago'),
+      );
+      final quiz4DateParam =
+          '${quiz4Date.year}-${quiz4Date.month.toString().padLeft(2, '0')}-'
+          '${quiz4Date.day.toString().padLeft(2, '0')}';
+      router.go(
+        '${AppRoute.plannerScreen}?${DeepLinkParam.date}=$quiz4DateParam',
+      );
+      await tester.pumpAndSettle();
 
-      // Wait for Quiz 4 to load in the correct month, then tap to edit
+      final quiz4OnCalendar = find.descendant(
+        of: find
+            .ancestor(
+              of: find.byKey(
+                ValueKey(
+                  '${PlannerScreen.plannerItemCheckboxKeyPrefix}${quiz4.id}',
+                ),
+              ),
+              matching: find.byType(KeyedSubtree),
+            )
+            .first,
+        matching: findRichTextContaining('Quiz 4'),
+      );
       final quizVisible = await waitForWidget(
         tester,
-        findRichTextContaining('Quiz 4'),
+        quiz4OnCalendar,
         timeout: config.apiTimeout,
       );
-      expect(quizVisible, isTrue, reason: 'Quiz 4 should be visible after navigating to user timezone month');
+      expect(quizVisible, isTrue, reason: 'Quiz 4 should be visible on its date');
 
-      await tester.tap(findRichTextContaining('Quiz 4').first);
+      await tester.tap(quiz4OnCalendar.first);
       await tester.pumpAndSettle(const Duration(seconds: 3));
 
       final editDialogTitle = find.text('Edit Assignment');

@@ -1372,7 +1372,8 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
     final bool isSlimMobile = Responsive.isSlimMobile(context);
     final double chevronGap = isSlimMobile ? 2 : 3;
     final double chevronSize = _headerButtonSize(context);
-    final double leadingGap = Responsive.isMobile(context) ? 4 : 8;
+    final double leadingGap =
+        isSlimMobile ? 2 : (Responsive.isMobile(context) ? 4 : 8);
 
     return Expanded(
       child: Row(
@@ -1679,7 +1680,9 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
   }
 
   Widget _buildFilterButtonsRow({bool hideSearchButton = false}) {
-    final double buttonGap = Responsive.isMobile(context) ? 4 : 8;
+    final double buttonGap = Responsive.isSlimMobile(context)
+        ? 2
+        : (Responsive.isMobile(context) ? 4 : 8);
     return Row(
       mainAxisAlignment: MainAxisAlignment.end,
       mainAxisSize: MainAxisSize.min,
@@ -1799,7 +1802,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
   Widget _buildHeaderLabelRow(String text) {
     final bool isMobile = Responsive.isMobile(context);
     final bool isSlimMobile = Responsive.isSlimMobile(context);
-    final double sideInset = isMobile ? 2 : 8;
+    final double sideInset = isMobile ? (isSlimMobile || kIsWeb ? 2 : 4) : 8;
     const double webInset = kIsWeb ? 4 : 0;
     // Vertical padding + the 24px dropdown icon sets the date height to match
     // the header's chevrons: 8+24+8 = 40 normally, 6+24+6 = 36 on slim phones.
@@ -1807,7 +1810,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
     return Padding(
       padding: EdgeInsets.only(
         left: sideInset + webInset,
-        right: webInset,
+        right: kIsWeb ? webInset : (isSlimMobile ? 0 : 4),
         top: vInset,
         bottom: vInset,
       ),
@@ -2916,12 +2919,14 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
     bool? completedOverride,
     required Color backgroundColor,
     bool isInAgenda = false,
+    bool checkboxHandlesTaps = true,
   }) {
     if (PlannerHelper.shouldShowCheckbox(plannerItem, appointmentWidth)) {
       return _buildCheckboxWidget(
         homework: plannerItem as HomeworkModel,
         completedOverride: completedOverride,
         backgroundColor: backgroundColor,
+        handlesTaps: checkboxHandlesTaps,
       );
     } else if (PlannerHelper.shouldShowSchoolIcon(
       context,
@@ -3053,12 +3058,15 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
               backgroundColor: backgroundColor,
             ),
           );
-          spans.add(const TextSpan(text: ' '));
+          spans.add(const TextSpan(text: ' ', semanticsLabel: ''));
         }
 
+        // Labelled on the span, not the Text, so the inline checkbox keeps its
+        // own accessibility node.
         spans.add(
           TextSpan(
             text: plannerItem.title.characters.join('\u200B'),
+            semanticsLabel: plannerItem.title,
             style: AppStyles.calendarItemText(context).copyWith(
               color: foregroundColor,
               decoration: isCompleted
@@ -3080,7 +3088,6 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
           overflow: _currentView == PlannerView.month || plannerItem.allDay
               ? TextOverflow.ellipsis
               : null,
-          semanticsLabel: plannerItem.title,
         );
       }
 
@@ -3421,21 +3428,19 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
     final isOnline = _plannerItemDataSource!.isOnlineForItem(plannerItem);
     final location = _plannerItemDataSource!.getLocationForItem(plannerItem);
 
-    var inlineIcon = _buildItemIcon(
-      plannerItem: plannerItem,
-      appointmentWidth: width,
-      completedOverride: completedOverride,
-      backgroundColor: color,
-    );
-
     // On touch the item's own detector owns checkbox taps, so the recognizer
     // survives the SfCalendar rebuild that a toggle triggers.
     final usesCheckboxZone =
         PlatformBehavior.usesTouchTargets &&
         PlannerHelper.shouldShowCheckbox(plannerItem, width);
-    if (usesCheckboxZone && inlineIcon != null) {
-      inlineIcon = IgnorePointer(child: inlineIcon);
-    }
+
+    final inlineIcon = _buildItemIcon(
+      plannerItem: plannerItem,
+      appointmentWidth: width,
+      completedOverride: completedOverride,
+      backgroundColor: color,
+      checkboxHandlesTaps: !usesCheckboxZone,
+    );
 
     final centerWidget = _buildCalendarItemCenterForTimeline(
       plannerItem: plannerItem,
@@ -4778,10 +4783,13 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
     return const EdgeInsets.only(right: 11);
   }
 
+  /// With [handlesTaps] false, taps fall through to the enclosing item, which
+  /// routes them, while assistive technologies can still toggle it.
   Widget _buildCheckboxWidget({
     required HomeworkModel homework,
     bool? completedOverride,
     required Color backgroundColor,
+    bool handlesTaps = true,
   }) {
     final foregroundColor = backgroundColor.contrasting;
     final primary = context.colorScheme.primary;
@@ -4837,7 +4845,9 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
         excludeFromSemantics: true,
-        onTap: () => _toggleHomeworkCompleted(homework, completedOverride),
+        onTap: handlesTaps
+            ? () => _toggleHomeworkCompleted(homework, completedOverride)
+            : null,
         child: dataSource != null
             ? ListenableBuilder(
                 listenable: dataSource.changeNotifier,
@@ -4895,6 +4905,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
       text: HeliumDateTime.formatTime(
         HeliumDateTime.toLocal(plannerItem.start, userSettings!.timeZone),
       ),
+      semanticsLabel: '',
       style: timeStyle,
     );
 
@@ -4910,7 +4921,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
             backgroundColor: backgroundColor,
           ),
         ),
-        const TextSpan(text: ' '),
+        const TextSpan(text: ' ', semanticsLabel: ''),
         timeSpan,
       ],
     );
