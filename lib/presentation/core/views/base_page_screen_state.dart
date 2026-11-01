@@ -135,10 +135,6 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
   bool get isContentBoxed => !DialogModeProvider.isDialogMode(context);
 
   EdgeInsets get scaffoldInsets {
-    if (DialogModeProvider.isDialogMode(context) &&
-        !DialogModeProvider.isFullScreenMode(context)) {
-      return AppConstants.dialogContentPadding.copyWith(bottom: 0);
-    }
     final edge = isContentBoxed
         ? AppConstants.pageEdgeInset
         : AppConstants.unboxedContentInset;

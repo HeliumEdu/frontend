@@ -97,6 +97,10 @@ class _NotificationsScreenState
   @override
   ScreenType get screenType => ScreenType.subPage;
 
+  /// Each row pads its own content, like a container's.
+  @override
+  bool get isContentBoxed => true;
+
   @override
   List<Widget> get additionalRightHeaderButtons {
     final isEnabled = _notifications.isNotEmpty && !_isDismissingAll;

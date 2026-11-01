@@ -30,7 +30,7 @@ class ResponsiveCenterCard extends StatelessWidget {
 
     final content = isMobile
         ? Padding(
-            padding: const EdgeInsets.all(AppConstants.unboxedContentInset),
+            padding: const EdgeInsets.all(AppConstants.centerCardContentInset),
             child: child,
           )
         : Container(
@@ -47,7 +47,7 @@ class ResponsiveCenterCard extends StatelessWidget {
                   )
                 : Padding(
                     padding: const EdgeInsets.all(
-                      AppConstants.unboxedContentInset,
+                      AppConstants.centerCardContentInset,
                     ),
                     child: child,
                   ),

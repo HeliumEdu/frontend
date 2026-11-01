@@ -43,17 +43,20 @@ class AppConstants {
 
   /// Screen edge to bordered containers.
   static const pageEdgeInset = 8.0;
-  /// Screen edge to content that isn't in a bordered container.
-  static const unboxedContentInset = 16.0;
   /// Border to content, inside bordered containers and cards.
   static const containerContentInset = 12.0;
+  /// Screen edge to content that isn't in a bordered container, where content
+  /// inside a container at [pageEdgeInset] also starts.
+  static const unboxedContentInset = pageEdgeInset + containerContentInset;
+  /// Screen edge to content on the centered sign-in screens.
+  static const centerCardContentInset = 16.0;
   /// Border to content where space is tight, like the Planner's header.
   static const denseContainerContentInset = 6.0;
 
   static const dialogContentPadding = EdgeInsets.fromLTRB(
-    20,
+    unboxedContentInset,
     contentTopInset,
-    20,
+    unboxedContentInset,
     20,
   );
 }
