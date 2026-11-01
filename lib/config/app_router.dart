@@ -35,6 +35,7 @@ import 'package:heliumapp/presentation/features/resources/views/resource_add_scr
 import 'package:heliumapp/presentation/features/resources/views/resources_screen.dart';
 import 'package:heliumapp/presentation/features/settings/views/settings_screen.dart';
 import 'package:heliumapp/presentation/navigation/shell/navigation_shell.dart';
+import 'package:heliumapp/presentation/navigation/shell/shell_branch_transition.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:heliumapp/utils/url_helpers.dart';
@@ -202,7 +203,10 @@ void initializeRouter({String? initialLocation}) {
           navigationShell: navigationShell,
         ),
         navigatorContainerBuilder: (context, navigationShell, children) {
-          return children[navigationShell.currentIndex];
+          return ShellBranchTransition(
+            index: navigationShell.currentIndex,
+            child: children[navigationShell.currentIndex],
+          );
         },
         branches: [
           StatefulShellBranch(
