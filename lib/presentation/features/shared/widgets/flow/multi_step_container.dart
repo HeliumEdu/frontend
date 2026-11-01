@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -52,9 +54,6 @@ abstract class MultiStepContainerState<T extends MultiStepContainer>
     with TickerProviderStateMixin {
   List<MultiStepDefinition> get steps;
 
-  @override
-  bool get isContentBoxed => false;
-
   List<BlocProvider>? get providers => null;
 
   @override
@@ -65,12 +64,20 @@ abstract class MultiStepContainerState<T extends MultiStepContainer>
 
   bool _isClosing = false;
 
+  Timer? _stepTransitionTimer;
+
   @override
   void initState() {
     super.initState();
 
     _currentStep = widget.initialStep;
     _previousStep = widget.initialStep;
+  }
+
+  @override
+  void dispose() {
+    _stepTransitionTimer?.cancel();
+    super.dispose();
   }
 
   @override
@@ -220,6 +227,28 @@ abstract class MultiStepContainerState<T extends MultiStepContainer>
       _previousStep = _currentStep;
       _currentStep = step;
     });
+    _startStepTransition();
+  }
+
+  /// A step that's still sliding out keeps its GlobalKeys in the tree, so
+  /// returning to it before the slide ends would mount them twice.
+  void _startStepTransition() {
+    _stepTransitionTimer?.cancel();
+    final duration = MotionService().effectiveDuration(
+      AppConstants.uiAnimationDuration,
+    );
+    _stepTransitionTimer = duration == Duration.zero
+        ? null
+        : Timer(duration, _endStepTransition);
+  }
+
+  void _endStepTransition() {
+    _stepTransitionTimer = null;
+  }
+
+  void _onStepTapped(int step) {
+    if (_stepTransitionTimer != null) return;
+    onStepRequested(step);
   }
 
   void onStepRequested(int step) {
@@ -237,7 +266,7 @@ abstract class MultiStepContainerState<T extends MultiStepContainer>
         return (icon: step.icon, isEnabled: isEnabled, tooltip: step.tooltip);
       }).toList(),
       currentStep: _currentStep,
-      onStepTapped: onStepRequested,
+      onStepTapped: _onStepTapped,
     );
   }
 }

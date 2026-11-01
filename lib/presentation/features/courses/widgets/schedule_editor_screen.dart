@@ -316,12 +316,7 @@ class _ScheduleEditorScreenState extends BaseDialogState<ScheduleEditorScreen>
                   keyboardDismissBehavior:
                       ScrollViewKeyboardDismissBehavior.onDrag,
                   child: Padding(
-                    padding: DialogModeProvider.isFullScreenMode(context)
-                        ? AppConstants.dialogContentPadding.copyWith(
-                            left: AppConstants.unboxedContentInset,
-                            right: AppConstants.unboxedContentInset,
-                          )
-                        : AppConstants.dialogContentPadding,
+                    padding: AppConstants.dialogContentPadding,
                     child: Form(
                       key: formController.formKey,
                       child: Column(

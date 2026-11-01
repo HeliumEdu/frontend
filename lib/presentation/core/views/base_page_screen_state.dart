@@ -131,15 +131,13 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
   List<Widget> get additionalRightHeaderButtons => const [];
 
   /// Whether the page's content sits in bordered containers; unboxed content
-  /// sits further from the edge.
-  bool get isContentBoxed => true;
+  /// sits further from the edge. Tab pages are boxed and dialogs are not.
+  bool get isContentBoxed => !DialogModeProvider.isDialogMode(context);
 
   EdgeInsets get scaffoldInsets {
-    if (DialogModeProvider.isDialogMode(context) &&
-        !DialogModeProvider.isFullScreenMode(context)) {
-      return AppConstants.dialogContentPadding.copyWith(bottom: 0);
-    }
-    final edge = Responsive.pageEdgeInset(boxed: isContentBoxed);
+    final edge = isContentBoxed
+        ? AppConstants.pageEdgeInset
+        : AppConstants.unboxedContentInset;
     return EdgeInsets.fromLTRB(edge, AppConstants.contentTopInset, edge, 0);
   }
 

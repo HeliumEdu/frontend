@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_quill/flutter_quill.dart';
@@ -631,6 +632,10 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
     ];
   }
 
+  /// The editor fills as much width as it can, so it takes the boxed edge.
+  @override
+  bool get isContentBoxed => true;
+
   /// On phones the editor runs edge to edge; the title row carries its own
   /// inset.
   @override
@@ -1057,53 +1062,49 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
     );
   }
 
+  /// Fills the screen below the title row with the editor, which keeps a
+  /// minimum height and scrolls with the header when the keyboard or the link
+  /// picker leaves less room. The tree keeps one shape at every height, so the
+  /// editor keeps its focus, find bar, and scroll position while the keyboard
+  /// opens and closes.
   Widget _buildCompactLayout(BuildContext context) {
-    const double titleRowHeight = 64;
-    const double minEditorContainerHeight = 260;
-
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final header = Padding(
-          padding: const EdgeInsets.symmetric(
-            horizontal: AppConstants.unboxedContentInset,
-          ),
-          child: Column(
-            children: [
-              _buildTitleRow(context),
-              if (_showLinkPicker) _buildLinkPicker(context),
-            ],
-          ),
-        );
-
-        if (constraints.maxHeight >=
-            titleRowHeight + minEditorContainerHeight) {
-          return Form(
-            key: _formController.formKey,
-            child: Column(
-              children: [
-                header,
-                Expanded(child: _buildEditor()),
-              ],
-            ),
-          );
-        }
-
-        return SingleChildScrollView(
-          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-          child: Form(
-            key: _formController.formKey,
-            child: Column(
-              children: [
-                header,
-                SizedBox(
-                  height: minEditorContainerHeight,
-                  child: _buildEditor(),
-                ),
-              ],
+    return Form(
+      key: _formController.formKey,
+      child: CustomScrollView(
+        keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+        slivers: [
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppConstants.unboxedContentInset,
+              ),
+              child: Column(
+                children: [
+                  _buildTitleRow(context),
+                  if (_showLinkPicker) _buildLinkPicker(context),
+                ],
+              ),
             ),
           ),
-        );
-      },
+          SliverLayoutBuilder(builder: _buildCompactEditorSliver),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCompactEditorSliver(
+    BuildContext context,
+    SliverConstraints constraints,
+  ) {
+    const double minEditorHeight = 260;
+    final remainingHeight =
+        constraints.viewportMainAxisExtent - constraints.precedingScrollExtent;
+
+    return SliverToBoxAdapter(
+      child: SizedBox(
+        height: math.max(minEditorHeight, remainingHeight),
+        child: _buildEditor(),
+      ),
     );
   }
 
