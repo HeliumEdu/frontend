@@ -164,6 +164,9 @@ class LinkedNoteSaver {
         isConflict: true,
       );
     } on NotFoundException {
+      if (noteEdit.content == null) {
+        return LinkedNoteSave(noteId: null, deletedNoteId: linkedNoteId);
+      }
       return _create(
         noteEdit.content,
         homeworkId: homeworkId,

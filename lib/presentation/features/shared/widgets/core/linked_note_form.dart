@@ -76,7 +76,7 @@ void resolveLinkedNoteConflict<T>(
 
   form.resetSubmitting();
   form.applyConflict(savedEntity: savedEntity, linkedNoteSave: linkedNoteSave);
-  if (linkedNoteSave?.failure case final failure?) {
+  if (linkedNoteSave?.failure case final failure? when savedEntity != null) {
     SnackBarHelper.show(
       context,
       'Your other changes are saved, but the note failed to save: '

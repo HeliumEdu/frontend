@@ -432,7 +432,8 @@ class _PlannerItemAddScreenState
             if (!isShowingErrorCard) {
               showSnackBar(context, state.message!, type: SnackType.error);
             }
-            if (state.linkedNoteSave case final linkedNoteSave?) {
+            if (state.linkedNoteSave case final linkedNoteSave?
+                when state.origin == EventOrigin.subScreen) {
               _detailsKey.currentState?.linkedNoteFields.applyLinkedNoteSave(
                 linkedNoteSave,
               );

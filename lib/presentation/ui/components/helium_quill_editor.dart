@@ -108,6 +108,7 @@ class _HeliumQuillEditorState extends State<HeliumQuillEditor> {
   }
 
   void _handleWebPaste(String? html, String? plainText) {
+    if (widget.controller.readOnly) return;
     final sel = widget.controller.selection;
 
     // The document listener fires whenever the editor has focus, which can precede the controller

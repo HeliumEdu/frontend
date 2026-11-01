@@ -170,6 +170,13 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
   };
 
   @override
+  bool get isContentBoxed => switch (_activeSubScreen) {
+    SettingsSubScreen.externalCalendars || SettingsSubScreen.feeds || null =>
+      true,
+    _ => super.isContentBoxed,
+  };
+
+  @override
   Function? get saveAction => switch (_activeSubScreen) {
     SettingsSubScreen.preferences => () {
       if (isSubmitting) return;
