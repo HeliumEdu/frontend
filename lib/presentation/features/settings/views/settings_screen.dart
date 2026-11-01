@@ -8,6 +8,7 @@ import 'package:heliumapp/config/app_router.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/config/dirty_dialog_registry.dart';
 import 'package:heliumapp/config/donation_config.dart';
+import 'package:heliumapp/core/motion_service.dart';
 import 'package:heliumapp/config/theme_notifier.dart';
 import 'package:heliumapp/data/models/auth/request/update_settings_request_model.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/info/info_bloc.dart';
@@ -109,10 +110,10 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
     ];
   }
 
-  final _preferencesKey = GlobalKey<PreferencesScreenState>();
-  final _changeEmailKey = GlobalKey<ChangeEmailScreenState>();
-  final _changePasswordKey = GlobalKey<ChangePasswordScreenState>();
-  final _externalCalendarsKey = GlobalKey<ExternalCalendarsScreenState>();
+  var _preferencesKey = GlobalKey<PreferencesScreenState>();
+  var _changeEmailKey = GlobalKey<ChangeEmailScreenState>();
+  var _changePasswordKey = GlobalKey<ChangePasswordScreenState>();
+  var _externalCalendarsKey = GlobalKey<ExternalCalendarsScreenState>();
 
   final BasicFormController _deleteAccountFormController =
       BasicFormController();
@@ -122,6 +123,7 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
   final themeNotifier = ThemeNotifier();
 
   SettingsSubScreen? _activeSubScreen;
+  bool _isSubScreenForward = true;
   String _email = '';
   String? _emailChanging;
   String _version = '';
@@ -327,8 +329,21 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
       if (newSubScreen == SettingsSubScreen.changePassword) {
         _changePasswordPasswordless = !_hasUsablePassword;
       }
-      setState(() => _activeSubScreen = newSubScreen);
+      setState(() {
+        _isSubScreenForward = newSubScreen != null;
+        _activeSubScreen = newSubScreen;
+        _renewSubScreenKeys();
+      });
     }
+  }
+
+  /// A sub-screen sliding out keeps its key until its transition ends, so the
+  /// one sliding in takes fresh keys.
+  void _renewSubScreenKeys() {
+    _preferencesKey = GlobalKey<PreferencesScreenState>();
+    _changeEmailKey = GlobalKey<ChangeEmailScreenState>();
+    _changePasswordKey = GlobalKey<ChangePasswordScreenState>();
+    _externalCalendarsKey = GlobalKey<ExternalCalendarsScreenState>();
   }
 
   @override
@@ -438,63 +453,61 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
         ? BlocBuilder<AuthBloc, AuthState>(
             builder: (context, state) {
               if (state is AuthLoading) {
-                return const LoadingIndicator();
+                return const Center(child: LoadingIndicator(expanded: false));
               }
 
               return _buildSettingsPage();
             },
           )
-        : Expanded(
-            child: switch (_activeSubScreen!) {
-              SettingsSubScreen.preferences => PreferencesScreen(
-                key: _preferencesKey,
-                userSettings: userSettings,
-                onActionStarted: () => setState(() => isSubmitting = true),
-                onCompleted: () {
-                  setState(() => isSubmitting = false);
-                  context.go(_settingsBaseUrl());
-                },
-                onFailed: () => setState(() => isSubmitting = false),
-              ),
-              SettingsSubScreen.changeEmail => ChangeEmailScreen(
-                key: _changeEmailKey,
-                onActionStarted: () => setState(() => isSubmitting = true),
-                onCompleted: () {
-                  setState(() => isSubmitting = false);
-                  context.go(_settingsBaseUrl());
-                },
-                onFailed: () => setState(() => isSubmitting = false),
-              ),
-              SettingsSubScreen.changePassword => ChangePasswordScreen(
-                key: _changePasswordKey,
-                passwordless: _changePasswordPasswordless,
-                onActionStarted: () => setState(() => isSubmitting = true),
-                onCompleted: () {
-                  setState(() {
-                    isSubmitting = false;
-                    _hasUsablePassword = true;
-                    // Don't clear _changePasswordPasswordless here — it must
-                    // stay true until after the sub-screen is no longer
-                    // rendered, otherwise the title flashes to "Change Password"
-                    // for one frame before navigation completes.
-                  });
-                  context.go(_settingsBaseUrl());
-                },
-                onFailed: () => setState(() => isSubmitting = false),
-              ),
-              SettingsSubScreen.externalCalendars => ExternalCalendarsScreen(
-                key: _externalCalendarsKey,
-              ),
-              SettingsSubScreen.feeds => FeedsScreen(userSettings: userSettings),
-              SettingsSubScreen.importExport => ImportExportScreen(
-                userSettings: userSettings,
-                onNavigateRequested: _onNavigateRequested,
-                onActionStarted: () => setState(() => isSubmitting = true),
-                onCompleted: () => setState(() => isSubmitting = false),
-                onFailed: () => setState(() => isSubmitting = false),
-              ),
-            },
-          );
+        : switch (_activeSubScreen!) {
+            SettingsSubScreen.preferences => PreferencesScreen(
+              key: _preferencesKey,
+              userSettings: userSettings,
+              onActionStarted: () => setState(() => isSubmitting = true),
+              onCompleted: () {
+                setState(() => isSubmitting = false);
+                context.go(_settingsBaseUrl());
+              },
+              onFailed: () => setState(() => isSubmitting = false),
+            ),
+            SettingsSubScreen.changeEmail => ChangeEmailScreen(
+              key: _changeEmailKey,
+              onActionStarted: () => setState(() => isSubmitting = true),
+              onCompleted: () {
+                setState(() => isSubmitting = false);
+                context.go(_settingsBaseUrl());
+              },
+              onFailed: () => setState(() => isSubmitting = false),
+            ),
+            SettingsSubScreen.changePassword => ChangePasswordScreen(
+              key: _changePasswordKey,
+              passwordless: _changePasswordPasswordless,
+              onActionStarted: () => setState(() => isSubmitting = true),
+              onCompleted: () {
+                setState(() {
+                  isSubmitting = false;
+                  _hasUsablePassword = true;
+                  // Don't clear _changePasswordPasswordless here — it must
+                  // stay true until after the sub-screen is no longer
+                  // rendered, otherwise the title flashes to "Change Password"
+                  // for one frame before navigation completes.
+                });
+                context.go(_settingsBaseUrl());
+              },
+              onFailed: () => setState(() => isSubmitting = false),
+            ),
+            SettingsSubScreen.externalCalendars => ExternalCalendarsScreen(
+              key: _externalCalendarsKey,
+            ),
+            SettingsSubScreen.feeds => FeedsScreen(userSettings: userSettings),
+            SettingsSubScreen.importExport => ImportExportScreen(
+              userSettings: userSettings,
+              onNavigateRequested: _onNavigateRequested,
+              onActionStarted: () => setState(() => isSubmitting = true),
+              onCompleted: () => setState(() => isSubmitting = false),
+              onFailed: () => setState(() => isSubmitting = false),
+            ),
+          };
 
     // PopScope intercepts Material's route-level pop (triggered by ESC via
     // barrierDismissible, system back, or programmatic pop). When a sub-screen
@@ -509,7 +522,38 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
           context.go(_settingsBaseUrl());
         }
       },
-      child: content,
+      child: Expanded(
+        child: AnimatedSwitcher(
+          duration: MotionService().effectiveDuration(
+            AppConstants.uiAnimationDuration,
+          ),
+          transitionBuilder: _subScreenSlide(),
+          layoutBuilder: _stackSubScreens,
+          child: KeyedSubtree(key: ValueKey(_activeSubScreen), child: content),
+        ),
+      ),
+    );
+  }
+
+  /// Slides the incoming screen in from the side it's moving toward and the
+  /// outgoing one out the other side: in from the right going into a
+  /// sub-screen, from the left going back.
+  AnimatedSwitcherTransitionBuilder _subScreenSlide() {
+    final incomingKey = ValueKey(_activeSubScreen);
+    final enterFrom = _isSubScreenForward ? 1.0 : -1.0;
+    return (child, animation) => SlideTransition(
+      position: Tween<Offset>(
+        begin: Offset(child.key == incomingKey ? enterFrom : -enterFrom, 0),
+        end: Offset.zero,
+      ).animate(CurvedAnimation(parent: animation, curve: Curves.easeInOut)),
+      child: child,
+    );
+  }
+
+  Widget _stackSubScreens(Widget? current, List<Widget> previous) {
+    return Stack(
+      fit: StackFit.expand,
+      children: [...previous, ?current],
     );
   }
 
@@ -526,63 +570,61 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
   }
 
   Widget _buildSettingsPage() {
-    return Expanded(
-      child: HeliumFullScreenScrollView(
-        keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-        child: Column(
-          children: [
-            _buildProfileArea(),
+    return HeliumFullScreenScrollView(
+      keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+      child: Column(
+        children: [
+          _buildProfileArea(),
 
-            if (showDonationLink) ...[
-              const SizedBox(height: 12),
-
-              const SupportHeliumCard(),
-            ],
-
+          if (showDonationLink) ...[
             const SizedBox(height: 12),
 
-            if (userSettings?.showGettingStarted ?? false) ...[
-              _buildExampleDataArea(),
+            const SupportHeliumCard(),
+          ],
 
-              const SizedBox(height: 12),
-            ],
+          const SizedBox(height: 12),
 
-            _buildSubSettingsArea(),
-
-            const SizedBox(height: 12),
-
-            _buildDangerZoneArea(),
+          if (userSettings?.showGettingStarted ?? false) ...[
+            _buildExampleDataArea(),
 
             const SizedBox(height: 12),
+          ],
 
-            if (_version.isNotEmpty)
-              Center(
-                child: Column(
-                  children: [
-                    Text(
-                      _version,
+          _buildSubSettingsArea(),
+
+          const SizedBox(height: 12),
+
+          _buildDangerZoneArea(),
+
+          const SizedBox(height: 12),
+
+          if (_version.isNotEmpty)
+            Center(
+              child: Column(
+                children: [
+                  Text(
+                    _version,
+                    style: AppStyles.smallSecondaryText(context).copyWith(
+                      color: context.colorScheme.onSurface.withValues(alpha: AppStyles.mutedTextAlpha),
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  TextButton(
+                    onPressed: () =>
+                        UrlHelpers.launchWebUrl(AppConstants.githubUrl),
+                    child: Text(
+                      'Open Source on GitHub',
                       style: AppStyles.smallSecondaryText(context).copyWith(
                         color: context.colorScheme.onSurface.withValues(alpha: AppStyles.mutedTextAlpha),
                       ),
                     ),
-                    const SizedBox(height: 4),
-                    TextButton(
-                      onPressed: () =>
-                          UrlHelpers.launchWebUrl(AppConstants.githubUrl),
-                      child: Text(
-                        'Open Source on GitHub',
-                        style: AppStyles.smallSecondaryText(context).copyWith(
-                          color: context.colorScheme.onSurface.withValues(alpha: AppStyles.mutedTextAlpha),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
+                  ),
+                ],
               ),
+            ),
 
-            const SizedBox(height: 12),
-          ],
-        ),
+          const SizedBox(height: 12),
+        ],
       ),
     );
   }
