@@ -33,6 +33,7 @@ import 'package:heliumapp/presentation/ui/feedback/error_card.dart';
 import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
 import 'package:heliumapp/presentation/ui/layout/mobile_gesture_detector.dart';
 import 'package:heliumapp/presentation/ui/layout/responsive_card_grid.dart';
+import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/error_helpers.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/platform_behavior.dart';
@@ -474,7 +475,7 @@ class _ResourcesScreenState
       onTap: () => _onEdit(resource),
       child: Card(
         child: Padding(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(AppConstants.containerContentInset),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -489,8 +490,8 @@ class _ResourcesScreenState
                       userSettings: userSettings!,
                     ),
                   ),
-                  const SizedBox(width: 8),
                   if (resource.website != null) ...[
+                    const SizedBox(width: 8),
                     PrintHidden(
                       child: HeliumIconButton(
                         onPressed: () {
@@ -501,19 +502,17 @@ class _ResourcesScreenState
                         color: context.semanticColors.success,
                       ),
                     ),
-                    const SizedBox(width: 8),
                   ],
-                  if (PlatformBehavior.showItemActions(context))
+                  if (PlatformBehavior.showItemActions(context)) ...[
+                    const SizedBox(width: 8),
                     PrintHidden(
-                      child: Semantics(
-                        label: 'Edit',
-                        button: true,
-                        child: HeliumIconButton(
-                          onPressed: () => _onEdit(resource),
-                          icon: Icons.edit_outlined,
-                        ),
+                      child: HeliumIconButton(
+                        onPressed: () => _onEdit(resource),
+                        icon: Icons.edit_outlined,
+                        semanticLabel: 'Edit',
                       ),
                     ),
+                  ],
                 ],
               ),
 

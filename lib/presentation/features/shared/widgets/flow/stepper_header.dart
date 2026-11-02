@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/core/motion_service.dart';
 import 'package:heliumapp/presentation/ui/layout/shadow_container.dart';
+import 'package:heliumapp/utils/app_globals.dart';
+import 'package:heliumapp/utils/responsive_helpers.dart';
 
 typedef StepperHeaderStep = ({IconData icon, bool isEnabled, String? tooltip});
 
@@ -39,6 +41,12 @@ class _StepperHeaderState extends State<StepperHeader> {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: ShadowContainer(
+        padding: Responsive.isNarrowMobile(context)
+            ? const EdgeInsets.symmetric(
+                horizontal: 4,
+                vertical: AppConstants.containerContentInset,
+              )
+            : null,
         child: Padding(
           padding: const EdgeInsets.symmetric(vertical: 10),
           child: LayoutBuilder(
@@ -47,22 +55,10 @@ class _StepperHeaderState extends State<StepperHeader> {
               // so constraints.maxWidth is the true available content width.
               final contentWidth = constraints.maxWidth;
 
-              // Calculate sizes based on available width
-              // We need to fit: steps.length circles + (steps.length - 1) lines + margins
-              // Minimum line length: 16px, margin per line: 8px (4 on each side)
-              final minLineTotal =
-                  (widget.steps.length - 1) * 24.0; // 16 + 8 margin
-              final availableForCircles = contentWidth - minLineTotal;
+              final isMobile = Responsive.isMobile(context);
+              final circleSize = isMobile ? 44.0 : 48.0;
+              final iconSize = isMobile ? 18.0 : 20.0;
 
-              // Calculate circle size to fit, but cap between 36 and 48.
-              // Floor to whole pixels so sizes never accumulate sub-pixel fractions.
-              final maxCircleSize = availableForCircles / widget.steps.length;
-              final circleSize =
-                  maxCircleSize.clamp(36.0, 48.0).floorToDouble();
-              final iconSize =
-                  (circleSize * 0.42).clamp(16.0, 22.0).floorToDouble();
-
-              // Calculate line length with remaining space, but cap to avoid excessive stretching
               final totalCircleWidth = circleSize * widget.steps.length;
               final remainingWidth = contentWidth - totalCircleWidth;
               final lineLength = widget.steps.length > 1
@@ -70,7 +66,7 @@ class _StepperHeaderState extends State<StepperHeader> {
                       .min(
                         56.0,
                         math.max(
-                          16.0,
+                          0.0,
                           (remainingWidth / (widget.steps.length - 1)) - 8,
                         ),
                       )

@@ -18,6 +18,7 @@ import 'package:heliumapp/presentation/ui/components/spinner_field.dart';
 import 'package:heliumapp/utils/color_helpers.dart';
 import 'package:heliumapp/utils/format_helpers.dart';
 import 'package:heliumapp/utils/platform_behavior.dart';
+import 'package:heliumapp/utils/responsive_helpers.dart';
 
 class _CategoryProvidedWidget extends StatefulWidget {
   final int courseGroupId;
@@ -156,7 +157,7 @@ class _CategoryWidgetState extends BaseDialogState<_CategoryProvidedWidget>
                 onChanged: (_) => _formController.markChanged(),
               ),
             ),
-            const SizedBox(width: 50),
+            SizedBox(width: Responsive.isNarrowMobile(context) ? 24 : 50),
             ColorSelector(
               label: 'Color',
               selectedColor: _formController.selectedColor,

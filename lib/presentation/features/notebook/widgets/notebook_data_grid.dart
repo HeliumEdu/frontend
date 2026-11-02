@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:heliumapp/config/app_route.dart';
@@ -66,7 +68,7 @@ enum NotebookColumn {
 class NotebookDataGrid extends StatefulWidget {
   final List<NoteModel> notes;
   final Function(NoteModel) onNoteTap;
-  final Function(BuildContext, NoteModel) onDelete;
+  final Future<bool> Function(BuildContext, NoteModel) onDelete;
   final UserSettingsModel? userSettings;
   final int rowsPerPage;
   final Function(int)? onRowsPerPageChanged;
@@ -274,6 +276,7 @@ class _NotebookDataGridState extends BaseDataGridState<NotebookDataGrid> {
           key: ValueKey(
             'notes_grid_${columns.length}_${isCompact}_$isCapturing',
           ),
+          columnSizer: columnSizer,
           source: _dataSource,
           controller: gridController,
           columnWidthMode: ColumnWidthMode.fill,
@@ -303,13 +306,13 @@ class _NotebookDataGridState extends BaseDataGridState<NotebookDataGrid> {
               label: 'Delete',
               button: true,
               child: GestureDetector(
-                onTap: () {
-                  Feedback.forTap(context);
-                  if (note != null) {
-                    widget.onDelete(context, note);
-                  }
-                  _dataSource.notifyListeners();
-                },
+                onTap: () => unawaited(
+                  onSwipeDeleteTapped(
+                    context,
+                    _dataSource,
+                    () async => note != null && await widget.onDelete(context, note),
+                  ),
+                ),
                 child: Container(
                   color: context.colorScheme.error,
                   alignment: Alignment.centerRight,
@@ -486,7 +489,7 @@ class _NotebookDataGridState extends BaseDataGridState<NotebookDataGrid> {
     return MouseRegion(
       cursor: SystemMouseCursors.click,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16),
+        padding: const EdgeInsets.symmetric(horizontal: AppConstants.tableCellInset),
         alignment: Alignment.centerLeft,
         child: Text(
           column.label,
@@ -829,7 +832,7 @@ class NotesDataSource extends BaseDataGridSource {
               as String;
       if (originalTitle.isEmpty) {
         return Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
+          padding: const EdgeInsets.symmetric(horizontal: AppConstants.tableCellInset),
           alignment: Alignment.centerLeft,
           child: Text(
             '—',
@@ -841,7 +844,7 @@ class NotesDataSource extends BaseDataGridSource {
       }
       final titleStyle = AppStyles.smallSecondaryText(context);
       return Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8),
+        padding: const EdgeInsets.symmetric(horizontal: AppConstants.tableCellInset),
         alignment: Alignment.centerLeft,
         child: isSelectable
             ? SelectableText(originalTitle, style: titleStyle, maxLines: 1)
@@ -869,7 +872,7 @@ class NotesDataSource extends BaseDataGridSource {
               as String;
       if (originalLinkedTo.isEmpty) {
         return Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
+          padding: const EdgeInsets.symmetric(horizontal: AppConstants.tableCellInset),
           alignment: Alignment.centerLeft,
           child: Text(
             '—',
@@ -930,7 +933,7 @@ class NotesDataSource extends BaseDataGridSource {
         );
       } else {
         return Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
+          padding: const EdgeInsets.symmetric(horizontal: AppConstants.tableCellInset),
           alignment: Alignment.centerLeft,
           child: Text(
             originalLinkedTo,
@@ -941,7 +944,10 @@ class NotesDataSource extends BaseDataGridSource {
       }
 
       return Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppConstants.tableCellInset,
+          vertical: 6,
+        ),
         alignment: Alignment.centerLeft,
         child: _wrapLinkedBadge(
           badge: badge,
@@ -957,7 +963,7 @@ class NotesDataSource extends BaseDataGridSource {
 
       if (due == null) {
         return Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
+          padding: const EdgeInsets.symmetric(horizontal: AppConstants.tableCellInset),
           alignment: Alignment.centerLeft,
           child: Text(
             '—',
@@ -979,7 +985,7 @@ class NotesDataSource extends BaseDataGridSource {
       final dateStyle = AppStyles.smallSecondaryText(context);
 
       return Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8),
+        padding: const EdgeInsets.symmetric(horizontal: AppConstants.tableCellInset),
         alignment: Alignment.centerLeft,
         child: isSelectable
             ? SelectableText(formattedDate, style: dateStyle, maxLines: 1)
@@ -1001,7 +1007,7 @@ class NotesDataSource extends BaseDataGridSource {
       final dateStyle = AppStyles.smallSecondaryText(context);
 
       return Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8),
+        padding: const EdgeInsets.symmetric(horizontal: AppConstants.tableCellInset),
         alignment: Alignment.centerLeft,
         child: isSelectable
             ? SelectableText(formattedDate, style: dateStyle, maxLines: 1)
@@ -1019,20 +1025,17 @@ class NotesDataSource extends BaseDataGridSource {
       final note = _notesById[noteId];
       if (note != null) {
         return Container(
-          padding: const EdgeInsets.symmetric(horizontal: 8),
+          padding: const EdgeInsets.symmetric(horizontal: AppConstants.tableCellInset),
           alignment: Alignment.centerRight,
           child: Row(
             mainAxisSize: MainAxisSize.min,
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
-              Semantics(
-                label: 'Edit',
-                button: true,
-                child: HeliumIconButton(
-                  onPressed: () => onEdit(note),
-                  icon: Icons.edit_outlined,
-                  color: context.colorScheme.onSurface,
-                ),
+              HeliumIconButton(
+                onPressed: () => onEdit(note),
+                icon: Icons.edit_outlined,
+                semanticLabel: 'Edit',
+                color: context.colorScheme.onSurface,
               ),
             ],
           ),
@@ -1041,7 +1044,7 @@ class NotesDataSource extends BaseDataGridSource {
     }
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.symmetric(horizontal: AppConstants.tableCellInset),
       alignment: Alignment.centerLeft,
       child: Text(cell.value?.toString() ?? ''),
     );

@@ -62,6 +62,7 @@ class PageHeader extends StatelessWidget {
   }
 
   Widget _buildContent(BuildContext context) {
+    final buttonGap = Responsive.isNarrowMobile(context) ? 4.0 : 8.0;
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -72,28 +73,25 @@ class PageHeader extends StatelessWidget {
             children: [
               ExcludeFocus(
                 excluding: true,
-                child: Semantics(
-                  label: cancelIcon == Icons.close ? 'Close' : 'Back',
-                  button: true,
-                  child: IconButton(
-                    style: IconButton.styleFrom(
-                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    ),
-                    onPressed: isLoading
-                        ? null
-                        : () {
-                            cancelAction?.call();
-                          },
-                    icon: Icon(
-                      cancelIcon,
-                      color: isLoading
-                          ? context.colorScheme.secondary.withValues(alpha: 0.3)
-                          : context.colorScheme.secondary,
-                    ),
+                child: IconButton(
+                  style: IconButton.styleFrom(
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  ),
+                  onPressed: isLoading
+                      ? null
+                      : () {
+                          cancelAction?.call();
+                        },
+                  icon: Icon(
+                    cancelIcon,
+                    color: isLoading
+                        ? context.colorScheme.secondary.withValues(alpha: 0.3)
+                        : context.colorScheme.secondary,
+                    semanticLabel: cancelIcon == Icons.close ? 'Close' : 'Back',
                   ),
                 ),
               ),
-              if (additionalLeftButtons.isNotEmpty) const SizedBox(width: 8),
+              if (additionalLeftButtons.isNotEmpty) SizedBox(width: buttonGap),
               ...additionalLeftButtons,
             ],
           )
@@ -107,7 +105,7 @@ class PageHeader extends StatelessWidget {
           children: [
             if (icon != null) ...[
               Icon(icon, color: context.colorScheme.primary),
-              const SizedBox(width: 8),
+              SizedBox(width: buttonGap),
             ],
             Text(title, style: AppStyles.pageTitle(context)),
           ],
@@ -118,81 +116,71 @@ class PageHeader extends StatelessWidget {
             ...additionalRightButtons,
             if (additionalRightButtons.isNotEmpty &&
                 screenType != ScreenType.subPage)
-              const SizedBox(width: 8),
+              SizedBox(width: buttonGap),
             if (screenType == ScreenType.page && helpUrl != null) ...[
-              Semantics(
-                label: 'Learn more',
-                button: true,
-                child: IconButton(
-                  style: IconButton.styleFrom(
-                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                  ),
-                  onPressed: () => UrlHelpers.launchWebUrl(helpUrl!),
-                  tooltip: 'Learn more',
-                  icon: Icon(
-                    Icons.menu_book_outlined,
-                    color: context.colorScheme.primary,
-                  ),
+              IconButton(
+                style: IconButton.styleFrom(
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                ),
+                onPressed: () => UrlHelpers.launchWebUrl(helpUrl!),
+                tooltip: 'Learn more',
+                icon: Icon(
+                  Icons.menu_book_outlined,
+                  color: context.colorScheme.primary,
                 ),
               ),
-              const SizedBox(width: 8),
+              SizedBox(width: buttonGap),
             ],
             if (screenType == ScreenType.page)
-              Semantics(
-                label: 'Notifications',
-                button: true,
-                child: IconButton(
-                  style: IconButton.styleFrom(
-                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                  ),
-                  onPressed: () {
-                    final shellPath = BranchPathScope.of(context);
-                    context.push('$shellPath${AppRoute.notificationsScreen}');
+              IconButton(
+                style: IconButton.styleFrom(
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                ),
+                onPressed: () {
+                  final shellPath = BranchPathScope.of(context);
+                  context.push('$shellPath${AppRoute.notificationsScreen}');
+                },
+                icon: BlocSelector<NotificationCountBloc,
+                    NotificationCountState, int>(
+                  selector: (state) => state.count,
+                  builder: (context, count) {
+                    final bell = Icon(
+                      Icons.notifications,
+                      color: context.colorScheme.primary,
+                      semanticLabel: 'Notifications',
+                    );
+                    if (count == 0) return bell;
+                    return Badge(
+                      backgroundColor: context.colorScheme.primaryContainer,
+                      textColor: context.colorScheme.onPrimaryContainer,
+                      label: Text(count > 99 ? '99+' : '$count'),
+                      child: bell,
+                    );
                   },
-                  icon: BlocSelector<NotificationCountBloc,
-                      NotificationCountState, int>(
-                    selector: (state) => state.count,
-                    builder: (context, count) {
-                      final bell = Icon(
-                        Icons.notifications,
-                        color: context.colorScheme.primary,
-                      );
-                      if (count == 0) return bell;
-                      return Badge(
-                        backgroundColor: context.colorScheme.primaryContainer,
-                        textColor: context.colorScheme.onPrimaryContainer,
-                        label: Text(count > 99 ? '99+' : '$count'),
-                        child: bell,
-                      );
-                    },
-                  ),
                 ),
               )
             else if (screenType == ScreenType.entityPage)
-              Semantics(
-                label: 'Save',
-                button: true,
-                child: IconButton(
-                  key: const Key(saveButtonKey),
-                  style: IconButton.styleFrom(
-                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                  ),
-                  onPressed: isLoading
-                      ? null
-                      : () {
-                          saveAction?.call();
-                        },
-                  icon: isLoading
-                      ? const LoadingIndicator(
-                          size: 20,
-                          expanded: false,
-                          strokeWidth: 2.5,
-                        )
-                      : Icon(
-                          Icons.check,
-                          color: context.colorScheme.primary,
-                        ),
+              IconButton(
+                key: const Key(saveButtonKey),
+                style: IconButton.styleFrom(
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                 ),
+                onPressed: isLoading
+                    ? null
+                    : () {
+                        saveAction?.call();
+                      },
+                icon: isLoading
+                    ? const LoadingIndicator(
+                        size: 20,
+                        expanded: false,
+                        strokeWidth: 2.5,
+                      )
+                    : Icon(
+                        Icons.check,
+                        color: context.colorScheme.primary,
+                        semanticLabel: 'Save',
+                      ),
               ),
 
             // Help keep things centered when no right button

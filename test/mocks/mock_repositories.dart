@@ -2,6 +2,7 @@ import 'package:heliumapp/core/dio_client.dart';
 import 'package:heliumapp/domain/repositories/attachment_repository.dart';
 import 'package:heliumapp/domain/repositories/auth_repository.dart';
 import 'package:heliumapp/domain/repositories/category_repository.dart';
+import 'package:heliumapp/domain/repositories/connected_app_repository.dart';
 import 'package:heliumapp/domain/repositories/course_repository.dart';
 import 'package:heliumapp/domain/repositories/course_schedule_event_repository.dart';
 import 'package:heliumapp/domain/repositories/event_repository.dart';
@@ -59,6 +60,10 @@ class MockExternalCalendarRepository extends Mock
 /// Mock implementation of [PushNotificationRepository] for testing.
 class MockPushNotificationRepository extends Mock
     implements PushNotificationRepository {}
+
+/// Mock implementation of [ConnectedAppRepository] for testing.
+class MockConnectedAppRepository extends Mock
+    implements ConnectedAppRepository {}
 
 /// Mock implementation of [DioClient] for testing.
 class MockDioClient extends Mock implements DioClient {}

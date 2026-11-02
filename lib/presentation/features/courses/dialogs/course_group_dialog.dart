@@ -17,6 +17,7 @@ import 'package:heliumapp/presentation/features/courses/controllers/course_group
 import 'package:heliumapp/presentation/ui/components/helium_checkbox_list_tile.dart';
 import 'package:heliumapp/presentation/ui/components/helium_elevated_button.dart';
 import 'package:heliumapp/presentation/ui/components/helium_icon_button.dart';
+import 'package:heliumapp/presentation/ui/components/helium_picker_field.dart';
 import 'package:heliumapp/presentation/ui/components/label_and_text_form_field.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/config/app_theme.dart';
@@ -141,32 +142,29 @@ class _CourseGroupWidgetState
   List<Widget> get additionalHeaderButtons {
     if (!widget.isEdit) return const [];
     return [
-      Semantics(
-        label: 'Delete',
-        button: true,
-        child: HeliumIconButton(
-          enabled: !isSubmitting,
-          onPressed: () {
-            showConfirmDeleteDialog(
-              parentContext: context,
-              item: widget.group!,
-              label: widget.group!.title,
-              additionalWarning:
-                  'Anything in this group, including classes and their assignments, attachments and other data, will also be deleted.',
-              onDelete: (value) {
-                setState(() => isSubmitting = true);
-                context.read<CourseBloc>().add(
-                  DeleteCourseGroupEvent(
-                    origin: EventOrigin.dialog,
-                    courseGroupId: value.id,
-                  ),
-                );
-              },
-            );
-          },
-          icon: Icons.delete_outlined,
-          color: context.colorScheme.error,
-        ),
+      HeliumIconButton(
+        enabled: !isSubmitting,
+        onPressed: () {
+          showConfirmDeleteDialog(
+            parentContext: context,
+            item: widget.group!,
+            label: widget.group!.title,
+            additionalWarning:
+                'Anything in this group, including classes and their assignments, attachments and other data, will also be deleted.',
+            onDelete: (value) {
+              setState(() => isSubmitting = true);
+              context.read<CourseBloc>().add(
+                DeleteCourseGroupEvent(
+                  origin: EventOrigin.dialog,
+                  courseGroupId: value.id,
+                ),
+              );
+            },
+          );
+        },
+        icon: Icons.delete_outlined,
+        semanticLabel: 'Delete',
+        color: context.colorScheme.error,
       ),
     ];
   }
@@ -209,112 +207,11 @@ class _CourseGroupWidgetState
           onFieldSubmitted: (value) => handleSubmit(),
         ),
         const SizedBox(height: 14),
-        Row(
-          children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  ExcludeSemantics(
-                    child: Text('From', style: AppStyles.formLabel(context)),
-                  ),
-                  const SizedBox(height: 9),
-                  Semantics(
-                    label: 'From',
-                    button: true,
-                    child: GestureDetector(
-                      onTap: () {
-                        Feedback.forTap(context);
-                        _selectDate(context, true);
-                      },
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 12,
-                        ),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(6),
-                          border: Border.all(
-                            color: context.colorScheme.outline
-                                .withValues(alpha: 0.2),
-                          ),
-                          color: context.colorScheme.surface,
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              HeliumDateTime.formatDate(
-                                _formController.startDate!,
-                              ),
-                              style: AppStyles.formText(context),
-                            ),
-                            Icon(
-                              Icons.calendar_today,
-                              color: context.colorScheme.primary,
-                              size: 18,
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  ExcludeSemantics(
-                    child: Text('To', style: AppStyles.formLabel(context)),
-                  ),
-                  const SizedBox(height: 9),
-                  Semantics(
-                    label: 'To',
-                    button: true,
-                    child: GestureDetector(
-                      onTap: () {
-                        Feedback.forTap(context);
-                        _selectDate(context, false);
-                      },
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 12,
-                        ),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(6),
-                          border: Border.all(
-                            color: context.colorScheme.outline
-                                .withValues(alpha: 0.2),
-                          ),
-                          color: context.colorScheme.surface,
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              HeliumDateTime.formatDate(
-                                _formController.endDate!,
-                              ),
-                              style: AppStyles.formText(context),
-                            ),
-                            Icon(
-                              Icons.calendar_today,
-                              color: context.colorScheme.primary,
-                              size: 18,
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
+        HeliumDateRangeFields(
+          from: _formController.startDate!,
+          to: _formController.endDate!,
+          onFromTap: () => _selectDate(context, true),
+          onToTap: () => _selectDate(context, false),
         ),
         const SizedBox(height: 14),
         Row(

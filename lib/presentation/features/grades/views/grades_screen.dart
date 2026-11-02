@@ -923,7 +923,9 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
           ),
           SizedBox(height: Responsive.getResponsiveValue(context, mobile: 4, desktop: 8)),
           Text(
-            'ungraded ${ungradedCount.plural('assignment')}',
+            Responsive.isNarrowMobile(context)
+                ? 'ungraded'
+                : 'ungraded ${ungradedCount.plural('assignment')}',
             style: AppStyles.smallSecondaryText(context).copyWith(
               color: ungradedCount > 0
                   ? context.semanticColors.warning
@@ -1337,25 +1339,21 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
             if (coursesWithCategories.isNotEmpty)
               PrintHidden(
                 child: Builder(
-                  builder: (buttonContext) =>
-                      Tooltip(
-                        message: 'Grade Calculator',
-                        child: IconButton.outlined(
-                          icon: const Icon(Icons.calculate_outlined),
-                          style: IconButton.styleFrom(
-                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                            side: BorderSide(
-                              color: context.colorScheme.primary,
-                            ),
-                          ),
-                          onPressed: () =>
-                              _showGradeCalculatorOptions(
-                                buttonContext,
-                                gradeGroup,
-                                coursesWithCategories,
-                              ),
-                        ),
+                  builder: (buttonContext) => IconButton.outlined(
+                    tooltip: 'Grade Calculator',
+                    icon: const Icon(Icons.calculate_outlined),
+                    style: IconButton.styleFrom(
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      side: BorderSide(
+                        color: context.colorScheme.primary,
                       ),
+                    ),
+                    onPressed: () => _showGradeCalculatorOptions(
+                      buttonContext,
+                      gradeGroup,
+                      coursesWithCategories,
+                    ),
+                  ),
                 ),
               ),
             if (coursesWithCategories.isNotEmpty) const SizedBox(width: 8),
@@ -1363,43 +1361,38 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
             PrintHidden(
               child: Builder(
                 builder: (buttonContext) =>
-                    Semantics(
-                      label: 'Graph settings',
-                      button: true,
-                      child: IconButton.outlined(
-                        icon: const Icon(Icons.settings),
-                        style: IconButton.styleFrom(
-                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                          side: BorderSide(
-                            color: context.colorScheme.primary,
-                          ),
+                    IconButton.outlined(
+                      icon: const Icon(Icons.settings, semanticLabel: 'Graph settings'),
+                      style: IconButton.styleFrom(
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        side: BorderSide(
+                          color: context.colorScheme.primary,
                         ),
-                        onPressed: () => _showGraphSettings(buttonContext),
                       ),
+                      onPressed: () => _showGraphSettings(buttonContext),
                     ),
               ),
             ),
             const SizedBox(width: 8),
             // Expand/collapse chevron
             PrintHidden(
-              child: Semantics(
-                label: _graphExpanded ? 'Collapse' : 'Expand',
-                button: true,
-                child: IconButton(
-                  style: IconButton.styleFrom(
-                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                  ),
-                  icon: AnimatedRotation(
-                    turns: _graphExpanded ? 0.5 : 0,
-                    duration: MotionService().effectiveDuration(AppConstants.uiAnimationDuration),
-                    child: const Icon(Icons.keyboard_arrow_down),
-                  ),
-                  onPressed: () {
-                    setState(() {
-                      _graphExpanded = !_graphExpanded;
-                    });
-                  },
+              child: IconButton(
+                style: IconButton.styleFrom(
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                 ),
+                icon: AnimatedRotation(
+                  turns: _graphExpanded ? 0.5 : 0,
+                  duration: MotionService().effectiveDuration(AppConstants.uiAnimationDuration),
+                  child: Icon(
+                    Icons.keyboard_arrow_down,
+                    semanticLabel: _graphExpanded ? 'Collapse' : 'Expand',
+                  ),
+                ),
+                onPressed: () {
+                  setState(() {
+                    _graphExpanded = !_graphExpanded;
+                  });
+                },
               ),
             ),
           ],
@@ -2341,30 +2334,41 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
               ),
             ),
             PrintHidden(
-              child: Semantics(
-                label: isExpanded ? 'Collapse' : 'Expand',
-                button: true,
-                child: IconButton(
-                  icon: AnimatedRotation(
-                    turns: isExpanded ? 0.5 : 0,
-                    duration: MotionService().effectiveDuration(AppConstants.uiAnimationDuration),
-                    child: Icon(
-                      Icons.keyboard_arrow_down,
-                      color: context.colorScheme.primary,
-                      size: Responsive.getIconSize(
-                        context,
-                        mobile: 20,
-                        tablet: 22,
-                        desktop: 24,
-                      ),
-                    ),
-                  ),
-                  onPressed: () => _toggleExpandedCourse(course.id),
-                ),
-              ),
+              child: _buildExpandButton(context, course, isExpanded),
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  /// Shifted right by the tap target's padding so the arrow itself lines up
+  /// with the card's content edge, like the title on the left.
+  Widget _buildExpandButton(
+    BuildContext context,
+    GradeCourseModel course,
+    bool isExpanded,
+  ) {
+    final iconSize = Responsive.getIconSize(
+      context,
+      mobile: 20,
+      tablet: 22,
+      desktop: 24,
+    );
+    return Transform.translate(
+      offset: Offset((kMinInteractiveDimension - iconSize) / 2, 0),
+      child: IconButton(
+        icon: AnimatedRotation(
+          turns: isExpanded ? 0.5 : 0,
+          duration: MotionService().effectiveDuration(AppConstants.uiAnimationDuration),
+          child: Icon(
+            Icons.keyboard_arrow_down,
+            color: context.colorScheme.primary,
+            size: iconSize,
+            semanticLabel: isExpanded ? 'Collapse' : 'Expand',
+          ),
+        ),
+        onPressed: () => _toggleExpandedCourse(course.id),
       ),
     );
   }

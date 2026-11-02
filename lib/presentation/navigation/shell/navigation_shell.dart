@@ -298,9 +298,12 @@ class _NavigationShellState extends State<NavigationShell> {
                             ),
                           ),
                           Expanded(
-                            child: NavigationShellProvider(
-                              label: currentPage.label,
-                              child: widget.navigationShell,
+                            child: Semantics(
+                              container: true,
+                              child: NavigationShellProvider(
+                                label: currentPage.label,
+                                child: widget.navigationShell,
+                              ),
                             ),
                           ),
                         ],
@@ -319,8 +322,9 @@ class _NavigationShellState extends State<NavigationShell> {
                       selectedIndex: currentPage.index,
                       onDestinationSelected: (index) =>
                           _onDestinationSelected(context, index),
-                      labelBehavior:
-                          NavigationDestinationLabelBehavior.alwaysShow,
+                      labelBehavior: Responsive.isNarrowMobile(context)
+                          ? NavigationDestinationLabelBehavior.alwaysHide
+                          : NavigationDestinationLabelBehavior.alwaysShow,
                       labelTextStyle: WidgetStateProperty.all(
                         AppStyles.smallSecondaryText(context),
                       ),

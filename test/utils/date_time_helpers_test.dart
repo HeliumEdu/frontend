@@ -109,6 +109,60 @@ void main() {
       });
     });
 
+    group('visibleAnchorFor', () {
+      test('anchors two hours before the time during the day', () {
+        // GIVEN
+        final time = DateTime(2026, 11, 4, 9);
+
+        // WHEN
+        final anchor = HeliumDateTime.visibleAnchorFor(time);
+
+        // THEN
+        expect(anchor, DateTime(2026, 11, 4, 7));
+      });
+
+      test('stays on the same day just after midnight', () {
+        // GIVEN
+        final time = DateTime(2026, 11, 4, 1);
+
+        // WHEN
+        final anchor = HeliumDateTime.visibleAnchorFor(time);
+
+        // THEN
+        expect(
+          anchor,
+          DateTime(2026, 11, 4),
+          reason: 'Two hours back would show the previous day',
+        );
+      });
+
+      test('stays in the same month on the first just after midnight', () {
+        // GIVEN
+        final time = DateTime(2026, 12, 1);
+
+        // WHEN
+        final anchor = HeliumDateTime.visibleAnchorFor(time);
+
+        // THEN
+        expect(
+          anchor,
+          DateTime(2026, 12, 1),
+          reason: 'Two hours back would show the previous month',
+        );
+      });
+
+      test('stays on the same day on a DST change day', () {
+        // GIVEN
+        final time = DateTime(2026, 11, 1, 1);
+
+        // WHEN
+        final anchor = HeliumDateTime.visibleAnchorFor(time);
+
+        // THEN
+        expect(anchor, DateTime(2026, 11, 1));
+      });
+    });
+
     group('addDays', () {
       test('lands on the next midnight across a fall-back day', () {
         // GIVEN

@@ -317,6 +317,7 @@ build-docker:
 	docker buildx build \
 		--target frontend_web \
 		--build-arg FLUTTER_VERSION=$(FLUTTER_VERSION) \
+		--build-arg FIREBASE_AUTH_DOMAIN=$(FIREBASE_AUTH_DOMAIN) \
 		--build-arg RELEASE_VERSION=$(RELEASE_VERSION) \
 		--build-arg SENTRY_DIST=$(SENTRY_DIST) \
 		--build-arg SENTRY_DSN=$(SENTRY_DSN) \

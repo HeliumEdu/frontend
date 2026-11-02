@@ -18,6 +18,8 @@ class AppConstants {
   static const supportPortalUrl = '$_heliumBaseUrl/support';
   static const supportWhereToStartUrl = '$_heliumBaseUrl/support/getting-started/where-to-start-with-helium';
   static const supportExternalCalendarsUrl = '$_heliumBaseUrl/support/sync-and-integration/how-to-sync-google-apple-or-other-calendars-into-helium-using-external-calendars';
+  static const supportApiUrl = '$_heliumBaseUrl/support/sync-and-integration/using-the-helium-api';
+  static const supportConnectedAppsUrl = '$supportWhereToStartUrl/#connect-your-ai-assistant';
   static const supportFeedsUrl = '$_heliumBaseUrl/support/sync-and-integration/how-to-sync-helium-out-to-google-apple-or-other-calendars-using-feeds';
   static const supportImportExportUrl = '$_heliumBaseUrl/support/import-export-and-backup/importing-and-exporting-your-data';
   static const supportGradesDashboardUrl = '$_heliumBaseUrl/support/grades-and-progress/understanding-the-grades-dashboard/';
@@ -52,6 +54,9 @@ class AppConstants {
   static const centerCardContentInset = 16.0;
   /// Border to content where space is tight, like the Planner's header.
   static const denseContainerContentInset = 6.0;
+  /// Cell edge to content in every table column, so the first and last
+  /// columns' content also sits this far from the table's border.
+  static const tableCellInset = 8.0;
 
   static const dialogContentPadding = EdgeInsets.fromLTRB(
     unboxedContentInset,

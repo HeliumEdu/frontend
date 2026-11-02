@@ -11,6 +11,7 @@ import 'package:heliumapp/presentation/features/auth/bloc/auth_state.dart';
 import 'package:heliumapp/presentation/ui/components/helium_elevated_button.dart';
 import 'package:heliumapp/presentation/ui/components/helium_icon_button.dart';
 import 'package:heliumapp/presentation/ui/layout/helium_full_screen_scroll_view.dart';
+import 'package:heliumapp/presentation/ui/feedback/confirm_action_dialog.dart';
 import 'package:heliumapp/presentation/ui/feedback/error_card.dart';
 import 'package:heliumapp/presentation/ui/feedback/info_container.dart';
 import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
@@ -311,77 +312,17 @@ class _FeedsScreenState extends State<FeedsScreen> {
     );
   }
 
-  void _showDisableFeedsDialog(BuildContext parentContext) {
-    bool isSubmitting = false;
-
-    showDialog(
-      context: parentContext,
-      builder: (dialogContext) => StatefulBuilder(
-        builder: (BuildContext context, StateSetter setState) {
-          return PopScope(
-            canPop: !isSubmitting,
-            child: AlertDialog(
-              title: Row(
-                children: [
-                  Icon(
-                    Icons.warning_rounded,
-                    color: context.colorScheme.error,
-                    size: 24,
-                  ),
-                  const SizedBox(width: 12),
-                  Text('Disable All Feeds', style: AppStyles.pageTitle(context)),
-                ],
-              ),
-              content: SizedBox(
-                width: Responsive.getDialogWidth(context),
-                child: Text(
-                  'Disabling Feeds will break any existing integrations. Enabling again later will generate new URLs, and will not re-establish these connections. This action cannot be undone.',
-                  style: AppStyles.standardBodyText(context),
-                ),
-              ),
-              actions: [
-                SizedBox(
-                  width: Responsive.getDialogWidth(context),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: HeliumElevatedButton(
-                          buttonText: 'Cancel',
-                          backgroundColor: context.colorScheme.outline,
-                          enabled: !isSubmitting,
-                          onPressed: () {
-                            Navigator.of(dialogContext).pop();
-                          },
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: HeliumElevatedButton(
-                          buttonText: 'Disable',
-                          backgroundColor: context.colorScheme.error,
-                          isLoading: isSubmitting,
-                          onPressed: () {
-                            setState(() {
-                              isSubmitting = true;
-                            });
-
-                            Navigator.of(dialogContext).pop();
-
-                            parentContext.read<AuthBloc>().add(
-                              DisablePrivateFeedsEvent(),
-                            );
-                          },
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          );
-        },
-      ),
+  Future<void> _showDisableFeedsDialog() async {
+    final confirmed = await showConfirmActionDialog(
+      context: context,
+      title: 'Disable All Feeds',
+      message:
+          'Disabling Feeds will break any existing integrations. Enabling again later will generate new URLs, and will not re-establish these connections. This action cannot be undone.',
+      actionText: 'Disable',
+      icon: Icons.warning_rounded,
     );
+    if (!confirmed || !mounted) return;
+    context.read<AuthBloc>().add(DisablePrivateFeedsEvent());
   }
 
   Widget _buildFeedsEnabledArea(
@@ -430,7 +371,7 @@ class _FeedsScreenState extends State<FeedsScreen> {
           HeliumElevatedButton(
             icon: Icons.link_off,
             buttonText: 'Disable All',
-            onPressed: () => _showDisableFeedsDialog(context),
+            onPressed: _showDisableFeedsDialog,
             backgroundColor: context.colorScheme.error,
           ),
 

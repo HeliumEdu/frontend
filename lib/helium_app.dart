@@ -12,6 +12,7 @@ import 'package:heliumapp/config/theme_notifier.dart';
 import 'package:heliumapp/core/analytics_service.dart';
 import 'package:heliumapp/core/contrast_service.dart';
 import 'package:heliumapp/core/motion_service.dart';
+import 'package:heliumapp/core/sentry_service.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/update_gate/update_gate_bloc.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/update_gate/update_gate_state.dart';
 import 'package:heliumapp/presentation/features/shared/widgets/core/update_gate_activity_reporter.dart';
@@ -52,8 +53,11 @@ class _HeliumAppState extends State<HeliumApp> with WidgetsBindingObserver {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       _applyAccessibilityFeatures();
+      _recordLogicalScreenSize();
+      _log.info(
+        'HeliumApp initialized with theme: ${_themeNotifier.themeMode}',
+      );
     });
-    _log.info('HeliumApp initialized with theme: ${_themeNotifier.themeMode}');
   }
 
   @override
@@ -93,6 +97,18 @@ class _HeliumAppState extends State<HeliumApp> with WidgetsBindingObserver {
   @override
   void didChangeAccessibilityFeatures() {
     _applyAccessibilityFeatures();
+  }
+
+  @override
+  void didChangeMetrics() {
+    _recordLogicalScreenSize();
+  }
+
+  void _recordLogicalScreenSize() {
+    final view = View.of(context);
+    SentryService().setLogicalScreenSize(
+      view.physicalSize / view.devicePixelRatio,
+    );
   }
 
   void _applyAccessibilityFeatures() {

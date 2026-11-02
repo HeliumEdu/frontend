@@ -277,20 +277,16 @@ class _ScheduleEditorScreenState extends BaseDialogState<ScheduleEditorScreen>
 
   @override
   List<Widget> get additionalRightHeaderButtons => [
-    Semantics(
-      label: 'Learn more',
-      button: true,
-      child: IconButton(
-        style: IconButton.styleFrom(
-          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-        ),
-        tooltip: 'Learn more',
-        onPressed: () =>
-            UrlHelpers.launchWebUrl(AppConstants.supportSchedulesUrl),
-        icon: Icon(
-          Icons.menu_book_outlined,
-          color: context.colorScheme.primary,
-        ),
+    IconButton(
+      style: IconButton.styleFrom(
+        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+      ),
+      tooltip: 'Learn more',
+      onPressed: () =>
+          UrlHelpers.launchWebUrl(AppConstants.supportSchedulesUrl),
+      icon: Icon(
+        Icons.menu_book_outlined,
+        color: context.colorScheme.primary,
       ),
     ),
   ];
@@ -848,26 +844,12 @@ class _ScheduleEditorScreenState extends BaseDialogState<ScheduleEditorScreen>
         ),
         if (_overrideDates) ...[
           const SizedBox(height: 14),
-          Row(
-            children: [
-              Expanded(
-                child: HeliumDateField(
-                  label: 'From',
-                  date: _startDate,
-                  backgroundColor: scaffoldBgColor,
-                  onTap: () => _selectDate(context, true),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: HeliumDateField(
-                  label: 'To',
-                  date: _endDate,
-                  backgroundColor: scaffoldBgColor,
-                  onTap: () => _selectDate(context, false),
-                ),
-              ),
-            ],
+          HeliumDateRangeFields(
+            from: _startDate,
+            to: _endDate,
+            backgroundColor: scaffoldBgColor,
+            onFromTap: () => _selectDate(context, true),
+            onToTap: () => _selectDate(context, false),
           ),
         ],
       ],

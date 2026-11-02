@@ -9,6 +9,7 @@ class HeliumPasswordField extends StatefulWidget {
   final TextEditingController controller;
   final String? Function(String?)? validator;
   final void Function(String)? onFieldSubmitted;
+  final void Function(String)? onChanged;
   final Iterable<String>? autofillHints;
   final bool autofocus;
 
@@ -20,6 +21,7 @@ class HeliumPasswordField extends StatefulWidget {
     required this.controller,
     this.validator,
     this.onFieldSubmitted,
+    this.onChanged,
     this.autofillHints,
     this.autofocus = false,
   });
@@ -40,6 +42,7 @@ class _HeliumPasswordFieldState extends State<HeliumPasswordField> {
       controller: widget.controller,
       validator: widget.validator,
       onFieldSubmitted: widget.onFieldSubmitted,
+      onChanged: widget.onChanged,
       obscureText: !_isVisible,
       autofocus: widget.autofocus,
       autofillHints: widget.autofillHints,
@@ -47,21 +50,18 @@ class _HeliumPasswordFieldState extends State<HeliumPasswordField> {
         excluding: true,
         child: Padding(
           padding: const EdgeInsets.only(right: 4.0),
-          child: Semantics(
-            label: _isVisible ? 'Hide password' : 'Show password',
-            button: true,
-            child: IconButton(
-              onPressed: () {
-                setState(() {
-                  _isVisible = !_isVisible;
-                });
-              },
-              icon: Icon(
-                _isVisible
-                    ? Icons.visibility_off_outlined
-                    : Icons.visibility_outlined,
-                color: context.colorScheme.onSurface,
-              ),
+          child: IconButton(
+            onPressed: () {
+              setState(() {
+                _isVisible = !_isVisible;
+              });
+            },
+            icon: Icon(
+              _isVisible
+                  ? Icons.visibility_off_outlined
+                  : Icons.visibility_outlined,
+              color: context.colorScheme.onSurface,
+              semanticLabel: _isVisible ? 'Hide password' : 'Show password',
             ),
           ),
         ),

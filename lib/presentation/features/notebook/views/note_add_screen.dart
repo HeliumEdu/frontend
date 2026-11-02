@@ -356,15 +356,12 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
   List<Widget> get additionalHeaderButtons {
     if (_note == null) return const [];
     return [
-      Semantics(
-        label: 'Delete',
-        button: true,
-        child: HeliumIconButton(
-          enabled: !isSubmitting,
-          onPressed: _onDelete,
-          icon: Icons.delete_outline,
-          color: context.colorScheme.error,
-        ),
+      HeliumIconButton(
+        enabled: !isSubmitting,
+        onPressed: _onDelete,
+        icon: Icons.delete_outline,
+        semanticLabel: 'Delete',
+        color: context.colorScheme.error,
       ),
     ];
   }
@@ -1122,7 +1119,8 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
       padding: const EdgeInsets.only(bottom: 4),
       child: LayoutBuilder(
         builder: (context, constraints) {
-          const double titleMinWidth = 225;
+          final double titleMinWidth =
+              Responsive.isNarrowMobile(context) ? 160 : 225;
           const double badgeMaxWidth = 250;
           const double gap = 8;
           final effectiveBadgeMax = (constraints.maxWidth - titleMinWidth - gap * 2).clamp(
@@ -1559,28 +1557,25 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
                           ),
                         ),
                       ),
-                      Semantics(
-                        label: 'Close',
-                        button: true,
-                        child: IconButton(
-                          visualDensity: Responsive.isMobile(context)
-                              ? VisualDensity.compact
-                              : context.theme.visualDensity,
-                          style: IconButton.styleFrom(
-                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                          ),
-                          icon: Icon(
-                            Icons.close,
-                            size: 20,
-                            color: context.colorScheme.onSurface.withValues(
-                              alpha: 0.4,
-                            ),
-                          ),
-                          onPressed: () => setState(() {
-                            _showLinkPicker = false;
-                            _linkPickerSearchController.clear();
-                          }),
+                      IconButton(
+                        visualDensity: Responsive.isMobile(context)
+                            ? VisualDensity.compact
+                            : context.theme.visualDensity,
+                        style: IconButton.styleFrom(
+                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                         ),
+                        icon: Icon(
+                          Icons.close,
+                          size: 20,
+                          color: context.colorScheme.onSurface.withValues(
+                            alpha: 0.4,
+                          ),
+                          semanticLabel: 'Close',
+                        ),
+                        onPressed: () => setState(() {
+                          _showLinkPicker = false;
+                          _linkPickerSearchController.clear();
+                        }),
                       ),
                     ],
                   ),

@@ -1095,8 +1095,8 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen> 
     showNoteAdd(context, isNew: false, noteId: note.id);
   }
 
-  void _confirmDeleteNote(BuildContext context, NoteModel note) {
-    showConfirmDeleteDialog(
+  Future<bool> _confirmDeleteNote(BuildContext context, NoteModel note) {
+    return showConfirmDeleteDialog(
       parentContext: context,
       item: note,
       label: note.title,

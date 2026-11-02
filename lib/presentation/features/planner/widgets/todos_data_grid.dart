@@ -31,6 +31,7 @@ import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/color_helpers.dart';
 import 'package:heliumapp/utils/date_time_helpers.dart';
 import 'package:heliumapp/config/app_route.dart';
+import 'package:heliumapp/config/regional_settings_notifier.dart';
 import 'package:heliumapp/utils/deep_link_helpers.dart';
 import 'package:heliumapp/utils/grade_helpers.dart';
 import 'package:heliumapp/utils/planner_helper.dart';
@@ -44,21 +45,21 @@ final _log = Logger('presentation.widgets');
 
 /// Column definitions with responsive visibility breakpoints
 enum TodosColumn {
-  completed(label: '', fixedWidth: 52, isCheckbox: true),
+  completed(label: '', fixedWidth: 44, isCheckbox: true),
   title(label: 'Title', mobileWidth: 70, desktopWidth: 95),
-  due(label: 'Due', mobileWidth: 144, slimMobileWidth: 134, desktopWidth: 154),
+  due(label: 'Due', mobileWidth: 154, slimMobileWidth: 124, desktopWidth: 166),
   className(label: 'Class', minViewportWidth: 625, fixedWidth: 120),
   category(label: 'Category', minViewportWidth: 950, fixedWidth: 129),
   priority(label: 'Priority', minViewportWidth: 1150, fixedWidth: 116),
   grade(
     label: 'Grade',
-    mobileWidth: 90,
-    tabletWidth: 102,
-    desktopWidth: 105,
+    mobileWidth: 98,
+    tabletWidth: 110,
+    desktopWidth: 113,
     minViewportWidth: 850,
     showOnTouchDevice: true,
   ),
-  meta(label: '', minViewportWidth: 1050, fixedWidth: 100);
+  meta(label: '', minViewportWidth: 1050, fixedWidth: 108);
 
   const TodosColumn({
     required this.label,
@@ -99,7 +100,7 @@ class TodosDataGrid extends StatefulWidget {
   final PlannerItemDataSource dataSource;
   final Function(HomeworkModel) onTap;
   final Function(HomeworkModel, bool) onToggleCompleted;
-  final Function(BuildContext, HomeworkModel) onDelete;
+  final Future<bool> Function(BuildContext, HomeworkModel) onDelete;
 
   const TodosDataGrid({
     super.key,
@@ -114,6 +115,11 @@ class TodosDataGrid extends StatefulWidget {
 }
 
 class TodosDataGridState extends BaseDataGridState<TodosDataGrid> {
+  static const _headerCheckboxIconSize = 16.0;
+
+  /// The outline's box starts 3/24 into the icon.
+  static const _headerCheckboxGlyphInset = _headerCheckboxIconSize * 3 / 24;
+
   static const List<int> _itemsPerPageOptions = [5, 10, 25, 50, 100, -1];
 
   late TodosDataSource _dataSource;
@@ -187,7 +193,6 @@ class TodosDataGridState extends BaseDataGridState<TodosDataGrid> {
 
     final isMobile = Responsive.isMobile(context);
     final isTablet = Responsive.isTablet(context);
-    final isSlimMobile = Responsive.isSlimMobile(context);
     final isTouchDevice = PlatformBehavior.usesTouchInteractions;
     final isCompact = Responsive.isCompact(context);
     final isCapturing = PrintableArea.capturing.value;
@@ -201,8 +206,10 @@ class TodosDataGridState extends BaseDataGridState<TodosDataGrid> {
       isTablet,
       showActions,
       isCompact,
-      isSlimMobile,
     );
+    _dataSource.visibleColumnNames = {
+      for (final column in columns) column.columnName,
+    };
 
     return Stack(
       children: [
@@ -239,7 +246,9 @@ class TodosDataGridState extends BaseDataGridState<TodosDataGrid> {
                   );
                   setState(() {});
                 },
-                trailingAction: Builder(builder: (context) {
+                trailingAction: Responsive.isNarrowMobile(context)
+                    ? null
+                    : Builder(builder: (context) {
                   final isDisabled = _isExporting || totalItems == 0;
                   return TextButton.icon(
                   onPressed: isDisabled
@@ -314,7 +323,7 @@ class TodosDataGridState extends BaseDataGridState<TodosDataGrid> {
             ],
           ),
         ),
-        if (!_isInitialized || widget.dataSource.isRefreshing)
+        if (!_isInitialized)
           Positioned.fill(
             child: Container(
               color: context.colorScheme.surface.withValues(alpha: 0.7),
@@ -456,39 +465,41 @@ class TodosDataGridState extends BaseDataGridState<TodosDataGrid> {
     bool isTablet,
     bool showActions,
     bool isCompact,
-    bool isSlimMobile,
   ) {
+    final isSlimMobile = Responsive.isSlimMobile(context);
     final columns = <GridColumn>[];
 
-    double? width(TodosColumn column) => column.widthForLayout(
-      isMobile: isMobile,
-      isTablet: isTablet,
-      isSlimMobile: isSlimMobile,
-    );
-
-    columns.add(GridColumn(
-      columnName: 'completed',
-      label: _buildHeaderCell(TodosColumn.completed),
-      width: width(TodosColumn.completed)!,
-    ));
+    if (!Responsive.isNarrowMobile(context)) {
+      columns.add(GridColumn(
+        columnName: 'completed',
+        label: _buildHeaderCell(TodosColumn.completed),
+        width: TodosColumn.completed.widthForLayout(isMobile: isMobile, isTablet: isTablet)!,
+      ));
+    }
 
     columns.add(GridColumn(
       columnName: 'title',
       label: _buildHeaderCell(TodosColumn.title),
-      minimumWidth: width(TodosColumn.title)!,
+      minimumWidth: TodosColumn.title.widthForLayout(isMobile: isMobile, isTablet: isTablet)!,
     ));
 
     columns.add(GridColumn(
       columnName: 'due',
       label: _buildHeaderCell(TodosColumn.due),
-      width: width(TodosColumn.due)!,
+      width: RegionalSettingsNotifier().uses24HourClock
+          ? (isSlimMobile ? 104 : isMobile ? 136 : 146)
+          : TodosColumn.due.widthForLayout(
+              isMobile: isMobile,
+              isTablet: isTablet,
+              isSlimMobile: isSlimMobile,
+            )!,
     ));
 
     if (_shouldShowColumn(TodosColumn.className)) {
       columns.add(GridColumn(
         columnName: 'className',
         label: _buildHeaderCell(TodosColumn.className),
-        minimumWidth: width(TodosColumn.className)!,
+        minimumWidth: TodosColumn.className.widthForLayout(isMobile: isMobile, isTablet: isTablet)!,
       ));
     }
 
@@ -496,7 +507,7 @@ class TodosDataGridState extends BaseDataGridState<TodosDataGrid> {
       columns.add(GridColumn(
         columnName: 'category',
         label: _buildHeaderCell(TodosColumn.category),
-        minimumWidth: width(TodosColumn.category)!,
+        minimumWidth: TodosColumn.category.widthForLayout(isMobile: isMobile, isTablet: isTablet)!,
       ));
     }
 
@@ -504,7 +515,7 @@ class TodosDataGridState extends BaseDataGridState<TodosDataGrid> {
       columns.add(GridColumn(
         columnName: 'priority',
         label: _buildHeaderCell(TodosColumn.priority),
-        width: width(TodosColumn.priority)!,
+        width: TodosColumn.priority.widthForLayout(isMobile: isMobile, isTablet: isTablet)!,
       ));
     }
 
@@ -512,7 +523,7 @@ class TodosDataGridState extends BaseDataGridState<TodosDataGrid> {
       columns.add(GridColumn(
         columnName: 'grade',
         label: _buildHeaderCell(TodosColumn.grade),
-        width: width(TodosColumn.grade)!,
+        width: TodosColumn.grade.widthForLayout(isMobile: isMobile, isTablet: isTablet)!,
       ));
     }
 
@@ -520,7 +531,7 @@ class TodosDataGridState extends BaseDataGridState<TodosDataGrid> {
       columns.add(GridColumn(
         columnName: 'meta',
         label: const SizedBox.shrink(),
-        width: width(TodosColumn.meta)!,
+        width: TodosColumn.meta.widthForLayout(isMobile: isMobile, isTablet: isTablet)!,
         allowSorting: false,
       ));
     }
@@ -537,14 +548,21 @@ class TodosDataGridState extends BaseDataGridState<TodosDataGrid> {
     return columns;
   }
 
+  static String _columnName(GridColumn column) => column.columnName;
+
   Widget _buildHeaderCell(TodosColumn column) {
     if (column.isCheckbox) {
       return MouseRegion(
         cursor: SystemMouseCursors.click,
-        child: Center(
+        child: Container(
+          padding: const EdgeInsets.only(
+            left: AppConstants.tableCellInset - _headerCheckboxGlyphInset,
+          ),
+          alignment: Alignment.centerLeft,
           child: Icon(
             Icons.check_box_outline_blank,
-            size: 16,
+            size: _headerCheckboxIconSize,
+            semanticLabel: 'Completed',
             color: context.colorScheme.onSurface.withValues(alpha: 0.6),
           ),
         ),
@@ -554,13 +572,15 @@ class TodosDataGridState extends BaseDataGridState<TodosDataGrid> {
     return MouseRegion(
       cursor: SystemMouseCursors.click,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8),
+        padding: const EdgeInsets.symmetric(horizontal: AppConstants.tableCellInset),
         alignment: Alignment.centerLeft,
         child: Text(
           column.label,
           style: AppStyles.standardBodyText(context).copyWith(
             color: context.colorScheme.onSurface,
           ),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
         ),
       ),
     );
@@ -617,8 +637,9 @@ class TodosDataGridState extends BaseDataGridState<TodosDataGrid> {
         ),
         child: SfDataGrid(
           key: ValueKey(
-            'todos_grid_${columns.length}_${isCompact}_$isCapturing',
+            'todos_grid_${columns.map(_columnName).join(',')}_${isCompact}_$isCapturing',
           ),
+          columnSizer: columnSizer,
         source: _dataSource,
         controller: gridController,
         columnWidthMode: ColumnWidthMode.fill,
@@ -646,14 +667,16 @@ class TodosDataGridState extends BaseDataGridState<TodosDataGrid> {
             label: 'Delete',
             button: true,
             child: GestureDetector(
-              onTap: () {
-                Feedback.forTap(context);
-                if (homework != null &&
-                    PlannerHelper.shouldShowDeleteButton(homework)) {
-                  widget.onDelete(context, homework);
-                }
-                _dataSource.notifyListeners();
-              },
+              onTap: () => unawaited(
+                onSwipeDeleteTapped(
+                  context,
+                  _dataSource,
+                  () async =>
+                      homework != null &&
+                      PlannerHelper.shouldShowDeleteButton(homework) &&
+                      await widget.onDelete(context, homework),
+                ),
+              ),
               child: Container(
                 color: context.colorScheme.error,
                 alignment: Alignment.centerRight,
@@ -806,6 +829,11 @@ class TodosDataGridState extends BaseDataGridState<TodosDataGrid> {
 
 /// DataGridSource that wraps PlannerItemDataSource for SfDataGrid.
 class TodosDataSource extends BaseDataGridSource {
+  Set<String> visibleColumnNames = const {};
+
+  static const _checkboxShift =
+      AppConstants.tableCellInset - (kMinInteractiveDimension - Checkbox.width) / 2;
+
   List<HomeworkModel> _homeworks;
   BuildContext _context;
   PlannerItemDataSource _dataSource;
@@ -1002,30 +1030,11 @@ class TodosDataSource extends BaseDataGridSource {
   }
 
   List<DataGridCell> _getDisplayCells(DataGridRow row) {
-    final width = MediaQuery.of(_context).size.width;
-    final isTouchDevice = PlatformBehavior.usesTouchInteractions;
-
-    return row.getCells().where((cell) {
-      if (cell.columnName.startsWith('_')) return false;
-
-      switch (cell.columnName) {
-        case 'className':
-          return width >= TodosColumn.className.minViewportWidth!;
-        case 'category':
-          return width >= TodosColumn.category.minViewportWidth!;
-        case 'priority':
-          return width >= TodosColumn.priority.minViewportWidth!;
-        case 'grade':
-          return width >= TodosColumn.grade.minViewportWidth! || isTouchDevice;
-        case 'meta':
-          return width >= TodosColumn.meta.minViewportWidth!;
-        case 'actions':
-          return !isTouchDevice && !PrintableArea.capturing.value && width >= ResponsiveBreakpoints.mobile;
-        default:
-          return true;
-      }
-    }).toList();
+    return row.getCells().where(_isVisibleCell).toList();
   }
+
+  bool _isVisibleCell(DataGridCell cell) =>
+      visibleColumnNames.contains(cell.columnName);
 
   Widget _buildCell(
     DataGridCell cell,
@@ -1096,17 +1105,35 @@ class TodosDataSource extends BaseDataGridSource {
         ? category.color
         : course.color;
 
-    return Center(
-      child: Checkbox(
-        value: isCompleted,
-        onChanged: (_) {
-          final currentValue = _dataSource.isHomeworkCompleted(homework);
-          _onToggleCompleted(homework, !currentValue);
-        },
-        activeColor: checkColor,
-        side: BorderSide(color: checkColor, width: 2),
+    final checkbox = OverflowBox(
+      alignment: Alignment.centerLeft,
+      maxWidth: kMinInteractiveDimension,
+      child: Transform.translate(
+        offset: const Offset(_checkboxShift, 0),
+        child: Checkbox(
+          value: isCompleted,
+          onChanged: (_) => _toggleCompleted(homework),
+          semanticLabel: 'Complete ${homework.title}',
+          materialTapTargetSize: MaterialTapTargetSize.padded,
+          visualDensity: VisualDensity.standard,
+          activeColor: checkColor,
+          side: BorderSide(color: checkColor, width: 2),
+        ),
       ),
     );
+    if (!PlatformBehavior.usesTouchInteractions) return checkbox;
+
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      excludeFromSemantics: true,
+      onTap: () => _toggleCompleted(homework),
+      child: checkbox,
+    );
+  }
+
+  void _toggleCompleted(HomeworkModel homework) {
+    final currentValue = _dataSource.isHomeworkCompleted(homework);
+    _onToggleCompleted(homework, !currentValue);
   }
 
   Widget _buildTitleCell(String title, bool isCompleted, bool isSelectable) {
@@ -1116,7 +1143,7 @@ class TodosDataSource extends BaseDataGridSource {
     );
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8),
+      padding: const EdgeInsets.symmetric(horizontal: AppConstants.tableCellInset),
       alignment: Alignment.centerLeft,
       child: isSelectable
           ? SelectableText(title, style: titleStyle, maxLines: 1)
@@ -1134,17 +1161,20 @@ class TodosDataSource extends BaseDataGridSource {
     UserSettingsModel userSettings,
     bool isSelectable,
   ) {
+    final showWeekday = !Responsive.isSlimMobile(_context);
     final dateText = homework.allDay
         ? HeliumDateTime.formatDateForTodos(
             HeliumDateTime.toLocal(homework.start, userSettings.timeZone),
+            showWeekday: showWeekday,
           )
         : HeliumDateTime.formatDateAndTimeForTodos(
             HeliumDateTime.toLocal(homework.start, userSettings.timeZone),
+            showWeekday: showWeekday,
           );
     final dateStyle = AppStyles.smallSecondaryText(_context);
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8),
+      padding: const EdgeInsets.symmetric(horizontal: AppConstants.tableCellInset),
       alignment: Alignment.centerLeft,
       child: isSelectable
           ? SelectableText(dateText, style: dateStyle, maxLines: 1)
@@ -1159,7 +1189,10 @@ class TodosDataSource extends BaseDataGridSource {
 
   Widget _buildClassCell(CourseModel course) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 6),
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppConstants.tableCellInset,
+        vertical: 6,
+      ),
       alignment: Alignment.centerLeft,
       child: CourseTitleLabel(
         title: course.title,
@@ -1172,7 +1205,10 @@ class TodosDataSource extends BaseDataGridSource {
   Widget _buildCategoryCell(CategoryModel? category) {
     if (category == null) return const SizedBox.shrink();
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 6),
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppConstants.tableCellInset,
+        vertical: 6,
+      ),
       alignment: Alignment.centerLeft,
       child: CategoryTitleLabel(
         title: category.title,
@@ -1190,7 +1226,7 @@ class TodosDataSource extends BaseDataGridSource {
     );
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8),
+      padding: const EdgeInsets.symmetric(horizontal: AppConstants.tableCellInset),
       alignment: Alignment.centerLeft,
       child: Container(
         width: 100,
@@ -1216,7 +1252,7 @@ class TodosDataSource extends BaseDataGridSource {
   Widget _buildGradeCell(HomeworkModel homework, UserSettingsModel userSettings, bool isCompleted) {
     if (!isCompleted) return const SizedBox.shrink();
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 4),
+      padding: const EdgeInsets.symmetric(horizontal: AppConstants.tableCellInset),
       alignment: Alignment.centerLeft,
       child: GradeLabel(
         grade: GradeHelper.gradeForDisplay(homework.currentGrade),
@@ -1235,7 +1271,7 @@ class TodosDataSource extends BaseDataGridSource {
         ? homework.notes.first.id
         : null;
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 4),
+      padding: const EdgeInsets.symmetric(horizontal: AppConstants.tableCellInset),
       alignment: Alignment.centerLeft,
       child: PlannerItemMetaRow(
         plannerItem: homework,
@@ -1287,21 +1323,18 @@ class TodosDataSource extends BaseDataGridSource {
 
       if (PlannerHelper.shouldShowEditButtonForPlannerItem(_context, homework)) {
         buttons.add(
-          Semantics(
-            label: 'Edit',
-            button: true,
-            child: HeliumIconButton(
-              onPressed: () => _onTap(homework),
-              icon: Icons.edit_outlined,
-              color: _context.colorScheme.onSurface,
-            ),
+          HeliumIconButton(
+            onPressed: () => _onTap(homework),
+            icon: Icons.edit_outlined,
+            semanticLabel: 'Edit',
+            color: _context.colorScheme.onSurface,
           ),
         );
       }
     }
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 4),
+      padding: const EdgeInsets.symmetric(horizontal: AppConstants.tableCellInset),
       alignment: Alignment.centerRight,
       child: Row(
         mainAxisSize: MainAxisSize.min,

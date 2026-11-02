@@ -1,3 +1,4 @@
+import 'package:heliumapp/data/models/auth/api_token_model.dart';
 import 'package:heliumapp/data/models/auth/request/change_email_request_model.dart';
 import 'package:heliumapp/data/models/auth/request/change_password_request_model.dart';
 import 'package:heliumapp/data/models/auth/request/delete_account_request_model.dart';
@@ -108,6 +109,16 @@ class AuthRepositoryImpl implements AuthRepository {
   @override
   Future<void> disablePrivateFeeds() async {
     return remoteDataSource.disablePrivateFeeds();
+  }
+
+  @override
+  Future<ApiTokenModel> createApiToken() async {
+    return remoteDataSource.createApiToken();
+  }
+
+  @override
+  Future<void> revokeApiToken() async {
+    return remoteDataSource.revokeApiToken();
   }
 
   @override

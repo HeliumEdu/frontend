@@ -109,6 +109,15 @@ class HeliumDateTime {
     return DateTime(date.year, date.month, date.day);
   }
 
+  /// A calendar display date that scrolls a day or week view to two hours
+  /// before [time], so [time] shows with context above it. Never earlier than
+  /// the start of [time]'s day, so the visible day, week, and month stay put.
+  static DateTime visibleAnchorFor(DateTime time) {
+    final anchor = DateTime(time.year, time.month, time.day, time.hour - 2);
+    final startOfDay = dateOnly(time);
+    return anchor.isBefore(startOfDay) ? startOfDay : anchor;
+  }
+
   /// Steps [date] by whole calendar days, keeping its wall clock time and zone,
   /// unlike `add(Duration(days:))`, which shifts the wall clock across DST.
   static DateTime addDays(DateTime date, int days) {
@@ -302,14 +311,21 @@ class HeliumDateTime {
     return DateFormat(format).format(date);
   }
 
-  static String formatDateForTodos(DateTime date) {
-    return DateFormat(_ordered('EEE, MMM d', 'EEE, d MMM')).format(date);
+  static String formatDateForTodos(DateTime date, {bool showWeekday = true}) {
+    return DateFormat(_todosDatePattern(showWeekday)).format(date);
   }
 
-  static String formatDateAndTimeForTodos(DateTime date) {
-    final pattern = '${_ordered('EEE, MMM d', 'EEE, d MMM')} • ${HeliumTime.timePattern}';
+  static String formatDateAndTimeForTodos(
+    DateTime date, {
+    bool showWeekday = true,
+  }) {
+    final pattern = '${_todosDatePattern(showWeekday)} • ${HeliumTime.timePattern}';
     return HeliumTime.shortenOnTheHour(DateFormat(pattern).format(date));
   }
+
+  static String _todosDatePattern(bool showWeekday) => showWeekday
+      ? _ordered('EEE, MMM d', 'EEE, d MMM')
+      : _ordered('MMM d', 'd MMM');
 
   static String formatTime(DateTime date) {
     return HeliumTime.shortenOnTheHour(DateFormat(HeliumTime.timePattern).format(date));

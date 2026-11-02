@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:heliumapp/core/helium_exception.dart';
 import 'package:heliumapp/core/last_oauth_provider_store.dart';
+import 'package:heliumapp/data/models/auth/api_token_model.dart';
 import 'package:heliumapp/data/models/auth/oauth_authorization_model.dart';
 import 'package:heliumapp/data/models/auth/token_response_model.dart';
 import 'package:heliumapp/data/models/no_content_response_model.dart';
@@ -705,6 +706,62 @@ void main() {
         },
         act: (bloc) => bloc.add(DisablePrivateFeedsEvent()),
         expect: () => [isA<AuthLoading>(), isA<AuthProfileFetched>()],
+      );
+    });
+
+    group('CreateApiTokenEvent', () {
+      blocTest<AuthBloc, AuthState>(
+        'emits [AuthLoading, AuthApiTokenCreated] with the token and refreshed user',
+        build: () {
+          when(() => mockAuthRepository.createApiToken()).thenAnswer(
+            (_) async => ApiTokenModel(
+              token: 'plaintext-token',
+              createdAt: DateTime.utc(2026, 11, 1),
+            ),
+          );
+          when(
+            () => mockAuthRepository.getUser(),
+          ).thenAnswer((_) async => MockModels.createUser());
+          return authBloc;
+        },
+        act: (bloc) => bloc.add(CreateApiTokenEvent()),
+        expect: () => [
+          isA<AuthLoading>(),
+          isA<AuthApiTokenCreated>().having(
+            (state) => state.apiToken.token,
+            'token',
+            'plaintext-token',
+          ),
+        ],
+      );
+
+      blocTest<AuthBloc, AuthState>(
+        'emits [AuthLoading, AuthError] when creating the token fails',
+        build: () {
+          when(
+            () => mockAuthRepository.createApiToken(),
+          ).thenThrow(ServerException(message: 'Server error'));
+          return authBloc;
+        },
+        act: (bloc) => bloc.add(CreateApiTokenEvent()),
+        expect: () => [isA<AuthLoading>(), isA<AuthError>()],
+      );
+    });
+
+    group('RevokeApiTokenEvent', () {
+      blocTest<AuthBloc, AuthState>(
+        'emits [AuthLoading, AuthApiTokenRevoked] when revoking succeeds',
+        build: () {
+          when(
+            () => mockAuthRepository.revokeApiToken(),
+          ).thenAnswer((_) async {});
+          when(
+            () => mockAuthRepository.getUser(),
+          ).thenAnswer((_) async => MockModels.createUser());
+          return authBloc;
+        },
+        act: (bloc) => bloc.add(RevokeApiTokenEvent()),
+        expect: () => [isA<AuthLoading>(), isA<AuthApiTokenRevoked>()],
       );
     });
 

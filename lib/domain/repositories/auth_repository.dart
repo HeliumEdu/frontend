@@ -1,3 +1,4 @@
+import 'package:heliumapp/data/models/auth/api_token_model.dart';
 import 'package:heliumapp/data/models/auth/request/change_email_request_model.dart';
 import 'package:heliumapp/data/models/auth/request/change_password_request_model.dart';
 import 'package:heliumapp/data/models/auth/request/delete_account_request_model.dart';
@@ -50,6 +51,10 @@ abstract class AuthRepository {
   Future<PrivateFeedModel> enablePrivateFeeds();
 
   Future<void> disablePrivateFeeds();
+
+  Future<ApiTokenModel> createApiToken();
+
+  Future<void> revokeApiToken();
 
   Future<NoContentResponseModel> forgotPassword(
     ForgotPasswordRequestModel request,

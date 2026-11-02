@@ -7,6 +7,7 @@ import 'package:heliumapp/core/api_url.dart';
 import 'package:heliumapp/core/dio_client.dart';
 import 'package:heliumapp/core/fcm_service.dart';
 import 'package:heliumapp/core/helium_exception.dart';
+import 'package:heliumapp/data/models/auth/api_token_model.dart';
 import 'package:heliumapp/data/models/auth/login_request_model.dart';
 import 'package:heliumapp/data/models/auth/oauth_authorization_model.dart';
 import 'package:heliumapp/data/models/auth/private_feed_model.dart';
@@ -49,6 +50,10 @@ abstract class AuthRemoteDataSource extends BaseDataSource {
   Future<PrivateFeedModel> enablePrivateFeeds();
 
   Future<void> disablePrivateFeeds();
+
+  Future<ApiTokenModel> createApiToken();
+
+  Future<void> revokeApiToken();
 
   Future<UserModel> getUser();
 
@@ -428,6 +433,46 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
         throw unexpectedStatus(response, 'Failed to enable feeds.');
       }
       unawaited(AnalyticsService().logEvent(name: AnalyticsEvent.feedsDisable, parameters: {'category': AnalyticsCategory.featureInteraction.value}));
+    } on DioException catch (e, s) {
+      throw handleDioError(e, s);
+    } on HeliumException {
+      rethrow;
+    } catch (e, s) {
+      _log.severe('An unexpected error occurred', e, s);
+      throw HeliumException(message: HeliumException.unexpectedError);
+    }
+  }
+
+  @override
+  Future<ApiTokenModel> createApiToken() async {
+    try {
+      final response = await dioClient.dio.post(ApiUrl.authApiTokenUrl);
+
+      if (response.statusCode == 201) {
+        unawaited(AnalyticsService().logEvent(name: AnalyticsEvent.apiTokenCreate, parameters: {'category': AnalyticsCategory.featureInteraction.value}));
+        return ApiTokenModel.fromJson(response.data);
+      } else {
+        throw unexpectedStatus(response, 'Failed to create API token.');
+      }
+    } on DioException catch (e, s) {
+      throw handleDioError(e, s);
+    } on HeliumException {
+      rethrow;
+    } catch (e, s) {
+      _log.severe('An unexpected error occurred', e, s);
+      throw HeliumException(message: HeliumException.unexpectedError);
+    }
+  }
+
+  @override
+  Future<void> revokeApiToken() async {
+    try {
+      final response = await dioClient.dio.delete(ApiUrl.authApiTokenUrl);
+
+      if (response.statusCode != 204) {
+        throw unexpectedStatus(response, 'Failed to revoke API token.');
+      }
+      unawaited(AnalyticsService().logEvent(name: AnalyticsEvent.apiTokenRevoke, parameters: {'category': AnalyticsCategory.featureInteraction.value}));
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
     } on HeliumException {

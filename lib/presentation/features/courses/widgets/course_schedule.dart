@@ -188,10 +188,10 @@ class _CourseScheduleContentState extends State<_CourseScheduleContent> {
                   _buildCancellationsButton(context),
                   const SizedBox(width: 12),
                 ],
-                Semantics(
-                  label: 'Add schedule',
-                  button: true,
-                  child: HeliumIconButton(onPressed: _onAdd, icon: Icons.add),
+                HeliumIconButton(
+                  onPressed: _onAdd,
+                  icon: Icons.add,
+                  semanticLabel: 'Add schedule',
                 ),
               ],
             ),

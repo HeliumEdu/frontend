@@ -357,36 +357,33 @@ abstract class BaseAttachmentsState extends State<BaseAttachmentsContent> {
                 ],
               ),
             ),
-            Semantics(
-              label: 'Remove from upload',
-              button: true,
-              child: IconButton(
-                style: IconButton.styleFrom(
-                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                ),
-                onPressed: () {
-                  if (index < filesToUpload.length) {
-                    // Defer setState so any in-progress frame caused by the tap
-                    // gesture completes before the list is mutated and rebuilt
-                    WidgetsBinding.instance.addPostFrameCallback((_) {
-                      if (!mounted) return;
-
-                      setState(() {
-                        filesToUpload.removeAt(index);
-                      });
+            IconButton(
+              style: IconButton.styleFrom(
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              ),
+              onPressed: () {
+                if (index < filesToUpload.length) {
+                  // Defer setState so any in-progress frame caused by the tap
+                  // gesture completes before the list is mutated and rebuilt
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    if (!mounted) return;
+  
+                    setState(() {
+                      filesToUpload.removeAt(index);
                     });
-                  }
-                },
-                icon: Icon(
-                  Icons.close,
-                  color: context.colorScheme.secondary.withValues(alpha: 0.7),
-                  size: Responsive.getIconSize(
-                    context,
-                    mobile: 20,
-                    tablet: 22,
-                    desktop: 24,
-                  ),
+                  });
+                }
+              },
+              icon: Icon(
+                Icons.close,
+                color: context.colorScheme.secondary.withValues(alpha: 0.7),
+                size: Responsive.getIconSize(
+                  context,
+                  mobile: 20,
+                  tablet: 22,
+                  desktop: 24,
                 ),
+                semanticLabel: 'Remove from upload',
               ),
             ),
           ],
@@ -432,40 +429,34 @@ abstract class BaseAttachmentsState extends State<BaseAttachmentsContent> {
               ),
             ),
             const SizedBox(width: 8),
-            Semantics(
-              label: 'Download',
-              button: true,
-              child: HeliumIconButton(
-                onPressed: () => _downloadAttachment(attachment),
-                icon: Icons.download_outlined,
-                color: context.semanticColors.success,
-              ),
+            HeliumIconButton(
+              onPressed: () => _downloadAttachment(attachment),
+              icon: Icons.download_outlined,
+              semanticLabel: 'Download',
+              color: context.semanticColors.success,
             ),
             const SizedBox(width: 8),
-            Semantics(
-              label: 'Delete',
-              button: true,
-              child: HeliumIconButton(
-                onPressed: () {
-                  showConfirmDeleteDialog(
-                    parentContext: context,
-                    item: attachment,
-                    label: attachment.title,
-                    onDelete: (a) {
-                      context.read<AttachmentBloc>().add(
-                        DeleteAttachmentEvent(
-                          id: a.id,
-                          courseId: a.course,
-                          eventId: a.event,
-                          homeworkId: a.homework,
-                        ),
-                      );
-                    },
-                  );
-                },
-                icon: Icons.delete_outline,
-                color: context.colorScheme.error,
-              ),
+            HeliumIconButton(
+              onPressed: () {
+                showConfirmDeleteDialog(
+                  parentContext: context,
+                  item: attachment,
+                  label: attachment.title,
+                  onDelete: (a) {
+                    context.read<AttachmentBloc>().add(
+                      DeleteAttachmentEvent(
+                        id: a.id,
+                        courseId: a.course,
+                        eventId: a.event,
+                        homeworkId: a.homework,
+                      ),
+                    );
+                  },
+                );
+              },
+              icon: Icons.delete_outline,
+              semanticLabel: 'Delete',
+              color: context.colorScheme.error,
             ),
           ],
         ),

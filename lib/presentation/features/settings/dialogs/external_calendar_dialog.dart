@@ -18,6 +18,7 @@ import 'package:heliumapp/presentation/ui/components/color_selector.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/color_helpers.dart';
 import 'package:heliumapp/utils/platform_behavior.dart';
+import 'package:heliumapp/utils/responsive_helpers.dart';
 
 class _ExternalCalendarProvidedWidget extends StatefulWidget {
   final bool isEdit;
@@ -167,7 +168,10 @@ class _ExternalCalendarWidgetState
             ),
             Row(
               children: [
-                Text('Show on calendar', style: AppStyles.formLabel(context)),
+                Text(
+                  Responsive.isNarrowMobile(context) ? 'Show' : 'Show on calendar',
+                  style: AppStyles.formLabel(context),
+                ),
                 const SizedBox(width: 4),
                 Switch.adaptive(
                   value: _formController.shownOnCalendar,

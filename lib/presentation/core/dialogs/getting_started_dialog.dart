@@ -396,26 +396,22 @@ class _GettingStartedDialogWidgetState
             width: 36,
             child: isFirst
                 ? const SizedBox.shrink()
-                : Semantics(
-                    label: 'Previous',
-                    button: true,
-                    child: IconButton(
-                      onPressed: () => MotionService().reduceMotion
-                          ? _pageController.jumpToPage(_currentPage - 1)
-                          : _pageController.previousPage(
-                              duration: AppConstants.uiAnimationDuration,
-                              curve: Curves.easeInOut,
-                            ),
-                      icon: const Icon(Icons.chevron_left),
-                      padding: EdgeInsets.zero,
-                      constraints: const BoxConstraints(
-                        minWidth: 36,
-                        minHeight: 36,
-                      ),
-                      visualDensity: VisualDensity.standard,
-                      style: IconButton.styleFrom(
-                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                      ),
+                : IconButton(
+                    onPressed: () => MotionService().reduceMotion
+                        ? _pageController.jumpToPage(_currentPage - 1)
+                        : _pageController.previousPage(
+                            duration: AppConstants.uiAnimationDuration,
+                            curve: Curves.easeInOut,
+                          ),
+                    icon: const Icon(Icons.chevron_left, semanticLabel: 'Previous'),
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(
+                      minWidth: 36,
+                      minHeight: 36,
+                    ),
+                    visualDensity: VisualDensity.standard,
+                    style: IconButton.styleFrom(
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                     ),
                   ),
           ),
@@ -470,26 +466,22 @@ class _GettingStartedDialogWidgetState
             width: 36,
             child: isLast
                 ? const SizedBox.shrink()
-                : Semantics(
-                    label: 'Next',
-                    button: true,
-                    child: IconButton(
-                      onPressed: () => MotionService().reduceMotion
-                          ? _pageController.jumpToPage(_currentPage + 1)
-                          : _pageController.nextPage(
-                              duration: AppConstants.uiAnimationDuration,
-                              curve: Curves.easeInOut,
-                            ),
-                      icon: const Icon(Icons.chevron_right),
-                      padding: EdgeInsets.zero,
-                      constraints: const BoxConstraints(
-                        minWidth: 36,
-                        minHeight: 36,
-                      ),
-                      visualDensity: VisualDensity.standard,
-                      style: IconButton.styleFrom(
-                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                      ),
+                : IconButton(
+                    onPressed: () => MotionService().reduceMotion
+                        ? _pageController.jumpToPage(_currentPage + 1)
+                        : _pageController.nextPage(
+                            duration: AppConstants.uiAnimationDuration,
+                            curve: Curves.easeInOut,
+                          ),
+                    icon: const Icon(Icons.chevron_right, semanticLabel: 'Next'),
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(
+                      minWidth: 36,
+                      minHeight: 36,
+                    ),
+                    visualDensity: VisualDensity.standard,
+                    style: IconButton.styleFrom(
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                     ),
                   ),
           ),

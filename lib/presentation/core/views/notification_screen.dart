@@ -8,6 +8,7 @@ import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/config/app_router.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/core/dio_client.dart';
+import 'package:heliumapp/core/motion_service.dart';
 import 'package:heliumapp/data/models/auth/user_settings_model.dart';
 import 'package:heliumapp/data/models/notification/notification_model.dart';
 import 'package:heliumapp/data/models/planner/homework_model.dart';
@@ -87,7 +88,23 @@ class _NotificationsProvidedScreen extends StatefulWidget {
 }
 
 class _NotificationsScreenState
-    extends BasePageScreenState<_NotificationsProvidedScreen> {
+    extends BasePageScreenState<_NotificationsProvidedScreen>
+    with SingleTickerProviderStateMixin {
+  static const _swipeDuration = Duration(milliseconds: 200);
+  static const _swipeResizeDuration = Duration(milliseconds: 300);
+
+  /// Width floor reserved for the notification title so a long course/room
+  /// badge stretches only into the space beyond it, never squeezing the title
+  /// below this.
+  static const double _minTitleWidth = 120.0;
+
+  late final AnimationController _dismissAllController;
+  late final Animation<Offset> _dismissAllOffset;
+  bool _isSlidingAll = false;
+  List<NotificationModel> _notifications = [];
+  bool _isOpeningEntity = false;
+  bool _isDismissingAll = false;
+
   @override
   String get screenTitle => 'Notifications';
 
@@ -106,34 +123,39 @@ class _NotificationsScreenState
     final isEnabled = _notifications.isNotEmpty && !_isDismissingAll;
 
     return [
-      Semantics(
-        label: 'Dismiss all',
-        button: true,
-        child: IconButton(
-          style: IconButton.styleFrom(
-            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-          ),
-          tooltip: 'Dismiss all',
-          onPressed: isEnabled ? _dismissAllReminders : null,
-          icon: Icon(
-            Icons.clear_all,
-            color: isEnabled
-                ? context.colorScheme.secondary
-                : context.colorScheme.onSurface.withValues(alpha: 0.38),
-          ),
+      IconButton(
+        style: IconButton.styleFrom(
+          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        ),
+        tooltip: 'Dismiss all',
+        onPressed: isEnabled ? _dismissAllReminders : null,
+        icon: Icon(
+          Icons.clear_all,
+          color: isEnabled
+              ? context.colorScheme.secondary
+              : context.colorScheme.onSurface.withValues(alpha: 0.38),
         ),
       ),
     ];
   }
 
-  /// Width floor reserved for the notification title so a long course/room
-  /// badge stretches only into the space beyond it, never squeezing the title
-  /// below this.
-  static const double _minTitleWidth = 120.0;
+  @override
+  void initState() {
+    super.initState();
+    _dismissAllController = AnimationController(
+      vsync: this,
+      duration: _swipeDuration,
+    )..addStatusListener(_onDismissAllStatusChanged);
+    _dismissAllOffset = _dismissAllController.drive(
+      Tween(begin: Offset.zero, end: const Offset(-1, 0)),
+    );
+  }
 
-  List<NotificationModel> _notifications = [];
-  bool _isOpeningEntity = false;
-  bool _isDismissingAll = false;
+  @override
+  void dispose() {
+    _dismissAllController.dispose();
+    super.dispose();
+  }
 
   bool _activeChanged(
     NotificationCountState previous,
@@ -190,6 +212,11 @@ class _NotificationsScreenState
               if (!isShowingErrorCard) {
                 showSnackBar(context, state.message!, type: SnackType.error);
               }
+              if (_dismissAllController.isAnimating) {
+                _dismissAllController.reverse();
+              } else {
+                _fetchReminders(forceRefresh: true);
+              }
             }
           } else if (state is RemindersFetched &&
               state.origin == EventOrigin.screen) {
@@ -229,9 +256,7 @@ class _NotificationsScreenState
             );
           } else if (state is AllRemindersDismissed) {
             showSnackBar(context, 'All Reminders dismissed.');
-            context.read<NotificationCountBloc>().add(
-              ClearRemindersEvent(origin: EventOrigin.screen),
-            );
+            if (!_isSlidingAll) _clearNotifications();
             setState(() => _isDismissingAll = false);
           }
         },
@@ -636,8 +661,13 @@ class _NotificationsScreenState
       ),
     );
 
-    if (isTouchDevice) {
-      return Semantics(
+    if (!isTouchDevice) return _withDismissAllSlide(rowContent);
+
+    final resizeDuration = MotionService().effectiveDuration(
+      _swipeResizeDuration,
+    );
+    return _withDismissAllSlide(
+      Semantics(
         customSemanticsActions: {
           const CustomSemanticsAction(label: 'Dismiss reminder'): () =>
               _dismissReminder(notification),
@@ -645,25 +675,81 @@ class _NotificationsScreenState
         child: Dismissible(
           key: Key('notification_${notification.id}'),
           direction: DismissDirection.endToStart,
-          background: Container(
-            alignment: Alignment.centerRight,
-            padding: const EdgeInsets.only(right: 20),
-            color: context.colorScheme.secondary,
-            child: Icon(
-              Icons.close,
-              color: context.colorScheme.onSecondary,
-            ),
-          ),
-          confirmDismiss: (direction) async {
-            await _dismissReminder(notification);
-            return false;
-          },
+          movementDuration: MotionService().effectiveDuration(_swipeDuration),
+          resizeDuration: resizeDuration == Duration.zero ? null : resizeDuration,
+          background: _buildSwipeBackground(context),
+          onDismissed: (_) => _onRowSwiped(notification),
           child: rowContent,
         ),
-      );
-    }
+      ),
+    );
+  }
 
-    return rowContent;
+  Widget _buildSwipeBackground(BuildContext context) {
+    return Container(
+      alignment: Alignment.centerRight,
+      padding: const EdgeInsets.only(right: AppConstants.unboxedContentInset),
+      color: context.colorScheme.secondary,
+      child: Icon(
+        Icons.close,
+        color: context.colorScheme.onSecondary,
+      ),
+    );
+  }
+
+  /// Slides the row off the way a swipe does, revealing only the uncovered
+  /// part of the swipe background behind it.
+  Widget _withDismissAllSlide(Widget row) {
+    if (!_isSlidingAll) return row;
+    return Stack(
+      clipBehavior: Clip.hardEdge,
+      children: [
+        Positioned.fill(
+          child: ClipRect(
+            clipper: _TrailingRevealClipper(_dismissAllController),
+            child: _buildSwipeBackground(context),
+          ),
+        ),
+        SlideTransition(position: _dismissAllOffset, child: row),
+      ],
+    );
+  }
+
+  /// A swiped [Dismissible] must leave the list in the same frame, so the row
+  /// is removed before the server confirms.
+  void _onRowSwiped(NotificationModel notification) {
+    setState(() {
+      _notifications = _notifications
+          .where((item) => item.id != notification.id)
+          .toList();
+    });
+    context.read<NotificationCountBloc>().add(
+      RemoveReminderEvent(
+        origin: EventOrigin.screen,
+        reminderId: notification.id,
+      ),
+    );
+    _dismissReminder(notification);
+  }
+
+  void _clearNotifications() {
+    context.read<NotificationCountBloc>().add(
+      ClearRemindersEvent(origin: EventOrigin.screen),
+    );
+  }
+
+  void _onDismissAllStatusChanged(AnimationStatus status) {
+    if (!mounted) return;
+    if (status == AnimationStatus.completed) {
+      setState(() {
+        _notifications = [];
+        _isSlidingAll = false;
+      });
+      _dismissAllController.value = 0;
+      _clearNotifications();
+    } else if (status == AnimationStatus.dismissed && _isSlidingAll) {
+      setState(() => _isSlidingAll = false);
+    }
   }
 
   Future<void> _openNotification(NotificationModel notification) async {
@@ -706,7 +792,13 @@ class _NotificationsScreenState
 
   void _dismissAllReminders() {
     if (_isDismissingAll) return;
-    setState(() => _isDismissingAll = true);
+    final slides =
+        MotionService().effectiveDuration(_swipeDuration) != Duration.zero;
+    setState(() {
+      _isDismissingAll = true;
+      _isSlidingAll = slides;
+    });
+    if (slides) _dismissAllController.forward(from: 0);
 
     context.read<ReminderBloc>().add(
       DismissAllRemindersEvent(
@@ -717,4 +809,25 @@ class _NotificationsScreenState
       ),
     );
   }
+}
+
+class _TrailingRevealClipper extends CustomClipper<Rect> {
+  final Animation<double> reveal;
+
+  _TrailingRevealClipper(this.reveal) : super(reclip: reveal);
+
+  @override
+  Rect getClip(Size size) {
+    final revealedWidth = size.width * reveal.value;
+    return Rect.fromLTRB(
+      size.width - revealedWidth,
+      0,
+      size.width,
+      size.height,
+    );
+  }
+
+  @override
+  bool shouldReclip(_TrailingRevealClipper oldClipper) =>
+      oldClipper.reveal != reveal;
 }

@@ -7,6 +7,7 @@ RUN apt-get update && \
         ca-certificates \
         curl \
         git \
+        make \
         unzip \
         xz-utils && \
     apt-get clean && \
@@ -23,6 +24,7 @@ RUN git clone --branch ${FLUTTER_VERSION} --depth 1 https://github.com/flutter/f
 
 FROM flutter-sdk AS build
 
+ARG FIREBASE_AUTH_DOMAIN=
 ARG PROJECT_API_HOST=
 ARG RELEASE_VERSION=
 ARG SENTRY_DIST=
@@ -36,15 +38,15 @@ RUN flutter pub get
 
 COPY . .
 
-RUN set -eux; \
-    BUILD_ARGS=""; \
-    if [ -n "${PROJECT_API_HOST:-}" ]; then BUILD_ARGS="$BUILD_ARGS --dart-define=PROJECT_API_HOST=${PROJECT_API_HOST}"; fi; \
-    if [ -n "${RELEASE_VERSION:-}" ]; then BUILD_ARGS="$BUILD_ARGS --dart-define=RELEASE_VERSION=${RELEASE_VERSION}"; fi; \
-    if [ -n "${SENTRY_DIST:-}" ]; then BUILD_ARGS="$BUILD_ARGS --dart-define=SENTRY_DIST=${SENTRY_DIST}"; fi; \
-    if [ -n "${SENTRY_DSN:-}" ]; then BUILD_ARGS="$BUILD_ARGS --dart-define=SENTRY_DSN=${SENTRY_DSN}"; fi; \
-    if [ -n "${SENTRY_ENVIRONMENT:-}" ]; then BUILD_ARGS="$BUILD_ARGS --dart-define=SENTRY_ENVIRONMENT=${SENTRY_ENVIRONMENT}"; fi; \
-    flutter build web --release --source-maps --pwa-strategy=none $BUILD_ARGS; \
-    dart bin/update_version.dart
+# The same build as CI's. PROJECT_API_HOST is always passed so an empty value
+# leaves the app deriving its API host from where it's served.
+RUN make build-web \
+    FIREBASE_AUTH_DOMAIN="${FIREBASE_AUTH_DOMAIN}" \
+    PROJECT_API_HOST="${PROJECT_API_HOST}" \
+    RELEASE_VERSION="${RELEASE_VERSION}" \
+    SENTRY_DIST="${SENTRY_DIST}" \
+    SENTRY_DSN="${SENTRY_DSN}" \
+    SENTRY_ENVIRONMENT="${SENTRY_ENVIRONMENT}"
 
 ######################################################################
 

@@ -566,8 +566,8 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen> {
                       color: course.color,
                     ),
                   ),
-                  const SizedBox(width: 8),
                   if (course.teacherEmail.isNotEmpty) ...[
+                    const SizedBox(width: 8),
                     PrintHidden(
                       child: HeliumIconButton(
                         onPressed: () {
@@ -578,9 +578,9 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen> {
                         color: context.semanticColors.info,
                       ),
                     ),
-                    const SizedBox(width: 8),
                   ],
                   if (course.website != null) ...[
+                    const SizedBox(width: 8),
                     PrintHidden(
                       child: HeliumIconButton(
                         onPressed: () {
@@ -591,15 +591,16 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen> {
                         color: context.semanticColors.success,
                       ),
                     ),
-                    const SizedBox(width: 8),
                   ],
-                  if (PlatformBehavior.showItemActions(context))
+                  if (PlatformBehavior.showItemActions(context)) ...[
+                    const SizedBox(width: 8),
                     PrintHidden(
                       child: HeliumIconButton(
                         onPressed: () => _onEdit(course),
                         icon: Icons.edit_outlined,
                       ),
                     ),
+                  ],
                 ],
               ),
 

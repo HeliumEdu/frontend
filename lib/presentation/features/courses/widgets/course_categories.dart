@@ -143,20 +143,17 @@ class _CourseCategoriesContentState extends State<_CourseCategoriesContent> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text('Categories', style: AppStyles.featureText(context)),
-            Semantics(
-              label: 'Add category',
-              button: true,
-              child: HeliumIconButton(
-                onPressed: () {
-                  showCategoryDialog(
-                    parentContext: context,
-                    courseGroupId: widget.courseGroupId,
-                    courseId: widget.courseId,
-                    isEdit: false,
-                  );
-                },
-                icon: Icons.add,
-              ),
+            HeliumIconButton(
+              onPressed: () {
+                showCategoryDialog(
+                  parentContext: context,
+                  courseGroupId: widget.courseGroupId,
+                  courseId: widget.courseId,
+                  isEdit: false,
+                );
+              },
+              icon: Icons.add,
+              semanticLabel: 'Add category',
             ),
           ],
         ),
@@ -296,43 +293,37 @@ class _CourseCategoriesContentState extends State<_CourseCategoriesContent> {
               ),
               const SizedBox(width: 8),
               if (PlannerHelper.shouldShowEditButton(context)) ...[
-                Semantics(
-                  label: 'Edit',
-                  button: true,
-                  child: HeliumIconButton(
-                    onPressed: () => _onEdit(category),
-                    icon: Icons.edit_outlined,
-                  ),
+                HeliumIconButton(
+                  onPressed: () => _onEdit(category),
+                  icon: Icons.edit_outlined,
+                  semanticLabel: 'Edit',
                 ),
                 const SizedBox(width: 8),
               ],
-              Semantics(
-                label: 'Delete',
-                button: true,
-                child: HeliumIconButton(
-                  onPressed: () {
-                    showConfirmDeleteDialog(
-                      parentContext: context,
-                      item: category,
-                      label: category.title,
-                      additionalWarning:
-                          'Any assignments associated with this category will be moved to "Uncategorized".',
-                      onDelete: (c) {
-                        context.read<CategoryBloc>().add(
-                          DeleteCategoryEvent(
-                            origin: EventOrigin.screen,
-                            courseGroupId: widget.courseGroupId,
-                            courseId: widget.courseId,
-                            categoryId: c.id,
-                            isLastCategory: _categories.length == 1,
-                          ),
-                        );
-                      },
-                    );
-                  },
-                  icon: Icons.delete_outline,
-                  color: context.colorScheme.error,
-                ),
+              HeliumIconButton(
+                onPressed: () {
+                  showConfirmDeleteDialog(
+                    parentContext: context,
+                    item: category,
+                    label: category.title,
+                    additionalWarning:
+                        'Any assignments associated with this category will be moved to "Uncategorized".',
+                    onDelete: (c) {
+                      context.read<CategoryBloc>().add(
+                        DeleteCategoryEvent(
+                          origin: EventOrigin.screen,
+                          courseGroupId: widget.courseGroupId,
+                          courseId: widget.courseId,
+                          categoryId: c.id,
+                          isLastCategory: _categories.length == 1,
+                        ),
+                      );
+                    },
+                  );
+                },
+                icon: Icons.delete_outline,
+                semanticLabel: 'Delete',
+                color: context.colorScheme.error,
               ),
             ],
           ),

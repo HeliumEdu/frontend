@@ -108,18 +108,15 @@ class GroupDropdown<T extends BaseTitledModel> extends StatelessWidget {
         ? []
         : [
             const SizedBox(width: 12),
-            Semantics(
-              label: 'Edit',
-              button: true,
-              child: HeliumIconButton(
-                onPressed: () {
-                  if (Navigator.canPop(context)) {
-                    Navigator.pop(context);
-                  }
-                  onEdit!(item);
-                },
-                icon: Icons.edit_outlined,
-              ),
+            HeliumIconButton(
+              onPressed: () {
+                if (Navigator.canPop(context)) {
+                  Navigator.pop(context);
+                }
+                onEdit!(item);
+              },
+              icon: Icons.edit_outlined,
+              semanticLabel: 'Edit',
             ),
             const SizedBox(width: 8),
           ];
