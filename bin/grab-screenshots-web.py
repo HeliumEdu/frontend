@@ -8,6 +8,7 @@ Chrome window and writes each PNG straight into the www project:
   www/public/press/screenshots/web/helium-web-full-*.png       (2880x1680)
   www/src/assets/img/screenshots/frames/frame-laptop.png       (framed month view)
   www/src/assets/img/og-default.png                            (OG card, 1200x630)
+  android/fastlane/.../images/featureGraphic.png               (Play feature graphic, 1024x500)
 
 The press page's other web shots are symlinks to the feature shots, and the
 Flutter onboarding copies are synced at the end, so neither needs capturing.
@@ -293,8 +294,9 @@ def is_signed_out(page):
 
 
 def build_og_image():
-    print(f"\n{BANNER}\nRebuilding the OG image from the laptop frame ...\n{BANNER}")
+    print(f"\n{BANNER}\nRebuilding the OG image and Play feature graphic from the laptop frame ...\n{BANNER}")
     subprocess.run(["npm", "run", "build-og-image"], cwd=WWW, check=False)
+    subprocess.run([str(REPO / "bin/build-feature-graphic.sh")], check=False)
 
 
 def sync_onboarding():

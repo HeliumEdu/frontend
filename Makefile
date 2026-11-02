@@ -232,14 +232,7 @@ upload-web-symbols:
 
 icons:
 	flutter pub run flutter_launcher_icons
-	cp web/icons/Icon-192.png web/favicon.png
-	@if [ -d ../www/public ]; then \
-		cp web/icons/Icon-192.png ../www/public/icon-192.png; \
-		cp web/icons/Icon-512.png ../www/public/icon-512.png; \
-		echo "Copied app icons to ../www/public; run 'make sync-assets' in connector"; \
-	else \
-		echo "⚠ ../www/public not found; skipping the www icon copy"; \
-	fi
+	@./bin/fanout-icons.sh
 
 sync-assets:
 	bin/sync-assets.sh
