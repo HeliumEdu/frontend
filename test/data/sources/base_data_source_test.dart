@@ -17,6 +17,48 @@ void main() {
 
   group('BaseDataSource', () {
     group('handleDioError', () {
+      group('rate limiting', () {
+        DioException givenTooManyRequests({String? retryAfter}) {
+          final requestOptions = RequestOptions(path: '');
+          return DioException(
+            type: DioExceptionType.badResponse,
+            requestOptions: requestOptions,
+            response: Response(
+              statusCode: 429,
+              requestOptions: requestOptions,
+              data: {'detail': 'Request was throttled. Expected available in 3540 seconds.'},
+              headers: Headers.fromMap({
+                if (retryAfter != null) 'retry-after': [retryAfter],
+              }),
+            ),
+          );
+        }
+
+        test('says how long to wait from Retry-After', () {
+          // GIVEN
+          final error = givenTooManyRequests(retryAfter: '3540');
+
+          // WHEN
+          final result = dataSource.handleDioError(error, StackTrace.current);
+
+          // THEN
+          expect(result, isA<ServerException>());
+          expect(result.httpStatusCode, 429);
+          expect(result.message, 'Too many attempts. Try again in 59 minutes.');
+        });
+
+        test('asks to try later without Retry-After', () {
+          // GIVEN
+          final error = givenTooManyRequests();
+
+          // WHEN
+          final result = dataSource.handleDioError(error, StackTrace.current);
+
+          // THEN
+          expect(result.message, 'Too many attempts. Try again later.');
+        });
+      });
+
       group('timeout errors', () {
         test('returns NetworkException for connectionTimeout', () {
           // GIVEN
@@ -276,8 +318,8 @@ void main() {
           // GIVEN
           final error = givenDioException(
             type: DioExceptionType.badResponse,
-            statusCode: 429,
-            responseData: {'detail': 'Rate limit exceeded'},
+            statusCode: 405,
+            responseData: {'detail': 'Method "PATCH" not allowed.'},
           );
 
           // WHEN
@@ -285,7 +327,7 @@ void main() {
 
           // THEN
           expect(result, isA<ServerException>());
-          expect(result.message, equals('Rate limit exceeded'));
+          expect(result.message, equals('Method "PATCH" not allowed.'));
         });
 
         test('handles String response data', () {

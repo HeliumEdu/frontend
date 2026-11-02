@@ -45,7 +45,7 @@ final _log = Logger('presentation.widgets');
 
 /// Column definitions with responsive visibility breakpoints
 enum TodosColumn {
-  completed(label: '', fixedWidth: 44, isCheckbox: true),
+  completed(label: '', mobileWidth: 44, fixedWidth: 48, isCheckbox: true),
   title(label: 'Title', mobileWidth: 70, desktopWidth: 95),
   due(label: 'Due', mobileWidth: 154, slimMobileWidth: 124, desktopWidth: 166),
   className(label: 'Class', minViewportWidth: 625, fixedWidth: 120),
@@ -540,7 +540,7 @@ class TodosDataGridState extends BaseDataGridState<TodosDataGrid> {
       columns.add(GridColumn(
         columnName: 'actions',
         label: const SizedBox.shrink(),
-        width: isCompact ? 42 : 134,
+        width: isCompact ? 42 : 140,
         allowSorting: false,
       ));
     }
@@ -555,8 +555,11 @@ class TodosDataGridState extends BaseDataGridState<TodosDataGrid> {
       return MouseRegion(
         cursor: SystemMouseCursors.click,
         child: Container(
-          padding: const EdgeInsets.only(
-            left: AppConstants.tableCellInset - _headerCheckboxGlyphInset,
+          padding: EdgeInsets.only(
+            left: (Responsive.isMobile(context) && PlatformBehavior.usesTouchTargets
+                    ? AppConstants.tableCellInset
+                    : 12) -
+                _headerCheckboxGlyphInset,
           ),
           alignment: Alignment.centerLeft,
           child: Icon(
@@ -831,9 +834,6 @@ class TodosDataGridState extends BaseDataGridState<TodosDataGrid> {
 class TodosDataSource extends BaseDataGridSource {
   Set<String> visibleColumnNames = const {};
 
-  static const _checkboxShift =
-      AppConstants.tableCellInset - (kMinInteractiveDimension - Checkbox.width) / 2;
-
   List<HomeworkModel> _homeworks;
   BuildContext _context;
   PlannerItemDataSource _dataSource;
@@ -1105,19 +1105,28 @@ class TodosDataSource extends BaseDataGridSource {
         ? category.color
         : course.color;
 
+    final isTouch = PlatformBehavior.usesTouchTargets;
+    final usesTableInset = Responsive.isMobile(_context) && isTouch;
+    final targetSize = isTouch ? kMinInteractiveDimension : kMinInteractiveDimension - 16;
+    final squareInset = usesTableInset ? AppConstants.tableCellInset : 12;
+    final shift = squareInset - (targetSize - Checkbox.width) / 2;
     final checkbox = OverflowBox(
       alignment: Alignment.centerLeft,
-      maxWidth: kMinInteractiveDimension,
+      minWidth: 0,
+      maxWidth: targetSize,
+      minHeight: 0,
+      maxHeight: targetSize,
       child: Transform.translate(
-        offset: const Offset(_checkboxShift, 0),
+        offset: Offset(shift, 0),
         child: Checkbox(
           value: isCompleted,
           onChanged: (_) => _toggleCompleted(homework),
           semanticLabel: 'Complete ${homework.title}',
-          materialTapTargetSize: MaterialTapTargetSize.padded,
-          visualDensity: VisualDensity.standard,
+          materialTapTargetSize: isTouch ? MaterialTapTargetSize.padded : MaterialTapTargetSize.shrinkWrap,
+          visualDensity: isTouch ? VisualDensity.standard : VisualDensity.compact,
           activeColor: checkColor,
           side: BorderSide(color: checkColor, width: 2),
+          splashRadius: usesTableInset ? null : 18,
         ),
       ),
     );

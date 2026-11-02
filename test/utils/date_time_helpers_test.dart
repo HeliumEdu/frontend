@@ -109,6 +109,21 @@ void main() {
       });
     });
 
+    group('describeWait', () {
+      test('rounds a wait under an hour up to the minute', () {
+        expect(HeliumDateTime.describeWait(const Duration(seconds: 30)), 'a minute');
+        expect(HeliumDateTime.describeWait(const Duration(seconds: 61)), '2 minutes');
+        expect(HeliumDateTime.describeWait(const Duration(seconds: 3540)), '59 minutes');
+      });
+
+      test('rounds a wait of an hour or more to the nearest hour', () {
+        expect(HeliumDateTime.describeWait(const Duration(seconds: 3599)), 'about an hour');
+        expect(HeliumDateTime.describeWait(const Duration(minutes: 89)), 'about an hour');
+        expect(HeliumDateTime.describeWait(const Duration(minutes: 90)), 'about 2 hours');
+        expect(HeliumDateTime.describeWait(const Duration(hours: 3)), 'about 3 hours');
+      });
+    });
+
     group('visibleAnchorFor', () {
       test('anchors two hours before the time during the day', () {
         // GIVEN

@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:heliumapp/core/api_error_parser.dart';
 import 'package:heliumapp/core/helium_exception.dart';
 import 'package:heliumapp/core/session_health.dart';
+import 'package:heliumapp/utils/date_time_helpers.dart';
 import 'package:logging/logging.dart';
 
 final _log = Logger('core.dio');
@@ -81,6 +82,12 @@ class DioErrorMapper {
             code: '500',
             httpStatusCode: 500,
           );
+        } else if (statusCode == 429) {
+          return ServerException(
+            message: _tooManyRequestsMessage(e.response?.headers.value('retry-after')),
+            code: '429',
+            httpStatusCode: 429,
+          );
         } else if (statusCode == 404) {
           return NotFoundException(
             message: '${notFoundEntity ?? 'Item'} not found.',
@@ -144,6 +151,13 @@ class DioErrorMapper {
           code: 'NETWORK_ERROR',
         );
     }
+  }
+
+  static String _tooManyRequestsMessage(String? retryAfter) {
+    final seconds = int.tryParse(retryAfter ?? '');
+    if (seconds == null) return 'Too many attempts. Try again later.';
+    return 'Too many attempts. Try again in '
+        '${HeliumDateTime.describeWait(Duration(seconds: seconds))}.';
   }
 
   /// Server-provided text for 4xx only, with every field error included.

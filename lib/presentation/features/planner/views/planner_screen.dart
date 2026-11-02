@@ -1382,6 +1382,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           SizedBox(width: leadingGap),
+          if (!showNavButtons) const SizedBox(width: 4),
           if (showNavButtons) ...[
             PrintHidden(
               child: IconButton(

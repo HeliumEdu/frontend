@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:heliumapp/core/helium_exception.dart';
 import 'package:heliumapp/core/log_formatter.dart';
 import 'package:heliumapp/core/sentry_service.dart';
@@ -77,18 +78,19 @@ class LogService {
 
   /// Connectivity failures that outlived DioClient's retries: the network path
   /// is at fault, and a real API outage surfaces in server-side monitoring.
-  static bool _isConnectivityFailure(Object? error) {
-    if (error is! DioException) {
-      return false;
-    }
+  static bool _isConnectivityFailure(Object? error) => switch (error) {
+    DioException() => _isDioConnectivityFailure(error),
+    PlatformException() => _isUrlLoadingConnectivityFailure(error.details),
+    _ => false,
+  };
 
+  static bool _isDioConnectivityFailure(DioException error) {
     return switch (error.type) {
       DioExceptionType.connectionTimeout ||
       DioExceptionType.sendTimeout ||
       DioExceptionType.receiveTimeout ||
       DioExceptionType.connectionError ||
-      DioExceptionType.cancel =>
-        true,
+      DioExceptionType.cancel => true,
       DioExceptionType.unknown =>
         _isTlsFailure(error) || _isConnectionDropped(error),
       DioExceptionType.badCertificate || DioExceptionType.badResponse => false,
@@ -110,7 +112,32 @@ class LogService {
     return text.contains('socketexception') ||
         text.contains('connection abort') ||
         text.contains('connection reset') ||
-        text.contains('connection closed');
+        text.contains('connection closed') ||
+        text.contains('bad file descriptor');
+  }
+
+  static const _urlLoadingConnectivityCodes = {
+    // NSURLErrorTimedOut
+    '-1001',
+    // NSURLErrorCannotFindHost
+    '-1003',
+    // NSURLErrorCannotConnectToHost
+    '-1004',
+    // NSURLErrorNetworkConnectionLost
+    '-1005',
+    // NSURLErrorNotConnectedToInternet
+    '-1009',
+  };
+
+  static bool _isUrlLoadingConnectivityFailure(Object? details) {
+    return switch (details) {
+      Map() =>
+        (details['domain'] == 'NSURLErrorDomain' &&
+                _urlLoadingConnectivityCodes.contains(details['code'])) ||
+            details.values.any(_isUrlLoadingConnectivityFailure),
+      List() => details.any(_isUrlLoadingConnectivityFailure),
+      _ => false,
+    };
   }
 
   static String _errorText(DioException error) =>
@@ -207,5 +234,5 @@ enum LogSentryAction {
   log,
 
   /// Not forwarded.
-  drop;
+  drop,
 }
