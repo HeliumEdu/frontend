@@ -29,13 +29,20 @@ class TimeZoneDatabaseService {
 
   Future<bool> _load() async {
     try {
-      await rootBundle.load(_assetKey);
+      final asset = await rootBundle.load(_assetKey);
+      if (asset.lengthInBytes == 0) {
+        return _recordFailure('The time zone database asset loaded empty');
+      }
       _isLoaded = true;
       return true;
     } catch (e) {
-      _log.warning('Failed to load the time zone database asset', e);
-      _pending = null;
-      return false;
+      return _recordFailure('Failed to load the time zone database asset', e);
     }
+  }
+
+  bool _recordFailure(String message, [Object? error]) {
+    _log.warning(message, error);
+    _pending = null;
+    return false;
   }
 }
