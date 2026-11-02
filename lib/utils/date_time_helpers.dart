@@ -109,6 +109,16 @@ class HeliumDateTime {
     return DateTime(date.year, date.month, date.day);
   }
 
+  /// A readable wait, rounded up to the minute under an hour and to the nearest
+  /// hour beyond: "a minute", "59 minutes", "about an hour", "about 3 hours".
+  static String describeWait(Duration wait) {
+    final minutes = (wait.inSeconds / 60).ceil();
+    if (minutes <= 1) return 'a minute';
+    if (minutes < 60) return '$minutes minutes';
+    final hours = (minutes / 60).round();
+    return hours == 1 ? 'about an hour' : 'about $hours hours';
+  }
+
   /// A calendar display date that scrolls a day or week view to two hours
   /// before [time], so [time] shows with context above it. Never earlier than
   /// the start of [time]'s day, so the visible day, week, and month stay put.
