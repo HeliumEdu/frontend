@@ -358,7 +358,7 @@ void main() {
         // may appear before "Keep Helium Free" is in the tree).
         final bodyLoaded = await waitForWidget(
           tester,
-          find.text('Change Password'),
+          find.text('Security & API'),
           timeout: const Duration(seconds: 5),
         );
         expect(bodyLoaded, isTrue, reason: 'Settings body should finish loading');
@@ -428,7 +428,7 @@ void main() {
         // Wait for settings body to load (same AuthBloc race as desktop path above)
         final mobileBodyLoaded = await waitForWidget(
           tester,
-          find.text('Change Password'),
+          find.text('Security & API'),
           timeout: const Duration(seconds: 5),
         );
         expect(
@@ -853,26 +853,26 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      final quiz4OnCalendar = find.descendant(
-        of: find
-            .ancestor(
-              of: find.byKey(
-                ValueKey(
-                  '${PlannerScreen.plannerItemCheckboxKeyPrefix}${quiz4.id}',
-                ),
-              ),
-              matching: find.byType(KeyedSubtree),
-            )
-            .first,
-        matching: findRichTextContaining('Quiz 4'),
+      final quiz4CheckboxKey = find.byKey(
+        ValueKey('${PlannerScreen.plannerItemCheckboxKeyPrefix}${quiz4.id}'),
       );
       final quizVisible = await waitForWidget(
         tester,
-        quiz4OnCalendar,
+        quiz4CheckboxKey,
         timeout: config.apiTimeout,
       );
       expect(quizVisible, isTrue, reason: 'Quiz 4 should be visible on its date');
 
+      final quiz4Checkbox = await _scrollShownCopyIntoView(
+        tester,
+        quiz4CheckboxKey,
+      );
+      final quiz4OnCalendar = find.descendant(
+        of: find
+            .ancestor(of: quiz4Checkbox, matching: find.byType(KeyedSubtree))
+            .first,
+        matching: findRichTextContaining('Quiz 4'),
+      );
       await tester.tap(quiz4OnCalendar.first);
       await tester.pumpAndSettle(const Duration(seconds: 3));
 
@@ -1051,32 +1051,11 @@ void main() {
       );
 
       _log.info('Tapping checkbox in month view ...');
-      final editedItemOnCalendar = findRichTextContaining('Quiz 4 (Edited)');
-      expect(
-        editedItemOnCalendar,
-        findsWidgets,
-        reason: 'Should find edited item',
-      );
-
-      final itemContainer = find
-          .ancestor(
-            of: editedItemOnCalendar.first,
-            matching: find.byType(KeyedSubtree),
-          )
-          .first;
-
-      final checkbox = find.descendant(
-        of: itemContainer,
-        matching: find.byWidgetPredicate((widget) {
-          final key = widget.key;
-          return key is ValueKey<String> &&
-              key.value.startsWith(PlannerScreen.plannerItemCheckboxKeyPrefix);
-        }),
-      );
-      expect(
-        checkbox,
-        findsOneWidget,
-        reason: 'Should find checkbox in item container',
+      final checkbox = await _scrollShownCopyIntoView(
+        tester,
+        find.byKey(
+          ValueKey('${PlannerScreen.plannerItemCheckboxKeyPrefix}${quiz4.id}'),
+        ),
       );
 
       await tester.tap(checkbox);
@@ -1901,7 +1880,7 @@ void main() {
         await tester.tap(find.byKey(const Key(SettingsButton.buttonKey)));
         final settingsLoaded = await waitForWidget(
           tester,
-          find.text('Change Password'),
+          find.text('Security & API'),
           timeout: const Duration(seconds: 10),
         );
         expect(settingsLoaded, isTrue, reason: 'Settings should finish loading');
@@ -2030,4 +2009,25 @@ void main() {
       },
     );
   });
+}
+
+/// SfCalendar also lays out the months either side of the one shown, and a
+/// busy month view scrolls, so an item can be in the tree but off screen.
+/// Returns the copy in the shown month, scrolled into view.
+Future<Finder> _scrollShownCopyIntoView(
+  WidgetTester tester,
+  Finder finder,
+) async {
+  final viewWidth =
+      tester.view.physicalSize.width / tester.view.devicePixelRatio;
+  for (var index = 0; index < finder.evaluate().length; index++) {
+    final candidate = finder.at(index);
+    final centerX = tester.getCenter(candidate).dx;
+    if (centerX >= 0 && centerX <= viewWidth) {
+      await tester.ensureVisible(candidate);
+      await tester.pumpAndSettle();
+      return candidate;
+    }
+  }
+  fail('No copy of $finder is in the shown month');
 }

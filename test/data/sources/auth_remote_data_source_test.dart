@@ -246,6 +246,47 @@ void main() {
       });
     });
 
+    group('createApiToken', () {
+      test('returns the plaintext token on 201 response', () async {
+        // GIVEN
+        when(() => mockDio.post(any())).thenAnswer(
+          (_) async => givenSuccessResponse({
+            'token': 'plaintext-token',
+            'created_at': '2026-11-01T15:30:00Z',
+          }, statusCode: 201),
+        );
+
+        // WHEN
+        final result = await dataSource.createApiToken();
+
+        // THEN
+        expect(result.token, 'plaintext-token');
+        expect(result.createdAt, DateTime.utc(2026, 11, 1, 15, 30));
+      });
+
+      test('throws HeliumException on an unexpected status', () async {
+        // GIVEN
+        when(
+          () => mockDio.post(any()),
+        ).thenAnswer((_) async => givenSuccessResponse(null, statusCode: 200));
+
+        // WHEN/THEN
+        expect(dataSource.createApiToken(), throwsA(isA<HeliumException>()));
+      });
+    });
+
+    group('revokeApiToken', () {
+      test('completes successfully on 204 response', () async {
+        // GIVEN
+        when(
+          () => mockDio.delete(any()),
+        ).thenAnswer((_) async => givenSuccessResponse(null, statusCode: 204));
+
+        // WHEN/THEN
+        expect(dataSource.revokeApiToken(), completes);
+      });
+    });
+
     group('deleteAccount', () {
       test(
         'returns NoContentResponseModel and clears storage on 204',

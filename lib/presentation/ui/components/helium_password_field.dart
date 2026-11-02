@@ -9,6 +9,7 @@ class HeliumPasswordField extends StatefulWidget {
   final TextEditingController controller;
   final String? Function(String?)? validator;
   final void Function(String)? onFieldSubmitted;
+  final void Function(String)? onChanged;
   final Iterable<String>? autofillHints;
   final bool autofocus;
 
@@ -20,6 +21,7 @@ class HeliumPasswordField extends StatefulWidget {
     required this.controller,
     this.validator,
     this.onFieldSubmitted,
+    this.onChanged,
     this.autofillHints,
     this.autofocus = false,
   });
@@ -40,6 +42,7 @@ class _HeliumPasswordFieldState extends State<HeliumPasswordField> {
       controller: widget.controller,
       validator: widget.validator,
       onFieldSubmitted: widget.onFieldSubmitted,
+      onChanged: widget.onChanged,
       obscureText: !_isVisible,
       autofocus: widget.autofocus,
       autofillHints: widget.autofillHints,

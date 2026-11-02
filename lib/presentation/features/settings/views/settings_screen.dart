@@ -21,11 +21,11 @@ import 'package:heliumapp/presentation/features/planner/bloc/planneritem_bloc.da
 import 'package:heliumapp/presentation/features/planner/bloc/planneritem_event.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/planneritem_state.dart';
 import 'package:heliumapp/presentation/features/settings/views/change_email_screen.dart';
-import 'package:heliumapp/presentation/features/settings/views/change_password_screen.dart';
 import 'package:heliumapp/presentation/features/settings/views/external_calendars_screen.dart';
 import 'package:heliumapp/presentation/features/settings/views/feeds_screen.dart';
 import 'package:heliumapp/presentation/features/settings/views/import_export_screen.dart';
 import 'package:heliumapp/presentation/features/settings/views/preferences_screen.dart';
+import 'package:heliumapp/presentation/features/settings/views/security_screen.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/core/base_event.dart';
 import 'package:heliumapp/presentation/features/shared/controllers/basic_form_controller.dart';
 import 'package:heliumapp/presentation/ui/components/account_email_field.dart';
@@ -33,6 +33,7 @@ import 'package:heliumapp/presentation/ui/components/helium_elevated_button.dart
 import 'package:heliumapp/presentation/ui/components/helium_icon_button.dart';
 import 'package:heliumapp/presentation/ui/components/label_and_text_form_field.dart';
 import 'package:heliumapp/presentation/ui/components/support_helium_card.dart';
+import 'package:heliumapp/presentation/ui/feedback/confirm_action_dialog.dart';
 import 'package:heliumapp/presentation/ui/feedback/confirm_clear_example_data.dart';
 import 'package:heliumapp/presentation/ui/feedback/discard_changes_scope.dart';
 import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
@@ -52,7 +53,7 @@ enum SettingsSubScreen {
   externalCalendars,
   feeds,
   changeEmail,
-  changePassword,
+  security,
   importExport,
 }
 
@@ -97,7 +98,7 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
         style: IconButton.styleFrom(
           tapTargetSize: MaterialTapTargetSize.shrinkWrap,
         ),
-        onPressed: () => _showLogoutDialog(context, force: true),
+        onPressed: () => _showLogoutDialog(force: true),
         icon: Icon(
           Icons.logout_outlined,
           color: context.semanticColors.warning,
@@ -109,7 +110,6 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
 
   var _preferencesKey = GlobalKey<PreferencesScreenState>();
   var _changeEmailKey = GlobalKey<ChangeEmailScreenState>();
-  var _changePasswordKey = GlobalKey<ChangePasswordScreenState>();
   var _externalCalendarsKey = GlobalKey<ExternalCalendarsScreenState>();
 
   final BasicFormController _deleteAccountFormController =
@@ -130,9 +130,6 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
   bool _dangerZoneExpanded = false;
   bool _clearingExampleData = false;
   Timer? _dangerZoneTimer;
-  // Cached at sub-screen entry so title/form don't flash if _hasUsablePassword
-  // updates while the changePassword sub-screen is still mounted.
-  bool _changePasswordPasswordless = false;
 
   @override
   String get screenTitle => switch (_activeSubScreen) {
@@ -140,8 +137,7 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
     SettingsSubScreen.externalCalendars => 'External Calendars',
     SettingsSubScreen.feeds => 'Feeds',
     SettingsSubScreen.changeEmail => 'Change Email',
-    SettingsSubScreen.changePassword =>
-      _changePasswordPasswordless ? 'Set Password' : 'Change Password',
+    SettingsSubScreen.security => 'Security & API',
     SettingsSubScreen.importExport => 'Import/Export',
     null => 'Settings',
   };
@@ -152,10 +148,7 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
     SettingsSubScreen.externalCalendars => AppConstants.externalCalendarIcon,
     SettingsSubScreen.feeds => Icons.rss_feed,
     SettingsSubScreen.changeEmail => Icons.email_outlined,
-    SettingsSubScreen.changePassword =>
-      _changePasswordPasswordless
-          ? Icons.lock_open_outlined
-          : Icons.lock_outlined,
+    SettingsSubScreen.security => Icons.shield_outlined,
     SettingsSubScreen.importExport => Icons.swap_horiz,
     null => Icons.settings,
   };
@@ -164,7 +157,6 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
   ScreenType get screenType => switch (_activeSubScreen) {
     SettingsSubScreen.preferences => ScreenType.entityPage,
     SettingsSubScreen.changeEmail => ScreenType.entityPage,
-    SettingsSubScreen.changePassword => ScreenType.entityPage,
     _ => ScreenType.subPage,
   };
 
@@ -177,10 +169,6 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
     SettingsSubScreen.changeEmail => () {
       if (isSubmitting) return;
       _changeEmailKey.currentState?.onSubmit();
-    },
-    SettingsSubScreen.changePassword => () {
-      if (isSubmitting) return;
-      _changePasswordKey.currentState?.onSubmit();
     },
     _ => null,
   };
@@ -212,8 +200,6 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
         _preferencesKey.currentState?.isChanged ?? false,
       SettingsSubScreen.changeEmail =>
         _changeEmailKey.currentState?.isChanged ?? false,
-      SettingsSubScreen.changePassword =>
-        _changePasswordKey.currentState?.isChanged ?? false,
       _ => false,
     };
     if (!isDirty) return true;
@@ -253,8 +239,6 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
           _preferencesKey.currentState?.isChanged ?? false,
         SettingsSubScreen.changeEmail =>
           _changeEmailKey.currentState?.isChanged ?? false,
-        SettingsSubScreen.changePassword =>
-          _changePasswordKey.currentState?.isChanged ?? false,
         _ => false,
       };
 
@@ -263,7 +247,7 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
     'external-calendars' => SettingsSubScreen.externalCalendars,
     'feeds' => SettingsSubScreen.feeds,
     'change-email' => SettingsSubScreen.changeEmail,
-    'change-password' => SettingsSubScreen.changePassword,
+    'security' || 'change-password' => SettingsSubScreen.security,
     'import-export' => SettingsSubScreen.importExport,
     _ => null,
   };
@@ -274,7 +258,7 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
         SettingsSubScreen.externalCalendars => 'external-calendars',
         SettingsSubScreen.feeds => 'feeds',
         SettingsSubScreen.changeEmail => 'change-email',
-        SettingsSubScreen.changePassword => 'change-password',
+        SettingsSubScreen.security => 'security',
         SettingsSubScreen.importExport => 'import-export',
       };
 
@@ -316,9 +300,6 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
         : null;
     final newSubScreen = _subScreenFromTab(tab);
     if (newSubScreen != _activeSubScreen) {
-      if (newSubScreen == SettingsSubScreen.changePassword) {
-        _changePasswordPasswordless = !_hasUsablePassword;
-      }
       setState(() {
         _isSubScreenForward = newSubScreen != null;
         _activeSubScreen = newSubScreen;
@@ -332,7 +313,6 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
   void _renewSubScreenKeys() {
     _preferencesKey = GlobalKey<PreferencesScreenState>();
     _changeEmailKey = GlobalKey<ChangeEmailScreenState>();
-    _changePasswordKey = GlobalKey<ChangePasswordScreenState>();
     _externalCalendarsKey = GlobalKey<ExternalCalendarsScreenState>();
   }
 
@@ -469,23 +449,7 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
               },
               onFailed: () => setState(() => isSubmitting = false),
             ),
-            SettingsSubScreen.changePassword => ChangePasswordScreen(
-              key: _changePasswordKey,
-              passwordless: _changePasswordPasswordless,
-              onActionStarted: () => setState(() => isSubmitting = true),
-              onCompleted: () {
-                setState(() {
-                  isSubmitting = false;
-                  _hasUsablePassword = true;
-                  // Don't clear _changePasswordPasswordless here — it must
-                  // stay true until after the sub-screen is no longer
-                  // rendered, otherwise the title flashes to "Change Password"
-                  // for one frame before navigation completes.
-                });
-                context.go(_settingsBaseUrl());
-              },
-              onFailed: () => setState(() => isSubmitting = false),
-            ),
+            SettingsSubScreen.security => const SecurityScreen(),
             SettingsSubScreen.externalCalendars => ExternalCalendarsScreen(
               key: _externalCalendarsKey,
             ),
@@ -742,15 +706,10 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
             ),
           const Divider(height: 1, indent: 68),
           _buildSettingsItem(
-            icon: _hasUsablePassword
-                ? Icons.lock_outline
-                : Icons.lock_open_outlined,
-            label: _hasUsablePassword ? 'Change Password' : 'Set Password',
-            hint: _hasUsablePassword
-                ? 'Update your password'
-                : 'Add a password to your account',
-            onTap: () =>
-                _navigateToSubSettings(SettingsSubScreen.changePassword),
+            icon: Icons.shield_outlined,
+            label: 'Security & API',
+            hint: 'Password, API token, and connected apps',
+            onTap: () => _navigateToSubSettings(SettingsSubScreen.security),
             iconColor: context.colorScheme.primary,
           ),
           const Divider(height: 1, indent: 68),
@@ -766,7 +725,7 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
             icon: Icons.logout_outlined,
             label: 'Sign Out',
             hint: 'Sign out of your account',
-            onTap: () => _showLogoutDialog(context),
+            onTap: _showLogoutDialog,
             iconColor: context.semanticColors.warning,
             iconBackgroundColor: context.colorScheme.error.withValues(
               alpha: 0.1,
@@ -781,9 +740,6 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
 
   void _navigateToSubSettings(SettingsSubScreen subScreen) {
     if (isSubmitting) return;
-    if (subScreen == SettingsSubScreen.changePassword) {
-      _changePasswordPasswordless = !_hasUsablePassword;
-    }
     context.go('${_settingsBaseUrl()}/${_tabFromSubScreen(subScreen)}');
   }
 
@@ -1180,80 +1136,21 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
     );
   }
 
-  void _showLogoutDialog(BuildContext parentContext, {bool force = false}) {
-    bool isSubmitting = false;
-
-    showDialog(
-      context: parentContext,
-      builder: (dialogContext) => StatefulBuilder(
-        builder: (BuildContext context, StateSetter setState) {
-          return PopScope(
-            canPop: !isSubmitting,
-            child: AlertDialog(
-              title: Row(
-                children: [
-                  Icon(
-                    Icons.logout_rounded,
-                    color: context.colorScheme.error,
-                    size: 24,
-                  ),
-                  const SizedBox(width: 12),
-                  Text('Sign Out', style: AppStyles.pageTitle(context)),
-                ],
-              ),
-              content: SizedBox(
-                width: Responsive.getDialogWidth(context),
-                child: Text(
-                  'Are you sure you want to sign out?',
-                  style: AppStyles.standardBodyText(context),
-                ),
-              ),
-              actions: [
-                SizedBox(
-                  width: Responsive.getDialogWidth(context),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: HeliumElevatedButton(
-                          buttonText: 'Cancel',
-                          backgroundColor: context.colorScheme.outline,
-                          enabled: !isSubmitting,
-                          onPressed: () {
-                            Navigator.of(dialogContext).pop();
-                          },
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: HeliumElevatedButton(
-                          buttonText: 'Sign Out',
-                          backgroundColor: context.colorScheme.error,
-                          isLoading: isSubmitting,
-                          onPressed: () {
-                            setState(() {
-                              isSubmitting = true;
-                            });
-
-                            Navigator.of(dialogContext).pop();
-
-                            if (force) {
-                              unawaited(dioClient.forceLogout());
-                              return;
-                            }
-
-                            parentContext.read<AuthBloc>().add(LogoutEvent());
-                          },
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          );
-        },
-      ),
+  Future<void> _showLogoutDialog({bool force = false}) async {
+    final confirmed = await showConfirmActionDialog(
+      context: context,
+      title: 'Sign Out',
+      message: 'Are you sure you want to sign out?',
+      actionText: 'Sign Out',
+      icon: Icons.logout_rounded,
     );
+    if (!confirmed || !mounted) return;
+
+    if (force) {
+      unawaited(dioClient.forceLogout());
+      return;
+    }
+    context.read<AuthBloc>().add(LogoutEvent());
   }
 
   void _showDeleteAccountDialog(BuildContext parentContext) {

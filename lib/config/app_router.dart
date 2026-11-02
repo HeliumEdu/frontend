@@ -355,6 +355,7 @@ const _validSettingsSubScreens = {
   'external-calendars',
   'feeds',
   'change-email',
+  'security',
   'change-password',
   'import-export',
 };

@@ -51,6 +51,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<UpdateProfileEvent>(_onUpdateProfile);
     on<EnablePrivateFeedsEvent>(_onEnablePrivateFeeds);
     on<DisablePrivateFeedsEvent>(_onDisablePrivateFeeds);
+    on<CreateApiTokenEvent>(_onCreateApiToken);
+    on<RevokeApiTokenEvent>(_onRevokeApiToken);
     on<ChangePasswordEvent>(_onChangePassword);
     on<ChangeEmailEvent>(_onChangeEmail);
     on<ForgotPasswordEvent>(_onForgotPassword);
@@ -544,6 +546,52 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       final UserModel user = await authRepository.getUser();
 
       emit(AuthProfileFetched(user: user));
+    } on HeliumException catch (e) {
+      emit(AuthError(
+        message: e.displayMessage,
+        code: e.code,
+        httpStatusCode: e.httpStatusCode,
+        parsedError: e.parsedError,
+      ));
+    } catch (e) {
+      emit(AuthError(message: HeliumException.unexpectedError));
+    }
+  }
+
+  Future<void> _onCreateApiToken(
+    CreateApiTokenEvent event,
+    Emitter<AuthState> emit,
+  ) async {
+    emit(AuthLoading());
+
+    try {
+      final apiToken = await authRepository.createApiToken();
+      final user = await authRepository.getUser();
+
+      emit(AuthApiTokenCreated(apiToken: apiToken, user: user));
+    } on HeliumException catch (e) {
+      emit(AuthError(
+        message: e.displayMessage,
+        code: e.code,
+        httpStatusCode: e.httpStatusCode,
+        parsedError: e.parsedError,
+      ));
+    } catch (e) {
+      emit(AuthError(message: HeliumException.unexpectedError));
+    }
+  }
+
+  Future<void> _onRevokeApiToken(
+    RevokeApiTokenEvent event,
+    Emitter<AuthState> emit,
+  ) async {
+    emit(AuthLoading());
+
+    try {
+      await authRepository.revokeApiToken();
+      final user = await authRepository.getUser();
+
+      emit(AuthApiTokenRevoked(user: user));
     } on HeliumException catch (e) {
       emit(AuthError(
         message: e.displayMessage,

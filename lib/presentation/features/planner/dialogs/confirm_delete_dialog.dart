@@ -1,89 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:heliumapp/data/models/base_model.dart';
-import 'package:heliumapp/presentation/ui/components/helium_elevated_button.dart';
-import 'package:heliumapp/utils/responsive_helpers.dart';
-import 'package:heliumapp/utils/app_style.dart';
-import 'package:heliumapp/config/app_theme.dart';
-
-class _ConfirmDeleteWidget<T extends BaseModel> extends StatefulWidget {
-  final T item;
-  final String label;
-  final Function(T) onDelete;
-  final String? additionalWarning;
-
-  const _ConfirmDeleteWidget({
-    super.key,
-    required this.item,
-    required this.label,
-    required this.onDelete,
-    this.additionalWarning,
-  });
-
-  @override
-  State<_ConfirmDeleteWidget<T>> createState() => _ConfirmDeleteWidgetState<T>();
-}
-
-class _ConfirmDeleteWidgetState<T extends BaseModel> extends State<_ConfirmDeleteWidget<T>> {
-  bool _isSubmitting = false;
-
-  @override
-  Widget build(BuildContext context) {
-    final trimmed = widget.label.trim();
-    final label = trimmed.isEmpty ? 'this item' : '"$trimmed"';
-    return AlertDialog(
-      title: Text('Confirm Delete', style: AppStyles.pageTitle(context)),
-      content: SizedBox(
-        width: Responsive.getDialogWidth(context),
-        child: Text(
-          'Are you sure you want to delete $label? ${_withTrailingSpace(widget.additionalWarning)}This action cannot be undone.',
-          style: AppStyles.standardBodyText(context),
-        ),
-      ),
-      actions: [
-        SizedBox(
-          width: Responsive.getDialogWidth(context),
-          child: Row(
-            children: [
-              Expanded(
-                child: HeliumElevatedButton(
-                  buttonText: 'Cancel',
-                  backgroundColor: context.colorScheme.outline,
-                  onPressed: () => Navigator.pop(context),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: HeliumElevatedButton(
-                  buttonText: 'Delete',
-                  backgroundColor: context.colorScheme.error,
-                  isLoading: _isSubmitting,
-                  onPressed: _handleDelete,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  static String _withTrailingSpace(String? additionalWarning) {
-    if (additionalWarning?.isNotEmpty ?? false) {
-      return '$additionalWarning ';
-    } else {
-      return '';
-    }
-  }
-
-  void _handleDelete() {
-    setState(() {
-      _isSubmitting = true;
-    });
-
-    Navigator.pop(context, true);
-    widget.onDelete(widget.item);
-  }
-}
+import 'package:heliumapp/presentation/ui/feedback/confirm_action_dialog.dart';
 
 Future<bool> showConfirmDeleteDialog<T extends BaseModel>({
   required BuildContext parentContext,
@@ -91,18 +8,20 @@ Future<bool> showConfirmDeleteDialog<T extends BaseModel>({
   required String label,
   required Function(T) onDelete,
   String? additionalWarning,
-}) {
-  return showDialog<bool>(
-    context: parentContext,
-    builder: (BuildContext dialogContext) {
-      return _ConfirmDeleteWidget<T>(
-        item: item,
-        label: label,
-        onDelete: onDelete,
-        additionalWarning: additionalWarning,
-      );
-    },
-  ).then(_wasConfirmed);
-}
+}) async {
+  final trimmed = label.trim();
+  final quotedLabel = trimmed.isEmpty ? 'this item' : '"$trimmed"';
+  final warning = (additionalWarning?.isNotEmpty ?? false)
+      ? '$additionalWarning '
+      : '';
 
-bool _wasConfirmed(bool? result) => result ?? false;
+  final confirmed = await showConfirmActionDialog(
+    context: parentContext,
+    title: 'Confirm Delete',
+    message:
+        'Are you sure you want to delete $quotedLabel? ${warning}This action cannot be undone.',
+    actionText: 'Delete',
+  );
+  if (confirmed) onDelete(item);
+  return confirmed;
+}

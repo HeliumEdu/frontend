@@ -1068,7 +1068,7 @@ Future<void> expectGroupDropdownGroups(
 }
 
 /// Assert we're on the Settings screen/dialog.
-/// Verifies: volunteer_activism icon, "Keep Helium Free" text, and "Change Password" button.
+/// Verifies: volunteer_activism icon, "Keep Helium Free" text, and "Security & API" row.
 /// [isDialog] should be true for both desktop (overlay dialog) and mobile (full-screen dialog).
 /// Dialog mode shows close (X) button; non-dialog mode shows back arrow.
 void expectOnSettingsScreen({required bool isDialog}) {
@@ -1083,9 +1083,9 @@ void expectOnSettingsScreen({required bool isDialog}) {
     reason: 'Settings: "Keep Helium Free" text should be shown',
   );
   expect(
-    find.text('Change Password'),
+    find.text('Security & API'),
     findsOneWidget,
-    reason: 'Settings: "Change Password" button should be shown',
+    reason: 'Settings: "Security & API" row should be shown',
   );
   // Browser title updates to Settings in both dialog and screen mode
   expectBrowserTitle('Settings');

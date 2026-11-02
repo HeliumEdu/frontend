@@ -16,6 +16,8 @@ class ApiUrl {
     return 'https://${host.replaceFirst('app.', 'api.')}';
   }
 
+  static String get docsUrl => '$baseUrl/docs/';
+
   // Unauthenticated URLs
   static const infoUrl = '/info/';
   static const authUserRegisterUrl = '/auth/user/register/';
@@ -38,6 +40,11 @@ class ApiUrl {
   static const authUserDeleteExampleScheduleUrl =
       '/auth/user/delete/exampleschedule/';
   static const authOAuthAuthorizeUrl = '/auth/oauth/authorize/';
+  static const authApiTokenUrl = '/auth/api-token/';
+  static const authUserConnectedAppsUrl = '/auth/user/connectedapps/';
+
+  static String authUserConnectedAppDetailUrl(int connectedAppId) =>
+      '/auth/user/connectedapps/$connectedAppId/';
 
   // Token
   static const authTokenRefreshUrl = '/auth/token/refresh/';

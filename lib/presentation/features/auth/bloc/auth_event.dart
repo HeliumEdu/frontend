@@ -55,6 +55,10 @@ class EnablePrivateFeedsEvent extends AuthEvent {}
 
 class DisablePrivateFeedsEvent extends AuthEvent {}
 
+class CreateApiTokenEvent extends AuthEvent {}
+
+class RevokeApiTokenEvent extends AuthEvent {}
+
 class ChangePasswordEvent extends AuthEvent {
   final String? oldPassword;
   final String newPassword;

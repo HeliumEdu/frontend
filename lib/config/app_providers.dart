@@ -26,6 +26,8 @@ import 'package:heliumapp/presentation/features/planner/bloc/planneritem_event.d
 import 'package:heliumapp/presentation/features/planner/bloc/planneritem_state.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/reminder_bloc.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/reminder_event.dart';
+import 'package:heliumapp/presentation/features/settings/bloc/connected_app_bloc.dart';
+import 'package:heliumapp/presentation/features/settings/bloc/connected_app_event.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/reminder_state.dart';
 import 'package:heliumapp/presentation/features/resources/bloc/resource_bloc.dart';
 import 'package:heliumapp/presentation/features/resources/bloc/resource_event.dart';
@@ -125,6 +127,10 @@ class AppProviders extends StatelessWidget {
           lazy: true,
           create: providerHelpers.createReminderBloc(),
         ),
+        BlocProvider<ConnectedAppBloc>(
+          lazy: true,
+          create: providerHelpers.createConnectedAppBloc(),
+        ),
       ],
       child: MultiBlocListener(
         listeners: [
@@ -148,6 +154,7 @@ class AppProviders extends StatelessWidget {
               context.read<GradeBloc>().add(ResetGradesEvent());
               context.read<AttachmentBloc>().add(ResetAttachmentsEvent());
               context.read<ReminderBloc>().add(ResetRemindersEvent());
+              context.read<ConnectedAppBloc>().add(ResetConnectedAppsEvent());
               context.read<NotificationCountBloc>().add(
                 ResetNotificationCountEvent(),
               );

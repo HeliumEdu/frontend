@@ -1,4 +1,5 @@
 import 'package:heliumapp/core/api_error_parser.dart';
+import 'package:heliumapp/data/models/auth/api_token_model.dart';
 import 'package:heliumapp/data/models/auth/oauth_authorization_model.dart';
 import 'package:heliumapp/data/models/auth/user_model.dart';
 
@@ -49,6 +50,19 @@ class AuthScheduleDataRefreshed extends AuthState {
 }
 
 class AuthPasswordChanged extends AuthState {}
+
+class AuthApiTokenCreated extends AuthState {
+  final ApiTokenModel apiToken;
+  final UserModel user;
+
+  AuthApiTokenCreated({required this.apiToken, required this.user});
+}
+
+class AuthApiTokenRevoked extends AuthState {
+  final UserModel user;
+
+  AuthApiTokenRevoked({required this.user});
+}
 
 class AuthEmailChangeRequested extends AuthState {
   final String newEmail;

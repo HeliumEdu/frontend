@@ -23,10 +23,13 @@ enum AnalyticsCategory {
 /// auto-collected event conventions.
 class AnalyticsEvent {
   // User behavior events
+  static const String apiTokenCreate = 'helium_api_token_create';
+  static const String apiTokenRevoke = 'helium_api_token_revoke';
   static const String attachmentUpload = 'helium_attachment_upload';
   static const String categoryCreate = 'helium_category_create';
   static const String connectAllow = 'helium_connect_allow';
   static const String connectDeny = 'helium_connect_deny';
+  static const String connectedAppRevoke = 'helium_connected_app_revoke';
   static const String courseCreate = 'helium_course_create';
   static const String courseGroupCreate = 'helium_course_group_create';
   static const String exampleScheduleClear = 'helium_example_schedule_clear';

@@ -8,6 +8,7 @@ class UserModel extends BaseModel {
   final bool hasUsablePassword;
   final bool hasOAuthProviders;
   final List<String> oauthProviders;
+  final DateTime? apiTokenCreatedAt;
 
   UserModel({
     required super.id,
@@ -17,6 +18,7 @@ class UserModel extends BaseModel {
     required this.hasUsablePassword,
     required this.hasOAuthProviders,
     this.oauthProviders = const [],
+    this.apiTokenCreatedAt,
   });
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
@@ -30,6 +32,9 @@ class UserModel extends BaseModel {
       oauthProviders: (json['oauth_providers'] as List<dynamic>? ?? [])
           .map((p) => p['provider'] as String)
           .toList(),
+      apiTokenCreatedAt: json['api_token_created_at'] != null
+          ? DateTime.parse(json['api_token_created_at'])
+          : null,
     );
   }
 }

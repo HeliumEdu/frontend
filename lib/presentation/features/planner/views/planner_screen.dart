@@ -74,7 +74,7 @@ import 'package:heliumapp/presentation/features/planner/widgets/todos_data_grid.
 import 'package:heliumapp/presentation/features/shared/bloc/core/base_event.dart';
 import 'package:heliumapp/presentation/navigation/shell/navigation_shell.dart';
 import 'package:heliumapp/presentation/ui/components/helium_checkbox_list_tile.dart';
-import 'package:heliumapp/presentation/ui/components/helium_elevated_button.dart';
+import 'package:heliumapp/presentation/ui/feedback/confirm_action_dialog.dart';
 import 'package:heliumapp/presentation/ui/components/helium_icon_button.dart';
 import 'package:heliumapp/presentation/ui/dialogs/helium_bottom_sheet.dart';
 import 'package:heliumapp/presentation/ui/feedback/error_card.dart';
@@ -3629,51 +3629,16 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
   /// Warns that skipping cancels every meeting the course has that day, not just
   /// the tapped one (skipping is a course-level cancellation). Returns `true` to
   /// skip all.
-  Future<bool> _confirmSkipAllMeetings(String courseTitle, DateTime date) async {
-    final confirmed = await showDialog<bool>(
+  Future<bool> _confirmSkipAllMeetings(String courseTitle, DateTime date) {
+    return showConfirmActionDialog(
       context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: Text(
-          'Skip all meetings that day?',
-          style: AppStyles.pageTitle(dialogContext),
-        ),
-        content: SizedBox(
-          width: Responsive.getDialogWidth(dialogContext),
-          child: Text(
-            '$courseTitle meets more than once on '
-            '${HeliumDateTime.formatDate(date)}. Skipping cancels all of its '
-            'meetings that day, not just this one.',
-            style: AppStyles.standardBodyText(dialogContext),
-          ),
-        ),
-        actions: [
-          SizedBox(
-            width: Responsive.getDialogWidth(dialogContext),
-            child: Row(
-              children: [
-                Expanded(
-                  child: HeliumElevatedButton(
-                    buttonText: 'Cancel',
-                    backgroundColor: dialogContext.colorScheme.outline,
-                    onPressed: () => Navigator.of(dialogContext).pop(false),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: HeliumElevatedButton(
-                    buttonText: 'Skip all',
-                    backgroundColor: dialogContext.colorScheme.error,
-                    onPressed: () => Navigator.of(dialogContext).pop(true),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
+      title: 'Skip all meetings that day?',
+      message:
+          '$courseTitle meets more than once on '
+          '${HeliumDateTime.formatDate(date)}. Skipping cancels all of its '
+          'meetings that day, not just this one.',
+      actionText: 'Skip all',
     );
-
-    return confirmed ?? false;
   }
 
   /// Shows a warning if homework dates fall outside the course's date range
@@ -3821,7 +3786,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
     _log.fine('Jumping to date: $date (setSelected: $setSelectedDate)');
     final truncatedDate = DateTime(date.year, date.month, date.day, date.hour);
     final displayDate = offsetForVisibility
-        ? truncatedDate.subtract(const Duration(hours: 2))
+        ? HeliumDateTime.visibleAnchorFor(truncatedDate)
         : truncatedDate;
 
     setState(() {
