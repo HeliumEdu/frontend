@@ -91,9 +91,13 @@ class DropDown<T> extends StatelessWidget {
                       Icon(item.iconData, color: item.iconColor ?? iconColor),
                       const SizedBox(width: _iconTextSpacing),
                     ],
-                    Text(
-                      item.label,
-                      style: AppStyles.formText(context),
+                    Flexible(
+                      child: Text(
+                        item.label,
+                        style: AppStyles.formText(context),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
                     ),
                   ],
                 ),

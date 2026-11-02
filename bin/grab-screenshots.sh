@@ -16,14 +16,18 @@
 # screenshots in alphabetical filename order, so the prefix preserves display
 # order in the App Store and Play Store listings.
 #
-# Run one device group at a time (boot/launch only the relevant sim/emulator),
-# then sign in to Helium and navigate. The script prompts at every step.
+# For each device you take, the script boots the simulator or emulator, builds
+# and launches Helium on it with `flutter run --no-resident`, and shuts the
+# device down after its shots. You sign in (first run only) and navigate; the script
+# prompts at every step.
 #
 # Requires:
 #   - xcrun simctl (Xcode CLT)        for iOS capture
 #   - adb (Android Platform Tools)    for Android capture
 #   - fastlane frameit                for device framing
 #   - ImageMagick 7+ (magick) or 6 (convert) for Pixel Tablet composite
+#   - flutter, and the "iPhone 15 Pro" / "iPad Pro 13-inch (M5)" simulators and
+#     Pixel_5 / Pixel_Tablet AVDs
 
 set -uo pipefail
 
@@ -37,7 +41,7 @@ WORKDIR=$(mktemp -d)
 
 mkdir -p "$IOS_DEST" "$ANDROID_PHONE_DEST" "$ANDROID_TABLET_DEST" \
   "$FRAMED_ROOT/ios" "$FRAMED_ROOT/android-phone" "$FRAMED_ROOT/android-tablet"
-trap 'rm -rf "$WORKDIR"' EXIT
+trap 'stop_device; rm -rf "$WORKDIR"' EXIT
 
 # ─── pre-flight: frameit frames must be downloaded ───────────────────────
 FRAMEIT_DIR="${HOME}/.fastlane/frameit/latest"
@@ -52,6 +56,8 @@ PHONE_SHOTS=(month-view grades edit-note todos agenda edit-assignment create-acc
 TABLET_SHOTS=(month-view grades edit-note todos week-view classes)
 # One shot per listing shows dark mode; the rest stay light.
 DARK_SHOTS=(agenda week-view)
+# Only this shot shows the notification bell's count; the rest are taken with it cleared.
+BELL_SHOT=month-view
 
 # ─── capture helpers ─────────────────────────────────────────────────────
 # Captures from the booted simulator of the step's kind (iPhone or iPad), so an
@@ -114,6 +120,94 @@ capture_android() {
     return 1
   fi
   adb -s "${matches[0]}" exec-out screencap -p > "$out"
+}
+
+# ─── devices ─────────────────────────────────────────────────────────────
+EMULATOR="${ANDROID_HOME:-$HOME/Library/Android/sdk}/emulator/emulator"
+running_ios_udid=""
+running_android_serial=""
+
+device_target() {
+  case "$1" in
+    iphone)       echo "iPhone 15 Pro" ;;
+    ipad)         echo "iPad Pro 13-inch (M5)" ;;
+    pixel-phone)  echo "Pixel_5" ;;
+    pixel-tablet) echo "Pixel_Tablet" ;;
+  esac
+}
+
+simulator_udid() {
+  xcrun simctl list devices available | awk -v name="$1" '
+    { line = $0; sub(/^[ \t]+/, "", line) }
+    index(line, name " (") == 1 && match(line, /\([0-9A-F-]{36}\)/) {
+      print substr(line, RSTART + 1, RLENGTH - 2); exit
+    }'
+}
+
+# Builds incrementally for the device, installs, launches and returns.
+run_helium_on() {
+  echo "  Building and launching Helium ..."
+  (cd "$REPO" && flutter run -d "$1" --no-resident) >"$WORKDIR/flutter-run.log" 2>&1 || {
+    echo "  ✗ flutter run failed; see the log below." >&2
+    tail -20 "$WORKDIR/flutter-run.log" >&2
+    return 1
+  }
+}
+
+start_ios() {
+  local name="$1"
+  local udid
+  udid=$(simulator_udid "$name")
+  if [[ -z "$udid" ]]; then
+    echo "  ✗ No '$name' simulator; create it in Xcode." >&2
+    return 1
+  fi
+  xcrun simctl boot "$udid" 2>/dev/null || true
+  running_ios_udid="$udid"
+  open -a "Device Hub" 2>/dev/null || true
+  run_helium_on "$udid"
+}
+
+start_android() {
+  local avd="$1"
+  "$EMULATOR" -avd "$avd" -no-snapshot-save >/dev/null 2>&1 &
+  local serial="" attempt
+  for attempt in $(seq 1 100); do
+    for serial in $(adb devices | awk 'NR > 1 && $2 == "device" { print $1 }'); do
+      [[ "$(adb -s "$serial" emu avd name 2>/dev/null | head -1 | tr -d '\r')" == "$avd" ]] &&
+        [[ "$(adb -s "$serial" shell getprop sys.boot_completed 2>/dev/null | tr -d '\r')" == 1 ]] &&
+        break 2
+    done
+    serial=""
+    sleep 3
+  done
+  if [[ -z "$serial" ]]; then
+    echo "  ✗ The $avd emulator did not boot." >&2
+    return 1
+  fi
+  running_android_serial="$serial"
+  run_helium_on "$serial"
+}
+
+start_device() {
+  local target
+  target=$(device_target "$1")
+  echo "  Starting $target ..."
+  case "$1" in
+    iphone|ipad) start_ios "$target" ;;
+    *)           start_android "$target" ;;
+  esac
+}
+
+stop_device() {
+  if [[ -n "$running_ios_udid" ]]; then
+    xcrun simctl shutdown "$running_ios_udid" 2>/dev/null || true
+    running_ios_udid=""
+  fi
+  if [[ -n "$running_android_serial" ]]; then
+    adb -s "$running_android_serial" emu kill >/dev/null 2>&1 || true
+    running_android_serial=""
+  fi
 }
 
 # ─── framing ─────────────────────────────────────────────────────────────
@@ -283,17 +377,29 @@ run_device() {
   echo "════════════════════════════════════════════════════════════"
   echo "  $label  (${#shots[@]} screenshots → $dest)"
   echo "════════════════════════════════════════════════════════════"
-  read -r -p "Boot the $label sim/emulator, launch Helium, sign in, then press Enter ('s' to skip this device): " reply
+  echo "The example schedule's reminders are shared by every device, so restore them if a previous device"
+  echo "cleared them: the bell should show its count for '$BELL_SHOT'."
+  read -r -p "Press Enter to start the $label with the latest Helium build ('s' to skip this device): " reply
   if [[ "$reply" == "s" || "$reply" == "S" ]]; then
     echo "Skipping $label."
     return 0
   fi
+  if ! start_device "$slug"; then
+    echo "  ✗ Couldn't start the $label; skipping it." >&2
+    stop_device
+    return 0
+  fi
+  read -r -p "  Helium is open on the $label. Sign in if it asks, then press Enter: " _
 
   local i=1
   for shot in "${shots[@]}"; do
     prompt_and_capture "$capture_fn" "$slug" "$frame_mode" "$dest" "$i" "$shot"
+    if [[ "$shot" == "$BELL_SHOT" ]]; then
+      echo "  🔔 Open the notification bell and clear the reminders, so the count is gone for the remaining shots."
+    fi
     ((i++))
   done
+  stop_device
 }
 
 # ─── go ──────────────────────────────────────────────────────────────────
@@ -303,7 +409,7 @@ echo "Pixel tablet → $ANDROID_TABLET_DEST"
 echo "Workdir      → $WORKDIR (cleaned on exit)"
 
 run_device "iPhone 15 Pro"    "iphone"       capture_ios     "frameit"      "$IOS_DEST"            "${PHONE_SHOTS[@]}"
-run_device "iPad Air 13\" M4" "ipad"         capture_ios     "frameit"      "$IOS_DEST"            "${TABLET_SHOTS[@]}"
+run_device "iPad Pro 13\" M5" "ipad"         capture_ios     "frameit"      "$IOS_DEST"            "${TABLET_SHOTS[@]}"
 run_device "Pixel 5"          "pixel-phone"  capture_android "frameit"      "$ANDROID_PHONE_DEST"  "${PHONE_SHOTS[@]}"
 run_device "Pixel Tablet"     "pixel-tablet" capture_android "pixel-tablet" "$ANDROID_TABLET_DEST" "${TABLET_SHOTS[@]}"
 
