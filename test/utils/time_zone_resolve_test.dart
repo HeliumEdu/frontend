@@ -15,7 +15,7 @@ void main() {
       expect(HeliumDateTime.resolveTimeZone('UTC'), 'UTC');
     });
 
-    test('legacy aliases resolve to their canonical zone, not UTC', () {
+    test('aliases resolve to their canonical zone, not UTC', () {
       expect(HeliumDateTime.resolveTimeZone('Asia/Calcutta'), 'Asia/Kolkata');
       expect(HeliumDateTime.resolveTimeZone('Asia/Saigon'), 'Asia/Ho_Chi_Minh');
       expect(HeliumDateTime.resolveTimeZone('Asia/Rangoon'), 'Asia/Yangon');

@@ -6,7 +6,7 @@ class AppRoute {
   static const String signinScreen = '/signin';
   static const String signupScreen = '/signup';
 
-  /// Legacy aliases
+  /// Alias paths, redirected to their current routes
   static const String loginScreen = '/login';
   static const String registerScreen = '/register';
   static const String forgotPasswordScreen = '/forgot';

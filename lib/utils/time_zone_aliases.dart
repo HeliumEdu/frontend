@@ -6,7 +6,7 @@
 /// IANA link (alias) names mapped to the selectable zone they point at.
 ///
 /// Device APIs report whatever the device is set to without canonicalizing,
-/// so a legacy alias will not be found in `TimeZoneConstants.all`.
+/// so an alias will not be found in `TimeZoneConstants.all`.
 ///
 /// Kept out of `time_zone_constants.dart`: the generator unions its output
 /// with what is on disk, and would read these back as shipped zones.

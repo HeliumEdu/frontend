@@ -58,7 +58,7 @@ Document? tryParseNotesDocument(Map<String, dynamic>? notes) {
 }
 
 /// Quill requires a document to end in a newline. Content lacking it (e.g. a
-/// legacy note ending in text or an embed) parses into a child-less document
+/// note ending in text or an embed) parses into a child-less document
 /// that crashes flutter_quill's hit-testing on tap. Returns [ops] terminated,
 /// leaving an empty list for [Document.fromJson] to reject into the placeholder.
 List<dynamic> _ensureTrailingNewline(List<dynamic> ops) {

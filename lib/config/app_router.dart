@@ -73,7 +73,7 @@ void initializeRouter({String? initialLocation}) {
         pageBuilder: (context, state) =>
             const MaterialPage(child: SignupScreen()),
       ),
-      // Legacy aliases
+      // Alias paths, redirected to their current routes
       GoRoute(
         path: AppRoute.loginScreen,
         redirect: (_, _) => AppRoute.signinScreen,
