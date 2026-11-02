@@ -16,8 +16,9 @@ For each shot the script lands on the right page at the right viewport and
 zoom and dismisses the Getting Started / What's New dialogs; you do the rest
 in the app (switch views, open a dialog, scroll), then confirm.
 
-The browser keeps its own profile (~/.helium-screenshots/chrome), so sign in
-once and later runs stay signed in.
+The browser keeps its own profile (~/.helium-screenshots/chrome). Google sign-in
+refuses a Playwright-driven browser, so each run first offers to open a plain
+Chrome on that profile to sign in; skip it while the session is still valid.
 
   APP_URL=http://localhost:8080 .venv/bin/python bin/grab-screenshots-web.py
 
@@ -26,6 +27,7 @@ Requires Google Chrome, Playwright and Pillow (make screenshots sets up .venv).
 
 import base64
 import io
+import math
 import os
 import subprocess
 import sys
@@ -59,26 +61,32 @@ PRESS_SIZE = (1440, 840)
 PRESS_SCALE = 2
 LAPTOP_VIEWPORT_ORIGIN = (51, 209)
 
+# Top-level pages: the crop is everything right of the 88px nav rail, and the viewport ends where the crop
+# does, so the page's 8px edge shows on both sides of the content.
+PAGE_VIEWPORT_WIDTH = math.ceil(88 + FEATURE_CROP[0] / FEATURE_SCALE)
+PAGE_CROP_X = round(88 * FEATURE_SCALE)
+
 # (slug, route, viewport width, crop x, crop y), crop origin in device px.
 FEATURE_SHOTS = [
-    ("month-view", "/planner", 1144, 176, 106),
-    ("week-view", "/planner", 1144, 176, 217),
-    ("todos", "/planner", 1144, 176, 106),
+    ("month-view", "/planner", PAGE_VIEWPORT_WIDTH, PAGE_CROP_X, 106),
+    ("week-view", "/planner", PAGE_VIEWPORT_WIDTH, PAGE_CROP_X, 217),
+    ("todos", "/planner", PAGE_VIEWPORT_WIDTH, PAGE_CROP_X, 106),
     ("edit-assignment", "/planner", 1144, 52, 325),
     ("reminders", "/planner/notifications", 1144, 167, 23),
     ("external-calendars", "/planner", 1144, 44, 19),
-    ("grades-dashboard", "/grades", 1144, 176, 231),
-    ("grades-breakdown", "/grades", 1144, 176, 24),
+    ("grades-dashboard", "/grades", PAGE_VIEWPORT_WIDTH, PAGE_CROP_X, 231),
+    ("grades-breakdown", "/grades", PAGE_VIEWPORT_WIDTH, PAGE_CROP_X, 24),
     ("grade-calculator", "/grades", 1144, 88, 181),
-    ("class-manager", "/classes", 1144, 176, 24),
-    ("notebook", "/notebook", 1144, 176, 24),
-    ("edit-note", "/notebook", 1064, 10, 51),
-    ("resources", "/resources", 1144, 176, 24),
+    ("class-manager", "/classes", PAGE_VIEWPORT_WIDTH, PAGE_CROP_X, 24),
+    ("notebook", "/notebook", PAGE_VIEWPORT_WIDTH, PAGE_CROP_X, 24),
+    ("edit-note", "/notebook", 1045, 0, 0),
+    ("resources", "/resources", PAGE_VIEWPORT_WIDTH, PAGE_CROP_X, 24),
 ]
 
 # One-time setup to show before a shot's prompt.
 SETUP_NOTES = {
-    "todos": "Open the filter menu with two items selected.",
+    "todos": 'Open the filter menu, check the "Short Stories" and "Quiz" categories, and scroll the menu so '
+             '"Graded" is at its top.',
     "external-calendars": 'With Agenda view showing behind it, add a dark green named "Molecular Biology '
                           'Seminars" with URL https://mcb.berkeley.edu/seminars/mcb_seminars.ics — delete when done.',
 }
@@ -146,7 +154,8 @@ class Browser:
         time.sleep(PAGE_SETTLE_SECONDS)
         while self.signed_in and is_signed_out(self.page):
             print(f"\n{BANNER}\n  Sign in\n{BANNER}")
-            ask("The browser is open. Sign in to Helium in that window, then press Enter to continue: ")
+            ask("Signed out. Sign in with your Helium email and password in that window, then press Enter "
+                "(Google sign-in only works from the sign-in step at the start; 'q' to quit and rerun): ")
             self.page.goto(f"{APP_URL}{route}")
             time.sleep(PAGE_SETTLE_SECONDS)
         # Getting Started, then What's New if it follows; Escape is a no-op otherwise.
@@ -171,7 +180,16 @@ def confirm_capture(slug):
     return True
 
 
+def has_same_pixels(image, path):
+    with Image.open(path) as existing:
+        return existing.size == image.size and existing.convert("RGBA").tobytes() == image.convert("RGBA").tobytes()
+
+
 def save(image, out):
+    """Skips the write when out already has these pixels, so an unchanged screen leaves www clean."""
+    if out.exists() and has_same_pixels(image, out):
+        print(f"  ⊜ {out} unchanged")
+        return
     image.save(out, optimize=True)
     print(f"  ✓ {out}")
 
@@ -254,6 +272,22 @@ def run_device(session, label, dest, capture, shots, signed_in=True):
         capture(browser, *shot)
 
 
+def sign_in_with_plain_chrome():
+    """Google sign-in refuses the Playwright-driven browser, so sign in from a plain Chrome on the same profile."""
+    print(f"\n{BANNER}\n  Sign in\n{BANNER}")
+    if ask("Press Enter to open Chrome and sign in to Helium ('s' if already signed in): ") == "s":
+        return
+    subprocess.run(["open", "-na", "Google Chrome", "--args", f"--user-data-dir={PROFILE}", f"{APP_URL}/planner"],
+                   check=True)
+    ask("Sign in to Helium in that Chrome window, quit it with ⌘Q, then press Enter: ")
+    while is_profile_in_use():
+        ask("That Chrome window is still open. Quit it with ⌘Q, then press Enter: ")
+
+
+def is_profile_in_use():
+    return subprocess.run(["pgrep", "-f", "--", f"--user-data-dir={PROFILE}"], capture_output=True).returncode == 0
+
+
 def is_signed_out(page):
     return "/signin" in page.url or "/login" in page.url
 
@@ -282,6 +316,7 @@ def main():
     with sync_playwright() as playwright:
         session = Session(playwright)
         try:
+            sign_in_with_plain_chrome()
             if LOGGED_OUT_SHOTS:
                 run_device(session, "Web: signed-out shots (1144x760 @1.8x)", FEATURE_DEST, capture_feature,
                            LOGGED_OUT_SHOTS, signed_in=False)

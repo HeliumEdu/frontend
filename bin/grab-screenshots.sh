@@ -1,11 +1,15 @@
 #!/usr/bin/env bash
 # Captures Helium marketing screenshots directly from the booted iOS Simulator
-# or Android Emulator, frames each via fastlane frameit, and drops the framed
-# PNG straight into the relevant fastlane directory:
+# or Android Emulator and frames each via fastlane frameit. The plain framed
+# PNG goes to screenshots/framed/ (the device mockups and press kit come from
+# there), and a captioned copy for the store listing (bin/caption-screenshot.sh)
+# goes into the relevant fastlane directory:
 #
 #   ios/fastlane/screenshots/en-US/
 #   android/fastlane/metadata/android/en-US/images/phoneScreenshots/
 #   android/fastlane/metadata/android/en-US/images/tenInchScreenshots/
+#
+# Captions live in bin/screenshot-captions.tsv, keyed by shot name.
 #
 # Filenames are prefixed with a 2-digit ordinal (01-, 02-, ...) matching each
 # shot's position in the PHONE_SHOTS / TABLET_SHOTS arrays — fastlane uploads
@@ -24,12 +28,15 @@
 set -uo pipefail
 
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+source "$REPO/bin/image-helpers.sh"
 IOS_DEST="$REPO/ios/fastlane/screenshots/en-US"
 ANDROID_PHONE_DEST="$REPO/android/fastlane/metadata/android/en-US/images/phoneScreenshots"
 ANDROID_TABLET_DEST="$REPO/android/fastlane/metadata/android/en-US/images/tenInchScreenshots"
+FRAMED_ROOT="$REPO/screenshots/framed"
 WORKDIR=$(mktemp -d)
 
-mkdir -p "$IOS_DEST" "$ANDROID_PHONE_DEST" "$ANDROID_TABLET_DEST"
+mkdir -p "$IOS_DEST" "$ANDROID_PHONE_DEST" "$ANDROID_TABLET_DEST" \
+  "$FRAMED_ROOT/ios" "$FRAMED_ROOT/android-phone" "$FRAMED_ROOT/android-tablet"
 trap 'rm -rf "$WORKDIR"' EXIT
 
 # ─── pre-flight: frameit frames must be downloaded ───────────────────────
@@ -43,40 +50,70 @@ fi
 # ─── shot lists per device class ─────────────────────────────────────────
 PHONE_SHOTS=(month-view grades edit-note todos agenda edit-assignment create-account)
 TABLET_SHOTS=(month-view grades edit-note todos week-view classes)
+# One shot per listing shows dark mode; the rest stay light.
+DARK_SHOTS=(agenda week-view)
 
 # ─── capture helpers ─────────────────────────────────────────────────────
+# Captures from the booted simulator of the step's kind (iPhone or iPad), so an
+# iPhone and an iPad can both stay booted; `simctl io booted` would pick one of
+# them arbitrarily.
 capture_ios() {
   local out="$1"
+  local device_slug="$2"
   if ! command -v xcrun >/dev/null; then
     echo "  ✗ xcrun not found; install Xcode Command Line Tools." >&2
     return 1
   fi
-  if ! xcrun simctl list devices booted | grep -q "Booted"; then
-    echo "  ✗ No iOS Simulator booted." >&2
+  local kind="iPhone"
+  [[ "$device_slug" == "ipad" ]] && kind="iPad"
+  local udids
+  udids=$(xcrun simctl list devices booted | awk -v kind="$kind" '
+    index($1, kind) == 1 && /\(Booted\)/ {
+      if (match($0, /\([0-9A-F-]{36}\)/)) print substr($0, RSTART + 1, RLENGTH - 2)
+    }')
+  local count
+  count=$(printf '%s' "$udids" | grep -c . || true)
+  if [[ "$count" -eq 0 ]]; then
+    echo "  ✗ No booted $kind simulator." >&2
     return 1
   fi
-  xcrun simctl io booted screenshot "$out" >/dev/null 2>&1
+  if [[ "$count" -gt 1 ]]; then
+    echo "  ✗ Multiple booted $kind simulators; shut down all but one." >&2
+    return 1
+  fi
+  xcrun simctl io "$udids" screenshot "$out" >/dev/null 2>&1
 }
 
+# Captures from the connected device of the step's kind (phone or tablet, by
+# Android's own tablet flag), so a phone and a tablet emulator can both run.
 capture_android() {
   local out="$1"
+  local device_slug="$2"
   if ! command -v adb >/dev/null; then
     echo "  ✗ adb not found; install Android Platform Tools." >&2
     return 1
   fi
-  local devices
-  devices=$(adb devices | tail -n +2 | awk '$2=="device"{print $1}')
-  if [[ -z "$devices" ]]; then
-    echo "  ✗ No Android emulator/device connected." >&2
+  local want_tablet=false
+  [[ "$device_slug" == "pixel-tablet" ]] && want_tablet=true
+  local kind="phone"
+  $want_tablet && kind="tablet"
+  local matches=()
+  local serial characteristics is_tablet
+  for serial in $(adb devices | tail -n +2 | awk '$2=="device"{print $1}'); do
+    characteristics=$(adb -s "$serial" shell getprop ro.build.characteristics | tr -d '\r')
+    is_tablet=false
+    [[ "$characteristics" == *tablet* ]] && is_tablet=true
+    [[ "$is_tablet" == "$want_tablet" ]] && matches+=("$serial")
+  done
+  if [[ ${#matches[@]} -eq 0 ]]; then
+    echo "  ✗ No Android $kind emulator/device connected." >&2
     return 1
   fi
-  local count
-  count=$(echo "$devices" | wc -l | tr -d ' ')
-  if [[ "$count" -gt 1 ]]; then
-    echo "  ✗ Multiple Android devices connected; only run one emulator." >&2
+  if [[ ${#matches[@]} -gt 1 ]]; then
+    echo "  ✗ Multiple Android ${kind}s connected; only run one." >&2
     return 1
   fi
-  adb exec-out screencap -p > "$out"
+  adb -s "${matches[0]}" exec-out screencap -p > "$out"
 }
 
 # ─── framing ─────────────────────────────────────────────────────────────
@@ -99,6 +136,37 @@ write_framefile() {
 FRAMEFILE
 }
 
+framed_dir_for() {
+  case "$1" in
+    "$IOS_DEST")            echo "$FRAMED_ROOT/ios" ;;
+    "$ANDROID_PHONE_DEST")  echo "$FRAMED_ROOT/android-phone" ;;
+    "$ANDROID_TABLET_DEST") echo "$FRAMED_ROOT/android-tablet" ;;
+  esac
+}
+
+# Keeps the plain framed shot and writes its captioned store copy to dest.
+finish_framed() {
+  local framed="$1"  # framed png in $WORKDIR
+  local slug="$2"
+  local dest="$3"
+  local name
+  name="$(basename "$framed")"
+  local framed_dir
+  framed_dir="$(framed_dir_for "$dest")"
+
+  if copy_if_changed "$framed" "$framed_dir/$name"; then
+    echo "  ✓ $framed_dir/$name"
+  else
+    echo "  ⊜ $framed_dir/$name unchanged"
+  fi
+  if ! "$REPO/bin/caption-screenshot.sh" "$framed" "$dest/$name" "$slug"; then
+    echo "  ✗ Captioning failed for $name" >&2
+    rm -f "$framed"
+    exit 1
+  fi
+  rm -f "$framed"
+}
+
 frame_and_move() {
   local raw="$1"     # raw png in $WORKDIR
   local slug="$2"    # e.g. 01-month-view_iphone
@@ -112,9 +180,8 @@ frame_and_move() {
   ) || true
 
   if [[ -f "$WORKDIR/$framed" ]]; then
-    mv "$WORKDIR/$framed" "$dest/$framed"
     rm -f "$raw"
-    echo "  ✓ $dest/$framed"
+    finish_framed "$WORKDIR/$framed" "$slug" "$dest"
   else
     echo "  ✗ frameit failed to produce $framed" >&2
     echo "    Check /tmp/frameit.log for details." >&2
@@ -134,7 +201,7 @@ composite_pixel_tablet() {
   local raw="$1"
   local slug="$2"
   local dest="$3"
-  local framed="$dest/${slug}_framed.png"
+  local framed="$WORKDIR/${slug}_framed.png"
 
   if [[ ! -f "$PIXEL_TABLET_FRAME" ]]; then
     echo "  ✗ Pixel Tablet frame missing at $PIXEL_TABLET_FRAME"
@@ -154,7 +221,7 @@ composite_pixel_tablet() {
       "$framed"
   fi
   rm -f "$raw"
-  echo "  ✓ $framed"
+  finish_framed "$framed" "$slug" "$dest"
 }
 
 # ─── per-screenshot loop ─────────────────────────────────────────────────
@@ -171,18 +238,27 @@ prompt_and_capture() {
   local slug="${prefix}-${shot}_${device_slug}"
   local raw="$WORKDIR/${slug}.png"
 
+  local is_dark=false
+  [[ " ${DARK_SHOTS[*]} " == *" $shot "* ]] && is_dark=true
+
   echo ""
+  if $is_dark; then
+    echo "  🌙 Switch Helium to dark mode for this shot (Settings, moon icon)."
+  fi
   read -r -p "  → Navigate to '${shot}'. Press Enter to capture, 's' to skip, 'q' to quit: " reply
   case "$reply" in
     q|Q) echo "Quitting."; exit 0 ;;
     s|S) echo "  ↷ skipped"; return 0 ;;
   esac
 
-  if ! $capture_fn "$raw"; then
+  if ! $capture_fn "$raw" "$device_slug"; then
     echo "  Capture failed; skipping $slug"
     return 0
   fi
   echo "  📸 captured $(basename "$raw")"
+  if $is_dark; then
+    echo "  ☀️  Switch Helium back to light mode before the next shot."
+  fi
 
   case "$frame_mode" in
     frameit)      frame_and_move "$raw" "$slug" "$dest" || true ;;
@@ -244,26 +320,10 @@ for raw in "$IOS_DEST"/*.png; do
   basename="$(basename "$raw" .png)"
   # Skip framed files
   [[ "$basename" == *_framed ]] && continue
-  framed_path="$IOS_DEST/${basename}_framed.png"
   echo "  Framing $basename ..."
-  cp "$raw" "$WORKDIR/${basename}.png"
-  write_framefile
-  (
-    cd "$WORKDIR"
-    fastlane frameit >/tmp/frameit.log 2>&1
-  ) || true
-  if [[ -f "$WORKDIR/${basename}_framed.png" ]]; then
-    mv "$WORKDIR/${basename}_framed.png" "$framed_path"
-    rm -f "$raw" "$WORKDIR/${basename}.png"
-    echo "  ✓ $(basename "$framed_path")"
-    ((FRAMED_COUNT++))
-  else
-    echo "  ✗ frameit failed to produce ${basename}_framed.png" >&2
-    echo "    Check /tmp/frameit.log for details." >&2
-    echo "    Run: make screenshots" >&2
-    rm -f "$WORKDIR/${basename}.png"
-    exit 1
-  fi
+  mv "$raw" "$WORKDIR/${basename}.png"
+  frame_and_move "$WORKDIR/${basename}.png" "$basename" "$IOS_DEST"
+  ((FRAMED_COUNT++))
 done
 if [[ "$FRAMED_COUNT" -eq 0 ]]; then
   echo "  (none found)"

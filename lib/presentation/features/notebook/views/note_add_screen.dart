@@ -633,8 +633,8 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
   @override
   bool get isContentBoxed => true;
 
-  /// On phones the editor runs edge to edge; the title row carries its own
-  /// inset.
+  /// On phones the editor runs edge to edge. The title row sits at the screen
+  /// edge with the toolbar, so its text lines up with the note body.
   @override
   EdgeInsets get scaffoldInsets => Responsive.useCompactLayout(context)
       ? const EdgeInsets.only(top: AppConstants.contentTopInset)
@@ -1073,7 +1073,7 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.symmetric(
-                horizontal: AppConstants.unboxedContentInset,
+                horizontal: AppConstants.pageEdgeInset,
               ),
               child: Column(
                 children: [

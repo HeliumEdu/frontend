@@ -2,7 +2,11 @@
 # Letterbox-pads framed iOS device screenshots to App Store Connect's
 # accepted dimensions, preserving the device-frame proportions. Writes back
 # to ios/fastlane/screenshots/en-US/ in place — operation is idempotent
-# (re-running on already-scaled files is a no-op).
+# (re-running on already-scaled files is a no-op). Captioned store shots from
+# bin/caption-screenshot.sh are already at these dimensions.
+#
+# The device mockups (app onboarding, www) and the press kit come from the
+# plain framed shots in screenshots/framed/ios/, never the captioned ones.
 #
 # Override background color (e.g. brand blue):
 #   BG_COLOR='#418eb9' ./bin/scale-for-appstore.sh
@@ -16,7 +20,9 @@
 set -uo pipefail
 
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+source "$REPO/bin/image-helpers.sh"
 DIR="$REPO/ios/fastlane/screenshots/en-US"
+FRAMED_DIR="$REPO/screenshots/framed/ios"
 BG_COLOR="${BG_COLOR:-white}"
 
 if command -v magick >/dev/null; then
@@ -44,7 +50,7 @@ letterbox() {
     -gravity center \
     -background "$BG_COLOR" \
     -extent "${w}x${h}" \
-    "$tmp"
+    "${PNG_STABLE[@]}" "$tmp"
   mv "$tmp" "$in"
 }
 
@@ -54,7 +60,7 @@ WWW_FRAMES="$REPO/../www/src/assets/img/screenshots/frames"
 
 copy_frame_asset() {
   local src_name="$1" flutter_name="$2" www_name="$3" target_w="$4" target_h="$5"
-  local src="$DIR/$src_name"
+  local src="$FRAMED_DIR/$src_name"
   [[ -f "$src" ]] || return 0
   local dims
   dims=$("${IM_IDENTIFY[@]}" -format "%wx%h" "$src")
@@ -65,12 +71,11 @@ copy_frame_asset() {
   local dsts=("$FLUTTER_ASSETS/$flutter_name" "$WWW_FRAMES/$www_name")
   for dst in "${dsts[@]}"; do
     [[ -d "$(dirname "$dst")" ]] || continue
-    if [[ -f "$dst" ]] && cmp -s "$src" "$dst"; then
-      echo "  ⊜ $(basename "$dst") unchanged"
-    else
-      cp "$src" "$dst"
+    if copy_if_changed "$src" "$dst"; then
       echo "  ✓ $(basename "$dst")"
-      ((frame_copied++))
+      frame_copied=$((frame_copied + 1))
+    else
+      echo "  ⊜ $(basename "$dst") unchanged"
     fi
   done
 }
@@ -131,14 +136,23 @@ if [[ -d "$WWW_MOBILE" ]]; then
   )
   copied=0
   for entry in "${PRESS_MAP[@]}"; do
-    src="$DIR/${entry%%:*}"
+    src="$FRAMED_DIR/${entry%%:*}"
     dst="$WWW_MOBILE/${entry##*:}"
-    if [[ -f "$dst" ]] && cmp -s "$src" "$dst"; then
-      echo "  ⊜ ${entry##*:} unchanged"
-    else
-      cp "$src" "$dst"
+    if [[ ! -f "$src" ]]; then
+      echo "  ⚠ ${entry%%:*} not in $FRAMED_DIR; skipping"
+      continue
+    fi
+    press=$(mktemp -t press.XXXXXX.png)
+    cp "$src" "$press"
+    case "$src" in
+      *_iphone_framed.png) letterbox "$press" 1320 2868 || true ;;
+      *_ipad_framed.png)   letterbox "$press" 2064 2752 || true ;;
+    esac
+    if replace_if_changed "$press" "$dst"; then
       echo "  ✓ ${entry##*:}"
-      ((copied++))
+      copied=$((copied + 1))
+    else
+      echo "  ⊜ ${entry##*:} unchanged"
     fi
   done
   echo "  ($copied files updated)"

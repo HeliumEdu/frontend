@@ -1,4 +1,4 @@
-.PHONY: all env install screenshots clean clean-chrome icons sync-assets build-android build-android-release build-aab build-ios-dev build-ios build-ios-release build-ipa update-version firebase-config build-web upload-web-symbols upload-ios-symbols upload-android-symbols test start-platform stop-platform install-chromedriver test-integration test-integration-smoke test-playwright coverage run-devserver build-docker-local build-docker run-docker stop-docker restart-docker publish promote
+.PHONY: all env install screenshots screenshots-caption clean clean-chrome icons sync-assets build-android build-android-release build-aab build-ios-dev build-ios build-ios-release build-ipa update-version firebase-config build-web upload-web-symbols upload-ios-symbols upload-android-symbols test start-platform stop-platform install-chromedriver test-integration test-integration-smoke test-playwright coverage run-devserver build-docker-local build-docker run-docker stop-docker restart-docker publish promote
 
 SHELL := /usr/bin/env bash
 TAG_VERSION ?= latest
@@ -151,6 +151,10 @@ screenshots:
 	@[ -x .venv/bin/python ] || python3 -m venv .venv
 	@.venv/bin/python -c 'import playwright, PIL' 2>/dev/null || .venv/bin/pip install -q playwright pillow
 	@.venv/bin/python bin/grab-screenshots-web.py
+
+screenshots-caption:
+	@brew list imagemagick >/dev/null 2>&1 || brew install imagemagick
+	@./bin/recaption-screenshots.sh
 
 clean:
 	flutter clean
