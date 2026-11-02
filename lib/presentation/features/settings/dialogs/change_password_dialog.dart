@@ -9,6 +9,7 @@ import 'package:heliumapp/presentation/features/shared/controllers/basic_form_co
 import 'package:heliumapp/presentation/ui/components/helium_password_field.dart';
 import 'package:heliumapp/presentation/ui/dialogs/base_dialog_state.dart';
 import 'package:heliumapp/presentation/ui/feedback/warning_container.dart';
+import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/platform_behavior.dart';
 
 class _ChangePasswordDialogWidget extends StatefulWidget {
@@ -74,7 +75,7 @@ class _ChangePasswordDialogState
               text:
                   'Changing your password also revokes your API token, so anything using it will stop working.',
             ),
-            const SizedBox(height: 14),
+            const SizedBox(height: AppConstants.contentTopInset),
           ],
           if (!widget.passwordless) ...[
             HeliumPasswordField(
