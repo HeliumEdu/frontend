@@ -708,7 +708,7 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
           _buildSettingsItem(
             icon: Icons.shield_outlined,
             label: 'Security & API',
-            hint: 'Password, API token, and connected apps',
+            hint: 'Password, API token, and apps',
             onTap: () => _navigateToSubSettings(SettingsSubScreen.security),
             iconColor: context.colorScheme.primary,
           ),

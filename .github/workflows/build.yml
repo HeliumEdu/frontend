@@ -177,6 +177,10 @@ jobs:
 
   build-web:
     name: Build web
+    # deploy-web compiles the web build whenever it runs
+    if: >-
+      ${{ !((github.event_name == 'push' && github.ref == 'refs/heads/develop') ||
+      (github.event_name == 'workflow_dispatch' && inputs.deploy_web == 'dev')) }}
 
     runs-on: ubuntu-latest
 
