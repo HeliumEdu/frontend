@@ -288,9 +288,9 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
         categories: results[5] as List<CategoryModel>,
       ));
     } on HeliumException catch (e) {
-      emit(NotesError(origin: event.origin, message: e.message));
+      emit(LinkableEntitiesFailed(origin: event.origin, message: e.message));
     } catch (e) {
-      emit(NotesError(
+      emit(LinkableEntitiesFailed(
         origin: event.origin,
         message: 'Failed to load items.',
       ));

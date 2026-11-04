@@ -8,7 +8,7 @@ class CourseReminders extends BaseReminders {
     super.key,
     required super.entityId,
     required super.isEdit,
-    super.userSettings,
+    required super.userSettings,
     super.headerTitle,
   });
 
@@ -27,7 +27,7 @@ class _CourseRemindersContent extends BaseRemindersContent {
   const _CourseRemindersContent({
     required super.entityId,
     required super.isEdit,
-    super.userSettings,
+    required super.userSettings,
     super.headerTitle,
   });
 

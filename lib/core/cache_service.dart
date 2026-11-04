@@ -72,6 +72,12 @@ class CacheService with WidgetsBindingObserver {
         _cacheInterceptor.onResponse(response, handler);
       },
       onError: (error, handler) {
+        final method = error.requestOptions.method.toUpperCase();
+        final statusCode = error.response?.statusCode ?? 0;
+        if (method != 'GET' && statusCode >= 200 && statusCode < 300) {
+          // The server applied the mutation even though its response failed
+          invalidateAll();
+        }
         _cacheInterceptor.onError(error, handler);
       },
     );

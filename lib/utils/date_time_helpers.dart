@@ -119,6 +119,51 @@ class HeliumDateTime {
     return hours == 1 ? 'about an hour' : 'about $hours hours';
   }
 
+  /// How [instant] falls relative to [reference]: "about 2 days after",
+  /// "3 minutes before", or "around the same time as" within a minute.
+  static String describeRelativeTo(DateTime instant, DateTime reference) {
+    final gap = instant.difference(reference);
+    if (gap.abs() < const Duration(minutes: 1)) return 'around the same time as';
+    final direction = gap.isNegative ? 'before' : 'after';
+    return '${_describeGap(gap.abs())} $direction';
+  }
+
+  static String _describeGap(Duration gap) {
+    if ((gap.inMinutes / 60).round() < Duration.hoursPerDay) {
+      return describeWait(gap);
+    }
+    final days = (gap.inMinutes / Duration.minutesPerDay).round();
+    return days == 1 ? 'about a day' : 'about $days days';
+  }
+
+  /// When [instant] happened in [timeZone], in only as much detail as places
+  /// it from today: "at 5:42 PM", "on Tue at 5:42 PM" within the past week,
+  /// then "on Oct 21 at 5:42 PM", with the year once it differs.
+  static String describeWhen(
+    DateTime instant,
+    tz.Location timeZone, {
+    DateTime? now,
+  }) {
+    final local = toLocal(instant, timeZone);
+    final today = toLocal(now ?? DateTime.now(), timeZone);
+    final time = 'at ${formatTime(local)}';
+    final daysAgo = calendarDaysBetween(local, today);
+    if (daysAgo <= 0) return time;
+    if (daysAgo < DateTime.daysPerWeek) {
+      return 'on ${formatDayNameShort(local)} $time';
+    }
+    return 'on ${formatDate(local, showYear: local.year != today.year)} $time';
+  }
+
+  /// The later of two ISO 8601 timestamps, or whichever one parses.
+  static String? laterTimestamp(String? first, String? second) {
+    final firstAt = first == null ? null : DateTime.tryParse(first);
+    final secondAt = second == null ? null : DateTime.tryParse(second);
+    if (firstAt == null) return second;
+    if (secondAt == null) return first;
+    return secondAt.isAfter(firstAt) ? second : first;
+  }
+
   /// A calendar display date that scrolls a day or week view to two hours
   /// before [time], so [time] shows with context above it. Never earlier than
   /// the start of [time]'s day, so the visible day, week, and month stay put.
@@ -147,6 +192,30 @@ class HeliumDateTime {
   /// calendar-day length of [originalStart]..[originalEnd] across DST.
   static DateTime allDayEndAfterMove(DateTime newStart, DateTime originalStart, DateTime originalEnd) =>
       addDays(newStart, calendarDaysBetween(originalStart, originalEnd));
+
+  /// The last date an item occupies, given its [end]: the day before an
+  /// all-day item's exclusive end, or the day a timed item's end falls on.
+  static DateTime lastDayOf(DateTime end, {required bool allDay}) =>
+      dateOnly(allDay ? addDays(end, -1) : end);
+
+  /// Whether an item from [start] to [end] falls within [rangeStart] up to
+  /// [rangeEnd]. An item with no length counts when its instant is in range.
+  static bool occursWithin(DateTime start, DateTime end, DateTime rangeStart, DateTime rangeEnd) =>
+      start.isBefore(rangeEnd) && (end.isAfter(rangeStart) || !start.isBefore(rangeStart));
+
+  /// [rule] with a UTC `UNTIL` rewritten as wall clock in [timeZone], the zone
+  /// its occurrences are expanded in.
+  static String recurrenceRuleWithLocalUntil(String rule, tz.Location timeZone) {
+    final match = _utcUntil.firstMatch(rule);
+    if (match == null) {
+      return rule;
+    }
+    final until = tz.TZDateTime.from(DateTime.parse(match.group(1)!), timeZone);
+    return rule.replaceRange(match.start, match.end, 'UNTIL=${_recurrenceDateTime.format(until)}');
+  }
+
+  static final _utcUntil = RegExp(r'UNTIL=(\d{8}T\d{6}Z)');
+  static final _recurrenceDateTime = DateFormat("yyyyMMdd'T'HHmmss");
 
   /// The number of calendar days from [start]'s date to [end]'s date, read
   /// from each value's own components.
@@ -234,7 +303,7 @@ class HeliumDateTime {
     try {
       pattern = DateFormat.yMd(locale.toString()).pattern ?? '';
     } on ArgumentError {
-      return FallbackConstants.defaultDateFormat;
+      return RegionalFormatConstants.dateFormatMonthDayYear;
     }
     final monthFirst = !pattern.startsWith('y') && pattern.indexOf('M') < pattern.indexOf('d');
     return monthFirst
@@ -250,7 +319,7 @@ class HeliumDateTime {
       final mondayBased = DateFormat.yMd(locale.toString()).dateSymbols.FIRSTDAYOFWEEK;
       return (mondayBased + 1) % DateTime.daysPerWeek;
     } on ArgumentError {
-      return FallbackConstants.defaultWeekStartsOn;
+      return RegionalFormatConstants.weekStartsOnSunday;
     }
   }
 
@@ -269,7 +338,7 @@ class HeliumDateTime {
           ? RegionalFormatConstants.timeFormatTwentyFourHour
           : RegionalFormatConstants.timeFormatTwelveHour;
     } on ArgumentError {
-      return FallbackConstants.defaultTimeFormat;
+      return RegionalFormatConstants.timeFormatTwelveHour;
     }
   }
 

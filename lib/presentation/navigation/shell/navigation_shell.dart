@@ -12,6 +12,8 @@ import 'package:heliumapp/core/dio_client.dart';
 import 'package:heliumapp/data/models/auth/request/update_settings_request_model.dart';
 import 'package:heliumapp/core/fcm_service.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/core/base_event.dart';
+import 'package:heliumapp/presentation/features/shared/bloc/info/info_bloc.dart';
+import 'package:heliumapp/presentation/features/shared/bloc/info/info_event.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/notification_count/notification_count_bloc.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/notification_count/notification_count_event.dart';
 import 'package:heliumapp/core/notification_reconciler.dart';
@@ -190,6 +192,7 @@ class _NavigationShellState extends State<NavigationShell> {
 
     DioClient().cacheService.addInactivityResumeListener(_checkGettingStartedDialog);
     DioClient().cacheService.addInactivityResumeListener(_clearScreenDropdownFilters);
+    DioClient().cacheService.addInactivityResumeListener(_refreshInfo);
     DioClient().cacheService.addQuickResumeListener(_refreshNotificationCount);
     _checkDialogs();
     _refreshNotificationCount();
@@ -203,6 +206,7 @@ class _NavigationShellState extends State<NavigationShell> {
     DioClient().cacheService.removeInactivityResumeListener(
       _clearScreenDropdownFilters,
     );
+    DioClient().cacheService.removeInactivityResumeListener(_refreshInfo);
     DioClient().cacheService.removeQuickResumeListener(
       _refreshNotificationCount,
     );
@@ -216,6 +220,8 @@ class _NavigationShellState extends State<NavigationShell> {
     );
     unawaited(NotificationReconciler().reconcile());
   }
+
+  void _refreshInfo() => context.read<InfoBloc>().add(LoadInfoEvent());
 
   void _clearScreenDropdownFilters() {
     unawaited(PrefService().removeKeys(ScreensDropdownFilterPrefKey.allKeys));
@@ -282,6 +288,7 @@ class _NavigationShellState extends State<NavigationShell> {
                 Expanded(
                   child: SafeArea(
                     bottom: false,
+                    left: !useNavigationRail,
                     child: InheritableProvidersScope(
                       notifier: _inheritableProvidersNotifier,
                       child: Column(
@@ -363,9 +370,7 @@ class _NavigationShellState extends State<NavigationShell> {
 
     try {
       final settings = await DioClient().getSettings();
-      final gettingStartedDue =
-          settings?.gettingStartedDue ??
-          FallbackConstants.defaultGettingStartedDue;
+      final gettingStartedDue = settings?.gettingStartedDue == true;
 
       if (!mounted || !gettingStartedDue || !_destinationIsTopLevelPage) return;
       await _showGettingStartedDialogSafely();
@@ -375,14 +380,12 @@ class _NavigationShellState extends State<NavigationShell> {
   }
 
   Future<void> _checkDialogs() async {
-    bool gettingStartedDue = FallbackConstants.defaultGettingStartedDue;
+    var gettingStartedDue = false;
     bool showWhatsNew = false;
 
     try {
       final settings = await DioClient().getSettings(forceRefresh: true);
-      gettingStartedDue =
-          settings?.gettingStartedDue ??
-          FallbackConstants.defaultGettingStartedDue;
+      gettingStartedDue = settings?.gettingStartedDue == true;
       showWhatsNew = await WhatsNewService().shouldShowWhatsNew();
     } catch (e) {
       _log.warning('Failed to prepare startup dialogs: ${e.runtimeType}');

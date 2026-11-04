@@ -1,6 +1,5 @@
 import 'dart:ui';
 
-import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/color_helpers.dart';
 import 'package:timezone/standalone.dart' as tz;
 
@@ -81,7 +80,7 @@ class UserSettingsModel {
     required this.timeFormat,
     required this.numberFormat,
     this.privateSlug,
-    this.promptForReview = false,
+    required this.promptForReview,
   });
 
   factory UserSettingsModel.fromJson(Map<String, dynamic> json) {
@@ -111,14 +110,14 @@ class UserSettingsModel {
       dragAndDropOnMobile: json['drag_and_drop_on_mobile'],
       rememberFilterState: json['remember_filter_state'],
       collapseBusyDays: json['calendar_event_limit'],
-      atRiskThreshold: json['at_risk_threshold'] ?? FallbackConstants.defaultAtRiskThreshold,
-      onTrackTolerance: json['on_track_tolerance'] ?? FallbackConstants.defaultOnTrackTolerance,
-      showWeekNumbers: json['show_week_numbers'] ?? FallbackConstants.defaultShowWeekNumbers,
-      dateFormat: json['date_format'] ?? FallbackConstants.defaultDateFormat,
-      timeFormat: json['time_format'] ?? FallbackConstants.defaultTimeFormat,
-      numberFormat: json['number_format'] ?? FallbackConstants.defaultNumberFormat,
+      atRiskThreshold: json['at_risk_threshold'],
+      onTrackTolerance: json['on_track_tolerance'],
+      showWeekNumbers: json['show_week_numbers'],
+      dateFormat: json['date_format'],
+      timeFormat: json['time_format'],
+      numberFormat: json['number_format'],
       privateSlug: json['private_slug'],
-      promptForReview: json['prompt_for_review'] ?? false,
+      promptForReview: json['prompt_for_review'],
     );
   }
 }

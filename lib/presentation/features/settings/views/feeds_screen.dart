@@ -4,7 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/core/api_url.dart';
 import 'package:heliumapp/data/models/auth/private_feed_model.dart';
-import 'package:heliumapp/data/models/auth/user_settings_model.dart';
+import 'package:heliumapp/data/models/auth/user_model.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_bloc.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_event.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_state.dart';
@@ -12,7 +12,6 @@ import 'package:heliumapp/presentation/ui/components/helium_elevated_button.dart
 import 'package:heliumapp/presentation/ui/components/helium_icon_button.dart';
 import 'package:heliumapp/presentation/ui/layout/helium_full_screen_scroll_view.dart';
 import 'package:heliumapp/presentation/ui/feedback/confirm_action_dialog.dart';
-import 'package:heliumapp/presentation/ui/feedback/error_card.dart';
 import 'package:heliumapp/presentation/ui/feedback/info_container.dart';
 import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
 import 'package:heliumapp/presentation/ui/feedback/warning_container.dart';
@@ -24,33 +23,18 @@ import 'package:heliumapp/utils/url_helpers.dart';
 import 'package:share_plus/share_plus.dart';
 
 class FeedsScreen extends StatefulWidget {
-  final UserSettingsModel? userSettings;
+  final UserModel user;
 
-  const FeedsScreen({super.key, this.userSettings});
+  const FeedsScreen({super.key, required this.user});
 
   @override
   State<FeedsScreen> createState() => _FeedsScreenState();
 }
 
 class _FeedsScreenState extends State<FeedsScreen> {
-  PrivateFeedModel? _feedUrls;
-  bool _feedsLoaded = false;
-
-  @override
-  void initState() {
-    super.initState();
-    final authState = context.read<AuthBloc>().state;
-    if (authState is AuthProfileFetched) {
-      _applyProfileState(authState);
-    } else {
-      context.read<AuthBloc>().add(FetchProfileEvent());
-    }
-  }
-
-  void _applyProfileState(AuthProfileFetched state) {
-    final slug = state.user.settings.privateSlug;
-    _feedsLoaded = true;
-    _feedUrls = slug != null
+  PrivateFeedModel? get _feedUrls {
+    final slug = widget.user.settings.privateSlug;
+    return slug != null
         ? PrivateFeedModel(
             eventsPrivateUrl: '${ApiUrl.baseUrl}/feed/private/$slug/events.ics',
             homeworkPrivateUrl:
@@ -65,12 +49,8 @@ class _FeedsScreenState extends State<FeedsScreen> {
   Widget build(BuildContext context) {
     return BlocListener<AuthBloc, AuthState>(
       listener: (context, state) {
-        if (state is AuthProfileFetched) {
-          setState(() => _applyProfileState(state));
-        } else if (state is AuthError) {
-          if (_feedsLoaded) {
-            SnackBarHelper.show(context, state.message!, type: SnackType.error);
-          }
+        if (state is AuthError) {
+          SnackBarHelper.show(context, state.message!, type: SnackType.error);
         }
       },
       child: Column(
@@ -91,28 +71,17 @@ class _FeedsScreenState extends State<FeedsScreen> {
           ),
           BlocBuilder<AuthBloc, AuthState>(
             builder: (context, state) {
-              if (!_feedsLoaded) {
-                if (state is AuthError) {
-                  return ErrorCard(
-                    message: state.message!,
-                    source: 'feeds_screen',
-                    onReload: () =>
-                        context.read<AuthBloc>().add(FetchProfileEvent()),
-                  );
-                }
-                return const LoadingIndicator();
-              }
-
               if (state is AuthLoading) {
                 return const LoadingIndicator();
               }
 
-              if (_feedUrls != null) {
+              final feedUrls = _feedUrls;
+              if (feedUrls != null) {
                 return Expanded(
                   child: _buildFeedsEnabledArea(
-                    _feedUrls!.homeworkPrivateUrl,
-                    _feedUrls!.eventsPrivateUrl,
-                    _feedUrls!.courseSchedulesPrivateUrl,
+                    feedUrls.homeworkPrivateUrl,
+                    feedUrls.eventsPrivateUrl,
+                    feedUrls.courseSchedulesPrivateUrl,
                   ),
                 );
               } else {
@@ -361,7 +330,7 @@ class _FeedsScreenState extends State<FeedsScreen> {
           _buildFeedCard(
             context: context,
             icon: AppConstants.eventIcon,
-            color: PlannerTypeColors.events(widget.userSettings?.eventsColor),
+            color: widget.user.settings.eventsColor,
             url: eventsUrl,
             label: 'Events',
           ),

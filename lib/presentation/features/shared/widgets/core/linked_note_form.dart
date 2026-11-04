@@ -4,6 +4,7 @@ import 'package:heliumapp/domain/linked_note_saver.dart';
 import 'package:heliumapp/presentation/features/notebook/views/note_add_screen.dart';
 import 'package:heliumapp/presentation/features/shared/controllers/linked_note_form_fields.dart';
 import 'package:heliumapp/presentation/ui/feedback/conflict_dialog.dart';
+import 'package:heliumapp/utils/date_time_helpers.dart';
 import 'package:heliumapp/utils/snack_bar_helpers.dart';
 
 const noteRecreatedMessage =
@@ -64,11 +65,13 @@ mixin LinkedNoteForm<W extends StatefulWidget, T> on ConflictResolvableForm<W> {
 /// Settles a save where the item or its linked note didn't save: asks how to
 /// resolve a newer version, or, when only the note failed, keeps the form open
 /// with the saved item and the unsaved note. [savedEntity] is set when the
-/// item saved.
+/// item saved. [latestVersion] is the newer item's `updated_at` when the item
+/// didn't save.
 void resolveLinkedNoteConflict<T>(
   BuildContext context,
   LinkedNoteForm<StatefulWidget, T>? form, {
   T? savedEntity,
+  String? latestVersion,
   LinkedNoteSave? linkedNoteSave,
 }) {
   if (form == null) return;
@@ -91,47 +94,64 @@ void resolveLinkedNoteConflict<T>(
     onLoadLatest: form._loadLatest,
     onOverwrite: form.overwriteNewer,
     canKeepEditing: isNoteConflict,
-    wording: _wordingFor(
+    message: _messageFor(
       form,
       isItemConflict: savedEntity == null,
-      isNoteConflict: isNoteConflict,
+      latestVersion: latestVersion,
+      latestNote: isNoteConflict ? linkedNoteSave?.note : null,
     ),
   );
 }
 
-ConflictWording _wordingFor(
+ConflictMessage _messageFor(
   LinkedNoteForm<StatefulWidget, dynamic> form, {
   required bool isItemConflict,
-  required bool isNoteConflict,
+  required String? latestVersion,
+  required NoteModel? latestNote,
 }) {
-  if (!isNoteConflict) return const ConflictWording();
-
   final noun = form.itemNoun;
+  if (latestNote == null) {
+    return ConflictMessage.changedAt(latestVersion, subject: 'This $noun');
+  }
+
   final deletesNote = form.linkedNoteFields.overwriteDeletesNote;
-  final overwriteLabel = deletesNote ? 'Delete Note' : 'Overwrite';
 
   if (!isItemConflict) {
-    final overwrite = deletesNote
-        ? 'delete the note, including the changes from the other device'
-        : 'overwrite it with yours';
-    return ConflictWording(
+    final noteChanged = describeVersionSaved(latestNote.version);
+    final when = noteChanged == null ? '' : ' $noteChanged,';
+    final changed =
+        "Your other changes are saved, but this $noun's note changed on "
+        'another device$when after you opened it.';
+    if (deletesNote) {
+      return ConflictMessage(
+        title: 'Note Changed on Another Device',
+        body: '$changed Delete the note anyway, including those changes?',
+        discardLabel: 'Keep Note',
+        saveLabel: 'Delete Note',
+        isSaveDestructive: true,
+      );
+    }
+    return ConflictMessage(
       title: 'Note Changed on Another Device',
-      message:
-          "This $noun's note changed on another device after you opened it. "
-          'Your other changes are saved. Load the latest note and discard '
-          'your note changes, or $overwrite?',
-      overwriteLabel: overwriteLabel,
+      body: '$changed Save your note changes over that version?',
     );
   }
 
-  final overwrite = deletesNote
-      ? 'overwrite the $noun with your changes and delete its note, including '
-            'the changes from the other device'
-      : 'overwrite them with your changes';
-  return ConflictWording(
-    message:
-        'This $noun and its note changed on another device after you opened '
-        'it. Load the latest version and discard your changes, or $overwrite?',
-    overwriteLabel: overwriteLabel,
+  final mostRecently = describeVersionSaved(
+    HeliumDateTime.laterTimestamp(latestVersion, latestNote.version),
+  );
+  final when = mostRecently == null ? '' : ', most recently $mostRecently';
+  final changed =
+      'This $noun and its note changed on another device after you opened '
+      'it$when.';
+  if (deletesNote) {
+    return ConflictMessage(
+      body: '$changed Save your changes and delete the note?',
+      saveLabel: 'Delete Note',
+      isSaveDestructive: true,
+    );
+  }
+  return ConflictMessage(
+    body: '$changed Save your changes over those versions?',
   );
 }

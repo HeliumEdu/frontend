@@ -3,6 +3,7 @@ import 'package:heliumapp/data/models/auth/private_feed_model.dart';
 import 'package:heliumapp/data/models/auth/token_response_model.dart';
 import 'package:heliumapp/data/models/auth/user_model.dart';
 import 'package:heliumapp/data/models/auth/user_settings_model.dart';
+import 'package:heliumapp/utils/app_globals.dart';
 
 /// Creates JSON data representing a user settings object.
 Map<String, dynamic> givenUserSettingsJson({
@@ -28,6 +29,10 @@ Map<String, dynamic> givenUserSettingsJson({
   int atRiskThreshold = 70,
   int onTrackTolerance = 10,
   bool showWeekNumbers = false,
+  int dateFormat = RegionalFormatConstants.dateFormatMonthDayYear,
+  int timeFormat = RegionalFormatConstants.timeFormatTwelveHour,
+  int numberFormat = RegionalFormatConstants.numberFormatPoint,
+  bool promptForReview = false,
   String? privateSlug,
 }) {
   return {
@@ -53,6 +58,10 @@ Map<String, dynamic> givenUserSettingsJson({
     'at_risk_threshold': atRiskThreshold,
     'on_track_tolerance': onTrackTolerance,
     'show_week_numbers': showWeekNumbers,
+    'date_format': dateFormat,
+    'time_format': timeFormat,
+    'number_format': numberFormat,
+    'prompt_for_review': promptForReview,
     'private_slug': privateSlug,
   };
 }

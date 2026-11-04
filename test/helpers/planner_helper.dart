@@ -28,8 +28,6 @@ Map<String, dynamic> givenCourseGroupJson({
   String endDate = '2025-12-15',
   bool shownOnCalendar = true,
   double? overallGrade,
-  int? numDays = 112,
-  int? numDaysCompleted = 50,
   String exceptions = '',
 }) {
   return {
@@ -39,8 +37,6 @@ Map<String, dynamic> givenCourseGroupJson({
     'end_date': endDate,
     'shown_on_calendar': shownOnCalendar,
     'overall_grade': overallGrade,
-    'num_days': numDays,
-    'num_days_completed': numDaysCompleted,
     'exceptions': exceptions,
   };
 }
@@ -56,8 +52,6 @@ void verifyCourseGroupMatchesJson(
   expect(courseGroup.endDate, equals(DateTime.parse(json['end_date'] as String)));
   expect(courseGroup.shownOnCalendar, equals(json['shown_on_calendar']));
   expect(courseGroup.overallGrade, equals(json['overall_grade']));
-  expect(courseGroup.numDays, equals(json['num_days']));
-  expect(courseGroup.numDaysCompleted, equals(json['num_days_completed']));
 }
 
 // ============================================================================

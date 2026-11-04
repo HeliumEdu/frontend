@@ -30,12 +30,9 @@ mixin LinkedNoteFormFields on BasicFormController {
     notesEdited = false;
     _conflictingNote = null;
     notesController.dispose();
-    notesController = heliumQuillController(
-      document: note?.content != null
-          ? tryParseNotesDocument(note!.content) ??
-              buildUnrenderableNotePlaceholder()
-          : null,
-    );
+    final loaded = notesDocumentFor(note?.content);
+    notesController = heliumQuillController(document: loaded.document)
+      ..readOnly = !loaded.isRenderable;
   }
 
   void listenForNoteEdits() {
@@ -73,7 +70,7 @@ mixin LinkedNoteFormFields on BasicFormController {
   );
 
   void _onNoteChange(DocChange change) {
-    if (!isNoteEdited(change)) return;
+    if (notesController.readOnly || !isNoteEdited(change)) return;
     markChanged();
     notesEdited = true;
   }

@@ -259,9 +259,10 @@ class PlannerItemBloc extends Bloc<PlannerItemEvent, PlannerItemState> {
         event.linkedNote,
         eventId: event.id,
       );
-      if (saved.entityConflict != null) {
+      if (saved.entityConflict case final conflict?) {
         emit(PlannerItemConflict(
           origin: event.origin,
+          latestVersion: conflict.latest['updated_at'] as String?,
           linkedNoteSave: saved.note,
         ));
         return;
@@ -445,9 +446,10 @@ class PlannerItemBloc extends Bloc<PlannerItemEvent, PlannerItemState> {
         event.linkedNote,
         homeworkId: event.homeworkId,
       );
-      if (saved.entityConflict != null) {
+      if (saved.entityConflict case final conflict?) {
         emit(PlannerItemConflict(
           origin: event.origin,
+          latestVersion: conflict.latest['updated_at'] as String?,
           linkedNoteSave: saved.note,
         ));
         return;

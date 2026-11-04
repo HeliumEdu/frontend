@@ -44,9 +44,8 @@ class SentryService {
   int? _logicalScreenWidth;
   int? _logicalScreenHeight;
 
-  /// Exposed for testing - returns true if the event should be filtered (dropped)
   @visibleForTesting
-  static bool shouldFilterEvent(SentryEvent event) {
+  static bool shouldFilterForTesting(SentryEvent event) {
     return _instance._shouldFilter(event);
   }
 

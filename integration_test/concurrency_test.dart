@@ -107,11 +107,11 @@ void main() {
           );
         }
 
-        _log.info('Load Latest discards this device\'s edit ...');
+        _log.info('Discard Changes discards this device\'s edit ...');
         await openEditor();
         await changeElsewhere(10);
         await saveWithTitle('$originalTitle (stale)');
-        await tester.tap(find.text('Load Latest'));
+        await tester.tap(find.text('Discard Changes'));
         await tester.pumpAndSettle();
         final reloaded = await waitForWidget(
           tester,
@@ -124,13 +124,13 @@ void main() {
         expect(
           reloaded,
           isTrue,
-          reason: 'Load Latest should refill the form with the saved title',
+          reason: 'Discard Changes should refill the form with the saved title',
         );
 
-        _log.info('Overwrite saves this device\'s edit ...');
+        _log.info('Save Changes saves this device\'s edit ...');
         await changeElsewhere(90);
         await saveWithTitle('$originalTitle (mine)');
-        await tester.tap(find.text('Overwrite'));
+        await tester.tap(find.text('Save Changes'));
         await tester.pumpAndSettle();
         final closed = await waitForWidgetToDisappear(
           tester,
@@ -139,7 +139,7 @@ void main() {
         );
         expect(closed, isTrue, reason: 'The editor should close after saving');
         final saved = await apiHelper.findHomeworkByTitle('$originalTitle (mine)');
-        expect(saved, isNotNull, reason: 'Overwrite should save this device\'s title');
+        expect(saved, isNotNull, reason: 'Save Changes should save this device\'s title');
 
         await apiHelper.updateHomework(
           groupId: homework.courseGroup,
@@ -151,7 +151,7 @@ void main() {
     );
 
     namedTestWidgets(
-      '2. A note changed on another device discards this device\'s changes on Load Latest',
+      '2. A note changed on another device discards this device\'s changes on Discard Changes',
       (tester) async {
         if (!await login(tester)) return;
 
@@ -202,7 +202,7 @@ void main() {
         );
         expect(prompted, isTrue, reason: 'The stale autosave should prompt');
 
-        await tester.tap(find.text('Load Latest'));
+        await tester.tap(find.text('Discard Changes'));
         await tester.pumpAndSettle();
         final loaded = await waitForWidget(
           tester,
@@ -218,7 +218,7 @@ void main() {
         expect(
           notes.where((n) => n.title.startsWith('Concurrency Note (mine)')),
           isEmpty,
-          reason: 'Load Latest should not keep this device\'s text anywhere',
+          reason: 'Discard Changes should not keep this device\'s text anywhere',
         );
 
         await closePageDialog(

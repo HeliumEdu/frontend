@@ -84,6 +84,7 @@ class MockModels {
     int dateFormat = 0,
     int timeFormat = 0,
     int numberFormat = 0,
+    bool promptForReview = false,
     String? privateSlug,
   }) {
     _ensureTzInitialized();
@@ -112,6 +113,7 @@ class MockModels {
       dateFormat: dateFormat,
       timeFormat: timeFormat,
       numberFormat: numberFormat,
+      promptForReview: promptForReview,
       privateSlug: privateSlug,
       dragAndDropOnMobile: true,
     );
@@ -154,8 +156,6 @@ class MockModels {
     DateTime? endDate,
     bool shownOnCalendar = true,
     double? overallGrade,
-    int? numDays = 112,
-    int? numDaysCompleted = 50,
   }) {
     return CourseGroupModel(
       id: id,
@@ -165,8 +165,6 @@ class MockModels {
       shownOnCalendar: shownOnCalendar,
       exceptions: const [],
       overallGrade: overallGrade,
-      numDays: numDays,
-      numDaysCompleted: numDaysCompleted,
     );
   }
 

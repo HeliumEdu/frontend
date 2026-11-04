@@ -8,6 +8,6 @@ Future<bool> confirmClearExampleData(BuildContext context) {
     message:
         "This removes the example schedule. Anything you've added or changed stays.",
     actionText: 'Clear',
-    isDestructive: false,
+    style: ConfirmActionStyle.neutral,
   );
 }

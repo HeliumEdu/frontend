@@ -23,10 +23,10 @@ class RegionalSettingsNotifier extends ChangeNotifier {
     });
   }
 
-  int _weekStartsOn = FallbackConstants.defaultWeekStartsOn;
-  int _dateFormat = FallbackConstants.defaultDateFormat;
-  int _timeFormat = FallbackConstants.defaultTimeFormat;
-  int _numberFormat = FallbackConstants.defaultNumberFormat;
+  int _weekStartsOn = RegionalFormatConstants.weekStartsOnSunday;
+  int _dateFormat = RegionalFormatConstants.dateFormatMonthDayYear;
+  int _timeFormat = RegionalFormatConstants.timeFormatTwelveHour;
+  int _numberFormat = RegionalFormatConstants.numberFormatPoint;
 
   int get weekStartsOn => _weekStartsOn;
 
@@ -40,13 +40,13 @@ class RegionalSettingsNotifier extends ChangeNotifier {
 
   void _loadFromPrefs() {
     _weekStartsOn = _prefService.getInt(SettingsPrefKey.weekStartsOn.key) ??
-        FallbackConstants.defaultWeekStartsOn;
-    _dateFormat = _prefService.getInt(SettingsPrefKey.dateFormat.key) ??
-        FallbackConstants.defaultDateFormat;
-    _timeFormat = _prefService.getInt(SettingsPrefKey.timeFormat.key) ??
-        FallbackConstants.defaultTimeFormat;
-    _numberFormat = _prefService.getInt(SettingsPrefKey.numberFormat.key) ??
-        FallbackConstants.defaultNumberFormat;
+        _weekStartsOn;
+    _dateFormat =
+        _prefService.getInt(SettingsPrefKey.dateFormat.key) ?? _dateFormat;
+    _timeFormat =
+        _prefService.getInt(SettingsPrefKey.timeFormat.key) ?? _timeFormat;
+    _numberFormat =
+        _prefService.getInt(SettingsPrefKey.numberFormat.key) ?? _numberFormat;
   }
 
   Future<void> update({

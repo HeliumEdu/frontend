@@ -9,7 +9,7 @@ class CourseAttachments extends BaseAttachments {
     required this.courseGroupId,
     required super.entityId,
     required super.isEdit,
-    super.userSettings,
+    required super.userSettings,
     super.contentKey,
     super.onUploadsSettled,
   });
@@ -35,7 +35,7 @@ class _CourseAttachmentsContent extends BaseAttachmentsContent {
     required this.courseGroupId,
     required super.entityId,
     required super.isEdit,
-    super.userSettings,
+    required super.userSettings,
     super.onUploadsSettled,
   });
 

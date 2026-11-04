@@ -104,7 +104,7 @@ void main() {
         final data = {'detail': 'Token is blacklisted'};
 
         // WHEN
-        final result = dioClient.isInvalidTokenError(data);
+        final result = dioClient.isInvalidTokenErrorForTesting(data);
 
         // THEN
         expect(result, isTrue);
@@ -115,7 +115,7 @@ void main() {
         final data = {'detail': 'Token is invalid'};
 
         // WHEN
-        final result = dioClient.isInvalidTokenError(data);
+        final result = dioClient.isInvalidTokenErrorForTesting(data);
 
         // THEN
         expect(result, isTrue);
@@ -126,7 +126,7 @@ void main() {
         final data = {'detail': 'Token has expired'};
 
         // WHEN
-        final result = dioClient.isInvalidTokenError(data);
+        final result = dioClient.isInvalidTokenErrorForTesting(data);
 
         // THEN
         expect(result, isTrue);
@@ -137,7 +137,7 @@ void main() {
         final data = {'detail': 'Network error'};
 
         // WHEN
-        final result = dioClient.isInvalidTokenError(data);
+        final result = dioClient.isInvalidTokenErrorForTesting(data);
 
         // THEN
         expect(result, isFalse);
@@ -145,7 +145,7 @@ void main() {
 
       test('returns false for null data', () {
         // WHEN
-        final result = dioClient.isInvalidTokenError(null);
+        final result = dioClient.isInvalidTokenErrorForTesting(null);
 
         // THEN
         expect(result, isFalse);
@@ -153,7 +153,7 @@ void main() {
 
       test('returns false for non-map data', () {
         // WHEN
-        final result = dioClient.isInvalidTokenError('string data');
+        final result = dioClient.isInvalidTokenErrorForTesting('string data');
 
         // THEN
         expect(result, isFalse);
@@ -164,7 +164,7 @@ void main() {
         final data = {'error': 'Some error'};
 
         // WHEN
-        final result = dioClient.isInvalidTokenError(data);
+        final result = dioClient.isInvalidTokenErrorForTesting(data);
 
         // THEN
         expect(result, isFalse);
@@ -240,6 +240,9 @@ void main() {
         when(() => mockPrefService.getInt('date_format')).thenReturn(1);
         when(() => mockPrefService.getInt('time_format')).thenReturn(1);
         when(() => mockPrefService.getInt('number_format')).thenReturn(1);
+        when(
+          () => mockPrefService.getBool('prompt_for_review'),
+        ).thenReturn(false);
 
         // WHEN
         final settings = await dioClient.getSettings();
@@ -260,6 +263,29 @@ void main() {
         // The service reads from calendar_use_category_colors, not color_by_category
         verify(
           () => mockPrefService.getBool('calendar_use_category_colors'),
+        ).called(1);
+      });
+    });
+
+    group('acknowledgeReviewPrompt', () {
+      test('stops the cached settings from prompting again', () async {
+        // GIVEN
+        when(() => mockDio.post(any())).thenAnswer(
+          (_) async => Response(
+            requestOptions: RequestOptions(),
+            statusCode: 204,
+          ),
+        );
+        when(
+          () => mockPrefService.setBool('prompt_for_review', false),
+        ).thenAnswer((_) async {});
+
+        // WHEN
+        await dioClient.acknowledgeReviewPrompt();
+
+        // THEN
+        verify(
+          () => mockPrefService.setBool('prompt_for_review', false),
         ).called(1);
       });
     });
@@ -334,7 +360,7 @@ void _formDataReplayTests() {
       final options = optionsWith(sent);
 
       // WHEN
-      client.refreshReplayBody(options);
+      client.refreshReplayBodyForTesting(options);
 
       // THEN
       final replayed = options.data as FormData;
@@ -352,7 +378,7 @@ void _formDataReplayTests() {
       final options = optionsWith(sent);
 
       // WHEN
-      client.refreshReplayBody(options);
+      client.refreshReplayBodyForTesting(options);
 
       // THEN
       final replayed = options.data as FormData;
@@ -367,7 +393,7 @@ void _formDataReplayTests() {
       final options = optionsWith(unsent);
 
       // WHEN
-      client.refreshReplayBody(options);
+      client.refreshReplayBodyForTesting(options);
 
       // THEN
       expect(identical(options.data, unsent), isTrue);
@@ -379,10 +405,26 @@ void _formDataReplayTests() {
       final options = optionsWith(json);
 
       // WHEN
-      client.refreshReplayBody(options);
+      client.refreshReplayBodyForTesting(options);
 
       // THEN
       expect(identical(options.data, json), isTrue);
     });
   });
+
+  test(
+    'a request whose headers cannot be prepared fails instead of hanging',
+    () async {
+      // GIVEN
+      DioClient.resetForTesting();
+
+      // WHEN
+      final request = DioClient().dio
+          .get<dynamic>('/planner/courses/')
+          .timeout(const Duration(seconds: 5));
+
+      // THEN
+      await expectLater(request, throwsA(isA<DioException>()));
+    },
+  );
 }

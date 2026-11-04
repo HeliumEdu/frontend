@@ -124,6 +124,165 @@ void main() {
       });
     });
 
+    group('describeRelativeTo', () {
+      final reference = DateTime.utc(2026, 11, 3, 15, 10);
+
+      test('within a minute either way is around the same time', () {
+        // WHEN
+        final later = HeliumDateTime.describeRelativeTo(
+          reference.add(const Duration(seconds: 40)),
+          reference,
+        );
+        final earlier = HeliumDateTime.describeRelativeTo(
+          reference.subtract(const Duration(seconds: 40)),
+          reference,
+        );
+
+        // THEN
+        expect(later, 'around the same time as');
+        expect(earlier, 'around the same time as');
+      });
+
+      test('under a day reads in minutes or hours, with its direction', () {
+        // WHEN
+        final minutesAfter = HeliumDateTime.describeRelativeTo(
+          reference.add(const Duration(minutes: 3)),
+          reference,
+        );
+        final hoursBefore = HeliumDateTime.describeRelativeTo(
+          reference.subtract(const Duration(hours: 3, minutes: 10)),
+          reference,
+        );
+
+        // THEN
+        expect(minutesAfter, '3 minutes after');
+        expect(hoursBefore, 'about 3 hours before');
+      });
+
+      test('a day or more reads in whole days', () {
+        // WHEN
+        final nearlyADay = HeliumDateTime.describeRelativeTo(
+          reference.add(const Duration(hours: 23, minutes: 40)),
+          reference,
+        );
+        final days = HeliumDateTime.describeRelativeTo(
+          reference.add(const Duration(days: 2, hours: 5)),
+          reference,
+        );
+
+        // THEN
+        expect(nearlyADay, 'about a day after');
+        expect(days, 'about 2 days after');
+      });
+    });
+
+    group('laterTimestamp', () {
+      test('picks the later of two timestamps', () {
+        // GIVEN
+        const earlier = '2026-11-03T15:10:00.123456Z';
+        const later = '2026-11-04T09:05:00.654321Z';
+
+        // WHEN
+        final picked = HeliumDateTime.laterTimestamp(earlier, later);
+        final pickedReversed = HeliumDateTime.laterTimestamp(later, earlier);
+
+        // THEN
+        expect(picked, later);
+        expect(pickedReversed, later);
+      });
+
+      test('falls back to whichever timestamp parses', () {
+        // GIVEN
+        const valid = '2026-11-04T09:05:00Z';
+
+        // WHEN
+        final firstMissing = HeliumDateTime.laterTimestamp(null, valid);
+        final secondInvalid = HeliumDateTime.laterTimestamp(valid, 'bad');
+
+        // THEN
+        expect(firstMissing, valid);
+        expect(secondInvalid, valid);
+      });
+    });
+
+    group('describeWhen', () {
+      final now = DateTime.utc(2026, 11, 4, 20);
+
+      test('a change earlier today shows only the time', () {
+        // GIVEN
+        final la = tz.getLocation('America/Los_Angeles');
+        final amsterdam = tz.getLocation('Europe/Amsterdam');
+        final instant = DateTime.utc(2026, 11, 4, 18, 30);
+
+        // WHEN
+        final inLa = HeliumDateTime.describeWhen(instant, la, now: now);
+        final inAmsterdam = HeliumDateTime.describeWhen(
+          instant,
+          amsterdam,
+          now: now,
+        );
+
+        // THEN
+        expect(inLa, 'at 10:30 AM');
+        expect(inAmsterdam, 'at 7:30 PM');
+      });
+
+      test('the day is read in the user zone, not UTC', () {
+        // GIVEN
+        final la = tz.getLocation('America/Los_Angeles');
+        final amsterdam = tz.getLocation('Europe/Amsterdam');
+        final instant = DateTime.utc(2026, 11, 3, 23, 30);
+
+        // WHEN
+        final inLa = HeliumDateTime.describeWhen(instant, la, now: now);
+        final inAmsterdam = HeliumDateTime.describeWhen(
+          instant,
+          amsterdam,
+          now: now,
+        );
+
+        // THEN
+        expect(inAmsterdam, 'at 12:30 AM');
+        expect(inLa, 'on Tue at 3:30 PM');
+      });
+
+      test('a change within the past week names the weekday', () {
+        // GIVEN
+        final la = tz.getLocation('America/Los_Angeles');
+        final instant = DateTime.utc(2026, 10, 29, 20);
+
+        // WHEN
+        final described = HeliumDateTime.describeWhen(instant, la, now: now);
+
+        // THEN
+        expect(described, 'on Thu at 1 PM');
+      });
+
+      test('a change a week or more ago names the date', () {
+        // GIVEN
+        final la = tz.getLocation('America/Los_Angeles');
+        final instant = DateTime.utc(2026, 10, 28, 20);
+
+        // WHEN
+        final described = HeliumDateTime.describeWhen(instant, la, now: now);
+
+        // THEN
+        expect(described, 'on Oct 28 at 1 PM');
+      });
+
+      test('a change in another year includes the year', () {
+        // GIVEN
+        final la = tz.getLocation('America/Los_Angeles');
+        final instant = DateTime.utc(2025, 12, 20, 20);
+
+        // WHEN
+        final described = HeliumDateTime.describeWhen(instant, la, now: now);
+
+        // THEN
+        expect(described, 'on Dec 20, 2025 at 12 PM');
+      });
+    });
+
     group('visibleAnchorFor', () {
       test('anchors two hours before the time during the day', () {
         // GIVEN
@@ -488,7 +647,7 @@ void main() {
       });
 
       test('falls back to month-first for an unknown locale', () async {
-        expect(await HeliumDateTime.detectDateFormat(const Locale('xx', 'XX')), FallbackConstants.defaultDateFormat);
+        expect(await HeliumDateTime.detectDateFormat(const Locale('xx', 'XX')), RegionalFormatConstants.dateFormatMonthDayYear);
       });
     });
 
@@ -510,7 +669,7 @@ void main() {
       });
 
       test('falls back to Sunday for an unknown locale', () async {
-        expect(await HeliumDateTime.detectWeekStartsOn(const Locale('xx', 'XX')), FallbackConstants.defaultWeekStartsOn);
+        expect(await HeliumDateTime.detectWeekStartsOn(const Locale('xx', 'XX')), RegionalFormatConstants.weekStartsOnSunday);
       });
     });
 
@@ -532,7 +691,7 @@ void main() {
       });
 
       test('falls back to 12-hour for an unknown locale', () async {
-        expect(await HeliumDateTime.detectTimeFormat(const Locale('xx', 'XX')), FallbackConstants.defaultTimeFormat);
+        expect(await HeliumDateTime.detectTimeFormat(const Locale('xx', 'XX')), RegionalFormatConstants.timeFormatTwelveHour);
       });
     });
 
@@ -620,6 +779,22 @@ void main() {
     });
 
     group('dayRangeIn', () {
+      for (final zoneName in ['Europe/Amsterdam', 'America/Los_Angeles']) {
+        test('reads only the dates of month-cell times ($zoneName)', () {
+          // GIVEN
+          final zone = tz.getLocation(zoneName);
+          final monthCellStart = DateTime(2026, 11, 10, 0, 2);
+          final monthCellEnd = DateTime(2026, 11, 12, 23, 59, 59);
+
+          // WHEN
+          final (start, end) = HeliumDateTime.dayRangeIn(monthCellStart, monthCellEnd, zone);
+
+          // THEN
+          expect(start, tz.TZDateTime(zone, 2026, 11, 10));
+          expect(end, tz.TZDateTime(zone, 2026, 11, 13));
+        });
+      }
+
       test('spans whole days across a fall-back day', () {
         // GIVEN
         final amsterdam = tz.getLocation('Europe/Amsterdam');
@@ -922,5 +1097,121 @@ void main() {
       );
     });
 
+  });
+
+  group('occursWithin', () {
+    late tz.Location chicago;
+    late tz.TZDateTime rangeStart;
+    late tz.TZDateTime rangeEnd;
+
+    setUp(() {
+      chicago = tz.getLocation('America/Chicago');
+      rangeStart = tz.TZDateTime(chicago, 2026, 11, 1);
+      rangeEnd = tz.TZDateTime(chicago, 2026, 11, 2);
+    });
+
+    test('counts an item due at the very start of the range', () {
+      // WHEN
+      final within = HeliumDateTime.occursWithin(rangeStart, rangeStart, rangeStart, rangeEnd);
+
+      // THEN
+      expect(within, isTrue);
+    });
+
+    test('leaves out an item that ends as the range starts', () {
+      // GIVEN
+      final start = tz.TZDateTime(chicago, 2026, 10, 31, 23);
+
+      // WHEN
+      final within = HeliumDateTime.occursWithin(start, rangeStart, rangeStart, rangeEnd);
+
+      // THEN
+      expect(within, isFalse);
+    });
+
+    test('leaves out an item that starts as the range ends', () {
+      // WHEN
+      final within = HeliumDateTime.occursWithin(rangeEnd, rangeEnd, rangeStart, rangeEnd);
+
+      // THEN
+      expect(within, isFalse);
+    });
+
+    test('counts an item spanning the whole range', () {
+      // GIVEN
+      final start = tz.TZDateTime(chicago, 2026, 10, 30);
+      final end = tz.TZDateTime(chicago, 2026, 11, 3);
+
+      // WHEN
+      final within = HeliumDateTime.occursWithin(start, end, rangeStart, rangeEnd);
+
+      // THEN
+      expect(within, isTrue);
+    });
+  });
+
+  group('lastDayOf', () {
+    test('an all-day item ends on the day before its exclusive end', () {
+      // GIVEN
+      final amsterdam = tz.getLocation('Europe/Amsterdam');
+      final exclusiveEnd = tz.TZDateTime(amsterdam, 2026, 11, 21);
+
+      // WHEN
+      final lastDay = HeliumDateTime.lastDayOf(exclusiveEnd, allDay: true);
+
+      // THEN
+      expect(lastDay, DateTime(2026, 11, 20));
+    });
+
+    test('a timed item ends on the day its end falls on', () {
+      // GIVEN
+      final la = tz.getLocation('America/Los_Angeles');
+      final end = tz.TZDateTime(la, 2026, 11, 20, 15);
+
+      // WHEN
+      final lastDay = HeliumDateTime.lastDayOf(end, allDay: false);
+
+      // THEN
+      expect(lastDay, DateTime(2026, 11, 20));
+    });
+  });
+
+  group('recurrenceRuleWithLocalUntil', () {
+    test('reads a UTC UNTIL as wall clock in the account zone (positive offset)', () {
+      // GIVEN
+      final amsterdam = tz.getLocation('Europe/Amsterdam');
+      const rule = 'FREQ=WEEKLY;BYDAY=MO,WE;UNTIL=20261211T225959Z';
+
+      // WHEN
+      final localized = HeliumDateTime.recurrenceRuleWithLocalUntil(rule, amsterdam);
+
+      // THEN
+      expect(localized, 'FREQ=WEEKLY;BYDAY=MO,WE;UNTIL=20261211T235959');
+    });
+
+    test('reads a UTC UNTIL as wall clock in the account zone (negative offset)', () {
+      // GIVEN
+      final la = tz.getLocation('America/Los_Angeles');
+      const rule = 'FREQ=WEEKLY;UNTIL=20261212T075959Z;BYDAY=FR';
+
+      // WHEN
+      final localized = HeliumDateTime.recurrenceRuleWithLocalUntil(rule, la);
+
+      // THEN
+      expect(localized, 'FREQ=WEEKLY;UNTIL=20261211T235959;BYDAY=FR');
+    });
+
+    test('leaves a rule without a UTC UNTIL alone', () {
+      // GIVEN
+      final la = tz.getLocation('America/Los_Angeles');
+
+      // WHEN
+      final counted = HeliumDateTime.recurrenceRuleWithLocalUntil('FREQ=DAILY;COUNT=5', la);
+      final dateOnly = HeliumDateTime.recurrenceRuleWithLocalUntil('FREQ=DAILY;UNTIL=20261211', la);
+
+      // THEN
+      expect(counted, 'FREQ=DAILY;COUNT=5');
+      expect(dateOnly, 'FREQ=DAILY;UNTIL=20261211');
+    });
   });
 }

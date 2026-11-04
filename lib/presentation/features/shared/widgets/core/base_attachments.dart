@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:heliumapp/core/helium_exception.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/data/models/attachment_file.dart';
 import 'package:heliumapp/data/models/auth/user_settings_model.dart';
@@ -28,7 +29,7 @@ import 'package:heliumapp/utils/snack_bar_helpers.dart'
 abstract class BaseAttachments extends StatelessWidget {
   final int entityId;
   final bool isEdit;
-  final UserSettingsModel? userSettings;
+  final UserSettingsModel userSettings;
 
   /// Optional key forwarded to the inner [BaseAttachmentsContent] so a parent
   /// can query the live [BaseAttachmentsState] (e.g. for `hasUnsavedFiles`).
@@ -40,7 +41,7 @@ abstract class BaseAttachments extends StatelessWidget {
     super.key,
     required this.entityId,
     required this.isEdit,
-    this.userSettings,
+    required this.userSettings,
     this.contentKey,
     this.onUploadsSettled,
   });
@@ -54,14 +55,14 @@ abstract class BaseAttachments extends StatelessWidget {
 abstract class BaseAttachmentsContent extends StatefulWidget {
   final int entityId;
   final bool isEdit;
-  final UserSettingsModel? userSettings;
+  final UserSettingsModel userSettings;
   final VoidCallback? onUploadsSettled;
 
   const BaseAttachmentsContent({
     super.key,
     required this.entityId,
     required this.isEdit,
-    this.userSettings,
+    required this.userSettings,
     this.onUploadsSettled,
   });
 
@@ -78,6 +79,7 @@ abstract class BaseAttachmentsState extends State<BaseAttachmentsContent> {
   bool isLoading = true;
   bool isSubmitting = false;
   bool _initialFetchComplete = false;
+  String? _error;
   FetchAttachmentsEvent? _pendingFetch;
 
   @mustBeOverridden
@@ -88,29 +90,16 @@ abstract class BaseAttachmentsState extends State<BaseAttachmentsContent> {
   @mustBeOverridden
   CreateAttachmentEvent createCreateAttachmentsEvent();
 
-  void _dispatchFetch({bool forceRefresh = false}) {
-    final fetch = createFetchAttachmentsEvent(forceRefresh: forceRefresh);
-    _pendingFetch = fetch;
-    context.read<AttachmentBloc>().add(fetch);
-  }
-
-  bool _isOwnFetch(AttachmentsFetchIdentity state) => state.matches(
-        eventId: _pendingFetch?.eventId,
-        homeworkId: _pendingFetch?.homeworkId,
-        courseId: _pendingFetch?.courseId,
-      );
-
   /// True when the user has staged files for upload but not yet uploaded.
   /// Used by multi-step parents to drive the unsaved-changes prompt.
   bool get hasUnsavedFiles => filesToUpload.isNotEmpty;
-
 
   @override
   void initState() {
     super.initState();
 
     if (widget.isEdit) {
-      _dispatchFetch();
+      _fetchScreenData();
     } else {
       setState(() {
         isLoading = false;
@@ -124,12 +113,31 @@ abstract class BaseAttachmentsState extends State<BaseAttachmentsContent> {
     return _buildContent(context);
   }
 
+  void _fetchScreenData() {
+    setState(() {
+      isLoading = true;
+      _error = null;
+    });
+    final fetch = createFetchAttachmentsEvent(forceRefresh: true);
+    _pendingFetch = fetch;
+    context.read<AttachmentBloc>().add(fetch);
+  }
+
+  bool _isOwnFetch(AttachmentsFetchIdentity state) => state.matches(
+        eventId: _pendingFetch?.eventId,
+        homeworkId: _pendingFetch?.homeworkId,
+        courseId: _pendingFetch?.courseId,
+      );
+
   Widget _buildContent(BuildContext context) {
     return BlocListener<AttachmentBloc, AttachmentState>(
       listener: (context, state) {
         if (state is AttachmentsFetchFailed) {
           if (_isOwnFetch(state)) {
-            setState(() => isLoading = false);
+            setState(() {
+              isLoading = false;
+              _error = state.message ?? HeliumException.unexpectedError;
+            });
           }
         } else if (state is AttachmentsError) {
           if (!_initialFetchComplete) {
@@ -144,6 +152,7 @@ abstract class BaseAttachmentsState extends State<BaseAttachmentsContent> {
             Sort.byTitle(attachments);
             isLoading = false;
             _initialFetchComplete = true;
+            _error = null;
           });
         } else if (state is AttachmentsCreated) {
           SnackBarHelper.show(
@@ -176,7 +185,7 @@ abstract class BaseAttachmentsState extends State<BaseAttachmentsContent> {
       // Bottom-pin the buttons clear of the home indicator: the enclosing
       // full-screen dialog does not reserve the bottom safe area, and these
       // buttons sit below the scroll, so they'd otherwise render under it.
-      child: isLoading || widget.userSettings == null
+      child: isLoading
           ? const Center(child: LoadingIndicator(expanded: false))
           : Padding(
             padding: EdgeInsets.only(
@@ -190,20 +199,18 @@ abstract class BaseAttachmentsState extends State<BaseAttachmentsContent> {
                 Expanded(
                   child: BlocBuilder<AttachmentBloc, AttachmentState>(
                     builder: (context, state) {
-                      if (state is AttachmentsLoading) {
-                        return const Center(
-                          child: LoadingIndicator(expanded: false),
+                      if (_error != null) {
+                        return ErrorCard(
+                          message: _error!,
+                          source: 'attachments_widget',
+                          onReload: _fetchScreenData,
+                          expanded: false,
                         );
                       }
 
-                      if (state is AttachmentsError && !_initialFetchComplete) {
-                        return ErrorCard(
-                          message: state.message!,
-                          source: 'attachments_widget',
-                          onReload: () {
-                            _dispatchFetch(forceRefresh: true);
-                          },
-                          expanded: false,
+                      if (state is AttachmentsLoading) {
+                        return const Center(
+                          child: LoadingIndicator(expanded: false),
                         );
                       }
 

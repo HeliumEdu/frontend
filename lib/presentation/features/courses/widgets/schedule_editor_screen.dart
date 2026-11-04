@@ -38,7 +38,7 @@ Future<void> showScheduleEditor({
 }) {
   final courseBloc = parentContext.read<CourseBloc>();
 
-  final useCompact = Responsive.useCompactLayout(parentContext);
+  final useCompact = PlatformBehavior.showsDialogsFullScreen(parentContext);
   return showScreenAsDialog(
     parentContext,
     barrierDismissible: false,

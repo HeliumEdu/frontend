@@ -21,6 +21,7 @@ import 'package:heliumapp/core/api_url.dart';
 import 'package:heliumapp/core/dio_error_mapper.dart';
 import 'package:heliumapp/core/helium_exception.dart';
 import 'package:heliumapp/core/cache_service.dart';
+import 'package:heliumapp/core/missing_body_interceptor.dart';
 import 'package:heliumapp/core/system_proxy_io.dart'
     if (dart.library.js_interop) 'package:heliumapp/core/system_proxy_stub.dart';
 import 'package:heliumapp/core/retry_evaluator.dart';
@@ -41,6 +42,13 @@ import 'package:uuid/uuid.dart';
 final _log = Logger('core');
 
 class DioClient {
+  static const Duration connectTimeout = Duration(seconds: 10);
+  static const Duration receiveTimeout = Duration(seconds: 30);
+  static const Duration sendTimeout = Duration(seconds: 120);
+
+  static const String _replayedAfterRefreshKey =
+      'helium_replayed_after_refresh';
+
   static DioClient _instance = DioClient._internal();
 
   factory DioClient() => _instance;
@@ -70,10 +78,12 @@ class DioClient {
   }
 
   @visibleForTesting
-  bool isInvalidTokenError(dynamic data) => _isInvalidTokenError(data);
+  bool isInvalidTokenErrorForTesting(dynamic data) =>
+      _isInvalidTokenError(data);
 
   @visibleForTesting
-  void refreshReplayBody(RequestOptions options) => _refreshReplayBody(options);
+  void refreshReplayBodyForTesting(RequestOptions options) =>
+      _refreshReplayBody(options);
 
   Dio get dio => _dio;
 
@@ -99,9 +109,6 @@ class DioClient {
     String? baseUrl,
     Map<String, dynamic>? headers,
     ValidateStatus? validateStatus,
-    Duration connectTimeout = const Duration(seconds: 10),
-    Duration receiveTimeout = const Duration(seconds: 30),
-    Duration sendTimeout = const Duration(seconds: 120),
   }) {
     final dio = Dio(
       BaseOptions(
@@ -126,29 +133,36 @@ class DioClient {
         },
       ),
       _prefService = PrefService() {
+    _dio.interceptors.add(MissingBodyInterceptor());
     _dio.interceptors.add(
       InterceptorsWrapper(
         onRequest: (options, handler) async {
-          _clientVersion ??= await _resolveClientVersion();
-          if (_clientVersion != null) {
-            options.headers['X-Client-Version'] = _clientVersion;
+          try {
+            _clientVersion ??= await _resolveClientVersion();
+            if (_clientVersion != null) {
+              options.headers['X-Client-Version'] = _clientVersion;
+            }
+
+            _clientPlatform ??= _resolveClientPlatform();
+            options.headers['X-Client-Platform'] = _clientPlatform;
+
+            HeliumRetryEvaluator.deadlineFor(options);
+
+            final requestId = const Uuid().v4();
+            options.headers['X-Request-ID'] = requestId;
+            _addRequestBreadcrumb(requestId, options);
+
+            final token = await _prefService.getSecure('access_token');
+            if (token?.isNotEmpty ?? false) {
+              options.headers['Authorization'] = 'Bearer $token';
+              _log.fine('Authorization token attached to request');
+            }
+            return handler.next(options);
+          } catch (e, s) {
+            return handler.reject(
+              DioException(requestOptions: options, error: e, stackTrace: s),
+            );
           }
-
-          _clientPlatform ??= _resolveClientPlatform();
-          options.headers['X-Client-Platform'] = _clientPlatform;
-
-          HeliumRetryEvaluator.deadlineFor(options);
-
-          final requestId = const Uuid().v4();
-          options.headers['X-Request-ID'] = requestId;
-          _addRequestBreadcrumb(requestId, options);
-
-          final token = await _prefService.getSecure('access_token');
-          if (token?.isNotEmpty ?? false) {
-            options.headers['Authorization'] = 'Bearer $token';
-            _log.fine('Authorization token attached to request');
-          }
-          return handler.next(options);
         },
         onResponse: (response, handler) {
           return handler.next(response);
@@ -159,7 +173,8 @@ class DioClient {
 
             // Don't refresh on login or refresh token endpoints
             if (requestPath == ApiUrl.authTokenUrl ||
-                requestPath == ApiUrl.authTokenRefreshUrl) {
+                requestPath == ApiUrl.authTokenRefreshUrl ||
+                error.requestOptions.extra[_replayedAfterRefreshKey] == true) {
               return handler.next(error);
             }
 
@@ -185,9 +200,7 @@ class DioClient {
                 }
                 error.requestOptions.headers['Authorization'] =
                     'Bearer $newToken';
-                _refreshReplayBody(error.requestOptions);
-                final retryResponse = await _dio.fetch(error.requestOptions);
-                return handler.resolve(retryResponse);
+                return await _replayAfterRefresh(error.requestOptions, handler);
               } catch (e) {
                 return handler.next(error);
               }
@@ -226,6 +239,7 @@ class DioClient {
                 validateStatus: (status) => status != null && status < 500,
               );
 
+              refreshDio.interceptors.add(MissingBodyInterceptor());
               // Retries only when no response came back; see HeliumRetryEvaluator.
               refreshDio.interceptors.add(
                 RetryInterceptor(
@@ -275,10 +289,7 @@ class DioClient {
 
                 error.requestOptions.headers['Authorization'] =
                     'Bearer ${refreshResponse.access}';
-
-                _refreshReplayBody(error.requestOptions);
-                final retryResponse = await _dio.fetch(error.requestOptions);
-                return handler.resolve(retryResponse);
+                return await _replayAfterRefresh(error.requestOptions, handler);
               } else {
                 _log.warning(
                   'Token refresh failed with status: ${response.statusCode}',
@@ -500,6 +511,7 @@ class DioClient {
         SettingsPrefKey.dateFormat.key: p.getInt(SettingsPrefKey.dateFormat.key),
         SettingsPrefKey.timeFormat.key: p.getInt(SettingsPrefKey.timeFormat.key),
         SettingsPrefKey.numberFormat.key: p.getInt(SettingsPrefKey.numberFormat.key),
+        SettingsPrefKey.promptForReview.key: p.getBool(SettingsPrefKey.promptForReview.key),
       };
 
       final isCacheComplete = !cachedJson.values.any((v) => v == null);
@@ -571,6 +583,7 @@ class DioClient {
       ?p.setInt(SettingsPrefKey.dateFormat.key, settings.dateFormat),
       ?p.setInt(SettingsPrefKey.timeFormat.key, settings.timeFormat),
       ?p.setInt(SettingsPrefKey.numberFormat.key, settings.numberFormat),
+      ?p.setBool(SettingsPrefKey.promptForReview.key, settings.promptForReview),
     ]);
 
     if (p.getString('saved_grades_graph_settings') == null) {
@@ -624,6 +637,7 @@ class DioClient {
 
   Future<void> acknowledgeReviewPrompt() async {
     await _dio.post(ApiUrl.authUserSettingsReviewPromptAckUrl);
+    await _prefService.setBool(SettingsPrefKey.promptForReview.key, false);
   }
 
   Future<String?> _resolveClientVersion() async {
@@ -642,6 +656,21 @@ class DioClient {
     if (Platform.isIOS) return 'ios';
     if (Platform.isAndroid) return 'android';
     return 'unknown';
+  }
+
+  /// A replay that gets a 401 again ends there rather than refreshing again,
+  /// and any failure is the replay's own, not the refresh's.
+  Future<void> _replayAfterRefresh(
+    RequestOptions options,
+    ErrorInterceptorHandler handler,
+  ) async {
+    _refreshReplayBody(options);
+    options.extra[_replayedAfterRefreshKey] = true;
+    try {
+      handler.resolve(await _dio.fetch(options));
+    } on DioException catch (replayError) {
+      handler.next(replayError);
+    }
   }
 
   /// A [FormData] body is consumed when the request is sent, so replaying the

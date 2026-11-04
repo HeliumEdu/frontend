@@ -21,6 +21,7 @@ mixin ConflictResolvingDialog<W extends StatefulWidget, T extends BaseModel>
       context,
       onLoadLatest: _loadLatest,
       onOverwrite: _overwrite,
+      message: ConflictMessage.changedAt(latest.version),
     );
   }
 

@@ -190,7 +190,7 @@ class _PlannerItemAddScreenState
     // dialog (e.g. after a new-item save); otherwise fall back to the URL
     // the pageBuilder matched on, which is authoritative for the active
     // route even when the routerDelegate hasn't caught up yet.
-    final fullPath = routerPath.startsWith(prefix)
+    final fullPath = DirtyDialogRegistry.isWithin(routerPath, prefix)
         ? routerPath
         : widget.initialFullPath;
     DirtyDialogRegistry.register(
@@ -214,9 +214,8 @@ class _PlannerItemAddScreenState
     if (!mounted) return;
     final path = router.routerDelegate.currentConfiguration.uri.path;
     final prefix = _registeredPrefix;
-    if (prefix != null && path.startsWith(prefix)) {
-      DirtyDialogRegistry.updateFullPath(prefix: prefix, fullPath: path);
-    }
+    if (prefix == null || !DirtyDialogRegistry.isWithin(path, prefix)) return;
+    DirtyDialogRegistry.updateFullPath(prefix: prefix, fullPath: path);
     final segments = path.split('/').where((s) => s.isNotEmpty).toList();
     // Find our entity segment in the URL — look for either homework or event
     // matching our shell. The dialog can swap entity type without unmounting
@@ -364,6 +363,7 @@ class _PlannerItemAddScreenState
 
   void _resolveConflict({
     PlannerItemBaseModel? savedItem,
+    String? latestVersion,
     LinkedNoteSave? linkedNoteSave,
   }) {
     setState(() => isSubmitting = false);
@@ -371,6 +371,7 @@ class _PlannerItemAddScreenState
       context,
       _detailsKey.currentState,
       savedEntity: savedItem,
+      latestVersion: latestVersion,
       linkedNoteSave: linkedNoteSave,
     );
   }
@@ -439,7 +440,10 @@ class _PlannerItemAddScreenState
             setState(() => isSubmitting = false);
           } else if (state is PlannerItemConflict &&
               state.origin == EventOrigin.subScreen) {
-            _resolveConflict(linkedNoteSave: state.linkedNoteSave);
+            _resolveConflict(
+              latestVersion: state.latestVersion,
+              linkedNoteSave: state.linkedNoteSave,
+            );
           } else if (_savedWithUnsavedNote(state)
               case (final savedItem, final linkedNoteSave)) {
             if (state is EventCreated || state is HomeworkCreated) {
@@ -464,10 +468,11 @@ class _PlannerItemAddScreenState
               useRootMessenger: true,
             );
             closeWithoutPrompt();
-          } else if (state is HomeworkCreated ||
-              state is HomeworkUpdated ||
-              state is EventCreated ||
-              state is EventUpdated) {
+          } else if ((state is HomeworkCreated ||
+                  state is HomeworkUpdated ||
+                  state is EventCreated ||
+                  state is EventUpdated) &&
+              state.origin == EventOrigin.subScreen) {
             state as BaseEntityState;
 
             if (state

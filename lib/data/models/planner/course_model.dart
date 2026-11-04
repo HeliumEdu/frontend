@@ -21,8 +21,6 @@ class CourseModel extends BaseTitledModel {
   final List<CourseScheduleModel> schedules;
   final List<DateTime> exceptions;
   final double? trend;
-  final int? numDays;
-  final int? numDaysCompleted;
   final bool? hasWeightedGrading;
   final int? numHomework;
   final int? numHomeworkCompleted;
@@ -47,8 +45,6 @@ class CourseModel extends BaseTitledModel {
     required this.exceptions,
     super.version,
     this.trend,
-    this.numDays,
-    this.numDaysCompleted,
     this.hasWeightedGrading,
     this.numHomework,
     this.numHomeworkCompleted,
@@ -81,8 +77,6 @@ class CourseModel extends BaseTitledModel {
       ),
       currentGrade: toDouble(json['current_grade']),
       trend: toDouble(json['trend']),
-      numDays: json['num_days'],
-      numDaysCompleted: json['num_days_completed'],
       hasWeightedGrading: json['has_weighted_grading'],
       numHomework: json['num_homework'],
       numHomeworkCompleted: json['num_homework_completed'],
@@ -109,8 +103,6 @@ class CourseModel extends BaseTitledModel {
     List<CourseScheduleModel>? schedules,
     List<DateTime>? exceptions,
     double? trend,
-    int? numDays,
-    int? numDaysCompleted,
     bool? hasWeightedGrading,
     int? numHomework,
     int? numHomeworkCompleted,
@@ -135,8 +127,6 @@ class CourseModel extends BaseTitledModel {
       schedules: schedules ?? this.schedules,
       exceptions: exceptions ?? this.exceptions,
       trend: trend ?? this.trend,
-      numDays: numDays ?? this.numDays,
-      numDaysCompleted: numDaysCompleted ?? this.numDaysCompleted,
       hasWeightedGrading: hasWeightedGrading ?? this.hasWeightedGrading,
       numHomework: numHomework ?? this.numHomework,
       numHomeworkCompleted: numHomeworkCompleted ?? this.numHomeworkCompleted,

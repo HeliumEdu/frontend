@@ -213,9 +213,14 @@ class HomeworkUpdated extends HomeworkEntityState {
 }
 
 class PlannerItemConflict extends PlannerItemState {
+  final String? latestVersion;
   final LinkedNoteSave? linkedNoteSave;
 
-  PlannerItemConflict({required super.origin, this.linkedNoteSave});
+  PlannerItemConflict({
+    required super.origin,
+    required this.latestVersion,
+    this.linkedNoteSave,
+  });
 }
 
 class HomeworkDeleted extends PlannerItemState {

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:heliumapp/core/helium_exception.dart';
 import 'package:heliumapp/data/models/planner/course_schedule_model.dart';
 import 'package:heliumapp/presentation/features/courses/bloc/course_bloc.dart';
 import 'package:heliumapp/presentation/features/courses/bloc/course_event.dart';
@@ -29,7 +30,7 @@ class CourseSchedule extends StatelessWidget {
   final int courseId;
   final bool isEdit;
   final bool isNew;
-  final UserSettingsModel? userSettings;
+  final UserSettingsModel userSettings;
 
   const CourseSchedule({
     super.key,
@@ -37,7 +38,7 @@ class CourseSchedule extends StatelessWidget {
     required this.courseId,
     required this.isEdit,
     required this.isNew,
-    this.userSettings,
+    required this.userSettings,
   });
 
   @override
@@ -57,14 +58,14 @@ class _CourseScheduleContent extends StatefulWidget {
   final int courseId;
   final bool isEdit;
   final bool isNew;
-  final UserSettingsModel? userSettings;
+  final UserSettingsModel userSettings;
 
   const _CourseScheduleContent({
     required this.courseGroupId,
     required this.courseId,
     required this.isEdit,
     required this.isNew,
-    this.userSettings,
+    required this.userSettings,
   });
 
   @override
@@ -89,7 +90,7 @@ class _CourseScheduleContentState extends State<_CourseScheduleContent> {
     super.initState();
 
     if (widget.isEdit) {
-      _fetchSchedules();
+      _fetchScreenData();
       context.read<CourseBloc>().add(
         FetchCourseScreenDataEvent(
           origin: EventOrigin.subScreen,
@@ -101,20 +102,6 @@ class _CourseScheduleContentState extends State<_CourseScheduleContent> {
     } else {
       _isLoading = false;
     }
-  }
-
-  void _fetchSchedules() {
-    setState(() {
-      _isLoading = true;
-      _error = null;
-    });
-    context.read<CourseBloc>().add(
-      FetchCourseSchedulesEvent(
-        origin: EventOrigin.subScreen,
-        courseGroupId: widget.courseGroupId,
-        courseId: widget.courseId,
-      ),
-    );
   }
 
   @override
@@ -154,12 +141,28 @@ class _CourseScheduleContentState extends State<_CourseScheduleContent> {
           });
         } else if (_isFetchFailure(state)) {
           setState(() {
-            _error = (state as CoursesError).message;
+            _error = (state as CoursesError).message ??
+                HeliumException.unexpectedError;
             _isLoading = false;
           });
         }
       },
       child: _buildContent(context),
+    );
+  }
+
+  void _fetchScreenData() {
+    setState(() {
+      _isLoading = true;
+      _error = null;
+    });
+    context.read<CourseBloc>().add(
+      FetchCourseSchedulesEvent(
+        origin: EventOrigin.subScreen,
+        courseGroupId: widget.courseGroupId,
+        courseId: widget.courseId,
+        forceRefresh: true,
+      ),
     );
   }
 
@@ -171,10 +174,6 @@ class _CourseScheduleContentState extends State<_CourseScheduleContent> {
       _isLoading;
 
   Widget _buildContent(BuildContext context) {
-    if (widget.userSettings == null) {
-      return const Center(child: LoadingIndicator(expanded: false));
-    }
-
     return Column(
       children: [
         Row(
@@ -213,7 +212,7 @@ class _CourseScheduleContentState extends State<_CourseScheduleContent> {
         message: _error!,
         source: 'course_schedule',
         expanded: false,
-        onReload: _fetchSchedules,
+        onReload: _fetchScreenData,
       );
     }
 

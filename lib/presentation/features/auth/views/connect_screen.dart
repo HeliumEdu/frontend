@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:heliumapp/core/helium_exception.dart';
 import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/data/models/auth/oauth_authorization_model.dart';
@@ -50,7 +51,6 @@ class _ConnectScreenState extends BasePageScreenState<ConnectScreen> {
 
   OAuthAuthorizationModel? _authorization;
   String? _invalidMessage;
-  String? _loadError;
   bool _isReturning = false;
   bool _isAllowing = false;
 
@@ -67,7 +67,7 @@ class _ConnectScreenState extends BasePageScreenState<ConnectScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
 
-      _describe();
+      _fetchScreenData();
     });
   }
 
@@ -101,7 +101,7 @@ class _ConnectScreenState extends BasePageScreenState<ConnectScreen> {
           } else if (state is AuthError) {
             if (_authorization == null) {
               setState(() {
-                _loadError = state.message;
+                screenError = state.message ?? HeliumException.unexpectedError;
               });
             } else {
               showSnackBar(
@@ -165,12 +165,12 @@ class _ConnectScreenState extends BasePageScreenState<ConnectScreen> {
 
     if (_invalidMessage != null) {
       return _buildInvalid(context, _invalidMessage!);
-    } else if (_loadError != null) {
+    } else if (screenError != null) {
       return [
         ErrorCard(
-          message: _loadError!,
+          message: screenError!,
           source: 'connect_screen',
-          onReload: _describe,
+          onReload: _fetchScreenData,
           expanded: false,
           supportUrl: AppConstants.supportWhereToStartUrl,
         ),
@@ -344,9 +344,9 @@ class _ConnectScreenState extends BasePageScreenState<ConnectScreen> {
     ];
   }
 
-  void _describe() {
+  void _fetchScreenData() {
     setState(() {
-      _loadError = null;
+      screenError = null;
     });
 
     context.read<AuthBloc>().add(

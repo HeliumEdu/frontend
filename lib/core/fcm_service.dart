@@ -668,7 +668,9 @@ class FcmService with WidgetsBindingObserver {
     if (_fcmToken == null) return;
 
     try {
-      await _firebaseMessaging?.deleteToken();
+      await _firebaseMessaging
+          ?.deleteToken()
+          .timeout(DioClient.receiveTimeout);
       _log.info('Discarded FCM token after forced sign-out');
     } catch (e, s) {
       _log.warning('Failed to discard FCM token', e, s);

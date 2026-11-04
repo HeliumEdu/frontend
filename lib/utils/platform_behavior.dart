@@ -68,6 +68,12 @@ class PlatformBehavior {
 
   static bool get dismissesDialogOnBarrierTap => !support.hasTouchInput;
 
+  /// Whether screens opened as dialogs take the whole screen instead: on a
+  /// phone, or on a tablet held upright.
+  static bool showsDialogsFullScreen(BuildContext context) =>
+      Responsive.useCompactLayout(context) ||
+      (!isDesktopHost && Responsive.isPortraitTablet(context));
+
   /// Focusing a field on open raises the on-screen keyboard on native touch
   /// devices, covering the form before the user has chosen to type.
   static bool get autofocusesOnOpen => kIsWeb || !support.hasTouchInput;

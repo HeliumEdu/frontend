@@ -9,7 +9,6 @@ import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/core/helium_exception.dart';
 import 'package:heliumapp/config/pref_service.dart';
 import 'package:heliumapp/core/analytics_service.dart';
-import 'package:heliumapp/core/dio_client.dart';
 import 'package:heliumapp/core/motion_service.dart';
 import 'package:heliumapp/data/models/auth/user_settings_model.dart';
 import 'package:heliumapp/data/models/planner/course_group_model.dart';
@@ -126,15 +125,9 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
   static const double _averageColMobile = 90;
   static const double _averageColDesktop = 105;
 
-  double get _atRiskThreshold =>
-      (userSettings?.atRiskThreshold ??
-          FallbackConstants.defaultAtRiskThreshold)
-          .toDouble();
+  double get _atRiskThreshold => userSettings.atRiskThreshold.toDouble();
 
-  double get _onTrackTolerance =>
-      (userSettings?.onTrackTolerance ??
-          FallbackConstants.defaultOnTrackTolerance)
-          .toDouble();
+  double get _onTrackTolerance => userSettings.onTrackTolerance.toDouble();
 
   double get _chartAnimationDurationMs => MotionService()
       .effectiveDuration(_chartAnimationDuration)
@@ -167,21 +160,15 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
   }
 
   @override
-  void initState() {
-    super.initState();
-
-    DioClient().cacheService.addInactivityResumeListener(
-      _resetSelectedGroupOnResume,
+  void loadScreenData({required bool forceRefresh}) {
+    if (forceRefresh) {
+      setState(() {
+        _selectedGroupId = CourseGroupHelpers.currentGroupId(_courseGroups);
+      });
+    }
+    context.read<GradeBloc>().add(
+      FetchGradeScreenDataEvent(forceRefresh: forceRefresh),
     );
-    context.read<GradeBloc>().add(FetchGradeScreenDataEvent());
-  }
-
-  @override
-  void dispose() {
-    DioClient().cacheService.removeInactivityResumeListener(
-      _resetSelectedGroupOnResume,
-    );
-    super.dispose();
   }
 
   @override
@@ -261,9 +248,9 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
           return const Center(child: LoadingIndicator(expanded: false));
         }
 
-        if (state is GradesError) {
+        if (screenError != null) {
           return ErrorCard(
-            message: state.message!,
+            message: screenError!,
             source: 'grades_screen',
             onReload: reloadPage,
           );
@@ -320,11 +307,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
                     message: 'An unknown error occurred loading the graph',
                     source: 'grades_screen',
                     expanded: false,
-                    onReload: () {
-                      context.read<GradeBloc>().add(
-                        FetchGradeScreenDataEvent(forceRefresh: true),
-                      );
-                    },
+                    onReload: reloadPage,
                   );
                 }
               },
@@ -1168,7 +1151,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
                     grade: GradeHelper.gradeForDisplay(
                       courses[i].overallGrade,
                     ),
-                    userSettings: userSettings!,
+                    userSettings: userSettings,
                     compact: true,
                     selectable: false,
                   ),
@@ -1204,7 +1187,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
         value: gradeBloc,
         child: GradeCalculatorContainer(
           course: course,
-          userSettings: userSettings!,
+          userSettings: userSettings,
           defaultDesiredGradeBoost: _defaultDesiredGradeBoost,
         ),
       ),
@@ -2252,7 +2235,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
                     children: [
                       GradeLabel(
                         grade: GradeHelper.gradeForDisplay(course.overallGrade),
-                        userSettings: userSettings!,
+                        userSettings: userSettings,
                         compact: Responsive.isMobile(context),
                       ),
                       if (course.trend != null) ...[
@@ -2398,7 +2381,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
   }
 
   void _saveGraphSettingsIfEnabled() {
-    if (!(userSettings?.rememberFilterState ?? FallbackConstants.defaultRememberFilterState)) return;
+    if (!settingsLoaded || !userSettings.rememberFilterState) return;
 
     final graphSettings = {
       'autoAdjustToGradedRange': _autoAdjustToGradedRange,
@@ -2436,7 +2419,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
   }
 
   void _saveSelectedGroup() {
-    if (_selectedGroupId == null) return;
+    if (_selectedGroupId == null || !settingsLoaded) return;
 
     ScreenDropdownFilterHelpers.save(
       ScreensDropdownFilterPrefKey.gradesGroupId,
@@ -2461,18 +2444,6 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
       _selectedGroupId = _courseGroups.isEmpty
           ? savedGroupId
           : _selectableGroupId(savedGroupId);
-    });
-  }
-
-  /// Fires on the same inactivity-resume threshold that makes the shell clear
-  /// the saved selection — but a screen that's currently mounted (i.e. the
-  /// user was sitting on it when they backgrounded/foregrounded) won't
-  /// otherwise pick that up, since restoring only happens on mount.
-  void _resetSelectedGroupOnResume() {
-    if (!mounted) return;
-
-    setState(() {
-      _selectedGroupId = CourseGroupHelpers.currentGroupId(_courseGroups);
     });
   }
 
@@ -2679,7 +2650,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
               alignment: Alignment.centerRight,
               child: GradeLabel(
                 grade: GradeHelper.gradeForDisplay(category.overallGrade),
-                userSettings: userSettings!,
+                userSettings: userSettings,
                 compact: Responsive.isMobile(context),
               ),
             ),

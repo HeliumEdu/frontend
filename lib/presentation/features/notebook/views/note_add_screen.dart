@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:convert';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
@@ -16,6 +15,7 @@ import 'package:heliumapp/config/app_router.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/config/dirty_dialog_registry.dart';
 import 'package:heliumapp/core/analytics_service.dart';
+import 'package:heliumapp/core/note_draft_store.dart';
 import 'package:heliumapp/data/models/planner/category_model.dart';
 import 'package:heliumapp/data/models/planner/course_model.dart';
 import 'package:heliumapp/data/models/planner/event_model.dart';
@@ -52,6 +52,7 @@ import 'package:heliumapp/utils/quill_helpers.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:heliumapp/utils/date_time_helpers.dart';
 import 'package:heliumapp/utils/search_helpers.dart';
+import 'package:heliumapp/utils/snack_bar_helpers.dart';
 import 'package:heliumapp/utils/sort_helpers.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
@@ -219,6 +220,9 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
   _PendingConflict? _conflict;
   bool _isRecreatingDeletedNote = false;
   bool _isApplyingRemoteVersion = false;
+  bool _isContentUnrenderable = false;
+  bool _ownsNewNoteDraft = false;
+  ({NoteModel? note, Delta delta})? _savedEditorDelta;
 
   bool _isClosing = false;
   StreamSubscription<DocChange>? _documentSubscription;
@@ -264,6 +268,7 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
     if (state == AppLifecycleState.paused ||
         state == AppLifecycleState.hidden) {
       _autoPullTimer?.cancel();
+      _saveDraft();
       if (_debounceTimer?.isActive == true) {
         _debounceTimer!.cancel();
         _triggerAutoSave();
@@ -283,6 +288,7 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
     }
     PrintService().unregister(_printHandler);
     _debounceTimer?.cancel();
+    _clearDraft(_note);
     _autoPullTimer?.cancel();
     _documentSubscription?.cancel();
     _titleController.removeListener(_onContentChanged);
@@ -304,7 +310,7 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
     // dialog (e.g. after a new-note save); otherwise fall back to the URL
     // the pageBuilder matched on, which is authoritative for the active
     // route even when the routerDelegate hasn't caught up yet.
-    final fullPath = routerPath.startsWith(prefix)
+    final fullPath = DirtyDialogRegistry.isWithin(routerPath, prefix)
         ? routerPath
         : widget.initialFullPath;
     DirtyDialogRegistry.register(
@@ -319,9 +325,8 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
     if (!mounted) return;
     final path = router.routerDelegate.currentConfiguration.uri.path;
     final prefix = _registeredPrefix;
-    if (prefix != null && path.startsWith(prefix)) {
-      DirtyDialogRegistry.updateFullPath(prefix: prefix, fullPath: path);
-    }
+    if (prefix == null || !DirtyDialogRegistry.isWithin(path, prefix)) return;
+    DirtyDialogRegistry.updateFullPath(prefix: prefix, fullPath: path);
   }
 
   bool get isDirty {
@@ -490,6 +495,14 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
             _recreateDeletedNote();
           } else if (state is NoteRefreshed && state.note.id == _note?.id) {
             _applyRefreshedNote(state.note);
+          } else if (state is LinkableEntitiesFailed) {
+            setState(() {
+              _isPickerLoading = false;
+              _showLinkPicker = false;
+            });
+            if (!isShowingErrorCard) {
+              showSnackBar(context, state.message!, type: SnackType.error);
+            }
           } else if (state is NotesError) {
             if (isLoading) {
               showSnackBar(
@@ -499,14 +512,6 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
                 useRootMessenger: true,
               );
               _closeImmediately();
-            } else if (_isPickerLoading) {
-              setState(() {
-                _isPickerLoading = false;
-                _showLinkPicker = false;
-              });
-              if (!isShowingErrorCard) {
-                showSnackBar(context, state.message!, type: SnackType.error);
-              }
             } else if (_isAutoSaving) {
               if (_isLinking) {
                 setState(() { _isLinking = false; isSubmitting = false; });
@@ -557,7 +562,9 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
                 if (mounted) _titleFocusNode.requestFocus();
               });
             }
-          } else if (state is NoteCreated) {
+          } else if (state is NoteCreated &&
+              state.origin == EventOrigin.subScreen) {
+            _clearDraft(null);
             if (_isAutoSaving) {
               // Auto-save created the note - update state but don't close
               setState(() {
@@ -601,7 +608,8 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
               _linkableResourceGroups = state.resourceGroups;
               _linkableCategories = state.categories;
             });
-          } else if (state is NoteUpdated) {
+          } else if (state is NoteUpdated &&
+              state.origin == EventOrigin.subScreen) {
             if (_isAutoSaving) {
               // Auto-save or link change updated the note - update state but don't close
               setState(() {
@@ -615,6 +623,7 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
                 _setLinkedEntityFrom(state.note);
               });
               _isAutoSaving = false;
+              _saveDraft();
               _onContentChanged();
             } else {
               _pendingUnlink = false;
@@ -663,13 +672,18 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
   }
 
   bool _hasEditsSince(NoteModel? saved) {
-    final savedOps = saved?.content?['ops'];
-    final savedContent = savedOps == null ? '' : jsonEncode(savedOps);
-    final currentContent = jsonEncode(
-      _quillController.document.toDelta().toJson(),
-    );
-    return _titleController.text.trim() != (saved?.title ?? '') ||
-        currentContent != savedContent;
+    final titleChanged = _titleController.text.trim() != (saved?.title ?? '');
+    if (_isContentUnrenderable) return titleChanged;
+    return titleChanged ||
+        _quillController.document.toDelta() != _editorDeltaOf(saved);
+  }
+
+  Delta _editorDeltaOf(NoteModel? saved) {
+    final cached = _savedEditorDelta;
+    if (cached != null && identical(cached.note, saved)) return cached.delta;
+    final delta = editorDeltaFor(saved?.content);
+    _savedEditorDelta = (note: saved, delta: delta);
+    return delta;
   }
 
   void _onContentChanged() {
@@ -721,6 +735,7 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
 
   void _performSave({required bool isAutoSave}) {
     _debounceTimer?.cancel();
+    _saveDraft();
 
     setState(() {
       if (_saveStatus != SaveStatus.error) _saveStatus = SaveStatus.saving;
@@ -729,7 +744,9 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
     });
 
     final title = _titleController.text.trim();
-    final content = _quillController.document.toDelta().toJson();
+    final content = _isContentUnrenderable
+        ? null
+        : _quillController.document.toDelta().toJson();
 
     if (_note?.id == null) {
       context.read<NoteBloc>().add(
@@ -737,7 +754,7 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
           origin: EventOrigin.subScreen,
           request: NoteRequestModel(
             title: title,
-            content: {'ops': content},
+            content: content == null ? null : {'ops': content},
             homeworkId: _linkedEntityType == 'homework' ? _pendingLinkId : null,
             eventId: _linkedEntityType == 'event' ? _pendingLinkId : null,
             resourceId: _linkedEntityType == 'resource' ? _pendingLinkId : null,
@@ -745,14 +762,17 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
         ),
       );
     } else {
-      _rememberUnconfirmedSend(title, content);
+      _rememberUnconfirmedSend(
+        title,
+        content ?? _note!.content!['ops'] as List<dynamic>,
+      );
       context.read<NoteBloc>().add(
         UpdateNoteEvent(
           origin: EventOrigin.subScreen,
           noteId: _note!.id,
           request: NoteRequestModel(
             title: title,
-            content: {'ops': content},
+            content: content == null ? null : {'ops': content},
             clearLinks: _pendingUnlink,
           ),
           version: _note!.version,
@@ -806,6 +826,7 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
       _pendingUnlink = _pendingUnlink && latest.linkedEntityType.isNotEmpty;
       if (!_pendingUnlink) _setLinkedEntityFrom(latest);
     });
+    _saveDraft();
 
     if (wasManualSave) {
       _performSave(isAutoSave: false);
@@ -818,6 +839,7 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
   Future<void> _onSaveConflict(
     NoteModel latest, {
     required bool wasManualSave,
+    ConflictMessage? message,
   }) async {
     if (_adoptOwnWrite(latest, wasManualSave: wasManualSave)) return;
 
@@ -837,6 +859,28 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
       onLoadLatest: _loadLatestVersion,
       onOverwrite: _overwriteNewer,
       canKeepEditing: true,
+      message:
+          message ??
+          ConflictMessage.changedAt(latest.version, subject: 'This note'),
+    );
+  }
+
+  ConflictMessage _changedSinceDraftMessage(
+    NoteModel latest,
+    DateTime? draftSavedAt,
+  ) {
+    final changed = draftSavedAt == null
+        ? describeVersionSaved(latest.version)
+        : '${HeliumDateTime.describeRelativeTo(latest.updatedAt, draftSavedAt)} '
+              'your recovered changes';
+    final when = changed == null ? '' : ' $changed';
+    return ConflictMessage(
+      title: 'Recover Your Changes?',
+      body:
+          'This note was changed on another device$when. Recover your '
+          'changes anyway, replacing that version?',
+      discardLabel: 'Discard',
+      saveLabel: 'Recover',
     );
   }
 
@@ -885,6 +929,7 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
 
   void _recreateDeletedNote() {
     final wasAutoSave = _isAutoSaving;
+    _clearDraft(_note);
     setState(() {
       _note = null;
       _pendingLinkId = null;
@@ -943,8 +988,7 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
   void _showNoteVersion(NoteModel note, {required bool keepCursor}) {
     final editorOffset = _quillController.selection.baseOffset;
     final titleSelection = _titleController.selection;
-    final document =
-        tryParseNotesDocument(note.content) ?? buildUnrenderableNotePlaceholder();
+    final document = _loadDocument(note);
 
     _isApplyingRemoteVersion = true;
     _unconfirmedSends.clear();
@@ -971,6 +1015,7 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
     }
     _setupDocumentListener();
     _isApplyingRemoteVersion = false;
+    _clearDraft(note);
   }
 
   static TextSelection _clampSelection(TextSelection selection, int length) {
@@ -1018,6 +1063,13 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
     });
   }
 
+  Document _loadDocument(NoteModel note) {
+    final loaded = notesDocumentFor(note.content);
+    _isContentUnrenderable = !loaded.isRenderable;
+    _quillController.readOnly = _isContentUnrenderable;
+    return loaded.document;
+  }
+
   bool _isOwnScreenDataRequest(NoteScreenDataIdentity state) => state.matches(
         noteId: widget.noteId,
         linkHomeworkId: widget.linkHomeworkId,
@@ -1030,17 +1082,92 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
     _titleController.text = note.title;
 
     if (note.content != null) {
-      _quillController.document =
-          tryParseNotesDocument(note.content) ?? buildUnrenderableNotePlaceholder();
+      _quillController.document = _loadDocument(note);
     }
+    final draftSavedAt = NoteDraftStore().savedAtFor(
+      NoteDraftStore.keyForNote(note.id),
+    );
+    final isDraftRestored = _restoreDraft(note);
 
     _setupDocumentListener();
-    _saveStatus = SaveStatus.saved;
+    _saveStatus = isDraftRestored ? SaveStatus.unsaved : SaveStatus.saved;
 
     // Delay clearing isLoading to ignore async document change events
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) setState(() => isLoading = false);
+      if (!mounted) return;
+      setState(() => isLoading = false);
+      if (!isDraftRestored) return;
+      if (_note!.version != note.version) {
+        _onSaveConflict(
+          note,
+          wasManualSave: false,
+          message: _changedSinceDraftMessage(note, draftSavedAt),
+        );
+        return;
+      }
+      const recoveredMessage = 'Your unsaved changes were recovered.';
+      showSnackBar(
+        context,
+        recoveredMessage,
+        seconds: SnackBarHelper.durationFor(recoveredMessage) * 2,
+        type: SnackType.info,
+      );
+      _triggerAutoSave();
     });
+  }
+
+  void _saveDraft() {
+    final note = _note;
+    if (isLoading || _isContentUnrenderable) return;
+    final hasUnsavedEdits = note == null ? !_isNoteEmpty : _hasEditsSince(note);
+    if (!hasUnsavedEdits) {
+      _clearDraft(note);
+      return;
+    }
+    final draft = (
+      title: _titleController.text.trim(),
+      ops: _quillController.document.toDelta().toJson(),
+      baseVersion: note?.version,
+      homeworkId: _linkedEntityType == 'homework' ? _pendingLinkId : null,
+      eventId: _linkedEntityType == 'event' ? _pendingLinkId : null,
+      resourceId: _linkedEntityType == 'resource' ? _pendingLinkId : null,
+    );
+    if (note == null) {
+      _ownsNewNoteDraft = true;
+      NoteDraftStore().save(NoteDraftStore.newNoteKey, draft);
+    } else {
+      NoteDraftStore().save(NoteDraftStore.keyForNote(note.id), draft);
+    }
+  }
+
+  /// The new-note slot may hold a draft from an earlier session that is
+  /// still waiting to be recovered; only the editor that wrote it clears it.
+  void _clearDraft(NoteModel? note) {
+    if (note != null) {
+      NoteDraftStore().clear(NoteDraftStore.keyForNote(note.id));
+    } else if (_ownsNewNoteDraft) {
+      NoteDraftStore().clear(NoteDraftStore.newNoteKey);
+      _ownsNewNoteDraft = false;
+    }
+  }
+
+  bool _restoreDraft(NoteModel note) {
+    final key = NoteDraftStore.keyForNote(note.id);
+    final draft = NoteDraftStore().draftFor(key);
+    if (draft == null) return false;
+    final document = _isContentUnrenderable
+        ? null
+        : tryParseNotesDocument({'ops': draft.ops});
+    if (document != null) {
+      _titleController.text = draft.title;
+      _quillController.document = document;
+    }
+    if (document == null || !_hasEditsSince(note)) {
+      NoteDraftStore().clear(key);
+      return false;
+    }
+    _note = note.copyWith(version: draft.baseVersion);
+    return true;
   }
 
   Widget _buildDesktopLayout(BuildContext context) {
@@ -1340,10 +1467,9 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
 
     final Widget badge;
     if (entityType == 'resource') {
-      if (userSettings == null) return const SizedBox.shrink();
       badge = ResourceTitleLabel(
         title: title,
-        userSettings: userSettings!,
+        userSettings: userSettings,
         textDecoration: strikethrough,
         onDelete: onDelete,
         onDeleteLabel: 'Unlink',
@@ -1351,7 +1477,7 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
     } else if (entityType == 'event') {
       badge = GenericLabel(
         label: title,
-        color: userSettings?.eventsColor ?? FallbackConstants.defaultEventsColor,
+        color: userSettings.eventsColor,
         icon: AppConstants.eventIcon,
         textDecoration: strikethrough,
         onDelete: onDelete,
@@ -1361,7 +1487,7 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
       final courseColor = _note?.courseColor ?? _linkedEntityColor;
       final categoryColor = _note?.categoryColor;
       final badgeColor =
-          (userSettings?.colorByCategory ?? FallbackConstants.defaultColorByCategory) && categoryColor != null
+          userSettings.colorByCategory && categoryColor != null
           ? categoryColor
           : courseColor;
       badge = GenericLabel(
@@ -1449,12 +1575,12 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
           (c) => c?.id == homework?.category.id,
           orElse: () => null,
         );
-        color = (userSettings?.colorByCategory ?? FallbackConstants.defaultColorByCategory) && category != null
+        color = userSettings.colorByCategory && category != null
             ? category.color
             : course?.color;
         completed = homework?.completed;
       } else if (type == 'event') {
-        color = userSettings?.eventsColor;
+        color = userSettings.eventsColor;
       }
       setState(() {
         _pendingLinkId = id;
@@ -1718,7 +1844,7 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
             title: e.title,
             date: e.start,
             allDay: e.allDay,
-            color: userSettings?.eventsColor ?? FallbackConstants.defaultEventsColor,
+            color: userSettings.eventsColor,
           ));
         }
 
@@ -1750,7 +1876,7 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
             rows.add(_LinkPickerItem(
               id: r.id,
               title: r.title,
-              color: userSettings?.resourceColor ?? FallbackConstants.defaultResourceColor,
+              color: userSettings.resourceColor,
             ));
           }
         }
@@ -1779,10 +1905,10 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
         final row = rows[index];
         if (row is _LinkGroupHeader) {
           final Widget groupBadge;
-          if (_linkPickerType == 'resource' && userSettings != null) {
+          if (_linkPickerType == 'resource') {
             groupBadge = ResourceTitleLabel(
               title: row.title,
-              userSettings: userSettings!,
+              userSettings: userSettings,
               compact: true,
             );
           } else {
@@ -1799,10 +1925,12 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
         }
         final item = row as _LinkPickerItem;
         final accent = item.color ?? FallbackConstants.fallbackColor;
-        final dateText = item.date != null && userSettings != null
+        final dateText = item.date != null
             ? () {
-                final localDate =
-                    HeliumDateTime.toLocal(item.date!, userSettings!.timeZone);
+                final localDate = HeliumDateTime.toLocal(
+                  item.date!,
+                  userSettings.timeZone,
+                );
                 return item.allDay
                     ? HeliumDateTime.formatDateForTodos(localDate)
                     : HeliumDateTime.formatDateAndTimeForTodos(localDate);

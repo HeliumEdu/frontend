@@ -75,6 +75,12 @@ class _ForgotPasswordScreenState
               _emailSent = true;
             });
           }
+
+          if (state is! AuthLoading) {
+            setState(() {
+              isSubmitting = false;
+            });
+          }
         },
       ),
     ];

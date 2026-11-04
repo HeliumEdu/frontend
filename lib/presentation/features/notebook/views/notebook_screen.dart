@@ -3,13 +3,17 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:heliumapp/config/app_route.dart';
+import 'package:heliumapp/config/app_router.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/core/helium_exception.dart';
 import 'package:heliumapp/config/pref_service.dart';
+import 'package:heliumapp/core/note_draft_store.dart';
 import 'package:heliumapp/data/models/auth/user_settings_model.dart';
 import 'package:heliumapp/data/models/planner/course_group_model.dart';
 import 'package:heliumapp/data/models/planner/course_model.dart';
 import 'package:heliumapp/data/models/planner/note_model.dart';
+import 'package:heliumapp/data/models/planner/request/note_request_model.dart';
 import 'package:heliumapp/data/models/planner/resource_model.dart';
 import 'package:heliumapp/domain/linked_note_saver.dart';
 import 'package:heliumapp/presentation/core/views/base_page_screen_state.dart';
@@ -36,12 +40,16 @@ import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
 import 'package:heliumapp/presentation/ui/layout/shadow_container.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/app_style.dart';
+import 'package:heliumapp/utils/error_helpers.dart';
 import 'package:heliumapp/utils/planner_helper.dart';
 import 'package:heliumapp/utils/print_helpers.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:heliumapp/utils/search_helpers.dart';
+import 'package:heliumapp/utils/snack_bar_helpers.dart';
 import 'package:heliumapp/utils/sort_helpers.dart';
+import 'package:logging/logging.dart';
 
+final _log = Logger('presentation.views');
 
 class NotebookScreen extends StatelessWidget {
   const NotebookScreen({super.key});
@@ -98,11 +106,12 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen> 
   final FocusNode _searchFocusNode = FocusNode();
   int _rowsPerPage = 10;
   bool _notesReady = false;
+  bool _isRecoveringNewNote = false;
 
   @override
-  void initState() {
-    super.initState();
+  void loadScreenData({required bool forceRefresh}) {
     _fetchNotes();
+    unawaited(_recoverNewNoteDraft(forceRefresh: forceRefresh));
   }
 
   @override
@@ -442,9 +451,9 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen> 
   Widget buildMainArea(BuildContext context) {
     return BlocBuilder<NoteBloc, NoteState>(
       builder: (context, state) {
-        if (state is NotesError && state.origin == EventOrigin.screen) {
+        if (screenError != null) {
           return ErrorCard(
-            message: state.message!,
+            message: screenError!,
             source: 'notes_screen',
             onReload: reloadPage,
           );
@@ -539,6 +548,71 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen> 
     );
     _refreshContentSearch(immediately: true);
   }
+
+  Future<void> _recoverNewNoteDraft({required bool forceRefresh}) async {
+    final draft = NoteDraftStore().draftFor(NoteDraftStore.newNoteKey);
+    final isOnNotebookList =
+        router.routerDelegate.currentConfiguration.uri.path ==
+        AppRoute.notebookScreen;
+    if (draft == null ||
+        _isRecoveringNewNote ||
+        (forceRefresh && !isOnNotebookList)) {
+      return;
+    }
+
+    _isRecoveringNewNote = true;
+    final noteRepository = context.read<NoteBloc>().noteRepository;
+    try {
+      try {
+        await noteRepository.createNote(
+          request: NoteRequestModel(
+            title: '[Recovered Draft] ${draft.title}'.trim(),
+            content: {'ops': draft.ops},
+            homeworkId: draft.homeworkId,
+            eventId: draft.eventId,
+            resourceId: draft.resourceId,
+          ),
+        );
+      } on HeliumException catch (e) {
+        if (!_isRejectedByServer(e)) rethrow;
+        // Recovering the text matters more than its title or links, so drop
+        // both and retry once.
+        await noteRepository.createNote(
+          request: NoteRequestModel(
+            title: '[Recovered Draft]',
+            content: {
+              'ops': [
+                if (draft.title.isNotEmpty) {'insert': '${draft.title}\n'},
+                ...draft.ops,
+              ],
+            },
+          ),
+        );
+      }
+      NoteDraftStore().clear(NoteDraftStore.newNoteKey);
+      if (!mounted) return;
+      _fetchNotes();
+      const recoveredMessage = 'Your unsaved note was recovered.';
+      showSnackBar(
+        context,
+        recoveredMessage,
+        seconds: SnackBarHelper.durationFor(recoveredMessage) * 2,
+        type: SnackType.info,
+      );
+    } on HeliumException catch (e, s) {
+      if (_isRejectedByServer(e)) {
+        ErrorHelpers.logAndReport('Recovered note draft was rejected', e, s);
+        NoteDraftStore().clear(NoteDraftStore.newNoteKey);
+      } else {
+        _log.info('Recovered note not created yet: ${e.runtimeType}');
+      }
+    } finally {
+      _isRecoveringNewNote = false;
+    }
+  }
+
+  bool _isRejectedByServer(HeliumException e) =>
+      e is ValidationException || e is NotFoundException;
 
   bool get _hasSearchQuery => _searchQuery?.trim().isNotEmpty ?? false;
 
@@ -738,7 +812,7 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen> 
       _filterEntityTypes.contains('resource');
 
   void _saveFilterStateIfEnabled() {
-    if (!(userSettings?.rememberFilterState ?? FallbackConstants.defaultRememberFilterState)) return;
+    if (!settingsLoaded || !userSettings.rememberFilterState) return;
 
     final filterState = {
       'filterEntityTypes': _filterEntityTypes.toList(),
@@ -837,7 +911,7 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen> 
           iconWidget: Icon(
             AppConstants.eventIcon,
             size: 18,
-            color: PlannerTypeColors.events(userSettings?.eventsColor),
+            color: userSettings.eventsColor,
           ),
         ),
         (
@@ -846,7 +920,7 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen> 
           iconWidget: Icon(
             Icons.book_outlined,
             size: 18,
-            color: userSettings?.resourceColor ?? FallbackConstants.defaultResourceColor,
+            color: userSettings.resourceColor,
           ),
         ),
       ];

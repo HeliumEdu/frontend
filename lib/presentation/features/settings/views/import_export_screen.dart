@@ -36,7 +36,7 @@ import 'package:logging/logging.dart';
 final _log = Logger('presentation.settings');
 
 class ImportExportScreen extends StatefulWidget {
-  final UserSettingsModel? userSettings;
+  final UserSettingsModel userSettings;
   final void Function(String route)? onNavigateRequested;
   final VoidCallback? onActionStarted;
   final VoidCallback? onCompleted;
@@ -44,7 +44,7 @@ class ImportExportScreen extends StatefulWidget {
 
   const ImportExportScreen({
     super.key,
-    this.userSettings,
+    required this.userSettings,
     this.onNavigateRequested,
     this.onActionStarted,
     this.onCompleted,
@@ -407,7 +407,7 @@ class _ImportExportScreenState extends State<ImportExportScreen> {
           isLoading: _isImportingExample,
           enabled:
               !_isImportingExample &&
-              !(widget.userSettings?.showGettingStarted ?? false),
+              !widget.userSettings.showGettingStarted,
         ),
       ],
     );

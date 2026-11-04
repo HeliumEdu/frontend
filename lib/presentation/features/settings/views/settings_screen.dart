@@ -8,9 +8,11 @@ import 'package:heliumapp/config/app_router.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/config/dirty_dialog_registry.dart';
 import 'package:heliumapp/config/donation_config.dart';
+import 'package:heliumapp/core/helium_exception.dart';
 import 'package:heliumapp/core/motion_service.dart';
 import 'package:heliumapp/config/theme_notifier.dart';
 import 'package:heliumapp/data/models/auth/request/update_settings_request_model.dart';
+import 'package:heliumapp/data/models/auth/user_model.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/info/info_bloc.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/info/info_state.dart';
 import 'package:heliumapp/presentation/core/views/base_page_screen_state.dart';
@@ -36,6 +38,7 @@ import 'package:heliumapp/presentation/ui/components/support_helium_card.dart';
 import 'package:heliumapp/presentation/ui/feedback/confirm_action_dialog.dart';
 import 'package:heliumapp/presentation/ui/feedback/confirm_clear_example_data.dart';
 import 'package:heliumapp/presentation/ui/feedback/discard_changes_scope.dart';
+import 'package:heliumapp/presentation/ui/feedback/error_card.dart';
 import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
 import 'package:heliumapp/presentation/ui/feedback/warning_container.dart';
 import 'package:heliumapp/presentation/ui/layout/helium_full_screen_scroll_view.dart';
@@ -120,16 +123,14 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
   final themeNotifier = ThemeNotifier();
 
   SettingsSubScreen? _activeSubScreen;
+  UserModel? _profile;
   bool _isSubScreenForward = true;
-  String _email = '';
-  String? _emailChanging;
   String _version = '';
-  bool _hasUsablePassword = true;
-  bool _hasOAuthProviders = false;
-  List<String> _oauthProviders = [];
   bool _dangerZoneExpanded = false;
   bool _clearingExampleData = false;
   Timer? _dangerZoneTimer;
+
+  UserModel get profile => _profile!;
 
   @override
   String get screenTitle => switch (_activeSubScreen) {
@@ -194,19 +195,6 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
     }
   };
 
-  Future<bool> _confirmDiscardActiveSubScreen() async {
-    final isDirty = switch (_activeSubScreen) {
-      SettingsSubScreen.preferences =>
-        _preferencesKey.currentState?.isChanged ?? false,
-      SettingsSubScreen.changeEmail =>
-        _changeEmailKey.currentState?.isChanged ?? false,
-      _ => false,
-    };
-    if (!isDirty) return true;
-    if (!mounted) return false;
-    return confirmDiscardChanges(context);
-  }
-
   @override
   bool get showActionButton =>
       _activeSubScreen == SettingsSubScreen.externalCalendars;
@@ -221,8 +209,6 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
   void initState() {
     super.initState();
 
-    context.read<AuthBloc>().add(FetchProfileEvent());
-
     _activeSubScreen = _subScreenFromTab(widget.initialTab);
     DirtyDialogRegistry.register(
       prefix: _settingsBaseUrl(),
@@ -232,6 +218,218 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
     // The dialog's modal scope does not rebuild on Page swap (canUpdate
     // match), so the URL is the source of truth for sub-screen state.
     router.routerDelegate.addListener(_syncSubScreenFromUrl);
+  }
+
+  @override
+  void loadScreenData({required bool forceRefresh}) =>
+      context.read<AuthBloc>().add(FetchProfileEvent());
+
+  @override
+  void dispose() {
+    router.routerDelegate.removeListener(_syncSubScreenFromUrl);
+    DirtyDialogRegistry.unregister(_settingsBaseUrl());
+    _dangerZoneTimer?.cancel();
+    _deleteAccountPasswordController.dispose();
+
+    super.dispose();
+  }
+
+  @override
+  List<BlocListener<dynamic, dynamic>> buildListeners(BuildContext context) {
+    return [
+      BlocListener<PlannerItemBloc, PlannerItemState>(
+        listener: (context, state) {
+          if (state.origin != EventOrigin.dialog) return;
+
+          if (state is AllEventsDeleted) {
+            setState(() {
+              isLoading = false;
+            });
+            showSnackBar(context, 'All Events deleted.');
+          } else if (state is PlannerItemsError) {
+            setState(() {
+              isLoading = false;
+            });
+            if (!isShowingErrorCard) {
+              showSnackBar(context, state.message!, type: SnackType.error);
+            }
+          }
+        },
+      ),
+      BlocListener<AuthBloc, AuthState>(
+        listener: (context, state) async {
+          if (state is AuthError && _profile == null) {
+            setState(() {
+              isLoading = false;
+              screenError = state.message ?? HeliumException.unexpectedError;
+            });
+          } else if (state is AuthError) {
+            // Only handle on the main settings page; sub-screens handle their own errors.
+            if (_activeSubScreen == null) {
+              setState(() {
+                isLoading = false;
+                if (_clearingExampleData) isSubmitting = false;
+                _clearingExampleData = false;
+              });
+              if (!isShowingErrorCard) {
+                showSnackBar(context, state.message!, type: SnackType.error);
+              }
+            }
+          } else if (state is AuthProfileFetched) {
+            setState(() {
+              _profile = state.user;
+              isLoading = false;
+            });
+            final platform = await PackageInfo.fromPlatform();
+            if (!mounted) return;
+            setState(() => _version = 'v${platform.version}');
+          } else if (state is AuthScheduleDataRefreshed && _clearingExampleData) {
+            setState(() {
+              _clearingExampleData = false;
+              isSubmitting = false;
+            });
+            showSnackBar(
+              context,
+              state.message ?? 'Example schedule cleared.',
+              type: state.message == null ? SnackType.success : SnackType.info,
+              useRootMessenger: true,
+            );
+            // Defer so SfCalendar's pending post-frame setState fires before
+            // the branch swap disposes it.
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (!context.mounted) return;
+              context.go(AppRoute.coursesScreen);
+            });
+          } else if (state is AuthProfileUpdated) {
+            setState(() => _profile = state.user);
+          } else if (state is AuthApiTokenCreated) {
+            setState(() => _profile = state.user);
+          } else if (state is AuthApiTokenRevoked) {
+            setState(() => _profile = state.user);
+          } else if (state is AuthEmailChangeRequested ||
+              state is AuthEmailChangeCancelled) {
+            context.read<AuthBloc>().add(FetchProfileEvent());
+          } else if (state is AuthLoggedOut) {
+            if (!context.mounted) return;
+            // The session is gone; any in-progress form is moot. Release
+            // the guard so the redirect to /signin can land.
+            DirtyDialogRegistry.releaseActive();
+            context.go(AppRoute.signinScreen);
+          } else if (state is AuthAccountDeleted) {
+            showSnackBar(
+              context,
+              "Sorry to see you go! We've deleted all traces of your existence from Helium.",
+              type: SnackType.info,
+              seconds: 6,
+              useRootMessenger: true,
+            );
+            if (!context.mounted) return;
+            if (DialogModeProvider.isDialogMode(context)) {
+              Navigator.of(context).pop();
+            }
+            DirtyDialogRegistry.releaseActive();
+            context.go(AppRoute.signinScreen);
+          }
+        },
+      ),
+    ];
+  }
+
+  @override
+  Widget buildMainArea(BuildContext context) {
+    if (screenError != null) {
+      return ErrorCard(
+        message: screenError!,
+        source: 'settings_screen',
+        onReload: reloadPage,
+      );
+    }
+    if (_profile == null) {
+      return const Center(child: LoadingIndicator(expanded: false));
+    }
+
+    final content = _activeSubScreen == null
+        ? BlocBuilder<AuthBloc, AuthState>(
+            builder: (context, state) {
+              if (state is AuthLoading) {
+                return const Center(child: LoadingIndicator(expanded: false));
+              }
+
+              return _buildSettingsPage();
+            },
+          )
+        : switch (_activeSubScreen!) {
+            SettingsSubScreen.preferences => PreferencesScreen(
+              key: _preferencesKey,
+              user: profile,
+              onActionStarted: () => setState(() => isSubmitting = true),
+              onCompleted: () {
+                setState(() => isSubmitting = false);
+                context.go(_settingsBaseUrl());
+              },
+              onFailed: () => setState(() => isSubmitting = false),
+            ),
+            SettingsSubScreen.changeEmail => ChangeEmailScreen(
+              key: _changeEmailKey,
+              user: profile,
+              onActionStarted: () => setState(() => isSubmitting = true),
+              onCompleted: () {
+                setState(() => isSubmitting = false);
+                context.go(_settingsBaseUrl());
+              },
+              onFailed: () => setState(() => isSubmitting = false),
+            ),
+            SettingsSubScreen.security => SecurityScreen(user: profile),
+            SettingsSubScreen.externalCalendars => ExternalCalendarsScreen(
+              key: _externalCalendarsKey,
+            ),
+            SettingsSubScreen.feeds => FeedsScreen(user: profile),
+            SettingsSubScreen.importExport => ImportExportScreen(
+              userSettings: userSettings,
+              onNavigateRequested: _onNavigateRequested,
+              onActionStarted: () => setState(() => isSubmitting = true),
+              onCompleted: () => setState(() => isSubmitting = false),
+              onFailed: () => setState(() => isSubmitting = false),
+            ),
+          };
+
+    // PopScope intercepts Material's route-level pop (triggered by ESC via
+    // barrierDismissible, system back, or programmatic pop). When a sub-screen
+    // is active, we suppress the dialog dismissal and treat it as "back".
+    return PopScope(
+      canPop: _activeSubScreen == null && !isSubmitting,
+      onPopInvokedWithResult: (didPop, _) async {
+        if (didPop || isSubmitting) return;
+        if (!mounted) return;
+        if (await _confirmDiscardActiveSubScreen()) {
+          if (!context.mounted) return;
+          context.go(_settingsBaseUrl());
+        }
+      },
+      child: Expanded(
+        child: AnimatedSwitcher(
+          duration: MotionService().effectiveDuration(
+            AppConstants.uiAnimationDuration,
+          ),
+          transitionBuilder: _subScreenSlide(),
+          layoutBuilder: _stackSubScreens,
+          child: KeyedSubtree(key: ValueKey(_activeSubScreen), child: content),
+        ),
+      ),
+    );
+  }
+
+  Future<bool> _confirmDiscardActiveSubScreen() async {
+    final isDirty = switch (_activeSubScreen) {
+      SettingsSubScreen.preferences =>
+        _preferencesKey.currentState?.isChanged ?? false,
+      SettingsSubScreen.changeEmail =>
+        _changeEmailKey.currentState?.isChanged ?? false,
+      _ => false,
+    };
+    if (!isDirty) return true;
+    if (!mounted) return false;
+    return confirmDiscardChanges(context);
   }
 
   bool _activeSubScreenIsDirty() => switch (_activeSubScreen) {
@@ -273,16 +471,6 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
   /// dialog was entered via deep link and there's no history to pop.
   String _shellBaseUrl() => widget.shellPath;
 
-  @override
-  void dispose() {
-    router.routerDelegate.removeListener(_syncSubScreenFromUrl);
-    DirtyDialogRegistry.unregister(_settingsBaseUrl());
-    _dangerZoneTimer?.cancel();
-    _deleteAccountPasswordController.dispose();
-
-    super.dispose();
-  }
-
   void _syncSubScreenFromUrl() {
     if (!mounted) return;
     final path = router.routerDelegate.currentConfiguration.uri.path;
@@ -314,179 +502,6 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
     _preferencesKey = GlobalKey<PreferencesScreenState>();
     _changeEmailKey = GlobalKey<ChangeEmailScreenState>();
     _externalCalendarsKey = GlobalKey<ExternalCalendarsScreenState>();
-  }
-
-  @override
-  List<BlocListener<dynamic, dynamic>> buildListeners(BuildContext context) {
-    return [
-      BlocListener<PlannerItemBloc, PlannerItemState>(
-        listener: (context, state) {
-          if (state.origin != EventOrigin.dialog) return;
-
-          if (state is AllEventsDeleted) {
-            setState(() {
-              isLoading = false;
-            });
-            showSnackBar(context, 'All Events deleted.');
-          } else if (state is PlannerItemsError) {
-            setState(() {
-              isLoading = false;
-            });
-            if (!isShowingErrorCard) {
-              showSnackBar(context, state.message!, type: SnackType.error);
-            }
-          }
-        },
-      ),
-      BlocListener<AuthBloc, AuthState>(
-        listener: (context, state) async {
-          if (state is AuthError) {
-            // Only handle on the main settings page; sub-screens handle their own errors.
-            if (_activeSubScreen == null) {
-              setState(() {
-                isLoading = false;
-                if (_clearingExampleData) isSubmitting = false;
-                _clearingExampleData = false;
-              });
-              if (!isShowingErrorCard) {
-                showSnackBar(context, state.message!, type: SnackType.error);
-              }
-            }
-          } else if (state is AuthProfileFetched) {
-            final platform = await PackageInfo.fromPlatform();
-
-            setState(() {
-              _version = 'v${platform.version}';
-
-              _email = state.user.email;
-              _emailChanging = state.user.emailChanging;
-              _hasUsablePassword = state.user.hasUsablePassword;
-              _hasOAuthProviders = state.user.hasOAuthProviders;
-              _oauthProviders = state.user.oauthProviders;
-
-              isLoading = false;
-            });
-          } else if (state is AuthScheduleDataRefreshed && _clearingExampleData) {
-            setState(() {
-              _clearingExampleData = false;
-              isSubmitting = false;
-            });
-            showSnackBar(
-              context,
-              state.message ?? 'Example schedule cleared.',
-              type: state.message == null ? SnackType.success : SnackType.info,
-              useRootMessenger: true,
-            );
-            // Defer so SfCalendar's pending post-frame setState fires before
-            // the branch swap disposes it.
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              if (!context.mounted) return;
-              context.go(AppRoute.coursesScreen);
-            });
-          } else if (state is AuthEmailChangeRequested) {
-            setState(() {
-              _emailChanging = state.newEmail;
-            });
-          } else if (state is AuthEmailChangeCancelled) {
-            setState(() {
-              _emailChanging = null;
-            });
-          } else if (state is AuthLoggedOut) {
-            if (!context.mounted) return;
-            // The session is gone; any in-progress form is moot. Release
-            // the guard so the redirect to /signin can land.
-            DirtyDialogRegistry.releaseActive();
-            context.go(AppRoute.signinScreen);
-          } else if (state is AuthAccountDeleted) {
-            showSnackBar(
-              context,
-              "Sorry to see you go! We've deleted all traces of your existence from Helium.",
-              type: SnackType.info,
-              seconds: 6,
-              useRootMessenger: true,
-            );
-            if (!context.mounted) return;
-            if (DialogModeProvider.isDialogMode(context)) {
-              Navigator.of(context).pop();
-            }
-            DirtyDialogRegistry.releaseActive();
-            context.go(AppRoute.signinScreen);
-          }
-        },
-      ),
-    ];
-  }
-
-  @override
-  Widget buildMainArea(BuildContext context) {
-    final content = _activeSubScreen == null
-        ? BlocBuilder<AuthBloc, AuthState>(
-            builder: (context, state) {
-              if (state is AuthLoading) {
-                return const Center(child: LoadingIndicator(expanded: false));
-              }
-
-              return _buildSettingsPage();
-            },
-          )
-        : switch (_activeSubScreen!) {
-            SettingsSubScreen.preferences => PreferencesScreen(
-              key: _preferencesKey,
-              userSettings: userSettings,
-              onActionStarted: () => setState(() => isSubmitting = true),
-              onCompleted: () {
-                setState(() => isSubmitting = false);
-                context.go(_settingsBaseUrl());
-              },
-              onFailed: () => setState(() => isSubmitting = false),
-            ),
-            SettingsSubScreen.changeEmail => ChangeEmailScreen(
-              key: _changeEmailKey,
-              onActionStarted: () => setState(() => isSubmitting = true),
-              onCompleted: () {
-                setState(() => isSubmitting = false);
-                context.go(_settingsBaseUrl());
-              },
-              onFailed: () => setState(() => isSubmitting = false),
-            ),
-            SettingsSubScreen.security => const SecurityScreen(),
-            SettingsSubScreen.externalCalendars => ExternalCalendarsScreen(
-              key: _externalCalendarsKey,
-            ),
-            SettingsSubScreen.feeds => FeedsScreen(userSettings: userSettings),
-            SettingsSubScreen.importExport => ImportExportScreen(
-              userSettings: userSettings,
-              onNavigateRequested: _onNavigateRequested,
-              onActionStarted: () => setState(() => isSubmitting = true),
-              onCompleted: () => setState(() => isSubmitting = false),
-              onFailed: () => setState(() => isSubmitting = false),
-            ),
-          };
-
-    // PopScope intercepts Material's route-level pop (triggered by ESC via
-    // barrierDismissible, system back, or programmatic pop). When a sub-screen
-    // is active, we suppress the dialog dismissal and treat it as "back".
-    return PopScope(
-      canPop: _activeSubScreen == null && !isSubmitting,
-      onPopInvokedWithResult: (didPop, _) async {
-        if (didPop || isSubmitting) return;
-        if (!mounted) return;
-        if (await _confirmDiscardActiveSubScreen()) {
-          if (!context.mounted) return;
-          context.go(_settingsBaseUrl());
-        }
-      },
-      child: Expanded(
-        child: AnimatedSwitcher(
-          duration: MotionService().effectiveDuration(
-            AppConstants.uiAnimationDuration,
-          ),
-          transitionBuilder: _subScreenSlide(),
-          layoutBuilder: _stackSubScreens,
-          child: KeyedSubtree(key: ValueKey(_activeSubScreen), child: content),
-        ),
-      ),
-    );
   }
 
   /// Slides the incoming screen in from the side it's moving toward and the
@@ -538,7 +553,7 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
 
           const SizedBox(height: 12),
 
-          if (userSettings?.showGettingStarted ?? false) ...[
+          if (userSettings.showGettingStarted) ...[
             _buildExampleDataArea(),
 
             const SizedBox(height: 12),
@@ -646,14 +661,15 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
             children: [
               const SizedBox(height: 12),
               AccountEmailField(
-                email: _email,
-                oauthProviders: _oauthProviders,
+                email: profile.email,
+                oauthProviders: profile.oauthProviders,
               ),
-              if (_emailChanging != null && _emailChanging!.isNotEmpty) ...[
+              if (profile.emailChanging?.isNotEmpty ?? false) ...[
                 const SizedBox(height: 8),
                 WarningContainer(
                   text:
-                      'Change pending — click the link sent to $_emailChanging to verify.',
+                      'Change pending — click the link sent to '
+                      '${profile.emailChanging} to verify.',
                   icon: Icons.schedule,
                 ),
               ],
@@ -694,8 +710,9 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
             onTap: () => _navigateToSubSettings(SettingsSubScreen.feeds),
             iconColor: context.colorScheme.primary,
           ),
-          if (!_hasOAuthProviders) const Divider(height: 1, indent: 68),
-          if (!_hasOAuthProviders)
+          if (!profile.hasOAuthProviders)
+            const Divider(height: 1, indent: 68),
+          if (!profile.hasOAuthProviders)
             _buildSettingsItem(
               icon: Icons.email_outlined,
               label: 'Change Email',
@@ -1142,6 +1159,7 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
       title: 'Sign Out',
       message: 'Are you sure you want to sign out?',
       actionText: 'Sign Out',
+      style: ConfirmActionStyle.warning,
       icon: Icons.logout_rounded,
     );
     if (!confirmed || !mounted) return;
@@ -1169,7 +1187,7 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
                 isSubmitting = true;
               });
 
-              final password = _hasUsablePassword
+              final password = profile.hasUsablePassword
                   ? _deleteAccountPasswordController.text.trim()
                   : null;
 
@@ -1218,12 +1236,12 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          _hasUsablePassword
+                          profile.hasUsablePassword
                               ? 'To permanently delete your account — and all data you have stored in Helium—confirm your password below. This action cannot be undone.'
                               : 'To permanently delete your account — and all data you have stored in Helium—confirm by clicking the Delete button below. This action cannot be undone.',
                           style: AppStyles.standardBodyText(context),
                         ),
-                        if (_hasUsablePassword) ...[
+                        if (profile.hasUsablePassword) ...[
                           const SizedBox(height: 20),
                           Row(
                             children: [

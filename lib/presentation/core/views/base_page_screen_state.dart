@@ -74,7 +74,7 @@ class DialogModeProvider extends InheritedWidget {
 abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
   final DioClient dioClient = DioClient();
 
-  UserSettingsModel? userSettings;
+  UserSettingsModel? _userSettings;
   bool settingsLoaded = false;
 
   String? settingsError;
@@ -90,11 +90,18 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
   // latter is what gates UI readiness.
   bool isLoading = true;
 
-  late final VoidCallback _resumeReload = reloadPage;
   bool _reloadRequested = false;
+  bool _screenDataRequested = false;
   bool isSubmitting = false;
 
   bool get isAuthenticatedScreen => true;
+
+  /// Content only builds once settings have loaded; code that can run before
+  /// then checks [settingsLoaded] first.
+  UserSettingsModel get userSettings => _userSettings!;
+
+  @protected
+  set userSettings(UserSettingsModel settings) => _userSettings = settings;
 
   bool get enablePrint => false;
 
@@ -148,7 +155,7 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
     super.initState();
 
     if (isAuthenticatedScreen) {
-      dioClient.cacheService.addInactivityResumeListener(_resumeReload);
+      dioClient.cacheService.addInactivityResumeListener(_onInactivityResume);
       loadSettings();
       if (context.read<InfoBloc>().state is InfoLoadFailed) {
         context.read<InfoBloc>().add(LoadInfoEvent());
@@ -163,6 +170,11 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
   @mustCallSuper
   void didChangeDependencies() {
     super.didChangeDependencies();
+
+    if (!_screenDataRequested) {
+      _screenDataRequested = true;
+      loadScreenData(forceRefresh: false);
+    }
 
     final notifier = InheritableProvidersScope.of(context);
     if (notifier != null) {
@@ -186,16 +198,8 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
   @protected
   @mustCallSuper
   void dispose() {
-    dioClient.cacheService.removeInactivityResumeListener(_resumeReload);
+    dioClient.cacheService.removeInactivityResumeListener(_onInactivityResume);
     super.dispose();
-  }
-
-  String _blockingErrorSource({
-    required bool settingsFailed,
-    required bool infoFailed,
-  }) {
-    if (settingsFailed && infoFailed) return 'settings+/info/';
-    return settingsFailed ? 'settings' : '/info/';
   }
 
   /// Returns the screen to how it looks when first opened, so one tap clears
@@ -215,16 +219,9 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
     }
 
     // Screens opened as dialogs sit outside a scope, so retry in place.
+    setState(() => screenError = null);
     _reloadSettings();
-  }
-
-  void _reloadSettings() {
-    setState(() {
-      settingsError = null;
-      isLoading = true;
-      _reloadRequested = true;
-    });
-    loadSettings();
+    loadScreenData(forceRefresh: true);
   }
 
   /// Whether this screen's failure is already handled. Screens check it before
@@ -248,8 +245,8 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
           final timeZoneDatabaseReady = await timeZoneDatabaseLoaded;
           if (!mounted) return settings;
           setState(() {
-            userSettings = settings;
-            if (userSettings == null || !timeZoneDatabaseReady) {
+            _userSettings = settings;
+            if (settings == null || !timeZoneDatabaseReady) {
               settingsLoaded = false;
               settingsError = HeliumException.unexpectedError;
             } else {
@@ -286,6 +283,11 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
           return null;
         });
   }
+
+  /// Runs on mount, and with [forceRefresh] after a long absence, while the
+  /// screen stays mounted.
+  @protected
+  void loadScreenData({required bool forceRefresh}) {}
 
   @override
   Widget build(BuildContext context) {
@@ -504,6 +506,30 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
       action: action,
       useRootMessenger: useRootMessenger,
     );
+  }
+
+  String _blockingErrorSource({
+    required bool settingsFailed,
+    required bool infoFailed,
+  }) {
+    if (settingsFailed && infoFailed) return 'settings+/info/';
+    return settingsFailed ? 'settings' : '/info/';
+  }
+
+  void _reloadSettings() {
+    setState(() {
+      settingsError = null;
+      isLoading = true;
+      _reloadRequested = true;
+    });
+    loadSettings();
+  }
+
+  Future<void> _onInactivityResume() async {
+    loadScreenData(forceRefresh: true);
+    final settings = await dioClient.getSettings();
+    if (!mounted || settings == null) return;
+    setState(() => userSettings = settings);
   }
 
   List<Widget> _buildContent(BuildContext context) {

@@ -290,4 +290,28 @@ void main() {
       ],
     );
   });
+
+  group('FetchLinkableEntitiesEvent', () {
+    blocTest<NoteBloc, NoteState>(
+      'a failed fetch reports the link picker\'s own failure',
+      build: () {
+        final homeworkRepository = MockHomeworkRepository();
+        when(
+          () => homeworkRepository.getHomeworks(),
+        ).thenThrow(NetworkException(message: 'offline'));
+        return NoteBloc(
+          noteRepository: mockNoteRepository,
+          homeworkRepository: homeworkRepository,
+          eventRepository: MockEventRepository(),
+          resourceRepository: mockResourceRepository,
+          courseRepository: mockCourseRepository,
+          categoryRepository: MockCategoryRepository(),
+        );
+      },
+      act: (bloc) => bloc.add(
+        FetchLinkableEntitiesEvent(origin: EventOrigin.subScreen),
+      ),
+      expect: () => [isA<LinkableEntitiesFailed>()],
+    );
+  });
 }

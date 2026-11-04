@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_quill/flutter_quill.dart';
+import 'package:flutter_quill/quill_delta.dart';
 // ignore: implementation_imports
 import 'package:flutter_quill/src/l10n/generated/quill_localizations_en.dart';
 import 'package:heliumapp/utils/error_helpers.dart';
@@ -69,13 +70,26 @@ List<dynamic> _ensureTrailingNewline(List<dynamic> ops) {
   return [...ops, {'insert': '\n'}];
 }
 
-/// A placeholder Document shown in editors when the source Note's content
-/// is malformed. Saving the entity overwrites the bad content with whatever
-/// the user types over this placeholder.
-Document buildUnrenderableNotePlaceholder() {
+/// An unrenderable note comes back as a placeholder the editor must never save.
+({Document document, bool isRenderable}) notesDocumentFor(
+  Map<String, dynamic>? notes,
+) {
+  if (isNotesEmpty(notes)) return (document: Document(), isRenderable: true);
+  final document = tryParseNotesDocument(notes);
+  if (document == null) {
+    return (document: _unrenderableNotePlaceholder(), isRenderable: false);
+  }
+  return (document: document, isRenderable: true);
+}
+
+/// The content of [notes] as the editor holds it once loaded.
+Delta editorDeltaFor(Map<String, dynamic>? notes) =>
+    notesDocumentFor(notes).document.toDelta();
+
+Document _unrenderableNotePlaceholder() {
   return Document.fromJson([
     {
-      'insert': 'This note is not in a valid format and cannot not be loaded.',
+      'insert': 'This note is not in a valid format and cannot be loaded.',
       'attributes': {'italic': true},
     },
     {'insert': '\n'},

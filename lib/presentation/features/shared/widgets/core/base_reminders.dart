@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:heliumapp/core/helium_exception.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/data/models/planner/reminder_model.dart';
 import 'package:heliumapp/data/models/planner/request/reminder_request_model.dart';
@@ -33,14 +34,14 @@ final _log = Logger('presentation.widgets');
 abstract class BaseReminders extends StatelessWidget {
   final int entityId;
   final bool isEdit;
-  final UserSettingsModel? userSettings;
+  final UserSettingsModel userSettings;
   final String headerTitle;
 
   const BaseReminders({
     super.key,
     required this.entityId,
     required this.isEdit,
-    this.userSettings,
+    required this.userSettings,
     this.headerTitle = 'Reminders',
   });
 
@@ -70,14 +71,14 @@ abstract class BaseReminders extends StatelessWidget {
 abstract class BaseRemindersContent extends StatefulWidget {
   final int entityId;
   final bool isEdit;
-  final UserSettingsModel? userSettings;
+  final UserSettingsModel userSettings;
   final String headerTitle;
 
   const BaseRemindersContent({
     super.key,
     required this.entityId,
     required this.isEdit,
-    this.userSettings,
+    required this.userSettings,
     this.headerTitle = 'Reminders',
   });
 
@@ -89,6 +90,7 @@ abstract class BaseReminderWidgetState<T extends BaseRemindersContent>
     extends State<T> {
   List<ReminderModel> reminders = [];
   bool isLoading = true;
+  String? _error;
 
   @mustBeOverridden
   FetchRemindersEvent createFetchRemindersEvent({bool forceRefresh = false});
@@ -106,7 +108,7 @@ abstract class BaseReminderWidgetState<T extends BaseRemindersContent>
     super.initState();
 
     if (widget.isEdit) {
-      context.read<ReminderBloc>().add(createFetchRemindersEvent());
+      _fetchScreenData();
     } else {
       setState(() {
         isLoading = false;
@@ -124,6 +126,7 @@ abstract class BaseReminderWidgetState<T extends BaseRemindersContent>
             reminders = state.reminders;
             Sort.byMessage(reminders);
             isLoading = false;
+            _error = null;
           });
         } else if (state is ReminderCreated) {
           SnackBarHelper.show(context, 'Reminder saved.');
@@ -147,7 +150,12 @@ abstract class BaseReminderWidgetState<T extends BaseRemindersContent>
             reminders.removeWhere((c) => c.id == state.id);
           });
         } else if (state is RemindersError) {
-          if (reminders.isEmpty && state.origin != EventOrigin.screen) {
+          if (isLoading && state.origin == EventOrigin.subScreen) {
+            setState(() {
+              isLoading = false;
+              _error = state.message ?? HeliumException.unexpectedError;
+            });
+          } else if (reminders.isEmpty && state.origin != EventOrigin.screen) {
             setState(() => isLoading = false);
           } else if (state.origin != EventOrigin.dialog) {
             SnackBarHelper.show(context, state.message!, type: SnackType.error);
@@ -158,8 +166,18 @@ abstract class BaseReminderWidgetState<T extends BaseRemindersContent>
     );
   }
 
+  void _fetchScreenData() {
+    setState(() {
+      isLoading = true;
+      _error = null;
+    });
+    context.read<ReminderBloc>().add(
+      createFetchRemindersEvent(forceRefresh: true),
+    );
+  }
+
   Widget _buildContent(BuildContext context) {
-    if (isLoading || widget.userSettings == null) {
+    if (isLoading) {
       return const Center(child: LoadingIndicator(expanded: false));
     }
 
@@ -174,7 +192,7 @@ abstract class BaseReminderWidgetState<T extends BaseRemindersContent>
                 showReminderDialog(
                   parentContext: context,
                   isEdit: false,
-                  userSettings: widget.userSettings!,
+                  userSettings: widget.userSettings,
                   createReminderRequest: createReminderRequest,
                 );
               },
@@ -187,23 +205,17 @@ abstract class BaseReminderWidgetState<T extends BaseRemindersContent>
         Expanded(
           child: BlocBuilder<ReminderBloc, ReminderState>(
             builder: (context, state) {
-              if (state is RemindersLoading) {
-                return const Center(child: LoadingIndicator(expanded: false));
-              }
-
-              if (state is RemindersError &&
-                  state.origin == EventOrigin.subScreen &&
-                  reminders.isEmpty) {
+              if (_error != null) {
                 return ErrorCard(
-                  message: state.message!,
+                  message: _error!,
                   source: 'reminders_widget',
-                  onReload: () {
-                    context.read<ReminderBloc>().add(
-                      createFetchRemindersEvent(forceRefresh: true),
-                    );
-                  },
+                  onReload: _fetchScreenData,
                   expanded: false,
                 );
+              }
+
+              if (state is RemindersLoading) {
+                return const Center(child: LoadingIndicator(expanded: false));
               }
 
               if (reminders.isEmpty) {
@@ -318,7 +330,7 @@ abstract class BaseReminderWidgetState<T extends BaseRemindersContent>
     showReminderDialog(
       parentContext: context,
       isEdit: true,
-      userSettings: widget.userSettings!,
+      userSettings: widget.userSettings,
       createReminderRequest: createReminderRequest,
       reminder: reminder,
     );

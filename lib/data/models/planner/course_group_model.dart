@@ -7,8 +7,6 @@ class CourseGroupModel extends BaseTitledModel {
   final DateTime endDate;
   final List<DateTime> exceptions;
   final double? overallGrade;
-  final int? numDays;
-  final int? numDaysCompleted;
 
   CourseGroupModel({
     required super.id,
@@ -19,8 +17,6 @@ class CourseGroupModel extends BaseTitledModel {
     required this.exceptions,
     super.version,
     this.overallGrade,
-    this.numDays,
-    this.numDaysCompleted,
   });
 
   factory CourseGroupModel.fromJson(Map<String, dynamic> json) {
@@ -35,8 +31,6 @@ class CourseGroupModel extends BaseTitledModel {
         json['exceptions'] as String,
       ),
       overallGrade: toDouble(json['overall_grade']),
-      numDays: json['num_days'],
-      numDaysCompleted: json['num_days_completed'],
     );
   }
 }

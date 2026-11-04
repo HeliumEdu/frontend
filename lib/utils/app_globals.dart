@@ -76,6 +76,8 @@ class RegionalFormatConstants {
   static const numberFormatPoint = 0;
   static const numberFormatComma = 1;
 
+  static const weekStartsOnSunday = 0;
+
   static const dateFormats = [dateFormatMonthDayYear, dateFormatDayMonthYear];
   static const timeFormats = [timeFormatTwelveHour, timeFormatTwentyFourHour];
   static const numberFormats = [numberFormatPoint, numberFormatComma];
@@ -83,37 +85,14 @@ class RegionalFormatConstants {
 
 class FallbackConstants {
   static const fallbackColor = seedColor;
-
-  static const defaultViewIndex = 0;
-  static const defaultWeekStartsOn = 0;
-  static const defaultTimeZone = 'UTC';
-  static const defaultReminderType = 3;
-  static const defaultReminderOffset = 30;
-  static const defaultReminderOffsetType = 0;
-  static const defaultColorByCategory = false;
-  static const defaultGettingStartedDue = false;
-  static const defaultEventsColor = Color(0xffe74674);
-  static const defaultResourceColor = Color(0xffdc7d50);
-  static const defaultGradeColor = Color(0xff9d629d);
-  static const defaultShowPlannerTooltips = true;
-  static const defaultDragAndDropOnMobile = true;
-  static const defaultRememberFilterState = false;
-  static const defaultCollapseBusyDays = false;
-  static const defaultAtRiskThreshold = 70;
-  static const defaultOnTrackTolerance = 10;
-  static const defaultShowWeekNumbers = true;
-  static const defaultDateFormat = RegionalFormatConstants.dateFormatMonthDayYear;
-  static const defaultTimeFormat = RegionalFormatConstants.timeFormatTwelveHour;
-  static const defaultNumberFormat = RegionalFormatConstants.numberFormatPoint;
 }
 
-/// Colors for planner item types (Events, Homework, Class Schedules, External Calendars)
+/// Colors for planner item types (Homework, Class Schedules, External Calendars); events
+/// use the user's events color.
 class PlannerTypeColors {
   static const homework = Color(0xffcfa25e);
   static const classSchedules = Color(0xff5658d7);
   static const externalCalendars = Color(0xff049f71);
-  static Color events([Color? userColor]) =>
-      userColor ?? FallbackConstants.defaultEventsColor;
   static const _rainbowGradient = LinearGradient(
     colors: [
       Color(0xffec6f92),

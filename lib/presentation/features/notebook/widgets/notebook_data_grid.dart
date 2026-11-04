@@ -69,7 +69,7 @@ class NotebookDataGrid extends StatefulWidget {
   final List<NoteModel> notes;
   final Function(NoteModel) onNoteTap;
   final Future<bool> Function(BuildContext, NoteModel) onDelete;
-  final UserSettingsModel? userSettings;
+  final UserSettingsModel userSettings;
   final int rowsPerPage;
   final Function(int)? onRowsPerPageChanged;
   final bool isLoading;
@@ -82,7 +82,7 @@ class NotebookDataGrid extends StatefulWidget {
     required this.notes,
     required this.onNoteTap,
     required this.onDelete,
-    this.userSettings,
+    required this.userSettings,
     this.rowsPerPage = 10,
     this.onRowsPerPageChanged,
     this.isLoading = false,
@@ -506,7 +506,7 @@ class _NotebookDataGridState extends BaseDataGridState<NotebookDataGrid> {
 class NotesDataSource extends BaseDataGridSource {
   List<NoteModel> notes;
   BuildContext context;
-  UserSettingsModel? userSettings;
+  UserSettingsModel userSettings;
   Function(NoteModel) onEdit;
   late List<DataGridRow> _allRows;
   late Map<int, NoteModel> _notesById;
@@ -515,7 +515,7 @@ class NotesDataSource extends BaseDataGridSource {
     required this.notes,
     required this.context,
     required this.onEdit,
-    this.userSettings,
+    required this.userSettings,
   }) {
     sortedColumns.add(
       const SortColumnDetails(
@@ -571,15 +571,14 @@ class NotesDataSource extends BaseDataGridSource {
       Color? rowColor;
       if (entityType == 'homework') {
         rowColor =
-            (userSettings?.colorByCategory ??
-                    FallbackConstants.defaultColorByCategory) &&
+            userSettings.colorByCategory &&
                 categoryColor != null
             ? categoryColor
             : courseColor;
       } else if (entityType == 'event') {
-        rowColor = userSettings?.eventsColor;
+        rowColor = userSettings.eventsColor;
       } else if (entityType == 'resource') {
-        rowColor = userSettings?.resourceColor;
+        rowColor = userSettings.resourceColor;
       } else if (entityType.isNotEmpty) {
         _log.fine(
           'buildRow: unsupported entityType "$entityType"; rowColor will be null',
@@ -649,7 +648,7 @@ class NotesDataSource extends BaseDataGridSource {
     required List<NoteModel> notes,
     required BuildContext context,
     required Function(NoteModel) onEdit,
-    UserSettingsModel? userSettings,
+    required UserSettingsModel userSettings,
   }) {
     this.notes = notes;
     this.context = context;
@@ -901,26 +900,24 @@ class NotesDataSource extends BaseDataGridSource {
               as int?;
 
       final Widget badge;
-      if (entityType == 'resource' && userSettings != null) {
+      if (entityType == 'resource') {
         badge = ResourceTitleLabel(
           title: originalLinkedTo,
-          userSettings: userSettings!,
+          userSettings: userSettings,
           compact: true,
           textDecoration: strikethrough,
         );
       } else if (entityType == 'event') {
         badge = GenericLabel(
           label: originalLinkedTo,
-          color:
-              userSettings?.eventsColor ?? FallbackConstants.defaultEventsColor,
+          color: userSettings.eventsColor,
           icon: AppConstants.eventIcon,
           compact: true,
           textDecoration: strikethrough,
         );
       } else if (entityType == 'homework') {
         final badgeColor =
-            (userSettings?.colorByCategory ??
-                    FallbackConstants.defaultColorByCategory) &&
+            userSettings.colorByCategory &&
                 categoryColor != null
             ? categoryColor
             : courseColor;
@@ -974,9 +971,7 @@ class NotesDataSource extends BaseDataGridSource {
         );
       }
 
-      final localDate = userSettings != null
-          ? HeliumDateTime.toLocal(due, userSettings!.timeZone)
-          : due;
+      final localDate = HeliumDateTime.toLocal(due, userSettings.timeZone);
       final isAllDay =
           localDate.hour == 0 && localDate.minute == 0 && localDate.second == 0;
       final formattedDate = isAllDay
@@ -1000,9 +995,7 @@ class NotesDataSource extends BaseDataGridSource {
 
     if (cell.columnName == 'modified') {
       final date = cell.value as DateTime;
-      final localDate = userSettings != null
-          ? HeliumDateTime.toLocal(date, userSettings!.timeZone)
-          : date;
+      final localDate = HeliumDateTime.toLocal(date, userSettings.timeZone);
       final formattedDate = HeliumDateTime.formatDate(localDate);
       final dateStyle = AppStyles.smallSecondaryText(context);
 

@@ -36,6 +36,7 @@ enum SettingsPrefKey {
   dateFormat('date_format'),
   timeFormat('time_format'),
   numberFormat('number_format'),
+  promptForReview('prompt_for_review'),
   gettingStartedLastPage('getting_started_last_page');
 
   const SettingsPrefKey(this.key);
@@ -72,6 +73,7 @@ Set<String> get _sharedPrefsAllowList => {
   'saved_notebook_toolbar_state',
   'feedback_session_ended_clean',
   'feedback_clean_session_count',
+  'note_drafts',
 };
 
 class PrefService {

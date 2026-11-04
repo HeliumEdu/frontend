@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:heliumapp/core/helium_exception.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/data/models/planner/external_calendar_model.dart';
 import 'package:heliumapp/data/models/planner/request/external_calendar_request_model.dart';
@@ -39,17 +40,13 @@ class ExternalCalendarsScreenState extends State<ExternalCalendarsScreen> {
 
   List<ExternalCalendarModel> _externalCalendars = [];
   final Set<int> _updatingCalendarIds = {};
+  String? _error;
 
   @override
   void initState() {
     super.initState();
 
-    context.read<ExternalCalendarBloc>().add(
-      FetchExternalCalendarsEvent(
-        origin: EventOrigin.screen,
-        forceRefresh: true,
-      ),
-    );
+    _fetchScreenData();
   }
 
   @override
@@ -93,6 +90,11 @@ class ExternalCalendarsScreenState extends State<ExternalCalendarsScreen> {
             _externalCalendars.removeWhere((g) => g.id == state.id);
           });
         } else if (state is ExternalCalendarsError &&
+            state.origin == EventOrigin.screen) {
+          setState(
+            () => _error = state.message ?? HeliumException.unexpectedError,
+          );
+        } else if (state is ExternalCalendarsError &&
             state.origin == EventOrigin.subScreen) {
           SnackBarHelper.show(context, state.message!, type: SnackType.error);
           setState(() {
@@ -134,24 +136,16 @@ class ExternalCalendarsScreenState extends State<ExternalCalendarsScreen> {
             ),
           BlocBuilder<ExternalCalendarBloc, ExternalCalendarState>(
             builder: (context, state) {
-              if (state is ExternalCalendarsLoading) {
-                return const LoadingIndicator();
+              if (_error != null) {
+                return ErrorCard(
+                  message: _error!,
+                  source: 'external_calendars_screen',
+                  onReload: _fetchScreenData,
+                );
               }
 
-              if (state is ExternalCalendarsError &&
-                  state.origin == EventOrigin.screen) {
-                return ErrorCard(
-                  message: state.message!,
-                  source: 'external_calendars_screen',
-                  onReload: () {
-                    context.read<ExternalCalendarBloc>().add(
-                      FetchExternalCalendarsEvent(
-                        origin: EventOrigin.screen,
-                        forceRefresh: true,
-                      ),
-                    );
-                  },
-                );
+              if (state is ExternalCalendarsLoading) {
+                return const LoadingIndicator();
               }
 
               if (_externalCalendars.isEmpty) {
@@ -173,10 +167,21 @@ class ExternalCalendarsScreenState extends State<ExternalCalendarsScreen> {
     showExternalCalendarDialog(parentContext: context, isEdit: false);
   }
 
+  void _fetchScreenData() {
+    setState(() => _error = null);
+    context.read<ExternalCalendarBloc>().add(
+      FetchExternalCalendarsEvent(
+        origin: EventOrigin.screen,
+        forceRefresh: true,
+      ),
+    );
+  }
+
   void _populateInitialStateData(ExternalCalendarsFetched state) {
     setState(() {
       _externalCalendars = state.externalCalendars;
       Sort.byTitle(_externalCalendars);
+      _error = null;
     });
   }
 

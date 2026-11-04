@@ -20,7 +20,7 @@ void main() {
           ],
         );
 
-        expect(SentryService.shouldFilterEvent(event), isTrue,
+        expect(SentryService.shouldFilterForTesting(event), isTrue,
             reason: 'Wrong password 401 should be filtered');
       });
 
@@ -34,7 +34,7 @@ void main() {
           ],
         );
 
-        expect(SentryService.shouldFilterEvent(event), isTrue,
+        expect(SentryService.shouldFilterForTesting(event), isTrue,
             reason: 'Token expired 401 should be filtered');
       });
 
@@ -49,7 +49,7 @@ void main() {
           ],
         );
 
-        expect(SentryService.shouldFilterEvent(event), isTrue,
+        expect(SentryService.shouldFilterForTesting(event), isTrue,
             reason: 'Blacklisted token 401 should be filtered');
       });
 
@@ -64,7 +64,7 @@ void main() {
           ],
         );
 
-        expect(SentryService.shouldFilterEvent(event), isTrue,
+        expect(SentryService.shouldFilterForTesting(event), isTrue,
             reason: 'User deleted 403 should be filtered');
       });
 
@@ -78,7 +78,7 @@ void main() {
           ],
         );
 
-        expect(SentryService.shouldFilterEvent(event), isTrue,
+        expect(SentryService.shouldFilterForTesting(event), isTrue,
             reason: 'Permission denied 403 should be filtered');
       });
 
@@ -93,7 +93,7 @@ void main() {
           ],
         );
 
-        expect(SentryService.shouldFilterEvent(event), isTrue,
+        expect(SentryService.shouldFilterForTesting(event), isTrue,
             reason: 'Verify 400 should be filtered');
       });
     });
@@ -111,7 +111,7 @@ void main() {
           ],
         );
 
-        expect(SentryService.shouldFilterEvent(event), isTrue,
+        expect(SentryService.shouldFilterForTesting(event), isTrue,
             reason: 'DNS failure means the device is offline; not actionable');
       });
 
@@ -125,7 +125,7 @@ void main() {
           ],
         );
 
-        expect(SentryService.shouldFilterEvent(event), isFalse,
+        expect(SentryService.shouldFilterForTesting(event), isFalse,
             reason: 'Only host-lookup/DNS failures are filtered, not all socket errors');
       });
     });
@@ -146,7 +146,7 @@ void main() {
           ],
         );
 
-        expect(SentryService.shouldFilterEvent(event), isTrue,
+        expect(SentryService.shouldFilterForTesting(event), isTrue,
             reason:
                 'A timeout surviving DioClient retries is a dead network path, '
                 'not a client bug');
@@ -163,7 +163,7 @@ void main() {
             ],
           );
 
-          expect(SentryService.shouldFilterEvent(event), isTrue,
+          expect(SentryService.shouldFilterForTesting(event), isTrue,
               reason: 'DioException [$type] should not be an event');
         }
       });
@@ -180,7 +180,7 @@ void main() {
           ],
         );
 
-        expect(SentryService.shouldFilterEvent(event), isTrue,
+        expect(SentryService.shouldFilterForTesting(event), isTrue,
             reason: 'Connection errors mean the device cannot reach the API');
       });
 
@@ -194,7 +194,7 @@ void main() {
           ],
         );
 
-        expect(SentryService.shouldFilterEvent(event), isFalse,
+        expect(SentryService.shouldFilterForTesting(event), isFalse,
             reason: 'Bad certificates are actionable, not connectivity noise');
       });
 
@@ -210,7 +210,7 @@ void main() {
           ],
         );
 
-        expect(SentryService.shouldFilterEvent(event), isFalse,
+        expect(SentryService.shouldFilterForTesting(event), isFalse,
             reason: '5xx responses are server bugs we need to triage');
       });
     });
@@ -227,7 +227,7 @@ void main() {
         );
 
         expect(
-          SentryService.shouldFilterEvent(event),
+          SentryService.shouldFilterForTesting(event),
           isFalse,
           reason:
               'Expected API failures are logged at warning and never become '
@@ -247,7 +247,7 @@ void main() {
             ),
           ],
         );
-        expect(SentryService.shouldFilterEvent(event), isTrue);
+        expect(SentryService.shouldFilterForTesting(event), isTrue);
       });
 
       test('[401] bracket format', () {
@@ -259,7 +259,7 @@ void main() {
             ),
           ],
         );
-        expect(SentryService.shouldFilterEvent(event), isTrue);
+        expect(SentryService.shouldFilterForTesting(event), isTrue);
       });
 
       test('HTTP 401 format', () {
@@ -271,7 +271,7 @@ void main() {
             ),
           ],
         );
-        expect(SentryService.shouldFilterEvent(event), isTrue);
+        expect(SentryService.shouldFilterForTesting(event), isTrue);
       });
 
       test('status 401 format', () {
@@ -283,7 +283,7 @@ void main() {
             ),
           ],
         );
-        expect(SentryService.shouldFilterEvent(event), isTrue);
+        expect(SentryService.shouldFilterForTesting(event), isTrue);
       });
     });
 
@@ -297,7 +297,7 @@ void main() {
             ),
           ],
         );
-        expect(SentryService.shouldFilterEvent(event), isTrue);
+        expect(SentryService.shouldFilterForTesting(event), isTrue);
       });
 
       test('[403] bracket format', () {
@@ -309,7 +309,7 @@ void main() {
             ),
           ],
         );
-        expect(SentryService.shouldFilterEvent(event), isTrue);
+        expect(SentryService.shouldFilterForTesting(event), isTrue);
       });
 
       test('HTTP 403 format', () {
@@ -321,7 +321,7 @@ void main() {
             ),
           ],
         );
-        expect(SentryService.shouldFilterEvent(event), isTrue);
+        expect(SentryService.shouldFilterForTesting(event), isTrue);
       });
     });
 
@@ -330,14 +330,14 @@ void main() {
         final event = SentryEvent(
           message: SentryMessage('Request to API failed with status 401'),
         );
-        expect(SentryService.shouldFilterEvent(event), isTrue);
+        expect(SentryService.shouldFilterForTesting(event), isTrue);
       });
 
       test('Filters 403 in message with response context', () {
         final event = SentryEvent(
           message: SentryMessage('Response returned 403 forbidden'),
         );
-        expect(SentryService.shouldFilterEvent(event), isTrue);
+        expect(SentryService.shouldFilterForTesting(event), isTrue);
       });
     });
 
@@ -353,7 +353,7 @@ void main() {
               ),
             ],
           );
-          expect(SentryService.shouldFilterEvent(event), isTrue,
+          expect(SentryService.shouldFilterForTesting(event), isTrue,
               reason: '$code is a handled 4xx and should not reach Sentry');
         });
       }
@@ -369,7 +369,7 @@ void main() {
             ),
           ],
         );
-        expect(SentryService.shouldFilterEvent(event), isFalse,
+        expect(SentryService.shouldFilterForTesting(event), isFalse,
             reason: '500 errors are bugs and should NOT be filtered');
       });
 
@@ -382,7 +382,7 @@ void main() {
             ),
           ],
         );
-        expect(SentryService.shouldFilterEvent(event), isFalse);
+        expect(SentryService.shouldFilterForTesting(event), isFalse);
       });
 
       test('Null pointer error', () {
@@ -394,7 +394,7 @@ void main() {
             ),
           ],
         );
-        expect(SentryService.shouldFilterEvent(event), isFalse);
+        expect(SentryService.shouldFilterForTesting(event), isFalse);
       });
 
       test('401 in non-HTTP context (user ID)', () {
@@ -407,7 +407,7 @@ void main() {
           ],
         );
         // No HTTP context words, should NOT be filtered
-        expect(SentryService.shouldFilterEvent(event), isFalse);
+        expect(SentryService.shouldFilterForTesting(event), isFalse);
       });
     });
 
@@ -422,7 +422,7 @@ void main() {
             ),
           ],
         );
-        expect(SentryService.shouldFilterEvent(event), isTrue,
+        expect(SentryService.shouldFilterForTesting(event), isTrue,
             reason: 'GoException wrapping 403 DioException should be filtered');
       });
 
@@ -436,7 +436,7 @@ void main() {
             ),
           ],
         );
-        expect(SentryService.shouldFilterEvent(event), isTrue,
+        expect(SentryService.shouldFilterForTesting(event), isTrue,
             reason: 'GoException wrapping 401 DioException should be filtered');
       });
     });
@@ -459,7 +459,7 @@ void main() {
           ],
         );
 
-        expect(SentryService.shouldFilterEvent(event), isTrue,
+        expect(SentryService.shouldFilterForTesting(event), isTrue,
             reason: 'Global handler captured 403 should be filtered');
       });
 
@@ -474,7 +474,7 @@ void main() {
           ],
         );
 
-        expect(SentryService.shouldFilterEvent(event), isTrue,
+        expect(SentryService.shouldFilterForTesting(event), isTrue,
             reason: 'Global handler captured 401 should be filtered');
       });
 
@@ -490,7 +490,7 @@ void main() {
           ],
         );
 
-        expect(SentryService.shouldFilterEvent(event), isTrue);
+        expect(SentryService.shouldFilterForTesting(event), isTrue);
       });
 
       test('403 wrapped in GoException during redirect', () {
@@ -506,7 +506,7 @@ void main() {
           ],
         );
 
-        expect(SentryService.shouldFilterEvent(event), isTrue,
+        expect(SentryService.shouldFilterForTesting(event), isTrue,
             reason: 'GoException wrapping 403 should be filtered');
       });
 
@@ -521,26 +521,28 @@ void main() {
           ],
         );
 
-        expect(SentryService.shouldFilterEvent(event), isTrue,
+        expect(SentryService.shouldFilterForTesting(event), isTrue,
             reason: 'GoException wrapping 401 should be filtered');
       });
     });
 
     group('Edge cases', () {
       test('Empty event', () {
-        expect(SentryService.shouldFilterEvent(SentryEvent()), isFalse);
+        expect(SentryService.shouldFilterForTesting(SentryEvent()), isFalse);
       });
 
       test('Empty exception list', () {
         expect(
-            SentryService.shouldFilterEvent(SentryEvent(exceptions: [])), isFalse);
+          SentryService.shouldFilterForTesting(SentryEvent(exceptions: [])),
+          isFalse,
+        );
       });
 
       test('Exception with null type and value', () {
         final event = SentryEvent(
           exceptions: [SentryException(type: null, value: null)],
         );
-        expect(SentryService.shouldFilterEvent(event), isFalse);
+        expect(SentryService.shouldFilterForTesting(event), isFalse);
       });
 
       test('Case insensitive matching', () {
@@ -552,7 +554,7 @@ void main() {
             ),
           ],
         );
-        expect(SentryService.shouldFilterEvent(event), isTrue);
+        expect(SentryService.shouldFilterForTesting(event), isTrue);
       });
     });
 
@@ -573,7 +575,7 @@ void main() {
           ],
         );
 
-        expect(SentryService.shouldFilterEvent(event), isTrue,
+        expect(SentryService.shouldFilterForTesting(event), isTrue,
             reason:
                 'Connection abort on token refresh is expected when offline');
       });
@@ -589,7 +591,7 @@ void main() {
           ],
         );
 
-        expect(SentryService.shouldFilterEvent(event), isTrue,
+        expect(SentryService.shouldFilterForTesting(event), isTrue,
             reason: 'Socket errors on token refresh are expected when offline');
       });
 
@@ -604,7 +606,7 @@ void main() {
           ],
         );
 
-        expect(SentryService.shouldFilterEvent(event), isTrue,
+        expect(SentryService.shouldFilterForTesting(event), isTrue,
             reason:
                 'Connection abort on push token is expected when offline');
       });
@@ -620,7 +622,7 @@ void main() {
           ],
         );
 
-        expect(SentryService.shouldFilterEvent(event), isTrue,
+        expect(SentryService.shouldFilterForTesting(event), isTrue,
             reason: 'Socket errors on push token are expected when offline');
       });
 
@@ -635,7 +637,7 @@ void main() {
           ],
         );
 
-        expect(SentryService.shouldFilterEvent(event), isFalse,
+        expect(SentryService.shouldFilterForTesting(event), isFalse,
             reason: 'Network errors on other endpoints might indicate issues');
       });
 
@@ -649,7 +651,7 @@ void main() {
           ],
         );
 
-        expect(SentryService.shouldFilterEvent(event), isFalse,
+        expect(SentryService.shouldFilterForTesting(event), isFalse,
             reason: 'Non-network errors on token refresh might be bugs');
       });
     });
@@ -672,7 +674,7 @@ void main() {
           ),
         );
 
-        expect(SentryService.shouldFilterEvent(event), isTrue,
+        expect(SentryService.shouldFilterForTesting(event), isTrue,
             reason: 'Events from Apple development devices should be filtered');
       });
 
@@ -685,7 +687,7 @@ void main() {
           ),
         );
 
-        expect(SentryService.shouldFilterEvent(event), isTrue,
+        expect(SentryService.shouldFilterForTesting(event), isTrue,
             reason: 'Case insensitive matching for development kernel');
       });
 
@@ -706,7 +708,7 @@ void main() {
           ),
         );
 
-        expect(SentryService.shouldFilterEvent(event), isFalse,
+        expect(SentryService.shouldFilterForTesting(event), isFalse,
             reason: 'Events from release kernels should NOT be filtered');
       });
 
@@ -721,7 +723,7 @@ void main() {
           ],
         );
 
-        expect(SentryService.shouldFilterEvent(event), isFalse,
+        expect(SentryService.shouldFilterForTesting(event), isFalse,
             reason: 'Events without OS context should not be filtered by this rule');
       });
     });

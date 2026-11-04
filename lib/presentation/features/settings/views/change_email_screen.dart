@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:heliumapp/data/models/auth/user_model.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_bloc.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_event.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_state.dart';
@@ -13,12 +14,14 @@ import 'package:heliumapp/utils/platform_behavior.dart';
 import 'package:heliumapp/utils/snack_bar_helpers.dart';
 
 class ChangeEmailScreen extends StatefulWidget {
+  final UserModel user;
   final VoidCallback? onActionStarted;
   final VoidCallback? onCompleted;
   final VoidCallback? onFailed;
 
   const ChangeEmailScreen({
     super.key,
+    required this.user,
     this.onActionStarted,
     this.onCompleted,
     this.onFailed,
@@ -32,8 +35,6 @@ class ChangeEmailScreenState extends State<ChangeEmailScreen> {
   final ChangeEmailFormController _formController = ChangeEmailFormController();
 
   bool _isSubmitting = false;
-  String? _currentEmail;
-  String? _emailChanging;
 
   bool get isChanged => _formController.isChanged;
 
@@ -56,8 +57,6 @@ class ChangeEmailScreenState extends State<ChangeEmailScreen> {
         _changeTrackingActive = true;
       });
     });
-
-    context.read<AuthBloc>().add(FetchProfileEvent());
   }
 
   @override
@@ -85,11 +84,6 @@ class ChangeEmailScreenState extends State<ChangeEmailScreen> {
           SnackBarHelper.show(context, state.message!, type: SnackType.error);
           setState(() => _isSubmitting = false);
           widget.onFailed?.call();
-        } else if (state is AuthProfileFetched) {
-          setState(() {
-            _currentEmail = state.user.email;
-            _emailChanging = state.user.emailChanging;
-          });
         } else if (state is AuthEmailChangeRequested) {
           _formController.clearForm();
           setState(() {
@@ -125,10 +119,11 @@ class ChangeEmailScreenState extends State<ChangeEmailScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                if (_emailChanging != null && _emailChanging!.isNotEmpty) ...[
+                if (widget.user.emailChanging?.isNotEmpty ?? false) ...[
                   WarningContainer(
                     text:
-                        'Change pending — click the link sent to $_emailChanging to verify.',
+                        'Change pending — click the link sent to '
+                        '${widget.user.emailChanging} to verify.',
                     icon: Icons.schedule,
                   ),
                   const SizedBox(height: 16),
@@ -189,9 +184,9 @@ class ChangeEmailScreenState extends State<ChangeEmailScreen> {
 
     // Allow submitting current email only if there's a pending change (to cancel it)
     final isCurrentEmail =
-        _currentEmail != null &&
-        value?.toLowerCase().trim() == _currentEmail!.toLowerCase();
-    if (isCurrentEmail && (_emailChanging == null || _emailChanging!.isEmpty)) {
+        value?.toLowerCase().trim() == widget.user.email.toLowerCase();
+    final hasPendingChange = widget.user.emailChanging?.isNotEmpty ?? false;
+    if (isCurrentEmail && !hasPendingChange) {
       return 'New email must be different from your current email';
     }
 

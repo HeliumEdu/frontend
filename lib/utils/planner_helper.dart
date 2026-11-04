@@ -429,6 +429,23 @@ class PlannerHelper {
 
   /// The end of the meeting starting exactly at [meetingStart] across all
   /// schedules' recurrence groups, or null.
+  /// The starts of [rule]'s occurrences from [from] to [to], for a series
+  /// starting at [start], expanded in [timeZone].
+  static List<DateTime> occurrencesIn(
+    String rule,
+    DateTime start,
+    tz.Location timeZone, {
+    required DateTime from,
+    required DateTime to,
+  }) {
+    return SfCalendar.getRecurrenceDateTimeCollection(
+      HeliumDateTime.recurrenceRuleWithLocalUntil(rule, timeZone),
+      tz.TZDateTime.from(start, timeZone),
+      specificStartDate: from,
+      specificEndDate: to,
+    );
+  }
+
   static tz.TZDateTime? courseMeetingEnd({
     required List<CourseScheduleModel> schedules,
     required DateTime meetingStart,
@@ -439,12 +456,7 @@ class PlannerHelper {
     final expandTo = DateTime(local.year, local.month, local.day + 2);
     for (final schedule in schedules) {
       for (final group in schedule.recurrenceGroups) {
-        final occurrences = SfCalendar.getRecurrenceDateTimeCollection(
-          group.recurrenceRule,
-          tz.TZDateTime.from(group.start, timeZone),
-          specificStartDate: expandFrom,
-          specificEndDate: expandTo,
-        );
+        final occurrences = occurrencesIn(group.recurrenceRule, group.start, timeZone, from: expandFrom, to: expandTo);
         for (final occurrence in occurrences) {
           final occurrenceStart = HeliumDateTime.wallClockIn(occurrence, timeZone);
           if (occurrenceStart.isAtSameMomentAs(meetingStart)) {

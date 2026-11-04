@@ -9,7 +9,7 @@ class PlannerItemAttachments extends BaseAttachments {
     required this.isEvent,
     required super.entityId,
     required super.isEdit,
-    super.userSettings,
+    required super.userSettings,
     super.contentKey,
     super.onUploadsSettled,
   });
@@ -35,7 +35,7 @@ class _PlannerItemAttachmentsContent extends BaseAttachmentsContent {
     required this.isEvent,
     required super.entityId,
     required super.isEdit,
-    super.userSettings,
+    required super.userSettings,
     super.onUploadsSettled,
   });
 

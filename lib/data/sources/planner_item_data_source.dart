@@ -244,7 +244,7 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
           final (rangeStart, rangeEnd) = _cacheRangeBounds(entry.key);
 
           for (final event in newEvents) {
-            if (event.start.isBefore(rangeEnd) && event.end.isAfter(rangeStart)) {
+            if (HeliumDateTime.occursWithin(event.start, event.end, rangeStart, rangeEnd)) {
               items.add(event);
             }
           }
@@ -361,11 +361,12 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
 
       if (appointment is CourseScheduleEventModel &&
           (appointment.recurrenceRule?.isNotEmpty ?? false)) {
-        final occurrences = SfCalendar.getRecurrenceDateTimeCollection(
+        final occurrences = PlannerHelper.occurrencesIn(
           appointment.recurrenceRule!,
-          tz.TZDateTime.from(appointment.start, userSettings.timeZone),
-          specificStartDate: expandFrom,
-          specificEndDate: expandTo,
+          appointment.start,
+          userSettings.timeZone,
+          from: expandFrom,
+          to: expandTo,
         );
 
         for (final occurrenceStart in occurrences) {
@@ -409,11 +410,12 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
       // Handle RRULEs from the backend
       if (appointment is EventBaseModel &&
           (appointment.recurrenceRule?.isNotEmpty ?? false)) {
-        final occurrences = SfCalendar.getRecurrenceDateTimeCollection(
+        final occurrences = PlannerHelper.occurrencesIn(
           appointment.recurrenceRule!,
-          tz.TZDateTime.from(appointment.start, userSettings.timeZone),
-          specificStartDate: expandFrom,
-          specificEndDate: expandTo,
+          appointment.start,
+          userSettings.timeZone,
+          from: expandFrom,
+          to: expandTo,
         );
 
         for (final occurrenceStart in occurrences) {
@@ -444,8 +446,7 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
       // Include any item that overlaps with the target day, not just items that
       // start on the day. Multi-day events (allDay or timed) span multiple cells
       // in month view and must be counted for each day they cover.
-      if (appointment.start.isBefore(dayEnd) &&
-          appointment.end.isAfter(dayStart)) {
+      if (HeliumDateTime.occursWithin(appointment.start, appointment.end, dayStart, dayEnd)) {
         itemsForDay.add(appointment);
       }
     }
@@ -533,12 +534,11 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
       final position = _allDayPositionInGroup(index, item);
       return midnight.add(Duration(minutes: priority, seconds: position));
     }
-    final baseTime = tz.TZDateTime.from(rawStart, userSettings.timeZone);
-    final adjustment = Sort.getTimedEventStartTimeAdjustmentSeconds(
+    return Sort.timedSortStart(
+      tz.TZDateTime.from(rawStart, userSettings.timeZone),
       priority,
       _timedPositionInGroup(index, item),
     );
-    return baseTime.subtract(Duration(seconds: adjustment));
   }
 
   @override
@@ -572,14 +572,7 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
       ).add(offset);
       return adjustedEnd.isBefore(adjustedStart) ? adjustedStart : adjustedEnd;
     }
-    // Timed: apply same adjustment as getStartTime so visual duration is preserved.
-    final endTime = tz.TZDateTime.from(rawEnd, userSettings.timeZone);
-    final priority = Sort.typeSortPriority[plannerItem.plannerItemType] ?? 0;
-    final adjustment = Sort.getTimedEventEndTimeAdjustment(
-      priority,
-      _timedPositionInGroup(index, plannerItem),
-    );
-    return endTime.subtract(adjustment);
+    return getStartTime(index).add(rawEnd.difference(rawStart));
   }
 
   @override
@@ -604,13 +597,12 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
   @override
   String? getRecurrenceRule(int index) {
     final item = _getData(index);
-    if (item is CourseScheduleEventModel) {
-      return item.recurrenceRule;
-    }
-    if (item is EventBaseModel) {
-      return item.recurrenceRule;
-    }
-    return null;
+    final rule = switch (item) {
+      CourseScheduleEventModel() => item.recurrenceRule,
+      EventBaseModel() => item.recurrenceRule,
+      _ => null,
+    };
+    return rule == null ? null : HeliumDateTime.recurrenceRuleWithLocalUntil(rule, userSettings.timeZone);
   }
 
   @override
@@ -1056,7 +1048,7 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
     for (final entry in _dateRangeCache.entries) {
       final (rangeStart, rangeEnd) = _cacheRangeBounds(entry.key);
 
-      if (itemStart.isBefore(rangeEnd) && itemEnd.isAfter(rangeStart)) {
+      if (HeliumDateTime.occursWithin(itemStart, itemEnd, rangeStart, rangeEnd)) {
         entry.value.add(plannerItem);
       }
     }
@@ -1209,6 +1201,14 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
     _completedOverrides.remove(homeworkId);
     _notifyChangeListeners();
     _applyFiltersAndNotify(showOverlay: false);
+  }
+
+  /// The latest start and end known for [item]: a pending drag or resize,
+  /// else its newest saved copy. SfCalendar hands back the copy it rendered,
+  /// which predates both.
+  (DateTime, DateTime) currentTimesOf(PlannerItemBaseModel item) {
+    final latest = allPlannerItems.firstWhereOrNull((candidate) => candidate == item) ?? item;
+    return (_effectiveStart(latest), _effectiveEnd(latest));
   }
 
   bool hasTimeOverride(PlannerItemBaseModel plannerItem) =>

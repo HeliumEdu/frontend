@@ -86,7 +86,7 @@ void main() {
       });
 
       test('falls back to a point for an unknown locale', () {
-        expect(HeliumNumber.detectNumberFormat(const Locale('xx', 'XX')), FallbackConstants.defaultNumberFormat);
+        expect(HeliumNumber.detectNumberFormat(const Locale('xx', 'XX')), RegionalFormatConstants.numberFormatPoint);
       });
     });
 

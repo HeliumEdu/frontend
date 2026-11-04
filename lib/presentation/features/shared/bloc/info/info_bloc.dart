@@ -7,6 +7,7 @@ import 'package:logging/logging.dart';
 
 final _log = Logger('presentation.bloc');
 
+/// A refresh keeps the loaded info in place, even when it fails.
 class InfoBloc extends Bloc<InfoEvent, InfoState> {
   final InfoRepository infoRepository;
 
@@ -18,17 +19,24 @@ class InfoBloc extends Bloc<InfoEvent, InfoState> {
     LoadInfoEvent event,
     Emitter<InfoState> emit,
   ) async {
-    emit(InfoLoading());
+    final isRefresh = state is InfoLoaded;
+    if (!isRefresh) {
+      emit(InfoLoading());
+    }
 
     try {
       final info = await infoRepository.getInfo();
       emit(InfoLoaded(info: info));
     } on HeliumException catch (e) {
       _log.warning('Failed to load /info/: ${e.runtimeType} code=${e.code}');
-      emit(InfoLoadFailed(message: e.displayMessage));
+      if (!isRefresh) {
+        emit(InfoLoadFailed(message: e.displayMessage));
+      }
     } catch (e, s) {
       _log.severe('Unexpected error loading /info/', e, s);
-      emit(InfoLoadFailed(message: HeliumException.unexpectedError));
+      if (!isRefresh) {
+        emit(InfoLoadFailed(message: HeliumException.unexpectedError));
+      }
     }
   }
 }

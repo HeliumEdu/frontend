@@ -159,7 +159,7 @@ class _CourseAddScreenState extends MultiStepContainerState<CourseAddScreen> {
     // dialog (e.g. after a new-course save); otherwise fall back to the URL
     // the pageBuilder matched on, which is authoritative for the active
     // route even when the routerDelegate hasn't caught up yet.
-    final fullPath = routerPath.startsWith(prefix)
+    final fullPath = DirtyDialogRegistry.isWithin(routerPath, prefix)
         ? routerPath
         : widget.initialFullPath;
     DirtyDialogRegistry.register(
@@ -175,9 +175,8 @@ class _CourseAddScreenState extends MultiStepContainerState<CourseAddScreen> {
     if (!mounted) return;
     final path = router.routerDelegate.currentConfiguration.uri.path;
     final prefix = _registeredPrefix;
-    if (prefix != null && path.startsWith(prefix)) {
-      DirtyDialogRegistry.updateFullPath(prefix: prefix, fullPath: path);
-    }
+    if (prefix == null || !DirtyDialogRegistry.isWithin(path, prefix)) return;
+    DirtyDialogRegistry.updateFullPath(prefix: prefix, fullPath: path);
     final segments = path.split('/').where((s) => s.isNotEmpty).toList();
     final classesIdx = segments.indexOf('classes');
     if (classesIdx < 0 || segments.length < classesIdx + 3) return;
@@ -319,7 +318,11 @@ class _CourseAddScreenState extends MultiStepContainerState<CourseAddScreen> {
               state.origin == EventOrigin.subScreen) {
             _detailsKey.currentState?.resetSubmitting();
             setState(() => isSubmitting = false);
-            resolveFormConflict(context, _detailsKey.currentState);
+            resolveFormConflict(
+              context,
+              _detailsKey.currentState,
+              latestVersion: state.latest.version,
+            );
           } else if (state is CoursesScreenDataFetched &&
               _currentCourseGroupId == null &&
               _currentCourseId != null) {
@@ -334,7 +337,8 @@ class _CourseAddScreenState extends MultiStepContainerState<CourseAddScreen> {
           } else if (state is CourseDeleted) {
             showSnackBar(context, 'Class deleted.', useRootMessenger: true);
             closeWithoutPrompt();
-          } else if (state is CourseCreated || state is CourseUpdated) {
+          } else if ((state is CourseCreated || state is CourseUpdated) &&
+              state.origin == EventOrigin.subScreen) {
             state as CourseEntityState;
 
             if (state is CourseCreated) {

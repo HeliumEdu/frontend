@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/config/pref_service.dart';
-import 'package:heliumapp/core/dio_client.dart';
 import 'package:heliumapp/data/models/auth/user_settings_model.dart';
 import 'package:heliumapp/data/models/planner/course_model.dart';
 import 'package:heliumapp/data/models/planner/note_model.dart';
@@ -97,23 +96,19 @@ class _ResourcesScreenState
   );
 
   @override
-  void initState() {
-    super.initState();
-
-    DioClient().cacheService.addInactivityResumeListener(
-      _resetSelectedGroupOnResume,
-    );
+  void loadScreenData({required bool forceRefresh}) {
+    if (forceRefresh && _resourceGroups.isNotEmpty) {
+      setState(() {
+        _selectedGroupId = _resourceGroups.first.id;
+      });
+    }
     context.read<ResourceBloc>().add(
-      FetchResourcesScreenDataEvent(origin: EventOrigin.screen),
+      FetchResourcesScreenDataEvent(
+        origin: EventOrigin.screen,
+        forceRefresh: forceRefresh,
+        passive: forceRefresh,
+      ),
     );
-  }
-
-  @override
-  void dispose() {
-    DioClient().cacheService.removeInactivityResumeListener(
-      _resetSelectedGroupOnResume,
-    );
-    super.dispose();
   }
 
   @override
@@ -446,6 +441,7 @@ class _ResourcesScreenState
       _resourceGroups = state.resourceGroups;
       Sort.byTitle(_resourceGroups);
 
+      _resourcesMap.clear();
       for (var group in _resourceGroups) {
         _resourcesMap[group.id] = state.resources
             .where((m) => m.resourceGroup == group.id)
@@ -487,7 +483,7 @@ class _ResourcesScreenState
                   Expanded(
                     child: ResourceTitleLabel(
                       title: resource.title,
-                      userSettings: userSettings!,
+                      userSettings: userSettings,
                     ),
                   ),
                   if (resource.website != null) ...[
@@ -586,7 +582,7 @@ class _ResourcesScreenState
   }
 
   void _saveSelectedGroup() {
-    if (_selectedGroupId == null) return;
+    if (_selectedGroupId == null || !settingsLoaded) return;
 
     ScreenDropdownFilterHelpers.save(
       ScreensDropdownFilterPrefKey.resourcesGroupId,
@@ -613,18 +609,6 @@ class _ResourcesScreenState
       _selectedGroupId = _resourceGroups.isEmpty
           ? savedGroupId
           : _selectableGroupId(savedGroupId);
-    });
-  }
-
-  /// Fires on the same inactivity-resume threshold that makes the shell clear
-  /// the saved selection — but a screen that's currently mounted (i.e. the
-  /// user was sitting on it when they backgrounded/foregrounded) won't
-  /// otherwise pick that up, since restoring only happens on mount.
-  void _resetSelectedGroupOnResume() {
-    if (!mounted || _resourceGroups.isEmpty) return;
-
-    setState(() {
-      _selectedGroupId = _resourceGroups.first.id;
     });
   }
 }

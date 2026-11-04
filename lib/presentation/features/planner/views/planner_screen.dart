@@ -190,7 +190,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
       view: _currentView,
       selectedDate: _calendarController.selectedDate,
       now: DateTime.now(),
-      timeZone: userSettings!.timeZone,
+      timeZone: userSettings.timeZone,
     );
 
     showPlannerItemAdd(
@@ -232,9 +232,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
   bool _isSearchExpanded = false;
   bool _isFilterExpanded = false;
   bool _wasDesktop = false;
-  PlannerView _currentView = PlannerHelper.mapApiViewToHeliumView(
-    FallbackConstants.defaultViewIndex,
-  );
+  PlannerView _currentView = PlannerView.month;
   PlannerView? _previousView;
 
   DateTime? _storedSelectedDate;
@@ -285,10 +283,6 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
     _calendarController = CalendarController()
       ..view = PlannerHelper.mapHeliumViewToSfCalendarView(_currentView);
 
-    context.read<PlannerBloc>().add(
-      FetchPlannerScreenDataEvent(origin: EventOrigin.screen),
-    );
-
     _calendarController.addPropertyChangedListener((value) {
       if (value == 'calendarView') {
         _calendarViewChanged();
@@ -318,6 +312,17 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       unawaited(_warmSearchGlyphs());
     });
+  }
+
+  @override
+  void loadScreenData({required bool forceRefresh}) {
+    if (forceRefresh) _goToToday();
+    context.read<PlannerBloc>().add(
+      FetchPlannerScreenDataEvent(
+        origin: EventOrigin.screen,
+        forceRefresh: forceRefresh,
+      ),
+    );
   }
 
   /// Reads the `?date=` query param when the current location is /planner
@@ -665,7 +670,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
           if (state is AuthProfileUpdated) {
             _log.info('User settings changed, repainting calendar');
 
-            final oldTimeZone = userSettings?.timeZone;
+            final oldTimeZone = settingsLoaded ? userSettings.timeZone : null;
 
             _plannerItemDataSource?.userSettings = state.user.settings;
 
@@ -789,9 +794,9 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
             return const Center(child: LoadingIndicator(expanded: false));
           }
 
-          if (state is PlannerError && state.origin == EventOrigin.screen) {
+          if (screenError != null) {
             return ErrorCard(
-              message: state.message!,
+              message: screenError!,
               source: 'planner_screen',
               expanded: false,
               onReload: reloadPage,
@@ -864,8 +869,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
       return LayoutBuilder(
         builder: (context, constraints) {
           final bool noCollapse =
-              !(userSettings?.collapseBusyDays ??
-                  FallbackConstants.defaultCollapseBusyDays) &&
+              !userSettings.collapseBusyDays &&
               !Responsive.isMobile(context);
 
           int? noCollapseCount;
@@ -971,8 +975,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
             : _agendaHeightDesktop;
 
         final showWeekNumbers =
-            userSettings?.showWeekNumbers ??
-            FallbackConstants.defaultShowWeekNumbers;
+            userSettings.showWeekNumbers;
 
         // Every other view keeps SfCalendar's own week number column, which is
         // only oversized enough to matter in month view.
@@ -997,8 +1000,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
               showWeekNumbers,
           allowDragAndDrop:
               PlatformBehavior.allowsDragAndDropByDefault ||
-              (userSettings?.dragAndDropOnMobile ??
-                  FallbackConstants.defaultDragAndDropOnMobile),
+              userSettings.dragAndDropOnMobile,
           dragAndDropSettings: DragAndDropSettings(
             timeIndicatorStyle: AppStyles.smallSecondaryText(
               context,
@@ -1007,9 +1009,9 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
           allowAppointmentResize: true,
           allowedViews: _allowedViews,
           dataSource: _plannerItemDataSource,
-          timeZone: userSettings!.timeZone.name,
+          timeZone: userSettings.timeZone.name,
           firstDayOfWeek:
-              PlannerHelper.weekStartsOnRemap[userSettings!.weekStartsOn],
+              PlannerHelper.weekStartsOnRemap[userSettings.weekStartsOn],
           todayTextStyle: AppStyles.standardBodyText(
             context,
           ).copyWith(color: context.colorScheme.onPrimary),
@@ -2030,7 +2032,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
       _calendarController.selectedDate = PlannerHelper.selectionWithCurrentHour(
         date: now,
         now: now,
-        timeZone: userSettings!.timeZone,
+        timeZone: userSettings.timeZone,
       );
     }
   }
@@ -2061,7 +2063,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
     _calendarController.selectedDate = PlannerHelper.selectionWithCurrentHour(
       date: details.date!,
       now: DateTime.now(),
-      timeZone: userSettings!.timeZone,
+      timeZone: userSettings.timeZone,
     );
   }
 
@@ -2078,7 +2080,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
       _calendarController.selectedDate = PlannerHelper.selectionWithCurrentHour(
         date: details.date!,
         now: DateTime.now(),
-        timeZone: userSettings!.timeZone,
+        timeZone: userSettings.timeZone,
       );
     }
   }
@@ -2148,14 +2150,10 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
     }
 
     if (plannerItem is HomeworkModel || plannerItem is EventModel) {
-      final startDateTime = tz.TZDateTime.from(
-        plannerItem.start,
-        userSettings!.timeZone,
-      );
-      final endDateTime = tz.TZDateTime.from(
-        plannerItem.end,
-        userSettings!.timeZone,
-      );
+      final (currentStart, currentEnd) = _plannerItemDataSource!.currentTimesOf(plannerItem);
+      final timeZone = userSettings.timeZone;
+      final startDateTime = tz.TZDateTime.from(currentStart, timeZone);
+      final endDateTime = tz.TZDateTime.from(currentEnd, timeZone);
       final Duration duration = endDateTime.difference(startDateTime);
 
       final roundedMinute = PlannerHelper.roundMinute(
@@ -2163,7 +2161,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
       );
 
       final DateTime start = tz.TZDateTime(
-        userSettings!.timeZone,
+        userSettings.timeZone,
         dropDetails.droppingTime!.year,
         dropDetails.droppingTime!.month,
         dropDetails.droppingTime!.day,
@@ -2261,8 +2259,8 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
     if (plannerItem is HomeworkModel ||
         (plannerItem is EventModel &&
             !_isReadOnlyRecurringEvent(plannerItem))) {
-      final DateTime start = tz.TZDateTime(
-        userSettings!.timeZone,
+      DateTime start = tz.TZDateTime(
+        userSettings.timeZone,
         resizeDetails.startTime!.year,
         resizeDetails.startTime!.month,
         resizeDetails.startTime!.day,
@@ -2271,7 +2269,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
       );
 
       DateTime end = tz.TZDateTime(
-        userSettings!.timeZone,
+        userSettings.timeZone,
         resizeDetails.endTime!.year,
         resizeDetails.endTime!.month,
         resizeDetails.endTime!.day,
@@ -2279,7 +2277,11 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
         PlannerHelper.roundMinute(resizeDetails.endTime!.minute),
       );
       if (plannerItem.allDay) {
-        end = HeliumDateTime.addDays(end, 1);
+        (start, end) = HeliumDateTime.dayRangeIn(
+          resizeDetails.startTime!,
+          resizeDetails.endTime!,
+          userSettings.timeZone,
+        );
       }
 
       // Warn if homework is being moved outside course date range
@@ -2392,7 +2394,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
     // Build indicator dots for present types
     final indicatorColors = <Color>[
       if (hasHomework) PlannerTypeColors.homework,
-      if (hasEvents) PlannerTypeColors.events(userSettings?.eventsColor),
+      if (hasEvents) userSettings.eventsColor,
       if (hasClassSchedules) PlannerTypeColors.classSchedules,
       if (hasExternalCalendars) PlannerTypeColors.externalCalendars,
     ];
@@ -2642,8 +2644,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
   }) {
     if (_isCalendarInteractionInProgress ||
         !PlatformBehavior.showsHoverTooltips ||
-        !(userSettings?.showPlannerTooltips ??
-            FallbackConstants.defaultShowPlannerTooltips)) {
+        !userSettings.showPlannerTooltips) {
       return child;
     }
 
@@ -2745,7 +2746,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
         _PlannerTooltipRow.text(
           icon: Icons.source_outlined,
           text: 'Source: Events',
-          color: userSettings?.eventsColor,
+          color: userSettings.eventsColor,
         ),
       );
     } else if (plannerItem is ExternalCalendarEventModel) {
@@ -2862,11 +2863,11 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
   String _buildTooltipWhenLine(PlannerItemBaseModel plannerItem) {
     final localStart = HeliumDateTime.toLocal(
       plannerItem.start,
-      userSettings!.timeZone,
+      userSettings.timeZone,
     );
     final localEnd = HeliumDateTime.toLocal(
       plannerItem.end,
-      userSettings!.timeZone,
+      userSettings.timeZone,
     );
     final formattedDate = HeliumDateTime.formatDate(localStart);
 
@@ -2880,7 +2881,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
   Widget _buildTooltipMetaCountsRow(PlannerItemBaseModel plannerItem) {
     return PlannerItemMetaRow(
       plannerItem: plannerItem,
-      userSettings: userSettings!,
+      userSettings: userSettings,
       countTextStyle: AppStyles.formText(
         context,
       ).copyWith(color: context.colorScheme.onSurface),
@@ -3652,7 +3653,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
     final courseStart = HeliumDateTime.dateOnly(course.startDate);
     final courseEnd = HeliumDateTime.dateOnly(course.endDate);
     final homeworkStart = HeliumDateTime.dateOnly(newStart);
-    final homeworkEnd = HeliumDateTime.dateOnly(newEnd);
+    final homeworkEnd = HeliumDateTime.lastDayOf(newEnd, allDay: homework.allDay);
 
     if (homeworkStart.isBefore(courseStart) || homeworkEnd.isAfter(courseEnd)) {
       showSnackBar(
@@ -3743,9 +3744,11 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
     setState(() {
       _courseGroups = state.courseGroups;
       _courses = state.courses;
-      for (final category in state.categories) {
-        _categoriesMap[category.id] = category;
-      }
+      _categoriesMap
+        ..clear()
+        ..addAll({
+          for (final category in state.categories) category.id: category,
+        });
       _resourcesMap
         ..clear()
         ..addAll({for (final r in state.resources) r.id: r});
@@ -3754,9 +3757,9 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
         _applyScreenDataToDataSource();
       }
 
-      _deduplicatedCategories.addAll(
-        _deduplicateCategoriesByTitle(state.categories),
-      );
+      _deduplicatedCategories
+        ..clear()
+        ..addAll(_deduplicateCategoriesByTitle(state.categories));
 
       isLoading = false;
     });
@@ -4179,9 +4182,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
                       Icon(
                         AppConstants.eventIcon,
                         size: 18,
-                        color: PlannerTypeColors.events(
-                          userSettings?.eventsColor,
-                        ),
+                        color: userSettings.eventsColor,
                       ),
                       const SizedBox(width: 8),
                       Text(
@@ -4869,7 +4870,10 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
     ).copyWith(color: foregroundColor.withValues(alpha: AppStyles.increasedContrastAlpha(0.7)));
     final timeSpan = TextSpan(
       text: HeliumDateTime.formatTime(
-        HeliumDateTime.toLocal(plannerItem.start, userSettings!.timeZone),
+        HeliumDateTime.toLocal(
+          plannerItem.start,
+          userSettings.timeZone,
+        ),
       ),
       semanticsLabel: '',
       style: timeStyle,
@@ -4911,8 +4915,14 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
         Expanded(
           child: Text(
             HeliumDateTime.formatTimeRange(
-              HeliumDateTime.toLocal(plannerItem.start, userSettings!.timeZone),
-              HeliumDateTime.toLocal(plannerItem.end, userSettings!.timeZone),
+              HeliumDateTime.toLocal(
+                plannerItem.start,
+                userSettings.timeZone,
+              ),
+              HeliumDateTime.toLocal(
+                plannerItem.end,
+                userSettings.timeZone,
+              ),
               plannerItem.showEndTime,
             ),
             style:

@@ -84,7 +84,7 @@ class HeliumNumber {
     try {
       separator = NumberFormat.decimalPattern(locale.toString()).symbols.DECIMAL_SEP;
     } on ArgumentError {
-      return FallbackConstants.defaultNumberFormat;
+      return RegionalFormatConstants.numberFormatPoint;
     }
     return separator == ','
         ? RegionalFormatConstants.numberFormatComma

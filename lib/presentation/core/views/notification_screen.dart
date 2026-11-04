@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/semantics.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:heliumapp/core/helium_exception.dart';
 import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/config/app_router.dart';
 import 'package:heliumapp/config/app_theme.dart';
@@ -206,7 +207,10 @@ class _NotificationsScreenState
           if (state is RemindersError) {
             setState(() {
               _isDismissingAll = false;
-              if (state.origin == EventOrigin.screen) isLoading = false;
+              if (state.origin == EventOrigin.screen) {
+                isLoading = false;
+                screenError = state.message ?? HeliumException.unexpectedError;
+              }
             });
             if (state.origin != EventOrigin.screen) {
               if (!isShowingErrorCard) {
@@ -289,11 +293,11 @@ class _NotificationsScreenState
           return const LoadingIndicator();
         }
 
-        if (state is RemindersError && state.origin == EventOrigin.screen) {
+        if (screenError != null) {
           return ErrorCard(
-            message: state.message!,
+            message: screenError!,
             source: 'notification_screen',
-            onReload: () => _fetchReminders(forceRefresh: true),
+            onReload: reloadPage,
             expanded: true,
           );
         }
@@ -376,7 +380,10 @@ class _NotificationsScreenState
         reminders: state.reminders,
       ),
     );
-    setState(() => isLoading = false);
+    setState(() {
+      isLoading = false;
+      screenError = null;
+    });
   }
 
   void _removeEventNotifications() {
@@ -421,7 +428,7 @@ class _NotificationsScreenState
     // matching the backend's class_start = start_of_range + offset logic.
     final classStartLocal = HeliumDateTime.toLocal(
       reminder.startOfRange!.add(_offsetToDuration(reminder)),
-      userSettings!.timeZone,
+      userSettings.timeZone,
     );
 
     final meetingEnd = course == null
@@ -429,7 +436,7 @@ class _NotificationsScreenState
         : PlannerHelper.courseMeetingEnd(
             schedules: course.schedules,
             meetingStart: classStartLocal,
-            timeZone: userSettings!.timeZone,
+            timeZone: userSettings.timeZone,
           );
     if (meetingEnd == null) {
       return HeliumDateTime.formatDateTimeRange(classStartLocal, classStartLocal, false, false);
@@ -450,7 +457,7 @@ class _NotificationsScreenState
       final category = homework.category.entity;
       title = homework.title;
       color =
-          (userSettings?.colorByCategory == true
+          (settingsLoaded && userSettings.colorByCategory
               ? category?.color
               : course?.color) ??
           FallbackConstants.fallbackColor;
@@ -458,9 +465,9 @@ class _NotificationsScreenState
     } else if (reminder.event?.entity != null) {
       final event = reminder.event!.entity!;
       title = event.title;
-      color =
-          userSettings?.eventsColor ??
-          FallbackConstants.fallbackColor;
+      color = settingsLoaded
+          ? userSettings.eventsColor
+          : FallbackConstants.fallbackColor;
       timestamp = event.start.toIso8601String();
     } else if (reminder.course?.entity != null) {
       final course = reminder.course!.entity!;
@@ -604,11 +611,11 @@ class _NotificationsScreenState
                               ? HeliumDateTime.formatDateTimeRange(
                                   HeliumDateTime.toLocal(
                                     plannerItem.start,
-                                    userSettings!.timeZone,
+                                    userSettings.timeZone,
                                   ),
                                   HeliumDateTime.toLocal(
                                     plannerItem.end,
-                                    userSettings!.timeZone,
+                                    userSettings.timeZone,
                                   ),
                                   plannerItem.showEndTime,
                                   plannerItem.allDay,

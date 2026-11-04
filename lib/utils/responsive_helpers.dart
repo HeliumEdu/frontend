@@ -49,6 +49,12 @@ class Responsive {
     return isMobile(context) || isPhoneLandscape(context);
   }
 
+  static bool isPortraitTablet(BuildContext context) {
+    final size = MediaQuery.of(context).size;
+    return size.width >= ResponsiveBreakpoints.mobile &&
+        size.width <= ResponsiveBreakpoints.tablet &&
+        size.height > size.width;
+  }
   static bool isTablet(BuildContext context) {
     return isTabletWidth(MediaQuery.of(context).size.width);
   }

@@ -40,7 +40,7 @@ class CourseDetails extends StatefulWidget {
   final int? courseId;
   final bool isEdit;
   final bool isNew;
-  final UserSettingsModel? userSettings;
+  final UserSettingsModel userSettings;
   final VoidCallback? onSubmitRequested;
   final VoidCallback? onActionStarted;
 
@@ -50,7 +50,7 @@ class CourseDetails extends StatefulWidget {
     this.courseId,
     required this.isEdit,
     required this.isNew,
-    this.userSettings,
+    required this.userSettings,
     this.onSubmitRequested,
     this.onActionStarted,
   });
@@ -138,7 +138,7 @@ class CourseDetailsState extends State<CourseDetails>
   }
 
   Widget _buildContent(BuildContext context) {
-    if (isLoading || widget.userSettings == null) {
+    if (isLoading) {
       return const Center(child: LoadingIndicator(expanded: false));
     }
 

@@ -481,6 +481,106 @@ void main() {
       });
     });
 
+    group('assignments due at midnight', () {
+      for (final zoneName in ['Europe/Amsterdam', 'America/Los_Angeles']) {
+        test('render on their due date, not the day before ($zoneName)', () {
+          // GIVEN
+          final zone = tz.getLocation(zoneName);
+          dataSource.userSettings = _createUserSettings(timeZone: zone);
+          final dueAtMidnight = tz.TZDateTime(zone, 2026, 11, 1);
+          dataSource.appointments!.insert(
+            0,
+            _createHomeworkModel(id: 40, start: dueAtMidnight, end: dueAtMidnight),
+          );
+
+          // WHEN
+          final start = tz.TZDateTime.from(dataSource.getStartTime(0), zone);
+          final end = tz.TZDateTime.from(dataSource.getEndTime(0), zone);
+
+          // THEN
+          expect(DateTime(start.year, start.month, start.day), DateTime(2026, 11, 1));
+          expect(DateTime(end.year, end.month, end.day), DateTime(2026, 11, 1));
+          expect(end.isBefore(start), isFalse);
+        });
+
+        test('count toward their due date ($zoneName)', () {
+          // GIVEN
+          final zone = tz.getLocation(zoneName);
+          dataSource.userSettings = _createUserSettings(timeZone: zone);
+          final dueAtMidnight = tz.TZDateTime(zone, 2026, 11, 1);
+          dataSource.addPlannerItem(
+            _createHomeworkModel(id: 41, start: dueAtMidnight, end: dueAtMidnight),
+          );
+
+          // WHEN
+          final items = dataSource.getItemsForDay(DateTime(2026, 11, 1));
+
+          // THEN
+          expect(items.map((item) => item.id), contains(41));
+        });
+      }
+
+      test('sort before items due a minute later', () {
+        // GIVEN
+        final zone = userSettings.timeZone;
+        final midnight = tz.TZDateTime(zone, 2026, 11, 1);
+        final aMinuteLater = tz.TZDateTime(zone, 2026, 11, 1, 0, 1);
+        dataSource.appointments!.insert(0, _createEventModel(id: 50, start: aMinuteLater, end: aMinuteLater));
+        dataSource.appointments!.insert(0, _createHomeworkModel(id: 52, start: midnight, end: midnight));
+
+        // WHEN
+        final midnightStart = dataSource.getStartTime(0);
+        final aMinuteLaterStart = dataSource.getStartTime(1);
+
+        // THEN
+        expect(midnightStart.isBefore(aMinuteLaterStart), isTrue);
+      });
+    });
+
+    group('currentTimesOf', () {
+      test('reflects a resize SfCalendar has not handed back yet', () {
+        // GIVEN
+        final rendered = _createHomeworkModel(
+          id: 60,
+          allDay: true,
+          start: DateTime.parse('2026-11-17T06:00:00Z'),
+          end: DateTime.parse('2026-11-18T06:00:00Z'),
+        );
+        dataSource.addPlannerItem(rendered);
+        dataSource.setTimeOverride(rendered, '2026-11-17T06:00:00Z', '2026-11-21T06:00:00Z');
+
+        // WHEN
+        final (start, end) = dataSource.currentTimesOf(rendered);
+
+        // THEN
+        expect(start, DateTime.parse('2026-11-17T06:00:00Z'));
+        expect(end, DateTime.parse('2026-11-21T06:00:00Z'));
+      });
+
+      test('reflects a saved copy newer than the one SfCalendar rendered', () {
+        // GIVEN
+        final rendered = _createHomeworkModel(
+          id: 61,
+          allDay: true,
+          start: DateTime.parse('2026-11-17T06:00:00Z'),
+          end: DateTime.parse('2026-11-18T06:00:00Z'),
+        );
+        dataSource.addPlannerItem(rendered);
+        dataSource.updatePlannerItem(_createHomeworkModel(
+          id: 61,
+          allDay: true,
+          start: DateTime.parse('2026-11-17T06:00:00Z'),
+          end: DateTime.parse('2026-11-21T06:00:00Z'),
+        ));
+
+        // WHEN
+        final (_, end) = dataSource.currentTimesOf(rendered);
+
+        // THEN
+        expect(end, DateTime.parse('2026-11-21T06:00:00Z'));
+      });
+    });
+
     group('getColorForItem', () {
       late CourseModel course;
       late CategoryModel category;
@@ -526,6 +626,7 @@ void main() {
           timeFormat: 0,
           numberFormat: 0,
           onTrackTolerance: 10,
+          promptForReview: false,
         );
 
         final colorByCategoryDataSource = PlannerItemDataSource(
@@ -1995,6 +2096,7 @@ UserSettingsModel _createUserSettings({required tz.Location timeZone}) {
     timeFormat: 0,
     numberFormat: 0,
     onTrackTolerance: 10,
+    promptForReview: false,
   );
 }
 

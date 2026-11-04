@@ -203,3 +203,7 @@ class LinkableEntitiesFetched extends NoteState {
     required this.categories,
   });
 }
+
+class LinkableEntitiesFailed extends NotesError {
+  LinkableEntitiesFailed({required super.origin, required super.message});
+}

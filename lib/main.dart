@@ -8,6 +8,7 @@ import 'package:flutter_web_plugins/url_strategy.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:heliumapp/config/app_providers.dart';
 import 'package:heliumapp/config/app_router.dart';
+import 'package:heliumapp/config/dirty_dialog_registry.dart';
 import 'package:heliumapp/config/pref_service.dart';
 import 'package:heliumapp/core/analytics_service.dart';
 import 'package:heliumapp/core/app_version_service.dart';
@@ -131,6 +132,7 @@ Future<void> _bootstrap() async {
     accessibilityFeatures.disableAnimations || accessibilityFeatures.reduceMotion || getSystemReduceMotion(),
   );
   ContrastService().init(accessibilityFeatures.highContrast || getSystemIncreaseContrast());
+  warnBeforeUnloadWhile(DirtyDialogRegistry.hasUnsavedChanges);
 
   try {
     await FeedbackService().init();

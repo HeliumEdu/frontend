@@ -6,7 +6,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/config/pref_service.dart';
 import 'package:heliumapp/core/analytics_service.dart';
-import 'package:heliumapp/core/dio_client.dart';
 import 'package:heliumapp/utils/color_helpers.dart';
 import 'package:heliumapp/data/models/auth/user_settings_model.dart';
 import 'package:heliumapp/data/models/planner/course_group_model.dart';
@@ -105,23 +104,19 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen> {
   }
 
   @override
-  void initState() {
-    super.initState();
-
-    DioClient().cacheService.addInactivityResumeListener(
-      _resetSelectedGroupOnResume,
-    );
+  void loadScreenData({required bool forceRefresh}) {
+    if (forceRefresh) {
+      setState(() {
+        _selectedGroupId = CourseGroupHelpers.currentGroupId(_courseGroups);
+      });
+    }
     context.read<CourseBloc>().add(
-      FetchCoursesScreenDataEvent(origin: EventOrigin.screen),
+      FetchCoursesScreenDataEvent(
+        origin: EventOrigin.screen,
+        forceRefresh: forceRefresh,
+        passive: forceRefresh,
+      ),
     );
-  }
-
-  @override
-  void dispose() {
-    DioClient().cacheService.removeInactivityResumeListener(
-      _resetSelectedGroupOnResume,
-    );
-    super.dispose();
   }
 
   void _replaceCourseGroup(CourseGroupModel courseGroup) {
@@ -491,6 +486,7 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen> {
       _courseGroups = state.courseGroups;
       Sort.byStartDate(_courseGroups);
 
+      _coursesMap.clear();
       for (var group in _courseGroups) {
         _coursesMap[group.id] = state.courses
             .where((c) => c.courseGroup == group.id)
@@ -938,7 +934,7 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen> {
   }
 
   void _saveSelectedGroup() {
-    if (_selectedGroupId == null) return;
+    if (_selectedGroupId == null || !settingsLoaded) return;
 
     ScreenDropdownFilterHelpers.save(
       ScreensDropdownFilterPrefKey.coursesGroupId,
@@ -958,18 +954,6 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen> {
       _selectedGroupId = _courseGroups.isEmpty
           ? savedGroupId
           : _selectableGroupId(savedGroupId);
-    });
-  }
-
-  /// Fires on the same inactivity-resume threshold that makes the shell clear
-  /// the saved selection — but a screen that's currently mounted (i.e. the
-  /// user was sitting on it when they backgrounded/foregrounded) won't
-  /// otherwise pick that up, since restoring only happens on mount.
-  void _resetSelectedGroupOnResume() {
-    if (!mounted) return;
-
-    setState(() {
-      _selectedGroupId = CourseGroupHelpers.currentGroupId(_courseGroups);
     });
   }
 }

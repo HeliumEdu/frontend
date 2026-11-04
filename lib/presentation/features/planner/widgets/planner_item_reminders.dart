@@ -11,7 +11,7 @@ class PlannerItemReminders extends BaseReminders {
     required this.isEvent,
     required super.entityId,
     required super.isEdit,
-    super.userSettings,
+    required super.userSettings,
   });
 
   @override
@@ -32,7 +32,7 @@ class _PlannerItemRemindersContent extends BaseRemindersContent {
     required this.isEvent,
     required super.entityId,
     required super.isEdit,
-    super.userSettings,
+    required super.userSettings,
   });
 
   @override

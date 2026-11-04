@@ -23,6 +23,11 @@ class DirtyDialogRegistry {
   static String? _pendingTargetPath;
   static bool _promptInFlight = false;
 
+  static bool isWithin(String path, String prefix) =>
+      path == prefix || path.startsWith('$prefix/');
+
+  static bool hasUnsavedChanges() => _dirtyCheck?.call() == true;
+
   /// Registers [dirtyCheck] for the dialog rooted at [prefix] (e.g.
   /// `/classes/5`), with the dialog currently displaying [fullPath]
   /// (e.g. `/classes/5/schedule`). Replaces any prior registration.
@@ -76,7 +81,7 @@ class DirtyDialogRegistry {
     final prefix = _activePrefix;
     final fullPath = _activeFullPath;
     if (prefix == null || fullPath == null) return null;
-    if (targetPath.startsWith(prefix)) return null;
+    if (isWithin(targetPath, prefix)) return null;
     // Work already in flight cannot be discarded, so a prompt would offer a
     // choice the app can't honor.
     if (_deferNavigation?.call() == true) return fullPath;

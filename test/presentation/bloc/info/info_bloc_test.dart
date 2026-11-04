@@ -63,6 +63,42 @@ void main() {
           isA<InfoLoadFailed>(),
         ],
       );
+
+      blocTest<InfoBloc, InfoState>(
+        'refreshing loaded info keeps it on screen until the new result arrives',
+        build: () {
+          when(() => mockInfoRepository.getInfo()).thenAnswer(
+            (_) async =>
+                InfoModel(maxUploadSize: 2, importFileTypes: const ['json']),
+          );
+          return infoBloc;
+        },
+        seed: () => InfoLoaded(
+          info: InfoModel(maxUploadSize: 1, importFileTypes: const ['json']),
+        ),
+        act: (bloc) => bloc.add(LoadInfoEvent()),
+        expect: () => [
+          isA<InfoLoaded>().having(
+            (s) => s.info.maxUploadSize,
+            'maxUploadSize',
+            2,
+          ),
+        ],
+      );
+
+      blocTest<InfoBloc, InfoState>(
+        'a failed refresh keeps the info already loaded',
+        build: () {
+          when(() => mockInfoRepository.getInfo())
+              .thenThrow(ServerException(message: 'boom'));
+          return infoBloc;
+        },
+        seed: () => InfoLoaded(
+          info: InfoModel(maxUploadSize: 1, importFileTypes: const ['json']),
+        ),
+        act: (bloc) => bloc.add(LoadInfoEvent()),
+        expect: () => <InfoState>[],
+      );
     });
   });
 }

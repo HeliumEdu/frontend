@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:heliumapp/core/helium_exception.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/data/models/auth/user_settings_model.dart';
 import 'package:heliumapp/data/models/planner/category_model.dart';
@@ -31,7 +32,7 @@ class CourseCategories extends StatelessWidget {
   final int courseId;
   final bool isEdit;
   final bool isNew;
-  final UserSettingsModel? userSettings;
+  final UserSettingsModel userSettings;
 
   const CourseCategories({
     super.key,
@@ -39,7 +40,7 @@ class CourseCategories extends StatelessWidget {
     required this.courseId,
     required this.isEdit,
     required this.isNew,
-    this.userSettings,
+    required this.userSettings,
   });
 
   @override
@@ -59,14 +60,14 @@ class _CourseCategoriesContent extends StatefulWidget {
   final int courseId;
   final bool isEdit;
   final bool isNew;
-  final UserSettingsModel? userSettings;
+  final UserSettingsModel userSettings;
 
   const _CourseCategoriesContent({
     required this.courseGroupId,
     required this.courseId,
     required this.isEdit,
     required this.isNew,
-    this.userSettings,
+    required this.userSettings,
   });
 
   @override
@@ -76,6 +77,7 @@ class _CourseCategoriesContent extends StatefulWidget {
 
 class _CourseCategoriesContentState extends State<_CourseCategoriesContent> {
   bool isLoading = true;
+  String? _error;
   List<CategoryModel> _categories = [];
 
   @override
@@ -83,12 +85,7 @@ class _CourseCategoriesContentState extends State<_CourseCategoriesContent> {
     super.initState();
 
     if (widget.isEdit) {
-      context.read<CategoryBloc>().add(
-        FetchCategoriesEvent(
-          origin: EventOrigin.screen,
-          courseId: widget.courseId,
-        ),
-      );
+      _fetchScreenData();
     } else {
       setState(() {
         isLoading = false;
@@ -104,6 +101,13 @@ class _CourseCategoriesContentState extends State<_CourseCategoriesContent> {
           setState(() {
             _categories = state.categories;
             Sort.byTitle(_categories);
+            isLoading = false;
+            _error = null;
+          });
+        } else if (state is CategoriesError &&
+            state.origin == EventOrigin.screen) {
+          setState(() {
+            _error = state.message ?? HeliumException.unexpectedError;
             isLoading = false;
           });
         } else if (state is CategoryCreated) {
@@ -132,8 +136,22 @@ class _CourseCategoriesContentState extends State<_CourseCategoriesContent> {
     );
   }
 
+  void _fetchScreenData() {
+    setState(() {
+      isLoading = true;
+      _error = null;
+    });
+    context.read<CategoryBloc>().add(
+      FetchCategoriesEvent(
+        origin: EventOrigin.screen,
+        courseId: widget.courseId,
+        forceRefresh: true,
+      ),
+    );
+  }
+
   Widget _buildContent(BuildContext context) {
-    if (isLoading || widget.userSettings == null) {
+    if (isLoading) {
       return const Center(child: LoadingIndicator(expanded: false));
     }
 
@@ -161,26 +179,17 @@ class _CourseCategoriesContentState extends State<_CourseCategoriesContent> {
         Expanded(
           child: BlocBuilder<CategoryBloc, CategoryState>(
             builder: (context, state) {
-              if (state is CategoriesLoading) {
-                return const Center(child: LoadingIndicator(expanded: false));
-              }
-
-              if (state is CategoriesError &&
-                  state.origin == EventOrigin.screen) {
+              if (_error != null) {
                 return ErrorCard(
-                  message: state.message!,
+                  message: _error!,
                   source: 'course_categories',
                   expanded: false,
-                  onReload: () {
-                    context.read<CategoryBloc>().add(
-                      FetchCategoriesEvent(
-                        origin: EventOrigin.screen,
-                        courseId: widget.courseId,
-                        forceRefresh: true,
-                      ),
-                    );
-                  },
+                  onReload: _fetchScreenData,
                 );
+              }
+
+              if (state is CategoriesLoading) {
+                return const Center(child: LoadingIndicator(expanded: false));
               }
 
               if (_categories.isEmpty) {

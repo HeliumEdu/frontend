@@ -170,35 +170,6 @@ void main() {
       });
     });
 
-    group('getTimedEventEndTimeAdjustment', () {
-      test('higher priority types get larger end time adjustments', () {
-        final homework = Sort.getTimedEventEndTimeAdjustment(
-          Sort.typeSortPriority[PlannerItemType.homework]!, 0,
-        );
-        final schedule = Sort.getTimedEventEndTimeAdjustment(
-          Sort.typeSortPriority[PlannerItemType.courseSchedule]!, 0,
-        );
-        final event = Sort.getTimedEventEndTimeAdjustment(
-          Sort.typeSortPriority[PlannerItemType.event]!, 0,
-        );
-        final external = Sort.getTimedEventEndTimeAdjustment(
-          Sort.typeSortPriority[PlannerItemType.external]!, 0,
-        );
-
-        expect(homework, greaterThan(schedule));
-        expect(schedule, greaterThan(event));
-        expect(event, greaterThan(external));
-      });
-
-      test('adjustment matches start time adjustment in seconds', () {
-        final priority = Sort.typeSortPriority[PlannerItemType.homework]!;
-        final startAdj = Sort.getTimedEventStartTimeAdjustmentSeconds(priority, 0);
-        final endAdj = Sort.getTimedEventEndTimeAdjustment(priority, 0);
-
-        expect(endAdj.inSeconds, startAdj);
-      });
-    });
-
     group('byStartThenTitle', () {
       test('sorts by date first', () {
         final items = [

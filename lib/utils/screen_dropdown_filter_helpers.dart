@@ -1,6 +1,5 @@
 import 'package:heliumapp/config/pref_service.dart';
 import 'package:heliumapp/data/models/auth/user_settings_model.dart';
-import 'package:heliumapp/utils/app_globals.dart';
 
 /// Persists and restores the last-selected group/term id for the Courses,
 /// Grades, and Resources dropdowns, gated by the same "Remember filter
@@ -8,25 +7,21 @@ import 'package:heliumapp/utils/app_globals.dart';
 class ScreenDropdownFilterHelpers {
   ScreenDropdownFilterHelpers._();
 
-  static bool _isEnabled(UserSettingsModel? settings) =>
-      settings?.rememberFilterState ??
-      FallbackConstants.defaultRememberFilterState;
-
   static void save(
     ScreensDropdownFilterPrefKey key,
     int groupId,
-    UserSettingsModel? settings,
+    UserSettingsModel settings,
   ) {
-    if (!_isEnabled(settings)) return;
+    if (!settings.rememberFilterState) return;
 
     PrefService().setInt(key.key, groupId);
   }
 
   static int? restore(
     ScreensDropdownFilterPrefKey key,
-    UserSettingsModel? settings,
+    UserSettingsModel settings,
   ) {
-    if (!_isEnabled(settings)) return null;
+    if (!settings.rememberFilterState) return null;
 
     return PrefService().getInt(key.key);
   }

@@ -157,7 +157,7 @@ class _ResourceAddScreenState
         '${widget.shellPath}/${_currentResourceId?.toString() ?? 'new'}';
     final routerPath =
         router.routerDelegate.currentConfiguration.uri.path;
-    final fullPath = routerPath.startsWith(prefix)
+    final fullPath = DirtyDialogRegistry.isWithin(routerPath, prefix)
         ? routerPath
         : widget.initialFullPath;
     DirtyDialogRegistry.register(
@@ -186,9 +186,8 @@ class _ResourceAddScreenState
     if (!mounted) return;
     final path = router.routerDelegate.currentConfiguration.uri.path;
     final prefix = _registeredPrefix;
-    if (prefix != null && path.startsWith(prefix)) {
-      DirtyDialogRegistry.updateFullPath(prefix: prefix, fullPath: path);
-    }
+    if (prefix == null || !DirtyDialogRegistry.isWithin(path, prefix)) return;
+    DirtyDialogRegistry.updateFullPath(prefix: prefix, fullPath: path);
     final segments = path.split('/').where((s) => s.isNotEmpty).toList();
     final resourcesIdx = segments.indexOf('resources');
     if (resourcesIdx < 0 || segments.length < resourcesIdx + 3) return;
@@ -261,6 +260,7 @@ class _ResourceAddScreenState
 
   void _resolveConflict({
     ResourceModel? savedResource,
+    String? latestVersion,
     LinkedNoteSave? linkedNoteSave,
   }) {
     setState(() => isSubmitting = false);
@@ -268,6 +268,7 @@ class _ResourceAddScreenState
       context,
       _detailsKey.currentState,
       savedEntity: savedResource,
+      latestVersion: latestVersion,
       linkedNoteSave: linkedNoteSave,
     );
   }
@@ -305,7 +306,10 @@ class _ResourceAddScreenState
             setState(() { isLoading = false; isSubmitting = false; });
           } else if (state is ResourceConflict &&
               state.origin == EventOrigin.subScreen) {
-            _resolveConflict(linkedNoteSave: state.linkedNoteSave);
+            _resolveConflict(
+              latestVersion: state.latest.version,
+              linkedNoteSave: state.linkedNoteSave,
+            );
           } else if (state is ResourceUpdated &&
               state.origin == EventOrigin.subScreen &&
               !(state.linkedNoteSave?.isSaved ?? true)) {
@@ -325,6 +329,7 @@ class _ResourceAddScreenState
               context.go(widget.shellPath);
             }
           } else if (state is ResourceCreated &&
+              state.origin == EventOrigin.subScreen &&
               !(state.linkedNoteSave?.isSaved ?? true)) {
             _useCreatedResource(state.resource);
             router.replace(
@@ -338,7 +343,8 @@ class _ResourceAddScreenState
               savedResource: state.resource,
               linkedNoteSave: state.linkedNoteSave,
             );
-          } else if (state is ResourceCreated) {
+          } else if (state is ResourceCreated &&
+              state.origin == EventOrigin.subScreen) {
             if (state.redirectToNotebook) {
               _log.info('Resource created with notebook redirect (resourceId=${state.resource.id})');
               _detailsKey.currentState?.resetSubmitting();
@@ -357,7 +363,8 @@ class _ResourceAddScreenState
           } else if (state is ResourceDeleted) {
             showSnackBar(context, 'Resource deleted.', useRootMessenger: true);
             closeWithoutPrompt();
-          } else if (state is ResourceUpdated) {
+          } else if (state is ResourceUpdated &&
+              state.origin == EventOrigin.subScreen) {
             if (state.linkedNoteSave case LinkedNoteSave(isRecreated: true)) {
               showSnackBar(
                 context,

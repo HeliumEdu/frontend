@@ -4,10 +4,13 @@ import 'package:heliumapp/presentation/ui/components/helium_elevated_button.dart
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 
+/// How consequential a confirmed action is, which sets its button's color.
+enum ConfirmActionStyle { destructive, warning, neutral }
+
 /// Asks the user to confirm an action. Resolves true only when they do.
 ///
-/// [isDestructive] colors the action button as an error; [icon], when given,
-/// leads the title in the same color.
+/// [style] colors the action button; [icon], when given, leads the title in
+/// the same color.
 Future<bool> showConfirmActionDialog({
   required BuildContext context,
   required String title,
@@ -15,12 +18,12 @@ Future<bool> showConfirmActionDialog({
   required String actionText,
   String cancelText = 'Cancel',
   IconData? icon,
-  bool isDestructive = true,
+  ConfirmActionStyle style = ConfirmActionStyle.destructive,
 }) async {
   final confirmed = await showDialog<bool>(
     context: context,
     builder: (dialogContext) => AlertDialog(
-      title: _buildTitle(dialogContext, title, icon),
+      title: _buildTitle(dialogContext, title, icon, style),
       content: SizedBox(
         width: Responsive.getDialogWidth(dialogContext),
         child: Text(message, style: AppStyles.standardBodyText(dialogContext)),
@@ -41,9 +44,7 @@ Future<bool> showConfirmActionDialog({
               Expanded(
                 child: HeliumElevatedButton(
                   buttonText: actionText,
-                  backgroundColor: isDestructive
-                      ? dialogContext.colorScheme.error
-                      : null,
+                  backgroundColor: _styleColor(dialogContext, style),
                   onPressed: () => Navigator.of(dialogContext).pop(true),
                 ),
               ),
@@ -56,13 +57,29 @@ Future<bool> showConfirmActionDialog({
   return confirmed ?? false;
 }
 
-Widget _buildTitle(BuildContext context, String title, IconData? icon) {
+Color? _styleColor(BuildContext context, ConfirmActionStyle style) =>
+    switch (style) {
+      ConfirmActionStyle.destructive => context.colorScheme.error,
+      ConfirmActionStyle.warning => context.semanticColors.warning,
+      ConfirmActionStyle.neutral => null,
+    };
+
+Widget _buildTitle(
+  BuildContext context,
+  String title,
+  IconData? icon,
+  ConfirmActionStyle style,
+) {
   final text = Text(title, style: AppStyles.pageTitle(context));
   if (icon == null) return text;
 
   return Row(
     children: [
-      Icon(icon, color: context.colorScheme.error, size: 24),
+      Icon(
+        icon,
+        color: _styleColor(context, style) ?? context.colorScheme.primary,
+        size: 24,
+      ),
       const SizedBox(width: 12),
       Flexible(child: text),
     ],

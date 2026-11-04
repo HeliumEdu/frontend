@@ -130,7 +130,6 @@ void main() {
       testWidgets('without Increase Contrast, tile text keeps the brand rule (white on mid-tone colors)',
           (tester) async {
         expect(ContrastService().increaseContrast, isFalse);
-        expect(FallbackConstants.defaultEventsColor.contrasting, Colors.white);
         expect(PlannerTypeColors.homework.contrasting, Colors.white);
       });
 

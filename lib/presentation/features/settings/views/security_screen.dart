@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:heliumapp/core/helium_exception.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/core/api_url.dart';
 import 'package:heliumapp/data/models/auth/api_token_model.dart';
@@ -30,42 +31,30 @@ import 'package:heliumapp/utils/snack_bar_helpers.dart';
 import 'package:heliumapp/utils/url_helpers.dart';
 
 class SecurityScreen extends StatefulWidget {
-  const SecurityScreen({super.key});
+  final UserModel user;
+
+  const SecurityScreen({super.key, required this.user});
 
   @override
   State<SecurityScreen> createState() => _SecurityScreenState();
 }
 
 class _SecurityScreenState extends State<SecurityScreen> {
-  UserModel? _user;
-
   ApiTokenModel? _revealedApiToken;
   bool _isApiTokenSubmitting = false;
 
   List<ConnectedAppModel> _connectedApps = [];
   bool _connectedAppsLoaded = false;
+  String? _error;
   final Set<int> _revokingConnectedAppIds = {};
 
-  bool get _hasApiToken => _user?.apiTokenCreatedAt != null;
+  bool get _hasApiToken => widget.user.apiTokenCreatedAt != null;
 
   @override
   void initState() {
     super.initState();
 
-    final authState = context.read<AuthBloc>().state;
-    if (authState is AuthProfileFetched) {
-      _user = authState.user;
-    } else {
-      context.read<AuthBloc>().add(FetchProfileEvent());
-    }
-
-    _fetchConnectedApps();
-  }
-
-  void _fetchConnectedApps() {
-    context.read<ConnectedAppBloc>().add(
-      FetchConnectedAppsEvent(origin: EventOrigin.screen, forceRefresh: true),
-    );
+    _fetchScreenData();
   }
 
   @override
@@ -95,26 +84,29 @@ class _SecurityScreenState extends State<SecurityScreen> {
             ),
           ),
           Expanded(
-            child: _user == null ? _buildProfileLoadState() : _buildCards(),
+            child: _buildCards(),
           ),
         ],
       ),
     );
   }
 
+  void _fetchScreenData() {
+    setState(() => _error = null);
+    context.read<ConnectedAppBloc>().add(
+      FetchConnectedAppsEvent(origin: EventOrigin.screen, forceRefresh: true),
+    );
+  }
+
   void _onAuthState(BuildContext context, AuthState state) {
-    if (state is AuthProfileFetched) {
-      setState(() => _user = state.user);
-    } else if (state is AuthApiTokenCreated) {
+    if (state is AuthApiTokenCreated) {
       setState(() {
-        _user = state.user;
         _revealedApiToken = state.apiToken;
         _isApiTokenSubmitting = false;
       });
       SnackBarHelper.show(context, 'API token generated.');
     } else if (state is AuthApiTokenRevoked) {
       setState(() {
-        _user = state.user;
         _revealedApiToken = null;
         _isApiTokenSubmitting = false;
       });
@@ -130,7 +122,13 @@ class _SecurityScreenState extends State<SecurityScreen> {
       setState(() {
         _connectedApps = state.connectedApps;
         _connectedAppsLoaded = true;
+        _error = null;
       });
+    } else if (state is ConnectedAppsError &&
+        state.origin == EventOrigin.screen) {
+      setState(
+        () => _error = state.message ?? HeliumException.unexpectedError,
+      );
     } else if (state is ConnectedAppRevoked) {
       setState(() {
         _connectedApps = _connectedApps
@@ -146,28 +144,13 @@ class _SecurityScreenState extends State<SecurityScreen> {
     }
   }
 
-  Widget _buildProfileLoadState() {
-    return BlocBuilder<AuthBloc, AuthState>(
-      builder: (context, state) {
-        if (state is AuthError) {
-          return ErrorCard(
-            message: state.message!,
-            source: 'security_screen',
-            onReload: () => context.read<AuthBloc>().add(FetchProfileEvent()),
-          );
-        }
-        return const LoadingIndicator();
-      },
-    );
-  }
-
   Widget _buildCards() {
     return HeliumFullScreenScrollView(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildPasswordCard(_user!),
-          _buildApiTokenCard(_user!),
+          _buildPasswordCard(widget.user),
+          _buildApiTokenCard(widget.user),
           _buildConnectedAppsCard(),
         ],
       ),
@@ -433,15 +416,15 @@ class _SecurityScreenState extends State<SecurityScreen> {
     BuildContext context,
     ConnectedAppState state,
   ) {
+    if (_error != null) {
+      return ErrorCard(
+        message: _error!,
+        source: 'security_screen',
+        expanded: false,
+        onReload: _fetchScreenData,
+      );
+    }
     if (!_connectedAppsLoaded) {
-      if (state is ConnectedAppsError && state.origin == EventOrigin.screen) {
-        return ErrorCard(
-          message: state.message!,
-          source: 'security_screen',
-          expanded: false,
-          onReload: _fetchConnectedApps,
-        );
-      }
       return const LoadingIndicator(expanded: false);
     }
 
@@ -525,7 +508,7 @@ class _SecurityScreenState extends State<SecurityScreen> {
     if (lastUsedAt == null) return 'Not used yet';
 
     final lastUsedOn = HeliumDateTime.formatDate(
-      HeliumDateTime.toLocal(lastUsedAt, _user!.settings.timeZone),
+      HeliumDateTime.toLocal(lastUsedAt, widget.user.settings.timeZone),
     );
     return 'Last used $lastUsedOn';
   }

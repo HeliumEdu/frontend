@@ -6,6 +6,7 @@ import 'package:heliumapp/data/models/planner/homework_model.dart';
 import 'package:heliumapp/data/models/planner/note_model.dart';
 import 'package:heliumapp/data/models/planner/planner_item_base_model.dart';
 import 'package:heliumapp/data/models/planner/reminder_model.dart';
+import 'package:heliumapp/utils/date_time_helpers.dart';
 import 'package:heliumapp/utils/planner_helper.dart';
 import 'package:timezone/standalone.dart' as tz;
 
@@ -35,10 +36,12 @@ class Sort {
         (_positionsPerPriority - 1 - safePosition);
   }
 
-  static Duration getTimedEventEndTimeAdjustment(int priority, int position) {
-    return Duration(
-      seconds: getTimedEventStartTimeAdjustmentSeconds(priority, position),
-    );
+  /// The start SfCalendar orders a timed item by: [time] pulled earlier by its
+  /// sort adjustment, never past the start of its own day.
+  static tz.TZDateTime timedSortStart(tz.TZDateTime time, int priority, int position) {
+    final shifted = time.subtract(Duration(seconds: getTimedEventStartTimeAdjustmentSeconds(priority, position)));
+    final dayStart = HeliumDateTime.midnightIn(time, time.location);
+    return shifted.isBefore(dayStart) ? dayStart : shifted;
   }
 
   /// Compares dates only (ignoring time components)

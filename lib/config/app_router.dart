@@ -36,6 +36,7 @@ import 'package:heliumapp/presentation/features/resources/views/resources_screen
 import 'package:heliumapp/presentation/features/settings/views/settings_screen.dart';
 import 'package:heliumapp/presentation/navigation/shell/navigation_shell.dart';
 import 'package:heliumapp/utils/app_globals.dart';
+import 'package:heliumapp/utils/platform_behavior.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:heliumapp/utils/url_helpers.dart';
 import 'package:logging/logging.dart';
@@ -328,7 +329,7 @@ List<RouteBase> _shellOverlayRoutes() => [
           final shellPath = notificationsIdx > 0
               ? matched.substring(0, notificationsIdx)
               : AppRoute.plannerScreen;
-          final useCompact = Responsive.useCompactLayout(context);
+          final useCompact = PlatformBehavior.showsDialogsFullScreen(context);
           return responsiveDialogPage(
             context,
             state,
@@ -379,7 +380,7 @@ Page<dynamic> _settingsDialogPage(
   final shellPath = settingsIdx > 0
       ? matched.substring(0, settingsIdx)
       : AppRoute.plannerScreen;
-  final useCompact = Responsive.useCompactLayout(context);
+  final useCompact = PlatformBehavior.showsDialogsFullScreen(context);
   return responsiveDialogPage(
     context,
     state,
@@ -456,7 +457,7 @@ Page<dynamic> _courseDialogPage(
   // CourseBloc state and this stays null.
   final courseGroupId =
       (extra is CourseDialogExtra) ? extra.courseGroupId : null;
-  final useCompact = Responsive.useCompactLayout(context);
+  final useCompact = PlatformBehavior.showsDialogsFullScreen(context);
   return responsiveDialogPage(
     context,
     state,
@@ -595,7 +596,7 @@ Page<dynamic> _resourceDialogPage(
   // state and this stays null.
   final resourceGroupId =
       (extra is ResourceDialogExtra) ? extra.resourceGroupId : null;
-  final useCompact = Responsive.useCompactLayout(context);
+  final useCompact = PlatformBehavior.showsDialogsFullScreen(context);
   return responsiveDialogPage(
     context,
     state,
@@ -776,7 +777,7 @@ Page<dynamic> _plannerItemDialogPage(
   final dialogExtra =
       extra is PlannerItemDialogExtra ? extra : null;
   final shellPath = _plannerItemShellPath(state.matchedLocation, entityPath);
-  final useCompact = Responsive.useCompactLayout(context);
+  final useCompact = PlatformBehavior.showsDialogsFullScreen(context);
 
   return responsiveDialogPage(
     context,
@@ -821,6 +822,14 @@ Future<String?> _authRedirect(BuildContext context, GoRouterState state) async {
   // navigation is replayed.
   final dirtyRevert = DirtyDialogRegistry.guard(state.uri.path);
   if (dirtyRevert != null) return dirtyRevert;
+
+  // An entity id that is neither a number nor `new` names nothing, so the URL
+  // falls back to its tab.
+  final idParam = state.pathParameters['id'];
+  final parsedId = DeepLinkParam.parseId(idParam);
+  if (idParam != null && !parsedId.isNew && parsedId.id == null) {
+    return '/${state.uri.pathSegments.first}';
+  }
 
   if (_shouldShowMobileWebPrompt(context, state)) {
     if (state.matchedLocation != AppRoute.mobileWebScreen) {

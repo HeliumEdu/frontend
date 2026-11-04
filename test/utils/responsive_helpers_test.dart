@@ -269,4 +269,42 @@ void main() {
       );
     });
   });
+
+  group('Responsive.isPortraitTablet', () {
+    Future<bool> givenScreen(WidgetTester tester, Size size) async {
+      late bool portraitTablet;
+      await tester.pumpWidget(
+        MediaQuery(
+          data: MediaQueryData(size: size),
+          child: Builder(
+            builder: (context) {
+              portraitTablet = Responsive.isPortraitTablet(context);
+              return const SizedBox();
+            },
+          ),
+        ),
+      );
+      return portraitTablet;
+    }
+
+    testWidgets('a tablet held upright is a portrait tablet', (tester) async {
+      // WHEN
+      final iPadMini = await givenScreen(tester, const Size(744, 1133));
+      final iPadPro = await givenScreen(tester, const Size(1024, 1366));
+
+      // THEN
+      expect(iPadMini, isTrue);
+      expect(iPadPro, isTrue);
+    });
+
+    testWidgets('a phone or a landscape screen is not', (tester) async {
+      // WHEN
+      final phone = await givenScreen(tester, const Size(390, 844));
+      final landscape = await givenScreen(tester, const Size(1180, 820));
+
+      // THEN
+      expect(phone, isFalse);
+      expect(landscape, isFalse);
+    });
+  });
 }

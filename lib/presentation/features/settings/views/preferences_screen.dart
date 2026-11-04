@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:heliumapp/config/pref_service.dart';
 import 'package:heliumapp/data/models/auth/request/update_settings_request_model.dart';
-import 'package:heliumapp/data/models/auth/user_settings_model.dart';
+import 'package:heliumapp/data/models/auth/user_model.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_bloc.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_event.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_state.dart';
@@ -13,7 +13,6 @@ import 'package:heliumapp/presentation/features/courses/bloc/course_state.dart';
 import 'package:heliumapp/presentation/ui/components/drop_down.dart';
 import 'package:heliumapp/presentation/ui/components/helium_checkbox_list_tile.dart';
 import 'package:heliumapp/presentation/ui/feedback/warning_container.dart';
-import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
 import 'package:heliumapp/presentation/ui/layout/helium_full_screen_scroll_view.dart';
 import 'package:heliumapp/presentation/ui/components/searchable_dropdown.dart';
 import 'package:heliumapp/presentation/ui/components/spinner_field.dart';
@@ -33,7 +32,7 @@ import 'package:logging/logging.dart';
 final _log = Logger('presentation.views');
 
 class PreferencesScreen extends StatefulWidget {
-  final UserSettingsModel? userSettings;
+  final UserModel user;
   final VoidCallback? onActionStarted;
   final VoidCallback? onCompleted;
   final VoidCallback? onFailed;
@@ -46,7 +45,7 @@ class PreferencesScreen extends StatefulWidget {
 
   const PreferencesScreen({
     super.key,
-    this.userSettings,
+    required this.user,
     this.onActionStarted,
     this.onCompleted,
     this.onFailed,
@@ -64,34 +63,27 @@ class PreferencesScreenState extends State<PreferencesScreen> {
   final TextEditingController _onTrackToleranceController =
       TextEditingController();
 
-  bool _isLoading = true;
   bool _isSubmitting = false;
   bool _isChanged = false;
   bool _changeTrackingActive = false;
 
-  Color _selectedEventColor = FallbackConstants.defaultEventsColor;
-  Color _selectedResourceColor = FallbackConstants.defaultResourceColor;
-  Color _selectedGradeColor = FallbackConstants.defaultGradeColor;
-  String _selectedDefaultView =
-      CalendarConstants.defaultViews[FallbackConstants.defaultViewIndex];
-  String _selectedWeekStartsOn =
-      CalendarConstants.dayNames[FallbackConstants.defaultWeekStartsOn];
-  String _selectedTimeZone = FallbackConstants.defaultTimeZone;
-  int _selectedDateFormat = FallbackConstants.defaultDateFormat;
-  int _selectedTimeFormat = FallbackConstants.defaultTimeFormat;
-  int _selectedNumberFormat = FallbackConstants.defaultNumberFormat;
-  String _selectedReminderOffsetType = ReminderConstants
-      .offsetTypes[FallbackConstants.defaultReminderOffsetType];
-  String _selectedReminderType = ReminderConstants.itemForType(
-    FallbackConstants.defaultReminderType,
-  ).value!;
-  bool _isShowPlannerTooltips = FallbackConstants.defaultShowPlannerTooltips;
-  bool _isDragAndDropOnMobile = FallbackConstants.defaultDragAndDropOnMobile;
-  bool _isSelectedColorByCategory = FallbackConstants.defaultColorByCategory;
-  bool _isRememberFilterSelection =
-      FallbackConstants.defaultRememberFilterState;
-  bool _isCollapseBusyDays = FallbackConstants.defaultCollapseBusyDays;
-  bool _isShowWeekNumbers = FallbackConstants.defaultShowWeekNumbers;
+  late Color _selectedEventColor;
+  late Color _selectedResourceColor;
+  late Color _selectedGradeColor;
+  late String _selectedDefaultView;
+  late String _selectedWeekStartsOn;
+  late String _selectedTimeZone;
+  late int _selectedDateFormat;
+  late int _selectedTimeFormat;
+  late int _selectedNumberFormat;
+  late String _selectedReminderOffsetType;
+  late String _selectedReminderType;
+  late bool _isShowPlannerTooltips;
+  late bool _isDragAndDropOnMobile;
+  late bool _isSelectedColorByCategory;
+  late bool _isRememberFilterSelection;
+  late bool _isCollapseBusyDays;
+  late bool _isShowWeekNumbers;
 
   String? _savedTimeZone;
   bool? _hasCourseSchedules;
@@ -107,7 +99,7 @@ class PreferencesScreenState extends State<PreferencesScreen> {
   void initState() {
     super.initState();
 
-    context.read<AuthBloc>().add(FetchProfileEvent());
+    _populateInitialStateData(widget.user);
     context.read<CourseBloc>().add(
       FetchHasCourseSchedulesEvent(origin: EventOrigin.subScreen),
     );
@@ -141,9 +133,6 @@ class PreferencesScreenState extends State<PreferencesScreen> {
               SnackBarHelper.show(context, state.message!, type: SnackType.error);
               setState(() => _isSubmitting = false);
               widget.onFailed?.call();
-            } else if (state is AuthProfileFetched) {
-              setState(() => _isLoading = false);
-              _populateInitialStateData(state);
             } else if (state is AuthProfileUpdated) {
               if (!_isRememberFilterSelection) {
                 PrefService().setString('saved_filter_state', '');
@@ -157,9 +146,7 @@ class PreferencesScreenState extends State<PreferencesScreen> {
           },
         ),
       ],
-      child: _isLoading
-          ? const Center(child: LoadingIndicator(expanded: false))
-          : HeliumFullScreenScrollView(
+      child: HeliumFullScreenScrollView(
         keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -456,7 +443,7 @@ class PreferencesScreenState extends State<PreferencesScreen> {
   }
 
   void onSubmit() {
-    if (_isLoading || _isSubmitting) return;
+    if (_isSubmitting) return;
     setState(() => _isSubmitting = true);
     widget.onActionStarted?.call();
 
@@ -642,47 +629,46 @@ class PreferencesScreenState extends State<PreferencesScreen> {
     );
   }
 
-  void _populateInitialStateData(AuthProfileFetched state) {
-    setState(() {
-      _selectedDefaultView =
-          CalendarConstants.defaultViews[state.user.settings.defaultView];
-      _selectedWeekStartsOn =
-          CalendarConstants.dayNames[state.user.settings.weekStartsOn];
-      _selectedTimeZone = state.user.settings.timeZone.toString();
-      _savedTimeZone = _selectedTimeZone;
-      _selectedDateFormat = state.user.settings.dateFormat;
-      _selectedTimeFormat = state.user.settings.timeFormat;
-      _selectedNumberFormat = state.user.settings.numberFormat;
-      _selectedReminderOffsetType = ReminderConstants
-          .offsetTypes[state.user.settings.defaultReminderOffsetType];
-      _selectedReminderType = ReminderConstants.itemForType(
-        state.user.settings.defaultReminderType,
-      ).value!;
-      _selectedEventColor = state.user.settings.eventsColor;
-      _selectedGradeColor = state.user.settings.gradeColor;
-      _selectedResourceColor = state.user.settings.resourceColor;
-      if (_reminderOffsetController.text !=
-          state.user.settings.defaultReminderOffset.toString()) {
-        _reminderOffsetController.text =
-            state.user.settings.defaultReminderOffset.toString();
-      }
-      _isShowPlannerTooltips = state.user.settings.showPlannerTooltips;
-      _isDragAndDropOnMobile = state.user.settings.dragAndDropOnMobile;
-      _isSelectedColorByCategory = state.user.settings.colorByCategory;
-      _isRememberFilterSelection = state.user.settings.rememberFilterState;
-      _isCollapseBusyDays = state.user.settings.collapseBusyDays;
-      _isShowWeekNumbers = state.user.settings.showWeekNumbers;
-      if (_onTrackToleranceController.text !=
-          state.user.settings.onTrackTolerance.toString()) {
-        _onTrackToleranceController.text =
-            state.user.settings.onTrackTolerance.toString();
-      }
-      if (_atRiskThresholdController.text !=
-          state.user.settings.atRiskThreshold.toString()) {
-        _atRiskThresholdController.text =
-            state.user.settings.atRiskThreshold.toString();
-      }
-    });
+  void _populateInitialStateData(UserModel user) {
+    final settings = user.settings;
+    _selectedDefaultView =
+        CalendarConstants.defaultViews[settings.defaultView];
+    _selectedWeekStartsOn =
+        CalendarConstants.dayNames[settings.weekStartsOn];
+    _selectedTimeZone = settings.timeZone.toString();
+    _savedTimeZone = _selectedTimeZone;
+    _selectedDateFormat = settings.dateFormat;
+    _selectedTimeFormat = settings.timeFormat;
+    _selectedNumberFormat = settings.numberFormat;
+    _selectedReminderOffsetType = ReminderConstants
+        .offsetTypes[settings.defaultReminderOffsetType];
+    _selectedReminderType = ReminderConstants.itemForType(
+      settings.defaultReminderType,
+    ).value!;
+    _selectedEventColor = settings.eventsColor;
+    _selectedGradeColor = settings.gradeColor;
+    _selectedResourceColor = settings.resourceColor;
+    if (_reminderOffsetController.text !=
+        settings.defaultReminderOffset.toString()) {
+      _reminderOffsetController.text =
+          settings.defaultReminderOffset.toString();
+    }
+    _isShowPlannerTooltips = settings.showPlannerTooltips;
+    _isDragAndDropOnMobile = settings.dragAndDropOnMobile;
+    _isSelectedColorByCategory = settings.colorByCategory;
+    _isRememberFilterSelection = settings.rememberFilterState;
+    _isCollapseBusyDays = settings.collapseBusyDays;
+    _isShowWeekNumbers = settings.showWeekNumbers;
+    if (_onTrackToleranceController.text !=
+        settings.onTrackTolerance.toString()) {
+      _onTrackToleranceController.text =
+          settings.onTrackTolerance.toString();
+    }
+    if (_atRiskThresholdController.text !=
+        settings.atRiskThreshold.toString()) {
+      _atRiskThresholdController.text =
+          settings.atRiskThreshold.toString();
+    }
 
     if (!_changeTrackingActive) {
       _changeTrackingActive = true;

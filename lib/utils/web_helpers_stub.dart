@@ -6,3 +6,5 @@ bool getSystemReduceMotion() => false;
 bool getSystemIncreaseContrast() => false;
 
 void reloadPage() {}
+
+void warnBeforeUnloadWhile(bool Function() hasUnsavedChanges) {}

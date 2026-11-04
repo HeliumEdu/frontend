@@ -66,7 +66,7 @@ class PlannerItemDetails extends StatefulWidget {
   final bool isFromMonthView;
   final bool isEdit;
   final bool isNew;
-  final UserSettingsModel? userSettings;
+  final UserSettingsModel userSettings;
   final ValueChanged<bool>? onIsEventChanged;
   final VoidCallback? onActionStarted;
   final VoidCallback? onSubmitRequested;
@@ -81,7 +81,7 @@ class PlannerItemDetails extends StatefulWidget {
     this.isFromMonthView = false,
     required this.isEdit,
     required this.isNew,
-    this.userSettings,
+    required this.userSettings,
     this.onIsEventChanged,
     this.onActionStarted,
     this.onSubmitRequested,
@@ -196,7 +196,7 @@ class PlannerItemDetailsState extends State<PlannerItemDetails>
       listener: (context, state) {
         if (state is PlannerItemScreenDataFetched &&
             state.matches(homeworkId: _homeworkId, eventId: _eventId)) {
-          _populateInitialPlannerItemStateData(state);
+          _populateInitialStateData(state);
         } else if (state is PlannerItemScreenDataFailed &&
             isLoading &&
             state.matches(homeworkId: _homeworkId, eventId: _eventId)) {
@@ -234,7 +234,7 @@ class PlannerItemDetailsState extends State<PlannerItemDetails>
   }
 
   Widget _buildContent(BuildContext context) {
-    if (isLoading || widget.userSettings == null) {
+    if (isLoading) {
       return const Center(child: LoadingIndicator(expanded: false));
     }
 
@@ -511,7 +511,7 @@ class PlannerItemDetailsState extends State<PlannerItemDetails>
           buttonLabel: 'Select resources',
           labelBuilder: (item, onDelete) => ResourceTitleLabel(
             title: item.title,
-            userSettings: widget.userSettings!,
+            userSettings: widget.userSettings,
             onDelete: onDelete,
           ),
         ),
@@ -623,7 +623,7 @@ class PlannerItemDetailsState extends State<PlannerItemDetails>
                     grade: GradeHelper.gradeForDisplay(
                       formController.gradeController.text.trim(),
                     ),
-                    userSettings: widget.userSettings!,
+                    userSettings: widget.userSettings,
                     compact: true,
                   ),
                 ),
@@ -681,7 +681,7 @@ class PlannerItemDetailsState extends State<PlannerItemDetails>
       final start = HeliumDateTime.formatDateAndTimeForApi(
         formController.startDate,
         formController.isAllDay ? null : formController.startTime,
-        widget.userSettings!.timeZone,
+        widget.userSettings.timeZone,
       );
 
       String end;
@@ -692,7 +692,7 @@ class PlannerItemDetailsState extends State<PlannerItemDetails>
         end = HeliumDateTime.formatDateAndTimeForApi(
           endDateForApi,
           formController.isAllDay ? null : formController.endTime,
-          widget.userSettings!.timeZone,
+          widget.userSettings.timeZone,
         );
       } else {
         if (formController.isAllDay) {
@@ -700,7 +700,7 @@ class PlannerItemDetailsState extends State<PlannerItemDetails>
           end = HeliumDateTime.formatDateAndTimeForApi(
             endDate,
             null,
-            widget.userSettings!.timeZone,
+            widget.userSettings.timeZone,
           );
         } else {
           end = start;
@@ -807,7 +807,7 @@ class PlannerItemDetailsState extends State<PlannerItemDetails>
     }
   }
 
-  Future<void> _populateInitialPlannerItemStateData(
+  Future<void> _populateInitialStateData(
     PlannerItemScreenDataFetched state,
   ) async {
     setState(() {
@@ -888,7 +888,7 @@ class PlannerItemDetailsState extends State<PlannerItemDetails>
 
         final startDateTime = HeliumDateTime.toLocal(
           plannerItem.start,
-          widget.userSettings!.timeZone,
+          widget.userSettings.timeZone,
         );
         formController.startDate = startDateTime;
         if (!formController.isAllDay) {
@@ -897,7 +897,7 @@ class PlannerItemDetailsState extends State<PlannerItemDetails>
 
         final endDateTime = HeliumDateTime.toLocal(
           plannerItem.end,
-          widget.userSettings!.timeZone,
+          widget.userSettings.timeZone,
         );
         if (formController.isAllDay) {
           formController.endDate = HeliumDateTime.addDays(endDateTime, -1);
@@ -934,10 +934,13 @@ class PlannerItemDetailsState extends State<PlannerItemDetails>
       // Update _isEvent based on entity type
       _isEvent = widget.eventId != null;
     } else {
-      if (widget.initialDate != null) {
-        formController.startDate = widget.initialDate!;
-        formController.endDate = widget.initialDate!;
-      }
+      final initialDate = widget.initialDate ??
+          HeliumDateTime.midnightIn(
+            DateTime.now(),
+            widget.userSettings.timeZone,
+          );
+      formController.startDate = initialDate;
+      formController.endDate = initialDate;
 
       if (!_isEvent && _courses.isNotEmpty) {
         _selectCourse(_pickInitialCourseId(formController.startDate));
@@ -946,7 +949,7 @@ class PlannerItemDetailsState extends State<PlannerItemDetails>
       if (widget.initialDate != null && !widget.isFromMonthView) {
         final tzDateTime = tz.TZDateTime.from(
           widget.initialDate!,
-          widget.userSettings!.timeZone,
+          widget.userSettings.timeZone,
         );
         setState(() {
           formController.startTime = TimeOfDay.fromDateTime(tzDateTime);

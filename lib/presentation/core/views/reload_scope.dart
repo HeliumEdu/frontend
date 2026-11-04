@@ -1,9 +1,7 @@
 import 'package:flutter/widgets.dart';
 
-/// Rebuilds its subtree from scratch on demand.
-///
-/// Discarding the subtree re-runs the screen's own [State.initState], which
-/// refetches and clears local state without re-listing that work per screen.
+/// Rebuilds its subtree from scratch on demand, remounting the screen so it
+/// refetches and clears its local state.
 class ReloadScope extends StatefulWidget {
   final Widget child;
 
