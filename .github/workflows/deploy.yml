@@ -46,6 +46,10 @@ on:
         description: 'Automation only: the build.yml run whose artifacts to deploy (bypasses the release tag lookup). Leave blank for a manual deploy.'
         required: false
         type: string
+      ref:
+        description: 'Automation only: the released commit (bypasses the release tag lookup). Leave blank for a manual deploy.'
+        required: false
+        type: string
   workflow_call:
     inputs:
       version_type:
@@ -86,6 +90,10 @@ on:
         description: "The build.yml run whose artifacts to deploy"
         required: false
         type: string
+      ref:
+        description: "The released commit"
+        required: false
+        type: string
 
 permissions:
   contents: read
@@ -99,7 +107,8 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       version: ${{ steps.resolve.outputs.version }}
-      run_id: ${{ steps.resolve.outputs.run_id }}
+      run_id: ${{ steps.resolve.outputs.build-run-id }}
+      ref: ${{ steps.resolve.outputs.ref }}
 
     steps:
       - name: Generate GitHub App token
@@ -111,34 +120,15 @@ jobs:
           owner: HeliumEdu
           skip-token-revoke: true
 
-      - name: Determine version to deploy
-        id: version
-        if: ${{ inputs.artifact_run_id == '' }}
-        uses: HeliumEdu/.github/actions/determine-version@main
-        with:
-          token: ${{ steps.app-token.outputs.token }}
-          repo: frontend
-          specific-version: ${{ inputs.version_type != 'latest' && inputs.specific_version || '' }}
-
       - name: Find the release's build run
         id: resolve
-        env:
-          GH_TOKEN: ${{ steps.app-token.outputs.token }}
-          VERSION: ${{ inputs.artifact_run_id != '' && inputs.specific_version || steps.version.outputs.version }}
-          RUN_ID: ${{ inputs.artifact_run_id }}
-        run: |
-          set -euo pipefail
-          if [ -z "$RUN_ID" ]; then
-            TAG_SHA=$(gh api "repos/HeliumEdu/frontend/git/ref/tags/${VERSION}" --jq .object.sha)
-            RUN_ID=$(gh api "repos/HeliumEdu/frontend/git/tags/${TAG_SHA}" --jq .message | sed -n 's/^Build-Run: \([0-9]*\)$/\1/p')
-            if [ -z "$RUN_ID" ]; then
-              echo "::error::Tag ${VERSION} names no Build-Run, so its build artifacts can't be found."
-              exit 1
-            fi
-          fi
-          echo "Deploying ${VERSION} from build.yml run ${RUN_ID}"
-          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
-          echo "run_id=${RUN_ID}" >> "$GITHUB_OUTPUT"
+        uses: alexdlaird/shipshape/resolve-release@v1
+        with:
+          token: ${{ steps.app-token.outputs.token }}
+          version: ${{ inputs.version_type != 'latest' && inputs.specific_version || '' }}
+          ref: ${{ inputs.ref }}
+          build-run-id: ${{ inputs.artifact_run_id }}
+          require-build-run: true
 
   deploy-web:
     name: Deploy Web
@@ -302,8 +292,7 @@ jobs:
     with:
       app_name: helium-frontend
       version: ${{ needs.resolve.outputs.version }}
-      # The Fastfiles and store metadata come from the branch Deploy runs on (develop for a release), not the tag.
-      ref: ${{ github.sha }}
+      ref: ${{ needs.resolve.outputs.ref }}
       build_run_id: ${{ needs.resolve.outputs.run_id }}
       push_store_assets: ${{ inputs.push_store_assets }}
       replace_pending_review: ${{ inputs.replace_pending_review }}

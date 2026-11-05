@@ -16,5 +16,4 @@ jobs:
       contents: read
       actions: read
     with:
-      # Swift and Kotlin need a build, which the shared analysis doesn't run; Dart isn't a CodeQL language.
       languages: actions,javascript-typescript,python,ruby

@@ -1,4 +1,3 @@
-# Fastfile for iOS deployment
 
 default_platform(:ios)
 

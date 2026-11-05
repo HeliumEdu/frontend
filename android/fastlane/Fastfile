@@ -1,4 +1,3 @@
-# Fastfile for Android deployment
 
 default_platform(:android)
 
