@@ -30,6 +30,11 @@ on:
         required: false
         type: boolean
         default: false
+      replace_pending_review:
+        description: 'When submitting, replace a submission still waiting for review (it loses its place in the queue; one Apple is already reviewing is never touched)'
+        required: false
+        type: boolean
+        default: true
       consolidate_history:
         description: 'Reset develop to main after release (force-push).'
         required: false
@@ -62,6 +67,11 @@ on:
         required: false
         type: boolean
         default: false
+      replace_pending_review:
+        description: "When submitting, replace a submission still waiting for review"
+        required: false
+        type: boolean
+        default: true
       consolidate_history:
         description: "Reset develop to main after release (force-push)"
         required: false
@@ -162,6 +172,7 @@ jobs:
             platforms=${{ inputs.platforms }}
             auto_submit_for_review=${{ inputs.auto_submit_for_review }}
             push_store_assets=${{ inputs.push_store_assets }}
+            replace_pending_review=${{ inputs.replace_pending_review }}
             artifact_run_id=${{ needs.prereq.outputs.build_run_id }}
 
       - name: Deployment trigger summary

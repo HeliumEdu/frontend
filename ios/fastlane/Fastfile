@@ -32,6 +32,7 @@ platform :ios do
     build_number = options[:build_number]
     submit_for_review = options[:submit_for_review].to_s == "true"
     push_store_assets = options[:push_store_assets].to_s == "true"
+    replace_pending_review = options[:replace_pending_review].to_s == "true"
 
     UI.user_error!("version is required") unless version
     UI.user_error!("build_number is required") unless build_number
@@ -42,6 +43,7 @@ platform :ios do
       build_number: build_number,
       submit_for_review: submit_for_review,
       push_store_assets: push_store_assets,
+      replace_waiting_for_review: replace_pending_review,
       automatic_release: true
     )
   end

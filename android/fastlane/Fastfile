@@ -29,7 +29,7 @@ platform :android do
       metadata_dir: File.expand_path("metadata/android"),
       submit_for_review: options[:submit_for_review].to_s == "true",
       push_store_assets: options[:push_store_assets].to_s == "true",
-      replace_in_review: true
+      replace_in_review: options[:replace_pending_review].to_s == "true"
     )
   end
 end
