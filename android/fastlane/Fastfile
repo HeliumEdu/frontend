@@ -79,7 +79,7 @@ platform :android do
   end
 
   desc "Promote the Internal-track release candidate to Production, pushing metadata text every time and store-listing assets only when push_store_assets:true. Re-stages the candidate on Internal first if a CI preview has since replaced it, so the lane is idempotent for a fresh release, a re-deploy, or a rollback. Leaves the release as a draft for the operator to send for review; set submit_for_review:true to send it from CI. Managed Publishing gates the post-review publish either way."
-  lane :deploy_production do |options|
+  lane :submit_production do |options|
     version = options[:version]
     version_code = options[:version_code]
     # Fastlane CLI args arrive as strings; coerce to a real boolean.
@@ -105,6 +105,7 @@ platform :android do
     FileUtils.mkdir_p(changelog_dir)
     FileUtils.cp(template, changelog)
 
+    refuse_while_production_release_in_flight(version) if submit_for_review
     ensure_staged_on_internal(version: version, version_code: version_code)
 
     # supply promotes only on a run that uploads no binary of its own, so both
@@ -133,6 +134,31 @@ platform :android do
       UI.success("Submitted #{version} (#{version_code}) to Production for review (#{assets_note}). Google's review is async; once approved Play will hold the release for a manual 'Publish' click in Play Console (Managed Publishing).")
     else
       UI.success("Staged #{version} (#{version_code}) on Production as a draft (#{assets_note}). Click 'Send for review' in Play Console when ready.")
+    end
+  end
+
+  def refuse_while_production_release_in_flight(version)
+    require 'supply'
+    Dir.chdir('..') do
+      Supply.config = FastlaneCore::Configuration.create(Supply::Options.available_options, { track: 'production' })
+      client = Supply::Client.make_from_config
+      releases = client.client.list_application_track_releases(
+        "applications/#{Supply.config[:package_name]}/tracks/production"
+      ).releases || []
+      pending = releases.select do |release|
+        %w[
+          RELEASE_LIFECYCLE_STATE_IN_REVIEW
+          RELEASE_LIFECYCLE_STATE_APPROVED_NOT_PUBLISHED
+        ].include?(release.release_lifecycle_state)
+      end
+      next if pending.empty?
+
+      described = pending.map { |release| "#{release.release_name} (`#{release.release_lifecycle_state}`)" }.join(", ")
+      UI.user_error!(
+        "Production release #{described} is still in review or awaiting publish, so #{version} can't be submitted. " \
+        "Committing a Play edit now would cancel that review and resubmit everything. Let it finish (and publish it), " \
+        "then re-run."
+      )
     end
   end
 end

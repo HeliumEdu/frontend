@@ -38,7 +38,7 @@ platform :ios do
     )
 
     begin
-      # Wait for processing so deploy_appstore can attach the build immediately
+      # Wait for processing so submit_appstore can attach the build immediately
       # in the same pipeline run.
       upload_to_testflight(
         api_key: api_key,
@@ -68,7 +68,7 @@ platform :ios do
   end
 
   desc "Stage an App Store version with the given TestFlight build (CI uploads it), push metadata text every time and screenshots only when push_store_assets:true. Optionally auto-submit for App Review (an approved version releases automatically). The marketing app icon is part of the IPA and is not affected by this flag."
-  lane :deploy_appstore do |options|
+  lane :submit_appstore do |options|
     version = options[:version]
     build_number = options[:build_number]
     # Fastlane CLI args arrive as strings; coerce to a real boolean.
@@ -115,6 +115,7 @@ platform :ios do
         "then re-run."
       )
     end
+    refuse_while_another_version_in_flight(spaceship_app, version)
 
     submit_separately = submit_for_review && push_store_assets
 
@@ -197,6 +198,32 @@ platform :ios do
       )
       sleep(delay_seconds)
     end
+  end
+
+  def refuse_while_another_version_in_flight(spaceship_app, version)
+    in_flight = spaceship_app.get_app_store_versions(
+      filter: {
+        appVersionState: %w[
+          READY_FOR_REVIEW
+          WAITING_FOR_REVIEW
+          IN_REVIEW
+          WAITING_FOR_EXPORT_COMPLIANCE
+          ACCEPTED
+          PENDING_APPLE_RELEASE
+          PENDING_DEVELOPER_RELEASE
+          PROCESSING_FOR_DISTRIBUTION
+        ].join(","),
+        platform: "IOS"
+      }
+    )
+    return if in_flight.empty?
+
+    pending = in_flight.map { |app_store_version| "#{app_store_version.version_string} (`#{app_store_version.app_version_state}`)" }.join(", ")
+    UI.user_error!(
+      "App Store version #{pending} is still with App Review or awaiting release, so #{version} can't be staged. " \
+      "App Store Connect holds one version in flight, and staging now would rename that version to #{version} and " \
+      "change its listing. Let it finish (or cancel it in App Store Connect), then re-run."
+    )
   end
 
   # App Store Connect refused the binary outright (an older or closed version, a
