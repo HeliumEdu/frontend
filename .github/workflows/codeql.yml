@@ -1,0 +1,20 @@
+name: "CodeQL"
+
+run-name: CodeQL ${{ github.ref_name }}
+
+on:
+  push:
+    branches: [ develop ]
+  pull_request:
+    branches: [ develop ]
+
+jobs:
+  codeql:
+    uses: alexdlaird/.github/.github/workflows/codeql.yml@main
+    permissions:
+      security-events: write
+      contents: read
+      actions: read
+    with:
+      # Swift and Kotlin need a build, which the shared analysis doesn't run; Dart isn't a CodeQL language.
+      languages: actions,javascript-typescript,python,ruby

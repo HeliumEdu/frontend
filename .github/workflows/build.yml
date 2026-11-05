@@ -102,7 +102,8 @@ jobs:
 
   build-android:
     name: Build Android
-    if: ${{ !(github.event_name == 'workflow_dispatch' && inputs.deploy_web == 'dev') }}
+    # The PR check that the app compiles; on a push the signed candidate build does that.
+    if: ${{ github.event_name != 'push' && !(github.event_name == 'workflow_dispatch' && inputs.deploy_web == 'dev') }}
 
     runs-on: ubuntu-latest
 
@@ -141,7 +142,8 @@ jobs:
 
   build-ios:
     name: Build iOS
-    if: ${{ !(github.event_name == 'workflow_dispatch' && inputs.deploy_web == 'dev') }}
+    # The PR check that the app compiles; on a push the signed candidate build does that.
+    if: ${{ github.event_name != 'push' && !(github.event_name == 'workflow_dispatch' && inputs.deploy_web == 'dev') }}
 
     runs-on: macos-latest
 
@@ -447,8 +449,12 @@ jobs:
   # code is already released; a release only submits builds from a develop push run.
   deploy-ios-ci:
     name: Deploy iOS (CI preview)
+    # Uploads only a build whose tests passed (integration tests may be skipped on purpose, e.g. a manual run).
+    needs: [test, integration-test]
     if: >-
-      ${{ github.ref != 'refs/heads/main' &&
+      ${{ !cancelled() && needs.test.result == 'success' &&
+      contains(fromJSON('["success", "skipped"]'), needs['integration-test'].result) &&
+      github.ref != 'refs/heads/main' &&
       (github.event_name == 'push' ||
       (github.event_name == 'workflow_dispatch' && contains(fromJSON('["ios", "all"]'), inputs.deploy_candidates))) }}
     uses: alexdlaird/.github/.github/workflows/flutter-ios-candidate.yml@main
@@ -469,8 +475,12 @@ jobs:
 
   deploy-android-ci:
     name: Deploy Android (CI preview)
+    # Uploads only a build whose tests passed (integration tests may be skipped on purpose, e.g. a manual run).
+    needs: [test, integration-test]
     if: >-
-      ${{ github.ref != 'refs/heads/main' &&
+      ${{ !cancelled() && needs.test.result == 'success' &&
+      contains(fromJSON('["success", "skipped"]'), needs['integration-test'].result) &&
+      github.ref != 'refs/heads/main' &&
       (github.event_name == 'push' ||
       (github.event_name == 'workflow_dispatch' && contains(fromJSON('["android", "all"]'), inputs.deploy_candidates))) }}
     uses: alexdlaird/.github/.github/workflows/flutter-android-candidate.yml@main
