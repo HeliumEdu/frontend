@@ -94,6 +94,14 @@ class _WhatsNewDialogWidgetState extends State<_WhatsNewDialogWidget> {
                     // newest feature first, oldest last.
                     _buildFeatureItem(
                       context,
+                      icon: Icons.attach_file,
+                      title: 'Class Notes & Resource Attachments',
+                      description:
+                          'Add a note to any class and attachments to any resource, and see class and resource attachments on each assignment',
+                    ),
+                    const SizedBox(height: 12),
+                    _buildFeatureItem(
+                      context,
                       icon: Icons.tune,
                       title: 'Your Planner, Your Way',
                       description:
@@ -114,14 +122,6 @@ class _WhatsNewDialogWidgetState extends State<_WhatsNewDialogWidget> {
                       title: 'Grade Projection',
                       description:
                           '"What Could I Get?" — project your final grade based on how you do on remaining assignments',
-                    ),
-                    const SizedBox(height: 12),
-                    _buildFeatureItem(
-                      context,
-                      icon: Icons.print_outlined,
-                      title: 'Print & Export',
-                      description:
-                          'Print anything across the app, including your formatted notes, or export "Todos" to CSV',
                     ),
                     if (showDonationLink) ...[
                       const SizedBox(height: 8),

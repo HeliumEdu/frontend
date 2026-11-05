@@ -63,7 +63,7 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
       notes.isEmpty ||
       (currentNoteId != null && notes.every((n) => n.id == currentNoteId));
 
-  static bool _isLinkableResource(List<int> notes, int? currentNoteId) =>
+  static bool _isLinkableByIds(List<int> notes, int? currentNoteId) =>
       notes.isEmpty ||
       (currentNoteId != null && notes.every((id) => id == currentNoteId));
 
@@ -118,6 +118,10 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
           shownOnCalendar: shownOnCalendar,
           forceRefresh: event.forceRefresh,
         ),
+        categoryRepository.getCategories(
+          shownOnCalendar: shownOnCalendar,
+          forceRefresh: event.forceRefresh,
+        ),
       ]);
       emit(
         NotebookScreenDataFetched(
@@ -126,6 +130,7 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
           courseGroups: results[1] as List<CourseGroupModel>,
           courses: results[2] as List<CourseModel>,
           resources: results[3] as List<ResourceModel>,
+          categories: results[4] as List<CategoryModel>,
         ),
       );
     } on HeliumException catch (e) {
@@ -206,6 +211,21 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
         }
       }
 
+      if (event.linkCourseId != null) {
+        final courses = await courseRepository.getCourses(
+          id: event.linkCourseId!,
+        );
+        if (courses.isNotEmpty) {
+          emit(_screenData(
+            event,
+            linkedEntityType: 'course',
+            linkedEntityTitle: courses.first.title,
+            linkedEntityColor: courses.first.color,
+          ));
+          return;
+        }
+      }
+
       emit(_screenData(event));
     } on HeliumException catch (e) {
       emit(_screenDataFailed(event, e.message));
@@ -232,6 +252,7 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
     linkHomeworkId: event.linkHomeworkId,
     linkEventId: event.linkEventId,
     linkResourceId: event.linkResourceId,
+    linkCourseId: event.linkCourseId,
   );
 
   NoteScreenDataFailed _screenDataFailed(
@@ -244,6 +265,7 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
     linkHomeworkId: event.linkHomeworkId,
     linkEventId: event.linkEventId,
     linkResourceId: event.linkResourceId,
+    linkCourseId: event.linkCourseId,
   );
 
 
@@ -254,20 +276,16 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
       ) async {
     try {
       final results = await Future.wait([
-        homeworkRepository.getHomeworks(),
+        homeworkRepository.getHomeworks(shownOnCalendar: true),
         eventRepository.getEvents(),
-        resourceRepository.getResources(),
+        resourceRepository.getResources(shownOnCalendar: true),
         resourceRepository.getResourceGroups(),
-        courseRepository.getCourses(),
-        categoryRepository.getCategories(),
+        courseRepository.getCourses(shownOnCalendar: true),
+        categoryRepository.getCategories(shownOnCalendar: true),
+        courseRepository.getCourseGroups(),
       ]);
 
-      final resourceGroups = results[3] as List<ResourceGroupModel>;
-      final visibleGroupIds = resourceGroups
-          .where((g) => g.shownOnCalendar != false)
-          .map((g) => g.id)
-          .toSet();
-
+      final courses = results[4] as List<CourseModel>;
       final currentNoteId = event.currentNoteId;
 
       emit(LinkableEntitiesFetched(
@@ -279,12 +297,14 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
             .where((e) => _isLinkableEntity(e.notes, currentNoteId))
             .toList(),
         resources: (results[2] as List<ResourceModel>)
-            .where((r) =>
-                _isLinkableResource(r.notes, currentNoteId) &&
-                visibleGroupIds.contains(r.resourceGroup))
+            .where((r) => _isLinkableByIds(r.notes, currentNoteId))
             .toList(),
-        courses: results[4] as List<CourseModel>,
-        resourceGroups: resourceGroups,
+        courses: courses,
+        linkableCourses: courses
+            .where((c) => _isLinkableByIds(c.notes, currentNoteId))
+            .toList(),
+        courseGroups: results[6] as List<CourseGroupModel>,
+        resourceGroups: results[3] as List<ResourceGroupModel>,
         categories: results[5] as List<CategoryModel>,
       ));
     } on HeliumException catch (e) {

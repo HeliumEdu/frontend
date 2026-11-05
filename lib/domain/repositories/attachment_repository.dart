@@ -7,6 +7,7 @@ abstract class AttachmentRepository {
     int? eventId,
     int? homeworkId,
     int? courseId,
+    int? resourceId,
     bool forceRefresh = false,
   });
 
@@ -16,6 +17,7 @@ abstract class AttachmentRepository {
     int? course,
     int? event,
     int? homework,
+    int? resource,
   });
 
   Future<void> deleteAttachment(int attachmentId);

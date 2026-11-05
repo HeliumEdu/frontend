@@ -45,6 +45,7 @@ void main() {
     homeworkId: homeworkId,
     eventId: null,
     resourceId: null,
+    courseId: null,
   );
 
   void givenStoredDraft(int noteId, {required DateTime savedAt}) {
@@ -152,6 +153,7 @@ void main() {
         homeworkId: 12,
         eventId: null,
         resourceId: null,
+        courseId: null,
       );
 
       // WHEN
@@ -162,6 +164,27 @@ void main() {
       expect(recovered?.title, 'Lecture 5');
       expect(recovered?.baseVersion, isNull);
       expect(recovered?.homeworkId, 12);
+    });
+
+    test('the note not yet created keeps a class link', () {
+      // GIVEN
+      const draft = (
+        title: 'Biology',
+        ops: <dynamic>[],
+        baseVersion: null,
+        homeworkId: null,
+        eventId: null,
+        resourceId: null,
+        courseId: 7,
+      );
+
+      // WHEN
+      store.save(NoteDraftStore.newNoteKey, draft);
+
+      // THEN
+      final recovered = store.draftFor(NoteDraftStore.newNoteKey);
+      expect(recovered?.courseId, 7);
+      expect(recovered?.homeworkId, isNull);
     });
   });
 }

@@ -3,7 +3,9 @@ import 'package:heliumapp/data/models/planner/category_model.dart';
 import 'package:heliumapp/data/models/planner/course_group_model.dart';
 import 'package:heliumapp/data/models/planner/course_model.dart';
 import 'package:heliumapp/data/models/planner/course_schedule_model.dart';
+import 'package:heliumapp/data/models/planner/note_model.dart';
 import 'package:heliumapp/data/models/planner/reminder_model.dart';
+import 'package:heliumapp/domain/linked_note_saver.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/core/base_state.dart';
 
 abstract class CourseState extends BaseState {
@@ -36,7 +38,13 @@ class CoursesLoading extends CourseState {
 }
 
 class CoursesError extends CourseState {
-  CoursesError({required super.origin, required super.message});
+  final LinkedNoteSave? linkedNoteSave;
+
+  CoursesError({
+    required super.origin,
+    required super.message,
+    this.linkedNoteSave,
+  });
 }
 
 class CoursesScreenDataFetched extends CourseState {
@@ -45,6 +53,7 @@ class CoursesScreenDataFetched extends CourseState {
   final List<CategoryModel> categories;
   final List<AttachmentModel> attachments;
   final List<ReminderModel> reminders;
+  final List<NoteModel> notes;
 
   CoursesScreenDataFetched({
     required super.origin,
@@ -54,6 +63,7 @@ class CoursesScreenDataFetched extends CourseState {
     required this.categories,
     required this.attachments,
     required this.reminders,
+    required this.notes,
   });
 }
 
@@ -84,6 +94,7 @@ class CourseScreenDataFailed extends CoursesError
 class CourseScreenDataFetched extends CourseState with CourseScreenDataIdentity {
   final CourseGroupModel courseGroup;
   final CourseModel? course;
+  final NoteModel? linkedNote;
   @override
   final int courseGroupId;
   @override
@@ -94,6 +105,7 @@ class CourseScreenDataFetched extends CourseState with CourseScreenDataIdentity 
     required this.courseGroup,
     required this.courseGroupId,
     this.course,
+    this.linkedNote,
     this.courseId,
   });
 }
@@ -113,18 +125,32 @@ class CourseGroupDeleted extends CourseState {
 }
 
 class CourseCreated extends CourseEntityState {
+  final bool redirectToNotebook;
+  final int? linkedNoteId;
+  final LinkedNoteSave? linkedNoteSave;
+
   CourseCreated({
     required super.origin,
     required super.course,
     required super.advanceNavOnSuccess,
+    this.redirectToNotebook = false,
+    this.linkedNoteId,
+    this.linkedNoteSave,
   });
 }
 
 class CourseUpdated extends CourseEntityState {
+  final bool redirectToNotebook;
+  final int? linkedNoteId;
+  final LinkedNoteSave? linkedNoteSave;
+
   CourseUpdated({
     required super.origin,
     required super.course,
     required super.advanceNavOnSuccess,
+    this.redirectToNotebook = false,
+    this.linkedNoteId,
+    this.linkedNoteSave,
   });
 }
 
@@ -192,8 +218,13 @@ class CourseGroupConflict extends CourseState {
 
 class CourseConflict extends CourseState {
   final CourseModel latest;
+  final LinkedNoteSave? linkedNoteSave;
 
-  CourseConflict({required super.origin, required this.latest});
+  CourseConflict({
+    required super.origin,
+    required this.latest,
+    this.linkedNoteSave,
+  });
 }
 
 class CourseScheduleConflict extends CourseState {

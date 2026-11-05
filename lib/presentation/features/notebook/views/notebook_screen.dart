@@ -3,6 +3,10 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:collection/collection.dart';
+import 'package:heliumapp/presentation/features/courses/bloc/category_state.dart';
+import 'package:heliumapp/presentation/features/courses/bloc/category_bloc.dart';
+import 'package:heliumapp/data/models/planner/category_model.dart';
 import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/config/app_router.dart';
 import 'package:heliumapp/config/app_theme.dart';
@@ -17,7 +21,7 @@ import 'package:heliumapp/data/models/planner/request/note_request_model.dart';
 import 'package:heliumapp/data/models/planner/resource_model.dart';
 import 'package:heliumapp/domain/linked_note_saver.dart';
 import 'package:heliumapp/presentation/core/views/base_page_screen_state.dart';
-import 'package:heliumapp/presentation/ui/dialogs/helium_bottom_sheet.dart';
+import 'package:heliumapp/presentation/ui/dialogs/helium_menu.dart';
 import 'package:heliumapp/presentation/ui/layout/page_header.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_bloc.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_state.dart';
@@ -102,6 +106,7 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen> 
   List<CourseGroupModel> _courseGroups = [];
   List<CourseModel> _courses = [];
   Map<int, ResourceModel> _resourcesById = {};
+  Map<int, CategoryModel> _categoriesById = {};
   final TextEditingController _searchController = TextEditingController();
   final FocusNode _searchFocusNode = FocusNode();
   int _rowsPerPage = 10;
@@ -167,6 +172,9 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen> 
               _courses = state.courses;
               _resourcesById = {
                 for (final resource in state.resources) resource.id: resource,
+              };
+              _categoriesById = {
+                for (final category in state.categories) category.id: category,
               };
               _filterCourseIds.removeWhere(
                 (id) => !_courses.any((course) => course.id == id),
@@ -242,7 +250,14 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen> 
               if (index != -1) {
                 updated[index] = updated[index].copyWith(
                   linkedEntityTitle: state.homework.title,
+                  linkedEntityDue: state.homework.start,
+                  linkedEntityCompleted: state.homework.completed,
                   courseId: state.homework.course.id,
+                  courseColor: _courses
+                      .firstWhereOrNull((c) => c.id == state.homework.course.id)
+                      ?.color,
+                  categoryColor:
+                      _categoriesById[state.homework.category.id]?.color,
                 );
                 _notes = updated;
               }
@@ -275,11 +290,70 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen> 
           }
         },
       ),
-      // A deleted class or group takes its assignments' notes, which can't be matched locally.
       BlocListener<CourseBloc, CourseState>(
         listenWhen: (previous, current) =>
-            current is CourseDeleted || current is CourseGroupDeleted,
-        listener: (context, state) => _refetchNotes(),
+            current is CourseCreated ||
+            current is CourseUpdated ||
+            current is CoursesError ||
+            current is CourseDeleted ||
+            current is CourseGroupDeleted,
+        listener: (context, state) {
+          if (state is CourseCreated) {
+            setState(() => _courses = [..._courses, state.course]);
+            _applyLinkedNoteSave(
+              state.linkedNoteSave,
+              isLinked: (note) => note.courses.contains(state.course.id),
+            );
+          } else if (state is CourseUpdated) {
+            setState(() {
+              _courses = [
+                for (final course in _courses)
+                  course.id == state.course.id ? state.course : course,
+              ];
+              _notes = [
+                for (final note in _notes)
+                  if (note.courses.contains(state.course.id))
+                    note.copyWith(
+                      linkedEntityTitle: state.course.title,
+                      courseColor: state.course.color,
+                    )
+                  else if (note.linkedEntityType == 'homework' &&
+                      note.courseId == state.course.id)
+                    note.copyWith(courseColor: state.course.color)
+                  else
+                    note,
+              ];
+            });
+            _applyLinkedNoteSave(
+              state.linkedNoteSave,
+              isLinked: (note) => note.courses.contains(state.course.id),
+            );
+          } else if (state is CoursesError) {
+            _applyLinkedNoteSave(state.linkedNoteSave);
+          } else {
+            // A deleted class or group takes its assignments' notes, which can't be matched locally.
+            _refetchNotes();
+          }
+        },
+      ),
+      BlocListener<CategoryBloc, CategoryState>(
+        listenWhen: (previous, current) =>
+            current is CategoryCreated ||
+            current is CategoryUpdated ||
+            current is CategoryDeleted,
+        listener: (context, state) {
+          if (state is CategoryCreated) {
+            setState(() {
+              _categoriesById = {
+                ..._categoriesById,
+                state.category.id: state.category,
+              };
+            });
+          } else {
+            // Notes don't record their category, so its notes can't be matched locally.
+            _refetchNotes();
+          }
+        },
       ),
       BlocListener<ResourceBloc, ResourceState>(
         listenWhen: (previous, current) =>
@@ -290,11 +364,33 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen> 
             current is ResourceGroupDeleted,
         listener: (context, state) {
           if (state is ResourceCreated) {
+            setState(() {
+              _resourcesById = {
+                ..._resourcesById,
+                state.resource.id: state.resource,
+              };
+            });
             _applyLinkedNoteSave(
               state.linkedNoteSave,
               isLinked: (note) => note.resources.contains(state.resource.id),
             );
           } else if (state is ResourceUpdated) {
+            setState(() {
+              _resourcesById = {
+                ..._resourcesById,
+                state.resource.id: state.resource,
+              };
+              final updated = List<NoteModel>.from(_notes);
+              final index = updated.indexWhere(
+                (n) => n.resources.contains(state.resource.id),
+              );
+              if (index != -1) {
+                updated[index] = updated[index].copyWith(
+                  linkedEntityTitle: state.resource.title,
+                );
+                _notes = updated;
+              }
+            });
             _applyLinkedNoteSave(
               state.linkedNoteSave,
               isLinked: (note) => note.resources.contains(state.resource.id),
@@ -571,6 +667,7 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen> 
             homeworkId: draft.homeworkId,
             eventId: draft.eventId,
             resourceId: draft.resourceId,
+            courseId: draft.courseId,
           ),
         );
       } on HeliumException catch (e) {
@@ -790,6 +887,9 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen> 
         if (_filterEntityTypes.contains('resource')) {
           if (note.linkedEntityType == 'resource') return true;
         }
+        if (_filterEntityTypes.contains('course')) {
+          if (note.linkedEntityType == 'course') return true;
+        }
         return false;
       }).toList();
     }
@@ -809,7 +909,8 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen> 
   bool _areCourseNotesVisible() =>
       _filterEntityTypes.isEmpty ||
       _filterEntityTypes.contains('homework') ||
-      _filterEntityTypes.contains('resource');
+      _filterEntityTypes.contains('resource') ||
+      _filterEntityTypes.contains('course');
 
   void _saveFilterStateIfEnabled() {
     if (!settingsLoaded || !userSettings.rememberFilterState) return;
@@ -883,7 +984,6 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen> 
   }
 
   void _openFilterMenu(BuildContext context) {
-    final isMobile = Responsive.isMobile(context);
 
     Widget buildContent(BuildContext context, StateSetter setMenuState) {
       final displayCourses = PlannerHelper.sortByGroupStartThenByTitle(
@@ -906,6 +1006,11 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen> 
           iconWidget: PlannerTypeColors.rainbowIcon(AppConstants.assignmentIcon),
         ),
         (
+          value: 'course',
+          label: 'Classes',
+          iconWidget: PlannerTypeColors.rainbowIcon(Icons.school_outlined),
+        ),
+        (
           value: 'event',
           label: 'Events',
           iconWidget: Icon(
@@ -925,30 +1030,14 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen> 
         ),
       ];
 
-      return Material(
-        color: context.colorScheme.surface,
-        child: ConstrainedBox(
-          constraints: BoxConstraints(
-            maxHeight:
-                MediaQuery.of(context).size.height * AppConstants.bottomSheetMaxHeightFactor,
-          ),
-          child: SingleChildScrollView(
-            child: Padding(
-        padding: Responsive.sheetContentPadding(context),
+      return HeliumMenuContent(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
             Row(
               children: [
-                Expanded(
-                  child: Text(
-                    'Filters',
-                    style: AppStyles.formText(context).copyWith(
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
+                const Expanded(child: HeliumMenuTitle(title: 'Filters')),
                 TextButton(
                   onPressed: () {
                     final wasExcluding = _shownOnCalendar;
@@ -970,7 +1059,7 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen> 
                 ),
               ],
             ),
-            _buildFilterSectionHeader(context, 'TYPES'),
+            const HeliumMenuSectionHeader(title: 'TYPES'),
             ...filterOptions.map((option) {
               final isChecked = _filterEntityTypes.contains(option.value);
               return HeliumCheckboxListTile(
@@ -1009,7 +1098,7 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen> 
               );
             }),
             if (_areCourseNotesVisible() && displayCourses.length > 1) ...[
-              _buildFilterSectionHeader(context, 'CLASSES'),
+              const HeliumMenuSectionHeader(title: 'CLASSES'),
               for (int i = 0; i < displayCourses.length; i++) ...[
                 if (i > 0 &&
                     displayCourses[i].courseGroup !=
@@ -1060,56 +1149,13 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen> 
             ),
           ],
         ),
-            ),
-          ),
-        ),
       );
     }
 
-    if (isMobile) {
-      showHeliumBottomSheet(
-        context: context,
-        builder: (context) => StatefulBuilder(builder: buildContent),
-      );
-    } else {
-      final RenderBox button = context.findRenderObject() as RenderBox;
-      final RenderBox overlay =
-          Overlay.of(context, rootOverlay: true).context.findRenderObject() as RenderBox;
-      final RelativeRect position = RelativeRect.fromRect(
-        Rect.fromPoints(
-          button.localToGlobal(Offset.zero, ancestor: overlay),
-          button.localToGlobal(
-            button.size.bottomRight(Offset.zero),
-            ancestor: overlay,
-          ),
-        ),
-        Offset.zero & overlay.size,
-      );
-
-      showMenu(
-        context: context,
-        position: position,
-        color: context.colorScheme.surface,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-        // Open on the root navigator so the popup's tap-outside barrier
-        // covers the header — tapping anywhere on the page (including the
-        // header) dismisses the menu.
-        useRootNavigator: true,
-        items: [
-          PopupMenuItem(
-            enabled: false,
-            padding: EdgeInsets.zero,
-            child: StatefulBuilder(builder: buildContent),
-          ),
-        ],
-      );
-    }
-  }
-
-  Widget _buildFilterSectionHeader(BuildContext context, String title) {
-    return Padding(
-      padding: const EdgeInsets.only(top: 20, bottom: 4),
-      child: Text(title, style: AppStyles.smallSecondaryTextLight(context)),
+    showHeliumMenu(
+      context: context,
+      anchorContext: context,
+      builder: buildContent,
     );
   }
 

@@ -75,12 +75,14 @@ class LinkedNoteSaver {
     int? homeworkId,
     int? eventId,
     int? resourceId,
+    int? courseId,
   }) async {
     final noteSave = save(
       noteEdit,
       homeworkId: homeworkId,
       eventId: eventId,
       resourceId: resourceId,
+      courseId: courseId,
     );
     final (entity, note) = await (_settle(entitySave), _settle(noteSave)).wait;
 
@@ -114,6 +116,7 @@ class LinkedNoteSaver {
     int? homeworkId,
     int? eventId,
     int? resourceId,
+    int? courseId,
   }) async {
     try {
       return await _create(
@@ -121,6 +124,7 @@ class LinkedNoteSaver {
         homeworkId: homeworkId,
         eventId: eventId,
         resourceId: resourceId,
+        courseId: courseId,
       );
     } on HeliumException catch (e) {
       return LinkedNoteSave(noteId: null, failure: e);
@@ -132,6 +136,7 @@ class LinkedNoteSaver {
     int? homeworkId,
     int? eventId,
     int? resourceId,
+    int? courseId,
   }) async {
     final linkedNoteId = noteEdit.noteId;
     if (linkedNoteId == null) {
@@ -140,6 +145,7 @@ class LinkedNoteSaver {
         homeworkId: homeworkId,
         eventId: eventId,
         resourceId: resourceId,
+        courseId: courseId,
       );
     }
     if (!noteEdit.edited) return LinkedNoteSave(noteId: linkedNoteId);
@@ -172,6 +178,7 @@ class LinkedNoteSaver {
         homeworkId: homeworkId,
         eventId: eventId,
         resourceId: resourceId,
+        courseId: courseId,
         isRecreated: true,
       );
     }
@@ -184,6 +191,7 @@ class LinkedNoteSaver {
     int? homeworkId,
     int? eventId,
     int? resourceId,
+    int? courseId,
     bool isRecreated = false,
   }) async {
     if (content == null) return const LinkedNoteSave(noteId: null);
@@ -194,6 +202,7 @@ class LinkedNoteSaver {
           homeworkId: homeworkId,
           eventId: eventId,
           resourceId: resourceId,
+          courseId: courseId,
         ),
       );
       return LinkedNoteSave(
@@ -203,9 +212,11 @@ class LinkedNoteSaver {
       );
     } on ValidationException {
       final existing = (await noteRepository.getNotes(
+        linkedEntityType: courseId != null ? 'course' : null,
         homeworkId: homeworkId,
         eventId: eventId,
         resourceId: resourceId,
+        courseId: courseId,
         includeContent: true,
         forceRefresh: true,
       )).firstOrNull;

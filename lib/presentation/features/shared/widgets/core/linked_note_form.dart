@@ -22,7 +22,7 @@ mixin LinkedNoteForm<W extends StatefulWidget, T> on ConflictResolvableForm<W> {
   String get itemNoun;
 
   /// The item a new note links to; one is set.
-  ({int? homeworkId, int? eventId, int? resourceId}) get linkedItem;
+  ({int? homeworkId, int? eventId, int? resourceId, int? courseId}) get linkedItem;
 
   void resetSubmitting();
 
@@ -58,6 +58,7 @@ mixin LinkedNoteForm<W extends StatefulWidget, T> on ConflictResolvableForm<W> {
       homeworkId: linkedItem.homeworkId,
       eventId: linkedItem.eventId,
       resourceId: linkedItem.resourceId,
+      courseId: linkedItem.courseId,
     );
   }
 }

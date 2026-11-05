@@ -14,12 +14,14 @@ class AttachmentRepositoryImpl implements AttachmentRepository {
     int? eventId,
     int? homeworkId,
     int? courseId,
+    int? resourceId,
     bool forceRefresh = false,
   }) async {
     return remoteDataSource.getAttachments(
       eventId: eventId,
       homeworkId: homeworkId,
       courseId: courseId,
+      resourceId: resourceId,
       forceRefresh: forceRefresh,
     );
   }
@@ -31,6 +33,7 @@ class AttachmentRepositoryImpl implements AttachmentRepository {
     int? event,
     int? homework,
     int? course,
+    int? resource,
   }) async {
     return remoteDataSource.createAttachment(
       bytes: bytes,
@@ -38,6 +41,7 @@ class AttachmentRepositoryImpl implements AttachmentRepository {
       event: event,
       homework: homework,
       course: course,
+      resource: resource,
     );
   }
 

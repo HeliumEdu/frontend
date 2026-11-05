@@ -10,6 +10,7 @@ import 'package:heliumapp/data/models/planner/note_model.dart';
 import 'package:heliumapp/presentation/ui/components/generic_label.dart';
 import 'package:heliumapp/presentation/ui/components/helium_icon_button.dart';
 import 'package:heliumapp/presentation/ui/components/helium_pager.dart';
+import 'package:heliumapp/presentation/ui/components/course_title_label.dart';
 import 'package:heliumapp/presentation/ui/components/resource_title_label.dart';
 import 'package:heliumapp/presentation/ui/feedback/empty_card.dart';
 import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
@@ -579,6 +580,8 @@ class NotesDataSource extends BaseDataGridSource {
         rowColor = userSettings.eventsColor;
       } else if (entityType == 'resource') {
         rowColor = userSettings.resourceColor;
+      } else if (entityType == 'course') {
+        rowColor = courseColor;
       } else if (entityType.isNotEmpty) {
         _log.fine(
           'buildRow: unsupported entityType "$entityType"; rowColor will be null',
@@ -739,6 +742,7 @@ class NotesDataSource extends BaseDataGridSource {
       'homework' => note.homework.firstOrNull,
       'event' => note.events.firstOrNull,
       'resource' => note.resources.firstOrNull,
+      'course' => note.courses.firstOrNull,
       _ => null,
     };
   }
@@ -753,12 +757,18 @@ class NotesDataSource extends BaseDataGridSource {
             '${plannerItemDialogSteps.first}',
       'resource' =>
         '${AppRoute.resourcesScreen}/$entityId/${resourceDialogSteps.first}',
+      'course' =>
+        '${AppRoute.coursesScreen}/$entityId/${courseDialogSteps.first}',
       _ => null,
     };
   }
 
   static String _linkedEntityTooltip(String entityType) {
-    return entityType == 'resource' ? 'Open in Resources' : 'Open in Planner';
+    return switch (entityType) {
+      'resource' => 'Open in Resources',
+      'course' => 'Open in Classes',
+      _ => 'Open in Planner',
+    };
   }
 
   Widget _wrapLinkedBadge({
@@ -914,6 +924,12 @@ class NotesDataSource extends BaseDataGridSource {
           icon: AppConstants.eventIcon,
           compact: true,
           textDecoration: strikethrough,
+        );
+      } else if (entityType == 'course') {
+        badge = CourseTitleLabel(
+          title: originalLinkedTo,
+          color: courseColor ?? FallbackConstants.fallbackColor,
+          compact: true,
         );
       } else if (entityType == 'homework') {
         final badgeColor =

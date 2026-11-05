@@ -12,6 +12,7 @@ class PlannerItemAttachments extends BaseAttachments {
     required super.userSettings,
     super.contentKey,
     super.onUploadsSettled,
+    super.pulledThroughGroupsFrom,
   });
 
   @override
@@ -23,6 +24,7 @@ class PlannerItemAttachments extends BaseAttachments {
       isEdit: isEdit,
       userSettings: userSettings,
       onUploadsSettled: onUploadsSettled,
+      pulledThroughGroupsFrom: pulledThroughGroupsFrom,
     );
   }
 }
@@ -37,6 +39,7 @@ class _PlannerItemAttachmentsContent extends BaseAttachmentsContent {
     required super.isEdit,
     required super.userSettings,
     super.onUploadsSettled,
+    super.pulledThroughGroupsFrom,
   });
 
   @override

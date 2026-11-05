@@ -6,12 +6,15 @@ import 'package:heliumapp/config/app_router.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/config/dirty_dialog_registry.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/planneritem_bloc.dart';
+import 'package:heliumapp/presentation/features/planner/bloc/planneritem_event.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/planneritem_state.dart';
 import 'package:heliumapp/presentation/features/planner/widgets/planner_item_attachments.dart';
 import 'package:heliumapp/presentation/features/planner/widgets/planner_item_details.dart';
 import 'package:heliumapp/presentation/features/planner/widgets/planner_item_reminders.dart';
 import 'package:heliumapp/presentation/features/shared/widgets/core/base_attachments.dart';
 import 'package:heliumapp/presentation/features/shared/widgets/flow/multi_step_container.dart';
+import 'package:heliumapp/data/models/planner/homework_model.dart';
+import 'package:heliumapp/data/models/planner/attachment_model.dart';
 import 'package:heliumapp/data/models/planner/planner_item_base_model.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/core/base_event.dart';
 import 'package:heliumapp/domain/linked_note_saver.dart';
@@ -19,6 +22,7 @@ import 'package:heliumapp/presentation/features/shared/widgets/core/linked_note_
 import 'package:heliumapp/presentation/ui/feedback/discard_changes_scope.dart';
 import 'package:heliumapp/presentation/ui/components/helium_icon_button.dart';
 import 'package:heliumapp/presentation/features/notebook/views/note_add_screen.dart';
+import 'package:heliumapp/utils/attachment_helpers.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:heliumapp/utils/snack_bar_helpers.dart';
 import 'package:logging/logging.dart';
@@ -152,6 +156,7 @@ class _PlannerItemAddScreenState
   bool? _currentIsEvent;
   int? _targetStep;
   String? _registeredPrefix;
+  HomeworkModel? _savedHomework;
 
   @override
   void initState() {
@@ -165,6 +170,15 @@ class _PlannerItemAddScreenState
     // The modal scope does not rebuild on Page swap, so the URL is the
     // source of truth for the active step and entity type.
     router.routerDelegate.addListener(_syncFromUrl);
+    if (!widget.isNew && widget.isHomework && widget.initialStep != 0) {
+      context.read<PlannerItemBloc>().add(
+            FetchPlannerItemScreenDataEvent(
+              origin: EventOrigin.dialog,
+              homeworkId: _currentEntityId,
+              forceRefresh: true,
+            ),
+          );
+    }
   }
 
   @override
@@ -414,8 +428,22 @@ class _PlannerItemAddScreenState
         listener: (context, state) {
           if (state is PlannerItemScreenDataFetched) {
             _dataLoaded = true;
+            if (state.plannerItem case final HomeworkModel homework
+                when homework.id == _currentEntityId) {
+              setState(() => _savedHomework = homework);
+            }
+          }
+          if (state case HomeworkCreated(:final homework) ||
+              HomeworkUpdated(:final homework)
+              when state.origin == EventOrigin.subScreen ||
+                  homework.id == _currentEntityId) {
+            setState(() => _savedHomework = homework);
           }
 
+          if (state is PlannerItemScreenDataFailed &&
+              state.origin == EventOrigin.dialog) {
+            return;
+          }
           if (state is PlannerItemsError) {
             if (!_dataLoaded) {
               showSnackBar(
@@ -610,6 +638,14 @@ class _PlannerItemAddScreenState
     );
   }
 
+  List<AttachmentGroup> Function(List<AttachmentModel>)?
+      _pulledThroughGroupsFrom() {
+    final homework = _savedHomework;
+    if (_currentIsEvent != false || homework == null) return null;
+    return (attachments) =>
+        AttachmentGroups.pulledThroughForHomework(homework, attachments);
+  }
+
   bool _willCloseAfterSave() {
     if (_targetStep != null) {
       return _targetStep! >= steps.length;
@@ -689,6 +725,7 @@ class _PlannerItemAddScreenState
         isEdit: widget.isEdit || _currentEntityId != null,
         userSettings: userSettings,
         onUploadsSettled: resumeDeferredDismissal,
+        pulledThroughGroupsFrom: _pulledThroughGroupsFrom(),
       ),
     ),
   ];

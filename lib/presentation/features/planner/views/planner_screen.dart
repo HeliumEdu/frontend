@@ -31,6 +31,7 @@ import 'package:heliumapp/data/models/planner/resource_model.dart';
 import 'package:heliumapp/data/models/planner/request/event_request_model.dart';
 import 'package:heliumapp/data/models/planner/reminder_model.dart';
 import 'package:heliumapp/data/models/planner/request/homework_request_model.dart';
+import 'package:heliumapp/data/repositories/attachment_repository_impl.dart';
 import 'package:heliumapp/data/repositories/category_repository_impl.dart';
 import 'package:heliumapp/data/repositories/course_repository_impl.dart';
 import 'package:heliumapp/data/repositories/course_schedule_event_repository_impl.dart';
@@ -38,6 +39,7 @@ import 'package:heliumapp/data/repositories/event_repository_impl.dart';
 import 'package:heliumapp/data/repositories/external_calendar_repository_impl.dart';
 import 'package:heliumapp/data/repositories/homework_repository_impl.dart';
 import 'package:heliumapp/data/repositories/resource_repository_impl.dart';
+import 'package:heliumapp/data/sources/attachment_remote_data_source.dart';
 import 'package:heliumapp/data/sources/category_remote_data_source.dart';
 import 'package:heliumapp/data/sources/course_remote_data_source.dart';
 import 'package:heliumapp/data/sources/course_schedule_builder_source.dart';
@@ -76,7 +78,7 @@ import 'package:heliumapp/presentation/navigation/shell/navigation_shell.dart';
 import 'package:heliumapp/presentation/ui/components/helium_checkbox_list_tile.dart';
 import 'package:heliumapp/presentation/ui/feedback/confirm_action_dialog.dart';
 import 'package:heliumapp/presentation/ui/components/helium_icon_button.dart';
-import 'package:heliumapp/presentation/ui/dialogs/helium_bottom_sheet.dart';
+import 'package:heliumapp/presentation/ui/dialogs/helium_menu.dart';
 import 'package:heliumapp/presentation/ui/feedback/error_card.dart';
 import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
 import 'package:heliumapp/presentation/ui/layout/shadow_container.dart';
@@ -130,6 +132,11 @@ class PlannerScreen extends StatelessWidget {
             ),
             resourceRepository: ResourceRepositoryImpl(
               remoteDataSource: ResourceRemoteDataSourceImpl(
+                dioClient: DioClient(),
+              ),
+            ),
+            attachmentRepository: AttachmentRepositoryImpl(
+              remoteDataSource: AttachmentRemoteDataSourceImpl(
                 dioClient: DioClient(),
               ),
             ),
@@ -228,6 +235,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
   };
   final Map<int, CategoryModel> _categoriesMap = {};
   final Map<int, ResourceModel> _resourcesMap = {};
+  final List<AttachmentModel> _attachments = [];
   final List<CategoryModel> _deduplicatedCategories = [];
   bool _isSearchExpanded = false;
   bool _isFilterExpanded = false;
@@ -710,27 +718,41 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
             final attachment = state.attachments.firstOrNull;
             if (attachment == null) return;
 
-            final isHomework = attachment.homework != null;
-            final itemId = isHomework
-                ? attachment.homework!
-                : attachment.event!;
-
-            _updatePlannerItemAttachments(
-              itemId,
-              state.attachments,
-              isAdd: true,
-              isHomework: isHomework,
-            );
+            if (attachment.homework case final homeworkId?) {
+              _updatePlannerItemAttachments(
+                homeworkId,
+                state.attachments,
+                isAdd: true,
+                isHomework: true,
+              );
+            } else if (attachment.event case final eventId?) {
+              _updatePlannerItemAttachments(
+                eventId,
+                state.attachments,
+                isAdd: true,
+                isHomework: false,
+              );
+            }
+            _attachments.addAll(state.attachments);
+            _pushAttachments();
           } else if (state is AttachmentDeleted) {
-            final isHomework = state.homeworkId != null;
-            final itemId = isHomework ? state.homeworkId! : state.eventId!;
-
-            _updatePlannerItemAttachments(
-              itemId,
-              state.id,
-              isAdd: false,
-              isHomework: isHomework,
-            );
+            if (state.homeworkId case final homeworkId?) {
+              _updatePlannerItemAttachments(
+                homeworkId,
+                state.id,
+                isAdd: false,
+                isHomework: true,
+              );
+            } else if (state.eventId case final eventId?) {
+              _updatePlannerItemAttachments(
+                eventId,
+                state.id,
+                isAdd: false,
+                isHomework: false,
+              );
+            }
+            _attachments.removeWhere((a) => a.id == state.id);
+            _pushAttachments();
           }
         },
       ),
@@ -2763,7 +2785,11 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
       );
     }
 
-    if (PlannerItemMetaRow.hasAny(plannerItem)) {
+    if (PlannerItemMetaRow.hasAny(
+      plannerItem,
+      pulledThroughAttachmentCount: _pulledThroughAttachmentCount(plannerItem),
+      resourceCount: _visibleResources(plannerItem).length,
+    )) {
       rows.add(
         _PlannerTooltipRow.widget(
           widget: Container(
@@ -2878,10 +2904,24 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
     return '$formattedDate • ${HeliumDateTime.formatTimeRange(localStart, localEnd, plannerItem.showEndTime)}';
   }
 
+  int _pulledThroughAttachmentCount(PlannerItemBaseModel plannerItem) {
+    if (plannerItem is! HomeworkModel) return 0;
+    return _plannerItemDataSource?.pulledThroughAttachmentCount(plannerItem) ??
+        0;
+  }
+
+  List<ResourceModel> _visibleResources(PlannerItemBaseModel plannerItem) {
+    if (plannerItem is! HomeworkModel) return const [];
+    return _plannerItemDataSource?.visibleResourcesFor(plannerItem) ??
+        const [];
+  }
+
   Widget _buildTooltipMetaCountsRow(PlannerItemBaseModel plannerItem) {
     return PlannerItemMetaRow(
       plannerItem: plannerItem,
       userSettings: userSettings,
+      pulledThroughAttachmentCount: _pulledThroughAttachmentCount(plannerItem),
+      resources: _visibleResources(plannerItem),
       countTextStyle: AppStyles.formText(
         context,
       ).copyWith(color: context.colorScheme.onSurface),
@@ -3752,6 +3792,9 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
       _resourcesMap
         ..clear()
         ..addAll({for (final r in state.resources) r.id: r});
+      _attachments
+        ..clear()
+        ..addAll(state.attachments);
 
       if (_plannerItemDataSource != null) {
         _applyScreenDataToDataSource();
@@ -3770,6 +3813,11 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
     _plannerItemDataSource!.courseGroupsById = _courseGroupsById;
     _plannerItemDataSource!.categoriesMap = _categoriesMap;
     _plannerItemDataSource!.resourcesMap = _resourcesMap;
+    _pushAttachments();
+  }
+
+  void _pushAttachments() {
+    _plannerItemDataSource?.setAttachments(List.of(_attachments));
   }
 
   void _goToToday() {
@@ -4068,12 +4116,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
             children: [
               Row(
                 children: [
-                  Expanded(
-                    child: Text(
-                      'Filters',
-                      style: AppStyles.headingText(context),
-                    ),
-                  ),
+                  const Expanded(child: HeliumMenuTitle(title: 'Filters')),
                   TextButton(
                     onPressed: () {
                       _plannerItemDataSource!.clearFilters();
@@ -4085,7 +4128,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
               ),
 
               if (_currentView != PlannerView.todos) ...[
-                _buildSheetSectionHeader(context, 'TYPES'),
+                const HeliumMenuSectionHeader(title: 'TYPES'),
                 HeliumCheckboxListTile(
                   title: Row(
                     children: [
@@ -4264,7 +4307,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
               ],
 
               if (_areCourseItemsVisible() && displayCourses.length > 1) ...[
-                _buildSheetSectionHeader(context, 'CLASSES'),
+                const HeliumMenuSectionHeader(title: 'CLASSES'),
                 for (int i = 0; i < displayCourses.length; i++) ...[
                   if (i > 0 &&
                       displayCourses[i].courseGroup !=
@@ -4323,7 +4366,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
               ],
 
               if (visibleExternalCalendars.isNotEmpty) ...[
-                _buildSheetSectionHeader(context, 'EXTERNAL CALENDARS'),
+                const HeliumMenuSectionHeader(title: 'EXTERNAL CALENDARS'),
                 ...visibleExternalCalendars.map((calendar) {
                   return HeliumCheckboxListTile(
                     title: Row(
@@ -4370,7 +4413,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
               ],
 
               if (_areAssignmentsVisible()) ...[
-                _buildSheetSectionHeader(context, 'STATUS'),
+                const HeliumMenuSectionHeader(title: 'STATUS'),
                 _CheckboxToggle(
                   isChecked: isCompleteFilterEnabled,
                   isToggleOn: showCompletedOnly,
@@ -4423,7 +4466,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
               ],
 
               if (visibleCategories.length > 1 && _areAssignmentsVisible()) ...[
-                _buildSheetSectionHeader(context, 'CATEGORIES'),
+                const HeliumMenuSectionHeader(title: 'CATEGORIES'),
                 ...visibleCategories.map((category) {
                   return HeliumCheckboxListTile(
                     title: Text(
@@ -4461,51 +4504,10 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
       );
     }
 
-    if (isMobile) {
-      showHeliumBottomSheet(
-        context: context,
-        builder: (context) => StatefulBuilder(builder: buildContent),
-      );
-    } else {
-      final RenderBox button = context.findRenderObject() as RenderBox;
-      final RenderBox overlay =
-          Overlay.of(context, rootOverlay: true).context.findRenderObject()
-              as RenderBox;
-      final RelativeRect position = RelativeRect.fromRect(
-        Rect.fromPoints(
-          button.localToGlobal(Offset.zero, ancestor: overlay),
-          button.localToGlobal(
-            button.size.bottomRight(Offset.zero),
-            ancestor: overlay,
-          ),
-        ),
-        Offset.zero & overlay.size,
-      );
-
-      showMenu(
-        context: context,
-        position: position,
-        color: context.colorScheme.surface,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-        // Open on the root navigator so the popup's tap-outside barrier
-        // covers the header — tapping anywhere on the page (including the
-        // header) dismisses the menu.
-        useRootNavigator: true,
-        items: [
-          PopupMenuItem(
-            enabled: false,
-            padding: EdgeInsets.zero,
-            child: StatefulBuilder(builder: buildContent),
-          ),
-        ],
-      );
-    }
-  }
-
-  Widget _buildSheetSectionHeader(BuildContext context, String title) {
-    return Padding(
-      padding: const EdgeInsets.only(top: 20, bottom: 4),
-      child: Text(title, style: AppStyles.smallSecondaryTextLight(context)),
+    showHeliumMenu(
+      context: context,
+      anchorContext: context,
+      builder: buildContent,
     );
   }
 
@@ -4514,61 +4516,48 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
     StateSetter setMenuState, {
     required bool isMobile,
   }) {
-    return Material(
-      color: menuContext.colorScheme.surface,
-      child: ConstrainedBox(
-        constraints: BoxConstraints(
-          maxHeight:
-              MediaQuery.of(menuContext).size.height *
-              AppConstants.bottomSheetMaxHeightFactor,
-        ),
-        child: SingleChildScrollView(
-          child: Padding(
-            padding: Responsive.sheetContentPadding(menuContext),
+    return HeliumMenuContent(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          RadioGroup<PlannerView>(
+            groupValue: _currentView,
+            onChanged: (value) {
+              setState(() {
+                _changeView(value!);
+              });
+
+              Navigator.pop(menuContext);
+
+              if (isMobile) {
+                setState(() {
+                  _isFilterExpanded = false;
+                });
+              }
+            },
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                RadioGroup<PlannerView>(
-                  groupValue: _currentView,
-                  onChanged: (value) {
-                    setState(() {
-                      _changeView(value!);
-                    });
-
-                    Navigator.pop(menuContext);
-
-                    if (isMobile) {
-                      setState(() {
-                        _isFilterExpanded = false;
-                      });
-                    }
-                  },
-                  child: Column(
-                    children: List.generate(PlannerView.values.length, (index) {
-                      return RadioListTile<PlannerView>(
-                        key: Key(
-                          PlannerScreen.viewOptionKey(PlannerView.values[index]),
-                        ),
-                        title: Text(
-                          CalendarConstants
-                              .defaultViews[PlannerHelper.mapHeliumViewToApiView(
-                            PlannerView.values[index],
-                          )],
-                          style: AppStyles.formText(menuContext),
-                        ),
-                        value: PlannerView.values[index],
-                        controlAffinity: ListTileControlAffinity.leading,
-                        dense: true,
-                        contentPadding: const EdgeInsets.only(left: 4),
-                      );
-                    }),
+              children: List.generate(PlannerView.values.length, (index) {
+                return RadioListTile<PlannerView>(
+                  key: Key(
+                    PlannerScreen.viewOptionKey(PlannerView.values[index]),
                   ),
-                ),
-              ],
+                  title: Text(
+                    CalendarConstants
+                        .defaultViews[PlannerHelper.mapHeliumViewToApiView(
+                      PlannerView.values[index],
+                    )],
+                    style: AppStyles.formText(menuContext),
+                  ),
+                  value: PlannerView.values[index],
+                  controlAffinity: ListTileControlAffinity.leading,
+                  dense: true,
+                  contentPadding: const EdgeInsets.only(left: 4),
+                );
+              }),
             ),
           ),
-        ),
+        ],
       ),
     );
   }
@@ -4576,48 +4565,11 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
   void _openViewMenu(BuildContext buttonContext) {
     final isMobile = Responsive.isMobile(context);
 
-    if (isMobile) {
-      showHeliumBottomSheet(
-        context: context,
-        builder: (context) => StatefulBuilder(
-          builder: (ctx, ss) =>
-              _buildViewMenuContent(ctx, ss, isMobile: isMobile),
-        ),
-      );
-    } else {
-      final RenderBox button = buttonContext.findRenderObject() as RenderBox;
-      final RenderBox overlay =
-          Overlay.of(context, rootOverlay: true).context.findRenderObject()
-              as RenderBox;
-      final RelativeRect position = RelativeRect.fromRect(
-        Rect.fromPoints(
-          button.localToGlobal(Offset.zero, ancestor: overlay),
-          button.localToGlobal(
-            button.size.bottomRight(Offset.zero),
-            ancestor: overlay,
-          ),
-        ),
-        Offset.zero & overlay.size,
-      );
-
-      showMenu(
-        context: context,
-        position: position,
-        color: context.colorScheme.surface,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-        useRootNavigator: true,
-        items: [
-          PopupMenuItem(
-            enabled: false,
-            padding: EdgeInsets.zero,
-            child: StatefulBuilder(
-              builder: (ctx, ss) =>
-                  _buildViewMenuContent(ctx, ss, isMobile: isMobile),
-            ),
-          ),
-        ],
-      );
-    }
+    showHeliumMenu(
+      context: context,
+      anchorContext: buttonContext,
+      builder: (ctx, ss) => _buildViewMenuContent(ctx, ss, isMobile: isMobile),
+    );
   }
 
   Widget _buildTodosView() {

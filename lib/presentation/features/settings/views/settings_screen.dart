@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:double_feature/double_feature.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -571,8 +572,8 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
             Center(
               child: Column(
                 children: [
-                  Text(
-                    _version,
+                  VersionLabel(
+                    version: _version,
                     style: AppStyles.smallSecondaryText(context).copyWith(
                       color: context.colorScheme.onSurface.withValues(alpha: AppStyles.mutedTextAlpha),
                     ),

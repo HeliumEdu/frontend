@@ -48,6 +48,7 @@ class NotebookScreenDataFetched extends NoteState {
   final List<CourseGroupModel> courseGroups;
   final List<CourseModel> courses;
   final List<ResourceModel> resources;
+  final List<CategoryModel> categories;
 
   NotebookScreenDataFetched({
     required super.origin,
@@ -55,6 +56,7 @@ class NotebookScreenDataFetched extends NoteState {
     required this.courseGroups,
     required this.courses,
     required this.resources,
+    required this.categories,
   });
 }
 
@@ -67,16 +69,20 @@ mixin NoteScreenDataIdentity {
 
   int? get linkResourceId;
 
+  int? get linkCourseId;
+
   bool matches({
     int? noteId,
     int? linkHomeworkId,
     int? linkEventId,
     int? linkResourceId,
+    int? linkCourseId,
   }) =>
       this.noteId == noteId &&
       this.linkHomeworkId == linkHomeworkId &&
       this.linkEventId == linkEventId &&
-      this.linkResourceId == linkResourceId;
+      this.linkResourceId == linkResourceId &&
+      this.linkCourseId == linkCourseId;
 }
 
 class NoteScreenDataFailed extends NotesError with NoteScreenDataIdentity {
@@ -88,6 +94,8 @@ class NoteScreenDataFailed extends NotesError with NoteScreenDataIdentity {
   final int? linkEventId;
   @override
   final int? linkResourceId;
+  @override
+  final int? linkCourseId;
 
   NoteScreenDataFailed({
     required super.origin,
@@ -96,6 +104,7 @@ class NoteScreenDataFailed extends NotesError with NoteScreenDataIdentity {
     this.linkHomeworkId,
     this.linkEventId,
     this.linkResourceId,
+    this.linkCourseId,
   });
 }
 
@@ -113,6 +122,8 @@ class NoteScreenDataFetched extends NoteState with NoteScreenDataIdentity {
   final int? linkEventId;
   @override
   final int? linkResourceId;
+  @override
+  final int? linkCourseId;
 
   NoteScreenDataFetched({
     required super.origin,
@@ -125,6 +136,7 @@ class NoteScreenDataFetched extends NoteState with NoteScreenDataIdentity {
     this.linkHomeworkId,
     this.linkEventId,
     this.linkResourceId,
+    this.linkCourseId,
   });
 }
 
@@ -190,6 +202,8 @@ class LinkableEntitiesFetched extends NoteState {
   final List<EventModel> events;
   final List<ResourceModel> resources;
   final List<CourseModel> courses;
+  final List<CourseModel> linkableCourses;
+  final List<CourseGroupModel> courseGroups;
   final List<ResourceGroupModel> resourceGroups;
   final List<CategoryModel> categories;
 
@@ -199,6 +213,8 @@ class LinkableEntitiesFetched extends NoteState {
     required this.events,
     required this.resources,
     required this.courses,
+    required this.linkableCourses,
+    required this.courseGroups,
     required this.resourceGroups,
     required this.categories,
   });

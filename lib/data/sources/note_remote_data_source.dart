@@ -20,6 +20,7 @@ abstract class NoteRemoteDataSource extends BaseDataSource {
     int? homeworkId,
     int? eventId,
     int? resourceId,
+    int? courseId,
     DateTime? updatedAtGte,
     bool includeContent = false,
     bool shownOnCalendar = false,
@@ -53,6 +54,7 @@ class NoteRemoteDataSourceImpl extends NoteRemoteDataSource {
     int? homeworkId,
     int? eventId,
     int? resourceId,
+    int? courseId,
     DateTime? updatedAtGte,
     bool includeContent = false,
     bool shownOnCalendar = false,
@@ -69,6 +71,7 @@ class NoteRemoteDataSourceImpl extends NoteRemoteDataSource {
       if (homeworkId != null) queryParameters['homework'] = homeworkId;
       if (eventId != null) queryParameters['event'] = eventId;
       if (resourceId != null) queryParameters['resource'] = resourceId;
+      if (courseId != null) queryParameters['course'] = courseId;
       if (updatedAtGte != null) {
         queryParameters['updated_at__gte'] = updatedAtGte.toIso8601String();
       }

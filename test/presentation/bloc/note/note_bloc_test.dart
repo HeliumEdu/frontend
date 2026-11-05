@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:heliumapp/core/helium_exception.dart';
@@ -19,6 +21,7 @@ void main() {
   late MockNoteRepository mockNoteRepository;
   late MockCourseRepository mockCourseRepository;
   late MockResourceRepository mockResourceRepository;
+  late MockCategoryRepository mockCategoryRepository;
   late NoteBloc noteBloc;
 
   setUpAll(() {
@@ -29,13 +32,14 @@ void main() {
     mockNoteRepository = MockNoteRepository();
     mockCourseRepository = MockCourseRepository();
     mockResourceRepository = MockResourceRepository();
+    mockCategoryRepository = MockCategoryRepository();
     noteBloc = NoteBloc(
       noteRepository: mockNoteRepository,
       homeworkRepository: MockHomeworkRepository(),
       eventRepository: MockEventRepository(),
       resourceRepository: mockResourceRepository,
       courseRepository: mockCourseRepository,
-      categoryRepository: MockCategoryRepository(),
+      categoryRepository: mockCategoryRepository,
     );
   });
 
@@ -174,6 +178,9 @@ void main() {
           MockModels.createResource(courses: [1]),
         ],
       );
+      when(
+        () => mockCategoryRepository.getCategories(shownOnCalendar: groupsShown),
+      ).thenAnswer((_) async => MockModels.createCategories());
     }
 
     blocTest<NoteBloc, NoteState>(
@@ -190,7 +197,12 @@ void main() {
             .having((s) => s.notes.length, 'notes', 1)
             .having((s) => s.courseGroups.length, 'courseGroups', 2)
             .having((s) => s.courses.length, 'courses', 3)
-            .having((s) => s.resources.single.courses, 'resource classes', [1]),
+            .having((s) => s.resources.single.courses, 'resource classes', [1])
+            .having(
+              (s) => s.categories.length,
+              'categories, to colour moved assignments\' notes',
+              MockModels.createCategories().length,
+            ),
       ],
     );
 
@@ -216,6 +228,9 @@ void main() {
         ).called(1);
         verify(
           () => mockResourceRepository.getResources(shownOnCalendar: true),
+        ).called(1);
+        verify(
+          () => mockCategoryRepository.getCategories(shownOnCalendar: true),
         ).called(1);
       },
     );
@@ -312,6 +327,92 @@ void main() {
         FetchLinkableEntitiesEvent(origin: EventOrigin.subScreen),
       ),
       expect: () => [isA<LinkableEntitiesFailed>()],
+    );
+
+    blocTest<NoteBloc, NoteState>(
+      'offers only visible groups\' assignments, classes, and resources without another note',
+      build: () {
+        final homeworkRepository = MockHomeworkRepository();
+        final eventRepository = MockEventRepository();
+        final categoryRepository = MockCategoryRepository();
+        when(() => homeworkRepository.getHomeworks(shownOnCalendar: true))
+            .thenAnswer((_) async => [MockModels.createHomework(id: 30)]);
+        when(() => eventRepository.getEvents()).thenAnswer((_) async => []);
+        when(() => mockResourceRepository.getResources(shownOnCalendar: true)).thenAnswer(
+          (_) async => [
+            MockModels.createResource(id: 40),
+            MockModels.createResource(id: 41, notes: [99]),
+          ],
+        );
+        when(() => mockResourceRepository.getResourceGroups())
+            .thenAnswer((_) async => [MockModels.createResourceGroup(id: 1)]);
+        when(() => categoryRepository.getCategories(shownOnCalendar: true))
+            .thenAnswer((_) async => []);
+        when(() => mockCourseRepository.getCourseGroups())
+            .thenAnswer((_) async => [MockModels.createCourseGroup(id: 1)]);
+        when(() => mockCourseRepository.getCourses(shownOnCalendar: true)).thenAnswer(
+          (_) async => [
+            MockModels.createCourse(id: 10),
+            MockModels.createCourse(id: 11, notes: [99]),
+            MockModels.createCourse(id: 12, notes: [5]),
+          ],
+        );
+        return NoteBloc(
+          noteRepository: mockNoteRepository,
+          homeworkRepository: homeworkRepository,
+          eventRepository: eventRepository,
+          resourceRepository: mockResourceRepository,
+          courseRepository: mockCourseRepository,
+          categoryRepository: categoryRepository,
+        );
+      },
+      act: (bloc) => bloc.add(
+        FetchLinkableEntitiesEvent(origin: EventOrigin.subScreen, currentNoteId: 5),
+      ),
+      expect: () => [
+        isA<LinkableEntitiesFetched>()
+            .having((s) => s.homework.map((h) => h.id).toList(), 'assignments', [30])
+            .having((s) => s.resources.map((r) => r.id).toList(), 'resources', [40])
+            .having(
+              (s) => s.linkableCourses.map((c) => c.id).toList(),
+              'linkable classes, including this note\'s own',
+              [10, 12],
+            )
+            .having((s) => s.courses.length, 'every visible class, for assignments', 3),
+      ],
+      verify: (_) {
+        verify(() => mockResourceRepository.getResources(shownOnCalendar: true)).called(1);
+        verify(() => mockCourseRepository.getCourses(shownOnCalendar: true)).called(1);
+      },
+    );
+  });
+
+  group('FetchNoteScreenDataEvent', () {
+    blocTest<NoteBloc, NoteState>(
+      'a new note opened for a class is pre-linked to it',
+      build: () {
+        when(() => mockCourseRepository.getCourses(id: 10)).thenAnswer(
+          (_) async => [
+            MockModels.createCourse(
+              id: 10,
+              title: 'Biology',
+              color: const Color(0xFF123456),
+            ),
+          ],
+        );
+        return noteBloc;
+      },
+      act: (bloc) => bloc.add(
+        FetchNoteScreenDataEvent(origin: EventOrigin.subScreen, linkCourseId: 10),
+      ),
+      expect: () => [
+        isA<NotesLoading>(),
+        isA<NoteScreenDataFetched>()
+            .having((s) => s.linkedEntityType, 'type', 'course')
+            .having((s) => s.linkedEntityTitle, 'title', 'Biology')
+            .having((s) => s.linkedEntityColor, 'color', const Color(0xFF123456))
+            .having((s) => s.matches(linkCourseId: 10), 'matches its request', isTrue),
+      ],
     );
   });
 }

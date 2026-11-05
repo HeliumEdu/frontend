@@ -6,15 +6,18 @@ import 'package:heliumapp/data/models/planner/course_group_model.dart';
 import 'package:heliumapp/data/models/planner/course_model.dart';
 import 'package:heliumapp/data/models/planner/course_schedule_model.dart';
 import 'package:heliumapp/data/models/planner/request/course_request_model.dart';
+import 'package:heliumapp/data/models/planner/note_model.dart';
 import 'package:heliumapp/data/models/planner/reminder_model.dart';
 import 'package:heliumapp/domain/repositories/attachment_repository.dart';
 import 'package:heliumapp/domain/repositories/category_repository.dart';
 import 'package:heliumapp/domain/repositories/course_repository.dart';
 import 'package:heliumapp/domain/repositories/course_schedule_event_repository.dart';
+import 'package:heliumapp/domain/repositories/note_repository.dart';
 import 'package:heliumapp/domain/repositories/reminder_repository.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/core/base_event.dart';
 import 'package:heliumapp/presentation/features/courses/bloc/course_event.dart';
 import 'package:heliumapp/presentation/features/courses/bloc/course_state.dart';
+import 'package:heliumapp/domain/linked_note_saver.dart';
 
 class CourseBloc extends Bloc<CourseEvent, CourseState> {
   final CourseRepository courseRepository;
@@ -22,6 +25,8 @@ class CourseBloc extends Bloc<CourseEvent, CourseState> {
   final CategoryRepository categoryRepository;
   final AttachmentRepository attachmentRepository;
   final ReminderRepository reminderRepository;
+  final NoteRepository noteRepository;
+  final LinkedNoteSaver _linkedNoteSaver;
 
   CourseBloc({
     required this.courseRepository,
@@ -29,7 +34,9 @@ class CourseBloc extends Bloc<CourseEvent, CourseState> {
     required this.categoryRepository,
     required this.attachmentRepository,
     required this.reminderRepository,
-  }) : super(CourseInitial(origin: EventOrigin.bloc)) {
+    required this.noteRepository,
+  }) : _linkedNoteSaver = LinkedNoteSaver(noteRepository),
+       super(CourseInitial(origin: EventOrigin.bloc)) {
     on<FetchCoursesScreenDataEvent>(_onFetchCoursesScreenDataEvent);
     on<FetchCourseScreenDataEvent>(_onFetchCourseScreenDataEvent);
     on<CreateCourseGroupEvent>(_onCreateCourseGroup);
@@ -62,12 +69,18 @@ class CourseBloc extends Bloc<CourseEvent, CourseState> {
         categoryRepository.getCategories(forceRefresh: event.forceRefresh),
         attachmentRepository.getAttachments(forceRefresh: event.forceRefresh),
         reminderRepository.getReminders(sent: false, forceRefresh: event.forceRefresh),
+        noteRepository.getNotes(
+          linkedEntityType: 'course',
+          includeContent: true,
+          forceRefresh: event.forceRefresh,
+        ),
       ]);
       final courseGroups = results[0] as List<CourseGroupModel>;
       final courses = results[1] as List<CourseModel>;
       final categories = results[2] as List<CategoryModel>;
       final attachments = results[3] as List<AttachmentModel>;
       final reminders = results[4] as List<ReminderModel>;
+      final notes = results[5] as List<NoteModel>;
 
       emit(
         CoursesScreenDataFetched(
@@ -77,6 +90,7 @@ class CourseBloc extends Bloc<CourseEvent, CourseState> {
           categories: categories,
           attachments: attachments,
           reminders: reminders,
+          notes: notes,
         ),
       );
     } on HeliumException catch (e) {
@@ -106,15 +120,29 @@ class CourseBloc extends Bloc<CourseEvent, CourseState> {
             event.courseId!,
             forceRefresh: event.forceRefresh,
           ),
+        if (event.courseId != null)
+          noteRepository.getNotes(
+            linkedEntityType: 'course',
+            courseId: event.courseId,
+            includeContent: true,
+            forceRefresh: event.forceRefresh,
+          ),
       ]);
       final courseGroup = results[0] as CourseGroupModel;
-      final CourseModel? course =
-          event.courseId != null ? results[1] as CourseModel : null;
+      CourseModel? course;
+      NoteModel? linkedNote;
+
+      if (event.courseId != null) {
+        course = results[1] as CourseModel;
+        final notes = results[2] as List<NoteModel>;
+        linkedNote = notes.isNotEmpty ? notes.first : null;
+      }
       emit(
         CourseScreenDataFetched(
           origin: event.origin,
           courseGroup: courseGroup,
           course: course,
+          linkedNote: linkedNote,
           courseGroupId: event.courseGroupId,
           courseId: event.courseId,
         ),
@@ -324,12 +352,19 @@ class CourseBloc extends Bloc<CourseEvent, CourseState> {
         event.courseGroupId,
         event.request.copyWith(template: CourseTemplate.standard.value),
       );
+      final linkedNoteSave = await _linkedNoteSaver.saveForNewEntity(
+        event.noteContent,
+        courseId: course.id,
+      );
 
       emit(
         CourseCreated(
           origin: event.origin,
           course: course,
           advanceNavOnSuccess: event.advanceNavOnSuccess,
+          redirectToNotebook: event.redirectToNotebook,
+          linkedNoteId: linkedNoteSave.noteId,
+          linkedNoteSave: linkedNoteSave,
         ),
       );
     } on HeliumException catch (e) {
@@ -351,24 +386,43 @@ class CourseBloc extends Bloc<CourseEvent, CourseState> {
     emit(CoursesLoading(origin: event.origin));
 
     try {
-      final course = await courseRepository.updateCourse(
-        event.courseGroupId,
-        event.courseId,
-        event.request,
-        version: event.version,
+      final saved = await _linkedNoteSaver.saveWithEntity(
+        courseRepository.updateCourse(
+          event.courseGroupId,
+          event.courseId,
+          event.request,
+          version: event.version,
+        ),
+        event.linkedNote,
+        courseId: event.courseId,
       );
+      final conflict = saved.entityConflict;
+      if (conflict != null) {
+        emit(CourseConflict(
+          origin: event.origin,
+          latest: CourseModel.fromJson(conflict.latest),
+          linkedNoteSave: saved.note,
+        ));
+        return;
+      }
+      if (saved.entityFailure case final failure?) {
+        emit(CoursesError(
+          origin: event.origin,
+          message: failure.message,
+          linkedNoteSave: saved.note,
+        ));
+        return;
+      }
       emit(
         CourseUpdated(
           origin: event.origin,
-          course: course,
+          course: saved.entity!,
           advanceNavOnSuccess: event.advanceNavOnSuccess,
+          redirectToNotebook: event.redirectToNotebook,
+          linkedNoteId: saved.note!.noteId,
+          linkedNoteSave: saved.note,
         ),
       );
-    } on ConflictException catch (e) {
-      emit(CourseConflict(
-        origin: event.origin,
-        latest: CourseModel.fromJson(e.latest),
-      ));
     } on HeliumException catch (e) {
       emit(CoursesError(origin: event.origin, message: e.message));
     } catch (e) {

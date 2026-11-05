@@ -31,7 +31,7 @@ import 'package:heliumapp/presentation/ui/components/course_title_label.dart';
 import 'package:heliumapp/presentation/ui/components/grade_label.dart';
 import 'package:heliumapp/presentation/ui/components/group_dropdown.dart';
 import 'package:heliumapp/presentation/ui/components/helium_checkbox_list_tile.dart';
-import 'package:heliumapp/presentation/ui/dialogs/helium_bottom_sheet.dart';
+import 'package:heliumapp/presentation/ui/dialogs/helium_menu.dart';
 import 'package:heliumapp/presentation/ui/feedback/empty_card.dart';
 import 'package:heliumapp/presentation/ui/feedback/error_card.dart';
 import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
@@ -1058,116 +1058,61 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
       }
     }
 
-    final isMobile = Responsive.isMobile(context);
 
-    if (isMobile) {
-      showHeliumBottomSheet(
-        context: context,
-        builder: (ctx) =>
-            StatefulBuilder(
-              builder: (menuContext, _) =>
-                  _buildGradeCalculatorPickerContent(
-                      menuContext, courses),
-            ),
-      );
-    } else {
-      final RenderBox button = buttonContext.findRenderObject() as RenderBox;
-      final RenderBox overlay =
-      Overlay
-          .of(context, rootOverlay: true)
-          .context
-          .findRenderObject() as RenderBox;
-      final RelativeRect position = RelativeRect.fromRect(
-        Rect.fromPoints(
-          button.localToGlobal(Offset.zero, ancestor: overlay),
-          button.localToGlobal(
-            button.size.bottomRight(Offset.zero),
-            ancestor: overlay,
-          ),
-        ),
-        Offset.zero & overlay.size,
-      );
-
-      showMenu(
-        context: context,
-        position: position,
-        color: context.colorScheme.surface,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0)),
-        useRootNavigator: true,
-        items: [
-          PopupMenuItem(
-            enabled: false,
-            padding: EdgeInsets.zero,
-            child: StatefulBuilder(
-              builder: (menuContext, _) =>
-                  _buildGradeCalculatorPickerContent(
-                    menuContext,
-                    courses,
-                  ),
-            ),
-          ),
-        ],
-      );
-    }
+    showHeliumMenu(
+      context: context,
+      anchorContext: buttonContext,
+      builder: (menuContext, _) =>
+          _buildGradeCalculatorPickerContent(menuContext, courses),
+    );
   }
 
   Widget _buildGradeCalculatorPickerContent(BuildContext menuContext,
       List<GradeCourseModel> courses,) {
-    return Material(
-      color: context.colorScheme.surface,
-      child: ConstrainedBox(
-        constraints: BoxConstraints(
-          maxHeight: MediaQuery.of(context).size.height * AppConstants.bottomSheetMaxHeightFactor,
-        ),
-        child: SingleChildScrollView(
-        child: Padding(
-        padding: Responsive.sheetContentPadding(menuContext),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            for (int i = 0; i < courses.length; i++) ...[
-              if (i > 0) const Divider(height: 1),
-              Padding(
-                padding: EdgeInsets.only(
-                  top: i == 0 ? 0 : 8,
-                  bottom: i == courses.length - 1 ? 0 : 8,
-                ),
-                child: ListTile(
-                  leading: Padding(
-                    padding: const EdgeInsets.only(left: 8),
-                    child: Icon(
-                      Icons.school,
-                      size: 16,
-                      color: courses[i].color,
-                    ),
-                  ),
-                  title: Text(
-                    courses[i].title,
-                    style: AppStyles.formText(context),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  subtitle: GradeLabel(
-                    grade: GradeHelper.gradeForDisplay(
-                      courses[i].overallGrade,
-                    ),
-                    userSettings: userSettings,
-                    compact: true,
-                    selectable: false,
-                  ),
-                  dense: true,
-                  contentPadding: EdgeInsets.zero,
-                  onTap: () {
-                    Navigator.pop(menuContext);
-                    _openGradeCalculator(courses[i]);
-                  },
-                ),
+    return HeliumMenuContent(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          for (int i = 0; i < courses.length; i++) ...[
+            if (i > 0) const Divider(height: 1),
+            Padding(
+              padding: EdgeInsets.only(
+                top: i == 0 ? 0 : 8,
+                bottom: i == courses.length - 1 ? 0 : 8,
               ),
-            ],
+              child: ListTile(
+                leading: Padding(
+                  padding: const EdgeInsets.only(left: 8),
+                  child: Icon(
+                    Icons.school,
+                    size: 16,
+                    color: courses[i].color,
+                  ),
+                ),
+                title: Text(
+                  courses[i].title,
+                  style: AppStyles.formText(context),
+                  overflow: TextOverflow.ellipsis,
+                ),
+                subtitle: GradeLabel(
+                  grade: GradeHelper.gradeForDisplay(
+                    courses[i].overallGrade,
+                  ),
+                  userSettings: userSettings,
+                  compact: true,
+                  selectable: false,
+                ),
+                dense: true,
+                contentPadding: EdgeInsets.zero,
+                onTap: () {
+                  Navigator.pop(menuContext);
+                  _openGradeCalculator(courses[i]);
+                },
+              ),
+            ),
           ],
-        ),
-        ),
-        ),
+        ],
       ),
     );
   }
@@ -2024,149 +1969,104 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
   }
 
   void _showGraphSettings(BuildContext buttonContext) {
-    final isMobile = Responsive.isMobile(context);
     final selectedGroup = _grades.firstWhere(
           (g) => g.id == _selectedGroupId,
       orElse: () => _grades.first,
     );
 
     Widget buildContent(BuildContext menuContext, StateSetter setMenuState) {
-      return Material(
-        color: context.colorScheme.surface,
-        child: ConstrainedBox(
-          constraints: BoxConstraints(
-            maxHeight: MediaQuery.of(context).size.height * AppConstants.bottomSheetMaxHeightFactor,
-          ),
-          child: SingleChildScrollView(
-            child: Padding(
-              padding: Responsive.sheetContentPadding(menuContext),
+      return HeliumMenuContent(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            RadioGroup<String>(
+              groupValue: _graphViewMode.radioValue,
+              onChanged: (value) {
+                if (value == null) return;
+                setState(() => _graphViewMode =
+                    _GraphViewMode.fromRadioValue(value));
+                Navigator.pop(menuContext);
+              },
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  RadioGroup<String>(
-                    groupValue: _graphViewMode.radioValue,
-                    onChanged: (value) {
-                      if (value == null) return;
-                      setState(() => _graphViewMode =
-                          _GraphViewMode.fromRadioValue(value));
-                      Navigator.pop(menuContext);
-                    },
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        RadioListTile<String>(
-                          title: Text(
-                            'Entire Term',
-                            style: AppStyles.formText(context),
-                          ),
-                          value: const _GraphViewMode.term().radioValue,
-                          controlAffinity: ListTileControlAffinity.leading,
-                          dense: true,
-                          contentPadding: const EdgeInsets.only(left: 4),
-                        ),
-                        const Divider(height: 20),
-                        ...selectedGroup.courses.map(
-                          (course) => RadioListTile<String>(
-                            title: Row(
-                              children: [
-                                Icon(Icons.school, size: 16,
-                                    color: course.color),
-                                const SizedBox(width: 8),
-                                Expanded(
-                                  child: Text(
-                                    course.title,
-                                    style: AppStyles.formText(context),
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            value:
-                                _GraphViewMode.course(course.id).radioValue,
-                            controlAffinity: ListTileControlAffinity.leading,
-                            dense: true,
-                            contentPadding: const EdgeInsets.only(left: 4),
-                          ),
-                        ),
-                      ],
+                  RadioListTile<String>(
+                    title: Text(
+                      'Entire Term',
+                      style: AppStyles.formText(context),
                     ),
+                    value: const _GraphViewMode.term().radioValue,
+                    controlAffinity: ListTileControlAffinity.leading,
+                    dense: true,
+                    contentPadding: const EdgeInsets.only(left: 4),
                   ),
                   const Divider(height: 20),
-                  HeliumCheckboxListTile(
-                    controlAffinity: ListTileControlAffinity.leading,
-                    title: Text(
-                      'Auto-adjust to graded range',
-                      style: AppStyles.formText(context),
+                  ...selectedGroup.courses.map(
+                    (course) => RadioListTile<String>(
+                      title: Row(
+                        children: [
+                          Icon(Icons.school, size: 16,
+                              color: course.color),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              course.title,
+                              style: AppStyles.formText(context),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ),
+                      value:
+                          _GraphViewMode.course(course.id).radioValue,
+                      controlAffinity: ListTileControlAffinity.leading,
+                      dense: true,
+                      contentPadding: const EdgeInsets.only(left: 4),
                     ),
-                    value: _autoAdjustToGradedRange == true,
-                    onChanged: (value) {
-                      _setAutoAdjustToGradedRange(value ?? false);
-                      setMenuState(() {});
-                    },
-                    dense: true,
-                    contentPadding: EdgeInsets.zero,
-                  ),
-                  HeliumCheckboxListTile(
-                    controlAffinity: ListTileControlAffinity.leading,
-                    title: Text(
-                      'Hide legend',
-                      style: AppStyles.formText(context),
-                    ),
-                    value: _hideLegend == true,
-                    onChanged: (value) {
-                      _setHideLegend(value ?? false);
-                      setMenuState(() {});
-                    },
-                    dense: true,
-                    contentPadding: EdgeInsets.zero,
                   ),
                 ],
               ),
             ),
-          ),
+            const Divider(height: 20),
+            HeliumCheckboxListTile(
+              controlAffinity: ListTileControlAffinity.leading,
+              title: Text(
+                'Auto-adjust to graded range',
+                style: AppStyles.formText(context),
+              ),
+              value: _autoAdjustToGradedRange == true,
+              onChanged: (value) {
+                _setAutoAdjustToGradedRange(value ?? false);
+                setMenuState(() {});
+              },
+              dense: true,
+              contentPadding: EdgeInsets.zero,
+            ),
+            HeliumCheckboxListTile(
+              controlAffinity: ListTileControlAffinity.leading,
+              title: Text(
+                'Hide legend',
+                style: AppStyles.formText(context),
+              ),
+              value: _hideLegend == true,
+              onChanged: (value) {
+                _setHideLegend(value ?? false);
+                setMenuState(() {});
+              },
+              dense: true,
+              contentPadding: EdgeInsets.zero,
+            ),
+          ],
         ),
       );
     }
 
-    if (isMobile) {
-      showHeliumBottomSheet(
-        context: context,
-        builder: (context) => StatefulBuilder(builder: buildContent),
-      );
-    } else {
-      final RenderBox button = buttonContext.findRenderObject() as RenderBox;
-      final RenderBox overlay =
-      Overlay
-          .of(context, rootOverlay: true)
-          .context
-          .findRenderObject() as RenderBox;
-      final RelativeRect position = RelativeRect.fromRect(
-        Rect.fromPoints(
-          button.localToGlobal(Offset.zero, ancestor: overlay),
-          button.localToGlobal(
-            button.size.bottomRight(Offset.zero),
-            ancestor: overlay,
-          ),
-        ),
-        Offset.zero & overlay.size,
-      );
-
-      showMenu(
-        context: context,
-        position: position,
-        color: context.colorScheme.surface,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0)),
-        useRootNavigator: true,
-        items: [
-          PopupMenuItem(
-            enabled: false,
-            padding: EdgeInsets.zero,
-            child: StatefulBuilder(builder: buildContent),
-          ),
-        ],
-      );
-    }
+    showHeliumMenu(
+      context: context,
+      anchorContext: buttonContext,
+      builder: buildContent,
+    );
   }
 
   Widget _buildCourseCard(int index,

@@ -169,6 +169,9 @@ class ProviderHelpers {
       reminderRepository: ReminderRepositoryImpl(
         remoteDataSource: ReminderRemoteDataSourceImpl(dioClient: _dioClient),
       ),
+      noteRepository: NoteRepositoryImpl(
+        remoteDataSource: NoteRemoteDataSourceImpl(dioClient: _dioClient),
+      ),
     );
   }
 
@@ -182,6 +185,9 @@ class ProviderHelpers {
       ),
       noteRepository: NoteRepositoryImpl(
         remoteDataSource: NoteRemoteDataSourceImpl(dioClient: _dioClient),
+      ),
+      attachmentRepository: AttachmentRepositoryImpl(
+        remoteDataSource: AttachmentRemoteDataSourceImpl(dioClient: _dioClient),
       ),
     );
   }

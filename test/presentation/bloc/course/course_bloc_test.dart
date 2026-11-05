@@ -1,12 +1,17 @@
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:heliumapp/core/helium_exception.dart';
+import 'package:heliumapp/domain/linked_note_saver.dart';
+import 'package:heliumapp/data/models/planner/request/note_request_model.dart';
+import 'package:heliumapp/data/models/planner/request/course_request_model.dart';
+import 'package:heliumapp/data/models/planner/note_model.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/core/base_event.dart';
 import 'package:heliumapp/presentation/features/courses/bloc/course_bloc.dart';
 import 'package:heliumapp/presentation/features/courses/bloc/course_event.dart';
 import 'package:heliumapp/presentation/features/courses/bloc/course_state.dart';
 import 'package:mocktail/mocktail.dart';
 
+import '../../../helpers/note_helper.dart';
 import '../../../mocks/mock_models.dart';
 import '../../../mocks/mock_repositories.dart';
 import '../../../mocks/register_fallbacks.dart';
@@ -17,6 +22,7 @@ void main() {
   late MockCategoryRepository mockCategoryRepository;
   late MockAttachmentRepository mockAttachmentRepository;
   late MockReminderRepository mockReminderRepository;
+  late MockNoteRepository mockNoteRepository;
   late CourseBloc courseBloc;
 
   setUpAll(() {
@@ -29,18 +35,45 @@ void main() {
     mockCategoryRepository = MockCategoryRepository();
     mockAttachmentRepository = MockAttachmentRepository();
     mockReminderRepository = MockReminderRepository();
+    mockNoteRepository = MockNoteRepository();
     courseBloc = CourseBloc(
       courseRepository: mockCourseRepository,
       courseScheduleRepository: mockCourseScheduleRepository,
       categoryRepository: mockCategoryRepository,
       attachmentRepository: mockAttachmentRepository,
       reminderRepository: mockReminderRepository,
+      noteRepository: mockNoteRepository,
     );
   });
 
   tearDown(() {
     courseBloc.close();
   });
+
+  void givenClassNotes(List<NoteModel> notes) {
+    when(
+      () => mockNoteRepository.getNotes(
+        linkedEntityType: 'course',
+        courseId: any(named: 'courseId'),
+        includeContent: true,
+        forceRefresh: any(named: 'forceRefresh'),
+      ),
+    ).thenAnswer((_) async => notes);
+  }
+
+  final request = CourseRequestModel(
+    title: 'Biology',
+    startDate: '2025-08-25',
+    endDate: '2025-12-15',
+    room: '',
+    credits: '3.0',
+    color: '#4CAF50',
+    website: '',
+    isOnline: false,
+    teacherName: '',
+    teacherEmail: '',
+    courseGroup: 1,
+  );
 
   group('CourseBloc', () {
     test('initial state is CourseInitial with bloc origin', () {
@@ -66,6 +99,7 @@ void main() {
           when(
             () => mockReminderRepository.getReminders(sent: false),
           ).thenAnswer((_) async => MockModels.createReminders());
+          givenClassNotes([]);
           return courseBloc;
         },
         act: (bloc) => bloc.add(
@@ -92,6 +126,7 @@ void main() {
           when(
             () => mockReminderRepository.getReminders(sent: false),
           ).thenAnswer((_) async => MockModels.createReminders());
+          givenClassNotes([]);
           return courseBloc;
         },
         act: (bloc) =>
@@ -162,6 +197,7 @@ void main() {
           when(
             () => mockCourseRepository.getCourse(courseGroupId, courseId),
           ).thenAnswer((_) async => MockModels.createCourse());
+          givenClassNotes([]);
           return courseBloc;
         },
         act: (bloc) => bloc.add(
@@ -226,6 +262,169 @@ void main() {
             'message',
             'Course group not found',
           ),
+        ],
+      );
+    });
+
+    group('class notes', () {
+      blocTest<CourseBloc, CourseState>(
+        'opening a class loads its own note',
+        build: () {
+          when(
+            () => mockCourseRepository.getCourseGroup(1),
+          ).thenAnswer((_) async => MockModels.createCourseGroup());
+          when(
+            () => mockCourseRepository.getCourse(1, 1),
+          ).thenAnswer((_) async => MockModels.createCourse());
+          givenClassNotes([NoteModel.fromJson(givenNoteJson(id: 4))]);
+          return courseBloc;
+        },
+        act: (bloc) => bloc.add(
+          FetchCourseScreenDataEvent(
+            origin: EventOrigin.subScreen,
+            courseGroupId: 1,
+            courseId: 1,
+          ),
+        ),
+        expect: () => [
+          isA<CoursesLoading>(),
+          isA<CourseScreenDataFetched>().having(
+            (s) => s.linkedNote?.id,
+            'linked note',
+            4,
+          ),
+        ],
+        verify: (_) {
+          verify(
+            () => mockNoteRepository.getNotes(
+              linkedEntityType: 'course',
+              courseId: 1,
+              includeContent: true,
+              forceRefresh: false,
+            ),
+          ).called(1);
+        },
+      );
+
+      blocTest<CourseBloc, CourseState>(
+        'saving a class saves its edited note too',
+        build: () {
+          when(
+            () => mockCourseRepository.updateCourse(
+              1,
+              1,
+              any(),
+              version: any(named: 'version'),
+            ),
+          ).thenAnswer((_) async => MockModels.createCourse());
+          when(
+            () => mockNoteRepository.updateNote(
+              noteId: 4,
+              request: any(named: 'request'),
+              version: any(named: 'version'),
+            ),
+          ).thenAnswer((_) async => NoteModel.fromJson(givenNoteJson(id: 4)));
+          return courseBloc;
+        },
+        act: (bloc) => bloc.add(
+          UpdateCourseEvent(
+            origin: EventOrigin.subScreen,
+            courseGroupId: 1,
+            courseId: 1,
+            request: request,
+            linkedNote: const LinkedNoteEdit(
+              noteId: 4,
+              content: {
+                'ops': [
+                  {'insert': 'Office hours Tuesday\n'},
+                ],
+              },
+            ),
+          ),
+        ),
+        expect: () => [
+          isA<CoursesLoading>(),
+          isA<CourseUpdated>()
+              .having((s) => s.linkedNoteId, 'linked note id', 4)
+              .having((s) => s.linkedNoteSave?.isSaved, 'note saved', isTrue),
+        ],
+      );
+
+      blocTest<CourseBloc, CourseState>(
+        'a new class with a note creates the note linked to it',
+        build: () {
+          when(
+            () => mockCourseRepository.createCourse(1, any()),
+          ).thenAnswer((_) async => MockModels.createCourse(id: 7));
+          when(
+            () => mockNoteRepository.createNote(request: any(named: 'request')),
+          ).thenAnswer((_) async => NoteModel.fromJson(givenNoteJson(id: 9)));
+          return courseBloc;
+        },
+        act: (bloc) => bloc.add(
+          CreateCourseEvent(
+            origin: EventOrigin.subScreen,
+            courseGroupId: 1,
+            request: request,
+            noteContent: {
+              'ops': [
+                {'insert': 'Syllabus highlights\n'},
+              ],
+            },
+          ),
+        ),
+        expect: () => [
+          isA<CoursesLoading>(),
+          isA<CourseCreated>()
+              .having((s) => s.course.id, 'course', 7)
+              .having((s) => s.linkedNoteId, 'linked note id', 9),
+        ],
+        verify: (_) {
+          final sent = verify(
+            () => mockNoteRepository.createNote(
+              request: captureAny(named: 'request'),
+            ),
+          ).captured.single as NoteRequestModel;
+          expect(sent.courseId, 7);
+        },
+      );
+
+      blocTest<CourseBloc, CourseState>(
+        "when another device already gave the class a note, it's that class's own note that conflicts",
+        build: () {
+          when(
+            () => mockCourseRepository.createCourse(1, any()),
+          ).thenAnswer((_) async => MockModels.createCourse(id: 7));
+          when(
+            () => mockNoteRepository.createNote(request: any(named: 'request')),
+          ).thenThrow(ValidationException(message: 'This class already has a linked note.'));
+          when(
+            () => mockNoteRepository.getNotes(
+              linkedEntityType: 'course',
+              courseId: 7,
+              includeContent: true,
+              forceRefresh: true,
+            ),
+          ).thenAnswer((_) async => [NoteModel.fromJson(givenNoteJson(id: 12))]);
+          return courseBloc;
+        },
+        act: (bloc) => bloc.add(
+          CreateCourseEvent(
+            origin: EventOrigin.subScreen,
+            courseGroupId: 1,
+            request: request,
+            noteContent: {
+              'ops': [
+                {'insert': 'Mine\n'},
+              ],
+            },
+          ),
+        ),
+        expect: () => [
+          isA<CoursesLoading>(),
+          isA<CourseCreated>()
+              .having((s) => s.linkedNoteSave?.isConflict, 'conflict', isTrue)
+              .having((s) => s.linkedNoteSave?.note?.id, 'existing note', 12),
         ],
       );
     });

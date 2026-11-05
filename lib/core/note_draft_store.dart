@@ -14,6 +14,7 @@ typedef NoteDraft = ({
   int? homeworkId,
   int? eventId,
   int? resourceId,
+  int? courseId,
 });
 
 /// A note's edits that the server hasn't confirmed, kept on this device so
@@ -55,6 +56,7 @@ class NoteDraftStore {
         homeworkId: draft['homework_id'] as int?,
         eventId: draft['event_id'] as int?,
         resourceId: draft['resource_id'] as int?,
+        courseId: draft['course_id'] as int?,
       );
     }
     return null;
@@ -71,6 +73,7 @@ class NoteDraftStore {
         'homework_id': draft.homeworkId,
         'event_id': draft.eventId,
         'resource_id': draft.resourceId,
+        'course_id': draft.courseId,
         'saved_at': DateTime.now().toUtc().toIso8601String(),
       };
     _write(_withoutExpired(drafts));

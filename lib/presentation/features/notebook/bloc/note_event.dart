@@ -38,6 +38,7 @@ class FetchNoteScreenDataEvent extends NoteEvent {
   final int? linkHomeworkId;
   final int? linkEventId;
   final int? linkResourceId;
+  final int? linkCourseId;
 
   FetchNoteScreenDataEvent({
     required super.origin,
@@ -45,6 +46,7 @@ class FetchNoteScreenDataEvent extends NoteEvent {
     this.linkHomeworkId,
     this.linkEventId,
     this.linkResourceId,
+    this.linkCourseId,
   });
 }
 

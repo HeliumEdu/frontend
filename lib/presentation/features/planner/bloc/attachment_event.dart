@@ -10,9 +10,16 @@ class FetchAttachmentsEvent extends AttachmentEvent {
   int? eventId;
   int? homeworkId;
   int? courseId;
+  int? resourceId;
   bool forceRefresh;
 
-  FetchAttachmentsEvent({this.eventId, this.homeworkId, this.courseId, this.forceRefresh = false});
+  FetchAttachmentsEvent({
+    this.eventId,
+    this.homeworkId,
+    this.courseId,
+    this.resourceId,
+    this.forceRefresh = false,
+  });
 }
 
 class CreateAttachmentEvent extends AttachmentEvent {
@@ -20,12 +27,14 @@ class CreateAttachmentEvent extends AttachmentEvent {
   int? eventId;
   int? homeworkId;
   int? courseId;
+  int? resourceId;
 
   CreateAttachmentEvent({
     required this.files,
     this.eventId,
     this.homeworkId,
     this.courseId,
+    this.resourceId,
   });
 }
 
@@ -34,11 +43,13 @@ class DeleteAttachmentEvent extends AttachmentEvent {
   final int? courseId;
   final int? eventId;
   final int? homeworkId;
+  final int? resourceId;
 
   DeleteAttachmentEvent({
     required this.id,
     this.courseId,
     this.eventId,
     this.homeworkId,
+    this.resourceId,
   });
 }

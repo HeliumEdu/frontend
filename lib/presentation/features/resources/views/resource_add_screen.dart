@@ -15,7 +15,9 @@ import 'package:heliumapp/presentation/features/shared/bloc/core/base_event.dart
 import 'package:heliumapp/domain/linked_note_saver.dart';
 import 'package:heliumapp/presentation/features/shared/widgets/core/linked_note_form.dart';
 import 'package:heliumapp/presentation/features/shared/widgets/flow/multi_step_container.dart';
+import 'package:heliumapp/presentation/features/resources/widgets/resource_attachments.dart';
 import 'package:heliumapp/presentation/features/resources/widgets/resource_details.dart';
+import 'package:heliumapp/presentation/features/shared/widgets/core/base_attachments.dart';
 import 'package:heliumapp/presentation/ui/components/helium_icon_button.dart';
 import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
 import 'package:heliumapp/presentation/features/notebook/views/note_add_screen.dart';
@@ -97,7 +99,9 @@ class ResourceAddScreen extends MultiStepContainer {
 class _ResourceAddScreenState
     extends MultiStepContainerState<ResourceAddScreen> {
   final _detailsKey = GlobalKey<ResourceDetailsState>();
+  final _attachmentsKey = GlobalKey<BaseAttachmentsState>();
   bool _dataLoaded = false;
+  int? _targetStep;
 
   int? _currentResourceId;
   int? _currentResourceGroupId;
@@ -214,14 +218,31 @@ class _ResourceAddScreenState
   }
 
   @override
+  bool get enableNextSteps => _currentResourceId != null;
+
+  @override
+  void onStepRequested(int step) {
+    if (step == currentStep) return;
+
+    if (saveAction != null) {
+      final changed = _detailsKey.currentState?.formController.isChanged ?? true;
+      if (!changed) {
+        navigateToStep(step);
+        return;
+      }
+      _targetStep = step;
+      saveAction!();
+      return;
+    }
+
+    navigateToStep(step);
+  }
+
+  @override
   String get screenTitle => widget.isEdit ? 'Edit Resource' : 'Add Resource';
 
   @override
   IconData? get icon => Icons.book;
-
-  @override
-  bool get isDirty =>
-      _detailsKey.currentState?.formController.isUserDirty ?? false;
 
   @override
   List<Widget> get additionalHeaderButtons {
@@ -239,6 +260,22 @@ class _ResourceAddScreenState
   }
 
   @override
+  bool get deferDismissal =>
+      _attachmentsKey.currentState?.isSubmitting ?? false;
+
+  @override
+  bool get isDirty {
+    switch (currentStep) {
+      case 0:
+        return _detailsKey.currentState?.formController.isUserDirty ?? false;
+      case 1:
+        return _attachmentsKey.currentState?.hasUnsavedFiles ?? false;
+      default:
+        return false;
+    }
+  }
+
+  @override
   Function? get saveAction {
     if (steps[currentStep].stepScreenType != ScreenType.entityPage) {
       return null;
@@ -251,7 +288,7 @@ class _ResourceAddScreenState
       if (detailsState == null) return;
       if (detailsState.isLoading || isSubmitting) return;
       if (!detailsState.formController.isChanged) {
-        cancelAction();
+        _navigateAfterSave();
         return;
       }
       detailsState.onSubmit();
@@ -356,9 +393,15 @@ class _ResourceAddScreenState
               );
             } else {
               _log.info('Resource created without notebook redirect (resourceId=${state.resource.id}, hasNote=${state.linkedNoteId != null})');
+              final willClose = _willCloseAfterSave();
+              showSnackBar(
+                context,
+                'Resource created.',
+                useRootMessenger: willClose,
+              );
               _useCreatedResource(state.resource);
-              showSnackBar(context, 'Resource created.', useRootMessenger: true);
-              closeWithoutPrompt();
+              setState(() => isSubmitting = false);
+              _navigateAfterSave();
             }
           } else if (state is ResourceDeleted) {
             showSnackBar(context, 'Resource deleted.', useRootMessenger: true);
@@ -383,12 +426,36 @@ class _ResourceAddScreenState
                 resourceId: state.resource.id,
               );
             } else {
-              closeWithoutPrompt();
+              setState(() => isSubmitting = false);
+              _navigateAfterSave();
             }
           }
         },
       ),
     ];
+  }
+
+  bool _willCloseAfterSave() {
+    if (_targetStep != null) {
+      return _targetStep! >= steps.length;
+    }
+    return !widget.isNew || currentStep + 1 >= steps.length;
+  }
+
+  void _navigateAfterSave() {
+    if (_targetStep != null) {
+      final step = _targetStep!;
+      _targetStep = null;
+      if (step < steps.length) {
+        navigateToStep(step);
+      } else {
+        closeWithoutPrompt();
+      }
+    } else if (widget.isNew && currentStep + 1 < steps.length) {
+      navigateToStep(currentStep + 1);
+    } else {
+      closeWithoutPrompt();
+    }
   }
 
   @override
@@ -416,6 +483,18 @@ class _ResourceAddScreenState
         isEdit: widget.isEdit || _currentResourceId != null,
         onSubmitRequested: () => saveAction?.call(),
         onActionStarted: () => setState(() => isSubmitting = true),
+      ),
+    ),
+    MultiStepDefinition(
+      icon: Icons.attachment,
+      tooltip: 'Attachments',
+      stepScreenType: ScreenType.subPage,
+      builder: (context) => ResourceAttachments(
+        contentKey: _attachmentsKey,
+        entityId: _currentResourceId!,
+        isEdit: widget.isEdit || _currentResourceId != null,
+        userSettings: userSettings,
+        onUploadsSettled: resumeDeferredDismissal,
       ),
     ),
   ];

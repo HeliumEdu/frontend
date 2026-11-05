@@ -273,6 +273,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.1.2"
+  double_feature:
+    dependency: "direct main"
+    description:
+      name: double_feature
+      sha256: "5968e83a8b5b6eeea29286910b69a2bed8c8842114ac1dc7fe810aa15290aa97"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.0"
   equatable:
     dependency: transitive
     description:

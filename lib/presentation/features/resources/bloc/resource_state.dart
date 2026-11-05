@@ -1,3 +1,4 @@
+import 'package:heliumapp/data/models/planner/attachment_model.dart';
 import 'package:heliumapp/data/models/planner/course_model.dart';
 import 'package:heliumapp/data/models/planner/note_model.dart';
 import 'package:heliumapp/data/models/planner/resource_group_model.dart';
@@ -52,6 +53,7 @@ class ResourcesScreenDataFetched extends ResourceState {
   final List<ResourceModel> resources;
   final List<CourseModel> courses;
   final List<NoteModel> notes;
+  final List<AttachmentModel> attachments;
 
   ResourcesScreenDataFetched({
     required super.origin,
@@ -60,6 +62,7 @@ class ResourcesScreenDataFetched extends ResourceState {
     required this.resources,
     required this.courses,
     required this.notes,
+    required this.attachments,
   });
 }
 

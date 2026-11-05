@@ -1,4 +1,8 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
+import 'package:heliumapp/data/models/planner/resource_model.dart';
+import 'package:heliumapp/presentation/ui/components/hover_tap_target.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/data/models/auth/user_settings_model.dart';
 import 'package:heliumapp/data/models/planner/event_model.dart';
@@ -15,6 +19,14 @@ class PlannerItemMetaRow extends StatelessWidget {
   final double groupGap;
   final VoidCallback? onOpenInNotebook;
 
+  final int pulledThroughAttachmentCount;
+
+  final void Function(BuildContext anchorContext)? onOpenAttachments;
+
+  final List<ResourceModel> resources;
+
+  final void Function(BuildContext anchorContext)? onOpenResources;
+
   /// Cap on rendered entries; null renders all. Defaults to 3 for the todos
   /// grid's fixed-width cell; the planner tooltip passes null.
   final int? maxEntries;
@@ -27,15 +39,22 @@ class PlannerItemMetaRow extends StatelessWidget {
     this.iconSize = 14,
     this.groupGap = 12,
     this.onOpenInNotebook,
+    this.pulledThroughAttachmentCount = 0,
+    this.onOpenAttachments,
+    this.resources = const [],
+    this.onOpenResources,
     this.maxEntries = 3,
   });
 
-  static bool hasAny(PlannerItemBaseModel plannerItem) {
+  static bool hasAny(
+    PlannerItemBaseModel plannerItem, {
+    int pulledThroughAttachmentCount = 0,
+    int resourceCount = 0,
+  }) {
     if (_linkedNoteId(plannerItem) != null) return true;
-    if (plannerItem is HomeworkModel && plannerItem.resources.isNotEmpty) {
-      return true;
-    }
+    if (plannerItem is HomeworkModel && resourceCount > 0) return true;
     if (plannerItem.attachments.isNotEmpty) return true;
+    if (pulledThroughAttachmentCount > 0) return true;
     if (plannerItem.reminders.isNotEmpty) return true;
     return false;
   }
@@ -60,28 +79,34 @@ class PlannerItemMetaRow extends StatelessWidget {
         _MetaEntry.iconOnly(
           icon: Icons.library_books,
           color: context.colorScheme.primary,
-          onTap: onOpenInNotebook,
+          onTap: onOpenInNotebook == null ? null : (_) => onOpenInNotebook!(),
           tooltip: onOpenInNotebook != null ? 'Open in Notebook' : null,
         ),
       );
     }
 
-    if (item.attachments.isNotEmpty) {
+    final attachmentCount =
+        item.attachments.length + pulledThroughAttachmentCount;
+    if (attachmentCount > 0) {
       entries.add(
         _MetaEntry.count(
           icon: Icons.attachment,
-          count: item.attachments.length,
+          count: attachmentCount,
           color: context.semanticColors.success.withValues(alpha: 0.9),
+          onTap: onOpenAttachments,
+          tooltip: onOpenAttachments != null ? 'Show attachments' : null,
         ),
       );
     }
 
-    if (item is HomeworkModel && item.resources.isNotEmpty) {
+    if (item is HomeworkModel && resources.isNotEmpty) {
       entries.add(
         _MetaEntry.count(
           icon: Icons.book_outlined,
-          count: item.resources.length,
+          count: resources.length,
           color: userSettings.resourceColor.withValues(alpha: 0.9),
+          onTap: onOpenResources,
+          tooltip: onOpenResources != null ? 'Show resources' : null,
         ),
       );
     }
@@ -99,16 +124,39 @@ class PlannerItemMetaRow extends StatelessWidget {
     final visible = maxEntries == null
         ? entries
         : entries.take(maxEntries!).toList();
+    double startPadding(int i) =>
+        i > 0 && visible[i].onTap != null ? groupGap / 2 : 0;
+    double endPadding(int i) =>
+        i < visible.length - 1 && visible[i].onTap != null ? groupGap / 2 : 0;
+    final verticalPadding = math.max(
+      0.0,
+      (HoverTapTarget.extentOf(context) - iconSize) / 2,
+    );
+
     final children = <Widget>[];
     for (var i = 0; i < visible.length; i++) {
-      if (i > 0) children.add(SizedBox(width: groupGap));
-      children.add(_buildEntry(visible[i]));
+      if (i > 0) {
+        children.add(
+          SizedBox(width: groupGap - endPadding(i - 1) - startPadding(i)),
+        );
+      }
+      children.add(
+        _buildEntry(
+          visible[i],
+          hitPadding: EdgeInsets.fromLTRB(
+            startPadding(i),
+            verticalPadding,
+            endPadding(i),
+            verticalPadding,
+          ),
+        ),
+      );
     }
 
     return Row(mainAxisSize: MainAxisSize.min, children: children);
   }
 
-  Widget _buildEntry(_MetaEntry entry) {
+  Widget _buildEntry(_MetaEntry entry, {required EdgeInsets hitPadding}) {
     final iconWidget = Icon(entry.icon, size: iconSize, color: entry.color);
     final visual = entry.count == null
         ? iconWidget
@@ -124,20 +172,16 @@ class PlannerItemMetaRow extends StatelessWidget {
             ],
           );
 
-    if (entry.onTap == null) return visual;
+    final onTap = entry.onTap;
+    if (onTap == null) return visual;
 
-    Widget wrapped = MouseRegion(
-      cursor: SystemMouseCursors.click,
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTap: entry.onTap,
-        child: visual,
-      ),
+    return HoverTapTarget(
+      onTap: onTap,
+      color: entry.color,
+      tooltip: entry.tooltip,
+      hitPadding: hitPadding,
+      child: visual,
     );
-    if (entry.tooltip != null) {
-      wrapped = Tooltip(message: entry.tooltip!, child: wrapped);
-    }
-    return wrapped;
   }
 }
 
@@ -145,15 +189,16 @@ class _MetaEntry {
   final IconData icon;
   final int? count;
   final Color color;
-  final VoidCallback? onTap;
+  final void Function(BuildContext anchorContext)? onTap;
   final String? tooltip;
 
   _MetaEntry.count({
     required this.icon,
     required int this.count,
     required this.color,
-  }) : onTap = null,
-       tooltip = null;
+    this.onTap,
+    this.tooltip,
+  });
 
   _MetaEntry.iconOnly({
     required this.icon,

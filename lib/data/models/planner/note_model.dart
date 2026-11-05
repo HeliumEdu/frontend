@@ -10,6 +10,7 @@ class NoteModel extends BaseTitledModel {
   final List<int> homework;
   final List<int> events;
   final List<int> resources;
+  final List<int> courses;
   final String linkedEntityType;
   final String? linkedEntityTitle;
   final DateTime? linkedEntityDue;
@@ -27,6 +28,7 @@ class NoteModel extends BaseTitledModel {
     this.homework = const [],
     this.events = const [],
     this.resources = const [],
+    this.courses = const [],
     this.linkedEntityType = '',
     this.linkedEntityTitle,
     this.linkedEntityDue,
@@ -41,6 +43,7 @@ class NoteModel extends BaseTitledModel {
     final homework = (json['homework'] as List<dynamic>?)?.cast<int>() ?? [];
     final events = (json['events'] as List<dynamic>?)?.cast<int>() ?? [];
     final resources = (json['resources'] as List<dynamic>?)?.cast<int>() ?? [];
+    final courses = (json['courses'] as List<dynamic>?)?.cast<int>() ?? [];
 
     return NoteModel(
       id: json['id'],
@@ -53,6 +56,7 @@ class NoteModel extends BaseTitledModel {
       homework: homework,
       events: events,
       resources: resources,
+      courses: courses,
       linkedEntityType: json['linked_entity_type'] ?? '',
       linkedEntityTitle: json['linked_entity_title'],
       linkedEntityDue: json['linked_entity_due'] != null
@@ -78,6 +82,7 @@ class NoteModel extends BaseTitledModel {
     List<int>? homework,
     List<int>? events,
     List<int>? resources,
+    List<int>? courses,
     String? linkedEntityType,
     String? linkedEntityTitle,
     DateTime? linkedEntityDue,
@@ -95,6 +100,7 @@ class NoteModel extends BaseTitledModel {
       homework: homework ?? this.homework,
       events: events ?? this.events,
       resources: resources ?? this.resources,
+      courses: courses ?? this.courses,
       linkedEntityType: linkedEntityType ?? this.linkedEntityType,
       linkedEntityTitle: linkedEntityTitle ?? this.linkedEntityTitle,
       linkedEntityDue: linkedEntityDue ?? this.linkedEntityDue,
@@ -113,7 +119,7 @@ class NoteModel extends BaseTitledModel {
     Set<int> courseIds,
     Map<int, ResourceModel> resourcesById,
   ) {
-    if (linkedEntityType == 'homework') {
+    if (linkedEntityType == 'homework' || linkedEntityType == 'course') {
       return courseId == null || courseIds.contains(courseId);
     }
     if (linkedEntityType == 'resource') {

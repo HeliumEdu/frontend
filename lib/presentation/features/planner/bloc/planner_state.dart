@@ -1,3 +1,4 @@
+import 'package:heliumapp/data/models/planner/attachment_model.dart';
 import 'package:heliumapp/data/models/planner/category_model.dart';
 import 'package:heliumapp/data/models/planner/course_group_model.dart';
 import 'package:heliumapp/data/models/planner/course_model.dart';
@@ -25,6 +26,7 @@ class PlannerScreenDataFetched extends PlannerState {
   final List<CourseModel> courses;
   final List<CategoryModel> categories;
   final List<ResourceModel> resources;
+  final List<AttachmentModel> attachments;
   final bool forceRefresh;
 
   PlannerScreenDataFetched({
@@ -34,6 +36,7 @@ class PlannerScreenDataFetched extends PlannerState {
     required this.courses,
     required this.categories,
     required this.resources,
+    required this.attachments,
     this.forceRefresh = false,
   });
 }

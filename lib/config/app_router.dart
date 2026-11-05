@@ -523,6 +523,7 @@ Page<dynamic> _noteDialogPage(
   final linkEventId = int.tryParse(query[DeepLinkParam.linkEventId] ?? '');
   final linkResourceId =
       int.tryParse(query[DeepLinkParam.linkResourceId] ?? '');
+  final linkCourseId = int.tryParse(query[DeepLinkParam.linkCourseId] ?? '');
   return responsiveDialogPage(
     context,
     state,
@@ -535,6 +536,7 @@ Page<dynamic> _noteDialogPage(
       linkHomeworkId: linkHomeworkId,
       linkEventId: linkEventId,
       linkResourceId: linkResourceId,
+      linkCourseId: linkCourseId,
     ),
     fullScreen: true,
   );
@@ -544,6 +546,7 @@ Page<dynamic> _noteDialogPage(
 /// landing step; an unknown step segment redirects to the landing step.
 const List<String> resourceDialogSteps = [
   'details',
+  'attachments',
 ];
 
 /// Single key shared across every variant of the resource editor route so
@@ -572,8 +575,12 @@ List<RouteBase> _resourceEntityRoutes() => [
         parentNavigatorKey: rootNavigatorKey,
         redirect: (context, state) {
           final step = state.pathParameters['step'];
-          if (step == null || !resourceDialogSteps.contains(step)) {
-            final id = state.pathParameters['id'] ?? 'new';
+          final id = state.pathParameters['id'] ?? 'new';
+          final isUnsavedResourcePastDetails =
+              id == 'new' && step != resourceDialogSteps.first;
+          if (step == null ||
+              !resourceDialogSteps.contains(step) ||
+              isUnsavedResourcePastDetails) {
             return '${AppRoute.resourcesScreen}/$id/'
                 '${resourceDialogSteps.first}';
           }

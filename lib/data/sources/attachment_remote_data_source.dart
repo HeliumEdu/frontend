@@ -18,6 +18,7 @@ abstract class AttachmentRemoteDataSource extends BaseDataSource {
     int? eventId,
     int? homeworkId,
     int? courseId,
+    int? resourceId,
     bool forceRefresh = false,
   });
 
@@ -27,6 +28,7 @@ abstract class AttachmentRemoteDataSource extends BaseDataSource {
     int? event,
     int? homework,
     int? course,
+    int? resource,
   });
 
   Future<void> deleteAttachment(int attachmentId);
@@ -44,6 +46,7 @@ class AttachmentRemoteDataSourceImpl extends AttachmentRemoteDataSource {
     int? event,
     int? homework,
     int? course,
+    int? resource,
   }) async {
     try {
       final fileSizeKb = (bytes.length / 1024).toStringAsFixed(1);
@@ -53,7 +56,9 @@ class AttachmentRemoteDataSourceImpl extends AttachmentRemoteDataSource {
               ? 'Homework $homework'
               : course != null
                   ? 'Course $course'
-                  : 'unknown';
+                  : resource != null
+                      ? 'Resource $resource'
+                      : 'unknown';
       _log.info('Creating Attachment (${fileSizeKb}KB) for $parentInfo ...');
 
       // Create FormData for file upload
@@ -67,6 +72,7 @@ class AttachmentRemoteDataSourceImpl extends AttachmentRemoteDataSource {
         'course': ?course,
         'event': ?event,
         'homework': ?homework,
+        'resource': ?resource,
       });
 
       final response = await dioClient.dio.post(
@@ -104,6 +110,7 @@ class AttachmentRemoteDataSourceImpl extends AttachmentRemoteDataSource {
     int? eventId,
     int? homeworkId,
     int? courseId,
+    int? resourceId,
     bool forceRefresh = false,
   }) async {
     try {
@@ -113,13 +120,16 @@ class AttachmentRemoteDataSourceImpl extends AttachmentRemoteDataSource {
               ? 'Homework $homeworkId'
               : courseId != null
                   ? 'Course $courseId'
-                  : 'all';
+                  : resourceId != null
+                      ? 'Resource $resourceId'
+                      : 'all';
       _log.info('Fetching Attachments for $parentInfo ...');
 
       final Map<String, dynamic> queryParameters = {};
       if (homeworkId != null) queryParameters['homework'] = homeworkId;
       if (eventId != null) queryParameters['event'] = eventId;
       if (courseId != null) queryParameters['course'] = courseId;
+      if (resourceId != null) queryParameters['resource'] = resourceId;
 
       final response = await dioClient.dio.get(
         ApiUrl.plannerAttachmentsListUrl,

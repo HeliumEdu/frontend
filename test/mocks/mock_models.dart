@@ -253,6 +253,7 @@ class MockModels {
     String teacherEmail = 'smith@university.edu',
     double? currentGrade = 85.5,
     List<CourseScheduleModel>? schedules,
+    List<int> notes = const [],
   }) {
     return CourseModel(
       id: id,
@@ -270,6 +271,7 @@ class MockModels {
       currentGrade: currentGrade,
       schedules: schedules ?? [createCourseSchedule(course: id)],
       exceptions: const [],
+      notes: notes,
     );
   }
 
@@ -383,6 +385,7 @@ class MockModels {
     String? price,
     int resourceGroup = 1,
     List<int>? courses,
+    List<int> notes = const [],
   }) {
     return ResourceModel(
       id: id,
@@ -393,7 +396,7 @@ class MockModels {
       price: price,
       resourceGroup: resourceGroup,
       courses: courses ?? [],
-      notes: [],
+      notes: notes,
     );
   }
 
@@ -476,6 +479,7 @@ class MockModels {
     int? course,
     int? event,
     int? homework,
+    int? resource,
   }) {
     return AttachmentModel(
       id: id,
@@ -486,6 +490,7 @@ class MockModels {
       course: course,
       event: event,
       homework: homework,
+      resource: resource,
     );
   }
 
@@ -583,6 +588,7 @@ class MockModels {
     int courseId = 1,
     int categoryId = 1,
     int courseGroup = 1,
+    List<int> resourceIds = const [],
   }) {
     return HomeworkModel(
       id: id,
@@ -600,7 +606,9 @@ class MockModels {
       currentGrade: currentGrade,
       course: IdOrEntity<CourseModel>(id: courseId),
       category: IdOrEntity<CategoryModel>(id: categoryId),
-      resources: [],
+      resources: [
+        for (final id in resourceIds) IdOrEntity<ResourceModel>(id: id),
+      ],
     );
   }
 

@@ -96,6 +96,7 @@ class DeepLinkParam {
   static const String linkHomeworkId = 'linkHomeworkId';
   static const String linkEventId = 'linkEventId';
   static const String linkResourceId = 'linkResourceId';
+  static const String linkCourseId = 'linkCourseId';
 
   // Modifiers (apply to whichever entity param is present)
   static const String tab = 'tab';

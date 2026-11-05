@@ -15,6 +15,7 @@ void main() {
   late MockResourceRepository mockResourceRepository;
   late MockCourseRepository mockCourseRepository;
   late MockNoteRepository mockNoteRepository;
+  late MockAttachmentRepository mockAttachmentRepository;
   late ResourceBloc resourceBloc;
 
   setUpAll(() {
@@ -25,10 +26,12 @@ void main() {
     mockResourceRepository = MockResourceRepository();
     mockCourseRepository = MockCourseRepository();
     mockNoteRepository = MockNoteRepository();
+    mockAttachmentRepository = MockAttachmentRepository();
     resourceBloc = ResourceBloc(
       resourceRepository: mockResourceRepository,
       courseRepository: mockCourseRepository,
       noteRepository: mockNoteRepository,
+      attachmentRepository: mockAttachmentRepository,
     );
   });
 
@@ -60,6 +63,9 @@ void main() {
               includeContent: true,
             ),
           ).thenAnswer((_) async => []);
+          when(
+            () => mockAttachmentRepository.getAttachments(),
+          ).thenAnswer((_) async => []);
           return resourceBloc;
         },
         act: (bloc) => bloc.add(
@@ -85,6 +91,9 @@ void main() {
               linkedEntityType: 'resource',
               includeContent: true,
             ),
+          ).thenAnswer((_) async => []);
+          when(
+            () => mockAttachmentRepository.getAttachments(),
           ).thenAnswer((_) async => []);
           return resourceBloc;
         },

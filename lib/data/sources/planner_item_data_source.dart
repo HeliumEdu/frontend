@@ -25,6 +25,8 @@ import 'package:heliumapp/domain/repositories/event_repository.dart';
 import 'package:heliumapp/domain/repositories/external_calendar_repository.dart';
 import 'package:heliumapp/domain/repositories/homework_repository.dart';
 import 'package:heliumapp/utils/app_globals.dart';
+import 'package:heliumapp/data/models/planner/attachment_model.dart';
+import 'package:heliumapp/utils/attachment_helpers.dart';
 import 'package:heliumapp/utils/date_time_helpers.dart';
 import 'package:heliumapp/utils/grade_helpers.dart';
 import 'package:heliumapp/utils/planner_helper.dart';
@@ -55,6 +57,7 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
   Map<int, CourseGroupModel>? courseGroupsById;
   Map<int, CategoryModel>? categoriesMap;
   Map<int, ResourceModel>? resourcesMap;
+  List<AttachmentModel> _attachments = const [];
 
   final Map<String, List<PlannerItemBaseModel>> _dateRangeCache = {};
 
@@ -127,6 +130,32 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
     if (appointments != null && appointments!.isNotEmpty && !_isDisposed) {
       notifyListeners(CalendarDataSourceAction.reset, appointments!);
     }
+  }
+
+  /// Sets every attachment the planner shows, so assignments can list and
+  /// count their class's and resources' alongside their own.
+  void setAttachments(List<AttachmentModel> attachments) {
+    _attachments = attachments;
+    _notifyChangeListeners();
+  }
+
+  /// How many attachments [homework] shows beyond its own.
+  int pulledThroughAttachmentCount(HomeworkModel homework) =>
+      AttachmentGroups.pulledThroughCount(homework, _attachments);
+
+  /// [homework]'s attachments, its own then those it pulls through.
+  List<AttachmentGroup> attachmentGroupsFor(HomeworkModel homework) =>
+      AttachmentGroups.forHomework(homework, _attachments);
+
+  /// [homework]'s resources the planner shows, by title; those in hidden
+  /// groups stay linked but aren't shown.
+  List<ResourceModel> visibleResourcesFor(HomeworkModel homework) {
+    final byId = resourcesMap ?? const <int, ResourceModel>{};
+    final resources = [
+      for (final resource in homework.resources) ?byId[resource.id],
+    ];
+    Sort.byTitle(resources);
+    return resources;
   }
 
   void _notifyChangeListeners() {

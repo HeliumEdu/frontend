@@ -20,6 +20,8 @@ import 'package:heliumapp/presentation/ui/components/helium_pager.dart';
 import 'package:heliumapp/presentation/ui/feedback/empty_card.dart';
 import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
 import 'package:heliumapp/presentation/ui/components/base_data_grid.dart';
+import 'package:heliumapp/presentation/ui/components/attachments_menu.dart';
+import 'package:heliumapp/presentation/ui/components/resources_menu.dart';
 import 'package:heliumapp/utils/error_helpers.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/format_helpers.dart';
@@ -984,7 +986,7 @@ class TodosDataSource extends BaseDataGridSource {
           DataGridCell<double>(columnName: 'grade', value: gradeSortValue),
           DataGridCell<int>(
             columnName: 'meta',
-            value: homework.resources.length +
+            value: _dataSource.visibleResourcesFor(homework).length +
                 homework.attachments.length +
                 homework.reminders.length +
                 (homework.notes.isNotEmpty ? 1 : 0),
@@ -1275,7 +1277,16 @@ class TodosDataSource extends BaseDataGridSource {
     HomeworkModel homework,
     UserSettingsModel userSettings,
   ) {
-    if (!PlannerItemMetaRow.hasAny(homework)) return const SizedBox.shrink();
+    final pulledThroughCount =
+        _dataSource.pulledThroughAttachmentCount(homework);
+    final resources = _dataSource.visibleResourcesFor(homework);
+    if (!PlannerItemMetaRow.hasAny(
+      homework,
+      pulledThroughAttachmentCount: pulledThroughCount,
+      resourceCount: resources.length,
+    )) {
+      return const SizedBox.shrink();
+    }
     final linkedNoteId = homework.notes.isNotEmpty
         ? homework.notes.first.id
         : null;
@@ -1285,6 +1296,16 @@ class TodosDataSource extends BaseDataGridSource {
       child: PlannerItemMetaRow(
         plannerItem: homework,
         userSettings: userSettings,
+        pulledThroughAttachmentCount: pulledThroughCount,
+        onOpenAttachments: (anchorContext) =>
+            _openAttachments(homework, anchorContext),
+        resources: resources,
+        onOpenResources: (anchorContext) => showResourcesMenu(
+          _context,
+          anchorContext: anchorContext,
+          resources: resources,
+          userSettings: userSettings,
+        ),
         countTextStyle: AppStyles.smallSecondaryTextLight(_context),
         onOpenInNotebook: linkedNoteId == null
             ? null
@@ -1293,6 +1314,14 @@ class TodosDataSource extends BaseDataGridSource {
                 '${AppRoute.notebookScreen}/$linkedNoteId',
               ),
       ),
+    );
+  }
+
+  void _openAttachments(HomeworkModel homework, BuildContext anchorContext) {
+    showAttachmentsMenu(
+      _context,
+      anchorContext: anchorContext,
+      groups: _dataSource.attachmentGroupsFor(homework),
     );
   }
 

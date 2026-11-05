@@ -6,11 +6,14 @@ import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/config/app_router.dart';
 import 'package:heliumapp/config/dirty_dialog_registry.dart';
+import 'package:heliumapp/data/models/planner/course_model.dart';
 import 'package:heliumapp/presentation/features/courses/bloc/course_bloc.dart';
 import 'package:heliumapp/presentation/features/courses/bloc/course_event.dart';
 import 'package:heliumapp/presentation/features/courses/bloc/course_state.dart';
+import 'package:heliumapp/domain/linked_note_saver.dart';
+import 'package:heliumapp/presentation/features/notebook/views/note_add_screen.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/core/base_event.dart';
-import 'package:heliumapp/presentation/ui/feedback/conflict_dialog.dart';
+import 'package:heliumapp/presentation/features/shared/widgets/core/linked_note_form.dart';
 import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
 import 'package:heliumapp/presentation/features/shared/widgets/flow/multi_step_container.dart';
 import 'package:heliumapp/presentation/features/courses/widgets/course_attachments.dart';
@@ -21,6 +24,9 @@ import 'package:heliumapp/presentation/ui/components/helium_icon_button.dart';
 import 'package:heliumapp/presentation/features/courses/widgets/course_reminders.dart';
 import 'package:heliumapp/presentation/features/courses/widgets/course_schedule.dart';
 import 'package:heliumapp/utils/snack_bar_helpers.dart';
+import 'package:logging/logging.dart';
+
+final _log = Logger('presentation.views');
 
 /// Pushes the course editor route on the current shell.
 ///
@@ -171,6 +177,20 @@ class _CourseAddScreenState extends MultiStepContainerState<CourseAddScreen> {
     _registeredPrefix = prefix;
   }
 
+  /// Takes on a just-created class's ID. The URL prefix the dirty-dialog
+  /// guard owns changes from `/classes/new` to `/classes/<id>`, so the guard
+  /// is re-registered before the URL moves.
+  void _useCreatedCourse(CourseModel course) {
+    setState(() {
+      _currentCourseId = course.id;
+      _currentCourseGroupId = course.courseGroup;
+    });
+    if (_registeredPrefix != null) {
+      DirtyDialogRegistry.unregister(_registeredPrefix!);
+    }
+    _registerDirtyGuard();
+  }
+
   void _syncStepFromUrl() {
     if (!mounted) return;
     final path = router.routerDelegate.currentConfiguration.uri.path;
@@ -289,6 +309,21 @@ class _CourseAddScreenState extends MultiStepContainerState<CourseAddScreen> {
     };
   }
 
+  void _resolveConflict({
+    CourseModel? savedCourse,
+    String? latestVersion,
+    LinkedNoteSave? linkedNoteSave,
+  }) {
+    setState(() => isSubmitting = false);
+    resolveLinkedNoteConflict(
+      context,
+      _detailsKey.currentState,
+      savedEntity: savedCourse,
+      latestVersion: latestVersion,
+      linkedNoteSave: linkedNoteSave,
+    );
+  }
+
   @override
   List<BlocListener<dynamic, dynamic>> buildListeners(BuildContext context) {
     return [
@@ -312,16 +347,26 @@ class _CourseAddScreenState extends MultiStepContainerState<CourseAddScreen> {
             if (!isShowingErrorCard) {
               showSnackBar(context, state.message!, type: SnackType.error);
             }
+            if (state.linkedNoteSave case final linkedNoteSave?
+                when state.origin == EventOrigin.subScreen) {
+              _detailsKey.currentState?.linkedNoteFields.applyLinkedNoteSave(
+                linkedNoteSave,
+              );
+            }
             _detailsKey.currentState?.resetSubmitting();
             setState(() { isLoading = false; isSubmitting = false; });
           } else if (state is CourseConflict &&
               state.origin == EventOrigin.subScreen) {
-            _detailsKey.currentState?.resetSubmitting();
-            setState(() => isSubmitting = false);
-            resolveFormConflict(
-              context,
-              _detailsKey.currentState,
+            _resolveConflict(
               latestVersion: state.latest.version,
+              linkedNoteSave: state.linkedNoteSave,
+            );
+          } else if (state is CourseUpdated &&
+              state.origin == EventOrigin.subScreen &&
+              !(state.linkedNoteSave?.isSaved ?? true)) {
+            _resolveConflict(
+              savedCourse: state.course,
+              linkedNoteSave: state.linkedNoteSave,
             );
           } else if (state is CoursesScreenDataFetched &&
               _currentCourseGroupId == null &&
@@ -334,40 +379,68 @@ class _CourseAddScreenState extends MultiStepContainerState<CourseAddScreen> {
               // Course not found after fetch; back out to the index.
               context.go(widget.shellPath);
             }
-          } else if (state is CourseDeleted) {
-            showSnackBar(context, 'Class deleted.', useRootMessenger: true);
-            closeWithoutPrompt();
-          } else if ((state is CourseCreated || state is CourseUpdated) &&
+          } else if (state is CourseCreated &&
+              state.origin == EventOrigin.subScreen &&
+              !(state.linkedNoteSave?.isSaved ?? true)) {
+            _useCreatedCourse(state.course);
+            router.replace(
+              '${widget.shellPath}/${state.course.id}/'
+              '${courseDialogSteps[currentStep]}',
+              extra: CourseDialogExtra(courseGroupId: state.course.courseGroup),
+            );
+            _resolveConflict(
+              savedCourse: state.course,
+              linkedNoteSave: state.linkedNoteSave,
+            );
+          } else if (state is CourseCreated &&
               state.origin == EventOrigin.subScreen) {
-            state as CourseEntityState;
-
-            if (state is CourseCreated) {
+            if (state.redirectToNotebook) {
+              _log.info('Class created with notebook redirect (courseId=${state.course.id})');
+              _detailsKey.currentState?.resetSubmitting();
+              setState(() => isSubmitting = false);
+              openInNotebook(
+                context,
+                noteId: state.linkedNoteId,
+                courseId: state.course.id,
+              );
+            } else {
+              _log.info('Class created without notebook redirect (courseId=${state.course.id}, hasNote=${state.linkedNoteId != null})');
               final willClose = _willCloseAfterSave();
               showSnackBar(
                 context,
                 'Class created.',
                 useRootMessenger: willClose,
               );
+              _useCreatedCourse(state.course);
+              setState(() => isSubmitting = false);
+              _navigateAfterSave();
             }
-
-            setState(() {
-              _currentCourseId = state.course.id;
-              _currentCourseGroupId = state.course.courseGroup;
-              isSubmitting = false;
-            });
-
-            if (state is CourseCreated) {
-              // New course minted its real ID — the URL prefix that the
-              // dirty-dialog guard owns has changed (`/classes/new` →
-              // `/classes/<id>`), so swap the registration before
-              // `_navigateAfterSave` triggers the URL update.
-              if (_registeredPrefix != null) {
-                DirtyDialogRegistry.unregister(_registeredPrefix!);
-              }
-              _registerDirtyGuard();
+          } else if (state is CourseDeleted) {
+            showSnackBar(context, 'Class deleted.', useRootMessenger: true);
+            closeWithoutPrompt();
+          } else if (state is CourseUpdated &&
+              state.origin == EventOrigin.subScreen) {
+            if (state.linkedNoteSave case LinkedNoteSave(isRecreated: true)) {
+              showSnackBar(
+                context,
+                noteRecreatedMessage,
+                useRootMessenger: true,
+              );
             }
+            if (state.redirectToNotebook) {
+              _log.info('Class updated with notebook redirect (courseId=${state.course.id})');
+              _detailsKey.currentState?.resetSubmitting();
+              setState(() => isSubmitting = false);
 
-            _navigateAfterSave();
+              openInNotebook(
+                context,
+                noteId: state.linkedNoteId,
+                courseId: state.course.id,
+              );
+            } else {
+              setState(() => isSubmitting = false);
+              _navigateAfterSave();
+            }
           }
         },
       ),
@@ -464,7 +537,6 @@ class _CourseAddScreenState extends MultiStepContainerState<CourseAddScreen> {
       stepScreenType: ScreenType.subPage,
       builder: (context) => CourseAttachments(
         contentKey: _attachmentsKey,
-        courseGroupId: _currentCourseGroupId!,
         entityId: _currentCourseId!,
         isEdit: widget.isEdit || _currentCourseId != null,
         userSettings: userSettings,

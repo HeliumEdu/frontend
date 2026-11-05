@@ -3,6 +3,13 @@ import 'dart:async';
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:heliumapp/data/models/planner/attachment_model.dart';
+import 'package:heliumapp/data/models/planner/note_model.dart';
+import 'package:heliumapp/domain/linked_note_saver.dart';
+import 'package:heliumapp/presentation/features/notebook/bloc/note_bloc.dart';
+import 'package:heliumapp/presentation/features/notebook/bloc/note_state.dart';
+import 'package:heliumapp/presentation/ui/components/notes_viewer.dart';
+import 'package:heliumapp/utils/quill_helpers.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/config/pref_service.dart';
 import 'package:heliumapp/core/analytics_service.dart';
@@ -27,6 +34,7 @@ import 'package:heliumapp/presentation/features/planner/bloc/reminder_state.dart
 import 'package:heliumapp/presentation/features/courses/dialogs/course_group_dialog.dart';
 import 'package:heliumapp/presentation/core/views/base_page_screen_state.dart';
 import 'package:heliumapp/presentation/features/courses/views/course_add_screen.dart';
+import 'package:heliumapp/presentation/ui/components/attachments_menu.dart';
 import 'package:heliumapp/presentation/ui/components/course_title_label.dart';
 import 'package:heliumapp/presentation/ui/feedback/empty_card.dart';
 import 'package:heliumapp/presentation/ui/feedback/error_card.dart';
@@ -41,6 +49,7 @@ import 'package:heliumapp/utils/course_group_helpers.dart';
 import 'package:heliumapp/utils/error_helpers.dart';
 import 'package:heliumapp/utils/format_helpers.dart';
 import 'package:heliumapp/utils/app_style.dart';
+import 'package:heliumapp/utils/attachment_helpers.dart';
 import 'package:heliumapp/utils/date_time_helpers.dart';
 import 'package:heliumapp/utils/platform_behavior.dart';
 import 'package:heliumapp/utils/print_helpers.dart';
@@ -88,7 +97,8 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen> {
   final Map<int, List<CourseModel>> _coursesMap = {};
   final Map<int, int> _categoryCounts = {};
   final Map<int, int> _categoryToCourse = {};
-  final Map<int, int> _attachmentCounts = {};
+  final Map<int, List<AttachmentModel>> _attachmentsByCourse = {};
+  final Map<int, NoteModel> _notesMap = {}; // courseId -> Note
   final Map<int, int> _reminderCounts = {};
   final Map<int, int> _reminderToCourse = {};
   final Map<int, int> _scheduleToCourse = {};
@@ -198,6 +208,7 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen> {
                   .add(state.course);
               Sort.byTitle(_coursesMap[state.course.courseGroup]!);
             });
+            _applyLinkedNoteSave(state.course.id, state.linkedNoteSave);
             final totalCourses = _coursesMap.values.fold<int>(0, (sum, c) => sum + c.length);
             unawaited(AnalyticsService().setUserProperty(
               name: 'course_load_bucket',
@@ -205,10 +216,12 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen> {
             ));
           } else if (state is CourseUpdated) {
             _replaceCourse(state.course);
+            _applyLinkedNoteSave(state.course.id, state.linkedNoteSave);
           } else if (state is CourseExceptionsUpdated) {
             _replaceCourse(state.course);
           } else if (state is CourseConflict) {
             _replaceCourse(state.latest);
+            _applyLinkedNoteSave(state.latest.id, state.linkedNoteSave);
           } else if (state is CourseGroupExceptionsUpdated) {
             _replaceCourseGroup(state.courseGroup);
           } else if (state is CourseScreenDataFetched && state.course != null) {
@@ -226,6 +239,7 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen> {
               for (final courses in _coursesMap.values) {
                 courses.removeWhere((c) => c.id == state.id);
               }
+              _notesMap.remove(state.id);
             });
             final totalCourses = _coursesMap.values.fold<int>(0, (sum, c) => sum + c.length);
             unawaited(AnalyticsService().setUserProperty(
@@ -277,6 +291,19 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen> {
           }
         },
       ),
+      BlocListener<NoteBloc, NoteState>(
+        listener: (context, state) {
+          if (state is NoteCreated) {
+            setState(() => _placeNoteUnderItsCourse(state.note));
+          } else if (state is NoteUpdated) {
+            setState(() => _placeNoteUnderItsCourse(state.note));
+          } else if (state is NoteDeleted) {
+            setState(() {
+              _notesMap.removeWhere((_, note) => note.id == state.noteId);
+            });
+          }
+        },
+      ),
       BlocListener<CategoryBloc, CategoryState>(
         listener: (context, state) {
           if (state is CategoryCreated) {
@@ -314,20 +341,15 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen> {
           if (state is AttachmentsCreated) {
             setState(() {
               for (final attachment in state.attachments) {
-                if (attachment.course != null) {
-                  _attachmentCounts[attachment.course!] =
-                      (_attachmentCounts[attachment.course!] ?? 0) + 1;
+                if (attachment.course case final courseId?) {
+                  _attachmentsByCourse.putIfAbsent(courseId, () => []).add(attachment);
                 }
               }
             });
           } else if (state is AttachmentDeleted && state.courseId != null) {
             setState(() {
-              final current = _attachmentCounts[state.courseId] ?? 0;
-              if (current > 1) {
-                _attachmentCounts[state.courseId!] = current - 1;
-              } else {
-                _attachmentCounts.remove(state.courseId);
-              }
+              _attachmentsByCourse[state.courseId]
+                  ?.removeWhere((attachment) => attachment.id == state.id);
             });
           }
         },
@@ -509,11 +531,17 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen> {
         _categoryToCourse[category.id] = category.course;
       }
 
-      _attachmentCounts.clear();
+      _notesMap.clear();
+      for (final note in state.notes) {
+        if (note.courses.isNotEmpty) {
+          _upsertNoteForCourse(note.courses.first, note);
+        }
+      }
+
+      _attachmentsByCourse.clear();
       for (final attachment in state.attachments) {
-        if (attachment.course != null) {
-          _attachmentCounts[attachment.course!] =
-              (_attachmentCounts[attachment.course!] ?? 0) + 1;
+        if (attachment.course case final courseId?) {
+          _attachmentsByCourse.putIfAbsent(courseId, () => []).add(attachment);
         }
       }
 
@@ -542,7 +570,8 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen> {
 
   Widget _buildCourseCard(BuildContext context, CourseModel course) {
     final categoryCount = _categoryCounts[course.id] ?? 0;
-    final attachmentCount = _attachmentCounts[course.id] ?? 0;
+    final attachments = _attachmentsByCourse[course.id] ?? const <AttachmentModel>[];
+    final attachmentCount = attachments.length;
     final reminderCount = _reminderCounts[course.id] ?? 0;
 
     return MobileGestureDetector(
@@ -763,34 +792,13 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen> {
                         ),
                       ],
                       if (attachmentCount > 0) ...[
-                        const SizedBox(height: 6),
-                        Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              Icons.attachment,
-                              size: Responsive.getIconSize(
-                                context,
-                                mobile: 14,
-                                tablet: 16,
-                                desktop: 16,
-                              ),
-                              color: context.semanticColors.success.withValues(
-                                alpha: 0.9,
-                              ),
-                            ),
-                            const SizedBox(width: 4),
-                            Text(
-                              '$attachmentCount',
-                              style: AppStyles.smallSecondaryText(
-                                context,
-                              ).copyWith(
-                                color: context.semanticColors.success.withValues(
-                                  alpha: 0.9,
-                                ),
-                              ),
-                            ),
-                          ],
+                        AttachmentCountButton(
+                          count: attachmentCount,
+                          onPressed: (anchorContext) => showAttachmentsMenu(
+                            context,
+                            anchorContext: anchorContext,
+                            groups: AttachmentGroups.forCourse(course.id, attachments),
+                          ),
                         ),
                       ],
                     ],
@@ -869,11 +877,40 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen> {
 
                 Column(children: _buildCourseScheduleContainers(course)),
               ],
+
+              if (_notesMap[course.id] case final note?
+                  when !isNotesEmpty(note.content)) ...[
+                const SizedBox(height: 12),
+                const Divider(),
+                const SizedBox(height: 12),
+                NotesViewer(notes: note.content),
+              ],
             ],
           ),
         ),
       ),
     );
+  }
+
+  void _upsertNoteForCourse(int courseId, NoteModel note) {
+    _notesMap[courseId] = note;
+  }
+
+  void _placeNoteUnderItsCourse(NoteModel note) {
+    _notesMap.removeWhere((_, existing) => existing.id == note.id);
+    final courseId = note.courses.firstOrNull;
+    if (courseId != null) {
+      _upsertNoteForCourse(courseId, note);
+    }
+  }
+
+  void _applyLinkedNoteSave(int courseId, LinkedNoteSave? linkedNoteSave) {
+    final note = linkedNoteSave?.note;
+    if (linkedNoteSave?.isDeleted ?? false) {
+      setState(() => _notesMap.remove(courseId));
+    } else if (note != null) {
+      setState(() => _upsertNoteForCourse(courseId, note));
+    }
   }
 
   String _formatCredits(double credits) {

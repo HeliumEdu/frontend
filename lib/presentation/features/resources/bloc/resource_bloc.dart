@@ -1,9 +1,11 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:heliumapp/core/helium_exception.dart';
+import 'package:heliumapp/data/models/planner/attachment_model.dart';
 import 'package:heliumapp/data/models/planner/course_model.dart';
 import 'package:heliumapp/data/models/planner/note_model.dart';
 import 'package:heliumapp/data/models/planner/resource_group_model.dart';
 import 'package:heliumapp/data/models/planner/resource_model.dart';
+import 'package:heliumapp/domain/repositories/attachment_repository.dart';
 import 'package:heliumapp/domain/repositories/course_repository.dart';
 import 'package:heliumapp/domain/repositories/note_repository.dart';
 import 'package:heliumapp/domain/repositories/resource_repository.dart';
@@ -16,12 +18,14 @@ class ResourceBloc extends Bloc<ResourceEvent, ResourceState> {
   final ResourceRepository resourceRepository;
   final CourseRepository courseRepository;
   final NoteRepository noteRepository;
+  final AttachmentRepository attachmentRepository;
   final LinkedNoteSaver _linkedNoteSaver;
 
   ResourceBloc({
     required this.resourceRepository,
     required this.courseRepository,
     required this.noteRepository,
+    required this.attachmentRepository,
   }) : _linkedNoteSaver = LinkedNoteSaver(noteRepository),
        super(ResourcesInitial(origin: EventOrigin.bloc)) {
     on<FetchResourcesScreenDataEvent>(_onFetchResourcesScreenData);
@@ -51,11 +55,13 @@ class ResourceBloc extends Bloc<ResourceEvent, ResourceState> {
           forceRefresh: event.forceRefresh,
         ),
         noteRepository.getNotes(linkedEntityType: 'resource', includeContent: true, forceRefresh: event.forceRefresh),
+        attachmentRepository.getAttachments(forceRefresh: event.forceRefresh),
       ]);
       final resourceGroups = results[0] as List<ResourceGroupModel>;
       final resources = results[1] as List<ResourceModel>;
       final courses = results[2] as List<CourseModel>;
       final notes = results[3] as List<NoteModel>;
+      final attachments = results[4] as List<AttachmentModel>;
       emit(
         ResourcesScreenDataFetched(
           origin: event.origin,
@@ -63,6 +69,7 @@ class ResourceBloc extends Bloc<ResourceEvent, ResourceState> {
           resources: resources,
           courses: courses,
           notes: notes,
+          attachments: attachments,
         ),
       );
     } on HeliumException catch (e) {

@@ -1,6 +1,7 @@
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:heliumapp/data/models/planner/attachment_model.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/config/pref_service.dart';
 import 'package:heliumapp/data/models/auth/user_settings_model.dart';
@@ -13,6 +14,8 @@ import 'package:heliumapp/presentation/features/auth/bloc/auth_bloc.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_state.dart';
 import 'package:heliumapp/presentation/features/notebook/bloc/note_bloc.dart';
 import 'package:heliumapp/presentation/features/notebook/bloc/note_state.dart';
+import 'package:heliumapp/presentation/features/planner/bloc/attachment_bloc.dart';
+import 'package:heliumapp/presentation/features/planner/bloc/attachment_state.dart';
 import 'package:heliumapp/presentation/features/resources/bloc/resource_bloc.dart';
 import 'package:heliumapp/presentation/features/resources/bloc/resource_event.dart';
 import 'package:heliumapp/presentation/features/resources/bloc/resource_state.dart';
@@ -21,6 +24,7 @@ import 'package:heliumapp/presentation/features/resources/dialogs/resource_group
 import 'package:heliumapp/presentation/features/resources/views/resource_add_screen.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/core/base_event.dart';
 import 'package:heliumapp/domain/linked_note_saver.dart';
+import 'package:heliumapp/presentation/ui/components/attachments_menu.dart';
 import 'package:heliumapp/presentation/ui/components/course_title_label.dart';
 import 'package:heliumapp/presentation/ui/components/group_dropdown.dart';
 import 'package:heliumapp/presentation/ui/components/helium_icon_button.dart';
@@ -32,6 +36,7 @@ import 'package:heliumapp/presentation/ui/feedback/error_card.dart';
 import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
 import 'package:heliumapp/presentation/ui/layout/mobile_gesture_detector.dart';
 import 'package:heliumapp/presentation/ui/layout/responsive_card_grid.dart';
+import 'package:heliumapp/utils/attachment_helpers.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/error_helpers.dart';
 import 'package:heliumapp/utils/app_style.dart';
@@ -87,6 +92,7 @@ class _ResourcesScreenState
   final Map<int, List<ResourceModel>> _resourcesMap = {};
   Map<int, CourseModel> _coursesMap = {};
   Map<int, NoteModel> _notesMap = {}; // resourceId -> Note
+  final Map<int, List<AttachmentModel>> _attachmentsByResource = {};
   int? _selectedGroupId;
 
   ResourceGroupModel get _showAllGroup => ResourceGroupModel(
@@ -154,18 +160,30 @@ class _ResourcesScreenState
       BlocListener<NoteBloc, NoteState>(
         listener: (context, state) {
           if (state is NoteCreated) {
-            final resourceId = state.note.resources.firstOrNull;
-            if (resourceId != null) {
-              setState(() => _upsertNoteForResource(resourceId, state.note));
-            }
+            setState(() => _placeNoteUnderItsResource(state.note));
           } else if (state is NoteUpdated) {
-            final resourceId = state.note.resources.firstOrNull;
-            if (resourceId != null) {
-              setState(() => _upsertNoteForResource(resourceId, state.note));
-            }
+            setState(() => _placeNoteUnderItsResource(state.note));
           } else if (state is NoteDeleted) {
             setState(() {
               _notesMap.removeWhere((_, note) => note.id == state.noteId);
+            });
+          }
+        },
+      ),
+      BlocListener<AttachmentBloc, AttachmentState>(
+        listener: (context, state) {
+          if (state is AttachmentsCreated) {
+            setState(() {
+              for (final attachment in state.attachments) {
+                if (attachment.resource case final resourceId?) {
+                  _attachmentsByResource.putIfAbsent(resourceId, () => []).add(attachment);
+                }
+              }
+            });
+          } else if (state is AttachmentDeleted && state.resourceId != null) {
+            setState(() {
+              _attachmentsByResource[state.resourceId]
+                  ?.removeWhere((attachment) => attachment.id == state.id);
             });
           }
         },
@@ -346,6 +364,14 @@ class _ResourcesScreenState
     _notesMap[resourceId] = note;
   }
 
+  void _placeNoteUnderItsResource(NoteModel note) {
+    _notesMap.removeWhere((_, existing) => existing.id == note.id);
+    final resourceId = note.resources.firstOrNull;
+    if (resourceId != null) {
+      _upsertNoteForResource(resourceId, note);
+    }
+  }
+
   void _applyLinkedNoteSave(int resourceId, LinkedNoteSave? linkedNoteSave) {
     final note = linkedNoteSave?.note;
     if (linkedNoteSave?.isDeleted ?? false) {
@@ -451,6 +477,13 @@ class _ResourcesScreenState
 
       _coursesMap = {for (var course in state.courses) course.id: course};
 
+      _attachmentsByResource.clear();
+      for (final attachment in state.attachments) {
+        if (attachment.resource case final resourceId?) {
+          _attachmentsByResource.putIfAbsent(resourceId, () => []).add(attachment);
+        }
+      }
+
       _notesMap = {};
       for (final note in state.notes) {
         if (note.resources.isNotEmpty) {
@@ -467,6 +500,11 @@ class _ResourcesScreenState
   }
 
   Widget _buildResourceCard(BuildContext context, ResourceModel resource) {
+    final attachments = _attachmentsByResource[resource.id] ?? const <AttachmentModel>[];
+    final attachmentCount = attachments.length;
+    final price = resource.price;
+    final hasPrice = price != null && price.isNotEmpty;
+
     return MobileGestureDetector(
       onTap: () => _onEdit(resource),
       child: Card(
@@ -516,6 +554,9 @@ class _ResourcesScreenState
 
               // Status and Price Row
               Row(
+                crossAxisAlignment: hasPrice && attachmentCount > 0
+                    ? CrossAxisAlignment.start
+                    : CrossAxisAlignment.center,
                 children: [
                   ...[
                     PillBadge(text: ResourceConstants.status[resource.status]),
@@ -528,11 +569,27 @@ class _ResourcesScreenState
                     const SizedBox(width: 8),
                   ],
                   const Spacer(),
-                  if (resource.price != null && resource.price!.isNotEmpty) ...[
+                  if (hasPrice || attachmentCount > 0) ...[
                     const SizedBox(width: 12),
-                    Text(
-                      resource.price!,
-                      style: AppStyles.headingText(context),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        if (hasPrice)
+                          Text(price, style: AppStyles.headingText(context)),
+                        if (attachmentCount > 0)
+                          AttachmentCountButton(
+                            count: attachmentCount,
+                            onPressed: (anchorContext) => showAttachmentsMenu(
+                              context,
+                              anchorContext: anchorContext,
+                              groups: AttachmentGroups.forResource(
+                                resource.id,
+                                attachments,
+                              ),
+                            ),
+                          ),
+                      ],
                     ),
                   ],
                 ],

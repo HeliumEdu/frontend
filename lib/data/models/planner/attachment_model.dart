@@ -7,6 +7,7 @@ class AttachmentModel extends BaseTitledModel {
   final int? course;
   final int? event;
   final int? homework;
+  final int? resource;
 
   AttachmentModel({
     required super.id,
@@ -17,6 +18,7 @@ class AttachmentModel extends BaseTitledModel {
     this.course,
     this.event,
     this.homework,
+    this.resource,
   });
 
   factory AttachmentModel.fromJson(Map<String, dynamic> json) {
@@ -29,6 +31,7 @@ class AttachmentModel extends BaseTitledModel {
       course: json['course'],
       event: json['event'],
       homework: json['homework'],
+      resource: json['resource'],
     );
   }
 }

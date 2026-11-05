@@ -6,6 +6,10 @@ import 'package:heliumapp/data/models/planner/course_group_model.dart';
 import 'package:heliumapp/data/models/planner/course_model.dart';
 import 'package:heliumapp/data/models/planner/request/course_request_model.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/core/base_event.dart';
+import 'package:heliumapp/presentation/features/shared/controllers/linked_note_form_fields.dart';
+import 'package:heliumapp/presentation/features/shared/widgets/core/linked_note_form.dart';
+import 'package:heliumapp/presentation/ui/components/notes_editor.dart';
+import 'package:heliumapp/utils/quill_helpers.dart';
 import 'package:heliumapp/presentation/ui/feedback/conflict_dialog.dart';
 import 'package:heliumapp/presentation/features/courses/bloc/course_bloc.dart';
 import 'package:heliumapp/presentation/features/planner/dialogs/confirm_delete_dialog.dart';
@@ -60,8 +64,11 @@ class CourseDetails extends StatefulWidget {
 }
 
 class CourseDetailsState extends State<CourseDetails>
-    with ConflictResolvableForm<CourseDetails> {
+    with
+        ConflictResolvableForm<CourseDetails>,
+        LinkedNoteForm<CourseDetails, CourseModel> {
   final CourseFormController formController = CourseFormController();
+  final FocusNode _notesFocusNode = FocusNode();
 
   bool isLoading = true;
   bool _isSubmitting = false;
@@ -103,9 +110,26 @@ class CourseDetailsState extends State<CourseDetails>
     _fetchScreenData();
   }
 
+  @override
+  LinkedNoteFormFields get linkedNoteFields => formController;
+
+  @override
+  void showSavedEntity(CourseModel entity) => setState(() => _course = entity);
+
+  @override
+  String get itemNoun => 'class';
+
+  @override
+  ({int? homeworkId, int? eventId, int? resourceId, int? courseId}) get linkedItem => (
+    homeworkId: null,
+    eventId: null,
+    resourceId: null,
+    courseId: widget.courseId,
+  );
 
   @override
   void dispose() {
+    _notesFocusNode.dispose();
     formController.urlFocusNode.removeListener(_onUrlFocusChange);
     formController.dispose();
     super.dispose();
@@ -309,6 +333,13 @@ class CourseDetailsState extends State<CourseDetails>
                       ],
                     ),
                   ),
+                  const SizedBox(height: 14),
+                  NotesEditor(
+                    key: ObjectKey(formController.notesController),
+                    controller: formController.notesController,
+                    focusNode: _notesFocusNode,
+                    onOpenInNotebook: widget.isEdit ? () => onSubmit(redirectToNotebook: true) : null,
+                  ),
                   const SizedBox(height: 12),
                 ],
               ),
@@ -319,6 +350,7 @@ class CourseDetailsState extends State<CourseDetails>
     );
   }
 
+  @override
   void resetSubmitting() {
     setState(() => _isSubmitting = false);
   }
@@ -331,7 +363,7 @@ class CourseDetailsState extends State<CourseDetails>
       item: _course!,
       label: _course!.title,
       additionalWarning:
-          'Any assignments associated with this class, including attachments and other data, will also be deleted.',
+          'Its assignments, attachments, and note, along with other data, will also be deleted.',
       onDelete: (course) {
         widget.onActionStarted?.call();
         context.read<CourseBloc>().add(
@@ -347,8 +379,9 @@ class CourseDetailsState extends State<CourseDetails>
 
   /// Submit the form. Called by parent screen when header save is pressed.
   @override
-  bool onSubmit() {
+  bool onSubmit({bool redirectToNotebook = false}) {
     if (isLoading || _error != null || _isSubmitting) return false;
+    final redirect = rememberRedirectToNotebook(redirectToNotebook);
     if (formController.validateAndScrollToError()) {
       // Notify parent that action is starting (validation passed)
       setState(() => _isSubmitting = true);
@@ -377,7 +410,9 @@ class CourseDetailsState extends State<CourseDetails>
             courseGroupId: widget.courseGroupId,
             courseId: widget.courseId!,
             request: request,
-            version: isOverwriting ? null : _course?.version,
+            linkedNote: formController.linkedNoteEdit(overwrite: isOverwriting),
+            redirectToNotebook: redirect,
+            version: entityVersionToSend(_course?.version),
           ),
         );
       } else {
@@ -386,6 +421,8 @@ class CourseDetailsState extends State<CourseDetails>
             origin: EventOrigin.subScreen,
             courseGroupId: widget.courseGroupId,
             request: request,
+            noteContent: buildNotesDelta(formController.notesController),
+            redirectToNotebook: redirect,
           ),
         );
       }
@@ -435,6 +472,8 @@ class CourseDetailsState extends State<CourseDetails>
         } catch (e) {
           _log.info('Error parsing color', e);
         }
+
+        loadLinkedNote(state.linkedNote);
       } else {
         formController.startDate = state.courseGroup.startDate;
         formController.endDate = state.courseGroup.endDate;
@@ -442,6 +481,11 @@ class CourseDetailsState extends State<CourseDetails>
 
       _error = null;
       isLoading = false;
+    });
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      formController.listenForNoteEdits();
     });
   }
 

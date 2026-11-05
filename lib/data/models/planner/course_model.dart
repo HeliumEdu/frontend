@@ -25,6 +25,7 @@ class CourseModel extends BaseTitledModel {
   final int? numHomework;
   final int? numHomeworkCompleted;
   final int? numHomeworkGraded;
+  final List<int> notes;
 
   CourseModel({
     required super.id,
@@ -49,6 +50,7 @@ class CourseModel extends BaseTitledModel {
     this.numHomework,
     this.numHomeworkCompleted,
     this.numHomeworkGraded,
+    this.notes = const [],
   });
 
   factory CourseModel.fromJson(Map<String, dynamic> json) {
@@ -81,6 +83,7 @@ class CourseModel extends BaseTitledModel {
       numHomework: json['num_homework'],
       numHomeworkCompleted: json['num_homework_completed'],
       numHomeworkGraded: json['num_homework_graded'],
+      notes: json['notes'] != null ? List<int>.from(json['notes']) : [],
     );
   }
 
@@ -107,6 +110,7 @@ class CourseModel extends BaseTitledModel {
     int? numHomework,
     int? numHomeworkCompleted,
     int? numHomeworkGraded,
+    List<int>? notes,
   }) {
     return CourseModel(
       id: id ?? this.id,
@@ -131,6 +135,7 @@ class CourseModel extends BaseTitledModel {
       numHomework: numHomework ?? this.numHomework,
       numHomeworkCompleted: numHomeworkCompleted ?? this.numHomeworkCompleted,
       numHomeworkGraded: numHomeworkGraded ?? this.numHomeworkGraded,
+      notes: notes ?? this.notes,
     );
   }
 }

@@ -1,6 +1,7 @@
 import 'package:heliumapp/data/models/planner/request/course_group_request_model.dart';
 import 'package:heliumapp/data/models/planner/request/course_request_model.dart';
 import 'package:heliumapp/data/models/planner/request/course_schedule_request_model.dart';
+import 'package:heliumapp/domain/linked_note_saver.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/core/base_event.dart';
 
 abstract class CourseEvent extends BaseEvent {
@@ -66,12 +67,16 @@ class CreateCourseEvent extends CourseEvent {
   final int courseGroupId;
   final CourseRequestModel request;
   final bool advanceNavOnSuccess;
+  final Map<String, dynamic>? noteContent;
+  final bool redirectToNotebook;
 
   CreateCourseEvent({
     required super.origin,
     required this.courseGroupId,
     required this.request,
     this.advanceNavOnSuccess = true,
+    this.noteContent,
+    this.redirectToNotebook = false,
   });
 }
 
@@ -80,6 +85,8 @@ class UpdateCourseEvent extends CourseEvent {
   final int courseId;
   final CourseRequestModel request;
   final bool advanceNavOnSuccess;
+  final LinkedNoteEdit linkedNote;
+  final bool redirectToNotebook;
   final String? version;
 
   UpdateCourseEvent({
@@ -88,6 +95,8 @@ class UpdateCourseEvent extends CourseEvent {
     required this.courseId,
     required this.request,
     this.advanceNavOnSuccess = false,
+    this.linkedNote = const LinkedNoteEdit(),
+    this.redirectToNotebook = false,
     this.version,
   });
 }

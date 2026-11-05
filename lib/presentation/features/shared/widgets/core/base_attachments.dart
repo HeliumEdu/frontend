@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:logging/logging.dart';
 import 'package:heliumapp/core/helium_exception.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/data/models/attachment_file.dart';
@@ -12,12 +13,14 @@ import 'package:heliumapp/presentation/features/planner/dialogs/confirm_delete_d
 import 'package:heliumapp/presentation/features/shared/bloc/info/info_bloc.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/info/info_state.dart';
 import 'package:heliumapp/presentation/features/shared/widgets/flow/multi_step_container.dart';
+import 'package:heliumapp/presentation/ui/components/attachments_menu.dart';
 import 'package:heliumapp/presentation/ui/components/helium_elevated_button.dart';
 import 'package:heliumapp/presentation/ui/components/helium_icon_button.dart';
 import 'package:heliumapp/presentation/ui/feedback/empty_card.dart';
 import 'package:heliumapp/presentation/ui/feedback/error_card.dart';
 import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
 import 'package:heliumapp/utils/app_style.dart';
+import 'package:heliumapp/utils/attachment_helpers.dart';
 import 'package:heliumapp/utils/format_helpers.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:heliumapp/utils/sort_helpers.dart';
@@ -25,6 +28,8 @@ import 'package:heliumapp/utils/storage_helpers.dart';
 import 'package:meta/meta.dart';
 import 'package:heliumapp/utils/snack_bar_helpers.dart'
     show SnackBarHelper, SnackType;
+
+final _log = Logger('presentation.widgets');
 
 abstract class BaseAttachments extends StatelessWidget {
   final int entityId;
@@ -37,6 +42,11 @@ abstract class BaseAttachments extends StatelessWidget {
 
   final VoidCallback? onUploadsSettled;
 
+  /// Groups the attachments the item pulls through from elsewhere, listed
+  /// read-only below its own. Null when it pulls none through.
+  final List<AttachmentGroup> Function(List<AttachmentModel> attachments)?
+      pulledThroughGroupsFrom;
+
   const BaseAttachments({
     super.key,
     required this.entityId,
@@ -44,6 +54,7 @@ abstract class BaseAttachments extends StatelessWidget {
     required this.userSettings,
     this.contentKey,
     this.onUploadsSettled,
+    this.pulledThroughGroupsFrom,
   });
 
   BaseAttachmentsContent buildContent();
@@ -57,6 +68,8 @@ abstract class BaseAttachmentsContent extends StatefulWidget {
   final bool isEdit;
   final UserSettingsModel userSettings;
   final VoidCallback? onUploadsSettled;
+  final List<AttachmentGroup> Function(List<AttachmentModel> attachments)?
+      pulledThroughGroupsFrom;
 
   const BaseAttachmentsContent({
     super.key,
@@ -64,6 +77,7 @@ abstract class BaseAttachmentsContent extends StatefulWidget {
     required this.isEdit,
     required this.userSettings,
     this.onUploadsSettled,
+    this.pulledThroughGroupsFrom,
   });
 
   @override
@@ -81,6 +95,7 @@ abstract class BaseAttachmentsState extends State<BaseAttachmentsContent> {
   bool _initialFetchComplete = false;
   String? _error;
   FetchAttachmentsEvent? _pendingFetch;
+  List<AttachmentGroup> _pulledThroughGroups = const [];
 
   @mustBeOverridden
   FetchAttachmentsEvent createFetchAttachmentsEvent({
@@ -109,6 +124,16 @@ abstract class BaseAttachmentsState extends State<BaseAttachmentsContent> {
   }
 
   @override
+  void didUpdateWidget(covariant BaseAttachmentsContent oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.isEdit &&
+        oldWidget.pulledThroughGroupsFrom == null &&
+        widget.pulledThroughGroupsFrom != null) {
+      _loadPulledThroughGroups();
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     return _buildContent(context);
   }
@@ -121,12 +146,29 @@ abstract class BaseAttachmentsState extends State<BaseAttachmentsContent> {
     final fetch = createFetchAttachmentsEvent(forceRefresh: true);
     _pendingFetch = fetch;
     context.read<AttachmentBloc>().add(fetch);
+    _loadPulledThroughGroups();
+  }
+
+  Future<void> _loadPulledThroughGroups() async {
+    final groupsFrom = widget.pulledThroughGroupsFrom;
+    if (groupsFrom == null) return;
+    final repository = context.read<AttachmentBloc>().attachmentRepository;
+    try {
+      final all = await repository.getAttachments(forceRefresh: true);
+      if (!mounted) return;
+      setState(() => _pulledThroughGroups = groupsFrom(all));
+    } on HeliumException catch (e) {
+      _log.warning('Failed to load pulled-through attachments: ${e.code}');
+    } catch (e) {
+      _log.warning('Failed to load pulled-through attachments: ${e.runtimeType}');
+    }
   }
 
   bool _isOwnFetch(AttachmentsFetchIdentity state) => state.matches(
         eventId: _pendingFetch?.eventId,
         homeworkId: _pendingFetch?.homeworkId,
         courseId: _pendingFetch?.courseId,
+        resourceId: _pendingFetch?.resourceId,
       );
 
   Widget _buildContent(BuildContext context) {
@@ -194,7 +236,19 @@ abstract class BaseAttachmentsState extends State<BaseAttachmentsContent> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Attachments', style: AppStyles.featureText(context)),
+                ConstrainedBox(
+                  constraints: BoxConstraints(
+                    minHeight: HeliumIconButton.defaultIconSize(context) +
+                        HeliumIconButton.padding.vertical,
+                  ),
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      'Attachments',
+                      style: AppStyles.featureText(context),
+                    ),
+                  ),
+                ),
                 const SizedBox(height: 12),
                 Expanded(
                   child: BlocBuilder<AttachmentBloc, AttachmentState>(
@@ -214,7 +268,7 @@ abstract class BaseAttachmentsState extends State<BaseAttachmentsContent> {
                         );
                       }
 
-                      if (attachments.isEmpty) {
+                      if (attachments.isEmpty && _pulledThroughGroups.isEmpty) {
                         return const EmptyCard(
                           icon: Icons.attachment_outlined,
                           message: 'Click "Choose Files" to add attachments',
@@ -232,14 +286,15 @@ abstract class BaseAttachmentsState extends State<BaseAttachmentsContent> {
                   buttonText: 'Choose Files',
                 ),
                 const SizedBox(height: 12),
-                if (filesToUpload.isNotEmpty)
+                if (filesToUpload.isNotEmpty) ...[
                   ConstrainedBox(
                     constraints: BoxConstraints(
                       maxHeight: MediaQuery.of(context).size.height * 0.4,
                     ),
                     child: _buildFilesToUploadList(),
                   ),
-                const SizedBox(height: 12),
+                  const SizedBox(height: 12),
+                ],
                 HeliumElevatedButton(
                   buttonText: 'Upload',
                   isLoading: isSubmitting,
@@ -400,18 +455,31 @@ abstract class BaseAttachmentsState extends State<BaseAttachmentsContent> {
   }
 
   Widget _buildAttachmentsList() {
-    return ListView.builder(
-      itemCount: attachments.length,
-      itemBuilder: (context, index) {
-        return _buildAttachmentCard(context, attachments[index]);
-      },
+    return ListView(
+      children: [
+        for (final attachment in attachments)
+          _buildAttachmentCard(context, attachment),
+        for (final (index, group) in _pulledThroughGroups.indexed) ...[
+          if (group.title case final title?)
+            Padding(
+              padding: EdgeInsets.only(
+                top: attachments.isEmpty && index == 0 ? 0 : 12,
+                bottom: 12,
+              ),
+              child: Text(title, style: AppStyles.headingText(context)),
+            ),
+          for (final attachment in group.attachments)
+            _buildAttachmentCard(context, attachment, canDelete: false),
+        ],
+      ],
     );
   }
 
   Widget _buildAttachmentCard(
     BuildContext context,
-    AttachmentModel attachment,
-  ) {
+    AttachmentModel attachment, {
+    bool canDelete = true,
+  }) {
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -442,29 +510,32 @@ abstract class BaseAttachmentsState extends State<BaseAttachmentsContent> {
               semanticLabel: 'Download',
               color: context.semanticColors.success,
             ),
-            const SizedBox(width: 8),
-            HeliumIconButton(
-              onPressed: () {
-                showConfirmDeleteDialog(
-                  parentContext: context,
-                  item: attachment,
-                  label: attachment.title,
-                  onDelete: (a) {
-                    context.read<AttachmentBloc>().add(
-                      DeleteAttachmentEvent(
-                        id: a.id,
-                        courseId: a.course,
-                        eventId: a.event,
-                        homeworkId: a.homework,
-                      ),
-                    );
-                  },
-                );
-              },
-              icon: Icons.delete_outline,
-              semanticLabel: 'Delete',
-              color: context.colorScheme.error,
-            ),
+            if (canDelete) ...[
+              const SizedBox(width: 8),
+              HeliumIconButton(
+                onPressed: () {
+                  showConfirmDeleteDialog(
+                    parentContext: context,
+                    item: attachment,
+                    label: attachment.title,
+                    onDelete: (a) {
+                      context.read<AttachmentBloc>().add(
+                        DeleteAttachmentEvent(
+                          id: a.id,
+                          courseId: a.course,
+                          eventId: a.event,
+                          homeworkId: a.homework,
+                          resourceId: a.resource,
+                        ),
+                      );
+                    },
+                  );
+                },
+                icon: Icons.delete_outline,
+                semanticLabel: 'Delete',
+                color: context.colorScheme.error,
+              ),
+            ],
           ],
         ),
       ),
@@ -476,27 +547,12 @@ abstract class BaseAttachmentsState extends State<BaseAttachmentsContent> {
       isLoading = true;
     });
 
-    final result = await HeliumStorage.downloadFile(
-      attachment.attachment,
-      attachment.title,
-    );
+    await AttachmentDownloads.download(context, attachment);
 
     if (!mounted) return;
 
     setState(() {
       isLoading = false;
     });
-
-    if (result.cancelled) return;
-
-    if (result.saved) {
-      SnackBarHelper.show(context, '"${attachment.title}" downloaded.');
-    } else {
-      SnackBarHelper.show(
-        context,
-        result.errorMessage!,
-        type: SnackType.error,
-      );
-    }
   }
 }

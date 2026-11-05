@@ -27,6 +27,7 @@ class AttachmentBloc extends Bloc<AttachmentEvent, AttachmentState> {
         eventId: event.eventId,
         homeworkId: event.homeworkId,
         courseId: event.courseId,
+        resourceId: event.resourceId,
         forceRefresh: event.forceRefresh,
       );
       emit(
@@ -35,6 +36,7 @@ class AttachmentBloc extends Bloc<AttachmentEvent, AttachmentState> {
           eventId: event.eventId,
           homeworkId: event.homeworkId,
           courseId: event.courseId,
+          resourceId: event.resourceId,
         ),
       );
     } on HeliumException catch (e) {
@@ -44,6 +46,7 @@ class AttachmentBloc extends Bloc<AttachmentEvent, AttachmentState> {
           eventId: event.eventId,
           homeworkId: event.homeworkId,
           courseId: event.courseId,
+          resourceId: event.resourceId,
         ),
       );
     } catch (e) {
@@ -53,6 +56,7 @@ class AttachmentBloc extends Bloc<AttachmentEvent, AttachmentState> {
           eventId: event.eventId,
           homeworkId: event.homeworkId,
           courseId: event.courseId,
+          resourceId: event.resourceId,
         ),
       );
     }
@@ -77,6 +81,7 @@ class AttachmentBloc extends Bloc<AttachmentEvent, AttachmentState> {
               course: event.courseId,
               event: event.eventId,
               homework: event.homeworkId,
+              resource: event.resourceId,
             )
             .then<AttachmentModel?>((a) => a)
             .catchError((Object e) {
@@ -126,6 +131,7 @@ class AttachmentBloc extends Bloc<AttachmentEvent, AttachmentState> {
           courseId: event.courseId,
           eventId: event.eventId,
           homeworkId: event.homeworkId,
+          resourceId: event.resourceId,
         ),
       );
     } on HeliumException catch (e) {

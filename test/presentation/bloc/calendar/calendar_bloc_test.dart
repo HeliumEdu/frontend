@@ -15,6 +15,7 @@ void main() {
   late MockCourseRepository mockCourseRepository;
   late MockCategoryRepository mockCategoryRepository;
   late MockResourceRepository mockResourceRepository;
+  late MockAttachmentRepository mockAttachmentRepository;
   late PlannerBloc calendarBloc;
 
   setUpAll(() {
@@ -25,10 +26,12 @@ void main() {
     mockCourseRepository = MockCourseRepository();
     mockCategoryRepository = MockCategoryRepository();
     mockResourceRepository = MockResourceRepository();
+    mockAttachmentRepository = MockAttachmentRepository();
     calendarBloc = PlannerBloc(
       courseRepository: mockCourseRepository,
       categoryRepository: mockCategoryRepository,
       resourceRepository: mockResourceRepository,
+      attachmentRepository: mockAttachmentRepository,
     );
   });
 
@@ -60,6 +63,9 @@ void main() {
           when(
             () => mockResourceRepository.getResources(shownOnCalendar: true),
           ).thenAnswer((_) async => []);
+          when(
+            () => mockAttachmentRepository.getAttachments(),
+          ).thenAnswer((_) async => [MockModels.createAttachment(course: 1)]);
           return calendarBloc;
         },
         act: (bloc) => bloc.add(FetchPlannerScreenDataEvent(origin: EventOrigin.screen)),
@@ -67,7 +73,8 @@ void main() {
           isA<PlannerLoading>(),
           isA<PlannerScreenDataFetched>()
               .having((s) => s.courses.length, 'courses length', 2)
-              .having((s) => s.categories.length, 'categories length', 2),
+              .having((s) => s.categories.length, 'categories length', 2)
+              .having((s) => s.attachments.length, 'attachments length', 1),
         ],
         verify: (_) {
           verify(
@@ -158,6 +165,9 @@ void main() {
           when(
             () => mockResourceRepository.getResources(shownOnCalendar: true),
           ).thenAnswer((_) async => []);
+          when(
+            () => mockAttachmentRepository.getAttachments(),
+          ).thenAnswer((_) async => [MockModels.createAttachment(course: 1)]);
           return calendarBloc;
         },
         act: (bloc) => bloc.add(FetchPlannerScreenDataEvent(origin: EventOrigin.screen)),

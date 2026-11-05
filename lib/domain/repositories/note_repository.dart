@@ -8,6 +8,7 @@ abstract class NoteRepository {
     int? homeworkId,
     int? eventId,
     int? resourceId,
+    int? courseId,
     DateTime? updatedAtGte,
     bool includeContent = false,
     bool shownOnCalendar = false,

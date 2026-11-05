@@ -176,10 +176,11 @@ class PlannerItemDetailsState extends State<PlannerItemDetails>
   String get itemNoun => _isEvent ? 'event' : 'assignment';
 
   @override
-  ({int? homeworkId, int? eventId, int? resourceId}) get linkedItem => (
+  ({int? homeworkId, int? eventId, int? resourceId, int? courseId}) get linkedItem => (
     homeworkId: _isEvent ? null : _homeworkId,
     eventId: _isEvent ? _eventId : null,
     resourceId: null,
+    courseId: null,
   );
 
   @override

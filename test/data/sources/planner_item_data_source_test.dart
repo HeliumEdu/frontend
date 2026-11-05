@@ -1,3 +1,4 @@
+import '../../mocks/mock_models.dart';
 import 'dart:ui';
 
 import 'package:flutter_test/flutter_test.dart';
@@ -106,6 +107,24 @@ void main() {
   });
 
   group('PlannerItemDataSource', () {
+    group('visibleResourcesFor', () {
+      test('lists only resources the planner shows, by title', () {
+        // GIVEN
+        dataSource.resourcesMap = {
+          20: MockModels.createResource(id: 20, title: 'Textbook'),
+          21: MockModels.createResource(id: 21, title: 'Lab Manual'),
+        };
+        final homework = MockModels.createHomework(id: 1, resourceIds: [20, 21, 22]);
+
+        // WHEN
+        final resources = dataSource.visibleResourcesFor(homework);
+
+        // THEN
+        expect(resources.map((r) => r.title), ['Lab Manual', 'Textbook'],
+            reason: 'resource 22 is in a hidden group, so the planner never loaded it');
+      });
+    });
+
     group('initialization', () {
       test('initializes with empty appointments', () {
         final freshDataSource = PlannerItemDataSource(

@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:heliumapp/presentation/features/shared/controllers/basic_form_controller.dart';
+import 'package:heliumapp/presentation/features/shared/controllers/linked_note_form_fields.dart';
 import 'package:heliumapp/utils/color_helpers.dart';
 
-class CourseFormController extends BasicFormController {
+class CourseFormController extends BasicFormController
+    with LinkedNoteFormFields {
   final TextEditingController titleController = TextEditingController();
   final TextEditingController roomController = TextEditingController();
   final TextEditingController urlController = TextEditingController();
@@ -23,5 +25,6 @@ class CourseFormController extends BasicFormController {
     teacherEmailController.dispose();
     creditsController.dispose();
     urlFocusNode.dispose();
+    disposeLinkedNote();
   }
 }

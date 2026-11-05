@@ -74,6 +74,21 @@ void main() {
       expect(note.matchesCourseFilter({9}, resourcesById), isFalse);
     });
 
+    test('narrows a class\'s own note by that class', () {
+      // GIVEN
+      final note = givenNote({
+        'courses': [3],
+        'linked_entity_type': 'course',
+        'course_id': 3,
+      });
+
+      // WHEN/THEN
+      expect(note.courses, [3]);
+      expect(note.copyWith(title: 'Renamed').courses, [3]);
+      expect(note.matchesCourseFilter({3}, resourcesById), isTrue);
+      expect(note.matchesCourseFilter({9}, resourcesById), isFalse);
+    });
+
     test('narrows a resource\'s note by any of the resource\'s classes', () {
       // GIVEN
       final note = givenNote({

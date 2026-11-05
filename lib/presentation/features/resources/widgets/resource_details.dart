@@ -118,8 +118,12 @@ class ResourceDetailsState extends State<ResourceDetails>
   String get itemNoun => 'resource';
 
   @override
-  ({int? homeworkId, int? eventId, int? resourceId}) get linkedItem =>
-      (homeworkId: null, eventId: null, resourceId: widget.resourceId);
+  ({int? homeworkId, int? eventId, int? resourceId, int? courseId}) get linkedItem => (
+    homeworkId: null,
+    eventId: null,
+    resourceId: widget.resourceId,
+    courseId: null,
+  );
 
   @override
   void dispose() {
@@ -311,7 +315,7 @@ class ResourceDetailsState extends State<ResourceDetails>
       parentContext: context,
       item: _resource!,
       label: _resource!.title,
-      additionalWarning: 'Its associated attachments and note will also be deleted.',
+      additionalWarning: 'Its attachments and note will also be deleted.',
       onDelete: (resource) {
         widget.onActionStarted?.call();
         context.read<ResourceBloc>().add(
