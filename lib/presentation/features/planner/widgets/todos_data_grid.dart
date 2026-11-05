@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:math' as math;
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
@@ -17,6 +18,7 @@ import 'package:heliumapp/presentation/ui/components/course_title_label.dart';
 import 'package:heliumapp/presentation/ui/components/grade_label.dart';
 import 'package:heliumapp/presentation/ui/components/helium_icon_button.dart';
 import 'package:heliumapp/presentation/ui/components/helium_pager.dart';
+import 'package:heliumapp/presentation/ui/components/hover_tap_target.dart';
 import 'package:heliumapp/presentation/ui/feedback/empty_card.dart';
 import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
 import 'package:heliumapp/presentation/ui/components/base_data_grid.dart';
@@ -59,7 +61,7 @@ enum TodosColumn {
     tabletWidth: 110,
     desktopWidth: 113,
     minViewportWidth: 850,
-    showOnTouchDevice: true,
+    showWhenActionsHidden: true,
   ),
   meta(label: '', minViewportWidth: 1050, fixedWidth: 108);
 
@@ -71,7 +73,7 @@ enum TodosColumn {
     this.tabletWidth,
     this.desktopWidth,
     this.minViewportWidth,
-    this.showOnTouchDevice = false,
+    this.showWhenActionsHidden = false,
     this.isCheckbox = false,
   });
 
@@ -82,7 +84,7 @@ enum TodosColumn {
   final double? tabletWidth;
   final double? desktopWidth;
   final double? minViewportWidth;
-  final bool showOnTouchDevice;
+  final bool showWhenActionsHidden;
   final bool isCheckbox;
 
   double? widthForLayout({
@@ -497,7 +499,7 @@ class TodosDataGridState extends BaseDataGridState<TodosDataGrid> {
             )!,
     ));
 
-    if (_shouldShowColumn(TodosColumn.className)) {
+    if (_shouldShowColumn(TodosColumn.className, showActions)) {
       columns.add(GridColumn(
         columnName: 'className',
         label: _buildHeaderCell(TodosColumn.className),
@@ -505,7 +507,7 @@ class TodosDataGridState extends BaseDataGridState<TodosDataGrid> {
       ));
     }
 
-    if (_shouldShowColumn(TodosColumn.category)) {
+    if (_shouldShowColumn(TodosColumn.category, showActions)) {
       columns.add(GridColumn(
         columnName: 'category',
         label: _buildHeaderCell(TodosColumn.category),
@@ -513,7 +515,7 @@ class TodosDataGridState extends BaseDataGridState<TodosDataGrid> {
       ));
     }
 
-    if (_shouldShowColumn(TodosColumn.priority)) {
+    if (_shouldShowColumn(TodosColumn.priority, showActions)) {
       columns.add(GridColumn(
         columnName: 'priority',
         label: _buildHeaderCell(TodosColumn.priority),
@@ -521,7 +523,7 @@ class TodosDataGridState extends BaseDataGridState<TodosDataGrid> {
       ));
     }
 
-    if (_shouldShowColumn(TodosColumn.grade)) {
+    if (_shouldShowColumn(TodosColumn.grade, showActions)) {
       columns.add(GridColumn(
         columnName: 'grade',
         label: _buildHeaderCell(TodosColumn.grade),
@@ -529,7 +531,7 @@ class TodosDataGridState extends BaseDataGridState<TodosDataGrid> {
       ));
     }
 
-    if (_shouldShowColumn(TodosColumn.meta)) {
+    if (_shouldShowColumn(TodosColumn.meta, showActions)) {
       columns.add(GridColumn(
         columnName: 'meta',
         label: const SizedBox.shrink(),
@@ -824,10 +826,10 @@ class TodosDataGridState extends BaseDataGridState<TodosDataGrid> {
     });
   }
 
-  bool _shouldShowColumn(TodosColumn column) {
+  bool _shouldShowColumn(TodosColumn column, bool showActions) {
     if (column.minViewportWidth == null) return true;
     return MediaQuery.of(context).size.width >= column.minViewportWidth! ||
-        (column.showOnTouchDevice && PlatformBehavior.usesTouchInteractions);
+        (column.showWhenActionsHidden && !showActions);
   }
 
 }
@@ -988,7 +990,6 @@ class TodosDataSource extends BaseDataGridSource {
             columnName: 'meta',
             value: _dataSource.visibleResourcesFor(homework).length +
                 homework.attachments.length +
-                homework.reminders.length +
                 (homework.notes.isNotEmpty ? 1 : 0),
           ),
           DataGridCell<int>(columnName: 'actions', value: homework.id),
@@ -1184,19 +1185,32 @@ class TodosDataSource extends BaseDataGridSource {
           );
     final dateStyle = AppStyles.smallSecondaryText(_context);
 
-    return Container(
+    final Widget dateWidget = isSelectable
+        ? SelectableText(dateText, style: dateStyle, maxLines: 1)
+        : Text(
+            dateText,
+            style: dateStyle,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          );
+
+    final hasReminders = homework.reminders.isNotEmpty;
+    final cell = Container(
       padding: const EdgeInsets.symmetric(horizontal: AppConstants.tableCellInset),
       alignment: Alignment.centerLeft,
-      child: isSelectable
-          ? SelectableText(dateText, style: dateStyle, maxLines: 1)
-          : Text(
-              dateText,
+      child: hasReminders
+          ? _ReminderBellStamp(
+              text: dateText,
               style: dateStyle,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
+              ellipsize: !isSelectable,
+              color: _context.colorScheme.primary.withValues(alpha: 0.9),
+              child: dateWidget,
+            )
+          : dateWidget,
     );
+    return hasReminders ? Tooltip(message: 'Has reminders', child: cell) : cell;
   }
+
 
   Widget _buildClassCell(CourseModel course) {
     return Container(
@@ -1284,18 +1298,26 @@ class TodosDataSource extends BaseDataGridSource {
       homework,
       pulledThroughAttachmentCount: pulledThroughCount,
       resourceCount: resources.length,
+      includeReminders: false,
     )) {
       return const SizedBox.shrink();
     }
     final linkedNoteId = homework.notes.isNotEmpty
         ? homework.notes.first.id
         : null;
+    const metaIconSize = 14.0;
+    final hoverOverhang = (HoverTapTarget.extentOf(_context) - metaIconSize) / 2;
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: AppConstants.tableCellInset),
+      padding: EdgeInsets.only(
+        left: math.max(AppConstants.tableCellInset, hoverOverhang),
+        right: AppConstants.tableCellInset,
+      ),
       alignment: Alignment.centerLeft,
       child: PlannerItemMetaRow(
         plannerItem: homework,
         userSettings: userSettings,
+        iconSize: metaIconSize,
+        showReminders: false,
         pulledThroughAttachmentCount: pulledThroughCount,
         onOpenAttachments: (anchorContext) =>
             _openAttachments(homework, anchorContext),
@@ -1384,6 +1406,72 @@ class TodosDataSource extends BaseDataGridSource {
           ],
         ],
       ),
+    );
+  }
+}
+
+/// Stamps a bell at 45 degrees off the top-right corner of a single line of
+/// [text], measured from the laid-out glyphs so the bell sits the same way on
+/// every row regardless of where that row's text ends. Takes no layout space.
+class _ReminderBellStamp extends StatelessWidget {
+  final String text;
+  final TextStyle style;
+  final bool ellipsize;
+  final Color color;
+  final Widget child;
+
+  static const _bellSize = 10.0;
+  static const _diagonalGap = 1.0;
+  static const _poppinsCapHeightEm = 0.698;
+  static const _bellInkInsetLeft = _bellSize * 4 / 24;
+  static const _bellInkInsetBottom = _bellSize * 2 / 24;
+
+  const _ReminderBellStamp({
+    required this.text,
+    required this.style,
+    required this.ellipsize,
+    required this.color,
+    required this.child,
+  });
+
+  @override
+  Widget build(BuildContext context) => LayoutBuilder(builder: _buildStamped);
+
+  Widget _buildStamped(BuildContext context, BoxConstraints constraints) {
+    final textScaler = MediaQuery.textScalerOf(context);
+    final effectiveStyle = DefaultTextStyle.of(context).style.merge(style);
+    final painter = TextPainter(
+      text: TextSpan(text: text, style: effectiveStyle),
+      textDirection: Directionality.of(context),
+      textScaler: textScaler,
+      maxLines: 1,
+      ellipsis: ellipsize ? '\u2026' : null,
+    );
+    if (ellipsize) {
+      painter.layout(maxWidth: constraints.maxWidth);
+    } else {
+      painter.layout();
+    }
+    final baseline = painter.computeLineMetrics().first.baseline;
+    final renderedEnd = painter
+        .getBoxesForSelection(TextSelection(baseOffset: 0, extentOffset: text.length))
+        .fold(0.0, (end, box) => math.max(end, box.right));
+    painter.dispose();
+
+    final textEnd = math.min(renderedEnd, constraints.maxWidth);
+    final capTop =
+        baseline - textScaler.scale(effectiveStyle.fontSize!) * _poppinsCapHeightEm;
+
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        child,
+        Positioned(
+          left: textEnd + _diagonalGap - _bellInkInsetLeft,
+          top: capTop - _diagonalGap - _bellSize + _bellInkInsetBottom,
+          child: Icon(Icons.notifications_outlined, size: _bellSize, color: color),
+        ),
+      ],
     );
   }
 }

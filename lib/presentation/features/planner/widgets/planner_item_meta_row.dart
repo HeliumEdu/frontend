@@ -31,6 +31,8 @@ class PlannerItemMetaRow extends StatelessWidget {
   /// grid's fixed-width cell; the planner tooltip passes null.
   final int? maxEntries;
 
+  final bool showReminders;
+
   const PlannerItemMetaRow({
     super.key,
     required this.plannerItem,
@@ -44,18 +46,20 @@ class PlannerItemMetaRow extends StatelessWidget {
     this.resources = const [],
     this.onOpenResources,
     this.maxEntries = 3,
+    this.showReminders = true,
   });
 
   static bool hasAny(
     PlannerItemBaseModel plannerItem, {
     int pulledThroughAttachmentCount = 0,
     int resourceCount = 0,
+    bool includeReminders = true,
   }) {
     if (_linkedNoteId(plannerItem) != null) return true;
     if (plannerItem is HomeworkModel && resourceCount > 0) return true;
     if (plannerItem.attachments.isNotEmpty) return true;
     if (pulledThroughAttachmentCount > 0) return true;
-    if (plannerItem.reminders.isNotEmpty) return true;
+    if (includeReminders && plannerItem.reminders.isNotEmpty) return true;
     return false;
   }
 
@@ -111,7 +115,7 @@ class PlannerItemMetaRow extends StatelessWidget {
       );
     }
 
-    if (item.reminders.isNotEmpty) {
+    if (showReminders && item.reminders.isNotEmpty) {
       entries.add(
         _MetaEntry.count(
           icon: Icons.notifications_outlined,
