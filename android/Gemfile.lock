@@ -1,9 +1,9 @@
 GIT
   remote: https://github.com/alexdlaird/fastlane-plugin-bosun
-  revision: 13f22623426cc32e6a496494acf4b9c2343cdee2
+  revision: 5fc445f126e77184773e4a66777e6134c5a2275f
   tag: v1
   specs:
-    fastlane-plugin-bosun (1.0.0)
+    fastlane-plugin-bosun (1.1.0)
       fastlane (>= 2.236.1)
 
 GEM
@@ -306,7 +306,7 @@ CHECKSUMS
   faraday-retry (2.4.0) sha256=7b79c48fb7e56526faf247b12d94a680071ff40c9fda7cf1ec1549439ad11ebe
   fastimage (2.4.1) sha256=c64bebd46b6fd8943ab70c1e6e85ff728f970f2e48f92ecd249b6bc3a540ad20
   fastlane (2.240.1) sha256=cf792bc99ec6af6574ea416cda6530f519c8b4b3a46b1a3b52488ebf1696aa5c
-  fastlane-plugin-bosun (1.0.0)
+  fastlane-plugin-bosun (1.1.0)
   fastlane-sirp (1.1.0) sha256=10bc94f9682efd8e1badfb31452a76dd8981f1f3a33717c765fde6d75b54d847
   gh_inspector (1.1.3) sha256=04cca7171b87164e053aa43147971d3b7f500fcb58177698886b48a9fc4a1939
   google-apis-androidpublisher_v3 (0.107.0) sha256=b8207eecc89e6a9f7ea11aa88a07bccdcae5ca90121330079db4ef4696a2f3ff
