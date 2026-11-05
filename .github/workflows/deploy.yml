@@ -37,6 +37,11 @@ on:
         required: false
         type: boolean
         default: false
+      replace_pending_review:
+        description: 'When submitting, replace a submission still waiting for review (it loses its place in the queue; one Apple is already reviewing is never touched)'
+        required: false
+        type: boolean
+        default: true
       artifact_run_id:
         description: 'Automation only: the build.yml run whose artifacts to deploy (bypasses the release tag lookup). Leave blank for a manual deploy.'
         required: false
@@ -72,6 +77,11 @@ on:
         required: false
         type: boolean
         default: false
+      replace_pending_review:
+        description: 'When submitting, replace a submission still waiting for review'
+        required: false
+        type: boolean
+        default: true
       artifact_run_id:
         description: "The build.yml run whose artifacts to deploy"
         required: false
@@ -296,6 +306,7 @@ jobs:
       ref: ${{ github.sha }}
       build_run_id: ${{ needs.resolve.outputs.run_id }}
       push_store_assets: ${{ inputs.push_store_assets }}
+      replace_pending_review: ${{ inputs.replace_pending_review }}
       submit_for_review: ${{ inputs.auto_submit_for_review }}
       ios: ${{ inputs.platforms == 'ios' || inputs.platforms == 'all' }}
       android: ${{ inputs.platforms == 'android' || inputs.platforms == 'all' }}
