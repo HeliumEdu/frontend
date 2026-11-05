@@ -8,265 +8,49 @@ platform :ios do
     version = options[:version]
     UI.user_error!("version is required") unless version
 
-    api_key = app_store_connect_api_key(
-      key_id: ENV["APP_STORE_CONNECT_API_KEY_ID"],
-      issuer_id: ENV["APP_STORE_CONNECT_API_ISSUER_ID"],
-      key_filepath: File.expand_path("~/.appstoreconnect/private_keys/AuthKey_#{ENV['APP_STORE_CONNECT_API_KEY_ID']}.p8")
-    )
-
-    current = latest_testflight_build_number(
-      api_key: api_key,
-      version: version,
-      initial_build_number: 0
-    )
-
-    next_number = current + 1
-    UI.message("Next build number for #{version}: #{next_number}")
-    next_number
+    bosun_next_build_number(api_key: connect_api_key, version: version, scope_to_version: true)
   end
 
   desc "Upload IPA to TestFlight and wait for App-Store-side processing"
   lane :deploy_testflight do |options|
-    ipa_path = options[:ipa_path] || "../build/ios/ipa/Helium.ipa"
-    build_number = options[:build_number]
-    version = options[:version]
-
-    api_key = app_store_connect_api_key(
-      key_id: ENV["APP_STORE_CONNECT_API_KEY_ID"],
-      issuer_id: ENV["APP_STORE_CONNECT_API_ISSUER_ID"],
-      key_filepath: File.expand_path("~/.appstoreconnect/private_keys/AuthKey_#{ENV['APP_STORE_CONNECT_API_KEY_ID']}.p8")
+    bosun_testflight_upload(
+      api_key: connect_api_key,
+      ipa: options[:ipa_path] || "../build/ios/ipa/Helium.ipa",
+      build_number: options[:build_number],
+      version: options[:version],
+      skip_submission: true,
+      wait_processing_timeout_duration: 1800,
+      reraise_build_watcher: false,
+      rejection_messages: ["This bundle is invalid", "is closed for new build submissions", "bundle version must be higher", "ATTRIBUTE.INVALID.DUPLICATE"],
+      verify_by_version: true
     )
-
-    begin
-      # Wait for processing so submit_appstore can attach the build immediately
-      # in the same pipeline run.
-      upload_to_testflight(
-        api_key: api_key,
-        ipa: ipa_path,
-        skip_submission: true,
-        skip_waiting_for_build_processing: false,
-        wait_processing_timeout_duration: 1800,
-        distribute_external: false
-      )
-    rescue => upload_error
-      # altool retries transient network blips (e.g. `WILL RETRY PART N`
-      # after a TLS reset) internally and exits successfully, but fastlane's
-      # output parser matches the `Failed with error:` substring in that retry
-      # chatter and raises anyway. Before trusting the failure, re-query App
-      # Store Connect for the build we just uploaded — if Apple already has it,
-      # the upload genuinely succeeded and the raise is a false positive.
-      raise upload_error if rejected_by_app_store?(upload_error)
-      raise upload_error unless build_number && version
-      raise upload_error unless build_appears?(build_number, version)
-
-      UI.important(
-        "upload_to_testflight raised (#{upload_error.message}), but #{version} " \
-        "build #{build_number} is present in App Store Connect — treating the " \
-        "upload as successful (transient altool retry false positive)."
-      )
-    end
   end
 
   desc "Stage an App Store version with the given TestFlight build (CI uploads it), push metadata text every time and screenshots only when push_store_assets:true. Optionally auto-submit for App Review (an approved version releases automatically). The marketing app icon is part of the IPA and is not affected by this flag."
   lane :submit_appstore do |options|
     version = options[:version]
     build_number = options[:build_number]
-    # Fastlane CLI args arrive as strings; coerce to a real boolean.
     submit_for_review = options[:submit_for_review].to_s == "true"
-    # Default false: screenshots only re-upload when the operator explicitly
-    # flips this on. Re-pushing identical bytes still flips the asset records
-    # in App Store Connect and forces Apple to re-review marketing assets.
     push_store_assets = options[:push_store_assets].to_s == "true"
 
     UI.user_error!("version is required") unless version
     UI.user_error!("build_number is required") unless build_number
 
-    api_key = app_store_connect_api_key(
+    bosun_submit_app_store(
+      api_key: connect_api_key,
+      version: version,
+      build_number: build_number,
+      submit_for_review: submit_for_review,
+      push_store_assets: push_store_assets,
+      automatic_release: true
+    )
+  end
+
+  def connect_api_key
+    app_store_connect_api_key(
       key_id: ENV["APP_STORE_CONNECT_API_KEY_ID"],
       issuer_id: ENV["APP_STORE_CONNECT_API_ISSUER_ID"],
       key_filepath: File.expand_path("~/.appstoreconnect/private_keys/AuthKey_#{ENV['APP_STORE_CONNECT_API_KEY_ID']}.p8")
     )
-
-    # If the target App Store version is past the editable stage (submitted,
-    # in review, live, etc.), fail the lane rather than letting
-    # `upload_to_app_store` partially mutate an in-flight submission. The
-    # TestFlight build stays in place; the operator must resolve the existing
-    # submission in App Store Connect (or, if the version is already shipped,
-    # release the next version) before re-running.
-    locked_states = %w[
-      READY_FOR_REVIEW
-      WAITING_FOR_REVIEW
-      IN_REVIEW
-      PROCESSING_FOR_APP_STORE
-      PENDING_APPLE_RELEASE
-      PENDING_DEVELOPER_RELEASE
-      READY_FOR_SALE
-      REPLACED_WITH_NEW_VERSION
-    ]
-    app_identifier = CredentialsManager::AppfileConfig.try_fetch_value(:app_identifier)
-    spaceship_app = Spaceship::ConnectAPI::App.find(app_identifier)
-    existing = spaceship_app.get_app_store_versions(filter: { versionString: version }).first
-    if existing && locked_states.include?(existing.app_store_state)
-      UI.user_error!(
-        "App Store version #{version} is in state " \
-        "`#{existing.app_store_state}` — cannot stage. The TestFlight " \
-        "build stays in place; release the next version (if this one is " \
-        "shipped) or resolve the in-flight submission in App Store Connect, " \
-        "then re-run."
-      )
-    end
-    refuse_while_another_version_in_flight(spaceship_app, version)
-
-    submit_separately = submit_for_review && push_store_assets
-
-    upload_to_app_store(
-      api_key: api_key,
-      app_version: version,
-      build_number: build_number,
-      skip_binary_upload: true,
-      skip_metadata: false,
-      skip_screenshots: !push_store_assets,
-      # Without this, deliver appends to existing slots instead of replacing
-      # the set, so order in App Store Connect drifts from local filename order.
-      overwrite_screenshots: true,
-      submit_for_review: submit_for_review && !submit_separately,
-      automatic_release: true,
-      force: true,
-      precheck_include_in_app_purchases: false
-    )
-
-    submit_for_review_when_assets_ready(api_key: api_key, version: version, build_number: build_number) if submit_separately
-
-    if submit_for_review
-      # When submitting for review, deliver itself locates and attaches the
-      # build as part of the submission flow — no manual selection needed.
-      UI.success("Submitted App Store version #{version} (build #{build_number}) for review. Apple's review is async; once approved, the version releases automatically.")
-      next
-    end
-
-    # `upload_to_app_store` only auto-selects a TestFlight build when
-    # `submit_for_review: true`. We deliberately stop short of submit, so
-    # deliver leaves the App Store version unattached. Select the build
-    # explicitly so the version lands fully staged — operator only has to
-    # click Submit for Review.
-    #
-    # Note: Spaceship's Build.all keyword names are counter-intuitive — the
-    # `version:` keyword filters by `preReleaseVersion.version` (the SEMVER),
-    # and the `build_number:` keyword filters by the Build's own `version`
-    # field (the CFBundleVersion). See spaceship/connect_api/models/build.rb.
-    edit_version = spaceship_app.get_edit_app_store_version(platform: "IOS")
-    UI.user_error!("No editable App Store version found for #{version} after upload_to_app_store") unless edit_version
-
-    build = Spaceship::ConnectAPI::Build.all(
-      app_id: spaceship_app.id,
-      version: version,
-      build_number: build_number,
-      limit: 1
-    ).first
-    UI.user_error!("TestFlight build #{version} (#{build_number}) not found in App Store Connect — TestFlight processing may not have completed.") unless build
-
-    edit_version.select_build(build_id: build.id)
-    UI.success("Attached build #{version} (#{build_number}) to App Store version #{version}")
-  end
-
-  # Submits the already-staged version for review, retrying while App Store
-  # Connect still reports freshly uploaded screenshots as processing. Deliver's
-  # own wait only watches per-asset states, which complete before the version
-  # itself becomes submittable, so the submission is rejected with
-  # "Screenshot uploads still in progress".
-  def submit_for_review_when_assets_ready(api_key:, version:, build_number:, attempts: 10, delay_seconds: 30)
-    attempts.times do |attempt|
-      upload_to_app_store(
-        api_key: api_key,
-        app_version: version,
-        build_number: build_number,
-        skip_binary_upload: true,
-        skip_metadata: true,
-        skip_screenshots: true,
-        submit_for_review: true,
-        automatic_release: true,
-        force: true,
-        precheck_include_in_app_purchases: false
-      )
-      return
-    rescue Spaceship::UnexpectedResponse => submit_error
-      raise unless submit_error.message.include?("still in progress") && attempt < attempts - 1
-
-      UI.important(
-        "App Store Connect is still processing screenshots " \
-        "(attempt #{attempt + 1}/#{attempts}); retrying in #{delay_seconds}s."
-      )
-      sleep(delay_seconds)
-    end
-  end
-
-  def refuse_while_another_version_in_flight(spaceship_app, version)
-    in_flight = spaceship_app.get_app_store_versions(
-      filter: {
-        appVersionState: %w[
-          READY_FOR_REVIEW
-          WAITING_FOR_REVIEW
-          IN_REVIEW
-          WAITING_FOR_EXPORT_COMPLIANCE
-          ACCEPTED
-          PENDING_APPLE_RELEASE
-          PENDING_DEVELOPER_RELEASE
-          PROCESSING_FOR_DISTRIBUTION
-        ].join(","),
-        platform: "IOS"
-      }
-    )
-    return if in_flight.empty?
-
-    pending = in_flight.map { |app_store_version| "#{app_store_version.version_string} (`#{app_store_version.app_version_state}`)" }.join(", ")
-    UI.user_error!(
-      "App Store version #{pending} is still with App Review or awaiting release, so #{version} can't be staged. " \
-      "App Store Connect holds one version in flight, and staging now would rename that version to #{version} and " \
-      "change its listing. Let it finish (or cancel it in App Store Connect), then re-run."
-    )
-  end
-
-  # App Store Connect refused the binary outright (an older or closed version, a
-  # build number it already has): no retry chatter, so never look for the build
-  # to excuse it.
-  def rejected_by_app_store?(error)
-    message = error.message
-    ["This bundle is invalid", "is closed for new build submissions", "bundle version must be higher",
-     "ATTRIBUTE.INVALID.DUPLICATE"].any? { |rejection| message.include?(rejection) }
-  end
-
-  # App Store Connect lists a new build a minute or more after the upload
-  # returns, so a single check right away reads "not there yet" as "not
-  # uploaded". Poll for up to ten minutes before believing the failure.
-  def build_appears?(build_number, version, attempts: 20, interval: 30)
-    attempts.times do |attempt|
-      return true if build_uploaded?(build_number, version)
-      UI.message("#{version} build #{build_number} not listed in App Store Connect yet (#{attempt + 1}/#{attempts}); checking again in #{interval}s")
-      sleep(interval)
-    end
-    false
-  end
-
-  # Returns true if App Store Connect has this build of this version; the build
-  # number alone can match another version's build. Assumes Spaceship auth is
-  # already primed (app_store_connect_api_key sets the token in lane context).
-  # Swallows lookup errors so a flaky verify never masks the original upload
-  # failure — the caller re-raises in that case.
-  def build_uploaded?(build_number, version)
-    app_identifier = CredentialsManager::AppfileConfig.try_fetch_value(:app_identifier)
-    spaceship_app = Spaceship::ConnectAPI::App.find(app_identifier)
-    return false unless spaceship_app
-
-    # `version:` filters on the version (pre-release train) and `build_number:`
-    # on the Build's own `version` field, which is the CFBundleVersion.
-    !Spaceship::ConnectAPI::Build.all(
-      app_id: spaceship_app.id,
-      version: version.to_s,
-      build_number: build_number.to_s,
-      limit: 1
-    ).empty?
-  rescue => verify_error
-    UI.error("Failed to verify build #{build_number} in App Store Connect: #{verify_error.message}")
-    false
   end
 end

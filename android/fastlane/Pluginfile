@@ -1,0 +1,1 @@
+gem "fastlane-plugin-bosun", git: "https://github.com/alexdlaird/fastlane-plugin-bosun", tag: "v1"
