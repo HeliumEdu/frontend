@@ -577,9 +577,9 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
                 githubUrl: Uri.parse(AppConstants.githubUrl),
                 onGithubUrlError: () => SnackBarHelper.show(context, 'Failed to open link.', type: SnackType.error),
               ),
-            ),
-
-          const SizedBox(height: 12),
+            )
+          else
+            const SizedBox(height: 12),
         ],
       ),
     );
