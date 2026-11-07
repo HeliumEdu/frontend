@@ -49,6 +49,7 @@ import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/platform_behavior.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
+import 'package:heliumapp/utils/snack_bar_helpers.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:heliumapp/utils/url_helpers.dart';
 
@@ -573,7 +574,8 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
                 style: AppStyles.smallSecondaryText(context).copyWith(
                   color: context.colorScheme.onSurface.withValues(alpha: AppStyles.mutedTextAlpha),
                 ),
-                repository: Uri.parse(AppConstants.githubUrl),
+                githubUrl: Uri.parse(AppConstants.githubUrl),
+                onGithubUrlError: () => SnackBarHelper.show(context, 'Failed to open link.', type: SnackType.error),
               ),
             ),
 

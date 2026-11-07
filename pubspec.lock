@@ -277,10 +277,10 @@ packages:
     dependency: "direct main"
     description:
       name: double_feature
-      sha256: ed2ce1fac60e524911ca4a2bb3f3ad3a20b534f7c33e8cb95a299e505b51b8e8
+      sha256: "278dee16c1a020a4d922f8a439f4e052ada96b73dc8e31cf342e61e86f441880"
       url: "https://pub.dev"
     source: hosted
-    version: "1.1.0"
+    version: "2.0.0"
   equatable:
     dependency: transitive
     description:
