@@ -566,30 +566,14 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
 
           _buildDangerZoneArea(),
 
-          const SizedBox(height: 12),
-
           if (_version.isNotEmpty)
             Center(
-              child: Column(
-                children: [
-                  VersionLabel(
-                    version: _version,
-                    style: AppStyles.smallSecondaryText(context).copyWith(
-                      color: context.colorScheme.onSurface.withValues(alpha: AppStyles.mutedTextAlpha),
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  TextButton(
-                    onPressed: () =>
-                        UrlHelpers.launchWebUrl(AppConstants.githubUrl),
-                    child: Text(
-                      'Open Source on GitHub',
-                      style: AppStyles.smallSecondaryText(context).copyWith(
-                        color: context.colorScheme.onSurface.withValues(alpha: AppStyles.mutedTextAlpha),
-                      ),
-                    ),
-                  ),
-                ],
+              child: VersionLabel(
+                version: _version,
+                style: AppStyles.smallSecondaryText(context).copyWith(
+                  color: context.colorScheme.onSurface.withValues(alpha: AppStyles.mutedTextAlpha),
+                ),
+                repository: Uri.parse(AppConstants.githubUrl),
               ),
             ),
 
