@@ -6,7 +6,7 @@ final _log = Logger('core');
 
 class WhatsNewService {
   // Bump this number to show the "What's New" dialog to users again
-  static const int currentWhatsNewVersion = 13;
+  static const int currentWhatsNewVersion = 15;
 
   static final WhatsNewService _instance = WhatsNewService._internal();
 
@@ -16,16 +16,16 @@ class WhatsNewService {
 
   final DioClient _dioClient = DioClient();
 
-  Future<bool> shouldShowWhatsNew() async {
+  Future<int?> staleWhatsNewVersionSeen() async {
     try {
       final settings = await _dioClient.getSettings();
-      if (settings == null) {
-        return false;
+      if (settings == null || settings.whatsNewVersionSeen >= currentWhatsNewVersion) {
+        return null;
       }
-      return settings.whatsNewVersionSeen < currentWhatsNewVersion;
+      return settings.whatsNewVersionSeen;
     } catch (e) {
       _log.warning('Failed to evaluate What\'s New visibility: $e');
-      return false;
+      return null;
     }
   }
 

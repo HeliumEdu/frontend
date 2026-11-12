@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:heliumapp/data/models/id_or_entity.dart';
 import 'package:heliumapp/data/models/planner/attachment_model.dart';
-import 'package:heliumapp/data/models/planner/event_base_model.dart';
+import 'package:heliumapp/data/models/planner/planner_item_base_model.dart';
 import 'package:heliumapp/data/models/planner/note_model.dart';
 import 'package:heliumapp/data/models/planner/reminder_model.dart';
 import 'package:heliumapp/utils/color_helpers.dart';
 import 'package:heliumapp/utils/conversion_helpers.dart';
 import 'package:heliumapp/utils/planner_helper.dart';
 
-class EventModel extends EventBaseModel {
+class EventModel extends PlannerItemBaseModel {
   final String? ownerId;
   final List<IdOrEntity<NoteModel>> notes;
 
@@ -56,16 +56,13 @@ class EventModel extends EventBaseModel {
           ? HeliumColors.hexToColor(json['color'])
           : null,
       recurrenceRule: json['recurrence_rule'] as String?,
-      exceptionDates: EventBaseModel.parseExceptionDatesJson(
+      exceptionDates: PlannerItemBaseModel.parseExceptionDatesJson(
         json['exception_dates'],
       ),
     );
   }
 
   @override
-  EventModel copyAtOccurrence(DateTime start, DateTime end) =>
-      copyWith(start: start, end: end);
-
   EventModel copyWith({
     String? version,
     int? id,

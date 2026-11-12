@@ -26,7 +26,7 @@ void main() {
   group('GradeRemoteDataSource', () {
     group('getGrades', () {
       test(
-        'returns list of GradeCourseGroupModel on successful response',
+        'returns GradesModel on successful response',
         () async {
           // GIVEN
           final gradesJson = {
@@ -43,9 +43,9 @@ void main() {
           final result = await dataSource.getGrades();
 
           // THEN
-          expect(result.length, equals(2));
-          expect(result[0].title, equals('Fall 2025'));
-          expect(result[1].title, equals('Spring 2026'));
+          expect(result.courseGroups.length, equals(2));
+          expect(result.courseGroups[0].title, equals('Fall 2025'));
+          expect(result.courseGroups[1].title, equals('Spring 2026'));
         },
       );
 
@@ -60,7 +60,7 @@ void main() {
         final result = await dataSource.getGrades();
 
         // THEN
-        expect(result, isEmpty);
+        expect(result.courseGroups, isEmpty);
       });
 
       test('parses grade with overall grade', () async {
@@ -78,7 +78,7 @@ void main() {
         final result = await dataSource.getGrades();
 
         // THEN
-        expect(result[0].overallGrade, equals(92.5));
+        expect(result.courseGroups[0].overallGrade, equals(92.5));
       });
 
       test('parses homework counts', () async {
@@ -101,9 +101,54 @@ void main() {
         final result = await dataSource.getGrades();
 
         // THEN
-        expect(result[0].numHomework, equals(30));
-        expect(result[0].numHomeworkCompleted, equals(25));
-        expect(result[0].numHomeworkGraded, equals(20));
+        expect(result.courseGroups[0].numHomework, equals(30));
+        expect(result.courseGroups[0].numHomeworkCompleted, equals(25));
+        expect(result.courseGroups[0].numHomeworkGraded, equals(20));
+      });
+
+      test('parses GPA and cumulative GPA', () async {
+        // GIVEN
+        final gradesJson = {
+          'course_groups': [
+            givenGradeCourseGroupJson(
+              id: 1,
+              gpa: 3.4567,
+              inCumulativeGpa: false,
+              exampleSchedule: true,
+            ),
+          ],
+          'cumulative_gpa': 3.25,
+        };
+        when(
+          () => mockDio.get(any()),
+        ).thenAnswer((_) async => givenSuccessResponse(gradesJson));
+
+        // WHEN
+        final result = await dataSource.getGrades();
+
+        // THEN
+        expect(result.cumulativeGpa, equals(3.25));
+        expect(result.courseGroups[0].gpa, equals(3.4567));
+        expect(result.courseGroups[0].inCumulativeGpa, isFalse);
+        expect(result.courseGroups[0].exampleSchedule, isTrue);
+      });
+
+      test('parses an ungraded GPA as null', () async {
+        // GIVEN
+        final gradesJson = {
+          'course_groups': [givenGradeCourseGroupJson(id: 1, gpa: -1)],
+          'cumulative_gpa': -1,
+        };
+        when(
+          () => mockDio.get(any()),
+        ).thenAnswer((_) async => givenSuccessResponse(gradesJson));
+
+        // WHEN
+        final result = await dataSource.getGrades();
+
+        // THEN
+        expect(result.cumulativeGpa, isNull);
+        expect(result.courseGroups[0].gpa, isNull);
       });
 
       test('throws HeliumException when course_groups key missing', () async {

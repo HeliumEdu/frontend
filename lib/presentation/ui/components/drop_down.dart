@@ -7,6 +7,8 @@ class DropDown<T> extends StatelessWidget {
   static const _fieldBorderRadius = 8.0;
   static const _contentPadding = 12.0;
   static const _iconTextSpacing = 12.0;
+  static const _trailingButtonSize = 48.0;
+  static const _trailingButtonLabelOffset = 30.0;
 
   final String? label;
   final IconData? prefixIcon;
@@ -14,6 +16,7 @@ class DropDown<T> extends StatelessWidget {
   final List<DropDownItem<T>> items;
   final void Function(DropDownItem<T>?)? onChanged;
   final String? Function(DropDownItem<T>?)? validator;
+  final Widget? trailingIconButton;
 
   const DropDown({
     super.key,
@@ -23,6 +26,7 @@ class DropDown<T> extends StatelessWidget {
     required this.items,
     required this.onChanged,
     this.validator,
+    this.trailingIconButton,
   });
 
   @override
@@ -32,7 +36,7 @@ class DropDown<T> extends StatelessWidget {
         ? context.colorScheme.primary.withValues(alpha: 0.4)
         : context.colorScheme.primary;
 
-    return Column(
+    final field = Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         if (label != null) Text(label!, style: AppStyles.formLabel(context)),
@@ -105,6 +109,26 @@ class DropDown<T> extends StatelessWidget {
             }).toList(),
             onChanged: onChanged,
           ),
+          ),
+        ),
+      ],
+    );
+
+    if (trailingIconButton == null) return field;
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Expanded(child: field),
+        const SizedBox(width: 8),
+        Padding(
+          padding: EdgeInsets.only(
+            top: label != null ? _trailingButtonLabelOffset : 0,
+          ),
+          child: SizedBox(
+            width: _trailingButtonSize,
+            height: _trailingButtonSize,
+            child: trailingIconButton,
           ),
         ),
       ],

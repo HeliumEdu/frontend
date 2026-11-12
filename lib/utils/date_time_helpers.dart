@@ -104,6 +104,10 @@ class DateRangeEnforcer {
 }
 
 class HeliumDateTime {
+  static final _utcUntil = RegExp(r'UNTIL=(\d{8}T\d{6}Z)');
+  static final _recurrenceDateTime = DateFormat("yyyyMMdd'T'HHmmss");
+  static const dayNameShortPattern = 'EEE';
+
   /// Returns a DateTime with only the date part (time set to midnight)
   static DateTime dateOnly(DateTime date) {
     return DateTime(date.year, date.month, date.day);
@@ -126,14 +130,6 @@ class HeliumDateTime {
     if (gap.abs() < const Duration(minutes: 1)) return 'around the same time as';
     final direction = gap.isNegative ? 'before' : 'after';
     return '${_describeGap(gap.abs())} $direction';
-  }
-
-  static String _describeGap(Duration gap) {
-    if ((gap.inMinutes / 60).round() < Duration.hoursPerDay) {
-      return describeWait(gap);
-    }
-    final days = (gap.inMinutes / Duration.minutesPerDay).round();
-    return days == 1 ? 'about a day' : 'about $days days';
   }
 
   /// When [instant] happened in [timeZone], in only as much detail as places
@@ -193,6 +189,23 @@ class HeliumDateTime {
   static DateTime allDayEndAfterMove(DateTime newStart, DateTime originalStart, DateTime originalEnd) =>
       addDays(newStart, calendarDaysBetween(originalStart, originalEnd));
 
+  /// An all-day occurrence keeps the series' span of dates in [timeZone], not
+  /// its duration, so it stays whole days across DST.
+  static (DateTime, DateTime) occurrenceBounds(
+    DateTime seriesStart,
+    DateTime seriesEnd,
+    DateTime occurrenceStart, {
+    required bool allDay,
+    required tz.Location timeZone,
+  }) {
+    if (!allDay) {
+      return (occurrenceStart, occurrenceStart.add(seriesEnd.difference(seriesStart)));
+    }
+    final spanDays = calendarDaysBetween(toLocal(seriesStart, timeZone), toLocal(seriesEnd, timeZone));
+    final local = toLocal(occurrenceStart, timeZone);
+    return (occurrenceStart, tz.TZDateTime(timeZone, local.year, local.month, local.day + spanDays));
+  }
+
   /// The last date an item occupies, given its [end]: the day before an
   /// all-day item's exclusive end, or the day a timed item's end falls on.
   static DateTime lastDayOf(DateTime end, {required bool allDay}) =>
@@ -213,9 +226,6 @@ class HeliumDateTime {
     final until = tz.TZDateTime.from(DateTime.parse(match.group(1)!), timeZone);
     return rule.replaceRange(match.start, match.end, 'UNTIL=${_recurrenceDateTime.format(until)}');
   }
-
-  static final _utcUntil = RegExp(r'UNTIL=(\d{8}T\d{6}Z)');
-  static final _recurrenceDateTime = DateFormat("yyyyMMdd'T'HHmmss");
 
   /// The number of calendar days from [start]'s date to [end]'s date, read
   /// from each value's own components.
@@ -292,8 +302,6 @@ class HeliumDateTime {
     );
   }
 
-  static const dayNameShortPattern = 'EEE';
-
   /// Whether the device locale writes the month before the day; year-first
   /// locales count as day-first, since the app renders word-month dates and
   /// has no year-first form. Falls back to month-first for an unknown locale.
@@ -358,12 +366,6 @@ class HeliumDateTime {
     return DateFormat(dayNameShortPattern).format(date);
   }
 
-  /// Word-month dates read month-first only for the month/day/year setting.
-  static bool get _monthFirst =>
-      RegionalSettingsNotifier().dateFormat == RegionalFormatConstants.dateFormatMonthDayYear;
-
-  static String _ordered(String monthFirst, String dayFirst) => _monthFirst ? monthFirst : dayFirst;
-
   static DateFormat get dateFormatForChartAxis => DateFormat(_ordered('MMM d', 'd MMM'));
 
   static String formatMonthAndYear(
@@ -402,10 +404,6 @@ class HeliumDateTime {
     return HeliumTime.shortenOnTheHour(DateFormat(pattern).format(date));
   }
 
-  static String _todosDatePattern(bool showWeekday) => showWeekday
-      ? _ordered('EEE, MMM d', 'EEE, d MMM')
-      : _ordered('MMM d', 'd MMM');
-
   static String formatTime(DateTime date) {
     return HeliumTime.shortenOnTheHour(DateFormat(HeliumTime.timePattern).format(date));
   }
@@ -443,21 +441,11 @@ class HeliumDateTime {
     return DateFormat('yyyy-MM-dd').format(date);
   }
 
-  static String formatDateAndTimeForApi(
-    DateTime date,
-    TimeOfDay? time,
-    tz.Location timeZone,
-  ) {
-    final dateTime = tz.TZDateTime(
-      timeZone,
-      date.year,
-      date.month,
-      date.day,
-      time?.hour ?? 0,
-      time?.minute ?? 0,
-    );
-    return dateTime.toIso8601String();
-  }
+  static tz.TZDateTime dateAndTimeIn(DateTime date, TimeOfDay? time, tz.Location timeZone) =>
+      tz.TZDateTime(timeZone, date.year, date.month, date.day, time?.hour ?? 0, time?.minute ?? 0);
+
+  static String formatDateAndTimeForApi(DateTime date, TimeOfDay? time, tz.Location timeZone) =>
+      dateAndTimeIn(date, time, timeZone).toIso8601String();
 
   /// The instants spanning whole days in [timeZone]: midnight of [firstDay]
   /// through the exclusive midnight after [lastDay], each read by its date.
@@ -521,8 +509,275 @@ class HeliumDateTime {
     return weekNumber;
   }
 
+  static String _describeGap(Duration gap) {
+    if ((gap.inMinutes / 60).round() < Duration.hoursPerDay) {
+      return describeWait(gap);
+    }
+    final days = (gap.inMinutes / Duration.minutesPerDay).round();
+    return days == 1 ? 'about a day' : 'about $days days';
+  }
+
+  /// Word-month dates read month-first only for the month/day/year setting.
+  static bool get _monthFirst =>
+      RegionalSettingsNotifier().dateFormat == RegionalFormatConstants.dateFormatMonthDayYear;
+
+  static String _ordered(String monthFirst, String dayFirst) => _monthFirst ? monthFirst : dayFirst;
+
+  static String _todosDatePattern(bool showWeekday) => showWeekday
+      ? _ordered('EEE, MMM d', 'EEE, d MMM')
+      : _ordered('MMM d', 'd MMM');
+
   static int _weeksInYear(int year) {
     int p(int y) => (y + (y ~/ 4) - (y ~/ 100) + (y ~/ 400)) % 7;
     return p(year) == 4 || p(year - 1) == 3 ? 53 : 52;
+  }
+}
+
+enum RecurrenceFrequency { none, daily, weekly, monthly, yearly }
+
+/// How a repeat ends. [defaultEnd] is the item's natural end: never for an
+/// Event, the end of its class for an Assignment.
+enum RecurrenceEnd { defaultEnd, onDate, afterCount }
+
+/// A repeat as the picker edits it. Weekdays are Sunday-indexed (0 = Sunday).
+class RecurrenceDraft {
+  final RecurrenceFrequency frequency;
+  final int interval;
+  final Set<int> weekdays;
+  final bool lastDayOfMonth;
+  final RecurrenceEnd end;
+  final DateTime? until;
+  final int? count;
+
+  @override
+  bool operator ==(Object other) =>
+      other is RecurrenceDraft &&
+      other.frequency == frequency &&
+      other.interval == interval &&
+      other.weekdays.length == weekdays.length &&
+      other.weekdays.containsAll(weekdays) &&
+      other.lastDayOfMonth == lastDayOfMonth &&
+      other.end == end &&
+      other.until == until &&
+      other.count == count;
+
+  const RecurrenceDraft({
+    this.frequency = RecurrenceFrequency.none,
+    this.interval = 1,
+    this.weekdays = const {},
+    this.lastDayOfMonth = false,
+    this.end = RecurrenceEnd.defaultEnd,
+    this.until,
+    this.count,
+  });
+
+  bool get repeats => frequency != RecurrenceFrequency.none;
+
+  @override
+  int get hashCode => Object.hash(frequency, interval, Object.hashAllUnordered(weekdays), lastDayOfMonth, end,
+      until, count);
+
+  RecurrenceDraft copyWith({
+    RecurrenceFrequency? frequency,
+    int? interval,
+    Set<int>? weekdays,
+    bool? lastDayOfMonth,
+    RecurrenceEnd? end,
+    DateTime? until,
+    int? count,
+  }) {
+    return RecurrenceDraft(
+      frequency: frequency ?? this.frequency,
+      interval: interval ?? this.interval,
+      weekdays: weekdays ?? this.weekdays,
+      lastDayOfMonth: lastDayOfMonth ?? this.lastDayOfMonth,
+      end: end ?? this.end,
+      until: until ?? this.until,
+      count: count ?? this.count,
+    );
+  }
+}
+
+/// Composes and parses the RRULE subset the picker offers.
+class HeliumRecurrence {
+  static const _icalWeekdays = ['SU', 'MO', 'TU', 'WE', 'TH', 'FR', 'SA'];
+
+  static const _frequencies = {
+    'DAILY': RecurrenceFrequency.daily,
+    'WEEKLY': RecurrenceFrequency.weekly,
+    'MONTHLY': RecurrenceFrequency.monthly,
+    'YEARLY': RecurrenceFrequency.yearly,
+  };
+
+  static const _frequencyNames = {
+    RecurrenceFrequency.daily: 'DAILY',
+    RecurrenceFrequency.weekly: 'WEEKLY',
+    RecurrenceFrequency.monthly: 'MONTHLY',
+    RecurrenceFrequency.yearly: 'YEARLY',
+  };
+  static final _utcUntil = DateFormat("yyyyMMdd'T'HHmmss'Z'");
+
+  HeliumRecurrence._();
+
+  /// A monthly repeat from the 29th or later would skip the months without
+  /// that day.
+  static bool offersLastDayOfMonth(DateTime localStart) => localStart.day >= 29;
+
+  static RecurrenceDraft defaultFor(RecurrenceFrequency frequency, DateTime localStart) {
+    return RecurrenceDraft(
+      frequency: frequency,
+      weekdays: {HeliumDateTime.getDayIndex(localStart)},
+    );
+  }
+
+  /// A weekly repeat on only the old start's weekday moves to the new one.
+  static RecurrenceDraft followStart(RecurrenceDraft draft, DateTime previousStart, DateTime newStart) {
+    final previousDay = HeliumDateTime.getDayIndex(previousStart);
+    if (draft.frequency != RecurrenceFrequency.weekly ||
+        draft.weekdays.length != 1 ||
+        draft.weekdays.first != previousDay) {
+      return draft;
+    }
+    return draft.copyWith(weekdays: {HeliumDateTime.getDayIndex(newStart)});
+  }
+
+  /// An end date includes its whole local day.
+  static String? compose(RecurrenceDraft draft, DateTime localStart, tz.Location timeZone) {
+    if (!draft.repeats) {
+      return null;
+    }
+
+    final parts = <String>['FREQ=${_frequencyNames[draft.frequency]}'];
+    if (draft.interval > 1) {
+      parts.add('INTERVAL=${draft.interval}');
+    }
+
+    switch (draft.frequency) {
+      case RecurrenceFrequency.weekly:
+        final weekdays = draft.weekdays.isEmpty
+            ? {HeliumDateTime.getDayIndex(localStart)}
+            : draft.weekdays;
+        parts.add('BYDAY=${(weekdays.toList()..sort()).map((day) => _icalWeekdays[day]).join(',')}');
+      case RecurrenceFrequency.monthly:
+        parts.add('BYMONTHDAY=${draft.lastDayOfMonth && offersLastDayOfMonth(localStart) ? -1 : localStart.day}');
+      case RecurrenceFrequency.yearly:
+        parts.add('BYMONTH=${localStart.month}');
+        parts.add('BYMONTHDAY=${localStart.day}');
+      case RecurrenceFrequency.daily:
+      case RecurrenceFrequency.none:
+        break;
+    }
+
+    if (draft.end == RecurrenceEnd.afterCount && draft.count != null) {
+      parts.add('COUNT=${draft.count}');
+    } else if (draft.end == RecurrenceEnd.onDate && draft.until != null) {
+      final until = draft.until!;
+      final endOfDay = tz.TZDateTime(timeZone, until.year, until.month, until.day, 23, 59, 59);
+      parts.add('UNTIL=${_utcUntil.format(endOfDay.toUtc())}');
+    }
+
+    return parts.join(';');
+  }
+
+  /// Null when the picker can't represent [rule].
+  static RecurrenceDraft? parse(String? rule, DateTime localStart, tz.Location timeZone) {
+    if (rule == null || rule.isEmpty) {
+      return const RecurrenceDraft();
+    }
+
+    final parts = _parts(rule);
+    final frequency = _frequencies[parts.remove('FREQ')];
+    if (frequency == null) {
+      return null;
+    }
+
+    final interval = int.tryParse(parts.remove('INTERVAL') ?? '1');
+    if (interval == null || interval < 1) {
+      return null;
+    }
+
+    var draft = RecurrenceDraft(frequency: frequency, interval: interval);
+
+    final count = parts.remove('COUNT');
+    final until = parts.remove('UNTIL');
+    if (count != null && until != null) {
+      return null;
+    }
+    if (count != null) {
+      final parsedCount = int.tryParse(count);
+      if (parsedCount == null) {
+        return null;
+      }
+      draft = draft.copyWith(end: RecurrenceEnd.afterCount, count: parsedCount);
+    } else if (until != null) {
+      final untilDate = _untilDate(until, timeZone);
+      if (untilDate == null) {
+        return null;
+      }
+      draft = draft.copyWith(end: RecurrenceEnd.onDate, until: untilDate);
+    }
+
+    final byDay = parts.remove('BYDAY');
+    final byMonthDay = parts.remove('BYMONTHDAY');
+    final byMonth = parts.remove('BYMONTH');
+    if (parts.isNotEmpty) {
+      return null;
+    }
+
+    switch (frequency) {
+      case RecurrenceFrequency.daily:
+        return byDay == null && byMonthDay == null && byMonth == null ? draft : null;
+      case RecurrenceFrequency.weekly:
+        if (byMonthDay != null || byMonth != null) {
+          return null;
+        }
+        final weekdays = byDay == null
+            ? {HeliumDateTime.getDayIndex(localStart)}
+            : byDay.split(',').map(_icalWeekdays.indexOf).toSet();
+        return weekdays.contains(-1) ? null : draft.copyWith(weekdays: weekdays);
+      case RecurrenceFrequency.monthly:
+        if (byDay != null || byMonth != null) {
+          return null;
+        }
+        if (byMonthDay == '-1') {
+          return draft.copyWith(lastDayOfMonth: true);
+        }
+        return byMonthDay == null || byMonthDay == '${localStart.day}' ? draft : null;
+      case RecurrenceFrequency.yearly:
+        final matchesStart = (byMonth == null || byMonth == '${localStart.month}') &&
+            (byMonthDay == null || byMonthDay == '${localStart.day}');
+        return byDay == null && matchesStart ? draft : null;
+      case RecurrenceFrequency.none:
+        return null;
+    }
+  }
+
+  static Map<String, String> _parts(String rule) {
+    final body = rule.toUpperCase().startsWith('RRULE:') ? rule.substring(6) : rule;
+    final parts = <String, String>{};
+    for (final part in body.split(';')) {
+      final separator = part.indexOf('=');
+      if (separator > 0) {
+        parts[part.substring(0, separator).toUpperCase()] = part.substring(separator + 1).toUpperCase();
+      }
+    }
+    return parts;
+  }
+
+  static DateTime? _untilDate(String until, tz.Location timeZone) {
+    final match = RegExp(r'^(\d{4})(\d{2})(\d{2})(T(\d{2})(\d{2})(\d{2})(Z?))?$').firstMatch(until);
+    if (match == null) {
+      return null;
+    }
+    final year = int.parse(match.group(1)!);
+    final month = int.parse(match.group(2)!);
+    final day = int.parse(match.group(3)!);
+    if (match.group(8) != 'Z') {
+      return DateTime(year, month, day);
+    }
+    final instant = DateTime.utc(year, month, day, int.parse(match.group(5)!), int.parse(match.group(6)!),
+        int.parse(match.group(7)!));
+    final local = tz.TZDateTime.from(instant, timeZone);
+    return DateTime(local.year, local.month, local.day);
   }
 }

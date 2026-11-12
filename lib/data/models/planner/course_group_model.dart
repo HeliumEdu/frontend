@@ -1,4 +1,5 @@
 import 'package:heliumapp/data/models/base_model.dart';
+import 'package:heliumapp/data/models/planner/grade_scale_band_model.dart';
 import 'package:heliumapp/utils/conversion_helpers.dart';
 import 'package:heliumapp/utils/course_exception_helpers.dart';
 
@@ -7,6 +8,9 @@ class CourseGroupModel extends BaseTitledModel {
   final DateTime endDate;
   final List<DateTime> exceptions;
   final double? overallGrade;
+  final List<GradeScaleBandModel> gradeScale;
+  final int? gradeScaleTemplate;
+  final bool exampleSchedule;
 
   CourseGroupModel({
     required super.id,
@@ -17,6 +21,9 @@ class CourseGroupModel extends BaseTitledModel {
     required this.exceptions,
     super.version,
     this.overallGrade,
+    required this.gradeScale,
+    this.gradeScaleTemplate,
+    required this.exampleSchedule,
   });
 
   factory CourseGroupModel.fromJson(Map<String, dynamic> json) {
@@ -31,6 +38,9 @@ class CourseGroupModel extends BaseTitledModel {
         json['exceptions'] as String,
       ),
       overallGrade: toDouble(json['overall_grade']),
+      gradeScale: GradeScaleBandModel.listFromJson(json['grade_scale']),
+      gradeScaleTemplate: json['grade_scale_template'],
+      exampleSchedule: json['example_schedule'],
     );
   }
 }

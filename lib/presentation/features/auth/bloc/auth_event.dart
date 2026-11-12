@@ -125,5 +125,11 @@ class DecideAuthorizationEvent extends AuthEvent {
   final String query;
   final bool allow;
 
-  DecideAuthorizationEvent({required this.query, required this.allow});
+  final List<String>? scopes;
+
+  DecideAuthorizationEvent({
+    required this.query,
+    required this.allow,
+    this.scopes,
+  });
 }

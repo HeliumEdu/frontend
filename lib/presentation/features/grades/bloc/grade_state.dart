@@ -19,8 +19,13 @@ class GradesError extends GradeState {
 class GradeScreenDataFetched extends GradeState {
   final List<CourseGroupModel> courseGroups;
   final List<GradeCourseGroupModel> grades;
+  final double? cumulativeGpa;
 
-  GradeScreenDataFetched({required this.courseGroups, required this.grades});
+  GradeScreenDataFetched({
+    required this.courseGroups,
+    required this.grades,
+    this.cumulativeGpa,
+  });
 }
 
 class NeededGradeCalculating extends GradeState {}

@@ -68,5 +68,9 @@ abstract class AuthRepository {
 
   Future<OAuthAuthorizationModel> describeAuthorization(String query);
 
-  Future<String> decideAuthorization(String query, {required bool allow});
+  Future<String> decideAuthorization(
+    String query, {
+    required bool allow,
+    List<String>? scopes,
+  });
 }

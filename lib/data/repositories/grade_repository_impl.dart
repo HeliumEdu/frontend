@@ -1,4 +1,4 @@
-import 'package:heliumapp/data/models/planner/grade_course_group_model.dart';
+import 'package:heliumapp/data/models/planner/grades_model.dart';
 import 'package:heliumapp/data/models/planner/needed_grade_model.dart';
 import 'package:heliumapp/data/sources/grade_remote_data_source.dart';
 import 'package:heliumapp/domain/repositories/grade_repository.dart';
@@ -9,7 +9,7 @@ class GradeRepositoryImpl implements GradeRepository {
   GradeRepositoryImpl({required this.remoteDataSource});
 
   @override
-  Future<List<GradeCourseGroupModel>> getGrades({bool forceRefresh = false}) async {
+  Future<GradesModel> getGrades({bool forceRefresh = false}) async {
     return remoteDataSource.getGrades(forceRefresh: forceRefresh);
   }
 

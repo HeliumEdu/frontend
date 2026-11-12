@@ -18,6 +18,8 @@ abstract class PlannerItemBaseModel extends BaseTitledModel {
   final PlannerItemType plannerItemType;
   final List<IdOrEntity<AttachmentModel>> attachments;
   final List<IdOrEntity<ReminderModel>> reminders;
+  final String? recurrenceRule;
+  final List<DateTime> exceptionDates;
 
   PlannerItemBaseModel({
     required super.id,
@@ -34,5 +36,16 @@ abstract class PlannerItemBaseModel extends BaseTitledModel {
     required this.attachments,
     required this.reminders,
     super.version,
+    this.recurrenceRule,
+    this.exceptionDates = const [],
   });
+
+  static List<DateTime> parseExceptionDatesJson(dynamic value) {
+    if (value is! List) {
+      return const [];
+    }
+    return value.whereType<String>().map(DateTime.parse).toList();
+  }
+
+  PlannerItemBaseModel copyWith({DateTime? start, DateTime? end});
 }

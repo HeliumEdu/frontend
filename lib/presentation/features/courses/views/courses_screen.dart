@@ -406,7 +406,11 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen> {
             _saveSelectedGroup();
           },
           onCreate: () {
-            showCourseGroupDialog(parentContext: context, isEdit: false);
+            showCourseGroupDialog(
+              parentContext: context,
+              isEdit: false,
+              latestGroup: CourseGroupHelpers.latestGroup(_courseGroups),
+            );
           },
           onEdit: (group) {
             showCourseGroupDialog(
@@ -746,15 +750,18 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen> {
                             ),
                             if (course.hasWeightedGrading == true) ...[
                               const SizedBox(width: 6),
-                              Icon(
-                                Icons.balance,
-                                size: Responsive.getIconSize(
-                                  context,
-                                  mobile: 14,
-                                  tablet: 16,
-                                  desktop: 16,
+                              Tooltip(
+                                message: 'Weighted grading',
+                                child: Icon(
+                                  Icons.balance,
+                                  size: Responsive.getIconSize(
+                                    context,
+                                    mobile: 14,
+                                    tablet: 16,
+                                    desktop: 16,
+                                  ),
+                                  color: context.colorScheme.onSurface,
                                 ),
-                                color: context.colorScheme.onSurface,
                               ),
                             ],
                           ],

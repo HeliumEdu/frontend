@@ -220,7 +220,10 @@ class PlannerItemBloc extends Bloc<PlannerItemEvent, PlannerItemState> {
   ) async {
     emit(PlannerItemsLoading(origin: event.origin));
     try {
-      final entity = await eventRepository.cloneEvent(eventId: event.eventId);
+      final entity = await eventRepository.cloneEvent(
+        eventId: event.eventId,
+        occurrenceStart: event.occurrenceStart,
+      );
 
       emit(
         EventCreated(
@@ -250,11 +253,17 @@ class PlannerItemBloc extends Bloc<PlannerItemEvent, PlannerItemState> {
   ) async {
     emit(PlannerItemsLoading(origin: event.origin));
     try {
+      if (event.onlyThisOccurrence && event.occurrenceStart != null) {
+        await _detachOccurrence(event, emit);
+        return;
+      }
+
       final saved = await _linkedNoteSaver.saveWithEntity(
         eventRepository.updateEvent(
           eventId: event.id,
           request: event.request,
           version: event.version,
+          occurrenceStart: event.occurrenceStart,
         ),
         event.linkedNote,
         eventId: event.id,
@@ -318,8 +327,11 @@ class PlannerItemBloc extends Bloc<PlannerItemEvent, PlannerItemState> {
 
     emit(PlannerItemsLoading(origin: event.origin));
     try {
-      await eventRepository.deleteEvent(eventId: event.id);
-      emit(EventDeleted(origin: event.origin, id: event.id));
+      await eventRepository.deleteEvent(eventId: event.id, occurrenceStart: event.occurrenceStart);
+      final series = event.occurrenceStart != null
+          ? await _unlessNotFound(eventRepository.getEvent(id: event.id, forceRefresh: true))
+          : null;
+      emit(EventDeleted(origin: event.origin, id: event.id, series: series));
     } on HeliumException catch (e) {
       emit(PlannerItemsError(origin: event.origin, message: e.message));
     } catch (e) {
@@ -405,6 +417,7 @@ class PlannerItemBloc extends Bloc<PlannerItemEvent, PlannerItemState> {
         groupId: event.courseGroupId,
         courseId: event.courseId,
         homeworkId: event.homeworkId,
+        occurrenceStart: event.occurrenceStart,
       );
 
       emit(
@@ -435,6 +448,11 @@ class PlannerItemBloc extends Bloc<PlannerItemEvent, PlannerItemState> {
   ) async {
     emit(PlannerItemsLoading(origin: event.origin));
     try {
+      if (event.onlyThisOccurrence && event.occurrenceStart != null) {
+        await _detachHomeworkOccurrence(event, emit);
+        return;
+      }
+
       final saved = await _linkedNoteSaver.saveWithEntity(
         homeworkRepository.updateHomework(
           groupId: event.courseGroupId,
@@ -442,6 +460,7 @@ class PlannerItemBloc extends Bloc<PlannerItemEvent, PlannerItemState> {
           homeworkId: event.homeworkId,
           request: event.request,
           version: event.version,
+          occurrenceStart: event.occurrenceStart,
         ),
         event.linkedNote,
         homeworkId: event.homeworkId,
@@ -510,8 +529,12 @@ class PlannerItemBloc extends Bloc<PlannerItemEvent, PlannerItemState> {
         groupId: event.courseGroupId,
         courseId: event.courseId,
         homeworkId: event.homeworkId,
+        occurrenceStart: event.occurrenceStart,
       );
-      emit(HomeworkDeleted(origin: event.origin, id: event.homeworkId));
+      final series = event.occurrenceStart != null
+          ? await _unlessNotFound(homeworkRepository.getHomework(id: event.homeworkId, forceRefresh: true))
+          : null;
+      emit(HomeworkDeleted(origin: event.origin, id: event.homeworkId, series: series));
     } on HeliumException catch (e) {
       emit(PlannerItemsError(origin: event.origin, message: e.message));
     } catch (e) {
@@ -523,6 +546,77 @@ class PlannerItemBloc extends Bloc<PlannerItemEvent, PlannerItemState> {
       );
     } finally {
       _deletingHomeworkIds.remove(event.homeworkId);
+    }
+  }
+
+  Future<void> _detachOccurrence(UpdateEventEvent event, Emitter<PlannerItemState> emit) async {
+    final detached = await eventRepository.updateEvent(
+      eventId: event.id,
+      request: event.request,
+      occurrenceStart: event.occurrenceStart,
+      onlyThisOccurrence: true,
+    );
+    final series = await _unlessNotFound(eventRepository.getEvent(id: event.id, forceRefresh: true));
+    final saved = await _linkedNoteSaver.saveWithEntity(
+      Future.value(detached),
+      event.linkedNote,
+      eventId: series != null ? event.id : detached.id,
+    );
+
+    emit(
+      EventUpdated(
+        origin: event.origin,
+        event: detached,
+        entityId: detached.id,
+        isEvent: true,
+        advanceNavOnSuccess: event.advanceNavOnSuccess,
+        redirectToNotebook: event.redirectToNotebook,
+        linkedNoteId: saved.note?.noteId,
+        linkedNoteSave: saved.note,
+        seriesId: event.id,
+        series: series,
+      ),
+    );
+  }
+
+  Future<void> _detachHomeworkOccurrence(UpdateHomeworkEvent event, Emitter<PlannerItemState> emit) async {
+    final detached = await homeworkRepository.updateHomework(
+      groupId: event.courseGroupId,
+      courseId: event.courseId,
+      homeworkId: event.homeworkId,
+      request: event.request,
+      occurrenceStart: event.occurrenceStart,
+      onlyThisOccurrence: true,
+    );
+    final series = await _unlessNotFound(homeworkRepository.getHomework(id: event.homeworkId, forceRefresh: true));
+    final saved = await _linkedNoteSaver.saveWithEntity(
+      Future.value(detached),
+      event.linkedNote,
+      homeworkId: series != null ? event.homeworkId : detached.id,
+    );
+
+    emit(
+      HomeworkUpdated(
+        origin: event.origin,
+        homework: detached,
+        entityId: detached.id,
+        isEvent: false,
+        advanceNavOnSuccess: event.advanceNavOnSuccess,
+        redirectToNotebook: event.redirectToNotebook,
+        linkedNoteId: saved.note?.noteId,
+        linkedNoteSave: saved.note,
+        previousHomework: event.previousHomework,
+        seriesId: event.homeworkId,
+        series: series,
+      ),
+    );
+  }
+
+  Future<T?> _unlessNotFound<T>(Future<T> request) async {
+    try {
+      return await request;
+    } on NotFoundException {
+      return null;
     }
   }
 

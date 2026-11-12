@@ -17,15 +17,17 @@ abstract class EventRepository {
 
   Future<EventModel> createEvent({required EventRequestModel request});
 
-  Future<EventModel> cloneEvent({required int eventId});
+  Future<EventModel> cloneEvent({required int eventId, DateTime? occurrenceStart});
 
   Future<EventModel> updateEvent({
     required int eventId,
     required EventRequestModel request,
     String? version,
+    DateTime? occurrenceStart,
+    bool onlyThisOccurrence = false,
   });
 
-  Future<void> deleteEvent({required int eventId});
+  Future<void> deleteEvent({required int eventId, DateTime? occurrenceStart});
 
   Future<void> deleteAllEvents();
 }

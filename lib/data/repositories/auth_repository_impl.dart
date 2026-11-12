@@ -146,7 +146,15 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
-  Future<String> decideAuthorization(String query, {required bool allow}) async {
-    return remoteDataSource.decideAuthorization(query, allow: allow);
+  Future<String> decideAuthorization(
+    String query, {
+    required bool allow,
+    List<String>? scopes,
+  }) async {
+    return remoteDataSource.decideAuthorization(
+      query,
+      allow: allow,
+      scopes: scopes,
+    );
   }
 }

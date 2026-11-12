@@ -31,6 +31,7 @@ import 'package:heliumapp/presentation/ui/components/course_title_label.dart';
 import 'package:heliumapp/presentation/ui/components/grade_label.dart';
 import 'package:heliumapp/presentation/ui/components/group_dropdown.dart';
 import 'package:heliumapp/presentation/ui/components/helium_checkbox_list_tile.dart';
+import 'package:heliumapp/presentation/ui/components/hover_tap_target.dart';
 import 'package:heliumapp/presentation/ui/dialogs/helium_menu.dart';
 import 'package:heliumapp/presentation/ui/feedback/empty_card.dart';
 import 'package:heliumapp/presentation/ui/feedback/error_card.dart';
@@ -138,6 +139,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
 
   List<CourseGroupModel> _courseGroups = [];
   List<GradeCourseGroupModel> _grades = [];
+  double? _cumulativeGpa;
   int? _selectedGroupId;
   int? _pendingImpactCourseId;
   final Set<int> _expandedCourseIds = {};
@@ -278,6 +280,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
     setState(() {
       _courseGroups = state.courseGroups;
       _grades = state.grades;
+      _cumulativeGpa = state.cumulativeGpa;
       _selectedGroupId = _selectableGroupId(_selectedGroupId);
       _pendingImpactCourseId = null;
       isLoading = false;
@@ -417,11 +420,15 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
         desktop: 80,
       );
 
+  /// The share of the gauge's square box that its half circle (arc and end
+  /// caps) fills, from the top; the rest of the box is empty.
+  static const _halfGaugeHeightFactor = 0.54;
+
   double get _summaryGaugeHeight =>
       Responsive.getResponsiveValue(
         context,
         mobile: 100,
-        tablet: 110,
+        tablet: 100,
         desktop: 140,
       );
 
@@ -466,83 +473,171 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           _buildSummaryTitle('Overall Grade'),
-          const SizedBox(height: 12),
-          SizedBox(
-            height: _summaryGaugeHeight,
-            child: SfRadialGauge(
-              axes: <RadialAxis>[
-                RadialAxis(
-                  minimum: 0,
-                  maximum: 100,
-                  startAngle: 180,
-                  endAngle: 0,
-                  showLabels: false,
-                  showTicks: false,
-                  axisLineStyle: const AxisLineStyle(
-                    thickness: 0.15,
-                    cornerStyle: CornerStyle.bothCurve,
-                    thicknessUnit: GaugeSizeUnit.factor,
-                  ),
-                  pointers: <GaugePointer>[
-                    RangePointer(
-                      value: grade,
-                      width: 0.15,
-                      sizeUnit: GaugeSizeUnit.factor,
+          const SizedBox(height: 8),
+          Align(
+            alignment: Alignment.topCenter,
+            heightFactor: _halfGaugeHeightFactor,
+            child: SizedBox(
+              height: _summaryGaugeHeight,
+              child: SfRadialGauge(
+                axes: <RadialAxis>[
+                  RadialAxis(
+                    minimum: 0,
+                    maximum: 100,
+                    startAngle: 180,
+                    endAngle: 0,
+                    showLabels: false,
+                    showTicks: false,
+                    axisLineStyle: const AxisLineStyle(
+                      thickness: 0.15,
                       cornerStyle: CornerStyle.bothCurve,
-                      gradient: SweepGradient(
-                        colors: <Color>[
-                          overallGradeColor,
-                          overallGradeColor.withValues(alpha: 0.7),
-                        ],
-                      ),
+                      thicknessUnit: GaugeSizeUnit.factor,
                     ),
-                  ],
-                  annotations: <GaugeAnnotation>[
-                    GaugeAnnotation(
-                      widget: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            gradeDisplay,
-                            style: AppStyles.headingText(context).copyWith(
-                              fontSize: Responsive.getFontSize(
-                                context,
-                                mobile: 28,
-                                tablet: 32,
-                                desktop: 36,
-                              ),
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          if (trend != null) ...[
-                            const SizedBox(height: 4),
-                            Icon(
-                              trend > 0
-                                  ? Icons.trending_up
-                                  : trend < 0
-                                  ? Icons.trending_down
-                                  : Icons.trending_flat,
-                              size: 20,
-                              color: trend > 0
-                                  ? HeliumColors.urgencyColor(context, 1)
-                                  : trend < 0
-                                  ? HeliumColors.urgencyColor(context, 3)
-                                  : context.colorScheme.onSurface.withValues(
-                                alpha: 0.5,
-                              ),
-                            ),
+                    pointers: <GaugePointer>[
+                      RangePointer(
+                        value: grade,
+                        width: 0.15,
+                        sizeUnit: GaugeSizeUnit.factor,
+                        cornerStyle: CornerStyle.bothCurve,
+                        gradient: SweepGradient(
+                          colors: <Color>[
+                            overallGradeColor,
+                            overallGradeColor.withValues(alpha: 0.7),
                           ],
-                        ],
+                        ),
                       ),
-                      angle: 90,
-                      positionFactor: 0.7,
-                    ),
-                  ],
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                gradeDisplay,
+                style: AppStyles.headingText(context).copyWith(
+                  fontSize: Responsive.getFontSize(
+                    context,
+                    mobile: 28,
+                    tablet: 32,
+                    desktop: 36,
+                  ),
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              if (trend != null) ...[
+                const SizedBox(width: 4),
+                Icon(
+                  trend > 0
+                      ? Icons.trending_up
+                      : trend < 0
+                      ? Icons.trending_down
+                      : Icons.trending_flat,
+                  size: 20,
+                  color: trend > 0
+                      ? HeliumColors.urgencyColor(context, 1)
+                      : trend < 0
+                      ? HeliumColors.urgencyColor(context, 3)
+                      : context.colorScheme.onSurface.withValues(alpha: 0.5),
                 ),
               ],
+            ],
+          ),
+          if (selectedGroup.gpa != null) _buildGpaSummary(selectedGroup),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildGpaSummary(GradeCourseGroupModel selectedGroup) {
+    final hint = _gpaHint(selectedGroup);
+    var text = 'GPA ${GradeHelper.gradePointForDisplay(selectedGroup.gpa!)}';
+    if (_showsCumulativeGpa(selectedGroup, hasHint: hint != null)) {
+      text += ' • All ${GradeHelper.gradePointForDisplay(_cumulativeGpa!)}';
+    }
+    final hintColor = context.colorScheme.onSurface.withValues(
+      alpha: AppStyles.mutedIconAlpha,
+    );
+    final hintIconSize = Responsive.getIconSize(
+      context,
+      mobile: 14,
+      tablet: 16,
+      desktop: 18,
+    );
+
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(text, style: AppStyles.standardBodyTextEmphasis(context)),
+        if (hint != null) ...[
+          SizedBox(
+            width: (HoverTapTarget.extentOf(context) - hintIconSize) / 2 + 4,
+          ),
+          HoverTapTarget(
+            onTap: (anchorContext) => _showGpaHint(anchorContext, hint),
+            color: hintColor,
+            tooltip: 'Show GPA details',
+            child: Icon(
+              Icons.info_outline,
+              size: hintIconSize,
+              color: hintColor,
             ),
           ),
         ],
+      ],
+    );
+  }
+
+  bool _showsCumulativeGpa(
+    GradeCourseGroupModel selectedGroup, {
+    required bool hasHint,
+  }) {
+    return !selectedGroup.exampleSchedule &&
+        _cumulativeGpa != null &&
+        _grades.where((g) => g.inCumulativeGpa).length > 1 &&
+        !Responsive.isNarrowMobile(context) &&
+        !(hasHint && Responsive.isSlimMobile(context));
+  }
+
+  String? _gpaHint(GradeCourseGroupModel selectedGroup) {
+    final withoutCredits = selectedGroup.courses
+        .where((c) => c.gradePoint != null && c.credits <= 0)
+        .length;
+    final hints = <String>[];
+    if (withoutCredits > 0) {
+      hints.add(
+        '$withoutCredits ${withoutCredits.plural('class', 'classes')} without '
+        "credits ${withoutCredits.plural("isn't", "aren't")} counted.",
+      );
+    }
+    if (!selectedGroup.exampleSchedule &&
+        !selectedGroup.inCumulativeGpa &&
+        _grades.any((g) => g.inCumulativeGpa)) {
+      hints.add(
+        'This group uses a different grade scale than your latest group, so '
+        "it isn't counted in your GPA across all terms.",
+      );
+    }
+    return hints.isEmpty ? null : hints.join('\n\n');
+  }
+
+  void _showGpaHint(BuildContext anchorContext, String hint) {
+    showHeliumMenu(
+      context: context,
+      anchorContext: anchorContext,
+      builder: (menuContext, _) => HeliumMenuContent(
+        width: HeliumMenuContent.listWidth,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const HeliumMenuTitle(title: 'GPA'),
+            const SizedBox(height: 8),
+            Text(hint, style: AppStyles.standardBodyText(menuContext)),
+          ],
+        ),
       ),
     );
   }
@@ -564,22 +659,31 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
       courseGroup.endDate,
     );
 
-    // Determine status: on track, ahead, or behind
     final difference = completionPercent - timePercent;
+    final isWarmingUp = selectedGroup.numHomework == 0 ||
+        (timePercent == 0 && completionPercent == 0);
     final String status;
-    final int statusUrgency;
-    if (difference > _onTrackTolerance) {
+    final Color statusColor;
+    if (isWarmingUp) {
+      status = 'Warming Up';
+      statusColor = context.colorScheme.outline;
+    } else if (completionPercent >= 100 && timePercent >= 100) {
+      status = 'All Done';
+      statusColor = HeliumColors.urgencyColor(context, 1);
+    } else if (difference > _onTrackTolerance) {
       status = 'Ahead';
-      statusUrgency = 1;
+      statusColor = HeliumColors.urgencyColor(context, 1);
     } else if (difference >= -_onTrackTolerance) {
       status = 'On Track';
-      statusUrgency = 1;
+      statusColor = HeliumColors.urgencyColor(context, 1);
     } else {
       status = 'Behind';
       final expectedWorkAtRiskCutoff = timePercent * (_atRiskThreshold / 100);
-      statusUrgency = completionPercent < expectedWorkAtRiskCutoff ? 3 : 2;
+      statusColor = HeliumColors.urgencyColor(
+        context,
+        completionPercent < expectedWorkAtRiskCutoff ? 3 : 2,
+      );
     }
-    final statusColor = HeliumColors.urgencyColor(context, statusUrgency);
 
     return _buildSummaryCard(
       child: Column(
@@ -701,7 +805,11 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Icon(
-                    status == 'Ahead'
+                    status == 'Warming Up'
+                        ? Icons.hourglass_top
+                        : status == 'All Done'
+                        ? Icons.celebration_outlined
+                        : status == 'Ahead'
                         ? Icons.fast_forward
                         : status == 'Behind'
                         ? Icons.warning_outlined
@@ -736,6 +844,10 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
     final totalGraded = selectedGroup.courses
         .where(_hasGrade)
         .fold(0, (sum, course) => sum + course.numHomeworkGraded);
+    final hasGradedWork = atRiskCount > 0 || totalGraded > 0;
+    final circleColor = atRiskCount > 0
+        ? context.colorScheme.error
+        : context.semanticColors.success;
 
     return MouseRegion(
       cursor: atRiskCount > 0
@@ -782,14 +894,13 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
                   height: _summaryCircleSize,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: atRiskCount > 0
-                        ? context.colorScheme.error.withValues(alpha: 0.15)
-                        : context.semanticColors.success.withValues(
-                        alpha: 0.15),
+                    color: hasGradedWork
+                        ? circleColor.withValues(alpha: 0.15)
+                        : context.colorScheme.surfaceContainer,
                     border: Border.all(
-                      color: atRiskCount > 0
-                          ? context.colorScheme.error
-                          : context.semanticColors.success,
+                      color: hasGradedWork
+                          ? circleColor
+                          : context.colorScheme.outline,
                       width: 3,
                     ),
                   ),
@@ -803,15 +914,15 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
                           tablet: 26,
                           desktop: 40,
                         ),
-                        color: atRiskCount > 0
-                            ? context.colorScheme.error
-                            : context.semanticColors.success,
+                        color: hasGradedWork
+                            ? circleColor
+                            : context.colorScheme.onSurface.withValues(alpha: AppStyles.mutedTextAlpha),
                         fontWeight: FontWeight.bold,
                       ),
                     ),
                   ),
                 ),
-                if (atRiskCount > 0 || totalGraded > 0) ...[
+                if (hasGradedWork) ...[
                   const SizedBox(height: 12),
                   Text(
                     atRiskCount == 0
@@ -2175,6 +2286,22 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
                           ),
                         ),
                       ],
+                      if (course.gradePoint != null &&
+                          course.credits > 0 &&
+                          !Responsive.isSlimMobile(context)) ...[
+                        const SizedBox(width: 8),
+                        Tooltip(
+                          message: 'Grade point',
+                          child: Text(
+                            '${GradeHelper.gradePointForDisplay(course.gradePoint!)} GP',
+                            style: AppStyles.standardBodyText(context).copyWith(
+                              color: context.colorScheme.onSurface.withValues(
+                                alpha: 0.6,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
                       if (course.categories.any((c) => c.weight > 0)) ...[
                         const SizedBox(width: 8),
                         Icon(
@@ -2190,16 +2317,19 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
                           ),
                         ),
                         const SizedBox(width: 8),
-                        Icon(
-                          Icons.balance,
-                          size: Responsive.getIconSize(
-                            context,
-                            mobile: 14,
-                            tablet: 16,
-                            desktop: 18,
-                          ),
-                          color: context.colorScheme.onSurface.withValues(
-                            alpha: 0.6,
+                        Tooltip(
+                          message: 'Weighted grading',
+                          child: Icon(
+                            Icons.balance,
+                            size: Responsive.getIconSize(
+                              context,
+                              mobile: 14,
+                              tablet: 16,
+                              desktop: 18,
+                            ),
+                            color: context.colorScheme.onSurface.withValues(
+                              alpha: 0.6,
+                            ),
                           ),
                         ),
                       ],

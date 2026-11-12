@@ -223,7 +223,7 @@ class Sort {
     final source = isEnd ? item.end : item.start;
     final isRecurringSchedule =
         item is CourseScheduleEventModel &&
-        (item.recurrenceRule?.isNotEmpty ?? false);
+        item.recurrenceRule != null;
     if (!isRecurringSchedule) {
       return source;
     }

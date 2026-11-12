@@ -23,6 +23,8 @@ import 'package:heliumapp/presentation/features/planner/bloc/planneritem_event.d
 import 'package:heliumapp/presentation/features/planner/bloc/planneritem_state.dart';
 import 'package:heliumapp/presentation/features/planner/controllers/planner_item_form_controller.dart';
 import 'package:heliumapp/presentation/features/planner/dialogs/confirm_delete_dialog.dart';
+import 'package:heliumapp/presentation/features/planner/dialogs/recurrence_scope_dialog.dart';
+import 'package:heliumapp/presentation/features/planner/widgets/recurrence_picker.dart';
 import 'package:heliumapp/presentation/features/shared/controllers/linked_note_form_fields.dart';
 import 'package:heliumapp/presentation/features/shared/widgets/core/linked_note_form.dart';
 import 'package:heliumapp/presentation/ui/components/helium_icon_button.dart';
@@ -63,6 +65,8 @@ class PlannerItemDetails extends StatefulWidget {
   final int? homeworkId;
   final bool? initialIsEvent;
   final DateTime? initialDate;
+
+  final DateTime? occurrenceStart;
   final bool isFromMonthView;
   final bool isEdit;
   final bool isNew;
@@ -78,6 +82,7 @@ class PlannerItemDetails extends StatefulWidget {
     this.homeworkId,
     this.initialIsEvent,
     this.initialDate,
+    this.occurrenceStart,
     this.isFromMonthView = false,
     required this.isEdit,
     required this.isNew,
@@ -120,6 +125,8 @@ class PlannerItemDetailsState extends State<PlannerItemDetails>
   List<ResourceModel> _resources = [];
   String? _preferredCategoryName;
   List<String> _preferredResourceNames = [];
+  RecurrenceDraft? _recurrence = const RecurrenceDraft();
+  RecurrenceDraft? _originalRecurrence = const RecurrenceDraft();
 
   @override
   void initState() {
@@ -335,7 +342,7 @@ class PlannerItemDetailsState extends State<PlannerItemDetails>
                       Expanded(
                         child: HeliumCheckboxListTile(
                           title: Text(
-                            'All Day',
+                            'All day',
                             style: AppStyles.formLabel(context),
                           ),
                           value: formController.isAllDay,
@@ -356,7 +363,7 @@ class PlannerItemDetailsState extends State<PlannerItemDetails>
                       Expanded(
                         child: HeliumCheckboxListTile(
                           title: Text(
-                            'Show End',
+                            'Show end',
                             style: AppStyles.formLabel(context),
                           ),
                           value: formController.showEndDateTime,
@@ -375,6 +382,8 @@ class PlannerItemDetailsState extends State<PlannerItemDetails>
                   ),
                   const SizedBox(height: 5),
                   _buildDateTimeSection(context),
+                  const SizedBox(height: 16),
+                  _buildRecurrenceSection(context),
                   const SizedBox(height: 16),
                   const Divider(),
                   const SizedBox(height: 12),
@@ -408,7 +417,7 @@ class PlannerItemDetailsState extends State<PlannerItemDetails>
             Expanded(
               child: _buildDatePicker(
                 context,
-                'Start Date',
+                'Start date',
                 formController.startDate,
                 () => _selectDate(context, true),
               ),
@@ -418,7 +427,7 @@ class PlannerItemDetailsState extends State<PlannerItemDetails>
               Expanded(
                 child: _buildDatePicker(
                   context,
-                  'End Date',
+                  'End date',
                   formController.endDate,
                   () => _selectDate(context, false),
                 ),
@@ -433,7 +442,7 @@ class PlannerItemDetailsState extends State<PlannerItemDetails>
               Expanded(
                 child: _buildTimePicker(
                   context,
-                  'Start Time',
+                  'Start time',
                   formController.startTime,
                   () => _selectTime(context, true),
                 ),
@@ -443,7 +452,7 @@ class PlannerItemDetailsState extends State<PlannerItemDetails>
                 Expanded(
                   child: _buildTimePicker(
                     context,
-                    'End Time',
+                    'End time',
                     formController.endTime,
                     () => _selectTime(context, false),
                   ),
@@ -673,131 +682,20 @@ class PlannerItemDetailsState extends State<PlannerItemDetails>
         }
       }
 
+      final seriesSave = await _resolveSeriesSave();
+      if (seriesSave == null || !mounted) return;
+
       // Notify parent that action is starting (validation passed)
       setState(() => _isSubmitting = true);
       widget.onActionStarted?.call();
 
       final noteContent = buildNotesDelta(formController.notesController);
-
-      final start = HeliumDateTime.formatDateAndTimeForApi(
-        formController.startDate,
-        formController.isAllDay ? null : formController.startTime,
-        widget.userSettings.timeZone,
-      );
-
-      String end;
-      if (formController.showEndDateTime) {
-        final endDateForApi = formController.isAllDay
-            ? HeliumDateTime.addDays(formController.endDate, 1)
-            : formController.endDate;
-        end = HeliumDateTime.formatDateAndTimeForApi(
-          endDateForApi,
-          formController.isAllDay ? null : formController.endTime,
-          widget.userSettings.timeZone,
-        );
-      } else {
-        if (formController.isAllDay) {
-          final endDate = HeliumDateTime.addDays(formController.startDate, 1);
-          end = HeliumDateTime.formatDateAndTimeForApi(
-            endDate,
-            null,
-            widget.userSettings.timeZone,
-          );
-        } else {
-          end = start;
-        }
-      }
+      final bounds = _apiBounds(formController.startDate, formController.endDate);
 
       if (_isEvent) {
-        final request = EventRequestModel(
-          title: formController.titleController.text.trim(),
-          allDay: formController.isAllDay,
-          showEndTime: formController.showEndDateTime,
-          start: start,
-          end: end,
-          priority: _getPriorityValue(),
-        );
-
-        if (!mounted) return;
-        if (widget.isEdit && widget.eventId != null) {
-          context.read<PlannerItemBloc>().add(
-            UpdateEventEvent(
-              origin: EventOrigin.subScreen,
-              id: widget.eventId!,
-              request: request,
-              linkedNote: formController.linkedNoteEdit(
-                overwrite: isOverwriting,
-              ),
-              redirectToNotebook: redirect,
-              version: entityVersionToSend(
-                (_plannerItem as EventModel?)?.version,
-              ),
-            ),
-          );
-        } else {
-          context.read<PlannerItemBloc>().add(
-            CreateEventEvent(
-              origin: EventOrigin.subScreen,
-              request: request,
-              noteContent: noteContent,
-              redirectToNotebook: redirect,
-            ),
-          );
-        }
+        _submitEvent(seriesSave, bounds, noteContent, redirect);
       } else {
-        String? gradeValue;
-        if (formController.isCompleted) {
-          final gradeText = GradeHelper.normalizeFraction(formController.gradeController.text);
-          gradeValue = gradeText.isEmpty ? '-1/100' : gradeText;
-        } else if (!widget.isEdit) {
-          gradeValue = '-1/100';
-        }
-
-        final request = HomeworkRequestModel(
-          title: formController.titleController.text.trim(),
-          allDay: formController.isAllDay,
-          showEndTime: formController.showEndDateTime,
-          start: start,
-          end: end,
-          priority: _getPriorityValue(),
-          currentGrade: gradeValue,
-          completed: formController.isCompleted,
-          category: formController.selectedCategory,
-          resources: formController.selectedResources,
-          course: formController.selectedCourse!,
-        );
-
-        if (!mounted) return;
-        if (widget.isEdit && widget.homeworkId != null) {
-          // Use original course for URL path (backend filters by URL course_id)
-          final homework = _plannerItem as HomeworkModel;
-          context.read<PlannerItemBloc>().add(
-            UpdateHomeworkEvent(
-              origin: EventOrigin.subScreen,
-              courseGroupId: homework.courseGroup,
-              courseId: homework.course.id,
-              homeworkId: widget.homeworkId!,
-              request: request,
-              linkedNote: formController.linkedNoteEdit(
-                overwrite: isOverwriting,
-              ),
-              redirectToNotebook: redirect,
-              version: entityVersionToSend(homework.version),
-              previousHomework: homework,
-            ),
-          );
-        } else {
-          context.read<PlannerItemBloc>().add(
-            CreateHomeworkEvent(
-              origin: EventOrigin.subScreen,
-              courseGroupId: selectedCourse!.courseGroup,
-              courseId: selectedCourse.id,
-              request: request,
-              noteContent: noteContent,
-              redirectToNotebook: redirect,
-            ),
-          );
-        }
+        _submitHomework(seriesSave, bounds, noteContent, redirect, selectedCourse!);
       }
     } else {
       SnackBarHelper.show(
@@ -806,6 +704,258 @@ class PlannerItemDetailsState extends State<PlannerItemDetails>
         type: SnackType.error,
       );
     }
+  }
+
+  bool get _isRecurringItem => _plannerItem?.recurrenceRule != null;
+
+  tz.Location get _timeZone => widget.userSettings.timeZone;
+
+  DateTime get _occurrenceStart {
+    final item = _plannerItem!;
+    return _isRecurringItem ? widget.occurrenceStart ?? item.start : item.start;
+  }
+
+  ({String start, String end}) _apiBounds(DateTime startDate, DateTime endDate) {
+    final start = HeliumDateTime.formatDateAndTimeForApi(
+      startDate,
+      formController.isAllDay ? null : formController.startTime,
+      _timeZone,
+    );
+
+    if (formController.showEndDateTime) {
+      final endDateForApi = formController.isAllDay ? HeliumDateTime.addDays(endDate, 1) : endDate;
+      return (
+        start: start,
+        end: HeliumDateTime.formatDateAndTimeForApi(
+          endDateForApi,
+          formController.isAllDay ? null : formController.endTime,
+          _timeZone,
+        ),
+      );
+    }
+    if (formController.isAllDay) {
+      return (
+        start: start,
+        end: HeliumDateTime.formatDateAndTimeForApi(HeliumDateTime.addDays(startDate, 1), null, _timeZone),
+      );
+    }
+    return (start: start, end: start);
+  }
+
+  String? _composeRule(String apiStart) {
+    final draft = _recurrence;
+    if (draft == null) return null;
+    return HeliumRecurrence.compose(draft, HeliumDateTime.toLocal(DateTime.parse(apiStart), _timeZone), _timeZone);
+  }
+
+  bool get _recurrenceChanged => _recurrence != _originalRecurrence;
+
+  bool get _changesSeriesFields {
+    final item = _plannerItem!;
+    final bounds = _apiBounds(formController.startDate, formController.endDate);
+    final occurrenceStart = _occurrenceStart;
+    final occurrenceEnd = occurrenceStart.add(item.end.difference(item.start));
+    if (!DateTime.parse(bounds.start).isAtSameMomentAs(occurrenceStart) ||
+        !DateTime.parse(bounds.end).isAtSameMomentAs(occurrenceEnd) ||
+        formController.titleController.text.trim() != item.title ||
+        formController.isAllDay != item.allDay ||
+        formController.showEndDateTime != item.showEndTime ||
+        _getPriorityValue() != item.priority) {
+      return true;
+    }
+    if (item is HomeworkModel) {
+      return formController.selectedCategory != item.category.id ||
+          !const SetEquality<int>().equals(
+            formController.selectedResources.toSet(),
+            item.resources.map((resource) => resource.id).toSet(),
+          );
+    }
+    return false;
+  }
+
+  Future<_SeriesSave?> _resolveSeriesSave() async {
+    if (!widget.isEdit || !_isRecurringItem) return _SeriesSave.single;
+    if (!(_recurrence?.repeats ?? true)) return _SeriesSave.single;
+    if (!_isEvent && formController.isCompleted) return _SeriesSave.thisOccurrence;
+    if (_recurrenceChanged || !_changesSeriesFields) return _SeriesSave.all;
+
+    final scope = await showRecurrenceScopeDialog(
+      context: context,
+      action: RecurrenceScopeAction.edit,
+      isEvent: _isEvent,
+      thisDetail: 'Its reminders come with it. Notes and attachments stay with the series.',
+    );
+    if (scope == null) return null;
+    return scope == RecurrenceScope.thisOccurrence ? _SeriesSave.thisOccurrence : _SeriesSave.all;
+  }
+
+  ({String? rule, bool clearRule, DateTime? occurrenceStart}) _recurrenceChange(_SeriesSave seriesSave, String start) {
+    return switch (seriesSave) {
+      _SeriesSave.all => (
+          rule: _recurrenceChanged ? _composeRule(start) : null,
+          clearRule: false,
+          occurrenceStart: _occurrenceStart,
+        ),
+      _SeriesSave.thisOccurrence => (rule: null, clearRule: false, occurrenceStart: _occurrenceStart),
+      _SeriesSave.single when _isRecurringItem => (rule: null, clearRule: true, occurrenceStart: null),
+      _SeriesSave.single => (
+          rule: _recurrenceChanged || !widget.isEdit ? _composeRule(start) : null,
+          clearRule: false,
+          occurrenceStart: null,
+        ),
+    };
+  }
+
+  void _submitEvent(
+    _SeriesSave seriesSave,
+    ({String start, String end}) bounds,
+    Map<String, dynamic>? noteContent,
+    bool redirect,
+  ) {
+    final event = _plannerItem as EventModel?;
+    final recurrence = _recurrenceChange(seriesSave, bounds.start);
+
+    final request = EventRequestModel(
+      title: formController.titleController.text.trim(),
+      allDay: formController.isAllDay,
+      showEndTime: formController.showEndDateTime,
+      start: bounds.start,
+      end: bounds.end,
+      priority: _getPriorityValue(),
+      recurrenceRule: recurrence.rule,
+      clearRecurrenceRule: recurrence.clearRule,
+    );
+
+    if (!mounted) return;
+    if (widget.isEdit && widget.eventId != null) {
+      context.read<PlannerItemBloc>().add(
+        UpdateEventEvent(
+          origin: EventOrigin.subScreen,
+          id: widget.eventId!,
+          request: request,
+          linkedNote: formController.linkedNoteEdit(
+            overwrite: isOverwriting,
+          ),
+          redirectToNotebook: redirect,
+          version: entityVersionToSend(event?.version),
+          occurrenceStart: recurrence.occurrenceStart,
+          onlyThisOccurrence: seriesSave == _SeriesSave.thisOccurrence,
+        ),
+      );
+    } else {
+      context.read<PlannerItemBloc>().add(
+        CreateEventEvent(
+          origin: EventOrigin.subScreen,
+          request: request,
+          noteContent: noteContent,
+          redirectToNotebook: redirect,
+        ),
+      );
+    }
+  }
+
+  HomeworkRequestModel _homeworkRequest(
+    ({String start, String end}) bounds,
+    ({String? rule, bool clearRule, DateTime? occurrenceStart}) recurrence, {
+    String? gradeValue,
+  }) {
+    return HomeworkRequestModel(
+      title: formController.titleController.text.trim(),
+      allDay: formController.isAllDay,
+      showEndTime: formController.showEndDateTime,
+      start: bounds.start,
+      end: bounds.end,
+      priority: _getPriorityValue(),
+      currentGrade: gradeValue,
+      completed: formController.isCompleted,
+      category: formController.selectedCategory,
+      resources: formController.selectedResources,
+      course: formController.selectedCourse!,
+      recurrenceRule: recurrence.rule,
+      clearRecurrenceRule: recurrence.clearRule,
+    );
+  }
+
+  void _submitHomework(
+    _SeriesSave seriesSave,
+    ({String start, String end}) bounds,
+    Map<String, dynamic>? noteContent,
+    bool redirect,
+    CourseModel selectedCourse,
+  ) {
+    String? gradeValue;
+    if (formController.isCompleted) {
+      final gradeText = GradeHelper.normalizeFraction(formController.gradeController.text);
+      gradeValue = gradeText.isEmpty ? '-1/100' : gradeText;
+    } else if (!widget.isEdit) {
+      gradeValue = '-1/100';
+    }
+
+    final recurrence = _recurrenceChange(seriesSave, bounds.start);
+
+    if (!mounted) return;
+    if (widget.isEdit && widget.homeworkId != null) {
+      // Use original course for URL path (backend filters by URL course_id)
+      final homework = _plannerItem as HomeworkModel;
+      context.read<PlannerItemBloc>().add(
+        UpdateHomeworkEvent(
+          origin: EventOrigin.subScreen,
+          courseGroupId: homework.courseGroup,
+          courseId: homework.course.id,
+          homeworkId: widget.homeworkId!,
+          request: _homeworkRequest(bounds, recurrence, gradeValue: gradeValue),
+          linkedNote: formController.linkedNoteEdit(
+            overwrite: isOverwriting,
+          ),
+          redirectToNotebook: redirect,
+          version: entityVersionToSend(homework.version),
+          previousHomework: homework,
+          occurrenceStart: recurrence.occurrenceStart,
+          onlyThisOccurrence: seriesSave == _SeriesSave.thisOccurrence,
+        ),
+      );
+    } else {
+      context.read<PlannerItemBloc>().add(
+        CreateHomeworkEvent(
+          origin: EventOrigin.subScreen,
+          courseGroupId: selectedCourse.courseGroup,
+          courseId: selectedCourse.id,
+          request: _homeworkRequest(bounds, recurrence, gradeValue: gradeValue),
+          noteContent: noteContent,
+          redirectToNotebook: redirect,
+        ),
+      );
+    }
+  }
+
+  Widget _buildRecurrenceSection(BuildContext context) {
+    final course = _isEvent ? null : _courseById(formController.selectedCourse);
+    return RecurrencePicker(
+      draft: _recurrence,
+      localStart: HeliumDateTime.dateAndTimeIn(
+        formController.startDate,
+        formController.isAllDay ? null : formController.startTime,
+        _timeZone,
+      ),
+      isEvent: _isEvent,
+      weekStartsOn: widget.userSettings.weekStartsOn,
+      lastUntilDate: course?.endDate,
+      onChanged: _onRecurrenceChanged,
+    );
+  }
+
+  void _onRecurrenceChanged(RecurrenceDraft draft) {
+    formController.markChanged();
+    setState(() => _recurrence = draft);
+  }
+
+  void _loadRecurrence(PlannerItemBaseModel plannerItem) {
+    _originalRecurrence = HeliumRecurrence.parse(
+      plannerItem.recurrenceRule,
+      HeliumDateTime.toLocal(plannerItem.start, _timeZone),
+      _timeZone,
+    );
+    _recurrence = _originalRecurrence;
   }
 
   Future<void> _populateInitialStateData(
@@ -880,6 +1030,16 @@ class PlannerItemDetailsState extends State<PlannerItemDetails>
     if (widget.isEdit) {
       final plannerItem = state.plannerItem!;
       _plannerItem = plannerItem;
+      _loadRecurrence(plannerItem);
+      final (itemStart, itemEnd) = _isRecurringItem
+          ? HeliumDateTime.occurrenceBounds(
+              plannerItem.start,
+              plannerItem.end,
+              _occurrenceStart,
+              allDay: plannerItem.allDay,
+              timeZone: _timeZone,
+            )
+          : (plannerItem.start, plannerItem.end);
 
       setState(() {
         formController.titleController.text = plannerItem.title;
@@ -888,7 +1048,7 @@ class PlannerItemDetailsState extends State<PlannerItemDetails>
         formController.priorityValue = plannerItem.priority.toDouble();
 
         final startDateTime = HeliumDateTime.toLocal(
-          plannerItem.start,
+          itemStart,
           widget.userSettings.timeZone,
         );
         formController.startDate = startDateTime;
@@ -897,7 +1057,7 @@ class PlannerItemDetailsState extends State<PlannerItemDetails>
         }
 
         final endDateTime = HeliumDateTime.toLocal(
-          plannerItem.end,
+          itemEnd,
           widget.userSettings.timeZone,
         );
         if (formController.isAllDay) {
@@ -1009,9 +1169,13 @@ class PlannerItemDetailsState extends State<PlannerItemDetails>
 
     if (picked != null) {
       formController.markChanged();
+      final previousStart = formController.startDate;
       setState(() {
         if (isStartDate) {
           formController.startDate = picked;
+          if (_recurrence case final draft?) {
+            _recurrence = HeliumRecurrence.followStart(draft, previousStart, picked);
+          }
           if (formController.isAllDay) {
             formController.endDate = DateRangeEnforcer.adjustEndDate(
               picked,
@@ -1240,27 +1404,16 @@ class PlannerItemDetailsState extends State<PlannerItemDetails>
   void onDelete() {
     if (_plannerItem == null) return;
 
+    if (_isRecurringItem) {
+      _deleteSeriesItem();
+      return;
+    }
 
     final Function(PlannerItemBaseModel) onDelete;
     if (_plannerItem is HomeworkModel) {
-      onDelete = (item) {
-        widget.onActionStarted?.call();
-        context.read<PlannerItemBloc>().add(
-          DeleteHomeworkEvent(
-            origin: EventOrigin.subScreen,
-            courseGroupId: (item as HomeworkModel).courseGroup,
-            courseId: item.course.id,
-            homeworkId: item.id,
-          ),
-        );
-      };
+      onDelete = _deleteHomework;
     } else if (_plannerItem is EventModel) {
-      onDelete = (item) {
-        widget.onActionStarted?.call();
-        context.read<PlannerItemBloc>().add(
-          DeleteEventEvent(origin: EventOrigin.subScreen, id: item.id),
-        );
-      };
+      onDelete = _deleteEvent;
     } else {
       return;
     }
@@ -1272,6 +1425,48 @@ class PlannerItemDetailsState extends State<PlannerItemDetails>
       additionalWarning: 'Its attachments and note will also be deleted.',
       onDelete: onDelete,
     );
+  }
+
+  void _deleteHomework(PlannerItemBaseModel item, {DateTime? occurrenceStart}) {
+    widget.onActionStarted?.call();
+    context.read<PlannerItemBloc>().add(
+      DeleteHomeworkEvent(
+        origin: EventOrigin.subScreen,
+        courseGroupId: (item as HomeworkModel).courseGroup,
+        courseId: item.course.id,
+        homeworkId: item.id,
+        occurrenceStart: occurrenceStart,
+      ),
+    );
+  }
+
+  void _deleteEvent(PlannerItemBaseModel item, {DateTime? occurrenceStart}) {
+    widget.onActionStarted?.call();
+    context.read<PlannerItemBloc>().add(
+      DeleteEventEvent(
+        origin: EventOrigin.subScreen,
+        id: item.id,
+        occurrenceStart: occurrenceStart,
+      ),
+    );
+  }
+
+  Future<void> _deleteSeriesItem() async {
+    final item = _plannerItem!;
+    final scope = await showRecurrenceScopeDialog(
+      context: context,
+      action: RecurrenceScopeAction.delete,
+      isEvent: _isEvent,
+      allDetail: 'Its attachments and note will also be deleted.',
+    );
+    if (scope == null || !mounted) return;
+
+    final occurrenceStart = scope == RecurrenceScope.all ? null : _occurrenceStart;
+    if (item is HomeworkModel) {
+      _deleteHomework(item, occurrenceStart: occurrenceStart);
+    } else {
+      _deleteEvent(item, occurrenceStart: occurrenceStart);
+    }
   }
 
   Future<void> onClone() async {
@@ -1286,6 +1481,7 @@ class PlannerItemDetailsState extends State<PlannerItemDetails>
         CloneEventEvent(
           origin: EventOrigin.subScreen,
           eventId: _plannerItem!.id,
+          occurrenceStart: _isRecurringItem ? _occurrenceStart : null,
         ),
       );
     } else if (homework != null) {
@@ -1295,8 +1491,11 @@ class PlannerItemDetailsState extends State<PlannerItemDetails>
           courseGroupId: homework.courseGroup,
           courseId: homework.course.id,
           homeworkId: homework.id,
+          occurrenceStart: _isRecurringItem ? _occurrenceStart : null,
         ),
       );
     }
   }
 }
+
+enum _SeriesSave { single, thisOccurrence, all }

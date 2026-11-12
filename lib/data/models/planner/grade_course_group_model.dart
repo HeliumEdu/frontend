@@ -5,6 +5,9 @@ import 'package:heliumapp/utils/conversion_helpers.dart';
 
 class GradeCourseGroupModel extends BaseTitledModel {
   final double overallGrade;
+  final double? gpa;
+  final bool inCumulativeGpa;
+  final bool exampleSchedule;
   final double? trend;
   final List<HomeworkSeriesItemModel> homeworkSeries;
   final List<GradeCourseModel> courses;
@@ -16,6 +19,9 @@ class GradeCourseGroupModel extends BaseTitledModel {
     required super.id,
     required super.title,
     required this.overallGrade,
+    required this.gpa,
+    required this.inCumulativeGpa,
+    required this.exampleSchedule,
     required this.trend,
     required this.homeworkSeries,
     required this.courses,
@@ -29,6 +35,9 @@ class GradeCourseGroupModel extends BaseTitledModel {
       id: json['id'],
       title: json['title'],
       overallGrade: toDouble(json['overall_grade'])!,
+      gpa: toGradedDouble(json['gpa']),
+      inCumulativeGpa: json['in_cumulative_gpa'],
+      exampleSchedule: json['example_schedule'],
       trend: (json['trend'] as num?)?.toDouble(),
       homeworkSeries:
           (json['homework_series'] as List<dynamic>?)

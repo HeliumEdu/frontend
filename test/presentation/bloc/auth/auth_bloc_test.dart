@@ -867,6 +867,23 @@ void main() {
           isA<AuthAuthorizationDecided>().having((s) => s.redirectUri, 'redirectUri', redirect),
         ],
       );
+
+      blocTest<AuthBloc, AuthState>(
+        'passes the approved scopes to the repository',
+        build: () {
+          when(
+            () => mockAuthRepository.decideAuthorization(query, allow: true, scopes: ['planner:read']),
+          ).thenAnswer((_) async => redirect);
+          return authBloc;
+        },
+        act: (bloc) => bloc.add(DecideAuthorizationEvent(query: query, allow: true, scopes: ['planner:read'])),
+        expect: () => [isA<AuthLoading>(), isA<AuthAuthorizationDecided>()],
+        verify: (_) {
+          verify(
+            () => mockAuthRepository.decideAuthorization(query, allow: true, scopes: ['planner:read']),
+          ).called(1);
+        },
+      );
     });
   });
 }

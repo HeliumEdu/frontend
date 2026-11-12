@@ -1214,4 +1214,282 @@ void main() {
       expect(dateOnly, 'FREQ=DAILY;UNTIL=20261211');
     });
   });
+
+  group('HeliumRecurrence', () {
+    late tz.Location amsterdam;
+    late tz.Location losAngeles;
+    late tz.TZDateTime mondayStart;
+
+    setUp(() {
+      amsterdam = tz.getLocation('Europe/Amsterdam');
+      losAngeles = tz.getLocation('America/Los_Angeles');
+      mondayStart = tz.TZDateTime(amsterdam, 2026, 9, 7, 9);
+    });
+
+    group('compose', () {
+      test('returns null for a draft that does not repeat', () {
+        // WHEN
+        final rule = HeliumRecurrence.compose(const RecurrenceDraft(), mondayStart, amsterdam);
+
+        // THEN
+        expect(rule, isNull);
+      });
+
+      test('emits frequency alone, adding INTERVAL only when it is above 1', () {
+        // WHEN
+        final daily = HeliumRecurrence.compose(
+            const RecurrenceDraft(frequency: RecurrenceFrequency.daily), mondayStart, amsterdam);
+        final everyOtherDay = HeliumRecurrence.compose(
+            const RecurrenceDraft(frequency: RecurrenceFrequency.daily, interval: 2), mondayStart, amsterdam);
+
+        // THEN
+        expect(daily, 'FREQ=DAILY');
+        expect(everyOtherDay, 'FREQ=DAILY;INTERVAL=2');
+      });
+
+      test('weekly emits weekdays sorted Sunday-first as iCal codes', () {
+        // WHEN
+        final rule = HeliumRecurrence.compose(
+          const RecurrenceDraft(frequency: RecurrenceFrequency.weekly, weekdays: {6, 3, 0, 1}),
+          mondayStart,
+          amsterdam,
+        );
+
+        // THEN
+        expect(rule, 'FREQ=WEEKLY;BYDAY=SU,MO,WE,SA');
+      });
+
+      test('weekly with no weekdays repeats on the start weekday', () {
+        // WHEN
+        final rule = HeliumRecurrence.compose(
+            const RecurrenceDraft(frequency: RecurrenceFrequency.weekly), mondayStart, amsterdam);
+
+        // THEN
+        expect(rule, 'FREQ=WEEKLY;BYDAY=MO');
+      });
+
+      test('monthly anchors on the start day, ignoring last day of month before the 29th', () {
+        // WHEN
+        final rule = HeliumRecurrence.compose(
+          const RecurrenceDraft(frequency: RecurrenceFrequency.monthly, lastDayOfMonth: true),
+          mondayStart,
+          amsterdam,
+        );
+
+        // THEN
+        expect(rule, 'FREQ=MONTHLY;BYMONTHDAY=7');
+      });
+
+      test('monthly on the 31st emits -1 only when last day of month is checked', () {
+        // GIVEN
+        final start = tz.TZDateTime(amsterdam, 2026, 10, 31, 9);
+
+        // WHEN
+        final lastDay = HeliumRecurrence.compose(
+            const RecurrenceDraft(frequency: RecurrenceFrequency.monthly, lastDayOfMonth: true), start, amsterdam);
+        final thirtyFirst = HeliumRecurrence.compose(
+            const RecurrenceDraft(frequency: RecurrenceFrequency.monthly), start, amsterdam);
+
+        // THEN
+        expect(lastDay, 'FREQ=MONTHLY;BYMONTHDAY=-1');
+        expect(thirtyFirst, 'FREQ=MONTHLY;BYMONTHDAY=31');
+      });
+
+      test('yearly anchors on the start month and day', () {
+        // WHEN
+        final rule = HeliumRecurrence.compose(
+            const RecurrenceDraft(frequency: RecurrenceFrequency.yearly), mondayStart, amsterdam);
+
+        // THEN
+        expect(rule, 'FREQ=YEARLY;BYMONTH=9;BYMONTHDAY=7');
+      });
+
+      test('ending after a count emits COUNT', () {
+        // WHEN
+        final rule = HeliumRecurrence.compose(
+          const RecurrenceDraft(frequency: RecurrenceFrequency.weekly, weekdays: {1}, end: RecurrenceEnd.afterCount, count: 10),
+          mondayStart,
+          amsterdam,
+        );
+
+        // THEN
+        expect(rule, 'FREQ=WEEKLY;BYDAY=MO;COUNT=10');
+      });
+
+      test('ending on a date emits the end of that local day in UTC, per time zone', () {
+        // GIVEN
+        final draft = RecurrenceDraft(
+          frequency: RecurrenceFrequency.daily,
+          end: RecurrenceEnd.onDate,
+          until: DateTime(2026, 12, 18),
+        );
+
+        // WHEN
+        final inAmsterdam = HeliumRecurrence.compose(draft, mondayStart, amsterdam);
+        final inLosAngeles = HeliumRecurrence.compose(
+            draft, tz.TZDateTime(losAngeles, 2026, 9, 7, 9), losAngeles);
+
+        // THEN
+        expect(inAmsterdam, 'FREQ=DAILY;UNTIL=20261218T225959Z');
+        expect(inLosAngeles, 'FREQ=DAILY;UNTIL=20261219T075959Z');
+      });
+    });
+
+    group('parse', () {
+      test('round-trips every draft the picker composes', () {
+        // GIVEN
+        final drafts = [
+          const RecurrenceDraft(frequency: RecurrenceFrequency.daily),
+          const RecurrenceDraft(frequency: RecurrenceFrequency.daily, interval: 3),
+          const RecurrenceDraft(frequency: RecurrenceFrequency.weekly, weekdays: {1, 3, 5}),
+          const RecurrenceDraft(frequency: RecurrenceFrequency.weekly, interval: 2, weekdays: {1}),
+          const RecurrenceDraft(frequency: RecurrenceFrequency.monthly),
+          const RecurrenceDraft(frequency: RecurrenceFrequency.yearly),
+          const RecurrenceDraft(
+              frequency: RecurrenceFrequency.weekly, weekdays: {1}, end: RecurrenceEnd.afterCount, count: 12),
+          RecurrenceDraft(
+              frequency: RecurrenceFrequency.weekly,
+              weekdays: const {1},
+              end: RecurrenceEnd.onDate,
+              until: DateTime(2026, 12, 18)),
+        ];
+
+        for (final location in [amsterdam, losAngeles]) {
+          final start = tz.TZDateTime(location, 2026, 9, 7, 9);
+          for (final draft in drafts) {
+            // WHEN
+            final rule = HeliumRecurrence.compose(draft, start, location);
+            final parsed = HeliumRecurrence.parse(rule, start, location);
+
+            // THEN
+            expect(parsed, draft, reason: '$rule in ${location.name}');
+          }
+        }
+      });
+
+      test('round-trips last day of month from a start on the 31st', () {
+        // GIVEN
+        final start = tz.TZDateTime(losAngeles, 2026, 10, 31, 9);
+        const draft = RecurrenceDraft(frequency: RecurrenceFrequency.monthly, lastDayOfMonth: true);
+
+        // WHEN
+        final parsed = HeliumRecurrence.parse(HeliumRecurrence.compose(draft, start, losAngeles), start, losAngeles);
+
+        // THEN
+        expect(parsed, draft);
+      });
+
+      test('returns a non-repeating draft for no rule', () {
+        // WHEN
+        final fromNull = HeliumRecurrence.parse(null, mondayStart, amsterdam);
+        final fromEmpty = HeliumRecurrence.parse('', mondayStart, amsterdam);
+
+        // THEN
+        expect(fromNull, const RecurrenceDraft());
+        expect(fromEmpty, const RecurrenceDraft());
+      });
+
+      test('accepts the forms the API normalizes rules into', () {
+        // WHEN
+        final weekly = HeliumRecurrence.parse('FREQ=WEEKLY', mondayStart, amsterdam);
+        final prefixed = HeliumRecurrence.parse('RRULE:FREQ=MONTHLY;BYMONTHDAY=7', mondayStart, amsterdam);
+        final monthlyBare = HeliumRecurrence.parse('FREQ=MONTHLY', mondayStart, amsterdam);
+        final lowercase = HeliumRecurrence.parse('freq=yearly;bymonth=9;bymonthday=7', mondayStart, amsterdam);
+
+        // THEN
+        expect(weekly, const RecurrenceDraft(frequency: RecurrenceFrequency.weekly, weekdays: {1}),
+            reason: 'a weekly rule without BYDAY repeats on the start weekday');
+        expect(prefixed, const RecurrenceDraft(frequency: RecurrenceFrequency.monthly));
+        expect(monthlyBare, const RecurrenceDraft(frequency: RecurrenceFrequency.monthly));
+        expect(lowercase, const RecurrenceDraft(frequency: RecurrenceFrequency.yearly));
+      });
+
+      test('returns null for rules the picker cannot represent', () {
+        // GIVEN
+        const unrepresentable = [
+          'FREQ=MONTHLY;BYDAY=TU;BYSETPOS=2',
+          'FREQ=WEEKLY;BYDAY=2TU',
+          'FREQ=MONTHLY;BYMONTHDAY=1,15',
+          'FREQ=MONTHLY;BYMONTHDAY=8',
+          'FREQ=YEARLY;BYMONTH=10;BYMONTHDAY=7',
+          'FREQ=DAILY;BYDAY=MO',
+          'FREQ=WEEKLY;COUNT=3;UNTIL=20261218',
+          'FREQ=HOURLY',
+          'FREQ=WEEKLY;UNTIL=tomorrow',
+          'FREQ=WEEKLY;INTERVAL=0',
+          'FREQ=WEEKLY;WKST=MO',
+        ];
+
+        for (final rule in unrepresentable) {
+          // WHEN
+          final parsed = HeliumRecurrence.parse(rule, mondayStart, amsterdam);
+
+          // THEN
+          expect(parsed, isNull, reason: rule);
+        }
+      });
+
+      test('reads a UTC UNTIL as the local date it falls on in each time zone', () {
+        // GIVEN
+        const rule = 'FREQ=DAILY;UNTIL=20261219T065959Z';
+
+        // WHEN
+        final inLosAngeles = HeliumRecurrence.parse(rule, tz.TZDateTime(losAngeles, 2026, 9, 7, 9), losAngeles);
+        final inAmsterdam = HeliumRecurrence.parse(rule, mondayStart, amsterdam);
+
+        // THEN
+        expect(inLosAngeles?.until, DateTime(2026, 12, 18));
+        expect(inAmsterdam?.until, DateTime(2026, 12, 19));
+        expect(inAmsterdam?.end, RecurrenceEnd.onDate);
+      });
+
+      test('reads a naive or date-only UNTIL as that date', () {
+        // WHEN
+        final naive = HeliumRecurrence.parse('FREQ=DAILY;UNTIL=20261218T235959', mondayStart, amsterdam);
+        final dateOnly = HeliumRecurrence.parse('FREQ=DAILY;UNTIL=20261218', mondayStart, losAngeles);
+
+        // THEN
+        expect(naive?.until, DateTime(2026, 12, 18));
+        expect(dateOnly?.until, DateTime(2026, 12, 18));
+      });
+    });
+
+    test('offers last day of month only for a start on the 29th or later', () {
+      // THEN
+      expect(HeliumRecurrence.offersLastDayOfMonth(DateTime(2026, 1, 28)), isFalse);
+      expect(HeliumRecurrence.offersLastDayOfMonth(DateTime(2026, 1, 29)), isTrue);
+      expect(HeliumRecurrence.offersLastDayOfMonth(DateTime(2026, 1, 31)), isTrue);
+    });
+
+    test('defaultFor repeats once per period on the start weekday with no end', () {
+      // WHEN
+      final draft = HeliumRecurrence.defaultFor(RecurrenceFrequency.weekly, mondayStart);
+
+      // THEN
+      expect(draft, const RecurrenceDraft(frequency: RecurrenceFrequency.weekly, weekdays: {1}));
+    });
+  });
+
+  group('RecurrenceDraft', () {
+    test('is equal regardless of weekday order, with a matching hashCode', () {
+      // GIVEN
+      const first = RecurrenceDraft(frequency: RecurrenceFrequency.weekly, weekdays: {1, 3});
+      const second = RecurrenceDraft(frequency: RecurrenceFrequency.weekly, weekdays: {3, 1});
+
+      // THEN
+      expect(first, second);
+      expect(first.hashCode, second.hashCode);
+    });
+
+    test('differs when any field differs', () {
+      // GIVEN
+      const base = RecurrenceDraft(frequency: RecurrenceFrequency.weekly, weekdays: {1});
+
+      // THEN
+      expect(base, isNot(base.copyWith(interval: 2)));
+      expect(base, isNot(base.copyWith(weekdays: {1, 2})));
+      expect(base, isNot(base.copyWith(end: RecurrenceEnd.afterCount, count: 3)));
+      expect(base, isNot(base.copyWith(frequency: RecurrenceFrequency.daily)));
+    });
+  });
 }

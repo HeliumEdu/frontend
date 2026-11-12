@@ -500,6 +500,100 @@ void main() {
       });
     });
 
+    group('repeating assignments', () {
+      late tz.Location amsterdam;
+      late HomeworkModel series;
+
+      setUp(() {
+        amsterdam = tz.getLocation('Europe/Amsterdam');
+        dataSource.userSettings = _createUserSettings(timeZone: amsterdam);
+        series = MockModels.createHomework(
+          id: 950,
+          start: tz.TZDateTime(amsterdam, 2025, 9, 11, 23, 30).toUtc(),
+          end: tz.TZDateTime(amsterdam, 2025, 9, 11, 23, 30).toUtc(),
+          recurrenceRule: 'FREQ=WEEKLY;BYDAY=TH;COUNT=4',
+          exceptionDates: [tz.TZDateTime(amsterdam, 2025, 9, 18, 23, 30).toUtc()],
+        );
+      });
+
+      test('the Todos list shows each occurrence at its own start, skipping exception dates', () {
+        // GIVEN
+        dataSource.addPlannerItem(series);
+
+        // WHEN
+        final occurrences = dataSource.filteredHomeworks;
+
+        // THEN
+        expect(
+          occurrences.map((h) => tz.TZDateTime.from(h.start, amsterdam).toString()),
+          [
+            tz.TZDateTime(amsterdam, 2025, 9, 11, 23, 30).toString(),
+            tz.TZDateTime(amsterdam, 2025, 9, 25, 23, 30).toString(),
+            tz.TZDateTime(amsterdam, 2025, 10, 2, 23, 30).toString(),
+          ],
+          reason: 'the 18th is an exception date, and late-night occurrences stay on their local day',
+        );
+        expect(occurrences.map((h) => h.id).toSet(), {950});
+        expect(occurrences.every((h) => h.recurrenceRule == series.recurrenceRule), isTrue);
+      });
+
+      test('the calendar keeps the series as one item for SfCalendar to expand', () {
+        // GIVEN
+        dataSource.addPlannerItem(series);
+
+        // WHEN
+        final index = dataSource.appointments!.indexOf(series);
+
+        // THEN
+        expect(dataSource.appointments!.whereType<HomeworkModel>(), hasLength(1));
+        expect(dataSource.getRecurrenceRule(index), startsWith('FREQ=WEEKLY;BYDAY=TH'));
+        expect(dataSource.getRecurrenceExceptionDates(index), series.exceptionDates);
+      });
+
+      test('the day list shows an occurrence on its day but not on an exception date', () {
+        // GIVEN
+        dataSource.addPlannerItem(series);
+
+        // WHEN
+        final onOccurrence = dataSource.getItemsForDay(DateTime(2025, 9, 25));
+        final onException = dataSource.getItemsForDay(DateTime(2025, 9, 18));
+
+        // THEN
+        final occurrence = onOccurrence.whereType<HomeworkModel>().single;
+        expect(occurrence.start, tz.TZDateTime(amsterdam, 2025, 9, 25, 23, 30));
+        expect(dataSource.isHomeworkCompleted(occurrence), isFalse);
+        expect(onException.whereType<HomeworkModel>(), isEmpty);
+      });
+
+      test('the overdue filter applies to each occurrence on its own start', () async {
+        // GIVEN
+        final la = tz.getLocation('America/Los_Angeles');
+        dataSource.userSettings = _createUserSettings(timeZone: la);
+        final now = tz.TZDateTime.now(la);
+        await dataSource.handleLoadMore(
+          DateTime(now.year, now.month, now.day - 30),
+          DateTime(now.year, now.month, now.day + 30),
+        );
+        final firstStart = tz.TZDateTime(la, now.year, now.month, now.day - 15, now.hour);
+        dataSource.addPlannerItem(
+          MockModels.createHomework(
+            id: 951,
+            start: firstStart.toUtc(),
+            end: firstStart.toUtc(),
+            recurrenceRule: 'FREQ=DAILY;INTERVAL=10;COUNT=4',
+          ),
+        );
+
+        // WHEN
+        dataSource.setFilterStatuses({'Overdue'});
+
+        // THEN
+        final overdue = dataSource.filteredHomeworks;
+        expect(overdue, hasLength(2), reason: 'only the occurrences 15 and 5 days ago are past');
+        expect(overdue.every((h) => h.start.isBefore(now)), isTrue);
+      });
+    });
+
     group('assignments due at midnight', () {
       for (final zoneName in ['Europe/Amsterdam', 'America/Los_Angeles']) {
         test('render on their due date, not the day before ($zoneName)', () {

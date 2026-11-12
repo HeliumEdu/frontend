@@ -12,7 +12,9 @@ import 'package:heliumapp/utils/responsive_helpers.dart';
 const String whatsNewDismissButtonKey = 'whats_new_dismiss_button';
 
 class _WhatsNewDialogWidget extends StatefulWidget {
-  const _WhatsNewDialogWidget();
+  final int versionSeen;
+
+  const _WhatsNewDialogWidget({required this.versionSeen});
 
   @override
   State<_WhatsNewDialogWidget> createState() => _WhatsNewDialogWidgetState();
@@ -48,6 +50,52 @@ class _WhatsNewDialogWidgetState extends State<_WhatsNewDialogWidget> {
   @override
   Widget build(BuildContext context) {
     final isMobile = Responsive.isMobile(context);
+    final features = [
+      (
+        version: 15,
+        item: _buildFeatureItem(
+          context,
+          icon: Icons.repeat,
+          title: 'Repeating Assignments & Events',
+          description:
+              'Assignments and events can now repeat, so a weekly reading or a monthly meeting only needs adding once',
+        ),
+      ),
+      (
+        version: 14,
+        item: _buildFeatureItem(
+          context,
+          icon: Icons.calculate,
+          title: 'GPA Tracking',
+          description:
+              'Add credits to your classes and pick your school\'s grade scale, then watch your GPA update with every grade',
+        ),
+      ),
+      (
+        version: 13,
+        item: _buildFeatureItem(
+          context,
+          icon: Icons.attach_file,
+          title: 'Class Notes & Resource Attachments',
+          description:
+              'Add a note to any class and attachments to any resource, and see class and resource attachments on each assignment',
+        ),
+      ),
+      (
+        version: 11,
+        item: _buildFeatureItem(
+          context,
+          icon: Icons.tune,
+          title: 'Your Planner, Your Way',
+          description:
+              'Try the new 3-day view, pick your date, time, and number formats under Preferences, and search inside your notes',
+        ),
+      ),
+    ];
+    final unseenFeatures = [
+      for (final feature in features)
+        if (feature.version > widget.versionSeen) feature.item,
+    ];
 
     return AlertDialog(
       insetPadding: isMobile
@@ -89,40 +137,10 @@ class _WhatsNewDialogWidgetState extends State<_WhatsNewDialogWidget> {
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // What's New is a fixed-size stack of 4 items. For every new entry
-                    // added at the top, remove one from the bottom. Order reflects recency:
-                    // newest feature first, oldest last.
-                    _buildFeatureItem(
-                      context,
-                      icon: Icons.attach_file,
-                      title: 'Class Notes & Resource Attachments',
-                      description:
-                          'Add a note to any class and attachments to any resource, and see class and resource attachments on each assignment',
-                    ),
-                    const SizedBox(height: 12),
-                    _buildFeatureItem(
-                      context,
-                      icon: Icons.tune,
-                      title: 'Your Planner, Your Way',
-                      description:
-                          'Try the new 3-day view, pick your date, time, and number formats under Preferences, and search inside your notes',
-                    ),
-                    const SizedBox(height: 12),
-                    _buildFeatureItem(
-                      context,
-                      icon: Icons.autorenew,
-                      title: 'Rotating Schedules',
-                      description:
-                          'A/B Day, Week A/B, and more options for class schedules',
-                    ),
-                    const SizedBox(height: 12),
-                    _buildFeatureItem(
-                      context,
-                      icon: Icons.trending_up,
-                      title: 'Grade Projection',
-                      description:
-                          '"What Could I Get?" — project your final grade based on how you do on remaining assignments',
-                    ),
+                    for (final (index, feature) in unseenFeatures.indexed) ...[
+                      if (index > 0) const SizedBox(height: 12),
+                      feature,
+                    ],
                     if (showDonationLink) ...[
                       const SizedBox(height: 8),
                       const Divider(),
@@ -199,12 +217,12 @@ class _WhatsNewDialogWidgetState extends State<_WhatsNewDialogWidget> {
   }
 }
 
-Future<void> showWhatsNewDialog(BuildContext parentContext) {
+Future<void> showWhatsNewDialog(BuildContext parentContext, {required int versionSeen}) {
   return showDialog(
     context: parentContext,
     barrierDismissible: false,
     builder: (BuildContext dialogContext) {
-      return const _WhatsNewDialogWidget();
+      return _WhatsNewDialogWidget(versionSeen: versionSeen);
     },
   );
 }

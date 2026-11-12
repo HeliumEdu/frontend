@@ -16,6 +16,7 @@ import 'package:heliumapp/presentation/ui/components/drop_down.dart';
 import 'package:heliumapp/presentation/ui/components/helium_checkbox_list_tile.dart';
 import 'package:heliumapp/presentation/ui/components/helium_picker_field.dart';
 import 'package:heliumapp/presentation/ui/components/spinner_field.dart';
+import 'package:heliumapp/presentation/ui/components/weekday_selector.dart';
 import 'package:heliumapp/presentation/ui/dialogs/base_dialog_state.dart';
 import 'package:heliumapp/presentation/ui/dialogs/conflict_resolving_dialog.dart';
 import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
@@ -24,7 +25,6 @@ import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/date_time_helpers.dart';
 import 'package:heliumapp/utils/platform_behavior.dart';
-import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:heliumapp/utils/schedule_week_resolver.dart';
 import 'package:heliumapp/utils/url_helpers.dart';
 
@@ -219,7 +219,10 @@ class _ScheduleEditorScreenState extends BaseDialogState<ScheduleEditorScreen>
 
     if (schedule.cycleLength != null) {
       _isRotating = true;
-      _template = schedule.template ?? ScheduleTemplate.custom;
+      final template = schedule.template;
+      _template = template != null && ScheduleTemplate.isDayCyclePreset(template)
+          ? template
+          : ScheduleTemplate.custom;
       _cycleLengthController.text = schedule.cycleLength.toString();
       _anchorDate = schedule.anchorDate;
       _cycleMeets.clear();
@@ -439,7 +442,12 @@ class _ScheduleEditorScreenState extends BaseDialogState<ScheduleEditorScreen>
       children: [
         Text('Class Days', style: AppStyles.featureText(context)),
         const SizedBox(height: 14),
-        Center(child: _buildDaySelector(context)),
+        Center(
+          child: WeekdaySelector(
+            selected: _selectedDays,
+            onChanged: _onDaysChanged,
+          ),
+        ),
         if (_selectedDays.isNotEmpty) ...[
           const SizedBox(height: 24),
           Text(
@@ -484,7 +492,6 @@ class _ScheduleEditorScreenState extends BaseDialogState<ScheduleEditorScreen>
         DropDown<int>(
           initialValue: templateItems.firstWhere(
             (item) => item.id == _template,
-            orElse: () => templateItems.first,
           ),
           items: templateItems,
           onChanged: (item) {
@@ -873,45 +880,6 @@ class _ScheduleEditorScreenState extends BaseDialogState<ScheduleEditorScreen>
         }
       }
     });
-  }
-
-  Widget _buildDaySelector(BuildContext context) {
-    return SegmentedButton<int>(
-      segments: CalendarConstants.dayNamesAbbrev
-          .map(
-            (day) => ButtonSegment<int>(
-              value: CalendarConstants.dayNamesAbbrev.indexOf(day),
-              label: Text(day),
-            ),
-          )
-          .toList(),
-      style: ButtonStyle(
-        padding: WidgetStatePropertyAll(
-          EdgeInsets.symmetric(horizontal: Responsive.isSlimMobile(context) ? 6 : 8),
-        ),
-        textStyle: WidgetStateProperty.all(
-          AppStyles.buttonText(context).copyWith(
-            fontSize: Responsive.getFontSize(
-              context,
-              slimMobile: 12,
-              mobile: 13,
-              desktop: 14,
-            ),
-          ),
-        ),
-        backgroundColor: WidgetStateProperty.resolveWith((states) {
-          if (states.contains(WidgetState.selected)) {
-            return context.colorScheme.primary;
-          }
-          return Colors.transparent;
-        }),
-      ),
-      selected: _selectedDays,
-      onSelectionChanged: _onDaysChanged,
-      emptySelectionAllowed: false,
-      multiSelectionEnabled: true,
-      showSelectedIcon: false,
-    );
   }
 
   void _onDaysChanged(Set<int> newSelection) {

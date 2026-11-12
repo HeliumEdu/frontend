@@ -45,7 +45,13 @@ class CreateEventEvent extends PlannerItemEvent {
 class CloneEventEvent extends PlannerItemEvent {
   final int eventId;
 
-  CloneEventEvent({required super.origin, required this.eventId});
+  final DateTime? occurrenceStart;
+
+  CloneEventEvent({
+    required super.origin,
+    required this.eventId,
+    this.occurrenceStart,
+  });
 }
 
 class UpdateEventEvent extends PlannerItemEvent {
@@ -56,6 +62,9 @@ class UpdateEventEvent extends PlannerItemEvent {
   final bool redirectToNotebook;
   final String? version;
 
+  final DateTime? occurrenceStart;
+  final bool onlyThisOccurrence;
+
   UpdateEventEvent({
     required super.origin,
     required this.id,
@@ -64,13 +73,21 @@ class UpdateEventEvent extends PlannerItemEvent {
     this.linkedNote = const LinkedNoteEdit(),
     this.redirectToNotebook = false,
     this.version,
+    this.occurrenceStart,
+    this.onlyThisOccurrence = false,
   });
 }
 
 class DeleteEventEvent extends PlannerItemEvent {
   final int id;
 
-  DeleteEventEvent({required super.origin, required this.id});
+  final DateTime? occurrenceStart;
+
+  DeleteEventEvent({
+    required super.origin,
+    required this.id,
+    this.occurrenceStart,
+  });
 }
 
 class DeleteAllEventsEvent extends PlannerItemEvent {
@@ -101,11 +118,14 @@ class CloneHomeworkEvent extends PlannerItemEvent {
   final int courseId;
   final int homeworkId;
 
+  final DateTime? occurrenceStart;
+
   CloneHomeworkEvent({
     required super.origin,
     required this.courseGroupId,
     required this.courseId,
     required this.homeworkId,
+    this.occurrenceStart,
   });
 }
 
@@ -121,6 +141,9 @@ class UpdateHomeworkEvent extends PlannerItemEvent {
 
   final HomeworkModel? previousHomework;
 
+  final DateTime? occurrenceStart;
+  final bool onlyThisOccurrence;
+
   UpdateHomeworkEvent({
     required super.origin,
     required this.courseGroupId,
@@ -132,6 +155,8 @@ class UpdateHomeworkEvent extends PlannerItemEvent {
     this.redirectToNotebook = false,
     this.version,
     this.previousHomework,
+    this.occurrenceStart,
+    this.onlyThisOccurrence = false,
   });
 }
 
@@ -140,10 +165,13 @@ class DeleteHomeworkEvent extends PlannerItemEvent {
   final int courseId;
   final int homeworkId;
 
+  final DateTime? occurrenceStart;
+
   DeleteHomeworkEvent({
     required super.origin,
     required this.courseGroupId,
     required this.courseId,
     required this.homeworkId,
+    this.occurrenceStart,
   });
 }

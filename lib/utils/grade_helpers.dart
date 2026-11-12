@@ -15,9 +15,9 @@ import 'package:heliumapp/utils/format_helpers.dart';
 
 class GradeHelper {
   /// Projects an overall grade given hypothetical scores for ungraded assignments.
-  /// [projections] maps assignment ID to a hypothetical score as a percentage (0–100).
+  /// [projections] maps assignment ID to a hypothetical score as a percentage (0-100).
   ///
-  /// Returns the projected grade as a percentage (0–100), or -1 when there is
+  /// Returns the projected grade as a percentage (0-100), or -1 when there is
   /// insufficient data to compute a result (no assignments, no weight).
   static double calculateProjectedGrade({
     required List<GradeCategoryModel> categories,
@@ -144,6 +144,12 @@ class GradeHelper {
 
     return HeliumNumber.formatPercent(gradeValue, fractionDigits: 2);
   }
+
+  static String gradePointForDisplay(double gradePoint) =>
+      HeliumNumber.format(gradePoint, fractionDigits: 2);
+
+  static String minGradeForDisplay(double minGrade) =>
+      '${HeliumNumber.formatPercent(minGrade, trimZeros: true)}+';
 
   /// Formats a percentage value for display (e.g., category weights)
   /// Optionally shows 'N/A' for zero values

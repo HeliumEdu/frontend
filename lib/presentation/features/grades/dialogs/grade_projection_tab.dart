@@ -48,7 +48,7 @@ class GradeProjectionTab extends StatefulWidget {
 }
 
 class _GradeProjectionTabState extends State<GradeProjectionTab> {
-  /// Hypothetical score as a percentage (0–100) per assignment ID.
+  /// Hypothetical score as a percentage (0-100) per assignment ID.
   late Map<int, double> _projections;
 
   bool get _hasWeightedGrading => widget.categories.any((c) => c.weight > 0);

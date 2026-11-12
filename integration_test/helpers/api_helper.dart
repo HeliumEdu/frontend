@@ -387,7 +387,7 @@ class ApiHelper {
 
   /// Fetches all course schedules for the test user.
   ///
-  /// Note: the new frontend uses these only as recurrence definitions and
+  /// Note: the app uses these only as recurrence definitions and
   /// expands occurrences client-side via SfCalendar. The flat
   /// `/planner/courseschedules/` endpoint is deprecated on the platform but
   /// still serves the snapshot we need for deterministic test counts.

@@ -688,6 +688,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       final redirectUri = await authRepository.decideAuthorization(
         event.query,
         allow: event.allow,
+        scopes: event.scopes,
       );
 
       emit(AuthAuthorizationDecided(redirectUri: redirectUri));
