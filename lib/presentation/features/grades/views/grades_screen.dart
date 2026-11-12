@@ -1008,7 +1008,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Icon(
-                            Icons.trending_up,
+                            Icons.bolt,
                             size: 12,
                             color: BadgeColors.foreground(context, displayCourse.color),
                           ),
@@ -1181,27 +1181,26 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
       }
     }
 
-    // If no data to display, show empty state
     if (series.isEmpty) {
-      return const EmptyCard(
-        icon: Icons.bar_chart,
-        title: 'Nothing to visualize yet',
-        message: "Come back here after you've entered some grades on \"Planner\"",
-        expanded: false,
+      return _buildGraphCard(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Grade Trend', style: AppStyles.headingText(context)),
+            const SizedBox(height: 16),
+            const EmptyCard(
+              icon: Icons.bar_chart,
+              title: 'Nothing to visualize yet',
+              message:
+                  "Come back here after you've entered some grades on \"Planner\"",
+              expanded: false,
+            ),
+          ],
+        ),
       );
     }
 
-    // Full width container like other cards
-    return Container(
-      margin: const EdgeInsets.symmetric(vertical: 12),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: context.colorScheme.surface,
-        borderRadius: BorderRadius.circular(16.0),
-        border: Border.all(
-          color: context.colorScheme.outline.withValues(alpha: 0.2),
-        ),
-      ),
+    return _buildGraphCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -1220,6 +1219,21 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildGraphCard({required Widget child}) {
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 12),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: context.colorScheme.surface,
+        borderRadius: BorderRadius.circular(16.0),
+        border: Border.all(
+          color: context.colorScheme.outline.withValues(alpha: 0.2),
+        ),
+      ),
+      child: child,
     );
   }
 
@@ -2225,8 +2239,6 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
     );
   }
 
-  /// Shifted right by the tap target's padding so the arrow itself lines up
-  /// with the card's content edge, like the title on the left.
   Widget _buildExpandButton(
     BuildContext context,
     GradeCourseModel course,
@@ -2238,21 +2250,18 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
       tablet: 22,
       desktop: 24,
     );
-    return Transform.translate(
-      offset: Offset((kMinInteractiveDimension - iconSize) / 2, 0),
-      child: IconButton(
-        icon: AnimatedRotation(
-          turns: isExpanded ? 0.5 : 0,
-          duration: MotionService().effectiveDuration(AppConstants.uiAnimationDuration),
-          child: Icon(
-            Icons.keyboard_arrow_down,
-            color: context.colorScheme.primary,
-            size: iconSize,
-            semanticLabel: isExpanded ? 'Collapse' : 'Expand',
-          ),
+    return IconButton(
+      icon: AnimatedRotation(
+        turns: isExpanded ? 0.5 : 0,
+        duration: MotionService().effectiveDuration(AppConstants.uiAnimationDuration),
+        child: Icon(
+          Icons.keyboard_arrow_down,
+          color: context.colorScheme.primary,
+          size: iconSize,
+          semanticLabel: isExpanded ? 'Collapse' : 'Expand',
         ),
-        onPressed: () => _toggleExpandedCourse(course.id),
       ),
+      onPressed: () => _toggleExpandedCourse(course.id),
     );
   }
 
