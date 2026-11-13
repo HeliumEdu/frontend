@@ -14,7 +14,6 @@ import 'package:heliumapp/data/models/planner/course_group_model.dart';
 import 'package:heliumapp/data/models/planner/course_model.dart';
 import 'package:heliumapp/data/models/planner/resource_model.dart';
 import 'package:heliumapp/data/models/planner/course_schedule_event_model.dart';
-import 'package:heliumapp/data/models/planner/event_base_model.dart';
 import 'package:heliumapp/data/models/planner/event_model.dart';
 import 'package:heliumapp/data/models/planner/external_calendar_event_model.dart';
 import 'package:heliumapp/data/models/planner/homework_model.dart';
@@ -249,14 +248,8 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
       _log.info('Refreshing external calendar events only');
 
       if (_dateRangeCache.isNotEmpty) {
-        final cachedRanges = _dateRangeCache.keys.map(_cacheRangeBounds).toList();
-
-        final unionStart = cachedRanges
-            .map((r) => r.$1)
-            .reduce((a, b) => a.isBefore(b) ? a : b);
-        final unionEnd = cachedRanges
-            .map((r) => r.$2)
-            .reduce((a, b) => a.isAfter(b) ? a : b);
+        final (firstDay, lastDay) = _loadedDays;
+        final (unionStart, unionEnd) = HeliumDateTime.dayRangeIn(firstDay, lastDay, userSettings.timeZone);
 
         final newEvents = await externalCalendarRepository
             .getExternalCalendarEvents(
@@ -345,15 +338,14 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
   }
 
   /// `exceptionDates` mixes forms: course-schedule exceptions are naive local
-  /// midnight, event and external EXDATEs are UTC instants, and an all-day
-  /// series' date-only EXDATE can be UTC midnight naming a calendar date.
-  bool _isExceptionOn(
-    List<DateTime> exceptionDates,
-    tz.TZDateTime occurrence, {
-    bool allDay = false,
-  }) {
-    return exceptionDates.any((e) {
-      final local = allDay
+  /// midnight, API EXDATEs are UTC instants, and an all-day series' date-only
+  /// EXDATE can be UTC midnight naming a calendar date.
+  bool _hasDateOnlyExceptions(PlannerItemBaseModel item) =>
+      item.allDay && item is! CourseScheduleEventModel;
+
+  bool _isExceptionOn(PlannerItemBaseModel item, tz.TZDateTime occurrence) {
+    return item.exceptionDates.any((e) {
+      final local = _hasDateOnlyExceptions(item)
           ? HeliumDateTime.allDayExceptionIn(e, userSettings.timeZone)
           : HeliumDateTime.wallClockIn(e, userSettings.timeZone);
       return local.year == occurrence.year &&
@@ -363,7 +355,7 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
   }
 
   /// Returns items that occur on [day] from the current filtered appointments.
-  /// Recurring schedule items are expanded into day-specific occurrences.
+  /// Recurring items are expanded into day-specific occurrences.
   List<PlannerItemBaseModel> getItemsForDay(DateTime day) {
     // [day] is naive wall clock from SfCalendar.
     final dayStart = tz.TZDateTime(
@@ -388,8 +380,7 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
         continue;
       }
 
-      if (appointment is CourseScheduleEventModel &&
-          (appointment.recurrenceRule?.isNotEmpty ?? false)) {
+      if (appointment.recurrenceRule != null) {
         final occurrences = PlannerHelper.occurrencesIn(
           appointment.recurrenceRule!,
           appointment.start,
@@ -408,64 +399,15 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
             continue;
           }
 
-          if (_isExceptionOn(appointment.exceptionDates, occurrenceLocal)) {
+          if (_isExceptionOn(appointment, occurrenceLocal)) {
             continue;
           }
 
           final duration = appointment.end.difference(appointment.start);
           itemsForDay.add(
-            CourseScheduleEventModel(
-              id: appointment.id,
-              title: appointment.title,
-              allDay: appointment.allDay,
-              showEndTime: appointment.showEndTime,
+            appointment.copyWith(
               start: occurrenceLocal,
               end: occurrenceLocal.add(duration),
-              priority: appointment.priority,
-              url: appointment.url,
-              comments: appointment.comments,
-              attachments: appointment.attachments,
-              reminders: appointment.reminders,
-              color: appointment.color,
-              ownerId: appointment.ownerId,
-              recurrenceRule: appointment.recurrenceRule,
-              exceptionDates: appointment.exceptionDates,
-            ),
-          );
-        }
-        continue;
-      }
-
-      // Handle RRULEs from the backend
-      if (appointment is EventBaseModel &&
-          (appointment.recurrenceRule?.isNotEmpty ?? false)) {
-        final occurrences = PlannerHelper.occurrencesIn(
-          appointment.recurrenceRule!,
-          appointment.start,
-          userSettings.timeZone,
-          from: expandFrom,
-          to: expandTo,
-        );
-
-        for (final occurrenceStart in occurrences) {
-          final occurrenceLocal = HeliumDateTime.wallClockIn(occurrenceStart, userSettings.timeZone);
-          final isSameDay =
-              occurrenceLocal.year == dayStart.year &&
-              occurrenceLocal.month == dayStart.month &&
-              occurrenceLocal.day == dayStart.day;
-          if (!isSameDay) {
-            continue;
-          }
-
-          if (_isExceptionOn(appointment.exceptionDates, occurrenceLocal, allDay: appointment.allDay)) {
-            continue;
-          }
-
-          final duration = appointment.end.difference(appointment.start);
-          itemsForDay.add(
-            appointment.copyAtOccurrence(
-              occurrenceLocal,
-              occurrenceLocal.add(duration),
             ),
           );
         }
@@ -625,30 +567,22 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
 
   @override
   String? getRecurrenceRule(int index) {
-    final item = _getData(index);
-    final rule = switch (item) {
-      CourseScheduleEventModel() => item.recurrenceRule,
-      EventBaseModel() => item.recurrenceRule,
-      _ => null,
-    };
+    final rule = _getData(index).recurrenceRule;
     return rule == null ? null : HeliumDateTime.recurrenceRuleWithLocalUntil(rule, userSettings.timeZone);
   }
 
   @override
   List<DateTime>? getRecurrenceExceptionDates(int index) {
     final item = _getData(index);
-    if (item is CourseScheduleEventModel && item.exceptionDates.isNotEmpty) {
-      return List<DateTime>.of(item.exceptionDates);
+    if (item.exceptionDates.isEmpty) {
+      return null;
     }
-    if (item is EventBaseModel && item.exceptionDates.isNotEmpty) {
-      if (item.allDay) {
-        return item.exceptionDates
-            .map((e) => HeliumDateTime.allDayExceptionIn(e, userSettings.timeZone))
-            .toList();
-      }
-      return List<DateTime>.of(item.exceptionDates);
+    if (_hasDateOnlyExceptions(item)) {
+      return item.exceptionDates
+          .map((e) => HeliumDateTime.allDayExceptionIn(e, userSettings.timeZone))
+          .toList();
     }
-    return null;
+    return List<DateTime>.of(item.exceptionDates);
   }
 
   Color getColorForItem(PlannerItemBaseModel plannerItem) {
@@ -677,6 +611,14 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
     final fromKey = HeliumDateTime.dateOnly(from);
     final toKey = HeliumDateTime.dateOnly(to);
     return '${fromKey.toIso8601String()}_${toKey.toIso8601String()}';
+  }
+
+  (DateTime, DateTime) get _loadedDays {
+    final days = _dateRangeCache.keys.expand((key) => key.split('_')).map(DateTime.parse);
+    return (
+      days.reduce((a, b) => a.isBefore(b) ? a : b),
+      days.reduce((a, b) => a.isAfter(b) ? a : b),
+    );
   }
 
   (tz.TZDateTime, tz.TZDateTime) _cacheRangeBounds(String key) {
@@ -826,22 +768,8 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
   List<HomeworkModel> get allHomeworks =>
       allPlannerItems.whereType<HomeworkModel>().toList();
 
-  /// Recurring Helium [EventModel]s are hidden from the planner until HE-184
-  /// ships the recurrence picker UI. The data layer (model fields, SfCalendar
-  /// wiring, backend API) already supports them — this filter only prevents
-  /// rendering, where editing/dragging/deleting an occurrence would silently
-  /// mutate the entire series (no per-occurrence affordances yet).
-  /// External-calendar and course-schedule recurring events are unaffected.
-  List<EventModel> get allEvents {
-    final all = allPlannerItems.whereType<EventModel>().toList();
-    final hidden = all.where((e) => e.recurrenceRule != null).length;
-    if (hidden > 0) {
-      _log.warning(
-        'Hiding $hidden recurring EventModel(s) — no per-occurrence edit UI yet (HE-184)',
-      );
-    }
-    return all.where((e) => e.recurrenceRule == null).toList();
-  }
+  List<EventModel> get allEvents =>
+      allPlannerItems.whereType<EventModel>().toList();
 
   List<CourseScheduleEventModel> get allCourseScheduleEvents =>
       allPlannerItems.whereType<CourseScheduleEventModel>().toList();
@@ -849,15 +777,48 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
   List<ExternalCalendarEventModel> get allExternalCalendarEvents =>
       allPlannerItems.whereType<ExternalCalendarEventModel>().toList();
 
-  List<HomeworkModel> get filteredHomeworks {
-    var homeworks = allHomeworks;
+  /// A repeating assignment is listed once per occurrence in the loaded days.
+  List<HomeworkModel> get filteredHomeworks => _applyHomeworkFilters(_homeworkOccurrences);
 
-    homeworks = _applyCourseFilter(homeworks);
-    homeworks = _applyCategoryFilter(homeworks);
-    homeworks = _applyStatusFilter(homeworks);
-    homeworks = _applySearchFilter(homeworks);
+  List<HomeworkModel> get _homeworkOccurrences {
+    if (_dateRangeCache.isEmpty) return [];
 
-    return homeworks;
+    final (firstDay, lastDay) = _loadedDays;
+    return [
+      for (final homework in allHomeworks)
+        if (homework.recurrenceRule == null)
+          homework
+        else
+          ..._occurrencesOf(homework, from: firstDay, to: HeliumDateTime.addDays(lastDay, 1)),
+    ];
+  }
+
+  List<HomeworkModel> _occurrencesOf(HomeworkModel homework, {required DateTime from, required DateTime to}) {
+    final occurrences = PlannerHelper.occurrencesIn(
+      homework.recurrenceRule!,
+      homework.start,
+      userSettings.timeZone,
+      from: from,
+      to: to,
+    );
+    final duration = homework.end.difference(homework.start);
+    final copies = <HomeworkModel>[];
+    for (final occurrence in occurrences) {
+      final start = HeliumDateTime.wallClockIn(occurrence, userSettings.timeZone);
+      if (!_isExceptionOn(homework, start)) {
+        copies.add(homework.copyWith(start: start, end: start.add(duration)));
+      }
+    }
+    return copies;
+  }
+
+  List<HomeworkModel> _applyHomeworkFilters(List<HomeworkModel> homeworks) {
+    var filtered = _applyCourseFilter(homeworks);
+    filtered = _applyCategoryFilter(filtered);
+    filtered = _applyStatusFilter(filtered);
+    filtered = _applySearchFilter(filtered);
+
+    return filtered;
   }
 
   List<PlannerItemBaseModel> get _filteredPlannerItems {
@@ -866,7 +827,7 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
 
     if (includeAllTypes ||
         _filterTypes.contains(PlannerFilterType.assignments.value)) {
-      items.addAll(filteredHomeworks);
+      items.addAll(_applyHomeworkFilters(allHomeworks));
     }
 
     if (includeAllTypes ||

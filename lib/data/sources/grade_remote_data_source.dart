@@ -2,7 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:heliumapp/core/api_url.dart';
 import 'package:heliumapp/core/dio_client.dart';
 import 'package:heliumapp/core/helium_exception.dart';
-import 'package:heliumapp/data/models/planner/grade_course_group_model.dart';
+import 'package:heliumapp/data/models/planner/grades_model.dart';
 import 'package:heliumapp/data/models/planner/needed_grade_model.dart';
 import 'package:heliumapp/data/sources/base_data_source.dart';
 import 'package:logging/logging.dart';
@@ -10,7 +10,7 @@ import 'package:logging/logging.dart';
 final _log = Logger('data.sources');
 
 abstract class GradeRemoteDataSource extends BaseDataSource {
-  Future<List<GradeCourseGroupModel>> getGrades({bool forceRefresh = false});
+  Future<GradesModel> getGrades({bool forceRefresh = false});
 
   Future<NeededGradeModel> getNeededGrade({
     required int courseId,
@@ -25,7 +25,7 @@ class GradeRemoteDataSourceImpl extends GradeRemoteDataSource {
   GradeRemoteDataSourceImpl({required this.dioClient});
 
   @override
-  Future<List<GradeCourseGroupModel>> getGrades({bool forceRefresh = false}) async {
+  Future<GradesModel> getGrades({bool forceRefresh = false}) async {
     try {
       _log.info('Fetching Grades ...');
 
@@ -40,15 +40,11 @@ class GradeRemoteDataSourceImpl extends GradeRemoteDataSource {
 
           if (responseMap.containsKey('course_groups') &&
               responseMap['course_groups'] is List) {
-            final grades = (responseMap['course_groups'] as List)
-                .map(
-                  (group) => GradeCourseGroupModel.fromJson(
-                    group as Map<String, dynamic>,
-                  ),
-                )
-                .toList();
+            final grades = GradesModel.fromJson(responseMap);
 
-            _log.info('... fetched Grades for ${grades.length} CourseGroup(s)');
+            _log.info(
+              '... fetched Grades for ${grades.courseGroups.length} CourseGroup(s)',
+            );
             return grades;
           } else {
             throw ServerException(

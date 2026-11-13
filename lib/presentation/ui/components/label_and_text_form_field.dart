@@ -67,6 +67,12 @@ class _LabelAndTextFormFieldState extends State<LabelAndTextFormField> {
   static const _trailingButtonSize = 48.0;
   static const _trailingButtonLabelOffset = 30.0;
   static const _verticalContentPaddingWithAffordance = 15.0;
+  static const _singleLineConstraints = BoxConstraints(minHeight: AppStyles.formFieldInnerHeight);
+  static const _iconConstraints = BoxConstraints(
+    minWidth: kMinInteractiveDimension,
+    minHeight: AppStyles.formFieldInnerHeight,
+    maxHeight: AppStyles.formFieldInnerHeight,
+  );
   bool _isTrailingButtonEnabled = false;
 
   @override
@@ -112,6 +118,7 @@ class _LabelAndTextFormFieldState extends State<LabelAndTextFormField> {
       inputFormatters: widget.inputFormatters,
       autofillHints: widget.autofillHints,
       style: AppStyles.formText(context),
+      textAlignVertical: TextAlignVertical.center,
       onFieldSubmitted: widget.onFieldSubmitted,
       scrollPadding: const EdgeInsets.all(
         20,
@@ -125,9 +132,15 @@ class _LabelAndTextFormFieldState extends State<LabelAndTextFormField> {
                 ),
               )
             : null,
+        isDense: widget.maxLines == 1,
+        constraints: widget.maxLines == 1 ? _singleLineConstraints : null,
+        prefixIconConstraints: _iconConstraints,
+        suffixIconConstraints: _iconConstraints,
         contentPadding: EdgeInsets.symmetric(
           horizontal: _fieldContentPadding,
-          vertical: _verticalPadding(),
+          vertical: widget.maxLines > 1
+              ? _verticalContentPaddingWithAffordance
+              : AppStyles.formFieldVerticalPadding(context),
         ),
         hintText: widget.hintText,
         hintStyle: AppStyles.formHint(context),
@@ -222,15 +235,5 @@ class _LabelAndTextFormFieldState extends State<LabelAndTextFormField> {
     final enabled =
         widget.spellCheck ?? (widget.maxLines > 1 && !widget.obscureText);
     return enabled ? proseSpellCheck : null;
-  }
-
-  double _verticalPadding() {
-    if (widget.prefixIcon != null ||
-        widget.suffixIcon != null ||
-        widget.maxLines > 1) {
-      return _verticalContentPaddingWithAffordance;
-    } else {
-      return 0;
-    }
   }
 }

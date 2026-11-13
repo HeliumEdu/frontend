@@ -1,3 +1,7 @@
+// AUTO-GENERATED — DO NOT EDIT.
+// Written from platform/helium/common/enums.py by:
+//   platform/bin/sync-shared-constants.py
+
 import 'package:heliumapp/data/models/drop_down_item.dart';
 import 'package:heliumapp/utils/dropdown_extensions.dart';
 

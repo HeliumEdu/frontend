@@ -87,7 +87,11 @@ abstract class AuthRemoteDataSource extends BaseDataSource {
 
   /// Approves or denies the OAuth authorization request in [query], returning
   /// the client's redirect URI to send the user to.
-  Future<String> decideAuthorization(String query, {required bool allow});
+  Future<String> decideAuthorization(
+    String query, {
+    required bool allow,
+    List<String>? scopes,
+  });
 }
 
 class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
@@ -710,11 +714,15 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
   }
 
   @override
-  Future<String> decideAuthorization(String query, {required bool allow}) async {
+  Future<String> decideAuthorization(
+    String query, {
+    required bool allow,
+    List<String>? scopes,
+  }) async {
     try {
       final response = await dioClient.dio.post(
         '${ApiUrl.authOAuthAuthorizeUrl}?$query',
-        data: {'allow': allow},
+        data: {'allow': allow, 'scopes': ?scopes},
       );
 
       if (response.statusCode == 200) {

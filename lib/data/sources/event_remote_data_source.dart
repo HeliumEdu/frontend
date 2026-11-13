@@ -26,15 +26,20 @@ abstract class EventRemoteDataSource extends BaseDataSource {
 
   Future<EventModel> createEvent({required EventRequestModel request});
 
-  Future<EventModel> cloneEvent({required int eventId});
+  Future<EventModel> cloneEvent({required int eventId, DateTime? occurrenceStart});
 
+  /// With [occurrenceStart], [request]'s times are that occurrence's new times
+  /// and the whole series moves; with [onlyThisOccurrence] too, that occurrence
+  /// becomes its own event instead, and is returned.
   Future<EventModel> updateEvent({
     required int eventId,
     required EventRequestModel request,
     String? version,
+    DateTime? occurrenceStart,
+    bool onlyThisOccurrence = false,
   });
 
-  Future<void> deleteEvent({required int eventId});
+  Future<void> deleteEvent({required int eventId, DateTime? occurrenceStart});
 
   Future<void> deleteAllEvents();
 }
@@ -155,11 +160,15 @@ class EventRemoteDataSourceImpl extends EventRemoteDataSource {
   }
 
   @override
-  Future<EventModel> cloneEvent({required int eventId}) async {
+  Future<EventModel> cloneEvent({
+    required int eventId,
+    DateTime? occurrenceStart,
+  }) async {
     try {
       _log.info('Cloning Event $eventId ...');
       final response = await dioClient.dio.post(
         ApiUrl.plannerEventsCloneUrl(eventId),
+        queryParameters: occurrenceQuery(occurrenceStart, onlyThisOccurrence: false),
       );
 
       if (response.statusCode == 201) {
@@ -186,12 +195,15 @@ class EventRemoteDataSourceImpl extends EventRemoteDataSource {
     required int eventId,
     required EventRequestModel request,
     String? version,
+    DateTime? occurrenceStart,
+    bool onlyThisOccurrence = false,
   }) async {
     try {
       _log.info('Updating Event $eventId ...');
       final response = await dioClient.dio.patch(
         ApiUrl.plannerEventsDetailsUrl(eventId),
         data: request.toJson(),
+        queryParameters: occurrenceQuery(occurrenceStart, onlyThisOccurrence: onlyThisOccurrence),
         options: ifMatchOptions(version),
       );
 
@@ -213,11 +225,12 @@ class EventRemoteDataSourceImpl extends EventRemoteDataSource {
   }
 
   @override
-  Future<void> deleteEvent({required int eventId}) async {
+  Future<void> deleteEvent({required int eventId, DateTime? occurrenceStart}) async {
     try {
       _log.info('Deleting Event $eventId ...');
       final response = await dioClient.dio.delete(
         ApiUrl.plannerEventsDetailsUrl(eventId),
+        queryParameters: occurrenceQuery(occurrenceStart, onlyThisOccurrence: true),
       );
 
       if (response.statusCode == 204) {

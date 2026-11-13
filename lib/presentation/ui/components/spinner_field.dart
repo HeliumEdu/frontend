@@ -3,12 +3,12 @@ import 'package:flutter/services.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/format_helpers.dart';
-import 'package:heliumapp/utils/responsive_helpers.dart';
 
 class SpinnerField extends StatelessWidget {
   static const _fieldBorderRadius = 8.0;
   static const _contentPaddingHorizontal = 12.0;
-  static const _contentPaddingVertical = 15.0;
+  static const _arrowSize = 22.0;
+  static const _arrowsWidth = 32.0;
 
   final String? label;
   final TextEditingController controller;
@@ -17,7 +17,6 @@ class SpinnerField extends StatelessWidget {
   final double step;
   final bool allowDecimal;
   final ValueChanged<String>? onChanged;
-  final String? Function(String?)? validator;
   final double? maxSpinnerWidth;
 
   const SpinnerField({
@@ -29,7 +28,6 @@ class SpinnerField extends StatelessWidget {
     this.step = 1,
     this.allowDecimal = false,
     this.onChanged,
-    this.validator,
     this.maxSpinnerWidth,
   });
 
@@ -50,20 +48,21 @@ class SpinnerField extends StatelessWidget {
 
   Widget _buildSpinnerRow(BuildContext context) {
     final row = IntrinsicHeight(
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Expanded(
-            child: Container(
-              decoration: BoxDecoration(
-                color: context.colorScheme.surface,
-                border: Border.all(
-                  color: context.colorScheme.outline.withValues(alpha: 0.2),
-                ),
-                borderRadius: BorderRadius.circular(_fieldBorderRadius),
-              ),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(_fieldBorderRadius),
+      child: Container(
+        constraints: const BoxConstraints(minHeight: AppStyles.formFieldHeight),
+        decoration: BoxDecoration(
+          color: context.colorScheme.surface,
+          border: Border.all(
+            color: context.colorScheme.outline.withValues(alpha: 0.2),
+          ),
+          borderRadius: BorderRadius.circular(_fieldBorderRadius),
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(_fieldBorderRadius),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Expanded(
                 child: Semantics(
                   label: label,
                   child: Focus(
@@ -98,17 +97,10 @@ class SpinnerField extends StatelessWidget {
                             ]
                           : [FilteringTextInputFormatter.digitsOnly],
                       style: AppStyles.formText(context),
-                      validator: validator,
-                      onChanged: (value) {
-                        if (value.isEmpty) {
-                          controller.text = _formatValue(minValue);
-                        }
-                        onChanged?.call(value);
-                      },
-                      decoration: InputDecoration(
-                        contentPadding: const EdgeInsets.symmetric(
+                      onChanged: _onTextChanged,
+                      decoration: const InputDecoration(
+                        contentPadding: EdgeInsets.symmetric(
                           horizontal: _contentPaddingHorizontal,
-                          vertical: _contentPaddingVertical,
                         ),
                         border: InputBorder.none,
                         enabledBorder: InputBorder.none,
@@ -116,61 +108,54 @@ class SpinnerField extends StatelessWidget {
                         disabledBorder: InputBorder.none,
                         errorBorder: InputBorder.none,
                         focusedErrorBorder: InputBorder.none,
-                        errorStyle: AppStyles.formErrorStyle(context),
-                        errorMaxLines: 3,
                       ),
                     ),
                   ),
                 ),
               ),
-            ),
-          ),
-          const SizedBox(width: 4),
-          Column(
-            children: [
-              // Each arrow fills half the field height so the pair is gap-free
-              // and comfortably tappable without enlarging the icons.
-              Expanded(
-                child: IconButton(
-                  onPressed: () => _increment(),
-                  icon: const Icon(Icons.arrow_drop_up, semanticLabel: 'Increase value'),
-                  iconSize: Responsive.getIconSize(
-                    context,
-                    mobile: 24,
-                    tablet: 26,
-                    desktop: 28,
-                  ),
-                  color: context.colorScheme.primary,
-                  padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(),
-                  visualDensity: VisualDensity.compact,
-                  style: IconButton.styleFrom(
-                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                  ),
-                ),
-              ),
-              Expanded(
-                child: IconButton(
-                  onPressed: () => _decrement(),
-                  icon: const Icon(Icons.arrow_drop_down, semanticLabel: 'Decrease value'),
-                  iconSize: Responsive.getIconSize(
-                    context,
-                    mobile: 24,
-                    tablet: 26,
-                    desktop: 28,
-                  ),
-                  color: context.colorScheme.primary,
-                  padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(),
-                  visualDensity: VisualDensity.compact,
-                  style: IconButton.styleFrom(
-                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                  ),
+              SizedBox(
+                width: _arrowsWidth,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    // Each arrow fills half the field height so the pair is gap-free
+                    // and comfortably tappable without enlarging the icons.
+                    Expanded(
+                      child: IconButton(
+                        onPressed: () => _increment(),
+                        icon: const Icon(Icons.arrow_drop_up, semanticLabel: 'Increase value'),
+                        iconSize: _arrowSize,
+                        color: context.colorScheme.primary,
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(),
+                        visualDensity: VisualDensity.compact,
+                        style: IconButton.styleFrom(
+                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          shape: const RoundedRectangleBorder(),
+                        ),
+                      ),
+                    ),
+                    Expanded(
+                      child: IconButton(
+                        onPressed: () => _decrement(),
+                        icon: const Icon(Icons.arrow_drop_down, semanticLabel: 'Decrease value'),
+                        iconSize: _arrowSize,
+                        color: context.colorScheme.primary,
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(),
+                        visualDensity: VisualDensity.compact,
+                        style: IconButton.styleFrom(
+                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          shape: const RoundedRectangleBorder(),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ],
           ),
-        ],
+        ),
       ),
     );
 
@@ -181,6 +166,22 @@ class SpinnerField extends StatelessWidget {
       );
     }
     return row;
+  }
+
+  void _onTextChanged(String value) {
+    if (value.isEmpty) {
+      controller.text = _formatValue(minValue);
+      onChanged?.call(value);
+    } else if (maxValue != null && (HeliumNumber.parse(value) ?? minValue) > maxValue!) {
+      final capped = _formatValue(maxValue!);
+      controller.value = TextEditingValue(
+        text: capped,
+        selection: TextSelection.collapsed(offset: capped.length),
+      );
+      onChanged?.call(capped);
+    } else {
+      onChanged?.call(value);
+    }
   }
 
   void _increment() {

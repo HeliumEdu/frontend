@@ -149,6 +149,9 @@ class EventUpdated extends EventEntityState {
   final int? linkedNoteId;
   final LinkedNoteSave? linkedNoteSave;
 
+  final int? seriesId;
+  final EventModel? series;
+
   EventUpdated({
     required super.origin,
     required super.event,
@@ -158,13 +161,17 @@ class EventUpdated extends EventEntityState {
     this.redirectToNotebook = false,
     this.linkedNoteId,
     this.linkedNoteSave,
+    this.seriesId,
+    this.series,
   });
 }
 
 class EventDeleted extends PlannerItemState {
   final int id;
 
-  EventDeleted({required super.origin, required this.id});
+  final EventModel? series;
+
+  EventDeleted({required super.origin, required this.id, this.series});
 }
 
 class AllEventsDeleted extends PlannerItemState {
@@ -199,6 +206,9 @@ class HomeworkUpdated extends HomeworkEntityState {
   /// have one, in which case listeners should read their own cache.
   final HomeworkModel? previousHomework;
 
+  final int? seriesId;
+  final HomeworkModel? series;
+
   HomeworkUpdated({
     required super.origin,
     required super.homework,
@@ -209,6 +219,8 @@ class HomeworkUpdated extends HomeworkEntityState {
     this.linkedNoteId,
     this.linkedNoteSave,
     this.previousHomework,
+    this.seriesId,
+    this.series,
   });
 }
 
@@ -226,5 +238,7 @@ class PlannerItemConflict extends PlannerItemState {
 class HomeworkDeleted extends PlannerItemState {
   final int id;
 
-  HomeworkDeleted({required super.origin, required this.id});
+  final HomeworkModel? series;
+
+  HomeworkDeleted({required super.origin, required this.id, this.series});
 }

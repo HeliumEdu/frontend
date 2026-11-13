@@ -39,8 +39,14 @@ class EventRepositoryImpl implements EventRepository {
   }
 
   @override
-  Future<EventModel> cloneEvent({required int eventId}) async {
-    return remoteDataSource.cloneEvent(eventId: eventId);
+  Future<EventModel> cloneEvent({
+    required int eventId,
+    DateTime? occurrenceStart,
+  }) async {
+    return remoteDataSource.cloneEvent(
+      eventId: eventId,
+      occurrenceStart: occurrenceStart,
+    );
   }
 
   @override
@@ -48,17 +54,21 @@ class EventRepositoryImpl implements EventRepository {
     required int eventId,
     required EventRequestModel request,
     String? version,
+    DateTime? occurrenceStart,
+    bool onlyThisOccurrence = false,
   }) async {
     return remoteDataSource.updateEvent(
       eventId: eventId,
       request: request,
       version: version,
+      occurrenceStart: occurrenceStart,
+      onlyThisOccurrence: onlyThisOccurrence,
     );
   }
 
   @override
-  Future<void> deleteEvent({required int eventId}) async {
-    return remoteDataSource.deleteEvent(eventId: eventId);
+  Future<void> deleteEvent({required int eventId, DateTime? occurrenceStart}) async {
+    return remoteDataSource.deleteEvent(eventId: eventId, occurrenceStart: occurrenceStart);
   }
 
   @override

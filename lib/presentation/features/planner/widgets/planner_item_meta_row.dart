@@ -32,6 +32,7 @@ class PlannerItemMetaRow extends StatelessWidget {
   final int? maxEntries;
 
   final bool showReminders;
+  final bool showRecurrence;
 
   const PlannerItemMetaRow({
     super.key,
@@ -47,6 +48,7 @@ class PlannerItemMetaRow extends StatelessWidget {
     this.onOpenResources,
     this.maxEntries = 3,
     this.showReminders = true,
+    this.showRecurrence = true,
   });
 
   static bool hasAny(
@@ -54,14 +56,19 @@ class PlannerItemMetaRow extends StatelessWidget {
     int pulledThroughAttachmentCount = 0,
     int resourceCount = 0,
     bool includeReminders = true,
+    bool includeRecurrence = true,
   }) {
     if (_linkedNoteId(plannerItem) != null) return true;
+    if (includeRecurrence && _repeats(plannerItem)) return true;
     if (plannerItem is HomeworkModel && resourceCount > 0) return true;
     if (plannerItem.attachments.isNotEmpty) return true;
     if (pulledThroughAttachmentCount > 0) return true;
     if (includeReminders && plannerItem.reminders.isNotEmpty) return true;
     return false;
   }
+
+  static bool _repeats(PlannerItemBaseModel plannerItem) =>
+      (plannerItem is HomeworkModel || plannerItem is EventModel) && plannerItem.recurrenceRule != null;
 
   static int? _linkedNoteId(PlannerItemBaseModel plannerItem) {
     if (plannerItem is HomeworkModel && plannerItem.notes.isNotEmpty) {
@@ -85,6 +92,15 @@ class PlannerItemMetaRow extends StatelessWidget {
           color: context.colorScheme.primary,
           onTap: onOpenInNotebook == null ? null : (_) => onOpenInNotebook!(),
           tooltip: onOpenInNotebook != null ? 'Open in Notebook' : null,
+        ),
+      );
+    }
+
+    if (showRecurrence && _repeats(item)) {
+      entries.add(
+        _MetaEntry.iconOnly(
+          icon: Icons.repeat,
+          color: context.colorScheme.primary.withValues(alpha: 0.9),
         ),
       );
     }

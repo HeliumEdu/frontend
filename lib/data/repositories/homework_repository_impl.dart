@@ -53,11 +53,13 @@ class HomeworkRepositoryImpl implements HomeworkRepository {
     required int groupId,
     required int courseId,
     required int homeworkId,
+    DateTime? occurrenceStart,
   }) async {
     return remoteDataSource.cloneHomework(
       groupId: groupId,
       courseId: courseId,
       homeworkId: homeworkId,
+      occurrenceStart: occurrenceStart,
     );
   }
 
@@ -68,6 +70,8 @@ class HomeworkRepositoryImpl implements HomeworkRepository {
     required int homeworkId,
     required HomeworkRequestModel request,
     String? version,
+    DateTime? occurrenceStart,
+    bool onlyThisOccurrence = false,
   }) async {
     return remoteDataSource.updateHomework(
       groupId: groupId,
@@ -75,6 +79,8 @@ class HomeworkRepositoryImpl implements HomeworkRepository {
       homeworkId: homeworkId,
       request: request,
       version: version,
+      occurrenceStart: occurrenceStart,
+      onlyThisOccurrence: onlyThisOccurrence,
     );
   }
 
@@ -83,11 +89,13 @@ class HomeworkRepositoryImpl implements HomeworkRepository {
     required int groupId,
     required int courseId,
     required int homeworkId,
+    DateTime? occurrenceStart,
   }) async {
     return remoteDataSource.deleteHomework(
       groupId: groupId,
       courseId: courseId,
       homeworkId: homeworkId,
+      occurrenceStart: occurrenceStart,
     );
   }
 }

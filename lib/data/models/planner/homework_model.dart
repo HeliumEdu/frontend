@@ -37,6 +37,8 @@ class HomeworkModel extends PlannerItemBaseModel {
     required this.notes,
     super.version,
     this.currentGrade,
+    super.recurrenceRule,
+    super.exceptionDates,
   }) : super(plannerItemType: PlannerItemType.homework);
 
   factory HomeworkModel.fromJson(Map<String, dynamic> json) {
@@ -66,9 +68,14 @@ class HomeworkModel extends PlannerItemBaseModel {
           : [],
       course: idOrEntityFrom(json['course'], CourseModel.fromJson),
       courseGroup: json['course_group'],
+      recurrenceRule: json['recurrence_rule'] as String?,
+      exceptionDates: PlannerItemBaseModel.parseExceptionDatesJson(
+        json['exception_dates'],
+      ),
     );
   }
 
+  @override
   HomeworkModel copyWith({
     String? version,
     int? id,
@@ -106,6 +113,8 @@ class HomeworkModel extends PlannerItemBaseModel {
       resources: resources ?? this.resources,
       notes: notes ?? this.notes,
       currentGrade: currentGrade ?? this.currentGrade,
+      recurrenceRule: recurrenceRule,
+      exceptionDates: exceptionDates,
     );
   }
 }

@@ -282,7 +282,7 @@ test-integration-smoke:
 	@chromedriver --port=4444 & CHROME_PID=$$!; sleep 2 && flutter drive --target=integration_test/smoke_test.dart $(DRIVE_ARGS); TEST_EXIT=$$?; kill $$CHROME_PID 2>/dev/null || true; exit $$TEST_EXIT
 
 test-playwright:
-	cd playwright && python3 -m pip install -r requirements.txt -q && python3 -m playwright install chromium && python3 -m pytest -v --screenshot=only-on-failure --output=screenshots
+	cd canary_test && python3 -m pip install -r requirements.txt -q && python3 -m playwright install chromium && python3 -m pytest -v --screenshot=only-on-failure --output=screenshots
 
 coverage:
 	dart pub global activate test_cov_console
@@ -345,7 +345,3 @@ promote:
 
 	docker buildx imagetools create --prefer-index=false -t public.ecr.aws/heliumedu/helium/frontend-web:$(PLATFORM)-$(DOCKER_TAG_VERSION) public.ecr.aws/heliumedu/helium/frontend-web:$(PLATFORM)-$(SOURCE_TAG)
 	docker buildx imagetools create --prefer-index=false -t public.ecr.aws/heliumedu/helium/frontend-web:$(PLATFORM)-latest public.ecr.aws/heliumedu/helium/frontend-web:$(PLATFORM)-$(SOURCE_TAG)
-
-	docker create --platform=linux/$(PLATFORM) --name frontend-web public.ecr.aws/heliumedu/helium/frontend-web:$(PLATFORM)-$(SOURCE_TAG)
-	docker cp frontend-web:/app build
-	aws s3 sync build "s3://heliumedu/helium/frontend-web/$(TAG_VERSION)"

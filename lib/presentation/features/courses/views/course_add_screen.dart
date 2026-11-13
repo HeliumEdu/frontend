@@ -244,7 +244,10 @@ class _CourseAddScreenState extends MultiStepContainerState<CourseAddScreen> {
   }
 
   @override
-  String get screenTitle => !widget.isNew ? 'Edit Class' : 'Add Class';
+  String get entityName => 'Class';
+
+  @override
+  bool get hasSavedEntity => _currentCourseId != null;
 
   @override
   IconData? get icon => Icons.school;

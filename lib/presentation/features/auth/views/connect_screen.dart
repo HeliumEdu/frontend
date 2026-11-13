@@ -6,6 +6,7 @@ import 'package:heliumapp/core/helium_exception.dart';
 import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/data/models/auth/oauth_authorization_model.dart';
+import 'package:heliumapp/data/models/auth/oauth_scope_model.dart';
 import 'package:heliumapp/presentation/core/views/base_page_screen_state.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_bloc.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_event.dart';
@@ -18,7 +19,6 @@ import 'package:heliumapp/presentation/ui/layout/unauthenticated_scaffold.dart';
 import 'package:heliumapp/utils/app_assets.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/app_style.dart';
-import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:heliumapp/utils/url_helpers.dart';
 
 /// Where a user consents to an app (a connector) acting on their Helium account.
@@ -28,6 +28,7 @@ class ConnectScreen extends StatefulWidget {
   static const String allowButtonKey = 'connect_allow_button';
   static const String denyButtonKey = 'connect_deny_button';
   static const String switchAccountButtonKey = 'connect_switch_account_button';
+  static const String optionalScopeCheckboxKeyPrefix = 'connect_optional_scope_';
 
   /// About the consent's height, account line included, so moving between
   /// loading, consent, and error doesn't resize the card.
@@ -53,6 +54,7 @@ class _ConnectScreenState extends BasePageScreenState<ConnectScreen> {
   String? _invalidMessage;
   bool _isReturning = false;
   bool _isAllowing = false;
+  final Set<String> _approvedOptionalScopes = {};
 
   @override
   void initState() {
@@ -241,32 +243,11 @@ class _ConnectScreenState extends BasePageScreenState<ConnectScreen> {
 
       const SizedBox(height: 12),
 
-      for (final scope in authorization.scopes)
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: 4),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Icon(
-                Icons.check,
-                size: Responsive.getIconSize(
-                  context,
-                  mobile: 18,
-                  tablet: 20,
-                  desktop: 22,
-                ),
-                color: context.colorScheme.primary,
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  scope.description,
-                  style: AppStyles.standardBodyText(context),
-                ),
-              ),
-            ],
-          ),
-        ),
+      for (final scope in [
+        ...authorization.scopes.where((s) => s.required),
+        ...authorization.scopes.where((s) => !s.required),
+      ])
+        _buildScope(context, scope),
 
       const SizedBox(height: 25),
 
@@ -310,6 +291,59 @@ class _ConnectScreenState extends BasePageScreenState<ConnectScreen> {
               ),
       ),
     ];
+  }
+
+  Widget _buildScope(BuildContext context, OAuthScopeModel scope) {
+    final approved =
+        scope.required || _approvedOptionalScopes.contains(scope.scope);
+    final onChanged = scope.required || isSubmitting
+        ? null
+        : (bool? value) => _setOptionalScopeApproved(scope, value == true);
+
+    return InkWell(
+      key: scope.required
+          ? null
+          : Key('${ConnectScreen.optionalScopeCheckboxKeyPrefix}${scope.scope}'),
+      onTap: onChanged == null ? null : () => onChanged(!approved),
+      borderRadius: BorderRadius.circular(4),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 6),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            IgnorePointer(
+              child: SizedBox(
+                width: 24,
+                height: 24,
+                child: Checkbox(
+                  value: approved,
+                  onChanged: onChanged,
+                  visualDensity: VisualDensity.compact,
+                  materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                ),
+              ),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                scope.description,
+                style: AppStyles.standardBodyText(context),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _setOptionalScopeApproved(OAuthScopeModel scope, bool approved) {
+    setState(() {
+      if (approved) {
+        _approvedOptionalScopes.add(scope.scope);
+      } else {
+        _approvedOptionalScopes.remove(scope.scope);
+      }
+    });
   }
 
   List<Widget> _buildReturning(BuildContext context) {
@@ -361,8 +395,20 @@ class _ConnectScreenState extends BasePageScreenState<ConnectScreen> {
     });
 
     context.read<AuthBloc>().add(
-      DecideAuthorizationEvent(query: widget.query, allow: allow),
+      DecideAuthorizationEvent(
+        query: widget.query,
+        allow: allow,
+        scopes: allow ? _approvedScopes() : null,
+      ),
     );
+  }
+
+  List<String> _approvedScopes() {
+    return [
+      for (final scope in _authorization?.scopes ?? const <OAuthScopeModel>[])
+        if (scope.required || _approvedOptionalScopes.contains(scope.scope))
+          scope.scope,
+    ];
   }
 
   void _switchAccount() {

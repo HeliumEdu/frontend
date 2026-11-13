@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/config/pref_service.dart';
@@ -89,12 +91,15 @@ mixin ConflictResolvableForm<W extends StatefulWidget> on State<W> {
 
   void loadLatest();
 
-  void onSubmit();
+  FutureOr<void> onSubmit();
 
-  void overwriteNewer() {
+  Future<void> overwriteNewer() async {
     _isOverwriting = true;
-    onSubmit();
-    _isOverwriting = false;
+    try {
+      await onSubmit();
+    } finally {
+      _isOverwriting = false;
+    }
   }
 }
 

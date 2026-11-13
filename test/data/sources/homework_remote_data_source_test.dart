@@ -347,5 +347,134 @@ void main() {
         );
       });
     });
+
+    group('occurrences of a repeating assignment', () {
+      final occurrenceStart = DateTime.utc(2026, 9, 14, 21, 59);
+
+      test('updateHomework asks the API to change only the occurrence when told to', () async {
+        // GIVEN
+        when(
+          () => mockDio.patch(
+            any(),
+            data: any(named: 'data'),
+            queryParameters: any(named: 'queryParameters'),
+            options: any(named: 'options'),
+          ),
+        ).thenAnswer((_) async => givenSuccessResponse(givenHomeworkJson(id: 33, completed: true)));
+
+        // WHEN
+        final result = await dataSource.updateHomework(
+          groupId: 1,
+          courseId: 2,
+          homeworkId: 9,
+          request: HomeworkRequestModel(completed: true),
+          occurrenceStart: occurrenceStart,
+          onlyThisOccurrence: true,
+        );
+
+        // THEN
+        final captured = verify(
+          () => mockDio.patch(
+            captureAny(),
+            data: captureAny(named: 'data'),
+            queryParameters: captureAny(named: 'queryParameters'),
+            options: any(named: 'options'),
+          ),
+        ).captured;
+        expect(captured[0], '/planner/coursegroups/1/courses/2/homework/9/');
+        expect(captured[1], {'completed': true});
+        expect(captured[2], {'scope': 'this', 'occurrence_start': '2026-09-14T21:59:00.000Z'});
+        expect(result.id, 33, reason: 'the response is the new standalone assignment');
+        expect(result.completed, isTrue);
+      });
+
+      test('updateHomework moves the whole series from an occurrence without a scope', () async {
+        // GIVEN
+        when(
+          () => mockDio.patch(
+            any(),
+            data: any(named: 'data'),
+            queryParameters: any(named: 'queryParameters'),
+            options: any(named: 'options'),
+          ),
+        ).thenAnswer((_) async => givenSuccessResponse(givenHomeworkJson(id: 9)));
+
+        // WHEN
+        await dataSource.updateHomework(
+          groupId: 1,
+          courseId: 2,
+          homeworkId: 9,
+          request: HomeworkRequestModel(start: '2026-09-15T21:59:00Z'),
+          occurrenceStart: occurrenceStart,
+        );
+
+        // THEN
+        final query = verify(
+          () => mockDio.patch(
+            any(),
+            data: any(named: 'data'),
+            queryParameters: captureAny(named: 'queryParameters'),
+            options: any(named: 'options'),
+          ),
+        ).captured.single;
+        expect(query, {'occurrence_start': '2026-09-14T21:59:00.000Z'});
+      });
+
+      test('deleteHomework with an occurrence deletes only that occurrence', () async {
+        // GIVEN
+        when(
+          () => mockDio.delete(any(), queryParameters: any(named: 'queryParameters')),
+        ).thenAnswer((_) async => givenSuccessResponse(null, statusCode: 204));
+
+        // WHEN
+        await dataSource.deleteHomework(groupId: 1, courseId: 2, homeworkId: 9, occurrenceStart: occurrenceStart);
+
+        // THEN
+        final captured = verify(
+          () => mockDio.delete(captureAny(), queryParameters: captureAny(named: 'queryParameters')),
+        ).captured;
+        expect(captured[0], '/planner/coursegroups/1/courses/2/homework/9/');
+        expect(captured[1], {'scope': 'this', 'occurrence_start': '2026-09-14T21:59:00.000Z'});
+      });
+
+      test('deleteHomework without an occurrence deletes the whole series', () async {
+        // GIVEN
+        when(
+          () => mockDio.delete(any(), queryParameters: any(named: 'queryParameters')),
+        ).thenAnswer((_) async => givenSuccessResponse(null, statusCode: 204));
+
+        // WHEN
+        await dataSource.deleteHomework(groupId: 1, courseId: 2, homeworkId: 9);
+
+        // THEN
+        final query = verify(
+          () => mockDio.delete(any(), queryParameters: captureAny(named: 'queryParameters')),
+        ).captured.single;
+        expect(query, isNull);
+      });
+
+      test('cloneHomework from an occurrence sends its occurrence_start', () async {
+        // GIVEN
+        when(
+          () => mockDio.post(any(), queryParameters: any(named: 'queryParameters')),
+        ).thenAnswer((_) async => givenSuccessResponse(givenHomeworkJson(id: 40), statusCode: 201));
+
+        // WHEN
+        final clone = await dataSource.cloneHomework(
+          groupId: 1,
+          courseId: 2,
+          homeworkId: 9,
+          occurrenceStart: occurrenceStart,
+        );
+
+        // THEN
+        final captured = verify(
+          () => mockDio.post(captureAny(), queryParameters: captureAny(named: 'queryParameters')),
+        ).captured;
+        expect(captured[0], '/planner/coursegroups/1/courses/2/homework/9/clone/');
+        expect(captured[1], {'occurrence_start': '2026-09-14T21:59:00.000Z'});
+        expect(clone.id, 40);
+      });
+    });
   });
 }

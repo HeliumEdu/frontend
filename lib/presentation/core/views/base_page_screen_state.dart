@@ -107,7 +107,16 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
 
   bool get enablePrintFlexColumn => false;
 
-  String get screenTitle => '';
+  /// The kind of item an add-or-edit screen works on, such as 'Class', or
+  /// null for any other screen.
+  String? get entityName => null;
+
+  /// Whether the screen's item has been saved, so the screen edits it rather
+  /// than adds it.
+  bool get hasSavedEntity => false;
+
+  String get screenTitle =>
+      entityName == null ? '' : '${hasSavedEntity ? 'Edit' : 'Add'} $entityName';
 
   IconData? get icon => null;
 
@@ -323,11 +332,8 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
     return [];
   }
 
-  Widget buildScaffold(BuildContext context) {
-    final bool hasNavigationShell = NavigationShellProvider.of(context);
-    final bool isDialogMode = DialogModeProvider.isDialogMode(context);
-
-    final Widget unauthenticatedColumn = Column(
+  Widget _buildUnauthenticatedColumn(BuildContext context) {
+    return Column(
       children: [
         if (settingsError != null)
           ErrorCard(
@@ -341,6 +347,11 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
           ..._buildContent(context),
       ],
     );
+  }
+
+  Widget buildScaffold(BuildContext context) {
+    final bool hasNavigationShell = NavigationShellProvider.of(context);
+    final bool isDialogMode = DialogModeProvider.isDialogMode(context);
 
     final Widget content = Padding(
       padding: scaffoldInsets,
@@ -372,7 +383,7 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
                 );
               },
             )
-          : unauthenticatedColumn,
+          : _buildUnauthenticatedColumn(context),
     );
 
     if (isDialogMode) {

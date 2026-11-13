@@ -1,7 +1,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:heliumapp/core/helium_exception.dart';
 import 'package:heliumapp/data/models/planner/course_group_model.dart';
-import 'package:heliumapp/data/models/planner/grade_course_group_model.dart';
+import 'package:heliumapp/data/models/planner/grades_model.dart';
 import 'package:heliumapp/domain/repositories/course_repository.dart';
 import 'package:heliumapp/domain/repositories/grade_repository.dart';
 import 'package:heliumapp/presentation/features/grades/bloc/grade_event.dart';
@@ -30,9 +30,15 @@ class GradeBloc extends Bloc<GradeEvent, GradeState> {
         gradeRepository.getGrades(forceRefresh: event.forceRefresh),
       ]);
       final courseGroups = results[0] as List<CourseGroupModel>;
-      final grades = results[1] as List<GradeCourseGroupModel>;
+      final grades = results[1] as GradesModel;
 
-      emit(GradeScreenDataFetched(courseGroups: courseGroups, grades: grades));
+      emit(
+        GradeScreenDataFetched(
+          courseGroups: courseGroups,
+          grades: grades.courseGroups,
+          cumulativeGpa: grades.cumulativeGpa,
+        ),
+      );
     } on HeliumException catch (e) {
       emit(GradesError(message: e.message));
     } catch (e) {

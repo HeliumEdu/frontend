@@ -3,8 +3,10 @@ import 'dart:async';
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:heliumapp/core/helium_exception.dart';
+import 'package:heliumapp/data/models/planner/note_model.dart';
 import 'package:heliumapp/data/models/planner/request/event_request_model.dart';
 import 'package:heliumapp/data/models/planner/request/homework_request_model.dart';
+import 'package:heliumapp/data/models/planner/request/note_request_model.dart';
 import 'package:heliumapp/domain/linked_note_saver.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/planneritem_bloc.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/planneritem_event.dart';
@@ -12,6 +14,7 @@ import 'package:heliumapp/presentation/features/planner/bloc/planneritem_state.d
 import 'package:heliumapp/presentation/features/shared/bloc/core/base_event.dart';
 import 'package:mocktail/mocktail.dart';
 
+import '../../../helpers/note_helper.dart';
 import '../../../mocks/mock_models.dart';
 import '../../../mocks/mock_repositories.dart';
 import '../../../mocks/register_fallbacks.dart';
@@ -797,6 +800,451 @@ void main() {
               'message',
               'Cannot delete homework',
             ),
+          ],
+        );
+      });
+    });
+
+    group('Recurrence', () {
+      const seriesId = 28;
+      const detachedId = 33;
+      final occurrenceStart = DateTime.utc(2026, 11, 26, 11);
+      final request = EventRequestModel(start: '2026-11-27T11:00:00Z', end: '2026-11-27T12:00:00Z');
+      const noteContent = {
+        'ops': [
+          {'insert': 'Bring the lab manual\n'},
+        ],
+      };
+
+      void givenDetachSucceeds() {
+        when(
+          () => mockEventRepository.updateEvent(
+            eventId: seriesId,
+            request: any(named: 'request'),
+            occurrenceStart: occurrenceStart,
+            onlyThisOccurrence: true,
+          ),
+        ).thenAnswer((_) async => MockModels.createEvent(id: detachedId, title: 'Moved'));
+        when(
+          () => mockNoteRepository.createNote(request: any(named: 'request')),
+        ).thenAnswer((_) async => NoteModel.fromJson(givenNoteJson(id: 70)));
+      }
+
+      blocTest<PlannerItemBloc, PlannerItemState>(
+        'detaching an occurrence emits the standalone event with the refetched series, saving the note to the series',
+        build: () {
+          givenDetachSucceeds();
+          when(
+            () => mockEventRepository.getEvent(id: seriesId, forceRefresh: true),
+          ).thenAnswer((_) async => MockModels.createEvent(id: seriesId, recurrenceRule: 'FREQ=WEEKLY;BYDAY=TH'));
+          return plannerItemBloc;
+        },
+        act: (bloc) => bloc.add(
+          UpdateEventEvent(
+            origin: EventOrigin.dialog,
+            id: seriesId,
+            request: request,
+            occurrenceStart: occurrenceStart,
+            onlyThisOccurrence: true,
+            linkedNote: const LinkedNoteEdit(content: noteContent),
+          ),
+        ),
+        expect: () => [
+          isA<PlannerItemsLoading>(),
+          isA<EventUpdated>()
+              .having((s) => s.event.id, 'event id', detachedId)
+              .having((s) => s.entityId, 'entityId', detachedId)
+              .having((s) => s.seriesId, 'seriesId', seriesId)
+              .having((s) => s.series?.id, 'series id', seriesId)
+              .having((s) => s.series?.recurrenceRule, 'series rule', 'FREQ=WEEKLY;BYDAY=TH')
+              .having((s) => s.linkedNoteId, 'linkedNoteId', 70),
+        ],
+        verify: (_) {
+          final noteRequest = verify(
+            () => mockNoteRepository.createNote(request: captureAny(named: 'request')),
+          ).captured.single as NoteRequestModel;
+          expect(noteRequest.eventId, seriesId, reason: 'the note belongs to the series while it has occurrences');
+          verifyNever(
+            () => mockEventRepository.updateEvent(
+              eventId: seriesId,
+              request: any(named: 'request'),
+              version: any(named: 'version'),
+            ),
+          );
+        },
+      );
+
+      blocTest<PlannerItemBloc, PlannerItemState>(
+        'detaching the last occurrence emits no series and saves the note to the standalone event',
+        build: () {
+          givenDetachSucceeds();
+          when(
+            () => mockEventRepository.getEvent(id: seriesId, forceRefresh: true),
+          ).thenAnswer((_) async => throw NotFoundException(message: 'Not found'));
+          return plannerItemBloc;
+        },
+        act: (bloc) => bloc.add(
+          UpdateEventEvent(
+            origin: EventOrigin.dialog,
+            id: seriesId,
+            request: request,
+            occurrenceStart: occurrenceStart,
+            onlyThisOccurrence: true,
+            linkedNote: const LinkedNoteEdit(content: noteContent),
+          ),
+        ),
+        expect: () => [
+          isA<PlannerItemsLoading>(),
+          isA<EventUpdated>()
+              .having((s) => s.event.id, 'event id', detachedId)
+              .having((s) => s.seriesId, 'seriesId', seriesId)
+              .having((s) => s.series, 'series', isNull),
+        ],
+        verify: (_) {
+          final noteRequest = verify(
+            () => mockNoteRepository.createNote(request: captureAny(named: 'request')),
+          ).captured.single as NoteRequestModel;
+          expect(noteRequest.eventId, detachedId,
+              reason: 'the series was deleted and handed its note to the standalone event');
+        },
+      );
+
+      blocTest<PlannerItemBloc, PlannerItemState>(
+        'moving the whole series from an occurrence passes the occurrence without detaching',
+        build: () {
+          when(
+            () => mockEventRepository.updateEvent(
+              eventId: seriesId,
+              request: any(named: 'request'),
+              occurrenceStart: occurrenceStart,
+            ),
+          ).thenAnswer((_) async => MockModels.createEvent(id: seriesId, recurrenceRule: 'FREQ=WEEKLY;BYDAY=FR'));
+          return plannerItemBloc;
+        },
+        act: (bloc) => bloc.add(
+          UpdateEventEvent(
+            origin: EventOrigin.dialog,
+            id: seriesId,
+            request: request,
+            occurrenceStart: occurrenceStart,
+          ),
+        ),
+        expect: () => [
+          isA<PlannerItemsLoading>(),
+          isA<EventUpdated>()
+              .having((s) => s.event.id, 'event id', seriesId)
+              .having((s) => s.event.recurrenceRule, 'rule', 'FREQ=WEEKLY;BYDAY=FR')
+              .having((s) => s.seriesId, 'seriesId', isNull),
+        ],
+        verify: (_) {
+          verify(
+            () => mockEventRepository.updateEvent(
+              eventId: seriesId,
+              request: any(named: 'request'),
+              occurrenceStart: occurrenceStart,
+            ),
+          ).called(1);
+          verifyNever(() => mockEventRepository.getEvent(id: seriesId, forceRefresh: true));
+        },
+      );
+
+      blocTest<PlannerItemBloc, PlannerItemState>(
+        'deleting an occurrence emits the refetched series',
+        build: () {
+          when(
+            () => mockEventRepository.deleteEvent(eventId: seriesId, occurrenceStart: occurrenceStart),
+          ).thenAnswer((_) async {});
+          when(
+            () => mockEventRepository.getEvent(id: seriesId, forceRefresh: true),
+          ).thenAnswer((_) async => MockModels.createEvent(id: seriesId, recurrenceRule: 'FREQ=WEEKLY;BYDAY=TH'));
+          return plannerItemBloc;
+        },
+        act: (bloc) => bloc.add(
+          DeleteEventEvent(origin: EventOrigin.dialog, id: seriesId, occurrenceStart: occurrenceStart),
+        ),
+        expect: () => [
+          isA<PlannerItemsLoading>(),
+          isA<EventDeleted>()
+              .having((s) => s.id, 'id', seriesId)
+              .having((s) => s.series?.id, 'series id', seriesId),
+        ],
+      );
+
+      blocTest<PlannerItemBloc, PlannerItemState>(
+        'deleting the last occurrence emits no series, as the series was deleted with it',
+        build: () {
+          when(
+            () => mockEventRepository.deleteEvent(eventId: seriesId, occurrenceStart: occurrenceStart),
+          ).thenAnswer((_) async {});
+          when(
+            () => mockEventRepository.getEvent(id: seriesId, forceRefresh: true),
+          ).thenAnswer((_) async => throw NotFoundException(message: 'Not found'));
+          return plannerItemBloc;
+        },
+        act: (bloc) => bloc.add(
+          DeleteEventEvent(origin: EventOrigin.dialog, id: seriesId, occurrenceStart: occurrenceStart),
+        ),
+        expect: () => [
+          isA<PlannerItemsLoading>(),
+          isA<EventDeleted>().having((s) => s.id, 'id', seriesId).having((s) => s.series, 'series', isNull),
+        ],
+      );
+
+      blocTest<PlannerItemBloc, PlannerItemState>(
+        'deleting a whole event never refetches it',
+        build: () {
+          when(() => mockEventRepository.deleteEvent(eventId: seriesId)).thenAnswer((_) async {});
+          return plannerItemBloc;
+        },
+        act: (bloc) => bloc.add(DeleteEventEvent(origin: EventOrigin.dialog, id: seriesId)),
+        expect: () => [
+          isA<PlannerItemsLoading>(),
+          isA<EventDeleted>().having((s) => s.series, 'series', isNull),
+        ],
+        verify: (_) {
+          verifyNever(() => mockEventRepository.getEvent(id: any(named: 'id'), forceRefresh: true));
+        },
+      );
+
+      blocTest<PlannerItemBloc, PlannerItemState>(
+        'cloning from an occurrence passes its start',
+        build: () {
+          when(
+            () => mockEventRepository.cloneEvent(eventId: seriesId, occurrenceStart: occurrenceStart),
+          ).thenAnswer((_) async => MockModels.createEvent(id: 40, start: occurrenceStart));
+          return plannerItemBloc;
+        },
+        act: (bloc) => bloc.add(
+          CloneEventEvent(origin: EventOrigin.dialog, eventId: seriesId, occurrenceStart: occurrenceStart),
+        ),
+        expect: () => [
+          isA<PlannerItemsLoading>(),
+          isA<EventCreated>()
+              .having((s) => s.event.id, 'event id', 40)
+              .having((s) => s.event.start, 'start', occurrenceStart)
+              .having((s) => s.isClone, 'isClone', isTrue),
+        ],
+      );
+
+      group('repeating assignments', () {
+        const courseGroupId = 1;
+        const courseId = 2;
+        final occurrence = MockModels.createHomework(
+          id: seriesId,
+          start: occurrenceStart,
+          end: occurrenceStart,
+          recurrenceRule: 'FREQ=WEEKLY;BYDAY=TH',
+        );
+
+        void givenDetachSucceeds() {
+          when(
+            () => mockHomeworkRepository.updateHomework(
+              groupId: courseGroupId,
+              courseId: courseId,
+              homeworkId: seriesId,
+              request: any(named: 'request'),
+              occurrenceStart: occurrenceStart,
+              onlyThisOccurrence: true,
+            ),
+          ).thenAnswer((_) async => MockModels.createHomework(id: detachedId, completed: true));
+        }
+
+        UpdateHomeworkEvent completeOccurrence() => UpdateHomeworkEvent(
+              origin: EventOrigin.screen,
+              courseGroupId: courseGroupId,
+              courseId: courseId,
+              homeworkId: seriesId,
+              request: HomeworkRequestModel(completed: true),
+              previousHomework: occurrence,
+              occurrenceStart: occurrenceStart,
+              onlyThisOccurrence: true,
+            );
+
+        blocTest<PlannerItemBloc, PlannerItemState>(
+          'completing an occurrence emits the standalone assignment with the refetched series',
+          build: () {
+            givenDetachSucceeds();
+            when(
+              () => mockHomeworkRepository.getHomework(id: seriesId, forceRefresh: true),
+            ).thenAnswer(
+              (_) async => MockModels.createHomework(
+                id: seriesId,
+                recurrenceRule: 'FREQ=WEEKLY;BYDAY=TH',
+                exceptionDates: [occurrenceStart],
+              ),
+            );
+            return plannerItemBloc;
+          },
+          act: (bloc) => bloc.add(completeOccurrence()),
+          expect: () => [
+            isA<PlannerItemsLoading>(),
+            isA<HomeworkUpdated>()
+                .having((s) => s.homework.id, 'homework id', detachedId)
+                .having((s) => s.homework.completed, 'completed', isTrue)
+                .having((s) => s.entityId, 'entityId', detachedId)
+                .having((s) => s.seriesId, 'seriesId', seriesId)
+                .having((s) => s.series?.exceptionDates, 'series exception dates', [occurrenceStart])
+                .having((s) => s.previousHomework, 'previousHomework', same(occurrence)),
+          ],
+          verify: (_) {
+            final sent = verify(
+              () => mockHomeworkRepository.updateHomework(
+                groupId: courseGroupId,
+                courseId: courseId,
+                homeworkId: seriesId,
+                request: captureAny(named: 'request'),
+                occurrenceStart: occurrenceStart,
+                onlyThisOccurrence: true,
+              ),
+            ).captured.single as HomeworkRequestModel;
+            expect(sent.toJson(), {'completed': true});
+          },
+        );
+
+        blocTest<PlannerItemBloc, PlannerItemState>(
+          'completing the last occurrence emits no series',
+          build: () {
+            givenDetachSucceeds();
+            when(
+              () => mockHomeworkRepository.getHomework(id: seriesId, forceRefresh: true),
+            ).thenAnswer((_) async => throw NotFoundException(message: 'Not found'));
+            return plannerItemBloc;
+          },
+          act: (bloc) => bloc.add(completeOccurrence()),
+          expect: () => [
+            isA<PlannerItemsLoading>(),
+            isA<HomeworkUpdated>()
+                .having((s) => s.homework.id, 'homework id', detachedId)
+                .having((s) => s.seriesId, 'seriesId', seriesId)
+                .having((s) => s.series, 'series', isNull),
+          ],
+        );
+
+        blocTest<PlannerItemBloc, PlannerItemState>(
+          'moving the whole series from an occurrence passes the occurrence without detaching',
+          build: () {
+            when(
+              () => mockHomeworkRepository.updateHomework(
+                groupId: courseGroupId,
+                courseId: courseId,
+                homeworkId: seriesId,
+                request: any(named: 'request'),
+                occurrenceStart: occurrenceStart,
+              ),
+            ).thenAnswer((_) async => MockModels.createHomework(id: seriesId, recurrenceRule: 'FREQ=WEEKLY;BYDAY=FR'));
+            return plannerItemBloc;
+          },
+          act: (bloc) => bloc.add(
+            UpdateHomeworkEvent(
+              origin: EventOrigin.screen,
+              courseGroupId: courseGroupId,
+              courseId: courseId,
+              homeworkId: seriesId,
+              request: HomeworkRequestModel(start: '2026-11-27T11:00:00Z', end: '2026-11-27T11:00:00Z'),
+              occurrenceStart: occurrenceStart,
+            ),
+          ),
+          expect: () => [
+            isA<PlannerItemsLoading>(),
+            isA<HomeworkUpdated>()
+                .having((s) => s.homework.recurrenceRule, 'rule', 'FREQ=WEEKLY;BYDAY=FR')
+                .having((s) => s.seriesId, 'seriesId', isNull),
+          ],
+          verify: (_) {
+            verifyNever(() => mockHomeworkRepository.getHomework(id: seriesId, forceRefresh: true));
+          },
+        );
+
+        blocTest<PlannerItemBloc, PlannerItemState>(
+          'deleting an occurrence emits the refetched series',
+          build: () {
+            when(
+              () => mockHomeworkRepository.deleteHomework(
+                groupId: courseGroupId,
+                courseId: courseId,
+                homeworkId: seriesId,
+                occurrenceStart: occurrenceStart,
+              ),
+            ).thenAnswer((_) async {});
+            when(
+              () => mockHomeworkRepository.getHomework(id: seriesId, forceRefresh: true),
+            ).thenAnswer((_) async => MockModels.createHomework(id: seriesId, recurrenceRule: 'FREQ=WEEKLY;BYDAY=TH'));
+            return plannerItemBloc;
+          },
+          act: (bloc) => bloc.add(
+            DeleteHomeworkEvent(
+              origin: EventOrigin.dialog,
+              courseGroupId: courseGroupId,
+              courseId: courseId,
+              homeworkId: seriesId,
+              occurrenceStart: occurrenceStart,
+            ),
+          ),
+          expect: () => [
+            isA<PlannerItemsLoading>(),
+            isA<HomeworkDeleted>()
+                .having((s) => s.id, 'id', seriesId)
+                .having((s) => s.series?.id, 'series id', seriesId),
+          ],
+        );
+
+        blocTest<PlannerItemBloc, PlannerItemState>(
+          'deleting a whole series never refetches it',
+          build: () {
+            when(
+              () => mockHomeworkRepository.deleteHomework(
+                groupId: courseGroupId,
+                courseId: courseId,
+                homeworkId: seriesId,
+              ),
+            ).thenAnswer((_) async {});
+            return plannerItemBloc;
+          },
+          act: (bloc) => bloc.add(
+            DeleteHomeworkEvent(
+              origin: EventOrigin.dialog,
+              courseGroupId: courseGroupId,
+              courseId: courseId,
+              homeworkId: seriesId,
+            ),
+          ),
+          expect: () => [
+            isA<PlannerItemsLoading>(),
+            isA<HomeworkDeleted>().having((s) => s.series, 'series', isNull),
+          ],
+          verify: (_) {
+            verifyNever(() => mockHomeworkRepository.getHomework(id: any(named: 'id'), forceRefresh: true));
+          },
+        );
+
+        blocTest<PlannerItemBloc, PlannerItemState>(
+          'cloning from an occurrence passes its start',
+          build: () {
+            when(
+              () => mockHomeworkRepository.cloneHomework(
+                groupId: courseGroupId,
+                courseId: courseId,
+                homeworkId: seriesId,
+                occurrenceStart: occurrenceStart,
+              ),
+            ).thenAnswer((_) async => MockModels.createHomework(id: 40, start: occurrenceStart));
+            return plannerItemBloc;
+          },
+          act: (bloc) => bloc.add(
+            CloneHomeworkEvent(
+              origin: EventOrigin.dialog,
+              courseGroupId: courseGroupId,
+              courseId: courseId,
+              homeworkId: seriesId,
+              occurrenceStart: occurrenceStart,
+            ),
+          ),
+          expect: () => [
+            isA<PlannerItemsLoading>(),
+            isA<HomeworkCreated>()
+                .having((s) => s.homework.id, 'homework id', 40)
+                .having((s) => s.homework.start, 'start', occurrenceStart)
+                .having((s) => s.isClone, 'isClone', isTrue),
           ],
         );
       });

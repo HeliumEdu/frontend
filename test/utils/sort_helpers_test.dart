@@ -480,6 +480,8 @@ CourseGroupModel _createCourseGroup({
     endDate: DateTime.parse('2025-12-31'),
     overallGrade: null,
     exceptions: const [],
+    gradeScale: const [],
+    exampleSchedule: false,
   );
 }
 

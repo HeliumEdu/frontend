@@ -142,7 +142,6 @@ jobs:
 
   build-ios:
     name: Build iOS
-    # The PR check that the app compiles; on a push the signed candidate build does that.
     if: ${{ github.event_name != 'push' && !(github.event_name == 'workflow_dispatch' && inputs.deploy_web == 'dev') }}
 
     runs-on: macos-latest
@@ -443,13 +442,8 @@ jobs:
           RELEASE_VERSION=$(grep '^version:' pubspec.yaml | cut -d' ' -f2)
           make publish RELEASE_VERSION="$RELEASE_VERSION" SENTRY_DIST="${{ github.run_number }}" SENTRY_DSN="$SENTRY_DSN"
 
-  # The release candidates: TestFlight and Play's Internal track, each keeping its store build number as an artifact of
-  # this run, which a release reads to submit that exact build. Each build tags itself for Sentry (release, dist) and
-  # uploads its debug symbols (`make build-ipa` / `build-aab`). A manual run can upload from any branch but main, whose
-  # code is already released; a release only submits builds from a develop push run.
   deploy-ios-ci:
     name: Deploy iOS (CI preview)
-    # Uploads only a build whose tests passed (integration tests may be skipped on purpose, e.g. a manual run).
     needs: [test, integration-test]
     if: >-
       ${{ !cancelled() && needs.test.result == 'success' &&
@@ -475,7 +469,6 @@ jobs:
 
   deploy-android-ci:
     name: Deploy Android (CI preview)
-    # Uploads only a build whose tests passed (integration tests may be skipped on purpose, e.g. a manual run).
     needs: [test, integration-test]
     if: >-
       ${{ !cancelled() && needs.test.result == 'success' &&

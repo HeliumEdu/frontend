@@ -5,6 +5,8 @@ class EventRequestModel {
   final String? start;
   final String? end;
   final int? priority;
+  final String? recurrenceRule;
+  final bool clearRecurrenceRule;
 
   EventRequestModel({
     this.title,
@@ -13,6 +15,8 @@ class EventRequestModel {
     this.start,
     this.end,
     this.priority,
+    this.recurrenceRule,
+    this.clearRecurrenceRule = false,
   });
 
   Map<String, dynamic> toJson() {
@@ -24,6 +28,12 @@ class EventRequestModel {
     if (start != null) json['start'] = start;
     if (end != null) json['end'] = end;
     if (priority != null) json['priority'] = priority;
+    if (clearRecurrenceRule) {
+      json['recurrence_rule'] = null;
+      json['exception_dates'] = null;
+    } else if (recurrenceRule != null) {
+      json['recurrence_rule'] = recurrenceRule;
+    }
 
     return json;
   }

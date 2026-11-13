@@ -165,6 +165,8 @@ class MockModels {
       shownOnCalendar: shownOnCalendar,
       exceptions: const [],
       overallGrade: overallGrade,
+      gradeScale: const [],
+      exampleSchedule: false,
     );
   }
 
@@ -340,6 +342,9 @@ class MockModels {
       id: id,
       title: title,
       overallGrade: overallGrade,
+      gpa: null,
+      inCumulativeGpa: false,
+      exampleSchedule: false,
       trend: null,
       homeworkSeries: homeworkSeries ?? [],
       courses: [],
@@ -546,6 +551,8 @@ class MockModels {
     String? url,
     String comments = '',
     Color color = const Color(0xFF4CAF50),
+    String? recurrenceRule,
+    List<DateTime> exceptionDates = const [],
   }) {
     return EventModel(
       id: id,
@@ -560,6 +567,8 @@ class MockModels {
       reminders: [],
       notes: [],
       color: color,
+      recurrenceRule: recurrenceRule,
+      exceptionDates: exceptionDates,
     );
   }
 
@@ -589,6 +598,8 @@ class MockModels {
     int categoryId = 1,
     int courseGroup = 1,
     List<int> resourceIds = const [],
+    String? recurrenceRule,
+    List<DateTime> exceptionDates = const [],
   }) {
     return HomeworkModel(
       id: id,
@@ -609,6 +620,8 @@ class MockModels {
       resources: [
         for (final id in resourceIds) IdOrEntity<ResourceModel>(id: id),
       ],
+      recurrenceRule: recurrenceRule,
+      exceptionDates: exceptionDates,
     );
   }
 

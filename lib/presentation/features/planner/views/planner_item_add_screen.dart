@@ -46,6 +46,7 @@ Future<void> showPlannerItemAdd(
   int? eventId,
   int? homeworkId,
   DateTime? initialDate,
+  DateTime? occurrenceStart,
   bool isFromMonthView = false,
   required bool isEdit,
   required bool isNew,
@@ -72,6 +73,7 @@ Future<void> showPlannerItemAdd(
     extra: PlannerItemDialogExtra(
       initialDate: initialDate,
       isFromMonthView: isFromMonthView,
+      occurrenceStart: occurrenceStart,
     ),
   );
 }
@@ -122,6 +124,8 @@ class PlannerItemAddScreen extends MultiStepContainer {
   final DateTime? initialDate;
   final bool isFromMonthView;
 
+  final DateTime? occurrenceStart;
+
   PlannerItemAddScreen({
     super.key,
     required super.shellPath,
@@ -132,6 +136,7 @@ class PlannerItemAddScreen extends MultiStepContainer {
     this.initialStepName = 'details',
     this.initialDate,
     this.isFromMonthView = false,
+    this.occurrenceStart,
   }) : super(
           isEdit: !isNew,
           initialStep: _resolveStepIndex(initialStepName),
@@ -256,6 +261,7 @@ class _PlannerItemAddScreenState
       extra: PlannerItemDialogExtra(
         initialDate: widget.initialDate,
         isFromMonthView: widget.isFromMonthView,
+        occurrenceStart: widget.occurrenceStart,
       ),
     );
   }
@@ -280,6 +286,7 @@ class _PlannerItemAddScreenState
       extra: PlannerItemDialogExtra(
         initialDate: widget.initialDate,
         isFromMonthView: widget.isFromMonthView,
+        occurrenceStart: widget.occurrenceStart,
       ),
     );
   }
@@ -307,11 +314,14 @@ class _PlannerItemAddScreenState
   }
 
   @override
-  String get screenTitle {
-    if (_currentIsEvent == null) return '';
-    final itemType = _currentIsEvent! ? 'Event' : 'Assignment';
-    return widget.isNew ? 'Add $itemType' : 'Edit $itemType';
-  }
+  String? get entityName => switch (_currentIsEvent) {
+        null => null,
+        true => 'Event',
+        false => 'Assignment',
+      };
+
+  @override
+  bool get hasSavedEntity => _currentEntityId != null;
 
   @override
   IconData? get icon => _currentIsEvent == null ? null : Icons.calendar_month;
@@ -634,6 +644,7 @@ class _PlannerItemAddScreenState
       extra: PlannerItemDialogExtra(
         initialDate: widget.initialDate,
         isFromMonthView: widget.isFromMonthView,
+        occurrenceStart: widget.occurrenceStart,
       ),
     );
   }
@@ -682,6 +693,7 @@ class _PlannerItemAddScreenState
         homeworkId: _currentIsEvent == false ? _currentEntityId : null,
         initialIsEvent: widget.isNew ? !widget.isHomework : null,
         initialDate: widget.initialDate,
+        occurrenceStart: _currentEntityId == widget.entityId ? widget.occurrenceStart : null,
         isFromMonthView: widget.isFromMonthView,
         isEdit: widget.isEdit || _currentEntityId != null,
         isNew: widget.isNew,

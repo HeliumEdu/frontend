@@ -13,6 +13,12 @@ double? toDouble(dynamic value) {
   return null;
 }
 
+/// A grade-derived value, or null for the API's `-1` "not graded" sentinel.
+double? toGradedDouble(dynamic value) {
+  final number = toDouble(value);
+  return number == null || number == -1 ? null : number;
+}
+
 int? toInt(dynamic value) {
   if (value == null) return null;
   if (value is num) return value.toInt();

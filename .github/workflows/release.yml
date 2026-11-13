@@ -40,51 +40,10 @@ on:
         required: false
         type: boolean
         default: false
-  workflow_call:
-    inputs:
-      trigger_deploy_after_release:
-        description: "Trigger deploy after release"
-        required: false
-        type: boolean
-        default: true
-      environment:
-        description: "Environment to deploy to"
-        required: false
-        type: string
-        default: prod
-      platforms:
-        description: "Platforms to deploy"
-        required: false
-        type: string
-        default: all
-      auto_submit_for_review:
-        description: "Auto-submit for review on both stores"
-        required: false
-        type: boolean
-        default: false
-      push_store_assets:
-        description: "Re-upload store-listing assets"
-        required: false
-        type: boolean
-        default: false
-      replace_pending_review:
-        description: "When submitting, replace a submission still waiting for review"
-        required: false
-        type: boolean
-        default: true
-      consolidate_history:
-        description: "Reset develop to main after release (force-push)"
-        required: false
-        type: boolean
-        default: false
-    outputs:
-      version:
-        description: "Released version"
-        value: ${{ jobs.prereq.outputs.version }}
 
 permissions:
   contents: write
-  actions: read
+  actions: write
 
 concurrency:
   group: helium-frontend-release
@@ -120,10 +79,9 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v4
 
-      - name: Tag the image with the release version and publish its files
+      - name: Tag the image with the release version
         run: make promote
 
-  # Before Deploy, which reports its deploy of the release to Sentry.
   sentry-release:
     name: Create Sentry Release
     needs: [prereq, promote-web-container]
@@ -150,21 +108,13 @@ jobs:
     timeout-minutes: ${{ (inputs.platforms == 'web' || inputs.platforms == 'android') && 20 || inputs.platforms == 'ios' && 40 || 100 }}
 
     steps:
-      - name: Generate GitHub App token
-        id: app-token
-        uses: actions/create-github-app-token@v3
-        with:
-          client-id: ${{ secrets.HELIUM_BOT_APP_ID }}
-          private-key: ${{ secrets.HELIUM_BOT_PRIVATE_KEY }}
-          skip-token-revoke: true
-
       - name: Run the deploy workflow and wait for it
         id: wait-for-deploy
         uses: alexdlaird/shipshape/run-workflow@v1
         with:
           workflow: deploy.yml
           ref: develop
-          token: ${{ steps.app-token.outputs.token }}
+          token: ${{ github.token }}
           timeout-minutes: ${{ (inputs.platforms == 'web' || inputs.platforms == 'android') && 15 || inputs.platforms == 'ios' && 30 || 90 }}
           inputs: |
             version_type=specific
@@ -174,6 +124,7 @@ jobs:
             push_store_assets=${{ inputs.push_store_assets }}
             replace_pending_review=${{ inputs.replace_pending_review }}
             artifact_run_id=${{ needs.prereq.outputs.build_run_id }}
+            ref=${{ needs.prereq.outputs.squash_commit_sha }}
 
       - name: Deployment trigger summary
         if: always()
@@ -190,8 +141,6 @@ jobs:
             echo "- **Run**: $RUN_URL" >> $GITHUB_STEP_SUMMARY
           fi
 
-  # Tags the release when it shipped (deployed, or released without a deploy), merges main back into develop either
-  # way, then bumps develop to the next patch. The tag's Build-Run is how a later Deploy of the version finds its builds.
   finish:
     needs: [prereq, sentry-release, deploy]
     if: always() && needs.prereq.result == 'success'

@@ -8,6 +8,8 @@ import 'package:heliumapp/utils/conversion_helpers.dart';
 
 class GradeCourseModel extends BaseTitledModel {
   final double overallGrade;
+  final double credits;
+  final double? gradePoint;
   final Color color;
   final double? trend;
   final int numHomework;
@@ -22,6 +24,8 @@ class GradeCourseModel extends BaseTitledModel {
     required super.id,
     required super.title,
     required this.overallGrade,
+    required this.credits,
+    required this.gradePoint,
     required this.color,
     this.trend,
     required this.numHomework,
@@ -56,6 +60,8 @@ class GradeCourseModel extends BaseTitledModel {
       id: json['id'],
       title: json['title'],
       overallGrade: toDouble(json['overall_grade'])!,
+      credits: toDouble(json['credits'])!,
+      gradePoint: toGradedDouble(json['grade_point']),
       color: HeliumColors.hexToColor(json['color']),
       trend: (json['trend'] as num?)?.toDouble(),
       numHomework: json['num_homework'],

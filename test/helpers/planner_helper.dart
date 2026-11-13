@@ -29,6 +29,9 @@ Map<String, dynamic> givenCourseGroupJson({
   bool shownOnCalendar = true,
   double? overallGrade,
   String exceptions = '',
+  List<Map<String, dynamic>>? gradeScale,
+  int? gradeScaleTemplate = 1,
+  bool exampleSchedule = false,
 }) {
   return {
     'id': id,
@@ -38,7 +41,22 @@ Map<String, dynamic> givenCourseGroupJson({
     'shown_on_calendar': shownOnCalendar,
     'overall_grade': overallGrade,
     'exceptions': exceptions,
+    'grade_scale': gradeScale ?? givenGradeScaleJson(),
+    'grade_scale_template': gradeScaleTemplate,
+    'gpa': -1,
+    'example_schedule': exampleSchedule,
   };
+}
+
+/// Creates JSON data representing a 4.0 grade scale.
+List<Map<String, dynamic>> givenGradeScaleJson() {
+  return [
+    {'min_grade': 0.0, 'grade_point': 0.0, 'label': 'F'},
+    {'min_grade': 60.0, 'grade_point': 1.0, 'label': 'D'},
+    {'min_grade': 70.0, 'grade_point': 2.0, 'label': 'C'},
+    {'min_grade': 80.0, 'grade_point': 3.0, 'label': 'B'},
+    {'min_grade': 90.0, 'grade_point': 4.0, 'label': 'A'},
+  ];
 }
 
 /// Verifies that a [CourseGroupModel] matches the expected JSON data.
@@ -371,6 +389,8 @@ Map<String, dynamic> givenEventJson({
   String? color,
   List<dynamic>? attachments,
   List<dynamic>? reminders,
+  String? recurrenceRule,
+  List<String>? exceptionDates,
 }) {
   return {
     'id': id,
@@ -385,6 +405,8 @@ Map<String, dynamic> givenEventJson({
     'color': color,
     'attachments': attachments ?? [],
     'reminders': reminders ?? [],
+    'recurrence_rule': recurrenceRule,
+    'exception_dates': exceptionDates,
   };
 }
 
@@ -429,6 +451,7 @@ Map<String, dynamic> givenHomeworkJson({
   String? currentGrade,
   List<dynamic>? attachments,
   List<dynamic>? reminders,
+  String? recurrenceRule,
 }) {
   return {
     'id': id,
@@ -439,6 +462,7 @@ Map<String, dynamic> givenHomeworkJson({
     'end': end,
     'priority': priority,
     'url': url,
+    'recurrence_rule': recurrenceRule,
     'completed': completed,
     'course': course,
     'course_group': 1,
@@ -558,11 +582,18 @@ Map<String, dynamic> givenGradeCourseGroupJson({
   int numHomeworkCompleted = 15,
   int numHomeworkGraded = 12,
   double? trend,
+  double gpa = 3.0,
+  bool inCumulativeGpa = true,
+  bool exampleSchedule = false,
 }) {
   return {
     'id': id,
     'title': title,
     'overall_grade': overallGrade,
+    'gpa': gpa,
+    'grade_scale': givenGradeScaleJson(),
+    'in_cumulative_gpa': inCumulativeGpa,
+    'example_schedule': exampleSchedule,
     'trend': trend,
     'homework_series': homeworkSeries ?? [],
     'courses': courses ?? [],

@@ -268,6 +268,151 @@ void main() {
       });
     });
 
+    group('occurrences of a recurring event', () {
+      final occurrenceStart = DateTime.utc(2026, 11, 26, 11);
+
+      test('updateEvent asks the API to change only the occurrence when told to', () async {
+        // GIVEN
+        when(
+          () => mockDio.patch(
+            any(),
+            data: any(named: 'data'),
+            queryParameters: any(named: 'queryParameters'),
+            options: any(named: 'options'),
+          ),
+        ).thenAnswer((_) async => givenSuccessResponse(givenEventJson(id: 33, title: 'Moved')));
+
+        // WHEN
+        final result = await dataSource.updateEvent(
+          eventId: 28,
+          request: EventRequestModel(start: '2026-11-27T11:00:00Z', end: '2026-11-27T12:00:00Z'),
+          occurrenceStart: occurrenceStart,
+          onlyThisOccurrence: true,
+        );
+
+        // THEN
+        final captured = verify(
+          () => mockDio.patch(
+            captureAny(),
+            data: captureAny(named: 'data'),
+            queryParameters: captureAny(named: 'queryParameters'),
+            options: any(named: 'options'),
+          ),
+        ).captured;
+        expect(captured[0], '/planner/events/28/');
+        expect(captured[1], {'start': '2026-11-27T11:00:00Z', 'end': '2026-11-27T12:00:00Z'});
+        expect(captured[2], {'scope': 'this', 'occurrence_start': '2026-11-26T11:00:00.000Z'});
+        expect(result.id, 33, reason: 'the response is the new standalone event');
+      });
+
+      test('updateEvent moves the whole series from an occurrence without a scope', () async {
+        // GIVEN
+        when(
+          () => mockDio.patch(
+            any(),
+            data: any(named: 'data'),
+            queryParameters: any(named: 'queryParameters'),
+            options: any(named: 'options'),
+          ),
+        ).thenAnswer((_) async => givenSuccessResponse(givenEventJson(id: 28)));
+
+        // WHEN
+        await dataSource.updateEvent(
+          eventId: 28,
+          request: EventRequestModel(start: '2026-11-27T11:00:00Z'),
+          occurrenceStart: occurrenceStart,
+        );
+
+        // THEN
+        final query = verify(
+          () => mockDio.patch(
+            any(),
+            data: any(named: 'data'),
+            queryParameters: captureAny(named: 'queryParameters'),
+            options: any(named: 'options'),
+          ),
+        ).captured.single;
+        expect(query, {'occurrence_start': '2026-11-26T11:00:00.000Z'});
+      });
+
+      test('updateEvent sends no query for a plain update', () async {
+        // GIVEN
+        when(
+          () => mockDio.patch(
+            any(),
+            data: any(named: 'data'),
+            queryParameters: any(named: 'queryParameters'),
+            options: any(named: 'options'),
+          ),
+        ).thenAnswer((_) async => givenSuccessResponse(givenEventJson(id: 28)));
+
+        // WHEN
+        await dataSource.updateEvent(eventId: 28, request: EventRequestModel(title: 'Renamed'));
+
+        // THEN
+        final query = verify(
+          () => mockDio.patch(
+            any(),
+            data: any(named: 'data'),
+            queryParameters: captureAny(named: 'queryParameters'),
+            options: any(named: 'options'),
+          ),
+        ).captured.single;
+        expect(query, isNull);
+      });
+
+      test('deleteEvent with an occurrence deletes only that occurrence', () async {
+        // GIVEN
+        when(
+          () => mockDio.delete(any(), queryParameters: any(named: 'queryParameters')),
+        ).thenAnswer((_) async => givenSuccessResponse(null, statusCode: 204));
+
+        // WHEN
+        await dataSource.deleteEvent(eventId: 28, occurrenceStart: occurrenceStart);
+
+        // THEN
+        final captured = verify(
+          () => mockDio.delete(captureAny(), queryParameters: captureAny(named: 'queryParameters')),
+        ).captured;
+        expect(captured[0], '/planner/events/28/');
+        expect(captured[1], {'scope': 'this', 'occurrence_start': '2026-11-26T11:00:00.000Z'});
+      });
+
+      test('deleteEvent without an occurrence deletes the whole event', () async {
+        // GIVEN
+        when(
+          () => mockDio.delete(any(), queryParameters: any(named: 'queryParameters')),
+        ).thenAnswer((_) async => givenSuccessResponse(null, statusCode: 204));
+
+        // WHEN
+        await dataSource.deleteEvent(eventId: 28);
+
+        // THEN
+        final query = verify(
+          () => mockDio.delete(any(), queryParameters: captureAny(named: 'queryParameters')),
+        ).captured.single;
+        expect(query, isNull);
+      });
+
+      test('cloneEvent from an occurrence sends its occurrence_start', () async {
+        // GIVEN
+        when(
+          () => mockDio.post(any(), queryParameters: any(named: 'queryParameters')),
+        ).thenAnswer((_) async => givenSuccessResponse(givenEventJson(id: 40), statusCode: 201));
+
+        // WHEN
+        final clone = await dataSource.cloneEvent(eventId: 28, occurrenceStart: occurrenceStart);
+
+        // THEN
+        final captured = verify(
+          () => mockDio.post(captureAny(), queryParameters: captureAny(named: 'queryParameters')),
+        ).captured;
+        expect(captured[0], '/planner/events/28/clone/');
+        expect(captured[1], {'occurrence_start': '2026-11-26T11:00:00.000Z'});
+        expect(clone.id, 40);
+      });
+    });
+
     group('error handling', () {
       test('throws NetworkException on connection timeout', () async {
         // GIVEN

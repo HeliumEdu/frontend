@@ -799,6 +799,7 @@ Page<dynamic> _plannerItemDialogPage(
       initialFullPath: state.uri.toString(),
       initialDate: dialogExtra?.initialDate,
       isFromMonthView: dialogExtra?.isFromMonthView ?? false,
+      occurrenceStart: dialogExtra?.occurrenceStart,
     ),
     width: useCompact ? double.infinity : AppConstants.centeredDialogWidth,
     insetPadding: useCompact ? EdgeInsets.zero : const EdgeInsets.all(16),
@@ -815,9 +816,12 @@ class PlannerItemDialogExtra {
   final DateTime? initialDate;
   final bool isFromMonthView;
 
+  final DateTime? occurrenceStart;
+
   const PlannerItemDialogExtra({
     this.initialDate,
     this.isFromMonthView = false,
+    this.occurrenceStart,
   });
 }
 

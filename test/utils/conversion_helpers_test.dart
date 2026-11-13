@@ -19,6 +19,21 @@ class TestModel extends BaseTitledModel {
 
 void main() {
   group('conversion helpers', () {
+    group('toGradedDouble', () {
+      test('treats the ungraded sentinel as null', () {
+        // WHEN/THEN
+        expect(toGradedDouble(-1), isNull);
+        expect(toGradedDouble('-1.0000'), isNull);
+        expect(toGradedDouble(null), isNull);
+      });
+
+      test('converts a graded value', () {
+        // WHEN/THEN
+        expect(toGradedDouble('3.2500'), 3.25);
+        expect(toGradedDouble(0), 0.0);
+      });
+    });
+
     group('toDouble', () {
       test('converts numeric types to double', () {
         expect(toDouble(42), 42.0);

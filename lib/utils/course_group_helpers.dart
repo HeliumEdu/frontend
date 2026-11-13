@@ -51,4 +51,18 @@ class CourseGroupHelpers {
 
     return nearestPast?.id;
   }
+
+  /// The group a new group takes its grade scale from: the latest outside the
+  /// example schedule, by start date then id, matching the server's default.
+  static CourseGroupModel? latestGroup(List<CourseGroupModel> groups) {
+    final ownGroups = groups.where((group) => !group.exampleSchedule);
+    if (ownGroups.isEmpty) return null;
+
+    return ownGroups.reduce((latest, group) {
+      final byStart = group.startDate.compareTo(latest.startDate);
+      return byStart > 0 || (byStart == 0 && group.id > latest.id)
+          ? group
+          : latest;
+    });
+  }
 }

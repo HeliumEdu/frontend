@@ -844,8 +844,6 @@ class TodosDataSource extends BaseDataGridSource {
   Function(HomeworkModel) _onTap;
   Function(HomeworkModel, bool) _onToggleCompleted;
 
-  Map<int, HomeworkModel> _homeworksById = {};
-
   TodosDataSource({
     required List<HomeworkModel> homeworks,
     required BuildContext context,
@@ -869,11 +867,7 @@ class TodosDataSource extends BaseDataGridSource {
   @override
   DataGridRowAdapter? buildRow(DataGridRow row) {
     try {
-      final homeworkId = row
-          .getCells()
-          .firstWhere((c) => c.columnName == '_homeworkId')
-          .value as int;
-      final homework = _homeworksById[homeworkId];
+      final homework = getHomeworkFromRow(row);
       if (homework == null) return null;
 
       final courseColor = row
@@ -942,20 +936,19 @@ class TodosDataSource extends BaseDataGridSource {
   }
 
   HomeworkModel? getHomeworkFromRow(DataGridRow row) {
-    final homeworkId = row
+    final index = row
         .getCells()
-        .firstWhere((c) => c.columnName == '_homeworkId')
+        .firstWhere((c) => c.columnName == '_homeworkIndex')
         .value as int;
-    return _homeworksById[homeworkId];
+    return _homeworks.elementAtOrNull(index);
   }
 
   void _rebuildRows() {
-    _homeworksById = {for (var hw in _homeworks) hw.id: hw};
     final courses = _dataSource.courses ?? [];
     final categoriesMap = _dataSource.categoriesMap ?? {};
 
     final rows = <DataGridRow>[];
-    for (final homework in _homeworks) {
+    for (final (index, homework) in _homeworks.indexed) {
       try {
         final course = courses.firstWhere(
           (c) => c.id == homework.course.id,
@@ -993,7 +986,7 @@ class TodosDataSource extends BaseDataGridSource {
                 (homework.notes.isNotEmpty ? 1 : 0),
           ),
           DataGridCell<int>(columnName: 'actions', value: homework.id),
-          DataGridCell<int>(columnName: '_homeworkId', value: homework.id),
+          DataGridCell<int>(columnName: '_homeworkIndex', value: index),
           DataGridCell<int>(columnName: '_courseId', value: course.id),
           DataGridCell<Color>(columnName: '_courseColor', value: course.color),
           DataGridCell<int?>(columnName: '_categoryId', value: category?.id),

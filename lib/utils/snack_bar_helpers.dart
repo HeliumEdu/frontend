@@ -56,6 +56,8 @@ class SnackBarHelper {
   }
 
   /// [seconds] is a floor, not a replacement — it can only lengthen the wait.
+  /// [copyable] is false for a snack bar confirming a copy, so tapping it
+  /// can't replace what was just copied.
   static void show(
     BuildContext context,
     String message, {
@@ -64,6 +66,7 @@ class SnackBarHelper {
     bool clearSnackBar = true,
     SnackBarAction? action,
     bool useRootMessenger = false,
+    bool copyable = true,
   }) {
     final messenger = _resolveMessenger(
       context,
@@ -82,10 +85,17 @@ class SnackBarHelper {
 
     final controller = messenger.showSnackBar(
       SnackBar(
-        content: _CopyableSnackBarContent(
-          message: message,
-          foregroundColor: type.foregroundColor(context),
-        ),
+        content: copyable
+            ? _CopyableSnackBarContent(
+                message: message,
+                foregroundColor: type.foregroundColor(context),
+              )
+            : Text(
+                message,
+                style: AppStyles.standardBodyText(
+                  context,
+                ).copyWith(color: type.foregroundColor(context)),
+              ),
         backgroundColor: type.backgroundColor(context),
         duration: Duration(seconds: effectiveSeconds),
         behavior: SnackBarBehavior.floating,

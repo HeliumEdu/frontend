@@ -26,6 +26,7 @@ abstract class HomeworkRepository {
     required int groupId,
     required int courseId,
     required int homeworkId,
+    DateTime? occurrenceStart,
   });
 
   Future<HomeworkModel> updateHomework({
@@ -34,11 +35,14 @@ abstract class HomeworkRepository {
     required int homeworkId,
     required HomeworkRequestModel request,
     String? version,
+    DateTime? occurrenceStart,
+    bool onlyThisOccurrence = false,
   });
 
   Future<void> deleteHomework({
     required int groupId,
     required int courseId,
     required int homeworkId,
+    DateTime? occurrenceStart,
   });
 }

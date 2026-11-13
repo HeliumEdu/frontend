@@ -335,7 +335,7 @@ class _GradeCalculatorDialogState extends State<GradeCalculatorDialog> {
         Align(
           alignment: Alignment.centerLeft,
           child: SpinnerField(
-            label: 'Desired Class Grade (%)',
+            label: 'Desired class grade (%)',
             controller: _desiredGradeController,
             minValue: 0,
             maxValue: 100,

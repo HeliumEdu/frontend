@@ -12,6 +12,14 @@ abstract class BaseDataSource {
   Options? ifMatchOptions(String? version) =>
       version == null ? null : Options(headers: {'If-Match': version});
 
+  Map<String, String>? occurrenceQuery(DateTime? occurrenceStart, {required bool onlyThisOccurrence}) {
+    if (occurrenceStart == null) return null;
+    return {
+      if (onlyThisOccurrence) 'scope': 'this',
+      'occurrence_start': occurrenceStart.toUtc().toIso8601String(),
+    };
+  }
+
   /// The endpoint returned a 2xx this call doesn't expect.
   ///
   /// Dio's `validateStatus` turns every non-2xx into a `DioException` before we

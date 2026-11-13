@@ -120,6 +120,11 @@ class _NotificationsScreenState
   bool get isContentBoxed => true;
 
   @override
+  EdgeInsets get scaffoldInsets => const EdgeInsets.symmetric(
+    horizontal: AppConstants.pageEdgeInset,
+  );
+
+  @override
   List<Widget> get additionalRightHeaderButtons {
     final isEnabled = _notifications.isNotEmpty && !_isDismissingAll;
 
@@ -800,6 +805,7 @@ class _NotificationsScreenState
   void _dismissAllReminders() {
     if (_isDismissingAll) return;
     final slides =
+        PlatformBehavior.usesTouchInteractions &&
         MotionService().effectiveDuration(_swipeDuration) != Duration.zero;
     setState(() {
       _isDismissingAll = true;

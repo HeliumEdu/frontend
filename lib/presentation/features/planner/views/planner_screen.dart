@@ -67,6 +67,7 @@ import 'package:heliumapp/presentation/features/planner/bloc/planneritem_bloc.da
 import 'package:heliumapp/presentation/features/planner/bloc/planneritem_event.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/planneritem_state.dart';
 import 'package:heliumapp/presentation/features/planner/dialogs/confirm_delete_dialog.dart';
+import 'package:heliumapp/presentation/features/planner/dialogs/recurrence_scope_dialog.dart';
 import 'package:heliumapp/presentation/features/planner/dialogs/course_schedule_event_dialog.dart';
 import 'package:heliumapp/presentation/features/planner/dialogs/external_calendar_event_dialog.dart';
 import 'package:heliumapp/presentation/features/planner/views/planner_item_add_screen.dart';
@@ -274,6 +275,8 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
   // Completion updates dispatched to the BLoC and awaiting a response, per
   // homework ID. A response is stale while the count is above zero.
   final Map<int, int> _inFlightCompletionCounts = {};
+
+  final Set<(int, int)> _completingOccurrences = {};
 
   Offset? _timelineTapPosition;
 
@@ -554,11 +557,15 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
           if (state is EventCreated) {
             _plannerItemDataSource!.addPlannerItem(state.event);
           } else if (state is EventUpdated) {
-            _plannerItemDataSource!.updatePlannerItem(state.event);
+            if (state.seriesId case final seriesId?) {
+              _showDetachedOccurrence(state.event, seriesId: seriesId, series: state.series);
+            } else {
+              _plannerItemDataSource!.updatePlannerItem(state.event);
+            }
             _executeDeferredOpen(state.event);
           } else if (state is EventDeleted) {
             showSnackBar(context, 'Event deleted.');
-            _plannerItemDataSource!.removePlannerItem(PlannerItemType.event, state.id);
+            _updateOrRemove(PlannerItemType.event, state.id, series: state.series);
           } else if (state is AllEventsDeleted) {
             _log.info('All Events deleted, refreshing calendar sources');
 
@@ -593,6 +600,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
               _plannerItemDataSource!.clearCompletedOverride(id);
             }
             _inFlightCompletionCounts.clear();
+            _completingOccurrences.clear();
             _deferredOpenItem = null;
             _deferredOpenAction = null;
           } else if (state is HomeworkUpdated) {
@@ -602,12 +610,19 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
                 _plannerItemDataSource!.allHomeworks.firstWhereOrNull(
                   (h) => h.id == state.homework.id,
                 );
-            _plannerItemDataSource!.updatePlannerItem(
-              state.homework,
-              hasPendingCompletionWrite: _hasPendingCompletionWrite(
-                state.homework.id,
-              ),
-            );
+            if (state.seriesId case final seriesId?) {
+              if (previousHomework != null) {
+                _completingOccurrences.remove(_occurrenceKey(previousHomework));
+              }
+              _showDetachedOccurrence(state.homework, seriesId: seriesId, series: state.series);
+            } else {
+              _plannerItemDataSource!.updatePlannerItem(
+                state.homework,
+                hasPendingCompletionWrite: _hasPendingCompletionWrite(
+                  state.homework.id,
+                ),
+              );
+            }
             _executeDeferredOpen(state.homework);
             if (state.homework.completed &&
                 previousHomework?.completed == false) {
@@ -655,7 +670,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
             }
           } else if (state is HomeworkDeleted) {
             showSnackBar(context, 'Assignment deleted.');
-            _plannerItemDataSource!.removePlannerItem(PlannerItemType.homework, state.id);
+            _updateOrRemove(PlannerItemType.homework, state.id, series: state.series);
           }
         },
       ),
@@ -1208,6 +1223,9 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
     }
 
     final int? eventId = plannerItem is EventModel ? plannerItem.id : null;
+    final occurrenceStart = _isRecurringItem(plannerItem)
+        ? _occurrenceOf(plannerItem, occurrenceDate ?? plannerItem.start).start
+        : null;
     final int? homeworkId = plannerItem is HomeworkModel
         ? plannerItem.id
         : null;
@@ -1227,6 +1245,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
           context,
           eventId: eventId,
           homeworkId: homeworkId,
+          occurrenceStart: occurrenceStart,
           isEdit: true,
           isNew: false,
         );
@@ -1238,6 +1257,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
       context,
       eventId: eventId,
       homeworkId: homeworkId,
+      occurrenceStart: occurrenceStart,
       isEdit: true,
       isNew: false,
     );
@@ -2167,6 +2187,10 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
       return;
     }
 
+    if (_isRecurringItem(plannerItem)) {
+      _plannerItemDataSource!.resetAppointments();
+    }
+
     if (dropDetails.droppingTime == null) {
       return;
     }
@@ -2198,43 +2222,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
           ? HeliumDateTime.allDayEndAfterMove(start, startDateTime, endDateTime)
           : start.add(duration);
 
-      _plannerItemDataSource!.setTimeOverride(
-        plannerItem,
-        start.toIso8601String(),
-        end.toIso8601String(),
-      );
-
-      if (plannerItem is HomeworkModel) {
-        _warnIfHomeworkOutsideDateRange(plannerItem, start, end);
-
-        final request = HomeworkRequestModel(
-          start: start.toIso8601String(),
-          end: end.toIso8601String(),
-        );
-
-        context.read<PlannerItemBloc>().add(
-          UpdateHomeworkEvent(
-            origin: EventOrigin.screen,
-            courseGroupId: plannerItem.courseGroup,
-            courseId: plannerItem.course.id,
-            homeworkId: plannerItem.id,
-            request: request,
-          ),
-        );
-      } else {
-        final request = EventRequestModel(
-          start: start.toIso8601String(),
-          end: end.toIso8601String(),
-        );
-
-        context.read<PlannerItemBloc>().add(
-          UpdateEventEvent(
-            origin: EventOrigin.screen,
-            id: plannerItem.id,
-            request: request,
-          ),
-        );
-      }
+      unawaited(_applyMove(plannerItem, start, end, action: RecurrenceScopeAction.move));
     }
   }
 
@@ -2276,11 +2264,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
     final PlannerItemBaseModel plannerItem =
         resizeDetails.appointment as PlannerItemBaseModel;
 
-    // HE-184: drop the `&& !_isReadOnlyRecurringEvent(...)` guard when
-    // recurring Events become resizable.
-    if (plannerItem is HomeworkModel ||
-        (plannerItem is EventModel &&
-            !_isReadOnlyRecurringEvent(plannerItem))) {
+    if (plannerItem is HomeworkModel || plannerItem is EventModel) {
       DateTime start = tz.TZDateTime(
         userSettings.timeZone,
         resizeDetails.startTime!.year,
@@ -2306,48 +2290,11 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
         );
       }
 
-      // Warn if homework is being moved outside course date range
-      if (plannerItem is HomeworkModel) {
-        _warnIfHomeworkOutsideDateRange(plannerItem, start, end);
+      if (_isRecurringItem(plannerItem)) {
+        _plannerItemDataSource!.resetAppointments();
       }
 
-      _plannerItemDataSource!.setTimeOverride(
-        plannerItem,
-        start.toIso8601String(),
-        end.toIso8601String(),
-      );
-
-      if (plannerItem is HomeworkModel) {
-        final request = HomeworkRequestModel(
-          start: start.toIso8601String(),
-          end: end.toIso8601String(),
-          showEndTime: true,
-        );
-
-        context.read<PlannerItemBloc>().add(
-          UpdateHomeworkEvent(
-            origin: EventOrigin.screen,
-            courseGroupId: plannerItem.courseGroup,
-            courseId: plannerItem.course.id,
-            homeworkId: plannerItem.id,
-            request: request,
-          ),
-        );
-      } else {
-        final request = EventRequestModel(
-          start: start.toIso8601String(),
-          end: end.toIso8601String(),
-          showEndTime: true,
-        );
-
-        context.read<PlannerItemBloc>().add(
-          UpdateEventEvent(
-            origin: EventOrigin.screen,
-            id: plannerItem.id,
-            request: request,
-          ),
-        );
-      }
+      unawaited(_applyMove(plannerItem, start, end, showEndTime: true, action: RecurrenceScopeAction.edit));
     } else if (_isLockedCalendarInteractionItem(plannerItem)) {
       _plannerItemDataSource!.resetAppointments();
       _showLockedItemActions(
@@ -2358,10 +2305,167 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
     }
   }
 
+  void _showDetachedOccurrence(
+    PlannerItemBaseModel detached, {
+    required int seriesId,
+    required PlannerItemBaseModel? series,
+  }) {
+    _updateOrRemove(detached.plannerItemType, seriesId, series: series);
+    _plannerItemDataSource!.addPlannerItem(detached);
+  }
+
+  void _updateOrRemove(PlannerItemType type, int id, {required PlannerItemBaseModel? series}) {
+    if (series != null) {
+      _plannerItemDataSource!.updatePlannerItem(series);
+    } else {
+      _plannerItemDataSource!.removePlannerItem(type, id);
+    }
+  }
+
+  bool _isRecurringItem(PlannerItemBaseModel item) =>
+      (item is EventModel || item is HomeworkModel) && item.recurrenceRule != null;
+
+  Future<void> _applyMove(
+    PlannerItemBaseModel plannerItem,
+    DateTime start,
+    DateTime end, {
+    required RecurrenceScopeAction action,
+    bool? showEndTime,
+  }) async {
+    if (_isRecurringItem(plannerItem)) {
+      await _applyRecurringMove(plannerItem, start, end, action: action, showEndTime: showEndTime);
+      return;
+    }
+
+    _plannerItemDataSource!.setTimeOverride(
+      plannerItem,
+      start.toIso8601String(),
+      end.toIso8601String(),
+    );
+
+    if (plannerItem is HomeworkModel) {
+      _warnIfHomeworkOutsideDateRange(plannerItem, start, end);
+
+      context.read<PlannerItemBloc>().add(
+        UpdateHomeworkEvent(
+          origin: EventOrigin.screen,
+          courseGroupId: plannerItem.courseGroup,
+          courseId: plannerItem.course.id,
+          homeworkId: plannerItem.id,
+          request: HomeworkRequestModel(
+            start: start.toIso8601String(),
+            end: end.toIso8601String(),
+            showEndTime: showEndTime,
+          ),
+        ),
+      );
+    } else if (plannerItem is EventModel) {
+      context.read<PlannerItemBloc>().add(
+        UpdateEventEvent(
+          origin: EventOrigin.screen,
+          id: plannerItem.id,
+          request: EventRequestModel(
+            start: start.toIso8601String(),
+            end: end.toIso8601String(),
+            showEndTime: showEndTime,
+          ),
+        ),
+      );
+    }
+  }
+
+  Future<void> _applyRecurringMove(
+    PlannerItemBaseModel plannerItem,
+    DateTime start,
+    DateTime end, {
+    required RecurrenceScopeAction action,
+    bool? showEndTime,
+  }) async {
+    final pressed = _pointerDownItem;
+    final occurrence = pressed != null && pressed == plannerItem ? pressed : plannerItem;
+    final scope = await showRecurrenceScopeDialog(
+      context: context,
+      action: action,
+      isEvent: plannerItem is EventModel,
+      thisDetail: 'It keeps its reminders. Notes and attachments stay with the other occurrences.',
+    );
+    if (scope == null || !mounted) return;
+
+    final onlyThisOccurrence = scope == RecurrenceScope.thisOccurrence;
+    if (plannerItem is HomeworkModel) {
+      _warnIfHomeworkOutsideDateRange(plannerItem, start, end);
+
+      context.read<PlannerItemBloc>().add(
+        UpdateHomeworkEvent(
+          origin: EventOrigin.screen,
+          courseGroupId: plannerItem.courseGroup,
+          courseId: plannerItem.course.id,
+          homeworkId: plannerItem.id,
+          request: HomeworkRequestModel(
+            start: start.toIso8601String(),
+            end: end.toIso8601String(),
+            showEndTime: showEndTime,
+          ),
+          occurrenceStart: occurrence.start,
+          onlyThisOccurrence: onlyThisOccurrence,
+        ),
+      );
+    } else if (plannerItem is EventModel) {
+      context.read<PlannerItemBloc>().add(
+        UpdateEventEvent(
+          origin: EventOrigin.screen,
+          id: plannerItem.id,
+          request: EventRequestModel(
+            start: start.toIso8601String(),
+            end: end.toIso8601String(),
+            showEndTime: showEndTime,
+          ),
+          occurrenceStart: occurrence.start,
+          onlyThisOccurrence: onlyThisOccurrence,
+        ),
+      );
+    }
+  }
+
+  Future<bool> _deleteSeriesItem(PlannerItemBaseModel plannerItem) async {
+    final scope = await showRecurrenceScopeDialog(
+      context: context,
+      action: RecurrenceScopeAction.delete,
+      isEvent: plannerItem is EventModel,
+      allDetail: 'Its attachments and note will also be deleted.',
+    );
+    if (scope == null || !mounted) return false;
+
+    final occurrenceStart = scope == RecurrenceScope.all ? null : plannerItem.start;
+    if (plannerItem is HomeworkModel) {
+      context.read<PlannerItemBloc>().add(
+        DeleteHomeworkEvent(
+          origin: EventOrigin.screen,
+          courseGroupId: plannerItem.courseGroup,
+          courseId: plannerItem.course.id,
+          homeworkId: plannerItem.id,
+          occurrenceStart: occurrenceStart,
+        ),
+      );
+    } else if (plannerItem is EventModel) {
+      context.read<PlannerItemBloc>().add(
+        DeleteEventEvent(
+          origin: EventOrigin.screen,
+          id: plannerItem.id,
+          occurrenceStart: occurrenceStart,
+        ),
+      );
+    }
+    return true;
+  }
+
   Future<bool> _deletePlannerItem(
     BuildContext context,
     PlannerItemBaseModel plannerItem,
   ) async {
+    if (_isRecurringItem(plannerItem)) {
+      return _deleteSeriesItem(plannerItem);
+    }
 
     final Function(PlannerItemBaseModel) onDelete;
     if (plannerItem is HomeworkModel) {
@@ -2567,10 +2671,10 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
 
     return KeyedSubtree(
       key: ValueKey(
-        'planner_item_${plannerItem.plannerItemType.name}_${plannerItem.id}',
+        'planner_item_${plannerItem.plannerItemType.name}_${plannerItem.id}${_isRecurringItem(plannerItem) ? '_${HeliumDateTime.formatDateForApi(details.date)}' : ''}',
       ),
       child: _buildPlannerItemTooltip(
-        plannerItem: plannerItem,
+        plannerItem: _isRecurringPlannerItem(plannerItem) ? _occurrenceOf(plannerItem, details.date) : plannerItem,
         isInAgendaStyle: isInAgenda,
         child: calendarItemWidget,
       ),
@@ -2595,9 +2699,6 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
       );
     } else if (plannerItem is ExternalCalendarEventModel) {
       _showExternalCalendarEventDialog(plannerItem, occurrenceDate);
-      // HE-184: drop this branch when recurring Events become editable.
-    } else if (_isReadOnlyRecurringEvent(plannerItem)) {
-      _showRecurringEventReadOnlySnackBar();
     }
   }
 
@@ -2611,16 +2712,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
   }
 
   bool _isLockedCalendarInteractionItem(PlannerItemBaseModel item) {
-    return item is CourseScheduleEventModel ||
-        item is ExternalCalendarEventModel ||
-        // HE-184: drop once recurring Events become editable in the UI.
-        _isReadOnlyRecurringEvent(item);
-  }
-
-  // HE-184: Recurring Events are rendered read-only until the full add/edit UI
-  // lands. Remove this helper and all its callsites once HE-184 ships.
-  bool _isReadOnlyRecurringEvent(PlannerItemBaseModel item) {
-    return item is EventModel && (item.recurrenceRule?.isNotEmpty ?? false);
+    return item is CourseScheduleEventModel || item is ExternalCalendarEventModel;
   }
 
   /// Suppresses tooltips for [_tooltipSuppressDelay] after any intentional
@@ -2789,6 +2881,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
       plannerItem,
       pulledThroughAttachmentCount: _pulledThroughAttachmentCount(plannerItem),
       resourceCount: _visibleResources(plannerItem).length,
+      includeRecurrence: false,
     )) {
       rows.add(
         _PlannerTooltipRow.widget(
@@ -2926,6 +3019,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
         context,
       ).copyWith(color: context.colorScheme.onSurface),
       maxEntries: null,
+      showRecurrence: false,
     );
   }
 
@@ -2962,11 +3056,13 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
     required Color backgroundColor,
     bool isInAgenda = false,
     bool checkboxHandlesTaps = true,
+    DateTime? occurrenceDate,
   }) {
     if (PlannerHelper.shouldShowCheckbox(plannerItem, appointmentWidth)) {
       return _buildCheckboxWidget(
         homework: plannerItem as HomeworkModel,
         completedOverride: completedOverride,
+        occurrenceDate: occurrenceDate,
         backgroundColor: backgroundColor,
         handlesTaps: checkboxHandlesTaps,
       );
@@ -3352,6 +3448,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
       completedOverride: completedOverride,
       backgroundColor: color,
       isInAgenda: true,
+      occurrenceDate: occurrenceDate,
     );
 
     final centerWidget = _buildCalendarItemCenterForAgenda(
@@ -3395,7 +3492,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
           final currentValue = _plannerItemDataSource!.isHomeworkCompleted(
             plannerItem,
           );
-          _onToggleCompleted(plannerItem, !currentValue);
+          _onToggleCompleted(plannerItem, !currentValue, occurrenceDate: occurrenceDate);
         },
       );
     } else if (PlannerHelper.shouldOpenOnItemTap(context)) {
@@ -3482,6 +3579,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
       completedOverride: completedOverride,
       backgroundColor: color,
       checkboxHandlesTaps: !usesCheckboxZone,
+      occurrenceDate: occurrenceDate,
     );
 
     final centerWidget = _buildCalendarItemCenterForTimeline(
@@ -3557,7 +3655,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
       final currentValue = _plannerItemDataSource!.isHomeworkCompleted(
         homework,
       );
-      _onToggleCompleted(homework, !currentValue);
+      _onToggleCompleted(homework, !currentValue, occurrenceDate: occurrenceDate);
       return;
     }
 
@@ -3574,17 +3672,6 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
       );
     }
     return null;
-  }
-
-  // HE-184: Stop-gap snackbar shown when a user taps a recurring Event. Remove
-  // this method (and its callsites) when the full add/edit UI for recurring
-  // Events lands.
-  void _showRecurringEventReadOnlySnackBar() {
-    showSnackBar(
-      context,
-      'Editing recurring Events in Helium is not yet supported.',
-      type: SnackType.info,
-    );
   }
 
   void _showCourseScheduleEventDialog(
@@ -3852,7 +3939,14 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
     });
   }
 
-  void _onToggleCompleted(HomeworkModel homework, bool value) {
+  void _onToggleCompleted(HomeworkModel homework, bool value, {DateTime? occurrenceDate}) {
+    if (homework.recurrenceRule != null) {
+      _completeOccurrence(
+        occurrenceDate == null ? homework : _occurrenceOf(homework, occurrenceDate) as HomeworkModel,
+      );
+      return;
+    }
+
     Feedback.forTap(context);
 
     _log.info('Homework ${homework.id} completion toggled: $value');
@@ -3885,6 +3979,29 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
       );
     });
   }
+
+  void _completeOccurrence(HomeworkModel occurrence) {
+    if (!_completingOccurrences.add(_occurrenceKey(occurrence))) return;
+    Feedback.forTap(context);
+
+    _log.info('Homework ${occurrence.id} occurrence completed');
+
+    context.read<PlannerItemBloc>().add(
+      UpdateHomeworkEvent(
+        origin: EventOrigin.screen,
+        courseGroupId: occurrence.courseGroup,
+        courseId: occurrence.course.id,
+        homeworkId: occurrence.id,
+        request: HomeworkRequestModel(completed: true),
+        previousHomework: occurrence,
+        occurrenceStart: occurrence.start,
+        onlyThisOccurrence: true,
+      ),
+    );
+  }
+
+  (int, int) _occurrenceKey(HomeworkModel occurrence) =>
+      (occurrence.id, occurrence.start.millisecondsSinceEpoch);
 
   bool _isAwaitingConflictResolution(HomeworkUpdated state) =>
       state.linkedNoteSave?.isConflict ?? false;
@@ -4639,11 +4756,8 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
   }
 
   bool _isRecurringPlannerItem(PlannerItemBaseModel plannerItem) {
-    return (plannerItem is CourseScheduleEventModel &&
-            (plannerItem.recurrenceRule?.isNotEmpty ?? false)) ||
-        // HE-184: keep this branch once edit UI lands so the recurring indicator
-        // still appears on RRULE Events; only the read-only gating goes away.
-        _isReadOnlyRecurringEvent(plannerItem);
+    return (plannerItem is CourseScheduleEventModel || plannerItem is EventModel || plannerItem is HomeworkModel) &&
+        plannerItem.recurrenceRule != null;
   }
 
   Widget _buildRecurringIndicatorIcon({required Color backgroundColor}) {
@@ -4709,6 +4823,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
     bool? completedOverride,
     required Color backgroundColor,
     bool handlesTaps = true,
+    DateTime? occurrenceDate,
   }) {
     final foregroundColor = backgroundColor.contrasting;
     final primary = context.colorScheme.primary;
@@ -4720,7 +4835,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
         container: true,
         checked: isCompleted,
         label: 'Complete ${homework.title}',
-        onTap: () => _toggleHomeworkCompleted(homework, completedOverride),
+        onTap: () => _toggleHomeworkCompleted(homework, completedOverride, occurrenceDate),
         child: SizedBox(
           width: PlannerHelper.checkboxWidth,
           height: PlannerHelper.checkboxWidth,
@@ -4765,7 +4880,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
         behavior: HitTestBehavior.opaque,
         excludeFromSemantics: true,
         onTap: handlesTaps
-            ? () => _toggleHomeworkCompleted(homework, completedOverride)
+            ? () => _toggleHomeworkCompleted(homework, completedOverride, occurrenceDate)
             : null,
         child: dataSource != null
             ? ListenableBuilder(
@@ -4780,12 +4895,12 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
     );
   }
 
-  void _toggleHomeworkCompleted(HomeworkModel homework, bool? completedOverride) {
+  void _toggleHomeworkCompleted(HomeworkModel homework, bool? completedOverride, DateTime? occurrenceDate) {
     final current =
         _plannerItemDataSource?.isHomeworkCompleted(homework) ??
         completedOverride ??
         homework.completed;
-    _onToggleCompleted(homework, !current);
+    _onToggleCompleted(homework, !current, occurrenceDate: occurrenceDate);
   }
 
   Widget _buildPrefixIconWidget(

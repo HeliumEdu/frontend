@@ -38,6 +38,7 @@ abstract class HomeworkRemoteDataSource extends BaseDataSource {
     required int groupId,
     required int courseId,
     required int homeworkId,
+    DateTime? occurrenceStart,
   });
 
   Future<HomeworkModel> updateHomework({
@@ -46,12 +47,15 @@ abstract class HomeworkRemoteDataSource extends BaseDataSource {
     required int homeworkId,
     required HomeworkRequestModel request,
     String? version,
+    DateTime? occurrenceStart,
+    bool onlyThisOccurrence = false,
   });
 
   Future<void> deleteHomework({
     required int groupId,
     required int courseId,
     required int homeworkId,
+    DateTime? occurrenceStart,
   });
 }
 
@@ -183,11 +187,13 @@ class HomeworkRemoteDataSourceImpl extends HomeworkRemoteDataSource {
     required int groupId,
     required int courseId,
     required int homeworkId,
+    DateTime? occurrenceStart,
   }) async {
     try {
       _log.info('Cloning Homework $homeworkId in Course $courseId ...');
       final response = await dioClient.dio.post(
         ApiUrl.plannerCourseGroupsCoursesHomeworkCloneUrl(groupId, courseId, homeworkId),
+        queryParameters: occurrenceQuery(occurrenceStart, onlyThisOccurrence: false),
       );
 
       if (response.statusCode == 201) {
@@ -216,6 +222,8 @@ class HomeworkRemoteDataSourceImpl extends HomeworkRemoteDataSource {
     required int homeworkId,
     required HomeworkRequestModel request,
     String? version,
+    DateTime? occurrenceStart,
+    bool onlyThisOccurrence = false,
   }) async {
     try {
       _log.info('Updating Homework $homeworkId for Course $courseId ...');
@@ -226,6 +234,7 @@ class HomeworkRemoteDataSourceImpl extends HomeworkRemoteDataSource {
           homeworkId,
         ),
         data: request.toJson(),
+        queryParameters: occurrenceQuery(occurrenceStart, onlyThisOccurrence: onlyThisOccurrence),
         options: ifMatchOptions(version),
       );
 
@@ -251,6 +260,7 @@ class HomeworkRemoteDataSourceImpl extends HomeworkRemoteDataSource {
     required int groupId,
     required int courseId,
     required int homeworkId,
+    DateTime? occurrenceStart,
   }) async {
     try {
       _log.info('Deleting Homework $homeworkId for Course $courseId ...');
@@ -260,6 +270,7 @@ class HomeworkRemoteDataSourceImpl extends HomeworkRemoteDataSource {
           courseId,
           homeworkId,
         ),
+        queryParameters: occurrenceQuery(occurrenceStart, onlyThisOccurrence: true),
       );
 
       if (response.statusCode == 204) {

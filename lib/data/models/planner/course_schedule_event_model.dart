@@ -8,11 +8,6 @@ import 'package:heliumapp/utils/planner_helper.dart';
 class CourseScheduleEventModel extends PlannerItemBaseModel {
   final String ownerId;
   final String comments;
-  final String? recurrenceRule;
-
-  /// Exception dates are computed client-side by merging course and
-  /// course-group exceptions. They are never present in API JSON.
-  final List<DateTime> exceptionDates;
 
   CourseScheduleEventModel({
     required super.id,
@@ -28,8 +23,8 @@ class CourseScheduleEventModel extends PlannerItemBaseModel {
     required super.reminders,
     required super.color,
     required this.ownerId,
-    this.recurrenceRule,
-    required this.exceptionDates,
+    super.recurrenceRule,
+    required super.exceptionDates,
   }) : super(plannerItemType: PlannerItemType.courseSchedule);
 
   factory CourseScheduleEventModel.fromJson(Map<String, dynamic> json) {
@@ -53,6 +48,27 @@ class CourseScheduleEventModel extends PlannerItemBaseModel {
       color: HeliumColors.hexToColor(json['color']),
       recurrenceRule: json['recurrence_rule'],
       exceptionDates: const [],
+    );
+  }
+
+  @override
+  CourseScheduleEventModel copyWith({DateTime? start, DateTime? end}) {
+    return CourseScheduleEventModel(
+      id: id,
+      title: title,
+      allDay: allDay,
+      showEndTime: showEndTime,
+      start: start ?? this.start,
+      end: end ?? this.end,
+      priority: priority,
+      url: url,
+      comments: comments,
+      attachments: attachments,
+      reminders: reminders,
+      color: color,
+      ownerId: ownerId,
+      recurrenceRule: recurrenceRule,
+      exceptionDates: exceptionDates,
     );
   }
 }

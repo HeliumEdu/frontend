@@ -1,11 +1,18 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:heliumapp/data/models/planner/grade_course_model.dart';
 
-Map<String, dynamic> _givenGradeCourseJson({required double pointsEarned, required double pointsPossible}) {
+Map<String, dynamic> _givenGradeCourseJson({
+  double pointsEarned = 60.0,
+  double pointsPossible = 110.0,
+  Object credits = '3.00',
+  double gradePoint = 1.0,
+}) {
   return {
     'id': 1,
     'title': 'Intro to Psychology',
     'overall_grade': 54.5455,
+    'credits': credits,
+    'grade_point': gradePoint,
     'color': '#4caf50',
     'trend': null,
     'num_homework': 3,
@@ -31,6 +38,29 @@ void main() {
         // THEN
         expect(course.pointsEarned, 60.0);
         expect(course.pointsPossible, 110.0);
+      });
+
+      test('parses credits and grade point', () {
+        // GIVEN
+        final json = _givenGradeCourseJson(credits: 4, gradePoint: 3.7);
+
+        // WHEN
+        final course = GradeCourseModel.fromJson(json);
+
+        // THEN
+        expect(course.credits, 4.0);
+        expect(course.gradePoint, 3.7);
+      });
+
+      test('parses an ungraded grade point as null', () {
+        // GIVEN
+        final json = _givenGradeCourseJson(gradePoint: -1);
+
+        // WHEN
+        final course = GradeCourseModel.fromJson(json);
+
+        // THEN
+        expect(course.gradePoint, isNull);
       });
     });
   });

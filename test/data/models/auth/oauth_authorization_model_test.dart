@@ -10,7 +10,9 @@ void main() {
       'client_name': 'Claude',
       'redirect_uri': 'https://claude.ai/api/mcp/auth_callback',
       'scopes': [
-        {'scope': 'planner:read', 'description': 'Read your planner'},
+        {'scope': 'planner:read', 'description': 'Read your planner', 'required': true},
+        {'scope': 'planner:notes:read', 'description': 'Read your notes', 'required': false},
+        {'scope': 'planner:import', 'description': 'Import terms'},
       ],
       'user_email': ?userEmail,
       'user_oauth_providers': ?userOAuthProviders,
@@ -29,6 +31,20 @@ void main() {
       // THEN
       expect(authorization.userEmail, 'student@example.com');
       expect(authorization.userOAuthProviders, ['google']);
+    });
+
+    test('parses which scopes are required, defaulting to required', () {
+      // GIVEN
+      final json = givenAuthorizationJson();
+
+      // WHEN
+      final authorization = OAuthAuthorizationModel.fromJson(json);
+
+      // THEN
+      expect(
+        {for (final scope in authorization.scopes) scope.scope: scope.required},
+        {'planner:read': true, 'planner:notes:read': false, 'planner:import': true},
+      );
     });
 
     test('leaves the account unset when the API does not return it', () {

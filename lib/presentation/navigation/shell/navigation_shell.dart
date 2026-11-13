@@ -381,12 +381,12 @@ class _NavigationShellState extends State<NavigationShell> {
 
   Future<void> _checkDialogs() async {
     var gettingStartedDue = false;
-    bool showWhatsNew = false;
+    int? staleWhatsNewVersionSeen;
 
     try {
       final settings = await DioClient().getSettings(forceRefresh: true);
       gettingStartedDue = settings?.gettingStartedDue == true;
-      showWhatsNew = await WhatsNewService().shouldShowWhatsNew();
+      staleWhatsNewVersionSeen = await WhatsNewService().staleWhatsNewVersionSeen();
     } catch (e) {
       _log.warning('Failed to prepare startup dialogs: ${e.runtimeType}');
     }
@@ -410,14 +410,14 @@ class _NavigationShellState extends State<NavigationShell> {
         if (!mounted || _isLoggingOut) return;
       }
 
-      if (showWhatsNew) {
+      if (staleWhatsNewVersionSeen != null) {
         if (!await DioClient().isAuthenticated() ||
             !mounted ||
             !_destinationIsTopLevelPage) {
           return;
         }
         try {
-          await showWhatsNewDialog(context);
+          await showWhatsNewDialog(context, versionSeen: staleWhatsNewVersionSeen);
         } catch (e) {
           _log.warning('Failed to show What\'s New dialog: ${e.runtimeType}');
         }

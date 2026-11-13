@@ -358,7 +358,7 @@ class _SecurityScreenState extends State<SecurityScreen> {
 
   void _copyApiToken(ApiTokenModel apiToken) {
     Clipboard.setData(ClipboardData(text: apiToken.token));
-    SnackBarHelper.show(context, 'API token copied.');
+    SnackBarHelper.show(context, 'API token copied.', copyable: false);
   }
 
   Future<void> _onRotateApiToken() async {

@@ -1,6 +1,7 @@
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:heliumapp/core/helium_exception.dart';
+import 'package:heliumapp/data/models/planner/grades_model.dart';
 import 'package:heliumapp/data/models/planner/needed_grade_model.dart';
 import 'package:heliumapp/presentation/features/grades/bloc/grade_bloc.dart';
 import 'package:heliumapp/presentation/features/grades/bloc/grade_event.dart';
@@ -47,7 +48,12 @@ void main() {
           ).thenAnswer((_) async => MockModels.createCourseGroups());
           when(
             () => mockGradeRepository.getGrades(),
-          ).thenAnswer((_) async => MockModels.createGradeCourseGroups());
+          ).thenAnswer(
+            (_) async => GradesModel(
+              courseGroups: MockModels.createGradeCourseGroups(),
+              cumulativeGpa: 3.5,
+            ),
+          );
           return gradeBloc;
         },
         act: (bloc) => bloc.add(FetchGradeScreenDataEvent()),
@@ -55,7 +61,8 @@ void main() {
           isA<GradesLoading>(),
           isA<GradeScreenDataFetched>()
               .having((s) => s.courseGroups.length, 'courseGroups length', 2)
-              .having((s) => s.grades.length, 'grades length', 2),
+              .having((s) => s.grades.length, 'grades length', 2)
+              .having((s) => s.cumulativeGpa, 'cumulativeGpa', 3.5),
         ],
         verify: (_) {
           verify(() => mockCourseRepository.getCourseGroups()).called(1);
@@ -131,7 +138,7 @@ void main() {
           ).thenAnswer((_) async => []);
           when(
             () => mockGradeRepository.getGrades(),
-          ).thenAnswer((_) async => []);
+          ).thenAnswer((_) async => GradesModel(courseGroups: []));
           return gradeBloc;
         },
         act: (bloc) => bloc.add(FetchGradeScreenDataEvent()),

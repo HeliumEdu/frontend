@@ -30,3 +30,4 @@ jobs:
       pull-requests: write
     with:
       renovate_label: renovate
+      renovate_author: heliumedu-bot[bot]

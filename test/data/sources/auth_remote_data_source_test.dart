@@ -553,6 +553,28 @@ void main() {
         verify(() => mockDio.post('/auth/oauth/authorize/?state=xyz', data: {'allow': true})).called(1);
         expect(result, 'https://claude.ai/api/mcp/auth_callback?code=c&state=xyz');
       });
+
+      test('posts the approved scopes', () async {
+        // GIVEN
+        when(
+          () => mockDio.post(any(), data: any(named: 'data')),
+        ).thenAnswer((_) async => givenSuccessResponse({
+              'redirect_uri': 'https://claude.ai/api/mcp/auth_callback?code=c&state=xyz',
+            }));
+
+        // WHEN
+        await dataSource.decideAuthorization(
+          'state=xyz',
+          allow: true,
+          scopes: ['planner:read', 'planner:notes:read'],
+        );
+
+        // THEN
+        verify(() => mockDio.post('/auth/oauth/authorize/?state=xyz', data: {
+              'allow': true,
+              'scopes': ['planner:read', 'planner:notes:read'],
+            })).called(1);
+      });
     });
 
     group('error handling', () {
