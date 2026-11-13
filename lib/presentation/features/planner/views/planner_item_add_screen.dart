@@ -314,11 +314,14 @@ class _PlannerItemAddScreenState
   }
 
   @override
-  String get screenTitle {
-    if (_currentIsEvent == null) return '';
-    final itemType = _currentIsEvent! ? 'Event' : 'Assignment';
-    return widget.isNew ? 'Add $itemType' : 'Edit $itemType';
-  }
+  String? get entityName => switch (_currentIsEvent) {
+        null => null,
+        true => 'Event',
+        false => 'Assignment',
+      };
+
+  @override
+  bool get hasSavedEntity => _currentEntityId != null;
 
   @override
   IconData? get icon => _currentIsEvent == null ? null : Icons.calendar_month;

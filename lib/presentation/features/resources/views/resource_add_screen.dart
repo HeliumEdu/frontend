@@ -239,7 +239,10 @@ class _ResourceAddScreenState
   }
 
   @override
-  String get screenTitle => widget.isEdit ? 'Edit Resource' : 'Add Resource';
+  String get entityName => 'Resource';
+
+  @override
+  bool get hasSavedEntity => _currentResourceId != null;
 
   @override
   IconData? get icon => Icons.book;

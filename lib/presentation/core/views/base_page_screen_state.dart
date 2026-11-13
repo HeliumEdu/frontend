@@ -107,7 +107,16 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
 
   bool get enablePrintFlexColumn => false;
 
-  String get screenTitle => '';
+  /// The kind of item an add-or-edit screen works on, such as 'Class', or
+  /// null for any other screen.
+  String? get entityName => null;
+
+  /// Whether the screen's item has been saved, so the screen edits it rather
+  /// than adds it.
+  bool get hasSavedEntity => false;
+
+  String get screenTitle =>
+      entityName == null ? '' : '${hasSavedEntity ? 'Edit' : 'Add'} $entityName';
 
   IconData? get icon => null;
 

@@ -358,7 +358,10 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
   }
 
   @override
-  String get screenTitle => widget.isNew ? 'Add Note' : 'Edit Note';
+  String get entityName => 'Note';
+
+  @override
+  bool get hasSavedEntity => (_note?.id ?? widget.noteId) != null;
 
   @override
   IconData get icon => Icons.library_books;
