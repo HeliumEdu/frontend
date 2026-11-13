@@ -4,7 +4,7 @@ import 'package:heliumapp/utils/grade_scale_constants.dart';
 void main() {
   group('GradeScaleTemplate', () {
     test('every preset but None has a scale that starts at 0 and ascends', () {
-      // THEN
+      // WHEN/THEN
       expect(GradeScaleTemplate.scales.keys, GradeScaleTemplate.labels.keys);
       expect(GradeScaleTemplate.scales[GradeScaleTemplate.none], isEmpty);
       for (final template in GradeScaleTemplate.labels.keys) {
@@ -31,7 +31,7 @@ void main() {
     });
 
     test('summarizes a scale by its preset, or as Custom', () {
-      // THEN
+      // WHEN/THEN
       for (final MapEntry(key: template, value: label) in GradeScaleTemplate.labels.entries) {
         expect(GradeScaleTemplate.summaryLabel(template), label);
       }

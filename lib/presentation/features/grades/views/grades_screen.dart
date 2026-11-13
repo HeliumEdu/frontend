@@ -616,8 +616,8 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
         !selectedGroup.inCumulativeGpa &&
         _grades.any((g) => g.inCumulativeGpa)) {
       hints.add(
-        'This group uses a different grade scale than your latest group, so '
-        "it isn't counted in your GPA across all terms.",
+        "This group's grade scale differs from your most recent one, so it "
+        "isn't counted in your GPA across all terms.",
       );
     }
     return hints.isEmpty ? null : hints.join('\n\n');

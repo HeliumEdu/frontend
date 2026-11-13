@@ -783,7 +783,7 @@ class PlannerItemDetailsState extends State<PlannerItemDetails>
       context: context,
       action: RecurrenceScopeAction.edit,
       isEvent: _isEvent,
-      thisDetail: 'Its reminders come with it. Notes and attachments stay with the series.',
+      thisDetail: 'It keeps its reminders. Notes and attachments stay with the other occurrences.',
     );
     if (scope == null) return null;
     return scope == RecurrenceScope.thisOccurrence ? _SeriesSave.thisOccurrence : _SeriesSave.all;
@@ -954,6 +954,7 @@ class PlannerItemDetailsState extends State<PlannerItemDetails>
       plannerItem.recurrenceRule,
       HeliumDateTime.toLocal(plannerItem.start, _timeZone),
       _timeZone,
+      classEndDate: plannerItem is HomeworkModel ? _courseById(plannerItem.course.id)?.endDate : null,
     );
     _recurrence = _originalRecurrence;
   }

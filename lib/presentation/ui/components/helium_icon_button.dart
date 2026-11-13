@@ -79,7 +79,7 @@ class HeliumIconButton extends StatelessWidget {
         size: useSize,
         semanticLabel: semanticLabel,
       ),
-      tooltip: tooltip,
+      tooltip: enabled ? tooltip : null,
       padding: padding,
       constraints: minimumSize != null
           ? BoxConstraints(minWidth: minimumSize!, minHeight: minimumSize!)

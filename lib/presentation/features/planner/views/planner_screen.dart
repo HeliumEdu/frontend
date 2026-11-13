@@ -2387,7 +2387,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
       context: context,
       action: action,
       isEvent: plannerItem is EventModel,
-      thisDetail: 'Its reminders come with it. Notes and attachments stay with the series.',
+      thisDetail: 'It keeps its reminders. Notes and attachments stay with the other occurrences.',
     );
     if (scope == null || !mounted) return;
 

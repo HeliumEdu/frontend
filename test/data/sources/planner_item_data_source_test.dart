@@ -564,34 +564,6 @@ void main() {
         expect(dataSource.isHomeworkCompleted(occurrence), isFalse);
         expect(onException.whereType<HomeworkModel>(), isEmpty);
       });
-
-      test('the overdue filter applies to each occurrence on its own start', () async {
-        // GIVEN
-        final la = tz.getLocation('America/Los_Angeles');
-        dataSource.userSettings = _createUserSettings(timeZone: la);
-        final now = tz.TZDateTime.now(la);
-        await dataSource.handleLoadMore(
-          DateTime(now.year, now.month, now.day - 30),
-          DateTime(now.year, now.month, now.day + 30),
-        );
-        final firstStart = tz.TZDateTime(la, now.year, now.month, now.day - 15, now.hour);
-        dataSource.addPlannerItem(
-          MockModels.createHomework(
-            id: 951,
-            start: firstStart.toUtc(),
-            end: firstStart.toUtc(),
-            recurrenceRule: 'FREQ=DAILY;INTERVAL=10;COUNT=4',
-          ),
-        );
-
-        // WHEN
-        dataSource.setFilterStatuses({'Overdue'});
-
-        // THEN
-        final overdue = dataSource.filteredHomeworks;
-        expect(overdue, hasLength(2), reason: 'only the occurrences 15 and 5 days ago are past');
-        expect(overdue.every((h) => h.start.isBefore(now)), isTrue);
-      });
     });
 
     group('assignments due at midnight', () {

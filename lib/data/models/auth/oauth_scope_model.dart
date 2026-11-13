@@ -2,8 +2,7 @@ class OAuthScopeModel {
   final String scope;
   final String description;
 
-  /// Whether granting the scope is required; the user chooses whether to
-  /// grant one that isn't, offered unselected.
+  /// Whether the scope must be granted; an optional one is offered unchecked.
   final bool required;
 
   OAuthScopeModel({

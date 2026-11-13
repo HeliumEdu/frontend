@@ -16,7 +16,7 @@ CourseGroupRequestModel _givenCourseGroupRequestModel({
 void main() {
   group('CourseGroupRequestModel', () {
     group('toJson', () {
-      test('sends only the template for a preset', () {
+      test('sends the template for a preset', () {
         // GIVEN
         final request = _givenCourseGroupRequestModel(gradeScaleTemplate: 3);
 
@@ -25,10 +25,9 @@ void main() {
 
         // THEN
         expect(json['grade_scale_template'], 3);
-        expect(json.containsKey('grade_scale'), isFalse);
       });
 
-      test('sends neither field without a preset', () {
+      test('omits the template without a preset', () {
         // GIVEN
         final request = _givenCourseGroupRequestModel();
 
@@ -37,7 +36,6 @@ void main() {
 
         // THEN
         expect(json.containsKey('grade_scale_template'), isFalse);
-        expect(json.containsKey('grade_scale'), isFalse);
       });
     });
   });

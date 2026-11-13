@@ -1452,10 +1452,77 @@ void main() {
         expect(naive?.until, DateTime(2026, 12, 18));
         expect(dateOnly?.until, DateTime(2026, 12, 18));
       });
+
+      test('reads an UNTIL at the end of the class end date in each time zone as the default end', () {
+        // GIVEN
+        final classEndDate = DateTime(2026, 12, 18);
+
+        // WHEN
+        final inLosAngeles = HeliumRecurrence.parse(
+          'FREQ=WEEKLY;BYDAY=MO;UNTIL=20261219T075959Z',
+          tz.TZDateTime(losAngeles, 2026, 9, 7, 9),
+          losAngeles,
+          classEndDate: classEndDate,
+        );
+        final inAmsterdam = HeliumRecurrence.parse(
+          'FREQ=WEEKLY;BYDAY=MO;UNTIL=20261218T225959Z',
+          mondayStart,
+          amsterdam,
+          classEndDate: classEndDate,
+        );
+
+        // THEN
+        expect(inLosAngeles?.end, RecurrenceEnd.defaultEnd);
+        expect(inLosAngeles?.until, isNull);
+        expect(inAmsterdam?.end, RecurrenceEnd.defaultEnd);
+        expect(inAmsterdam?.until, isNull);
+      });
+
+      test('reads an UNTIL other than the end of the class end date as an end date', () {
+        // GIVEN
+        final classEndDate = DateTime(2026, 12, 18);
+
+        // WHEN
+        final otherZonesClassEnd = HeliumRecurrence.parse(
+          'FREQ=WEEKLY;BYDAY=MO;UNTIL=20261219T075959Z',
+          mondayStart,
+          amsterdam,
+          classEndDate: classEndDate,
+        );
+        final dayBeforeClassEnd = HeliumRecurrence.parse(
+          'FREQ=WEEKLY;BYDAY=MO;UNTIL=20261218T075959Z',
+          tz.TZDateTime(losAngeles, 2026, 9, 7, 9),
+          losAngeles,
+          classEndDate: classEndDate,
+        );
+
+        // THEN
+        expect(otherZonesClassEnd?.end, RecurrenceEnd.onDate);
+        expect(otherZonesClassEnd?.until, DateTime(2026, 12, 19));
+        expect(dayBeforeClassEnd?.end, RecurrenceEnd.onDate);
+        expect(dayBeforeClassEnd?.until, DateTime(2026, 12, 17));
+      });
+
+      test('round-trips a default-end assignment repeat bounded to its class end date', () {
+        // GIVEN
+        final classEndDate = DateTime(2026, 12, 18);
+        final draft = HeliumRecurrence.defaultFor(RecurrenceFrequency.weekly, mondayStart);
+        final rule = HeliumRecurrence.compose(
+          draft.copyWith(end: RecurrenceEnd.onDate, until: classEndDate),
+          mondayStart,
+          amsterdam,
+        );
+
+        // WHEN
+        final parsed = HeliumRecurrence.parse(rule, mondayStart, amsterdam, classEndDate: classEndDate);
+
+        // THEN
+        expect(parsed, draft);
+      });
     });
 
     test('offers last day of month only for a start on the 29th or later', () {
-      // THEN
+      // WHEN/THEN
       expect(HeliumRecurrence.offersLastDayOfMonth(DateTime(2026, 1, 28)), isFalse);
       expect(HeliumRecurrence.offersLastDayOfMonth(DateTime(2026, 1, 29)), isTrue);
       expect(HeliumRecurrence.offersLastDayOfMonth(DateTime(2026, 1, 31)), isTrue);

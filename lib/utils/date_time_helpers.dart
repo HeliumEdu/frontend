@@ -549,18 +549,6 @@ class RecurrenceDraft {
   final DateTime? until;
   final int? count;
 
-  @override
-  bool operator ==(Object other) =>
-      other is RecurrenceDraft &&
-      other.frequency == frequency &&
-      other.interval == interval &&
-      other.weekdays.length == weekdays.length &&
-      other.weekdays.containsAll(weekdays) &&
-      other.lastDayOfMonth == lastDayOfMonth &&
-      other.end == end &&
-      other.until == until &&
-      other.count == count;
-
   const RecurrenceDraft({
     this.frequency = RecurrenceFrequency.none,
     this.interval = 1,
@@ -574,8 +562,27 @@ class RecurrenceDraft {
   bool get repeats => frequency != RecurrenceFrequency.none;
 
   @override
-  int get hashCode => Object.hash(frequency, interval, Object.hashAllUnordered(weekdays), lastDayOfMonth, end,
-      until, count);
+  bool operator ==(Object other) =>
+      other is RecurrenceDraft &&
+      other.frequency == frequency &&
+      other.interval == interval &&
+      other.weekdays.length == weekdays.length &&
+      other.weekdays.containsAll(weekdays) &&
+      other.lastDayOfMonth == lastDayOfMonth &&
+      other.end == end &&
+      other.until == until &&
+      other.count == count;
+
+  @override
+  int get hashCode => Object.hash(
+        frequency,
+        interval,
+        Object.hashAllUnordered(weekdays),
+        lastDayOfMonth,
+        end,
+        until,
+        count,
+      );
 
   RecurrenceDraft copyWith({
     RecurrenceFrequency? frequency,
@@ -671,16 +678,21 @@ class HeliumRecurrence {
     if (draft.end == RecurrenceEnd.afterCount && draft.count != null) {
       parts.add('COUNT=${draft.count}');
     } else if (draft.end == RecurrenceEnd.onDate && draft.until != null) {
-      final until = draft.until!;
-      final endOfDay = tz.TZDateTime(timeZone, until.year, until.month, until.day, 23, 59, 59);
-      parts.add('UNTIL=${_utcUntil.format(endOfDay.toUtc())}');
+      parts.add('UNTIL=${_endOfDayUntil(draft.until!, timeZone)}');
     }
 
     return parts.join(';');
   }
 
-  /// Null when the picker can't represent [rule].
-  static RecurrenceDraft? parse(String? rule, DateTime localStart, tz.Location timeZone) {
+  /// Null when the picker can't represent [rule]. An `UNTIL` at the end of
+  /// [classEndDate], the end the server gives an assignment's repeat, reads as
+  /// [RecurrenceEnd.defaultEnd].
+  static RecurrenceDraft? parse(
+    String? rule,
+    DateTime localStart,
+    tz.Location timeZone, {
+    DateTime? classEndDate,
+  }) {
     if (rule == null || rule.isEmpty) {
       return const RecurrenceDraft();
     }
@@ -709,6 +721,8 @@ class HeliumRecurrence {
         return null;
       }
       draft = draft.copyWith(end: RecurrenceEnd.afterCount, count: parsedCount);
+    } else if (classEndDate != null && until == _endOfDayUntil(classEndDate, timeZone)) {
+      draft = draft.copyWith(end: RecurrenceEnd.defaultEnd);
     } else if (until != null) {
       final untilDate = _untilDate(until, timeZone);
       if (untilDate == null) {
@@ -763,6 +777,9 @@ class HeliumRecurrence {
     }
     return parts;
   }
+
+  static String _endOfDayUntil(DateTime date, tz.Location timeZone) =>
+      _utcUntil.format(tz.TZDateTime(timeZone, date.year, date.month, date.day, 23, 59, 59).toUtc());
 
   static DateTime? _untilDate(String until, tz.Location timeZone) {
     final match = RegExp(r'^(\d{4})(\d{2})(\d{2})(T(\d{2})(\d{2})(\d{2})(Z?))?$').firstMatch(until);

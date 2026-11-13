@@ -120,7 +120,7 @@ class _RecurrencePickerState extends State<RecurrencePicker> {
         if (draft == null) ...[
           const SizedBox(height: 8),
           Text(
-            'This repeat was set up elsewhere and can\'t be edited here. Choose a repeat to replace it.',
+            "This repeat setting can't be shown here. Choosing a new one replaces it for all occurrences.",
             style: AppStyles.smallSecondaryTextLight(context),
           ),
         ],
@@ -295,7 +295,7 @@ class _RecurrencePickerState extends State<RecurrencePicker> {
     );
   }
 
-    RecurrenceDraft get _current => widget.draft ?? const RecurrenceDraft();
+  RecurrenceDraft get _current => widget.draft ?? const RecurrenceDraft();
 
   void _onFrequencyChanged(DropDownItem<RecurrenceFrequency>? item) {
     final frequency = item?.value;
