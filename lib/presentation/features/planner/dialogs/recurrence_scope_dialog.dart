@@ -59,8 +59,8 @@ class _RecurrenceScopeDialogState extends State<_RecurrenceScopeDialog> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              _buildOption(context, RecurrenceScope.thisOccurrence, widget.isEvent ? 'This event' : 'This assignment', widget.thisDetail),
-              _buildOption(context, RecurrenceScope.all, widget.isEvent ? 'All events' : 'All assignments', widget.allDetail),
+              _buildOption(context, RecurrenceScope.thisOccurrence, 'This occurrence', widget.thisDetail),
+              _buildOption(context, RecurrenceScope.all, 'All occurrences', widget.allDetail),
             ],
           ),
         ),

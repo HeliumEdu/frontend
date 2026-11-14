@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:heliumapp/config/app_theme.dart';
+import 'package:heliumapp/presentation/core/views/base_page_screen_state.dart';
 import 'package:heliumapp/presentation/features/shared/controllers/basic_form_controller.dart';
 import 'package:heliumapp/presentation/ui/feedback/discard_changes_scope.dart';
 import 'package:heliumapp/presentation/ui/feedback/error_container.dart';
 import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
+import 'package:heliumapp/presentation/ui/layout/helium_full_screen_scroll_view.dart';
 import 'package:heliumapp/presentation/ui/layout/page_header.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
@@ -42,6 +44,10 @@ abstract class BaseDialogState<T extends StatefulWidget> extends State<T> {
   }
 
   Widget buildDialog(BuildContext context) {
+    if (DialogModeProvider.isFullScreenMode(context)) {
+      return _buildFullScreenDialog(context);
+    }
+
     return Dialog(
       backgroundColor: Colors.transparent,
       insetPadding: Responsive.isMobile(context)
@@ -62,28 +68,58 @@ abstract class BaseDialogState<T extends StatefulWidget> extends State<T> {
                   keyboardDismissBehavior:
                       ScrollViewKeyboardDismissBehavior.onDrag,
                   padding: AppConstants.dialogContentPadding,
-                  child: Form(
-                    key: formController.formKey,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        if (isLoading)
-                          _buildLoadingArea(context)
-                        else
-                          buildMainArea(context),
-
-                        ?buildSecondaryActions(),
-
-                        if (errorMessage != null) buildErrorArea(),
-                      ],
-                    ),
-                  ),
+                  child: _buildForm(context),
                 ),
               ),
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildFullScreenDialog(BuildContext context) {
+    return Material(
+      color: context.colorScheme.surface,
+      child: SafeArea(
+        bottom: false,
+        left: false,
+        right: false,
+        child: Column(
+          children: [
+            buildDialogHeader(),
+            Expanded(
+              child: HeliumFullScreenScrollView(
+                keyboardDismissBehavior:
+                    ScrollViewKeyboardDismissBehavior.onDrag,
+                child: Padding(
+                  padding: AppConstants.dialogContentPadding,
+                  child: _buildForm(context),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildForm(BuildContext context) {
+    return Form(
+      key: formController.formKey,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (isLoading)
+            _buildLoadingArea(context)
+          else
+            buildMainArea(context),
+
+          ?buildSecondaryActions(),
+
+          if (errorMessage != null) buildErrorArea(),
+        ],
       ),
     );
   }

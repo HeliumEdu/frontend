@@ -5,6 +5,7 @@ import 'package:heliumapp/data/models/base_model.dart';
 import 'package:heliumapp/data/models/planner/course_group_model.dart';
 import 'package:heliumapp/data/models/planner/grade_scale_band_model.dart';
 import 'package:heliumapp/data/models/planner/request/course_group_request_model.dart';
+import 'package:heliumapp/presentation/core/views/base_page_screen_state.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/core/base_event.dart';
 import 'package:heliumapp/presentation/features/courses/bloc/course_bloc.dart';
 import 'package:heliumapp/presentation/features/planner/dialogs/confirm_delete_dialog.dart';
@@ -406,19 +407,28 @@ Future<void> showCourseGroupDialog<T extends BaseModel>({
   CourseGroupModel? latestGroup,
 }) {
   final courseBloc = parentContext.read<CourseBloc>();
+  final dialog = BlocProvider<CourseBloc>.value(
+    value: courseBloc,
+    child: _CourseGroupProvidedWidget(
+      isEdit: isEdit,
+      group: group,
+      latestGroup: latestGroup,
+    ),
+  );
+
+  if (PlatformBehavior.showsDialogsFullScreen(parentContext)) {
+    return showScreenAsDialog(
+      parentContext,
+      barrierDismissible: false,
+      width: double.infinity,
+      insetPadding: EdgeInsets.zero,
+      child: dialog,
+    );
+  }
 
   return showDialog(
     context: parentContext,
     barrierDismissible: false,
-    builder: (BuildContext dialogContext) {
-      return BlocProvider<CourseBloc>.value(
-        value: courseBloc,
-        child: _CourseGroupProvidedWidget(
-          isEdit: isEdit,
-          group: group,
-          latestGroup: latestGroup,
-        ),
-      );
-    },
+    builder: (BuildContext dialogContext) => dialog,
   );
 }

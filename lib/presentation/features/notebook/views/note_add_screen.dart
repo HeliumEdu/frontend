@@ -1888,6 +1888,7 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
               title: h.title,
               date: h.start,
               allDay: h.allDay,
+              repeats: h.recurrenceRule != null,
               color: course?.color,
               completed: h.completed,
             ));
@@ -1905,6 +1906,7 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
             title: e.title,
             date: e.start,
             allDay: e.allDay,
+            repeats: e.recurrenceRule != null,
             color: userSettings.eventsColor,
           ));
         }
@@ -2008,9 +2010,10 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
                   item.date!,
                   userSettings.timeZone,
                 );
-                return item.allDay
+                final formatted = item.allDay
                     ? HeliumDateTime.formatDateForTodos(localDate)
                     : HeliumDateTime.formatDateAndTimeForTodos(localDate);
+                return item.repeats ? 'From $formatted' : formatted;
               }()
             : null;
         return Padding(
@@ -2022,14 +2025,29 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
             child: ListTile(
               dense: true,
               contentPadding: const EdgeInsets.only(left: 10, right: 4),
-              title: Text(
-                item.title,
-                style: AppStyles.formText(context).copyWith(
-                  decoration:
-                      item.completed ? TextDecoration.lineThrough : null,
-                  decorationColor: context.colorScheme.onSurface,
-                ),
-                overflow: TextOverflow.ellipsis,
+              title: Row(
+                children: [
+                  Flexible(
+                    child: Text(
+                      item.title,
+                      style: AppStyles.formText(context).copyWith(
+                        decoration:
+                            item.completed ? TextDecoration.lineThrough : null,
+                        decorationColor: context.colorScheme.onSurface,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  if (item.repeats) ...[
+                    const SizedBox(width: 4),
+                    Icon(
+                      Icons.repeat,
+                      size: 14,
+                      color: context.colorScheme.outline,
+                      semanticLabel: 'Repeats',
+                    ),
+                  ],
+                ],
               ),
               trailing: dateText != null
                   ? Text(
@@ -2062,6 +2080,7 @@ class _LinkPickerItem extends _LinkPickerRow {
   final String title;
   final DateTime? date;
   final bool allDay;
+  final bool repeats;
 
   final Color? color;
   final bool completed;
@@ -2071,6 +2090,7 @@ class _LinkPickerItem extends _LinkPickerRow {
     required this.title,
     this.date,
     this.allDay = true,
+    this.repeats = false,
     this.color,
     this.completed = false,
   });

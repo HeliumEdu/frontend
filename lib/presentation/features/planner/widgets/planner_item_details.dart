@@ -574,7 +574,7 @@ class PlannerItemDetailsState extends State<PlannerItemDetails>
       child: InfoContainer(
         text:
             'Once you\'ve created at least one Class shown on the Planner, '
-            'you can create either an Event or an Assignment here.',
+            'you can add Assignments from here too.',
         trailing: HeliumIconButton(
           icon: Icons.school,
           backgroundColor: context.colorScheme.onSurfaceVariant,
