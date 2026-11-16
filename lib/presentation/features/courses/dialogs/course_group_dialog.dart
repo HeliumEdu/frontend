@@ -3,29 +3,28 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:heliumapp/data/models/base_model.dart';
 import 'package:heliumapp/data/models/planner/course_group_model.dart';
-import 'package:heliumapp/data/models/planner/grade_scale_band_model.dart';
 import 'package:heliumapp/data/models/planner/request/course_group_request_model.dart';
+import 'package:heliumapp/presentation/core/views/base_page_screen_state.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/core/base_event.dart';
 import 'package:heliumapp/presentation/features/courses/bloc/course_bloc.dart';
 import 'package:heliumapp/presentation/features/planner/dialogs/confirm_delete_dialog.dart';
 import 'package:heliumapp/presentation/features/courses/bloc/course_event.dart';
 import 'package:heliumapp/presentation/features/courses/bloc/course_state.dart';
 import 'package:heliumapp/presentation/features/courses/dialogs/course_exceptions_dialog.dart';
-import 'package:heliumapp/presentation/features/courses/dialogs/grade_scale_dialog.dart';
+import 'package:heliumapp/presentation/features/courses/widgets/grade_scale_field.dart';
 import 'package:heliumapp/presentation/ui/dialogs/base_dialog_state.dart';
 import 'package:heliumapp/presentation/ui/dialogs/conflict_resolving_dialog.dart';
 import 'package:heliumapp/presentation/features/shared/controllers/basic_form_controller.dart';
 import 'package:heliumapp/presentation/features/courses/controllers/course_group_form_controller.dart';
-import 'package:heliumapp/presentation/ui/components/drop_down.dart';
 import 'package:heliumapp/presentation/ui/components/helium_checkbox_list_tile.dart';
 import 'package:heliumapp/presentation/ui/components/helium_elevated_button.dart';
 import 'package:heliumapp/presentation/ui/components/helium_icon_button.dart';
 import 'package:heliumapp/presentation/ui/components/helium_picker_field.dart';
 import 'package:heliumapp/presentation/ui/components/label_and_text_form_field.dart';
 import 'package:heliumapp/utils/app_style.dart';
+import 'package:heliumapp/utils/course_exception_helpers.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/utils/date_time_helpers.dart';
-import 'package:heliumapp/utils/grade_helpers.dart';
 import 'package:heliumapp/utils/grade_scale_constants.dart';
 import 'package:heliumapp/utils/platform_behavior.dart';
 
@@ -48,7 +47,6 @@ class _CourseGroupWidgetState
     extends BaseDialogState<_CourseGroupProvidedWidget>
     with ConflictResolvingDialog<_CourseGroupProvidedWidget, CourseGroupModel> {
   final CourseGroupFormController _formController = CourseGroupFormController();
-  late List<DateTime> _groupExceptions;
 
   @override
   String get dialogTitle => 'Group';
@@ -72,7 +70,7 @@ class _CourseGroupWidgetState
       );
     } else {
       _formController.markChanged(userInitiated: false);
-      _groupExceptions = [];
+      _formController.exceptions = const [];
       _formController.titleController.clear();
       _formController.startDate = DateTime.now();
       _formController.endDate = DateTime.now().add(const Duration(days: 30));
@@ -100,7 +98,7 @@ class _CourseGroupWidgetState
     _formController.startDate = group.startDate;
     _formController.endDate = group.endDate;
     _formController.shownOnCalendar = group.shownOnCalendar!;
-    _groupExceptions = List<DateTime>.from(group.exceptions);
+    _formController.exceptions = List<DateTime>.unmodifiable(group.exceptions);
     _populateGradeScale(group);
     trackVersion(group);
   }
@@ -129,12 +127,6 @@ class _CourseGroupWidgetState
             setState(() {
               errorMessage = state.message;
               isLoading = false;
-            });
-          } else if (state is CourseGroupExceptionsUpdated &&
-              state.courseGroup.id == widget.group?.id) {
-            setState(() {
-              _groupExceptions = state.courseGroup.exceptions;
-              trackVersion(state.courseGroup);
             });
           } else if (state is CoursesScreenDataFetched &&
               state.origin == EventOrigin.dialog &&
@@ -197,7 +189,6 @@ class _CourseGroupWidgetState
 
   @override
   Widget? buildSecondaryActions() {
-    if (!widget.isEdit) return null;
     return Padding(
       padding: const EdgeInsets.only(top: 14),
       child: HeliumElevatedButton(
@@ -209,15 +200,18 @@ class _CourseGroupWidgetState
     );
   }
 
-  Future<void> _showHolidaysAndBreaks() {
-    return showCourseGroupExceptionsDialog(
+  Future<void> _showHolidaysAndBreaks() async {
+    final exceptions = await showCourseGroupExceptionsDialog(
       context: context,
-      courseGroupId: widget.group!.id,
-      exceptions: _groupExceptions,
+      exceptions: _formController.exceptions,
       firstDate: _formController.startDate!,
       lastDate: _formController.endDate!,
     );
+    if (exceptions == null || !mounted) return;
+    _formController.markChanged();
+    setState(() => _formController.exceptions = exceptions);
   }
+
 
   @override
   Widget buildMainArea(BuildContext context) {
@@ -269,62 +263,24 @@ class _CourseGroupWidgetState
 
   Widget _buildGradeScaleField(BuildContext context) {
     final selected = _formController.gradeScaleTemplate;
-    final items = [
-      ...GradeScaleTemplate.items,
-      if (_formController.customGradeScale.isNotEmpty)
-        GradeScaleTemplate.customItem,
-    ];
-    final bands = selected == GradeScaleTemplate.custom
-        ? _formController.customGradeScale
-        : GradeScaleTemplate.scales[selected]!;
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        DropDown<int>(
-          key: ValueKey(selected),
-          label: 'Grade scale',
-          initialValue: items.firstWhereOrNull((item) => item.id == selected),
-          items: items,
-          onChanged: (item) {
-            if (item == null) return;
-            _formController.markChanged();
-            setState(() => _formController.gradeScaleTemplate = item.id);
-          },
-          trailingIconButton: HeliumIconButton(
-            onPressed: () => showGradeScaleDialog(
-              parentContext: context,
-              title: GradeScaleTemplate.summaryLabel(selected),
-              bands: bands,
-            ),
-            enabled: bands.isNotEmpty,
-            icon: Icons.table_rows_outlined,
-            tooltip: 'View grade scale',
-          ),
-        ),
-        const SizedBox(height: 4),
-        Visibility(
-          visible: bands.isNotEmpty,
-          maintainSize: true,
-          maintainAnimation: true,
-          maintainState: true,
-          child: Text(
-            bands.isEmpty ? '' : _gradeScaleTopBandSummary(bands.last),
-            style: AppStyles.smallSecondaryText(context).copyWith(
-              color: context.colorScheme.onSurface.withValues(
-                alpha: AppStyles.mutedTextAlpha,
-              ),
-            ),
-          ),
-        ),
+    return GradeScaleField(
+      items: [
+        ...GradeScaleTemplate.items,
+        if (_formController.customGradeScale.isNotEmpty)
+          GradeScaleTemplate.customItem,
       ],
+      selected: selected,
+      bands: selected == GradeScaleTemplate.custom
+          ? _formController.customGradeScale
+          : GradeScaleTemplate.scales[selected]!,
+      bandsTitle: GradeScaleTemplate.summaryLabel(selected),
+      onChanged: _onGradeScaleChanged,
     );
   }
 
-  String _gradeScaleTopBandSummary(GradeScaleBandModel band) {
-    final label = band.label.isEmpty ? '' : '${band.label} at ';
-    return 'Top grade: $label${GradeHelper.minGradeForDisplay(band.minGrade)} = '
-        '${GradeHelper.gradePointForDisplay(band.gradePoint)}';
+  void _onGradeScaleChanged(int template) {
+    _formController.markChanged();
+    setState(() => _formController.gradeScaleTemplate = template);
   }
 
   @override
@@ -342,6 +298,11 @@ class _CourseGroupWidgetState
         endDate: HeliumDateTime.formatDateForApi(_formController.endDate!),
         shownOnCalendar: _formController.shownOnCalendar,
         gradeScaleTemplate: _selectedPresetToSend,
+        exceptions: CourseExceptionHelpers.withinRange(
+          _formController.exceptions,
+          _formController.startDate!,
+          _formController.endDate!,
+        ),
       );
 
       if (widget.isEdit) {
@@ -373,8 +334,8 @@ class _CourseGroupWidgetState
           ? (_formController.startDate ?? DateTime.now())
           : (_formController.endDate ??
                 DateTime.now().add(const Duration(days: 30))),
-      firstDate: DateTime.now().subtract(const Duration(days: 365 * 10)),
-      lastDate: DateTime.now().add(const Duration(days: 365 * 10)),
+      firstDate: HeliumDateTime.earliestPickableDate(),
+      lastDate: HeliumDateTime.latestPickableDate(),
       confirmText: 'Select',
     );
 
@@ -406,19 +367,28 @@ Future<void> showCourseGroupDialog<T extends BaseModel>({
   CourseGroupModel? latestGroup,
 }) {
   final courseBloc = parentContext.read<CourseBloc>();
+  final dialog = BlocProvider<CourseBloc>.value(
+    value: courseBloc,
+    child: _CourseGroupProvidedWidget(
+      isEdit: isEdit,
+      group: group,
+      latestGroup: latestGroup,
+    ),
+  );
+
+  if (PlatformBehavior.showsDialogsFullScreen(parentContext)) {
+    return showScreenAsDialog(
+      parentContext,
+      barrierDismissible: false,
+      width: double.infinity,
+      insetPadding: EdgeInsets.zero,
+      child: dialog,
+    );
+  }
 
   return showDialog(
     context: parentContext,
     barrierDismissible: false,
-    builder: (BuildContext dialogContext) {
-      return BlocProvider<CourseBloc>.value(
-        value: courseBloc,
-        child: _CourseGroupProvidedWidget(
-          isEdit: isEdit,
-          group: group,
-          latestGroup: latestGroup,
-        ),
-      );
-    },
+    builder: (BuildContext dialogContext) => dialog,
   );
 }

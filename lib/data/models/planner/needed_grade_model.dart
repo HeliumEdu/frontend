@@ -1,10 +1,13 @@
+import 'package:heliumapp/data/models/planner/grade_scale_band_model.dart';
+
 /// Outcome of a "What Do I Need?" calculation.
 enum NeededGradeState {
   achievable,
   aboveTarget,
   unachievable,
   targetCategoryHasNoWeight,
-  invalidTotalWeight;
+  invalidTotalWeight,
+  gpaUnreachable;
 
   static NeededGradeState fromJson(String value) {
     return switch (value) {
@@ -14,6 +17,7 @@ enum NeededGradeState {
       'target_category_has_no_weight' =>
         NeededGradeState.targetCategoryHasNoWeight,
       'invalid_total_weight' => NeededGradeState.invalidTotalWeight,
+      'gpa_unreachable' => NeededGradeState.gpaUnreachable,
       _ => throw ArgumentError('Unknown needed grade state: $value'),
     };
   }
@@ -50,6 +54,7 @@ class NeededGradeModel {
   final bool weighted;
   final NeededGradeAssignmentModel? assignment;
   final double? totalWeightAccountedFor;
+  final GradeScaleBandModel? gradeBand;
 
   NeededGradeModel({
     required this.state,
@@ -57,6 +62,7 @@ class NeededGradeModel {
     required this.weighted,
     this.assignment,
     this.totalWeightAccountedFor,
+    this.gradeBand,
   });
 
   bool get isAchievable =>
@@ -75,6 +81,11 @@ class NeededGradeModel {
             ),
       totalWeightAccountedFor: (json['total_weight_accounted_for'] as num?)
           ?.toDouble(),
+      gradeBand: json['grade_band'] == null
+          ? null
+          : GradeScaleBandModel.fromJson(
+              json['grade_band'] as Map<String, dynamic>,
+            ),
     );
   }
 }

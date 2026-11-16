@@ -11,8 +11,8 @@ import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/date_time_helpers.dart';
 
 /// Edits how a planner item repeats. A null [draft] is a repeat the picker
-/// can't represent (e.g. one imported from another calendar), shown as a
-/// custom repeat until a preset replaces it.
+/// can't represent (e.g. one imported from another calendar), shown as Custom
+/// with [customRuleDescription] beneath it until a preset replaces it.
 class RecurrencePicker extends StatefulWidget {
   final RecurrenceDraft? draft;
   final DateTime localStart;
@@ -20,6 +20,7 @@ class RecurrencePicker extends StatefulWidget {
   final int weekStartsOn;
   final DateTime? lastUntilDate;
   final ValueChanged<RecurrenceDraft> onChanged;
+  final String? customRuleDescription;
 
   const RecurrencePicker({
     super.key,
@@ -29,6 +30,7 @@ class RecurrencePicker extends StatefulWidget {
     required this.weekStartsOn,
     required this.onChanged,
     this.lastUntilDate,
+    this.customRuleDescription,
   });
 
   @override
@@ -44,13 +46,6 @@ class _RecurrencePickerState extends State<RecurrencePicker> {
     RecurrenceFrequency.weekly: 'Weekly',
     RecurrenceFrequency.monthly: 'Monthly',
     RecurrenceFrequency.yearly: 'Yearly',
-  };
-
-  static const _intervalUnits = {
-    RecurrenceFrequency.daily: 'day',
-    RecurrenceFrequency.weekly: 'week',
-    RecurrenceFrequency.monthly: 'month',
-    RecurrenceFrequency.yearly: 'year',
   };
 
   static const _gap = 12.0;
@@ -109,6 +104,7 @@ class _RecurrencePickerState extends State<RecurrencePicker> {
                 ),
                 items: frequencyItems,
                 onChanged: _onFrequencyChanged,
+                helperText: draft == null ? widget.customRuleDescription : null,
               ),
             ),
             if (draft != null && draft.repeats && intervalBesideRepeat) ...[
@@ -117,13 +113,6 @@ class _RecurrencePickerState extends State<RecurrencePicker> {
             ],
           ],
         ),
-        if (draft == null) ...[
-          const SizedBox(height: 8),
-          Text(
-            "This repeat setting can't be shown here. Choosing a new one replaces it for all occurrences.",
-            style: AppStyles.smallSecondaryTextLight(context),
-          ),
-        ],
         if (draft != null && draft.repeats) ..._buildRepeatOptions(context, draft, intervalBesideRepeat),
       ],
     );
@@ -138,7 +127,7 @@ class _RecurrencePickerState extends State<RecurrencePicker> {
   }
 
   List<DropDownItem<RecurrenceFrequency>> get _frequencyItems => [
-        if (widget.draft == null) DropDownItem(id: _customId, label: 'Custom repeat'),
+        if (widget.draft == null) DropDownItem(id: _customId, label: 'Custom'),
         for (final frequency in RecurrenceFrequency.values)
           DropDownItem(id: frequency.index, value: frequency, label: _frequencyLabels[frequency]),
       ];
@@ -154,7 +143,8 @@ class _RecurrencePickerState extends State<RecurrencePicker> {
       ];
 
   bool _intervalFitsBesideRepeat(BuildContext context, double width) {
-    final widestUnit = _intervalUnits.values.map((unit) => _textWidth(context, '${unit}s')).reduce(math.max);
+    final widestUnit =
+        HeliumRecurrence.intervalUnits.values.map((unit) => _textWidth(context, '${unit}s')).reduce(math.max);
     return (width - _gap) / 2 >= _countFieldWidth + _unitGap + widestUnit;
   }
 
@@ -170,7 +160,7 @@ class _RecurrencePickerState extends State<RecurrencePicker> {
   }
 
   Widget _buildIntervalField(BuildContext context, RecurrenceDraft draft) {
-    final unit = _intervalUnits[draft.frequency]!;
+    final unit = HeliumRecurrence.intervalUnits[draft.frequency]!;
     return Row(
       crossAxisAlignment: CrossAxisAlignment.end,
       children: [

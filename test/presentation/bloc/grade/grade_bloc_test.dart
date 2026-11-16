@@ -186,6 +186,34 @@ void main() {
       );
 
       blocTest<GradeBloc, GradeState>(
+        'passes a desired GPA through and answers with it',
+        build: () {
+          when(
+            () => mockGradeRepository.getNeededGrade(
+              courseId: 1,
+              targetId: 2,
+              desiredGpa: 3.5,
+            ),
+          ).thenAnswer(
+            (_) async => NeededGradeModel(
+              state: NeededGradeState.achievable,
+              neededGrade: 90,
+              weighted: false,
+            ),
+          );
+          return gradeBloc;
+        },
+        act: (bloc) => bloc.add(
+          CalculateNeededGradeEvent(courseId: 1, targetId: 2, desiredGpa: 3.5),
+        ),
+        expect: () => [
+          isA<NeededGradeCalculating>(),
+          isA<NeededGradeCalculated>()
+              .having((s) => (s.desiredGrade, s.desiredGpa), 'desired', (null, 3.5)),
+        ],
+      );
+
+      blocTest<GradeBloc, GradeState>(
         'emits [NeededGradeCalculating, NeededGradeError] when the calculation fails',
         build: () {
           when(

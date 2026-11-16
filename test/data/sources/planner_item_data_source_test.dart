@@ -500,6 +500,86 @@ void main() {
       });
     });
 
+    group('Todos window', () {
+      for (final zoneName in ['Europe/Amsterdam', 'America/Los_Angeles']) {
+        test('lists assignments overlapping a group and hides those after every group ends ($zoneName)', () {
+          // GIVEN
+          final zone = tz.getLocation(zoneName);
+          dataSource.userSettings = _createUserSettings(timeZone: zone);
+          dataSource.courseGroupsById = {
+            1: MockModels.createCourseGroup(
+              startDate: DateTime(2025, 8, 25),
+              endDate: DateTime(2025, 12, 15),
+            ),
+          };
+          dataSource.addPlannerItem(MockModels.createHomework(
+            id: 1,
+            start: tz.TZDateTime(zone, 2025, 10, 1, 9).toUtc(),
+            end: tz.TZDateTime(zone, 2025, 10, 1, 10).toUtc(),
+          ));
+          dataSource.addPlannerItem(MockModels.createHomework(
+            id: 2,
+            start: tz.TZDateTime(zone, 2025, 12, 15, 23).toUtc(),
+            end: tz.TZDateTime(zone, 2025, 12, 16, 1).toUtc(),
+          ));
+          dataSource.addPlannerItem(MockModels.createHomework(
+            id: 3,
+            start: tz.TZDateTime(zone, 2025, 12, 16, 0, 30).toUtc(),
+            end: tz.TZDateTime(zone, 2025, 12, 16, 1).toUtc(),
+          ));
+
+          // WHEN
+          final listed = dataSource.filteredHomeworks;
+
+          // THEN
+          expect(
+            listed.map((h) => h.id),
+            unorderedEquals([1, 2]),
+            reason: 'one starting on the last day still shows; one entirely after it does not',
+          );
+        });
+      }
+
+      test('lists the occurrences of a repeating assignment inside a group, not those after it ends', () {
+        // GIVEN
+        final amsterdam = tz.getLocation('Europe/Amsterdam');
+        dataSource.userSettings = _createUserSettings(timeZone: amsterdam);
+        dataSource.courseGroupsById = {
+          1: MockModels.createCourseGroup(
+            startDate: DateTime(2025, 8, 25),
+            endDate: DateTime(2025, 9, 20),
+          ),
+        };
+        dataSource.addPlannerItem(MockModels.createHomework(
+          id: 950,
+          start: tz.TZDateTime(amsterdam, 2025, 9, 11, 9).toUtc(),
+          end: tz.TZDateTime(amsterdam, 2025, 9, 11, 10).toUtc(),
+          recurrenceRule: 'FREQ=WEEKLY;BYDAY=TH;COUNT=4',
+        ));
+
+        // WHEN
+        final listed = dataSource.filteredHomeworks;
+
+        // THEN
+        expect(
+          listed.map((h) => tz.TZDateTime.from(h.start, amsterdam).day),
+          [11, 18],
+        );
+      });
+
+      test('lists every assignment before the groups have loaded', () {
+        // GIVEN
+        dataSource.courseGroupsById = null;
+        dataSource.addPlannerItem(_createHomeworkModel(id: 1));
+
+        // WHEN
+        final listed = dataSource.filteredHomeworks;
+
+        // THEN
+        expect(listed.map((h) => h.id), [1]);
+      });
+    });
+
     group('repeating assignments', () {
       late tz.Location amsterdam;
       late HomeworkModel series;

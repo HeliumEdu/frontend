@@ -3,9 +3,8 @@ import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/data/models/auth/user_settings_model.dart';
 import 'package:heliumapp/data/models/planner/grade_category_model.dart';
 import 'package:heliumapp/data/models/planner/homework_series_item_model.dart';
+import 'package:heliumapp/presentation/features/grades/dialogs/grade_calculator_gpa.dart';
 import 'package:heliumapp/presentation/ui/components/category_title_label.dart';
-import 'package:heliumapp/presentation/ui/components/course_title_label.dart';
-import 'package:heliumapp/presentation/ui/components/grade_label.dart';
 import 'package:heliumapp/presentation/ui/components/helium_elevated_button.dart';
 import 'package:heliumapp/presentation/ui/feedback/empty_card.dart';
 import 'package:heliumapp/presentation/ui/feedback/success_container.dart';
@@ -14,22 +13,23 @@ import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/date_time_helpers.dart';
 import 'package:heliumapp/utils/format_helpers.dart';
 import 'package:heliumapp/utils/grade_helpers.dart';
+import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:heliumapp/utils/sort_helpers.dart';
 
 /// "What Could I Get?" projection tab content.
 ///
 /// Lets students set hypothetical scores for each ungraded assignment and see
-/// the resulting projected overall grade live. Lives inside
-/// [GradeCalculatorContainer] as tab 0.
+/// the resulting projected overall grade live, or, in GPA [mode], the
+/// projected term GPA. Lives inside [GradeCalculatorContainer] as tab 0.
 class GradeProjectionTab extends StatefulWidget {
   final List<GradeCategoryModel> categories;
   final List<HomeworkSeriesItemModel> ungradedAssignments;
   final double pointsEarned;
   final double pointsPossible;
-  final double currentOverallGrade;
-  final String courseTitle;
   final Color courseColor;
   final UserSettingsModel userSettings;
+  final GradeCalculatorMode mode;
+  final GradeCalculatorGpa? gpa;
 
   const GradeProjectionTab({
     super.key,
@@ -37,10 +37,10 @@ class GradeProjectionTab extends StatefulWidget {
     required this.ungradedAssignments,
     required this.pointsEarned,
     required this.pointsPossible,
-    required this.currentOverallGrade,
-    required this.courseTitle,
     required this.courseColor,
     required this.userSettings,
+    this.mode = GradeCalculatorMode.classGrade,
+    this.gpa,
   });
 
   @override
@@ -127,14 +127,6 @@ class _GradeProjectionTabState extends State<GradeProjectionTab> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        CourseTitleLabel(title: widget.courseTitle, color: widget.courseColor),
-        const SizedBox(height: 4),
-        GradeLabel(
-          grade: GradeHelper.gradeForDisplay(widget.currentOverallGrade),
-          userSettings: widget.userSettings,
-        ),
-        const SizedBox(height: 12),
-
         if (widget.ungradedAssignments.isEmpty)
           const EmptyCard(
             icon: Icons.check_circle_outline,
@@ -262,6 +254,9 @@ class _GradeProjectionTabState extends State<GradeProjectionTab> {
   Widget _buildProjectedGradeStatus(BuildContext context) {
     final grade = _projectedGrade;
     if (grade < 0) return const SizedBox.shrink();
+    if (widget.mode == GradeCalculatorMode.termGpa) {
+      return _buildProjectedGpaStatus(context, widget.gpa!, grade);
+    }
 
     final threshold = widget.userSettings.atRiskThreshold.toDouble();
     final text = 'Projected grade: ${GradeHelper.gradeForDisplay(grade)}';
@@ -269,5 +264,40 @@ class _GradeProjectionTabState extends State<GradeProjectionTab> {
     return grade >= threshold
         ? SuccessContainer(text: text)
         : WarningContainer(text: text);
+  }
+
+  Widget _buildProjectedGpaStatus(
+    BuildContext context,
+    GradeCalculatorGpa gpa,
+    double grade,
+  ) {
+    final gradePoint = GradeHelper.gradePointFor(grade, gpa.gradeScale)!;
+    final termGpa = gpa.termGpaWith(gradePoint)!;
+    final cumulativeGpa = Responsive.isNarrowMobile(context)
+        ? null
+        : gpa.cumulativeGpaWith(gradePoint);
+
+    var text = 'Projected GPA: ${GradeHelper.gradePointForDisplay(termGpa)}'
+        '${_gpaChange(gpa.termGpa, termGpa)}';
+    if (cumulativeGpa != null) {
+      text += ' • All ${GradeHelper.gradePointForDisplay(cumulativeGpa)}'
+          '${_gpaChange(gpa.cumulativeGpa, cumulativeGpa)}';
+    }
+
+    final currentGpa = gpa.termGpa;
+    final holdsOrImproves = currentGpa == null ||
+        gpa.holdsOrImproves(
+          GradeHelper.displayedGpa(currentGpa),
+          GradeHelper.displayedGpa(termGpa),
+        );
+    return holdsOrImproves ? SuccessContainer(text: text) : WarningContainer(text: text);
+  }
+
+  String _gpaChange(double? current, double projected) {
+    if (current == null) return '';
+    final change = GradeHelper.displayedGpa(projected) - GradeHelper.displayedGpa(current);
+    if (change == 0) return '';
+    final amount = GradeHelper.gradePointForDisplay(change.abs());
+    return change > 0 ? ' (+$amount)' : ' (-$amount)';
   }
 }

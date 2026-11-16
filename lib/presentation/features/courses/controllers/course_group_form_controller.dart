@@ -8,6 +8,7 @@ class CourseGroupFormController extends BasicFormController {
   bool shownOnCalendar = true;
   DateTime? startDate;
   DateTime? endDate;
+  List<DateTime> exceptions = const [];
 
   int gradeScaleTemplate = GradeScaleTemplate.none;
   List<GradeScaleBandModel> customGradeScale = const [];

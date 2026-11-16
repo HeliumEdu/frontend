@@ -15,7 +15,8 @@ abstract class GradeRemoteDataSource extends BaseDataSource {
   Future<NeededGradeModel> getNeededGrade({
     required int courseId,
     required int targetId,
-    required double desiredGrade,
+    double? desiredGrade,
+    double? desiredGpa,
   });
 }
 
@@ -75,7 +76,8 @@ class GradeRemoteDataSourceImpl extends GradeRemoteDataSource {
   Future<NeededGradeModel> getNeededGrade({
     required int courseId,
     required int targetId,
-    required double desiredGrade,
+    double? desiredGrade,
+    double? desiredGpa,
   }) async {
     try {
       _log.info('Calculating needed Grade for Course $courseId ...');
@@ -85,7 +87,8 @@ class GradeRemoteDataSourceImpl extends GradeRemoteDataSource {
         queryParameters: {
           'course': courseId,
           'target': targetId,
-          'desired_grade': desiredGrade,
+          'desired_grade': ?desiredGrade,
+          'desired_gpa': ?desiredGpa,
         },
       );
 

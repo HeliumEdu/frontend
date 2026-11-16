@@ -23,6 +23,7 @@ import 'package:heliumapp/presentation/ui/feedback/discard_changes_scope.dart';
 import 'package:heliumapp/presentation/ui/components/helium_icon_button.dart';
 import 'package:heliumapp/presentation/features/notebook/views/note_add_screen.dart';
 import 'package:heliumapp/utils/attachment_helpers.dart';
+import 'package:heliumapp/utils/planner_helper.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:heliumapp/utils/snack_bar_helpers.dart';
 import 'package:logging/logging.dart';
@@ -162,6 +163,7 @@ class _PlannerItemAddScreenState
   int? _targetStep;
   String? _registeredPrefix;
   HomeworkModel? _savedHomework;
+  bool _itemRepeats = false;
 
   @override
   void initState() {
@@ -359,7 +361,7 @@ class _PlannerItemAddScreenState
         enabled: !isSubmitting,
         onPressed: () => _detailsKey.currentState?.onClone(),
         icon: Icons.copy_outlined,
-        tooltip: 'Clone',
+        tooltip: _itemRepeats ? 'Clone this occurrence' : 'Clone',
       ),
     ];
   }
@@ -438,6 +440,10 @@ class _PlannerItemAddScreenState
         listener: (context, state) {
           if (state is PlannerItemScreenDataFetched) {
             _dataLoaded = true;
+            if (state.plannerItem case final item?
+                when item.id == _currentEntityId) {
+              setState(() => _itemRepeats = PlannerHelper.isRepeatingItem(item));
+            }
             if (state.plannerItem case final HomeworkModel homework
                 when homework.id == _currentEntityId) {
               setState(() => _savedHomework = homework);
@@ -448,6 +454,13 @@ class _PlannerItemAddScreenState
               when state.origin == EventOrigin.subScreen ||
                   homework.id == _currentEntityId) {
             setState(() => _savedHomework = homework);
+          }
+          if (state case EventCreated(event: final PlannerItemBaseModel item) ||
+              EventUpdated(event: final PlannerItemBaseModel item) ||
+              HomeworkCreated(homework: final PlannerItemBaseModel item) ||
+              HomeworkUpdated(homework: final PlannerItemBaseModel item)
+              when item.id == _currentEntityId) {
+            setState(() => _itemRepeats = PlannerHelper.isRepeatingItem(item));
           }
 
           if (state is PlannerItemScreenDataFailed &&
@@ -587,12 +600,20 @@ class _PlannerItemAddScreenState
               _log.info(
                 'Planner item saved normally (entityId=${state.entityId}, isEvent=${state.isEvent}, isNew=${state is HomeworkCreated || state is EventCreated})',
               );
+              final outsideTodos =
+                  _detailsKey.currentState?.isOutsideTodosWindow ?? false;
               if (state is HomeworkCreated || state is EventCreated) {
-                final willClose = _willCloseAfterSave();
+                final created = '${state.isEvent ? 'Event' : 'Assignment'} created.';
                 showSnackBar(
                   context,
-                  '${state.isEvent ? 'Event' : 'Assignment'} created.',
-                  useRootMessenger: willClose,
+                  outsideTodos ? '$created $outsideTodosWindowNote' : created,
+                  useRootMessenger: _willCloseAfterSave(),
+                );
+              } else if (outsideTodos) {
+                showSnackBar(
+                  context,
+                  'Assignment saved. $outsideTodosWindowNote',
+                  useRootMessenger: _willCloseAfterSave(),
                 );
               }
 

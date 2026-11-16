@@ -116,6 +116,7 @@ class PlannerItemDetailsState extends State<PlannerItemDetails>
   late bool _isEvent;
   PlannerItemBaseModel? _plannerItem;
   List<CourseGroupModel> _courseGroups = [];
+  bool _isOutsideTodosWindow = false;
   List<CourseModel> _courses = [];
   List<DropDownItem<CourseModel>> _courseItems = [];
   CourseModel? _itemCourse;
@@ -127,6 +128,7 @@ class PlannerItemDetailsState extends State<PlannerItemDetails>
   List<String> _preferredResourceNames = [];
   RecurrenceDraft? _recurrence = const RecurrenceDraft();
   RecurrenceDraft? _originalRecurrence = const RecurrenceDraft();
+  String? _originalRecurrenceRule;
 
   @override
   void initState() {
@@ -181,6 +183,10 @@ class PlannerItemDetailsState extends State<PlannerItemDetails>
 
   @override
   String get itemNoun => _isEvent ? 'event' : 'assignment';
+
+  /// Whether the assignment last submitted falls outside the dates the Todos
+  /// view shows.
+  bool get isOutsideTodosWindow => _isOutsideTodosWindow;
 
   @override
   ({int? homeworkId, int? eventId, int? resourceId, int? courseId}) get linkedItem => (
@@ -574,7 +580,7 @@ class PlannerItemDetailsState extends State<PlannerItemDetails>
       child: InfoContainer(
         text:
             'Once you\'ve created at least one Class shown on the Planner, '
-            'you can create either an Event or an Assignment here.',
+            'you can add Assignments from here too.',
         trailing: HeliumIconButton(
           icon: Icons.school,
           backgroundColor: context.colorScheme.onSurfaceVariant,
@@ -664,23 +670,12 @@ class PlannerItemDetailsState extends State<PlannerItemDetails>
         return;
       }
 
-      // Warn if homework dates fall outside the course's date range
-      if (!_isEvent && selectedCourse != null) {
-        final courseStart = HeliumDateTime.dateOnly(selectedCourse.startDate);
-        final courseEnd = HeliumDateTime.dateOnly(selectedCourse.endDate);
-        final homeworkStart = HeliumDateTime.dateOnly(formController.startDate);
-        final homeworkEnd = HeliumDateTime.dateOnly(formController.endDate);
-
-        if (homeworkStart.isBefore(courseStart) ||
-            homeworkEnd.isAfter(courseEnd)) {
-          _log.info('Assignment dates fall outside course date range (courseId=${selectedCourse.id}, courseStart=$courseStart, courseEnd=$courseEnd, homeworkStart=$homeworkStart, homeworkEnd=$homeworkEnd)');
-          SnackBarHelper.show(
-            context,
-            "This assignment won't appear in the Todos view, since it is now outside the class's date range.",
-            type: SnackType.info,
+      _isOutsideTodosWindow = !_isEvent &&
+          PlannerHelper.isOutsideTodosWindow(
+            HeliumDateTime.dateOnly(formController.startDate),
+            HeliumDateTime.dateOnly(formController.endDate),
+            _courseGroups,
           );
-        }
-      }
 
       final seriesSave = await _resolveSeriesSave();
       if (seriesSave == null || !mounted) return;
@@ -706,7 +701,10 @@ class PlannerItemDetailsState extends State<PlannerItemDetails>
     }
   }
 
-  bool get _isRecurringItem => _plannerItem?.recurrenceRule != null;
+  bool get _isRecurringItem {
+    final item = _plannerItem;
+    return item != null && PlannerHelper.isRepeatingItem(item);
+  }
 
   tz.Location get _timeZone => widget.userSettings.timeZone;
 
@@ -783,7 +781,7 @@ class PlannerItemDetailsState extends State<PlannerItemDetails>
       context: context,
       action: RecurrenceScopeAction.edit,
       isEvent: _isEvent,
-      thisDetail: 'It keeps its reminders. Notes and attachments stay with the other occurrences.',
+      thisDetail: 'It keeps its reminders.',
     );
     if (scope == null) return null;
     return scope == RecurrenceScope.thisOccurrence ? _SeriesSave.thisOccurrence : _SeriesSave.all;
@@ -930,17 +928,26 @@ class PlannerItemDetailsState extends State<PlannerItemDetails>
 
   Widget _buildRecurrenceSection(BuildContext context) {
     final course = _isEvent ? null : _courseById(formController.selectedCourse);
+    final localStart = HeliumDateTime.dateAndTimeIn(
+      formController.startDate,
+      formController.isAllDay ? null : formController.startTime,
+      _timeZone,
+    );
     return RecurrencePicker(
       draft: _recurrence,
-      localStart: HeliumDateTime.dateAndTimeIn(
-        formController.startDate,
-        formController.isAllDay ? null : formController.startTime,
-        _timeZone,
-      ),
+      localStart: localStart,
       isEvent: _isEvent,
       weekStartsOn: widget.userSettings.weekStartsOn,
       lastUntilDate: course?.endDate,
       onChanged: _onRecurrenceChanged,
+      customRuleDescription: _recurrence == null && _originalRecurrenceRule != null
+          ? HeliumRecurrence.describe(
+              _originalRecurrenceRule!,
+              localStart,
+              _timeZone,
+              weekStartsOn: widget.userSettings.weekStartsOn,
+            )
+          : null,
     );
   }
 
@@ -950,6 +957,7 @@ class PlannerItemDetailsState extends State<PlannerItemDetails>
   }
 
   void _loadRecurrence(PlannerItemBaseModel plannerItem) {
+    _originalRecurrenceRule = plannerItem.recurrenceRule;
     _originalRecurrence = HeliumRecurrence.parse(
       plannerItem.recurrenceRule,
       HeliumDateTime.toLocal(plannerItem.start, _timeZone),
@@ -1154,8 +1162,8 @@ class PlannerItemDetailsState extends State<PlannerItemDetails>
       selectedCourse = _courses.where((c) => c.id == formController.selectedCourse).firstOrNull;
     }
 
-    final firstDate = selectedCourse?.startDate ?? DateTime.now().subtract(const Duration(days: 365 * 10));
-    final lastDate = selectedCourse?.endDate ?? DateTime.now().add(const Duration(days: 365 * 10));
+    final firstDate = selectedCourse?.startDate ?? HeliumDateTime.earliestPickableDate();
+    final lastDate = selectedCourse?.endDate ?? HeliumDateTime.latestPickableDate();
     final rawInitial = isStartDate ? formController.startDate : formController.endDate;
     final initialDate = rawInitial.isBefore(firstDate) ? firstDate
         : (rawInitial.isAfter(lastDate) ? lastDate : rawInitial);
@@ -1177,7 +1185,9 @@ class PlannerItemDetailsState extends State<PlannerItemDetails>
           if (_recurrence case final draft?) {
             _recurrence = HeliumRecurrence.followStart(draft, previousStart, picked);
           }
-          if (formController.isAllDay) {
+          if (formController.showEndDateTime) {
+            _endFollowsStart(previousStart, formController.startTime);
+          } else if (formController.isAllDay) {
             formController.endDate = DateRangeEnforcer.adjustEndDate(
               picked,
               formController.endDate,
@@ -1218,6 +1228,22 @@ class PlannerItemDetailsState extends State<PlannerItemDetails>
     }
   }
 
+  void _endFollowsStart(DateTime previousStartDate, TimeOfDay previousStartTime) {
+    final allDay = formController.isAllDay;
+    final end = DateRangeEnforcer.followStart(
+      previousStartDate: previousStartDate,
+      previousStartTime: allDay ? null : previousStartTime,
+      startDate: formController.startDate,
+      startTime: allDay ? null : formController.startTime,
+      endDate: formController.endDate,
+      endTime: allDay ? null : formController.endTime,
+    );
+    formController.endDate = end.date;
+    if (end.time case final time?) {
+      formController.endTime = time;
+    }
+  }
+
   Future<void> _selectTime(BuildContext context, bool isStartTime) async {
     final TimeOfDay? picked = await showTimePicker(
       context: context,
@@ -1232,7 +1258,11 @@ class PlannerItemDetailsState extends State<PlannerItemDetails>
       formController.markChanged();
       formController.userChangedTime = true;
       setState(() {
-        if (isStartTime) {
+        if (isStartTime && formController.showEndDateTime) {
+          final previousStartTime = formController.startTime;
+          formController.startTime = picked;
+          _endFollowsStart(formController.startDate, previousStartTime);
+        } else if (isStartTime) {
           formController.startTime = picked;
           final adjusted = DateRangeEnforcer.adjustEnd(
             startDate: formController.startDate,

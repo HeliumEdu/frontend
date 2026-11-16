@@ -3,30 +3,42 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/data/models/auth/user_settings_model.dart';
+import 'package:heliumapp/data/models/drop_down_item.dart';
+import 'package:heliumapp/data/models/planner/grade_course_group_model.dart';
 import 'package:heliumapp/data/models/planner/grade_course_model.dart';
 import 'package:heliumapp/presentation/features/grades/dialogs/grade_calculator_dialog.dart';
+import 'package:heliumapp/presentation/features/grades/dialogs/grade_calculator_gpa.dart';
 import 'package:heliumapp/presentation/features/grades/dialogs/grade_projection_tab.dart';
+import 'package:heliumapp/presentation/ui/components/course_title_label.dart';
+import 'package:heliumapp/presentation/ui/components/drop_down.dart';
+import 'package:heliumapp/presentation/ui/components/grade_label.dart';
+import 'package:heliumapp/presentation/ui/components/grade_point_label.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/app_style.dart';
+import 'package:heliumapp/utils/grade_helpers.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:heliumapp/core/analytics_service.dart';
 import 'package:heliumapp/core/motion_service.dart';
 
 /// Tabbed dialog container for the grade calculator feature.
 ///
-/// Tab 0 — "What Could I Get?": projects the overall grade based on
+/// Tab 0 — "What Could I Get?": projects the overall grade (or GPA) based on
 /// hypothetical scores for each ungraded assignment.
 ///
 /// Tab 1 — "What Do I Need?": calculates the score needed in a single
-/// remaining category assignment to hit a desired overall grade.
+/// remaining category assignment to hit a desired overall grade (or GPA).
 class GradeCalculatorContainer extends StatefulWidget {
   final GradeCourseModel course;
+  final List<GradeCourseGroupModel> courseGroups;
+  final double? cumulativeGpa;
   final UserSettingsModel userSettings;
   final double defaultDesiredGradeBoost;
 
   const GradeCalculatorContainer({
     super.key,
     required this.course,
+    required this.courseGroups,
+    this.cumulativeGpa,
     required this.userSettings,
     this.defaultDesiredGradeBoost = 5.0,
   });
@@ -39,6 +51,8 @@ class _GradeCalculatorContainerState extends State<GradeCalculatorContainer>
     with SingleTickerProviderStateMixin {
   static const _tabs = ['What Could I Get?', 'What Do I Need?'];
   late final TabController _tabController;
+  late final GradeCalculatorGpa? _gpa;
+  GradeCalculatorMode _mode = GradeCalculatorMode.classGrade;
 
   @override
   void initState() {
@@ -49,7 +63,28 @@ class _GradeCalculatorContainerState extends State<GradeCalculatorContainer>
       animationDuration: MotionService().effectiveDuration(AppConstants.uiAnimationDuration),
     );
     _tabController.addListener(_onTabChanged);
-    unawaited(AnalyticsService().logScreenView(screenName: 'grade_calculator_what_could_i_get'));
+    final courseGroup = widget.courseGroups
+        .where((group) => group.courses.any((c) => c.id == widget.course.id))
+        .firstOrNull;
+    _gpa = courseGroup == null || _gpaUnavailableReason != null
+        ? null
+        : GradeCalculatorGpa.of(
+            widget.course,
+            courseGroup,
+            widget.courseGroups,
+            widget.cumulativeGpa,
+          );
+    _logScreenView();
+  }
+
+  String? get _gpaUnavailableReason {
+    if (widget.course.gradeScale.isEmpty) {
+      return 'Set a grade scale on the group to use GPA.';
+    }
+    if (widget.course.credits <= 0) {
+      return 'Add credits to this class to use GPA.';
+    }
+    return null;
   }
 
   @override
@@ -61,13 +96,21 @@ class _GradeCalculatorContainerState extends State<GradeCalculatorContainer>
 
   void _onTabChanged() {
     if (_tabController.indexIsChanging) return;
-    if (_tabController.index == 0) {
-      unawaited(AnalyticsService().logScreenView(
-          screenName: 'grade_calculator_what_could_i_get'));
-    } else {
-      unawaited(AnalyticsService().logScreenView(
-          screenName: 'grade_calculator_what_do_i_need'));
-    }
+    _logScreenView();
+  }
+
+  void _logScreenView() {
+    final tab = _tabController.index == 0 ? 'what_could_i_get' : 'what_do_i_need';
+    final mode = _mode == GradeCalculatorMode.termGpa ? '_gpa' : '';
+    unawaited(AnalyticsService().logScreenView(
+        screenName: 'grade_calculator_$tab$mode'));
+  }
+
+  void _onModeChanged(DropDownItem<GradeCalculatorMode>? item) {
+    final mode = item?.value;
+    if (mode == null || mode == _mode) return;
+    setState(() => _mode = mode);
+    _logScreenView();
   }
 
   @override
@@ -128,6 +171,8 @@ class _GradeCalculatorContainerState extends State<GradeCalculatorContainer>
                       : null,
                 ),
                 const SizedBox(height: 16),
+                _buildCourseHeader(context),
+                const SizedBox(height: 12),
 
                 Expanded(
                   child: ListenableBuilder(
@@ -142,20 +187,20 @@ class _GradeCalculatorContainerState extends State<GradeCalculatorContainer>
                             ungradedAssignments: widget.course.ungradedAssignments,
                             pointsEarned: widget.course.pointsEarned,
                             pointsPossible: widget.course.pointsPossible,
-                            currentOverallGrade: widget.course.overallGrade,
-                            courseTitle: widget.course.title,
                             courseColor: widget.course.color,
                             userSettings: widget.userSettings,
+                            mode: _mode,
+                            gpa: _gpa,
                           ),
                           GradeCalculatorDialog(
                             courseId: widget.course.id,
                             categories: widget.course.categories,
                             ungradedAssignments: widget.course.ungradedAssignments,
                             currentOverallGrade: widget.course.overallGrade,
-                            courseTitle: widget.course.title,
                             courseColor: widget.course.color,
-                            userSettings: widget.userSettings,
                             defaultDesiredGradeBoost: widget.defaultDesiredGradeBoost,
+                            mode: _mode,
+                            gpa: _gpa,
                           ),
                         ],
                       );
@@ -167,6 +212,52 @@ class _GradeCalculatorContainerState extends State<GradeCalculatorContainer>
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildCourseHeader(BuildContext context) {
+    final course = widget.course;
+    final unavailableReason = _gpaUnavailableReason;
+    final modes = [
+      DropDownItem(
+        id: GradeCalculatorMode.classGrade.index,
+        value: GradeCalculatorMode.classGrade,
+        label: 'Class grade',
+      ),
+      DropDownItem(
+        id: GradeCalculatorMode.termGpa.index,
+        value: GradeCalculatorMode.termGpa,
+        label: 'Term GPA',
+      ),
+    ];
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        CourseTitleLabel(title: course.title, color: course.color),
+        const SizedBox(height: 4),
+        Row(
+          children: [
+            GradeLabel(
+              grade: GradeHelper.gradeForDisplay(course.overallGrade),
+              userSettings: widget.userSettings,
+            ),
+            GradePointLabel(
+              gradePoint: course.gradePoint,
+              credits: course.credits,
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        DropDown<GradeCalculatorMode>(
+          key: ValueKey(_mode),
+          label: 'Calculate for',
+          initialValue: modes[_mode.index],
+          items: modes,
+          onChanged: _gpa == null ? null : _onModeChanged,
+          helperText: unavailableReason,
+        ),
+      ],
     );
   }
 }

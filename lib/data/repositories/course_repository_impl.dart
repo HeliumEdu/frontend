@@ -98,12 +98,4 @@ class CourseRepositoryImpl implements CourseRepository {
   ) async {
     return remoteDataSource.updateCourseExceptions(groupId, courseId, exceptions);
   }
-
-  @override
-  Future<CourseGroupModel> updateCourseGroupExceptions(
-    int groupId,
-    List<DateTime> exceptions,
-  ) async {
-    return remoteDataSource.updateCourseGroupExceptions(groupId, exceptions);
-  }
 }

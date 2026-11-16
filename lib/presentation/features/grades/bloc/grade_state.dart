@@ -33,13 +33,15 @@ class NeededGradeCalculating extends GradeState {}
 class NeededGradeCalculated extends GradeState {
   final int courseId;
   final int targetId;
-  final double desiredGrade;
+  final double? desiredGrade;
+  final double? desiredGpa;
   final NeededGradeModel result;
 
   NeededGradeCalculated({
     required this.courseId,
     required this.targetId,
-    required this.desiredGrade,
+    this.desiredGrade,
+    this.desiredGpa,
     required this.result,
   });
 }
@@ -47,12 +49,14 @@ class NeededGradeCalculated extends GradeState {
 class NeededGradeError extends GradeState {
   final int courseId;
   final int targetId;
-  final double desiredGrade;
+  final double? desiredGrade;
+  final double? desiredGpa;
 
   NeededGradeError({
     required this.courseId,
     required this.targetId,
-    required this.desiredGrade,
+    this.desiredGrade,
+    this.desiredGpa,
     required super.message,
   });
 }

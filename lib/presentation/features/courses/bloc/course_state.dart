@@ -198,12 +198,6 @@ class CourseScheduleDeleted extends CourseState {
   CourseScheduleDeleted({required super.origin, required this.id});
 }
 
-class CourseGroupExceptionsUpdated extends CourseState {
-  final CourseGroupModel courseGroup;
-
-  CourseGroupExceptionsUpdated({required super.origin, required this.courseGroup});
-}
-
 class CourseExceptionsUpdated extends CourseState {
   final CourseModel course;
 

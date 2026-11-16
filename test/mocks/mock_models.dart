@@ -17,13 +17,18 @@ import 'package:heliumapp/data/models/planner/request/course_schedule_request_mo
 import 'package:heliumapp/data/models/planner/event_model.dart';
 import 'package:heliumapp/data/models/planner/external_calendar_event_model.dart';
 import 'package:heliumapp/data/models/planner/external_calendar_model.dart';
+import 'package:heliumapp/data/models/planner/grade_category_model.dart';
 import 'package:heliumapp/data/models/planner/grade_course_group_model.dart';
+import 'package:heliumapp/data/models/planner/grade_course_model.dart';
+import 'package:heliumapp/data/models/planner/grade_scale_band_model.dart';
 import 'package:heliumapp/data/models/planner/homework_series_item_model.dart';
 import 'package:heliumapp/data/models/planner/homework_model.dart';
 import 'package:heliumapp/data/models/planner/reminder_model.dart';
 import 'package:heliumapp/data/models/planner/resource_group_model.dart';
 import 'package:heliumapp/data/models/planner/resource_model.dart';
+import 'package:heliumapp/presentation/features/grades/dialogs/grade_calculator_gpa.dart';
 import 'package:heliumapp/utils/conversion_helpers.dart';
+import 'package:heliumapp/utils/grade_scale_constants.dart';
 import 'package:timezone/data/latest_all.dart' as tz_data;
 import 'package:timezone/standalone.dart' as tz;
 
@@ -156,6 +161,8 @@ class MockModels {
     DateTime? endDate,
     bool shownOnCalendar = true,
     double? overallGrade,
+    List<GradeScaleBandModel> gradeScale = const [],
+    int? gradeScaleTemplate,
   }) {
     return CourseGroupModel(
       id: id,
@@ -165,7 +172,8 @@ class MockModels {
       shownOnCalendar: shownOnCalendar,
       exceptions: const [],
       overallGrade: overallGrade,
-      gradeScale: const [],
+      gradeScale: gradeScale,
+      gradeScaleTemplate: gradeScaleTemplate,
       exampleSchedule: false,
     );
   }
@@ -256,6 +264,7 @@ class MockModels {
     double? currentGrade = 85.5,
     List<CourseScheduleModel>? schedules,
     List<int> notes = const [],
+    int? gradeScaleTemplate,
   }) {
     return CourseModel(
       id: id,
@@ -274,6 +283,7 @@ class MockModels {
       schedules: schedules ?? [createCourseSchedule(course: id)],
       exceptions: const [],
       notes: notes,
+      gradeScaleTemplate: gradeScaleTemplate,
     );
   }
 
@@ -337,20 +347,64 @@ class MockModels {
     int numHomework = 20,
     int numHomeworkCompleted = 15,
     int numHomeworkGraded = 12,
+    double? gpa,
+    bool inCumulativeGpa = false,
+    bool exampleSchedule = false,
+    List<GradeCourseModel> courses = const [],
   }) {
     return GradeCourseGroupModel(
       id: id,
       title: title,
       overallGrade: overallGrade,
-      gpa: null,
-      inCumulativeGpa: false,
-      exampleSchedule: false,
+      gpa: gpa,
+      inCumulativeGpa: inCumulativeGpa,
+      exampleSchedule: exampleSchedule,
       trend: null,
       homeworkSeries: homeworkSeries ?? [],
-      courses: [],
+      courses: courses,
       numHomework: numHomework,
       numHomeworkCompleted: numHomeworkCompleted,
       numHomeworkGraded: numHomeworkGraded,
+    );
+  }
+
+  /// Creates a mock [GradeCourseModel] with default or custom values.
+  /// Creates a [GradeCalculatorGpa] for a 3-credit class at 2.7 on the 4.0 +/-
+  /// scale, in a term with one other 3-credit class at 3.0 (term GPA 2.85).
+  static GradeCalculatorGpa createGradeCalculatorGpa() {
+    final scale = GradeScaleTemplate.scales[2]!;
+    final course = createGradeCourse(credits: 3, gradePoint: 2.7, gradeScale: scale);
+    final other = createGradeCourse(id: 5, credits: 3, gradePoint: 3.0, gradeScale: scale);
+    return GradeCalculatorGpa(course: course, termCourses: [course, other], termGpa: 2.85);
+  }
+
+  static GradeCourseModel createGradeCourse({
+    int id = 1,
+    String title = 'Fundamentals of Programming',
+    double overallGrade = 80,
+    double credits = 3,
+    double? gradePoint,
+    List<GradeScaleBandModel> gradeScale = const [],
+    List<GradeCategoryModel> categories = const [],
+    List<HomeworkSeriesItemModel> homeworkSeries = const [],
+    double pointsEarned = 0,
+    double pointsPossible = 0,
+  }) {
+    return GradeCourseModel(
+      id: id,
+      title: title,
+      overallGrade: overallGrade,
+      credits: credits,
+      gradePoint: gradePoint,
+      gradeScale: gradeScale,
+      color: Colors.blue,
+      numHomework: homeworkSeries.length,
+      numHomeworkCompleted: 0,
+      numHomeworkGraded: 0,
+      pointsEarned: pointsEarned,
+      pointsPossible: pointsPossible,
+      categories: categories,
+      homeworkSeries: homeworkSeries,
     );
   }
 

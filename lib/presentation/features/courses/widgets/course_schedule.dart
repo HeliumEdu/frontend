@@ -82,7 +82,6 @@ class _CourseScheduleContentState extends State<_CourseScheduleContent> {
   List<DateTime> _courseGroupExceptions = [];
   DateTime? _courseStartDate;
   DateTime? _courseEndDate;
-  String? _courseTitle;
   Color? _courseColor;
 
   @override
@@ -136,7 +135,6 @@ class _CourseScheduleContentState extends State<_CourseScheduleContent> {
             _courseGroupExceptions = state.courseGroup.exceptions;
             _courseStartDate = state.course?.startDate;
             _courseEndDate = state.course?.endDate;
-            _courseTitle = state.course?.title;
             _courseColor = state.course?.color;
           });
         } else if (_isFetchFailure(state)) {
@@ -299,13 +297,31 @@ class _CourseScheduleContentState extends State<_CourseScheduleContent> {
   Future<void> _showCancellations() {
     return showCourseExceptionsDialog(
       context: context,
-      courseGroupId: widget.courseGroupId,
-      courseId: widget.courseId,
-      courseTitle: _courseTitle ?? '',
       courseExceptions: _courseExceptions,
+      onConfirm: _saveCancellations,
       courseGroupExceptions: _courseGroupExceptions,
       firstDate: _courseStartDate,
       lastDate: _courseEndDate,
     );
+  }
+
+  Future<String?> _saveCancellations(List<DateTime> exceptions) async {
+    final bloc = context.read<CourseBloc>();
+    final outcome = bloc.stream.firstWhere(
+      (state) =>
+          (state is CourseExceptionsUpdated &&
+              state.course.id == widget.courseId) ||
+          (state is CoursesError && state.origin == EventOrigin.dialog),
+    );
+    bloc.add(
+      UpdateCourseExceptionsEvent(
+        origin: EventOrigin.dialog,
+        courseGroupId: widget.courseGroupId,
+        courseId: widget.courseId,
+        exceptions: exceptions,
+      ),
+    );
+    final state = await outcome;
+    return state is CoursesError ? state.message : null;
   }
 }

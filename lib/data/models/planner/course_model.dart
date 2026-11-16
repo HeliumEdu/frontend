@@ -11,6 +11,7 @@ class CourseModel extends BaseTitledModel {
   final DateTime endDate;
   final String room;
   final double credits;
+  final int? gradeScaleTemplate;
   final Color color;
   final Uri? website;
   final bool isOnline;
@@ -35,6 +36,7 @@ class CourseModel extends BaseTitledModel {
     required this.endDate,
     required this.room,
     required this.credits,
+    this.gradeScaleTemplate,
     required this.color,
     this.website,
     required this.isOnline,
@@ -63,6 +65,7 @@ class CourseModel extends BaseTitledModel {
       endDate: DateTime.parse(json['end_date']),
       room: json['room'],
       credits: toDouble(json['credits'])!,
+      gradeScaleTemplate: json['grade_scale_template'],
       color: HeliumColors.hexToColor(json['color']),
       website: toUri(json['website']),
       isOnline: json['is_online'],
@@ -96,6 +99,7 @@ class CourseModel extends BaseTitledModel {
     DateTime? endDate,
     String? room,
     double? credits,
+    int? gradeScaleTemplate,
     Color? color,
     Uri? website,
     bool? isOnline,
@@ -121,6 +125,7 @@ class CourseModel extends BaseTitledModel {
       endDate: endDate ?? this.endDate,
       room: room ?? this.room,
       credits: credits ?? this.credits,
+      gradeScaleTemplate: gradeScaleTemplate ?? this.gradeScaleTemplate,
       color: color ?? this.color,
       website: website ?? this.website,
       isOnline: isOnline ?? this.isOnline,

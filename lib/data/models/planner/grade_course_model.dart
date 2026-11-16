@@ -2,6 +2,7 @@ import 'dart:ui';
 
 import 'package:heliumapp/data/models/base_model.dart';
 import 'package:heliumapp/data/models/planner/grade_category_model.dart';
+import 'package:heliumapp/data/models/planner/grade_scale_band_model.dart';
 import 'package:heliumapp/data/models/planner/homework_series_item_model.dart';
 import 'package:heliumapp/utils/color_helpers.dart';
 import 'package:heliumapp/utils/conversion_helpers.dart';
@@ -10,6 +11,7 @@ class GradeCourseModel extends BaseTitledModel {
   final double overallGrade;
   final double credits;
   final double? gradePoint;
+  final List<GradeScaleBandModel> gradeScale;
   final Color color;
   final double? trend;
   final int numHomework;
@@ -26,6 +28,7 @@ class GradeCourseModel extends BaseTitledModel {
     required this.overallGrade,
     required this.credits,
     required this.gradePoint,
+    required this.gradeScale,
     required this.color,
     this.trend,
     required this.numHomework,
@@ -62,6 +65,7 @@ class GradeCourseModel extends BaseTitledModel {
       overallGrade: toDouble(json['overall_grade'])!,
       credits: toDouble(json['credits'])!,
       gradePoint: toGradedDouble(json['grade_point']),
+      gradeScale: GradeScaleBandModel.listFromJson(json['grade_scale']),
       color: HeliumColors.hexToColor(json['color']),
       trend: (json['trend'] as num?)?.toDouble(),
       numHomework: json['num_homework'],

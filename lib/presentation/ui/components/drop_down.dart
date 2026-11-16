@@ -17,6 +17,7 @@ class DropDown<T> extends StatelessWidget {
   final void Function(DropDownItem<T>?)? onChanged;
   final String? Function(DropDownItem<T>?)? validator;
   final Widget? trailingIconButton;
+  final String? helperText;
 
   const DropDown({
     super.key,
@@ -27,6 +28,7 @@ class DropDown<T> extends StatelessWidget {
     required this.onChanged,
     this.validator,
     this.trailingIconButton,
+    this.helperText,
   });
 
   @override
@@ -111,6 +113,20 @@ class DropDown<T> extends StatelessWidget {
           ),
           ),
         ),
+        if (helperText != null) ...[
+          const SizedBox(height: 4),
+          Padding(
+            padding: const EdgeInsets.only(left: _contentPadding),
+            child: Text(
+              helperText!,
+              style: AppStyles.smallSecondaryText(context).copyWith(
+                color: context.colorScheme.onSurface.withValues(
+                  alpha: AppStyles.mutedTextAlpha,
+                ),
+              ),
+            ),
+          ),
+        ],
       ],
     );
 

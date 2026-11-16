@@ -45,6 +45,11 @@ enum PlannerFilterStatus {
   final String value;
 }
 
+/// Added to a save's confirmation when the assignment lands outside the dates
+/// the Todos view shows.
+const outsideTodosWindowNote =
+    "It's outside your groups' dates, so it won't show in Todos.";
+
 class PlannerHelper {
   static final List<int> weekStartsOnRemap = [7, 1, 2, 3, 4, 5, 6];
 
@@ -420,6 +425,30 @@ class PlannerHelper {
           .reduce((a, b) => a.isAfter(b) ? a : b),
     );
   }
+
+  /// Whether [item] is a repeating assignment or event. A class schedule's
+  /// rule describes its meetings, not a repeat the student set.
+  static bool isRepeatingItem(PlannerItemBaseModel item) =>
+      (item is HomeworkModel || item is EventModel) && item.recurrenceRule != null;
+
+  /// Whether dates from [start] to [end] fall entirely outside the window the
+  /// Todos view shows, spanned by the visible groups in [courseGroups].
+  static bool isOutsideTodosWindow(
+    DateTime start,
+    DateTime end,
+    List<CourseGroupModel> courseGroups,
+  ) {
+    final window = courseGroupDateWindow(courseGroups);
+    return window != null && isOutsideWindow(start, end, window);
+  }
+
+  /// Whether dates from [start] to [end] fall entirely outside [window].
+  static bool isOutsideWindow(
+    DateTime start,
+    DateTime end,
+    ({DateTime from, DateTime to}) window,
+  ) =>
+      end.isBefore(window.from) || start.isAfter(window.to);
 
   /// Rounds [minute] to the nearest 30-minute boundary (0 or 30).
   /// Used when snapping drag-and-drop and resize times on the calendar.

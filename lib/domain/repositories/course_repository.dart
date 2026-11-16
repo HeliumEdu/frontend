@@ -46,9 +46,4 @@ abstract class CourseRepository {
     int courseId,
     List<DateTime> exceptions,
   );
-
-  Future<CourseGroupModel> updateCourseGroupExceptions(
-    int groupId,
-    List<DateTime> exceptions,
-  );
 }

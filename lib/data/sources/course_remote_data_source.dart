@@ -59,11 +59,6 @@ abstract class CourseRemoteDataSource extends BaseDataSource {
     int courseId,
     List<DateTime> exceptions,
   );
-
-  Future<CourseGroupModel> updateCourseGroupExceptions(
-    int groupId,
-    List<DateTime> exceptions,
-  );
 }
 
 class CourseRemoteDataSourceImpl extends CourseRemoteDataSource {
@@ -430,36 +425,6 @@ class CourseRemoteDataSourceImpl extends CourseRemoteDataSource {
       }
     } on DioException catch (e, s) {
       throw handleDioError(e, s, notFoundEntity: 'Class');
-    } on HeliumException {
-      rethrow;
-    } catch (e, s) {
-      _log.severe('An unexpected error occurred', e, s);
-      throw HeliumException(message: HeliumException.unexpectedError);
-    }
-  }
-
-  @override
-  Future<CourseGroupModel> updateCourseGroupExceptions(
-    int groupId,
-    List<DateTime> exceptions,
-  ) async {
-    try {
-      _log.info('Updating exceptions for CourseGroup $groupId ...');
-
-      final response = await dioClient.dio.patch(
-        ApiUrl.plannerCourseGroupsDetailsUrl(groupId),
-        data: {'exceptions': CourseExceptionHelpers.formatExceptionsCsv(exceptions)},
-      );
-
-      if (response.statusCode == 200) {
-        _log.info('... exceptions for CourseGroup $groupId updated');
-        await dioClient.cacheService.invalidateAll();
-        return CourseGroupModel.fromJson(response.data);
-      } else {
-        throw unexpectedStatus(response, 'Failed to update group exceptions.');
-      }
-    } on DioException catch (e, s) {
-      throw handleDioError(e, s, notFoundEntity: 'Group');
     } on HeliumException {
       rethrow;
     } catch (e, s) {

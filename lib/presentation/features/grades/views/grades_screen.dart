@@ -29,6 +29,7 @@ import 'package:heliumapp/presentation/features/planner/views/planner_item_add_s
 import 'package:heliumapp/presentation/ui/components/category_title_label.dart';
 import 'package:heliumapp/presentation/ui/components/course_title_label.dart';
 import 'package:heliumapp/presentation/ui/components/grade_label.dart';
+import 'package:heliumapp/presentation/ui/components/grade_point_label.dart';
 import 'package:heliumapp/presentation/ui/components/group_dropdown.dart';
 import 'package:heliumapp/presentation/ui/components/helium_checkbox_list_tile.dart';
 import 'package:heliumapp/presentation/ui/components/hover_tap_target.dart';
@@ -1243,6 +1244,8 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
         value: gradeBloc,
         child: GradeCalculatorContainer(
           course: course,
+          courseGroups: _grades,
+          cumulativeGpa: _cumulativeGpa,
           userSettings: userSettings,
           defaultDesiredGradeBoost: _defaultDesiredGradeBoost,
         ),
@@ -1429,19 +1432,10 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
             const SizedBox(width: 8),
             // Expand/collapse chevron
             PrintHidden(
-              child: IconButton(
-                style: IconButton.styleFrom(
-                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                ),
-                icon: AnimatedRotation(
-                  turns: _graphExpanded ? 0.5 : 0,
-                  duration: MotionService().effectiveDuration(AppConstants.uiAnimationDuration),
-                  child: Icon(
-                    Icons.keyboard_arrow_down,
-                    semanticLabel: _graphExpanded ? 'Collapse' : 'Expand',
-                  ),
-                ),
-                onPressed: () {
+              child: _buildExpandButton(
+                context,
+                _graphExpanded,
+                () {
                   setState(() {
                     _graphExpanded = !_graphExpanded;
                   });
@@ -2286,22 +2280,14 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
                           ),
                         ),
                       ],
-                      if (course.gradePoint != null &&
-                          course.credits > 0 &&
-                          !Responsive.isSlimMobile(context)) ...[
-                        const SizedBox(width: 8),
-                        Tooltip(
-                          message: 'Grade point',
-                          child: Text(
-                            '${GradeHelper.gradePointForDisplay(course.gradePoint!)} GP',
-                            style: AppStyles.standardBodyText(context).copyWith(
-                              color: context.colorScheme.onSurface.withValues(
-                                alpha: 0.6,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
+                      GradePointLabel(
+                        gradePoint: course.gradePoint,
+                        credits: course.credits,
+                        letterGrade: GradeHelper.gradeBandFor(
+                          course.overallGrade,
+                          course.gradeScale,
+                        )?.label,
+                      ),
                       if (course.categories.any((c) => c.weight > 0)) ...[
                         const SizedBox(width: 8),
                         Icon(
@@ -2360,8 +2346,13 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
                 ],
               ),
             ),
+            const SizedBox(width: 4),
             PrintHidden(
-              child: _buildExpandButton(context, course, isExpanded),
+              child: _buildExpandButton(
+                context,
+                isExpanded,
+                () => _toggleExpandedCourse(course.id),
+              ),
             ),
           ],
         ),
@@ -2371,8 +2362,8 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
 
   Widget _buildExpandButton(
     BuildContext context,
-    GradeCourseModel course,
     bool isExpanded,
+    VoidCallback onPressed,
   ) {
     final iconSize = Responsive.getIconSize(
       context,
@@ -2381,6 +2372,12 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
       desktop: 24,
     );
     return IconButton(
+      style: IconButton.styleFrom(
+        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        padding: const EdgeInsets.all(4),
+        minimumSize: Size.zero,
+      ),
+      constraints: const BoxConstraints(),
       icon: AnimatedRotation(
         turns: isExpanded ? 0.5 : 0,
         duration: MotionService().effectiveDuration(AppConstants.uiAnimationDuration),
@@ -2391,7 +2388,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
           semanticLabel: isExpanded ? 'Collapse' : 'Expand',
         ),
       ),
-      onPressed: () => _toggleExpandedCourse(course.id),
+      onPressed: onPressed,
     );
   }
 

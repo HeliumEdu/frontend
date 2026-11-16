@@ -12,6 +12,7 @@ class CourseRequestModel {
   final String title;
   final String room;
   final String credits;
+  final int? gradeScaleTemplate;
   final String color;
   final String website;
   final bool isOnline;
@@ -26,6 +27,7 @@ class CourseRequestModel {
     required this.title,
     required this.room,
     required this.credits,
+    this.gradeScaleTemplate,
     required this.color,
     required this.website,
     required this.isOnline,
@@ -42,6 +44,7 @@ class CourseRequestModel {
       title: title,
       room: room,
       credits: credits,
+      gradeScaleTemplate: gradeScaleTemplate,
       color: color,
       website: website,
       isOnline: isOnline,
@@ -59,6 +62,7 @@ class CourseRequestModel {
       'title': title,
       'room': room,
       'credits': credits,
+      'grade_scale_template': gradeScaleTemplate,
       'color': color,
       'website': website,
       'is_online': isOnline,
@@ -76,6 +80,7 @@ class CourseRequestModel {
       title: json['title'],
       room: json['room'],
       credits: json['credits'],
+      gradeScaleTemplate: json['grade_scale_template'],
       color: json['color'],
       website: json['website'],
       isOnline: json['is_online'],

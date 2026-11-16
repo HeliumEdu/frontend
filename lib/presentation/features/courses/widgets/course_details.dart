@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:heliumapp/core/helium_exception.dart';
 import 'package:heliumapp/config/app_theme.dart';
+import 'package:heliumapp/data/models/drop_down_item.dart';
 import 'package:heliumapp/data/models/planner/course_group_model.dart';
 import 'package:heliumapp/data/models/planner/course_model.dart';
 import 'package:heliumapp/data/models/planner/request/course_request_model.dart';
@@ -36,6 +37,9 @@ import 'package:heliumapp/utils/date_time_helpers.dart';
 import 'package:logging/logging.dart';
 import 'package:heliumapp/utils/url_helpers.dart';
 import 'package:heliumapp/data/models/auth/user_settings_model.dart';
+import 'package:heliumapp/presentation/features/courses/widgets/grade_scale_field.dart';
+import 'package:heliumapp/utils/grade_helpers.dart';
+import 'package:heliumapp/utils/grade_scale_constants.dart';
 
 final _log = Logger('presentation.widgets');
 
@@ -67,6 +71,8 @@ class CourseDetailsState extends State<CourseDetails>
     with
         ConflictResolvableForm<CourseDetails>,
         LinkedNoteForm<CourseDetails, CourseModel> {
+  static const int _sameAsGroup = -2;
+
   final CourseFormController formController = CourseFormController();
   final FocusNode _notesFocusNode = FocusNode();
 
@@ -333,6 +339,10 @@ class CourseDetailsState extends State<CourseDetails>
                       ],
                     ),
                   ),
+                  if (_courseGroup case final group?) ...[
+                    const SizedBox(height: 14),
+                    _buildGradeScaleField(group),
+                  ],
                   const SizedBox(height: 14),
                   NotesEditor(
                     key: ObjectKey(formController.notesController),
@@ -377,6 +387,67 @@ class CourseDetailsState extends State<CourseDetails>
     );
   }
 
+  Widget _buildGradeScaleField(CourseGroupModel group) {
+    final template = formController.gradeScaleTemplate;
+    final groupLabel = GradeScaleTemplate.summaryLabel(
+      group.gradeScaleTemplate ?? GradeScaleTemplate.custom,
+    );
+    final presets = [
+      for (final preset in GradeHelper.compatiblePresets(group.gradeScale))
+        if (preset != group.gradeScaleTemplate || preset == template) preset,
+    ];
+    return GradeScaleField(
+      items: [
+        DropDownItem(
+          id: _sameAsGroup,
+          value: _sameAsGroup,
+          label: 'Same as group ($groupLabel)',
+        ),
+        for (final preset in presets)
+          DropDownItem(
+            id: preset,
+            value: preset,
+            label: GradeScaleTemplate.labels[preset],
+          ),
+      ],
+      selected: template ?? _sameAsGroup,
+      enabled: presets.isNotEmpty,
+      hint: _gradeScaleHint(group, groupLabel, presets),
+      bands: template == null
+          ? group.gradeScale
+          : GradeScaleTemplate.scales[template]!,
+      bandsTitle: template == null
+          ? groupLabel
+          : GradeScaleTemplate.summaryLabel(template),
+      onChanged: _onGradeScaleChanged,
+    );
+  }
+
+  String? _gradeScaleHint(
+    CourseGroupModel group,
+    String groupLabel,
+    List<int> presets,
+  ) {
+    if (group.gradeScale.isEmpty) {
+      return 'Set a grade scale on the group to choose one for this class.';
+    }
+    if (presets.isEmpty) {
+      final scale = group.gradeScaleTemplate == null
+          ? 'This custom scale'
+          : groupLabel;
+      return '$scale has no other compatible scales.';
+    }
+    return null;
+  }
+
+  void _onGradeScaleChanged(int selected) {
+    formController.markChanged();
+    setState(() {
+      formController.gradeScaleTemplate =
+          selected == _sameAsGroup ? null : selected;
+    });
+  }
+
   /// Submit the form. Called by parent screen when header save is pressed.
   @override
   bool onSubmit({bool redirectToNotebook = false}) {
@@ -393,6 +464,7 @@ class CourseDetailsState extends State<CourseDetails>
         credits: formController.creditsController.text.trim().isEmpty
             ? '0'
             : HeliumNumber.normalize(formController.creditsController.text),
+        gradeScaleTemplate: formController.gradeScaleTemplate,
         color: HeliumColors.colorToHex(formController.selectedColor),
         website: formController.urlController.text.trim(),
         isOnline: formController.isOnline,
@@ -461,6 +533,7 @@ class CourseDetailsState extends State<CourseDetails>
         final credits = state.course!.credits;
         formController.creditsController.text =
             credits == 0 ? '' : HeliumNumber.format(credits, trimZeros: true);
+        formController.gradeScaleTemplate = state.course!.gradeScaleTemplate;
 
         formController.startDate = state.course!.startDate;
         formController.endDate = state.course!.endDate;
@@ -490,8 +563,8 @@ class CourseDetailsState extends State<CourseDetails>
   }
 
   Future<void> _selectDate(BuildContext context, bool isStartDate) async {
-    final firstDate = _courseGroup?.startDate ?? DateTime.now().subtract(const Duration(days: 365 * 10));
-    final lastDate = _courseGroup?.endDate ?? DateTime.now().add(const Duration(days: 365 * 10));
+    final firstDate = _courseGroup?.startDate ?? HeliumDateTime.earliestPickableDate();
+    final lastDate = _courseGroup?.endDate ?? HeliumDateTime.latestPickableDate();
     final rawInitial = isStartDate ? formController.startDate : formController.endDate;
     final initialDate = rawInitial == null ? firstDate
         : (rawInitial.isBefore(firstDate) ? firstDate

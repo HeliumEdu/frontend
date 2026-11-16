@@ -22,6 +22,7 @@ Map<String, dynamic> _givenGradeCourseJson({
     'homework_series': [],
     'points_earned': pointsEarned,
     'points_possible': pointsPossible,
+    'grade_scale': [],
   };
 }
 
@@ -38,6 +39,23 @@ void main() {
         // THEN
         expect(course.pointsEarned, 60.0);
         expect(course.pointsPossible, 110.0);
+      });
+
+      test('parses the class grade scale', () {
+        // GIVEN
+        final json = {
+          ..._givenGradeCourseJson(),
+          'grade_scale': [
+            {'min_grade': 0.0, 'grade_point': 0.0, 'label': 'F'},
+            {'min_grade': 90.0, 'grade_point': 4.0, 'label': 'A'},
+          ],
+        };
+
+        // WHEN
+        final course = GradeCourseModel.fromJson(json);
+
+        // THEN
+        expect(course.gradeScale.map((band) => band.label), ['F', 'A']);
       });
 
       test('parses credits and grade point', () {

@@ -3,6 +3,7 @@ import 'package:heliumapp/data/models/planner/request/course_group_request_model
 
 CourseGroupRequestModel _givenCourseGroupRequestModel({
   int? gradeScaleTemplate,
+  List<DateTime> exceptions = const [],
 }) {
   return CourseGroupRequestModel(
     title: 'Spring',
@@ -10,6 +11,7 @@ CourseGroupRequestModel _givenCourseGroupRequestModel({
     endDate: '2026-05-08',
     shownOnCalendar: true,
     gradeScaleTemplate: gradeScaleTemplate,
+    exceptions: exceptions,
   );
 }
 
@@ -36,6 +38,30 @@ void main() {
 
         // THEN
         expect(json.containsKey('grade_scale_template'), isFalse);
+      });
+
+      test('sends holidays as sorted dates', () {
+        // GIVEN
+        final request = _givenCourseGroupRequestModel(
+          exceptions: [DateTime(2026, 3, 16), DateTime(2026, 1, 19)],
+        );
+
+        // WHEN
+        final json = request.toJson();
+
+        // THEN
+        expect(json['exceptions'], '20260119,20260316');
+      });
+
+      test('sends no holidays as an empty list, clearing them', () {
+        // GIVEN
+        final request = _givenCourseGroupRequestModel();
+
+        // WHEN
+        final json = request.toJson();
+
+        // THEN
+        expect(json['exceptions'], '');
       });
     });
   });

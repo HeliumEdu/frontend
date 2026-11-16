@@ -1223,7 +1223,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
     }
 
     final int? eventId = plannerItem is EventModel ? plannerItem.id : null;
-    final occurrenceStart = _isRecurringItem(plannerItem)
+    final occurrenceStart = PlannerHelper.isRepeatingItem(plannerItem)
         ? _occurrenceOf(plannerItem, occurrenceDate ?? plannerItem.start).start
         : null;
     final int? homeworkId = plannerItem is HomeworkModel
@@ -1999,8 +1999,8 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
     final DateTime? picked = await showDatePicker(
       context: context,
       initialDate: _calendarController.displayDate!,
-      firstDate: DateTime.now().subtract(const Duration(days: 365 * 10)),
-      lastDate: DateTime.now().add(const Duration(days: 365 * 10)),
+      firstDate: HeliumDateTime.earliestPickableDate(),
+      lastDate: HeliumDateTime.latestPickableDate(),
       confirmText: 'Select',
     );
 
@@ -2187,7 +2187,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
       return;
     }
 
-    if (_isRecurringItem(plannerItem)) {
+    if (PlannerHelper.isRepeatingItem(plannerItem)) {
       _plannerItemDataSource!.resetAppointments();
     }
 
@@ -2290,7 +2290,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
         );
       }
 
-      if (_isRecurringItem(plannerItem)) {
+      if (PlannerHelper.isRepeatingItem(plannerItem)) {
         _plannerItemDataSource!.resetAppointments();
       }
 
@@ -2322,9 +2322,6 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
     }
   }
 
-  bool _isRecurringItem(PlannerItemBaseModel item) =>
-      (item is EventModel || item is HomeworkModel) && item.recurrenceRule != null;
-
   Future<void> _applyMove(
     PlannerItemBaseModel plannerItem,
     DateTime start,
@@ -2332,7 +2329,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
     required RecurrenceScopeAction action,
     bool? showEndTime,
   }) async {
-    if (_isRecurringItem(plannerItem)) {
+    if (PlannerHelper.isRepeatingItem(plannerItem)) {
       await _applyRecurringMove(plannerItem, start, end, action: action, showEndTime: showEndTime);
       return;
     }
@@ -2387,7 +2384,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
       context: context,
       action: action,
       isEvent: plannerItem is EventModel,
-      thisDetail: 'It keeps its reminders. Notes and attachments stay with the other occurrences.',
+      thisDetail: 'It keeps its reminders.',
     );
     if (scope == null || !mounted) return;
 
@@ -2463,7 +2460,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
     BuildContext context,
     PlannerItemBaseModel plannerItem,
   ) async {
-    if (_isRecurringItem(plannerItem)) {
+    if (PlannerHelper.isRepeatingItem(plannerItem)) {
       return _deleteSeriesItem(plannerItem);
     }
 
@@ -2671,7 +2668,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
 
     return KeyedSubtree(
       key: ValueKey(
-        'planner_item_${plannerItem.plannerItemType.name}_${plannerItem.id}${_isRecurringItem(plannerItem) ? '_${HeliumDateTime.formatDateForApi(details.date)}' : ''}',
+        'planner_item_${plannerItem.plannerItemType.name}_${plannerItem.id}${PlannerHelper.isRepeatingItem(plannerItem) ? '_${HeliumDateTime.formatDateForApi(details.date)}' : ''}',
       ),
       child: _buildPlannerItemTooltip(
         plannerItem: _isRecurringPlannerItem(plannerItem) ? _occurrenceOf(plannerItem, details.date) : plannerItem,
@@ -3776,18 +3773,12 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
     DateTime newStart,
     DateTime newEnd,
   ) {
-    final course = _courses.firstWhere((c) => c.id == homework.course.id);
-    final courseStart = HeliumDateTime.dateOnly(course.startDate);
-    final courseEnd = HeliumDateTime.dateOnly(course.endDate);
-    final homeworkStart = HeliumDateTime.dateOnly(newStart);
-    final homeworkEnd = HeliumDateTime.lastDayOf(newEnd, allDay: homework.allDay);
-
-    if (homeworkStart.isBefore(courseStart) || homeworkEnd.isAfter(courseEnd)) {
-      showSnackBar(
-        context,
-        "This assignment won't appear in the Todos view, since it is now outside the class's date range.",
-        type: SnackType.info,
-      );
+    if (PlannerHelper.isOutsideTodosWindow(
+      HeliumDateTime.dateOnly(newStart),
+      HeliumDateTime.lastDayOf(newEnd, allDay: homework.allDay),
+      _courseGroups,
+    )) {
+      showSnackBar(context, 'Assignment moved. $outsideTodosWindowNote');
     }
   }
 
@@ -3940,7 +3931,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
   }
 
   void _onToggleCompleted(HomeworkModel homework, bool value, {DateTime? occurrenceDate}) {
-    if (homework.recurrenceRule != null) {
+    if (PlannerHelper.isRepeatingItem(homework)) {
       _completeOccurrence(
         occurrenceDate == null ? homework : _occurrenceOf(homework, occurrenceDate) as HomeworkModel,
       );

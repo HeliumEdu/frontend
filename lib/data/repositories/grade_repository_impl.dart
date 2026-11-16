@@ -17,12 +17,14 @@ class GradeRepositoryImpl implements GradeRepository {
   Future<NeededGradeModel> getNeededGrade({
     required int courseId,
     required int targetId,
-    required double desiredGrade,
+    double? desiredGrade,
+    double? desiredGpa,
   }) async {
     return remoteDataSource.getNeededGrade(
       courseId: courseId,
       targetId: targetId,
       desiredGrade: desiredGrade,
+      desiredGpa: desiredGpa,
     );
   }
 }

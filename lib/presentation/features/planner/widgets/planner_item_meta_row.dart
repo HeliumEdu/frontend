@@ -8,6 +8,7 @@ import 'package:heliumapp/data/models/auth/user_settings_model.dart';
 import 'package:heliumapp/data/models/planner/event_model.dart';
 import 'package:heliumapp/data/models/planner/homework_model.dart';
 import 'package:heliumapp/data/models/planner/planner_item_base_model.dart';
+import 'package:heliumapp/utils/planner_helper.dart';
 
 /// Row of meta indicators (linked note, resources, attachments, reminders) for
 /// a [PlannerItemBaseModel]; shared by the planner tooltip and todos grid.
@@ -59,16 +60,13 @@ class PlannerItemMetaRow extends StatelessWidget {
     bool includeRecurrence = true,
   }) {
     if (_linkedNoteId(plannerItem) != null) return true;
-    if (includeRecurrence && _repeats(plannerItem)) return true;
+    if (includeRecurrence && PlannerHelper.isRepeatingItem(plannerItem)) return true;
     if (plannerItem is HomeworkModel && resourceCount > 0) return true;
     if (plannerItem.attachments.isNotEmpty) return true;
     if (pulledThroughAttachmentCount > 0) return true;
     if (includeReminders && plannerItem.reminders.isNotEmpty) return true;
     return false;
   }
-
-  static bool _repeats(PlannerItemBaseModel plannerItem) =>
-      (plannerItem is HomeworkModel || plannerItem is EventModel) && plannerItem.recurrenceRule != null;
 
   static int? _linkedNoteId(PlannerItemBaseModel plannerItem) {
     if (plannerItem is HomeworkModel && plannerItem.notes.isNotEmpty) {
@@ -96,7 +94,7 @@ class PlannerItemMetaRow extends StatelessWidget {
       );
     }
 
-    if (showRecurrence && _repeats(item)) {
+    if (showRecurrence && PlannerHelper.isRepeatingItem(item)) {
       entries.add(
         _MetaEntry.iconOnly(
           icon: Icons.repeat,

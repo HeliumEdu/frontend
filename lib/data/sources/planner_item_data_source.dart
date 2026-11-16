@@ -778,7 +778,27 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
       allPlannerItems.whereType<ExternalCalendarEventModel>().toList();
 
   /// A repeating assignment is listed once per occurrence in the loaded days.
-  List<HomeworkModel> get filteredHomeworks => _applyHomeworkFilters(_homeworkOccurrences);
+  List<HomeworkModel> get filteredHomeworks => _applyHomeworkFilters(_withinTodosWindow(_homeworkOccurrences));
+
+  List<HomeworkModel> _withinTodosWindow(List<HomeworkModel> homeworks) {
+    final courseGroups = courseGroupsById?.values.toList();
+    if (courseGroups == null) return homeworks;
+    final window = PlannerHelper.courseGroupDateWindow(courseGroups);
+    if (window == null) return homeworks;
+
+    return homeworks
+        .where(
+          (homework) => !PlannerHelper.isOutsideWindow(
+            HeliumDateTime.dateOnly(HeliumDateTime.toLocal(homework.start, userSettings.timeZone)),
+            HeliumDateTime.lastDayOf(
+              HeliumDateTime.toLocal(homework.end, userSettings.timeZone),
+              allDay: homework.allDay,
+            ),
+            window,
+          ),
+        )
+        .toList();
+  }
 
   List<HomeworkModel> get _homeworkOccurrences {
     if (_dateRangeCache.isEmpty) return [];

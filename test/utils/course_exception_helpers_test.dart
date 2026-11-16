@@ -157,5 +157,72 @@ void main() {
         expect(parsed, equals(dates));
       });
     });
+
+    group('withinRange', () {
+      test('keeps dates from the first through the last day, inclusive', () {
+        // GIVEN
+        final dates = [
+          DateTime(2026, 8, 23),
+          DateTime(2026, 8, 24),
+          DateTime(2026, 11, 26),
+          DateTime(2026, 12, 18),
+          DateTime(2026, 12, 19),
+        ];
+
+        // WHEN
+        final result = CourseExceptionHelpers.withinRange(
+          dates,
+          DateTime(2026, 8, 24, 15, 30),
+          DateTime(2026, 12, 18, 9),
+        );
+
+        // THEN
+        expect(
+          result,
+          [DateTime(2026, 8, 24), DateTime(2026, 11, 26), DateTime(2026, 12, 18)],
+          reason: 'times of day on the range ends are ignored',
+        );
+      });
+    });
+
+    group('firstSelectableDate', () {
+      test('starts at today when the range has already begun', () {
+        // WHEN
+        final result = CourseExceptionHelpers.firstSelectableDate(
+          exceptions: [DateTime(2026, 11, 14)],
+          today: DateTime(2026, 11, 14),
+          firstDate: DateTime(2026, 8, 24),
+          lastDate: DateTime(2026, 12, 18),
+        );
+
+        // THEN
+        expect(result, DateTime(2026, 11, 15));
+      });
+
+      test('starts at the first day of a range that begins after today', () {
+        // WHEN
+        final result = CourseExceptionHelpers.firstSelectableDate(
+          exceptions: const [],
+          today: DateTime(2026, 11, 14),
+          firstDate: DateTime(2027, 1, 11),
+          lastDate: DateTime(2027, 5, 7),
+        );
+
+        // THEN
+        expect(result, DateTime(2027, 1, 11));
+      });
+
+      test('is null when every date in the range is excepted', () {
+        // WHEN
+        final result = CourseExceptionHelpers.firstSelectableDate(
+          exceptions: [DateTime(2026, 12, 17), DateTime(2026, 12, 18)],
+          today: DateTime(2026, 12, 17),
+          lastDate: DateTime(2026, 12, 18),
+        );
+
+        // THEN
+        expect(result, isNull);
+      });
+    });
   });
 }

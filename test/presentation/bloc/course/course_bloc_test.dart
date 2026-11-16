@@ -540,27 +540,6 @@ void main() {
 
     group('Exceptions', () {
       blocTest<CourseBloc, CourseState>(
-        'emits CourseGroupExceptionsUpdated with the saved group',
-        build: () {
-          when(
-            () => mockCourseRepository.updateCourseGroupExceptions(1, any()),
-          ).thenAnswer((_) async => MockModels.createCourseGroup(id: 1));
-          return courseBloc;
-        },
-        act: (bloc) => bloc.add(
-          UpdateCourseGroupExceptionsEvent(
-            origin: EventOrigin.dialog,
-            courseGroupId: 1,
-            exceptions: [DateTime(2026, 11, 26)],
-          ),
-        ),
-        expect: () => [
-          isA<CourseGroupExceptionsUpdated>()
-              .having((s) => s.courseGroup.id, 'courseGroup id', 1),
-        ],
-      );
-
-      blocTest<CourseBloc, CourseState>(
         'emits CourseExceptionsUpdated with the saved class',
         build: () {
           when(

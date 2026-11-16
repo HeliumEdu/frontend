@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:heliumapp/config/regional_settings_notifier.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/grade_helpers.dart';
+import 'package:heliumapp/utils/grade_scale_constants.dart';
 
 void main() {
   group('GradeHelper', () {
@@ -115,6 +116,49 @@ void main() {
         expect(GradeHelper.percentForDisplay('', null), 'N/A');
       });
     });
+
+    group('compatiblePresets', () {
+      test('offers whole letters in a term graded with +/-', () {
+        // WHEN
+        final onPlusMinus = GradeHelper.compatiblePresets(
+          GradeScaleTemplate.scales[2]!,
+        );
+        final on433 = GradeHelper.compatiblePresets(
+          GradeScaleTemplate.scales[3]!,
+        );
+
+        // THEN
+        expect(onPlusMinus, [1, 2]);
+        expect(on433, [1, 3]);
+      });
+
+      test('offers no +/- in a term graded with whole letters', () {
+        // WHEN
+        final presets = GradeHelper.compatiblePresets(
+          GradeScaleTemplate.scales[1]!,
+        );
+
+        // THEN
+        expect(presets, [1]);
+      });
+
+      test('matches grades by label as well as grade point', () {
+        // WHEN
+        final presets = GradeHelper.compatiblePresets(
+          GradeScaleTemplate.scales[6]!,
+        );
+
+        // THEN
+        expect(presets, [6], reason: 'a 4 is an A on 4.0 but a B- on 9.0');
+      });
+
+      test('offers nothing when the group has no scale', () {
+        // WHEN
+        final presets = GradeHelper.compatiblePresets(const []);
+
+        // THEN
+        expect(presets, isEmpty);
+      });
+    });
   });
 }
-

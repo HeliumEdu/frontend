@@ -218,6 +218,45 @@ void main() {
         expect(result.totalWeightAccountedFor, isNull);
       });
 
+      test('asks for a desired GPA and parses the band it needs', () async {
+        // GIVEN
+        when(
+          () => mockDio.get(
+            any(),
+            queryParameters: any(named: 'queryParameters'),
+          ),
+        ).thenAnswer(
+          (_) async => givenSuccessResponse({
+            'state': 'gpa_unreachable',
+            'needed_grade': 0,
+            'weighted': false,
+            'category': null,
+            'assignment': null,
+            'total_weight_accounted_for': null,
+            'grade_band': {'min_grade': 97.0, 'grade_point': 4.0, 'label': 'A+'},
+          }),
+        );
+
+        // WHEN
+        final result = await dataSource.getNeededGrade(
+          courseId: 1,
+          targetId: 2,
+          desiredGpa: 3.9,
+        );
+
+        // THEN
+        verify(
+          () => mockDio.get(
+            ApiUrl.plannerGradesNeededUrl,
+            queryParameters: {'course': 1, 'target': 2, 'desired_gpa': 3.9},
+          ),
+        ).called(1);
+        expect(result.state, NeededGradeState.gpaUnreachable);
+        expect(result.isAchievable, isFalse);
+        expect(result.gradeBand!.label, 'A+');
+        expect(result.gradeBand!.minGrade, 97.0);
+      });
+
       test('parses a weight error with no assignment', () async {
         // GIVEN
         when(

@@ -95,7 +95,30 @@ class DateRangeEnforcer {
     return (date: startDate, time: startTime);
   }
 
+  /// The end that keeps an item's length when its start moves from
+  /// [previousStartDate] at [previousStartTime] to [startDate] at [startTime]:
+  /// [endDate] at [endTime] shifted by the same wall-clock amount. Times are
+  /// null for an all-day item, which keeps its number of days.
+  static ({DateTime date, TimeOfDay? time}) followStart({
+    required DateTime previousStartDate,
+    required TimeOfDay? previousStartTime,
+    required DateTime startDate,
+    required TimeOfDay? startTime,
+    required DateTime endDate,
+    required TimeOfDay? endTime,
+  }) {
+    final length = _wallClock(endDate, endTime).difference(_wallClock(previousStartDate, previousStartTime));
+    final end = _wallClock(startDate, startTime).add(length);
+    return (
+      date: DateTime(end.year, end.month, end.day),
+      time: endTime == null ? null : TimeOfDay(hour: end.hour, minute: end.minute),
+    );
+  }
+
   static int _minuteOfDay(TimeOfDay t) => t.hour * 60 + t.minute;
+
+  static DateTime _wallClock(DateTime date, TimeOfDay? time) =>
+      DateTime.utc(date.year, date.month, date.day, time?.hour ?? 0, time?.minute ?? 0);
 
   static DateTime _combine(DateTime date, TimeOfDay? time) {
     if (time == null) return date;
@@ -107,6 +130,14 @@ class HeliumDateTime {
   static final _utcUntil = RegExp(r'UNTIL=(\d{8}T\d{6}Z)');
   static final _recurrenceDateTime = DateFormat("yyyyMMdd'T'HHmmss");
   static const dayNameShortPattern = 'EEE';
+
+  /// The earliest date a date picker offers when nothing narrower bounds it.
+  static DateTime earliestPickableDate() =>
+      DateTime.now().subtract(const Duration(days: 365 * 10));
+
+  /// The latest date a date picker offers when nothing narrower bounds it.
+  static DateTime latestPickableDate() =>
+      DateTime.now().add(const Duration(days: 365 * 10));
 
   /// Returns a DateTime with only the date part (time set to midnight)
   static DateTime dateOnly(DateTime date) {
@@ -624,6 +655,15 @@ class HeliumRecurrence {
   };
   static final _utcUntil = DateFormat("yyyyMMdd'T'HHmmss'Z'");
 
+  static const intervalUnits = {
+    RecurrenceFrequency.daily: 'day',
+    RecurrenceFrequency.weekly: 'week',
+    RecurrenceFrequency.monthly: 'month',
+    RecurrenceFrequency.yearly: 'year',
+  };
+
+  static const _positionNames = {1: '1st', 2: '2nd', 3: '3rd', 4: '4th', -1: 'last', -2: 'second-to-last'};
+
   HeliumRecurrence._();
 
   /// A monthly repeat from the 29th or later would skip the months without
@@ -764,6 +804,151 @@ class HeliumRecurrence {
       case RecurrenceFrequency.none:
         return null;
     }
+  }
+
+  /// How [rule] repeats, in words, for a rule [parse] can't represent. A rule
+  /// with a part it can't put into words reads as a custom schedule.
+  static String describe(String rule, DateTime localStart, tz.Location timeZone, {int weekStartsOn = 0}) {
+    return _describe(rule, localStart, timeZone, weekStartsOn) ?? 'Repeats on a custom schedule';
+  }
+
+  static String? _describe(String rule, DateTime localStart, tz.Location timeZone, int weekStartsOn) {
+    final parts = _parts(rule);
+    final frequency = _frequencies[parts.remove('FREQ')];
+    final interval = int.tryParse(parts.remove('INTERVAL') ?? '1');
+    if (frequency == null || interval == null || interval < 1) {
+      return null;
+    }
+
+    final byDay = parts.remove('BYDAY');
+    final bySetPos = parts.remove('BYSETPOS');
+    final byMonthDay = parts.remove('BYMONTHDAY');
+    final byMonth = parts.remove('BYMONTH');
+    final count = parts.remove('COUNT');
+    final until = parts.remove('UNTIL');
+    if (parts.isNotEmpty || (byDay != null && byMonthDay != null)) {
+      return null;
+    }
+
+    final String? on;
+    if (byDay != null) {
+      on = _describeWeekdays(frequency, byDay, bySetPos, byMonth, weekStartsOn);
+    } else if (bySetPos != null) {
+      return null;
+    } else if (byMonth != null) {
+      on = frequency == RecurrenceFrequency.yearly
+          ? _describeDayOfMonth(byMonth, byMonthDay ?? '${localStart.day}')
+          : null;
+    } else if (byMonthDay != null) {
+      on = _describeMonthDay(byMonthDay);
+    } else {
+      on = '';
+    }
+    if (on == null) {
+      return null;
+    }
+
+    final end = _describeEnd(count, until, timeZone);
+    if (end == null) {
+      return null;
+    }
+
+    return 'Repeats ${_describeInterval(frequency, interval)}$on$end';
+  }
+
+  static String _describeInterval(RecurrenceFrequency frequency, int interval) {
+    final unit = intervalUnits[frequency]!;
+    if (interval == 1) {
+      return frequency == RecurrenceFrequency.daily ? 'daily' : '${unit}ly';
+    }
+    return 'every $interval ${unit}s';
+  }
+
+  static String? _describeWeekdays(
+    RecurrenceFrequency frequency,
+    String byDay,
+    String? bySetPos,
+    String? byMonth,
+    int weekStartsOn,
+  ) {
+    final positioned = frequency == RecurrenceFrequency.monthly || frequency == RecurrenceFrequency.yearly;
+    if (!positioned) {
+      if (bySetPos != null || byMonth != null) {
+        return null;
+      }
+      final weekdays = byDay.split(',').map(_icalWeekdays.indexOf).toList();
+      if (weekdays.contains(-1)) {
+        return null;
+      }
+      final ordered = weekdays.toSet().toList()..sort((a, b) => (a - weekStartsOn) % 7 - (b - weekStartsOn) % 7);
+      final names = ordered.map((day) => _weekdayName(day, 'EEE'));
+      return ' on ${names.join(', ')}';
+    }
+
+    final match = RegExp(r'^([+-]?\d{1,2})?([A-Z]{2})$').firstMatch(byDay);
+    final weekday = match == null ? -1 : _icalWeekdays.indexOf(match.group(2)!);
+    if (weekday == -1 || (match!.group(1) != null && bySetPos != null)) {
+      return null;
+    }
+    final position = _positionNames[int.tryParse(match.group(1) ?? bySetPos ?? '')];
+    if (position == null) {
+      return null;
+    }
+    final described = ' on the $position ${_weekdayName(weekday, 'EEEE')}';
+    if (byMonth == null) {
+      return frequency == RecurrenceFrequency.yearly ? null : described;
+    }
+    final month = _monthName(byMonth);
+    return frequency == RecurrenceFrequency.yearly && month != null ? '$described of $month' : null;
+  }
+
+  static String? _describeDayOfMonth(String byMonth, String byMonthDay) {
+    final month = int.tryParse(byMonth);
+    final day = int.tryParse(byMonthDay);
+    if (month == null || day == null || month < 1 || month > 12) {
+      return null;
+    }
+    if (day == -1) {
+      return ' on the last day of ${_monthName(byMonth)}';
+    }
+    final date = DateTime(2000, month, day);
+    if (day < 1 || date.month != month) {
+      return null;
+    }
+    return ' on ${HeliumDateTime.formatDate(date, abbreviateMonth: false, showYear: false)}';
+  }
+
+  static String? _describeMonthDay(String byMonthDay) {
+    final day = int.tryParse(byMonthDay);
+    if (day == -1) {
+      return ' on the last day';
+    }
+    return day == null || day < 1 || day > 31 ? null : ' on day $day';
+  }
+
+  static String? _describeEnd(String? count, String? until, tz.Location timeZone) {
+    final times = count == null ? null : int.tryParse(count);
+    final untilDate = until == null ? null : _untilDate(until, timeZone);
+    if ((count != null && (times == null || times < 1)) || (until != null && untilDate == null)) {
+      return null;
+    }
+    final timesText = times == 1 ? 'once' : '$times times';
+    final untilText = untilDate == null ? null : 'until ${HeliumDateTime.formatDate(untilDate)}';
+    if (times != null && untilText != null) {
+      return ', up to $timesText $untilText';
+    }
+    if (times != null) {
+      return ', $timesText';
+    }
+    return untilText == null ? '' : ', $untilText';
+  }
+
+  static String _weekdayName(int icalIndex, String pattern) =>
+      DateFormat(pattern).format(DateTime(2023, 1, 1 + icalIndex));
+
+  static String? _monthName(String byMonth) {
+    final month = int.tryParse(byMonth);
+    return month == null || month < 1 || month > 12 ? null : DateFormat('MMMM').format(DateTime(2000, month));
   }
 
   static Map<String, String> _parts(String rule) {

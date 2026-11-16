@@ -181,17 +181,6 @@ class DeleteCourseScheduleEvent extends CourseEvent {
   });
 }
 
-class UpdateCourseGroupExceptionsEvent extends CourseEvent {
-  final int courseGroupId;
-  final List<DateTime> exceptions;
-
-  UpdateCourseGroupExceptionsEvent({
-    required super.origin,
-    required this.courseGroupId,
-    required this.exceptions,
-  });
-}
-
 class UpdateCourseExceptionsEvent extends CourseEvent {
   final int courseGroupId;
   final int courseId;

@@ -9,9 +9,15 @@
 // consistency. Both sides have their own test suites covering the math at
 // their respective layers.
 
+import 'dart:math' as math;
+
+import 'package:heliumapp/data/models/planner/course_group_model.dart';
+import 'package:heliumapp/data/models/planner/course_model.dart';
 import 'package:heliumapp/data/models/planner/grade_category_model.dart';
+import 'package:heliumapp/data/models/planner/grade_scale_band_model.dart';
 import 'package:heliumapp/data/models/planner/homework_series_item_model.dart';
 import 'package:heliumapp/utils/format_helpers.dart';
+import 'package:heliumapp/utils/grade_scale_constants.dart';
 
 class GradeHelper {
   /// Projects an overall grade given hypothetical scores for ungraded assignments.
@@ -144,6 +150,100 @@ class GradeHelper {
 
     return HeliumNumber.formatPercent(gradeValue, fractionDigits: 2);
   }
+
+  /// The presets a class in a group graded on [groupScale] can use: those whose
+  /// every grade (grade point and label) [groupScale] also awards. Mirrors
+  /// `gradeutils.compatible_presets` on the platform.
+  static List<int> compatiblePresets(List<GradeScaleBandModel> groupScale) {
+    if (groupScale.isEmpty) return const [];
+    final awarded = _gradesAwarded(groupScale);
+    return [
+      for (final MapEntry(key: template, value: scale)
+          in GradeScaleTemplate.scales.entries)
+        if (template != GradeScaleTemplate.none &&
+            awarded.containsAll(_gradesAwarded(scale)))
+          template,
+    ];
+  }
+
+  /// The name of the grade scale [course] is graded on: its own preset, else
+  /// [group]'s (Custom when that matches no preset), or null when the group
+  /// has none.
+  static String? gradeScaleLabelFor(CourseModel course, CourseGroupModel? group) {
+    if (group == null || group.gradeScale.isEmpty) return null;
+    return GradeScaleTemplate.summaryLabel(
+      course.gradeScaleTemplate ??
+          group.gradeScaleTemplate ??
+          GradeScaleTemplate.custom,
+    );
+  }
+
+  static Set<(double, String)> _gradesAwarded(
+    List<GradeScaleBandModel> scale,
+  ) => {
+    for (final band in scale)
+      ((band.gradePoint * 100).round() / 100, band.label),
+  };
+
+  /// The band [grade] falls in on [gradeScale]: the last band whose
+  /// `minGrade` the grade reaches as displayed (two places), so a grade above
+  /// 100 falls in the top band. Null when [grade] is ungraded (null or
+  /// negative) or there is no scale.
+  static GradeScaleBandModel? gradeBandFor(
+    double? grade,
+    List<GradeScaleBandModel> gradeScale,
+  ) {
+    if (grade == null || grade < 0 || gradeScale.isEmpty) return null;
+
+    final displayedGrade = _roundHalfUp(_roundHalfUp(grade, 4), 2);
+    var gradeBand = gradeScale.first;
+    for (final band in gradeScale) {
+      if (displayedGrade < band.minGrade) break;
+      gradeBand = band;
+    }
+    return gradeBand;
+  }
+
+  /// Mirrors `gradingservice.grade_point_for` on the platform.
+  static double? gradePointFor(
+    double? grade,
+    List<GradeScaleBandModel> gradeScale,
+  ) => gradeBandFor(grade, gradeScale)?.gradePoint;
+
+  /// The credit-weighted mean grade point of [classes] that have a grade point
+  /// and credits, or null when none do. Mirrors `gradingservice.gpa_for` on
+  /// the platform.
+  static double? gpaFor(Iterable<({double credits, double? gradePoint})> classes) {
+    final credited = classes.where(
+      (c) => c.gradePoint != null && c.credits > 0,
+    );
+    if (credited.isEmpty) return null;
+
+    final points = credited.fold<double>(
+      0,
+      (sum, c) => sum + c.credits * c.gradePoint!,
+    );
+    final credits = credited.fold<double>(0, (sum, c) => sum + c.credits);
+    return double.parse((points / credits).toStringAsFixed(4));
+  }
+
+  /// Whether a higher grade point is better on [gradeScale].
+  static bool isHigherGradePointBetter(List<GradeScaleBandModel> gradeScale) =>
+      gradeScale.isEmpty ||
+      gradeScale.last.gradePoint >= gradeScale.first.gradePoint;
+
+  static double _roundHalfUp(double value, int places) {
+    var text = value.abs().toString();
+    if (text.contains('e')) text = value.abs().toStringAsFixed(20);
+    final parts = text.split('.');
+    final fraction = (parts.length > 1 ? parts[1] : '').padRight(places + 1, '0');
+    var digits = BigInt.parse('${parts[0]}${fraction.substring(0, places)}');
+    if (fraction.codeUnitAt(places) >= 0x35) digits += BigInt.one;
+    final rounded = digits.toDouble() / math.pow(10, places);
+    return value < 0 ? -rounded : rounded;
+  }
+
+  static double displayedGpa(double gpa) => _roundHalfUp(gpa, 2);
 
   static String gradePointForDisplay(double gradePoint) =>
       HeliumNumber.format(gradePoint, fractionDigits: 2);

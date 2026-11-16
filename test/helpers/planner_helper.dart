@@ -182,10 +182,12 @@ Map<String, dynamic> givenCourseJson({
   double? currentGrade = 85.5,
   List<Map<String, dynamic>>? schedules,
   String exceptions = '',
+  int? gradeScaleTemplate,
 }) {
   return {
     'id': id,
     'title': title,
+    'grade_scale_template': gradeScaleTemplate,
     'start_date': startDate,
     'end_date': endDate,
     'room': room,

@@ -4,6 +4,7 @@ import 'package:heliumapp/core/helium_exception.dart';
 import 'package:heliumapp/data/models/id_or_entity.dart';
 import 'package:heliumapp/data/models/planner/category_model.dart';
 import 'package:heliumapp/data/models/planner/course_model.dart';
+import 'package:heliumapp/data/models/planner/course_schedule_event_model.dart';
 import 'package:heliumapp/data/models/planner/course_schedule_model.dart';
 import 'package:heliumapp/data/models/planner/event_model.dart';
 import 'package:heliumapp/data/models/planner/homework_model.dart';
@@ -13,6 +14,7 @@ import 'package:timezone/data/latest_all.dart' as tz_data;
 import 'package:timezone/standalone.dart' as tz;
 
 import '../helpers/planner_helper.dart';
+import '../mocks/mock_models.dart';
 
 void main() {
   tz_data.initializeTimeZones();
@@ -398,6 +400,60 @@ void main() {
         final homeworkItem = _createHomeworkModel();
 
         expect(PlannerHelper.shouldShowCheckbox(homeworkItem, 1000), isTrue);
+      });
+    });
+
+    group('isRepeatingItem', () {
+      test('is true for an assignment or event with a repeat', () {
+        // GIVEN
+        const rule = 'FREQ=WEEKLY;BYDAY=TH;COUNT=4';
+
+        // WHEN
+        final homeworkRepeats = PlannerHelper.isRepeatingItem(
+          MockModels.createHomework(recurrenceRule: rule),
+        );
+        final eventRepeats = PlannerHelper.isRepeatingItem(
+          MockModels.createEvent(recurrenceRule: rule),
+        );
+
+        // THEN
+        expect(homeworkRepeats, isTrue);
+        expect(eventRepeats, isTrue);
+      });
+
+      test('is false without a repeat', () {
+        // WHEN
+        final repeats = PlannerHelper.isRepeatingItem(MockModels.createHomework());
+
+        // THEN
+        expect(repeats, isFalse);
+      });
+
+      test('is false for a class meeting, whose rule is its schedule', () {
+        // GIVEN
+        final meeting = CourseScheduleEventModel(
+          id: 1,
+          title: 'Class',
+          allDay: false,
+          showEndTime: true,
+          start: DateTime.parse('2026-11-16T15:00:00Z'),
+          end: DateTime.parse('2026-11-16T16:00:00Z'),
+          priority: 50,
+          url: null,
+          comments: '',
+          attachments: [],
+          reminders: [],
+          ownerId: '1',
+          color: const Color(0xFFFF5722),
+          recurrenceRule: 'FREQ=WEEKLY;BYDAY=MO',
+          exceptionDates: const [],
+        );
+
+        // WHEN
+        final repeats = PlannerHelper.isRepeatingItem(meeting);
+
+        // THEN
+        expect(repeats, isFalse);
       });
     });
   });

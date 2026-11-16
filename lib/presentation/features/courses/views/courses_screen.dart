@@ -48,6 +48,7 @@ import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/course_group_helpers.dart';
 import 'package:heliumapp/utils/error_helpers.dart';
 import 'package:heliumapp/utils/format_helpers.dart';
+import 'package:heliumapp/utils/grade_helpers.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/attachment_helpers.dart';
 import 'package:heliumapp/utils/date_time_helpers.dart';
@@ -222,8 +223,6 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen> {
           } else if (state is CourseConflict) {
             _replaceCourse(state.latest);
             _applyLinkedNoteSave(state.latest.id, state.linkedNoteSave);
-          } else if (state is CourseGroupExceptionsUpdated) {
-            _replaceCourseGroup(state.courseGroup);
           } else if (state is CourseScreenDataFetched && state.course != null) {
             context.read<CourseBloc>().add(
               FetchCoursesScreenDataEvent(
@@ -577,6 +576,10 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen> {
     final attachments = _attachmentsByCourse[course.id] ?? const <AttachmentModel>[];
     final attachmentCount = attachments.length;
     final reminderCount = _reminderCounts[course.id] ?? 0;
+    final gradeScaleLabel = GradeHelper.gradeScaleLabelFor(
+      course,
+      _courseGroups.firstWhereOrNull((group) => group.id == course.courseGroup),
+    );
 
     return MobileGestureDetector(
       onTap: () => _onEdit(course),
@@ -769,33 +772,19 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen> {
                       ],
                       if (course.credits > 0) ...[
                         const SizedBox(height: 6),
-                        Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              Icons.school_outlined,
-                              size: Responsive.getIconSize(
-                                context,
-                                mobile: 14,
-                                tablet: 16,
-                                desktop: 16,
-                              ),
-                              color: context.colorScheme.onSurface.withValues(
-                                alpha: 0.5,
-                              ),
-                            ),
-                            const SizedBox(width: 4),
-                            Text(
-                              _formatCredits(course.credits),
-                              style: AppStyles.smallSecondaryText(
-                                context,
-                              ).copyWith(
-                                color: context.colorScheme.onSurface.withValues(
-                                  alpha: 0.6,
-                                ),
-                              ),
-                            ),
-                          ],
+                        _buildCardDetail(
+                          context,
+                          icon: Icons.school_outlined,
+                          text: _formatCredits(course.credits),
+                        ),
+                      ],
+                      if (gradeScaleLabel != null) ...[
+                        const SizedBox(height: 6),
+                        _buildCardDetail(
+                          context,
+                          icon: Icons.table_rows_outlined,
+                          text: gradeScaleLabel,
+                          tooltip: 'Grade scale',
                         ),
                       ],
                       if (attachmentCount > 0) ...[
@@ -918,6 +907,37 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen> {
     } else if (note != null) {
       setState(() => _upsertNoteForCourse(courseId, note));
     }
+  }
+
+  Widget _buildCardDetail(
+    BuildContext context, {
+    required IconData icon,
+    required String text,
+    String? tooltip,
+  }) {
+    final detail = Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(
+          icon,
+          size: Responsive.getIconSize(
+            context,
+            mobile: 14,
+            tablet: 16,
+            desktop: 16,
+          ),
+          color: context.colorScheme.onSurface.withValues(alpha: 0.5),
+        ),
+        const SizedBox(width: 4),
+        Text(
+          text,
+          style: AppStyles.smallSecondaryText(context).copyWith(
+            color: context.colorScheme.onSurface.withValues(alpha: 0.6),
+          ),
+        ),
+      ],
+    );
+    return tooltip == null ? detail : Tooltip(message: tooltip, child: detail);
   }
 
   String _formatCredits(double credits) {

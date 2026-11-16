@@ -6,10 +6,12 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/core/helium_exception.dart';
 import 'package:heliumapp/data/models/planner/grade_category_model.dart';
+import 'package:heliumapp/data/models/planner/grade_scale_band_model.dart';
 import 'package:heliumapp/data/models/planner/homework_series_item_model.dart';
 import 'package:heliumapp/data/models/planner/needed_grade_model.dart';
 import 'package:heliumapp/presentation/features/grades/bloc/grade_bloc.dart';
 import 'package:heliumapp/presentation/features/grades/dialogs/grade_calculator_dialog.dart';
+import 'package:heliumapp/presentation/features/grades/dialogs/grade_calculator_gpa.dart';
 import 'package:mocktail/mocktail.dart';
 
 import '../../../../mocks/mock_models.dart';
@@ -22,7 +24,11 @@ void main() {
     gradeRepository = MockGradeRepository();
   });
 
-  Future<void> pumpDialog(WidgetTester tester) async {
+  Future<void> pumpDialog(
+    WidgetTester tester, {
+    GradeCalculatorMode mode = GradeCalculatorMode.classGrade,
+    GradeCalculatorGpa? gpa,
+  }) async {
     final gradeBloc = GradeBloc(
       gradeRepository: gradeRepository,
       courseRepository: MockCourseRepository(),
@@ -64,9 +70,9 @@ void main() {
                 categories: [exams],
                 ungradedAssignments: [finalExam],
                 currentOverallGrade: 80,
-                courseTitle: 'Fundamentals of Programming',
                 courseColor: Colors.blue,
-                userSettings: MockModels.createUserSettings(),
+                mode: mode,
+                gpa: gpa,
               ),
             ),
           ),
@@ -88,6 +94,76 @@ void main() {
   );
 
   group('GradeCalculatorDialog', () {
+    NeededGradeModel givenGpaResult(NeededGradeState state, GradeScaleBandModel band) => NeededGradeModel(
+      state: state,
+      neededGrade: state == NeededGradeState.gpaUnreachable ? 0 : 88,
+      weighted: true,
+      assignment: state == NeededGradeState.gpaUnreachable
+          ? null
+          : NeededGradeAssignmentModel(id: 9, title: 'Final', pointsPossible: 100, neededPoints: 88),
+      gradeBand: band,
+    );
+
+    testWidgets('in GPA mode, asks for a step above the term GPA and names the band it needs', (tester) async {
+      // GIVEN
+      when(
+        () => gradeRepository.getNeededGrade(courseId: 1, targetId: 2, desiredGpa: 2.95),
+      ).thenAnswer((_) async => givenGpaResult(
+            NeededGradeState.achievable,
+            const GradeScaleBandModel(minGrade: 87, gradePoint: 3.3, label: 'B+'),
+          ));
+      await pumpDialog(tester, mode: GradeCalculatorMode.termGpa, gpa: MockModels.createGradeCalculatorGpa());
+
+      // WHEN
+      await tester.tap(find.text('Calculate'));
+      await tester.pumpAndSettle();
+
+      // THEN
+      expect(find.text('Desired term GPA'), findsOneWidget);
+      verify(() => gradeRepository.getNeededGrade(courseId: 1, targetId: 2, desiredGpa: 2.95)).called(1);
+      expect(
+        find.textContaining('on "Final" to reach B+ (87%+) in this class, for a term GPA of at least 2.95.'),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('in GPA mode, says when even the top band falls short', (tester) async {
+      // GIVEN
+      when(
+        () => gradeRepository.getNeededGrade(courseId: 1, targetId: 2, desiredGpa: 2.95),
+      ).thenAnswer((_) async => givenGpaResult(
+            NeededGradeState.gpaUnreachable,
+            const GradeScaleBandModel(minGrade: 97, gradePoint: 4.0, label: 'A+'),
+          ));
+      await pumpDialog(tester, mode: GradeCalculatorMode.termGpa, gpa: MockModels.createGradeCalculatorGpa());
+
+      // WHEN
+      await tester.tap(find.text('Calculate'));
+      await tester.pumpAndSettle();
+
+      // THEN
+      expect(find.text("Even A+ (97%+) in this class can't bring your term GPA to 2.95."), findsOneWidget);
+    });
+
+    testWidgets('in GPA mode, caps the GPA at the top of the class scale', (tester) async {
+      // GIVEN
+      when(
+        () => gradeRepository.getNeededGrade(courseId: 1, targetId: 2, desiredGpa: 4.0),
+      ).thenAnswer((_) async => givenGpaResult(
+            NeededGradeState.achievable,
+            const GradeScaleBandModel(minGrade: 97, gradePoint: 4.0, label: 'A+'),
+          ));
+      await pumpDialog(tester, mode: GradeCalculatorMode.termGpa, gpa: MockModels.createGradeCalculatorGpa());
+
+      // WHEN
+      await tester.enterText(find.byType(TextField), '4.5');
+      await tester.tap(find.text('Calculate'));
+      await tester.pumpAndSettle();
+
+      // THEN
+      verify(() => gradeRepository.getNeededGrade(courseId: 1, targetId: 2, desiredGpa: 4.0)).called(1);
+    });
+
     testWidgets('asks the backend for the needed grade and shows it', (
       tester,
     ) async {

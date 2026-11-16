@@ -46,7 +46,6 @@ class CourseBloc extends Bloc<CourseEvent, CourseState> {
     on<UpdateCourseEvent>(_onUpdateCourse);
     on<DeleteCourseEvent>(_onDeleteCourse);
     on<UpdateCourseScheduleEvent>(_onUpdateCourseSchedule);
-    on<UpdateCourseGroupExceptionsEvent>(_onUpdateCourseGroupExceptions);
     on<UpdateCourseExceptionsEvent>(_onUpdateCourseExceptions);
     on<FetchHasCourseSchedulesEvent>(_onFetchHasCourseSchedules);
     on<FetchCourseSchedulesEvent>(_onFetchCourseSchedules);
@@ -484,31 +483,6 @@ class CourseBloc extends Bloc<CourseEvent, CourseState> {
       ));
     } on HeliumException catch (e) {
       emit(CoursesError(origin: event.origin, message: e.message));
-    } catch (e) {
-      emit(
-        CoursesError(
-          origin: event.origin,
-          message: HeliumException.unexpectedError,
-        ),
-      );
-    }
-  }
-
-  Future<void> _onUpdateCourseGroupExceptions(
-    UpdateCourseGroupExceptionsEvent event,
-    Emitter<CourseState> emit,
-  ) async {
-    try {
-      final courseGroup = await courseRepository.updateCourseGroupExceptions(
-        event.courseGroupId,
-        event.exceptions,
-      );
-      emit(CourseGroupExceptionsUpdated(
-        origin: event.origin,
-        courseGroup: courseGroup,
-      ));
-    } on HeliumException catch (e) {
-      emit(CoursesError(origin: event.origin, message: e.displayMessage));
     } catch (e) {
       emit(
         CoursesError(

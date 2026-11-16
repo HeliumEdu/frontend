@@ -57,11 +57,13 @@ class GradeBloc extends Bloc<GradeEvent, GradeState> {
         courseId: event.courseId,
         targetId: event.targetId,
         desiredGrade: event.desiredGrade,
+        desiredGpa: event.desiredGpa,
       );
       emit(NeededGradeCalculated(
         courseId: event.courseId,
         targetId: event.targetId,
         desiredGrade: event.desiredGrade,
+        desiredGpa: event.desiredGpa,
         result: result,
       ));
     } on HeliumException catch (e) {
@@ -69,6 +71,7 @@ class GradeBloc extends Bloc<GradeEvent, GradeState> {
         courseId: event.courseId,
         targetId: event.targetId,
         desiredGrade: event.desiredGrade,
+        desiredGpa: event.desiredGpa,
         message: e.message,
       ));
     } catch (e) {
@@ -76,6 +79,7 @@ class GradeBloc extends Bloc<GradeEvent, GradeState> {
         courseId: event.courseId,
         targetId: event.targetId,
         desiredGrade: event.desiredGrade,
+        desiredGpa: event.desiredGpa,
         message: HeliumException.unexpectedError,
       ));
     }

@@ -14,6 +14,7 @@ class CourseFormController extends BasicFormController
   final FocusNode urlFocusNode = FocusNode();
   Color selectedColor = HeliumColors.getRandomColor();
   bool isOnline = false;
+  int? gradeScaleTemplate;
   DateTime? startDate;
   DateTime? endDate;
 

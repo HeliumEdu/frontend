@@ -7,6 +7,7 @@ abstract class GradeRepository {
   Future<NeededGradeModel> getNeededGrade({
     required int courseId,
     required int targetId,
-    required double desiredGrade,
+    double? desiredGrade,
+    double? desiredGpa,
   });
 }
