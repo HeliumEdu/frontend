@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/presentation/features/planner/dialogs/planner_item_action_dialog.dart';
 import 'package:heliumapp/utils/app_globals.dart';
+import 'package:heliumapp/utils/date_time_helpers.dart';
 import 'package:heliumapp/utils/url_helpers.dart';
 
 /// Options presented when a user taps a course schedule event on the planner
@@ -32,16 +33,18 @@ void showCourseScheduleEventDialog({
   required String courseTitle,
   required Color courseColor,
   required DateTime occurrenceDate,
+  required String whenLabel,
   required CourseScheduleEventActions actions,
 }) {
+  final meetsMoreThanOnce = actions.onSkipMeeting != null;
   showPlannerItemActionDialog(
     context: context,
     icon: AppConstants.courseScheduleIcon,
     title: courseTitle,
     color: courseColor,
-    occurrenceDate: occurrenceDate,
+    whenLabel: whenLabel,
     actions: [
-      if (actions.onSkipMeeting != null)
+      if (meetsMoreThanOnce)
         PlannerItemAction(
           icon: Icons.block_outlined,
           label: 'Skip this meeting',
@@ -50,9 +53,11 @@ void showCourseScheduleEventDialog({
         ),
       if (actions.onSkip != null)
         PlannerItemAction(
-          icon: Icons.block_outlined,
-          label: actions.onSkipMeeting != null
-              ? 'Skip all meetings that day'
+          icon: meetsMoreThanOnce
+              ? Icons.event_busy_outlined
+              : Icons.block_outlined,
+          label: meetsMoreThanOnce
+              ? 'Skip all meetings on ${HeliumDateTime.formatDate(occurrenceDate, showYear: false)}'
               : 'Skip this class',
           iconColor: context.colorScheme.error,
           onTap: () => actions.onSkip!(occurrenceDate),

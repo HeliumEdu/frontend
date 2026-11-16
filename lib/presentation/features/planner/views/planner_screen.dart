@@ -2687,6 +2687,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
     DateTime occurrenceDate, {
     bool? hideWebsiteLink,
   }) {
+    final whenLabel = _occurrenceWhenLabel(plannerItem, occurrenceDate);
     if (plannerItem is CourseScheduleEventModel) {
       final shouldHideWebsiteLink =
           hideWebsiteLink ??
@@ -2696,11 +2697,29 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
       _showCourseScheduleEventDialog(
         plannerItem,
         occurrenceDate,
+        whenLabel,
         hideWebsiteLink: shouldHideWebsiteLink,
       );
     } else if (plannerItem is ExternalCalendarEventModel) {
-      _showExternalCalendarEventDialog(plannerItem, occurrenceDate);
+      _showExternalCalendarEventDialog(plannerItem, whenLabel);
     }
+  }
+
+  String _occurrenceWhenLabel(
+    PlannerItemBaseModel item,
+    DateTime occurrenceDate,
+  ) {
+    final occurrence = _occurrenceOf(item, occurrenceDate);
+    final localStart = HeliumDateTime.toLocal(
+      occurrence.start,
+      userSettings.timeZone,
+    );
+    if (!DateUtils.isSameDay(localStart, occurrenceDate)) {
+      return HeliumDateTime.formatDateForTodos(occurrenceDate);
+    }
+    return occurrence.allDay
+        ? HeliumDateTime.formatDateForTodos(localStart)
+        : HeliumDateTime.formatDateAndTimeForTodos(localStart);
   }
 
   PlannerItemBaseModel _occurrenceOf(PlannerItemBaseModel item, DateTime date) {
@@ -3677,7 +3696,8 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
 
   void _showCourseScheduleEventDialog(
     CourseScheduleEventModel event,
-    DateTime occurrenceDate, {
+    DateTime occurrenceDate,
+    String whenLabel, {
     bool hideWebsiteLink = false,
   }) {
     final courseId = int.tryParse(event.ownerId);
@@ -3694,6 +3714,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
       courseTitle: course.title,
       courseColor: course.color,
       occurrenceDate: occurrenceDate,
+      whenLabel: whenLabel,
       actions: CourseScheduleEventActions(
         onSkip: (date) async {
           context.read<PlannerBloc>().add(
@@ -3729,7 +3750,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
 
   void _showExternalCalendarEventDialog(
     ExternalCalendarEventModel event,
-    DateTime occurrenceDate,
+    String whenLabel,
   ) {
     final calendarId = int.tryParse(event.ownerId);
     if (calendarId == null) return;
@@ -3741,7 +3762,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
       context: context,
       calendarTitle: calendar.title,
       calendarColor: calendar.color,
-      occurrenceDate: occurrenceDate,
+      whenLabel: whenLabel,
       actions: ExternalCalendarEventActions(
         onManageCalendars: () {
           if (!mounted) return;
