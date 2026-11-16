@@ -6,8 +6,11 @@ import 'package:heliumapp/utils/url_helpers.dart';
 
 /// Options presented when a user taps a course schedule event on the planner
 class CourseScheduleEventActions {
-  /// Called when the user taps "Skip this class". Receives the occurrence date.
+  /// Called when the user skips every meeting the class has that day. Receives
+  /// the occurrence date.
   final Future<void> Function(DateTime date)? onSkip;
+
+  final Future<void> Function(DateTime date)? onSkipMeeting;
 
   /// If non-null, an "Open class website" option is shown
   final String? websiteUrl;
@@ -17,6 +20,7 @@ class CourseScheduleEventActions {
 
   const CourseScheduleEventActions({
     this.onSkip,
+    this.onSkipMeeting,
     this.websiteUrl,
     required this.onEditSchedule,
   });
@@ -37,10 +41,19 @@ void showCourseScheduleEventDialog({
     color: courseColor,
     occurrenceDate: occurrenceDate,
     actions: [
+      if (actions.onSkipMeeting != null)
+        PlannerItemAction(
+          icon: Icons.block_outlined,
+          label: 'Skip this meeting',
+          iconColor: context.colorScheme.error,
+          onTap: () => actions.onSkipMeeting!(occurrenceDate),
+        ),
       if (actions.onSkip != null)
         PlannerItemAction(
           icon: Icons.block_outlined,
-          label: 'Skip this class',
+          label: actions.onSkipMeeting != null
+              ? 'Skip all meetings that day'
+              : 'Skip this class',
           iconColor: context.colorScheme.error,
           onTap: () => actions.onSkip!(occurrenceDate),
         ),

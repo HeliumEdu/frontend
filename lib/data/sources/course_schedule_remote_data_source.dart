@@ -5,6 +5,7 @@ import 'package:heliumapp/core/helium_exception.dart';
 import 'package:heliumapp/data/models/planner/course_schedule_model.dart';
 import 'package:heliumapp/data/models/planner/request/course_schedule_request_model.dart';
 import 'package:heliumapp/data/sources/base_data_source.dart';
+import 'package:heliumapp/utils/course_exception_helpers.dart';
 import 'package:logging/logging.dart';
 
 final _log = Logger('data.sources');
@@ -39,6 +40,13 @@ abstract class CourseScheduleRemoteDataSource extends BaseDataSource {
     CourseScheduleRequestModel request, {
     String? version,
   });
+
+  Future<CourseScheduleModel> updateCourseScheduleExceptions(
+    int groupId,
+    int courseId,
+    int scheduleId,
+    List<DateTime> exceptions,
+  );
 
   Future<List<CourseScheduleModel>> getCourseSchedulesForCourse(
     int groupId,
@@ -242,6 +250,42 @@ class CourseScheduleRemoteDataSourceImpl
         return CourseScheduleModel.fromJson(response.data);
       } else {
         throw unexpectedStatus(response, 'Failed to update class schedule.');
+      }
+    } on DioException catch (e, s) {
+      throw handleDioError(e, s);
+    } on HeliumException {
+      rethrow;
+    } catch (e, s) {
+      _log.severe('An unexpected error occurred', e, s);
+      throw HeliumException(message: HeliumException.unexpectedError, cause: e);
+    }
+  }
+
+  @override
+  Future<CourseScheduleModel> updateCourseScheduleExceptions(
+    int groupId,
+    int courseId,
+    int scheduleId,
+    List<DateTime> exceptions,
+  ) async {
+    try {
+      _log.info('Updating exceptions for CourseSchedule $scheduleId in Course $courseId ...');
+
+      final response = await dioClient.dio.patch(
+        ApiUrl.plannerCourseGroupsCoursesSchedulesDetailsUrl(
+          groupId,
+          courseId,
+          scheduleId,
+        ),
+        data: {'exceptions': CourseExceptionHelpers.formatExceptionsCsv(exceptions)},
+      );
+
+      if (response.statusCode == 200) {
+        _log.info('... exceptions for CourseSchedule $scheduleId updated');
+        await dioClient.cacheService.invalidateAll();
+        return CourseScheduleModel.fromJson(response.data);
+      } else {
+        throw unexpectedStatus(response, 'Failed to update exceptions.');
       }
     } on DioException catch (e, s) {
       throw handleDioError(e, s);

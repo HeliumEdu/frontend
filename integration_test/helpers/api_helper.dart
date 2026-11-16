@@ -425,7 +425,7 @@ class ApiHelper {
     final apiHost = _config.projectApiHost;
     final response = await _authedRequest(
       (token) => http.post(
-        Uri.parse('$apiHost${ApiUrl.feedExternalCalendarsListUrl}'),
+        Uri.parse('$apiHost${ApiUrl.externalCalendarsListUrl}'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',
@@ -453,7 +453,7 @@ class ApiHelper {
     final apiHost = _config.projectApiHost;
     final response = await _authedRequest(
       (token) => http.delete(
-        Uri.parse('$apiHost${ApiUrl.feedExternalCalendarDetailUrl(id)}'),
+        Uri.parse('$apiHost${ApiUrl.externalCalendarDetailUrl(id)}'),
         headers: {'Authorization': 'Bearer $token'},
       ),
     );

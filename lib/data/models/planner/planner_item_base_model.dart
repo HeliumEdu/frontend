@@ -12,7 +12,6 @@ abstract class PlannerItemBaseModel extends BaseTitledModel {
   final DateTime start;
   final DateTime end;
   final int priority;
-  final Uri? url;
   final Color? color;
   final String? location;
   final PlannerItemType plannerItemType;
@@ -29,7 +28,6 @@ abstract class PlannerItemBaseModel extends BaseTitledModel {
     required this.start,
     required this.end,
     required this.priority,
-    this.url,
     this.color,
     this.location,
     required this.plannerItemType,

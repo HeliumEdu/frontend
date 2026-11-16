@@ -193,3 +193,18 @@ class UpdateCourseExceptionsEvent extends CourseEvent {
     required this.exceptions,
   });
 }
+
+class UpdateCourseScheduleExceptionsEvent extends CourseEvent {
+  final int courseGroupId;
+  final int courseId;
+  final int scheduleId;
+  final List<DateTime> exceptions;
+
+  UpdateCourseScheduleExceptionsEvent({
+    required super.origin,
+    required this.courseGroupId,
+    required this.courseId,
+    required this.scheduleId,
+    required this.exceptions,
+  });
+}

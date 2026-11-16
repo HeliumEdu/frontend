@@ -198,6 +198,7 @@ class MockModels {
     TimeOfDay? satEndTime,
     int course = 1,
     int courseGroup = 1,
+    List<DateTime> exceptions = const [],
   }) {
     return CourseScheduleModel(
       id: id,
@@ -218,6 +219,7 @@ class MockModels {
       satStartTime: satStartTime ?? const TimeOfDay(hour: 0, minute: 0),
       satEndTime: satEndTime ?? const TimeOfDay(hour: 0, minute: 0),
       course: course,
+      exceptions: exceptions,
     );
   }
 
@@ -602,9 +604,7 @@ class MockModels {
     DateTime? start,
     DateTime? end,
     int priority = 50,
-    String? url,
     String comments = '',
-    Color color = const Color(0xFF4CAF50),
     String? recurrenceRule,
     List<DateTime> exceptionDates = const [],
   }) {
@@ -616,11 +616,9 @@ class MockModels {
       start: start ?? DateTime.parse('2025-01-15T10:00:00Z'),
       end: end ?? DateTime.parse('2025-01-15T11:00:00Z'),
       priority: priority,
-      url: toUri(url),
       attachments: [],
       reminders: [],
       notes: [],
-      color: color,
       recurrenceRule: recurrenceRule,
       exceptionDates: exceptionDates,
     );

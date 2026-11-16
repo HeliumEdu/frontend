@@ -246,7 +246,8 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen> {
               value: _courseLoadBucket(totalCourses),
             ));
           } else if (state case CourseScheduleCreated(:final schedule) ||
-              CourseScheduleUpdated(:final schedule)) {
+              CourseScheduleUpdated(:final schedule) ||
+              CourseScheduleExceptionsUpdated(:final schedule)) {
             // Find the schedule's course across loaded groups (its group may
             // differ from the active filter) and replace that schedule by id
             // rather than assuming a single schedule at index 0.

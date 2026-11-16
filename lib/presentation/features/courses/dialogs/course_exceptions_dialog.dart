@@ -3,6 +3,7 @@ import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/presentation/features/shared/controllers/basic_form_controller.dart';
 import 'package:heliumapp/presentation/ui/components/helium_icon_button.dart';
 import 'package:heliumapp/presentation/ui/dialogs/base_dialog_state.dart';
+import 'package:heliumapp/presentation/ui/dialogs/helium_menu.dart';
 import 'package:heliumapp/presentation/ui/feedback/empty_card.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/course_exception_helpers.dart';
@@ -14,22 +15,35 @@ import 'package:heliumapp/utils/sort_helpers.dart';
 ///
 /// [exceptions] is the current editable list. [readOnlyExceptions] are shown
 /// as informational context only (e.g. semester holidays when editing
-/// course-level exceptions). With [onConfirm], confirming awaits it with the
-/// edited list, staying open to show the error it returns.
+/// course-level exceptions). With [scheduleLabels], each date has a scope: all
+/// meetings ([exceptions]) or one schedule's ([scheduleExceptions], keyed like
+/// [scheduleLabels]), picked within that schedule's [scheduleDateRanges] entry.
+/// With [onConfirm], confirming awaits it with the edited lists, staying open
+/// to show the error it returns.
 class CourseExceptionsDialog extends StatefulWidget {
   final String title;
   final List<DateTime> exceptions;
+  final Map<int, String> scheduleLabels;
+  final Map<int, List<DateTime>> scheduleExceptions;
+  final Map<int, DateTimeRange> scheduleDateRanges;
   final List<DateTime> readOnlyExceptions;
   final String? readOnlyLabel;
   final DateTime? firstDate;
   final DateTime? lastDate;
-  final Future<String?> Function(List<DateTime> exceptions)? onConfirm;
+  final Future<String?> Function(
+    List<DateTime> exceptions,
+    Map<int, List<DateTime>> scheduleExceptions,
+  )?
+  onConfirm;
 
   const CourseExceptionsDialog({
     super.key,
     required this.title,
     required this.exceptions,
     this.onConfirm,
+    this.scheduleLabels = const {},
+    this.scheduleExceptions = const {},
+    this.scheduleDateRanges = const {},
     this.readOnlyExceptions = const [],
     this.readOnlyLabel,
     this.firstDate,
@@ -46,6 +60,7 @@ class _CourseExceptionsDialogState
 
   final BasicFormController _formController = BasicFormController();
   late List<DateTime> _exceptions;
+  late Map<int, List<DateTime>> _scheduleExceptions;
 
   @override
   String get dialogTitle => widget.title;
@@ -57,7 +72,30 @@ class _CourseExceptionsDialogState
   void initState() {
     super.initState();
     _exceptions = List<DateTime>.from(widget.exceptions);
+    _scheduleExceptions = {
+      for (final scheduleId in widget.scheduleLabels.keys)
+        scheduleId: List<DateTime>.from(
+          widget.scheduleExceptions[scheduleId] ?? const [],
+        ),
+    };
   }
+
+  bool get _showsScopes => widget.scheduleLabels.isNotEmpty;
+
+  List<({DateTime date, int? scheduleId})> get _entries => [
+    for (final date in _exceptions) (date: date, scheduleId: null),
+    for (final MapEntry(key: scheduleId, value: dates) in _scheduleExceptions.entries)
+      for (final date in dates) (date: date, scheduleId: scheduleId),
+  ]..sort((a, b) => a.date.compareTo(b.date));
+
+  String _scopeLabel(int? scheduleId) => scheduleId == null
+      ? 'All meetings'
+      : widget.scheduleLabels[scheduleId]!;
+
+  List<DateTime> _cancelledFor(int? scheduleId) => [
+    ..._exceptions,
+    if (scheduleId != null) ..._scheduleExceptions[scheduleId]!,
+  ];
 
   @override
   Widget buildMainArea(BuildContext context) {
@@ -77,47 +115,107 @@ class _CourseExceptionsDialogState
     );
   }
 
-  DateTime? _selectableInitialDate() {
+  DateTime? _selectableInitialDate(
+    List<DateTime> cancelled,
+    DateTime? firstDate,
+    DateTime? lastDate,
+  ) {
     return CourseExceptionHelpers.firstSelectableDate(
-      exceptions: _exceptions,
+      exceptions: cancelled,
       today: HeliumDateTime.dateOnly(DateTime.now()),
-      firstDate: widget.firstDate,
-      lastDate: widget.lastDate ??
-          HeliumDateTime.latestPickableDate(),
+      firstDate: firstDate,
+      lastDate: lastDate ?? HeliumDateTime.latestPickableDate(),
     );
   }
 
-  Future<void> _addDate() async {
+  void _addDate(BuildContext anchorContext) {
+    if (!_showsScopes) {
+      _pickDate(null);
+      return;
+    }
+
+    showHeliumMenu(
+      context: context,
+      anchorContext: anchorContext,
+      builder: (menuContext, _) => HeliumMenuContent(
+        width: HeliumMenuContent.listWidth,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const HeliumMenuTitle(title: 'Cancel which meetings?'),
+            const SizedBox(height: 8),
+            for (final option in [null, ...widget.scheduleLabels.keys])
+              ListTile(
+                dense: true,
+                contentPadding: const EdgeInsets.symmetric(horizontal: 8),
+                title: Text(
+                  _scopeLabel(option),
+                  style: AppStyles.formText(menuContext),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                onTap: () {
+                  Navigator.pop(menuContext);
+                  _pickDate(option);
+                },
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _pickDate(int? scheduleId) async {
+    final range = scheduleId == null
+        ? null
+        : widget.scheduleDateRanges[scheduleId];
+    final firstDate = range?.start ?? widget.firstDate;
+    final lastDate = range?.end ?? widget.lastDate;
+    final cancelled = _cancelledFor(scheduleId);
     final picked = await showDatePicker(
       context: context,
-      initialDate: _selectableInitialDate(),
-      firstDate: widget.firstDate ??
-          HeliumDateTime.earliestPickableDate(),
-      lastDate:
-          widget.lastDate ?? HeliumDateTime.latestPickableDate(),
+      initialDate: _selectableInitialDate(cancelled, firstDate, lastDate),
+      firstDate: firstDate ?? HeliumDateTime.earliestPickableDate(),
+      lastDate: lastDate ?? HeliumDateTime.latestPickableDate(),
       confirmText: 'Select',
-      selectableDayPredicate: _isSelectable,
+      selectableDayPredicate: (date) => _isSelectable(cancelled, date),
     );
     if (picked == null) return;
 
     final dateOnly = HeliumDateTime.dateOnly(picked);
     _formController.markChanged();
     setState(() {
-      _exceptions = [..._exceptions, dateOnly]..sort();
+      if (scheduleId case final scheduleId?) {
+        _scheduleExceptions[scheduleId] = [
+          ..._scheduleExceptions[scheduleId]!,
+          dateOnly,
+        ]..sort();
+      } else {
+        _exceptions = [..._exceptions, dateOnly]..sort();
+      }
     });
   }
 
-  bool _isSelectable(DateTime date) =>
-      !CourseExceptionHelpers.isExcepted(_exceptions, date);
+  bool _isSelectable(List<DateTime> cancelled, DateTime date) =>
+      !CourseExceptionHelpers.isExcepted(cancelled, date);
 
-  void _removeDate(DateTime date) {
+  void _removeDate(DateTime date, int? scheduleId) {
     _formController.markChanged();
     setState(() {
-      _exceptions = _exceptions
-          .where((excepted) => !Sort.isSameDate(excepted, date))
-          .toList();
+      if (scheduleId case final scheduleId?) {
+        _scheduleExceptions[scheduleId] = _without(
+          _scheduleExceptions[scheduleId]!,
+          date,
+        );
+      } else {
+        _exceptions = _without(_exceptions, date);
+      }
     });
   }
+
+  List<DateTime> _without(List<DateTime> dates, DateTime date) =>
+      dates.where((excepted) => !Sort.isSameDate(excepted, date)).toList();
 
   @override
   Future<void> handleSubmit() async {
@@ -131,7 +229,9 @@ class _CourseExceptionsDialogState
 
     final edited = List<DateTime>.unmodifiable(_exceptions);
     final onConfirm = widget.onConfirm;
-    final error = onConfirm == null ? null : await onConfirm(edited);
+    final error = onConfirm == null
+        ? null
+        : await onConfirm(edited, Map.unmodifiable(_scheduleExceptions));
     if (!mounted) return;
     if (error != null) {
       setState(() {
@@ -144,6 +244,7 @@ class _CourseExceptionsDialogState
   }
 
   Widget _buildEditableSection(BuildContext context) {
+    final entries = _entries;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -151,31 +252,36 @@ class _CourseExceptionsDialogState
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text('Dates', style: AppStyles.featureText(context)),
-            HeliumIconButton(
-              onPressed: _addDate,
-              icon: Icons.add,
+            Builder(
+              builder: (buttonContext) => HeliumIconButton(
+                onPressed: () => _addDate(buttonContext),
+                icon: Icons.add,
+              ),
             ),
           ],
         ),
         const SizedBox(height: 12),
         Expanded(
-          child: _exceptions.isEmpty
+          child: entries.isEmpty
               ? const EmptyCard(
                   icon: Icons.block_outlined,
                   message: 'Click "+" to add a date',
                   expanded: false,
                 )
               : ListView.builder(
-                  itemCount: _exceptions.length,
-                  itemBuilder: (context, index) =>
-                      _buildEditableRow(context, _exceptions[index]),
+                  itemCount: entries.length,
+                  itemBuilder: (context, index) => _buildEditableRow(
+                    context,
+                    entries[index].date,
+                    entries[index].scheduleId,
+                  ),
                 ),
         ),
       ],
     );
   }
 
-  Widget _buildEditableRow(BuildContext context, DateTime date) {
+  Widget _buildEditableRow(BuildContext context, DateTime date, int? scheduleId) {
     return Card(
       margin: const EdgeInsets.only(bottom: 6),
       child: Padding(
@@ -189,13 +295,25 @@ class _CourseExceptionsDialogState
             ),
             const SizedBox(width: 12),
             Expanded(
-              child: Text(
-                HeliumDateTime.formatDate(date),
-                style: AppStyles.standardBodyTextLight(context),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    HeliumDateTime.formatDate(date),
+                    style: AppStyles.standardBodyTextLight(context),
+                  ),
+                  if (_showsScopes)
+                    Text(
+                      _scopeLabel(scheduleId),
+                      style: AppStyles.smallSecondaryTextLight(context),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                ],
               ),
             ),
             HeliumIconButton(
-              onPressed: () => _removeDate(date),
+              onPressed: () => _removeDate(date, scheduleId),
               icon: Icons.delete_outline,
               color: context.colorScheme.error,
               tooltip: 'Remove',
@@ -249,14 +367,23 @@ class _CourseExceptionsDialogState
   }
 }
 
-/// Shows a [CourseExceptionsDialog] for course-level cancellations, saving
-/// them with [onConfirm] when confirmed.
+/// Shows a [CourseExceptionsDialog] for a class's cancellations, saving them
+/// with [onConfirm] when confirmed.
 ///
-/// [courseGroupExceptions] are shown read-only as semester context.
+/// [scheduleLabels], [scheduleExceptions] and [scheduleDateRanges] give each
+/// date a scope (see [CourseExceptionsDialog]). [courseGroupExceptions] are shown read-only as
+/// semester context.
 Future<void> showCourseExceptionsDialog({
   required BuildContext context,
   required List<DateTime> courseExceptions,
-  required Future<String?> Function(List<DateTime> exceptions) onConfirm,
+  required Future<String?> Function(
+    List<DateTime> exceptions,
+    Map<int, List<DateTime>> scheduleExceptions,
+  )
+  onConfirm,
+  Map<int, String> scheduleLabels = const {},
+  Map<int, List<DateTime>> scheduleExceptions = const {},
+  Map<int, DateTimeRange> scheduleDateRanges = const {},
   List<DateTime> courseGroupExceptions = const [],
   DateTime? firstDate,
   DateTime? lastDate,
@@ -268,8 +395,11 @@ Future<void> showCourseExceptionsDialog({
       title: 'Cancellations',
       exceptions: courseExceptions,
       onConfirm: onConfirm,
+      scheduleLabels: scheduleLabels,
+      scheduleExceptions: scheduleExceptions,
+      scheduleDateRanges: scheduleDateRanges,
       readOnlyExceptions: courseGroupExceptions,
-      readOnlyLabel: 'Also cancelled via class group exceptions',
+      readOnlyLabel: 'Also cancelled via Holidays & Breaks',
       firstDate: firstDate,
       lastDate: lastDate,
     ),

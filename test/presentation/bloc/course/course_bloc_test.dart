@@ -584,6 +584,54 @@ void main() {
       );
     });
 
+    group('Schedule exceptions', () {
+      blocTest<CourseBloc, CourseState>(
+        'emits CourseScheduleExceptionsUpdated with the saved schedule',
+        build: () {
+          when(
+            () => mockCourseScheduleRepository.updateCourseScheduleExceptions(1, 2, 3, any()),
+          ).thenAnswer((_) async => MockModels.createCourseSchedule(id: 3, course: 2));
+          return courseBloc;
+        },
+        act: (bloc) => bloc.add(
+          UpdateCourseScheduleExceptionsEvent(
+            origin: EventOrigin.dialog,
+            courseGroupId: 1,
+            courseId: 2,
+            scheduleId: 3,
+            exceptions: [DateTime(2026, 11, 18)],
+          ),
+        ),
+        expect: () => [
+          isA<CourseScheduleExceptionsUpdated>()
+              .having((s) => s.schedule.id, 'schedule id', 3),
+        ],
+      );
+
+      blocTest<CourseBloc, CourseState>(
+        'emits CoursesError from the dialog when saving fails',
+        build: () {
+          when(
+            () => mockCourseScheduleRepository.updateCourseScheduleExceptions(1, 2, 3, any()),
+          ).thenThrow(ServerException(message: 'Server error'));
+          return courseBloc;
+        },
+        act: (bloc) => bloc.add(
+          UpdateCourseScheduleExceptionsEvent(
+            origin: EventOrigin.dialog,
+            courseGroupId: 1,
+            courseId: 2,
+            scheduleId: 3,
+            exceptions: const [],
+          ),
+        ),
+        expect: () => [
+          isA<CoursesError>()
+              .having((s) => s.origin, 'origin', EventOrigin.dialog),
+        ],
+      );
+    });
+
     group('FetchCourseSchedulesEvent', () {
       const courseGroupId = 1;
       const courseId = 2;

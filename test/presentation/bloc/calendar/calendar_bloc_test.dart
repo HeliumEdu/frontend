@@ -13,6 +13,7 @@ import '../../../mocks/register_fallbacks.dart';
 
 void main() {
   late MockCourseRepository mockCourseRepository;
+  late MockCourseScheduleRepository mockCourseScheduleRepository;
   late MockCategoryRepository mockCategoryRepository;
   late MockResourceRepository mockResourceRepository;
   late MockAttachmentRepository mockAttachmentRepository;
@@ -24,11 +25,13 @@ void main() {
 
   setUp(() {
     mockCourseRepository = MockCourseRepository();
+    mockCourseScheduleRepository = MockCourseScheduleRepository();
     mockCategoryRepository = MockCategoryRepository();
     mockResourceRepository = MockResourceRepository();
     mockAttachmentRepository = MockAttachmentRepository();
     calendarBloc = PlannerBloc(
       courseRepository: mockCourseRepository,
+      courseScheduleRepository: mockCourseScheduleRepository,
       categoryRepository: mockCategoryRepository,
       resourceRepository: mockResourceRepository,
       attachmentRepository: mockAttachmentRepository,
@@ -177,6 +180,80 @@ void main() {
               .having((s) => s.courseGroups, 'courseGroups', isEmpty)
               .having((s) => s.courses, 'courses', isEmpty)
               .having((s) => s.categories, 'categories', isEmpty),
+        ],
+      );
+    });
+
+    group('SkipCourseScheduleOccurrenceEvent', () {
+      blocTest<PlannerBloc, PlannerState>(
+        'cancels only that schedule\'s meeting and returns the class with it',
+        build: () {
+          when(
+            () => mockCourseScheduleRepository.updateCourseScheduleExceptions(
+              1,
+              2,
+              20,
+              [DateTime(2026, 3, 4)],
+            ),
+          ).thenAnswer(
+            (_) async => MockModels.createCourseSchedule(
+              id: 20,
+              course: 2,
+              exceptions: [DateTime(2026, 3, 4)],
+            ),
+          );
+          return calendarBloc;
+        },
+        act: (bloc) => bloc.add(
+          SkipCourseScheduleOccurrenceEvent(
+            origin: EventOrigin.dialog,
+            course: MockModels.createCourse(
+              id: 2,
+              schedules: [
+                MockModels.createCourseSchedule(id: 10, course: 2),
+                MockModels.createCourseSchedule(id: 20, course: 2),
+              ],
+            ),
+            schedule: MockModels.createCourseSchedule(id: 20, course: 2),
+            date: DateTime(2026, 3, 4),
+          ),
+        ),
+        expect: () => [
+          isA<CourseScheduleOccurrenceSkipped>()
+              .having(
+                (s) => s.updatedCourse.schedules.map((schedule) => schedule.exceptions),
+                'schedule exceptions',
+                [<DateTime>[], [DateTime(2026, 3, 4)]],
+              ),
+        ],
+        verify: (_) => verifyNever(
+          () => mockCourseRepository.updateCourseExceptions(any(), any(), any()),
+        ),
+      );
+
+      blocTest<PlannerBloc, PlannerState>(
+        'emits PlannerError when saving fails',
+        build: () {
+          when(
+            () => mockCourseScheduleRepository.updateCourseScheduleExceptions(
+              any(),
+              any(),
+              any(),
+              any(),
+            ),
+          ).thenThrow(ServerException(message: 'Server error'));
+          return calendarBloc;
+        },
+        act: (bloc) => bloc.add(
+          SkipCourseScheduleOccurrenceEvent(
+            origin: EventOrigin.dialog,
+            course: MockModels.createCourse(id: 2),
+            schedule: MockModels.createCourseSchedule(id: 20, course: 2),
+            date: DateTime(2026, 3, 4),
+          ),
+        ),
+        expect: () => [
+          isA<PlannerError>().having((s) => s.origin, 'origin', EventOrigin.dialog),
         ],
       );
     });

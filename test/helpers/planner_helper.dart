@@ -95,6 +95,7 @@ Map<String, dynamic> givenCourseScheduleJson({
   String satStartTime = '00:00:00',
   String satEndTime = '00:00:00',
   int course = 1,
+  String exceptions = '',
   List<Map<String, dynamic>>? recurrenceGroups,
 }) {
   return {
@@ -116,6 +117,7 @@ Map<String, dynamic> givenCourseScheduleJson({
     'sat_end_time': satEndTime,
     'course': course,
     'course_group': 1,
+    'exceptions': exceptions,
     'recurrence_groups': recurrenceGroups ?? [],
   };
 }
@@ -386,9 +388,7 @@ Map<String, dynamic> givenEventJson({
   String start = '2025-08-25T14:00:00Z',
   String end = '2025-08-25T16:00:00Z',
   int priority = 50,
-  String? url,
   String? ownerId,
-  String? color,
   List<dynamic>? attachments,
   List<dynamic>? reminders,
   String? recurrenceRule,
@@ -402,9 +402,7 @@ Map<String, dynamic> givenEventJson({
     'start': start,
     'end': end,
     'priority': priority,
-    'url': url,
     'owner_id': ownerId,
-    'color': color,
     'attachments': attachments ?? [],
     'reminders': reminders ?? [],
     'recurrence_rule': recurrenceRule,
@@ -421,15 +419,7 @@ void verifyEventMatchesJson(EventModel event, Map<String, dynamic> json) {
   expect(event.start, equals(DateTime.parse(json['start'] as String)));
   expect(event.end, equals(DateTime.parse(json['end'] as String)));
   expect(event.priority, equals(json['priority']));
-  expect(event.url?.toString(), equals(json['url']));
   expect(event.ownerId, equals(json['owner_id']));
-
-  if (json['color'] != null && event.color != null) {
-    expect(
-      HeliumColors.colorToHex(event.color!).toLowerCase(),
-      equals((json['color'] as String).toLowerCase()),
-    );
-  }
 }
 
 // ============================================================================
@@ -445,7 +435,6 @@ Map<String, dynamic> givenHomeworkJson({
   String start = '2025-08-25T23:59:00Z',
   String end = '2025-08-26T23:59:00Z',
   int priority = 75,
-  String? url,
   bool completed = false,
   int course = 1,
   int category = 1,
@@ -463,7 +452,6 @@ Map<String, dynamic> givenHomeworkJson({
     'start': start,
     'end': end,
     'priority': priority,
-    'url': url,
     'recurrence_rule': recurrenceRule,
     'completed': completed,
     'course': course,

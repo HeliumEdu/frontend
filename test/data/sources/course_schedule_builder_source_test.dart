@@ -115,6 +115,7 @@ void main() {
         expect(event.comments, equals(''));
         expect(event.attachments, isEmpty);
         expect(event.reminders, isEmpty);
+        expect(event.scheduleId, equals(1));
       });
 
       test('emits one event per group when a schedule has multiple groups', () {

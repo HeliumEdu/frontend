@@ -68,6 +68,7 @@ class CourseScheduleBuilderSource {
       reminders: [],
       color: course.color,
       ownerId: '${course.id}',
+      scheduleId: schedule.id,
       recurrenceRule: group.recurrenceRule,
       exceptionDates: group.exceptionDates,
     );

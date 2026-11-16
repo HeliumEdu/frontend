@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:heliumapp/core/helium_exception.dart';
@@ -5,6 +6,7 @@ import 'package:heliumapp/data/models/planner/course_schedule_model.dart';
 import 'package:heliumapp/presentation/features/courses/bloc/course_bloc.dart';
 import 'package:heliumapp/presentation/features/courses/bloc/course_event.dart';
 import 'package:heliumapp/presentation/features/courses/bloc/course_state.dart';
+import 'package:heliumapp/presentation/features/courses/constants/schedule_constants.dart';
 import 'package:heliumapp/presentation/features/courses/dialogs/course_exceptions_dialog.dart';
 import 'package:heliumapp/presentation/features/planner/dialogs/confirm_delete_dialog.dart';
 import 'package:heliumapp/presentation/features/courses/widgets/schedule_card.dart';
@@ -117,6 +119,7 @@ class _CourseScheduleContentState extends State<_CourseScheduleContent> {
           setState(() => _schedules = [..._schedules, state.schedule]);
         } else if (state
             case CourseScheduleUpdated(:final schedule) ||
+                CourseScheduleExceptionsUpdated(:final schedule) ||
                 CourseScheduleConflict(latest: final schedule)) {
           setState(() {
             final index = _schedules.indexWhere((s) => s.id == schedule.id);
@@ -295,33 +298,101 @@ class _CourseScheduleContentState extends State<_CourseScheduleContent> {
   }
 
   Future<void> _showCancellations() {
+    final schedules = Sort.courseSchedulesForDisplay(_schedules)
+        .where((schedule) => schedule.groupsByTime().isNotEmpty)
+        .toList();
+    final showsScopes = schedules.length > 1 ||
+        schedules.any((schedule) => schedule.exceptions.isNotEmpty);
+    final courseStart = _courseStartDate;
+    final courseEnd = _courseEndDate;
     return showCourseExceptionsDialog(
       context: context,
       courseExceptions: _courseExceptions,
       onConfirm: _saveCancellations,
+      scheduleLabels: showsScopes
+          ? {for (final schedule in schedules) schedule.id: _scopeLabel(schedule)}
+          : const {},
+      scheduleExceptions: {
+        for (final schedule in schedules) schedule.id: schedule.exceptions,
+      },
+      scheduleDateRanges: courseStart == null || courseEnd == null
+          ? const {}
+          : {
+              for (final schedule in schedules)
+                schedule.id: _dateRange(schedule, courseStart, courseEnd),
+            },
       courseGroupExceptions: _courseGroupExceptions,
       firstDate: _courseStartDate,
       lastDate: _courseEndDate,
     );
   }
 
-  Future<String?> _saveCancellations(List<DateTime> exceptions) async {
+  String _scopeLabel(CourseScheduleModel schedule) {
+    final rotation = ScheduleTemplate.summaryLabel(schedule);
+    final meetings = rotation == null
+        ? schedule.meetingsLabel()
+        : '$rotation: ${schedule.meetingsLabel()}';
+    final dateRange = schedule.overrideDateRangeLabel();
+    return dateRange == null ? meetings : '$meetings • $dateRange';
+  }
+
+  DateTimeRange _dateRange(
+    CourseScheduleModel schedule,
+    DateTime courseStart,
+    DateTime courseEnd,
+  ) {
+    final start = schedule.startDate;
+    final end = schedule.endDate;
+    return DateTimeRange(
+      start: start != null && start.isAfter(courseStart) ? start : courseStart,
+      end: end != null && end.isBefore(courseEnd) ? end : courseEnd,
+    );
+  }
+
+  Future<String?> _saveCancellations(
+    List<DateTime> exceptions,
+    Map<int, List<DateTime>> scheduleExceptions,
+  ) async {
     final bloc = context.read<CourseBloc>();
-    final outcome = bloc.stream.firstWhere(
-      (state) =>
-          (state is CourseExceptionsUpdated &&
-              state.course.id == widget.courseId) ||
-          (state is CoursesError && state.origin == EventOrigin.dialog),
-    );
-    bloc.add(
-      UpdateCourseExceptionsEvent(
-        origin: EventOrigin.dialog,
-        courseGroupId: widget.courseGroupId,
-        courseId: widget.courseId,
-        exceptions: exceptions,
-      ),
-    );
-    final state = await outcome;
-    return state is CoursesError ? state.message : null;
+    if (!listEquals(exceptions, _courseExceptions)) {
+      final outcome = bloc.stream.firstWhere(
+        (state) =>
+            (state is CourseExceptionsUpdated &&
+                state.course.id == widget.courseId) ||
+            (state is CoursesError && state.origin == EventOrigin.dialog),
+      );
+      bloc.add(
+        UpdateCourseExceptionsEvent(
+          origin: EventOrigin.dialog,
+          courseGroupId: widget.courseGroupId,
+          courseId: widget.courseId,
+          exceptions: exceptions,
+        ),
+      );
+      if (await outcome case CoursesError(:final message)) return message;
+    }
+
+    for (final schedule in _schedules) {
+      final edited = scheduleExceptions[schedule.id];
+      if (edited == null || listEquals(edited, schedule.exceptions)) continue;
+
+      final outcome = bloc.stream.firstWhere(
+        (state) =>
+            (state is CourseScheduleExceptionsUpdated &&
+                state.schedule.id == schedule.id) ||
+            (state is CoursesError && state.origin == EventOrigin.dialog),
+      );
+      bloc.add(
+        UpdateCourseScheduleExceptionsEvent(
+          origin: EventOrigin.dialog,
+          courseGroupId: widget.courseGroupId,
+          courseId: widget.courseId,
+          scheduleId: schedule.id,
+          exceptions: edited,
+        ),
+      );
+      if (await outcome case CoursesError(:final message)) return message;
+    }
+    return null;
   }
 }
