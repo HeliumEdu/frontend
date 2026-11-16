@@ -7,6 +7,7 @@ import 'package:heliumapp/utils/planner_helper.dart';
 
 class CourseScheduleEventModel extends PlannerItemBaseModel {
   final String ownerId;
+  final Uri? url;
   final String comments;
 
   CourseScheduleEventModel({
@@ -17,7 +18,7 @@ class CourseScheduleEventModel extends PlannerItemBaseModel {
     required super.start,
     required super.end,
     required super.priority,
-    required super.url,
+    required this.url,
     required this.comments,
     required super.attachments,
     required super.reminders,

@@ -662,11 +662,9 @@ EventModel _createEventModel({bool allDay = false}) {
     start: DateTime.parse('2025-01-15T10:00:00Z'),
     end: DateTime.parse('2025-01-15T11:00:00Z'),
     priority: 50,
-    url: null,
     attachments: [],
     reminders: [],
     notes: [],
-    color: const Color(0xFF4CAF50),
   );
 }
 

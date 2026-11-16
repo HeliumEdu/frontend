@@ -368,11 +368,9 @@ void main() {
           start: sameTime,
           end: sameTime.add(const Duration(hours: 1)),
           priority: 50,
-          url: null,
           attachments: [],
           reminders: [],
           notes: [],
-          color: const Color(0xFF4CAF50),
         );
         items[1] = EventModel(
           id: 2,
@@ -382,11 +380,9 @@ void main() {
           start: sameTime,
           end: sameTime.add(const Duration(hours: 1)),
           priority: 50,
-          url: null,
           attachments: [],
           reminders: [],
           notes: [],
-          color: const Color(0xFF4CAF50),
         );
 
         Sort.byStartThenTitle(items);
@@ -527,11 +523,9 @@ EventModel _createEvent({
     start: start ?? DateTime.parse('2025-01-15T10:00:00Z'),
     end: end ?? DateTime.parse('2025-01-15T11:00:00Z'),
     priority: 50,
-    url: null,
     attachments: [],
     reminders: [],
     notes: [],
-    color: const Color(0xFF4CAF50),
   );
 }
 

@@ -57,9 +57,9 @@ class ApiUrl {
   // External Calendars & Feeds
   static const feedPrivateEnableUrl = '/feed/private/enable/';
   static const feedPrivateDisableUrl = '/feed/private/disable/';
-  static const feedExternalCalendarsListUrl = '/feed/externalcalendars/';
+  static const externalCalendarsListUrl = '/feed/externalcalendars/';
 
-  static String feedExternalCalendarDetailUrl(int externalCalendarId) =>
+  static String externalCalendarDetailUrl(int externalCalendarId) =>
       '/feed/externalcalendars/$externalCalendarId/';
 
   // Planner
@@ -69,7 +69,7 @@ class ApiUrl {
   static const plannerHomeworkListUrl = '/planner/homework/';
   static const plannerEventsListUrl = '/planner/events/';
   static const plannerNotesListUrl = '/planner/notes/';
-  static const feedExternalCalendarsEventsListUrl =
+  static const externalCalendarsEventsListUrl =
       '/feed/externalcalendars/events/';
   static const plannerRemindersListUrl = '/planner/reminders/';
   static const plannerAttachmentsListUrl = '/planner/attachments/';

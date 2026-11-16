@@ -7,7 +7,7 @@ import 'package:heliumapp/utils/planner_helper.dart';
 
 class ExternalCalendarEventModel extends PlannerItemBaseModel {
   final String ownerId;
-
+  final Uri? url;
   final String comments;
 
   ExternalCalendarEventModel({
@@ -18,7 +18,7 @@ class ExternalCalendarEventModel extends PlannerItemBaseModel {
     required super.start,
     required super.end,
     required super.priority,
-    required super.url,
+    required this.url,
     required this.comments,
     required super.attachments,
     required super.reminders,

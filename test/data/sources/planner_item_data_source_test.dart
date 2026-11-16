@@ -2330,11 +2330,9 @@ EventModel _createEventModel({
     start: start ?? DateTime.parse('2025-01-15T14:00:00Z'),
     end: end ?? DateTime.parse('2025-01-15T15:00:00Z'),
     priority: 50,
-    url: null,
     attachments: [],
     reminders: [],
     notes: [],
-    color: const Color(0xFF4CAF50),
   );
 }
 

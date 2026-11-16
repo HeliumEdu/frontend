@@ -89,23 +89,6 @@ void main() {
         expect(result[0].showEndTime, isFalse);
       });
 
-      test('parses event with color correctly', () async {
-        // GIVEN
-        final eventsJson = [givenEventJson(id: 1, color: '#FF5722')];
-        when(
-          () => mockDio.get(
-            any(),
-            queryParameters: any(named: 'queryParameters'),
-          ),
-        ).thenAnswer((_) async => givenSuccessResponse(eventsJson));
-
-        // WHEN
-        final result = await dataSource.getEvents();
-
-        // THEN
-        expect(result[0].color, isNotNull);
-      });
-
       test('throws HeliumException on invalid response format', () async {
         // GIVEN
         when(

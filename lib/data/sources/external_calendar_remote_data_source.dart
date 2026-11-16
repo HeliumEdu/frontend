@@ -53,7 +53,7 @@ class ExternalCalendarRemoteDataSourceImpl
       _log.info('Fetching ExternalCalendars ...');
 
       final response = await dioClient.dio.get(
-        ApiUrl.feedExternalCalendarsListUrl,
+        ApiUrl.externalCalendarsListUrl,
         options: forceRefresh ? dioClient.cacheService.forceRefreshOptions() : null,
       );
 
@@ -115,7 +115,7 @@ class ExternalCalendarRemoteDataSourceImpl
 
 
       final response = await dioClient.dio.get(
-        ApiUrl.feedExternalCalendarsEventsListUrl,
+        ApiUrl.externalCalendarsEventsListUrl,
         queryParameters: queryParameters.isEmpty ? null : queryParameters,
         options: forceRefresh ? dioClient.cacheService.forceRefreshOptions() : null,
       );
@@ -157,7 +157,7 @@ class ExternalCalendarRemoteDataSourceImpl
       _log.info('Creating ExternalCalendar ...');
 
       final response = await dioClient.dio.post(
-        ApiUrl.feedExternalCalendarsListUrl,
+        ApiUrl.externalCalendarsListUrl,
         data: payload.toJson(),
       );
 
@@ -190,7 +190,7 @@ class ExternalCalendarRemoteDataSourceImpl
       _log.info('Updating ExternalCalendar $calendarId ...');
 
       final response = await dioClient.dio.patch(
-        ApiUrl.feedExternalCalendarDetailUrl(calendarId),
+        ApiUrl.externalCalendarDetailUrl(calendarId),
         data: payload.toJson(),
         options: ifMatchOptions(version),
       );
@@ -218,7 +218,7 @@ class ExternalCalendarRemoteDataSourceImpl
       _log.info('Deleting ExternalCalendar $calendarId ...');
 
       final response = await dioClient.dio.delete(
-        ApiUrl.feedExternalCalendarDetailUrl(calendarId),
+        ApiUrl.externalCalendarDetailUrl(calendarId),
       );
 
       if (response.statusCode == 204) {

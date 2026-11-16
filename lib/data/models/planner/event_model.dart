@@ -1,10 +1,8 @@
-import 'package:flutter/material.dart';
 import 'package:heliumapp/data/models/id_or_entity.dart';
 import 'package:heliumapp/data/models/planner/attachment_model.dart';
 import 'package:heliumapp/data/models/planner/planner_item_base_model.dart';
 import 'package:heliumapp/data/models/planner/note_model.dart';
 import 'package:heliumapp/data/models/planner/reminder_model.dart';
-import 'package:heliumapp/utils/color_helpers.dart';
 import 'package:heliumapp/utils/conversion_helpers.dart';
 import 'package:heliumapp/utils/planner_helper.dart';
 
@@ -20,10 +18,8 @@ class EventModel extends PlannerItemBaseModel {
     required super.start,
     required super.end,
     required super.priority,
-    required super.url,
     required super.attachments,
     required super.reminders,
-    required super.color,
     super.recurrenceRule,
     super.exceptionDates,
     this.ownerId,
@@ -41,7 +37,6 @@ class EventModel extends PlannerItemBaseModel {
       start: DateTime.parse(json['start']),
       end: DateTime.parse(json['end']),
       priority: json['priority'],
-      url: toUri(json['url']),
       attachments: json['attachments'] != null
           ? idOrEntityListFrom(json['attachments'], AttachmentModel.fromJson)
           : [],
@@ -52,9 +47,6 @@ class EventModel extends PlannerItemBaseModel {
       notes: json['notes'] != null
           ? idOrEntityListFrom(json['notes'], NoteModel.fromJson)
           : [],
-      color: json['color'] != null
-          ? HeliumColors.hexToColor(json['color'])
-          : null,
       recurrenceRule: json['recurrence_rule'] as String?,
       exceptionDates: PlannerItemBaseModel.parseExceptionDatesJson(
         json['exception_dates'],
@@ -72,10 +64,8 @@ class EventModel extends PlannerItemBaseModel {
     DateTime? start,
     DateTime? end,
     int? priority,
-    Uri? url,
     List<IdOrEntity<AttachmentModel>>? attachments,
     List<IdOrEntity<ReminderModel>>? reminders,
-    Color? color,
     String? ownerId,
     List<IdOrEntity<NoteModel>>? notes,
     String? recurrenceRule,
@@ -90,10 +80,8 @@ class EventModel extends PlannerItemBaseModel {
       start: start ?? this.start,
       end: end ?? this.end,
       priority: priority ?? this.priority,
-      url: url ?? this.url,
       attachments: attachments ?? this.attachments,
       reminders: reminders ?? this.reminders,
-      color: color ?? this.color,
       ownerId: ownerId ?? this.ownerId,
       notes: notes ?? this.notes,
       recurrenceRule: recurrenceRule ?? this.recurrenceRule,
