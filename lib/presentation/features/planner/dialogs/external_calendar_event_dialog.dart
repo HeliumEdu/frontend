@@ -23,7 +23,7 @@ void showExternalCalendarEventDialog({
   required BuildContext context,
   required String calendarTitle,
   required Color calendarColor,
-  required DateTime occurrenceDate,
+  required String whenLabel,
   required ExternalCalendarEventActions actions,
 }) {
   showPlannerItemActionDialog(
@@ -31,7 +31,7 @@ void showExternalCalendarEventDialog({
     icon: AppConstants.externalCalendarIcon,
     title: calendarTitle,
     color: calendarColor,
-    occurrenceDate: occurrenceDate,
+    whenLabel: whenLabel,
     actions: [
       PlannerItemAction(
         icon: Icons.settings_outlined,

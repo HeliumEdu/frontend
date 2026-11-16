@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/presentation/ui/dialogs/helium_bottom_sheet.dart';
 import 'package:heliumapp/utils/app_style.dart';
-import 'package:heliumapp/utils/date_time_helpers.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 
 /// One row of the action menu
@@ -21,8 +20,9 @@ class PlannerItemAction {
 }
 
 /// Shows an adaptive action menu for a planner item that can't be edited in
-/// place, headed by the owning entity's name and the occurrence date. The
-/// entity-specific menus (course schedule, external calendar) build on this.
+/// place, headed by the owning entity's name and [whenLabel] (when the
+/// occurrence is). The entity-specific menus (course schedule, external
+/// calendar) build on this.
 ///
 /// On mobile this uses a bottom sheet. On desktop a centered dialog is used
 /// because SfCalendar's onTap callback provides no pixel position for the
@@ -32,7 +32,7 @@ void showPlannerItemActionDialog({
   required IconData icon,
   required String title,
   required Color color,
-  required DateTime occurrenceDate,
+  required String whenLabel,
   required List<PlannerItemAction> actions,
 }) {
   final isMobile = Responsive.isMobile(context);
@@ -49,7 +49,7 @@ void showPlannerItemActionDialog({
             icon: icon,
             title: title,
             color: color,
-            occurrenceDate: occurrenceDate,
+            whenLabel: whenLabel,
             actions: actions,
           ),
         ),
@@ -70,7 +70,7 @@ void showPlannerItemActionDialog({
               icon: icon,
               title: title,
               color: color,
-              occurrenceDate: occurrenceDate,
+              whenLabel: whenLabel,
               actions: actions,
             ),
           ),
@@ -86,7 +86,7 @@ Widget _buildContent(
   required IconData icon,
   required String title,
   required Color color,
-  required DateTime occurrenceDate,
+  required String whenLabel,
   required List<PlannerItemAction> actions,
 }) {
   return Material(
@@ -143,7 +143,7 @@ Widget _buildContent(
                     ),
                     const SizedBox(width: 6),
                     Text(
-                      HeliumDateTime.formatDate(occurrenceDate),
+                      whenLabel,
                       style: AppStyles.formText(menuContext).copyWith(
                         color: menuContext.colorScheme.onSurface,
                       ),
