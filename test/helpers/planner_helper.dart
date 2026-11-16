@@ -95,6 +95,7 @@ Map<String, dynamic> givenCourseScheduleJson({
   String satStartTime = '00:00:00',
   String satEndTime = '00:00:00',
   int course = 1,
+  String exceptions = '',
   List<Map<String, dynamic>>? recurrenceGroups,
 }) {
   return {
@@ -116,6 +117,7 @@ Map<String, dynamic> givenCourseScheduleJson({
     'sat_end_time': satEndTime,
     'course': course,
     'course_group': 1,
+    'exceptions': exceptions,
     'recurrence_groups': recurrenceGroups ?? [],
   };
 }

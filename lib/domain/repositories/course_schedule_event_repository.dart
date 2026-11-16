@@ -40,6 +40,13 @@ abstract class CourseScheduleRepository {
     String? version,
   });
 
+  Future<CourseScheduleModel> updateCourseScheduleExceptions(
+    int groupId,
+    int courseId,
+    int scheduleId,
+    List<DateTime> exceptions,
+  );
+
   Future<List<CourseScheduleModel>> getCourseSchedulesForCourse(
     int groupId,
     int courseId, {

@@ -46,3 +46,9 @@ class CourseOccurrenceSkipped extends PlannerState {
 
   CourseOccurrenceSkipped({required super.origin, required this.updatedCourse});
 }
+
+class CourseScheduleOccurrenceSkipped extends PlannerState {
+  final CourseModel updatedCourse;
+
+  CourseScheduleOccurrenceSkipped({required super.origin, required this.updatedCourse});
+}

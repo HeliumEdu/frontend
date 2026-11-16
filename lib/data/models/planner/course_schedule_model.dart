@@ -3,6 +3,7 @@ import 'package:heliumapp/data/models/base_model.dart';
 import 'package:heliumapp/data/models/planner/course_schedule_cycle_slot_model.dart';
 import 'package:heliumapp/data/models/planner/course_schedule_recurrence_group_model.dart';
 import 'package:heliumapp/utils/app_globals.dart';
+import 'package:heliumapp/utils/course_exception_helpers.dart';
 import 'package:heliumapp/utils/date_time_helpers.dart';
 
 class CourseScheduleModel extends BaseModel {
@@ -39,6 +40,7 @@ class CourseScheduleModel extends BaseModel {
   final List<CourseScheduleCycleSlotModel> cycleSlots;
   final bool isWeekBased;
   final int? weekOffset;
+  final List<DateTime> exceptions;
 
   final List<CourseScheduleRecurrenceGroupModel> recurrenceGroups;
 
@@ -70,6 +72,7 @@ class CourseScheduleModel extends BaseModel {
     this.cycleSlots = const [],
     this.isWeekBased = false,
     this.weekOffset,
+    this.exceptions = const [],
     this.recurrenceGroups = const [],
   });
 
@@ -114,6 +117,9 @@ class CourseScheduleModel extends BaseModel {
           .toList(),
       isWeekBased: json['is_week_based'] as bool? ?? false,
       weekOffset: json['week_offset'] as int?,
+      exceptions: CourseExceptionHelpers.parseCsvExceptions(
+        json['exceptions'] as String? ?? '',
+      ),
       recurrenceGroups:
           (json['recurrence_groups'] as List<dynamic>? ?? const [])
               .map(
@@ -221,6 +227,10 @@ class CourseScheduleModel extends BaseModel {
   /// Meeting-day labels grouped by shared time: cycle days if rotating, else weekdays.
   Map<String, List<String>> groupsByTime() =>
       isDayCycle ? cycleGroupsByTime() : weeklyGroupsByTime();
+
+  String meetingsLabel() => groupsByTime().entries
+      .map((group) => '${group.value.join(', ')} ${group.key}')
+      .join('; ');
 
   // Helper method to get active days as abbreviated names
   List<String> getActiveDays() {

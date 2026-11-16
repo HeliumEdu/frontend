@@ -7,6 +7,7 @@ import 'package:heliumapp/utils/planner_helper.dart';
 
 class CourseScheduleEventModel extends PlannerItemBaseModel {
   final String ownerId;
+  final int? scheduleId;
   final Uri? url;
   final String comments;
 
@@ -24,6 +25,7 @@ class CourseScheduleEventModel extends PlannerItemBaseModel {
     required super.reminders,
     required super.color,
     required this.ownerId,
+    this.scheduleId,
     super.recurrenceRule,
     required super.exceptionDates,
   }) : super(plannerItemType: PlannerItemType.courseSchedule);
@@ -68,6 +70,7 @@ class CourseScheduleEventModel extends PlannerItemBaseModel {
       reminders: reminders,
       color: color,
       ownerId: ownerId,
+      scheduleId: scheduleId,
       recurrenceRule: recurrenceRule,
       exceptionDates: exceptionDates,
     );

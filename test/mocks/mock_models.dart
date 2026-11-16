@@ -198,6 +198,7 @@ class MockModels {
     TimeOfDay? satEndTime,
     int course = 1,
     int courseGroup = 1,
+    List<DateTime> exceptions = const [],
   }) {
     return CourseScheduleModel(
       id: id,
@@ -218,6 +219,7 @@ class MockModels {
       satStartTime: satStartTime ?? const TimeOfDay(hour: 0, minute: 0),
       satEndTime: satEndTime ?? const TimeOfDay(hour: 0, minute: 0),
       course: course,
+      exceptions: exceptions,
     );
   }
 

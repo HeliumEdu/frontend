@@ -1,4 +1,5 @@
 import 'package:heliumapp/data/models/planner/course_model.dart';
+import 'package:heliumapp/data/models/planner/course_schedule_model.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/core/base_event.dart';
 
 abstract class PlannerEvent extends BaseEvent {
@@ -18,6 +19,19 @@ class SkipCourseOccurrenceEvent extends PlannerEvent {
   SkipCourseOccurrenceEvent({
     required super.origin,
     required this.course,
+    required this.date,
+  });
+}
+
+class SkipCourseScheduleOccurrenceEvent extends PlannerEvent {
+  final CourseModel course;
+  final CourseScheduleModel schedule;
+  final DateTime date;
+
+  SkipCourseScheduleOccurrenceEvent({
+    required super.origin,
+    required this.course,
+    required this.schedule,
     required this.date,
   });
 }

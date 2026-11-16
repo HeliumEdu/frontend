@@ -77,7 +77,6 @@ import 'package:heliumapp/presentation/features/planner/widgets/todos_data_grid.
 import 'package:heliumapp/presentation/features/shared/bloc/core/base_event.dart';
 import 'package:heliumapp/presentation/navigation/shell/navigation_shell.dart';
 import 'package:heliumapp/presentation/ui/components/helium_checkbox_list_tile.dart';
-import 'package:heliumapp/presentation/ui/feedback/confirm_action_dialog.dart';
 import 'package:heliumapp/presentation/ui/components/helium_icon_button.dart';
 import 'package:heliumapp/presentation/ui/dialogs/helium_menu.dart';
 import 'package:heliumapp/presentation/ui/feedback/error_card.dart';
@@ -125,6 +124,12 @@ class PlannerScreen extends StatelessWidget {
               remoteDataSource: CourseRemoteDataSourceImpl(
                 dioClient: DioClient(),
               ),
+            ),
+            courseScheduleRepository: CourseScheduleRepositoryImpl(
+              remoteDataSource: CourseScheduleRemoteDataSourceImpl(
+                dioClient: DioClient(),
+              ),
+              builderSource: CourseScheduleBuilderSource(),
             ),
             categoryRepository: CategoryRepositoryImpl(
               remoteDataSource: CategoryRemoteDataSourceImpl(
@@ -514,14 +519,13 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
                 ),
               );
             }
-          } else if (state is CourseOccurrenceSkipped) {
+          } else if (state
+              case CourseOccurrenceSkipped(:final updatedCourse) ||
+                  CourseScheduleOccurrenceSkipped(:final updatedCourse)) {
             setState(() {
               _courses = [
                 for (final c in _courses)
-                  if (c.id == state.updatedCourse.id)
-                    state.updatedCourse
-                  else
-                    c,
+                  if (c.id == updatedCourse.id) updatedCourse else c,
               ];
             });
             _plannerItemDataSource?.courses = _courses;
@@ -3681,6 +3685,9 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
 
     final course = _courses.firstWhereOrNull((c) => c.id == courseId);
     if (course == null) return;
+    final schedule = course.schedules.firstWhere(
+      (s) => s.id == event.scheduleId,
+    );
 
     showCourseScheduleEventDialog(
       context: context,
@@ -3689,12 +3696,6 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
       occurrenceDate: occurrenceDate,
       actions: CourseScheduleEventActions(
         onSkip: (date) async {
-          if (_courseMeetingCountOnDate(course, date) > 1) {
-            final confirmed = await _confirmSkipAllMeetings(course.title, date);
-            if (!confirmed || !mounted) return;
-          }
-
-          if (!mounted) return;
           context.read<PlannerBloc>().add(
             SkipCourseOccurrenceEvent(
               origin: EventOrigin.dialog,
@@ -3703,6 +3704,18 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
             ),
           );
         },
+        onSkipMeeting: _courseMeetingCountOnDate(course, occurrenceDate) > 1
+            ? (date) async {
+                context.read<PlannerBloc>().add(
+                  SkipCourseScheduleOccurrenceEvent(
+                    origin: EventOrigin.dialog,
+                    course: course,
+                    schedule: schedule,
+                    date: date,
+                  ),
+                );
+              }
+            : null,
         websiteUrl: (!hideWebsiteLink && course.website != null)
             ? course.website.toString()
             : null,
@@ -3741,30 +3754,14 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
     );
   }
 
-  /// Meetings [course] has on [date] — more than one means a skip cancels
-  /// siblings too. Reuses the data source's recurrence expansion, which already
-  /// excludes existing exceptions.
+  /// Meetings [course] has on [date]. Reuses the data source's recurrence
+  /// expansion, which already excludes existing exceptions.
   int _courseMeetingCountOnDate(CourseModel course, DateTime date) {
     final items = _plannerItemDataSource?.getItemsForDay(date) ?? const [];
     return items
         .whereType<CourseScheduleEventModel>()
         .where((event) => event.ownerId == '${course.id}')
         .length;
-  }
-
-  /// Warns that skipping cancels every meeting the course has that day, not just
-  /// the tapped one (skipping is a course-level cancellation). Returns `true` to
-  /// skip all.
-  Future<bool> _confirmSkipAllMeetings(String courseTitle, DateTime date) {
-    return showConfirmActionDialog(
-      context: context,
-      title: 'Skip all meetings that day?',
-      message:
-          '$courseTitle meets more than once on '
-          '${HeliumDateTime.formatDate(date)}. Skipping cancels all of its '
-          'meetings that day, not just this one.',
-      actionText: 'Skip all',
-    );
   }
 
   /// Shows a warning if homework dates fall outside the course's date range

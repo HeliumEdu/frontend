@@ -8,6 +8,7 @@ import 'package:heliumapp/data/models/planner/resource_model.dart';
 import 'package:heliumapp/domain/repositories/attachment_repository.dart';
 import 'package:heliumapp/domain/repositories/category_repository.dart';
 import 'package:heliumapp/domain/repositories/course_repository.dart';
+import 'package:heliumapp/domain/repositories/course_schedule_event_repository.dart';
 import 'package:heliumapp/domain/repositories/resource_repository.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/planner_event.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/planner_state.dart';
@@ -18,18 +19,21 @@ final _log = Logger('presentation.bloc');
 
 class PlannerBloc extends Bloc<PlannerEvent, PlannerState> {
   final CourseRepository courseRepository;
+  final CourseScheduleRepository courseScheduleRepository;
   final CategoryRepository categoryRepository;
   final ResourceRepository resourceRepository;
   final AttachmentRepository attachmentRepository;
 
   PlannerBloc({
     required this.courseRepository,
+    required this.courseScheduleRepository,
     required this.categoryRepository,
     required this.resourceRepository,
     required this.attachmentRepository,
   }) : super(PlannerInitial(origin: EventOrigin.bloc)) {
     on<FetchPlannerScreenDataEvent>(_onFetchPlannerScreenDataEvent);
     on<SkipCourseOccurrenceEvent>(_onSkipCourseOccurrence);
+    on<SkipCourseScheduleOccurrenceEvent>(_onSkipCourseScheduleOccurrence);
   }
 
   Future<void> _onSkipCourseOccurrence(
@@ -47,6 +51,41 @@ class PlannerBloc extends Bloc<PlannerEvent, PlannerState> {
         CourseOccurrenceSkipped(
           origin: event.origin,
           updatedCourse: updatedCourse,
+        ),
+      );
+    } on HeliumException catch (e) {
+      emit(PlannerError(origin: event.origin, message: e.displayMessage));
+    } catch (e) {
+      emit(
+        PlannerError(
+          origin: event.origin,
+          message: HeliumException.unexpectedError,
+        ),
+      );
+    }
+  }
+
+  Future<void> _onSkipCourseScheduleOccurrence(
+    SkipCourseScheduleOccurrenceEvent event,
+    Emitter<PlannerState> emit,
+  ) async {
+    try {
+      final exceptions = [...event.schedule.exceptions, event.date]..sort();
+      final updatedSchedule = await courseScheduleRepository.updateCourseScheduleExceptions(
+        event.course.courseGroup,
+        event.course.id,
+        event.schedule.id,
+        exceptions,
+      );
+      emit(
+        CourseScheduleOccurrenceSkipped(
+          origin: event.origin,
+          updatedCourse: event.course.copyWith(
+            schedules: [
+              for (final schedule in event.course.schedules)
+                schedule.id == updatedSchedule.id ? updatedSchedule : schedule,
+            ],
+          ),
         ),
       );
     } on HeliumException catch (e) {

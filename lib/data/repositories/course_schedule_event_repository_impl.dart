@@ -94,6 +94,21 @@ class CourseScheduleRepositoryImpl implements CourseScheduleRepository {
   }
 
   @override
+  Future<CourseScheduleModel> updateCourseScheduleExceptions(
+    int groupId,
+    int courseId,
+    int scheduleId,
+    List<DateTime> exceptions,
+  ) async {
+    return remoteDataSource.updateCourseScheduleExceptions(
+      groupId,
+      courseId,
+      scheduleId,
+      exceptions,
+    );
+  }
+
+  @override
   Future<List<CourseScheduleModel>> getCourseSchedulesForCourse(
     int groupId,
     int courseId, {

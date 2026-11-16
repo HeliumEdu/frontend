@@ -386,5 +386,42 @@ void main() {
         expect(days, isEmpty);
       });
     });
+
+    group('exceptions', () {
+      test('parses the schedule\'s own cancellations', () {
+        // GIVEN
+        final json = givenCourseScheduleJson(exceptions: '20260304,20260311');
+
+        // WHEN
+        final schedule = CourseScheduleModel.fromJson(json);
+
+        // THEN
+        expect(schedule.exceptions, [DateTime(2026, 3, 4), DateTime(2026, 3, 11)]);
+      });
+    });
+
+    group('meetingsLabel', () {
+      test('lists each time with its days', () {
+        // GIVEN
+        final schedule = CourseScheduleModel.fromJson(
+          givenCourseScheduleJson(
+            daysOfWeek: '0101010',
+            monStartTime: '09:00:00',
+            monEndTime: '09:50:00',
+            wedStartTime: '09:00:00',
+            wedEndTime: '09:50:00',
+            friStartTime: '14:00:00',
+            friEndTime: '15:50:00',
+          ),
+        );
+
+        // WHEN
+        final label = schedule.meetingsLabel();
+
+        // THEN
+        expect(label, contains('Mon, Wed'));
+        expect(label, contains('; Fri'));
+      });
+    });
   });
 }

@@ -98,7 +98,7 @@ void main() {
       (context) => showCourseExceptionsDialog(
         context: context,
         courseExceptions: holidays,
-        onConfirm: (exceptions) async {
+        onConfirm: (exceptions, _) async {
           saved = exceptions;
           return null;
         },
@@ -122,7 +122,7 @@ void main() {
       (context) => showCourseExceptionsDialog(
         context: context,
         courseExceptions: holidays,
-        onConfirm: (_) async => 'Could not save cancellations.',
+        onConfirm: (_, _) async => 'Could not save cancellations.',
       ),
     );
 
@@ -133,5 +133,59 @@ void main() {
     expect(find.text('Cancellations'), findsOneWidget);
     expect(find.text('Could not save cancellations.'), findsOneWidget);
     expect(find.byTooltip('Remove'), findsOneWidget);
+  });
+
+  testWidgets('with schedules, each date shows its scope and saves to it', (
+    tester,
+  ) async {
+    // GIVEN
+    Map<int, List<DateTime>>? savedSchedules;
+    await givenDialogIsOpen(
+      tester,
+      (context) => showCourseExceptionsDialog(
+        context: context,
+        courseExceptions: [DateTime(2026, 11, 26)],
+        scheduleLabels: const {1: 'Mon, Wed 9:00 AM - 9:50 AM', 2: 'Wed 2:00 PM - 3:50 PM'},
+        scheduleExceptions: {
+          2: [DateTime(2026, 11, 18)],
+        },
+        onConfirm: (_, scheduleExceptions) async {
+          savedSchedules = scheduleExceptions;
+          return null;
+        },
+      ),
+    );
+
+    // WHEN
+    await tester.tap(find.byTooltip('Remove').first);
+    await tester.pumpAndSettle();
+    await confirm(tester);
+
+    // THEN
+    expect(savedSchedules, {1: <DateTime>[], 2: <DateTime>[]});
+  });
+
+  testWidgets('with schedules, rows label all-meeting and per-meeting dates', (
+    tester,
+  ) async {
+    // GIVEN
+    await givenDialogIsOpen(
+      tester,
+      (context) => showCourseExceptionsDialog(
+        context: context,
+        courseExceptions: [DateTime(2026, 11, 26)],
+        scheduleLabels: const {1: 'Mon, Wed 9:00 AM - 9:50 AM', 2: 'Wed 2:00 PM - 3:50 PM'},
+        scheduleExceptions: {
+          2: [DateTime(2026, 11, 18)],
+        },
+        courseGroupExceptions: [DateTime(2026, 11, 27)],
+        onConfirm: (_, _) async => null,
+      ),
+    );
+
+    // THEN
+    expect(find.text('Wed 2:00 PM - 3:50 PM'), findsOneWidget);
+    expect(find.text('All meetings'), findsOneWidget);
+    expect(find.text('Also cancelled via Holidays & Breaks'), findsOneWidget);
   });
 }
