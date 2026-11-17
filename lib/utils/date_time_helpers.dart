@@ -445,13 +445,26 @@ class HeliumDateTime {
     bool showEndTime,
     bool isAllDay,
   ) {
-    final String dateDisplay = HeliumDateTime.formatDate(startDate);
-
-    if (!isAllDay) {
-      return '$dateDisplay • ${HeliumDateTime.formatTimeRange(startDate, endDate, showEndTime)}';
-    } else {
-      return dateDisplay;
+    if (isAllDay) {
+      return showEndTime
+          ? formatDateRange(startDate, lastDayOf(endDate, allDay: true))
+          : formatDate(startDate);
     }
+
+    final String dateDisplay = formatDate(startDate);
+    if (showEndTime && endDate.isAfter(startDate) && dateOnly(endDate) != dateOnly(startDate)) {
+      return '$dateDisplay • ${formatTime(startDate)} to ${formatDate(endDate)} • ${formatTime(endDate)}';
+    }
+    return '$dateDisplay • ${formatTimeRange(startDate, endDate, showEndTime)}';
+  }
+
+  /// [startDate] to [endDate] as dates, or just the date when both fall on
+  /// the same day.
+  static String formatDateRange(DateTime startDate, DateTime endDate) {
+    if (!dateOnly(endDate).isAfter(dateOnly(startDate))) {
+      return formatDate(startDate);
+    }
+    return '${formatDate(startDate)} to ${formatDate(endDate)}';
   }
 
   static String formatTimeRange(

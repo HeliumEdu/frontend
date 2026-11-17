@@ -1,5 +1,6 @@
-import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 import 'package:heliumapp/core/helium_exception.dart';
+import 'package:heliumapp/data/models/auth/user_settings_model.dart';
 import 'package:heliumapp/data/models/notification/notification_model.dart';
 import 'package:heliumapp/data/models/planner/planner_item_base_model.dart';
 import 'package:heliumapp/data/models/planner/course_group_model.dart';
@@ -110,7 +111,7 @@ class PlannerHelper {
   }
 
   /// Layout width of the completion checkbox on a planner calendar item.
-  /// Kept in sync with the [SizedBox] in `_buildCheckboxWidget`.
+  /// Kept in sync with the [SizedBox] in `PlannerItemCalendarTile._buildCheckboxWidget`.
   static const double checkboxWidth = 17;
 
   static void _logMissingEntity(
@@ -455,6 +456,92 @@ class PlannerHelper {
   /// A result of 60 is valid; DateTime/TZDateTime constructors overflow it
   /// to minute 0 of the next hour.
   static int roundMinute(int minute) => ((minute + 15) ~/ 30) * 30;
+
+  static (DateTime, DateTime) droppedTimeRange({
+    required PlannerItemBaseModel plannerItem,
+    required DateTime currentStart,
+    required DateTime currentEnd,
+    required AppointmentDragEndDetails dropDetails,
+    required UserSettingsModel userSettings,
+    required PlannerView currentView,
+  }) {
+    final timeZone = userSettings.timeZone;
+    final startDateTime = tz.TZDateTime.from(currentStart, timeZone);
+    final endDateTime = tz.TZDateTime.from(currentEnd, timeZone);
+    final Duration duration = endDateTime.difference(startDateTime);
+
+    final roundedMinute = PlannerHelper.roundMinute(
+      dropDetails.droppingTime!.minute,
+    );
+
+    final DateTime start = tz.TZDateTime(
+      userSettings.timeZone,
+      dropDetails.droppingTime!.year,
+      dropDetails.droppingTime!.month,
+      dropDetails.droppingTime!.day,
+      currentView == PlannerView.month
+          ? startDateTime.hour
+          : dropDetails.droppingTime!.hour,
+      currentView == PlannerView.month
+          ? startDateTime.minute
+          : roundedMinute,
+    );
+    final DateTime end = plannerItem.allDay
+        ? HeliumDateTime.allDayEndAfterMove(start, startDateTime, endDateTime)
+        : start.add(duration);
+
+    return (start, end);
+  }
+
+  static (DateTime, DateTime) resizedTimeRange({
+    required PlannerItemBaseModel plannerItem,
+    required AppointmentResizeEndDetails resizeDetails,
+    required UserSettingsModel userSettings,
+  }) {
+    DateTime start = tz.TZDateTime(
+      userSettings.timeZone,
+      resizeDetails.startTime!.year,
+      resizeDetails.startTime!.month,
+      resizeDetails.startTime!.day,
+      resizeDetails.startTime!.hour,
+      PlannerHelper.roundMinute(resizeDetails.startTime!.minute),
+    );
+
+    DateTime end = tz.TZDateTime(
+      userSettings.timeZone,
+      resizeDetails.endTime!.year,
+      resizeDetails.endTime!.month,
+      resizeDetails.endTime!.day,
+      resizeDetails.endTime!.hour,
+      PlannerHelper.roundMinute(resizeDetails.endTime!.minute),
+    );
+    if (plannerItem.allDay) {
+      (start, end) = HeliumDateTime.dayRangeIn(
+        resizeDetails.startTime!,
+        resizeDetails.endTime!,
+        userSettings.timeZone,
+      );
+    }
+
+    return (start, end);
+  }
+
+  static String occurrenceWhenLabel({
+    required PlannerItemBaseModel occurrence,
+    required DateTime occurrenceDate,
+    required UserSettingsModel userSettings,
+  }) {
+    final localStart = HeliumDateTime.toLocal(
+      occurrence.start,
+      userSettings.timeZone,
+    );
+    if (!DateUtils.isSameDay(localStart, occurrenceDate)) {
+      return HeliumDateTime.formatDateForTodos(occurrenceDate);
+    }
+    return occurrence.allDay
+        ? HeliumDateTime.formatDateForTodos(localStart)
+        : HeliumDateTime.formatDateAndTimeForTodos(localStart);
+  }
 
   /// The end of the meeting starting exactly at [meetingStart] across all
   /// schedules' recurrence groups, or null.

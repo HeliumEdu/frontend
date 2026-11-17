@@ -824,7 +824,7 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen> {
                   const SizedBox(width: 4),
                   Expanded(
                     child: SelectableText(
-                      '${HeliumDateTime.formatDate(course.startDate)} to ${HeliumDateTime.formatDate(course.endDate)}',
+                      HeliumDateTime.formatDateRange(course.startDate, course.endDate),
                       style: AppStyles.standardBodyText(context).copyWith(
                         color: context.colorScheme.onSurface.withValues(
                           alpha: 0.5,

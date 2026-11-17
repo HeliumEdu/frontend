@@ -14,6 +14,8 @@ import 'dart:math' as math;
 import 'package:heliumapp/data/models/planner/course_group_model.dart';
 import 'package:heliumapp/data/models/planner/course_model.dart';
 import 'package:heliumapp/data/models/planner/grade_category_model.dart';
+import 'package:heliumapp/data/models/planner/grade_course_group_model.dart';
+import 'package:heliumapp/data/models/planner/grade_course_model.dart';
 import 'package:heliumapp/data/models/planner/grade_scale_band_model.dart';
 import 'package:heliumapp/data/models/planner/homework_series_item_model.dart';
 import 'package:heliumapp/utils/format_helpers.dart';
@@ -263,5 +265,60 @@ class GradeHelper {
     } catch (e) {
       return 'N/A';
     }
+  }
+
+  static Map<int, int> largestRemainderPercents(
+    List<GradeCategoryModel> categories,
+    double total,
+  ) {
+    final gradedCats = categories
+        .where((c) => c.gradeByWeight != null && c.gradeByWeight! > 0)
+        .toList();
+    final rawValues = gradedCats
+        .map((c) => c.gradeByWeight! / total * 100)
+        .toList();
+    final floors = rawValues.map((v) => v.floor()).toList();
+    final remainder = 100 - floors.reduce((a, b) => a + b);
+    final indices = List.generate(gradedCats.length, (i) => i)
+      ..sort(
+            (a, b) =>
+            (rawValues[b] - floors[b]).compareTo(rawValues[a] - floors[a]),
+      );
+    for (int i = 0; i < remainder; i++) {
+      floors[indices[i]]++;
+    }
+    return {
+      for (int i = 0; i < gradedCats.length; i++) gradedCats[i].id: floors[i],
+    };
+  }
+
+  static bool hasGrade(GradeCourseModel course) => GradeHelper.parseGrade(course.overallGrade) != null;
+
+  static bool isAtRisk(GradeCourseModel course, double atRiskThreshold) =>
+      course.numHomeworkGraded > 0 && hasGrade(course) && course.overallGrade < atRiskThreshold;
+
+  static String? gpaHint(
+    GradeCourseGroupModel selectedGroup,
+    List<GradeCourseGroupModel> grades,
+  ) {
+    final withoutCredits = selectedGroup.courses
+        .where((c) => c.gradePoint != null && c.credits <= 0)
+        .length;
+    final hints = <String>[];
+    if (withoutCredits > 0) {
+      hints.add(
+        '$withoutCredits ${withoutCredits.plural('class', 'classes')} without '
+        "credits ${withoutCredits.plural("isn't", "aren't")} counted.",
+      );
+    }
+    if (!selectedGroup.exampleSchedule &&
+        !selectedGroup.inCumulativeGpa &&
+        grades.any((g) => g.inCumulativeGpa)) {
+      hints.add(
+        "This group's grade scale differs from your most recent one, so it "
+        "isn't counted in your GPA across all terms.",
+      );
+    }
+    return hints.isEmpty ? null : hints.join('\n\n');
   }
 }
