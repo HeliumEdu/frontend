@@ -11,6 +11,8 @@ import 'package:logging/logging.dart';
 
 final _log = Logger('core.oauth_sign_in');
 
+typedef _PendingLink = ({String providerName, AuthCredential credential, String email});
+
 enum OAuthProvider {
   google,
   apple,
@@ -29,6 +31,8 @@ class OAuthSignInService {
   final GoogleAccountStore _googleAccountStore = GoogleAccountStore();
   final LastOAuthProviderStore _lastOAuthProviderStore = LastOAuthProviderStore();
   bool _initialized = false;
+  _PendingLink? _pendingLink;
+  String? _linkedProvider;
 
   Future<void> _ensureInitialized() async {
     if (_initialized) return;
@@ -80,6 +84,8 @@ class OAuthSignInService {
       OAuthProvider.microsoft => 'Microsoft',
     };
 
+    _linkedProvider = null;
+
     try {
       _log.info(
         'Starting $providerName Sign-In flow on ${kIsWeb ? "web" : "mobile"}',
@@ -99,7 +105,7 @@ class OAuthSignInService {
         return null;
       }
 
-      final String? firebaseIdToken = await userCredential.user?.getIdToken();
+      final String? firebaseIdToken = await userCredential.user!.getIdToken();
 
       if (firebaseIdToken == null) {
         _log.severe('Firebase did not provide an ID token');
@@ -107,6 +113,8 @@ class OAuthSignInService {
           message: 'Sign in with $providerName failed.',
         );
       }
+
+      await _linkPendingCredential(userCredential.user!);
 
       _log.info('Firebase ID token obtained successfully from $providerName Sign-In');
 
@@ -127,8 +135,17 @@ class OAuthSignInService {
       }
       if (e.code == 'account-exists-with-different-credential') {
         _log.info('$providerName Sign-In blocked: email already linked to another provider');
+        final credential = e.credential;
+        final email = e.email;
+        if (credential == null || email == null) {
+          throw HeliumException(
+            message: 'That email is already registered with a different sign-in method. Sign in that way instead.',
+          );
+        }
+        _pendingLink = (providerName: providerName, credential: credential, email: email);
         throw HeliumException(
-          message: 'That email is already registered with a different sign-in method. Sign in that way instead.',
+          message:
+              'That email is already registered with a different sign-in method. Sign in that way to link $providerName too.',
         );
       }
       _log.warning('Firebase Auth exception: ${e.code}');
@@ -284,6 +301,20 @@ class OAuthSignInService {
     return userCredential;
   }
 
+  Future<void> _linkPendingCredential(User user) async {
+    final pendingLink = _pendingLink;
+    _pendingLink = null;
+    if (pendingLink == null || user.email?.toLowerCase() != pendingLink.email.toLowerCase()) return;
+
+    try {
+      await user.linkWithCredential(pendingLink.credential);
+      _linkedProvider = pendingLink.providerName;
+      _log.info('Linked ${pendingLink.providerName} to the signed-in account');
+    } on FirebaseAuthException catch (e) {
+      _log.warning('Linking ${pendingLink.providerName} failed - code: ${e.code}');
+    }
+  }
+
   Future<UserCredential?> _signInWithFirebaseAuthProvider(
     OAuthProvider provider,
   ) async {
@@ -320,7 +351,14 @@ class OAuthSignInService {
     }
   }
 
+  String? takeLinkedProvider() {
+    final linkedProvider = _linkedProvider;
+    _linkedProvider = null;
+    return linkedProvider;
+  }
+
   Future<void> signOut() async {
+    _pendingLink = null;
     try {
       // Signing out of Helium shouldn't sign out of Google on iOS - clearing
       // it is what forced a full, email-triggering reauth on every login.

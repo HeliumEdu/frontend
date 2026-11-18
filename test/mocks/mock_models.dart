@@ -403,6 +403,8 @@ class MockModels {
     List<HomeworkSeriesItemModel> homeworkSeries = const [],
     double pointsEarned = 0,
     double pointsPossible = 0,
+    int numHomeworkGraded = 0,
+    double? trend,
   }) {
     return GradeCourseModel(
       id: id,
@@ -414,7 +416,8 @@ class MockModels {
       color: Colors.blue,
       numHomework: homeworkSeries.length,
       numHomeworkCompleted: 0,
-      numHomeworkGraded: 0,
+      numHomeworkGraded: numHomeworkGraded,
+      trend: trend,
       pointsEarned: pointsEarned,
       pointsPossible: pointsPossible,
       categories: categories,

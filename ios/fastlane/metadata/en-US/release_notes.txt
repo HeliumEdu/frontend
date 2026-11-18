@@ -5,6 +5,7 @@ A smarter way to organize your academic life.
 - Rich notebook
 - At-a-glance schedules
 - Todos view
+- Home screen widgets
 - Detailed assignment planner
 - Attachments & Reminders
 

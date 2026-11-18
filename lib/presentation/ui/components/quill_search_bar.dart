@@ -204,10 +204,10 @@ class _QuillSearchBarState extends State<QuillSearchBar> {
                   border: Border.all(
                     color: context.colorScheme.outline.withValues(alpha: 0.2),
                   ),
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(AppStyles.formFieldBorderRadius),
                 ),
                 child: ClipRRect(
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(AppStyles.formFieldBorderRadius),
                   child: TextField(
                     controller: _textController,
                     focusNode: _searchFocusNode,
@@ -221,7 +221,7 @@ class _QuillSearchBarState extends State<QuillSearchBar> {
                       focusedBorder: InputBorder.none,
                       isDense: true,
                       contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 12,
+                        horizontal: AppStyles.formFieldContentPadding,
                         vertical: 10,
                       ),
                       suffixText: _matchText,

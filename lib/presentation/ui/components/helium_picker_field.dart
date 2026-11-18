@@ -109,8 +109,6 @@ class HeliumTimeField extends StatelessWidget {
 }
 
 class _PickerFieldBox extends StatelessWidget {
-  static const _contentPaddingHorizontal = 15.0;
-
   final String? label;
   final String valueText;
   final IconData icon;
@@ -135,33 +133,24 @@ class _PickerFieldBox extends StatelessWidget {
           Feedback.forTap(context);
           onTap();
         },
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: _contentPaddingHorizontal),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(6),
-            border: Border.all(
-              color: context.colorScheme.outline.withValues(alpha: 0.2),
-            ),
-            color: backgroundColor ?? context.colorScheme.surface,
-          ),
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(minHeight: AppStyles.formFieldInnerHeight),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(valueText, style: AppStyles.formText(context)),
-                Icon(
-                  icon,
-                  color: context.colorScheme.primary,
-                  size: Responsive.getIconSize(
-                    context,
-                    mobile: 18,
-                    tablet: 20,
-                    desktop: 22,
-                  ),
+        child: InputDecorator(
+          textAlignVertical: TextAlignVertical.center,
+          decoration: AppStyles.formFieldDecoration(context).copyWith(fillColor: backgroundColor),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(valueText, style: AppStyles.formText(context)),
+              Icon(
+                icon,
+                color: context.colorScheme.primary,
+                size: Responsive.getIconSize(
+                  context,
+                  mobile: 18,
+                  tablet: 20,
+                  desktop: 22,
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),

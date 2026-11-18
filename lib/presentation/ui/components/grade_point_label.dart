@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/grade_helpers.dart';
-import 'package:heliumapp/utils/responsive_helpers.dart';
 
 class GradePointLabel extends StatelessWidget {
   final double? gradePoint;
@@ -18,9 +17,7 @@ class GradePointLabel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final showsGradePoint = gradePoint != null &&
-        credits > 0 &&
-        !Responsive.isSlimMobile(context);
+    final showsGradePoint = gradePoint != null && credits > 0;
     final showsLetterGrade = letterGrade?.isNotEmpty ?? false;
     if (!showsGradePoint && !showsLetterGrade) {
       return const SizedBox.shrink();

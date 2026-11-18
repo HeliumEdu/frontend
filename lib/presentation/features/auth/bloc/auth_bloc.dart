@@ -305,7 +305,11 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       await backendLogin(firebaseIdToken);
 
       _log.info('$provider Sign-In successful');
-      emit(AuthLoggedIn());
+      emit(
+        AuthLoggedIn(
+          linkedProvider: OAuthSignInService().takeLinkedProvider(),
+        ),
+      );
     } on HeliumException catch (e) {
       _log.warning('$provider Sign-In failed: ${e.runtimeType} code=${e.code}');
       emit(

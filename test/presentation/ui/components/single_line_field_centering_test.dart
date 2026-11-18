@@ -5,39 +5,56 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/data/models/drop_down_item.dart';
 import 'package:heliumapp/presentation/ui/components/drop_down.dart';
+import 'package:heliumapp/presentation/ui/components/helium_picker_field.dart';
 import 'package:heliumapp/presentation/ui/components/helium_search_field.dart';
 import 'package:heliumapp/presentation/ui/components/label_and_text_form_field.dart';
 import 'package:heliumapp/presentation/ui/components/quill_search_bar.dart';
 import 'package:heliumapp/presentation/ui/components/searchable_dropdown.dart';
 import 'package:heliumapp/presentation/ui/components/spinner_field.dart';
 import 'package:heliumapp/utils/app_style.dart';
+import 'package:heliumapp/utils/date_time_helpers.dart';
 
 void main() {
   final items = [
     DropDownItem<int>(id: 1, value: 1, label: 'Fall'),
     DropDownItem<int>(id: 2, value: 2, label: 'Spring'),
   ];
-  final fields = <String, ({Widget Function() build, String? typedText})>{
+  final date = DateTime(2026, 11, 17);
+  final fields = <String, ({Widget Function() build, String? typedText, String? shownText})>{
     'LabelAndTextFormField': (
       build: () => LabelAndTextFormField(controller: TextEditingController(text: '42')),
       typedText: null,
+      shownText: null,
     ),
-    'SpinnerField': (build: () => SpinnerField(controller: TextEditingController(text: '42')), typedText: null),
+    'SpinnerField': (
+      build: () => SpinnerField(controller: TextEditingController(text: '42')),
+      typedText: null,
+      shownText: null,
+    ),
     'DropDown': (
       build: () => DropDown<int>(items: items, initialValue: items.last, onChanged: (_) {}),
       typedText: null,
+      shownText: items.last.label,
     ),
     'SearchableDropdown': (
       build: () => SearchableDropdown<int>(items: items, initialValue: items.last, onChanged: (_) {}),
       typedText: null,
+      shownText: null,
     ),
     'QuillSearchBar': (
       build: () => QuillSearchBar(controller: QuillController.basic(), onClose: () {}),
       typedText: '42',
+      shownText: null,
     ),
     'HeliumSearchField': (
       build: () => HeliumSearchField(controller: TextEditingController(), onChanged: (_) {}),
       typedText: '42',
+      shownText: null,
+    ),
+    'HeliumDateField': (
+      build: () => HeliumDateField(date: date, onTap: () {}),
+      typedText: null,
+      shownText: HeliumDateTime.formatDate(date),
     ),
   };
   final densities = {'standard': VisualDensity.standard, 'compact': VisualDensity.compact};
@@ -69,15 +86,15 @@ void main() {
     boxes.map((box) => box.toRect()).reduce((a, b) => a.expandToInclude(b)),
   );
 
-  Rect renderedTextOf(WidgetTester tester) {
-    final editableText = find.byType(EditableText);
-    if (editableText.evaluate().isEmpty) {
-      final selectedItem = tester.renderObject<RenderParagraph>(find.text(items.last.label));
+  Rect renderedTextOf(WidgetTester tester, String? shownText) {
+    if (shownText != null) {
+      final paragraph = tester.renderObject<RenderParagraph>(find.text(shownText));
       return globalRectOf(
-        selectedItem,
-        selectedItem.getBoxesForSelection(TextSelection(baseOffset: 0, extentOffset: items.last.label.length)),
+        paragraph,
+        paragraph.getBoxesForSelection(TextSelection(baseOffset: 0, extentOffset: shownText.length)),
       );
     }
+    final editableText = find.byType(EditableText);
     final input = tester.state<EditableTextState>(editableText).renderEditable;
     return globalRectOf(
       input,
@@ -98,7 +115,7 @@ void main() {
 
           // WHEN
           final box = tester.getRect(find.byType(InputDecorator));
-          final text = renderedTextOf(tester);
+          final text = renderedTextOf(tester, field.shownText);
 
           // THEN
           expect(text.center.dy, closeTo(box.center.dy, 1),
@@ -114,6 +131,7 @@ void main() {
     'DropDown',
     'SearchableDropdown',
     'HeliumSearchField',
+    'HeliumDateField',
   ]) {
     testWidgets('$name draws the shared form field outline in every state', (tester) async {
       // GIVEN

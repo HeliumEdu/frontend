@@ -174,6 +174,7 @@ class DioClient {
 
             // Don't refresh on login or refresh token endpoints
             if (requestPath == ApiUrl.authTokenUrl ||
+                requestPath == ApiUrl.authTokenOAuthUrl ||
                 requestPath == ApiUrl.authTokenRefreshUrl ||
                 error.requestOptions.extra[_replayedAfterRefreshKey] == true) {
               return handler.next(error);
