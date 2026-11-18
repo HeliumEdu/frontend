@@ -128,7 +128,7 @@ class OAuthSignInService {
       if (e.code == 'account-exists-with-different-credential') {
         _log.info('$providerName Sign-In blocked: email already linked to another provider');
         throw HeliumException(
-          message: 'Sorry, this email is registered with a different sign in method.',
+          message: 'That email is already registered with a different sign-in method. Sign in that way instead.',
         );
       }
       _log.warning('Firebase Auth exception: ${e.code}');
