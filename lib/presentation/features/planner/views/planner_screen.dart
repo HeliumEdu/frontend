@@ -254,7 +254,6 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
   // until the user stops tapping.
   final Map<int, Timer> _pendingToggleTimers = {};
   final Map<int, bool> _pendingToggleValues = {};
-  static const _toggleDebounceDuration = Duration(milliseconds: 400);
 
   // Completion updates dispatched to the BLoC and awaiting a response, per
   // homework ID. A response is stale while the count is above zero.
@@ -2599,7 +2598,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
 
     _pendingToggleTimers[homework.id]?.cancel();
     _pendingToggleValues[homework.id] = value;
-    _pendingToggleTimers[homework.id] = Timer(_toggleDebounceDuration, () {
+    _pendingToggleTimers[homework.id] = Timer(AppConstants.completionToggleDebounce, () {
       if (!mounted) return;
       final pendingValue = _pendingToggleValues.remove(homework.id);
       _pendingToggleTimers.remove(homework.id);

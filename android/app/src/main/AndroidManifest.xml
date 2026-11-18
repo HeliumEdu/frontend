@@ -39,6 +39,24 @@
                 <data android:scheme="https" android:host="app.heliumedu.com"/>
             </intent-filter>
         </activity>
+        <receiver
+            android:name=".widget.AgendaWidgetReceiver"
+            android:exported="true"
+            android:label="@string/agenda_widget_label">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE"/>
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/agenda_widget_info"/>
+        </receiver>
+        <!-- Not exported: other apps must not complete assignments with the user's session -->
+        <receiver
+            android:name="es.antonborri.home_widget.HomeWidgetBackgroundReceiver"
+            android:exported="false"/>
+        <receiver
+            android:name="es.antonborri.home_widget.HomeWidgetScheduledUpdateReceiver"
+            android:exported="false"/>
         <!-- Don't delete the meta-data below.
              This is used by the Flutter tool to generate GeneratedPluginRegistrant.java -->
         <meta-data

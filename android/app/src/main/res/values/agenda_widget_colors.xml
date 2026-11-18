@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="agenda_widget_surface">#f6fafe</color>
+    <color name="agenda_widget_on_surface">#181c1f</color>
+    <color name="agenda_widget_on_surface_muted">#a6181c1f</color>
+    <color name="agenda_widget_error">#c51d4b</color>
+    <color name="agenda_widget_sample_writing">#bd42a4</color>
+    <color name="agenda_widget_sample_programming">#05cc90</color>
+    <color name="agenda_widget_sample_psychology">#3033cf</color>
+</resources>

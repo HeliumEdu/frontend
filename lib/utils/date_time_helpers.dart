@@ -397,6 +397,10 @@ class HeliumDateTime {
     return DateFormat(dayNameShortPattern).format(date);
   }
 
+  static String formatDayName(DateTime date) {
+    return DateFormat('EEEE').format(date);
+  }
+
   static DateFormat get dateFormatForChartAxis => DateFormat(_ordered('MMM d', 'd MMM'));
 
   static String formatMonthAndYear(

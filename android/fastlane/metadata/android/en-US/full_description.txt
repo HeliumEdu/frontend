@@ -15,6 +15,9 @@ Classes time-blocked hour by hour, including rotating schedules like A/B Day and
 ✅ TODOS VIEW
 A focused checklist of your assignments. Sort and filter by class, priority, due date, or resources — organize your study time the way you want.
 
+📱 HOME SCREEN WIDGETS
+See what's overdue, due today, and coming up this week right from your home screen, and check off assignments without opening the app.
+
 📝 DETAILED ASSIGNMENT PLANNER
 Class, category, priority, Reminders, Attachments like rubrics, formatted Notes, and linked Resources — every detail in one place. Set a weekly reading to repeat and it's on your Planner for the rest of the term, or clone an assignment to start the next one from it.
 

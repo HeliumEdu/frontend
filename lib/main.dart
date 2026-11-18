@@ -10,6 +10,7 @@ import 'package:heliumapp/config/app_providers.dart';
 import 'package:heliumapp/config/app_router.dart';
 import 'package:heliumapp/config/dirty_dialog_registry.dart';
 import 'package:heliumapp/config/pref_service.dart';
+import 'package:heliumapp/core/agenda_widget_service.dart';
 import 'package:heliumapp/core/analytics_service.dart';
 import 'package:heliumapp/core/app_version_service.dart';
 import 'package:heliumapp/core/contrast_service.dart';
@@ -124,6 +125,9 @@ Future<void> _bootstrap() async {
   } catch (e, s) {
     _log.severe('Identifying the stored user failed', e, s);
   }
+
+  await AgendaWidgetService().init();
+  AgendaWidgetService().scheduleRefresh();
 
   await AppVersionService().init();
 

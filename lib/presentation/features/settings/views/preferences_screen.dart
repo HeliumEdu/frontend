@@ -354,7 +354,7 @@ class PreferencesScreenState extends State<PreferencesScreen> {
               style: AppStyles.formLabel(context),
             ),
             Text(
-              'Classes with an overall grade below this are flagged as at-risk',
+              'Classes with an overall grade below this are flagged',
               style: AppStyles.smallSecondaryText(context),
             ),
             const SizedBox(height: 8),
@@ -372,7 +372,7 @@ class PreferencesScreenState extends State<PreferencesScreen> {
               style: AppStyles.formLabel(context),
             ),
             Text(
-              'How close to the threshold an overall class grade can be and still count as on-track',
+              'How close to the at-risk threshold a class grade can be and still count as on-track',
               style: AppStyles.smallSecondaryText(context),
             ),
             const SizedBox(height: 8),

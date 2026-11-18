@@ -176,7 +176,7 @@ bool _passesFilters(FilterableItem item, FilterParams params) {
         matches = matches || !isCompleted;
       }
       if (params.filterStatuses.contains(PlannerFilterStatus.overdue.value)) {
-        final isOverdue = !isCompleted && item.start.isBefore(DateTime.now());
+        final isOverdue = PlannerHelper.isOverdue(completed: isCompleted, start: item.start, now: DateTime.now());
         matches = matches || isOverdue;
       }
       if (params.filterStatuses.contains(PlannerFilterStatus.graded.value)) {

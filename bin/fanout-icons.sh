@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Fans the generated app icons (web/icons, from `flutter_launcher_icons`) out to
-# the web favicon, the Play Store listing icon and www's icons and favicons.
+# the web favicon, the Play Store listing icon, the iOS widget's logo and www's
+# icons and favicons.
 # Platform and connector then copy theirs from www with their sync-assets.
 #
 # Requires: ImageMagick 7+ (magick) or ImageMagick 6 (convert).
@@ -81,6 +82,7 @@ favicon_ico() {
 echo "Fanning out app icons ..."
 copy "$ICON_192" "$REPO/web/favicon.png"
 copy "$ICON_512" "$REPO/android/fastlane/metadata/android/en-US/images/icon.png"
+resize 120 "$REPO/ios/HeliumWidget/Assets.xcassets/HeliumLogo.imageset/HeliumLogo.png"
 
 if [[ -d "$WWW_PUBLIC" ]]; then
   copy "$ICON_192" "$WWW_PUBLIC/icon-192.png"

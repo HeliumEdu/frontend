@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="agenda_widget_surface">#0f1417</color>
+    <color name="agenda_widget_on_surface">#dfe3e7</color>
+    <color name="agenda_widget_on_surface_muted">#a6dfe3e7</color>
+    <color name="agenda_widget_error">#e15c7b</color>
+</resources>

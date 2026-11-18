@@ -443,6 +443,7 @@ Map<String, dynamic> givenHomeworkJson({
   List<dynamic>? attachments,
   List<dynamic>? reminders,
   String? recurrenceRule,
+  List<String>? exceptionDates,
 }) {
   return {
     'id': id,
@@ -453,6 +454,7 @@ Map<String, dynamic> givenHomeworkJson({
     'end': end,
     'priority': priority,
     'recurrence_rule': recurrenceRule,
+    'exception_dates': exceptionDates,
     'completed': completed,
     'course': course,
     'course_group': 1,

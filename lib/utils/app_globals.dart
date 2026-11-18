@@ -31,6 +31,7 @@ class AppConstants {
   static const externalCalendarIcon = Icons.hub;
 
   static const uiAnimationDuration = Duration(milliseconds: 300);
+  static const completionToggleDebounce = Duration(milliseconds: 400);
   static const bottomSheetMaxHeightFactor = 0.5;
 
   static const authContainerSize = 120.0;

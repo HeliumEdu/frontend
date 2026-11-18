@@ -133,6 +133,12 @@ class CacheService with WidgetsBindingObserver {
   void removeQuickResumeListener(VoidCallback callback) =>
       _quickResume.remove(callback);
 
+  /// Invalidates the cache and reloads screens as after a long inactivity, for changes made outside this isolate.
+  Future<void> reloadAfterExternalChange() async {
+    await invalidateAll();
+    _notifyInactivityResume();
+  }
+
   void _notifyInactivityResume() {
     _inactivityResume.notify();
     _notifyQuickResume();

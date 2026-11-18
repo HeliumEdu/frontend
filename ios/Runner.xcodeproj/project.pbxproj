@@ -8,15 +8,39 @@
 
 /* Begin PBXBuildFile section */
 		1498D2341E8E89220040F4C2 /* GeneratedPluginRegistrant.m in Sources */ = {isa = PBXBuildFile; fileRef = 1498D2331E8E89220040F4C2 /* GeneratedPluginRegistrant.m */; };
+		308D1172BD094FE623D8E870 /* BackgroundIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 893771B5ECE3B471782CCE6E /* BackgroundIntent.swift */; };
 		3B3967161E833CAA004F5970 /* AppFrameworkInfo.plist in Resources */ = {isa = PBXBuildFile; fileRef = 3B3967151E833CAA004F5970 /* AppFrameworkInfo.plist */; };
+		41331668D879C1C5DC8CC9C8 /* HeliumAgendaWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD9649781A98334FB70C23FC /* HeliumAgendaWidget.swift */; };
 		49249B1683477E2BDD82032E /* Pods_Runner.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 98ADF6DA72ED719FDC77B50C /* Pods_Runner.framework */; };
+		5494DD1C76517951E7E5F992 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 1FB9511EAD2ED851FAC5BE5B /* Assets.xcassets */; };
+		56E910A904F985C67D0A6955 /* AgendaViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 53C9D0B4455F52AF1CE487C5 /* AgendaViews.swift */; };
+		5C4A56DD2BAAE0287B276136 /* BackgroundIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 893771B5ECE3B471782CCE6E /* BackgroundIntent.swift */; };
 		74858FAF1ED2DC5600515810 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 74858FAE1ED2DC5600515810 /* AppDelegate.swift */; };
+		75109712FDBD5FF54A5C62A9 /* AgendaSnapshot.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95B3377A242063B13796FA37 /* AgendaSnapshot.swift */; };
 		77E838C4709C39178C11BD5A /* KeyboardFlickerFix.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0D571C851BAA18B57771E39 /* KeyboardFlickerFix.swift */; };
+		96B5AE9D7F539B97DC382839 /* Poppins-Medium.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 8CEA43F07442EE3B9AC83508 /* Poppins-Medium.ttf */; };
+		977B36C3C45B1D1D63FB5DFA /* AgendaTimeline.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B570A58005A00EE22B1E914 /* AgendaTimeline.swift */; };
 		97C146FC1CF9000F007C117D /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FA1CF9000F007C117D /* Main.storyboard */; };
 		97C146FE1CF9000F007C117D /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FD1CF9000F007C117D /* Assets.xcassets */; };
 		97C147011CF9000F007C117D /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FF1CF9000F007C117D /* LaunchScreen.storyboard */; };
+		A8F258BB2EA6B5A3EA809EBA /* DMSerifDisplay-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 0862368F864AACEDE423FF95 /* DMSerifDisplay-Regular.ttf */; };
+		ADBE4ACA98284337BB739454 /* Poppins-SemiBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = D5051F190ACD5465D5D9928F /* Poppins-SemiBold.ttf */; };
+		B31D97998F1F743671B745E5 /* AgendaStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = FADCEE85074B50F19C5984E3 /* AgendaStyle.swift */; };
 		DE4C455E21DE1E4300EA0709 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = DE4C455D21DE1E4300EA0709 /* GoogleService-Info.plist */; };
+		EB41F36407FEB37CD715780F /* AgendaSample.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8B9D8DB49F0FB82B1963C28F /* AgendaSample.swift */; };
+		F9CC25E2FF81CBA6E1C6FD91 /* Poppins-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 338E3477AE66AAAA3D77B17D /* Poppins-Regular.ttf */; };
+		FE50E6AFCC09F79923901DBA /* HeliumWidget.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = F3B7EA5EC1E15A145417C886 /* HeliumWidget.appex */; settings = {ATTRIBUTES = (RemoveHeaderOnCopy, ); }; };
 /* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		A7B766EF9B1B66A7C6A0115E /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 97C146E61CF9000F007C117D /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 36A43F24E200BE4811EFD351;
+			remoteInfo = HeliumWidget;
+		};
+/* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
 		9705A1C41CF9048500538489 /* Embed Frameworks */ = {
@@ -29,18 +53,38 @@
 			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		FA6886D702A0AD4AD59745FF /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				FE50E6AFCC09F79923901DBA /* HeliumWidget.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		084F273D2E37397F6F5E8B1E /* Pods-Runner.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner.release.xcconfig"; path = "Target Support Files/Pods-Runner/Pods-Runner.release.xcconfig"; sourceTree = "<group>"; };
+		0862368F864AACEDE423FF95 /* DMSerifDisplay-Regular.ttf */ = {isa = PBXFileReference; includeInIndex = 1; path = "DMSerifDisplay-Regular.ttf"; sourceTree = "<group>"; };
 		1219C6A81D377A3E94E8E9CC /* Pods-Runner.profile.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner.profile.xcconfig"; path = "Target Support Files/Pods-Runner/Pods-Runner.profile.xcconfig"; sourceTree = "<group>"; };
 		1498D2321E8E86230040F4C2 /* GeneratedPluginRegistrant.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = GeneratedPluginRegistrant.h; sourceTree = "<group>"; };
 		1498D2331E8E89220040F4C2 /* GeneratedPluginRegistrant.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GeneratedPluginRegistrant.m; sourceTree = "<group>"; };
+		1FB9511EAD2ED851FAC5BE5B /* Assets.xcassets */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		207AA798DCC747C42C5E930D /* Pods-Runner.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner.debug.xcconfig"; path = "Target Support Files/Pods-Runner/Pods-Runner.debug.xcconfig"; sourceTree = "<group>"; };
+		338E3477AE66AAAA3D77B17D /* Poppins-Regular.ttf */ = {isa = PBXFileReference; includeInIndex = 1; path = "Poppins-Regular.ttf"; sourceTree = "<group>"; };
 		3B3967151E833CAA004F5970 /* AppFrameworkInfo.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = AppFrameworkInfo.plist; path = Flutter/AppFrameworkInfo.plist; sourceTree = "<group>"; };
+		53C9D0B4455F52AF1CE487C5 /* AgendaViews.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AgendaViews.swift; sourceTree = "<group>"; };
 		74858FAD1ED2DC5600515810 /* Runner-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "Runner-Bridging-Header.h"; sourceTree = "<group>"; };
 		74858FAE1ED2DC5600515810 /* AppDelegate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		7AFA3C8E1D35360C0083082E /* Release.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; name = Release.xcconfig; path = Flutter/Release.xcconfig; sourceTree = "<group>"; };
+		7B570A58005A00EE22B1E914 /* AgendaTimeline.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AgendaTimeline.swift; sourceTree = "<group>"; };
+		893771B5ECE3B471782CCE6E /* BackgroundIntent.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = BackgroundIntent.swift; sourceTree = "<group>"; };
+		8B9D8DB49F0FB82B1963C28F /* AgendaSample.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AgendaSample.swift; sourceTree = "<group>"; };
+		8CEA43F07442EE3B9AC83508 /* Poppins-Medium.ttf */ = {isa = PBXFileReference; includeInIndex = 1; path = "Poppins-Medium.ttf"; sourceTree = "<group>"; };
+		95B3377A242063B13796FA37 /* AgendaSnapshot.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AgendaSnapshot.swift; sourceTree = "<group>"; };
 		9740EEB21CF90195004384FC /* Debug.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; name = Debug.xcconfig; path = Flutter/Debug.xcconfig; sourceTree = "<group>"; };
 		9740EEB31CF90195004384FC /* Generated.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; name = Generated.xcconfig; path = Flutter/Generated.xcconfig; sourceTree = "<group>"; };
 		97C146EE1CF9000F007C117D /* Helium.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Helium.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -49,13 +93,27 @@
 		97C147001CF9000F007C117D /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		97C147021CF9000F007C117D /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		98ADF6DA72ED719FDC77B50C /* Pods_Runner.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Runner.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		B09114F1470F514819D71E00 /* Info.plist */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		B0D571C851BAA18B57771E39 /* KeyboardFlickerFix.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = KeyboardFlickerFix.swift; sourceTree = "<group>"; };
+		C67CCADA6A8835012AE7F578 /* HeliumWidget.entitlements */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.entitlements; path = HeliumWidget.entitlements; sourceTree = "<group>"; };
+		CD9649781A98334FB70C23FC /* HeliumAgendaWidget.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = HeliumAgendaWidget.swift; sourceTree = "<group>"; };
+		D5051F190ACD5465D5D9928F /* Poppins-SemiBold.ttf */ = {isa = PBXFileReference; includeInIndex = 1; path = "Poppins-SemiBold.ttf"; sourceTree = "<group>"; };
 		DE4C455D21DE1E4300EA0709 /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
+		E5A699652883CA133D61D717 /* HeliumWidget.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; path = HeliumWidget.xcconfig; sourceTree = "<group>"; };
 		F2A9B8E42D4A1B2300000001 /* Runner.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Runner.entitlements; sourceTree = "<group>"; };
 		F2A9B8E52D4A1B2300000002 /* RunnerDebug.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = RunnerDebug.entitlements; sourceTree = "<group>"; };
+		F3B7EA5EC1E15A145417C886 /* HeliumWidget.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = HeliumWidget.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		FADCEE85074B50F19C5984E3 /* AgendaStyle.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AgendaStyle.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		86C85404A33DA69FF9D5F7B9 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		97C146EB1CF9000F007C117D /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -67,6 +125,24 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		47CF12D15EABA8F4CED86953 /* HeliumWidget */ = {
+			isa = PBXGroup;
+			children = (
+				CD9649781A98334FB70C23FC /* HeliumAgendaWidget.swift */,
+				95B3377A242063B13796FA37 /* AgendaSnapshot.swift */,
+				7B570A58005A00EE22B1E914 /* AgendaTimeline.swift */,
+				53C9D0B4455F52AF1CE487C5 /* AgendaViews.swift */,
+				FADCEE85074B50F19C5984E3 /* AgendaStyle.swift */,
+				8B9D8DB49F0FB82B1963C28F /* AgendaSample.swift */,
+				1FB9511EAD2ED851FAC5BE5B /* Assets.xcassets */,
+				B09114F1470F514819D71E00 /* Info.plist */,
+				C67CCADA6A8835012AE7F578 /* HeliumWidget.entitlements */,
+				E5A699652883CA133D61D717 /* HeliumWidget.xcconfig */,
+				E06994F0A4434720DB28DE8D /* Fonts */,
+			);
+			path = HeliumWidget;
+			sourceTree = "<group>";
+		};
 		71744F26D81E26AD0C7C23A4 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
@@ -91,6 +167,7 @@
 			children = (
 				9740EEB11CF90186004384FC /* Flutter */,
 				97C146F01CF9000F007C117D /* Runner */,
+				47CF12D15EABA8F4CED86953 /* HeliumWidget */,
 				97C146EF1CF9000F007C117D /* Products */,
 				D8678BA00FCE2E7C0B35E29B /* Pods */,
 				71744F26D81E26AD0C7C23A4 /* Frameworks */,
@@ -101,6 +178,7 @@
 			isa = PBXGroup;
 			children = (
 				97C146EE1CF9000F007C117D /* Helium.app */,
+				F3B7EA5EC1E15A145417C886 /* HeliumWidget.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -120,6 +198,7 @@
 				74858FAE1ED2DC5600515810 /* AppDelegate.swift */,
 				74858FAD1ED2DC5600515810 /* Runner-Bridging-Header.h */,
 				B0D571C851BAA18B57771E39 /* KeyboardFlickerFix.swift */,
+				893771B5ECE3B471782CCE6E /* BackgroundIntent.swift */,
 			);
 			path = Runner;
 			sourceTree = "<group>";
@@ -134,9 +213,38 @@
 			path = Pods;
 			sourceTree = "<group>";
 		};
+		E06994F0A4434720DB28DE8D /* Fonts */ = {
+			isa = PBXGroup;
+			children = (
+				338E3477AE66AAAA3D77B17D /* Poppins-Regular.ttf */,
+				8CEA43F07442EE3B9AC83508 /* Poppins-Medium.ttf */,
+				D5051F190ACD5465D5D9928F /* Poppins-SemiBold.ttf */,
+				0862368F864AACEDE423FF95 /* DMSerifDisplay-Regular.ttf */,
+			);
+			name = Fonts;
+			path = ../assets/fonts;
+			sourceTree = SOURCE_ROOT;
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		36A43F24E200BE4811EFD351 /* HeliumWidget */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 40F07F398BDEFE0657A1DD23 /* Build configuration list for PBXNativeTarget "HeliumWidget" */;
+			buildPhases = (
+				77FF38CC84EAFD3BB6DCE3C4 /* Sources */,
+				86C85404A33DA69FF9D5F7B9 /* Frameworks */,
+				21B82218E7F448E61FCE45CF /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = HeliumWidget;
+			productName = HeliumWidget;
+			productReference = F3B7EA5EC1E15A145417C886 /* HeliumWidget.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
 		97C146ED1CF9000F007C117D /* Runner */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 97C147051CF9000F007C117D /* Build configuration list for PBXNativeTarget "Runner" */;
@@ -147,6 +255,7 @@
 				97C146EB1CF9000F007C117D /* Frameworks */,
 				97C146EC1CF9000F007C117D /* Resources */,
 				9705A1C41CF9048500538489 /* Embed Frameworks */,
+				FA6886D702A0AD4AD59745FF /* Embed Foundation Extensions */,
 				3B06AD1E1E4923F5004D2608 /* Thin Binary */,
 				54985C1EA617BFB26FB81B57 /* [CP] Embed Pods Frameworks */,
 				B95E3B73C3117FF993467B98 /* [CP] Copy Pods Resources */,
@@ -154,6 +263,7 @@
 			buildRules = (
 			);
 			dependencies = (
+				DFA640366477569A91391660 /* PBXTargetDependency */,
 			);
 			name = Runner;
 			productName = Runner;
@@ -173,6 +283,9 @@
 					331C8080294A63A400263BE5 = {
 						CreatedOnToolsVersion = 14.0;
 						TestTargetID = 97C146ED1CF9000F007C117D;
+					};
+					36A43F24E200BE4811EFD351 = {
+						CreatedOnToolsVersion = 27.2;
 					};
 					97C146ED1CF9000F007C117D = {
 						CreatedOnToolsVersion = 7.3.1;
@@ -194,11 +307,24 @@
 			projectRoot = "";
 			targets = (
 				97C146ED1CF9000F007C117D /* Runner */,
+				36A43F24E200BE4811EFD351 /* HeliumWidget */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		21B82218E7F448E61FCE45CF /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				5494DD1C76517951E7E5F992 /* Assets.xcassets in Resources */,
+				F9CC25E2FF81CBA6E1C6FD91 /* Poppins-Regular.ttf in Resources */,
+				96B5AE9D7F539B97DC382839 /* Poppins-Medium.ttf in Resources */,
+				ADBE4ACA98284337BB739454 /* Poppins-SemiBold.ttf in Resources */,
+				A8F258BB2EA6B5A3EA809EBA /* DMSerifDisplay-Regular.ttf in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		97C146EC1CF9000F007C117D /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -304,6 +430,20 @@
 /* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		77FF38CC84EAFD3BB6DCE3C4 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				41331668D879C1C5DC8CC9C8 /* HeliumAgendaWidget.swift in Sources */,
+				75109712FDBD5FF54A5C62A9 /* AgendaSnapshot.swift in Sources */,
+				977B36C3C45B1D1D63FB5DFA /* AgendaTimeline.swift in Sources */,
+				56E910A904F985C67D0A6955 /* AgendaViews.swift in Sources */,
+				B31D97998F1F743671B745E5 /* AgendaStyle.swift in Sources */,
+				EB41F36407FEB37CD715780F /* AgendaSample.swift in Sources */,
+				308D1172BD094FE623D8E870 /* BackgroundIntent.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		97C146EA1CF9000F007C117D /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -311,10 +451,20 @@
 				74858FAF1ED2DC5600515810 /* AppDelegate.swift in Sources */,
 				1498D2341E8E89220040F4C2 /* GeneratedPluginRegistrant.m in Sources */,
 				77E838C4709C39178C11BD5A /* KeyboardFlickerFix.swift in Sources */,
+				5C4A56DD2BAAE0287B276136 /* BackgroundIntent.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		DFA640366477569A91391660 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = HeliumWidget;
+			target = 36A43F24E200BE4811EFD351 /* HeliumWidget */;
+			targetProxy = A7B766EF9B1B66A7C6A0115E /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin PBXVariantGroup section */
 		97C146FA1CF9000F007C117D /* Main.storyboard */ = {
@@ -336,6 +486,64 @@
 /* End PBXVariantGroup section */
 
 /* Begin XCBuildConfiguration section */
+		007ABDA7694F5A129DE45464 /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = E5A699652883CA133D61D717 /* HeliumWidget.xcconfig */;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = HeliumWidget/HeliumWidget.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = "$(FLUTTER_BUILD_NUMBER)";
+				DEVELOPMENT_TEAM = SHY4MCK827;
+				INFOPLIST_FILE = HeliumWidget/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = "$(FLUTTER_BUILD_NAME)";
+				PRODUCT_BUNDLE_IDENTIFIER = com.heliumedu.heliumapp.HeliumWidget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = YES;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = WIDGET_EXTENSION;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VERSIONING_SYSTEM = "apple-generic";
+			};
+			name = Release;
+		};
+		10BDA7418E33647B8AB56BFD /* Profile */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = E5A699652883CA133D61D717 /* HeliumWidget.xcconfig */;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = HeliumWidget/HeliumWidget.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = "$(FLUTTER_BUILD_NUMBER)";
+				DEVELOPMENT_TEAM = SHY4MCK827;
+				INFOPLIST_FILE = HeliumWidget/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = "$(FLUTTER_BUILD_NAME)";
+				PRODUCT_BUNDLE_IDENTIFIER = com.heliumedu.heliumapp.HeliumWidget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = YES;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = WIDGET_EXTENSION;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VERSIONING_SYSTEM = "apple-generic";
+			};
+			name = Profile;
+		};
 		249021D3217E4FDB00AE95B9 /* Profile */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -575,9 +783,49 @@
 			};
 			name = Release;
 		};
+		D0EDF5AA502311909A676DE5 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = E5A699652883CA133D61D717 /* HeliumWidget.xcconfig */;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = HeliumWidget/HeliumWidget.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = "$(FLUTTER_BUILD_NUMBER)";
+				DEVELOPMENT_TEAM = SHY4MCK827;
+				INFOPLIST_FILE = HeliumWidget/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = "$(FLUTTER_BUILD_NAME)";
+				PRODUCT_BUNDLE_IDENTIFIER = com.heliumedu.heliumapp.HeliumWidget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = YES;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG WIDGET_EXTENSION";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VERSIONING_SYSTEM = "apple-generic";
+			};
+			name = Debug;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		40F07F398BDEFE0657A1DD23 /* Build configuration list for PBXNativeTarget "HeliumWidget" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				D0EDF5AA502311909A676DE5 /* Debug */,
+				007ABDA7694F5A129DE45464 /* Release */,
+				10BDA7418E33647B8AB56BFD /* Profile */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		97C146E91CF9000F007C117D /* Build configuration list for PBXProject "Runner" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (

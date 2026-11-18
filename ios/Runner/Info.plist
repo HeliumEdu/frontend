@@ -88,6 +88,16 @@
 					<string>com.googleusercontent.apps.643279973445-jfl7v2elnh84ld4drtlkekt5b8e5llg0</string>
 				</array>
 			</dict>
+			<dict>
+				<key>CFBundleTypeRole</key>
+				<string>Viewer</string>
+				<key>CFBundleURLName</key>
+				<string>com.heliumedu.heliumapp.widget</string>
+				<key>CFBundleURLSchemes</key>
+				<array>
+					<string>heliumwidget</string>
+				</array>
+			</dict>
 		</array>
 	</dict>
 </plist>

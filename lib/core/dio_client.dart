@@ -15,6 +15,7 @@ import 'package:heliumapp/config/app_router.dart';
 import 'package:heliumapp/config/pref_service.dart';
 import 'package:heliumapp/config/regional_settings_notifier.dart';
 import 'package:heliumapp/config/theme_notifier.dart';
+import 'package:heliumapp/core/agenda_widget_service.dart';
 import 'package:heliumapp/core/analytics_service.dart';
 import 'package:heliumapp/core/fcm_service.dart';
 import 'package:heliumapp/core/api_url.dart';
@@ -410,6 +411,7 @@ class DioClient {
 
   Future<List<void>?> clearStorage() async {
     SentryService().clearUser();
+    unawaited(AgendaWidgetService().clear());
     unawaited(AnalyticsService().setUserId(null));
     await _cacheService.clearAll();
     return _prefService.clear();

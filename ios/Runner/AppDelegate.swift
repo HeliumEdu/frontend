@@ -3,10 +3,13 @@ import Flutter
 import UIKit
 import UniformTypeIdentifiers
 import FirebaseCore
+import home_widget
 
 @main
 @objc class AppDelegate: FlutterAppDelegate, FlutterImplicitEngineDelegate {
   private static let nativeChannelName = "com.heliumedu.heliumapp/native"
+
+  private(set) static var hasStartedFlutterEngine = false
 
   override func application(
     _ application: UIApplication,
@@ -14,6 +17,11 @@ import FirebaseCore
   ) -> Bool {
     FirebaseApp.configure()
     indexPlannerSearch()
+    if #available(iOS 17, *) {
+      HomeWidgetBackgroundWorker.setPluginRegistrantCallback { registry in
+        GeneratedPluginRegistrant.register(with: registry)
+      }
+    }
 
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
   }
@@ -36,6 +44,7 @@ import FirebaseCore
   }
 
   func didInitializeImplicitFlutterEngine(_ engineBridge: FlutterImplicitEngineBridge) {
+    AppDelegate.hasStartedFlutterEngine = true
     KeyboardFlickerFix.install()
 
     GeneratedPluginRegistrant.register(with: engineBridge.pluginRegistry)

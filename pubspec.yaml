@@ -63,6 +63,7 @@ dependencies:
   diacritic: 0.1.6
   vsc_quill_delta_to_html: ^1.0.5
   quill_native_bridge: ^11.1.0
+  home_widget: 0.10.0
 
 dev_dependencies:
   flutter_test:
