@@ -1533,18 +1533,22 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
         ButtonSegment(
           value: 'homework',
           icon: Icon(AppConstants.assignmentIcon),
+          tooltip: 'Assignment',
         ),
         ButtonSegment(
           value: 'course',
           icon: Icon(Icons.school_outlined),
+          tooltip: 'Class',
         ),
         ButtonSegment(
           value: 'event',
           icon: Icon(AppConstants.eventIcon),
+          tooltip: 'Event',
         ),
         ButtonSegment(
           value: 'resource',
           icon: Icon(Icons.book_outlined),
+          tooltip: 'Resource',
         ),
       ],
     );

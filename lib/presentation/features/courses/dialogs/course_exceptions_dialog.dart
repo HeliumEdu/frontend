@@ -256,6 +256,7 @@ class _CourseExceptionsDialogState
               builder: (buttonContext) => HeliumIconButton(
                 onPressed: () => _addDate(buttonContext),
                 icon: Icons.add,
+                semanticLabel: 'Add date',
               ),
             ),
           ],

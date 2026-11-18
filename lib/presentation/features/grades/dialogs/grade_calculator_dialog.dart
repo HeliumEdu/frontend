@@ -18,13 +18,12 @@ import 'package:heliumapp/presentation/ui/components/helium_elevated_button.dart
 import 'package:heliumapp/presentation/ui/components/spinner_field.dart';
 import 'package:heliumapp/presentation/ui/feedback/success_container.dart';
 import 'package:heliumapp/presentation/ui/feedback/warning_container.dart';
-import 'package:heliumapp/utils/app_globals.dart';
+import 'package:heliumapp/presentation/ui/layout/reveal_on_mount.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/format_helpers.dart';
 import 'package:heliumapp/utils/grade_helpers.dart';
 import 'package:heliumapp/utils/sort_helpers.dart';
 import 'package:heliumapp/core/analytics_service.dart';
-import 'package:heliumapp/core/motion_service.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
 /// "What Do I Need?" calculator tab content.
@@ -64,7 +63,6 @@ class _GradeCalculatorDialogState extends State<GradeCalculatorDialog> {
 
   int? _selectedTargetId;
   final TextEditingController _desiredGradeController = TextEditingController();
-  final ScrollController _scrollController = ScrollController();
   NeededGradeModel? _result;
   String? _validationErrorMessage;
   bool _isCalculating = false;
@@ -131,7 +129,6 @@ class _GradeCalculatorDialogState extends State<GradeCalculatorDialog> {
   @override
   void dispose() {
     _desiredGradeController.dispose();
-    _scrollController.dispose();
     super.dispose();
   }
 
@@ -141,7 +138,6 @@ class _GradeCalculatorDialogState extends State<GradeCalculatorDialog> {
         _result = null;
         _validationErrorMessage = _hasExplicitWeights ? 'Select a category' : 'Select an assignment';
       });
-      _revealResult();
       return;
     }
 
@@ -153,7 +149,6 @@ class _GradeCalculatorDialogState extends State<GradeCalculatorDialog> {
           _validationErrorMessage = 'Enter a valid GPA between '
               '${GradeHelper.gradePointForDisplay(_minGpa)} and ${GradeHelper.gradePointForDisplay(_maxGpa)}';
         });
-        _revealResult();
         return;
       }
     } else if (desired == null || desired < 0 || desired > 100) {
@@ -161,7 +156,6 @@ class _GradeCalculatorDialogState extends State<GradeCalculatorDialog> {
         _result = null;
         _validationErrorMessage = 'Enter a valid grade between 0 and 100';
       });
-      _revealResult();
       return;
     }
 
@@ -189,7 +183,6 @@ class _GradeCalculatorDialogState extends State<GradeCalculatorDialog> {
         _validationErrorMessage = null;
         _isCalculating = false;
       });
-      _revealResult();
     } else if (state is NeededGradeError &&
         _isCurrentCalculation(
           state.courseId,
@@ -202,19 +195,7 @@ class _GradeCalculatorDialogState extends State<GradeCalculatorDialog> {
         _validationErrorMessage = state.message;
         _isCalculating = false;
       });
-      _revealResult();
     }
-  }
-
-  void _revealResult() {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted || !_scrollController.hasClients) return;
-      _scrollController.animateTo(
-        _scrollController.position.maxScrollExtent,
-        duration: MotionService().effectiveDuration(AppConstants.uiAnimationDuration),
-        curve: Curves.easeInOut,
-      );
-    });
   }
 
   bool _isCurrentCalculation(
@@ -396,7 +377,6 @@ class _GradeCalculatorDialogState extends State<GradeCalculatorDialog> {
       children: [
         Expanded(
           child: SingleChildScrollView(
-            controller: _scrollController,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
@@ -445,10 +425,16 @@ class _GradeCalculatorDialogState extends State<GradeCalculatorDialog> {
                 ),
                 if (_validationErrorMessage != null) ...[
                   const SizedBox(height: 12),
-                  ErrorContainer(text: _validationErrorMessage!, icon: Icons.warning_amber_rounded),
+                  RevealOnMount(
+                    key: ValueKey(_validationErrorMessage),
+                    child: ErrorContainer(text: _validationErrorMessage!, icon: Icons.warning_amber_rounded),
+                  ),
                 ] else if (_result != null) ...[
                   const SizedBox(height: 12),
-                  _buildResultContainer(_result!),
+                  RevealOnMount(
+                    key: ObjectKey(_result),
+                    child: _buildResultContainer(_result!),
+                  ),
                 ],
               ],
             ),

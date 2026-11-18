@@ -175,19 +175,22 @@ class _RecurrencePickerState extends State<RecurrencePicker> {
           ),
         ),
         const SizedBox(width: _unitGap),
-        Padding(
-          padding: EdgeInsets.only(bottom: AppStyles.formFieldVerticalPadding(context) + AppStyles.formFieldBorderWidth),
-          child: Stack(
-            children: [
-              Visibility(
-                visible: false,
-                maintainSize: true,
-                maintainAnimation: true,
-                maintainState: true,
-                child: Text('${unit}s', style: AppStyles.formText(context)),
-              ),
-              Text(draft.interval == 1 ? unit : '${unit}s', style: AppStyles.formText(context)),
-            ],
+        SizedBox(
+          height: AppStyles.formFieldHeight,
+          child: Align(
+            alignment: AlignmentDirectional.centerStart,
+            child: Stack(
+              children: [
+                Visibility(
+                  visible: false,
+                  maintainSize: true,
+                  maintainAnimation: true,
+                  maintainState: true,
+                  child: Text('${unit}s', style: AppStyles.formText(context)),
+                ),
+                Text(draft.interval == 1 ? unit : '${unit}s', style: AppStyles.formText(context)),
+              ],
+            ),
           ),
         ),
       ],

@@ -47,7 +47,7 @@ class NoteSyncStatusIcon extends StatelessWidget {
       );
       tooltip = 'Auto-save not yet active';
     } else {
-      icon = Icons.cloud_outlined;
+      icon = Icons.cloud_done_outlined;
       color = context.colorScheme.primary;
       tooltip = 'Auto-save active';
     }

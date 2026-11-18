@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:heliumapp/core/motion_service.dart';
-import 'package:heliumapp/utils/app_globals.dart';
+import 'package:heliumapp/presentation/ui/layout/reveal_on_mount.dart';
 
 class BasicFormController {
   final GlobalKey<FormState> formKey = GlobalKey<FormState>();
@@ -47,12 +46,7 @@ class BasicFormController {
       if (fieldState != null && fieldState.hasError) {
         final context = entry.value.currentContext;
         if (context != null) {
-          Scrollable.ensureVisible(
-            context,
-            duration: MotionService().effectiveDuration(AppConstants.uiAnimationDuration),
-            curve: Curves.easeInOut,
-            alignment: 0.1,
-          );
+          RevealOnMount.ensureVisible(context, alignment: 0.1);
         }
         break;
       }

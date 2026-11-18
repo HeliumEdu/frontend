@@ -300,37 +300,39 @@ class _ConnectScreenState extends BasePageScreenState<ConnectScreen> {
         ? null
         : (bool? value) => _setOptionalScopeApproved(scope, value == true);
 
-    return InkWell(
-      key: scope.required
-          ? null
-          : Key('${ConnectScreen.optionalScopeCheckboxKeyPrefix}${scope.scope}'),
-      onTap: onChanged == null ? null : () => onChanged(!approved),
-      borderRadius: BorderRadius.circular(4),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 6),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            IgnorePointer(
-              child: SizedBox(
-                width: 24,
-                height: 24,
-                child: Checkbox(
-                  value: approved,
-                  onChanged: onChanged,
-                  visualDensity: VisualDensity.compact,
-                  materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+    return MergeSemantics(
+      child: InkWell(
+        key: scope.required
+            ? null
+            : Key('${ConnectScreen.optionalScopeCheckboxKeyPrefix}${scope.scope}'),
+        onTap: onChanged == null ? null : () => onChanged(!approved),
+        borderRadius: BorderRadius.circular(4),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 6),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              IgnorePointer(
+                child: SizedBox(
+                  width: 24,
+                  height: 24,
+                  child: Checkbox(
+                    value: approved,
+                    onChanged: onChanged,
+                    visualDensity: VisualDensity.compact,
+                    materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  ),
                 ),
               ),
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: Text(
-                scope.description,
-                style: AppStyles.standardBodyText(context),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  scope.description,
+                  style: AppStyles.standardBodyText(context),
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

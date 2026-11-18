@@ -21,7 +21,7 @@ class AccountEmailField extends StatelessWidget {
       keyboardType: TextInputType.emailAddress,
       readOnly: true,
       prefixIcon: Icons.email_outlined,
-      inlineSuffix: oauthProviders.isEmpty
+      suffixIcon: oauthProviders.isEmpty
           ? null
           : Padding(
               padding: const EdgeInsets.only(right: 6),

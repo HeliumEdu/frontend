@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
 import 'package:heliumapp/utils/app_style.dart';
+import 'package:heliumapp/utils/color_helpers.dart';
 
 class HeliumElevatedButton extends StatefulWidget {
   static const _buttonBorderRadius = 6.0;
@@ -46,7 +47,7 @@ class HeliumElevatedButton extends StatefulWidget {
       backgroundColor: WidgetStatePropertyAll(
         backgroundColor ?? colorScheme.primary,
       ),
-      foregroundColor: WidgetStatePropertyAll(AppTheme.onPrimaryText(colorScheme)),
+      foregroundColor: WidgetStatePropertyAll(labelColor(colorScheme, backgroundColor)),
       minimumSize: WidgetStatePropertyAll(Size(minimumWidth, minimumHeight)),
       padding: const WidgetStatePropertyAll(
         EdgeInsets.symmetric(horizontal: _buttonHorizontalPadding),
@@ -55,6 +56,16 @@ class HeliumElevatedButton extends StatefulWidget {
         RoundedRectangleBorder(borderRadius: BorderRadius.circular(_buttonBorderRadius)),
       ),
     );
+  }
+
+  /// The label color on [backgroundColor]: the theme's on-primary label, or
+  /// whichever of black or white reads better when that falls below WCAG AA.
+  static Color labelColor(ColorScheme colorScheme, Color? backgroundColor) {
+    final onPrimary = AppTheme.onPrimaryText(colorScheme);
+    if (backgroundColor == null || HeliumColors.contrastRatio(onPrimary, backgroundColor) >= 4.5) {
+      return onPrimary;
+    }
+    return HeliumColors.highestContrastTextColor(backgroundColor);
   }
 
   /// The secondary counterpart to [baseStyle]: the same size and shape, with
@@ -102,10 +113,11 @@ class _HeliumElevatedButtonState extends State<HeliumElevatedButton> {
 
   @override
   Widget build(BuildContext context) {
+    final enabledLabelColor = HeliumElevatedButton.labelColor(context.colorScheme, widget.backgroundColor);
     // When disabled, dim the icon to match the disabled label rather than leaving it the
     // enabled `onPrimary`, which is illegible on the dimmed background (notably in dark mode).
     final effectiveIconColor = widget.enabled
-        ? (widget.iconColor ?? context.colorScheme.onPrimary)
+        ? (widget.iconColor ?? enabledLabelColor)
         : context.colorScheme.onSurface.withValues(alpha: 0.38);
     final effectiveBg = !widget.isLoading && widget.enabled
         ? widget.backgroundColor ?? context.colorScheme.primary
@@ -126,6 +138,7 @@ class _HeliumElevatedButtonState extends State<HeliumElevatedButton> {
         minimumWidth: widget.fullWidth ? double.infinity : 0,
         minimumHeight: widget.minHeight ?? HeliumElevatedButton.minimumHeight,
       ).copyWith(
+        foregroundColor: WidgetStatePropertyAll(enabledLabelColor),
         tapTargetSize: MaterialTapTargetSize.shrinkWrap,
         visualDensity: widget.visualDensity,
       ),
@@ -139,7 +152,7 @@ class _HeliumElevatedButtonState extends State<HeliumElevatedButton> {
           : Text(
               widget.buttonText,
               style: widget.enabled
-                  ? AppStyles.buttonText(context)
+                  ? AppStyles.buttonText(context).copyWith(color: enabledLabelColor)
                   : AppStyles.buttonText(context).copyWith(
                       color: context.colorScheme.onSurface.withValues(
                         alpha: 0.38,
