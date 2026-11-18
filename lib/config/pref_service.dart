@@ -32,6 +32,8 @@ enum SettingsPrefKey {
   calendarEventLimit('calendar_event_limit'),
   atRiskThreshold('at_risk_threshold'),
   onTrackTolerance('on_track_tolerance'),
+  priorCredits('prior_credits'),
+  priorGpa('prior_gpa'),
   showWeekNumbers('show_week_numbers'),
   dateFormat('date_format'),
   timeFormat('time_format'),
@@ -48,8 +50,7 @@ enum SettingsPrefKey {
 
 enum ScreensDropdownFilterPrefKey {
   resourcesGroupId('saved_resources_group_id'),
-  coursesGroupId('saved_courses_group_id'),
-  gradesGroupId('saved_grades_group_id');
+  courseGroupId('saved_courses_group_id');
 
   const ScreensDropdownFilterPrefKey(this.key);
 

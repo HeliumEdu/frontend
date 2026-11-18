@@ -27,6 +27,41 @@ void main() {
         // THEN
         expect(group.trend, isNull);
       });
+
+      test('parses the term grade scale', () {
+        // GIVEN
+        final json = givenGradeCourseGroupJson();
+
+        // WHEN
+        final group = GradeCourseGroupModel.fromJson(json);
+
+        // THEN
+        expect(
+          group.gradeScale.map((band) => band.gradePoint),
+          [0.0, 1.0, 2.0, 3.0, 4.0],
+        );
+      });
+
+      test('parses each series item GPA, with no GPA yet as null', () {
+        // GIVEN
+        final json = givenGradeCourseGroupJson(
+          homeworkSeries: [
+            givenHomeworkSeriesItemJson(id: 1, gpa: -1),
+            givenHomeworkSeriesItemJson(id: 2, gpa: 3.5),
+            givenHomeworkSeriesItemJson(id: 3, graded: false, gpa: null),
+          ],
+        );
+
+        // WHEN
+        final group = GradeCourseGroupModel.fromJson(json);
+
+        // THEN
+        expect(
+          group.homeworkSeries.map((item) => item.gpa),
+          [null, 3.5, null],
+          reason: '-1 marks a point before any class with credits is graded',
+        );
+      });
     });
   });
 }

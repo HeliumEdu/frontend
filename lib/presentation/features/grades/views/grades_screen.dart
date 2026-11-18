@@ -4,6 +4,8 @@ import 'dart:convert';
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
+import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/config/analytics_event.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/core/helium_exception.dart';
@@ -14,6 +16,7 @@ import 'package:heliumapp/data/models/auth/user_settings_model.dart';
 import 'package:heliumapp/data/models/planner/course_group_model.dart';
 import 'package:heliumapp/data/models/planner/grade_course_group_model.dart';
 import 'package:heliumapp/data/models/planner/grade_course_model.dart';
+import 'package:heliumapp/data/models/planner/grade_scale_band_model.dart';
 import 'package:heliumapp/presentation/core/views/base_page_screen_state.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_bloc.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_state.dart';
@@ -35,6 +38,7 @@ import 'package:heliumapp/presentation/ui/dialogs/helium_menu.dart';
 import 'package:heliumapp/presentation/ui/feedback/empty_card.dart';
 import 'package:heliumapp/presentation/ui/feedback/error_card.dart';
 import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
+import 'package:heliumapp/presentation/navigation/shell/navigation_shell.dart';
 import 'package:heliumapp/utils/error_helpers.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/app_style.dart';
@@ -99,15 +103,15 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
   Future<UserSettingsModel?> loadSettings() {
     return super.loadSettings().then((settings) {
       if (!mounted || settings == null) return settings;
-      _restoreGraphSettingsIfEnabled(settings);
       _restoreSelectedGroup(settings);
+      _restoreGraphSettingsIfEnabled(settings);
       return settings;
     });
   }
 
   @override
   void loadScreenData({required bool forceRefresh}) {
-    if (forceRefresh) {
+    if (forceRefresh && !(settingsLoaded && userSettings.rememberFilterState)) {
       setState(() {
         _selectedGroupId = CourseGroupHelpers.currentGroupId(_courseGroups);
       });
@@ -123,9 +127,18 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
       BlocListener<AuthBloc, AuthState>(
         listener: (context, state) {
           if (state is AuthProfileUpdated) {
+            final settings = state.user.settings;
+            final priorChanged = settingsLoaded &&
+                (settings.priorCredits != userSettings.priorCredits ||
+                    settings.priorGpa != userSettings.priorGpa);
             setState(() {
-              userSettings = state.user.settings;
+              userSettings = settings;
             });
+            if (priorChanged) {
+              context.read<GradeBloc>().add(
+                FetchGradeScreenDataEvent(forceRefresh: true),
+              );
+            }
           }
         },
       ),
@@ -178,6 +191,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
             _selectedGroupId = value.id;
             _pendingImpactCourseId = null;
             _expandedCourseIds.clear();
+            _showEntireTermIfGraphViewUnavailable();
           });
           _saveSelectedGroup();
         },
@@ -227,8 +241,30 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
       _cumulativeGpa = state.cumulativeGpa;
       _selectedGroupId = _selectableGroupId(_selectedGroupId);
       _pendingImpactCourseId = null;
+      _showEntireTermIfGraphViewUnavailable();
       isLoading = false;
     });
+  }
+
+  /// Falls back to Entire Term when the graph's view isn't offered for the
+  /// selected term: a class from another term, or GPA Across Terms.
+  void _showEntireTermIfGraphViewUnavailable() {
+    final selectedGroup =
+        _grades.firstWhereOrNull((g) => g.id == _selectedGroupId);
+    final isAvailable = _graphViewMode.isGpaAcrossTerms
+        ? _offersGpaAcrossTerms
+        : _graphViewMode.isTerm ||
+            (selectedGroup?.courses.any((c) => c.id == _graphViewMode.courseId) ??
+                false);
+    if (!isAvailable) _graphViewMode = const GradeTrendViewMode.term();
+  }
+
+  bool get _offersGpaAcrossTerms {
+    final termsWithGpa = _grades
+        .where((g) => g.inCumulativeGpa && g.gpa != null)
+        .length;
+    return termsWithGpa > 1 ||
+        (termsWithGpa == 1 && userSettings.priorCredits > 0);
   }
 
   Widget _buildGradesPage(List<GradeCourseModel> courses) {
@@ -488,18 +524,35 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
               ],
             ],
           ),
-          if (selectedGroup.gpa != null) _buildGpaSummary(selectedGroup),
+          if (selectedGroup.gpa != null ||
+              (selectedGroup.inCumulativeGpa &&
+                  userSettings.priorCredits > 0 &&
+                  _canShowCumulativeGpa(selectedGroup)))
+            _buildGpaSummary(selectedGroup),
         ],
       ),
     );
   }
 
   Widget _buildGpaSummary(GradeCourseGroupModel selectedGroup) {
-    final hint = GradeHelper.gpaHint(selectedGroup, _grades);
-    var text = 'GPA ${GradeHelper.gradePointForDisplay(selectedGroup.gpa!)}';
-    if (_showsCumulativeGpa(selectedGroup, hasHint: hint != null)) {
-      text += ' • All ${GradeHelper.gradePointForDisplay(_cumulativeGpa!)}';
-    }
+    final showsPriorCredits = _canShowCumulativeGpa(selectedGroup) &&
+        !Responsive.isSlimMobile(context);
+    final hint = GradeHelper.gpaHint(
+      selectedGroup,
+      _grades,
+      priorCredits: showsPriorCredits ? userSettings.priorCredits : 0,
+      priorGpa: userSettings.priorGpa,
+    );
+    final showsCumulativeGpa = _canShowCumulativeGpa(selectedGroup) &&
+        !(hint != null &&
+            selectedGroup.gpa != null &&
+            Responsive.isSlimMobile(context));
+    final text = [
+      if (selectedGroup.gpa != null)
+        'GPA ${GradeHelper.gradePointForDisplay(selectedGroup.gpa!)}',
+      if (showsCumulativeGpa)
+        'All ${GradeHelper.gradePointForDisplay(_cumulativeGpa!)}',
+    ].join(' • ');
     final hintColor = context.colorScheme.onSurface.withValues(
       alpha: AppStyles.mutedIconAlpha,
     );
@@ -533,15 +586,12 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
     );
   }
 
-  bool _showsCumulativeGpa(
-    GradeCourseGroupModel selectedGroup, {
-    required bool hasHint,
-  }) {
+  bool _canShowCumulativeGpa(GradeCourseGroupModel selectedGroup) {
     return !selectedGroup.exampleSchedule &&
         _cumulativeGpa != null &&
-        _grades.where((g) => g.inCumulativeGpa).length > 1 &&
-        !Responsive.isNarrowMobile(context) &&
-        !(hasHint && Responsive.isSlimMobile(context));
+        (_grades.where((g) => g.inCumulativeGpa).length > 1 ||
+            userSettings.priorCredits > 0) &&
+        !Responsive.isNarrowMobile(context);
   }
 
   void _showGpaHint(BuildContext anchorContext, String hint) {
@@ -1180,12 +1230,33 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
 
     // Determine what to display based on view mode
     final isTermView = _graphViewMode.isTerm;
+    if (_graphViewMode.isGpaAcrossTerms) {
+      return _buildGraphCard(
+        child: _buildCollapsibleGraph(
+          selectedGroup,
+          isTermView,
+          _buildGpaAcrossTermsChart(),
+        ),
+      );
+    }
+
     final List<charts.CartesianSeries<GradeTrendPoint, DateTime>> series = [];
 
     if (isTermView) {
       if (selectedGroup.homeworkSeries.any((item) => item.graded)) {
         series.add(
           GradeTrendChart.buildOverallSeries(
+            context,
+            selectedGroup.homeworkSeries,
+            chartAnimationDurationMs: _chartAnimationDurationMs,
+          ),
+        );
+      }
+      if (selectedGroup.homeworkSeries.any(
+        (item) => item.graded && item.gpa != null,
+      )) {
+        series.add(
+          GradeTrendChart.buildTermGpaSeries(
             context,
             selectedGroup.homeworkSeries,
             chartAnimationDurationMs: _chartAnimationDurationMs,
@@ -1254,24 +1325,36 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
     }
 
     return _buildGraphCard(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _buildGraphHeader(selectedGroup, isTermView),
-          AnimatedSize(
-            duration: MotionService().effectiveDuration(AppConstants.uiAnimationDuration),
-            curve: Curves.easeInOut,
-            child: _graphExpanded
-                ? Column(
-              children: [
-                const SizedBox(height: 16),
-                _buildChart(series, selectedGroup.id),
-              ],
-            )
-                : const SizedBox.shrink(),
-          ),
-        ],
+      child: _buildCollapsibleGraph(
+        selectedGroup,
+        isTermView,
+        _buildChart(series, selectedGroup.id),
       ),
+    );
+  }
+
+  Widget _buildCollapsibleGraph(
+    GradeCourseGroupModel selectedGroup,
+    bool isTermView,
+    Widget chart,
+  ) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildGraphHeader(selectedGroup, isTermView),
+        AnimatedSize(
+          duration: MotionService().effectiveDuration(AppConstants.uiAnimationDuration),
+          curve: Curves.easeInOut,
+          child: _graphExpanded
+              ? Column(
+            children: [
+              const SizedBox(height: 16),
+              chart,
+            ],
+          )
+              : const SizedBox.shrink(),
+        ),
+      ],
     );
   }
 
@@ -1317,10 +1400,14 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
             Expanded(
               child: Row(
                 children: [
-                  if (!Responsive.isMobile(context))
-                    Text('Grade Trend', style: AppStyles.headingText(context)),
-                  if (Responsive.isMobile(context) && course == null)
-                    Text('Entire Term', style: AppStyles.headingText(context)),
+                  if (_graphViewMode.isGpaAcrossTerms)
+                    Text('GPA Across Terms', style: AppStyles.headingText(context))
+                  else ...[
+                    if (!Responsive.isMobile(context))
+                      Text('Grade Trend', style: AppStyles.headingText(context)),
+                    if (Responsive.isMobile(context) && course == null)
+                      Text('Entire Term', style: AppStyles.headingText(context)),
+                  ],
                   if (course != null) ...[
                     const SizedBox(width: 6),
                     Flexible(
@@ -1401,7 +1488,12 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
         .toList();
 
     // Calculate dynamic Y-axis range
-    final yAxisRange = GradeTrendChart.calculateYAxisRange(visibleSeries);
+    final yAxisRange = GradeTrendChart.calculateYAxisRange(
+      visibleSeries.where((s) => s.yAxisName == null).toList(),
+    );
+    final showsTermGpaAxis = visibleSeries.any(
+      (s) => s.yAxisName == GradeTrendChart.termGpaAxisName,
+    );
 
     // Calculate X-axis range (date range)
     final xAxisRange = GradeTrendChart.calculateXAxisRange(
@@ -1418,13 +1510,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        final legendWidth = _hideLegend
-            ? 0.0
-            : Responsive.getResponsiveValue(
-                context, mobile: 135, tablet: 200, desktop: 240,
-              );
-        final chartWidth = constraints.maxWidth - legendWidth - 8;
-        final useNearestPoint = chartWidth < 430;
+        final useNearestPoint = _usesNearestPoint(constraints);
 
         return SizedBox(
           height: 400,
@@ -1557,6 +1643,13 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
                   ),
                 ],
               ),
+              axes: [
+                if (showsTermGpaAxis)
+                  _buildGpaAxis(
+                    _grades.firstWhere((g) => g.id == groupId).gradeScale,
+                    isSecondary: true,
+                  ),
+              ],
               series: visibleSeries,
               plotAreaBorderWidth: 0.5,
               plotAreaBorderColor: context.colorScheme.outline.withValues(
@@ -1567,18 +1660,184 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
           // Legend
           if (!_hideLegend)
             SizedBox(
-              width: Responsive.getResponsiveValue(
-                context,
-                mobile: 135,
-                tablet: 200,
-                desktop: 240,
-              ),
+              width: _legendWidth,
               child: _buildLegend(series),
             ),
         ],
         ),
       );
       },
+    );
+  }
+
+  double get _legendWidth => Responsive.getResponsiveValue(
+    context,
+    mobile: 135,
+    tablet: 200,
+    desktop: 240,
+  );
+
+  bool _usesNearestPoint(BoxConstraints constraints) {
+    final legendWidth = _hideLegend ? 0.0 : _legendWidth;
+    return constraints.maxWidth - legendWidth - 8 < 430;
+  }
+
+  Widget _buildGpaAcrossTermsChart() {
+    final points = GradeHelper.gpaAcrossTerms(
+      _grades,
+      priorCredits: userSettings.priorCredits,
+      priorGpa: userSettings.priorGpa,
+      onlyTermsWithGpa: _autoAdjustToGradedRange,
+    );
+    final series = GradeTrendChart.buildGpaAcrossTermsSeries(
+      context,
+      points,
+      chartAnimationDurationMs: _chartAnimationDurationMs,
+    );
+    final visibleSeries = series
+        .where((s) => _visibleSeries[s.name] ?? true)
+        .toList();
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return SizedBox(
+          height: 400,
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: charts.SfCartesianChart(
+                  margin: const EdgeInsets.fromLTRB(0, 10, 8, 6),
+                  trackballBehavior: charts.TrackballBehavior(
+                    enable: true,
+                    activationMode: charts.ActivationMode.singleTap,
+                    lineType: charts.TrackballLineType.vertical,
+                    tooltipDisplayMode: _usesNearestPoint(constraints)
+                        ? charts.TrackballDisplayMode.nearestPoint
+                        : charts.TrackballDisplayMode.floatAllPoints,
+                    builder: (context, trackballDetails) =>
+                        _buildGpaTrackballTooltip(
+                          trackballDetails,
+                          visibleSeries,
+                        ),
+                    markerSettings: const charts.TrackballMarkerSettings(
+                      markerVisibility: charts.TrackballVisibilityMode.visible,
+                      width: 6,
+                      height: 6,
+                    ),
+                  ),
+                  primaryXAxis: charts.CategoryAxis(
+                    arrangeByIndex: true,
+                    labelIntersectAction: charts.AxisLabelIntersectAction.wrap,
+                    majorGridLines: charts.MajorGridLines(
+                      width: 0.35,
+                      color: context.colorScheme.outline.withValues(alpha: 0.22),
+                    ),
+                    axisLine: charts.AxisLine(
+                      width: 0.5,
+                      color: context.colorScheme.outline.withValues(alpha: 0.3),
+                    ),
+                    majorTickLines: const charts.MajorTickLines(size: 0),
+                  ),
+                  primaryYAxis: _buildGpaAxis(
+                    _grades.lastWhere((g) => g.inCumulativeGpa).gradeScale,
+                  ),
+                  series: visibleSeries,
+                  plotAreaBorderWidth: 0.5,
+                  plotAreaBorderColor: context.colorScheme.outline.withValues(
+                    alpha: 0.2,
+                  ),
+                ),
+              ),
+              if (!_hideLegend)
+                SizedBox(
+                  width: _legendWidth,
+                  child: _buildLegend(series),
+                ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  charts.NumericAxis _buildGpaAxis(
+    List<GradeScaleBandModel> gradeScale, {
+    bool isSecondary = false,
+  }) {
+    final range = GradeTrendChart.gpaAxisRange(gradeScale);
+    return charts.NumericAxis(
+      name: isSecondary ? GradeTrendChart.termGpaAxisName : null,
+      opposedPosition: isSecondary,
+      minimum: range.min,
+      maximum: range.max,
+      isInversed: !GradeHelper.isHigherGradePointBetter(gradeScale),
+      labelStyle: isSecondary
+          ? TextStyle(color: context.colorScheme.primary)
+          : null,
+      axisLabelFormatter: _formatGpaAxisLabel,
+      majorGridLines: isSecondary
+          ? const charts.MajorGridLines(width: 0)
+          : charts.MajorGridLines(
+              width: 0.35,
+              color: context.colorScheme.outline.withValues(alpha: 0.22),
+            ),
+      axisLine: charts.AxisLine(
+        width: 0.5,
+        color: context.colorScheme.outline.withValues(alpha: 0.3),
+      ),
+      majorTickLines: const charts.MajorTickLines(size: 0),
+    );
+  }
+
+  charts.ChartAxisLabel _formatGpaAxisLabel(
+    charts.AxisLabelRenderDetails details,
+  ) => charts.ChartAxisLabel(
+    HeliumNumber.format(
+      details.value.toDouble(),
+      fractionDigits: 2,
+      trimZeros: true,
+    ),
+    details.textStyle,
+  );
+
+  Widget _buildGpaTrackballTooltip(
+    charts.TrackballDetails trackballDetails,
+    List<charts.LineSeries<GpaAcrossTermsPoint, String>> visibleSeries,
+  ) {
+    final point = trackballDetails.point;
+    final seriesIndex = trackballDetails.seriesIndex;
+    final gpa = point?.y;
+    if (point == null ||
+        gpa == null ||
+        seriesIndex == null ||
+        seriesIndex < 0 ||
+        seriesIndex >= visibleSeries.length) {
+      return const SizedBox.shrink();
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+      decoration: BoxDecoration(
+        color: context.colorScheme.surface,
+        borderRadius: BorderRadius.circular(5.0),
+        border: Border.all(
+          color: context.colorScheme.outline.withValues(alpha: 0.3),
+        ),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            '${visibleSeries[seriesIndex].name} • '
+            '${GradeHelper.gradePointForDisplay(gpa.toDouble())}',
+            style: AppStyles.standardBodyTextEmphasis(context),
+          ),
+          const SizedBox(height: 4),
+          Text('${point.x}', style: AppStyles.smallSecondaryText(context)),
+        ],
+      ),
     );
   }
 
@@ -1612,8 +1871,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
     );
   }
 
-  Widget _buildLegend(
-      List<charts.CartesianSeries<GradeTrendPoint, DateTime>> series,) {
+  Widget _buildLegend(List<charts.CartesianSeries<dynamic, dynamic>> series) {
     return ListView(
       padding: EdgeInsets.zero,
       children: series.map((s) {
@@ -1658,6 +1916,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
               setState(() {
                 _visibleSeries[s.name ?? ''] = value ?? true;
               });
+              _saveGraphSettingsIfEnabled();
             },
           ),
         );
@@ -1687,11 +1946,24 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
                 if (value == null) return;
                 setState(() => _graphViewMode =
                     GradeTrendViewMode.fromRadioValue(value));
+                _saveGraphSettingsIfEnabled();
                 Navigator.pop(menuContext);
               },
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
+                  if (_offersGpaAcrossTerms)
+                    RadioListTile<String>(
+                      title: Text(
+                        'GPA Across Terms',
+                        style: AppStyles.formText(context),
+                      ),
+                      value:
+                          const GradeTrendViewMode.gpaAcrossTerms().radioValue,
+                      controlAffinity: ListTileControlAffinity.leading,
+                      dense: true,
+                      contentPadding: const EdgeInsets.only(left: 4),
+                    ),
                   RadioListTile<String>(
                     title: Text(
                       'Entire Term',
@@ -1758,6 +2030,37 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
               dense: true,
               contentPadding: EdgeInsets.zero,
             ),
+            const Divider(height: 16),
+            ListTile(
+              leading: SizedBox.square(
+                dimension: 40,
+                child: Icon(
+                  Icons.tune,
+                  color: context.colorScheme.onSurface.withValues(
+                    alpha: AppStyles.mutedIconAlpha,
+                  ),
+                ),
+              ),
+              title: Text(
+                'Grade preferences',
+                style: AppStyles.formText(context),
+              ),
+              trailing: Icon(
+                Icons.chevron_right,
+                color: context.colorScheme.onSurface.withValues(
+                  alpha: AppStyles.mutedIconAlpha,
+                ),
+              ),
+              onTap: () {
+                Navigator.pop(menuContext);
+                context.push(
+                  '${BranchPathScope.of(context)}${AppRoute.settingScreen}/preferences'
+                  '?${DeepLinkParam.section}=grades',
+                );
+              },
+              dense: true,
+              contentPadding: EdgeInsets.zero,
+            ),
           ],
         ),
       );
@@ -1800,6 +2103,8 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
     final graphSettings = {
       'autoAdjustToGradedRange': _autoAdjustToGradedRange,
       'hideLegend': _hideLegend,
+      'viewMode': _graphViewMode.radioValue,
+      'visibleSeries': _visibleSeries,
     };
     PrefService().setString(
       _savedGradeGraphSettingsKey,
@@ -1817,7 +2122,10 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
       final graphSettings = jsonDecode(savedState) as Map<String, dynamic>;
       final savedAutoAdjust = graphSettings['autoAdjustToGradedRange'] as bool?;
       final savedHideLegend = graphSettings['hideLegend'] as bool?;
-      if (savedAutoAdjust == null && savedHideLegend == null) return;
+      final savedViewMode = graphSettings['viewMode'] as String?;
+      final savedVisibleSeries =
+          (graphSettings['visibleSeries'] as Map<String, dynamic>?)
+              ?.cast<String, bool>();
 
       setState(() {
         if (savedAutoAdjust != null) {
@@ -1825,6 +2133,13 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
         }
         if (savedHideLegend != null) {
           _hideLegend = savedHideLegend;
+        }
+        if (savedViewMode != null) {
+          _graphViewMode = GradeTrendViewMode.fromRadioValue(savedViewMode);
+          if (_grades.isNotEmpty) _showEntireTermIfGraphViewUnavailable();
+        }
+        if (savedVisibleSeries != null) {
+          _visibleSeries.addAll(savedVisibleSeries);
         }
       });
     } catch (_) {
@@ -1836,7 +2151,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
     if (_selectedGroupId == null || !settingsLoaded) return;
 
     ScreenDropdownFilterHelpers.save(
-      ScreensDropdownFilterPrefKey.gradesGroupId,
+      ScreensDropdownFilterPrefKey.courseGroupId,
       _selectedGroupId!,
       userSettings,
     );
@@ -1849,7 +2164,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
 
   void _restoreSelectedGroup(UserSettingsModel settings) {
     final savedGroupId = ScreenDropdownFilterHelpers.restore(
-      ScreensDropdownFilterPrefKey.gradesGroupId,
+      ScreensDropdownFilterPrefKey.courseGroupId,
       settings,
     );
     if (savedGroupId == null) return;

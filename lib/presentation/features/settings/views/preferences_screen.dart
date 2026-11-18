@@ -1,6 +1,9 @@
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:heliumapp/config/app_route.dart';
+import 'package:heliumapp/config/app_router.dart';
+import 'package:heliumapp/core/motion_service.dart';
 import 'package:heliumapp/config/pref_service.dart';
 import 'package:heliumapp/data/models/auth/request/update_settings_request_model.dart';
 import 'package:heliumapp/data/models/auth/user_model.dart';
@@ -25,6 +28,7 @@ import 'package:heliumapp/utils/platform_behavior.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/color_helpers.dart';
 import 'package:heliumapp/utils/date_time_helpers.dart';
+import 'package:heliumapp/utils/deep_link_helpers.dart';
 import 'package:heliumapp/utils/format_helpers.dart';
 import 'package:heliumapp/utils/snack_bar_helpers.dart';
 import 'package:heliumapp/utils/time_zone_constants.dart';
@@ -57,12 +61,16 @@ class PreferencesScreen extends StatefulWidget {
 }
 
 class PreferencesScreenState extends State<PreferencesScreen> {
+  final _gradesSectionKey = GlobalKey();
   final TextEditingController _reminderOffsetController =
       TextEditingController();
   final TextEditingController _atRiskThresholdController =
       TextEditingController();
   final TextEditingController _onTrackToleranceController =
       TextEditingController();
+  final TextEditingController _priorCreditsController =
+      TextEditingController();
+  final TextEditingController _priorGpaController = TextEditingController();
 
   bool _isSubmitting = false;
   bool _isChanged = false;
@@ -105,6 +113,18 @@ class PreferencesScreenState extends State<PreferencesScreen> {
     context.read<CourseBloc>().add(
       FetchHasCourseSchedulesEvent(origin: EventOrigin.subScreen),
     );
+    WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToLinkedSection());
+  }
+
+  /// Scrolls to the section a link names, e.g. the Grades page's "Grade preferences".
+  void _scrollToLinkedSection() {
+    final section = router.activeLocation.queryParameters[DeepLinkParam.section];
+    final sectionContext = _gradesSectionKey.currentContext;
+    if (section != 'grades' || sectionContext == null) return;
+    Scrollable.ensureVisible(
+      sectionContext,
+      duration: MotionService().effectiveDuration(const Duration(milliseconds: 300)),
+    );
   }
 
   @override
@@ -112,9 +132,13 @@ class PreferencesScreenState extends State<PreferencesScreen> {
     _reminderOffsetController.removeListener(_markChanged);
     _atRiskThresholdController.removeListener(_markChanged);
     _onTrackToleranceController.removeListener(_markChanged);
+    _priorCreditsController.removeListener(_markChanged);
+    _priorGpaController.removeListener(_markChanged);
     _reminderOffsetController.dispose();
     _atRiskThresholdController.dispose();
     _onTrackToleranceController.dispose();
+    _priorCreditsController.dispose();
+    _priorGpaController.dispose();
     super.dispose();
   }
 
@@ -348,10 +372,12 @@ class PreferencesScreenState extends State<PreferencesScreen> {
               contentPadding: EdgeInsets.zero,
             ),
 
-            _buildSectionHeader('GRADES'),
-            Text(
-              'At-risk threshold (%)',
-              style: AppStyles.formLabel(context),
+            KeyedSubtree(key: _gradesSectionKey, child: _buildSectionHeader('GRADES')),
+            ExcludeSemantics(
+              child: Text(
+                'At-risk threshold (%)',
+                style: AppStyles.formLabel(context),
+              ),
             ),
             Text(
               'Classes with an overall grade below this are flagged',
@@ -362,17 +388,20 @@ class PreferencesScreenState extends State<PreferencesScreen> {
               width: 120,
               child: SpinnerField(
                 controller: _atRiskThresholdController,
+                semanticLabel: 'At-risk threshold (%)',
                 minValue: 0,
                 maxValue: 100,
               ),
             ),
             const SizedBox(height: 14),
-            Text(
-              'On-track tolerance (%)',
-              style: AppStyles.formLabel(context),
+            ExcludeSemantics(
+              child: Text(
+                'On-track tolerance (%)',
+                style: AppStyles.formLabel(context),
+              ),
             ),
             Text(
-              'How close to the at-risk threshold a class grade can be and still count as on-track',
+              'How far off pace your work can be and still be On Track, and how far above the at-risk threshold a grade shows as a warning',
               style: AppStyles.smallSecondaryText(context),
             ),
             const SizedBox(height: 8),
@@ -380,8 +409,54 @@ class PreferencesScreenState extends State<PreferencesScreen> {
               width: 120,
               child: SpinnerField(
                 controller: _onTrackToleranceController,
+                semanticLabel: 'On-track tolerance (%)',
                 minValue: 0,
                 maxValue: 100,
+              ),
+            ),
+            const SizedBox(height: 14),
+            ExcludeSemantics(
+              child: Text(
+                'Prior credits',
+                style: AppStyles.formLabel(context),
+              ),
+            ),
+            Text(
+              'Credits on your transcript from before you started using Helium, counted in your All GPA',
+              style: AppStyles.smallSecondaryText(context),
+            ),
+            const SizedBox(height: 8),
+            SizedBox(
+              width: 120,
+              child: SpinnerField(
+                controller: _priorCreditsController,
+                semanticLabel: 'Prior credits',
+                minValue: 0,
+                maxValue: 999.99,
+                allowDecimal: true,
+              ),
+            ),
+            const SizedBox(height: 14),
+            ExcludeSemantics(
+              child: Text(
+                'Prior GPA',
+                style: AppStyles.formLabel(context),
+              ),
+            ),
+            Text(
+              'Your GPA over those prior credits, from your transcript',
+              style: AppStyles.smallSecondaryText(context),
+            ),
+            const SizedBox(height: 8),
+            SizedBox(
+              width: 120,
+              child: SpinnerField(
+                controller: _priorGpaController,
+                semanticLabel: 'Prior GPA',
+                minValue: 0,
+                maxValue: 100,
+                step: 0.1,
+                allowDecimal: true,
               ),
             ),
 
@@ -484,6 +559,8 @@ class PreferencesScreenState extends State<PreferencesScreen> {
     final showWeekNumbers = _isShowWeekNumbers;
     final atRiskThreshold = int.parse(_atRiskThresholdController.text);
     final onTrackTolerance = int.parse(_onTrackToleranceController.text);
+    final priorCredits = HeliumNumber.normalize(_priorCreditsController.text);
+    final priorGpa = HeliumNumber.normalize(_priorGpaController.text);
 
     context.read<AuthBloc>().add(
       UpdateProfileEvent(
@@ -505,6 +582,8 @@ class PreferencesScreenState extends State<PreferencesScreen> {
           showWeekNumbers: showWeekNumbers,
           atRiskThreshold: atRiskThreshold,
           onTrackTolerance: onTrackTolerance,
+          priorCredits: priorCredits,
+          priorGpa: priorGpa,
           dateFormat: _selectedDateFormat,
           timeFormat: _selectedTimeFormat,
           numberFormat: _selectedNumberFormat,
@@ -673,12 +752,30 @@ class PreferencesScreenState extends State<PreferencesScreen> {
       _atRiskThresholdController.text =
           settings.atRiskThreshold.toString();
     }
+    final priorCredits = HeliumNumber.format(
+      settings.priorCredits,
+      fractionDigits: 2,
+      trimZeros: true,
+    );
+    if (_priorCreditsController.text != priorCredits) {
+      _priorCreditsController.text = priorCredits;
+    }
+    final priorGpa = HeliumNumber.format(
+      settings.priorGpa,
+      fractionDigits: 3,
+      trimZeros: true,
+    );
+    if (_priorGpaController.text != priorGpa) {
+      _priorGpaController.text = priorGpa;
+    }
 
     if (!_changeTrackingActive) {
       _changeTrackingActive = true;
       _reminderOffsetController.addListener(_markChanged);
       _atRiskThresholdController.addListener(_markChanged);
       _onTrackToleranceController.addListener(_markChanged);
+      _priorCreditsController.addListener(_markChanged);
+      _priorGpaController.addListener(_markChanged);
     }
   }
 }

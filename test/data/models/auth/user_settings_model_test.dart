@@ -19,5 +19,17 @@ void main() {
       expect(settings.showGettingStarted, isTrue);
       expect(settings.gettingStartedDue, isFalse);
     });
+
+    test('parses the prior credits and GPA the API sends as decimal strings', () {
+      // GIVEN
+      final json = givenUserSettingsJson(priorCredits: '60.50', priorGpa: '3.4000');
+
+      // WHEN
+      final settings = UserSettingsModel.fromJson(json);
+
+      // THEN
+      expect(settings.priorCredits, 60.5);
+      expect(settings.priorGpa, 3.4);
+    });
   });
 }

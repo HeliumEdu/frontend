@@ -21,6 +21,12 @@ import 'package:heliumapp/data/models/planner/homework_series_item_model.dart';
 import 'package:heliumapp/utils/format_helpers.dart';
 import 'package:heliumapp/utils/grade_scale_constants.dart';
 
+typedef GpaAcrossTermsPoint = ({
+  String title,
+  double? termGpa,
+  double? cumulativeGpa,
+});
+
 class GradeHelper {
   /// Projects an overall grade given hypothetical scores for ungraded assignments.
   /// [projections] maps assignment ID to a hypothetical score as a percentage (0-100).
@@ -229,6 +235,41 @@ class GradeHelper {
     return double.parse((points / credits).toStringAsFixed(4));
   }
 
+  /// A Prior point when there are prior credits, then one point per term that
+  /// counts toward the cumulative GPA, in [courseGroups]' order, with the
+  /// cumulative GPA through it. A term with no GPA yet is an empty slot, or is
+  /// left out with [onlyTermsWithGpa].
+  static List<GpaAcrossTermsPoint> gpaAcrossTerms(
+    List<GradeCourseGroupModel> courseGroups, {
+    required double priorCredits,
+    required double priorGpa,
+    required bool onlyTermsWithGpa,
+  }) {
+    final pooledGroups = courseGroups.where((group) => group.inCumulativeGpa);
+
+    final classes = <({double credits, double? gradePoint})>[
+      (credits: priorCredits, gradePoint: priorGpa),
+    ];
+    final points = <GpaAcrossTermsPoint>[
+      if (priorCredits > 0)
+        (title: 'Prior', termGpa: null, cumulativeGpa: gpaFor(classes)),
+    ];
+    for (final group in pooledGroups) {
+      classes.addAll([
+        for (final course in group.courses)
+          (credits: course.credits, gradePoint: course.gradePoint),
+      ]);
+      if (group.gpa != null) {
+        points.add(
+          (title: group.title, termGpa: group.gpa, cumulativeGpa: gpaFor(classes)),
+        );
+      } else if (!onlyTermsWithGpa) {
+        points.add((title: group.title, termGpa: null, cumulativeGpa: null));
+      }
+    }
+    return points;
+  }
+
   /// Whether a higher grade point is better on [gradeScale].
   static bool isHigherGradePointBetter(List<GradeScaleBandModel> gradeScale) =>
       gradeScale.isEmpty ||
@@ -299,8 +340,10 @@ class GradeHelper {
 
   static String? gpaHint(
     GradeCourseGroupModel selectedGroup,
-    List<GradeCourseGroupModel> grades,
-  ) {
+    List<GradeCourseGroupModel> grades, {
+    required double priorCredits,
+    required double priorGpa,
+  }) {
     final withoutCredits = selectedGroup.courses
         .where((c) => c.gradePoint != null && c.credits <= 0)
         .length;
@@ -317,6 +360,13 @@ class GradeHelper {
       hints.add(
         "This group's grade scale differs from your most recent one, so it "
         "isn't counted in your GPA across all terms.",
+      );
+    }
+    if (priorCredits > 0) {
+      hints.add(
+        'All includes ${HeliumNumber.format(priorCredits, trimZeros: true)} '
+        '${priorCredits.plural('prior credit')} at a '
+        '${gradePointForDisplay(priorGpa)} GPA.',
       );
     }
     return hints.isEmpty ? null : hints.join('\n\n');

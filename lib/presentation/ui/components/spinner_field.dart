@@ -5,12 +5,16 @@ import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/format_helpers.dart';
 
 class SpinnerField extends StatelessWidget {
-  static const _fieldBorderRadius = 8.0;
-  static const _contentPaddingHorizontal = 12.0;
   static const _arrowSize = 22.0;
   static const _arrowsWidth = 32.0;
+  static const _arrowsConstraints = BoxConstraints.tightFor(
+    width: _arrowsWidth + AppStyles.formFieldBorderWidth,
+    height: AppStyles.formFieldInnerHeight,
+  );
 
   final String? label;
+
+  final String? semanticLabel;
   final TextEditingController controller;
   final double minValue;
   final double? maxValue;
@@ -22,6 +26,7 @@ class SpinnerField extends StatelessWidget {
   const SpinnerField({
     super.key,
     this.label,
+    this.semanticLabel,
     required this.controller,
     this.minValue = 0,
     this.maxValue,
@@ -47,113 +52,41 @@ class SpinnerField extends StatelessWidget {
   }
 
   Widget _buildSpinnerRow(BuildContext context) {
-    final row = IntrinsicHeight(
-      child: Container(
-        constraints: const BoxConstraints(minHeight: AppStyles.formFieldHeight),
-        decoration: BoxDecoration(
-          color: context.colorScheme.surface,
-          border: Border.all(
-            color: context.colorScheme.outline.withValues(alpha: 0.2),
+    final field = Semantics(
+      label: semanticLabel ?? label,
+      child: Focus(
+        onKeyEvent: (_, event) {
+          if (event is! KeyDownEvent && event is! KeyRepeatEvent) {
+            return KeyEventResult.ignored;
+          }
+          if (event.logicalKey == LogicalKeyboardKey.arrowUp) {
+            _increment();
+            return KeyEventResult.handled;
+          }
+          if (event.logicalKey == LogicalKeyboardKey.arrowDown) {
+            _decrement();
+            return KeyEventResult.handled;
+          }
+          return KeyEventResult.ignored;
+        },
+        child: TextFormField(
+          controller: controller,
+          textAlignVertical: TextAlignVertical.center,
+          keyboardType: const TextInputType.numberWithOptions(
+            decimal: true,
           ),
-          borderRadius: BorderRadius.circular(_fieldBorderRadius),
-        ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(_fieldBorderRadius),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Expanded(
-                child: Semantics(
-                  label: label,
-                  child: Focus(
-                    onKeyEvent: (_, event) {
-                      if (event is! KeyDownEvent && event is! KeyRepeatEvent) {
-                        return KeyEventResult.ignored;
-                      }
-                      if (event.logicalKey == LogicalKeyboardKey.arrowUp) {
-                        _increment();
-                        return KeyEventResult.handled;
-                      }
-                      if (event.logicalKey == LogicalKeyboardKey.arrowDown) {
-                        _decrement();
-                        return KeyEventResult.handled;
-                      }
-                      return KeyEventResult.ignored;
-                    },
-                    child: TextFormField(
-                      controller: controller,
-                      expands: true,
-                      maxLines: null,
-                      minLines: null,
-                      textAlignVertical: TextAlignVertical.center,
-                      keyboardType: const TextInputType.numberWithOptions(
-                        decimal: true,
-                      ),
-                      inputFormatters: allowDecimal
-                          ? [
-                              FilteringTextInputFormatter.allow(
-                                RegExp(r'^\d*[.,]?\d*'),
-                              ),
-                            ]
-                          : [FilteringTextInputFormatter.digitsOnly],
-                      style: AppStyles.formText(context),
-                      onChanged: _onTextChanged,
-                      decoration: const InputDecoration(
-                        contentPadding: EdgeInsets.symmetric(
-                          horizontal: _contentPaddingHorizontal,
-                        ),
-                        border: InputBorder.none,
-                        enabledBorder: InputBorder.none,
-                        focusedBorder: InputBorder.none,
-                        disabledBorder: InputBorder.none,
-                        errorBorder: InputBorder.none,
-                        focusedErrorBorder: InputBorder.none,
-                      ),
-                    ),
+          inputFormatters: allowDecimal
+              ? [
+                  FilteringTextInputFormatter.allow(
+                    RegExp(r'^\d*[.,]?\d*'),
                   ),
-                ),
-              ),
-              SizedBox(
-                width: _arrowsWidth,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    // Each arrow fills half the field height so the pair is gap-free
-                    // and comfortably tappable without enlarging the icons.
-                    Expanded(
-                      child: IconButton(
-                        onPressed: () => _increment(),
-                        icon: const Icon(Icons.arrow_drop_up, semanticLabel: 'Increase value'),
-                        iconSize: _arrowSize,
-                        color: context.colorScheme.primary,
-                        padding: EdgeInsets.zero,
-                        constraints: const BoxConstraints(),
-                        visualDensity: VisualDensity.compact,
-                        style: IconButton.styleFrom(
-                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                          shape: const RoundedRectangleBorder(),
-                        ),
-                      ),
-                    ),
-                    Expanded(
-                      child: IconButton(
-                        onPressed: () => _decrement(),
-                        icon: const Icon(Icons.arrow_drop_down, semanticLabel: 'Decrease value'),
-                        iconSize: _arrowSize,
-                        color: context.colorScheme.primary,
-                        padding: EdgeInsets.zero,
-                        constraints: const BoxConstraints(),
-                        visualDensity: VisualDensity.compact,
-                        style: IconButton.styleFrom(
-                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                          shape: const RoundedRectangleBorder(),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
+                ]
+              : [FilteringTextInputFormatter.digitsOnly],
+          style: AppStyles.formText(context),
+          onChanged: _onTextChanged,
+          decoration: AppStyles.formFieldDecoration(context).copyWith(
+            suffixIcon: _buildArrows(context),
+            suffixIconConstraints: _arrowsConstraints,
           ),
         ),
       ),
@@ -162,10 +95,58 @@ class SpinnerField extends StatelessWidget {
     if (maxSpinnerWidth != null) {
       return ConstrainedBox(
         constraints: BoxConstraints(maxWidth: maxSpinnerWidth!),
-        child: row,
+        child: field,
       );
     }
-    return row;
+    return field;
+  }
+
+  Widget _buildArrows(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsetsDirectional.only(end: AppStyles.formFieldBorderWidth),
+      child: ClipRRect(
+        borderRadius: const BorderRadiusDirectional.horizontal(
+          end: Radius.circular(AppStyles.formFieldBorderRadius),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // Each arrow fills half the field height so the pair is gap-free
+            // and comfortably tappable without enlarging the icons.
+            Expanded(
+              child: IconButton(
+                onPressed: () => _increment(),
+                icon: const Icon(Icons.arrow_drop_up, semanticLabel: 'Increase value'),
+                iconSize: _arrowSize,
+                color: context.colorScheme.primary,
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(),
+                visualDensity: VisualDensity.compact,
+                style: IconButton.styleFrom(
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  shape: const RoundedRectangleBorder(),
+                ),
+              ),
+            ),
+            Expanded(
+              child: IconButton(
+                onPressed: () => _decrement(),
+                icon: const Icon(Icons.arrow_drop_down, semanticLabel: 'Decrease value'),
+                iconSize: _arrowSize,
+                color: context.colorScheme.primary,
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(),
+                visualDensity: VisualDensity.compact,
+                style: IconButton.styleFrom(
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  shape: const RoundedRectangleBorder(),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   void _onTextChanged(String value) {

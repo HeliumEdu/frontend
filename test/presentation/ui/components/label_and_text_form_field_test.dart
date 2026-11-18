@@ -139,7 +139,9 @@ void main() {
     final text = tester
         .getRect(find.descendant(of: find.byType(LabelAndTextFormField), matching: find.byType(InputDecorator)))
         .height;
-    final spinner = boxOf(tester, find.byType(SpinnerField)).height;
+    final spinner = tester
+        .getRect(find.descendant(of: find.byType(SpinnerField), matching: find.byType(InputDecorator)))
+        .height;
     final picker = boxOf(tester, find.byType(HeliumDateField)).height;
 
     // THEN

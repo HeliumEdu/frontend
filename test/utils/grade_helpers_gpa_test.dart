@@ -1,6 +1,9 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:heliumapp/data/models/planner/grade_course_group_model.dart';
 import 'package:heliumapp/utils/grade_helpers.dart';
 import 'package:heliumapp/utils/grade_scale_constants.dart';
+
+import '../mocks/mock_models.dart';
 
 void main() {
   final fourPoint = GradeScaleTemplate.scales[1]!;
@@ -164,4 +167,140 @@ void main() {
       expect(gpa, 3.3333);
     });
   });
+
+  group('GradeHelper.gpaAcrossTerms', () {
+    test('graphs only the terms that count toward the cumulative GPA', () {
+      // GIVEN
+      final groups = [
+        _term(1, 'Example', gpa: 4.0, inCumulativeGpa: false, exampleSchedule: true,
+            classes: [(credits: 3, gradePoint: 4.0)]),
+        _term(2, 'Fall 2024', gpa: 3.0, inCumulativeGpa: false, classes: [(credits: 3, gradePoint: 3.0)]),
+        _term(3, 'Spring 2025', gpa: 4.0, classes: [(credits: 3, gradePoint: 4.0)]),
+        _term(4, 'Fall 2025', gpa: 2.0, classes: [(credits: 1, gradePoint: 2.0)]),
+      ];
+
+      // WHEN
+      final points = GradeHelper.gpaAcrossTerms(groups, priorCredits: 0, priorGpa: 0, onlyTermsWithGpa: false);
+
+      // THEN
+      expect(points, [
+        (title: 'Spring 2025', termGpa: 4.0, cumulativeGpa: 4.0),
+        (title: 'Fall 2025', termGpa: 2.0, cumulativeGpa: 3.5),
+      ], reason: 'the example schedule and the term on another scale stay out');
+    });
+
+    test('leads with a Prior point when there are prior credits', () {
+      // GIVEN
+      final groups = [
+        _term(1, 'Fall 2025', gpa: 4.0, classes: [(credits: 3, gradePoint: 4.0)]),
+      ];
+
+      // WHEN
+      final points = GradeHelper.gpaAcrossTerms(groups, priorCredits: 60, priorGpa: 3.4, onlyTermsWithGpa: false);
+
+      // THEN
+      expect(points, [
+        (title: 'Prior', termGpa: null, cumulativeGpa: 3.4),
+        (title: 'Fall 2025', termGpa: 4.0, cumulativeGpa: 3.4286),
+      ]);
+    });
+
+    test('has no Prior point without prior credits', () {
+      // GIVEN
+      final groups = [
+        _term(1, 'Fall 2025', gpa: 4.0, classes: [(credits: 3, gradePoint: 4.0)]),
+      ];
+
+      // WHEN
+      final points = GradeHelper.gpaAcrossTerms(groups, priorCredits: 0, priorGpa: 0, onlyTermsWithGpa: false);
+
+      // THEN
+      expect(points.map((point) => point.title), ['Fall 2025']);
+    });
+
+    test('ends at the cumulative GPA the platform computes', () {
+      // GIVEN
+      final groups = [
+        _term(1, 'Fall 2024', gpa: 3.35, classes: [(credits: 3, gradePoint: 3.7), (credits: 3, gradePoint: 3.0)]),
+        _term(2, 'Spring 2025', gpa: 3.2143, classes: [
+          (credits: 4, gradePoint: 3.3),
+          (credits: 3, gradePoint: 3.0),
+          (credits: 0, gradePoint: 4.0),
+          (credits: 3, gradePoint: null),
+        ]),
+      ];
+      final cumulativeGpa = GradeHelper.gpaFor([
+        (credits: 3, gradePoint: 3.7),
+        (credits: 3, gradePoint: 3.0),
+        (credits: 4, gradePoint: 3.3),
+        (credits: 3, gradePoint: 3.0),
+        (credits: 12.5, gradePoint: 3.85),
+      ]);
+
+      // WHEN
+      final points = GradeHelper.gpaAcrossTerms(groups, priorCredits: 12.5, priorGpa: 3.85, onlyTermsWithGpa: false);
+
+      // THEN
+      expect(points.last.cumulativeGpa, cumulativeGpa);
+      expect(points.last.cumulativeGpa, 3.5461);
+    });
+
+    test('keeps a term with no GPA yet as an empty slot', () {
+      // GIVEN
+      final groups = [
+        _term(1, 'Fall 2024', gpa: 3.0, classes: [(credits: 3, gradePoint: 3.0)]),
+        _term(2, 'Spring 2025', classes: [(credits: 3, gradePoint: null)]),
+        _term(3, 'Fall 2025', gpa: 4.0, classes: [(credits: 3, gradePoint: 4.0)]),
+      ];
+
+      // WHEN
+      final points = GradeHelper.gpaAcrossTerms(groups, priorCredits: 0, priorGpa: 0, onlyTermsWithGpa: false);
+
+      // THEN
+      expect(points, [
+        (title: 'Fall 2024', termGpa: 3.0, cumulativeGpa: 3.0),
+        (title: 'Spring 2025', termGpa: null, cumulativeGpa: null),
+        (title: 'Fall 2025', termGpa: 4.0, cumulativeGpa: 3.5),
+      ]);
+    });
+
+    test('leaves out a term with no GPA yet when only terms with a GPA are shown', () {
+      // GIVEN
+      final groups = [
+        _term(1, 'Fall 2024', gpa: 3.0, classes: [(credits: 3, gradePoint: 3.0)]),
+        _term(2, 'Spring 2025', classes: [(credits: 3, gradePoint: null)]),
+        _term(3, 'Fall 2025', gpa: 4.0, classes: [(credits: 3, gradePoint: 4.0)]),
+      ];
+
+      // WHEN
+      final points = GradeHelper.gpaAcrossTerms(groups, priorCredits: 60, priorGpa: 3.4, onlyTermsWithGpa: true);
+
+      // THEN
+      expect(points.map((point) => point.title), ['Prior', 'Fall 2024', 'Fall 2025'],
+          reason: 'the Prior point stays, as it always has a GPA');
+    });
+  });
 }
+
+GradeCourseGroupModel _term(
+  int id,
+  String title, {
+  double? gpa,
+  bool inCumulativeGpa = true,
+  bool exampleSchedule = false,
+  List<({double credits, double? gradePoint})> classes = const [],
+}) => MockModels.createGradeCourseGroup(
+  id: id,
+  title: title,
+  gpa: gpa,
+  inCumulativeGpa: inCumulativeGpa,
+  exampleSchedule: exampleSchedule,
+  courses: [
+    for (final (index, gradedClass) in classes.indexed)
+      MockModels.createGradeCourse(
+        id: id * 100 + index,
+        credits: gradedClass.credits,
+        gradePoint: gradedClass.gradePoint,
+      ),
+  ],
+);

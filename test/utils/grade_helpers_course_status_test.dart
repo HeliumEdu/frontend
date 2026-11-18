@@ -95,7 +95,12 @@ void main() {
           );
 
           // WHEN
-          final hint = GradeHelper.gpaHint(group, [group]);
+          final hint = GradeHelper.gpaHint(
+            group,
+            [group],
+            priorCredits: 0,
+            priorGpa: 0,
+          );
 
           // THEN
           expect(hint, isNull);
@@ -113,7 +118,12 @@ void main() {
         );
 
         // WHEN
-        final hint = GradeHelper.gpaHint(group, [group]);
+        final hint = GradeHelper.gpaHint(
+          group,
+          [group],
+          priorCredits: 0,
+          priorGpa: 0,
+        );
 
         // THEN
         expect(
@@ -136,7 +146,12 @@ void main() {
         );
 
         // WHEN
-        final hint = GradeHelper.gpaHint(older, [current, older]);
+        final hint = GradeHelper.gpaHint(
+          older,
+          [current, older],
+          priorCredits: 0,
+          priorGpa: 0,
+        );
 
         // THEN
         expect(
@@ -159,7 +174,12 @@ void main() {
         );
 
         // WHEN
-        final hint = GradeHelper.gpaHint(example, [current, example]);
+        final hint = GradeHelper.gpaHint(
+          example,
+          [current, example],
+          priorCredits: 0,
+          priorGpa: 0,
+        );
 
         // THEN
         expect(hint, isNull);

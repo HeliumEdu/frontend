@@ -235,6 +235,12 @@ void main() {
           () => mockPrefService.getInt('on_track_tolerance'),
         ).thenReturn(10);
         when(
+          () => mockPrefService.getString('prior_credits'),
+        ).thenReturn('60.0');
+        when(
+          () => mockPrefService.getString('prior_gpa'),
+        ).thenReturn('3.4');
+        when(
           () => mockPrefService.getBool('show_week_numbers'),
         ).thenReturn(true);
         when(() => mockPrefService.getInt('date_format')).thenReturn(1);
@@ -259,6 +265,8 @@ void main() {
         expect(settings.timeFormat, equals(1));
         expect(settings.numberFormat, equals(1));
         expect(settings.colorSchemeTheme, equals(1));
+        expect(settings.priorCredits, equals(60.0));
+        expect(settings.priorGpa, equals(3.4));
         verify(() => mockPrefService.getString('time_zone')).called(1);
         // The service reads from calendar_use_category_colors, not color_by_category
         verify(

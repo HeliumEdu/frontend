@@ -16,7 +16,7 @@ void main() {
       final previous = MockModels.createGradeCourseGroup(id: 2, gpa: 4.0, inCumulativeGpa: true, courses: [earlier]);
 
       // WHEN
-      final gpa = GradeCalculatorGpa.of(course, term, [term, previous], 3.35);
+      final gpa = GradeCalculatorGpa.of(course, term, [term, previous], 3.35, priorCredits: 0, priorGpa: 0);
 
       // THEN
       expect(gpa.cumulativeGpaWith(3.0), 3.5);
@@ -29,10 +29,50 @@ void main() {
       final term = MockModels.createGradeCourseGroup(gpa: 2.7, inCumulativeGpa: true, courses: [course]);
 
       // WHEN
-      final gpa = GradeCalculatorGpa.of(course, term, [term], 2.7);
+      final gpa = GradeCalculatorGpa.of(course, term, [term], 2.7, priorCredits: 0, priorGpa: 0);
 
       // THEN
       expect(gpa.cumulativeGpaWith(3.0), isNull);
+    });
+
+    test('counts prior credits toward the cumulative GPA but not the term GPA', () {
+      // GIVEN
+      final course = MockModels.createGradeCourse(credits: 3, gradePoint: 2.7, gradeScale: scale);
+      final earlier = MockModels.createGradeCourse(id: 7, credits: 3, gradePoint: 4.0, gradeScale: scale);
+      final term = MockModels.createGradeCourseGroup(id: 1, gpa: 2.7, inCumulativeGpa: true, courses: [course]);
+      final previous = MockModels.createGradeCourseGroup(id: 2, gpa: 4.0, inCumulativeGpa: true, courses: [earlier]);
+
+      // WHEN
+      final gpa = GradeCalculatorGpa.of(course, term, [term, previous], 3.4, priorCredits: 6, priorGpa: 3.0);
+
+      // THEN
+      expect(gpa.cumulativeGpaWith(3.0), 3.25, reason: '3 credits at 3.0, 3 at 4.0 and 6 prior at 3.0');
+      expect(gpa.termGpaWith(3.0), 3.0);
+    });
+
+    test('includes the cumulative GPA for a lone group when there are prior credits', () {
+      // GIVEN
+      final course = MockModels.createGradeCourse(credits: 3, gradePoint: 2.7, gradeScale: scale);
+      final term = MockModels.createGradeCourseGroup(gpa: 2.7, inCumulativeGpa: true, courses: [course]);
+
+      // WHEN
+      final gpa = GradeCalculatorGpa.of(course, term, [term], 3.1, priorCredits: 60, priorGpa: 3.4);
+
+      // THEN
+      expect(gpa.cumulativeGpa, 3.1);
+      expect(gpa.cumulativeGpaWith(4.0), 3.4286, reason: '3 credits at 4.0 and 60 prior at 3.40');
+    });
+
+    test('a lone group with nothing graded yet has the prior GPA as its cumulative GPA', () {
+      // GIVEN
+      final course = MockModels.createGradeCourse(credits: 3, gradeScale: scale);
+      final term = MockModels.createGradeCourseGroup(inCumulativeGpa: true, courses: [course]);
+
+      // WHEN
+      final gpa = GradeCalculatorGpa.of(course, term, [term], 3.4, priorCredits: 60, priorGpa: 3.4);
+
+      // THEN
+      expect(gpa.cumulativeGpaWith(null), 3.4);
     });
   });
 }

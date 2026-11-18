@@ -79,6 +79,7 @@ import 'package:heliumapp/presentation/features/planner/widgets/planner_mobile_m
 import 'package:heliumapp/presentation/features/planner/widgets/todos_data_grid.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/core/base_event.dart';
 import 'package:heliumapp/presentation/navigation/shell/navigation_shell.dart';
+import 'package:heliumapp/presentation/ui/components/helium_search_field.dart';
 import 'package:heliumapp/presentation/ui/dialogs/helium_menu.dart';
 import 'package:heliumapp/presentation/ui/feedback/error_card.dart';
 import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
@@ -1413,72 +1414,11 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
                 ? Row(
                     children: [
                       Expanded(
-                        child: SizedBox(
-                          height: 40,
-                          child: Container(
-                            decoration: BoxDecoration(
-                              color: context.colorScheme.surface,
-                              border: Border.all(
-                                color: context.colorScheme.outline.withValues(
-                                  alpha: 0.2,
-                                ),
-                              ),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: ClipRRect(
-                              borderRadius: BorderRadius.circular(8),
-                              child: TextField(
-                                controller: _searchController,
-                                focusNode: _searchFocusNode,
-                                onChanged: _onSearchTextFieldChanged,
-                                onTapOutside: (_) {},
-                                style: AppStyles.formText(context),
-                                textAlignVertical: TextAlignVertical.center,
-                                decoration: InputDecoration(
-                                  hintText: 'Search ...',
-                                  hintStyle: AppStyles.formHint(context),
-                                  prefixIcon: Icon(
-                                    Icons.search,
-                                    color: context.colorScheme.onSurface
-                                        .withValues(alpha: 0.4),
-                                  ),
-                                  border: InputBorder.none,
-                                  enabledBorder: InputBorder.none,
-                                  focusedBorder: InputBorder.none,
-                                  isDense: true,
-                                  contentPadding: const EdgeInsets.symmetric(
-                                    horizontal: 12,
-                                    vertical: 10,
-                                  ),
-                                  suffixIcon:
-                                      ValueListenableBuilder<TextEditingValue>(
-                                        valueListenable: _searchController,
-                                        builder: (context, value, _) {
-                                          if (value.text.isEmpty) {
-                                            return const SizedBox.shrink();
-                                          }
-                                          return IconButton(
-                                            onPressed: () {
-                                              _searchController.clear();
-                                              _plannerItemDataSource
-                                                  ?.setSearchQuery('');
-                                            },
-                                            icon: Icon(
-                                              Icons.close,
-                                              size: 20,
-                                              color: context
-                                                  .colorScheme
-                                                  .onSurface
-                                                  .withValues(alpha: 0.4),
-                                            ),
-                                            tooltip: 'Clear',
-                                          );
-                                        },
-                                      ),
-                                ),
-                              ),
-                            ),
-                          ),
+                        child: HeliumSearchField(
+                          controller: _searchController,
+                          focusNode: _searchFocusNode,
+                          onChanged: _onSearchTextFieldChanged,
+                          onTapOutside: (_) {},
                         ),
                       ),
                       if (showCloseButton) ...[

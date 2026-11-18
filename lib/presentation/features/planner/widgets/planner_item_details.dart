@@ -584,7 +584,7 @@ class PlannerItemDetailsState extends State<PlannerItemDetails>
         trailing: HeliumIconButton(
           icon: Icons.school,
           backgroundColor: context.colorScheme.onSurfaceVariant,
-          tooltip: 'Add a Class',
+          tooltip: 'Add a class',
           onPressed: () =>
               widget.onNavigateRequested?.call(AppRoute.coursesScreen),
         ),

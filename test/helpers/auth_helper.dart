@@ -28,6 +28,8 @@ Map<String, dynamic> givenUserSettingsJson({
   bool collapseBusyDays = true,
   int atRiskThreshold = 70,
   int onTrackTolerance = 10,
+  String priorCredits = '0.00',
+  String priorGpa = '0.0000',
   bool showWeekNumbers = false,
   int dateFormat = RegionalFormatConstants.dateFormatMonthDayYear,
   int timeFormat = RegionalFormatConstants.timeFormatTwelveHour,
@@ -57,6 +59,8 @@ Map<String, dynamic> givenUserSettingsJson({
     'calendar_event_limit': collapseBusyDays,
     'at_risk_threshold': atRiskThreshold,
     'on_track_tolerance': onTrackTolerance,
+    'prior_credits': priorCredits,
+    'prior_gpa': priorGpa,
     'show_week_numbers': showWeekNumbers,
     'date_format': dateFormat,
     'time_format': timeFormat,
@@ -151,6 +155,8 @@ void verifyUserSettingsMatchesJson(
   expect(settings.collapseBusyDays, equals(json['calendar_event_limit']));
   expect(settings.atRiskThreshold, equals(json['at_risk_threshold']));
   expect(settings.onTrackTolerance, equals(json['on_track_tolerance']));
+  expect(settings.priorCredits, equals(double.parse(json['prior_credits'])));
+  expect(settings.priorGpa, equals(double.parse(json['prior_gpa'])));
   expect(settings.showWeekNumbers, equals(json['show_week_numbers']));
   expect(settings.privateSlug, equals(json['private_slug']));
 }

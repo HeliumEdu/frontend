@@ -109,6 +109,9 @@ class DeepLinkParam {
   static const String view = 'view';
   static const String status = 'status';
 
+  // /settings/preferences: scroll to a section (`grades`)
+  static const String section = 'section';
+
   /// Parses an entity ID param that accepts either an integer or the sentinel
   /// string `'new'`.
   ///
