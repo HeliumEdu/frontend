@@ -541,20 +541,11 @@ class FcmService with WidgetsBindingObserver {
     }
   }
 
-  /// The route a tapped notification is opening, until that route is popped.
-  static String? tappedDestination;
-
-  Future<void> _onNotificationTap(RemoteMessage message) async {
+  void _onNotificationTap(RemoteMessage message) {
     final messageId = message.messageId;
     _log.info('Notification $messageId tapped');
 
-    final route = _routeForMessage(message);
-    tappedDestination = route;
-    try {
-      await router.push(route);
-    } finally {
-      tappedDestination = null;
-    }
+    router.go(_routeForMessage(message));
   }
 
   /// Resolves the deep-link route for a tapped push: the specific entity the
@@ -644,17 +635,13 @@ class FcmService with WidgetsBindingObserver {
     );
   }
 
-  Future<void> _onNotificationTapped(NotificationResponse response) async {
+  void _onNotificationTapped(NotificationResponse response) {
     _log.info('Local notification tapped: ${response.id}');
 
     final payload = response.payload;
-    final route = payload != null && payload.isNotEmpty ? payload : notificationsRoute;
-    tappedDestination = route;
-    try {
-      await router.push(route);
-    } finally {
-      tappedDestination = null;
-    }
+    router.go(
+      payload != null && payload.isNotEmpty ? payload : notificationsRoute,
+    );
   }
 
   Future<void> registerToken({bool force = false}) async {

@@ -335,10 +335,28 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
 
   void _syncFromUrl() {
     if (!mounted) return;
-    final path = router.routerDelegate.currentConfiguration.uri.path;
+    final location = router.routerDelegate.currentConfiguration.uri;
+    final path = location.path;
     final prefix = _registeredPrefix;
-    if (prefix == null || !DirtyDialogRegistry.isWithin(path, prefix)) return;
+    if (prefix == null) return;
+    if (!DirtyDialogRegistry.isWithin(path, prefix)) {
+      if (DeepLinkParam.namesSavedEntity(location, 'notebook')) {
+        _reopenAt(location.toString());
+      }
+      return;
+    }
     DirtyDialogRegistry.updateFullPath(prefix: prefix, fullPath: path);
+  }
+
+  void _reopenAt(String location) {
+    final extra = router.routerDelegate.currentConfiguration.extra;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || _isClosing) return;
+      _closeImmediately();
+      WidgetsBinding.instance.addPostFrameCallback(
+        (_) => router.go(location, extra: extra),
+      );
+    });
   }
 
   bool get isDirty {

@@ -10,7 +10,6 @@ import 'package:heliumapp/config/donation_config.dart';
 import 'package:heliumapp/config/pref_service.dart';
 import 'package:heliumapp/core/dio_client.dart';
 import 'package:heliumapp/data/models/auth/request/update_settings_request_model.dart';
-import 'package:heliumapp/core/fcm_service.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/core/base_event.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/info/info_bloc.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/info/info_event.dart';
@@ -357,11 +356,8 @@ class _NavigationShellState extends State<NavigationShell> {
   }
 
 
-  /// An imperative push leaves the URI on the base location, so a tapped
-  /// notification's destination has to be asked for rather than read off it.
   bool get _destinationIsTopLevelPage {
-    final destination =
-        FcmService.tappedDestination ?? router.activeLocation.path;
+    final destination = router.activeLocation.path;
     return NavigationPage.values.any((page) => page.route == destination);
   }
 

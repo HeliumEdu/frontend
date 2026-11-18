@@ -104,6 +104,11 @@ class DeepLinkParam {
   // /planner: anchor the calendar's initial display date (YYYY-MM-DD)
   static const String date = 'date';
 
+  // /planner: open a view (a `PlannerView` name) and show only the given statuses (comma-separated
+  // `PlannerFilterStatus` names) for that visit
+  static const String view = 'view';
+  static const String status = 'status';
+
   /// Parses an entity ID param that accepts either an integer or the sentinel
   /// string `'new'`.
   ///
@@ -116,5 +121,15 @@ class DeepLinkParam {
     if (value == 'new') return (id: null, isNew: true);
     final parsed = int.tryParse(value);
     return (id: parsed, isNew: false);
+  }
+
+  /// Whether [location] has a saved entity's integer ID right after [segment]
+  /// (e.g. `classes` in `/classes/5/schedule`).
+  static bool namesSavedEntity(Uri location, String segment) {
+    final segments = location.pathSegments;
+    final idx = segments.indexOf(segment);
+    return idx >= 0 &&
+        idx + 1 < segments.length &&
+        parseId(segments[idx + 1]).id != null;
   }
 }

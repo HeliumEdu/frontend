@@ -963,6 +963,17 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
     _applyFiltersAndNotify();
   }
 
+  /// Shows only [statuses], with every other filter cleared, without changing the filters the user saved.
+  void showOnlyStatuses(Set<String> statuses) {
+    _log.info('Status filter set from a link: ${statuses.join(", ")}');
+    _selectedCourses = {};
+    _filterCategories = [];
+    _filterTypes = [];
+    _filterStatuses = statuses;
+    _selectedExternalCalendarIds = {};
+    _applyFiltersAndNotify();
+  }
+
   void setSelectedExternalCalendarIds(Set<int> ids) {
     _log.info(
       'External calendar filter changed: ${ids.isEmpty ? "all" : ids.join(", ")}',

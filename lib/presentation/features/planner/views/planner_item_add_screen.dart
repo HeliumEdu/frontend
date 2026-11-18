@@ -233,9 +233,17 @@ class _PlannerItemAddScreenState
 
   void _syncFromUrl() {
     if (!mounted) return;
-    final path = router.routerDelegate.currentConfiguration.uri.path;
+    final location = router.routerDelegate.currentConfiguration.uri;
+    final path = location.path;
     final prefix = _registeredPrefix;
-    if (prefix == null || !DirtyDialogRegistry.isWithin(path, prefix)) return;
+    if (prefix == null) return;
+    if (!DirtyDialogRegistry.isWithin(path, prefix)) {
+      if (DeepLinkParam.namesSavedEntity(location, plannerItemHomeworkPath) ||
+          DeepLinkParam.namesSavedEntity(location, plannerItemEventPath)) {
+        reopenAt(location.toString());
+      }
+      return;
+    }
     DirtyDialogRegistry.updateFullPath(prefix: prefix, fullPath: path);
     final segments = path.split('/').where((s) => s.isNotEmpty).toList();
     // Find our entity segment in the URL — look for either homework or event
@@ -571,7 +579,7 @@ class _PlannerItemAddScreenState
                 eventId: state.isEvent ? state.entityId : null,
                 homeworkId: !state.isEvent ? state.entityId : null,
               );
-              _replaceUrlForEntity(
+              _useCreatedEntityRoute(
                 isEvent: state.isEvent,
                 entityId: state.entityId,
               );
@@ -641,7 +649,7 @@ class _PlannerItemAddScreenState
     ];
   }
 
-  /// Moves the screen from `/<entity>/new` to the new entity's own path. The
+  /// Moves the screen to a just-created (or cloned) entity's own path. The
   /// URL prefix the dirty-dialog guard owns changes with it, so the guard is
   /// re-registered first.
   void _useCreatedEntityRoute({required bool isEvent, required int entityId}) {
@@ -721,8 +729,7 @@ class _PlannerItemAddScreenState
         userSettings: userSettings,
         onNavigateRequested: (route) async {
           if (isDirty && !await confirmDiscardChanges(context)) return;
-          closeWithoutPrompt();
-          WidgetsBinding.instance.addPostFrameCallback((_) => router.go(route));
+          reopenAt(route);
         },
         onIsEventChanged: (isEvent) {
           setState(() {

@@ -332,9 +332,41 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
     return true;
   }
 
+  void _applyViewDeepLink(Uri uri) {
+    final view = PlannerView.values.asNameMap()[uri.queryParameters[DeepLinkParam.view]];
+    final statusNames = PlannerFilterStatus.values.asNameMap();
+    final statuses = (uri.queryParameters[DeepLinkParam.status]?.split(',') ?? const <String>[])
+        .map((name) => statusNames[name.trim()]?.value)
+        .nonNulls
+        .toSet();
+    if (view == null && statuses.isEmpty) return;
+    setState(() {
+      if (view != null) _changeView(view);
+      if (statuses.isNotEmpty) _plannerItemDataSource!.showOnlyStatuses(statuses);
+    });
+  }
+
+  /// Applies a /planner link's query params, then drops them from the URL so
+  /// they apply once and a repeat of the same link applies again.
+  void _consumeDeepLink() {
+    final uri = router.routerDelegate.currentConfiguration.uri;
+    if (uri.path != AppRoute.plannerScreen || uri.queryParameters.isEmpty) return;
+    _applyDateDeepLink();
+    _applyViewDeepLink(uri);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted && router.routerDelegate.currentConfiguration.uri == uri) {
+        router.replace(AppRoute.plannerScreen);
+      }
+    });
+  }
+
   void _onRouterChanged() {
     if (!mounted) return;
-    _applyDateDeepLink();
+    if (_plannerItemDataSource == null) {
+      _applyDateDeepLink();
+    } else {
+      _consumeDeepLink();
+    }
   }
 
   @override
@@ -466,6 +498,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
 
           _plannerItemDataSource!.restoreFiltersIfEnabled();
         });
+        _consumeDeepLink();
 
         unawaited(_refreshExternalCalendarsMap());
       }
