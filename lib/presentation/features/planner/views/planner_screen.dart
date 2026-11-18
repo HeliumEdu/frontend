@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:ui' as ui;
 
 import 'package:collection/collection.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -72,12 +71,14 @@ import 'package:heliumapp/presentation/features/planner/dialogs/course_schedule_
 import 'package:heliumapp/presentation/features/planner/dialogs/external_calendar_event_dialog.dart';
 import 'package:heliumapp/presentation/features/planner/views/planner_item_add_screen.dart';
 import 'package:heliumapp/presentation/features/planner/widgets/day_popout_dialog.dart';
-import 'package:heliumapp/presentation/features/planner/widgets/planner_item_meta_row.dart';
+import 'package:heliumapp/presentation/features/planner/widgets/planner_date_navigator.dart';
+import 'package:heliumapp/presentation/features/planner/widgets/planner_filter_menu.dart';
+import 'package:heliumapp/presentation/features/planner/widgets/planner_item_calendar_tile.dart';
+import 'package:heliumapp/presentation/features/planner/widgets/planner_item_tooltip.dart';
+import 'package:heliumapp/presentation/features/planner/widgets/planner_mobile_month_cell.dart';
 import 'package:heliumapp/presentation/features/planner/widgets/todos_data_grid.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/core/base_event.dart';
 import 'package:heliumapp/presentation/navigation/shell/navigation_shell.dart';
-import 'package:heliumapp/presentation/ui/components/helium_checkbox_list_tile.dart';
-import 'package:heliumapp/presentation/ui/components/helium_icon_button.dart';
 import 'package:heliumapp/presentation/ui/dialogs/helium_menu.dart';
 import 'package:heliumapp/presentation/ui/feedback/error_card.dart';
 import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
@@ -86,22 +87,19 @@ import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/color_helpers.dart';
 import 'package:heliumapp/utils/date_time_helpers.dart';
-import 'package:heliumapp/utils/grade_helpers.dart';
 import 'package:heliumapp/presentation/features/planner/widgets/week_column.dart';
 import 'package:heliumapp/utils/planner_helper.dart';
+import 'package:heliumapp/utils/planner_month_layout.dart';
 import 'package:heliumapp/utils/platform_behavior.dart';
 import 'package:heliumapp/utils/print_helpers.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
-import 'package:heliumapp/utils/url_helpers.dart';
 import 'package:logging/logging.dart';
 import 'package:syncfusion_flutter_core/localizations.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';
-import 'package:timezone/standalone.dart' as tz;
 
 final _log = Logger('presentation.views');
 
 class PlannerScreen extends StatelessWidget {
-  static const String plannerItemCheckboxKeyPrefix = 'planner_item_checkbox_';
   static const String todayButtonKey = 'planner_today_button';
   static const String viewSwitcherButtonKey = 'planner_view_switcher_button';
 
@@ -109,8 +107,6 @@ class PlannerScreen extends StatelessWidget {
       'planner_view_option_${view.name}';
   static const String filterButtonKey = 'planner_filter_button';
   static const String searchButtonKey = 'planner_search_button';
-  static const String calendarPrevButtonKey = 'planner_calendar_prev_button';
-  static const String calendarNextButtonKey = 'planner_calendar_next_button';
 
   const PlannerScreen({super.key});
 
@@ -162,30 +158,13 @@ class _CalendarProvidedScreen extends StatefulWidget {
 }
 
 class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> {
-  static const _agendaHeightMobile = 53.0;
-  static const _agendaHeightDesktop = 57.0;
 
   static const _monthViewHeaderHeight = 28.0;
 
-  static const _monthCalendarItemHeight = 21.0;
-  // SfCalendar adds ~2px between adjacent appointments in month view cells.
-  // Both the display-count and expanded-height calculations must account for
-  // this gap so the allocated slot height matches _monthCalendarItemHeight.
-  static const _monthCalendarItemGap = 2.0;
-  // SfCalendar reserves bottom padding inside each month cell (below the last
-  // appointment). Include this in height calculations to prevent clipping.
-  static const _monthCellBottomPadding = 8.0;
-  static const _monthMinItemDisplayCount = 3;
-  static const _minCalendarHeightMobile = 480.0;
-  static const _minCalendarHeightDesktop = 675.0;
-  static const _tooltipWaitDuration = Duration(milliseconds: 500);
-  static const _tooltipShowDuration = Duration(seconds: 8);
   // How long to suppress tooltips after any intentional user action (drag,
   // drop, resize, pointer-down anywhere). Resets on each new action so rapid
   // interactions don't produce stray tooltips.
   static const _tooltipSuppressDelay = Duration(seconds: 2);
-  static const _calendarItemIconSize = 10.0;
-  static const _calendarItemIconGap = 2.0;
 
   @override
   bool get enablePrint => true;
@@ -283,12 +262,11 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
 
   final Set<(int, int)> _completingOccurrences = {};
 
-  Offset? _timelineTapPosition;
-
   PlannerItemBaseModel? _deferredOpenItem;
   VoidCallback? _deferredOpenAction;
 
-  int _calendarItemsDisplayCount = _monthMinItemDisplayCount;
+  int _calendarItemsDisplayCount =
+      PlannerMonthLayout.monthMinItemDisplayCount;
   PlannerItemDataSource? _plannerItemDataSource;
   final Map<int, ExternalCalendarModel> _externalCalendarsById = {};
 
@@ -919,29 +897,42 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
           if (noCollapse) {
             // Collapse disabled: show all items at natural height, but fill
             // the viewport on tall screens rather than leaving empty space.
-            final maxItems = _calculateMaxItemsForVisibleDates();
-            final int displayCount = maxItems > _monthMinItemDisplayCount
+            final maxItems =
+                PlannerMonthLayout.calculateMaxItemsForVisibleDates(
+                  _plannerItemDataSource,
+                  _visibleDates,
+                );
+            final int displayCount =
+                maxItems > PlannerMonthLayout.monthMinItemDisplayCount
                 ? maxItems
-                : _monthMinItemDisplayCount;
-            final expandedHeight = _calculateExpandedCalendarHeight(
-              displayCount,
+                : PlannerMonthLayout.monthMinItemDisplayCount;
+            final expandedHeight =
+                PlannerMonthLayout.calculateExpandedCalendarHeight(
+                  displayCount,
+                );
+            final fillHeight = PlannerMonthLayout.calculateCalendarHeight(
+              constraints.maxHeight,
+              isMobile: Responsive.isMobile(this.context),
             );
-            final fillHeight = _calculateCalendarHeight(constraints.maxHeight);
             calendarHeight = expandedHeight > fillHeight
                 ? expandedHeight
                 : fillHeight;
             // Set display count to the number of fixed-height slots that fit
             // so items stack at their natural height (empty space at cell
             // bottom) instead of stretching to fill the cell.
-            final slotsAtFixedHeight = _calculateCalendarItemDisplayCount(
-              calendarHeight,
-            );
+            final slotsAtFixedHeight =
+                PlannerMonthLayout.calculateCalendarItemDisplayCount(
+                  calendarHeight,
+                );
             noCollapseCount = maxItems > slotsAtFixedHeight
                 ? maxItems
                 : slotsAtFixedHeight;
           } else {
             // Collapse enabled: fill viewport dynamically, down to minimum.
-            calendarHeight = _calculateCalendarHeight(constraints.maxHeight);
+            calendarHeight = PlannerMonthLayout.calculateCalendarHeight(
+              constraints.maxHeight,
+              isMobile: Responsive.isMobile(this.context),
+            );
           }
 
           return SingleChildScrollView(
@@ -958,62 +949,18 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
     }
   }
 
-  int _calculateCalendarItemDisplayCount(double availableHeight) {
-    const double dayHeaderHeight = 45;
-    const double dayNumberHeight = 30;
-    const int monthRows = 6;
-
-    if (availableHeight.isInfinite) return _monthMinItemDisplayCount;
-
-    final cellHeight = (availableHeight - dayHeaderHeight) / monthRows;
-    final availableForCalendarItems = cellHeight - dayNumberHeight;
-    // Each item occupies its height plus the inter-item gap SfCalendar inserts.
-    final count =
-        (availableForCalendarItems /
-                (_monthCalendarItemHeight + _monthCalendarItemGap))
-            .floor();
-
-    return count.clamp(_monthMinItemDisplayCount, 10);
-  }
-
-  double _calculateCalendarHeight(double maxHeight) {
-    final double minCalendarHeight = Responsive.isMobile(context)
-        ? _minCalendarHeightMobile
-        : _minCalendarHeightDesktop;
-    if (maxHeight.isInfinite) return minCalendarHeight;
-    return maxHeight < minCalendarHeight ? minCalendarHeight : maxHeight;
-  }
-
-  int _calculateMaxItemsForVisibleDates() {
-    if (_plannerItemDataSource == null || _visibleDates.isEmpty) return 0;
-    return _visibleDates
-        .map((date) => _plannerItemDataSource!.getItemsForDay(date).length)
-        .fold(0, (a, b) => a > b ? a : b);
-  }
-
-  double _calculateExpandedCalendarHeight(int maxItems) {
-    const double dayHeaderHeight = 45;
-    const double dayNumberHeight = 30;
-    const int monthRows = 6;
-    // n items require n slots of (height + gap), minus the trailing gap,
-    // plus cell bottom padding SfCalendar reserves below the last item.
-    final itemsHeight =
-        maxItems * (_monthCalendarItemHeight + _monthCalendarItemGap) -
-        _monthCalendarItemGap;
-    final cellHeight = dayNumberHeight + itemsHeight + _monthCellBottomPadding;
-    return dayHeaderHeight + (monthRows * cellHeight);
-  }
-
   Widget _buildCalendar({int? noCollapseCount}) {
     return LayoutBuilder(
       builder: (context, constraints) {
         _calendarItemsDisplayCount =
             noCollapseCount ??
-            _calculateCalendarItemDisplayCount(constraints.maxHeight);
+            PlannerMonthLayout.calculateCalendarItemDisplayCount(
+              constraints.maxHeight,
+            );
 
         final agendaHeight = Responsive.isMobile(context)
-            ? _agendaHeightMobile
-            : _agendaHeightDesktop;
+            ? PlannerItemCalendarTile.agendaHeightMobile
+            : PlannerItemCalendarTile.agendaHeightDesktop;
 
         final showWeekNumbers =
             userSettings.showWeekNumbers;
@@ -1300,13 +1247,18 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
                         PrintHidden(
                           child: KeyedSubtree(
                             key: const Key(PlannerScreen.todayButtonKey),
-                            child: _buildTodayButton(
+                            child: PlannerTodayButton(
                               showLabel: !isMobile,
-                              key: _todayButtonKey,
+                              buttonKey: _todayButtonKey,
+                              onPressed: _goToToday,
                             ),
                           ),
                         ),
-                        _buildCalendarDateArea(),
+                        PlannerDateNavigator(
+                          currentView: _currentView,
+                          calendarController: _calendarController,
+                          onOpenDatePicker: _openDatePicker,
+                        ),
                       ],
                     ),
                   ),
@@ -1325,181 +1277,6 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
             );
           },
         ),
-      ),
-    );
-  }
-
-  /// Shared height for the calendar header controls: 40 normally, 36 on slim
-  /// phones so the row fits without overflowing (matches the chevrons/date).
-  double _headerButtonSize(BuildContext context) =>
-      Responsive.isSlimMobile(context) ? 36 : 40;
-
-  Widget _buildTodayButton({required bool showLabel, Key? key}) {
-    final icon = Icon(
-      Icons.calendar_today,
-      size: Responsive.getIconSize(
-        context,
-        mobile: 20,
-        tablet: 22,
-        desktop: 24,
-      ),
-      semanticLabel: showLabel ? null : 'Today',
-    );
-    if (showLabel) {
-      return OutlinedButton.icon(
-        key: key,
-        onPressed: _goToToday,
-        icon: icon,
-        style: ButtonStyle(
-          padding: WidgetStateProperty.all(
-            const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
-          ),
-          // Pin height to match the other header controls on both mobile and
-          // web. Standard density keeps it fixed so it stays aligned with the
-          // density-fixed icon buttons (and the non-button date field).
-          minimumSize: WidgetStateProperty.all(
-            Size(0, _headerButtonSize(context)),
-          ),
-          maximumSize: WidgetStateProperty.all(
-            Size(double.infinity, _headerButtonSize(context)),
-          ),
-          visualDensity: VisualDensity.standard,
-          side: WidgetStateProperty.all(
-            BorderSide(color: context.colorScheme.primary),
-          ),
-        ),
-        label: Text(
-          'Today',
-          style: AppStyles.buttonText(
-            context,
-          ).copyWith(color: context.colorScheme.primary),
-        ),
-      );
-    } else {
-      return IconButton.outlined(
-        key: key,
-        onPressed: _goToToday,
-        icon: icon,
-        style: IconButton.styleFrom(
-          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-          minimumSize: Size(
-            _headerButtonSize(context),
-            _headerButtonSize(context),
-          ),
-          side: BorderSide(color: context.colorScheme.primary),
-        ),
-      );
-    }
-  }
-
-  Widget _buildCalendarDateArea() {
-    if (_currentView == PlannerView.todos) {
-      return Expanded(
-        child: Align(
-          alignment: Alignment.centerLeft,
-          child: Padding(
-            padding: const EdgeInsets.only(left: 8),
-            child: Text(
-              CalendarConstants
-                  .defaultViews[PlannerHelper.mapHeliumViewToApiView(
-                _currentView,
-              )],
-              style: AppStyles.headingText(
-                context,
-              ).copyWith(color: context.colorScheme.onSurface),
-            ),
-          ),
-        ),
-      );
-    }
-
-    final String headerText = _buildHeaderDate();
-
-    final showNavButtons =
-        _currentView != PlannerView.agenda && !Responsive.isNarrowMobile(context);
-    final bool isSlimMobile = Responsive.isSlimMobile(context);
-    final double chevronGap = isSlimMobile ? 2 : 3;
-    final double chevronSize = _headerButtonSize(context);
-    final double leadingGap =
-        isSlimMobile ? 2 : (Responsive.isMobile(context) ? 4 : 8);
-
-    return Expanded(
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          SizedBox(width: leadingGap),
-          if (!showNavButtons) const SizedBox(width: 4),
-          if (showNavButtons) ...[
-            PrintHidden(
-              child: IconButton(
-                key: const Key(PlannerScreen.calendarPrevButtonKey),
-                icon: Icon(
-                  Icons.chevron_left,
-                  color: context.colorScheme.primary,
-                  semanticLabel: 'Previous',
-                ),
-                onPressed: _calendarController.backward,
-                padding: EdgeInsets.zero,
-                constraints: BoxConstraints(
-                  minWidth: chevronSize,
-                  minHeight: chevronSize,
-                ),
-                style: IconButton.styleFrom(
-                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                ),
-              ),
-            ),
-            SizedBox(width: chevronGap),
-          ],
-          Stack(
-            alignment: Alignment.center,
-            children: [
-              for (final sample in _calendarHeaderSamples())
-                Visibility(
-                  visible: false,
-                  maintainSize: true,
-                  maintainAnimation: true,
-                  maintainState: true,
-                  child: _buildHeaderLabelRow(sample),
-                ),
-              Material(
-                color: Colors.transparent,
-                child: Semantics(
-                  button: true,
-                  child: InkWell(
-                    onTap: _openDatePicker,
-                    borderRadius: BorderRadius.circular(6),
-                    child: _buildHeaderLabelRow(headerText),
-                  ),
-                ),
-              ),
-            ],
-          ),
-          if (showNavButtons)
-            SizedBox(width: Responsive.isMobile(context) ? 2 : 4),
-          if (showNavButtons)
-            PrintHidden(
-              child: IconButton(
-                key: const Key(PlannerScreen.calendarNextButtonKey),
-                icon: Icon(
-                  Icons.chevron_right,
-                  color: context.colorScheme.primary,
-                  semanticLabel: 'Next',
-                ),
-                onPressed: _calendarController.forward,
-                padding: EdgeInsets.zero,
-                constraints: BoxConstraints(
-                  minWidth: chevronSize,
-                  minHeight: chevronSize,
-                ),
-                style: IconButton.styleFrom(
-                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                ),
-              ),
-            ),
-        ],
       ),
     );
   }
@@ -1747,8 +1524,8 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
               style: IconButton.styleFrom(
                 tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                 minimumSize: Size(
-                  _headerButtonSize(context),
-                  _headerButtonSize(context),
+                  PlannerDateNavigator.headerButtonSize(context),
+                  PlannerDateNavigator.headerButtonSize(context),
                 ),
                 side: BorderSide(color: context.colorScheme.primary),
               ),
@@ -1758,7 +1535,13 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
         SizedBox(width: buttonGap),
         Builder(
           builder: (context) {
-            final hasFilters = _hasCoursesFilter() || _hasStatusFilters();
+            final hasFilters =
+                PlannerFilterMenuContent.hasCoursesFilter(
+                  _plannerItemDataSource,
+                ) ||
+                PlannerFilterMenuContent.hasStatusFilters(
+                  _plannerItemDataSource,
+                );
             return IconButton.outlined(
               key: const Key(PlannerScreen.filterButtonKey),
               onPressed: _courses.isEmpty
@@ -1769,8 +1552,8 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
               style: IconButton.styleFrom(
                 tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                 minimumSize: Size(
-                  _headerButtonSize(context),
-                  _headerButtonSize(context),
+                  PlannerDateNavigator.headerButtonSize(context),
+                  PlannerDateNavigator.headerButtonSize(context),
                 ),
                 backgroundColor: hasFilters
                     ? context.colorScheme.primary
@@ -1804,8 +1587,8 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
                 style: IconButton.styleFrom(
                   tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                   minimumSize: Size(
-                    _headerButtonSize(context),
-                    _headerButtonSize(context),
+                    PlannerDateNavigator.headerButtonSize(context),
+                    PlannerDateNavigator.headerButtonSize(context),
                   ),
                   backgroundColor: hasSearchQuery
                       ? context.colorScheme.primary
@@ -1823,173 +1606,6 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
         ],
       ],
     );
-  }
-
-  String _buildHeaderDate() {
-    return HeliumDateTime.formatMonthAndYear(
-      _calendarController.displayDate!,
-      abbreviateMonth: Responsive.isCompact(context),
-    );
-  }
-
-  /// Sample labels for every month in the current view's format. Used to
-  /// reserve a fixed-width slot for the header label so the chevrons don't
-  /// shift as the user pages between months. Sampled rather than measured
-  /// via TextPainter so the size honors the real font (GoogleFonts loads
-  /// asynchronously, so TextPainter can disagree with the paint pass).
-  List<String> _calendarHeaderSamples() {
-    final isCompact = Responsive.isCompact(context);
-
-    return List.generate(12, (i) {
-      return HeliumDateTime.formatMonthAndYear(
-        DateTime(2025, i + 1, 25),
-        abbreviateMonth: isCompact,
-      );
-    });
-  }
-
-  Widget _buildHeaderLabelRow(String text) {
-    final bool isMobile = Responsive.isMobile(context);
-    final bool isSlimMobile = Responsive.isSlimMobile(context);
-    final double sideInset = isMobile ? (isSlimMobile || kIsWeb ? 2 : 4) : 8;
-    const double webInset = kIsWeb ? 4 : 0;
-    // Vertical padding + the 24px dropdown icon sets the date height to match
-    // the header's chevrons: 8+24+8 = 40 normally, 6+24+6 = 36 on slim phones.
-    final double vInset = isSlimMobile ? 6 : 8;
-    return Padding(
-      padding: EdgeInsets.only(
-        left: sideInset + webInset,
-        right: kIsWeb ? webInset : (isSlimMobile ? 0 : 4),
-        top: vInset,
-        bottom: vInset,
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Text(
-            text,
-            style: AppStyles.headingText(context).copyWith(
-              color: context.colorScheme.onSurface,
-              // Trim the date 1pt on slim phones to reclaim the last few pixels
-              // the header row needs to fit.
-              fontSize: isSlimMobile ? 14 : null,
-            ),
-          ),
-          const SizedBox(width: 2),
-          PrintHidden(
-            child: SizedBox(
-              // The arrow_drop_down glyph carries ~4px of empty optical padding
-              // on its trailing edge; reserve a narrower box so the right
-              // chevron pulls in to stay symmetric with the tightened left
-              // inset above.
-              width: isMobile ? 18 : 24,
-              height: 24,
-              child: OverflowBox(
-                maxWidth: 24,
-                maxHeight: 24,
-                alignment: Alignment.centerLeft,
-                child: Icon(
-                  Icons.arrow_drop_down,
-                  color: context.colorScheme.primary,
-                  size: 24,
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  bool _hasCoursesFilter() {
-    if (_plannerItemDataSource == null) return false;
-
-    final selectedCourses = _plannerItemDataSource!.selectedCourses;
-
-    if (selectedCourses.isEmpty) return false;
-
-    return selectedCourses.values.any((isSelected) => isSelected);
-  }
-
-  List<CategoryModel> _deduplicateCategoriesByTitle(
-    Iterable<CategoryModel> categories,
-  ) {
-    final uniqueCategories = <String, CategoryModel>{};
-    for (final category in categories) {
-      if (!uniqueCategories.containsKey(category.title)) {
-        uniqueCategories[category.title] = category;
-      }
-    }
-    return uniqueCategories.values.toList();
-  }
-
-  List<CategoryModel> _getVisibleCategories() {
-    if (!_hasCoursesFilter()) {
-      return _deduplicatedCategories;
-    }
-
-    final filteredCourseIds = _plannerItemDataSource!.selectedCourses.entries
-        .where((e) => e.value)
-        .map((e) => e.key)
-        .toSet();
-
-    final filteredCategories = _categoriesMap.values.where(
-      (cat) => filteredCourseIds.contains(cat.course),
-    );
-
-    return _deduplicateCategoriesByTitle(filteredCategories);
-  }
-
-  List<ExternalCalendarModel> _getVisibleExternalCalendars() {
-    if (_currentView == PlannerView.todos) return [];
-
-    final enabled = _externalCalendarsById.values
-        .where((c) => c.shownOnCalendar == true)
-        .toList();
-    if (enabled.length <= 1) return [];
-
-    final filterTypes = _plannerItemDataSource!.filterTypes;
-    final externalCalendarsVisible =
-        filterTypes.isEmpty ||
-        filterTypes.contains(PlannerFilterType.externalCalendars.value);
-    if (!externalCalendarsVisible) return [];
-
-    return enabled;
-  }
-
-  bool _areAssignmentsVisible() {
-    if (_currentView == PlannerView.todos) return true;
-    final types = _plannerItemDataSource!.filterTypes;
-    return types.isEmpty || types.contains(PlannerFilterType.assignments.value);
-  }
-
-  bool _areCourseItemsVisible() {
-    if (_currentView == PlannerView.todos) return true;
-    final types = _plannerItemDataSource!.filterTypes;
-    return types.isEmpty ||
-        types.contains(PlannerFilterType.assignments.value) ||
-        types.contains(PlannerFilterType.classSchedules.value);
-  }
-
-  bool _hasStatusFilters() {
-    if (_plannerItemDataSource == null) return false;
-
-    final categories = _plannerItemDataSource!.filterCategories;
-    final types = _plannerItemDataSource!.filterTypes;
-    final statuses = _plannerItemDataSource!.filterStatuses;
-    final selectedCalendars =
-        _plannerItemDataSource!.selectedExternalCalendarIds;
-
-    if (types.isNotEmpty) return true;
-
-    if (categories.isNotEmpty) return true;
-
-    if (statuses.isNotEmpty) return true;
-
-    if (selectedCalendars.isNotEmpty) return true;
-
-    return false;
   }
 
   bool _hasSearchQuery() {
@@ -2201,30 +1817,14 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
 
     if (plannerItem is HomeworkModel || plannerItem is EventModel) {
       final (currentStart, currentEnd) = _plannerItemDataSource!.currentTimesOf(plannerItem);
-      final timeZone = userSettings.timeZone;
-      final startDateTime = tz.TZDateTime.from(currentStart, timeZone);
-      final endDateTime = tz.TZDateTime.from(currentEnd, timeZone);
-      final Duration duration = endDateTime.difference(startDateTime);
-
-      final roundedMinute = PlannerHelper.roundMinute(
-        dropDetails.droppingTime!.minute,
+      final (start, end) = PlannerHelper.droppedTimeRange(
+        plannerItem: plannerItem,
+        currentStart: currentStart,
+        currentEnd: currentEnd,
+        dropDetails: dropDetails,
+        userSettings: userSettings,
+        currentView: _currentView,
       );
-
-      final DateTime start = tz.TZDateTime(
-        userSettings.timeZone,
-        dropDetails.droppingTime!.year,
-        dropDetails.droppingTime!.month,
-        dropDetails.droppingTime!.day,
-        _currentView == PlannerView.month
-            ? startDateTime.hour
-            : dropDetails.droppingTime!.hour,
-        _currentView == PlannerView.month
-            ? startDateTime.minute
-            : roundedMinute,
-      );
-      final DateTime end = plannerItem.allDay
-          ? HeliumDateTime.allDayEndAfterMove(start, startDateTime, endDateTime)
-          : start.add(duration);
 
       unawaited(_applyMove(plannerItem, start, end, action: RecurrenceScopeAction.move));
     }
@@ -2269,30 +1869,11 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
         resizeDetails.appointment as PlannerItemBaseModel;
 
     if (plannerItem is HomeworkModel || plannerItem is EventModel) {
-      DateTime start = tz.TZDateTime(
-        userSettings.timeZone,
-        resizeDetails.startTime!.year,
-        resizeDetails.startTime!.month,
-        resizeDetails.startTime!.day,
-        resizeDetails.startTime!.hour,
-        PlannerHelper.roundMinute(resizeDetails.startTime!.minute),
+      final (start, end) = PlannerHelper.resizedTimeRange(
+        plannerItem: plannerItem,
+        resizeDetails: resizeDetails,
+        userSettings: userSettings,
       );
-
-      DateTime end = tz.TZDateTime(
-        userSettings.timeZone,
-        resizeDetails.endTime!.year,
-        resizeDetails.endTime!.month,
-        resizeDetails.endTime!.day,
-        resizeDetails.endTime!.hour,
-        PlannerHelper.roundMinute(resizeDetails.endTime!.minute),
-      );
-      if (plannerItem.allDay) {
-        (start, end) = HeliumDateTime.dayRangeIn(
-          resizeDetails.startTime!,
-          resizeDetails.endTime!,
-          userSettings.timeZone,
-        );
-      }
 
       if (PlannerHelper.isRepeatingItem(plannerItem)) {
         _plannerItemDataSource!.resetAppointments();
@@ -2500,91 +2081,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
   }
 
   Widget _buildMobileMonthCell(BuildContext context, MonthCellDetails details) {
-    // Device clock: SfCalendar anchors its own today on a bare DateTime.now(),
-    // so zoning this would paint a second, disagreeing marker.
-    final isToday = DateUtils.isSameDay(details.date, DateTime.now());
-    final isCurrentMonth =
-        details.visibleDates.isNotEmpty &&
-        details.date.month == details.visibleDates[15].month;
-
-    // Determine which types are present for this date
-    final items = details.appointments.cast<PlannerItemBaseModel>();
-    final hasEvents = items.any((item) => item is EventModel);
-    final hasHomework = items.any((item) => item is HomeworkModel);
-    final hasClassSchedules = items.any(
-      (item) => item is CourseScheduleEventModel,
-    );
-    final hasExternalCalendars = items.any(
-      (item) => item is ExternalCalendarEventModel,
-    );
-
-    // Build indicator dots for present types
-    final indicatorColors = <Color>[
-      if (hasHomework) PlannerTypeColors.homework,
-      if (hasEvents) userSettings.eventsColor,
-      if (hasClassSchedules) PlannerTypeColors.classSchedules,
-      if (hasExternalCalendars) PlannerTypeColors.externalCalendars,
-    ];
-
-    final borderColor = context.colorScheme.outline.withValues(alpha: 0.3);
-    final dateIndex = details.visibleDates.indexOf(details.date);
-    final isLastRow = dateIndex >= details.visibleDates.length - 7;
-
-    return CustomPaint(
-      foregroundPainter: _MobileCellBorderPainter(
-        color: borderColor,
-        drawBottom: isLastRow,
-      ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.start,
-        children: [
-          const SizedBox(height: 6),
-          Container(
-            width: 26,
-            height: 26,
-            decoration: isToday
-                ? BoxDecoration(
-                    color: context.colorScheme.primary,
-                    shape: BoxShape.circle,
-                  )
-                : null,
-            alignment: Alignment.center,
-            child: Text(
-              details.date.day.toString(),
-              style: AppStyles.smallSecondaryText(context).copyWith(
-                color: isToday
-                    ? context.colorScheme.onPrimary
-                    : isCurrentMonth
-                    ? context.colorScheme.onSurface
-                    : context.colorScheme.onSurface.withValues(alpha: AppStyles.mutedTextAlpha),
-                fontWeight: isToday ? FontWeight.w600 : null,
-              ),
-            ),
-          ),
-          const Spacer(),
-          if (indicatorColors.isNotEmpty)
-            Padding(
-              padding: EdgeInsets.only(bottom: details.bounds.height * 0.14),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: indicatorColors
-                    .map(
-                      (color) => Container(
-                        width: 6,
-                        height: 6,
-                        margin: const EdgeInsets.symmetric(horizontal: 1),
-                        decoration: BoxDecoration(
-                          color: color,
-                          shape: BoxShape.circle,
-                        ),
-                      ),
-                    )
-                    .toList(),
-              ),
-            ),
-        ],
-      ),
-    );
+    return PlannerMobileMonthCell(details: details, userSettings: userSettings);
   }
 
   Widget _buildCalendarItem(
@@ -2592,7 +2089,11 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
     CalendarAppointmentDetails details,
   ) {
     if (details.isMoreAppointmentRegion) {
-      return _buildMoreIndicator(context, details);
+      return PlannerMoreIndicator(
+        details: details,
+        displayCount: _calendarItemsDisplayCount,
+        onOpenDay: _openDayPopOutDialog,
+      );
     }
 
     final plannerItem = details.appointments.first as PlannerItemBaseModel;
@@ -2629,7 +2130,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
         constrainedAxis: Axis.horizontal,
         clipBehavior: Clip.hardEdge,
         child: SizedBox(
-          height: _monthCalendarItemHeight,
+          height: PlannerMonthLayout.monthCalendarItemHeight,
           child: calendarItemWidget,
         ),
       );
@@ -2675,7 +2176,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
         'planner_item_${plannerItem.plannerItemType.name}_${plannerItem.id}${PlannerHelper.isRepeatingItem(plannerItem) ? '_${HeliumDateTime.formatDateForApi(details.date)}' : ''}',
       ),
       child: _buildPlannerItemTooltip(
-        plannerItem: _isRecurringPlannerItem(plannerItem) ? _occurrenceOf(plannerItem, details.date) : plannerItem,
+        plannerItem: PlannerItemCalendarTile.isRecurring(plannerItem) ? _occurrenceOf(plannerItem, details.date) : plannerItem,
         isInAgendaStyle: isInAgenda,
         child: calendarItemWidget,
       ),
@@ -2710,25 +2211,39 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
     DateTime occurrenceDate,
   ) {
     final occurrence = _occurrenceOf(item, occurrenceDate);
-    final localStart = HeliumDateTime.toLocal(
-      occurrence.start,
-      userSettings.timeZone,
+    return PlannerHelper.occurrenceWhenLabel(
+      occurrence: occurrence,
+      occurrenceDate: occurrenceDate,
+      userSettings: userSettings,
     );
-    if (!DateUtils.isSameDay(localStart, occurrenceDate)) {
-      return HeliumDateTime.formatDateForTodos(occurrenceDate);
-    }
-    return occurrence.allDay
-        ? HeliumDateTime.formatDateForTodos(localStart)
-        : HeliumDateTime.formatDateAndTimeForTodos(localStart);
+  }
+
+  Widget _buildCalendarItemWidget({
+    required PlannerItemBaseModel plannerItem,
+    required double width,
+    double? height,
+    required bool isInAgenda,
+    bool? completedOverride,
+    DateTime? occurrenceDate,
+  }) {
+    return PlannerItemCalendarTile(
+      plannerItem: plannerItem,
+      width: width,
+      height: height,
+      isInAgenda: isInAgenda,
+      completedOverride: completedOverride,
+      occurrenceDate: occurrenceDate,
+      plannerItemDataSource: _plannerItemDataSource,
+      currentView: _currentView,
+      timeZone: userSettings.timeZone,
+      courses: _courses,
+      onOpenPlannerItem: _openPlannerItem,
+      onToggleCompleted: _onToggleCompleted,
+    );
   }
 
   PlannerItemBaseModel _occurrenceOf(PlannerItemBaseModel item, DateTime date) {
-    return _plannerItemDataSource
-            ?.getItemsForDay(date)
-            .firstWhereOrNull(
-              (candidate) => candidate == item,
-            ) ??
-        item;
+    return _plannerItemDataSource?.occurrenceOn(item, date) ?? item;
   }
 
   bool _isLockedCalendarInteractionItem(PlannerItemBaseModel item) {
@@ -2776,270 +2291,16 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
     required Widget child,
     bool isInAgendaStyle = false,
   }) {
-    if (_isCalendarInteractionInProgress ||
-        !PlatformBehavior.showsHoverTooltips ||
-        !userSettings.showPlannerTooltips) {
-      return child;
-    }
-
-    if (isInAgendaStyle &&
-        plannerItem is! HomeworkModel &&
-        plannerItem is! EventModel) {
-      return child;
-    }
-
-    final tooltipMessage = _buildPlannerItemTooltipMessage(plannerItem);
-    if (tooltipMessage == null) {
-      return child;
-    }
-
-    return Tooltip(
-      richMessage: tooltipMessage,
-      waitDuration: _tooltipWaitDuration,
-      showDuration: _tooltipShowDuration,
-      preferBelow: false,
-      decoration: BoxDecoration(
-        color: context.colorScheme.surface,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: context.colorScheme.outlineVariant),
-      ),
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-      child: child,
-    );
-  }
-
-  InlineSpan? _buildPlannerItemTooltipMessage(
-    PlannerItemBaseModel plannerItem,
-  ) {
-    final titleStyle = AppStyles.formText(context).copyWith(
-      color: context.colorScheme.onSurface,
-      fontWeight: FontWeight.w600,
-    );
-    final bodyStyle = AppStyles.formText(
-      context,
-    ).copyWith(color: context.colorScheme.onSurface);
-    final mutedIconColor = context.colorScheme.onSurface.withValues(
-      alpha: 0.75,
-    );
-    final whenIcon = _isRecurringPlannerItem(plannerItem)
-        ? Icons.repeat
-        : Icons.access_time;
-    final rows = <_PlannerTooltipRow>[];
-    final isOnline =
-        _plannerItemDataSource?.isOnlineForItem(plannerItem) ?? false;
-    final location = _plannerItemDataSource?.getLocationForItem(plannerItem);
-
-    if (isOnline) {
-      rows.add(
-        const _PlannerTooltipRow.text(icon: Icons.language, text: 'Online'),
-      );
-    } else if (location != null && location.isNotEmpty) {
-      rows.add(
-        _PlannerTooltipRow.text(icon: Icons.pin_drop_outlined, text: location),
-      );
-    }
-
-    if (plannerItem is HomeworkModel) {
-      final course = _courses.firstWhereOrNull(
-        (c) => c.id == plannerItem.course.id,
-      );
-      final categoryTitle =
-          plannerItem.category.entity?.title ??
-          _categoriesMap[plannerItem.category.id]?.title;
-
-      if (course != null) {
-        rows.add(
-          _PlannerTooltipRow.text(
-            icon: Icons.school_outlined,
-            text: course.title,
-            color: course.color,
-          ),
-        );
-      }
-      if (categoryTitle != null && categoryTitle.isNotEmpty) {
-        rows.add(
-          _PlannerTooltipRow.text(
-            icon: Icons.category_outlined,
-            text: categoryTitle,
-            color: _categoriesMap[plannerItem.category.id]?.color,
-          ),
-        );
-      }
-      if (_plannerItemDataSource!.isHomeworkCompleted(plannerItem) &&
-          GradeHelper.parseGrade(plannerItem.currentGrade) != null) {
-        rows.add(
-          _PlannerTooltipRow.text(
-            icon: Icons.assignment_turned_in_outlined,
-            text: GradeHelper.gradeForDisplay(plannerItem.currentGrade),
-            color: context.colorScheme.primary,
-          ),
-        );
-      }
-    } else if (plannerItem is EventModel) {
-      rows.add(
-        _PlannerTooltipRow.text(
-          icon: Icons.source_outlined,
-          text: 'Source: Events',
-          color: userSettings.eventsColor,
-        ),
-      );
-    } else if (plannerItem is ExternalCalendarEventModel) {
-      final calendarId = int.tryParse(plannerItem.ownerId);
-      final externalCalendar = calendarId != null
-          ? _externalCalendarsById[calendarId]
-          : null;
-      rows.add(
-        _PlannerTooltipRow.text(
-          icon: Icons.source_outlined,
-          text: 'Source: ${externalCalendar?.title ?? 'External Calendar'}',
-          color: externalCalendar?.color ?? plannerItem.color,
-        ),
-      );
-    }
-
-    if (PlannerItemMetaRow.hasAny(
-      plannerItem,
-      pulledThroughAttachmentCount: _pulledThroughAttachmentCount(plannerItem),
-      resourceCount: _visibleResources(plannerItem).length,
-      includeRecurrence: false,
-    )) {
-      rows.add(
-        _PlannerTooltipRow.widget(
-          widget: Container(
-            width: 50,
-            height: 1,
-            color: context.colorScheme.outlineVariant.withValues(alpha: 0.7),
-          ),
-        ),
-      );
-      rows.add(
-        _PlannerTooltipRow.widget(
-          widget: _buildTooltipMetaCountsRow(plannerItem),
-        ),
-      );
-    }
-
-    final typeIcon = plannerItem is HomeworkModel
-        ? AppConstants.assignmentIcon
-        : plannerItem is EventModel
-        ? AppConstants.eventIcon
-        : plannerItem is CourseScheduleEventModel
-        ? AppConstants.courseScheduleIcon
-        : AppConstants.externalCalendarIcon;
-    final typeIconColor = plannerItem is CourseScheduleEventModel
-        ? plannerItem.color
-        : mutedIconColor;
-
-    final children = <InlineSpan>[
-      WidgetSpan(
-        alignment: PlaceholderAlignment.middle,
-        child: Icon(typeIcon, size: 14, color: typeIconColor),
-      ),
-      const TextSpan(text: ' '),
-      TextSpan(text: plannerItem.title, style: titleStyle),
-      const TextSpan(text: '\n'),
-      WidgetSpan(
-        alignment: PlaceholderAlignment.middle,
-        child: Container(
-          width: 50,
-          height: 1,
-          color: context.colorScheme.outlineVariant.withValues(alpha: 0.7),
-        ),
-      ),
-      const TextSpan(text: '\n'),
-      WidgetSpan(
-        alignment: PlaceholderAlignment.middle,
-        child: Icon(whenIcon, size: 14, color: mutedIconColor),
-      ),
-      TextSpan(
-        text: ' ${_buildTooltipWhenLine(plannerItem)}',
-        style: bodyStyle,
-      ),
-    ];
-
-    children.addAll(_buildTooltipRowSpans(rows, bodyStyle, mutedIconColor));
-
-    return TextSpan(children: children);
-  }
-
-  List<InlineSpan> _buildTooltipRowSpans(
-    List<_PlannerTooltipRow> rows,
-    TextStyle bodyStyle,
-    Color mutedIconColor,
-  ) {
-    if (rows.isEmpty) return [];
-
-    final spans = <InlineSpan>[const TextSpan(text: '\n')];
-    for (int i = 0; i < rows.length; i++) {
-      final row = rows[i];
-      if (row.widget != null) {
-        spans.add(
-          WidgetSpan(
-            alignment: PlaceholderAlignment.middle,
-            child: row.widget!,
-          ),
-        );
-      } else {
-        spans.add(
-          WidgetSpan(
-            alignment: PlaceholderAlignment.middle,
-            child: Icon(
-              row.icon!,
-              size: 14,
-              color: row.color ?? mutedIconColor,
-            ),
-          ),
-        );
-        spans.add(TextSpan(text: ' ${row.text}', style: bodyStyle));
-      }
-      if (i != rows.length - 1) {
-        spans.add(const TextSpan(text: '\n'));
-      }
-    }
-    return spans;
-  }
-
-  String _buildTooltipWhenLine(PlannerItemBaseModel plannerItem) {
-    final localStart = HeliumDateTime.toLocal(
-      plannerItem.start,
-      userSettings.timeZone,
-    );
-    final localEnd = HeliumDateTime.toLocal(
-      plannerItem.end,
-      userSettings.timeZone,
-    );
-    final formattedDate = HeliumDateTime.formatDate(localStart);
-
-    if (plannerItem.allDay) {
-      return formattedDate;
-    }
-
-    return '$formattedDate • ${HeliumDateTime.formatTimeRange(localStart, localEnd, plannerItem.showEndTime)}';
-  }
-
-  int _pulledThroughAttachmentCount(PlannerItemBaseModel plannerItem) {
-    if (plannerItem is! HomeworkModel) return 0;
-    return _plannerItemDataSource?.pulledThroughAttachmentCount(plannerItem) ??
-        0;
-  }
-
-  List<ResourceModel> _visibleResources(PlannerItemBaseModel plannerItem) {
-    if (plannerItem is! HomeworkModel) return const [];
-    return _plannerItemDataSource?.visibleResourcesFor(plannerItem) ??
-        const [];
-  }
-
-  Widget _buildTooltipMetaCountsRow(PlannerItemBaseModel plannerItem) {
-    return PlannerItemMetaRow(
+    return PlannerItemTooltip(
       plannerItem: plannerItem,
+      isInAgendaStyle: isInAgendaStyle,
+      isSuppressed: _isCalendarInteractionInProgress,
       userSettings: userSettings,
-      pulledThroughAttachmentCount: _pulledThroughAttachmentCount(plannerItem),
-      resources: _visibleResources(plannerItem),
-      countTextStyle: AppStyles.formText(
-        context,
-      ).copyWith(color: context.colorScheme.onSurface),
-      maxEntries: null,
-      showRecurrence: false,
+      plannerItemDataSource: _plannerItemDataSource,
+      courses: _courses,
+      categoriesMap: _categoriesMap,
+      externalCalendarsById: _externalCalendarsById,
+      child: child,
     );
   }
 
@@ -3067,631 +2328,6 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
         s,
       );
     }
-  }
-
-  Widget? _buildItemIcon({
-    required PlannerItemBaseModel plannerItem,
-    required double appointmentWidth,
-    bool? completedOverride,
-    required Color backgroundColor,
-    bool isInAgenda = false,
-    bool checkboxHandlesTaps = true,
-    DateTime? occurrenceDate,
-  }) {
-    if (PlannerHelper.shouldShowCheckbox(plannerItem, appointmentWidth)) {
-      return _buildCheckboxWidget(
-        homework: plannerItem as HomeworkModel,
-        completedOverride: completedOverride,
-        occurrenceDate: occurrenceDate,
-        backgroundColor: backgroundColor,
-        handlesTaps: checkboxHandlesTaps,
-      );
-    } else if (PlannerHelper.shouldShowSchoolIcon(
-      context,
-      plannerItem,
-      _currentView,
-    )) {
-      return _buildPrefixIconWidget(
-        AppConstants.courseScheduleIcon,
-        backgroundColor: backgroundColor,
-      );
-    } else if (isInAgenda && plannerItem is ExternalCalendarEventModel) {
-      return _buildPrefixIconWidget(
-        AppConstants.externalCalendarIcon,
-        backgroundColor: backgroundColor,
-      );
-    } else if (isInAgenda && plannerItem is EventModel) {
-      return _buildPrefixIconWidget(
-        AppConstants.eventIcon,
-        backgroundColor: backgroundColor,
-      );
-    }
-    return null;
-  }
-
-  Widget _buildCalendarItemCenterForAgenda({
-    required PlannerItemBaseModel plannerItem,
-    bool isOnline = false,
-    String? location,
-    bool? completedOverride,
-    required Color backgroundColor,
-    bool wrapInExpanded = true,
-  }) {
-    final contentColumn = Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _buildCalendarItemTitle(
-          plannerItem,
-          isInAgenda: true,
-          completedOverride: completedOverride,
-          backgroundColor: backgroundColor,
-        ),
-        if (PlannerHelper.shouldShowTimeBelowTitle(
-          context,
-          plannerItem,
-          true,
-          _currentView,
-        ))
-          _buildCalendarItemTimeBelowTitleRow(
-            plannerItem,
-            isInAgenda: true,
-            backgroundColor: backgroundColor,
-          ),
-        if (PlannerHelper.shouldShowLocationBelowTitle(
-          context,
-          plannerItem,
-          true,
-          _currentView,
-        ))
-          if (isOnline)
-            _buildCalendarItemOnlineRow(
-              isInAgenda: true,
-              backgroundColor: backgroundColor,
-            )
-          else if (location != null && location.isNotEmpty)
-            _buildCalendarItemLocationRow(
-              location,
-              isInAgenda: true,
-              backgroundColor: backgroundColor,
-            ),
-      ],
-    );
-
-    final paddedContent = Padding(
-      padding: _recurringContentPadding(plannerItem),
-      child: contentColumn,
-    );
-
-    if (wrapInExpanded) {
-      return Expanded(child: paddedContent);
-    }
-    return paddedContent;
-  }
-
-  Widget _buildCalendarItemCenterForTimeline({
-    required PlannerItemBaseModel plannerItem,
-    bool isOnline = false,
-    String? location,
-    Widget? inlineIcon,
-    bool? completedOverride,
-    required Color backgroundColor,
-  }) {
-    final showTimeBeforeTitle = PlannerHelper.shouldShowTimeBeforeTitle(
-      context,
-      plannerItem,
-      false,
-      _currentView,
-    );
-
-    final foregroundColor = backgroundColor.contrasting;
-
-    Widget titleRowWidget;
-    if (inlineIcon != null || showTimeBeforeTitle) {
-      // Build the title row inside a ListenableBuilder so the strikethrough
-      // reacts to the same changeNotifier signal as the checkbox. Otherwise
-      // the strikethrough is frozen at appointmentBuilder call time and lags
-      // the checkbox on rapid toggles.
-      Widget buildTitleRich(bool isCompleted) {
-        final spans = <InlineSpan>[];
-
-        if (inlineIcon != null) {
-          spans.add(
-            WidgetSpan(
-              alignment: PlaceholderAlignment.middle,
-              child: Padding(
-                padding: EdgeInsets.only(
-                  top: _currentView == PlannerView.month ? 0 : 1,
-                  right: 4,
-                ),
-                child: inlineIcon,
-              ),
-            ),
-          );
-        }
-
-        if (showTimeBeforeTitle) {
-          spans.add(
-            _buildCalendarItemTimeSpan(
-              plannerItem,
-              backgroundColor: backgroundColor,
-            ),
-          );
-          spans.add(const TextSpan(text: ' ', semanticsLabel: ''));
-        }
-
-        // Labelled on the span, not the Text, so the inline checkbox keeps its
-        // own accessibility node.
-        spans.add(
-          TextSpan(
-            text: plannerItem.title.characters.join('\u200B'),
-            semanticsLabel: plannerItem.title,
-            style: AppStyles.calendarItemText(context).copyWith(
-              color: foregroundColor,
-              decoration: isCompleted
-                  ? TextDecoration.lineThrough
-                  : TextDecoration.none,
-              decorationColor: foregroundColor,
-            ),
-          ),
-        );
-
-        return Text.rich(
-          TextSpan(children: spans),
-          style: AppStyles.calendarItemText(
-            context,
-          ).copyWith(color: foregroundColor),
-          maxLines: _currentView == PlannerView.month || plannerItem.allDay
-              ? 1
-              : null,
-          overflow: _currentView == PlannerView.month || plannerItem.allDay
-              ? TextOverflow.ellipsis
-              : null,
-        );
-      }
-
-      if (plannerItem is HomeworkModel && _plannerItemDataSource != null) {
-        final dataSource = _plannerItemDataSource!;
-        titleRowWidget = ListenableBuilder(
-          listenable: dataSource.changeNotifier,
-          builder: (context, _) =>
-              buildTitleRich(dataSource.isHomeworkCompleted(plannerItem)),
-        );
-      } else {
-        final isCompleted =
-            completedOverride ??
-            (plannerItem is HomeworkModel && plannerItem.completed);
-        titleRowWidget = buildTitleRich(isCompleted);
-      }
-    } else {
-      titleRowWidget = _buildCalendarItemTitle(
-        plannerItem,
-        isInAgenda: false,
-        completedOverride: completedOverride,
-        backgroundColor: backgroundColor,
-      );
-    }
-
-    final contentColumn = Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        titleRowWidget,
-        if (PlannerHelper.shouldShowTimeBelowTitle(
-          context,
-          plannerItem,
-          false,
-          _currentView,
-        ))
-          _buildCalendarItemTimeBelowTitleRow(
-            plannerItem,
-            isInAgenda: false,
-            backgroundColor: backgroundColor,
-          ),
-        if (PlannerHelper.shouldShowLocationBelowTitle(
-          context,
-          plannerItem,
-          false,
-          _currentView,
-        ))
-          if (isOnline)
-            _buildCalendarItemOnlineRow(
-              isInAgenda: false,
-              backgroundColor: backgroundColor,
-            )
-          else if (location != null && location.isNotEmpty)
-            _buildCalendarItemLocationRow(
-              location,
-              isInAgenda: false,
-              backgroundColor: backgroundColor,
-            ),
-      ],
-    );
-
-    return Align(
-      alignment: Alignment.topLeft,
-      child: Padding(
-        padding: _recurringContentPadding(plannerItem),
-        child: contentColumn,
-      ),
-    );
-  }
-
-  Widget _buildCalendarItemRight({
-    required PlannerItemBaseModel plannerItem,
-    CourseModel? course,
-    required Color backgroundColor,
-    DateTime? occurrenceDate,
-  }) {
-    final foregroundColor = backgroundColor.contrasting;
-    final buttons = <Widget>[];
-
-    if (course?.teacherEmail.isNotEmpty ?? false) {
-      buttons.add(
-        HeliumIconButton(
-          onPressed: () {
-            UrlHelpers.launchMailUrl(course!.teacherEmail);
-          },
-          icon: Icons.email_outlined,
-          tooltip: 'Email teacher',
-          color: foregroundColor,
-        ),
-      );
-    }
-
-    if (course?.website != null) {
-      buttons.add(
-        HeliumIconButton(
-          onPressed: () {
-            UrlHelpers.launchWebUrl(course!.website.toString());
-          },
-          icon: Icons.launch_outlined,
-          tooltip: 'Launch class website',
-          color: foregroundColor,
-        ),
-      );
-    }
-
-    if (plannerItem is CourseScheduleEventModel &&
-        PlatformBehavior.showItemActions(context)) {
-      buttons.add(
-        HeliumIconButton(
-          onPressed: () => _openPlannerItem(
-            plannerItem,
-            occurrenceDate: occurrenceDate,
-            hideWebsiteLink: true,
-          ),
-          icon: Icons.more_vert,
-          semanticLabel: 'More',
-          color: foregroundColor,
-        ),
-      );
-    }
-
-    if (PlannerHelper.shouldShowEditButtonForPlannerItem(
-      context,
-      plannerItem,
-    )) {
-      buttons.add(
-        HeliumIconButton(
-          onPressed: () => _openPlannerItem(plannerItem),
-          icon: Icons.edit_outlined,
-          semanticLabel: 'Edit',
-          color: foregroundColor,
-        ),
-      );
-    }
-
-    if (buttons.isEmpty) {
-      return const SizedBox.shrink();
-    }
-
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      mainAxisAlignment: MainAxisAlignment.end,
-      children: [
-        for (int i = 0; i < buttons.length; i++) ...[
-          buttons[i],
-          if (i < buttons.length - 1) const SizedBox(width: 8),
-        ],
-      ],
-    );
-  }
-
-  Widget _buildCalendarItemWidget({
-    required PlannerItemBaseModel plannerItem,
-    required double width,
-    double? height,
-    required bool isInAgenda,
-    bool? completedOverride,
-    DateTime? occurrenceDate,
-  }) {
-    if (isInAgenda) {
-      return _buildCalendarItemWidgetForAgenda(
-        plannerItem: plannerItem,
-        width: width,
-        completedOverride: completedOverride,
-        occurrenceDate: occurrenceDate,
-      );
-    } else {
-      return _buildCalendarItemWidgetForTimeline(
-        plannerItem: plannerItem,
-        width: width,
-        height: height,
-        completedOverride: completedOverride,
-        occurrenceDate: occurrenceDate,
-      );
-    }
-  }
-
-  Widget _buildAgendaLeftContent(Widget icon) {
-    return Padding(
-      padding: const EdgeInsets.only(left: 8),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [Center(child: icon), const SizedBox(width: 8)],
-      ),
-    );
-  }
-
-  Widget _buildAgendaLeftTapZone({
-    required Widget icon,
-    required double height,
-    required VoidCallback onTap,
-    bool excludeFromSemantics = false,
-  }) {
-    return MergeSemantics(
-      child: MouseRegion(
-        cursor: SystemMouseCursors.click,
-        child: GestureDetector(
-          behavior: HitTestBehavior.opaque,
-          excludeFromSemantics: excludeFromSemantics,
-          onTap: onTap,
-          child: SizedBox(height: height, child: _buildAgendaLeftContent(icon)),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildCalendarItemWidgetForAgenda({
-    required PlannerItemBaseModel plannerItem,
-    required double width,
-    bool? completedOverride,
-    DateTime? occurrenceDate,
-  }) {
-    final color = _plannerItemDataSource!.getColorForItem(plannerItem);
-    final isOnline = _plannerItemDataSource!.isOnlineForItem(plannerItem);
-    final location = _plannerItemDataSource!.getLocationForItem(plannerItem);
-    final course = _getCourseForPlannerItem(plannerItem);
-
-    final leftIcon = _buildItemIcon(
-      plannerItem: plannerItem,
-      appointmentWidth: width,
-      completedOverride: completedOverride,
-      backgroundColor: color,
-      isInAgenda: true,
-      occurrenceDate: occurrenceDate,
-    );
-
-    final centerWidget = _buildCalendarItemCenterForAgenda(
-      plannerItem: plannerItem,
-      isOnline: isOnline,
-      location: location,
-      completedOverride: completedOverride,
-      backgroundColor: color,
-    );
-
-    final rightWidget = PrintHidden(
-      child: _buildCalendarItemRight(
-        plannerItem: plannerItem,
-        course: course,
-        backgroundColor: color,
-        occurrenceDate: occurrenceDate,
-      ),
-    );
-
-    final agendaHeight = Responsive.isMobile(context)
-        ? _agendaHeightMobile
-        : _agendaHeightDesktop;
-
-    final isCheckbox =
-        plannerItem is HomeworkModel &&
-        PlannerHelper.shouldShowCheckbox(plannerItem, width);
-    final useTouchTargets = PlatformBehavior.usesTouchTargets;
-
-    final Widget leftColumn;
-    if (leftIcon == null) {
-      leftColumn = const SizedBox(width: 8);
-    } else if (useTouchTargets && isCheckbox) {
-      // IgnorePointer so only the column GestureDetector handles taps,
-      // preventing double-toggle from both handlers firing
-      leftColumn = _buildAgendaLeftTapZone(
-        icon: IgnorePointer(child: leftIcon),
-        height: agendaHeight,
-        onTap: () {
-          // Fetch current value at tap time, not build time, to avoid
-          // stale closures on rapid taps
-          final currentValue = _plannerItemDataSource!.isHomeworkCompleted(
-            plannerItem,
-          );
-          _onToggleCompleted(plannerItem, !currentValue, occurrenceDate: occurrenceDate);
-        },
-      );
-    } else if (PlannerHelper.shouldOpenOnItemTap(context)) {
-      leftColumn = _buildAgendaLeftTapZone(
-        icon: leftIcon,
-        height: agendaHeight,
-        excludeFromSemantics: true,
-        onTap: () {
-          Feedback.forTap(context);
-          _openPlannerItem(plannerItem, occurrenceDate: occurrenceDate);
-        },
-      );
-    } else {
-      leftColumn = _buildAgendaLeftContent(leftIcon);
-    }
-
-    Widget centerColumn;
-    if (PlannerHelper.shouldOpenOnItemTap(context)) {
-      final centerContent = _buildCalendarItemCenterForAgenda(
-        plannerItem: plannerItem,
-        isOnline: isOnline,
-        location: location,
-        completedOverride: completedOverride,
-        backgroundColor: color,
-        wrapInExpanded: false,
-      );
-      centerColumn = Expanded(
-        child: GestureDetector(
-          behavior: HitTestBehavior.opaque,
-          onTap: () {
-            Feedback.forTap(context);
-            _openPlannerItem(plannerItem, occurrenceDate: occurrenceDate);
-          },
-          child: SizedBox(
-            height: agendaHeight,
-            child: Align(alignment: Alignment.centerLeft, child: centerContent),
-          ),
-        ),
-      );
-    } else {
-      centerColumn = centerWidget;
-    }
-
-    return Container(
-      width: width,
-      constraints: BoxConstraints(minHeight: agendaHeight),
-      decoration: BoxDecoration(
-        color: color,
-        borderRadius: BorderRadius.circular(4),
-      ),
-      clipBehavior: Clip.hardEdge,
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          leftColumn,
-          centerColumn,
-          const SizedBox(width: 8),
-          Padding(padding: const EdgeInsets.only(right: 8), child: rightWidget),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildCalendarItemWidgetForTimeline({
-    required PlannerItemBaseModel plannerItem,
-    required double width,
-    double? height,
-    bool? completedOverride,
-    DateTime? occurrenceDate,
-  }) {
-    final color = _plannerItemDataSource!.getColorForItem(plannerItem);
-    final isOnline = _plannerItemDataSource!.isOnlineForItem(plannerItem);
-    final location = _plannerItemDataSource!.getLocationForItem(plannerItem);
-
-    // On touch the item's own detector owns checkbox taps, so the recognizer
-    // survives the SfCalendar rebuild that a toggle triggers.
-    final usesCheckboxZone =
-        PlatformBehavior.usesTouchTargets &&
-        PlannerHelper.shouldShowCheckbox(plannerItem, width);
-
-    final inlineIcon = _buildItemIcon(
-      plannerItem: plannerItem,
-      appointmentWidth: width,
-      completedOverride: completedOverride,
-      backgroundColor: color,
-      checkboxHandlesTaps: !usesCheckboxZone,
-      occurrenceDate: occurrenceDate,
-    );
-
-    final centerWidget = _buildCalendarItemCenterForTimeline(
-      plannerItem: plannerItem,
-      isOnline: isOnline,
-      location: location,
-      inlineIcon: inlineIcon,
-      completedOverride: completedOverride,
-      backgroundColor: color,
-    );
-
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onTapDown: usesCheckboxZone ? (_) => _timelineTapPosition = null : null,
-      onTapUp: usesCheckboxZone
-          ? (details) => _timelineTapPosition = details.localPosition
-          : null,
-      onTapCancel: usesCheckboxZone ? () => _timelineTapPosition = null : null,
-      onTap: () => _onTimelineItemTap(
-        plannerItem: plannerItem,
-        occurrenceDate: occurrenceDate,
-        usesCheckboxZone: usesCheckboxZone,
-      ),
-      child: Container(
-        width: width,
-        height: height,
-        decoration: BoxDecoration(
-          color: color,
-          borderRadius: BorderRadius.circular(4),
-        ),
-        clipBehavior: Clip.hardEdge,
-        child: _buildRecurringIndicatorOverlay(
-          plannerItem: plannerItem,
-          backgroundColor: color,
-          child: UnconstrainedBox(
-            constrainedAxis: Axis.horizontal,
-            alignment: PlannerHelper.getAlignmentForView(
-              context,
-              false,
-              _currentView,
-            ),
-            clipBehavior: Clip.hardEdge,
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 4),
-              child: centerWidget,
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  // A semantics tap carries no position and opens the item.
-  bool _isCheckboxZoneTap(Offset? position) {
-    if (position == null) {
-      return false;
-    }
-
-    const zone = PlannerHelper.checkboxWidth * 1.5;
-    return position.dx < zone && position.dy < zone;
-  }
-
-  void _onTimelineItemTap({
-    required PlannerItemBaseModel plannerItem,
-    required DateTime? occurrenceDate,
-    required bool usesCheckboxZone,
-  }) {
-    final position = _timelineTapPosition;
-    _timelineTapPosition = null;
-
-    if (usesCheckboxZone && _isCheckboxZoneTap(position)) {
-      final homework = plannerItem as HomeworkModel;
-      final currentValue = _plannerItemDataSource!.isHomeworkCompleted(
-        homework,
-      );
-      _onToggleCompleted(homework, !currentValue, occurrenceDate: occurrenceDate);
-      return;
-    }
-
-    Feedback.forTap(context);
-    _openPlannerItem(plannerItem, occurrenceDate: occurrenceDate);
-  }
-
-  CourseModel? _getCourseForPlannerItem(PlannerItemBaseModel plannerItem) {
-    if (plannerItem is HomeworkModel) {
-      return _courses.firstWhereOrNull((c) => c.id == plannerItem.course.id);
-    } else if (plannerItem is CourseScheduleEventModel) {
-      return _courses.firstWhereOrNull(
-        (c) => c.id.toString() == plannerItem.ownerId,
-      );
-    }
-    return null;
   }
 
   void _showCourseScheduleEventDialog(
@@ -3725,7 +2361,13 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
             ),
           );
         },
-        onSkipMeeting: _courseMeetingCountOnDate(course, occurrenceDate) > 1
+        onSkipMeeting:
+            (_plannerItemDataSource?.courseMeetingCountOn(
+                      course,
+                      occurrenceDate,
+                    ) ??
+                    0) >
+                1
             ? (date) async {
                 context.read<PlannerBloc>().add(
                   SkipCourseScheduleOccurrenceEvent(
@@ -3775,16 +2417,6 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
     );
   }
 
-  /// Meetings [course] has on [date]. Reuses the data source's recurrence
-  /// expansion, which already excludes existing exceptions.
-  int _courseMeetingCountOnDate(CourseModel course, DateTime date) {
-    final items = _plannerItemDataSource?.getItemsForDay(date) ?? const [];
-    return items
-        .whereType<CourseScheduleEventModel>()
-        .where((event) => event.ownerId == '${course.id}')
-        .length;
-  }
-
   /// Shows a warning if homework dates fall outside the course's date range
   void _warnIfHomeworkOutsideDateRange(
     HomeworkModel homework,
@@ -3798,41 +2430,6 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
     )) {
       showSnackBar(context, 'Assignment moved. $outsideTodosWindowNote');
     }
-  }
-
-  Widget _buildMoreIndicator(
-    BuildContext context,
-    CalendarAppointmentDetails details,
-  ) {
-    return GestureDetector(
-      onTap: () {
-        Feedback.forTap(context);
-        _openDayPopOutDialog(details.date);
-      },
-      child: UnconstrainedBox(
-        alignment: Alignment.topLeft,
-        constrainedAxis: Axis.horizontal,
-        clipBehavior: Clip.hardEdge,
-        child: Container(
-          width: details.bounds.width,
-          height: _monthCalendarItemHeight,
-          alignment: Alignment.center,
-          decoration: BoxDecoration(
-            color: context.colorScheme.primaryContainer,
-            borderRadius: BorderRadius.circular(4),
-          ),
-          child: Text(
-            '+${details.appointments.length - (_calendarItemsDisplayCount - 1)} more',
-            style: AppStyles.calendarItemTextLight(context).copyWith(
-              color: context.colorScheme.onPrimaryContainer.withValues(
-                alpha: 0.9,
-              ),
-            ),
-            overflow: TextOverflow.ellipsis,
-          ),
-        ),
-      ),
-    );
   }
 
   void _openDayPopOutDialog(DateTime? date) {
@@ -3856,7 +2453,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
             isInAgendaStyle: true,
             child: ConstrainedBox(
               constraints: const BoxConstraints(
-                maxHeight: _agendaHeightDesktop,
+                maxHeight: PlannerItemCalendarTile.agendaHeightDesktop,
               ),
               child: _buildCalendarItemWidget(
                 plannerItem: plannerItem,
@@ -3898,7 +2495,11 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
 
       _deduplicatedCategories
         ..clear()
-        ..addAll(_deduplicateCategoriesByTitle(state.categories));
+        ..addAll(
+          PlannerFilterMenuContent.deduplicateCategoriesByTitle(
+            state.categories,
+          ),
+        );
 
       isLoading = false;
     });
@@ -3921,7 +2522,8 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
     if (_currentView == PlannerView.todos) {
       _todosDataGridKey.currentState?.goToToday();
     } else {
-      // Device clock, for the same reason as the today highlight above.
+      // Device clock, for the same reason as the today highlight in
+      // PlannerMobileMonthCell.
       _jumpToDate(DateTime.now(), offsetForVisibility: true);
     }
   }
@@ -4139,501 +2741,20 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
 
     final isMobile = Responsive.isMobile(context);
 
-    Widget buildContent(BuildContext context, StateSetter setSheetState) {
-      final statuses = _plannerItemDataSource!.filterStatuses;
-      final isCompleteFilterEnabled =
-          statuses.contains(PlannerFilterStatus.complete.value) ||
-          statuses.contains(PlannerFilterStatus.incomplete.value);
-      final showCompletedOnly = statuses.contains(
-        PlannerFilterStatus.complete.value,
-      );
-      final isGradedFilterEnabled =
-          statuses.contains(PlannerFilterStatus.graded.value) ||
-          statuses.contains(PlannerFilterStatus.ungraded.value);
-      final showGradedOnly = statuses.contains(
-        PlannerFilterStatus.graded.value,
-      );
-
-      void setCompleteFilterMode({
-        required bool enabled,
-        required bool completeOnly,
-      }) {
-        final currentStatuses = Set<String>.from(
-          _plannerItemDataSource!.filterStatuses,
-        );
-        currentStatuses.remove(PlannerFilterStatus.complete.value);
-        currentStatuses.remove(PlannerFilterStatus.incomplete.value);
-        if (enabled) {
-          currentStatuses.add(
-            completeOnly
-                ? PlannerFilterStatus.complete.value
-                : PlannerFilterStatus.incomplete.value,
-          );
-        }
-        _plannerItemDataSource!.setFilterStatuses(currentStatuses);
-        setSheetState(() {});
-      }
-
-      void setGradedFilterMode({
-        required bool enabled,
-        required bool gradedOnly,
-      }) {
-        final currentStatuses = Set<String>.from(
-          _plannerItemDataSource!.filterStatuses,
-        );
-        currentStatuses.remove(PlannerFilterStatus.graded.value);
-        currentStatuses.remove(PlannerFilterStatus.ungraded.value);
-        if (enabled) {
-          currentStatuses.add(
-            gradedOnly
-                ? PlannerFilterStatus.graded.value
-                : PlannerFilterStatus.ungraded.value,
-          );
-        }
-        _plannerItemDataSource!.setFilterStatuses(currentStatuses);
-        setSheetState(() {});
-      }
-
-      Widget buildStatusTile(String label) {
-        final isChecked = _plannerItemDataSource!.filterStatuses.contains(
-          label,
-        );
-        return HeliumCheckboxListTile(
-          title: Text(label, style: AppStyles.formText(context)),
-          value: isChecked,
-          onChanged: (value) {
-            final currentStatuses = Set<String>.from(
-              _plannerItemDataSource!.filterStatuses,
-            );
-            if (value == true) {
-              currentStatuses.add(label);
-            } else {
-              currentStatuses.remove(label);
-            }
-            _plannerItemDataSource!.setFilterStatuses(currentStatuses);
-            setSheetState(() {});
-          },
-          controlAffinity: ListTileControlAffinity.leading,
-          dense: true,
-          contentPadding: EdgeInsets.zero,
-        );
-      }
-
-      final visibleCategories = _getVisibleCategories();
-      final visibleExternalCalendars = _getVisibleExternalCalendars();
-      final selectedExternalCalendarIds =
-          _plannerItemDataSource!.selectedExternalCalendarIds;
-
-      return ConstrainedBox(
-        constraints: isMobile
-            ? BoxConstraints.tightFor(
-                height:
-                    MediaQuery.of(context).size.height *
-                    AppConstants.bottomSheetMaxHeightFactor,
-              )
-            : BoxConstraints(
-                maxHeight: MediaQuery.of(context).size.height * 0.75,
-              ),
-        child: SingleChildScrollView(
-          padding: Responsive.sheetContentPadding(context),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Row(
-                children: [
-                  const Expanded(child: HeliumMenuTitle(title: 'Filters')),
-                  TextButton(
-                    onPressed: () {
-                      _plannerItemDataSource!.clearFilters();
-                      setSheetState(() {});
-                    },
-                    child: const Text('Clear All'),
-                  ),
-                ],
-              ),
-
-              if (_currentView != PlannerView.todos) ...[
-                const HeliumMenuSectionHeader(title: 'TYPES'),
-                HeliumCheckboxListTile(
-                  title: Row(
-                    children: [
-                      _currentView == PlannerView.month &&
-                              Responsive.isMobile(context)
-                          ? const Icon(
-                              AppConstants.assignmentIcon,
-                              size: 18,
-                              color: PlannerTypeColors.homework,
-                            )
-                          : PlannerTypeColors.rainbowIcon(
-                              AppConstants.assignmentIcon,
-                            ),
-                      const SizedBox(width: 8),
-                      Text(
-                        PlannerFilterType.assignments.value,
-                        style: AppStyles.formText(context),
-                      ),
-                    ],
-                  ),
-                  value: _plannerItemDataSource!.filterTypes.contains(
-                    PlannerFilterType.assignments.value,
-                  ),
-                  onChanged: (value) {
-                    final currentTypes = List<String>.from(
-                      _plannerItemDataSource!.filterTypes,
-                    );
-                    if (value == true) {
-                      if (!currentTypes.contains(
-                        PlannerFilterType.assignments.value,
-                      )) {
-                        currentTypes.add(PlannerFilterType.assignments.value);
-                      }
-                    } else {
-                      currentTypes.remove(PlannerFilterType.assignments.value);
-                    }
-                    _plannerItemDataSource!.setFilterTypes(currentTypes);
-                    setSheetState(() {});
-                  },
-                  controlAffinity: ListTileControlAffinity.leading,
-                  dense: true,
-                  contentPadding: EdgeInsets.zero,
-                ),
-                HeliumCheckboxListTile(
-                  title: Row(
-                    children: [
-                      _currentView == PlannerView.month &&
-                              Responsive.isMobile(context)
-                          ? const Icon(
-                              AppConstants.courseScheduleIcon,
-                              size: 18,
-                              color: PlannerTypeColors.classSchedules,
-                            )
-                          : PlannerTypeColors.rainbowIcon(
-                              AppConstants.courseScheduleIcon,
-                            ),
-                      const SizedBox(width: 8),
-                      Text(
-                        PlannerFilterType.classSchedules.value,
-                        style: AppStyles.formText(context),
-                      ),
-                    ],
-                  ),
-                  value: _plannerItemDataSource!.filterTypes.contains(
-                    PlannerFilterType.classSchedules.value,
-                  ),
-                  onChanged: (value) {
-                    final currentTypes = List<String>.from(
-                      _plannerItemDataSource!.filterTypes,
-                    );
-                    if (value == true) {
-                      if (!currentTypes.contains(
-                        PlannerFilterType.classSchedules.value,
-                      )) {
-                        currentTypes.add(
-                          PlannerFilterType.classSchedules.value,
-                        );
-                      }
-                    } else {
-                      currentTypes.remove(
-                        PlannerFilterType.classSchedules.value,
-                      );
-                    }
-                    _plannerItemDataSource!.setFilterTypes(currentTypes);
-                    setSheetState(() {});
-                  },
-                  controlAffinity: ListTileControlAffinity.leading,
-                  dense: true,
-                  contentPadding: EdgeInsets.zero,
-                ),
-                HeliumCheckboxListTile(
-                  title: Row(
-                    children: [
-                      Icon(
-                        AppConstants.eventIcon,
-                        size: 18,
-                        color: userSettings.eventsColor,
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        PlannerFilterType.events.value,
-                        style: AppStyles.formText(context),
-                      ),
-                    ],
-                  ),
-                  value: _plannerItemDataSource!.filterTypes.contains(
-                    PlannerFilterType.events.value,
-                  ),
-                  onChanged: (value) {
-                    final currentTypes = List<String>.from(
-                      _plannerItemDataSource!.filterTypes,
-                    );
-                    if (value == true) {
-                      if (!currentTypes.contains(
-                        PlannerFilterType.events.value,
-                      )) {
-                        currentTypes.add(PlannerFilterType.events.value);
-                      }
-                    } else {
-                      currentTypes.remove(PlannerFilterType.events.value);
-                    }
-                    _plannerItemDataSource!.setFilterTypes(currentTypes);
-                    setSheetState(() {});
-                  },
-                  controlAffinity: ListTileControlAffinity.leading,
-                  dense: true,
-                  contentPadding: EdgeInsets.zero,
-                ),
-                HeliumCheckboxListTile(
-                  title: Row(
-                    children: [
-                      _currentView == PlannerView.month &&
-                              Responsive.isMobile(context)
-                          ? const Icon(
-                              AppConstants.externalCalendarIcon,
-                              size: 18,
-                              color: PlannerTypeColors.externalCalendars,
-                            )
-                          : PlannerTypeColors.rainbowIcon(
-                              AppConstants.externalCalendarIcon,
-                            ),
-                      const SizedBox(width: 8),
-                      Text(
-                        PlannerFilterType.externalCalendars.value,
-                        style: AppStyles.formText(context),
-                      ),
-                    ],
-                  ),
-                  value: _plannerItemDataSource!.filterTypes.contains(
-                    PlannerFilterType.externalCalendars.value,
-                  ),
-                  onChanged: (value) {
-                    final currentTypes = List<String>.from(
-                      _plannerItemDataSource!.filterTypes,
-                    );
-                    if (value == true) {
-                      if (!currentTypes.contains(
-                        PlannerFilterType.externalCalendars.value,
-                      )) {
-                        currentTypes.add(
-                          PlannerFilterType.externalCalendars.value,
-                        );
-                      }
-                    } else {
-                      currentTypes.remove(
-                        PlannerFilterType.externalCalendars.value,
-                      );
-                    }
-                    _plannerItemDataSource!.setFilterTypes(currentTypes);
-                    setSheetState(() {});
-                  },
-                  controlAffinity: ListTileControlAffinity.leading,
-                  dense: true,
-                  contentPadding: EdgeInsets.zero,
-                ),
-              ],
-
-              if (_areCourseItemsVisible() && displayCourses.length > 1) ...[
-                const HeliumMenuSectionHeader(title: 'CLASSES'),
-                for (int i = 0; i < displayCourses.length; i++) ...[
-                  if (i > 0 &&
-                      displayCourses[i].courseGroup !=
-                          displayCourses[i - 1].courseGroup)
-                    const Divider(height: 20),
-                  Builder(
-                    builder: (context) {
-                      final course = displayCourses[i];
-                      final isSelected =
-                          _plannerItemDataSource!.selectedCourses[course.id] ??
-                          false;
-                      return HeliumCheckboxListTile(
-                        title: Row(
-                          children: [
-                            Container(
-                              width: 12,
-                              height: 12,
-                              decoration: BoxDecoration(
-                                color: course.color,
-                                shape: BoxShape.circle,
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: Text(
-                                course.title,
-                                style: AppStyles.formText(context),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                          ],
-                        ),
-                        value: isSelected,
-                        onChanged: (value) {
-                          final currentFilters = Map<int, bool>.from(
-                            _plannerItemDataSource!.selectedCourses,
-                          );
-                          if (value == true) {
-                            currentFilters[course.id] = true;
-                          } else {
-                            currentFilters.remove(course.id);
-                          }
-                          _plannerItemDataSource!.setSelectedCourses(
-                            currentFilters,
-                          );
-                          setSheetState(() {});
-                        },
-                        controlAffinity: ListTileControlAffinity.leading,
-                        dense: true,
-                        contentPadding: EdgeInsets.zero,
-                      );
-                    },
-                  ),
-                ],
-              ],
-
-              if (visibleExternalCalendars.isNotEmpty) ...[
-                const HeliumMenuSectionHeader(title: 'EXTERNAL CALENDARS'),
-                ...visibleExternalCalendars.map((calendar) {
-                  return HeliumCheckboxListTile(
-                    title: Row(
-                      children: [
-                        Container(
-                          width: 12,
-                          height: 12,
-                          decoration: BoxDecoration(
-                            color: calendar.color,
-                            shape: BoxShape.circle,
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Text(
-                            calendar.title,
-                            style: AppStyles.formText(context),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                      ],
-                    ),
-                    value: selectedExternalCalendarIds.contains(calendar.id),
-                    onChanged: (value) {
-                      final current = Set<int>.from(
-                        selectedExternalCalendarIds,
-                      );
-                      if (value == true) {
-                        current.add(calendar.id);
-                      } else {
-                        current.remove(calendar.id);
-                      }
-                      _plannerItemDataSource!.setSelectedExternalCalendarIds(
-                        current,
-                      );
-                      setSheetState(() {});
-                    },
-                    controlAffinity: ListTileControlAffinity.leading,
-                    dense: true,
-                    contentPadding: EdgeInsets.zero,
-                  );
-                }),
-              ],
-
-              if (_areAssignmentsVisible()) ...[
-                const HeliumMenuSectionHeader(title: 'STATUS'),
-                _CheckboxToggle(
-                  isChecked: isCompleteFilterEnabled,
-                  isToggleOn: showCompletedOnly,
-                  baseLabel: PlannerFilterStatus.complete.value,
-                  toggleOnLabel: PlannerFilterStatus.complete.value,
-                  toggleOffLabel: PlannerFilterStatus.incomplete.value,
-                  onCheckedChanged: (value) {
-                    setCompleteFilterMode(
-                      enabled: value ?? false,
-                      // Default to complete-only when enabling via checkbox.
-                      completeOnly: true,
-                    );
-                  },
-                  onToggleChanged: (value) {
-                    setCompleteFilterMode(enabled: true, completeOnly: value);
-                  },
-                  onToggleTapWhenDisabled: () {
-                    setCompleteFilterMode(
-                      enabled: true,
-                      // If switch is tapped first, enable and show complete-only.
-                      completeOnly: true,
-                    );
-                  },
-                ),
-                _CheckboxToggle(
-                  isChecked: isGradedFilterEnabled,
-                  isToggleOn: showGradedOnly,
-                  baseLabel: PlannerFilterStatus.graded.value,
-                  toggleOnLabel: PlannerFilterStatus.graded.value,
-                  toggleOffLabel: PlannerFilterStatus.ungraded.value,
-                  onCheckedChanged: (value) {
-                    setGradedFilterMode(
-                      enabled: value ?? false,
-                      // Default to graded-only when enabling via checkbox.
-                      gradedOnly: true,
-                    );
-                  },
-                  onToggleChanged: (value) {
-                    setGradedFilterMode(enabled: true, gradedOnly: value);
-                  },
-                  onToggleTapWhenDisabled: () {
-                    setGradedFilterMode(
-                      enabled: true,
-                      // If switch is tapped first, enable and show graded-only.
-                      gradedOnly: true,
-                    );
-                  },
-                ),
-                buildStatusTile(PlannerFilterStatus.overdue.value),
-              ],
-
-              if (visibleCategories.length > 1 && _areAssignmentsVisible()) ...[
-                const HeliumMenuSectionHeader(title: 'CATEGORIES'),
-                ...visibleCategories.map((category) {
-                  return HeliumCheckboxListTile(
-                    title: Text(
-                      category.title,
-                      style: AppStyles.formText(context),
-                    ),
-                    value: _plannerItemDataSource!.filterCategories.contains(
-                      category.title,
-                    ),
-                    onChanged: (value) {
-                      final currentCategories = List<String>.from(
-                        _plannerItemDataSource!.filterCategories,
-                      );
-                      if (value == true) {
-                        if (!currentCategories.contains(category.title)) {
-                          currentCategories.add(category.title);
-                        }
-                      } else {
-                        currentCategories.remove(category.title);
-                      }
-                      _plannerItemDataSource!.setFilterCategories(
-                        currentCategories,
-                      );
-                      setSheetState(() {});
-                    },
-                    controlAffinity: ListTileControlAffinity.leading,
-                    dense: true,
-                    contentPadding: EdgeInsets.zero,
-                  );
-                }),
-              ],
-            ],
-          ),
-        ),
-      );
-    }
-
     showHeliumMenu(
       context: context,
       anchorContext: context,
-      builder: buildContent,
+      builder: (context, setSheetState) => PlannerFilterMenuContent(
+        plannerItemDataSource: _plannerItemDataSource,
+        currentView: _currentView,
+        userSettings: userSettings,
+        displayCourses: displayCourses,
+        isMobile: isMobile,
+        deduplicatedCategories: _deduplicatedCategories,
+        categoriesMap: _categoriesMap,
+        externalCalendarsById: _externalCalendarsById,
+        setSheetState: setSheetState,
+      ),
     );
   }
 
@@ -4708,522 +2829,4 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
     );
   }
 
-  Widget _buildCalendarItemTitle(
-    PlannerItemBaseModel plannerItem, {
-    required bool isInAgenda,
-    bool? completedOverride,
-    required Color backgroundColor,
-  }) {
-    Widget buildTitle(bool isCompleted) {
-      final foregroundColor = backgroundColor.contrasting;
-      final baseStyle = isInAgenda
-          ? AppStyles.smallSecondaryTextLight(context)
-          : AppStyles.calendarItemText(context);
-      final titleStyle = baseStyle.copyWith(
-        color: foregroundColor,
-        decoration: isCompleted
-            ? TextDecoration.lineThrough
-            : TextDecoration.none,
-        decorationColor: foregroundColor,
-      );
-
-      return Text(
-        isInAgenda
-            ? plannerItem.title
-            : plannerItem.title.characters.join('\u200B'),
-        style: titleStyle,
-        maxLines:
-            _currentView == PlannerView.month ||
-                _currentView == PlannerView.agenda
-            ? 1
-            : null,
-        overflow:
-            _currentView == PlannerView.month ||
-                _currentView == PlannerView.agenda
-            ? TextOverflow.ellipsis
-            : null,
-        semanticsLabel: isInAgenda ? null : plannerItem.title,
-      );
-    }
-
-    // For homework, rebuild on data source change so strikethrough stays in
-    // sync with the checkbox under rapid completion toggles.
-    if (plannerItem is HomeworkModel && _plannerItemDataSource != null) {
-      final dataSource = _plannerItemDataSource!;
-      return ListenableBuilder(
-        listenable: dataSource.changeNotifier,
-        builder: (context, _) =>
-            buildTitle(dataSource.isHomeworkCompleted(plannerItem)),
-      );
-    }
-
-    return buildTitle(
-      plannerItem is HomeworkModel
-          ? (completedOverride ?? plannerItem.completed)
-          : false,
-    );
-  }
-
-  bool _isRecurringPlannerItem(PlannerItemBaseModel plannerItem) {
-    return (plannerItem is CourseScheduleEventModel || plannerItem is EventModel || plannerItem is HomeworkModel) &&
-        plannerItem.recurrenceRule != null;
-  }
-
-  Widget _buildRecurringIndicatorIcon({required Color backgroundColor}) {
-    final foregroundColor = backgroundColor.contrasting;
-    return Icon(
-      Icons.repeat,
-      size: 12,
-      color: foregroundColor.withValues(alpha: AppStyles.increasedContrastAlpha(0.75)),
-    );
-  }
-
-  Widget _buildRecurringIndicatorOverlay({
-    required PlannerItemBaseModel plannerItem,
-    required Widget child,
-    required Color backgroundColor,
-  }) {
-    if (!_isRecurringPlannerItem(plannerItem) ||
-        _currentView == PlannerView.agenda ||
-        _currentView == PlannerView.week ||
-        _currentView == PlannerView.day) {
-      return child;
-    }
-
-    return Stack(
-      fit: StackFit.expand,
-      children: [
-        child,
-        Positioned.fill(
-          child: Align(
-            alignment: Alignment.centerRight,
-            child: Padding(
-              padding: const EdgeInsets.only(right: 3),
-              child: IgnorePointer(
-                child: _buildRecurringIndicatorIcon(
-                  backgroundColor: backgroundColor,
-                ),
-              ),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  EdgeInsets _recurringContentPadding(PlannerItemBaseModel plannerItem) {
-    if (!_isRecurringPlannerItem(plannerItem)) {
-      return EdgeInsets.zero;
-    }
-
-    if (_currentView == PlannerView.agenda ||
-        _currentView == PlannerView.week ||
-        _currentView == PlannerView.day) {
-      return EdgeInsets.zero;
-    }
-
-    return const EdgeInsets.only(right: 11);
-  }
-
-  /// With [handlesTaps] false, taps fall through to the enclosing item, which
-  /// routes them, while assistive technologies can still toggle it.
-  Widget _buildCheckboxWidget({
-    required HomeworkModel homework,
-    bool? completedOverride,
-    required Color backgroundColor,
-    bool handlesTaps = true,
-    DateTime? occurrenceDate,
-  }) {
-    final foregroundColor = backgroundColor.contrasting;
-    final primary = context.colorScheme.primary;
-    final onPrimary = context.colorScheme.onPrimary;
-    final dataSource = _plannerItemDataSource;
-
-    Widget buildBox(bool isCompleted) {
-      return Semantics(
-        container: true,
-        checked: isCompleted,
-        label: 'Complete ${homework.title}',
-        onTap: () => _toggleHomeworkCompleted(homework, completedOverride, occurrenceDate),
-        child: SizedBox(
-          width: PlannerHelper.checkboxWidth,
-          height: PlannerHelper.checkboxWidth,
-          child: Transform.scale(
-            scale: AppStyles.calendarItemPrefixScale(context),
-            child: Container(
-              decoration: BoxDecoration(
-                color: isCompleted ? primary : Colors.transparent,
-                border: Border.all(
-                  color: isCompleted
-                      ? primary
-                      : foregroundColor.withValues(alpha: AppStyles.increasedContrastAlpha(0.7)),
-                  width: 2,
-                ),
-                borderRadius: BorderRadius.circular(2),
-              ),
-              child: isCompleted
-                  ? Center(
-                      child: Transform.translate(
-                        offset: const Offset(-1.5, -1.5),
-                        child: Icon(
-                          Icons.check,
-                          size: 17,
-                          weight: 700,
-                          color: onPrimary,
-                        ),
-                      ),
-                    )
-                  : null,
-            ),
-          ),
-        ),
-      );
-    }
-
-    return MouseRegion(
-      key: ValueKey(
-        '${PlannerScreen.plannerItemCheckboxKeyPrefix}${homework.id}',
-      ),
-      cursor: SystemMouseCursors.click,
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        excludeFromSemantics: true,
-        onTap: handlesTaps
-            ? () => _toggleHomeworkCompleted(homework, completedOverride, occurrenceDate)
-            : null,
-        child: dataSource != null
-            ? ListenableBuilder(
-                listenable: dataSource.changeNotifier,
-                builder: (context, _) {
-                  final isCompleted = dataSource.isHomeworkCompleted(homework);
-                  return buildBox(isCompleted);
-                },
-              )
-            : buildBox(completedOverride ?? homework.completed),
-      ),
-    );
-  }
-
-  void _toggleHomeworkCompleted(HomeworkModel homework, bool? completedOverride, DateTime? occurrenceDate) {
-    final current =
-        _plannerItemDataSource?.isHomeworkCompleted(homework) ??
-        completedOverride ??
-        homework.completed;
-    _onToggleCompleted(homework, !current, occurrenceDate: occurrenceDate);
-  }
-
-  Widget _buildPrefixIconWidget(
-    IconData icon, {
-    required Color backgroundColor,
-  }) {
-    final foregroundColor = backgroundColor.contrasting;
-    return SizedBox(
-      width: PlannerHelper.checkboxWidth,
-      height: PlannerHelper.checkboxWidth,
-      child: Transform.scale(
-        scale: AppStyles.calendarItemPrefixScale(context),
-        child: Icon(
-          icon,
-          size: PlannerHelper.checkboxWidth,
-          color: foregroundColor.withValues(alpha: AppStyles.increasedContrastAlpha(0.7)),
-        ),
-      ),
-    );
-  }
-
-  /// Returns an [InlineSpan] for use inside the
-  /// title's [Text.rich]. Returning a [TextSpan] (rather than a [WidgetSpan]
-  /// holding a [Text]) lets the paragraph ellipsizer truncate the time
-  /// character-by-character when space is tight, instead of dropping the
-  /// entire placeholder and collapsing the line to "...".
-  InlineSpan _buildCalendarItemTimeSpan(
-    PlannerItemBaseModel plannerItem, {
-    required Color backgroundColor,
-  }) {
-    final foregroundColor = backgroundColor.contrasting;
-    final timeStyle = AppStyles.calendarItemTextLight(
-      context,
-    ).copyWith(color: foregroundColor.withValues(alpha: AppStyles.increasedContrastAlpha(0.7)));
-    final timeSpan = TextSpan(
-      text: HeliumDateTime.formatTime(
-        HeliumDateTime.toLocal(
-          plannerItem.start,
-          userSettings.timeZone,
-        ),
-      ),
-      semanticsLabel: '',
-      style: timeStyle,
-    );
-
-    if (!_shouldShowRecurringIconWithTime(plannerItem, isInAgenda: false)) {
-      return timeSpan;
-    }
-
-    return TextSpan(
-      children: [
-        WidgetSpan(
-          alignment: PlaceholderAlignment.middle,
-          child: _buildRecurringTimePrefixIcon(
-            backgroundColor: backgroundColor,
-          ),
-        ),
-        const TextSpan(text: ' ', semanticsLabel: ''),
-        timeSpan,
-      ],
-    );
-  }
-
-  Widget _buildCalendarItemTimeBelowTitleRow(
-    PlannerItemBaseModel plannerItem, {
-    bool isInAgenda = false,
-    required Color backgroundColor,
-  }) {
-    final foregroundColor = backgroundColor.contrasting;
-    return Row(
-      children: [
-        if (_shouldShowRecurringIconWithTime(
-          plannerItem,
-          isInAgenda: isInAgenda,
-        )) ...[
-          _buildRecurringTimePrefixIcon(backgroundColor: backgroundColor),
-          const SizedBox(width: 2),
-        ],
-        Expanded(
-          child: Text(
-            HeliumDateTime.formatTimeRange(
-              HeliumDateTime.toLocal(
-                plannerItem.start,
-                userSettings.timeZone,
-              ),
-              HeliumDateTime.toLocal(
-                plannerItem.end,
-                userSettings.timeZone,
-              ),
-              plannerItem.showEndTime,
-            ),
-            style:
-                (isInAgenda
-                        ? AppStyles.smallSecondaryTextLight(context)
-                        : AppStyles.calendarItemTextLight(context))
-                    .copyWith(color: foregroundColor.withValues(alpha: AppStyles.increasedContrastAlpha(0.7))),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-        ),
-      ],
-    );
-  }
-
-  bool _shouldShowRecurringIconWithTime(
-    PlannerItemBaseModel plannerItem, {
-    bool isInAgenda = false,
-  }) {
-    return _isRecurringPlannerItem(plannerItem) &&
-        (isInAgenda ||
-            _currentView == PlannerView.week ||
-            _currentView == PlannerView.day);
-  }
-
-  Widget _buildRecurringTimePrefixIcon({required Color backgroundColor}) {
-    final foregroundColor = backgroundColor.contrasting;
-    return Icon(
-      Icons.repeat,
-      size: _calendarItemIconSize,
-      color: foregroundColor.withValues(alpha: AppStyles.increasedContrastAlpha(0.4)),
-    );
-  }
-
-  Widget _buildCalendarItemOnlineRow({
-    required bool isInAgenda,
-    required Color backgroundColor,
-  }) {
-    return _buildCalendarItemIconRow(
-      Icons.language,
-      'Online',
-      isInAgenda: isInAgenda,
-      backgroundColor: backgroundColor,
-    );
-  }
-
-  Widget _buildCalendarItemLocationRow(
-    String location, {
-    required bool isInAgenda,
-    required Color backgroundColor,
-  }) {
-    return _buildCalendarItemIconRow(
-      Icons.pin_drop_outlined,
-      location,
-      isInAgenda: isInAgenda,
-      backgroundColor: backgroundColor,
-    );
-  }
-
-  /// Drops the icon in items too narrow to hold it, like crowded Week columns.
-  Widget _buildCalendarItemIconRow(
-    IconData icon,
-    String text, {
-    required bool isInAgenda,
-    required Color backgroundColor,
-  }) {
-    final foregroundColor = backgroundColor.contrasting;
-    final label = Text(
-      text,
-      style:
-          (isInAgenda
-                  ? AppStyles.smallSecondaryTextLight(context)
-                  : AppStyles.calendarItemTextLight(context))
-              .copyWith(color: foregroundColor.withValues(alpha: AppStyles.increasedContrastAlpha(0.7))),
-      maxLines: 1,
-      overflow: TextOverflow.ellipsis,
-    );
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        if (constraints.maxWidth <
-            _calendarItemIconSize + _calendarItemIconGap) {
-          return label;
-        }
-        return Row(
-          children: [
-            Icon(
-              icon,
-              size: _calendarItemIconSize,
-              color: foregroundColor.withValues(alpha: AppStyles.increasedContrastAlpha(0.4)),
-            ),
-            const SizedBox(width: _calendarItemIconGap),
-            Expanded(child: label),
-          ],
-        );
-      },
-    );
-  }
-}
-
-class _PlannerTooltipRow {
-  final IconData? icon;
-  final String? text;
-  final Color? color;
-  final Widget? widget;
-
-  const _PlannerTooltipRow.text({
-    required this.icon,
-    required this.text,
-    this.color,
-  }) : widget = null;
-
-  const _PlannerTooltipRow.widget({required this.widget})
-    : icon = null,
-      text = null,
-      color = null;
-}
-
-class _CheckboxToggle extends StatelessWidget {
-  final bool isChecked;
-  final bool isToggleOn;
-  final String baseLabel;
-  final String toggleOnLabel;
-  final String toggleOffLabel;
-  final ValueChanged<bool?> onCheckedChanged;
-  final ValueChanged<bool> onToggleChanged;
-  final VoidCallback onToggleTapWhenDisabled;
-
-  const _CheckboxToggle({
-    required this.isChecked,
-    required this.isToggleOn,
-    required this.baseLabel,
-    required this.toggleOnLabel,
-    required this.toggleOffLabel,
-    required this.onCheckedChanged,
-    required this.onToggleChanged,
-    required this.onToggleTapWhenDisabled,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final label = isChecked
-        ? (isToggleOn ? toggleOnLabel : toggleOffLabel)
-        : baseLabel;
-
-    return HeliumCheckboxListTile(
-      title: Text(label, style: AppStyles.formText(context)),
-      value: isChecked,
-      onChanged: onCheckedChanged,
-      controlAffinity: ListTileControlAffinity.leading,
-      dense: true,
-      contentPadding: EdgeInsets.zero,
-      secondary: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            'Only',
-            style: AppStyles.smallSecondaryTextLight(
-              context,
-            ).copyWith(color: Theme.of(context).colorScheme.onSurface),
-          ),
-          const SizedBox(width: 6),
-          GestureDetector(
-            behavior: HitTestBehavior.opaque,
-            onTap: !isChecked
-                ? () {
-                    Feedback.forTap(context);
-                    onToggleTapWhenDisabled();
-                  }
-                : null,
-            child: Switch(
-              value: isToggleOn,
-              onChanged: isChecked ? onToggleChanged : null,
-              mouseCursor: SystemMouseCursors.click,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _MobileCellBorderPainter extends CustomPainter {
-  const _MobileCellBorderPainter({
-    required this.color,
-    required this.drawBottom,
-  });
-
-  final Color color;
-  final bool drawBottom;
-
-  static const _stroke = 0.5;
-  static const _half = _stroke / 2;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = color
-      ..strokeWidth = _stroke
-      ..strokeCap = StrokeCap.butt;
-
-    // Top: full width.
-    canvas.drawLine(const Offset(0, _half), Offset(size.width, _half), paint);
-
-    // Right: starts at _stroke (just below the top line) to avoid painting
-    // the corner pixel twice, which would double the alpha and create a
-    // visible bright dot at every cell intersection.
-    canvas.drawLine(
-      Offset(size.width - _half, _stroke),
-      Offset(
-        size.width - _half,
-        drawBottom ? size.height - _stroke : size.height,
-      ),
-      paint,
-    );
-
-    if (drawBottom) {
-      canvas.drawLine(
-        Offset(0, size.height - _half),
-        Offset(size.width, size.height - _half),
-        paint,
-      );
-    }
-  }
-
-  @override
-  bool shouldRepaint(_MobileCellBorderPainter old) =>
-      old.color != color || old.drawBottom != drawBottom;
 }

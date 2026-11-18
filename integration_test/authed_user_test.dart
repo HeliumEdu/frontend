@@ -9,6 +9,7 @@ import 'package:heliumapp/presentation/features/auth/controllers/credentials_for
 import 'package:heliumapp/presentation/features/auth/views/login_screen.dart';
 import 'package:heliumapp/presentation/features/planner/controllers/planner_item_form_controller.dart';
 import 'package:heliumapp/presentation/features/planner/views/planner_screen.dart';
+import 'package:heliumapp/presentation/features/planner/widgets/planner_item_calendar_tile.dart';
 import 'package:heliumapp/presentation/features/planner/widgets/todos_data_grid.dart';
 import 'package:heliumapp/presentation/navigation/shell/navigation_shell.dart';
 import 'package:heliumapp/presentation/ui/components/settings_button.dart';
@@ -854,7 +855,7 @@ void main() {
       await tester.pumpAndSettle();
 
       final quiz4CheckboxKey = find.byKey(
-        ValueKey('${PlannerScreen.plannerItemCheckboxKeyPrefix}${quiz4.id}'),
+        ValueKey('${PlannerItemCalendarTile.checkboxKeyPrefix}${quiz4.id}'),
       );
       final quizVisible = await waitForWidget(
         tester,
@@ -1054,7 +1055,7 @@ void main() {
       final checkbox = await _scrollShownCopyIntoView(
         tester,
         find.byKey(
-          ValueKey('${PlannerScreen.plannerItemCheckboxKeyPrefix}${quiz4.id}'),
+          ValueKey('${PlannerItemCalendarTile.checkboxKeyPrefix}${quiz4.id}'),
         ),
       );
 

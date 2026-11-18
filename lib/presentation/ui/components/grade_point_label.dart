@@ -39,7 +39,7 @@ class GradePointLabel extends StatelessWidget {
               '${GradeHelper.gradePointForDisplay(gradePoint!)} GP',
           ].join(' • '),
           style: AppStyles.standardBodyText(context).copyWith(
-            color: context.colorScheme.onSurface.withValues(alpha: 0.6),
+            color: context.colorScheme.onSurface.withValues(alpha: AppStyles.mutedTextAlpha),
           ),
         ),
       ),

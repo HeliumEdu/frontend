@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:heliumapp/config/app_router.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/config/donation_config.dart';
-import 'package:heliumapp/core/whats_new_service.dart';
 import 'package:heliumapp/presentation/navigation/shell/navigation_shell.dart';
 import 'package:heliumapp/presentation/ui/components/helium_elevated_button.dart';
 import 'package:heliumapp/presentation/ui/components/support_helium_card.dart';
@@ -12,9 +11,7 @@ import 'package:heliumapp/utils/responsive_helpers.dart';
 const String whatsNewDismissButtonKey = 'whats_new_dismiss_button';
 
 class _WhatsNewDialogWidget extends StatefulWidget {
-  final int versionSeen;
-
-  const _WhatsNewDialogWidget({required this.versionSeen});
+  const _WhatsNewDialogWidget();
 
   @override
   State<_WhatsNewDialogWidget> createState() => _WhatsNewDialogWidgetState();
@@ -50,52 +47,6 @@ class _WhatsNewDialogWidgetState extends State<_WhatsNewDialogWidget> {
   @override
   Widget build(BuildContext context) {
     final isMobile = Responsive.isMobile(context);
-    final features = [
-      (
-        version: 15,
-        item: _buildFeatureItem(
-          context,
-          icon: Icons.repeat,
-          title: 'Repeating Assignments & Events',
-          description:
-              'Assignments and events can now repeat, so a weekly reading or a monthly meeting only needs adding once',
-        ),
-      ),
-      (
-        version: 14,
-        item: _buildFeatureItem(
-          context,
-          icon: Icons.calculate,
-          title: 'GPA Tracking',
-          description:
-              'Add credits to your classes and pick your school\'s grade scale, then watch your GPA update with every grade',
-        ),
-      ),
-      (
-        version: 13,
-        item: _buildFeatureItem(
-          context,
-          icon: Icons.attach_file,
-          title: 'Class Notes & Resource Attachments',
-          description:
-              'Add a note to any class and attachments to any resource, and see class and resource attachments on each assignment',
-        ),
-      ),
-      (
-        version: 11,
-        item: _buildFeatureItem(
-          context,
-          icon: Icons.tune,
-          title: 'Your Planner, Your Way',
-          description:
-              'Try the new 3-day view, pick your date, time, and number formats under Preferences, and search inside your notes',
-        ),
-      ),
-    ];
-    final unseenFeatures = [
-      for (final feature in features)
-        if (feature.version > widget.versionSeen) feature.item,
-    ];
 
     return AlertDialog(
       insetPadding: isMobile
@@ -137,10 +88,13 @@ class _WhatsNewDialogWidgetState extends State<_WhatsNewDialogWidget> {
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    for (final (index, feature) in unseenFeatures.indexed) ...[
-                      if (index > 0) const SizedBox(height: 12),
-                      feature,
-                    ],
+                    _buildFeatureItem(
+                      context,
+                      icon: Icons.repeat,
+                      title: 'Repeating Assignments & Events',
+                      description:
+                          'Assignments and events can now repeat, so a weekly reading or a monthly meeting only needs adding once',
+                    ),
                     if (showDonationLink) ...[
                       const SizedBox(height: 8),
                       const Divider(),
@@ -160,15 +114,7 @@ class _WhatsNewDialogWidgetState extends State<_WhatsNewDialogWidget> {
           child: HeliumElevatedButton(
             key: const Key(whatsNewDismissButtonKey),
             buttonText: 'Dive In!',
-            onPressed: () async {
-              try {
-                await WhatsNewService().markWhatsNewAsSeen();
-                if (!context.mounted) return;
-                if (Navigator.canPop(context)) {
-                  Navigator.pop(context);
-                }
-              } catch (_) {}
-            },
+            onPressed: () => Navigator.pop(context),
           ),
         ),
       ],
@@ -217,12 +163,11 @@ class _WhatsNewDialogWidgetState extends State<_WhatsNewDialogWidget> {
   }
 }
 
-Future<void> showWhatsNewDialog(BuildContext parentContext, {required int versionSeen}) {
+Future<void> showWhatsNewDialog(BuildContext parentContext) {
   return showDialog(
     context: parentContext,
-    barrierDismissible: false,
     builder: (BuildContext dialogContext) {
-      return _WhatsNewDialogWidget(versionSeen: versionSeen);
+      return const _WhatsNewDialogWidget();
     },
   );
 }

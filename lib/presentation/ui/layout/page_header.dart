@@ -171,10 +171,13 @@ class PageHeader extends StatelessWidget {
                         saveAction?.call();
                       },
                 icon: isLoading
-                    ? const LoadingIndicator(
-                        size: 20,
-                        expanded: false,
-                        strokeWidth: 2.5,
+                    ? Semantics(
+                        label: 'Save',
+                        child: const LoadingIndicator(
+                          size: 20,
+                          expanded: false,
+                          strokeWidth: 2.5,
+                        ),
                       )
                     : Icon(
                         Icons.check,

@@ -18,6 +18,7 @@ import 'package:heliumapp/presentation/core/dialogs/whats_new_dialog.dart';
 import 'package:heliumapp/presentation/features/auth/controllers/credentials_form_controller.dart';
 import 'package:heliumapp/presentation/features/auth/views/login_screen.dart';
 import 'package:heliumapp/presentation/features/planner/views/planner_screen.dart';
+import 'package:heliumapp/presentation/features/planner/widgets/planner_date_navigator.dart';
 import 'package:heliumapp/presentation/ui/layout/page_header.dart';
 import 'package:http/http.dart' as http;
 import 'package:logging/logging.dart';
@@ -696,14 +697,14 @@ Future<void> navigateCalendarToUserTimezone(
   if (monthDiff < 0) {
     for (var i = 0; i < -monthDiff; i++) {
       await tester.tap(
-        find.byKey(const Key(PlannerScreen.calendarPrevButtonKey)),
+        find.byKey(const Key(PlannerDateNavigator.calendarPrevButtonKey)),
       );
       await tester.pumpAndSettle();
     }
   } else if (monthDiff > 0) {
     for (var i = 0; i < monthDiff; i++) {
       await tester.tap(
-        find.byKey(const Key(PlannerScreen.calendarNextButtonKey)),
+        find.byKey(const Key(PlannerDateNavigator.calendarNextButtonKey)),
       );
       await tester.pumpAndSettle();
     }

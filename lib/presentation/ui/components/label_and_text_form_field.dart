@@ -27,8 +27,6 @@ class LabelAndTextFormField extends StatefulWidget {
   final Iterable<String>? autofillHints;
   final Widget? trailingIconButton;
 
-  final Widget? inlineSuffix;
-
   final bool? spellCheck;
 
   const LabelAndTextFormField({
@@ -54,7 +52,6 @@ class LabelAndTextFormField extends StatefulWidget {
     this.fieldKey,
     this.autofillHints,
     this.trailingIconButton,
-    this.inlineSuffix,
   });
 
   @override
@@ -67,7 +64,6 @@ class _LabelAndTextFormFieldState extends State<LabelAndTextFormField> {
   static const _trailingButtonSize = 48.0;
   static const _trailingButtonLabelOffset = 30.0;
   static const _verticalContentPaddingWithAffordance = 15.0;
-  static const _singleLineConstraints = BoxConstraints(minHeight: AppStyles.formFieldInnerHeight);
   static const _iconConstraints = BoxConstraints(
     minWidth: kMinInteractiveDimension,
     minHeight: AppStyles.formFieldInnerHeight,
@@ -102,6 +98,13 @@ class _LabelAndTextFormFieldState extends State<LabelAndTextFormField> {
   }
 
   Widget _buildTextFormField(BuildContext context) {
+    final border = OutlineInputBorder(
+      borderRadius: BorderRadius.circular(_fieldBorderRadius),
+      borderSide: BorderSide(
+        color: context.colorScheme.outline.withValues(alpha: 0.2),
+        width: AppStyles.formFieldBorderWidth,
+      ),
+    );
     final field = TextFormField(
       key: widget.fieldKey,
       initialValue: widget.initialValue,
@@ -132,24 +135,21 @@ class _LabelAndTextFormFieldState extends State<LabelAndTextFormField> {
                 ),
               )
             : null,
-        isDense: widget.maxLines == 1,
-        constraints: widget.maxLines == 1 ? _singleLineConstraints : null,
         prefixIconConstraints: _iconConstraints,
         suffixIconConstraints: _iconConstraints,
         contentPadding: EdgeInsets.symmetric(
           horizontal: _fieldContentPadding,
-          vertical: widget.maxLines > 1
-              ? _verticalContentPaddingWithAffordance
-              : AppStyles.formFieldVerticalPadding(context),
+          vertical: widget.maxLines > 1 ? _verticalContentPaddingWithAffordance : 0,
         ),
         hintText: widget.hintText,
         hintStyle: AppStyles.formHint(context),
-        border: InputBorder.none,
-        enabledBorder: InputBorder.none,
-        focusedBorder: InputBorder.none,
-        disabledBorder: InputBorder.none,
-        errorBorder: InputBorder.none,
-        focusedErrorBorder: InputBorder.none,
+        fillColor: widget.readOnly ? context.colorScheme.surfaceContainerHighest : null,
+        border: border,
+        enabledBorder: border,
+        focusedBorder: border,
+        disabledBorder: border,
+        errorBorder: border,
+        focusedErrorBorder: border,
         suffixIcon: widget.suffixIcon,
         errorText: widget.errorText,
         errorStyle: AppStyles.formErrorStyle(context),
@@ -171,34 +171,7 @@ class _LabelAndTextFormFieldState extends State<LabelAndTextFormField> {
             child: Text(widget.label!, style: AppStyles.formLabel(context)),
           ),
         if (widget.label != null) const SizedBox(height: 9),
-        Container(
-          decoration: BoxDecoration(
-            color: widget.readOnly
-                ? context.colorScheme.surfaceContainerHighest
-                : context.colorScheme.surface,
-            border: Border.all(
-              color: context.colorScheme.outline.withValues(alpha: 0.2),
-            ),
-            borderRadius: BorderRadius.circular(_fieldBorderRadius),
-          ),
-          child: widget.inlineSuffix != null
-              ? Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Expanded(
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(_fieldBorderRadius),
-                        child: _buildTextFormField(context),
-                      ),
-                    ),
-                    widget.inlineSuffix!,
-                  ],
-                )
-              : ClipRRect(
-                  borderRadius: BorderRadius.circular(_fieldBorderRadius),
-                  child: _buildTextFormField(context),
-                ),
-        ),
+        _buildTextFormField(context),
       ],
     );
 

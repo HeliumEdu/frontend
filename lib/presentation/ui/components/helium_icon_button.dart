@@ -77,7 +77,7 @@ class HeliumIconButton extends StatelessWidget {
         icon,
         color: effectiveIconColor,
         size: useSize,
-        semanticLabel: semanticLabel,
+        semanticLabel: semanticLabel ?? (enabled ? null : tooltip),
       ),
       tooltip: enabled ? tooltip : null,
       padding: padding,

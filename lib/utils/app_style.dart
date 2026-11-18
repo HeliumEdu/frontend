@@ -1,5 +1,3 @@
-import 'dart:math' as math;
-
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:heliumapp/config/app_theme.dart';
@@ -28,19 +26,6 @@ extension AppStyles on BuildContext {
 
   /// The height inside a single-line form field's border.
   static const double formFieldInnerHeight = formFieldHeight - 2 * formFieldBorderWidth;
-
-  /// The vertical padding that centers a single-line form field's text in its
-  /// [formFieldHeight].
-  static double formFieldVerticalPadding(BuildContext context) {
-    final line = TextPainter(
-      text: TextSpan(text: '0', style: formText(context)),
-      textDirection: TextDirection.ltr,
-      textScaler: MediaQuery.textScalerOf(context),
-    )..layout();
-    final padding = math.max(0.0, (formFieldInnerHeight - line.height) / 2);
-    line.dispose();
-    return padding;
-  }
 
   // Fallback font for characters missing from the primary family
   static const fallbackFonts = ['Noto Sans'];

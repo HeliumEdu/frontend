@@ -824,7 +824,7 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen> {
                   const SizedBox(width: 4),
                   Expanded(
                     child: SelectableText(
-                      '${HeliumDateTime.formatDate(course.startDate)} to ${HeliumDateTime.formatDate(course.endDate)}',
+                      HeliumDateTime.formatDateRange(course.startDate, course.endDate),
                       style: AppStyles.standardBodyText(context).copyWith(
                         color: context.colorScheme.onSurface.withValues(
                           alpha: 0.5,
@@ -927,13 +927,13 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen> {
             tablet: 16,
             desktop: 16,
           ),
-          color: context.colorScheme.onSurface.withValues(alpha: 0.5),
+          color: context.colorScheme.onSurface.withValues(alpha: AppStyles.mutedIconAlpha),
         ),
         const SizedBox(width: 4),
         Text(
           text,
           style: AppStyles.smallSecondaryText(context).copyWith(
-            color: context.colorScheme.onSurface.withValues(alpha: 0.6),
+            color: context.colorScheme.onSurface.withValues(alpha: AppStyles.mutedTextAlpha),
           ),
         ),
       ],

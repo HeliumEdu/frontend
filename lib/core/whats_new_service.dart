@@ -16,16 +16,16 @@ class WhatsNewService {
 
   final DioClient _dioClient = DioClient();
 
-  Future<int?> staleWhatsNewVersionSeen() async {
+  Future<bool> shouldShowWhatsNew() async {
     try {
       final settings = await _dioClient.getSettings();
-      if (settings == null || settings.whatsNewVersionSeen >= currentWhatsNewVersion) {
-        return null;
+      if (settings == null) {
+        return false;
       }
-      return settings.whatsNewVersionSeen;
+      return settings.whatsNewVersionSeen < currentWhatsNewVersion;
     } catch (e) {
       _log.warning('Failed to evaluate What\'s New visibility: $e');
-      return null;
+      return false;
     }
   }
 

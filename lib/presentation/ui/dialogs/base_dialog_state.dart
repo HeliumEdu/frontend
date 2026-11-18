@@ -8,6 +8,7 @@ import 'package:heliumapp/presentation/ui/feedback/error_container.dart';
 import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
 import 'package:heliumapp/presentation/ui/layout/helium_full_screen_scroll_view.dart';
 import 'package:heliumapp/presentation/ui/layout/page_header.dart';
+import 'package:heliumapp/presentation/ui/layout/reveal_on_mount.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:meta/meta.dart';
@@ -178,15 +179,18 @@ abstract class BaseDialogState<T extends StatefulWidget> extends State<T> {
   }
 
   Widget buildErrorArea() {
-    return Padding(
-      padding: const EdgeInsets.only(top: 12),
-      child: ErrorContainer(
-        text: errorMessage!,
-        onDismiss: () {
-          setState(() {
-            errorMessage = null;
-          });
-        },
+    return RevealOnMount(
+      key: ValueKey(errorMessage),
+      child: Padding(
+        padding: const EdgeInsets.only(top: 12),
+        child: ErrorContainer(
+          text: errorMessage!,
+          onDismiss: () {
+            setState(() {
+              errorMessage = null;
+            });
+          },
+        ),
       ),
     );
   }

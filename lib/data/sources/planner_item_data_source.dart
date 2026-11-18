@@ -426,6 +426,22 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
     return itemsForDay;
   }
 
+  PlannerItemBaseModel? occurrenceOn(PlannerItemBaseModel item, DateTime date) {
+    return getItemsForDay(date).firstWhereOrNull(
+      (candidate) => candidate == item,
+    );
+  }
+
+  /// Meetings [course] has on [date]. Reuses the recurrence expansion, which
+  /// already excludes existing exceptions.
+  int courseMeetingCountOn(CourseModel course, DateTime date) {
+    final items = getItemsForDay(date);
+    return items
+        .whereType<CourseScheduleEventModel>()
+        .where((event) => event.ownerId == '${course.id}')
+        .length;
+  }
+
   @override
   PlannerItemBaseModel? convertAppointmentToObject(
     PlannerItemBaseModel? customData,

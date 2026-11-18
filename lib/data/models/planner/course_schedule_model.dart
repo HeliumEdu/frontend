@@ -187,7 +187,7 @@ class CourseScheduleModel extends BaseModel {
       return null;
     }
     if (startDate != null && endDate != null) {
-      return '${HeliumDateTime.formatDate(startDate!)} to ${HeliumDateTime.formatDate(endDate!)}';
+      return HeliumDateTime.formatDateRange(startDate!, endDate!);
     }
     if (startDate != null) {
       return 'From ${HeliumDateTime.formatDate(startDate!)}';
