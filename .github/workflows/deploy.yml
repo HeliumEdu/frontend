@@ -299,7 +299,7 @@ jobs:
       submit_for_review: ${{ inputs.auto_submit_for_review }}
       ios: ${{ inputs.platforms == 'ios' || inputs.platforms == 'all' }}
       android: ${{ inputs.platforms == 'android' || inputs.platforms == 'all' }}
-      ios_runs_on: '"macos-latest"'
+      ios_runs_on: '"xcode-27"'
       ios_console_url: https://appstoreconnect.apple.com/apps/6758323154/distribution/ios/version/deliverable
       android_console_url: https://play.google.com/console/developers/5225481146664498498/app/4975537823503737498/tracks/production
     secrets:

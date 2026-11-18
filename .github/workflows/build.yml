@@ -144,7 +144,7 @@ jobs:
     name: Build iOS
     if: ${{ github.event_name != 'push' && !(github.event_name == 'workflow_dispatch' && inputs.deploy_web == 'dev') }}
 
-    runs-on: macos-latest
+    runs-on: xcode-27
 
     steps:
       - uses: actions/checkout@v6
@@ -454,7 +454,7 @@ jobs:
     uses: alexdlaird/.github/.github/workflows/flutter-ios-candidate.yml@main
     with:
       app_name: helium-frontend
-      runs_on: '"macos-latest"'
+      runs_on: '"xcode-27"'
       dotenv: ''
       crashlytics: false
     secrets:
