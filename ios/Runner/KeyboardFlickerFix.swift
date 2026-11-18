@@ -1,13 +1,16 @@
-import Foundation
 import UIKit
 
 /// Works around flutter/flutter#180842: moving focus between text fields
 /// dismisses the keyboard and immediately reopens it. Fixed upstream in Flutter
 /// 3.44 — delete this file, and its call in AppDelegate, with that upgrade.
 ///
+/// It keeps the active view first responder when nothing else wants the
+/// keyboard, and defers that view's teardown to `hideTextInput`. Autofill
+/// sessions take the original path; they rely on the client being cleared.
+///
 /// Swizzles `FlutterTextInputPlugin`, so it depends on private engine
-/// internals. Every lookup is gated on `responds(to:)` first: if a future
-/// engine renames one, the flicker returns rather than the app crashing.
+/// internals. Every lookup is checked first: if a future engine renames one,
+/// the flicker returns rather than the app crashing.
 enum KeyboardFlickerFix {
   private typealias VoidMethod = @convention(c) (AnyObject, Selector) -> Void
   private typealias SetClientMethod = @convention(c) (
@@ -56,9 +59,6 @@ enum KeyboardFlickerFix {
     }
   }
 
-  /// Keeps the active view first responder when nothing else wants the
-  /// keyboard, which is what stops the dismiss/reopen cycle. Autofill sessions
-  /// still take the original path — they rely on the client being cleared.
   private static func onClearTextInputClient(_ instance: AnyObject) {
     let autofillContext = value(instance, "autofillContext") as? NSDictionary
     let activeView = value(instance, "activeView") as? UIView
@@ -81,7 +81,6 @@ enum KeyboardFlickerFix {
     setPendingRemoval(instance, true)
   }
 
-  /// Deferred teardown for the views [onClearTextInputClient] left in place.
   private static func onHideTextInput(_ instance: AnyObject) {
     callOriginal(originalHide, instance, hideSelector)
 
@@ -96,8 +95,6 @@ enum KeyboardFlickerFix {
     setPendingRemoval(instance, false)
   }
 
-  /// Mirrors how KVC resolves a key — accessor first, then ivar — so the fix
-  /// is skipped only when the engine genuinely no longer exposes it.
   private static func canRead(_ instance: AnyObject, _ key: String) -> Bool {
     if instance.responds(to: NSSelectorFromString(key)) { return true }
     let cls: AnyClass = type(of: instance)

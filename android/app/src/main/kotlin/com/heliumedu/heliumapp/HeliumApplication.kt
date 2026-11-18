@@ -2,89 +2,54 @@ package com.heliumedu.heliumapp
 
 import android.app.ActivityManager
 import android.app.Application
-import android.content.Context
 import android.os.Build
 
 /**
- * Custom Application class that detects Google Play pre-launch test farm devices.
- *
- * Native crashes bypass Dart-level Sentry filters (sent via captureEnvelope),
- * so we detect test farm devices early and expose a flag to Dart. When Dart
- * sees the flag, it skips Sentry initialization entirely.
+ * Flags Google Play pre-launch test devices and emulators before Dart starts, so Dart can skip initializing Sentry.
+ * Native crash reports are sent by the native SDK and never pass through Dart-level filters.
  */
 class HeliumApplication : Application() {
 
     companion object {
-        /**
-         * True if running on a Google Play pre-launch test farm device.
-         * Checked by Dart before initializing Sentry.
-         */
-        @JvmStatic
+        private const val BYTES_PER_GIGABYTE = 1024L * 1024 * 1024
+
         var isTestFarmDevice: Boolean = false
             private set
     }
 
     override fun onCreate() {
         super.onCreate()
-        isTestFarmDevice = detectTestFarmDevice()
+        isTestFarmDevice = isTestBuild() || isUnderpoweredFlagship()
     }
 
-    /**
-     * Detect emulators, test farm devices, and other non-production environments.
-     *
-     * Detection methods:
-     * 1. OS build/fingerprint signatures (test-keys, sdk, generic, userdebug)
-     * 2. Flagship devices with impossible specs (virtualized/throttled hardware)
-     */
-    private fun detectTestFarmDevice(): Boolean {
-        // Check OS build for test/emulator signatures
-        val osBuild = Build.DISPLAY?.lowercase() ?: ""
-        val fingerprint = Build.FINGERPRINT?.lowercase() ?: ""
+    private fun isTestBuild(): Boolean {
+        val osBuild = Build.DISPLAY.lowercase()
+        val fingerprint = Build.FINGERPRINT.lowercase()
 
-        // Common emulator and test build patterns
-        if (osBuild.contains("sdk_phone") ||
+        return osBuild.contains("sdk_phone") ||
             osBuild.contains("sdk_gphone") ||
             osBuild.contains("test-keys") ||
             osBuild.contains("dev-keys") ||
             osBuild.contains("-userdebug") ||
             fingerprint.contains("sdk_gphone") ||
             fingerprint.contains("emulator") ||
-            fingerprint.contains("test-keys")) {
-            return true
-        }
-
-        // Check for flagship devices with impossible specs
-        val model = Build.MODEL ?: return false
-        val processorCount = Runtime.getRuntime().availableProcessors()
-        val memoryBytes = getDeviceMemoryBytes()
-
-        // OnePlus 8 Pro: real has 8 cores, 8-12 GB RAM
-        // Test farm version: 2 cores, ~4 GB RAM
-        if (model == "IN2025" || model == "OnePlus8Pro") {
-            if (processorCount < 8 || memoryBytes < 7L * 1024 * 1024 * 1024) {
-                return true
-            }
-        }
-
-        // Pixel 6 Pro: real has 8 cores, 12 GB RAM
-        // Test farm version: 4 cores, ~3 GB RAM
-        if (model == "Pixel 6 Pro") {
-            if (processorCount < 8 || memoryBytes < 10L * 1024 * 1024 * 1024) {
-                return true
-            }
-        }
-
-        return false
+            fingerprint.contains("test-keys")
     }
 
-    private fun getDeviceMemoryBytes(): Long {
-        return try {
-            val activityManager = getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
-            val memInfo = ActivityManager.MemoryInfo()
-            activityManager.getMemoryInfo(memInfo)
-            memInfo.totalMem
-        } catch (e: Exception) {
-            0L
+    private fun isUnderpoweredFlagship(): Boolean {
+        val processorCount = Runtime.getRuntime().availableProcessors()
+        val memoryBytes = deviceMemoryBytes()
+
+        return when (Build.MODEL) {
+            "IN2025", "OnePlus8Pro" -> processorCount < 8 || memoryBytes < 7 * BYTES_PER_GIGABYTE
+            "Pixel 6 Pro" -> processorCount < 8 || memoryBytes < 10 * BYTES_PER_GIGABYTE
+            else -> false
         }
+    }
+
+    private fun deviceMemoryBytes(): Long {
+        val memoryInfo = ActivityManager.MemoryInfo()
+        getSystemService(ActivityManager::class.java).getMemoryInfo(memoryInfo)
+        return memoryInfo.totalMem
     }
 }

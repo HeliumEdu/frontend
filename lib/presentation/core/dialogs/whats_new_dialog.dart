@@ -90,6 +90,14 @@ class _WhatsNewDialogWidgetState extends State<_WhatsNewDialogWidget> {
                   children: [
                     _buildFeatureItem(
                       context,
+                      icon: Icons.calculate,
+                      title: 'GPA Tracking',
+                      description:
+                          'Add credits to your classes and pick your school\'s grade scale, then watch your GPA update with every grade',
+                    ),
+                    const SizedBox(height: 12),
+                    _buildFeatureItem(
+                      context,
                       icon: Icons.repeat,
                       title: 'Repeating Assignments & Events',
                       description:

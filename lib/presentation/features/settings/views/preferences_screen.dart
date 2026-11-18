@@ -20,6 +20,7 @@ import 'package:heliumapp/presentation/ui/components/color_selector.dart';
 import 'package:heliumapp/presentation/features/planner/constants/reminder_constants.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/core/base_event.dart';
 import 'package:heliumapp/utils/app_globals.dart';
+import 'package:heliumapp/utils/planner_helper.dart';
 import 'package:heliumapp/utils/platform_behavior.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/color_helpers.dart';
@@ -86,6 +87,7 @@ class PreferencesScreenState extends State<PreferencesScreen> {
   late bool _isShowWeekNumbers;
 
   String? _savedTimeZone;
+  String? _savedDefaultView;
   bool? _hasCourseSchedules;
 
   bool get isChanged => _isChanged;
@@ -487,7 +489,7 @@ class PreferencesScreenState extends State<PreferencesScreen> {
       UpdateProfileEvent(
         request: UpdateSettingsRequestModel(
           timeZone: timeZone,
-          defaultView: defaultView,
+          defaultView: _selectedDefaultView == _savedDefaultView ? null : defaultView,
           weekStartsOn: weekStartsOn,
           showPlannerTooltips: showPlannerTooltips,
           dragAndDropOnMobile: dragAndDropOnMobile,
@@ -631,8 +633,10 @@ class PreferencesScreenState extends State<PreferencesScreen> {
 
   void _populateInitialStateData(UserModel user) {
     final settings = user.settings;
-    _selectedDefaultView =
-        CalendarConstants.defaultViews[settings.defaultView];
+    _selectedDefaultView = CalendarConstants.defaultViews[PlannerHelper.mapHeliumViewToApiView(
+      PlannerHelper.mapApiViewToHeliumView(settings.defaultView),
+    )];
+    _savedDefaultView = _selectedDefaultView;
     _selectedWeekStartsOn =
         CalendarConstants.dayNames[settings.weekStartsOn];
     _selectedTimeZone = settings.timeZone.toString();

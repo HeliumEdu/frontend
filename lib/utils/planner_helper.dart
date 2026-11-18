@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:heliumapp/core/helium_exception.dart';
 import 'package:heliumapp/data/models/auth/user_settings_model.dart';
 import 'package:heliumapp/data/models/notification/notification_model.dart';
 import 'package:heliumapp/data/models/planner/planner_item_base_model.dart';
@@ -217,7 +216,7 @@ class PlannerHelper {
       case 4:
         return PlannerView.agenda;
       default:
-        throw HeliumException(message: '$view is not a valid API view.');
+        return PlannerView.month;
     }
   }
 
