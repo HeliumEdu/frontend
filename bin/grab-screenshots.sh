@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
 # Captures Helium marketing screenshots directly from the booted iOS Simulator
-# or Android Emulator and frames each via fastlane frameit. The plain framed
-# PNG goes to screenshots/framed/ (the device mockups and press kit come from
-# there), and a captioned copy for the store listing (bin/caption-screenshot.sh)
-# goes into the relevant fastlane directory:
+# or Android Emulator and frames each via fastlane frameit. The unframed
+# capture is kept in screenshots/raw/, the plain framed PNG goes to
+# screenshots/framed/ (the device mockups and press kit come from there), and a
+# captioned copy for the store listing (bin/caption-screenshot.sh) goes into the
+# relevant fastlane directory:
 #
 #   ios/fastlane/screenshots/en-US/
 #   android/fastlane/metadata/android/en-US/images/phoneScreenshots/
@@ -37,10 +38,12 @@ IOS_DEST="$REPO/ios/fastlane/screenshots/en-US"
 ANDROID_PHONE_DEST="$REPO/android/fastlane/metadata/android/en-US/images/phoneScreenshots"
 ANDROID_TABLET_DEST="$REPO/android/fastlane/metadata/android/en-US/images/tenInchScreenshots"
 FRAMED_ROOT="$REPO/screenshots/framed"
+RAW_ROOT="$REPO/screenshots/raw"
 WORKDIR=$(mktemp -d)
 
 mkdir -p "$IOS_DEST" "$ANDROID_PHONE_DEST" "$ANDROID_TABLET_DEST" \
-  "$FRAMED_ROOT/ios" "$FRAMED_ROOT/android-phone" "$FRAMED_ROOT/android-tablet"
+  "$FRAMED_ROOT/ios" "$FRAMED_ROOT/android-phone" "$FRAMED_ROOT/android-tablet" \
+  "$RAW_ROOT/ios" "$RAW_ROOT/android-phone" "$RAW_ROOT/android-tablet"
 trap 'stop_device; rm -rf "$WORKDIR"' EXIT
 
 # ─── pre-flight: frameit frames must be downloaded ───────────────────────
@@ -213,7 +216,8 @@ stop_device() {
 # ─── framing ─────────────────────────────────────────────────────────────
 # frameit operates on every .png in cwd, producing <name>_framed.png.
 # Framefile.json forces specific device types so framing works regardless of
-# which fastlane version maps the resolution to which device name.
+# which fastlane version maps the resolution to which device name (the Pixel
+# 5's is also the iPhone 12 mini's).
 write_framefile() {
   # force_device_type pins to the newest frame available in frameit's catalog
   # (14 Pro is the latest; 15 Pro frames have not been released upstream).
@@ -223,19 +227,29 @@ write_framefile() {
     "frame": "BLACK"
   },
   "data": [
-    { "filter": "_iphone", "force_device_type": "iPhone 14 Pro" },
-    { "filter": "_ipad",   "force_device_type": "iPad Pro (12.9-inch) (4th generation)" }
+    { "filter": "_iphone",      "force_device_type": "iPhone 14 Pro" },
+    { "filter": "_ipad",        "force_device_type": "iPad Pro (12.9-inch) (4th generation)" },
+    { "filter": "_pixel-phone", "force_device_type": "Google Pixel 5" }
   ]
 }
 FRAMEFILE
 }
 
-framed_dir_for() {
+device_dir_for() {
   case "$1" in
-    "$IOS_DEST")            echo "$FRAMED_ROOT/ios" ;;
-    "$ANDROID_PHONE_DEST")  echo "$FRAMED_ROOT/android-phone" ;;
-    "$ANDROID_TABLET_DEST") echo "$FRAMED_ROOT/android-tablet" ;;
+    "$IOS_DEST")            echo "ios" ;;
+    "$ANDROID_PHONE_DEST")  echo "android-phone" ;;
+    "$ANDROID_TABLET_DEST") echo "android-tablet" ;;
   esac
+}
+
+# Keeps the unframed capture, so a frame or caption change can be redone from it without capturing again.
+keep_raw() {
+  local raw="$1"
+  local dest="$2"
+  local raw_path
+  raw_path="$RAW_ROOT/$(device_dir_for "$dest")/$(basename "$raw")"
+  copy_if_changed "$raw" "$raw_path" || true
 }
 
 # Keeps the plain framed shot and writes its captioned store copy to dest.
@@ -246,7 +260,7 @@ finish_framed() {
   local name
   name="$(basename "$framed")"
   local framed_dir
-  framed_dir="$(framed_dir_for "$dest")"
+  framed_dir="$FRAMED_ROOT/$(device_dir_for "$dest")"
 
   if copy_if_changed "$framed" "$framed_dir/$name"; then
     echo "  ✓ $framed_dir/$name"
@@ -266,11 +280,14 @@ frame_and_move() {
   local slug="$2"    # e.g. 01-month-view_iphone
   local dest="$3"    # destination dir
   local framed="${slug}_framed.png"
+  local platform=ios
+  [[ "$slug" == *_pixel-phone ]] && platform=android
 
+  keep_raw "$raw" "$dest"
   write_framefile
   (
     cd "$WORKDIR"
-    fastlane frameit >/tmp/frameit.log 2>&1
+    fastlane frameit "$platform" >/tmp/frameit.log 2>&1
   ) || true
 
   if [[ -f "$WORKDIR/$framed" ]]; then
@@ -297,6 +314,7 @@ composite_pixel_tablet() {
   local dest="$3"
   local framed="$WORKDIR/${slug}_framed.png"
 
+  keep_raw "$raw" "$dest"
   if [[ ! -f "$PIXEL_TABLET_FRAME" ]]; then
     echo "  ✗ Pixel Tablet frame missing at $PIXEL_TABLET_FRAME"
     mv "$raw" "$dest/${slug}.png"
