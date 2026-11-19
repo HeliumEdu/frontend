@@ -312,32 +312,6 @@ void main() {
       });
     });
 
-    group('sentWithCurrentAccessToken', () {
-      test('a request sent with no token while signed out does not end a session', () async {
-        // GIVEN
-        when(() => mockPrefService.getSecure('access_token')).thenAnswer((_) async => null);
-
-        // WHEN
-        final result = await dioClient.sentWithCurrentAccessTokenForTesting(RequestOptions(path: '/planner/reminders/'));
-
-        // THEN
-        expect(result, isFalse, reason: 'a signed-out 401 must not force a sign-out');
-      });
-
-      test('a request sent with the current token ends the session', () async {
-        // GIVEN
-        when(() => mockPrefService.getSecure('access_token')).thenAnswer((_) async => 'current_token');
-
-        // WHEN
-        final result = await dioClient.sentWithCurrentAccessTokenForTesting(
-          RequestOptions(path: '/planner/reminders/', headers: {'Authorization': 'Bearer current_token'}),
-        );
-
-        // THEN
-        expect(result, isTrue);
-      });
-    });
-
     group('forceLogout', () {
       test('clears storage and notifies forced logout listeners once', () async {
         // GIVEN

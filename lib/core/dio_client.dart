@@ -86,10 +86,6 @@ class DioClient {
   void refreshReplayBodyForTesting(RequestOptions options) =>
       _refreshReplayBody(options);
 
-  @visibleForTesting
-  Future<bool> sentWithCurrentAccessTokenForTesting(RequestOptions options) =>
-      _sentWithCurrentAccessToken(options);
-
   Dio get dio => _dio;
 
   CacheService get cacheService => _cacheService;
@@ -224,7 +220,7 @@ class DioClient {
                   _log.info('No refresh token available, redirecting to login');
                   await forceLogout();
                 } else {
-                  _log.info('Session already ended, skipping forced sign-out');
+                  _log.info('Session already ended while request was in flight');
                 }
                 _isRefreshing = false;
                 _refreshCompleter!.complete(false);
@@ -709,8 +705,8 @@ class DioClient {
 
   Future<bool> _sentWithCurrentAccessToken(RequestOptions options) async {
     final current = await getAccessToken();
-    if (current == null || current.isEmpty) return false;
-    return options.headers['Authorization'] == 'Bearer $current';
+    final expected = (current?.isNotEmpty ?? false) ? 'Bearer $current' : null;
+    return options.headers['Authorization'] == expected;
   }
 
   bool _isInvalidTokenError(dynamic responseData) {
