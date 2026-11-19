@@ -1,4 +1,5 @@
 import 'package:heliumapp/core/api_error_parser.dart';
+import 'package:heliumapp/core/oauth_sign_in_service.dart';
 import 'package:heliumapp/data/models/auth/api_token_model.dart';
 import 'package:heliumapp/data/models/auth/oauth_authorization_model.dart';
 import 'package:heliumapp/data/models/auth/user_model.dart';
@@ -40,9 +41,13 @@ class AuthAccountInactive extends AuthState {
 }
 
 class AuthLoggedIn extends AuthState {
-  final String? linkedProvider;
+  final List<String> linkedProviders;
+  final List<String> notLinkedProviders;
 
-  AuthLoggedIn({this.linkedProvider});
+  AuthLoggedIn({
+    this.linkedProviders = const [],
+    this.notLinkedProviders = const [],
+  });
 }
 
 class AuthLoggedOut extends AuthState {}
@@ -66,6 +71,13 @@ class AuthApiTokenRevoked extends AuthState {
   final UserModel user;
 
   AuthApiTokenRevoked({required this.user});
+}
+
+class AuthOAuthProviderRemoved extends AuthState {
+  final OAuthProvider provider;
+  final UserModel user;
+
+  AuthOAuthProviderRemoved({required this.provider, required this.user});
 }
 
 class AuthEmailChangeRequested extends AuthState {

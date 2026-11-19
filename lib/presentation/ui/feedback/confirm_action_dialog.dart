@@ -10,7 +10,7 @@ enum ConfirmActionStyle { destructive, warning, neutral }
 /// Asks the user to confirm an action. Resolves true only when they do.
 ///
 /// [style] colors the action button; [icon], when given, leads the title in
-/// the same color.
+/// the same color. When not [dismissible], only the two buttons close it.
 Future<bool> showConfirmActionDialog({
   required BuildContext context,
   required String title,
@@ -19,39 +19,47 @@ Future<bool> showConfirmActionDialog({
   String cancelText = 'Cancel',
   IconData? icon,
   ConfirmActionStyle style = ConfirmActionStyle.destructive,
+  bool dismissible = true,
 }) async {
   final confirmed = await showDialog<bool>(
     context: context,
-    builder: (dialogContext) => AlertDialog(
-      title: _buildTitle(dialogContext, title, icon, style),
-      content: SizedBox(
-        width: Responsive.getDialogWidth(dialogContext),
-        child: Text(message, style: AppStyles.standardBodyText(dialogContext)),
-      ),
-      actions: [
-        SizedBox(
+    barrierDismissible: dismissible,
+    builder: (dialogContext) => PopScope(
+      canPop: dismissible,
+      child: AlertDialog(
+        title: _buildTitle(dialogContext, title, icon, style),
+        content: SizedBox(
           width: Responsive.getDialogWidth(dialogContext),
-          child: Row(
-            children: [
-              Expanded(
-                child: HeliumElevatedButton(
-                  buttonText: cancelText,
-                  backgroundColor: dialogContext.colorScheme.outline,
-                  onPressed: () => Navigator.of(dialogContext).pop(false),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: HeliumElevatedButton(
-                  buttonText: actionText,
-                  backgroundColor: _styleColor(dialogContext, style),
-                  onPressed: () => Navigator.of(dialogContext).pop(true),
-                ),
-              ),
-            ],
+          child: Text(
+            message,
+            style: AppStyles.standardBodyText(dialogContext),
           ),
         ),
-      ],
+        actions: [
+          SizedBox(
+            width: Responsive.getDialogWidth(dialogContext),
+            child: Row(
+              children: [
+                Expanded(
+                  child: HeliumElevatedButton(
+                    buttonText: cancelText,
+                    backgroundColor: dialogContext.colorScheme.outline,
+                    onPressed: () => Navigator.of(dialogContext).pop(false),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: HeliumElevatedButton(
+                    buttonText: actionText,
+                    backgroundColor: _styleColor(dialogContext, style),
+                    onPressed: () => Navigator.of(dialogContext).pop(true),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     ),
   );
   return confirmed ?? false;

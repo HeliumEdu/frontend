@@ -15,6 +15,7 @@ import 'package:heliumapp/data/models/auth/request/delete_account_request_model.
 import 'package:heliumapp/data/models/auth/request/forgot_password_request_model.dart';
 import 'package:heliumapp/data/models/auth/request/refresh_token_request_model.dart';
 import 'package:heliumapp/data/models/auth/request/reset_password_request_model.dart';
+import 'package:heliumapp/data/models/auth/token_response_model.dart';
 import 'package:heliumapp/data/models/auth/user_model.dart';
 import 'package:heliumapp/domain/repositories/auth_repository.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_event.dart';
@@ -30,9 +31,14 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
   final AuthRepository authRepository;
   final DioClient dioClient;
+  final OAuthSignInService _oauthSignInService;
 
-  AuthBloc({required this.authRepository, required this.dioClient})
-    : super(AuthInitial()) {
+  AuthBloc({
+    required this.authRepository,
+    required this.dioClient,
+    OAuthSignInService? oauthSignInService,
+  }) : _oauthSignInService = oauthSignInService ?? OAuthSignInService(),
+       super(AuthInitial()) {
     dioClient.addForcedLogoutListener(_onForcedLogoutSignal);
 
     on<RegisterEvent>(_onRegister);
@@ -53,6 +59,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<DisablePrivateFeedsEvent>(_onDisablePrivateFeeds);
     on<CreateApiTokenEvent>(_onCreateApiToken);
     on<RevokeApiTokenEvent>(_onRevokeApiToken);
+    on<RemoveOAuthProviderEvent>(_onRemoveOAuthProvider);
     on<ChangePasswordEvent>(_onChangePassword);
     on<ChangeEmailEvent>(_onChangeEmail);
     on<ForgotPasswordEvent>(_onForgotPassword);
@@ -283,7 +290,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   Future<void> _onOAuthLogin(
     String provider,
     Future<String?> Function() signInMethod,
-    Future<void> Function(String) backendLogin,
+    Future<TokenResponseModel> Function(String) backendLogin,
+    RelinkProviderPrompt onRelinkProvider,
     Emitter<AuthState> emit,
   ) async {
     emit(AuthLoading());
@@ -302,12 +310,27 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       _log.info('Firebase ID token obtained, authenticating with backend');
 
       // Send Firebase ID token to backend and get JWT tokens
-      await backendLogin(firebaseIdToken);
+      final loginResponse = await backendLogin(firebaseIdToken);
 
       _log.info('$provider Sign-In successful');
+
+      final linkedProviders = [?_oauthSignInService.takeLinkedProvider()];
+      final notLinkedProviders = <String>[];
+      for (final name in loginResponse.unlinkedProviders) {
+        final unlinked = OAuthProvider.values.asNameMap()[name];
+        if (unlinked == null) continue;
+
+        if (await _relinkProvider(unlinked, onRelinkProvider)) {
+          linkedProviders.add(unlinked.label);
+        } else {
+          notLinkedProviders.add(unlinked.label);
+        }
+      }
+
       emit(
         AuthLoggedIn(
-          linkedProvider: OAuthSignInService().takeLinkedProvider(),
+          linkedProviders: linkedProviders,
+          notLinkedProviders: notLinkedProviders,
         ),
       );
     } on HeliumException catch (e) {
@@ -327,17 +350,41 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     }
   }
 
+  Future<bool> _relinkProvider(
+    OAuthProvider provider,
+    RelinkProviderPrompt onRelinkProvider,
+  ) async {
+    if (!await onRelinkProvider(provider.label)) {
+      _log.info('${provider.label} re-link declined');
+      return false;
+    }
+
+    final firebaseIdToken = await _oauthSignInService.linkProvider(provider);
+    if (firebaseIdToken == null) return false;
+
+    try {
+      await authRepository.syncOAuthProviders(firebaseIdToken);
+    } on HeliumException catch (e) {
+      _log.warning(
+        '${provider.label} linked, but the sync failed: ${e.runtimeType} '
+        'code=${e.code}; it syncs at the next sign-in',
+      );
+    }
+
+    return true;
+  }
+
   Future<void> _onGoogleLogin(
     GoogleLoginEvent event,
     Emitter<AuthState> emit,
   ) async {
-    final oauthSignInService = OAuthSignInService();
     await _onOAuthLogin(
       'Google',
-      () => oauthSignInService.signInWithGoogle(
+      () => _oauthSignInService.signInWithGoogle(
         onChooseAccount: event.onChooseAccount,
       ),
       authRepository.loginWithGoogle,
+      event.onRelinkProvider,
       emit,
     );
   }
@@ -346,11 +393,11 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     AppleLoginEvent event,
     Emitter<AuthState> emit,
   ) async {
-    final oauthSignInService = OAuthSignInService();
     await _onOAuthLogin(
       'Apple',
-      oauthSignInService.signInWithApple,
+      _oauthSignInService.signInWithApple,
       authRepository.loginWithApple,
+      event.onRelinkProvider,
       emit,
     );
   }
@@ -359,11 +406,11 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     MicrosoftLoginEvent event,
     Emitter<AuthState> emit,
   ) async {
-    final oauthSignInService = OAuthSignInService();
     await _onOAuthLogin(
       'Microsoft',
-      oauthSignInService.signInWithMicrosoft,
+      _oauthSignInService.signInWithMicrosoft,
       authRepository.loginWithMicrosoft,
+      event.onRelinkProvider,
       emit,
     );
   }
@@ -596,6 +643,34 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       final user = await authRepository.getUser();
 
       emit(AuthApiTokenRevoked(user: user));
+    } on HeliumException catch (e) {
+      emit(AuthError(
+        message: e.displayMessage,
+        code: e.code,
+        httpStatusCode: e.httpStatusCode,
+        parsedError: e.parsedError,
+      ));
+    } catch (e) {
+      emit(AuthError(message: HeliumException.unexpectedError));
+    }
+  }
+
+  Future<void> _onRemoveOAuthProvider(
+    RemoveOAuthProviderEvent event,
+    Emitter<AuthState> emit,
+  ) async {
+    emit(AuthLoading());
+
+    try {
+      await authRepository.removeOAuthProvider(event.provider.name);
+      final lastOAuthProviderStore = LastOAuthProviderStore();
+      if (await lastOAuthProviderStore.getLastUsedProvider() ==
+          event.provider.name) {
+        await lastOAuthProviderStore.clearLastUsedProvider();
+      }
+      final user = await authRepository.getUser();
+
+      emit(AuthOAuthProviderRemoved(provider: event.provider, user: user));
     } on HeliumException catch (e) {
       emit(AuthError(
         message: e.displayMessage,

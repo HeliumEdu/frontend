@@ -56,6 +56,10 @@ abstract class AuthRepository {
 
   Future<void> revokeApiToken();
 
+  Future<void> syncOAuthProviders(String firebaseIdToken);
+
+  Future<void> removeOAuthProvider(String provider);
+
   Future<NoContentResponseModel> forgotPassword(
     ForgotPasswordRequestModel request,
   );

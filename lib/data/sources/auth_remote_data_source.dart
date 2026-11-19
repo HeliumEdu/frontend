@@ -55,6 +55,10 @@ abstract class AuthRemoteDataSource extends BaseDataSource {
 
   Future<void> revokeApiToken();
 
+  Future<void> syncOAuthProviders(String firebaseIdToken);
+
+  Future<void> removeOAuthProvider(String provider);
+
   Future<UserModel> getUser();
 
   Future<NoContentResponseModel> deleteAccount(
@@ -477,6 +481,51 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
         throw unexpectedStatus(response, 'Failed to revoke API token.');
       }
       unawaited(AnalyticsService().logEvent(name: AnalyticsEvent.apiTokenRevoke, parameters: {'category': AnalyticsCategory.featureInteraction.value}));
+    } on DioException catch (e, s) {
+      throw handleDioError(e, s);
+    } on HeliumException {
+      rethrow;
+    } catch (e, s) {
+      _log.severe('An unexpected error occurred', e, s);
+      throw HeliumException(message: HeliumException.unexpectedError);
+    }
+  }
+
+  @override
+  Future<void> syncOAuthProviders(String firebaseIdToken) async {
+    try {
+      final response = await dioClient.dio.post(
+        ApiUrl.authUserOAuthProvidersSyncUrl,
+        data: {'id_token': firebaseIdToken},
+      );
+
+      if (response.statusCode != 204) {
+        throw unexpectedStatus(response, 'Failed to sync sign-in methods.');
+      }
+      _log.info('OAuth providers synced');
+    } on DioException catch (e, s) {
+      throw handleDioError(e, s);
+    } on HeliumException {
+      rethrow;
+    } catch (e, s) {
+      _log.severe('An unexpected error occurred', e, s);
+      throw HeliumException(message: HeliumException.unexpectedError);
+    }
+  }
+
+  @override
+  Future<void> removeOAuthProvider(String provider) async {
+    try {
+      _log.info('Removing OAuth provider $provider ...');
+
+      final response = await dioClient.dio.delete(
+        ApiUrl.authUserOAuthProviderDetailUrl(provider),
+      );
+
+      if (response.statusCode != 204) {
+        throw unexpectedStatus(response, 'Failed to remove sign-in method.');
+      }
+      _log.info('... OAuth provider $provider removed');
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
     } on HeliumException {

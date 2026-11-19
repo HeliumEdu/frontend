@@ -5,6 +5,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:heliumapp/core/fcm_service.dart';
 import 'package:heliumapp/config/pref_service.dart';
 import 'package:heliumapp/core/cache_service.dart';
+import 'package:heliumapp/core/oauth_sign_in_service.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -28,3 +29,5 @@ class MockFlutterLocalNotificationsPlugin extends Mock
     implements FlutterLocalNotificationsPlugin {}
 
 class MockFcmService extends Mock implements FcmService {}
+
+class MockOAuthSignInService extends Mock implements OAuthSignInService {}

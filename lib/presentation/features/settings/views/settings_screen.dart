@@ -11,6 +11,7 @@ import 'package:heliumapp/config/dirty_dialog_registry.dart';
 import 'package:heliumapp/config/donation_config.dart';
 import 'package:heliumapp/core/helium_exception.dart';
 import 'package:heliumapp/core/motion_service.dart';
+import 'package:heliumapp/core/oauth_sign_in_service.dart';
 import 'package:heliumapp/config/theme_notifier.dart';
 import 'package:heliumapp/data/models/auth/request/update_settings_request_model.dart';
 import 'package:heliumapp/data/models/auth/user_model.dart';
@@ -35,6 +36,7 @@ import 'package:heliumapp/presentation/ui/components/account_email_field.dart';
 import 'package:heliumapp/presentation/ui/components/helium_elevated_button.dart';
 import 'package:heliumapp/presentation/ui/components/helium_icon_button.dart';
 import 'package:heliumapp/presentation/ui/components/label_and_text_form_field.dart';
+import 'package:heliumapp/presentation/ui/components/sign_in_methods_menu.dart';
 import 'package:heliumapp/presentation/ui/components/support_helium_card.dart';
 import 'package:heliumapp/presentation/ui/feedback/confirm_action_dialog.dart';
 import 'package:heliumapp/presentation/ui/feedback/confirm_clear_example_data.dart';
@@ -308,6 +310,12 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
             setState(() => _profile = state.user);
           } else if (state is AuthApiTokenRevoked) {
             setState(() => _profile = state.user);
+          } else if (state is AuthOAuthProviderRemoved) {
+            setState(() => _profile = state.user);
+            showSnackBar(
+              context,
+              '${state.provider.label} was removed from your account.',
+            );
           } else if (state is AuthEmailChangeRequested ||
               state is AuthEmailChangeCancelled) {
             context.read<AuthBloc>().add(FetchProfileEvent());
@@ -650,6 +658,11 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
               AccountEmailField(
                 email: profile.email,
                 oauthProviders: profile.oauthProviders,
+                onManageProviders:
+                    profile.hasUsablePassword ||
+                        profile.oauthProviders.length > 1
+                    ? _openSignInMethodsMenu
+                    : null,
               ),
               if (profile.emailChanging?.isNotEmpty ?? false) ...[
                 const SizedBox(height: 8),
@@ -854,6 +867,31 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
       isSubmitting = true;
     });
     context.read<AuthBloc>().add(DeleteExampleScheduleEvent());
+  }
+
+  void _openSignInMethodsMenu(BuildContext anchorContext) {
+    showSignInMethodsMenu(
+      context,
+      anchorContext: anchorContext,
+      providers: profile.oauthProviders
+          .map((name) => OAuthProvider.values.asNameMap()[name])
+          .nonNulls
+          .toList(),
+      onRemove: _confirmRemoveSignInMethod,
+    );
+  }
+
+  Future<void> _confirmRemoveSignInMethod(OAuthProvider provider) async {
+    final confirmed = await showConfirmActionDialog(
+      context: context,
+      title: 'Remove ${provider.label}?',
+      message:
+          "You won't be able to sign in with ${provider.label} anymore.",
+      actionText: 'Remove',
+    );
+    if (!confirmed || !mounted) return;
+
+    context.read<AuthBloc>().add(RemoveOAuthProviderEvent(provider: provider));
   }
 
   Widget _buildDangerZoneArea() {

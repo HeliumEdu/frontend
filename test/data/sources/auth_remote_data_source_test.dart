@@ -287,6 +287,43 @@ void main() {
       });
     });
 
+    group('syncOAuthProviders', () {
+      test('posts the Firebase ID token', () async {
+        // GIVEN
+        when(
+          () => mockDio.post(any(), data: any(named: 'data')),
+        ).thenAnswer((_) async => givenSuccessResponse(null, statusCode: 204));
+
+        // WHEN
+        await dataSource.syncOAuthProviders('firebase-id-token');
+
+        // THEN
+        verify(
+          () => mockDio.post(
+            '/auth/user/oauthproviders/sync/',
+            data: {'id_token': 'firebase-id-token'},
+          ),
+        ).called(1);
+      });
+    });
+
+    group('removeOAuthProvider', () {
+      test('deletes the provider', () async {
+        // GIVEN
+        when(
+          () => mockDio.delete(any()),
+        ).thenAnswer((_) async => givenSuccessResponse(null, statusCode: 204));
+
+        // WHEN
+        await dataSource.removeOAuthProvider('microsoft');
+
+        // THEN
+        verify(
+          () => mockDio.delete('/auth/user/oauthproviders/microsoft/'),
+        ).called(1);
+      });
+    });
+
     group('deleteAccount', () {
       test(
         'returns NoContentResponseModel and clears storage on 204',
